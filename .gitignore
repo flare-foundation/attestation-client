@@ -1,0 +1,37 @@
+### VisualStudioCode template
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Typescript 
+dist
+
+# Testing
+test_logs
+accounts.json
+
+## Build generated
+build/
+bin/
+
+## Node packages etc
+node_modules/
+
+## code coverage files
+coverage.json
+.nyc_output/
+coverage/
+
+## hardhat?
+cache/
+
+## yarn
+yarn-error.log
+
+## Logs
+*.log
+
+## Config in root
+*config.json

@@ -50,7 +50,7 @@ export class Web3BlockSubscription {
       }
       this.currentBlockNumber = blockInfo.number;
 
-      console.log( blockInfo );
+      console.log(blockInfo);
     });
   }
 }

@@ -91,15 +91,7 @@ class DataProvider {
       accountPrivateKey = this.conf.accountPrivateKey as string;
     }
 
-    // rpcUrl from conf
-    if (process.env.RPC_URL !== undefined) {
-      this.conf.rpcUrl = process.env.RPC_URL;
-
-      // rpcUrl from .env if it exsists
-      this.logger.info(`   * Network RPC URL from .env '${this.conf.rpcUrl}'`);
-    } else {
-      this.logger.info(`   * Network RPC URL from conf '${this.conf.rpcUrl}'`);
-    }
+    this.logger.info(`   * Network RPC URL from conf '${this.conf.rpcUrl}'`);
 
     if (accountPrivateKey === "" || accountPrivateKey === undefined) {
       this.logger.info(`   ! ERROR: private key not set`);
@@ -155,8 +147,13 @@ class DataProvider {
       //     bytes32 id
       // );
 
+      //  16 attestation type (bits 0..31)
+      //  32 chain id
+      //  64 block height
+      //  16 utxo
+
       const timeStamp: string = event.returnValues.timestamp;
-      const instruction: string = event.returnValues.instruction;
+      const instruction: string = event.returnValues.instructions;
       const id: string = event.returnValues.id;
 
       const instBN = makeBN(instruction);

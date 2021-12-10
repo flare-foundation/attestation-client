@@ -4,35 +4,40 @@
 // 2) Run the test on local hardhat node network
 //   yarn hardhat test test/StateConnector.ts --network local 
 
-import { expectEvent } from "@openzeppelin/test-helpers";
+import { expectEvent, expectRevert } from "@openzeppelin/test-helpers";
 import { getTestStateConnectorAddress } from "../lib/utils";
+import { StateConnectorInstance } from "../typechain-truffle";
+
+function etherToValue(eth: number) {
+  return web3.utils.toWei(web3.utils.toBN(eth), "ether")
+}
 
 describe("State connector", function () {
-  it("Should submit some attestation request and receive event", async function () {
-    const StateConnector = artifacts.require("StateConnector");
-    const stateConnector = await StateConnector.at(getTestStateConnectorAddress());
-    console.log(stateConnector.address)
+  const StateConnector = artifacts.require("StateConnector");
+  let stateConnector: StateConnectorInstance;
+  beforeEach(async () => {
+    stateConnector = await StateConnector.at(getTestStateConnectorAddress());    
+  });
 
+  it("Should submit some attestation request and receive event", async function () {
     let id = "0x1230000000000000000000000000000000000000000000000000000000000000"
     let instructions = "1";
-
-    let request = await stateConnector.requestAttestations(instructions, id, {
-      value: web3.utils.toWei(
-        web3.utils.toBN(2)
-        ,"ether"
-      )
-    });
-
+    let value = etherToValue(2);
+    let request = await stateConnector.requestAttestations(instructions, id, {value});
     // console.log(request.logs[0])
     //   event AttestationRequest(
     //     uint256 timestamp,
     //     uint256 instructions, 
     //     bytes32 id
     // );
-
     expectEvent(request, "AttestationRequest", {instructions, id});
   });
 
-  // it("Should submit some attestation request and receive event", async function () {  
-  // });
+  it("Should fail submit attestation request if too low value", async function () {  
+    let id = "0x1230000000000000000000000000000000000000000000000000000000000000"
+    let instructions = "1";
+    let value = etherToValue(0);
+    let request = stateConnector.requestAttestations(instructions, id, {value});
+    await expectRevert.unspecified(request);
+  });
 });

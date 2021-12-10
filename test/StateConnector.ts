@@ -1,4 +1,9 @@
-// import { expectEvent } from '@openzeppelin/test-helpers';
+// Instructions:
+// 1) Start the hardhat node and deploy StateConnector contract (use one terminal)
+//   yarn stateconnector
+// 2) Run the test on local hardhat node network
+//   yarn hardhat test test/StateConnector.ts --network local 
+
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { getTestStateConnectorAddress } from "../lib/utils";
 
@@ -10,6 +15,7 @@ describe("State connector", function () {
 
     let id = "0x1230000000000000000000000000000000000000000000000000000000000000"
     let instructions = "1";
+
     let request = await stateConnector.requestAttestations(instructions, id, {
       value: web3.utils.toWei(
         web3.utils.toBN(2)
@@ -25,6 +31,8 @@ describe("State connector", function () {
     // );
 
     expectEvent(request, "AttestationRequest", {instructions, id});
-
   });
+
+  // it("Should submit some attestation request and receive event", async function () {  
+  // });
 });

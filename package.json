@@ -4,6 +4,18 @@
   "repository": "git@gitlab.com:flarenetwork/flare-price-provider.git",
   "author": "flare",
   "license": "MIT",
+  "prettier": {
+      "trailingComma": "es5",
+      "tabWidth": 2,
+      "printWidth": 160,
+      "semi": true,
+      "singleQuote": false
+    },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint-check"
+    }
+  },  
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",
     "@types/glob": "7.1.4",
@@ -20,10 +32,12 @@
     "yargs": "16.2.0"
   },
   "scripts": {
+    "lint": "yarn prettier -w 'lib/**/*.{ts,tsx}' -w 'test/**/*.{ts,tsx}' --config ./package.json",
+    "lint-check": "yarn prettier -c 'lib/**/*.{ts,tsx}' -c 'test/**/*.{ts,tsx}' --config ./package.json",
+    "lint2": "tslint -c tslint.json -p tsconfig.json --fix",
     "artifacts": "ts-node lib/refresh-artifacts.ts",
     "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
     "sync": "yarn artifacts && yarn typechain-web3-v1",
-    "lint": "tslint -c tslint.json -p tsconfig.json --fix",
     "build": "yarn tsc",
     "docker-build": "bash scripts/docker-build.sh",
     "docker-deploy": "bash scripts/docker-deploy.sh",
@@ -41,14 +55,16 @@
     "@types/random-number-csprng": "^1.0.0",
     "@types/web3": "^1.2.2",
     "@types/yargs": "^17.0.3",
-    "tsdx": "^0.14.1",
     "node-fetch": "2.6.1",
     "npm-run-all": "^4.1.5",
+    "prettier": "2.5.1",
     "rimraf": "3.0.2",
     "ts-node": "9.1.1",
     "ts-node-dev": "^1.1.1",
+    "tsdx": "^0.14.1",
     "tslint": "^6.1.3",
     "typechain": "5.1.2",
-    "typescript": "4.4.2"
+    "typescript": "4.4.2",
+    "husky": "^7.0.4"
   }
 }

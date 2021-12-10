@@ -1,38 +1,35 @@
-import { Logger } from 'winston';
+import { Logger } from "winston";
 import { ChainNode } from "./ChainNode";
-import { ChainTransaction } from './ChainTransaction';
-import { ChainType } from './MCC/MCClientSettings';
+import { ChainTransaction } from "./ChainTransaction";
+import { ChainType } from "./MCC/MCClientSettings";
 import { sleepms } from "./Sleep";
 
 export class ChainManager {
+  nodes: Map<ChainType, ChainNode> = new Map<ChainType, ChainNode>();
 
-    nodes: Map<ChainType, ChainNode> = new Map<ChainType, ChainNode>();
+  logger: Logger;
 
-    logger: Logger;
+  constructor(logger: Logger) {
+    this.logger = logger;
+  }
 
-    constructor(logger: Logger)
-    {
-        this.logger=logger;
+  async validateTransaction(chain: ChainType, epoch: number, id: number, transactionHash: string, metadata: any): Promise<ChainTransaction | undefined> {
+    if (!this.nodes.has(chain)) {
+      this.logger.error(`  ! '${chain}: undefined chain'`);
+      //
+      return undefined;
     }
 
-    async validateTransaction(chain: ChainType, epoch: number, id: number, transactionHash: string, metadata: any) : Promise<ChainTransaction | undefined> {
-        if (!this.nodes.has(chain)) {
-            this.logger.error( `  ! '${chain}: undefined chain'` );
-            //
-            return undefined;
-        }
+    return await this.nodes.get(chain)!.validateTransaction(epoch, id, transactionHash, metadata);
+  }
 
-        return await this.nodes.get(chain)!.validateTransaction(epoch, id, transactionHash, metadata);
+  async startProcessing() {
+    while (true) {
+      for (const chain of this.nodes.values()) {
+        chain.update();
+      }
+
+      await sleepms(250);
     }
-
-    async startProcessing() {
-        while (true) {
-            for (const chain of this.nodes.values()) {
-                chain.update();
-            }
-
-            await sleepms(250);
-        }
-    }
-
+  }
 }

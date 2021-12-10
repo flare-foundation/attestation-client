@@ -2,24 +2,23 @@ import { threadId } from "worker_threads";
 import { MCCTransaction } from "./MCCTransaction";
 
 export enum TransactionStatus {
-    Valid = 0,
-    Invalid = 1,
-    Error = 100,
+  Valid = 0,
+  Invalid = 1,
+  Error = 100,
 }
 
 export class MCCTransactionResponse {
+  status: TransactionStatus;
 
-    status: TransactionStatus;
+  txHash: string;
+  tx: MCCTransaction;
 
-    txHash: string;
-    tx: MCCTransaction;
+  metaData: any;
 
-    metaData: any;
-
-    constructor(status: TransactionStatus, txHash: string, tx: MCCTransaction, metaData: any = null) {
-        this.status = status;
-        this.txHash = txHash;
-        this.tx = tx;
-        this.metaData = metaData;
-    }
+  constructor(status: TransactionStatus, txHash: string, tx: MCCTransaction, metaData: any = null) {
+    this.status = status;
+    this.txHash = txHash;
+    this.tx = tx;
+    this.metaData = metaData;
+  }
 }

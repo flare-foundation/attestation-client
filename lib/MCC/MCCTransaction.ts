@@ -1,9 +1,9 @@
 export class MCCTransaction {
-    tx: string;
-    metaData: any;
+  tx: string;
+  metaData: any;
 
-    constructor(tx: string, metaData: any = null) {
-        this.tx = tx;
-        this.metaData = metaData;
-    }
+  constructor(tx: string, metaData: any = null) {
+    this.tx = tx;
+    this.metaData = metaData;
+  }
 }

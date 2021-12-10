@@ -18,7 +18,6 @@ export enum ResultStatus {
 }
 
 export class MCClient {
-
     settings: MCClientSettings;
 
     chainClient!: RPCInterface;
@@ -50,7 +49,7 @@ export class MCClient {
         assert(this.chainClient);
 
         //return await this.chainClient.isHealty()
-        
+
         return ResultStatus.Success;
     }
 
@@ -63,9 +62,8 @@ export class MCClient {
     async getTransaction(transaction: MCCTransaction): Promise<MCCTransactionResponse> {
         assert(this.chainClient);
 
-        const chainResult = await this.chainClient.getTransaction(transaction.tx);
+        sleepms(1000);
 
-        sleepms( 1000 );
 
         const result = new MCCTransactionResponse(TransactionStatus.Valid, "123", transaction, null);
 

@@ -35,3 +35,5 @@ yarn-error.log
 
 ## Config in root
 *config.json
+
+.DS_Store

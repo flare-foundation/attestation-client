@@ -4,6 +4,41 @@
   "repository": "git@gitlab.com:flarenetwork/flare-price-provider.git",
   "author": "flare",
   "license": "MIT",
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "printWidth": 160,
+    "semi": true,
+    "singleQuote": false
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint-check"
+    }
+  },
+  "lint-staged": {
+    "lib/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "lint-check"
+    ]
+  },
+
+  "scripts": {
+    "lint": "yarn prettier -w 'lib/**/*.{ts,tsx}' --config ./package.json",
+    "lint-check": "yarn prettier -c 'lib/**/*.{ts,tsx}' --config ./package.json",
+    "lint2": "tslint -c tslint.json -p tsconfig.json --fix",
+    "artifacts": "ts-node lib/refresh-artifacts.ts",
+    "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
+    "sync": "yarn artifacts && yarn typechain-web3-v1",
+    "build": "yarn tsc",
+    "docker-build": "bash scripts/docker-build.sh",
+    "docker-deploy": "bash scripts/docker-deploy.sh",
+    "prewatch-and-run": "npm-run-all lint typechain-web3-v1",
+    "watch-and-run": "ts-node-dev --notify --respawn -- lib/DataProvider.ts -c configs/config.json",
+    "dev": "DOTENV=DEV yarn watch-and-run",
+    "test": "DOTENV=DEV tsdx test --env=node",
+    "testdebug": "DOTENV=DEV tsdx test --env=node test/AttesterBasic.test.ts"
+  },
+
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",
     "@types/glob": "7.1.4",
@@ -19,20 +54,6 @@
     "winston": "3.3.3",
     "yargs": "16.2.0"
   },
-  "scripts": {
-    "artifacts": "ts-node lib/refresh-artifacts.ts",
-    "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
-    "sync": "yarn artifacts && yarn typechain-web3-v1",
-    "lint": "tslint -c tslint.json -p tsconfig.json --fix",
-    "build": "yarn tsc",
-    "docker-build": "bash scripts/docker-build.sh",
-    "docker-deploy": "bash scripts/docker-deploy.sh",
-    "prewatch-and-run": "npm-run-all lint typechain-web3-v1",
-    "watch-and-run": "ts-node-dev --notify --respawn -- lib/DataProvider.ts -c configs/config.json",
-    "dev": "DOTENV=DEV yarn watch-and-run",
-    "test": "DOTENV=DEV tsdx test --env=node",
-    "testdebug": "DOTENV=DEV tsdx test --env=node test/AttesterBasic.test.ts"
-  },
   "devDependencies": {
     "@typechain/web3-v1": "3.1.0",
     "@types/glob": "7.1.4",
@@ -41,14 +62,17 @@
     "@types/random-number-csprng": "^1.0.0",
     "@types/web3": "^1.2.2",
     "@types/yargs": "^17.0.3",
-    "tsdx": "^0.14.1",
+    "husky": "^7.0.4",
     "node-fetch": "2.6.1",
     "npm-run-all": "^4.1.5",
+    "prettier": "2.5.1",
     "rimraf": "3.0.2",
     "ts-node": "9.1.1",
     "ts-node-dev": "^1.1.1",
+    "tsdx": "^0.14.1",
     "tslint": "^6.1.3",
     "typechain": "5.1.2",
-    "typescript": "4.4.2"
+    "typescript": "4.4.2",
+    "lint-staged": "^12.1.2"
   }
 }

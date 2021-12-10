@@ -26,5 +26,5 @@ export class ChainTransaction {
 
   chainNode: ChainNode | undefined;
 
-  onProcessed: EventProcessed | undefined= undefined;
+  onProcessed: EventProcessed | undefined = undefined;
 }

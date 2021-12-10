@@ -20,7 +20,6 @@ export enum AttestStatus {
 }
 
 export class AttesterEpoch {
-
   logger: Logger;
   status: AttesterEpochStatus = AttesterEpochStatus.collect;
   epochId: number;
@@ -33,7 +32,7 @@ export class AttesterEpoch {
   transactionsProcessed: number = 0;
 
   constructor(epochId: number, logger: Logger) {
-    this.epochId=epochId;
+    this.epochId = epochId;
     this.logger = logger;
     this.status = AttesterEpochStatus.collect;
     this.attestStatus = AttestStatus.collecting;
@@ -44,8 +43,7 @@ export class AttesterEpoch {
     this.logger.info(`  * AttestEpoch #${this.epochId} (1) commit`);
     this.status = AttesterEpochStatus.commit;
 
-    if( this.status===AttesterEpochStatus.commit )
-    {
+    if (this.status === AttesterEpochStatus.commit) {
       this.commit();
     }
   }
@@ -60,28 +58,22 @@ export class AttesterEpoch {
     this.status = AttesterEpochStatus.completed;
   }
 
-  processed(tx: ChainTransaction)
-  {
+  processed(tx: ChainTransaction) {
     this.transactionsProcessed++;
 
-    assert( this.transactionsProcessed<=this.transactions.size);
+    assert(this.transactionsProcessed <= this.transactions.size);
 
-    if( this.transactionsProcessed===this.transactions.size)
-    {
+    if (this.transactionsProcessed === this.transactions.size) {
       this.logger.error(`     * AttestEpoch #${this.epochId} all transactions processed ${this.transactions.size}`);
-      if( this.status===AttesterEpochStatus.commit )
-      {
+      if (this.status === AttesterEpochStatus.commit) {
         this.commit();
       }
-    }
-    else
-    {
+    } else {
       this.logger.error(`     * AttestEpoch #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.transactions.size}`);
     }
   }
 
   async commit() {
-
     if (this.status !== AttesterEpochStatus.commit) {
       this.logger.error(`  ! AttestEpoch #${this.epochId} cannot commit (wrong epoch status ${this.status})`);
       return;
@@ -125,7 +117,6 @@ export class AttesterEpoch {
   }
 
   async reveal() {
-
     if (this.status !== AttesterEpochStatus.reveal) {
       this.logger.error(`  ! AttestEpoch #${this.epochId} cannot reveal (not in reveal epoch status ${this.status})`);
       return;

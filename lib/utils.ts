@@ -1,9 +1,9 @@
-import BN from 'bn.js';
-import { BigNumber, ethers } from 'ethers';
-import * as fs from 'fs';
-import glob from 'glob';
-import Web3 from 'web3';
-import * as winston from 'winston';
+import BN from "bn.js";
+import { BigNumber, ethers } from "ethers";
+import * as fs from "fs";
+import glob from "glob";
+import Web3 from "web3";
+import * as winston from "winston";
 
 export const DECIMALS = 5;
 
@@ -65,26 +65,26 @@ export function getAbi(abiPath: string) {
 }
 
 export async function getWeb3Contract(web3: any, address: string, name: string) {
-    let abiPath = ""
-    try {
-        abiPath = await relativeContractABIPathForContractName(name, "artifacts");
-        return new web3.eth.Contract(getAbi(`artifacts/${abiPath}`), address);
-    } catch(e: any) {
-        abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
-        return new web3.eth.Contract(getAbi(`data/artifacts/${abiPath}`), address);
-    }    
-};
+  let abiPath = "";
+  try {
+    abiPath = await relativeContractABIPathForContractName(name, "artifacts");
+    return new web3.eth.Contract(getAbi(`artifacts/${abiPath}`), address);
+  } catch (e: any) {
+    abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
+    return new web3.eth.Contract(getAbi(`data/artifacts/${abiPath}`), address);
+  }
+}
 
 export async function getContract(provider: any, address: string, name: string) {
-    let abiPath = ""
-        try {
-        abiPath = await relativeContractABIPathForContractName(name, "artifacts");
-        return new ethers.Contract(address, getAbi(`artifacts/${abiPath}`), provider);
-    } catch(e: any) {
-        abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
-        return new ethers.Contract(address, getAbi(`data/artifacts/${abiPath}`), provider);
-    }    
-};
+  let abiPath = "";
+  try {
+    abiPath = await relativeContractABIPathForContractName(name, "artifacts");
+    return new ethers.Contract(address, getAbi(`artifacts/${abiPath}`), provider);
+  } catch (e: any) {
+    abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
+    return new ethers.Contract(address, getAbi(`data/artifacts/${abiPath}`), provider);
+  }
+}
 
 export function getWeb3Wallet(web3: any, privateKey: string) {
   if (privateKey.indexOf("0x") !== 0) {
@@ -177,5 +177,5 @@ export async function getRandom(minnum: number = 0, maxnum: number = 10 ** 5) {
 }
 
 export function getTestStateConnectorAddress() {
-    return fs.readFileSync(".stateconnector-address").toString()
+  return fs.readFileSync(".stateconnector-address").toString();
 }

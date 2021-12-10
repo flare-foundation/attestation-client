@@ -54,9 +54,8 @@ export class Attester {
       return;
     }
 
-    transaction.onProcessed=(tx)=>
-    {
-      this.epoch.get( tx.epochId )!.processed( tx );
+    transaction.onProcessed = (tx) => {
+      this.epoch.get(tx.epochId)!.processed(tx);
     };
 
     activeEpoch.transactions.set(id, transaction!);

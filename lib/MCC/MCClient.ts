@@ -7,66 +7,65 @@ import { MCCTransaction } from "./MCCTransaction";
 import { MCCTransactionResponse, TransactionStatus } from "./MCCTransactionResponse";
 
 export enum ResultStatus {
-    Success = 0,
+  Success = 0,
 
-    Info = 100,
+  Info = 100,
 
-    Warning = 200,
+  Warning = 200,
 
-    Error = 300,
-    NotSupported,
+  Error = 300,
+  NotSupported,
 }
 
 export class MCClient {
-    settings: MCClientSettings;
+  settings: MCClientSettings;
 
-    chainClient!: RPCInterface;
+  chainClient!: RPCInterface;
 
-    constructor(settings: MCClientSettings) {
-        this.settings = settings;
+  constructor(settings: MCClientSettings) {
+    this.settings = settings;
 
-        switch (this.settings.chainType) {
-            case ChainType.XRP:
-                this.chainClient = new MCC.XRP(this.settings.url, this.settings.username, this.settings.password, this.settings.metaData);
-                break;
-            case ChainType.BTC:
-                this.chainClient = new MCC.BTC(this.settings.url, this.settings.username, this.settings.password, this.settings.metaData);
-                break;
-            default:
-                // error
-                break;
-        }
+    switch (this.settings.chainType) {
+      case ChainType.XRP:
+        this.chainClient = new MCC.XRP(this.settings.url, this.settings.username, this.settings.password, this.settings.metaData);
+        break;
+      case ChainType.BTC:
+        this.chainClient = new MCC.BTC(this.settings.url, this.settings.username, this.settings.password, this.settings.metaData);
+        break;
+      default:
+        // error
+        break;
     }
+  }
 
-    async canConnect(): Promise<boolean> {
-        assert(this.chainClient);
+  async canConnect(): Promise<boolean> {
+    assert(this.chainClient);
 
-        // return await this.chainClient.canConnect()
-        return true;
-    }
+    // return await this.chainClient.canConnect()
+    return true;
+  }
 
-    async isHealty(): Promise<ResultStatus> {
-        assert(this.chainClient);
+  async isHealty(): Promise<ResultStatus> {
+    assert(this.chainClient);
 
-        //return await this.chainClient.isHealty()
+    //return await this.chainClient.isHealty()
 
-        return ResultStatus.Success;
-    }
+    return ResultStatus.Success;
+  }
 
-    async getBlockHeight(): Promise<number> {
-        assert(this.chainClient);
+  async getBlockHeight(): Promise<number> {
+    assert(this.chainClient);
 
-        return await this.chainClient.getBlockHeight();
-    }
+    return await this.chainClient.getBlockHeight();
+  }
 
-    async getTransaction(transaction: MCCTransaction): Promise<MCCTransactionResponse> {
-        assert(this.chainClient);
+  async getTransaction(transaction: MCCTransaction): Promise<MCCTransactionResponse> {
+    assert(this.chainClient);
 
-        sleepms(1000);
+    sleepms(1000);
 
+    const result = new MCCTransactionResponse(TransactionStatus.Valid, "123", transaction, null);
 
-        const result = new MCCTransactionResponse(TransactionStatus.Valid, "123", transaction, null);
-
-        return result;
-    }
+    return result;
+  }
 }

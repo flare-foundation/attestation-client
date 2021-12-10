@@ -7,6 +7,17 @@ import * as winston from 'winston';
 
 export const DECIMALS = 5;
 
+
+export function makeBN(value: string|number): BigNumber {
+    try {
+        return BigNumber.from(value);
+    }
+    catch {
+        return BigNumber.from(0);
+    }
+}
+
+
 export function getProvider(rpcLink: string): ethers.providers.Provider {
     return new ethers.providers.JsonRpcProvider(rpcLink);
 }

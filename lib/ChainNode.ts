@@ -29,13 +29,13 @@ export class ChainNode {
         this.maxProcessingTransactions = maxProcessingTransactions;
 
         // create chain client
-        this.client = new MCClient( new MCCNodeSettings( chainType , url , username , password , metadata ) );
+        this.client = new MCClient(new MCCNodeSettings(chainType, url, username, password, metadata));
     }
 
     async isHealthy() {
         const valid = await this.client.isHealty();
 
-        console.log( valid );
+        console.log(valid);
 
         return true;
     }
@@ -60,7 +60,12 @@ export class ChainNode {
         }
     }
 
-    async processTransaction(tx: ChainTransaction) {
+    queueTransaction(tx: ChainTransaction) {
+        tx.status = ChainTransactionStatus.queued;
+        this.transactionsQueue.push(tx);
+    }
+
+    processTransaction(tx: ChainTransaction) {
         this.addRequestCount();
         this.transactionsProcessing.push(tx);
 
@@ -68,16 +73,16 @@ export class ChainNode {
         tx.startTime = getTime();
 
         // start underlying chain client getTransaction
-        this.client.getTransaction( new MCCTransaction(tx.transactionHash,tx.metaData) ).then( (response: MCCTransactionResponse)=>{
+        this.client.getTransaction(new MCCTransaction(tx.transactionHash, tx.metaData)).then((response: MCCTransactionResponse) => {
             tx.status = ChainTransactionStatus.valid;
-        } );
+        });
     }
 
-    canAddTransaction() {
+    canProcessTransaction() {
         return this.canAddRequests() && this.transactionsProcessing.length < this.maxProcessingTransactions;
     }
 
-    validateTransaction(epoch: number, id: number, transactionHash: string, metadata: any) {
+    validateTransaction(epoch: number, id: number, transactionHash: string, metadata: any): ChainTransaction {
         const tx = new ChainTransaction();
         tx.epoch = epoch;
         tx.id = id;
@@ -85,11 +90,12 @@ export class ChainNode {
         tx.transactionHash = transactionHash;
         tx.metaData = metadata;
 
-        if (this.canAddTransaction()) {
+        // check if transaction can be added into processing
+        if (this.canProcessTransaction()) {
             this.processTransaction(tx);
         }
         else {
-            this.transactionsQueue.push(tx);
+            this.queueTransaction(tx);
         }
 
         return tx;
@@ -97,7 +103,7 @@ export class ChainNode {
 
     async update() {
         // push queued transactions into processing
-        while (this.transactionsQueue.length > 0 && this.canAddTransaction()) {
+        while (this.transactionsQueue.length > 0 && this.canProcessTransaction()) {
             const tx = this.transactionsQueue[0];
             this.transactionsQueue.splice(0, 1);
 
@@ -109,7 +115,7 @@ export class ChainNode {
             const tx = this.transactionsProcessing[a];
 
             // check if this transaction is not processing anymore
-            if (tx.status !== ChainTransactionStatus.processing ) {
+            if (tx.status !== ChainTransactionStatus.processing) {
                 this.transactionsProcessing.splice(a--, 1);
                 this.transactionsDone.push(tx);
             }

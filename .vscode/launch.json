@@ -8,7 +8,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch",
+            "name": "Launch dev",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
                 "dev"
@@ -17,18 +17,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch .JS",
-            "runtimeExecutable": "node",
+            "name": "Test",
+            "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "dist/src/server.js"
+                "test"
             ]
         },
-        {
-            "name": "Docker Node.js Launch",
-            "type": "docker",
-            "request": "launch",
-            "preLaunchTask": "docker-run: debug",
-            "platform": "node"
-        }
     ]
 }

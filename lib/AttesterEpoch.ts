@@ -1,8 +1,8 @@
 import { ChainTransaction, ChainTransactionStatus } from "./ChainTransaction";
 import { Hash } from "./Hash";
 import { MerkleTree } from "./MerkleTree";
-import { getRandom } from "./utils";
-
+import { getRandom, makeBN } from "./utils";
+import { BigNumber } from 'ethers';
 
 export class AttesterEpoch {
 
@@ -51,10 +51,10 @@ export class AttesterEpoch {
 
         this.submitAttestation(
             // commit index (collect+1)
-            this.epochId + 1,
-            this.hash ^ this.random,
-            Hash.createHash1(this.random),
-            0);
+            makeBN( this.epochId + 1 ),
+            makeBN( this.hash ).xor( makeBN( this.random ) ),
+            makeBN( Hash.create(this.random.toString()) ),
+            makeBN( 0 ) );
     }
 
     async reveal() {
@@ -64,15 +64,15 @@ export class AttesterEpoch {
 
         this.submitAttestation(
             // commit index (collect+1)
-            this.epochId + 1,
-            0,
-            0,
-            this.random);
+            makeBN( this.epochId + 1 ),
+            makeBN( 0 ),
+            makeBN( 0 ),
+            makeBN( this.random ) );
 
         this.status = 'done';
     }
 
-    submitAttestation(bufferNumber: number, maskedMerkleHash: number, committedRandom: number, revealedRandom: number) {
+    submitAttestation(bufferNumber: BigNumber, maskedMerkleHash: BigNumber, committedRandom: BigNumber, revealedRandom: BigNumber) {
         // todo: submit to network
     }
 

@@ -16,7 +16,7 @@ export class ChainTransaction {
     transactionHash!: string
     metaData!: any;
 
-    status: ChainTransactionStatus = ChainTransactionStatus.queued;
+    status: ChainTransactionStatus = ChainTransactionStatus.invalid;
 
     startTime: number = 0;
     endTime: number = 0;

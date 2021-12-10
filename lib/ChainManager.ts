@@ -1,5 +1,6 @@
 import { Logger } from 'winston';
 import { ChainNode } from "./ChainNode";
+import { ChainTransaction } from './ChainTransaction';
 import { ChainType } from './MCC/MCClientSettings';
 import { sleepms } from "./Sleep";
 
@@ -14,11 +15,11 @@ export class ChainManager {
         this.logger=logger;
     }
 
-    async validateTransaction(chain: ChainType, epoch: number, id: number, transactionHash: string, metadata: any) {
+    async validateTransaction(chain: ChainType, epoch: number, id: number, transactionHash: string, metadata: any) : Promise<ChainTransaction | undefined> {
         if (!this.nodes.has(chain)) {
             this.logger.error( `  ! '${chain}: undefined chain'` );
             //
-            return;
+            return undefined;
         }
 
         return await this.nodes.get(chain)!.validateTransaction(epoch, id, transactionHash, metadata);

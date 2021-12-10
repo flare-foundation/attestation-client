@@ -32,8 +32,8 @@
     "yargs": "16.2.0"
   },
   "scripts": {
-    "lint": "yarn prettier -w 'lib/**/*.{ts,tsx}' -w 'test/**/*.{ts,tsx}' --config ./package.json",
-    "lint-check": "yarn prettier -c 'lib/**/*.{ts,tsx}' -c 'test/**/*.{ts,tsx}' --config ./package.json",
+    "lint": "yarn prettier -w 'lib/**/*.{ts,tsx}' --config ./package.json",
+    "lint-check": "yarn prettier -c 'lib/**/*.{ts,tsx}' --config ./package.json",
     "lint2": "tslint -c tslint.json -p tsconfig.json --fix",
     "artifacts": "ts-node lib/refresh-artifacts.ts",
     "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",

@@ -48,7 +48,8 @@ export class MCClient {
     async isHealty(): Promise<ResultStatus> {
         assert(this.chainClient);
 
-        // return await this.chainClient.isHealty()
+        //return await this.chainClient.isHealty()
+        
         return ResultStatus.Success;
     }
 

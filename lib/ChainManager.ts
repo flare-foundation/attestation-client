@@ -15,14 +15,14 @@ export class ChainManager {
         this.logger=logger;
     }
 
-    async validateTransaction(chain: ChainType, epoch: number, id: number, transactionHash: string, metadata: any) : Promise<ChainTransaction | undefined> {
+    validateTransaction(chain: ChainType, epoch: number, id: number, transactionHash: string, metadata: any) {
         if (!this.nodes.has(chain)) {
             this.logger.error( `  ! '${chain}: undefined chain'` );
             //
-            return undefined;
+            return;
         }
 
-        return await this.nodes.get(chain)!.validateTransaction(epoch, id, transactionHash, metadata);
+        this.nodes.get(chain)!.validateTransaction(epoch, id, transactionHash, metadata);
     }
 
     async startProcessing() {

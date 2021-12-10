@@ -29,8 +29,8 @@ class DataProvider {
     blockSubscription!: Web3BlockSubscription;
     blockCollector!: Web3BlockCollector;
 
-    constructor(conf: DataProviderConfiguration) {
-        this.conf = conf;
+    constructor(configuration: DataProviderConfiguration) {
+        this.conf = configuration;
         this.chainManager = new ChainManager(this.logger);
     }
 
@@ -109,14 +109,14 @@ class DataProvider {
                 continue;
             }
 
-            const node = new ChainNode(this.chainManager, chainType, chain.url, chain.username, chain.password, chain.metaData, chain.maxRequestsPerSecond, chain.maxProcessingTransactions);
+            const node = new ChainNode(this.chainManager, chain.name, chainType, chain.url, chain.username, chain.password, chain.metaData, chain.maxRequestsPerSecond, chain.maxProcessingTransactions);
 
-            this.logger.info(`    * ${chainType} '${chain.url}'`);
+            this.logger.info(`    * ${chain.name}:#${chainType} '${chain.url}'`);
 
             // validate this chain node
             if (!await node.isHealthy()) {
                 // this is just a warning since node can be inaccessible at start and will become healthy later on
-                this.logger.info(`      ! chain ${chain.name} is not healthy`);
+                this.logger.info(`      ! chain ${chain.name}:#${chainType} is not healthy`);
                 continue;
             }
 

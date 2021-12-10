@@ -19,6 +19,7 @@ export class AttesterEpoch {
     random!: number;
 
     async checkCommit() {
+        // todo: check if commit was done
     }
 
     async commit() {

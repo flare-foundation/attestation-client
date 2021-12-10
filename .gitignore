@@ -33,5 +33,6 @@ yarn-error.log
 ## Logs
 *.log
 
-## Config in root
-*config.json
+## Misc
+nul
+.stateconnector-address

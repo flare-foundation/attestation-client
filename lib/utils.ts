@@ -2,6 +2,7 @@ import BN from 'bn.js';
 import { BigNumber, ethers } from 'ethers';
 import * as fs from 'fs';
 import glob from 'glob';
+import { artifacts } from 'hardhat';
 import Web3 from 'web3';
 import * as winston from 'winston';
 
@@ -65,13 +66,25 @@ export function getAbi(abiPath: string) {
 }
 
 export async function getWeb3Contract(web3: any, address: string, name: string) {
-    const abiPath = await relativeContractABIPathForContractName(name);
-    return new web3.eth.Contract(getAbi(`artifacts/${abiPath}`), address);
+    let abiPath = ""
+    try {
+        abiPath = await relativeContractABIPathForContractName(name, "artifacts");
+        return new web3.eth.Contract(getAbi(`artifacts/${abiPath}`), address);
+    } catch(e: any) {
+        abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
+        return new web3.eth.Contract(getAbi(`data/artifacts/${abiPath}`), address);
+    }    
 };
 
 export async function getContract(provider: any, address: string, name: string) {
-    const abiPath = await relativeContractABIPathForContractName(name);
-    return new ethers.Contract(address, getAbi(`artifacts/${abiPath}`), provider);
+    let abiPath = ""
+        try {
+        abiPath = await relativeContractABIPathForContractName(name, "artifacts");
+        return new ethers.Contract(address, getAbi(`artifacts/${abiPath}`), provider);
+    } catch(e: any) {
+        abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
+        return new ethers.Contract(address, getAbi(`data/artifacts/${abiPath}`), provider);
+    }    
 };
 
 export function getWeb3Wallet(web3: any, privateKey: string) {

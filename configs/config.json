@@ -1,0 +1,28 @@
+{
+    "accountPrivateKey": "0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122",
+    "rpcUrl": "http://127.0.0.1:9650/ext/bc/C/rpc",
+    "wsUrl": "wss://127.0.0.1:9650/ext/bc/C/ws",
+    "priceSubmitterContractAddress": "0x1000000000000000000000000000000000000003",
+    "submitOffset": 165000,
+    "revealOffset": 8000,
+    "whitelist": false,
+    "trusted": true,
+    "gasPrice": "3000000000000",
+    "chains": [
+        {
+            "name": "XRP",
+            "url": "http://s1.ripple.com:51234/",
+            "username": "",
+            "password": ""
+        },
+        {
+            "name": "BTC",
+            "url": "http://s1.bitcoin.com:51234/",
+            "username": "111",
+            "password": "222",
+            "metaData": {
+                "requiredBlocks" : 6
+            }
+        }
+    ]
+}

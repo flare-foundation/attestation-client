@@ -23,7 +23,7 @@ export class MCCNodeSettings {
   static getChainType(type: string): ChainType {
     const typeUpper = type.toUpperCase();
     if (typeUpper === "XRP") return ChainType.XRP;
-    if (typeUpper === "BTC") return ChainType.BTC
+    if (typeUpper === "BTC") return ChainType.BTC;
 
     return ChainType.invalid;
   }

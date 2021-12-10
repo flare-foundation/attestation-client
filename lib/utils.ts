@@ -15,15 +15,12 @@ export function makeBN(value: string | number): BigNumber {
   }
 }
 
-
-export function arrayRemoveElement(array: Array<any>, element: any)
-{
-    const index =array.indexOf(element, 0);
-    if (index > -1) {
-       array.splice(index, 1);
-    }    
+export function arrayRemoveElement(array: Array<any>, element: any) {
+  const index = array.indexOf(element, 0);
+  if (index > -1) {
+    array.splice(index, 1);
+  }
 }
-
 
 export function getProvider(rpcLink: string): ethers.providers.Provider {
   return new ethers.providers.JsonRpcProvider(rpcLink);

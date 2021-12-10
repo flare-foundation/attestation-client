@@ -5,6 +5,11 @@ import { DataProviderChain } from '../DataProviderChain';
 import { ChainType, MCCNodeSettings } from '../MCC/MCClientSettings';
 import { getLogger } from '../utils';
 
+// todo:
+// test per second limiter
+// test queue limiter
+// ...
+
 
 describe('Attester Basic Tests', () => {
     describe('General functionalities', ()=>{
@@ -12,7 +17,7 @@ describe('Attester Basic Tests', () => {
 
             const chainManager = new ChainManager(getLogger());
 
-            const chain = new ChainNode( chainManager , "XRP" , ChainType.XRP , "http://s1.ripple.com:1151234/" , "" , "" , "" );
+            const chain = new ChainNode( chainManager , "XRP" , ChainType.XRP , "http://s1.ripple.com:1151234/" , "" , "" , "" , 2 , 4 );
 
             expect( await chain.isHealthy() ).toBe( true );
 

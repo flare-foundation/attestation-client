@@ -1,6 +1,7 @@
 import { assert } from "console";
 import { MCC } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/RPCtypes";
+import { sleepms } from "../Sleep";
 import { ChainType, MCCNodeSettings as MCClientSettings } from "./MCClientSettings";
 import { MCCTransaction } from "./MCCTransaction";
 import { MCCTransactionResponse, TransactionStatus } from "./MCCTransactionResponse";
@@ -63,6 +64,8 @@ export class MCClient {
         assert(this.chainClient);
 
         const chainResult = await this.chainClient.getTransaction(transaction.tx);
+
+        sleepms( 1000 );
 
         const result = new MCCTransactionResponse(TransactionStatus.Valid, "123", transaction, null);
 

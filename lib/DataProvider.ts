@@ -62,9 +62,6 @@ class DataProvider {
         this.processEvent(event);
       }
     );
-
-    // process chain transaction testing
-    this.chainManager.startProcessing();
   }
 
   async initializeConfiguration() {

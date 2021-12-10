@@ -1,3 +1,4 @@
+import { Logger } from "winston";
 import { AttesterEpoch } from "./AttesterEpoch";
 import { ChainManager } from "./ChainManager";
 import { DataProviderConfiguration } from "./DataProviderConfiguration";
@@ -6,14 +7,16 @@ import { getTime } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
 
 export class Attester {
+  logger: Logger;
   epochSettings!: EpochSettings;
   chainManager!: ChainManager;
   epoch: Map<number, AttesterEpoch> = new Map<number, AttesterEpoch>();
   conf!: DataProviderConfiguration;
 
-  constructor(chainManager: ChainManager, conf: DataProviderConfiguration) {
+  constructor(chainManager: ChainManager, conf: DataProviderConfiguration, logger: Logger) {
     this.chainManager = chainManager;
     this.conf = conf;
+    this.logger = logger;
   }
 
   async validateTransaction(chain: ChainType, epoch: number, timestamp: number, id: number, transactionHash: string, metadata: any) {
@@ -22,33 +25,39 @@ export class Attester {
     let activeEpoch = this.epoch.get(epochId);
 
     if (activeEpoch === undefined) {
-      activeEpoch = new AttesterEpoch();
-      activeEpoch.status = "collect";
-      activeEpoch.epochId = epochId;
+      activeEpoch = new AttesterEpoch(epochId, this.logger);
 
       this.epoch.set(epochId, activeEpoch);
 
-      // setup commit and reveal  E1,E2,E3
-      // todo: commit should be triggered when ALL transactions are validate - if not all are validated skip this epoch
+      // setup commit, reveal and completed callbacks
       const now = getTime();
       const epochCommitTime: number = this.epochSettings.getEpochTimeEnd().toNumber() + this.conf.epochPeriod - this.conf.commitTime;
       const epochRevealTime: number = this.epochSettings.getEpochTimeEnd().toNumber() + this.conf.epochPeriod + this.conf.revealTime;
+      const epochCompleteTime: number = this.epochSettings.getEpochTimeEnd().toNumber() + this.conf.revealTime * 2;
 
       setTimeout(() => {
-        activeEpoch!.checkCommit();
+        activeEpoch!.startCommit();
       }, epochCommitTime - now);
 
       setTimeout(() => {
-        activeEpoch!.reveal();
+        activeEpoch!.startReveal();
       }, epochRevealTime - now);
+
+      setTimeout(() => {
+        activeEpoch!.completed();
+      }, epochCompleteTime - now);
     }
 
     const transaction = await this.chainManager.validateTransaction(chain, epoch, id, transactionHash, metadata);
 
     if (transaction === undefined) {
-      // toto: report error
       return;
     }
+
+    transaction.onProcessed=(tx)=>
+    {
+      this.epoch.get( tx.epochId )!.processed( tx );
+    };
 
     activeEpoch.transactions.set(id, transaction!);
   }

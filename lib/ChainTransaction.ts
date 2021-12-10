@@ -8,8 +8,12 @@ export enum ChainTransactionStatus {
   invalid,
 }
 
+export interface EventProcessed {
+  (tx: ChainTransaction): void;
+}
+
 export class ChainTransaction {
-  epoch!: number;
+  epochId!: number;
   id!: number;
 
   transactionHash!: string;
@@ -21,4 +25,6 @@ export class ChainTransaction {
   endTime: number = 0;
 
   chainNode: ChainNode | undefined;
+
+  onProcessed: EventProcessed | undefined= undefined;
 }

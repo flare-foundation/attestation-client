@@ -1,50 +1,47 @@
 import { Hash } from "./Hash";
 
 export class MerkleTree {
+  tree = new Array<any>();
 
-    tree = new Array<any>();
+  constructor(values: string[]) {
+    this.createMerkleTreeHash(values);
+  }
 
-    constructor(values: string[]) {
-        this.createMerkleTreeHash(values);
+  root() {
+    return this.tree[this.tree.length - 1][0];
+  }
+
+  createMerkleTreeHash(values: string[]) {
+    this.tree = new Array<any>();
+
+    // create bottom row hashes
+    let step = new Array<string>();
+    for (const tx of values) {
+      step.push(Hash.create(tx));
     }
 
-    root()
-    {
-        return this.tree[ this.tree.length-1 ][0];
+    // make sure all lengts > 1 are even
+    if (step.length > 1 && step.length & 1) {
+      step.push("");
     }
 
-    createMerkleTreeHash(values: string[]) {
-        this.tree = new Array<any>();
+    this.tree.push(step);
 
-        // create bottom row hashes
-        let step = new Array<string>();
-        for (const tx of values) {
-            step.push(Hash.create(tx));
-        }
+    while (step.length > 1) {
+      const nextStep = new Array<string>();
 
-        // make sure all lengts > 1 are even
-        if (step.length > 1 && step.length & 1) {
-            step.push("");
-        }
+      for (let a = 0; a < step.length; a += 2) {
+        nextStep.push(Hash.create(step[a] + step[a + 1]));
+      }
 
-        this.tree.push(step);
+      if (nextStep.length > 1 && nextStep.length & 1) {
+        nextStep.push("");
+      }
 
-        while (step.length > 1) {
-            const nextStep = new Array<string>();
-
-            for (let a = 0; a < step.length; a += 2) {
-                nextStep.push(Hash.create(step[a] + step[a + 1]));
-            }
-
-            if (nextStep.length > 1 && nextStep.length & 1) {
-                nextStep.push("");
-            }
-
-            this.tree.push(nextStep);
-            step = nextStep;
-        }
-
-        return this.tree;
+      this.tree.push(nextStep);
+      step = nextStep;
     }
 
+    return this.tree;
+  }
 }

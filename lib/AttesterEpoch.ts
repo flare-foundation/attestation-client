@@ -23,7 +23,7 @@ export class AttesterEpoch {
   logger: Logger;
   status: AttesterEpochStatus = AttesterEpochStatus.collect;
   epochId: number;
-  transactions: Map<number, ChainTransaction> = new Map<number, ChainTransaction>();
+  transactions = new Array<ChainTransaction>();
   merkleTree!: MerkleTree;
   hash!: BigNumber;
   random!: BigNumber;

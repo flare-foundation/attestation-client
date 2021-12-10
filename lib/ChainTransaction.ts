@@ -1,4 +1,5 @@
 import { ChainNode } from "./ChainNode";
+import { DataTransaction } from "./DataTransaction";
 
 export enum ChainTransactionStatus {
   queued,
@@ -14,7 +15,6 @@ export interface EventProcessed {
 
 export class ChainTransaction {
   epochId!: number;
-  id!: number;
 
   transactionHash!: string;
   metaData!: any;
@@ -25,6 +25,8 @@ export class ChainTransaction {
   endTime: number = 0;
 
   chainNode: ChainNode | undefined;
+
+  dataTransaction!: DataTransaction;
 
   onProcessed: EventProcessed | undefined = undefined;
 }

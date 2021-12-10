@@ -1,5 +1,6 @@
 import { ChainManager } from "./ChainManager";
 import { ChainTransaction, ChainTransactionStatus } from "./ChainTransaction";
+import { DataTransaction } from "./DataTransaction";
 import { getTime } from "./internetTime";
 import { MCClient as MCClient } from "./MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
@@ -128,22 +129,23 @@ export class ChainNode {
     return this.canAddRequests() && this.transactionsProcessing.length < this.maxProcessingTransactions;
   }
 
-  validate(epoch: number, id: number, transactionHash: string, metadata: any): ChainTransaction {
-    this.chainManager.logger.info(`    * chain ${this.chainName} validate ${transactionHash}`);
-    const tx = new ChainTransaction();
-    tx.epochId = epoch;
-    tx.id = id;
-    tx.chainNode = this;
-    tx.transactionHash = transactionHash;
-    tx.metaData = metadata;
+  validate(epoch: number, tx0: DataTransaction): ChainTransaction {
+    this.chainManager.logger.info(`    * chain ${this.chainName} validate ${tx0.transactionHash}`);
+
+    const transaction = new ChainTransaction();
+    transaction.epochId = epoch;
+    transaction.chainNode = this;
+    transaction.transactionHash = tx0.transactionHash;
+    //tx.metaData = tx0.metaData;
+    transaction.dataTransaction = tx0;
 
     // check if transaction can be added into processing
     if (this.canProcess()) {
-      this.process(tx);
+      this.process(transaction);
     } else {
-      this.queue(tx);
+      this.queue(transaction);
     }
 
-    return tx;
+    return transaction;
   }
 }

@@ -52,9 +52,7 @@ export class Web3BlockCollector {
       this.logger.info(` * New block ${processBlock} with ${events.length} event(s)`);
 
       for (const event of events) {
-        if (event.event === "AttestationRequest") {
-          action(event);
-        }
+        action(event);
       }
 
       processBlock++;

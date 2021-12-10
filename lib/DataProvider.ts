@@ -1,14 +1,19 @@
+import { BigNumber } from "ethers";
 import * as fs from "fs";
+import { toNamespacedPath } from "path";
 import { Logger } from "winston";
 import yargs from "yargs";
+import { Attester } from "./Attester";
 import { ChainManager } from "./ChainManager";
 import { ChainNode } from "./ChainNode";
+import { ChainTransaction } from "./ChainTransaction";
 import { DataProviderConfiguration } from "./DataProviderConfiguration";
+import { DataTransaction } from "./DataTransaction";
 import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getInternetTime } from "./internetTime";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { getLogger } from "./utils";
+import { getLogger, makeBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
 import { Web3BlockSubscription } from "./Web3BlockSubscription";
 
@@ -25,6 +30,7 @@ class DataProvider {
   conf: DataProviderConfiguration;
   logger: Logger = getLogger();
 
+  attester: Attester;
   chainManager: ChainManager;
   blockSubscription!: Web3BlockSubscription;
   blockCollector!: Web3BlockCollector;
@@ -32,6 +38,7 @@ class DataProvider {
   constructor(configuration: DataProviderConfiguration) {
     this.conf = configuration;
     this.chainManager = new ChainManager(this.logger);
+    this.attester = new Attester(this.chainManager, this.conf, this.logger);
   }
 
   async start() {
@@ -148,21 +155,31 @@ class DataProvider {
       //     bytes32 txId
       // );
 
-      // todo: parse event
-      const timestamp: string = event.returnValues.timestamp;
+      const timeStamp: string = event.returnValues.timestamp;
       const instruction: string = event.returnValues.instruction;
       const txId: string = event.returnValues.txId;
 
-      const chainId: number = 0;
+      const instBN = makeBN(instruction);
 
-      const blockHeight: number = 0; // uint64
-      const utxo: number = 0; // uint16
-      const full: boolean = true; // bool
+      const bit16 = BigNumber.from(1).shl(16).sub(1);
+      const bit64 = BigNumber.from(1).shl(64).sub(1);
 
-      // also needed
-      // -
+      const chainId: BigNumber = instBN.and(bit64);
+      const blockHeight: BigNumber = instBN.shr(64).and(bit64);
+      const utxo: BigNumber = instBN.shr(64 + 64).and(bit16);
+      const full: boolean = !instBN.and(BigNumber.from(1).shl(64 + 64 + 16)).eq(0);
 
-      this.chainManager.validateTransaction(ChainType.XRP, 10, 0, "0x8263876238946932874689236", null);
+      const tx = new DataTransaction();
+      tx.timeStamp = makeBN(timeStamp);
+      tx.blockHeight = blockHeight;
+      tx.utxo = utxo.toNumber();
+      tx.transactionHash = txId;
+      tx.blockNumber = event.blockNumber;
+      //tx.transactionIndex=???
+      //tx.signature=???
+      tx.full = full;
+
+      this.attester.validateTransaction(chainId.toNumber() as ChainType, tx.timeStamp, tx);
     }
   }
 }

@@ -1,7 +1,10 @@
+import { BigNumber } from "ethers";
 import { Logger } from "winston";
 import { AttesterEpoch } from "./AttesterEpoch";
 import { ChainManager } from "./ChainManager";
+import { ChainTransaction } from "./ChainTransaction";
 import { DataProviderConfiguration } from "./DataProviderConfiguration";
+import { DataTransaction } from "./DataTransaction";
 import { EpochSettings } from "./EpochSettings";
 import { getTime } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
@@ -19,11 +22,12 @@ export class Attester {
     this.logger = logger;
   }
 
-  async validateTransaction(chain: ChainType, epoch: number, timestamp: number, id: number, transactionHash: string, metadata: any) {
-    const epochId: number = this.epochSettings.getEpochIdForTime(timestamp).toNumber();
+  async validateTransaction(chainType: ChainType, timeStamp: BigNumber, tx: DataTransaction) {
+    const epochId: number = this.epochSettings.getEpochIdForTime(timeStamp).toNumber();
 
     let activeEpoch = this.epoch.get(epochId);
 
+    // check if attester epoch already exists - if not - create a new one and assign callbacks
     if (activeEpoch === undefined) {
       activeEpoch = new AttesterEpoch(epochId, this.logger);
 
@@ -48,7 +52,10 @@ export class Attester {
       }, epochCompleteTime - now);
     }
 
-    const transaction = await this.chainManager.validateTransaction(chain, epoch, id, transactionHash, metadata);
+    // todo: clean up old data
+
+    // create transaction and add it into attester epoch
+    const transaction = await this.chainManager.validateTransaction(chainType, tx);
 
     if (transaction === undefined) {
       return;
@@ -58,6 +65,6 @@ export class Attester {
       this.epoch.get(tx.epochId)!.processed(tx);
     };
 
-    activeEpoch.transactions.set(id, transaction!);
+    activeEpoch.transactions.push(transaction);
   }
 }

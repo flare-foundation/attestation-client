@@ -1,5 +1,6 @@
 import { BigNumber } from "ethers";
 import { getTime } from "./internetTime";
+import { makeBN } from "./utils";
 
 export class EpochSettings {
   private _firstEpochStartTime: BigNumber; // in milliseconds
@@ -13,13 +14,13 @@ export class EpochSettings {
     this._epochPeriod = _epochPeriod;
   }
 
-  getEpochIdForTime(timeInMillis: number): BigNumber {
+  getEpochIdForTime(timeInMillis: BigNumber): BigNumber {
     const diff: BigNumber = BigNumber.from(timeInMillis).sub(this._firstEpochStartTime);
     return this._firstEpochId.add(diff.div(this._epochPeriod));
   }
 
   getCurrentEpochId(): BigNumber {
-    return this.getEpochIdForTime(getTime());
+    return this.getEpochIdForTime(makeBN(getTime()));
   }
 
   // in milliseconds

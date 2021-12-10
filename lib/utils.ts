@@ -179,3 +179,7 @@ export async function getRandom(minnum: number = 0, maxnum: number = 10 ** 5) {
 export function getTestStateConnectorAddress() {
   return fs.readFileSync(".stateconnector-address").toString();
 }
+
+export function etherToValue(web3: Web3, eth: number) {
+  return web3.utils.toWei(web3.utils.toBN(eth), "ether");
+}

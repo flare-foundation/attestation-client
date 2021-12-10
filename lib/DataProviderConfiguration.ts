@@ -9,8 +9,8 @@ export class DataProviderConfiguration {
   public whitelist!: boolean;
   public trusted!: boolean;
 
-  public ftsoManagerContractAddress!: string;
-  public priceSubmitterContractAddress!: string;
+  //public ftsoManagerContractAddress!: string;
+  public stateConnectorAddress!: string;
 
   public firstEpochStartTime!: number;
   public epochPeriod!: number;
@@ -23,12 +23,12 @@ export class DataProviderConfiguration {
   public chains: DataProviderChain[] = [];
 
   async validate() {
-    if (!this.accountPrivateKey) {
-      throw Error("Parameter 'accountPrivateKey' is missing, but is required");
-    } else if (!this.rpcUrl) {
-      throw Error("Parameter 'rpcUrl' is missing, but is required");
-    } else if (!this.ftsoManagerContractAddress) {
-      throw Error("Parameter 'ftsoManagerContractAddress' is missing, but is required");
-    }
+    // if (!this.accountPrivateKey) {
+    //   throw Error("Parameter 'accountPrivateKey' is missing, but is required");
+    // } else if (!this.rpcUrl) {
+    //   throw Error("Parameter 'rpcUrl' is missing, but is required");
+    // } else if (!this.ftsoManagerContractAddress) {
+    //   throw Error("Parameter 'ftsoManagerContractAddress' is missing, but is required");
+    // }
   }
 }

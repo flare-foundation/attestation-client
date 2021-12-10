@@ -49,6 +49,8 @@ export class Web3BlockSubscription {
         this.startingBlockNumber = blockInfo.number;
       }
       this.currentBlockNumber = blockInfo.number;
+
+      console.log( blockInfo );
     });
   }
 }

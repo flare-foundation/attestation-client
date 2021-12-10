@@ -1,6 +1,6 @@
-const fs = require("fs");
 
 async function main() {
+  const fs = require("fs");
   const StateConnector = artifacts.require("StateConnector");
   let stateConnector = await StateConnector.new();
   console.log(stateConnector.address);

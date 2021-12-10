@@ -61,15 +61,15 @@ export class AttesterEpoch {
   processed(tx: ChainTransaction) {
     this.transactionsProcessed++;
 
-    assert(this.transactionsProcessed <= this.transactions.size);
+    assert(this.transactionsProcessed <= this.transactions.length);
 
-    if (this.transactionsProcessed === this.transactions.size) {
-      this.logger.error(`     * AttestEpoch #${this.epochId} all transactions processed ${this.transactions.size}`);
+    if (this.transactionsProcessed === this.transactions.length) {
+      this.logger.error(`     * AttestEpoch #${this.epochId} all transactions processed ${this.transactions.length}`);
       if (this.status === AttesterEpochStatus.commit) {
         this.commit();
       }
     } else {
-      this.logger.error(`     * AttestEpoch #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.transactions.size}`);
+      this.logger.error(`     * AttestEpoch #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.transactions.length}`);
     }
   }
 

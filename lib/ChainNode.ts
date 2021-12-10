@@ -137,6 +137,7 @@ export class ChainNode {
     transaction.chainNode = this;
     transaction.transactionHash = tx0.transactionHash;
     //tx.metaData = tx0.metaData;
+
     transaction.dataTransaction = tx0;
 
     // check if transaction can be added into processing

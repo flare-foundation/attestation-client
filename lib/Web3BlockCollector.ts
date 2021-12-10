@@ -41,13 +41,13 @@ export class Web3BlockCollector {
 
     while (true) {
       // wait for new block
-      if (processBlock >= this.blockSubscription.currentBlockNumber) {
+      if (processBlock >= this.blockSubscription.currentBlockNumber + 1) {
         await sleepms(100);
         continue;
       }
 
       // process new block
-      const events = await ftsoContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock + 1 });
+      const events = await ftsoContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock });
 
       this.logger.info(` * New block ${processBlock} with ${events.length} event(s)`);
 

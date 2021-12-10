@@ -62,8 +62,8 @@ class DataProvider {
     this.blockCollector = new Web3BlockCollector(
       this.blockSubscription,
       this.conf.rpcUrl,
-      this.conf.priceSubmitterContractAddress,
-      "PriceSubmitter",
+      this.conf.stateConnectorAddress,
+      "StateConnector",
       undefined,
       (event: any) => {
         this.processEvent(event);
@@ -152,12 +152,12 @@ class DataProvider {
       // event AttestationRequest(
       //     uint256 timestamp,
       //     uint256 instructions,
-      //     bytes32 txId
+      //     bytes32 id
       // );
 
       const timeStamp: string = event.returnValues.timestamp;
       const instruction: string = event.returnValues.instruction;
-      const txId: string = event.returnValues.txId;
+      const id: string = event.returnValues.id;
 
       const instBN = makeBN(instruction);
 
@@ -173,7 +173,7 @@ class DataProvider {
       tx.timeStamp = makeBN(timeStamp);
       tx.blockHeight = blockHeight;
       tx.utxo = utxo.toNumber();
-      tx.transactionHash = txId;
+      tx.transactionHash = id;
       tx.blockNumber = event.blockNumber;
       //tx.transactionIndex=???
       //tx.signature=???

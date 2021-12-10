@@ -14,13 +14,13 @@ export class ChainManager {
     this.logger = logger;
   }
 
-  validateTransaction(chain: ChainType, tx: DataTransaction): ChainTransaction | undefined {
+  validateTransaction(chain: ChainType, epochId: number, tx: DataTransaction): ChainTransaction | undefined {
     if (!this.nodes.has(chain)) {
       this.logger.error(`  ! '${chain}: undefined chain'`);
       //
       return undefined;
     }
 
-    return this.nodes.get(chain)!.validate(epoch, tx);
+    return this.nodes.get(chain)!.validate(epochId, tx);
   }
 }

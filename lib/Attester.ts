@@ -55,7 +55,7 @@ export class Attester {
     // todo: clean up old data
 
     // create transaction and add it into attester epoch
-    const transaction = await this.chainManager.validateTransaction(chainType, tx);
+    const transaction = await this.chainManager.validateTransaction(chainType, epochId, tx);
 
     if (transaction === undefined) {
       return;

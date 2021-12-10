@@ -41,7 +41,8 @@
     "watch-and-run": "ts-node-dev --notify --respawn -- lib/DataProvider.ts -c configs/config.json",
     "dev": "DOTENV=DEV yarn watch-and-run",
     "test": "DOTENV=DEV tsdx test --env=node",
-    "testdebug": "DOTENV=DEV tsdx test --env=node test/AttesterBasic.test.ts"
+    "testdebug": "DOTENV=DEV tsdx test --env=node test/AttesterBasic.test.ts",
+    "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local"
   },
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",

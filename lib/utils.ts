@@ -175,3 +175,7 @@ export async function getRandom(minnum: number = 0, maxnum: number = 10 ** 5) {
   const randomNumber = require("random-number-csprng");
   return await randomNumber(minnum, maxnum);
 }
+
+export function getTestStateConnectorAddress() {
+    return fs.readFileSync(".stateconnector-address").toString()
+}

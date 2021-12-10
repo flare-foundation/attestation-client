@@ -21,14 +21,19 @@
       "lint-check"
     ]
   },
-
   "scripts": {
     "lint": "yarn prettier -w 'lib/**/*.{ts,tsx}' --config ./package.json",
     "lint-check": "yarn prettier -c 'lib/**/*.{ts,tsx}' --config ./package.json",
     "lint2": "tslint -c tslint.json -p tsconfig.json --fix",
     "artifacts": "ts-node lib/refresh-artifacts.ts",
+    "typechain-web3-v1-external": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1-external \"data/artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
     "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
-    "sync": "yarn artifacts && yarn typechain-web3-v1",
+    "compile": "yarn hardhat compile && yarn typechain-truffle-v5",
+    "c": "yarn compile",
+    "typechain-truffle-v5": "yarn typechain --target=truffle-v5 --out-dir typechain-truffle \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
+    "sync": "yarn artifacts && yarn typechain-web3-v1 && yarn typechain-web3-v1-external",
+    "deploy": "yarn hardhat run scripts/deploy.ts --network local",
+    "stateconnector": "concurrently -r --success first \"yarn hardhat node > nul\" \"wait-on http://127.0.0.1:8545 && yarn deploy\"",
     "build": "yarn tsc",
     "docker-build": "bash scripts/docker-build.sh",
     "docker-deploy": "bash scripts/docker-deploy.sh",
@@ -38,23 +43,25 @@
     "test": "DOTENV=DEV tsdx test --env=node",
     "testdebug": "DOTENV=DEV tsdx test --env=node test/AttesterBasic.test.ts"
   },
-
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",
-    "@types/glob": "7.1.4",
     "dotenv": "10.0.0",
     "ethers": "5.1.4",
     "flare-mcc": "latest",
+    "fs": "^0.0.1-security",
     "glob": "7.1.7",
     "random-number-csprng": "1.0.2",
-    "ts-node": "9.1.1",
-    "typescript": "4.4.2",
     "web3": "1.3.5",
     "web3-utils": "1.3.5",
     "winston": "3.3.3",
     "yargs": "16.2.0"
   },
   "devDependencies": {
+    "@nomiclabs/hardhat-truffle5": "^2.0.3",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "@typechain/hardhat": "^3.0.0",
+    "@typechain/truffle-v5": "^6.0.0",
     "@typechain/web3-v1": "3.1.0",
     "@types/glob": "7.1.4",
     "@types/node": "15.0.2",
@@ -62,7 +69,11 @@
     "@types/random-number-csprng": "^1.0.0",
     "@types/web3": "^1.2.2",
     "@types/yargs": "^17.0.3",
+    "concurrently": "^6.4.0",
+    "fs-extra": "^10.0.0",
+    "hardhat": "^2.7.1",
     "husky": "^7.0.4",
+    "lint-staged": "^12.1.2",
     "node-fetch": "2.6.1",
     "npm-run-all": "^4.1.5",
     "prettier": "2.5.1",
@@ -73,6 +84,6 @@
     "tslint": "^6.1.3",
     "typechain": "5.1.2",
     "typescript": "4.4.2",
-    "lint-staged": "^12.1.2"
+    "wait-on": "^6.0.0"
   }
 }

@@ -47,9 +47,10 @@ export class MCClient {
   async isHealty(): Promise<ResultStatus> {
     assert(this.chainClient);
 
-    // return await this.chainClient.isHealty()
-    return ResultStatus.Success;
-  }
+        //return await this.chainClient.isHealty()
+        
+        return ResultStatus.Success;
+    }
 
   async getBlockHeight(): Promise<number> {
     assert(this.chainClient);

@@ -2,77 +2,79 @@ import { ChainTransaction, ChainTransactionStatus } from "./ChainTransaction";
 import { Hash } from "./Hash";
 import { MerkleTree } from "./MerkleTree";
 import { getRandom, makeBN } from "./utils";
-import { BigNumber } from "ethers";
+import { BigNumber } from 'ethers';
 
 export class AttesterEpoch {
-  status: "collect" | "commit" | "reveal" | "done" = "collect";
 
-  epochId!: number;
+    status: 'collect' | 'commit' | 'reveal' | 'done' = 'collect';
 
-  transactions: Map<number, ChainTransaction> = new Map<number, ChainTransaction>();
+    epochId!: number;
 
-  merkleTree!: MerkleTree;
+    transactions: Map<number, ChainTransaction> = new Map<number, ChainTransaction>();
 
-  hash!: number;
+    merkleTree!: MerkleTree;
 
-  random!: number;
+    hash!: number;
 
-  async checkCommit() {}
+    random!: number;
 
-  async commit() {
-    // this.logger.info(`  * Epoch #${epochId} ended`);
-
-    this.status = "commit";
-
-    // todo: wait until ALL are processed
-
-    // collect ordered validated transaction hashes
-    const validatedTransactions: string[] = new Array<string>();
-
-    for (const tx of this.transactions.values()) {
-      if (tx.status === ChainTransactionStatus.valid) {
-        validatedTransactions.push(tx.transactionHash);
-      }
+    async checkCommit() {
+        // todo: check if commit was done
     }
 
-    // how to sort!
-    // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html#getpastevents  myContract.getPastEvents
-    // 1. blockNumber
-    // 2. transactionIndex
-    // 3. signature
-    // put all in BN and sort
+    async commit() {
+        // this.logger.info(`  * Epoch #${epochId} ended`);
 
-    // create merkle tree
-    this.merkleTree = new MerkleTree(validatedTransactions);
+        this.status = 'commit';
 
-    this.random = await getRandom();
+        // todo: wait until ALL are processed
 
-    this.submitAttestation(
-      // commit index (collect+1)
-      makeBN(this.epochId + 1),
-      makeBN(this.hash).xor(makeBN(this.random)),
-      makeBN(Hash.create(this.random.toString())),
-      makeBN(0)
-    );
-  }
+        // collect ordered validated transaction hashes
+        const validatedTransactions: string[] = new Array<string>();
 
-  async reveal() {
-    // this.logger.info(`  * Epoch #${epochId} ended`);
+        for (const tx of this.transactions.values()) {
+            if (tx.status === ChainTransactionStatus.valid ) {
+                validatedTransactions.push(tx.transactionHash);
+            }
+        }
 
-    this.status = "reveal";
+        // how to sort!
+        // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html#getpastevents  myContract.getPastEvents
+        // 1. blockNumber
+        // 2. transactionIndex
+        // 3. signature
+        // put all in BN and sort
 
-    this.submitAttestation(
-      // commit index (collect+1)
-      makeBN(this.epochId + 1),
-      makeBN(0),
-      makeBN(0),
-      makeBN(this.random)
-    );
+        // create merkle tree
+        this.merkleTree = new MerkleTree(validatedTransactions);
 
-    this.status = "done";
-  }
+        this.random = await getRandom();
 
-  submitAttestation(bufferNumber: BigNumber, maskedMerkleHash: BigNumber, committedRandom: BigNumber, revealedRandom: BigNumber) {
-    // todo: submit to network
-  }
+        this.submitAttestation(
+            // commit index (collect+1)
+            makeBN( this.epochId + 1 ),
+            makeBN( this.hash ).xor( makeBN( this.random ) ),
+            makeBN( Hash.create(this.random.toString()) ),
+            makeBN( 0 ) );
+    }
+
+    async reveal() {
+        // this.logger.info(`  * Epoch #${epochId} ended`);
+
+        this.status = 'reveal';
+
+        this.submitAttestation(
+            // commit index (collect+1)
+            makeBN( this.epochId + 1 ),
+            makeBN( 0 ),
+            makeBN( 0 ),
+            makeBN( this.random ) );
+
+        this.status = 'done';
+    }
+
+    submitAttestation(bufferNumber: BigNumber, maskedMerkleHash: BigNumber, committedRandom: BigNumber, revealedRandom: BigNumber) {
+        // todo: submit to network
+    }
+
 }

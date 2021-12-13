@@ -8,6 +8,10 @@
     "whitelist": false,
     "trusted": true,
     "gasPrice": "3000000000000",
+
+    "firstEpochStartTime":1636070400,
+    "epochPeriod": 90,
+
     "chains": [
         {
             "name": "XRP",

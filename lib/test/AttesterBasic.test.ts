@@ -1,13 +1,12 @@
 import { ChainManager } from "../ChainManager";
 import { ChainNode } from "../ChainNode";
-import { ChainTransactionStatus } from "../ChainTransaction";
+import { AttestationStatus } from "../Attestation";
 import { DataProviderChain } from "../DataProviderChain";
 import { ChainType, MCCNodeSettings } from "../MCC/MCClientSettings";
 import { getLogger } from "../utils";
-// todo:
-// test per second limiter
-// test queue limiter
-// ...
+
+// todo test: test per second limiter
+// todo test: test queue limiter
 
 describe("Attester Basic Tests", () => {
   describe("General functionalities", () => {

@@ -1,29 +1,31 @@
 import { BigNumber } from "ethers";
 import { Logger } from "winston";
+import { Attestation } from "./Attestation";
+import { AttestationData, AttestationType } from "./AttestationData";
 import { AttesterEpoch } from "./AttesterEpoch";
 import { ChainManager } from "./ChainManager";
-import { ChainTransaction } from "./ChainTransaction";
-import { DataProviderConfiguration } from "./DataProviderConfiguration";
-import { DataTransaction } from "./DataTransaction";
+import { DataProviderConfiguration as AttesterClientConfiguration } from "./DataProviderConfiguration";
 import { EpochSettings } from "./EpochSettings";
 import { getTime } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
+import { makeBN } from "./utils";
 
 export class Attester {
   logger: Logger;
-  epochSettings!: EpochSettings;
+  epochSettings: EpochSettings;
   chainManager!: ChainManager;
   epoch: Map<number, AttesterEpoch> = new Map<number, AttesterEpoch>();
-  conf!: DataProviderConfiguration;
+  conf!: AttesterClientConfiguration;
 
-  constructor(chainManager: ChainManager, conf: DataProviderConfiguration, logger: Logger) {
+  constructor(chainManager: ChainManager, conf: AttesterClientConfiguration, logger: Logger) {
     this.chainManager = chainManager;
     this.conf = conf;
     this.logger = logger;
+    this.epochSettings = new EpochSettings(makeBN(conf.firstEpochStartTime), makeBN(conf.epochPeriod));
   }
 
-  async validateTransaction(chainType: ChainType, timeStamp: BigNumber, tx: DataTransaction) {
-    const epochId: number = this.epochSettings.getEpochIdForTime(timeStamp).toNumber();
+  async attestate(tx: AttestationData) {
+    const epochId: number = this.epochSettings.getEpochIdForTime(tx.timeStamp).toNumber();
 
     let activeEpoch = this.epoch.get(epochId);
 
@@ -52,19 +54,33 @@ export class Attester {
       }, epochCompleteTime - now);
     }
 
-    // todo: clean up old data
+    // todo: clean up old attestations (minor memory leak)
 
-    // create transaction and add it into attester epoch
-    const transaction = await this.chainManager.validateTransaction(chainType, epochId, tx);
+    // create, check and add attestation
+    const attestation = await this.createAttestation(epochId, tx);
 
-    if (transaction === undefined) {
+    if (attestation === undefined) {
       return;
     }
 
-    transaction.onProcessed = (tx) => {
-      this.epoch.get(tx.epochId)!.processed(tx);
-    };
+    activeEpoch.addAttestation(attestation);
+  }
 
-    activeEpoch.transactions.push(transaction);
+  async createAttestation(epochId: number, tx: AttestationData): Promise<Attestation | undefined> {
+    // create attestation depending on type
+    switch (tx.type) {
+      case AttestationType.Transaction: {
+        const bit32 = BigNumber.from(1).shl(32).sub(1);
+        const chainType: BigNumber = tx.data.and(bit32);
+
+        return await this.chainManager.validateTransaction(chainType.toNumber() as ChainType, epochId, tx);
+      }
+      case AttestationType.TransactionFull:
+        return undefined; // ???
+      default: {
+        this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);
+        return undefined;
+      }
+    }
   }
 }

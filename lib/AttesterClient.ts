@@ -6,9 +6,9 @@ import yargs from "yargs";
 import { Attester } from "./Attester";
 import { ChainManager } from "./ChainManager";
 import { ChainNode } from "./ChainNode";
-import { ChainTransaction } from "./ChainTransaction";
+import { Attestation } from "./Attestation";
 import { DataProviderConfiguration } from "./DataProviderConfiguration";
-import { DataTransaction } from "./DataTransaction";
+import { AttestationType, AttestationData } from "./AttestationData";
 import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getInternetTime } from "./internetTime";
@@ -147,7 +147,9 @@ class DataProvider {
       //     bytes32 id
       // );
 
-      //  16 attestation type (bits 0..31)
+      //  16 attestation type (bits 0..)
+
+
       //  32 chain id
       //  64 block height
       //  16 utxo
@@ -159,24 +161,24 @@ class DataProvider {
       const instBN = makeBN(instruction);
 
       const bit16 = BigNumber.from(1).shl(16).sub(1);
-      const bit64 = BigNumber.from(1).shl(64).sub(1);
 
-      const chainId: BigNumber = instBN.and(bit64);
-      const blockHeight: BigNumber = instBN.shr(64).and(bit64);
-      const utxo: BigNumber = instBN.shr(64 + 64).and(bit16);
-      const full: boolean = !instBN.and(BigNumber.from(1).shl(64 + 64 + 16)).eq(0);
+      const attestationType: BigNumber = instBN.shr(0).and(bit16);
 
-      const tx = new DataTransaction();
+      // attestation info
+      const tx = new AttestationData();
+      tx.type = attestationType.toNumber() as AttestationType;
       tx.timeStamp = makeBN(timeStamp);
-      tx.blockHeight = blockHeight;
-      tx.utxo = utxo.toNumber();
-      tx.transactionHash = id;
-      tx.blockNumber = event.blockNumber;
-      //tx.transactionIndex=???
-      //tx.signature=???
-      tx.full = full;
+      tx.id = id;
 
-      this.attester.validateTransaction(chainId.toNumber() as ChainType, tx.timeStamp, tx);
+      // attesttaion data (without type and chain id)
+      tx.data = instBN.shr(16);
+
+      // for sorting
+      tx.blockNumber = event.blockNumber;
+      tx.transactionIndex = event.transactionIndex;
+      tx.signature = event.signature;
+
+      this.attester.attestate(tx);
     }
   }
 }

@@ -1,7 +1,7 @@
 import assert from "assert";
 import { BigNumber } from "ethers";
 import { Logger } from "winston";
-import { ChainTransaction, ChainTransactionStatus } from "./ChainTransaction";
+import { Attestation, AttestationStatus } from "./Attestation";
 import { Hash } from "./Hash";
 import { MerkleTree } from "./MerkleTree";
 import { getRandom, makeBN } from "./utils";
@@ -23,7 +23,7 @@ export class AttesterEpoch {
   logger: Logger;
   status: AttesterEpochStatus = AttesterEpochStatus.collect;
   epochId: number;
-  transactions = new Array<ChainTransaction>();
+  attestations = new Array<Attestation>();
   merkleTree!: MerkleTree;
   hash!: BigNumber;
   random!: BigNumber;
@@ -39,8 +39,15 @@ export class AttesterEpoch {
     this.logger.info(`  * AttestEpoch #${this.epochId} (0) collect`);
   }
 
+  addAttestation(attestation: Attestation) {
+    attestation!.onProcessed = (tx) => {
+      this.processed(attestation);
+    };
+    this.attestations.push(attestation);
+  }
+
   startCommit() {
-    this.logger.info(`  * AttestEpoch #${this.epochId} (1) commit`);
+    this.logger.info(` * AttestEpoch #${this.epochId} (1) commit`);
     this.status = AttesterEpochStatus.commit;
 
     if (this.status === AttesterEpochStatus.commit) {
@@ -49,27 +56,27 @@ export class AttesterEpoch {
   }
 
   startReveal() {
-    this.logger.info(`  * AttestEpoch #${this.epochId} (2) reveal`);
+    this.logger.info(` * AttestEpoch #${this.epochId} (2) reveal`);
     this.status = AttesterEpochStatus.reveal;
   }
 
   completed() {
-    this.logger.info(`  * AttestEpoch #${this.epochId} completed`);
+    this.logger.info(` * AttestEpoch #${this.epochId} completed`);
     this.status = AttesterEpochStatus.completed;
   }
 
-  processed(tx: ChainTransaction) {
+  processed(tx: Attestation) {
     this.transactionsProcessed++;
 
-    assert(this.transactionsProcessed <= this.transactions.length);
+    assert(this.transactionsProcessed <= this.attestations.length);
 
-    if (this.transactionsProcessed === this.transactions.length) {
-      this.logger.error(`     * AttestEpoch #${this.epochId} all transactions processed ${this.transactions.length}`);
+    if (this.transactionsProcessed === this.attestations.length) {
+      this.logger.error(`     * AttestEpoch #${this.epochId} all transactions processed ${this.attestations.length}`);
       if (this.status === AttesterEpochStatus.commit) {
         this.commit();
       }
     } else {
-      this.logger.error(`     * AttestEpoch #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.transactions.length}`);
+      this.logger.error(`     * AttestEpoch #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
     }
   }
 
@@ -83,28 +90,30 @@ export class AttesterEpoch {
       return;
     }
 
-    this.logger.info(`  * AttestEpoch #${this.epochId} commited`);
+    this.logger.info(` * AttestEpoch #${this.epochId} commited`);
     this.attestStatus = AttestStatus.comitted;
 
-    // collect ordered validated transaction hashes
-    const validatedTransactions: string[] = new Array<string>();
-
-    for (const tx of this.transactions.values()) {
-      if (tx.status === ChainTransactionStatus.valid) {
-        validatedTransactions.push(tx.transactionHash);
+    // collect validat attestations
+    const validated: Attestation[] = new Array<Attestation>();
+    for (const tx of this.attestations.values()) {
+      if (tx.status === AttestationStatus.valid) {
+        validated.push(tx);
       }
     }
 
-    // how to sort!
-    // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html#getpastevents  myContract.getPastEvents
-    // 1. blockNumber
-    // 2. transactionIndex
-    // 3. signature
-    // put all in BN and sort
+    // sort valid attestations (blockNumber, transactionIndex, signature)
+    validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));
+
+    // collect sorted valid attestation ids
+    const validatedHashes: string[] = new Array<string>();
+    for (const valid of validated) {
+      validatedHashes.push(valid.data.id);
+    }
 
     // create merkle tree
-    this.merkleTree = new MerkleTree(validatedTransactions);
+    this.merkleTree = new MerkleTree(validatedHashes);
 
+    this.hash = makeBN(this.merkleTree.root());
     this.random = await getRandom();
 
     this.submitAttestation(
@@ -125,6 +134,8 @@ export class AttesterEpoch {
       this.logger.error(`  ! AttestEpoch #${this.epochId} cannot reveal (not commited ${this.attestStatus})`);
       return;
     }
+
+    this.logger.info(` * AttestEpoch #${this.epochId} reveal`);
 
     this.submitAttestation(
       // commit index (collect+1)

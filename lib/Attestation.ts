@@ -1,7 +1,7 @@
 import { ChainNode } from "./ChainNode";
-import { DataTransaction } from "./DataTransaction";
+import { AttestationData } from "./AttestationData";
 
-export enum ChainTransactionStatus {
+export enum AttestationStatus {
   queued,
   processing,
   failed,
@@ -10,23 +10,22 @@ export enum ChainTransactionStatus {
 }
 
 export interface EventProcessed {
-  (tx: ChainTransaction): void;
+  (tx: Attestation): void;
 }
 
-export class ChainTransaction {
+export class Attestation {
   epochId!: number;
 
-  transactionHash!: string;
   metaData!: any;
 
-  status: ChainTransactionStatus = ChainTransactionStatus.invalid;
+  status: AttestationStatus = AttestationStatus.invalid;
 
   startTime: number = 0;
   endTime: number = 0;
 
   chainNode: ChainNode | undefined;
 
-  dataTransaction!: DataTransaction;
+  data!: AttestationData;
 
   onProcessed: EventProcessed | undefined = undefined;
 }

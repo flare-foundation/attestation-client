@@ -38,7 +38,7 @@
     "docker-build": "bash scripts/docker-build.sh",
     "docker-deploy": "bash scripts/docker-deploy.sh",
     "prewatch-and-run": "npm-run-all lint typechain-web3-v1",
-    "watch-and-run": "ts-node-dev --notify --respawn -- lib/DataProvider.ts -c configs/config.json",
+    "watch-and-run": "ts-node-dev --notify --respawn -- lib/AttesterClient.ts -c configs/config.json",
     "dev": "DOTENV=DEV yarn watch-and-run",
     "test": "DOTENV=DEV tsdx test --env=node",
     "testdebug": "DOTENV=DEV tsdx test --env=node test/AttesterBasic.test.ts",

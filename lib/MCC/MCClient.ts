@@ -1,7 +1,6 @@
 import { assert } from "console";
 import { MCC } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/RPCtypes";
-import { sleepms } from "../Sleep";
 import { ChainType, MCCNodeSettings as MCClientSettings } from "./MCClientSettings";
 import { MCCTransaction } from "./MCCTransaction";
 import { MCCTransactionResponse, TransactionStatus } from "./MCCTransactionResponse";
@@ -48,7 +47,10 @@ export class MCClient {
   async isHealty(): Promise<ResultStatus> {
     assert(this.chainClient);
 
-    //return await this.chainClient.isHealty()
+    // switch (this.settings.chainType) {
+    //   case ChainType.XRP:
+    //     return await this.chainClient.isHealty();
+    // }
 
     return ResultStatus.Success;
   }
@@ -62,10 +64,22 @@ export class MCClient {
   async getTransaction(transaction: MCCTransaction): Promise<MCCTransactionResponse> {
     assert(this.chainClient);
 
-    sleepms(1000);
+    // transaction.data.id;  // transactionHash
+    // transaction.metaData.blockHeight;
+    // transaction.metaData.utxo;
 
-    const result = new MCCTransactionResponse(TransactionStatus.Valid, "123", transaction, null);
+    try {
+      const txres = await this.chainClient.getTransaction(transaction.tx);
 
-    return result;
+      switch (this.settings.chainType) {
+        case ChainType.XRP:
+          return new MCCTransactionResponse(txres.validated ? TransactionStatus.Valid : TransactionStatus.Invalid, txres.hash, transaction, null);
+
+        default:
+          throw Error("Not implemented");
+      }
+    } catch (err) {
+      throw Error("Exception");
+    }
   }
 }

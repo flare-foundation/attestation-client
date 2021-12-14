@@ -1,8 +1,8 @@
 import { BigNumber } from "ethers";
 import { Logger } from "winston";
 import { ChainNode } from "./ChainNode";
-import { ChainTransaction } from "./ChainTransaction";
-import { DataTransaction } from "./DataTransaction";
+import { Attestation } from "./Attestation";
+import { AttestationData } from "./AttestationData";
 import { ChainType } from "./MCC/MCClientSettings";
 
 export class ChainManager {
@@ -14,7 +14,7 @@ export class ChainManager {
     this.logger = logger;
   }
 
-  validateTransaction(chain: ChainType, epochId: number, tx: DataTransaction): ChainTransaction | undefined {
+  validateTransaction(chain: ChainType, epochId: number, tx: AttestationData): Attestation | undefined {
     if (!this.nodes.has(chain)) {
       this.logger.error(`  ! '${chain}: undefined chain'`);
       //

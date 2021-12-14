@@ -1,12 +1,13 @@
 import { ChainManager } from "./ChainManager";
-import { ChainTransaction, ChainTransactionStatus } from "./ChainTransaction";
-import { DataTransaction } from "./DataTransaction";
+import { Attestation, AttestationStatus } from "./Attestation";
+import { AttestationData } from "./AttestationData";
 import { getTime } from "./internetTime";
 import { MCClient as MCClient } from "./MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
 import { MCCTransaction } from "./MCC/MCCTransaction";
 import { MCCTransactionResponse } from "./MCC/MCCTransactionResponse";
 import { arrayRemoveElement } from "./utils";
+import { BigNumber } from "ethers";
 
 export class ChainNode {
   chainManager: ChainManager;
@@ -22,9 +23,9 @@ export class ChainNode {
   maxRequestsPerSecond: number = 2;
   maxProcessingTransactions: number = 10;
 
-  transactionsQueue: ChainTransaction[] = new Array<ChainTransaction>();
-  transactionsProcessing: ChainTransaction[] = new Array<ChainTransaction>();
-  transactionsDone: ChainTransaction[] = new Array<ChainTransaction>();
+  transactionsQueue: Attestation[] = new Array<Attestation>();
+  transactionsProcessing: Attestation[] = new Array<Attestation>();
+  transactionsDone: Attestation[] = new Array<Attestation>();
 
   constructor(
     chainManager: ChainManager,
@@ -72,39 +73,39 @@ export class ChainNode {
     }
   }
 
-  queue(tx: ChainTransaction) {
+  queue(tx: Attestation) {
     this.chainManager.logger.info(
-      `    * chain ${this.chainName} queue ${tx.transactionHash}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`
+      `    * chain ${this.chainName} queue ${tx.data.id}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`
     );
-    tx.status = ChainTransactionStatus.queued;
+    tx.status = AttestationStatus.queued;
     this.transactionsQueue.push(tx);
   }
 
-  process(tx: ChainTransaction) {
+  process(tx: Attestation) {
     this.chainManager.logger.info(
-      `    * chain ${this.chainName} process ${tx.transactionHash}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`
+      `    * chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`
     );
 
     this.addRequestCount();
     this.transactionsProcessing.push(tx);
 
-    tx.status = ChainTransactionStatus.processing;
+    tx.status = AttestationStatus.processing;
     tx.startTime = getTime();
 
     // start underlying chain client getTransaction
     this.client
-      .getTransaction(new MCCTransaction(tx.transactionHash, tx.metaData))
+      .getTransaction(new MCCTransaction(tx.data.id, tx.metaData))
       .then((response: MCCTransactionResponse) => {
-        this.processed(tx, ChainTransactionStatus.valid);
+        this.processed(tx, AttestationStatus.valid);
       })
       .catch((response: MCCTransactionResponse) => {
-        this.processed(tx, ChainTransactionStatus.invalid);
+        this.processed(tx, AttestationStatus.invalid);
       });
   }
 
-  processed(tx: ChainTransaction, status: ChainTransactionStatus) {
+  processed(tx: Attestation, status: AttestationStatus) {
     this.chainManager.logger.info(
-      `    * chain ${this.chainName} processed ${tx.transactionHash} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`
+      `    * chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`
     );
 
     arrayRemoveElement(this.transactionsProcessing, tx);
@@ -129,16 +130,32 @@ export class ChainNode {
     return this.canAddRequests() && this.transactionsProcessing.length < this.maxProcessingTransactions;
   }
 
-  validate(epoch: number, tx0: DataTransaction): ChainTransaction {
-    this.chainManager.logger.info(`    * chain ${this.chainName} validate ${tx0.transactionHash}`);
+  validate(epoch: number, data: AttestationData): Attestation {
+    // parse data
+    const bit16 = BigNumber.from(1).shl(16).sub(1);
+    const bit32 = BigNumber.from(1).shl(32).sub(1);
+    const bit64 = BigNumber.from(1).shl(64).sub(1);
 
-    const transaction = new ChainTransaction();
+    // 32 chainId
+    // 64 blockHeight
+    // 16 utxo
+
+    const blockHeight: BigNumber = data.data.shr(32).and(bit64);
+    const utxo: BigNumber = data.data.shr(32 + 64).and(bit16);
+
+    // attestation info
+    this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
+
+    const transaction = new Attestation();
     transaction.epochId = epoch;
     transaction.chainNode = this;
-    transaction.transactionHash = tx0.transactionHash;
-    //tx.metaData = tx0.metaData;
+    transaction.data = data;
 
-    transaction.dataTransaction = tx0;
+    // save transaction meta data
+    transaction.metaData = {
+      blockHeight: blockHeight,
+      utxo: utxo,
+    };
 
     // check if transaction can be added into processing
     if (this.canProcess()) {

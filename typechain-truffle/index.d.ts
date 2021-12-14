@@ -2,16 +2,19 @@
 /* tslint:disable */
 /* eslint-disable */
 
+import { HashTestContract } from "./HashTest";
 import { StateConnectorContract } from "./StateConnector";
 
 declare global {
   namespace Truffle {
     interface Artifacts {
+      require(name: "HashTest"): HashTestContract;
       require(name: "StateConnector"): StateConnectorContract;
     }
   }
 }
 
+export { HashTestContract, HashTestInstance } from "./HashTest";
 export {
   StateConnectorContract,
   StateConnectorInstance,

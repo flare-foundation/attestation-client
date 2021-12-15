@@ -48,7 +48,7 @@
     "@google-cloud/secret-manager": "3.10.1",
     "dotenv": "10.0.0",
     "ethers": "5.1.4",
-    "flare-mcc": "latest",
+    "flare-mcc": "file:../mcc",
     "fs": "^0.0.1-security",
     "glob": "7.1.7",
     "random-number-csprng": "1.0.2",

@@ -17,8 +17,8 @@ contract HashTest {
     uint256 amount,
     uint32 gas,
     bytes32 hashToProve
-  ) external view returns (bytes32 _hash) {
-    return keccak256(abi.encode(
+  ) external pure returns (bool _match) {
+    bytes32 hash = keccak256(abi.encode(
       typ,
       chainId,
       blockNumber,
@@ -30,6 +30,7 @@ contract HashTest {
       amount,
       gas
     ));
+    return hash == hashToProve;
     // bytes32 location = keccak256(
     //   abi.encodePacked(
     //     keccak256(abi.encodePacked("FlareStateConnector_LOCATION")),

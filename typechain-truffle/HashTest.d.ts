@@ -25,7 +25,7 @@ export interface HashTestInstance extends Truffle.ContractInstance {
     gas: number | BN | string,
     hashToProve: string,
     txDetails?: Truffle.TransactionDetails
-  ): Promise<string>;
+  ): Promise<boolean>;
 
   methods: {
     test(
@@ -41,7 +41,7 @@ export interface HashTestInstance extends Truffle.ContractInstance {
       gas: number | BN | string,
       hashToProve: string,
       txDetails?: Truffle.TransactionDetails
-    ): Promise<string>;
+    ): Promise<boolean>;
   };
 
   getPastEvents(event: string): Promise<EventData[]>;

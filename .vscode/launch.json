@@ -20,7 +20,9 @@
             "name": "Test",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "test"
+                "hardhat",
+                "test",
+                "test/StateConnectorXRP.ts"
             ]
         },
     ]

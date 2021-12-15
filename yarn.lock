@@ -6088,10 +6088,8 @@ find-up@^4.0.0, find-up@^4.1.0:
     locate-path "^5.0.0"
     path-exists "^4.0.0"
 
-flare-mcc@latest:
+"flare-mcc@file:../mcc":
   version "0.0.2"
-  resolved "https://registry.yarnpkg.com/flare-mcc/-/flare-mcc-0.0.2.tgz#18bb12aa81ffcf6d90c142fa638104cc2a149ed4"
-  integrity sha512-Ko0hSu5AKzhQLvly7YnLk8nvucuWefFLpSNBin4NAYmnQi+po/ycC6guZddS4x504bQojXUKAi0d00hTQUOGnQ==
   dependencies:
     axios "^0.24.0"
 

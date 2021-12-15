@@ -1,6 +1,8 @@
 import { Client, TxRequest } from "xrpl";
 import { fullTransactionHash, xrpTransactionData } from "../lib/flare-crypto/hashes";
 import { MCClient } from "../lib/MCC/MCClient";
+import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
+import { MCCTransaction } from "../lib/MCC/MCCTransaction";
 import { HashTestInstance, StateConnectorInstance } from "../typechain-truffle";
 
 describe(`Test`, async () => {
@@ -9,7 +11,7 @@ describe(`Test`, async () => {
   let hashTest: HashTestInstance;
 
   beforeEach(async () => {
-    // client = new MCClient(new MCCNodeSettings(ChainType.XRP, "wss://xrplcluster.com", "", "", null));
+    client = new MCClient(new MCCNodeSettings(ChainType.XRP, "wss://xrplcluster.com", "", "", null));
     const xrpl = require("xrpl")
     rippleApi = new xrpl.Client(
       "wss://xrplcluster.com",
@@ -27,7 +29,8 @@ describe(`Test`, async () => {
 
   it("Test XRP hash", async () => {
     let txId = "096C199D08C3718F8E4F46FC43C984143E528F31A81C6B55C7E18B3841CC2B87";
-    // let tx = await client.getTransaction(new MCCTransaction(txId))
+    let tx2 = await client.getTransaction(new MCCTransaction(txId));
+    console.log(tx2);
     let tx = await rippleApi.request({
       command: "tx",
       transaction: txId
@@ -50,7 +53,7 @@ describe(`Test`, async () => {
       txData!.gas,
       hash!
     )
-    console.log(res);
+    assert(res);
   });
 });
 

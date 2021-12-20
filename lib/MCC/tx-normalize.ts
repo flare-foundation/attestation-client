@@ -1,8 +1,10 @@
+import { Verify } from "crypto";
 import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
 import { ChainType } from "./MCClientSettings";
 import { UtxoBlockResponse, UtxoTxResponse } from "./UtxoCore";
 
 export type NormalizedTransactionData = {
+    attestationType: AttestTransactionType,
     chainId: BN,
     blockNumber: BN,
     txId: string,
@@ -14,24 +16,34 @@ export type NormalizedTransactionData = {
     gasOrFee: BN
 }
 
-export enum ChainTransactionType {
+export enum AttestTransactionType {
     FULL = 0,
     PARTIAL = 1
 }
 
 export type TransactionData = {
-    type: ChainTransactionType,
+    type: AttestTransactionType,
 } & NormalizedTransactionData;
 
-export function wrapNormalizedTx(normalizedTxData: NormalizedTransactionData, type: ChainTransactionType) {
+export function wrapNormalizedTx(normalizedTxData: NormalizedTransactionData, type: AttestTransactionType) {
     return { type, ...normalizedTxData } as TransactionData;
 }
 
 const toBN = web3.utils.toBN
 
-export function normalizeTransaction(chainType: ChainType, type: ChainTransactionType, txResponse: any, blockResponse?: any): TransactionData | null {
+export interface VerifiedAttestation {
+    chainType: ChainType;
+    attestType: AttestTransactionType;
+    txResponse?: any, 
+    blockResponse?: any, 
+    utxo?: number,
+    client?: any
+}
+
+export async function normalizeTransaction(att: VerifiedAttestation) {
+//: NormalizedTransactionData | null {
     let normalized: NormalizedTransactionData | null;
-    switch (chainType) {
+    switch (att.chainType) {
         // case ChainType.BTC:
         //     throw Error("Not yet implemented")
         // case ChainType.LTC:
@@ -39,19 +51,21 @@ export function normalizeTransaction(chainType: ChainType, type: ChainTransactio
         // case ChainType.DOGE:
         //     throw Error("Not yet implemented")
         case ChainType.XRP:
-            normalized = normalizeXRP(txResponse as TxResponse);
+            normalized = normalizeXRP(att);
             break;
         default:
-            normalized = normalizeUTXO(chainType,  txResponse, blockResponse);
+            normalized = await normalizeUTXO(att);
             break;            
     }
     if(!normalized) {
         return null;
     }
-    return wrapNormalizedTx(normalized, type);
+    return normalized;
+    // return wrapNormalizedTx(normalized, type);
 }
 
-function normalizeXRP(txResponse: TxResponse): NormalizedTransactionData | null {
+function normalizeXRP(att: VerifiedAttestation): NormalizedTransactionData | null {
+    const txResponse = att.txResponse as TxResponse;
     if (txResponse.result.TransactionType != "Payment") {
         return null;
     }    
@@ -72,6 +86,7 @@ function normalizeXRP(txResponse: TxResponse): NormalizedTransactionData | null 
         }
 
     return {
+        attestationType: att.attestType,
         chainId: toBN(ChainType.XRP),  // chainId = 3 for XRP
         blockNumber: toBN(txResponse.result.ledger_index || 0),
         txId: "0x" + txResponse.result.hash,
@@ -84,8 +99,29 @@ function normalizeXRP(txResponse: TxResponse): NormalizedTransactionData | null 
     } as NormalizedTransactionData
 }
 
-function normalizeUTXO(chainType: ChainType, txResponse: UtxoTxResponse, blockResponse: UtxoBlockResponse): NormalizedTransactionData | null {
-    console.log(txResponse.vin)
+async function normalizeUTXO(att: VerifiedAttestation) {
+//: NormalizedTransactionData | null {
+    const txResponse = att.txResponse as UtxoTxResponse;
+    console.log("TX RESP:", txResponse)
+    console.log("VOUTs", txResponse.vout)
+    console.log("VOUT ADDRESSES", txResponse.vout.map(x => x.scriptPubKey.addresses))
+    console.log("VINs", txResponse.vin)
+    let txes = txResponse.vin.map((x: any) => {
+        return {
+            txid: x.txid,
+            vout: x.vout
+        }
+    })
+    console.log("TXES", txes)
+    let client = att.client;
+    console.log("IN ADDRESSES")
+    for(let txid of txes) {
+        let rsp = await client.chainClient.getTransaction(txid.txid, {verbose: true}) as UtxoTxResponse;
+        console.log("RESP2:", rsp);
+        console.log("RESP2-XXX:", rsp.vout.map((x: any) => x.scriptPubKey.addresses));
+        let add = rsp.vout[txid.vout].scriptPubKey.addresses//.map(x => x.scriptPubKey.addresses[])
+        console.log(add)
+    }
     // const amount = Math.floor(parseFloat(tx.result.vout[voutN].value).toFixed(8)*Math.pow(10,8));
     // tx.result.vout[voutN].scriptPubKey.addresses[0], '\n',
 

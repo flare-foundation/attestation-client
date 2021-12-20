@@ -17,7 +17,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Test",
+            "name": "Test BTC",
             "runtimeExecutable": "yarn",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",
@@ -26,9 +26,40 @@
             "runtimeArgs": [
                 "hardhat",
                 "test",
-                "test/StateConnectorXRP.ts"
+                "test/StateConnectorBTC.test.ts"
             ]
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test XRP",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/StateConnectorXRP.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test LTC",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/StateConnectorLTC.test.ts"
+            ]
+        },
+        
         {
             "type": "node",
             "request": "launch",

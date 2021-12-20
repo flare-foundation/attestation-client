@@ -7,12 +7,28 @@ export interface ScriptPubKey {
   asm: string;
   hex: string;
   type: string;
+  reqSigs: number;
+  addresses: string[]
 }
 
 export interface UtxoVout {
   value: number;
   n: number;
-  scriptPubKey: ScriptPubKey  
+  scriptPubKey: ScriptPubKey
+}
+
+export interface ScriptSig {
+  asm: string;
+  hex: string;
+}
+
+export interface UtxoVin {
+  coinbase?: string;
+  sequence: number;
+  txid?: string;
+  vout?: number;
+  scriptSig?: ScriptSig;
+  txinwitness?: string[];
 }
 
 export interface UtxoTxResponse {

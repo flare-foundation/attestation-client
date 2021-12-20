@@ -1,9 +1,9 @@
-import { ChainTransactionType, TransactionData } from "../MCC/tx-normalize";
+import { AttestTransactionType, NormalizedTransactionData, TransactionData } from "../MCC/tx-normalize";
 
 export function fullTransactionHash(
-    txData: TransactionData
+    txData: NormalizedTransactionData
 ) {
-    if (txData.type != ChainTransactionType.FULL) throw Error("Not full transaction hash")
+    if (txData.attestationType != AttestTransactionType.FULL) throw Error("Not full transaction hash")
     const encoded = web3.eth.abi.encodeParameters(
         [
             'uint32', // type
@@ -18,7 +18,7 @@ export function fullTransactionHash(
             'uint32'  // gas
         ],
         [
-            txData.type,
+            txData.attestationType,
             txData.chainId,
             txData.blockNumber,
             txData.txId,

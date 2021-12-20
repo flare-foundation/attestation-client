@@ -9,6 +9,8 @@ import { MCCTransactionResponse } from "./MCC/MCCTransactionResponse";
 import { arrayRemoveElement } from "./utils";
 import { BigNumber } from "ethers";
 
+const toBN = web3.utils.toBN;
+
 export class ChainNode {
   chainManager: ChainManager;
 
@@ -132,16 +134,16 @@ export class ChainNode {
 
   validate(epoch: number, data: AttestationData): Attestation {
     // parse data
-    const bit16 = BigNumber.from(1).shl(16).sub(1);
-    const bit32 = BigNumber.from(1).shl(32).sub(1);
-    const bit64 = BigNumber.from(1).shl(64).sub(1);
+    const bit16 = toBN(1).shln(16).sub(toBN(1));
+    const bit32 = toBN(1).shln(32).sub(toBN(1));
+    const bit64 = toBN(1).shln(64).sub(toBN(1));
 
     // 32 chainId
     // 64 blockHeight
     // 16 utxo
 
-    const blockHeight: BigNumber = data.data.shr(32).and(bit64);
-    const utxo: BigNumber = data.data.shr(32 + 64).and(bit16);
+    const blockHeight: BN = data.data.shrn(32).and(bit64);
+    const utxo: BN = data.data.shrn(32 + 64).and(bit16);
 
     // attestation info
     this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);

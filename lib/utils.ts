@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
@@ -7,11 +7,11 @@ import * as winston from "winston";
 
 export const DECIMALS = 5;
 
-export function makeBN(value: string | number): BigNumber {
+export function makeBN(value: string | number): BN {
   try {
-    return BigNumber.from(value);
+    return web3.utils.toBN(value);
   } catch {
-    return BigNumber.from(0);
+    return web3.utils.toBN(0);
   }
 }
 
@@ -22,9 +22,9 @@ export function arrayRemoveElement(array: Array<any>, element: any) {
   }
 }
 
-export function getProvider(rpcLink: string): ethers.providers.Provider {
-  return new ethers.providers.JsonRpcProvider(rpcLink);
-}
+// export function getProvider(rpcLink: string): ethers.providers.Provider {
+//   return new ethers.providers.JsonRpcProvider(rpcLink);
+// }
 
 export function getWeb3(rpcLink: string, logger?: any) {
   const web3 = new Web3();
@@ -147,13 +147,13 @@ export function getLogger(label?: string) {
   });
 }
 
-export function bigNumberToMillis(num: number) {
-  return BigNumber.from(num * 1000);
-}
+// export function bigNumberToMillis(num: number) {
+//   return BigNumber.from(num * 1000);
+// }
 
-export function priceHash(price: number | BN | BigNumber, random: number | BN | BigNumber, address: string): string {
-  return ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "address"], [price.toString(), random.toString(), address]));
-}
+// export function priceHash(price: number | BN | BigNumber, random: number | BN | BigNumber, address: string): string {
+//   return ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "address"], [price.toString(), random.toString(), address]));
+// }
 
 export async function relativeContractABIPathForContractName(name: string, artifactsRoot = "artifacts"): Promise<string> {
   return new Promise((resolve, reject) => {

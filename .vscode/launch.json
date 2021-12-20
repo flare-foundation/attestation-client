@@ -19,11 +19,25 @@
             "request": "launch",
             "name": "Test",
             "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
             "runtimeArgs": [
                 "hardhat",
                 "test",
                 "test/StateConnectorXRP.ts"
             ]
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test 2",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "testdebug"
+            ]
+        },
+
     ]
 }

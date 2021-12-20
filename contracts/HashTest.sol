@@ -4,6 +4,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
 
+// import "hardhat/console.sol";
+
 contract HashTest {
   function test(
     uint32 typ,
@@ -15,7 +17,7 @@ contract HashTest {
     string calldata destinationAddress,
     uint256 destinationTag,
     uint256 amount,
-    uint32 gas,
+    uint32 gasOrFee,
     bytes32 hashToProve
   ) external pure returns (bool _match) {
     bytes32 hash = keccak256(abi.encode(
@@ -28,21 +30,26 @@ contract HashTest {
       destinationAddress,
       destinationTag,
       amount,
-      gas
+      gasOrFee
     ));
     return hash == hashToProve;
-    // bytes32 location = keccak256(
-    //   abi.encodePacked(
-    //     keccak256(abi.encodePacked("FlareStateConnector_LOCATION")),
-    //     keccak256(abi.encodePacked(chainId)),
-    //     keccak256(abi.encodePacked(ledger)),
-    //     keccak256(abi.encodePacked(txId)),
-    //     keccak256(abi.encodePacked(utxo))
-    //   )
-    // );
-    // bytes32 finalisedPaymentLocation = keccak256(abi.encodePacked(keccak256(abi.encodePacked("FlareStateConnector_FINALISED")), location));
-    // bytes32 paymentHash = keccak256(
-    //   abi.encodePacked(keccak256(abi.encodePacked("FlareStateConnector_PAYMENTHASH")), destinationHash, dataHash, keccak256(abi.encodePacked(amount)))
-    // );
+  }
+
+  function verifyMerkleProof(
+    bytes32 txHash, 
+    uint256[] calldata sides, 
+    bytes32[] calldata hashes, 
+    bytes32 targetHash
+  ) external pure returns (bool _match) {
+    bytes32 currentHash = txHash;
+    
+    for(uint256 i = 0; i < sides.length; i++) {
+      if(sides[i] == 0) {
+        currentHash = keccak256(abi.encode(hashes[i], currentHash));
+      } else {
+        currentHash = keccak256(abi.encode(currentHash, hashes[i]));
+      }      
+    }
+    return currentHash == targetHash;
   }
 }

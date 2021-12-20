@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { Logger } from "winston";
 import { Attestation } from "./Attestation";
 import { AttestationData, AttestationType } from "./AttestationData";
@@ -70,8 +69,10 @@ export class Attester {
     // create attestation depending on type
     switch (tx.type) {
       case AttestationType.Transaction: {
-        const bit32 = BigNumber.from(1).shl(32).sub(1);
-        const chainType: BigNumber = tx.data.and(bit32);
+        // const bit32 = BigNumber.from(1).shl(32).sub(1);
+        // const chainType: BigNumber = tx.data.and(bit32);
+        const bit32 = web3.utils.toBN.from(1).shl(32).sub(1);
+        const chainType: BN = tx.data.and(bit32);
 
         return await this.chainManager.validateTransaction(chainType.toNumber() as ChainType, epochId, tx);
       }

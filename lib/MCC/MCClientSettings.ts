@@ -1,7 +1,9 @@
 export enum ChainType {
   invalid = -1,
-  BTC = 1,
-  XRP = 2,
+  BTC = 0,
+  LTC = 1,
+  DOGE = 2,
+  XRP = 3
   // ... make sure IDs are the same as in Flare node
 }
 
@@ -24,6 +26,8 @@ export class MCCNodeSettings {
     const typeUpper = type.toUpperCase();
     if (typeUpper === "XRP") return ChainType.XRP;
     if (typeUpper === "BTC") return ChainType.BTC;
+    if (typeUpper === "LTC") return ChainType.DOGE;
+    if (typeUpper === "DOGE") return ChainType.DOGE;
 
     return ChainType.invalid;
   }

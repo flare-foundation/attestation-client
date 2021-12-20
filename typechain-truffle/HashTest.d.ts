@@ -22,8 +22,16 @@ export interface HashTestInstance extends Truffle.ContractInstance {
     destinationAddress: string,
     destinationTag: number | BN | string,
     amount: number | BN | string,
-    gas: number | BN | string,
+    gasOrFee: number | BN | string,
     hashToProve: string,
+    txDetails?: Truffle.TransactionDetails
+  ): Promise<boolean>;
+
+  verifyMerkleProof(
+    txHash: string,
+    sides: (number | BN | string)[],
+    hashes: string[],
+    targetHash: string,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
 
@@ -38,8 +46,16 @@ export interface HashTestInstance extends Truffle.ContractInstance {
       destinationAddress: string,
       destinationTag: number | BN | string,
       amount: number | BN | string,
-      gas: number | BN | string,
+      gasOrFee: number | BN | string,
       hashToProve: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<boolean>;
+
+    verifyMerkleProof(
+      txHash: string,
+      sides: (number | BN | string)[],
+      hashes: string[],
+      targetHash: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;
   };

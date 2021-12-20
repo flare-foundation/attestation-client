@@ -41,14 +41,14 @@
     "watch-and-run": "ts-node-dev --notify --respawn -- lib/AttesterClient.ts -c configs/config.json",
     "dev": "DOTENV=DEV yarn watch-and-run",
     "test": "DOTENV=DEV tsdx test --env=node",
-    "testdebug": "DOTENV=DEV tsdx test --env=node test/AttesterBasic.test.ts",
+    "testdebug": "DOTENV=DEV tsdx test --env=node test/MerkleTree.test.ts",
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local"
   },
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",
+    "axios": "^0.24.0",
     "dotenv": "10.0.0",
     "ethers": "5.1.4",
-    "flare-mcc": "file:../mcc",
     "fs": "^0.0.1-security",
     "glob": "7.1.7",
     "random-number-csprng": "1.0.2",

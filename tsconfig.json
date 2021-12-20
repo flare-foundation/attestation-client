@@ -5,17 +5,13 @@
     "strict": true,
     "esModuleInterop": true,
     "outDir": "dist",
-    "declaration": true,
-    "typeRoots": [
-      "test/types",
-      "node_modules/@types"
-    ]
+    "declaration": true
   },
   "include": [
     "./lib",
     "./scripts", 
     "./test", 
-    "./typechain-truffle", 
+    "./typechain-truffle",
     "./typechain-web3-v1", 
     "./typechain-web3-v1-external"
   ],

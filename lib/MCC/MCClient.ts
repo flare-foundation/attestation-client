@@ -1,10 +1,12 @@
 import { assert } from "console";
-import { MCC } from "flare-mcc";
-import { RPCInterface } from "flare-mcc/dist/RPCtypes";
-import { sleepms } from "../Sleep";
+import { MCC } from ".";
+// import { MCC } from "flare-mcc";
+// import { RPCInterface } from "flare-mcc/dist/RPCtypes";
+// import { sleepms } from "../Sleep";
 import { ChainType, MCCNodeSettings as MCClientSettings } from "./MCClientSettings";
 import { MCCTransaction } from "./MCCTransaction";
 import { MCCTransactionResponse, TransactionStatus } from "./MCCTransactionResponse";
+import { RPCInterface } from "./RPCtypes";
 
 export enum ResultStatus {
   Success = 0,
@@ -32,6 +34,13 @@ export class MCClient {
       case ChainType.BTC:
         this.chainClient = new MCC.BTC(this.settings.url, this.settings.username, this.settings.password, this.settings.metaData);
         break;
+      case ChainType.LTC:
+        this.chainClient = new MCC.LTC(this.settings.url, this.settings.username, this.settings.password, this.settings.metaData);
+        break;
+      case ChainType.DOGE:
+        this.chainClient = new MCC.DOGE(this.settings.url, this.settings.username, this.settings.password, this.settings.metaData);
+        break;
+
       default:
         // error
         break;
@@ -61,11 +70,12 @@ export class MCClient {
 
   async getTransaction(transaction: MCCTransaction): Promise<MCCTransactionResponse> {
     assert(this.chainClient);
+    return this.chainClient.getTransaction(transaction.tx)
 
-    sleepms(1000);
+    // sleepms(1000);
 
-    const result = new MCCTransactionResponse(TransactionStatus.Valid, "123", transaction, null);
+    // const result = new MCCTransactionResponse(TransactionStatus.Valid, "123", transaction, null);
 
-    return result;
+    // return result;
   }
 }

@@ -16,9 +16,11 @@ export interface AttestationRequest {
     timestamp: BN;
     instructions: BN;
     id: string;
+    dataAvailabilityProof: string;
     0: BN;
     1: BN;
     2: string;
+    3: string;
   };
 }
 
@@ -74,21 +76,25 @@ export interface StateConnectorInstance extends Truffle.ContractInstance {
     (
       instructions: number | BN | string,
       id: string,
+      dataAvailabilityProof: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse<AllEvents>>;
     call(
       instructions: number | BN | string,
       id: string,
+      dataAvailabilityProof: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<void>;
     sendTransaction(
       instructions: number | BN | string,
       id: string,
+      dataAvailabilityProof: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       instructions: number | BN | string,
       id: string,
+      dataAvailabilityProof: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
   };
@@ -178,21 +184,25 @@ export interface StateConnectorInstance extends Truffle.ContractInstance {
       (
         instructions: number | BN | string,
         id: string,
+        dataAvailabilityProof: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<Truffle.TransactionResponse<AllEvents>>;
       call(
         instructions: number | BN | string,
         id: string,
+        dataAvailabilityProof: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<void>;
       sendTransaction(
         instructions: number | BN | string,
         id: string,
+        dataAvailabilityProof: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<string>;
       estimateGas(
         instructions: number | BN | string,
         id: string,
+        dataAvailabilityProof: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<number>;
     };

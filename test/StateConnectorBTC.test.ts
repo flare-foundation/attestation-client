@@ -1,7 +1,10 @@
+import { AttestationType } from "../lib/AttestationData";
+import { fullTransactionHash } from "../lib/flare-crypto/hashes";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { AttestTransactionType, normalizeTransaction } from "../lib/MCC/tx-normalize";
-import { UtxoBlockResponse, UtxoTxResponse } from "../lib/MCC/UtxoCore";
+import { prettyPrint, toBN, TransactionAttestationRequest, verifyTransactionAttestation } from "../lib/MCC/tx-normalize";
+import { UtxoBlockResponse } from "../lib/MCC/UtxoCore";
+import { testHashOnContract } from "./utils/test-utils";
 
 const CLIENT = ChainType.BTC;
 const URL = 'https://testnode2.c.aflabs.net/btc/';
@@ -9,10 +12,9 @@ const USERNAME = "rpcuser";
 const PASSWORD = "rpcpass";
 // const TEST_TX_ID = "b4542490567962c52c7f732deb9d1b1189a104481dc7e6eebc15e85011bc02ec";
 // const TEST_TX_ID = "ba905920105a93fe938781c7e5f63f4eca02dc085090a64d561dca0892c6b97f";
-const TEST_TX_ID = "568c58e7fa59bfd13d904e5c1fd8c4b97bd9d64cfc7644abe74541dc12adff35";
-
-
-const UTXO = 0;
+// const TEST_TX_ID = "568c58e7fa59bfd13d904e5c1fd8c4b97bd9d64cfc7644abe74541dc12adff35";
+const TEST_TX_ID = "4d0d61fd3ca1ccc3c023919f31d6a71fc3e0f3018c7238bdfc75a16898d9acbd";
+const UTXO = 1;
 
 describe(`Test`, async () => {
   let client: MCClient;
@@ -31,21 +33,49 @@ describe(`Test`, async () => {
   //   // assert(res);
   // });
 
-  it("Should hashing of a normalized transaction match to one in contract for DOGE", async () => {
-    let txResponse = await client.chainClient.getTransaction(TEST_TX_ID, {verbose: true}) as UtxoTxResponse;
-    let blockResponse = await client.chainClient.getBlockHeader(txResponse.blockhash) as UtxoBlockResponse;
-    let txData = await normalizeTransaction({
-      chainType: ChainType.BTC,
-      attestType: AttestTransactionType.FULL,
-      txResponse, 
-      blockResponse,
+  it("Should hashing of a normalized transaction match to one in contract for BTC", async () => {
+
+    let txData = await verifyTransactionAttestation(client.chainClient, {
+      attestationType: AttestationType.TransactionFull,
+      instructions: toBN(0),
+      id: TEST_TX_ID,
+      dataAvailabilityProof: "0x0",
+      chainId: ChainType.BTC,
       utxo: UTXO,
-      client
-    });
-    // let hash = fullTransactionHash(txData!);
-    // let res = testHashOnContract(txData!, hash!);
-    // assert(res);
+      blockNumber: 0 
+    } as TransactionAttestationRequest)
+    prettyPrint(txData!);
+
+    let hash = fullTransactionHash(txData!);
+    let res = testHashOnContract(txData!, hash!);
+    assert(res);
   });
+
+  it("Should make lots of attestation requests", async () => {
+    let latestBlockNumber = await client.chainClient.getBlockHeight();
+    console.log(latestBlockNumber)
+    let count = 100
+    for (let i = latestBlockNumber - count + 1; i <= latestBlockNumber; i++) {
+      let block = await client.chainClient.getBlock(i) as UtxoBlockResponse;
+      console.log(i);
+      for(let txHash of block.tx) {
+        console.log(txHash)
+      }
+      // for(let tx of block.result.ledger.transactions!) {
+      //   console.log("----")
+      //   if(verifyXRPPayment(tx)) {
+          
+      //   } else {
+      //     // if((tx as any).TransactionType === 'Payment') {
+      //     //   console.log(tx)
+      //     // }
+          
+      //   }
+      // }
+
+    }
+  });
+
 
 });
 

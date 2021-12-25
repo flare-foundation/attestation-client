@@ -37,3 +37,11 @@ yarn-error.log
 nul
 .stateconnector-address
 .DS_Store
+
+## Solidity
+artifacts
+
+## Typechain
+typechain-truffle
+typechain-web3-v1
+typechain-web3-v1-external

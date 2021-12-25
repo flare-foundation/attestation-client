@@ -13,8 +13,7 @@ contract StateConnector {
     address public constant SIGNAL_COINBASE = address(0x000000000000000000000000000000000000dEaD); // Signalling block.coinbase value
     uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1636070400 seconds; // November 5th, 2021
     // uint256 public constant BUFFER_WINDOW = 90 seconds; // Amount of time a buffer is active before cycling to the next one
-    uint256 public constant BUFFER_WINDOW = 10 seconds; // Amount of time a buffer is active before cycling to the next one
-
+    uint256 public constant BUFFER_WINDOW = 10 seconds; // Testing setting
     uint256 public constant TOTAL_STORED_BUFFERS = 3; // {Requests, Votes, Reveals}
     uint256 public constant TOTAL_STORED_PROOFS = (1 weeks)/BUFFER_WINDOW; // Store a proof for one week
 
@@ -52,7 +51,8 @@ contract StateConnector {
     event AttestationRequest(
         uint256 timestamp,
         uint256 instructions, 
-        bytes32 id
+        bytes32 id,
+        bytes32 dataAvailabilityProof
     );
 
 //====================================================================
@@ -68,16 +68,16 @@ contract StateConnector {
 
     function requestAttestations(
         uint256 instructions,
-        bytes32 id
-    ) external payable {
-        // Check for a fee burn, the exact fee over time is determined in the golang layer
-        require(msg.value > 0);
+        bytes32 id,
+        bytes32 dataAvailabilityProof
+    ) external {
         // Check for empty inputs
         require(instructions > 0);
         require(id > 0x0);
+        require(dataAvailabilityProof > 0x0);
         // Emit an event containing the details of the request, these details are not stored in 
         // contract storage so they must be retrieved using event filtering.
-        emit AttestationRequest(block.timestamp, instructions, id); 
+        emit AttestationRequest(block.timestamp, instructions, id, dataAvailabilityProof); 
     }
 
     function submitAttestation(

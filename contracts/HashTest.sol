@@ -17,7 +17,7 @@ contract HashTest {
     string calldata destinationAddress,
     uint256 destinationTag,
     uint256 amount,
-    uint32 gasOrFee,
+    uint256 gasOrFee,
     bytes32 hashToProve
   ) external pure returns (bool _match) {
     bytes32 hash = keccak256(abi.encode(

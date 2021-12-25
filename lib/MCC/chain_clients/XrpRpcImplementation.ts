@@ -1,10 +1,11 @@
-import { TxResponse } from 'xrpl';
+import { LedgerRequest, LedgerResponse, TxResponse } from 'xrpl';
 import {
   GetTransactionOptions, RPCInterface
 } from '../RPCtypes';
 import { xrp_ensure_data } from '../utils';
 
 const axios = require('axios');
+const toBN = web3.utils.toBN
 
 export class XRPImplementation implements RPCInterface {
   client: any;
@@ -106,7 +107,25 @@ export class XRPImplementation implements RPCInterface {
     return;
   }
  
-  async getBlockHeader(blockNumberOrHash: number | string) {
-    throw Error("Not yet implemented")
+  async getBlock(blockNumberOrHash: number | string) {
+    let res = await this.client.post('', {
+      method: 'ledger',
+      params: [{
+        ledger_index: blockNumberOrHash,
+        transactions: true,
+        expand: true,
+        binary: false
+      } as LedgerRequest],
+    });
+    xrp_ensure_data(res.data);
+    return res.data;
   }
+
+  async getAdditionalTransactionDetails(transaction: TxResponse, blockInfo?: any) {
+    return {
+      sender: transaction.result.Account,
+      fee: toBN(transaction.result.Fee!)
+    }    
+  }
+
 }

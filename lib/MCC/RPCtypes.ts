@@ -5,8 +5,14 @@ export interface vin_utxo {
 }
 
 export interface vout_utxo {
-  address: string;
-  amount: number;
+  address?: string;
+  amount?: number;
+}
+
+
+export interface AdditionalTransactionDetails {
+  fee: BN;
+  sender: string;
 }
 
 export interface RPCInterface {
@@ -66,8 +72,9 @@ export interface RPCInterface {
 
   fundAddress(address: string, amount: number): any;
 
-  getBlockHeader(blockNumberOrHash: number | string): any;
-  
+  getBlock(blockNumberOrHash: number | string): any;
+
+  getAdditionalTransactionDetails(transaction: any, blockInfo?: any): Promise<AdditionalTransactionDetails>;  
 }
 
 export interface DogeRpcInterface extends RPCInterface {}
@@ -78,6 +85,12 @@ export interface UtxoRpcInterface extends RPCInterface {
    * @param blockHash
    */
   getBlockHeader(blockHash: string): any;
+
+  /**
+   * Block data
+   * @param blockHash
+   */
+   getBlockHeader(blockHashOrNumber: string | number): any;
 
   /**
    * Create wallet on rpc client

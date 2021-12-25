@@ -1,4 +1,4 @@
-import { GetTransactionOptions, vin_utxo, vout_utxo } from "./RPCtypes";
+import { AdditionalTransactionDetails, GetTransactionOptions, vin_utxo, vout_utxo } from "./RPCtypes";
 import { ensure_data, sleep } from "./utils";
 
 const axios = require('axios');
@@ -39,7 +39,7 @@ export interface UtxoTxResponse {
   vsize: number;
   version: number;
   locktime: number;
-  vin: any;
+  vin: UtxoVin[];
   vout: UtxoVout[];
   blockhash: string;
   confirmations: number;
@@ -47,7 +47,7 @@ export interface UtxoTxResponse {
   blocktime: number;
 }
 
-export interface UtxoBlockResponse {
+export interface UtxoBlockHeaderResponse {
   hash: string;
   confirmations: number;
   height: number;
@@ -62,6 +62,14 @@ export interface UtxoBlockResponse {
   chainwork: string;
   previousblockhash: string;
   nextblockhash: string;
+}
+
+export interface UtxoBlockResponse extends UtxoBlockHeaderResponse {
+  size: number;
+  strippedsize: number;
+  weight: number;
+  tx: string[];
+  nTx: number;
 }
 
 export class UtxoCore {
@@ -100,7 +108,7 @@ export class UtxoCore {
         "params": [txId, verbose]
       })
     ensure_data(res.data);
-    return res.data.result
+    return res.data.result as UtxoTxResponse
   };
 
   /**
@@ -116,7 +124,7 @@ export class UtxoCore {
         "params": []
       })
     ensure_data(res.data);
-    return res.data.result
+    return res.data.result as number;
   };
 
   /**
@@ -124,7 +132,13 @@ export class UtxoCore {
    * @param blockHash 
    * @returns 
    */
-  async getBlockHeader(blockHash: string) {
+  async getBlockHeader(blockHashOrHeight: string | number) {
+    let blockHash: string | null = null;
+    if(typeof blockHashOrHeight === "string") {
+      blockHash = blockHashOrHeight as string;
+    } else if(typeof blockHashOrHeight === "number") {
+      blockHash = await this.getBlockHash(blockHashOrHeight as number);
+    }
     let res = await this.client.post("",
       {
         "jsonrpc": "1.0",
@@ -133,7 +147,37 @@ export class UtxoCore {
         "params": [blockHash]
       })
     ensure_data(res.data);
-    return res.data.result
+    return res.data.result as UtxoBlockHeaderResponse;
+  };
+
+  async getBlockHash(blockNumber: number) {
+    let res = await this.client.post("",
+      {
+        "jsonrpc": "1.0",
+        "id": "rpc",
+        "method": "getblockhash",
+        "params": [blockNumber]
+      })
+    ensure_data(res.data);
+    return res.data.result as string;
+  };
+
+  async getBlock(blockHashOrHeight: string | number) {
+    let blockHash: string | null = null;
+    if(typeof blockHashOrHeight === "string") {
+      blockHash = blockHashOrHeight as string;
+    } else if(typeof blockHashOrHeight === "number") {
+      blockHash = await this.getBlockHash(blockHashOrHeight as number);
+    }
+    let res = await this.client.post("",
+      {
+        "jsonrpc": "1.0",
+        "id": "rpc",
+        "method": "getblock",
+        "params": [blockHash]
+      })
+    ensure_data(res.data);
+    return res.data.result as UtxoBlockResponse;
   };
 
   async createWallet(walletLabel: string) {
@@ -322,5 +366,29 @@ export class UtxoCore {
       })
     ensure_data(res.data);
     return res.data.result
+  }
+
+  async getAdditionalTransactionDetails(txResponse: UtxoTxResponse): Promise<AdditionalTransactionDetails> {
+    const toBN = web3.utils.toBN
+
+    let vinTransactions: UtxoTxResponse[] = []
+    let inFunds = toBN(0);
+    for (let vin of txResponse.vin) {
+      let rsp = await this.getTransaction(vin.txid!, { verbose: true }) as UtxoTxResponse;
+      vinTransactions.push(rsp);
+      inFunds = inFunds.add(toBN(Math.round(rsp.vout[vin.vout!].value * 100000000)))
+    }
+
+    let outFunds = toBN(0);
+    for (let vout of txResponse.vout) {
+      outFunds = outFunds.add(toBN(Math.round(vout.value * 100000000)))
+    }
+    let inVout = txResponse.vin[0].vout!;
+    let addresses = vinTransactions[0].vout[inVout].scriptPubKey.addresses;
+    if (addresses.length != 1) throw Error("Multiple or missing sender address");
+    return {
+      fee: inFunds.sub(outFunds),
+      sender: addresses[0],
+    } as AdditionalTransactionDetails
   }
 };

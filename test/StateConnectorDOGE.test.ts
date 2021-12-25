@@ -1,7 +1,7 @@
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { AttestTransactionType, normalizeTransaction } from "../lib/MCC/tx-normalize";
-import { UtxoBlockResponse, UtxoTxResponse } from "../lib/MCC/UtxoCore";
+import { AttestationType, normalizeTransaction } from "../lib/MCC/tx-normalize";
+import { UtxoBlockHeaderResponse, UtxoTxResponse } from "../lib/MCC/UtxoCore";
 
 const CLIENT = ChainType.DOGE;
 const URL = 'https://testnode2.c.aflabs.net/doge/';
@@ -29,10 +29,10 @@ describe(`Test`, async () => {
 
   it("Should hashing of a normalized transaction match to one in contract for DOGE", async () => {
     let txResponse = await client.chainClient.getTransaction(TEST_TX_ID, {verbose: true}) as UtxoTxResponse;
-    let blockResponse = await client.chainClient.getBlockHeader(txResponse.blockhash) as UtxoBlockResponse;
+    let blockResponse = await client.chainClient.getBlockHeader(txResponse.blockhash) as UtxoBlockHeaderResponse;
     let txData = normalizeTransaction({
       chainType: ChainType.BTC,
-      attestType: AttestTransactionType.FULL,
+      attestType: AttestationType.FULL,
       txResponse, 
       blockResponse,
       utxo: UTXO

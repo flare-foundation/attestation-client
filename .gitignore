@@ -43,5 +43,5 @@ artifacts
 
 ## Typechain
 typechain-truffle
-typechain-web3-v1
-typechain-web3-v1-external
+# typechain-web3-v1
+# typechain-web3-v1-external

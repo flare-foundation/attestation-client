@@ -1,9 +1,10 @@
-import { LedgerResponse, TxResponse } from "xrpl";
+import { expectEvent } from "@openzeppelin/test-helpers";
+import { LedgerResponse, Payment, Transaction, TxResponse } from "xrpl";
 import { AttestationType } from "../lib/AttestationData";
 import { fullTransactionHash } from "../lib/flare-crypto/hashes";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { prettyPrint, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest, verifyTransactionAttestation, verifyXRPPayment } from "../lib/MCC/tx-normalize";
+import { AttestationRequest, prettyPrint, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest, verifyTransactionAttestation, verifyXRPPayment } from "../lib/MCC/tx-normalize";
 import { HashTestInstance, StateConnectorInstance } from "../typechain-truffle";
 import { testHashOnContract } from "./utils/test-utils";
 
@@ -15,6 +16,11 @@ const TEST_TX_ID = "096C199D08C3718F8E4F46FC43C984143E528F31A81C6B55C7E18B3841CC
 
 const HashTest = artifacts.require("HashTest");
 const StateConnector = artifacts.require("StateConnector");
+
+async function sendAttestationRequest(stateConnector: StateConnectorInstance, request: AttestationRequest) {
+  return await stateConnector.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
+}
+
 
 describe(`Test`, async () => {
   let client: MCClient;
@@ -52,14 +58,16 @@ describe(`Test`, async () => {
         // console.log("----")
         if (verifyXRPPayment(tx)) {
           let tr = {
-            id: tx,
-            dataAvailabilityProof: "0x0",
+            id: "0x" + (tx as any).hash,
+            dataAvailabilityProof: "0x1",
             blockNumber: i,
             chainId: ChainType.XRP,
             attestationType: AttestationType.TransactionFull,
             instructions: toBN(0)
           } as TransactionAttestationRequest;
           let attRequest = txAttReqToAttestationRequest(tr);
+          let receipt = await sendAttestationRequest(stateConnector, attRequest);
+          expectEvent(receipt, "AttestationRequest")
         } else {
           // if((tx as any).TransactionType === 'Payment') {
           //   console.log(tx)

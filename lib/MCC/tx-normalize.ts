@@ -144,7 +144,7 @@ export function attReqToTransactionAttestationRequest(request: AttestationReques
     } as TransactionAttestationRequest;
 }
 
-export function encodeToUint256(sizes: number[], keys: string[], valueObject: any) {
+export function encodeToUint256(sizes: number[], keys: string[], valueObject: any) {    
     if (sizes.length != keys.length) {
         throw new Error("Sizes do not match");
     }
@@ -156,8 +156,8 @@ export function encodeToUint256(sizes: number[], keys: string[], valueObject: an
         if (sizes[i] <= 0) {
             throw new Error("To small size");
         }
+        encoding = encoding.shln(sizes[i]);
         if (!keys[i]) {
-            encoding = encoding.shln(sizes[i]);
             continue;
         }
         let val = valueObject[keys[i]];
@@ -172,7 +172,7 @@ export function encodeToUint256(sizes: number[], keys: string[], valueObject: an
         } else if (val) {
             throw new Error("Wrong type of value")
         }
-        encoding = encoding.add(value).shln(sizes[i]);
+        encoding = encoding.add(value)
     }
     return encoding;
 }
@@ -298,9 +298,6 @@ async function verififyAttestationXRP(client: RPCInterface, attRequest: Transact
         ...additionalData
     } as VerifiedAttestation)
 }
-
-
-
 
 
 // export function positionMask(n: BN, start: number, end: number): BN {

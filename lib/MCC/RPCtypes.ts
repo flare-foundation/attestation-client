@@ -10,9 +10,23 @@ export interface vout_utxo {
 }
 
 
-export interface AdditionalTransactionDetails {
+export interface AdditionalTransactionDetails {  
+  blockNumber: BN;
+  txId: string;
+  utxo: BN;
+  sourceAddress: string;
+  destinationAddress: string;
+  destinationTag: BN;
+  spent: BN;
+  delivered: BN;
   fee: BN;
-  sender: string;
+  dataAvailabilityProof: string;
+}
+
+export interface AdditionalTxRequest {
+  transaction: any; 
+  utxo?: BN | number;
+  confirmations: number;
 }
 
 export interface RPCInterface {
@@ -74,7 +88,7 @@ export interface RPCInterface {
 
   getBlock(blockNumberOrHash: number | string): any;
 
-  getAdditionalTransactionDetails(transaction: any, blockInfo?: any): Promise<AdditionalTransactionDetails>;  
+  getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails>;  
 }
 
 export interface DogeRpcInterface extends RPCInterface {}

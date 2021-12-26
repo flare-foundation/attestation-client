@@ -1,29 +1,21 @@
-import { Payment, TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
+import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
 import { AttestationType } from "../AttestationData";
 import { ChainType } from "./MCClientSettings";
-import { RPCInterface } from "./RPCtypes";
-import { UtxoBlockHeaderResponse, UtxoBlockResponse, UtxoTxResponse } from "./UtxoCore";
+import { AdditionalTransactionDetails, RPCInterface } from "./RPCtypes";
+import { UtxoTxResponse } from "./UtxoCore";
 
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////
 
-export type NormalizedTransactionData = {
-    attestationType: AttestationType,
-    chainId: BN,
-    blockNumber: BN,
-    txId: string,
-    utxo: number,
-    sourceAddress: string,
-    destinationAddress: string,
-    destinationTag: BN,
-    amount: BN,
-    gasOrFee: BN
-}
+export interface NormalizedTransactionData extends AdditionalTransactionDetails {
+    attestationType: AttestationType;
+    chainId: BN;
+};
 
-export type TransactionData = {
-    type: AttestationType,
-} & NormalizedTransactionData;
+// export interface TransactionData extends NormalizedTransactionData{
+//     type: AttestationType,
+// };
 
 export interface AttestationRequest {
     instructions: BN;
@@ -45,7 +37,9 @@ export interface VerifiedAttestation {
     blockResponse?: any;
     sender?: string;
     utxo?: number;
-    fee?: BN
+    fee?: BN;
+    spent?: BN;
+    delivered?: BN;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -73,7 +67,7 @@ export function toBN(x: string | number | BN) {
 export function toNumber(x: number | BN | undefined | null) {
     if(x === undefined || x === null) return undefined;
     if (x && x.constructor?.name === "BN") return (x as BN).toNumber();
-    return x;
+    return x as number;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -198,58 +192,9 @@ export function decodeUint256(encoding: BN, sizes: number[], keys: string[]) {
     return decoded;
 }
 
-////////////////////////////////////////////////////////////////////////
-// Normalization
-////////////////////////////////////////////////////////////////////////
-
-function normalizeXRP(att: VerifiedAttestation): NormalizedTransactionData | null {
-    const txResponse = att.txResponse as TxResponse;
-    if (!verifyXRPPayment(txResponse.result)) return null;
-    let payment = txResponse.result as Payment;
-    let amount = toBN((txResponse.result.meta! as TransactionMetadata).delivered_amount as string); // XRP in drops
-
-    // console.log(web3.utils.asciiToHex(payment.Account))
-    // console.log("0x" + txResponse.result.hash)
-    // console.log(web3.utils.sha3(payment.Account))
-    return {
-        attestationType: att.attestType,
-        chainId: toBN(ChainType.XRP),  // chainId = 3 for XRP
-        blockNumber: toBN(txResponse.result.ledger_index || 0),
-        txId: "0x" + txResponse.result.hash,
-        utxo: 0,
-        sourceAddress: payment.Account,
-        destinationAddress: payment.Destination,
-        destinationTag: toBN(payment.DestinationTag || 0),
-        amount,
-        gasOrFee: att.fee
-    } as NormalizedTransactionData
-}
-
-async function normalizeUTXO(att: VerifiedAttestation) {
-    const txResponse = att.txResponse as UtxoTxResponse;
-    const blockResponse = att.blockResponse as UtxoBlockHeaderResponse;
-    if(att.utxo === null || att.utxo === undefined) {
-        throw new Error("Utxo not defined.")
-    }
-    if(att.utxo < 0 || att.utxo >= txResponse.vout.length) {
-        throw new Error(`Utxo ${att.utxo} out of range [0, ${txResponse.vout.length - 1}]`)
-    }
-    return {
-        attestationType: att.attestType,
-        chainId: toBN(att.chainType as number),
-        blockNumber: toBN(blockResponse.height || 0),
-        txId: "0x" + txResponse.txid,
-        utxo: att.utxo,
-        sourceAddress: att.sender,
-        destinationAddress: txResponse.vout[att.utxo!].scriptPubKey.addresses[0],
-        destinationTag: toBN(0),
-        amount: toBN(Math.round(txResponse.vout[att.utxo!].value * 100000000)),
-        gasOrFee: att.fee
-    } as NormalizedTransactionData
-}
 
 ////////////////////////////////////////////////////////////////////////
-// Normalization
+// Verification
 ////////////////////////////////////////////////////////////////////////
 
 
@@ -275,80 +220,25 @@ export async function verifyTransactionAttestation(client: any, request: Transac
 
 async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest) {
     let txResponse = await client.getTransaction(attRequest.id, { verbose: true }) as UtxoTxResponse;
-    let blockResponse = await client.getBlock(txResponse.blockhash) as UtxoBlockResponse;
-    let additionalData = await client.getAdditionalTransactionDetails(txResponse);
-    return normalizeUTXO({
-        chainType: toNumber(attRequest.chainId) as ChainType,
-        attestType: attRequest.attestationType,
-        txResponse,
-        blockResponse,
-        utxo: toNumber(attRequest.utxo),
-        sender: additionalData.sender,
-        fee: additionalData.fee
-    } as VerifiedAttestation)
+    // let blockResponse = await client.getBlock(txResponse.blockhash) as UtxoBlockResponse;
+    let additionalData = await client.getAdditionalTransactionDetails({transaction: txResponse, confirmations: 6, utxo: attRequest.utxo!});
+    return {
+        chainId: toBN(attRequest.chainId),
+        attestationType: attRequest.attestationType!,
+        ...additionalData
+    } as NormalizedTransactionData;
 }
 
 async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest) {
     let txResponse = await client.getTransaction(attRequest.id) as TxResponse;
-    let additionalData = await client.getAdditionalTransactionDetails(txResponse);
-    return normalizeXRP({
-        chainType: toNumber(attRequest.chainId) as ChainType,
-        attestType: attRequest.attestationType,
-        txResponse,
+    let additionalData = await client.getAdditionalTransactionDetails({transaction: txResponse, confirmations: 1});
+    let result = {
+        chainId: toBN(attRequest.chainId),
+        attestationType: attRequest.attestationType!,
         ...additionalData
-    } as VerifiedAttestation)
+    } as NormalizedTransactionData;
+    if(attRequest.instructions && attRequest.instructions.toNumber() === 0) {
+        // TODO parese and verify instructions
+    }
+    return result;
 }
-
-
-// export function positionMask(n: BN, start: number, end: number): BN {
-//     let top = toBN(0).bincn(256-start).sub(toBN(1))
-//     let bottom = toBN(0).bincn(256-end).sub(toBN(1)).notn(256);
-//     return top.or(bottom).and(n);
-// }
-
-// export function setBitMask(start: number, end: number, width = 256): BN {
-//     let top = toBN(0).bincn(width-start).sub(toBN(1))
-//     let bottom = toBN(0).bincn(width-end).sub(toBN(1)).notn(width);
-//     return top.and(bottom);
-// }
-
-// export function clearBits(n: BN, start: number, end: number, width = 256) {
-//     let mask = setBitMask(start, end, width);
-//     return mask.notn(width).and(n);
-// }
-
-// export function setBits(n: BN, value: BN, start: number, end: number, width = 256) {
-
-// }
-
-
-// function basicParse(request: AttestationRequest): AttestationRequest {
-//     return {
-//         ...request,
-//         attestationType: extractBitsFromLeft(request.instructions, 0, 15).toNumber() as AttestationType
-//     }
-// }
-
-// function parseAttestatonRequest(request: AttestationRequest) {
-//     let basic = basicParse(request);
-//     switch (basic.attestationType) {
-//         case AttestationType.TransactionFull:
-//         case AttestationType.Transaction:
-//             return {
-//                 ...basic,
-//                 chainId: extractBitsFromLeft(basic.instructions, 16, 47),  // 32 bit
-//                 blockNumber: extractBitsFromLeft(basic.instructions, 48, 111), // 64 bit
-//                 utxo: extractBitsFromLeft(basic.instructions, 112, 128)  // 16 bit
-//             }
-//         default:
-//             throw new Error("Not yet implemented!")
-//     }
-// }
-
-// export function extractBitsFromLeft(n: BN, start: number, end: number): BN {
-//     return n.shln(start).shrn(256 - end + 1 + start)
-// }
-
-// export function wrapNormalizedTx(normalizedTxData: NormalizedTransactionData, type: AttestationType) {
-//     return { type, ...normalizedTxData } as TransactionData;
-// }

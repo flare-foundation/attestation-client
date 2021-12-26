@@ -15,8 +15,9 @@ export function fullTransactionHash(
             'string',  // sourceAddress
             'string',  // destinationAddress
             'uint256', // destinationTag
-            'uint256', // amount
-            'uint256'  // gas or fee
+            'uint256', // spent
+            'uint256', // delivered
+            'uint256'  // fee
         ],
         [
             txData.attestationType,
@@ -27,11 +28,24 @@ export function fullTransactionHash(
             txData.sourceAddress,
             txData.destinationAddress,
             txData.destinationTag,
-            txData.amount,
-            txData.gasOrFee
+            txData.spent,
+            txData.delivered,
+            txData.fee
         ]
     );
     return web3.utils.soliditySha3(encoded);
 }
 
 
+export interface AdditionalTransactionDetails {  
+  blockNumber: BN;
+  txId: string;
+  utxo: number;
+  sourceAddress: string;
+  destinationAddress: string;
+  destinationTag: BN;
+  spent: BN;
+  delivered: BN;
+  fee: BN;
+  dataAvailabilityProof: string;
+}

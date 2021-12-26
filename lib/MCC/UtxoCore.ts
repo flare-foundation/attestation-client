@@ -1,7 +1,9 @@
-import { AdditionalTransactionDetails, GetTransactionOptions, vin_utxo, vout_utxo } from "./RPCtypes";
+import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, vin_utxo, vout_utxo } from "./RPCtypes";
+import { toBN, toNumber } from "./tx-normalize";
 import { ensure_data, sleep } from "./utils";
 
 const axios = require('axios');
+const SATOSHI_BTC = 100000000;
 
 export interface ScriptPubKey {
   asm: string;
@@ -368,27 +370,50 @@ export class UtxoCore {
     return res.data.result
   }
 
-  async getAdditionalTransactionDetails(txResponse: UtxoTxResponse): Promise<AdditionalTransactionDetails> {
-    const toBN = web3.utils.toBN
-
+  async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails> {
+    let blockResponse = await this.getBlock(request.transaction.blockhash) as UtxoBlockResponse;
     let vinTransactions: UtxoTxResponse[] = []
     let inFunds = toBN(0);
-    for (let vin of txResponse.vin) {
+    for (let vin of request.transaction.vin) {
       let rsp = await this.getTransaction(vin.txid!, { verbose: true }) as UtxoTxResponse;
       vinTransactions.push(rsp);
-      inFunds = inFunds.add(toBN(Math.round(rsp.vout[vin.vout!].value * 100000000)))
+      inFunds = inFunds.add(toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC)))
     }
 
-    let outFunds = toBN(0);
-    for (let vout of txResponse.vout) {
-      outFunds = outFunds.add(toBN(Math.round(vout.value * 100000000)))
-    }
-    let inVout = txResponse.vin[0].vout!;
+    let inVout = request.transaction.vin[0].vout!;
     let addresses = vinTransactions[0].vout[inVout].scriptPubKey.addresses;
     if (addresses.length != 1) throw Error("Multiple or missing sender address");
+    let sourceAddress = addresses[0];
+
+    // Calculate total out funds and returned funds
+    let outFunds = toBN(0);
+    let returnedFunds = toBN(0);
+    for (let vout of request.transaction.vout) {
+      outFunds = outFunds.add(toBN(Math.round(vout.value * SATOSHI_BTC)));
+      let targetAddresses = vout.scriptPubKey.addresses;
+      if (targetAddresses.length != 1) throw Error("Multiple or missing target address");
+      let targetAddress = targetAddresses[0];
+      if(targetAddress === sourceAddress) {
+        let amount = toBN(Math.round(vout.value * SATOSHI_BTC));
+        returnedFunds = returnedFunds.add(amount);
+      }
+    }
+
+    let confirmationBlockHeight = blockResponse.height + request.confirmations;
+    let confirmationBlock = await this.getBlock(confirmationBlockHeight) as UtxoBlockResponse;
+    let dataAvailabilityProof = "0x" + confirmationBlock.hash;
+    
     return {
+      blockNumber: toBN(blockResponse.height || 0),
+      txId: "0x" + request.transaction.txid,
+      utxo: toBN(request.utxo!)!,
+      sourceAddress,
+      destinationAddress: request.transaction.vout[toNumber(request.utxo!)!].scriptPubKey.addresses[0],
+      destinationTag: toBN(0),
+      spent: inFunds.sub(returnedFunds),
+      delivered: toBN(Math.round(request.transaction.vout[toNumber(request.utxo!)!].value * 100000000)),
       fee: inFunds.sub(outFunds),
-      sender: addresses[0],
+      dataAvailabilityProof
     } as AdditionalTransactionDetails
   }
 };

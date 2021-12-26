@@ -36,13 +36,13 @@ describe(`Test`, async () => {
   it("Should hashing of a normalized transaction match to one in contract for XRP", async () => {
     let txData = await verifyTransactionAttestation(client.chainClient, {
       attestationType: AttestationType.TransactionFull,
-      instructions: toBN(0),
+      instructions: toBN(0), 
       id: TEST_TX_ID,
       dataAvailabilityProof: "0x0",
       chainId: ChainType.XRP,
       blockNumber: 0 
     } as TransactionAttestationRequest)
-    prettyPrint(txData!);
+    // prettyPrint(txData!);
 
     let hash = fullTransactionHash(txData!);
     let res = testHashOnContract(txData!, hash!);

@@ -1,4 +1,4 @@
-import { NormalizedTransactionData, TransactionData } from "../../lib/MCC/tx-normalize";
+import { NormalizedTransactionData } from "../../lib/MCC/tx-normalize";
 
 export async function testHashOnContract(txData: NormalizedTransactionData, hash: string) {
   let HashTest = artifacts.require("HashTest");
@@ -13,8 +13,9 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
     txData!.sourceAddress,
     txData!.destinationAddress,
     txData!.destinationTag,
-    txData!.amount,
-    txData!.gasOrFee,
+    txData!.spent,
+    txData!.delivered,
+    txData!.fee,
     hash!
   )
 }

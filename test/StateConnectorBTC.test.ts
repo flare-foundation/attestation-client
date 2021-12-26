@@ -54,7 +54,7 @@ describe(`Test`, async () => {
   it("Should make lots of attestation requests", async () => {
     let latestBlockNumber = await client.chainClient.getBlockHeight();
     console.log(latestBlockNumber)
-    let count = 100
+    let count = 3
     for (let i = latestBlockNumber - count + 1; i <= latestBlockNumber; i++) {
       let block = await client.chainClient.getBlock(i) as UtxoBlockResponse;
       console.log(i);

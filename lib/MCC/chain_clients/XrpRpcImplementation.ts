@@ -144,4 +144,12 @@ export class XRPImplementation implements RPCInterface {
     } as AdditionalTransactionDetails;
   }
 
+  getTransactionHashesFromBlock(block: LedgerResponse): string[] {
+    return block.result.ledger.transactions!.map(tx => "0x" + (tx as any).hash);
+  }
+
+  getBlockHash(block: LedgerResponse): string {
+    return "0x" + block.result.ledger_hash;
+  }
+
 }

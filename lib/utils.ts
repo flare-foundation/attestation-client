@@ -183,3 +183,7 @@ export function getTestStateConnectorAddress() {
 export function etherToValue(web3: Web3, eth: number) {
   return web3.utils.toWei(web3.utils.toBN(eth), "ether");
 }
+
+export async function sleep(ms: number) {
+  await new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
+}

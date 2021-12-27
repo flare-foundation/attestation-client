@@ -1,5 +1,5 @@
 
-async function main() {
+async function deployStateConnector() {
   const fs = require("fs");
   const StateConnector = artifacts.require("StateConnector");
   let stateConnector = await StateConnector.new();
@@ -7,7 +7,7 @@ async function main() {
   fs.writeFileSync(`.stateconnector-address`, stateConnector.address, "utf8");
 }
 
-main()
+deployStateConnector()
   .then(() => process.exit(0))
   .catch(error => {
     console.error(error);

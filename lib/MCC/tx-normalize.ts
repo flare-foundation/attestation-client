@@ -18,6 +18,7 @@ export interface NormalizedTransactionData extends AdditionalTransactionDetails 
 // };
 
 export interface AttestationRequest {
+    timestamp?: BN;
     instructions: BN;
     id: string;
     dataAvailabilityProof: string;
@@ -134,8 +135,25 @@ export function attReqToTransactionAttestationRequest(request: AttestationReques
     )
     return {
         ...request,
-        ...data
+        ...data,
+        attestationType: data.attestationType.toNumber() as AttestationType
     } as TransactionAttestationRequest;
+}
+
+export function extractAttEvents(eventLogs: any[]) {
+    let events: AttestationRequest[] = [];
+    for(let log of eventLogs) {
+        if(log.event != "AttestationRequest") {
+            continue;
+        }
+        events.push({
+            timestamp: log.args.timestamp,
+            instructions: log.args.instructions,
+            id: log.args.id,
+            dataAvailabilityProof: log.args.dataAvailabilityProof
+        })
+    }
+    return events;
 }
 
 export function encodeToUint256(sizes: number[], keys: string[], valueObject: any) {    
@@ -179,7 +197,7 @@ export function decodeUint256(encoding: BN, sizes: number[], keys: string[]) {
         throw new Error("Sizes do not add up to 256")
     }
     let keysWithoutNull = keys.filter(x => !!x);
-    let keySet = new Set(...keysWithoutNull);
+    let keySet = new Set(keysWithoutNull);
     if (keysWithoutNull.length != keySet.size) {
         throw new Error("Duplicate non-null keys are not allowed")
     }

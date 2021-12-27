@@ -139,7 +139,7 @@ export class UtxoCore {
     if(typeof blockHashOrHeight === "string") {
       blockHash = blockHashOrHeight as string;
     } else if(typeof blockHashOrHeight === "number") {
-      blockHash = await this.getBlockHash(blockHashOrHeight as number);
+      blockHash = await this.getBlockHashFromHeight(blockHashOrHeight as number);
     }
     let res = await this.client.post("",
       {
@@ -152,7 +152,7 @@ export class UtxoCore {
     return res.data.result as UtxoBlockHeaderResponse;
   };
 
-  async getBlockHash(blockNumber: number) {
+  async getBlockHashFromHeight(blockNumber: number) {
     let res = await this.client.post("",
       {
         "jsonrpc": "1.0",
@@ -169,7 +169,7 @@ export class UtxoCore {
     if(typeof blockHashOrHeight === "string") {
       blockHash = blockHashOrHeight as string;
     } else if(typeof blockHashOrHeight === "number") {
-      blockHash = await this.getBlockHash(blockHashOrHeight as number);
+      blockHash = await this.getBlockHashFromHeight(blockHashOrHeight as number);
     }
     let res = await this.client.post("",
       {
@@ -415,5 +415,13 @@ export class UtxoCore {
       fee: inFunds.sub(outFunds),
       dataAvailabilityProof
     } as AdditionalTransactionDetails
+  }
+
+  getTransactionHashesFromBlock(block: UtxoBlockResponse): string[] {
+    return block.tx!.map(tx => "0x" + tx);
+  }
+
+  getBlockHash(block: UtxoBlockResponse): string {
+    return "0x" + block.hash;
   }
 };

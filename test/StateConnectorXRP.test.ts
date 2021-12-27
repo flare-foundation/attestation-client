@@ -1,10 +1,10 @@
 import { expectEvent } from "@openzeppelin/test-helpers";
-import { LedgerResponse, Payment, Transaction, TxResponse } from "xrpl";
+import { LedgerResponse } from "xrpl";
 import { AttestationType } from "../lib/AttestationData";
 import { fullTransactionHash } from "../lib/flare-crypto/hashes";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { AttestationRequest, prettyPrint, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest, verifyTransactionAttestation, verifyXRPPayment } from "../lib/MCC/tx-normalize";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest, verifyTransactionAttestation, verifyXRPPayment } from "../lib/MCC/tx-normalize";
 import { HashTestInstance, StateConnectorInstance } from "../typechain-truffle";
 import { testHashOnContract } from "./utils/test-utils";
 
@@ -51,23 +51,32 @@ describe(`Test`, async () => {
 
   it("Should make lots of attestation requests", async () => {
     let latestBlockNumber = await client.chainClient.getBlockHeight();
-    let count = 1
+    let count = 10
     for (let i = latestBlockNumber - count; i < latestBlockNumber; i++) {
       let block = await client.chainClient.getBlock(i) as LedgerResponse;
       for (let tx of block.result.ledger.transactions!) {
         // console.log("----")
         if (verifyXRPPayment(tx)) {
+          let attType = AttestationType.TransactionFull;
           let tr = {
             id: "0x" + (tx as any).hash,
             dataAvailabilityProof: "0x1",
             blockNumber: i,
             chainId: ChainType.XRP,
-            attestationType: AttestationType.TransactionFull,
-            instructions: toBN(0)
+            attestationType: attType,
+            instructions: toBN(0)   // inital empty setting, will be consturcted
           } as TransactionAttestationRequest;
           let attRequest = txAttReqToAttestationRequest(tr);
           let receipt = await sendAttestationRequest(stateConnector, attRequest);
           expectEvent(receipt, "AttestationRequest")
+          let events = extractAttEvents(receipt.logs);
+          let parsedEvents =  events.map((x: AttestationRequest) => attReqToTransactionAttestationRequest(x))
+          assert(parsedEvents.length === 1);
+          let parsedEvent = parsedEvents[0];
+          assert((parsedEvent.blockNumber as BN).eq(toBN(tr.blockNumber as number)), "Block number does not match");
+          assert((parsedEvent.chainId as BN).eq(toBN(tr.chainId as number)), "Chain id  does not match");
+          assert((parsedEvent.utxo as BN).eq(toBN(0)), "Utxo does not match");
+          assert(parsedEvent.attestationType === attType, "Attestation type does not match");          
         } else {
           // if((tx as any).TransactionType === 'Payment') {
           //   console.log(tx)

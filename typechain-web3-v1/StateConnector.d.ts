@@ -25,9 +25,11 @@ export type AttestationRequest = ContractEventLog<{
   timestamp: string;
   instructions: string;
   id: string;
+  dataAvailabilityProof: string;
   0: string;
   1: string;
   2: string;
+  3: string;
 }>;
 
 export interface StateConnector extends BaseContract {
@@ -65,8 +67,9 @@ export interface StateConnector extends BaseContract {
 
     requestAttestations(
       instructions: number | string | BN,
-      id: string | number[]
-    ): PayableTransactionObject<void>;
+      id: string | number[],
+      dataAvailabilityProof: string | number[]
+    ): NonPayableTransactionObject<void>;
 
     submitAttestation(
       bufferNumber: number | string | BN,

@@ -1,9 +1,11 @@
+import { expectEvent } from "@openzeppelin/test-helpers";
 import { AttestationType } from "../lib/AttestationData";
 import { fullTransactionHash } from "../lib/flare-crypto/hashes";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { prettyPrint, toBN, TransactionAttestationRequest, verifyTransactionAttestation } from "../lib/MCC/tx-normalize";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, prettyPrint, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest, verifyTransactionAttestation } from "../lib/MCC/tx-normalize";
 import { UtxoBlockResponse } from "../lib/MCC/UtxoCore";
+import { HashTestInstance, StateConnectorInstance } from "../typechain-truffle";
 import { testHashOnContract } from "./utils/test-utils";
 
 const CLIENT = ChainType.BTC;
@@ -16,22 +18,19 @@ const PASSWORD = "rpcpass";
 const TEST_TX_ID = "4d0d61fd3ca1ccc3c023919f31d6a71fc3e0f3018c7238bdfc75a16898d9acbd";
 const UTXO = 1;
 
+const HashTest = artifacts.require("HashTest");
+const StateConnector = artifacts.require("StateConnector");
+
 describe(`Test`, async () => {
   let client: MCClient;
+  let hashTest: HashTestInstance;
+  let stateConnector: StateConnectorInstance;
 
   beforeEach(async () => {
+    hashTest = await HashTest.new();
+    stateConnector = await StateConnector.new();
     client = new MCClient(new MCCNodeSettings(CLIENT, URL, USERNAME, PASSWORD, null));
   });
-
-  // it.only("Should hashing of a normalized transaction match to one in contract for DOGE", async () => {
-  //   // let txData = await client.getTransaction(new MCCTransaction(txId));
-  //   let normalizedTxData = await client.chainClient.getTransaction(TEST_TX_ID, { normalize: true, verbose: true });
-  //   console.log(normalizedTxData)
-  //   // let txData = wrapNormalizedTx(normalizedTxData, ChainTransactionType.FULL);
-  //   // let hash = fullTransactionHash(txData!);
-  //   // let res = testHashOnContract(txData, hash!);
-  //   // assert(res);
-  // });
 
   it("Should hashing of a normalized transaction match to one in contract for BTC", async () => {
 
@@ -54,31 +53,44 @@ describe(`Test`, async () => {
   it("Should make lots of attestation requests", async () => {
     let latestBlockNumber = await client.chainClient.getBlockHeight();
     console.log(latestBlockNumber)
-    let count = 3
+    let count = 10
     for (let i = latestBlockNumber - count + 1; i <= latestBlockNumber; i++) {
       let block = await client.chainClient.getBlock(i) as UtxoBlockResponse;
       console.log(i);
-      for(let txHash of block.tx) {
-        console.log(txHash)
+      for(let id of client.chainClient.getTransactionHashesFromBlock(block)) {
+        console.log(id);
+        let attType = AttestationType.TransactionFull;
+        let tr = {
+          id: id,
+          dataAvailabilityProof: "0x1",
+          blockNumber: i,
+          chainId: ChainType.BTC,
+          attestationType: attType,
+          instructions: toBN(0)
+        } as TransactionAttestationRequest;
+        let attRequest = txAttReqToAttestationRequest(tr);
+        let receipt = await sendAttestationRequest(stateConnector, attRequest);
+        expectEvent(receipt, "AttestationRequest")
+        let events = extractAttEvents(receipt.logs);
+        let parsedEvents =  events.map((x: AttestationRequest) => attReqToTransactionAttestationRequest(x))
+        assert(parsedEvents.length === 1);
+        let parsedEvent = parsedEvents[0];
+        assert((parsedEvent.blockNumber as BN).eq(toBN(tr.blockNumber as number)), "Block number does not match");
+        assert((parsedEvent.chainId as BN).eq(toBN(tr.chainId as number)), "Chain id  does not match");
+        assert((parsedEvent.utxo as BN).eq(toBN(0)), "Utxo does not match");
+        assert(parsedEvent.attestationType === attType, "Attestation type does not match");          
       }
-      // for(let tx of block.result.ledger.transactions!) {
-      //   console.log("----")
-      //   if(verifyXRPPayment(tx)) {
-          
-      //   } else {
-      //     // if((tx as any).TransactionType === 'Payment') {
-      //     //   console.log(tx)
-      //     // }
-          
-      //   }
-      // }
-
     }
   });
 
 
 });
 
+
+
+async function sendAttestationRequest(stateConnector: StateConnectorInstance, request: AttestationRequest) {
+  return await stateConnector.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
+}
 
 
 // afterEach(async () => {

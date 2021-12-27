@@ -10,7 +10,7 @@ export interface vout_utxo {
 }
 
 
-export interface AdditionalTransactionDetails {  
+export interface AdditionalTransactionDetails {
   blockNumber: BN;
   txId: string;
   utxo: BN;
@@ -24,7 +24,7 @@ export interface AdditionalTransactionDetails {
 }
 
 export interface AdditionalTxRequest {
-  transaction: any; 
+  transaction: any;
   utxo?: BN | number;
   confirmations: number;
 }
@@ -88,10 +88,14 @@ export interface RPCInterface {
 
   getBlock(blockNumberOrHash: number | string): any;
 
-  getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails>;  
+  getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails>;
+
+  getTransactionHashesFromBlock(block: any): string[];
+
+  getBlockHash(block: any): string;
 }
 
-export interface DogeRpcInterface extends RPCInterface {}
+export interface DogeRpcInterface extends RPCInterface { }
 
 export interface UtxoRpcInterface extends RPCInterface {
   /**
@@ -104,7 +108,7 @@ export interface UtxoRpcInterface extends RPCInterface {
    * Block data
    * @param blockHash
    */
-   getBlockHeader(blockHashOrNumber: string | number): any;
+  getBlockHeader(blockHashOrNumber: string | number): any;
 
   /**
    * Create wallet on rpc client
@@ -151,7 +155,7 @@ export interface GetTransactionOptions {
 }
 
 // XRP specigic data
-export interface XrpCreateAddressData {}
+export interface XrpCreateAddressData { }
 
 interface XrpTransactionAmount {
   currency: string;

@@ -28,7 +28,7 @@
     "artifacts": "ts-node lib/refresh-artifacts.ts",
     "typechain-web3-v1-external": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1-external \"data/artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
     "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
-    "compile": "yarn hardhat compile && yarn typechain-truffle-v5",
+    "compile": "yarn hardhat compile && yarn typechain-truffle-v5 && yarn typechain-web3-v1",
     "c": "yarn compile",
     "typechain-truffle-v5": "yarn typechain --target=truffle-v5 --out-dir typechain-truffle \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
     "sync": "yarn artifacts && yarn typechain-web3-v1 && yarn typechain-web3-v1-external",

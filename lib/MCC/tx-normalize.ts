@@ -3,7 +3,9 @@ import { AttestationType } from "../AttestationData";
 import { ChainType } from "./MCClientSettings";
 import { AdditionalTransactionDetails, RPCInterface } from "./RPCtypes";
 import { UtxoTxResponse } from "./UtxoCore";
-
+import web3 from "web3";
+import BN from "bn.js";
+import { loggers } from "winston";
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////
@@ -21,6 +23,7 @@ export interface AttestationRequest {
     timestamp?: BN;
     instructions: BN;
     id: string;
+    dataHash: string;
     dataAvailabilityProof: string;
     attestationType?: AttestationType;
 }
@@ -123,6 +126,7 @@ export function txAttReqToAttestationRequest(
             }
         ),
         id: request.id,
+        dataHash: request.dataHash,
         dataAvailabilityProof: request.dataAvailabilityProof
     } as AttestationRequest
 }
@@ -150,6 +154,7 @@ export function extractAttEvents(eventLogs: any[]) {
             timestamp: log.args.timestamp,
             instructions: log.args.instructions,
             id: log.args.id,
+            dataHash: log.args.dataHash,
             dataAvailabilityProof: log.args.dataAvailabilityProof
         })
     }

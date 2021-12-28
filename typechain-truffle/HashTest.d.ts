@@ -20,10 +20,8 @@ export interface HashTestInstance extends Truffle.ContractInstance {
     utxo: number | BN | string,
     sourceAddress: string,
     destinationAddress: string,
-    destinationTag: number | BN | string,
     spent: number | BN | string,
     delivered: number | BN | string,
-    fee: number | BN | string,
     hashToProve: string,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
@@ -45,10 +43,8 @@ export interface HashTestInstance extends Truffle.ContractInstance {
       utxo: number | BN | string,
       sourceAddress: string,
       destinationAddress: string,
-      destinationTag: number | BN | string,
       spent: number | BN | string,
       delivered: number | BN | string,
-      fee: number | BN | string,
       hashToProve: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;

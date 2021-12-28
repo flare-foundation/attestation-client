@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import { toBN } from "web3-utils";
 import { string } from "yargs";
 /**
  * There are several variants for hashing sequences in Merkle trees in cases when there is odd number of hashes on some level.
@@ -48,6 +49,11 @@ export class MerkleTree {
 
   get root() {
     return this._tree.length === 0 ? null : this._tree[0];
+  }
+
+  get rootBN() {
+    let rt = this.root;
+    return rt ? toBN(rt) : toBN(0);
   }
 
   get tree(): string[] {

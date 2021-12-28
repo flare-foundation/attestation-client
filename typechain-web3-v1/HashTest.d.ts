@@ -37,10 +37,8 @@ export interface HashTest extends BaseContract {
       utxo: number | string | BN,
       sourceAddress: string,
       destinationAddress: string,
-      destinationTag: number | string | BN,
       spent: number | string | BN,
       delivered: number | string | BN,
-      fee: number | string | BN,
       hashToProve: string | number[]
     ): NonPayableTransactionObject<boolean>;
 

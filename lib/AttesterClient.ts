@@ -16,6 +16,7 @@ import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
 import { getLogger, makeBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
 import { Web3BlockSubscription } from "./Web3BlockSubscription";
+import { toBN } from "./MCC/tx-normalize";
 
 // Args parsing
 const args = yargs.option("config", {
@@ -160,9 +161,9 @@ class DataProvider {
 
       const instBN = makeBN(instruction);
 
-      const bit16 = BigNumber.from(1).shl(16).sub(1);
+      const bit16 = toBN(1).shln(16).sub(toBN(1));
 
-      const attestationType: BigNumber = instBN.shr(0).and(bit16);
+      const attestationType: BN = instBN.shrn(0).and(bit16);
 
       // attestation info
       const tx = new AttestationData();
@@ -171,7 +172,7 @@ class DataProvider {
       tx.id = id;
 
       // attesttaion data (without type and chain id)
-      tx.data = instBN.shr(16);
+      tx.data = instBN.shrn(16);
 
       // for sorting
       tx.blockNumber = event.blockNumber;
@@ -190,3 +191,4 @@ const conf: DataProviderConfiguration = JSON.parse(fs.readFileSync("configs/conf
 const dataProvider = new DataProvider(conf);
 
 dataProvider.start();
+

@@ -52,6 +52,7 @@ contract StateConnector {
         uint256 timestamp,
         uint256 instructions, 
         bytes32 id,
+        bytes32 dataHash,
         bytes32 dataAvailabilityProof
     );
 
@@ -68,6 +69,7 @@ contract StateConnector {
 
     function requestAttestations(
         uint256 instructions,
+        bytes32 dataHash,
         bytes32 id,
         bytes32 dataAvailabilityProof
     ) external {
@@ -77,7 +79,7 @@ contract StateConnector {
         require(dataAvailabilityProof > 0x0);
         // Emit an event containing the details of the request, these details are not stored in 
         // contract storage so they must be retrieved using event filtering.
-        emit AttestationRequest(block.timestamp, instructions, id, dataAvailabilityProof); 
+        emit AttestationRequest(block.timestamp, instructions, id, dataHash, dataAvailabilityProof); 
     }
 
     function submitAttestation(

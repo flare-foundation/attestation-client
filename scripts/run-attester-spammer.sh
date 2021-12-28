@@ -2,7 +2,8 @@
 CONFIG_PATH=${1:-./configs/config.json}
 
 # Compile typescript
-yarn tsc
+# yarn tsc
 
 # Run DataProvider
-node dist/DataProvider.js -c $CONFIG_PATH
+# node dist/scripts/attestation-spammer.js
+yarn ts-node scripts/attestation-spammer.ts 

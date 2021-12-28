@@ -3,6 +3,7 @@ import { BigNumber } from "ethers";
 import { Logger } from "winston";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { Hash } from "./Hash";
+import { toBN } from "./MCC/tx-normalize";
 import { MerkleTree } from "./MerkleTree";
 import { getRandom, makeBN } from "./utils";
 
@@ -25,8 +26,8 @@ export class AttesterEpoch {
   epochId: number;
   attestations = new Array<Attestation>();
   merkleTree!: MerkleTree;
-  hash!: BigNumber;
-  random!: BigNumber;
+  hash!: string;
+  random!: BN;
   attestStatus: AttestStatus;
 
   transactionsProcessed: number = 0;
@@ -113,13 +114,14 @@ export class AttesterEpoch {
     // create merkle tree
     this.merkleTree = new MerkleTree(validatedHashes);
 
-    this.hash = makeBN(this.merkleTree.root());
+    // this.hash = makeBN(this.merkleTree.root());
+    this.hash = this.merkleTree.root!;
     this.random = await getRandom();
 
     this.submitAttestation(
       // commit index (collect+1)
-      makeBN(this.epochId + 1),
-      this.hash.xor(this.random),
+      toBN(this.epochId + 1),
+      toBN(this.hash).xor(this.random),
       makeBN(Hash.create(this.random.toString())),
       makeBN(0)
     );
@@ -140,7 +142,7 @@ export class AttesterEpoch {
     this.submitAttestation(
       // commit index (collect+1)
       makeBN(this.epochId + 1),
-      makeBN(0),
+      toBN(0),
       makeBN(0),
       this.random
     );
@@ -148,7 +150,7 @@ export class AttesterEpoch {
     this.attestStatus = AttestStatus.revealed;
   }
 
-  submitAttestation(bufferNumber: BigNumber, maskedMerkleHash: BigNumber, committedRandom: BigNumber, revealedRandom: BigNumber) {
+  submitAttestation(bufferNumber: BN, maskedMerkleHash: BN, committedRandom: BN, revealedRandom: BN) {
     // todo: submit to network
   }
 }

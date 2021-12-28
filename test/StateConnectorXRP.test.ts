@@ -18,7 +18,7 @@ const HashTest = artifacts.require("HashTest");
 const StateConnector = artifacts.require("StateConnector");
 
 async function sendAttestationRequest(stateConnector: StateConnectorInstance, request: AttestationRequest) {
-  return await stateConnector.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
+  return await stateConnector.requestAttestations(request.instructions, request.id, request.dataHash, request.dataAvailabilityProof);
 }
 
 
@@ -60,6 +60,7 @@ describe(`Test`, async () => {
           let attType = AttestationType.TransactionFull;
           let tr = {
             id: "0x" + (tx as any).hash,
+            dataHash: "0x2",
             dataAvailabilityProof: "0x1",
             blockNumber: i,
             chainId: ChainType.XRP,

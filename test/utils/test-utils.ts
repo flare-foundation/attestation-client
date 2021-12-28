@@ -12,10 +12,10 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
     txData!.utxo,
     txData!.sourceAddress,
     txData!.destinationAddress,
-    txData!.destinationTag,
+    // txData!.destinationTag,
     txData!.spent,
     txData!.delivered,
-    txData!.fee,
+    // txData!.fee,
     hash!
   )
 }

@@ -59,6 +59,20 @@
                 "test/StateConnectorLTC.test.ts"
             ]
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Attester spammer",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "ts-node",
+                "scripts/attestation-spammer.ts"
+            ]
+        },
         
         {
             "type": "node",

@@ -7,6 +7,7 @@ import { DataProviderConfiguration as AttesterClientConfiguration } from "./Data
 import { EpochSettings } from "./EpochSettings";
 import { getTime } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
+import { toBN } from "./MCC/tx-normalize";
 import { makeBN } from "./utils";
 
 export class Attester {
@@ -71,7 +72,7 @@ export class Attester {
       case AttestationType.Transaction: {
         // const bit32 = BigNumber.from(1).shl(32).sub(1);
         // const chainType: BigNumber = tx.data.and(bit32);
-        const bit32 = web3.utils.toBN.from(1).shl(32).sub(1);
+        const bit32 = toBN(1).shln(32).sub(toBN(1));
         const chainType: BN = tx.data.and(bit32);
 
         return await this.chainManager.validateTransaction(chainType.toNumber() as ChainType, epochId, tx);

@@ -20,7 +20,8 @@ async function main2() {
     const id = "0x2BE5EA966817B0BF4E3F66711C979A4B4C88E0EBF99D836505FFA06DC49BA";
 
     let value = etherToValue(web3, 2);
-    let request = await stateConnector.requestAttestations(instructions, id, { value });
+    throw Error("Not yet implemented")
+    // let request = await stateConnector.requestAttestations(instructions, id, { value });
 
     inst++;
 

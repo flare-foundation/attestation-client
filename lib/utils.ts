@@ -9,9 +9,9 @@ export const DECIMALS = 5;
 
 export function makeBN(value: string | number): BN {
   try {
-    return web3.utils.toBN(value);
+    return Web3.utils.toBN(value);
   } catch {
-    return web3.utils.toBN(0);
+    return Web3.utils.toBN(0);
   }
 }
 

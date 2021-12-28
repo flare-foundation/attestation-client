@@ -4,10 +4,10 @@ import {
   AdditionalTxRequest,
   GetTransactionOptions, RPCInterface
 } from '../RPCtypes';
+import { toBN } from '../tx-normalize';
 import { xrp_ensure_data } from '../utils';
 
 const axios = require('axios');
-const toBN = web3.utils.toBN
 
 export class XRPImplementation implements RPCInterface {
   client: any;

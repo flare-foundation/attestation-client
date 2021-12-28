@@ -89,7 +89,7 @@ describe(`Test`, async () => {
 
 
 async function sendAttestationRequest(stateConnector: StateConnectorInstance, request: AttestationRequest) {
-  return await stateConnector.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
+  return await stateConnector.requestAttestations(request.instructions, request.id, request.dataHash, request.dataAvailabilityProof);
 }
 
 

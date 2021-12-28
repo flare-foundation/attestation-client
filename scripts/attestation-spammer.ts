@@ -5,6 +5,7 @@ import { ChainType, MCCNodeSettings } from '../lib/MCC/MCClientSettings';
 import { AttestationRequest, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/MCC/tx-normalize';
 import { getLogger, getWeb3, getWeb3Contract, getWeb3Wallet, sleep, waitFinalize3Factory } from '../lib/utils';
 import { StateConnector } from '../typechain-web3-v1/StateConnector';
+import Web3 from "web3";
 
 dotenv.config();
 var yargs = require("yargs");
@@ -14,56 +15,56 @@ let args = yargs
     alias: 'c',
     type: 'string',
     description: 'Chain',
-    demand: false
+    default: 'BTC'
   })
   .option('rpcLink', {
     alias: 'r',
     type: 'string',
     description: 'RPC to Flare network',
-    default: "http://127.0.0.1:8545",
-    demand: false
+    default: "http://127.0.0.1:8545"
   })
+  .option('privateKey', {
+    alias: 'k',
+    type: 'string',
+    description: 'Private key for sending attester requests',
+    default: '0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122'
+  })
+
   .option('abiPath', {
     alias: 'a',
     type: 'string',
     description: "Path to abi JSON file",
-    default: 'artifacts/contracts/StateConnector.sol/StateConnector.json',
-    demand: false
+    default: 'artifacts/contracts/StateConnector.sol/StateConnector.json'
   })
   .option('contractAddress', {
-    alias: 'c',
+    alias: 't',
     type: 'string',
     description: "Address of the deployed contract",
-    default: '0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F',   // default hardhat address when run with yarn stateconnector
-    demand: false
+    default: '0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F'   // default hardhat address when run with yarn stateconnector
   })
   .option('blockchainURL', {
     alias: 'u',
     type: 'string',
     description: "RPC url for blockchain",
-    default: 'https://testnode2.c.aflabs.net/btc/',   
-    demand: false
+    default: 'https://testnode2.c.aflabs.net/btc/'
   })
   .option('blockchainUsername', {
     alias: 's',
     type: 'string',
     description: "Blockchain node username",
-    default: 'rpcuser',
-    demand: false
+    default: 'rpcuser'
   })
   .option('blockchainPassword', {
     alias: 'p',
     type: 'string',
     description: "Blockchain node password",
-    default: 'rpcpass',
-    demand: false
+    default: 'rpcpass'
   })
   .option('confirmations', {
     alias: 'f',
     type: 'number',
     description: "Number of confirmations",
-    default: 6,
-    demand: false
+    default: 6
   })
   .option('range', {
     alias: 'w',
@@ -99,15 +100,21 @@ class AttestationSpammer {
   confirmations: number = args['confirmations'];
   privateKey: string = args['privateKey'];
   delay: number = args['delay'];
-  
+  lastBlockNumber: number = -1;
 
   constructor() {
-    this.chainType = args['chain'];
-    this.client = new MCClient(new MCCNodeSettings(this.chainType, this.URL, this.USERNAME || "", this.PASSWORD || "", null));
+    this.chainType = this.getChainType(args['chain']);
+    let mccClient = new MCClient(new MCCNodeSettings(this.chainType, this.URL, this.USERNAME || "", this.PASSWORD || "", null));
+    this.client = mccClient.chainClient;
     this.web3 = getWeb3(this.rpcLink) as Web3;
-    this.account = getWeb3Wallet(web3, this.privateKey);
+    this.account = getWeb3Wallet(this.web3, this.privateKey);
     this.waitFinalize3 = waitFinalize3Factory(this.web3);
-    this.logger = getLogger(`attester-spammer-${args['chain']}`);    
+    this.logger = getLogger(`attester-spammer-${args['chain']}`);
+    // this.stateConnector = (await 
+    getWeb3Contract(this.web3, args['contractAddress'], "StateConnector")
+      .then((sc: StateConnector) => {
+        this.stateConnector = sc;
+      })
   }
 
   getChainType(chain: string) {
@@ -129,12 +136,12 @@ class AttestationSpammer {
   }
 
   async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
-    let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof)
+    let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.dataHash, request.id, request.dataAvailabilityProof)
     return await this.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
   }
 
   async getNonce(): Promise<string> {
-    let nonce = (await this.web3.eth.getTransactionCount(this.account.address));
+    let nonce = await this.web3.eth.getTransactionCount(this.account.address);
     return nonce + "";   // string returned
   }
 
@@ -166,8 +173,68 @@ class AttestationSpammer {
     }
   }
 
-  async runSpammer() {    
-    this.stateConnector = (await getWeb3Contract(web3, args['contractAddress'], "StateConnector")) as StateConnector;
+  async waitForStateConnector() {
+    while (!this.stateConnector) {
+      await sleep(100);
+    }
+  }
+
+  // async logEvents() {
+  //   await this.waitForStateConnector();
+  //   this.logger.info(` * Connecting to network '${this.rpcLink}'...`);
+  //   const subscription = this.web3.eth
+  //     .subscribe("newBlockHeaders", (error, result) => {
+  //       if (error) {
+  //         console.error(error);
+
+  //       } else {
+  //         // do nothing: use on("data")
+  //       }
+  //     })
+  //     .on("connected", (subscriptionId) => {
+  //       this.logger.info(` * Connected to network ${subscriptionId}`);
+  //     })
+  //     .on("data", (blockHeader) => {
+  //       this.onBlockHeaderReceived(blockHeader)
+  //     })
+  //     .on("error", console.error);
+
+  //   return subscription;
+  // }
+
+  async logEvents(maxBlockFetch = 100) {
+    await this.waitForStateConnector();
+    this.lastBlockNumber = await this.web3.eth.getBlockNumber()
+    let firstUnprocessedBlockNumber = this.lastBlockNumber;
+    while (true) {
+      await sleep(500);
+      console.log("first:", firstUnprocessedBlockNumber);
+      try {
+        let last = Math.min(firstUnprocessedBlockNumber + maxBlockFetch, this.lastBlockNumber);
+        console.log("last:", last);
+        if(firstUnprocessedBlockNumber > last) {
+          this.lastBlockNumber = await this.web3.eth.getBlockNumber();
+          continue;
+        }
+        let events = await this.stateConnector.getPastEvents(
+          "AttestationRequest",
+          {
+            fromBlock: firstUnprocessedBlockNumber,
+            toBlock: last
+          })
+        this.logger.info(`Processing events from block ${firstUnprocessedBlockNumber} to ${last}`);
+        console.log(events);
+        firstUnprocessedBlockNumber = last + 1;
+        
+      } catch (e) {
+        this.logger.info(`Error: ${e}`)
+      }
+    }
+  }
+
+  async runSpammer() {
+    await this.waitForStateConnector();
+    this.logEvents();  // async run
     while (true) {
       let latestBlockNumber = await this.client.getBlockHeight();
       console.log(latestBlockNumber)
@@ -186,6 +253,7 @@ class AttestationSpammer {
         let attType = AttestationType.TransactionFull;
         let tr = {
           id: tx,
+          dataHash: "0x0",
           dataAvailabilityProof: this.client.getBlockHash(confirmationBlock),
           blockNumber: selectedBlock,
           chainId: this.chainType,
@@ -208,7 +276,6 @@ class AttestationSpammer {
     }
   }
 };
-
 
 (new AttestationSpammer()).runSpammer()
   .then(() => process.exit(0))

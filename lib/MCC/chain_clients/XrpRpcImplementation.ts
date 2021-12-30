@@ -22,7 +22,7 @@ export class XRPImplementation implements RPCInterface {
     
     this.client = axios.create({
       baseURL: url,
-      timeout: 1000,
+      timeout: 3000,
       headers: { 'Content-Type': 'application/json' },
       validateStatus: function (status: number) {
         return (status >= 200 && status < 300) || status == 500;

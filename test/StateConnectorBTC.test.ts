@@ -1,9 +1,8 @@
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { AttestationType } from "../lib/AttestationData";
-import { fullTransactionHash } from "../lib/flare-crypto/hashes";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, prettyPrint, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest, verifyTransactionAttestation } from "../lib/MCC/tx-normalize";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, prettyPrint, toBN, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, verifyTransactionAttestation } from "../lib/MCC/tx-normalize";
 import { UtxoBlockResponse } from "../lib/MCC/UtxoCore";
 import { HashTestInstance, StateConnectorInstance } from "../typechain-truffle";
 import { testHashOnContract } from "./utils/test-utils";
@@ -35,7 +34,7 @@ describe(`Test`, async () => {
   it("Should hashing of a normalized transaction match to one in contract for BTC", async () => {
 
     let txData = await verifyTransactionAttestation(client.chainClient, {
-      attestationType: AttestationType.TransactionFull,
+      attestationType: AttestationType.FassetPaymentProof,
       instructions: toBN(0),
       id: TEST_TX_ID,
       dataAvailabilityProof: "0x0",
@@ -45,7 +44,7 @@ describe(`Test`, async () => {
     } as TransactionAttestationRequest)
     prettyPrint(txData!);
 
-    let hash = fullTransactionHash(txData!);
+    let hash = transactionHash(web3, txData!);
     let res = testHashOnContract(txData!, hash!);
     assert(res);
   });
@@ -59,10 +58,11 @@ describe(`Test`, async () => {
       console.log(i);
       for(let id of client.chainClient.getTransactionHashesFromBlock(block)) {
         console.log(id);
-        let attType = AttestationType.TransactionFull;
+        let attType = AttestationType.FassetPaymentProof;
         let tr = {
           id: id,
           dataAvailabilityProof: "0x1",
+          dataHash: "0x2",
           blockNumber: i,
           chainId: ChainType.BTC,
           attestationType: attType,

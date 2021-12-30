@@ -77,7 +77,7 @@ export class Attester {
 
         return await this.chainManager.validateTransaction(chainType.toNumber() as ChainType, epochId, tx);
       }
-      case AttestationType.TransactionFull:
+      case AttestationType.FassetPaymentProof:
         return undefined; // ???
       default: {
         this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);

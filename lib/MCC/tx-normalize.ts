@@ -46,6 +46,14 @@ export interface VerifiedAttestation {
     delivered?: BN;
 }
 
+export interface AttestationTypeEncoding {
+    sizes: number[];
+    keys: string[];
+    hashTypes: string[];
+    hashKeys: string[];
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 // Auxiliary
 ////////////////////////////////////////////////////////////////////////
@@ -69,7 +77,7 @@ export function toBN(x: string | number | BN) {
 }
 
 export function toNumber(x: number | BN | undefined | null) {
-    if(x === undefined || x === null) return undefined;
+    if (x === undefined || x === null) return undefined;
     if (x && x.constructor?.name === "BN") return (x as BN).toNumber();
     return x as number;
 }
@@ -105,19 +113,58 @@ export function verifyXRPPayment(transaction: any) {
 
 
 ////////////////////////////////////////////////////////////////////////
-// Attestation request manipulation
+// Attestation request manipulation and codings
 ////////////////////////////////////////////////////////////////////////
 
-export const TX_ATT_REQ_SIZES = [16, 32, 64, 16, 128];
-export const TX_ATT_REQ_KEYS = ["attestationType", "chainId", "blockNumber", "utxo", ""];
+// export const TX_ATT_REQ_SIZES = [16, 32, 64, 16, 128];
+// export const TX_ATT_REQ_KEYS = ["attestationType", "chainId", "blockNumber", "utxo", ""];
+
+export function attestationTypeEncodingScheme(type: AttestationType) {
+    switch (type) {
+        case AttestationType.FassetPaymentProof:
+            return {
+                sizes: [16, 32, 64, 16, 128],
+                keys: ["attestationType", "chainId", "blockNumber", "utxo", ""],
+                hashTypes: [
+                    'uint32',  // type
+                    'uint64',  // chainId
+                    'uint64',  // blockNumber
+                    'bytes32', // txId
+                    'uint16',  // utxo
+                    'string',  // sourceAddress
+                    'string',  // destinationAddress
+                    'uint256', // destinationTag
+                    'uint256', // spent
+                    'uint256', // delivered
+                    'uint256'  // fee
+                ],
+                hashKeys: [
+                    "attestationType",
+                    "chainId",
+                    "blockNumber",
+                    "txId",
+                    "utxo",
+                    "sourceAddress",
+                    "destinationAddress",
+                    "destinationTag",
+                    "spent",
+                    "delivered",
+                    "fee"
+                ]
+            }
+        default:
+            throw new Error("Not yet implemented!")
+    }
+}
 
 export function txAttReqToAttestationRequest(
     request: TransactionAttestationRequest
 ) {
+    let scheme = attestationTypeEncodingScheme(request.attestationType!);
     return {
         instructions: encodeToUint256(
-            TX_ATT_REQ_SIZES,
-            TX_ATT_REQ_KEYS,
+            scheme.sizes,
+            scheme.keys,
             {
                 attestationType: toBN(request.attestationType as number),
                 chainId: toBN(request.chainId),
@@ -131,11 +178,18 @@ export function txAttReqToAttestationRequest(
     } as AttestationRequest
 }
 
+function getAttestationTypeFromInstructions(request: AttestationRequest) {
+    let typeData = decodeUint256(request.instructions, [16, 240], ["attestationType", ""]);
+    return typeData.attestationType.toNumber() as AttestationType;
+}
+
 export function attReqToTransactionAttestationRequest(request: AttestationRequest) {
+    let attestationType = getAttestationTypeFromInstructions(request);
+    let scheme = attestationTypeEncodingScheme(attestationType!);
     let data = decodeUint256(
         request.instructions,
-        TX_ATT_REQ_SIZES,
-        TX_ATT_REQ_KEYS
+        scheme.sizes,
+        scheme.keys
     )
     return {
         ...request,
@@ -146,8 +200,8 @@ export function attReqToTransactionAttestationRequest(request: AttestationReques
 
 export function extractAttEvents(eventLogs: any[]) {
     let events: AttestationRequest[] = [];
-    for(let log of eventLogs) {
-        if(log.event != "AttestationRequest") {
+    for (let log of eventLogs) {
+        if (log.event != "AttestationRequest") {
             continue;
         }
         events.push({
@@ -161,7 +215,7 @@ export function extractAttEvents(eventLogs: any[]) {
     return events;
 }
 
-export function encodeToUint256(sizes: number[], keys: string[], valueObject: any) {    
+export function encodeToUint256(sizes: number[], keys: string[], valueObject: any) {
     if (sizes.length != keys.length) {
         throw new Error("Sizes do not match");
     }
@@ -215,6 +269,45 @@ export function decodeUint256(encoding: BN, sizes: number[], keys: string[]) {
     return decoded;
 }
 
+export function transactionHash(
+    web3: Web3, txData: NormalizedTransactionData
+) {
+    let scheme = attestationTypeEncodingScheme(txData.attestationType!);
+    let values = scheme.hashKeys.map(key => (txData as any)[key]);
+    const encoded = web3.eth.abi.encodeParameters(scheme.hashTypes, values);
+    return web3.utils.soliditySha3(encoded);
+    // if (txData.attestationType != AttestationType.FassetPaymentProof) throw Error("Not full transaction hash")
+    // const encoded = web3.eth.abi.encodeParameters(
+    //     [
+    //         'uint32',  // type
+    //         'uint64',  // chainId
+    //         'uint64',  // blockNumber
+    //         'bytes32', // txId
+    //         'uint16',  // utxo
+    //         'string',  // sourceAddress
+    //         'string',  // destinationAddress
+    //         'uint256', // destinationTag
+    //         'uint256', // spent
+    //         'uint256', // delivered
+    //         'uint256'  // fee
+    //     ],
+    //     [
+    //         txData.attestationType,
+    //         txData.chainId,
+    //         txData.blockNumber,
+    //         txData.txId,
+    //         txData.utxo,
+    //         txData.sourceAddress,
+    //         txData.destinationAddress,
+    //         txData.destinationTag,
+    //         txData.spent,
+    //         txData.delivered,
+    //         txData.fee
+    //     ]
+    // );
+    // return web3.utils.soliditySha3(encoded);
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 // Verification
@@ -225,7 +318,7 @@ export async function verifyTransactionAttestation(client: any, request: Transac
     if (!client) {
         throw new Error("Missing client!");
     }
-    if (!(request.attestationType === AttestationType.Transaction || request.attestationType === AttestationType.TransactionFull)) {
+    if (!(request.attestationType === AttestationType.Transaction || request.attestationType === AttestationType.FassetPaymentProof)) {
         throw new Error("Wrong attestation Type")
     }
     let chainId = toNumber(request.chainId) as ChainType;
@@ -244,7 +337,7 @@ export async function verifyTransactionAttestation(client: any, request: Transac
 async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest) {
     let txResponse = await client.getTransaction(attRequest.id, { verbose: true }) as UtxoTxResponse;
     // let blockResponse = await client.getBlock(txResponse.blockhash) as UtxoBlockResponse;
-    let additionalData = await client.getAdditionalTransactionDetails({transaction: txResponse, confirmations: 6, utxo: attRequest.utxo!});
+    let additionalData = await client.getAdditionalTransactionDetails({ transaction: txResponse, confirmations: 6, utxo: attRequest.utxo! });
     return {
         chainId: toBN(attRequest.chainId),
         attestationType: attRequest.attestationType!,
@@ -254,13 +347,13 @@ async function verififyAttestationUtxo(client: RPCInterface, attRequest: Transac
 
 async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest) {
     let txResponse = await client.getTransaction(attRequest.id) as TxResponse;
-    let additionalData = await client.getAdditionalTransactionDetails({transaction: txResponse, confirmations: 1});
+    let additionalData = await client.getAdditionalTransactionDetails({ transaction: txResponse, confirmations: 1 });
     let result = {
         chainId: toBN(attRequest.chainId),
         attestationType: attRequest.attestationType!,
         ...additionalData
     } as NormalizedTransactionData;
-    if(attRequest.instructions && attRequest.instructions.toNumber() === 0) {
+    if (attRequest.instructions && attRequest.instructions.toNumber() === 0) {
         // TODO parese and verify instructions
     }
     return result;

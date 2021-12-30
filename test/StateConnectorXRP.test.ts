@@ -1,10 +1,9 @@
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { LedgerResponse } from "xrpl";
 import { AttestationType } from "../lib/AttestationData";
-import { fullTransactionHash } from "../lib/flare-crypto/hashes";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest, verifyTransactionAttestation, verifyXRPPayment } from "../lib/MCC/tx-normalize";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, toBN, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, verifyTransactionAttestation, verifyXRPPayment } from "../lib/MCC/tx-normalize";
 import { HashTestInstance, StateConnectorInstance } from "../typechain-truffle";
 import { testHashOnContract } from "./utils/test-utils";
 
@@ -35,7 +34,7 @@ describe(`Test`, async () => {
 
   it("Should hashing of a normalized transaction match to one in contract for XRP", async () => {
     let txData = await verifyTransactionAttestation(client.chainClient, {
-      attestationType: AttestationType.TransactionFull,
+      attestationType: AttestationType.FassetPaymentProof,
       instructions: toBN(0), 
       id: TEST_TX_ID,
       dataAvailabilityProof: "0x0",
@@ -44,7 +43,7 @@ describe(`Test`, async () => {
     } as TransactionAttestationRequest)
     // prettyPrint(txData!);
 
-    let hash = fullTransactionHash(txData!);
+    let hash = transactionHash(web3, txData!);
     let res = testHashOnContract(txData!, hash!);
     assert(res);
   });
@@ -57,7 +56,7 @@ describe(`Test`, async () => {
       for (let tx of block.result.ledger.transactions!) {
         // console.log("----")
         if (verifyXRPPayment(tx)) {
-          let attType = AttestationType.TransactionFull;
+          let attType = AttestationType.FassetPaymentProof;
           let tr = {
             id: "0x" + (tx as any).hash,
             dataHash: "0x2",

@@ -14,8 +14,8 @@ let args = yargs
   .option('chain', {
     alias: 'c',
     type: 'string',
-    description: 'Chain',
-    default: 'BTC'
+    description: 'Chain (XRP, BTC, LTC, DOGE)',
+    default: 'DOGE'
   })
   .option('rpcLink', {
     alias: 'r',
@@ -29,7 +29,6 @@ let args = yargs
     description: 'Private key for sending attester requests',
     default: '0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122'
   })
-
   .option('abiPath', {
     alias: 'a',
     type: 'string',
@@ -46,7 +45,7 @@ let args = yargs
     alias: 'u',
     type: 'string',
     description: "RPC url for blockchain",
-    default: 'https://testnode2.c.aflabs.net/btc/'
+    default: 'https://testnode2.c.aflabs.net/doge/'
   })
   .option('blockchainUsername', {
     alias: 's',
@@ -72,11 +71,23 @@ let args = yargs
     description: 'Random block range',
     default: 1000
   })
+  .option('nonceResetCount', {
+    alias: 'e',
+    type: 'number',
+    description: 'Reset nonce period',
+    default: 10
+  })
   .option('delay', {
     alias: 'd',
     type: 'number',
-    description: 'Delay between sending',
+    description: 'Delay between sending transactions from the same block',
     default: 500
+  })
+  .option('loggerLabel', {
+    alias: 'l',
+    type: 'string',
+    description: "Logger label",
+    default: ''
   })
   .argv;
 
@@ -101,6 +112,9 @@ class AttestationSpammer {
   privateKey: string = args['privateKey'];
   delay: number = args['delay'];
   lastBlockNumber: number = -1;
+  nonce?: number;
+  nonceResetCount!: number;
+  forcedNonceResetOn?: number;
 
   constructor() {
     this.chainType = this.getChainType(args['chain']);
@@ -109,7 +123,8 @@ class AttestationSpammer {
     this.web3 = getWeb3(this.rpcLink) as Web3;
     this.account = getWeb3Wallet(this.web3, this.privateKey);
     this.waitFinalize3 = waitFinalize3Factory(this.web3);
-    this.logger = getLogger(`attester-spammer-${args['chain']}`);
+    this.logger = getLogger(args['loggerLabel']);
+    this.forcedNonceResetOn = args['nonceResetCount'];
     // this.stateConnector = (await 
     getWeb3Contract(this.web3, args['contractAddress'], "StateConnector")
       .then((sc: StateConnector) => {
@@ -140,10 +155,28 @@ class AttestationSpammer {
     return await this.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
   }
 
+  // async getNonce(): Promise<string> {
+  //   let nonce = await this.web3.eth.getTransactionCount(this.account.address);
+  //   return nonce + "";   // string returned
+  // }
+
   async getNonce(): Promise<string> {
-    let nonce = await this.web3.eth.getTransactionCount(this.account.address);
-    return nonce + "";   // string returned
+    this.nonceResetCount--;
+    if (this.nonce && this.nonceResetCount > 0) {
+      this.nonce++;
+    } else {
+      this.nonce = (await this.web3.eth.getTransactionCount(this.account.address));
+      this.logger.info(`Nonce initialized to ${this.nonce}`);
+      this.nonceResetCount = this.forcedNonceResetOn!;
+    }
+    return this.nonce + "";   // string returned
   }
+
+  resetNonce() {
+    this.nonce = undefined;
+    this.logger.info(`Nonce reset`);
+  }
+
 
   async signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE) {
     let nonce = await this.getNonce();
@@ -159,15 +192,18 @@ class AttestationSpammer {
 
     try {
       let receipt = await this.waitFinalize3(this.account.address, () => this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!));
+      this.logger.info(`Attestation sent for nonce ${nonce}`)
       return receipt;
     } catch (e: any) {
       if (e.message.indexOf("Transaction has been reverted by the EVM") < 0) {
         this.logger.error(`${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${e.message}`);
+        this.resetNonce();
       } else {
         fnToEncode.call({ from: this.account.address })
           .then((result: any) => { throw Error('unlikely to happen: ' + JSON.stringify(result)) })
           .catch((revertReason: any) => {
             this.logger.error(`${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${revertReason}`);
+            this.resetNonce();
           });
       }
     }
@@ -179,40 +215,15 @@ class AttestationSpammer {
     }
   }
 
-  // async logEvents() {
-  //   await this.waitForStateConnector();
-  //   this.logger.info(` * Connecting to network '${this.rpcLink}'...`);
-  //   const subscription = this.web3.eth
-  //     .subscribe("newBlockHeaders", (error, result) => {
-  //       if (error) {
-  //         console.error(error);
-
-  //       } else {
-  //         // do nothing: use on("data")
-  //       }
-  //     })
-  //     .on("connected", (subscriptionId) => {
-  //       this.logger.info(` * Connected to network ${subscriptionId}`);
-  //     })
-  //     .on("data", (blockHeader) => {
-  //       this.onBlockHeaderReceived(blockHeader)
-  //     })
-  //     .on("error", console.error);
-
-  //   return subscription;
-  // }
-
   async logEvents(maxBlockFetch = 100) {
     await this.waitForStateConnector();
     this.lastBlockNumber = await this.web3.eth.getBlockNumber()
     let firstUnprocessedBlockNumber = this.lastBlockNumber;
     while (true) {
       await sleep(500);
-      console.log("first:", firstUnprocessedBlockNumber);
       try {
         let last = Math.min(firstUnprocessedBlockNumber + maxBlockFetch, this.lastBlockNumber);
-        console.log("last:", last);
-        if(firstUnprocessedBlockNumber > last) {
+        if (firstUnprocessedBlockNumber > last) {
           this.lastBlockNumber = await this.web3.eth.getBlockNumber();
           continue;
         }
@@ -222,10 +233,8 @@ class AttestationSpammer {
             fromBlock: firstUnprocessedBlockNumber,
             toBlock: last
           })
-        this.logger.info(`Processing events from block ${firstUnprocessedBlockNumber} to ${last}`);
-        console.log(events);
+        this.logger.info(`Processing ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
         firstUnprocessedBlockNumber = last + 1;
-        
       } catch (e) {
         this.logger.info(`Error: ${e}`)
       }
@@ -236,43 +245,36 @@ class AttestationSpammer {
     await this.waitForStateConnector();
     this.logEvents();  // async run
     while (true) {
-      let latestBlockNumber = await this.client.getBlockHeight();
-      console.log(latestBlockNumber)
-      let rangeMax = latestBlockNumber - this.confirmations;
-      if (rangeMax < 0) {
-        this.logger.info("Too small number of blocks.");
-        await sleep(1000);
-        continue;
+      try {
+        let latestBlockNumber = await this.client.getBlockHeight();
+        let rangeMax = latestBlockNumber - this.confirmations;
+        if (rangeMax < 0) {
+          this.logger.info("Too small number of blocks.");
+          await sleep(1000);
+          continue;
+        }
+        let rangeMin = Math.max(0, latestBlockNumber - this.range - this.confirmations);
+        let selectedBlock = Math.round(Math.random() * (rangeMax - rangeMin + 1)) + rangeMin;
+        let block = await this.client.getBlock(selectedBlock);
+        let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations);
+        for (let tx of this.client.getTransactionHashesFromBlock(block)) {
+          let attType = AttestationType.FassetPaymentProof;
+          let tr = {
+            id: tx,
+            dataHash: "0x0",
+            dataAvailabilityProof: this.client.getBlockHash(confirmationBlock),
+            blockNumber: selectedBlock,
+            chainId: this.chainType,
+            attestationType: attType,
+            instructions: toBN(0)
+          } as TransactionAttestationRequest;
+          let attRequest = txAttReqToAttestationRequest(tr);
+          this.sendAttestationRequest(this.stateConnector, attRequest); // async call
+          await sleep(this.delay);
+        }
+      } catch (e) {
+        this.logger.error(`ERROR: ${e}`)
       }
-      let rangeMin = Math.max(0, latestBlockNumber - this.range - this.confirmations);
-      let selectedBlock = Math.round(Math.random() * (rangeMax - rangeMin + 1));
-      let block = await this.client.getBlock(selectedBlock);
-      let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations);
-      for (let tx of this.client.getTransactionHashesFromBlock(block)) {
-        console.log(tx);
-        let attType = AttestationType.TransactionFull;
-        let tr = {
-          id: tx,
-          dataHash: "0x0",
-          dataAvailabilityProof: this.client.getBlockHash(confirmationBlock),
-          blockNumber: selectedBlock,
-          chainId: this.chainType,
-          attestationType: attType,
-          instructions: toBN(0)
-        } as TransactionAttestationRequest;
-        let attRequest = txAttReqToAttestationRequest(tr);
-        let receipt = await this.sendAttestationRequest(this.stateConnector, attRequest);
-        await sleep(this.delay);
-      }
-      // expectEvent(receipt, "AttestationRequest")
-      // let events = extractAttEvents(receipt.logs);
-      // let parsedEvents =  events.map((x: AttestationRequest) => attReqToTransactionAttestationRequest(x))
-      // assert(parsedEvents.length === 1);
-      // let parsedEvent = parsedEvents[0];
-      // assert((parsedEvent.blockNumber as BN).eq(toBN(tr.blockNumber as number)), "Block number does not match");
-      // assert((parsedEvent.chainId as BN).eq(toBN(tr.chainId as number)), "Chain id  does not match");
-      // assert((parsedEvent.utxo as BN).eq(toBN(0)), "Utxo does not match");
-      // assert(parsedEvent.attestationType === attType, "Attestation t    
     }
   }
 };

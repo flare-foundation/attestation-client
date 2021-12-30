@@ -141,7 +141,7 @@ export function getLogger(label?: string) {
       new winston.transports.Console(),
       new winston.transports.File({
         level: "info",
-        filename: "./logs/flare-price-provider.log",
+        filename: `./logs/attester-${label}.log`,
       }),
     ],
   });

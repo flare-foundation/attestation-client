@@ -6,4 +6,4 @@ CONFIG_PATH=${1:-./configs/config.json}
 
 # Run DataProvider
 # node dist/scripts/attestation-spammer.js
-yarn ts-node scripts/attestation-spammer.ts 
+yarn ts-node scripts/attestation-spammer.ts

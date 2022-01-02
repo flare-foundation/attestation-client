@@ -13,14 +13,14 @@ import { check } from "yargs";
 
 
 export enum VerificationStatus {
-    OK,
-    NOT_CONFIRMED,
-    NOT_SINGLE_SOURCE_ADDRESS,
-    MISSING_SOURCE_ADDRESS_HASH,
-    SOURCE_ADDRESS_DOES_NOT_MATCH,
-    INSTRUCTIONS_DO_NOT_MATCH,
-    WRONG_DATA_AVAILABILITY_PROOF,
-    DATA_AVAILABILITY_PROOF_REQUIRED
+    OK = "OK",
+    NOT_CONFIRMED = "NOT_CONFIRMED",
+    NOT_SINGLE_SOURCE_ADDRESS = "NOT_SINGLE_SOURCE_ADDRESS",
+    MISSING_SOURCE_ADDRESS_HASH = "MISSING_SOURCE_ADDRESS_HASH",
+    SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",
+    INSTRUCTIONS_DO_NOT_MATCH = "INSTRUCTIONS_DO_NOT_MATCH",
+    WRONG_DATA_AVAILABILITY_PROOF = "WRONG_DATA_AVAILABILITY_PROOF",
+    DATA_AVAILABILITY_PROOF_REQUIRED = "DATA_AVAILABILITY_PROOF_REQUIRED"
 }
 
 export interface NormalizedTransactionData extends AdditionalTransactionDetails {
@@ -311,36 +311,6 @@ export function transactionHash(
     let values = scheme.hashKeys.map(key => (txData as any)[key]);
     const encoded = web3.eth.abi.encodeParameters(scheme.hashTypes, values);
     return web3.utils.soliditySha3(encoded);
-    // if (txData.attestationType != AttestationType.FassetPaymentProof) throw Error("Not full transaction hash")
-    // const encoded = web3.eth.abi.encodeParameters(
-    //     [
-    //         'uint32',  // type
-    //         'uint64',  // chainId
-    //         'uint64',  // blockNumber
-    //         'bytes32', // txId
-    //         'uint16',  // utxo
-    //         'string',  // sourceAddress
-    //         'string',  // destinationAddress
-    //         'uint256', // destinationTag
-    //         'uint256', // spent
-    //         'uint256', // delivered
-    //         'uint256'  // fee
-    //     ],
-    //     [
-    //         txData.attestationType,
-    //         txData.chainId,
-    //         txData.blockNumber,
-    //         txData.txId,
-    //         txData.utxo,
-    //         txData.sourceAddress,
-    //         txData.destinationAddress,
-    //         txData.destinationTag,
-    //         txData.spent,
-    //         txData.delivered,
-    //         txData.fee
-    //     ]
-    // );
-    // return web3.utils.soliditySha3(encoded);
 }
 
 
@@ -369,32 +339,7 @@ export async function verifyTransactionAttestation(client: any, request: Transac
     }
 }
 
-
-function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
-    // TODO:
-    // OK - check confirmations 
-    // OK -check against instructions
-    // OK - check sourceAddress for balance decrease att type
-    // - check data availability proof
-
-    function genericReturnWithStatus(verificationStatus: VerificationStatus) {
-        return {
-            chainId: toBN(attRequest.chainId),
-            attestationType: attRequest.attestationType!,
-            ...additionalData,
-            verificationStatus
-        } as NormalizedTransactionData;
-    }
-    if (!additionalData.dataAvailabilityProof) {
-        return genericReturnWithStatus(VerificationStatus.NOT_CONFIRMED);
-    }
-    if(!attRequest.dataAvailabilityProof) {
-        return genericReturnWithStatus(VerificationStatus.DATA_AVAILABILITY_PROOF_REQUIRED);
-    }
-    if(attRequest.dataAvailabilityProof.toLocaleLowerCase() !== additionalData.dataAvailabilityProof.toLocaleLowerCase()) {
-        return genericReturnWithStatus(VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF);
-    }
-    // TODO - check against instructions
+function instructionsCheck(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest) {
     let scheme = attestationTypeEncodingScheme(attRequest.attestationType!);
     let decoded = decodeUint256(
         attRequest.instructions,
@@ -409,9 +354,39 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
         if (!(decoded[key] as BN).eq((additionalData as any)[key] as BN)) {
             console.log(decoded[key].toString());
             console.log((additionalData as any)[key].toString());
-            return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH)
+            return false;
         }
     }
+    return true;
+}
+
+function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
+    // helper return function
+    function genericReturnWithStatus(verificationStatus: VerificationStatus) {
+        return {
+            chainId: toBN(attRequest.chainId),
+            attestationType: attRequest.attestationType!,
+            ...additionalData,
+            verificationStatus
+        } as NormalizedTransactionData;
+    }
+    // check confirmations
+    if (!additionalData.dataAvailabilityProof) {
+        return genericReturnWithStatus(VerificationStatus.NOT_CONFIRMED);
+    }
+    if (!attRequest.dataAvailabilityProof) {
+        return genericReturnWithStatus(VerificationStatus.DATA_AVAILABILITY_PROOF_REQUIRED);
+    }
+    if (attRequest.dataAvailabilityProof.toLocaleLowerCase() !== additionalData.dataAvailabilityProof.toLocaleLowerCase()) {
+        return genericReturnWithStatus(VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF);
+    }
+    // check against instructions
+    if (!instructionsCheck(additionalData, attRequest)) {
+        return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH)
+    }
+    ///// Specific checks for attestation types
+
+    // BalanceDecreasingProof checks
     if (attRequest.attestationType === AttestationType.BalanceDecreasingProof) {
         let sourceAddress = additionalData.sourceAddresses
         if (typeof sourceAddress !== "string") {
@@ -423,7 +398,9 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
         if (web3.utils.soliditySha3(sourceAddress) != attRequest.dataHash) {
             return genericReturnWithStatus(VerificationStatus.SOURCE_ADDRESS_DOES_NOT_MATCH)
         }
+        return genericReturnWithStatus(VerificationStatus.OK);
     }
+    // BalanceDecreasingProof checks
     if (attRequest.attestationType === AttestationType.FassetPaymentProof) {
         return genericReturnWithStatus(VerificationStatus.OK);
     }
@@ -439,6 +416,7 @@ function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, att
     // - multisig addresses not allowed
     // Spend proof
     // - aggregate for source address and calculate spent
+
     if (!additionalData.dataAvailabilityProof) {
         return {
             ...additionalData,

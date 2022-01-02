@@ -19,11 +19,11 @@ const StateConnector = artifacts.require("StateConnector");
 
 describe(`Test`, async () => {
   let client: MCClient;
-  let hashTest: HashTestInstance;
+  // let hashTest: HashTestInstance;
   let stateConnector: StateConnectorInstance;
 
   beforeEach(async () => {
-    hashTest = await HashTest.new();
+    // hashTest = await HashTest.new();
     stateConnector = await StateConnector.new();
     client = new MCClient(new MCCNodeSettings(CLIENT, URL, USERNAME, PASSWORD, null));
   });

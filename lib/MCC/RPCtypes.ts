@@ -9,24 +9,28 @@ export interface vout_utxo {
   amount?: number;
 }
 
-
 export interface AdditionalTransactionDetails {
   blockNumber: BN;
+  blockHash: string;
   txId: string;
-  utxo: BN;
-  sourceAddress: string;
-  destinationAddress: string;
-  destinationTag: BN;
-  spent: BN;
-  delivered: BN;
+  sourceAddresses: string | string[][];  // 
+  destinationAddresses: string | string[][];
+  destinationTag?: BN;
+  spent: BN | BN[];
+  delivered: BN | BN[];
   fee: BN;
-  dataAvailabilityProof: string;
+  dataAvailabilityProof: string
 }
 
 export interface AdditionalTxRequest {
   transaction: any;
-  utxo?: BN | number;
   confirmations: number;
+}
+
+export interface AggregateTxRequest extends AdditionalTxRequest {
+  sourceAddressHash?: string;
+  destinationUtxo?: BN | number;
+  aggregateUtxoAddressDelivered?: boolean;
 }
 
 export interface RPCInterface {

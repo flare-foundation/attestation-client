@@ -11,9 +11,6 @@ const CLIENT = ChainType.BTC;
 const URL = 'https://testnode2.c.aflabs.net/btc/';
 const USERNAME = "rpcuser";
 const PASSWORD = "rpcpass";
-// const TEST_TX_ID = "b4542490567962c52c7f732deb9d1b1189a104481dc7e6eebc15e85011bc02ec";
-// const TEST_TX_ID = "ba905920105a93fe938781c7e5f63f4eca02dc085090a64d561dca0892c6b97f";
-// const TEST_TX_ID = "568c58e7fa59bfd13d904e5c1fd8c4b97bd9d64cfc7644abe74541dc12adff35";
 const TEST_TX_ID = "4d0d61fd3ca1ccc3c023919f31d6a71fc3e0f3018c7238bdfc75a16898d9acbd";
 const UTXO = 1;
 
@@ -77,13 +74,11 @@ describe(`Test`, async () => {
         let parsedEvent = parsedEvents[0];
         assert((parsedEvent.blockNumber as BN).eq(toBN(tr.blockNumber as number)), "Block number does not match");
         assert((parsedEvent.chainId as BN).eq(toBN(tr.chainId as number)), "Chain id  does not match");
-        assert((parsedEvent.utxo as BN).eq(toBN(0)), "Utxo does not match");
+        // assert((parsedEvent.utxo as BN).eq(toBN(0)), "Utxo does not match");
         assert(parsedEvent.attestationType === attType, "Attestation type does not match");          
       }
     }
   });
-
-
 });
 
 

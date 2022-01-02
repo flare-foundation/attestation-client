@@ -373,48 +373,75 @@ export class UtxoCore {
   async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails> {
     let blockResponse = await this.getBlock(request.transaction.blockhash) as UtxoBlockResponse;
     let vinTransactions: UtxoTxResponse[] = []
-    let inFunds = toBN(0);
-    for (let vin of request.transaction.vin) {
+    let inFunds: BN[] = [];
+    let totalInFunds = toBN(0);
+    // read input transactions
+
+    let sourceAddresses: string[][] = []; 
+
+    for (let i = 0; i < request.transaction.vin.length; i++) {
+      let vin = request.transaction.vin[i];
       let rsp = await this.getTransaction(vin.txid!, { verbose: true }) as UtxoTxResponse;
+      let inVout = vin.vout!;
+      sourceAddresses.push(rsp.vout[inVout].scriptPubKey.addresses); 
       vinTransactions.push(rsp);
-      inFunds = inFunds.add(toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC)))
+      let outVal = toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC))
+      inFunds.push(outVal);
+      totalInFunds = totalInFunds.add(outVal);
+      // inFunds = inFunds.add(toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC)))
     }
 
-    let inVout = request.transaction.vin[0].vout!;
-    let addresses = vinTransactions[0].vout[inVout].scriptPubKey.addresses;
-    if (addresses.length != 1) throw Error("Multiple or missing sender address");
-    let sourceAddress = addresses[0];
+    // let inVout = request.transaction.vin[0].vout!;
+    // let addresses = vinTransactions[0].vout[inVout].scriptPubKey.addresses;
+    // if (addresses.length != 1) throw Error("Multiple or missing sender address");
+    // let sourceAddress = addresses[0];
 
     // Calculate total out funds and returned funds
-    let outFunds = toBN(0);
-    let returnedFunds = toBN(0);
-    for (let vout of request.transaction.vout) {
-      outFunds = outFunds.add(toBN(Math.round(vout.value * SATOSHI_BTC)));
+    let outFunds: BN[] = [];
+    let totalOutFunds = toBN(0);
+    let destinationAddresses: string[][] = [];
+    // let returnedFunds = toBN(0);
+    for (let i = 0; i < request.transaction.vout.length; i++) {
+      let vout = request.transaction.vout[i]
+      let outValue = toBN(Math.round(vout.value * SATOSHI_BTC));
+      outFunds.push(outValue);
+      totalOutFunds = totalOutFunds.add(outValue);
       let targetAddresses = vout.scriptPubKey.addresses;
-      if (targetAddresses.length != 1) throw Error("Multiple or missing target address");
-      let targetAddress = targetAddresses[0];
-      if(targetAddress === sourceAddress) {
-        let amount = toBN(Math.round(vout.value * SATOSHI_BTC));
-        returnedFunds = returnedFunds.add(amount);
-      }
+      destinationAddresses.push(targetAddresses);
+
+
+      
+      // if (targetAddresses.length != 1) throw Error("Multiple or missing target address");
+      // let targetAddress = targetAddresses[0];
+      // if(targetAddress === sourceAddress) {
+      //   let amount = toBN(Math.round(vout.value * SATOSHI_BTC));
+      //   returnedFunds = returnedFunds.add(amount);
+      // }
     }
 
     let confirmationBlockHeight = blockResponse.height + request.confirmations;
-    let confirmationBlock = await this.getBlock(confirmationBlockHeight) as UtxoBlockResponse;
-    let dataAvailabilityProof = "0x" + confirmationBlock.hash;
+    let dataAvailabilityProof: string | undefined = undefined;
+    try {
+      let confirmationBlock = await this.getBlock(confirmationBlockHeight) as UtxoBlockResponse;
+      dataAvailabilityProof = "0x" + confirmationBlock.hash;
+    } catch(e) {}
     
-    return {
+    let result = {
       blockNumber: toBN(blockResponse.height || 0),
+      blockHash: blockResponse.hash,
       txId: "0x" + request.transaction.txid,
-      utxo: toBN(request.utxo!)!,
-      sourceAddress,
-      destinationAddress: request.transaction.vout[toNumber(request.utxo!)!].scriptPubKey.addresses[0],
+      sourceAddresses,
+      destinationAddresses,
+      // destinationAddresses: request.transaction.vout[toNumber(request.utxo!)!].scriptPubKey.addresses[0],
       destinationTag: toBN(0),
-      spent: inFunds.sub(returnedFunds),
-      delivered: toBN(Math.round(request.transaction.vout[toNumber(request.utxo!)!].value * 100000000)),
-      fee: inFunds.sub(outFunds),
+      // spent: inFunds.sub(returnedFunds),
+      spent: inFunds,
+      delivered: outFunds,
+      // delivered: toBN(Math.round(request.transaction.vout[toNumber(request.utxo!)!].value * 100000000)),
+      fee: totalInFunds.sub(totalOutFunds),
       dataAvailabilityProof
     } as AdditionalTransactionDetails
+    return result;
   }
 
   getTransactionHashesFromBlock(block: UtxoBlockResponse): string[] {

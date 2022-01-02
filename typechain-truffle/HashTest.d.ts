@@ -12,16 +12,27 @@ export interface HashTestContract extends Truffle.Contract<HashTestInstance> {
 type AllEvents = never;
 
 export interface HashTestInstance extends Truffle.ContractInstance {
-  test(
+  testDecreaseBalanceProof(
     typ: number | BN | string,
     chainId: number | BN | string,
     blockNumber: number | BN | string,
     txId: string,
-    utxo: number | BN | string,
+    sourceAddress: string,
+    spent: number | BN | string,
+    hashToProve: string,
+    txDetails?: Truffle.TransactionDetails
+  ): Promise<boolean>;
+
+  testFassetProof(
+    typ: number | BN | string,
+    chainId: number | BN | string,
+    blockNumber: number | BN | string,
+    txId: string,
     sourceAddress: string,
     destinationAddress: string,
+    destinationTag: number | BN | string,
     spent: number | BN | string,
-    delivered: number | BN | string,
+    received: number | BN | string,
     hashToProve: string,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
@@ -35,16 +46,27 @@ export interface HashTestInstance extends Truffle.ContractInstance {
   ): Promise<boolean>;
 
   methods: {
-    test(
+    testDecreaseBalanceProof(
       typ: number | BN | string,
       chainId: number | BN | string,
       blockNumber: number | BN | string,
       txId: string,
-      utxo: number | BN | string,
+      sourceAddress: string,
+      spent: number | BN | string,
+      hashToProve: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<boolean>;
+
+    testFassetProof(
+      typ: number | BN | string,
+      chainId: number | BN | string,
+      blockNumber: number | BN | string,
+      txId: string,
       sourceAddress: string,
       destinationAddress: string,
+      destinationTag: number | BN | string,
       spent: number | BN | string,
-      delivered: number | BN | string,
+      received: number | BN | string,
       hashToProve: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;

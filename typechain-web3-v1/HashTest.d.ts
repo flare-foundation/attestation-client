@@ -29,16 +29,26 @@ export interface HashTest extends BaseContract {
   ): HashTest;
   clone(): HashTest;
   methods: {
-    test(
+    testDecreaseBalanceProof(
       typ: number | string | BN,
       chainId: number | string | BN,
       blockNumber: number | string | BN,
       txId: string | number[],
-      utxo: number | string | BN,
+      sourceAddress: string,
+      spent: number | string | BN,
+      hashToProve: string | number[]
+    ): NonPayableTransactionObject<boolean>;
+
+    testFassetProof(
+      typ: number | string | BN,
+      chainId: number | string | BN,
+      blockNumber: number | string | BN,
+      txId: string | number[],
       sourceAddress: string,
       destinationAddress: string,
+      destinationTag: number | string | BN,
       spent: number | string | BN,
-      delivered: number | string | BN,
+      received: number | string | BN,
       hashToProve: string | number[]
     ): NonPayableTransactionObject<boolean>;
 

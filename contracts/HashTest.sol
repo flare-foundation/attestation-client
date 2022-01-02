@@ -7,17 +7,17 @@ pragma solidity 0.7.6;
 // import "hardhat/console.sol";
 
 contract HashTest {
-  function test(
+  function testFassetProof(
     uint32 typ,
     uint64 chainId,
     uint64 blockNumber,
     bytes32 txId,
-    uint16 utxo,
+    // uint16 utxo,
     string calldata sourceAddress,
     string calldata destinationAddress,
-    // uint256 destinationTag,
+    uint256 destinationTag,
     uint256 spent,
-    uint256 delivered,
+    uint256 received,
     bytes32 hashToProve
   ) external pure returns (bool _match) {
     bytes32 hash = keccak256(abi.encode(
@@ -25,12 +25,33 @@ contract HashTest {
       chainId,
       blockNumber,
       txId,
-      utxo,
+      // utxo,
       sourceAddress,
       destinationAddress,
-      // destinationTag,
+      destinationTag,
       spent,
-      delivered
+      received
+    ));
+    return hash == hashToProve;
+  }
+
+
+  function testDecreaseBalanceProof(
+    uint32 typ,
+    uint64 chainId,
+    uint64 blockNumber,
+    bytes32 txId,
+    string calldata sourceAddress,
+    uint256 spent,
+    bytes32 hashToProve
+  ) external pure returns (bool _match) {
+    bytes32 hash = keccak256(abi.encode(
+      typ,
+      chainId,
+      blockNumber,
+      txId,
+      sourceAddress,
+      spent
     ));
     return hash == hashToProve;
   }

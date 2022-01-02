@@ -22,7 +22,7 @@ export class XRPImplementation implements RPCInterface {
     
     this.client = axios.create({
       baseURL: url,
-      timeout: 3000,
+      timeout: 5000,
       headers: { 'Content-Type': 'application/json' },
       validateStatus: function (status: number) {
         return (status >= 200 && status < 300) || status == 500;
@@ -124,21 +124,23 @@ export class XRPImplementation implements RPCInterface {
   }
 
   async getAdditionalTransactionDetails(request: AdditionalTxRequest) {
-    let metaData: TransactionMetadata = request.transaction.result.meta || (request.transaction.result as any).metaData;
-    let delivered = toBN(metaData.delivered_amount as string); // XRP in drops
     let blockNumber = request.transaction.result.ledger_index || 0;
+    let blockResponse = await this.getBlock(request.transaction.blockhash) as LedgerResponse;
+    let metaData: TransactionMetadata = request.transaction.result.meta || (request.transaction.result as any).metaData;    
+    let delivered = toBN(metaData.delivered_amount as string); // XRP in drops
+    
     let confirmationBlockIndex = blockNumber + request.confirmations;
     let confirmationBlock = await this.getBlock(confirmationBlockIndex);
     let fee = toBN(request.transaction.result.Fee!);
     return {
       blockNumber: toBN(blockNumber),
+      blockHash: blockResponse.result.ledger_hash,
       txId: "0x" + request.transaction.result.hash,
-      utxo: toBN(0),
-      sourceAddress: request.transaction.result.Account,
-      destinationAddress: (request.transaction.result as Payment).Destination,
+      sourceAddresses: request.transaction.result.Account,
+      destinationAddresses: (request.transaction.result as Payment).Destination,
       destinationTag: toBN((request.transaction.result as Payment).DestinationTag || 0),
       spent: toBN((request.transaction.result as Payment).Amount as any).add(fee),   // should be string or number
-      delivered,
+      delivered: delivered,
       fee,
       dataAvailabilityProof: "0x" + confirmationBlock.result.ledger_hash
     } as AdditionalTransactionDetails;

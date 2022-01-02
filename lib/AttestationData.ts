@@ -1,8 +1,8 @@
 import BN from "bn.js";
 
 export enum AttestationType {
-  Transaction = 1,
-  FassetPaymentProof = 2,
+  FassetPaymentProof = 1,
+  BalanceDecreasingProof = 2,
 }
 
 export class AttestationData {

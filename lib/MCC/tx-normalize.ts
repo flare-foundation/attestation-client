@@ -25,7 +25,8 @@ export enum VerificationStatus {
     FORBIDDEN_MULTISIG_DESTINATION = "FORBIDDEN_MULTISIG_DESTINATION",
     FORBIDDEN_SELF_SENDING = "FORBIDDEN_SELF_SENDING",
     FUNDS_UNCHANGED = "FUNDS_UNCHANGED",   
-    FUNDS_INCREASED = "FUNDS_INCREASED"
+    FUNDS_INCREASED = "FUNDS_INCREASED",
+    COINBASE_TRANSACTION = "COINBASE_TRANSACTION"
 }
 
 export interface NormalizedTransactionData extends AdditionalTransactionDetails {
@@ -456,6 +457,9 @@ function checkAndAggregateOneToOnePaymentUtxo(additionalData: AdditionalTransact
         return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS);
     }
     let theSource = [...sources][0];
+    if(theSource === "") {  // coinbase transaction
+        return genericReturnWithStatus(VerificationStatus.COINBASE_TRANSACTION);
+    }
     let inFunds = toBN(0);
     (additionalData.spent as BN[]).forEach(value => {
         inFunds = inFunds.add(value);
@@ -623,12 +627,20 @@ function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, att
 
 async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest) {
     let txResponse = await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true }) as UtxoTxResponse;
-    let additionalData = await client.getAdditionalTransactionDetails({ transaction: txResponse, confirmations: 6 });
+    let additionalData = await client.getAdditionalTransactionDetails({ 
+        transaction: txResponse, 
+        confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
+        dataAvailabilityProof: attRequest.dataAvailabilityProof
+    });
     return checkAndAggregateUtxo(additionalData, attRequest);
 }
 
 async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest) {
     let txResponse = await client.getTransaction(unPrefix0x(attRequest.id)) as TxResponse;
-    let additionalData = await client.getAdditionalTransactionDetails({ transaction: txResponse, confirmations: 1 });
+    let additionalData = await client.getAdditionalTransactionDetails({ 
+        transaction: txResponse, 
+        confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
+        dataAvailabilityProof: attRequest.dataAvailabilityProof
+    });
     return checkAndAggregateXRP(additionalData, attRequest);
 }

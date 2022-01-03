@@ -24,6 +24,7 @@ export interface AdditionalTransactionDetails {
 
 export interface AdditionalTxRequest {
   transaction: any;
+  dataAvailabilityProof: any;
   confirmations: number;
 }
 

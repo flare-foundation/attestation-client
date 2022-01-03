@@ -64,11 +64,12 @@ describe(`Test`, async () => {
     assert(res);
   });
 
-  it.only("Should make lots of attestation requests", async () => {
-    let latestBlockNumber = await client.chainClient.getBlockHeight();
+  it("Should make lots of attestation requests", async () => {
+    // let latestBlockNumber = await client.chainClient.getBlockHeight();
+    let latestBlockNumber = BLOCK_NUMBER + 8;
     let latestBlockNumberToUse = latestBlockNumber - numberOfConfirmations(ChainType.BTC);
     console.log(latestBlockNumberToUse)
-    let count = 3
+    let count = 10;
     for (let i = latestBlockNumberToUse - count + 1; i <= latestBlockNumberToUse; i++) {
       let block = await client.chainClient.getBlock(i) as UtxoBlockResponse;
       let confirmationBlock = await client.chainClient.getBlock(i + numberOfConfirmations(ChainType.BTC)) as UtxoBlockResponse;
@@ -96,8 +97,12 @@ describe(`Test`, async () => {
 
           // verify
           let txData = await verifyTransactionAttestation(client.chainClient, eventRequest)
-          prettyPrint(txData);
+          if(txData.verificationStatus != VerificationStatus.OK) {
+            console.log(txData.verificationStatus);
+            continue;
+          }
           assert(txData.verificationStatus === VerificationStatus.OK, `Incorrect verification status ${txData.verificationStatus}`)
+          console.log("OK")
           let hash = transactionHash(web3, txData!);
           let res = testHashOnContract(txData!, hash!);
           assert(res);

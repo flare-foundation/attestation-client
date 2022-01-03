@@ -22,7 +22,7 @@ describe("State connector", function () {
     let id = "0x1230000000000000000000000000000000000000000000000000000000000000"
     let instructions = "1";
     let value = etherToValue(web3,2);
-    let request = await stateConnector.requestAttestations(instructions, id, "0x1", {value});
+    let request = await stateConnector.requestAttestations(instructions, "0x2", id, "0x1", {value});
     // console.log(request.logs[0])
     //   event AttestationRequest(
     //     uint256 timestamp,
@@ -36,7 +36,7 @@ describe("State connector", function () {
     let id = "0x1230000000000000000000000000000000000000000000000000000000000000"
     let instructions = "1";
     let value = etherToValue(web3,0);
-    let request = stateConnector.requestAttestations(instructions, id, "0x1", {value});
+    let request = stateConnector.requestAttestations(instructions, "0x2", id, "0x1", {value});
     await expectRevert.unspecified(request);
   });
 });

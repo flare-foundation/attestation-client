@@ -68,7 +68,7 @@ export class Attester {
   async createAttestation(epochId: number, tx: AttestationData): Promise<Attestation | undefined> {
     // create attestation depending on type
     switch (tx.type) {
-      case AttestationType.Transaction: {
+      case AttestationType.BalanceDecreasingProof: {
         // const bit32 = BigNumber.from(1).shl(32).sub(1);
         // const chainType: BigNumber = tx.data.and(bit32);
         const bit32 = toBN(1).shln(32).sub(toBN(1));

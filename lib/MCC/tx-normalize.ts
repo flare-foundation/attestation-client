@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import web3 from "web3";
+import Web3 from "web3";
 import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
 import { AttestationType } from "../AttestationData";
 import { toBN, toNumber, unPrefix0x } from "../utils";
@@ -419,7 +419,7 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
         if (!attRequest.dataHash) {
             return genericReturnWithStatus(VerificationStatus.MISSING_SOURCE_ADDRESS_HASH)
         }
-        if (web3.utils.soliditySha3(sourceAddress) != attRequest.dataHash) {
+        if (Web3.utils.soliditySha3(sourceAddress) != attRequest.dataHash) {
             return genericReturnWithStatus(VerificationStatus.SOURCE_ADDRESS_DOES_NOT_MATCH)
         }
         return genericReturnWithStatus(VerificationStatus.OK);
@@ -559,7 +559,7 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
             continue;
         }
         let aSource = sources[0];
-        if(web3.utils.soliditySha3(aSource) === attRequest.dataHash) {
+        if(Web3.utils.soliditySha3(aSource) === attRequest.dataHash) {
             theSource = aSource;
             sourceIndices.push(i);
             inFunds = inFunds.add((additionalData.spent as BN[])[i])
@@ -577,7 +577,7 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
         if (destination.length != 1) {
             continue;
         }
-        if(web3.utils.soliditySha3(destination[0]) === attRequest.dataHash) {
+        if(Web3.utils.soliditySha3(destination[0]) === attRequest.dataHash) {
             let destDelivered = (additionalData.delivered as BN[])[i];
             returnedFunds = returnedFunds.add(destDelivered);
         }        

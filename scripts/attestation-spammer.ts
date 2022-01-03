@@ -2,8 +2,8 @@ import * as dotenv from 'dotenv';
 import { AttestationType } from '../lib/AttestationData';
 import { MCClient } from '../lib/MCC/MCClient';
 import { ChainType, MCCNodeSettings } from '../lib/MCC/MCClientSettings';
-import { AttestationRequest, toBN, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/MCC/tx-normalize';
-import { getLogger, getWeb3, getWeb3Contract, getWeb3Wallet, sleep, waitFinalize3Factory } from '../lib/utils';
+import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/MCC/tx-normalize';
+import { getLogger, getWeb3, getWeb3Contract, getWeb3Wallet, sleep, toBN, waitFinalize3Factory } from '../lib/utils';
 import { StateConnector } from '../typechain-web3-v1/StateConnector';
 import Web3 from "web3";
 

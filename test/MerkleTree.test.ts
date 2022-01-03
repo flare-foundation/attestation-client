@@ -3,7 +3,7 @@ import { prefix0x } from "../lib/utils";
 import { HashTestInstance } from "../typechain-truffle";
 
 describe("Merkle Tree", () => {
-  const makeHashes = (i: number) => (new Array(i)).fill(0).map(x => prefix0x(Math.floor(Math.random()*100000000)));
+  const makeHashes = (i: number) => (new Array(i)).fill(0).map(x => prefix0x('' + Math.floor(Math.random()*100000000)));
 
   describe("General functionalities", () => {
 

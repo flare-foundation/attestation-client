@@ -1,6 +1,7 @@
 import { prefix0x, toBN } from "../utils";
 import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, vin_utxo, vout_utxo } from "./RPCtypes";
 import { ensure_data, sleep } from "./utils";
+import BN from "bn.js";
 
 const axios = require('axios');
 const SATOSHI_BTC = 100000000;
@@ -396,11 +397,6 @@ export class UtxoCore {
       // inFunds = inFunds.add(toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC)))
     }
 
-    // let inVout = request.transaction.vin[0].vout!;
-    // let addresses = vinTransactions[0].vout[inVout].scriptPubKey.addresses;
-    // if (addresses.length != 1) throw Error("Multiple or missing sender address");
-    // let sourceAddress = addresses[0];
-
     // Calculate total out funds and returned funds
     let outFunds: BN[] = [];
     let totalOutFunds = toBN(0);
@@ -412,16 +408,7 @@ export class UtxoCore {
       outFunds.push(outValue);
       totalOutFunds = totalOutFunds.add(outValue);
       let targetAddresses = vout.scriptPubKey.addresses;
-      destinationAddresses.push(targetAddresses);
-
-
-      
-      // if (targetAddresses.length != 1) throw Error("Multiple or missing target address");
-      // let targetAddress = targetAddresses[0];
-      // if(targetAddress === sourceAddress) {
-      //   let amount = toBN(Math.round(vout.value * SATOSHI_BTC));
-      //   returnedFunds = returnedFunds.add(amount);
-      // }
+      destinationAddresses.push(targetAddresses);      
     }
 
     let confirmationBlockHeight = blockResponse.height + request.confirmations;

@@ -1,5 +1,5 @@
+import { prefix0x, toBN } from "../utils";
 import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, vin_utxo, vout_utxo } from "./RPCtypes";
-import { toBN, toNumber } from "./tx-normalize";
 import { ensure_data, sleep } from "./utils";
 
 const axios = require('axios');
@@ -372,7 +372,7 @@ export class UtxoCore {
 
   async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails> {
     let blockResponse = await this.getBlock(request.transaction.blockhash) as UtxoBlockResponse;
-    let vinTransactions: UtxoTxResponse[] = []
+    // let vinTransactions: UtxoTxResponse[] = []
     let inFunds: BN[] = [];
     let totalInFunds = toBN(0);
     // read input transactions
@@ -381,13 +381,18 @@ export class UtxoCore {
 
     for (let i = 0; i < request.transaction.vin.length; i++) {
       let vin = request.transaction.vin[i];
-      let rsp = await this.getTransaction(vin.txid!, { verbose: true }) as UtxoTxResponse;
-      let inVout = vin.vout!;
-      sourceAddresses.push(rsp.vout[inVout].scriptPubKey.addresses); 
-      vinTransactions.push(rsp);
-      let outVal = toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC))
-      inFunds.push(outVal);
-      totalInFunds = totalInFunds.add(outVal);
+      if(vin.txid) {
+        let rsp = await this.getTransaction(vin.txid!, { verbose: true }) as UtxoTxResponse;
+        let inVout = vin.vout!;
+        sourceAddresses.push(rsp.vout[inVout].scriptPubKey.addresses); 
+        // vinTransactions.push(rsp);
+        let outVal = toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC))
+        inFunds.push(outVal);
+        totalInFunds = totalInFunds.add(outVal);  
+      } else {
+        sourceAddresses.push([""]);
+        inFunds.push(toBN(0));
+      }
       // inFunds = inFunds.add(toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC)))
     }
 
@@ -423,13 +428,19 @@ export class UtxoCore {
     let dataAvailabilityProof: string | undefined = undefined;
     try {
       let confirmationBlock = await this.getBlock(confirmationBlockHeight) as UtxoBlockResponse;
-      dataAvailabilityProof = "0x" + confirmationBlock.hash;
+      dataAvailabilityProof = prefix0x(confirmationBlock.hash);
     } catch(e) {}
-    
+    if(sourceAddresses.length != inFunds.length) {
+      throw new Error("Source addresses length and inFunds length do not match!")
+    }
+    if(destinationAddresses.length != outFunds.length) {
+      throw new Error("Destination addresses length and outFunds length do not match!")
+    }
+
     let result = {
       blockNumber: toBN(blockResponse.height || 0),
       blockHash: blockResponse.hash,
-      txId: "0x" + request.transaction.txid,
+      txId: prefix0x(request.transaction.txid),
       sourceAddresses,
       destinationAddresses,
       // destinationAddresses: request.transaction.vout[toNumber(request.utxo!)!].scriptPubKey.addresses[0],
@@ -445,10 +456,10 @@ export class UtxoCore {
   }
 
   getTransactionHashesFromBlock(block: UtxoBlockResponse): string[] {
-    return block.tx!.map(tx => "0x" + tx);
+    return block.tx!.map(tx => prefix0x(tx));
   }
 
   getBlockHash(block: UtxoBlockResponse): string {
-    return "0x" + block.hash;
+    return prefix0x(block.hash);
   }
 };

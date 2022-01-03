@@ -1,12 +1,11 @@
+import BN from "bn.js";
+import web3 from "web3";
 import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
 import { AttestationType } from "../AttestationData";
+import { toBN, toNumber, unPrefix0x } from "../utils";
 import { ChainType } from "./MCClientSettings";
 import { AdditionalTransactionDetails, RPCInterface } from "./RPCtypes";
 import { UtxoTxResponse } from "./UtxoCore";
-import web3 from "web3";
-import BN from "bn.js";
-import { add, loggers } from "winston";
-import { check } from "yargs";
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////
@@ -16,11 +15,17 @@ export enum VerificationStatus {
     OK = "OK",
     NOT_CONFIRMED = "NOT_CONFIRMED",
     NOT_SINGLE_SOURCE_ADDRESS = "NOT_SINGLE_SOURCE_ADDRESS",
+    NOT_SINGLE_DESTINATION_ADDRESS = "NOT_SINGLE_DESTINATION_ADDRESS",
     MISSING_SOURCE_ADDRESS_HASH = "MISSING_SOURCE_ADDRESS_HASH",
-    SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",
+    SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",  
     INSTRUCTIONS_DO_NOT_MATCH = "INSTRUCTIONS_DO_NOT_MATCH",
     WRONG_DATA_AVAILABILITY_PROOF = "WRONG_DATA_AVAILABILITY_PROOF",
-    DATA_AVAILABILITY_PROOF_REQUIRED = "DATA_AVAILABILITY_PROOF_REQUIRED"
+    DATA_AVAILABILITY_PROOF_REQUIRED = "DATA_AVAILABILITY_PROOF_REQUIRED",
+    FORBIDDEN_MULTISIG_SOURCE = "FORBIDDEN_MULTISIG_SOURCE",
+    FORBIDDEN_MULTISIG_DESTINATION = "FORBIDDEN_MULTISIG_DESTINATION",
+    FORBIDDEN_SELF_SENDING = "FORBIDDEN_SELF_SENDING",
+    FUNDS_UNCHANGED = "FUNDS_UNCHANGED",   
+    FUNDS_INCREASED = "FUNDS_INCREASED"
 }
 
 export interface NormalizedTransactionData extends AdditionalTransactionDetails {
@@ -84,17 +89,6 @@ export function prettyPrint(normalized: any) {
         }
     }
     console.log(JSON.stringify(res, null, 2))
-}
-
-export function toBN(x: string | number | BN) {
-    if (x && x.constructor?.name === "BN") return x as BN;
-    return web3.utils.toBN(x as any);
-}
-
-export function toNumber(x: number | BN | undefined | null) {
-    if (x === undefined || x === null) return undefined;
-    if (x && x.constructor?.name === "BN") return (x as BN).toNumber();
-    return x as number;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -318,7 +312,8 @@ export function transactionHash(
 // Verification
 ////////////////////////////////////////////////////////////////////////
 
-
+// Generic
+// Add here specific calls for verification
 export async function verifyTransactionAttestation(client: any, request: TransactionAttestationRequest) {
     if (!client) {
         throw new Error("Missing client!");
@@ -339,6 +334,22 @@ export async function verifyTransactionAttestation(client: any, request: Transac
     }
 }
 
+export function numberOfConfirmations(chainType: ChainType) {
+    let chainId = toNumber(chainType) as ChainType;
+    switch (chainId) {
+        case ChainType.BTC:
+        case ChainType.LTC:
+        case ChainType.DOGE:
+            return 6;
+        case ChainType.XRP:
+            return 1;
+        default:
+            throw new Error("Wrong chain id!")
+    }
+}
+
+// Post check for matching instructions
+// At the moment, blockNumber is double checked here.
 function instructionsCheck(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest) {
     let scheme = attestationTypeEncodingScheme(attRequest.attestationType!);
     let decoded = decodeUint256(
@@ -360,6 +371,21 @@ function instructionsCheck(additionalData: AdditionalTransactionDetails, attRequ
     return true;
 }
 
+function checkDataAvailability(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest) {
+    if (!attRequest.dataAvailabilityProof) {
+        return VerificationStatus.DATA_AVAILABILITY_PROOF_REQUIRED;
+    }
+    // Proof is empty if availability check was not successful
+    if (!additionalData.dataAvailabilityProof) {
+        return VerificationStatus.NOT_CONFIRMED;
+    }
+
+    if (attRequest.dataAvailabilityProof.toLocaleLowerCase() !== additionalData.dataAvailabilityProof.toLocaleLowerCase()) {
+        return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF;
+    }
+    return VerificationStatus.OK;
+}
+
 function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
     // helper return function
     function genericReturnWithStatus(verificationStatus: VerificationStatus) {
@@ -370,22 +396,19 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
             verificationStatus
         } as NormalizedTransactionData;
     }
+
     // check confirmations
-    if (!additionalData.dataAvailabilityProof) {
-        return genericReturnWithStatus(VerificationStatus.NOT_CONFIRMED);
+    let dataAvailabilityVerification = checkDataAvailability(additionalData, attRequest);
+    if (dataAvailabilityVerification != VerificationStatus.OK) {
+        return genericReturnWithStatus(dataAvailabilityVerification);
     }
-    if (!attRequest.dataAvailabilityProof) {
-        return genericReturnWithStatus(VerificationStatus.DATA_AVAILABILITY_PROOF_REQUIRED);
-    }
-    if (attRequest.dataAvailabilityProof.toLocaleLowerCase() !== additionalData.dataAvailabilityProof.toLocaleLowerCase()) {
-        return genericReturnWithStatus(VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF);
-    }
+
     // check against instructions
     if (!instructionsCheck(additionalData, attRequest)) {
         return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH)
     }
-    ///// Specific checks for attestation types
 
+    ///// Specific checks for attestation types
     // BalanceDecreasingProof checks
     if (attRequest.attestationType === AttestationType.BalanceDecreasingProof) {
         let sourceAddress = additionalData.sourceAddresses
@@ -407,44 +430,205 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
     throw new Error(`Wrong or missing attestation type: ${attRequest.attestationType}`)
 }
 
-function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
-    // General: 
-    // - check confirmations
-    // - check against instructions
-    // fAsset
-    // - check and aggreagte for one source and one target address, calculate spent and delivered
-    // - multisig addresses not allowed
-    // Spend proof
-    // - aggregate for source address and calculate spent
-
-    if (!additionalData.dataAvailabilityProof) {
+function checkAndAggregateOneToOnePaymentUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
+    function genericReturnWithStatus(verificationStatus: VerificationStatus) {
         return {
+            chainId: toBN(attRequest.chainId),
+            attestationType: attRequest.attestationType!,
             ...additionalData,
-            verificationStatus: VerificationStatus.NOT_CONFIRMED
+            verificationStatus
         } as NormalizedTransactionData;
     }
-    return {
-        chainId: toBN(attRequest.chainId),
-        attestationType: attRequest.attestationType!,
-        ...additionalData
-    } as NormalizedTransactionData;
-    // if (attRequest.instructions && attRequest.instructions.toNumber() === 0) {
-    //     // TODO parese and verify instructions
-    // }
+
+    // check against instructions
+    if (!instructionsCheck(additionalData, attRequest)) {
+        return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH)
+    }
+
+    let sources = new Set<string>();
+    for (let source of additionalData.sourceAddresses) {
+        if (source.length > 1) {
+            return genericReturnWithStatus(VerificationStatus.FORBIDDEN_MULTISIG_SOURCE);
+        }
+        sources.add(source[0]);
+    }
+    if (sources.size != 1) {
+        return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS);
+    }
+    let theSource = [...sources][0];
+    let inFunds = toBN(0);
+    (additionalData.spent as BN[]).forEach(value => {
+        inFunds = inFunds.add(value);
+    })
+    //////
+    let destinations = new Set<string>();
+    for (let destination of additionalData.destinationAddresses) {
+        if(!destination || destination.length === 0) {
+            // TODO: verify if no-address destinations (like type nulldata) can take funds.
+            continue;
+        }
+        if (destination.length > 1) {
+            return genericReturnWithStatus(VerificationStatus.FORBIDDEN_MULTISIG_DESTINATION);
+        }
+        let address = destination[0]; 
+        if(address != theSource) {
+            destinations.add(address);
+        }
+        
+    }
+    if (destinations.size === 0) {
+        return genericReturnWithStatus(VerificationStatus.FORBIDDEN_SELF_SENDING);
+    }
+    if (destinations.size > 1) {
+        return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS);
+    }
+    
+    let theDestination = [...destinations][0];
+    let totalOutFunds = toBN(0);
+    let returnedFunds = toBN(0);
+
+    for(let i = 0; i < (additionalData.delivered as BN[]).length; i++) {
+        let destinations = (additionalData.destinationAddresses as string[][])[i];
+        if(!destinations || destinations.length === 0) {
+            // TODO: check if founds for empty transaction are 0
+            continue;
+        }
+        let destAddress = destinations[0];
+        let destDelivered = (additionalData.delivered as BN[])[i];
+        if(destAddress === theSource) {
+            returnedFunds = returnedFunds.add(destDelivered);
+        } 
+        totalOutFunds = totalOutFunds.add(destDelivered);
+    }
+
+    let newAdditionalData = {
+        ...additionalData,
+        sourceAddresses: theSource,
+        destinationAddresses: theDestination,
+        spent: inFunds.sub(returnedFunds),
+        delivered: totalOutFunds.sub(returnedFunds),
+        fee: inFunds.sub(totalOutFunds)
+    } as AdditionalTransactionDetails;
+
+    function newGenericReturnWithStatus(verificationStatus: VerificationStatus) {
+        return {
+            chainId: toBN(attRequest.chainId),
+            attestationType: attRequest.attestationType!,
+            ...newAdditionalData,
+            verificationStatus
+        } as NormalizedTransactionData;
+    }
+
+    // check confirmations
+    let dataAvailabilityVerification = checkDataAvailability(newAdditionalData, attRequest);
+    if (dataAvailabilityVerification != VerificationStatus.OK) {
+        return newGenericReturnWithStatus(dataAvailabilityVerification);
+    }
+    
+    return newGenericReturnWithStatus(VerificationStatus.OK);
+}
+
+function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest) {
+    function genericReturnWithStatus(verificationStatus: VerificationStatus) {
+        return {
+            chainId: toBN(attRequest.chainId),
+            attestationType: attRequest.attestationType!,
+            ...additionalData,
+            verificationStatus
+        } as NormalizedTransactionData;
+    }
+
+    // check against instructions
+    if (!instructionsCheck(additionalData, attRequest)) {
+        return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH)
+    }
+
+    // find matching address and calculate funds taken from it
+    let sourceIndices: number[] = []
+    let theSource: string | undefined;
+    let inFunds = toBN(0);
+    for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
+        
+        let sources = additionalData.sourceAddresses[i];
+        // TODO: Handle multisig addresses
+        if(sources.length != 1) {
+            continue;
+        }
+        let aSource = sources[0];
+        if(web3.utils.soliditySha3(aSource) === attRequest.dataHash) {
+            theSource = aSource;
+            sourceIndices.push(i);
+            inFunds = inFunds.add((additionalData.spent as BN[])[i])
+        }
+    }
+    if(sourceIndices.length === 0) {
+        return genericReturnWithStatus(VerificationStatus.SOURCE_ADDRESS_DOES_NOT_MATCH)
+    }
+
+    // calculate returned funds
+    let returnedFunds = toBN(0);
+    for (let i = 0; i < additionalData.destinationAddresses.length; i++) {
+        let destination = additionalData.destinationAddresses[i];
+        // TODO: handle multisig given source address?
+        if (destination.length != 1) {
+            continue;
+        }
+        if(web3.utils.soliditySha3(destination[0]) === attRequest.dataHash) {
+            let destDelivered = (additionalData.delivered as BN[])[i];
+            returnedFunds = returnedFunds.add(destDelivered);
+        }        
+    }
+    if(returnedFunds.eq(inFunds)) {
+        return genericReturnWithStatus(VerificationStatus.FUNDS_UNCHANGED)
+    }
+    if(returnedFunds.gt(inFunds)) {
+        return genericReturnWithStatus(VerificationStatus.FUNDS_INCREASED)
+    }
+
+    let newAdditionalData = {
+        ...additionalData,
+        sourceAddresses: theSource,
+        spent: inFunds.sub(returnedFunds)
+    } as AdditionalTransactionDetails;
+
+    function newGenericReturnWithStatus(verificationStatus: VerificationStatus) {
+        return {
+            chainId: toBN(attRequest.chainId),
+            attestationType: attRequest.attestationType!,
+            ...newAdditionalData,
+            verificationStatus
+        } as NormalizedTransactionData;
+    }
+
+    // check confirmations
+    let dataAvailabilityVerification = checkDataAvailability(newAdditionalData, attRequest);
+    if (dataAvailabilityVerification != VerificationStatus.OK) {
+        return newGenericReturnWithStatus(dataAvailabilityVerification);
+    }
+    
+    return newGenericReturnWithStatus(VerificationStatus.OK);
 
 }
 
+function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
+    switch(attRequest.attestationType) {
+        case AttestationType.FassetPaymentProof:
+            return checkAndAggregateOneToOnePaymentUtxo(additionalData, attRequest);
+        case AttestationType.BalanceDecreasingProof:
+            return checkAndAggregateDecreaseBalancePaymentUtxo(additionalData, attRequest);
+        default:
+            throw new Error(`Invalid attestation type ${attRequest.attestationType}`);
+    }
+}
+
 async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest) {
-    let txResponse = await client.getTransaction(attRequest.id, { verbose: true }) as UtxoTxResponse;
-    // let blockResponse = await client.getBlock(txResponse.blockhash) as UtxoBlockResponse;
-    // let additionalData = await client.getAdditionalTransactionDetails({ transaction: txResponse, confirmations: 6, utxo: attRequest.utxo! });
+    let txResponse = await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true }) as UtxoTxResponse;
     let additionalData = await client.getAdditionalTransactionDetails({ transaction: txResponse, confirmations: 6 });
     return checkAndAggregateUtxo(additionalData, attRequest);
 }
 
 async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest) {
-    let txid = attRequest.id.startsWith("0x") ? attRequest.id.slice(2) : attRequest.id;
-    let txResponse = await client.getTransaction(txid) as TxResponse;
+    let txResponse = await client.getTransaction(unPrefix0x(attRequest.id)) as TxResponse;
     let additionalData = await client.getAdditionalTransactionDetails({ transaction: txResponse, confirmations: 1 });
     return checkAndAggregateXRP(additionalData, attRequest);
 }

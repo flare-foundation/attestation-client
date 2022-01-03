@@ -1,11 +1,9 @@
 import assert from "assert";
-import { BigNumber } from "ethers";
 import { Logger } from "winston";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { Hash } from "./Hash";
-import { toBN } from "./MCC/tx-normalize";
 import { MerkleTree } from "./MerkleTree";
-import { getRandom, makeBN } from "./utils";
+import { getRandom, toBN } from "./utils";
 
 export enum AttesterEpochStatus {
   collect,
@@ -114,7 +112,6 @@ export class AttesterEpoch {
     // create merkle tree
     this.merkleTree = new MerkleTree(validatedHashes);
 
-    // this.hash = makeBN(this.merkleTree.root());
     this.hash = this.merkleTree.root!;
     this.random = await getRandom();
 
@@ -122,8 +119,8 @@ export class AttesterEpoch {
       // commit index (collect+1)
       toBN(this.epochId + 1),
       toBN(this.hash).xor(this.random),
-      makeBN(Hash.create(this.random.toString())),
-      makeBN(0)
+      toBN(Hash.create(this.random.toString())),
+      toBN(0)
     );
   }
 
@@ -141,9 +138,9 @@ export class AttesterEpoch {
 
     this.submitAttestation(
       // commit index (collect+1)
-      makeBN(this.epochId + 1),
+      toBN(this.epochId + 1),
       toBN(0),
-      makeBN(0),
+      toBN(0),
       this.random
     );
 

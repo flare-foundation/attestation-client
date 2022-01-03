@@ -1,22 +1,18 @@
-import { BigNumber } from "ethers";
 import * as fs from "fs";
-import { toNamespacedPath } from "path";
 import { Logger } from "winston";
 import yargs from "yargs";
+import { AttestationData, AttestationType } from "./AttestationData";
 import { Attester } from "./Attester";
 import { ChainManager } from "./ChainManager";
 import { ChainNode } from "./ChainNode";
-import { Attestation } from "./Attestation";
 import { DataProviderConfiguration } from "./DataProviderConfiguration";
-import { AttestationType, AttestationData } from "./AttestationData";
 import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getInternetTime } from "./internetTime";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { getLogger, makeBN } from "./utils";
+import { getLogger, toBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
 import { Web3BlockSubscription } from "./Web3BlockSubscription";
-import { toBN } from "./MCC/tx-normalize";
 
 // Args parsing
 const args = yargs.option("config", {
@@ -159,7 +155,7 @@ class DataProvider {
       const instruction: string = event.returnValues.instructions;
       const id: string = event.returnValues.id;
 
-      const instBN = makeBN(instruction);
+      const instBN = toBN(instruction);
 
       const bit16 = toBN(1).shln(16).sub(toBN(1));
 
@@ -168,7 +164,7 @@ class DataProvider {
       // attestation info
       const tx = new AttestationData();
       tx.type = attestationType.toNumber() as AttestationType;
-      tx.timeStamp = makeBN(timeStamp);
+      tx.timeStamp = toBN(timeStamp);
       tx.id = id;
 
       // attesttaion data (without type and chain id)

@@ -1,5 +1,8 @@
 import { AttestationType } from "../../lib/AttestationData";
-import { NormalizedTransactionData } from "../../lib/MCC/tx-normalize";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, NormalizedTransactionData, TransactionAttestationRequest } from "../../lib/MCC/tx-normalize";
+import { expectEvent } from "@openzeppelin/test-helpers";
+import { StateConnectorInstance } from "../../typechain-truffle";
+import { toBN } from "../../lib/utils";
 
 export async function testHashOnContract(txData: NormalizedTransactionData, hash: string) {
   let HashTest = artifacts.require("HashTest");
@@ -34,10 +37,27 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
   }
 }
 
-export async function requestAttestation(
-  instructions: string,   // string encoded uint256
-  id: string,             // string encoded bytes32
-  dataAvailabilityProof: string // string encoded bytes32
-) {
-
+export async function sendAttestationRequest(stateConnector: StateConnectorInstance, request: AttestationRequest) {
+  return await stateConnector.requestAttestations(request.instructions, request.dataHash, request.id, request.dataAvailabilityProof);
 }
+
+export function verifyReceiptAgainstTemplate(receipt: any, template: TransactionAttestationRequest) {
+  expectEvent(receipt, "AttestationRequest")
+  let events = extractAttEvents(receipt.logs);
+  let parsedEvents = events.map((x: AttestationRequest) => attReqToTransactionAttestationRequest(x))
+  assert(parsedEvents.length === 1);
+  let eventRequest = parsedEvents[0];
+  assert((eventRequest.blockNumber as BN).eq(toBN(template.blockNumber as number)), "Block number does not match");
+  assert((eventRequest.chainId as BN).eq(toBN(template.chainId as number)), "Chain id  does not match");
+  assert(eventRequest.attestationType === template.attestationType, "Attestation type does not match");
+  return eventRequest;
+}
+
+
+// export async function requestAttestation(
+//   instructions: string,   // string encoded uint256
+//   id: string,             // string encoded bytes32
+//   dataAvailabilityProof: string // string encoded bytes32
+// ) {
+
+// }

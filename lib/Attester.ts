@@ -7,8 +7,7 @@ import { DataProviderConfiguration as AttesterClientConfiguration } from "./Data
 import { EpochSettings } from "./EpochSettings";
 import { getTime } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
-import { toBN } from "./MCC/tx-normalize";
-import { makeBN } from "./utils";
+import { toBN } from "./utils";
 
 export class Attester {
   logger: Logger;
@@ -21,7 +20,7 @@ export class Attester {
     this.chainManager = chainManager;
     this.conf = conf;
     this.logger = logger;
-    this.epochSettings = new EpochSettings(makeBN(conf.firstEpochStartTime), makeBN(conf.epochPeriod));
+    this.epochSettings = new EpochSettings(toBN(conf.firstEpochStartTime), toBN(conf.epochPeriod));
   }
 
   async attestate(tx: AttestationData) {

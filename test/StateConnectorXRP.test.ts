@@ -1,11 +1,16 @@
-import { expectEvent } from "@openzeppelin/test-helpers";
+
 import { LedgerResponse, Payment } from "xrpl";
 import { AttestationType } from "../lib/AttestationData";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, toBN, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation, verifyXRPPayment } from "../lib/MCC/tx-normalize";
+import {
+  AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations,
+  TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus,
+  verifyTransactionAttestation, verifyXRPPayment
+} from "../lib/MCC/tx-normalize";
+import { prefix0x, toBN } from "../lib/utils";
 import { StateConnectorInstance } from "../typechain-truffle";
-import { testHashOnContract } from "./utils/test-utils";
+import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
 
 const CLIENT = ChainType.XRP;
 const URL = "https://xrplcluster.com";
@@ -18,22 +23,6 @@ const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof, AttestationType.B
 
 // const HashTest = artifacts.require("HashTest");
 const StateConnector = artifacts.require("StateConnector");
-
-async function sendAttestationRequest(stateConnector: StateConnectorInstance, request: AttestationRequest) {
-  return await stateConnector.requestAttestations(request.instructions, request.dataHash, request.id, request.dataAvailabilityProof);
-}
-
-function verifyReceiptAgainstTemplate(receipt: any, template: TransactionAttestationRequest) {
-  expectEvent(receipt, "AttestationRequest")
-  let events = extractAttEvents(receipt.logs);
-  let parsedEvents = events.map((x: AttestationRequest) => attReqToTransactionAttestationRequest(x))
-  assert(parsedEvents.length === 1);
-  let eventRequest = parsedEvents[0];
-  assert((eventRequest.blockNumber as BN).eq(toBN(template.blockNumber as number)), "Block number does not match");
-  assert((eventRequest.chainId as BN).eq(toBN(template.chainId as number)), "Chain id  does not match");
-  assert(eventRequest.attestationType === template.attestationType, "Attestation type does not match");
-  return eventRequest;
-}
 
 describe(`Test`, async () => {
   let client: MCClient;
@@ -49,7 +38,7 @@ describe(`Test`, async () => {
     let template = {
       attestationType: AttestationType.FassetPaymentProof,
       instructions: toBN(0),
-      id: "0x" + TEST_TX_ID,
+      id: prefix0x(TEST_TX_ID),
       dataAvailabilityProof: DATA_AVAILABILITY_PROOF,
       dataHash: "0x0",
       chainId: ChainType.XRP,
@@ -84,15 +73,15 @@ describe(`Test`, async () => {
     let count = 3;
     for (let i = latestBlockNumber - count; i < latestBlockNumber; i++) {
       let block = await client.chainClient.getBlock(i) as LedgerResponse;
-      let nextBlock = await client.chainClient.getBlock(i + 1) as LedgerResponse;
+      let nextBlock = await client.chainClient.getBlock(i + numberOfConfirmations(ChainType.XRP)) as LedgerResponse;
       for (let tx of block.result.ledger.transactions!) {
         // console.log("----")
         if (verifyXRPPayment(tx)) {
           for (let attType of ATTESTATION_TYPES) {
             let tr = {
-              id: "0x" + (tx as any).hash,
+              id: prefix0x((tx as any).hash),
               dataHash: web3.utils.soliditySha3((tx as Payment).Account),  // for decreasing balance
-              dataAvailabilityProof: "0x" + nextBlock.result.ledger_hash,
+              dataAvailabilityProof: prefix0x(nextBlock.result.ledger_hash),
               blockNumber: i,
               chainId: ChainType.XRP,
               attestationType: attType,

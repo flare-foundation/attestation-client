@@ -1,10 +1,10 @@
 import { LedgerRequest, LedgerResponse, Payment, TransactionMetadata, TxResponse } from 'xrpl';
+import { prefix0x, toBN } from '../../utils';
 import {
   AdditionalTransactionDetails,
   AdditionalTxRequest,
   GetTransactionOptions, RPCInterface
 } from '../RPCtypes';
-import { toBN } from '../tx-normalize';
 import { xrp_ensure_data } from '../utils';
 
 const axios = require('axios');
@@ -135,23 +135,23 @@ export class XRPImplementation implements RPCInterface {
     return {
       blockNumber: toBN(blockNumber),
       blockHash: blockResponse.result.ledger_hash,
-      txId: "0x" + request.transaction.result.hash,
+      txId: prefix0x(request.transaction.result.hash),
       sourceAddresses: request.transaction.result.Account,
       destinationAddresses: (request.transaction.result as Payment).Destination,
       destinationTag: toBN((request.transaction.result as Payment).DestinationTag || 0),
       spent: toBN((request.transaction.result as Payment).Amount as any).add(fee),   // should be string or number
       delivered: delivered,
       fee,
-      dataAvailabilityProof: "0x" + confirmationBlock.result.ledger_hash
+      dataAvailabilityProof: prefix0x(confirmationBlock.result.ledger_hash)
     } as AdditionalTransactionDetails;
   }
 
   getTransactionHashesFromBlock(block: LedgerResponse): string[] {
-    return block.result.ledger.transactions!.map(tx => "0x" + (tx as any).hash);
+    return block.result.ledger.transactions!.map(tx => prefix0x((tx as any).hash));
   }
 
   getBlockHash(block: LedgerResponse): string {
-    return "0x" + block.result.ledger_hash;
+    return prefix0x(block.result.ledger_hash);
   }
 
 }

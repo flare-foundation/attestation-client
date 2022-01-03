@@ -7,12 +7,30 @@ import * as winston from "winston";
 
 export const DECIMALS = 5;
 
-export function makeBN(value: string | number): BN {
+export function toBN(x: string | number | BN, toZeroIfFails = false) {
+  if (x && x.constructor?.name === "BN") return x as BN;
   try {
-    return Web3.utils.toBN(value);
-  } catch {
-    return Web3.utils.toBN(0);
+    return Web3.utils.toBN(x as any);
+  } catch (e) {
+    if (toZeroIfFails) {
+      return Web3.utils.toBN(0);
+    }
+    throw e;
   }
+}
+
+export function toNumber(x: number | BN | undefined | null) {
+  if (x === undefined || x === null) return undefined;
+  if (x && x.constructor?.name === "BN") return (x as BN).toNumber();
+  return x as number;
+}
+
+export function unPrefix0x(tx: string) {
+  return tx.startsWith("0x") ? tx.slice(2) : tx;
+}
+
+export function prefix0x(tx: string) {
+  return tx.startsWith("0x") ? tx : "0x" + tx;
 }
 
 export function arrayRemoveElement(array: Array<any>, element: any) {
@@ -87,10 +105,7 @@ export async function getContract(provider: any, address: string, name: string) 
 }
 
 export function getWeb3Wallet(web3: any, privateKey: string) {
-  if (privateKey.indexOf("0x") !== 0) {
-    privateKey = "0x" + privateKey;
-  }
-  return web3.eth.accounts.privateKeyToAccount(privateKey);
+  return web3.eth.accounts.privateKeyToAccount(prefix0x(privateKey));
 }
 
 export function getWallet(privateKey: string, provider: any): ethers.Wallet {

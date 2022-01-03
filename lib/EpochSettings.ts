@@ -1,7 +1,6 @@
-import { BigNumber } from "ethers";
 import { getTime } from "./internetTime";
-import { toBN } from "./MCC/tx-normalize";
-import { makeBN } from "./utils";
+import { toBN } from "./utils";
+
 
 export class EpochSettings {
   private _firstEpochStartTime: BN; // in milliseconds
@@ -21,7 +20,7 @@ export class EpochSettings {
   }
 
   getCurrentEpochId(): BN {
-    return this.getEpochIdForTime(makeBN(getTime()));
+    return this.getEpochIdForTime(toBN(getTime()));
   }
 
   // in milliseconds

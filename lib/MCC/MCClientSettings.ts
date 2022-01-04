@@ -3,7 +3,7 @@ export enum ChainType {
   BTC = 0,
   LTC = 1,
   DOGE = 2,
-  XRP = 3
+  XRP = 3,
   // ... make sure IDs are the same as in Flare node
 }
 

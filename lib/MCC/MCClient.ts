@@ -7,6 +7,7 @@ import { ChainType, MCCNodeSettings as MCClientSettings } from "./MCClientSettin
 import { MCCTransaction } from "./MCCTransaction";
 import { MCCTransactionResponse, TransactionStatus } from "./MCCTransactionResponse";
 import { RPCInterface } from "./RPCtypes";
+import { attReqToTransactionAttestationRequest } from "./tx-normalize";
 
 export enum ResultStatus {
   Success = 0,
@@ -70,7 +71,8 @@ export class MCClient {
 
   async getTransaction(transaction: MCCTransaction): Promise<MCCTransactionResponse> {
     assert(this.chainClient);
-    return this.chainClient.getTransaction(transaction.tx)
+
+    return this.chainClient.getTransaction(transaction.tx);
 
     // sleepms(1000);
 
@@ -78,5 +80,4 @@ export class MCClient {
 
     // return result;
   }
-  
 }

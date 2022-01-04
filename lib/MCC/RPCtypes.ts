@@ -13,13 +13,13 @@ export interface AdditionalTransactionDetails {
   blockNumber: BN;
   blockHash: string;
   txId: string;
-  sourceAddresses: string | string[][];  // 
+  sourceAddresses: string | string[][]; //
   destinationAddresses: string | string[][];
   destinationTag?: BN;
   spent: BN | BN[];
   delivered: BN | BN[];
   fee: BN;
-  dataAvailabilityProof: string
+  dataAvailabilityProof: string;
 }
 
 export interface AdditionalTxRequest {
@@ -57,11 +57,7 @@ export interface RPCInterface {
    * @param vin
    * @param out
    */
-  createRawTransaction(
-    walletLabel: string,
-    vin: vin_utxo[],
-    out: vout_utxo[]
-  ): any;
+  createRawTransaction(walletLabel: string, vin: vin_utxo[], out: vout_utxo[]): any;
 
   /**
    *
@@ -69,11 +65,7 @@ export interface RPCInterface {
    * @param walletLabel
    * @param keysList
    */
-  signRawTransaction(
-    walletLabel: string,
-    rawTx: string,
-    keysList: string[]
-  ): any;
+  signRawTransaction(walletLabel: string, rawTx: string, keysList: string[]): any;
 
   /**
    * Send raw transaction basic implementation
@@ -100,7 +92,7 @@ export interface RPCInterface {
   getBlockHash(block: any): string;
 }
 
-export interface DogeRpcInterface extends RPCInterface { }
+export interface DogeRpcInterface extends RPCInterface {}
 
 export interface UtxoRpcInterface extends RPCInterface {
   /**
@@ -160,7 +152,7 @@ export interface GetTransactionOptions {
 }
 
 // XRP specigic data
-export interface XrpCreateAddressData { }
+export interface XrpCreateAddressData {}
 
 interface XrpTransactionAmount {
   currency: string;

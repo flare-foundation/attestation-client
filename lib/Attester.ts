@@ -1,3 +1,4 @@
+import BN from "bn.js";
 import { Logger } from "winston";
 import { Attestation } from "./Attestation";
 import { AttestationData, AttestationType } from "./AttestationData";
@@ -7,7 +8,7 @@ import { DataProviderConfiguration as AttesterClientConfiguration } from "./Data
 import { EpochSettings } from "./EpochSettings";
 import { getTime } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
-import { toBN } from "./utils";
+import { partBN, partBNbe, toBN } from "./utils";
 
 export class Attester {
   logger: Logger;
@@ -68,15 +69,12 @@ export class Attester {
   async createAttestation(epochId: number, tx: AttestationData): Promise<Attestation | undefined> {
     // create attestation depending on type
     switch (tx.type) {
-      case AttestationType.BalanceDecreasingProof: {
-        // const bit32 = BigNumber.from(1).shl(32).sub(1);
-        // const chainType: BigNumber = tx.data.and(bit32);
-        const bit32 = toBN(1).shln(32).sub(toBN(1));
-        const chainType: BN = tx.data.and(bit32);
+      case AttestationType.FassetPaymentProof: {
+        const chainType: BN = partBNbe(tx.instructions, 16, 32);
 
         return await this.chainManager.validateTransaction(chainType.toNumber() as ChainType, epochId, tx);
       }
-      case AttestationType.FassetPaymentProof:
+      case AttestationType.BalanceDecreasingProof:
         return undefined; // ???
       default: {
         this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);

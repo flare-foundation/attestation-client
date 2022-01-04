@@ -5,7 +5,7 @@ export function ensure_data(data: any) {
 }
 
 export function xrp_ensure_data(data: any) {
-  if (data.result.status === 'error') {
+  if (data.result.status === "error") {
     throw data.result;
   }
 }

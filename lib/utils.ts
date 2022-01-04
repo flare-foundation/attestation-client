@@ -7,6 +7,18 @@ import * as winston from "winston";
 
 export const DECIMALS = 5;
 
+export function partBN(x: BN, bitOffset: number, bitCount: number) {
+  const bitMask = toBN(1).shln(bitCount).sub(toBN(1));
+
+  const a = x.shrn(bitOffset);
+
+  return a.and(bitMask);
+}
+
+export function partBNbe(x: BN, bitOffset: number, bitCount: number) {
+  return partBN(x, 256 - bitOffset - bitCount, bitCount);
+}
+
 export function toBN(x: string | number | BN, toZeroIfFails = false) {
   if (x && x.constructor?.name === "BN") return x as BN;
   try {

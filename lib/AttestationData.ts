@@ -1,8 +1,18 @@
 import BN from "bn.js";
+import { TransactionAttestationRequest } from "./MCC/tx-normalize";
 
 export enum AttestationType {
-  FassetPaymentProof = 1,
-  BalanceDecreasingProof = 2,
+  FassetPaymentProof = 0,
+  BalanceDecreasingProof = 1,
+}
+
+export interface AttestationRequest {
+  timestamp?: BN;
+  instructions: BN;
+  id: string;
+  dataHash: string;
+  dataAvailabilityProof: string;
+  attestationType?: AttestationType;
 }
 
 export class AttestationData {
@@ -10,6 +20,8 @@ export class AttestationData {
   type!: AttestationType;
   timeStamp!: BN;
   id!: string;
+  dataHash!: string;
+  dataAvailabilityProof!: string;
 
   // block parameters
   blockNumber!: BN;
@@ -17,7 +29,7 @@ export class AttestationData {
   signature!: BN;
 
   // attestation data
-  data!: BN;
+  instructions!: BN;
 
   comparator(obj: AttestationData): number {
     if (this.blockNumber.lt(obj.blockNumber)) return -1;
@@ -29,15 +41,19 @@ export class AttestationData {
     if (this.signature.lt(obj.signature)) return -1;
     if (this.signature.gt(obj.signature)) return 1;
 
-    // if (this.blockNumber < obj.blockNumber) return -1;
-    // if (this.blockNumber > obj.blockNumber) return 1;
-
-    // if (this.transactionIndex < obj.transactionIndex) return -1;
-    // if (this.transactionIndex > obj.transactionIndex) return 1;
-
-    // if (this.signature < obj.signature) return -1;
-    // if (this.signature > obj.signature) return 1;
-
     return 0;
+  }
+
+  getAttestationRequest(): AttestationRequest {
+    let request: AttestationRequest = {
+      timestamp: this.timeStamp,
+      instructions: this.instructions,
+      id: this.id,
+      dataHash: this.dataHash,
+      dataAvailabilityProof: this.dataAvailabilityProof,
+      attestationType: this.type,
+    };
+
+    return request;
   }
 }

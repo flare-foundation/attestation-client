@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import BN from "bn.js";
 import { Logger } from "winston";
 import yargs from "yargs";
 import { AttestationData, AttestationType } from "./AttestationData";
@@ -10,9 +11,8 @@ import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getInternetTime } from "./internetTime";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { getLogger, toBN } from "./utils";
+import { getLogger, partBN, partBNbe, toBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
-import { Web3BlockSubscription } from "./Web3BlockSubscription";
 
 // Args parsing
 const args = yargs.option("config", {
@@ -29,7 +29,6 @@ class DataProvider {
 
   attester: Attester;
   chainManager: ChainManager;
-  blockSubscription!: Web3BlockSubscription;
   blockCollector!: Web3BlockCollector;
 
   constructor(configuration: DataProviderConfiguration) {
@@ -52,20 +51,10 @@ class DataProvider {
     // validate configuration chains and create nodes
     await this.initializeChains();
 
-    // connect to network block subscription
-    this.blockSubscription = new Web3BlockSubscription(this.logger, this.conf.wsUrl);
-
     // connect to network block callback
-    this.blockCollector = new Web3BlockCollector(
-      this.blockSubscription,
-      this.conf.rpcUrl,
-      this.conf.stateConnectorAddress,
-      "StateConnector",
-      undefined,
-      (event: any) => {
-        this.processEvent(event);
-      }
-    );
+    this.blockCollector = new Web3BlockCollector(this.logger, this.conf.rpcUrl, this.conf.stateConnectorAddress, "StateConnector", undefined, (event: any) => {
+      this.processEvent(event);
+    });
   }
 
   async initializeConfiguration() {
@@ -131,6 +120,8 @@ class DataProvider {
     }
   }
 
+  onlyOnce = false;
+
   processEvent(event: any) {
     if (event.event === "AttestationRequest") {
       // AttestationRequest
@@ -138,18 +129,24 @@ class DataProvider {
       // // The variable 'full' defines whether to provide the complete transaction details
       // // in the attestation response
 
-      // event AttestationRequest(
+      //   // 'instructions' and 'id' are purposefully generalised so that the attestation request
+      //   // can pertain to any number of deterministic oracle use-cases in the future.
+      //   event AttestationRequest(
       //     uint256 timestamp,
       //     uint256 instructions,
-      //     bytes32 id
+      //     bytes32 id,
+      //     bytes32 dataHash,
+      //     bytes32 dataAvailabilityProof
       // );
 
       //  16 attestation type (bits 0..)
-
-
       //  32 chain id
       //  64 block height
-      //  16 utxo
+
+      if (this.onlyOnce) {
+        return;
+      }
+      this.onlyOnce = true;
 
       const timeStamp: string = event.returnValues.timestamp;
       const instruction: string = event.returnValues.instructions;
@@ -157,18 +154,18 @@ class DataProvider {
 
       const instBN = toBN(instruction);
 
-      const bit16 = toBN(1).shln(16).sub(toBN(1));
-
-      const attestationType: BN = instBN.shrn(0).and(bit16);
+      const attestationType: BN = partBNbe(instBN, 0, 16);
 
       // attestation info
       const tx = new AttestationData();
       tx.type = attestationType.toNumber() as AttestationType;
       tx.timeStamp = toBN(timeStamp);
       tx.id = id;
+      tx.dataHash = event.returnValues.dataHash;
+      tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;
 
-      // attesttaion data (without type and chain id)
-      tx.data = instBN.shrn(16);
+      // attestaion data (full instruction)
+      tx.instructions = instBN;
 
       // for sorting
       tx.blockNumber = event.blockNumber;
@@ -187,4 +184,3 @@ const conf: DataProviderConfiguration = JSON.parse(fs.readFileSync("configs/conf
 const dataProvider = new DataProvider(conf);
 
 dataProvider.start();
-

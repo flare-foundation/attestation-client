@@ -1,7 +1,6 @@
 {
     "accountPrivateKey": "0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122",
-    "rpcUrl": "http://127.0.0.1:8545/ext/bc/C/rpc",
-    "wsUrl": "ws://127.0.0.1:8545/ext/bc/C/ws",
+    "rpcUrl": "http://127.0.0.1:8545",
     "stateConnectorAddress": "0x7c2c195cd6d34b8f845992d380aadb2730bb9c6f",
     "submitOffset": 165000,
     "revealOffset": 8000,
@@ -10,12 +9,12 @@
     "gasPrice": "3000000000000",
 
     "firstEpochStartTime":1636070400,
-    "epochPeriod": 90,
+    "epochPeriod": 10,
 
     "chains": [
         {
             "name": "XRP",
-            "url": "http://s1.ripple.com:51234/",
+            "url": "https://xrplcluster.com",
             "username": "",
             "password": ""
         },

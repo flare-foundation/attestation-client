@@ -1,15 +1,24 @@
-import { ChainManager } from "./ChainManager";
+import BN from "bn.js";
+import { sendAttestationRequest } from "../test/utils/test-utils";
+import { StateConnectorInstance } from "../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "./Attestation";
-import { AttestationData } from "./AttestationData";
+import { AttestationData, AttestationRequest, AttestationType } from "./AttestationData";
+import { ChainManager } from "./ChainManager";
 import { getTime } from "./internetTime";
 import { MCClient as MCClient } from "./MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
 import { MCCTransaction } from "./MCC/MCCTransaction";
 import { MCCTransactionResponse } from "./MCC/MCCTransactionResponse";
-import { arrayRemoveElement } from "./utils";
-import { BigNumber } from "ethers";
-
-const toBN = web3.utils.toBN;
+import {
+  attReqToTransactionAttestationRequest,
+  extractAttEvents,
+  NormalizedTransactionData,
+  TransactionAttestationRequest,
+  txAttReqToAttestationRequest,
+  VerificationStatus,
+  verifyTransactionAttestation,
+} from "./MCC/tx-normalize";
+import { arrayRemoveElement, partBN, partBNbe, prefix0x, toBN } from "./utils";
 
 export class ChainNode {
   chainManager: ChainManager;
@@ -17,6 +26,7 @@ export class ChainNode {
   chainName: string;
   chainType: ChainType;
   client: MCClient;
+  stateConnector!: StateConnectorInstance;
 
   // node rate limiting control
   requestTime: number = 0;
@@ -83,7 +93,7 @@ export class ChainNode {
     this.transactionsQueue.push(tx);
   }
 
-  process(tx: Attestation) {
+  async process(tx: Attestation) {
     this.chainManager.logger.info(
       `    * chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`
     );
@@ -95,12 +105,27 @@ export class ChainNode {
     tx.startTime = getTime();
 
     // start underlying chain client getTransaction
-    this.client
-      .getTransaction(new MCCTransaction(tx.data.id, tx.metaData))
-      .then((response: MCCTransactionResponse) => {
-        this.processed(tx, AttestationStatus.valid);
+    // this.client
+    //   .getTransaction(new MCCTransaction(tx.data.id, tx.metaData))
+    //   .then((response: MCCTransactionResponse) => {
+    //     this.processed(tx, AttestationStatus.valid);
+    //   })
+    //   .catch((response: MCCTransactionResponse) => {
+    //     this.processed(tx, AttestationStatus.invalid);
+    //   });
+
+    // New ............................. this should be wrapped ...
+
+    const attReq = tx.data.getAttestationRequest() as TransactionAttestationRequest;
+
+    attReq.chainId = this.chainType;
+    attReq.blockNumber = tx.data.blockNumber;
+
+    verifyTransactionAttestation(this.client.chainClient, attReq)
+      .then((txData: NormalizedTransactionData) => {
+        this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid);
       })
-      .catch((response: MCCTransactionResponse) => {
+      .catch((txData: NormalizedTransactionData) => {
         this.processed(tx, AttestationStatus.invalid);
       });
   }
@@ -134,16 +159,11 @@ export class ChainNode {
 
   validate(epoch: number, data: AttestationData): Attestation {
     // parse data
-    const bit16 = toBN(1).shln(16).sub(toBN(1));
-    const bit32 = toBN(1).shln(32).sub(toBN(1));
-    const bit64 = toBN(1).shln(64).sub(toBN(1));
-
+    // 16 attestation type
     // 32 chainId
     // 64 blockHeight
-    // 16 utxo
 
-    const blockHeight: BN = data.data.shrn(32).and(bit64);
-    const utxo: BN = data.data.shrn(32 + 64).and(bit16);
+    //const blockHeight: BN = partBNbe(data.instructions, 16 + 32, 64);
 
     // attestation info
     this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
@@ -154,10 +174,9 @@ export class ChainNode {
     transaction.data = data;
 
     // save transaction meta data
-    transaction.metaData = {
-      blockHeight: blockHeight,
-      utxo: utxo,
-    };
+    // transaction.metaData = {
+    //   blockHeight: blockHeight,
+    // };
 
     // check if transaction can be added into processing
     if (this.canProcess()) {

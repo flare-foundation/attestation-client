@@ -1,3 +1,4 @@
+import BN from "bn.js";
 import assert from "assert";
 import { Logger } from "winston";
 import { Attestation, AttestationStatus } from "./Attestation";

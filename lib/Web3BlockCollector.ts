@@ -2,25 +2,17 @@ import Web3 from "web3";
 import { Logger } from "winston";
 import { sleepms } from "./Sleep";
 import { getWeb3, getWeb3Contract } from "./utils";
-import { Web3BlockSubscription } from "./Web3BlockSubscription";
 
 export class Web3BlockCollector {
   logger: Logger;
 
   web3: Web3;
 
-  blockSubscription: Web3BlockSubscription;
+  startingBlockNumber: number | undefined;
+  currentBlockNumber: number = 0;
 
-  constructor(
-    blockSubscription: Web3BlockSubscription,
-    url: string,
-    contractAddress: string,
-    contractName: string,
-    startBlock: number | undefined,
-    action: any
-  ) {
-    this.logger = blockSubscription.logger;
-    this.blockSubscription = blockSubscription;
+  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
+    this.logger = logger;
 
     this.web3 = getWeb3(url, this.logger);
 
@@ -30,18 +22,17 @@ export class Web3BlockCollector {
   async procesEvents(contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
     // wait until new block is set
     this.logger.info(" * Waiting for network connection...");
-    while (this.blockSubscription.startingBlockNumber === undefined) {
-      await sleepms(500);
-    }
+    this.startingBlockNumber = await this.web3.eth.getBlockNumber();
 
     const ftsoContract = await getWeb3Contract(this.web3, contractAddress, contractName);
-    let processBlock: number = this.blockSubscription.startingBlockNumber!;
+    let processBlock: number = this.startingBlockNumber;
 
     this.logger.info(" * Network event processing started");
 
     while (true) {
+      this.currentBlockNumber = await this.web3.eth.getBlockNumber();
       // wait for new block
-      if (processBlock >= this.blockSubscription.currentBlockNumber + 1) {
+      if (processBlock >= this.currentBlockNumber + 1) {
         await sleepms(100);
         continue;
       }

@@ -1,4 +1,3 @@
-import { threadId } from "worker_threads";
 import { MCCTransaction } from "./MCCTransaction";
 
 export enum TransactionStatus {

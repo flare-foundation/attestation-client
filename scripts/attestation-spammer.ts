@@ -16,13 +16,13 @@ let args = yargs
     alias: 'c',
     type: 'string',
     description: 'Chain (XRP, BTC, LTC, DOGE)',
-    default: 'DOGE'
+    default: 'XRP'
   })
   .option('rpcLink', {
     alias: 'r',
     type: 'string',
     description: 'RPC to Flare network',
-    default: "http://127.0.0.1:8545"
+    default: "http://127.0.0.1:9650/ext/bc/C/rpc"
   })
   .option('privateKey', {
     alias: 'k',
@@ -46,7 +46,7 @@ let args = yargs
     alias: 'u',
     type: 'string',
     description: "RPC url for blockchain",
-    default: 'https://testnode2.c.aflabs.net/doge/'
+    default: 'https://xrplcluster.com'
   })
   .option('blockchainUsername', {
     alias: 's',
@@ -214,7 +214,7 @@ class AttestationSpammer {
             instructions: toBN(0)
           } as TransactionAttestationRequest;
           let attRequest = txAttReqToAttestationRequest(tr);
-          this.sendAttestationRequest(this.stateConnector, attRequest); // async call
+          await this.sendAttestationRequest(this.stateConnector, attRequest); // async call
           await sleep(this.delay);
         }
       } catch (e) {

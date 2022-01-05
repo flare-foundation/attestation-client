@@ -25,6 +25,8 @@ export class Attester {
   }
 
   async attestate(tx: AttestationData) {
+    const time = tx.timeStamp.toNumber();
+
     const epochId: number = this.epochSettings.getEpochIdForTime(tx.timeStamp).toNumber();
 
     let activeEpoch = this.epoch.get(epochId);
@@ -37,21 +39,22 @@ export class Attester {
 
       // setup commit, reveal and completed callbacks
       const now = getTime();
-      const epochCommitTime: number = this.epochSettings.getEpochTimeEnd().toNumber() + this.conf.epochPeriod - this.conf.commitTime;
-      const epochRevealTime: number = this.epochSettings.getEpochTimeEnd().toNumber() + this.conf.epochPeriod + this.conf.revealTime;
-      const epochCompleteTime: number = this.epochSettings.getEpochTimeEnd().toNumber() + this.conf.revealTime * 2;
+      const epochTimeEnd = this.epochSettings.getEpochTimeEnd().toNumber();
+      const epochCommitTime: number = epochTimeEnd + this.conf.epochPeriod - this.conf.commitTime;
+      const epochRevealTime: number = epochTimeEnd + this.conf.epochPeriod + this.conf.revealTime;
+      const epochCompleteTime: number = epochTimeEnd + this.conf.epochPeriod * 2;
 
       setTimeout(() => {
         activeEpoch!.startCommit();
-      }, epochCommitTime - now);
+      }, (epochCommitTime - now) * 1000);
 
       setTimeout(() => {
         activeEpoch!.startReveal();
-      }, epochRevealTime - now);
+      }, (epochRevealTime - now) * 1000);
 
       setTimeout(() => {
         activeEpoch!.completed();
-      }, epochCompleteTime - now);
+      }, (epochCompleteTime - now) * 1000);
     }
 
     // todo: clean up old attestations (minor memory leak)

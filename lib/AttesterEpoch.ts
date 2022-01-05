@@ -50,8 +50,11 @@ export class AttesterEpoch {
     this.logger.info(` * AttestEpoch #${this.epochId} (1) commit`);
     this.status = AttesterEpochStatus.commit;
 
-    if (this.status === AttesterEpochStatus.commit) {
-      this.commit();
+    // if all transactions are proccessed then commit
+    if (this.transactionsProcessed === this.attestations.length) {
+      if (this.status === AttesterEpochStatus.commit) {
+        this.commit();
+      }
     }
   }
 
@@ -90,16 +93,27 @@ export class AttesterEpoch {
       return;
     }
 
-    this.logger.info(` * AttestEpoch #${this.epochId} commited`);
     this.attestStatus = AttestStatus.comitted;
+    this.logger.info(` * AttestEpoch #${this.epochId} commited (${this.attestations.length} attestation(s))`);
 
     // collect validat attestations
-    const validated: Attestation[] = new Array<Attestation>();
+    let result = "";
+    const validated = new Array<Attestation>();
     for (const tx of this.attestations.values()) {
       if (tx.status === AttestationStatus.valid) {
         validated.push(tx);
+        result += "1";
+      } else {
+        result += "0";
       }
     }
+
+    // check if there is any valid attestation
+    if (validated.length === 0) {
+      this.logger.info(`  ! no valid attestations`);
+      return;
+    }
+    this.logger.info(`  # ${result}`);
 
     // sort valid attestations (blockNumber, transactionIndex, signature)
     validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));

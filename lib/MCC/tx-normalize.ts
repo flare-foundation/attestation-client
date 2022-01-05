@@ -590,13 +590,18 @@ function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, att
 }
 
 async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest) {
-  let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as UtxoTxResponse;
-  let additionalData = await client.getAdditionalTransactionDetails({
-    transaction: txResponse,
-    confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-    dataAvailabilityProof: attRequest.dataAvailabilityProof,
-  });
-  return checkAndAggregateUtxo(additionalData, attRequest);
+  try {
+    let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as UtxoTxResponse;
+    let additionalData = await client.getAdditionalTransactionDetails({
+      transaction: txResponse,
+      confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
+      dataAvailabilityProof: attRequest.dataAvailabilityProof,
+    });
+    return checkAndAggregateUtxo(additionalData, attRequest);
+  } catch (error) {
+    console.log(error);
+    return {} as any;
+  }
 }
 
 async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest) {

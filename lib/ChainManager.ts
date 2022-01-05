@@ -1,8 +1,7 @@
-import { BigNumber } from "ethers";
 import { Logger } from "winston";
-import { ChainNode } from "./ChainNode";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
+import { ChainNode } from "./ChainNode";
 import { ChainType } from "./MCC/MCClientSettings";
 
 export class ChainManager {

@@ -234,6 +234,12 @@ class AttestationSpammer {
             toBlock: last
           })
         this.logger.info(`Processing ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
+
+        for(let event of events)
+        {
+          this.logger.info(`   time ${event.returnValues.timestamp}`);
+
+        }
         firstUnprocessedBlockNumber = last + 1;
       } catch (e) {
         this.logger.info(`Error: ${e}`)

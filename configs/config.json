@@ -10,6 +10,8 @@
 
     "firstEpochStartTime":1636070400,
     "epochPeriod": 10,
+    "commitTime":1,
+    "revealTime":1,
 
     "chains": [
         {
@@ -20,9 +22,9 @@
         },
         {
             "name": "BTC",
-            "url": "http://s1.bitcoin.com:51234/",
-            "username": "111",
-            "password": "222",
+            "url": "https://testnode2.c.aflabs.net/btc/",
+            "username": "rpcuser",
+            "password": "rpcpass",
             "metaData": {
                 "requiredBlocks" : 6
             }

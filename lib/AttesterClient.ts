@@ -1,5 +1,5 @@
-import * as fs from "fs";
 import BN from "bn.js";
+import * as fs from "fs";
 import { Logger } from "winston";
 import yargs from "yargs";
 import { AttestationData, AttestationType } from "./AttestationData";
@@ -11,7 +11,7 @@ import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getInternetTime } from "./internetTime";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { getLogger, partBN, partBNbe, toBN } from "./utils";
+import { getLogger, getUnixEpochTimestamp, partBNbe, toBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
 
 // Args parsing
@@ -143,10 +143,10 @@ class DataProvider {
       //  32 chain id
       //  64 block height
 
-      if (this.onlyOnce) {
-        return;
-      }
-      this.onlyOnce = true;
+      // if (this.onlyOnce) {
+      //   return;
+      // }
+      // this.onlyOnce = true;
 
       const timeStamp: string = event.returnValues.timestamp;
       const instruction: string = event.returnValues.instructions;
@@ -159,7 +159,9 @@ class DataProvider {
       // attestation info
       const tx = new AttestationData();
       tx.type = attestationType.toNumber() as AttestationType;
-      tx.timeStamp = toBN(timeStamp);
+      // !!!!!!
+      //tx.timeStamp = toBN(timeStamp);
+      tx.timeStamp = toBN(getUnixEpochTimestamp());
       tx.id = id;
       tx.dataHash = event.returnValues.dataHash;
       tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;

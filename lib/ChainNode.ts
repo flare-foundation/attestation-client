@@ -104,18 +104,7 @@ export class ChainNode {
     tx.status = AttestationStatus.processing;
     tx.startTime = getTime();
 
-    // start underlying chain client getTransaction
-    // this.client
-    //   .getTransaction(new MCCTransaction(tx.data.id, tx.metaData))
-    //   .then((response: MCCTransactionResponse) => {
-    //     this.processed(tx, AttestationStatus.valid);
-    //   })
-    //   .catch((response: MCCTransactionResponse) => {
-    //     this.processed(tx, AttestationStatus.invalid);
-    //   });
-
-    // New ............................. this should be wrapped ...
-
+    // Actual Validate
     const attReq = tx.data.getAttestationRequest() as TransactionAttestationRequest;
 
     attReq.chainId = this.chainType;

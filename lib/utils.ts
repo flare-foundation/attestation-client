@@ -214,3 +214,7 @@ export function etherToValue(web3: Web3, eth: number) {
 export async function sleep(ms: number) {
   await new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
 }
+
+export function getUnixEpochTimestamp() {
+  return Math.floor(Date.now() / 1000);
+}

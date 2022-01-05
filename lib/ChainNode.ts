@@ -120,10 +120,13 @@ export class ChainNode {
   }
 
   processed(tx: Attestation, status: AttestationStatus) {
+    // set status
+    tx.status = status;
     this.chainManager.logger.info(
       `    * chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`
     );
 
+    // move into processed
     arrayRemoveElement(this.transactionsProcessing, tx);
     this.transactionsDone.push(tx);
 

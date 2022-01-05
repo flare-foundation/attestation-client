@@ -6,6 +6,7 @@ import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestatio
 import { getLogger, getWeb3, getWeb3Contract, getWeb3Wallet, sleep, toBN, waitFinalize3Factory } from '../lib/utils';
 import { StateConnector } from '../typechain-web3-v1/StateConnector';
 import Web3 from "web3";
+import { Web3Functions } from '../lib/Web3Functions';
 
 dotenv.config();
 var yargs = require("yargs");
@@ -91,15 +92,10 @@ let args = yargs
   })
   .argv;
 
-const DEFAULT_GAS = "2500000";
-const DEFAULT_GAS_PRICE = "225000000000";
-
 class AttestationSpammer {
   chainType!: ChainType;
   client: any;
   web3!: Web3;
-  account!: any;
-  waitFinalize3!: any;
   logger!: any;
   stateConnector!: StateConnector;
   range: number = args['range'];
@@ -112,20 +108,16 @@ class AttestationSpammer {
   privateKey: string = args['privateKey'];
   delay: number = args['delay'];
   lastBlockNumber: number = -1;
-  nonce?: number;
-  nonceResetCount!: number;
-  forcedNonceResetOn?: number;
+  web3Functions!: Web3Functions;
 
   constructor() {
     this.chainType = this.getChainType(args['chain']);
     let mccClient = new MCClient(new MCCNodeSettings(this.chainType, this.URL, this.USERNAME || "", this.PASSWORD || "", null));
     this.client = mccClient.chainClient;
-    this.web3 = getWeb3(this.rpcLink) as Web3;
-    this.account = getWeb3Wallet(this.web3, this.privateKey);
-    this.waitFinalize3 = waitFinalize3Factory(this.web3);
     this.logger = getLogger(args['loggerLabel']);
-    this.forcedNonceResetOn = args['nonceResetCount'];
-    // this.stateConnector = (await 
+    this.web3 = getWeb3(this.rpcLink) as Web3;
+    this.web3Functions = new Web3Functions( this.logger , this.web3 , this.privateKey );
+
     getWeb3Contract(this.web3, args['contractAddress'], "StateConnector")
       .then((sc: StateConnector) => {
         this.stateConnector = sc;
@@ -152,61 +144,14 @@ class AttestationSpammer {
 
   async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
     let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.dataHash, request.id, request.dataAvailabilityProof)
-    return await this.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
-  }
+    const receipt =  await this.web3Functions.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
 
-  // async getNonce(): Promise<string> {
-  //   let nonce = await this.web3.eth.getTransactionCount(this.account.address);
-  //   return nonce + "";   // string returned
-  // }
-
-  async getNonce(): Promise<string> {
-    this.nonceResetCount--;
-    if (this.nonce && this.nonceResetCount > 0) {
-      this.nonce++;
-    } else {
-      this.nonce = (await this.web3.eth.getTransactionCount(this.account.address));
-      this.logger.info(`Nonce initialized to ${this.nonce}`);
-      this.nonceResetCount = this.forcedNonceResetOn!;
+    if( receipt )
+    {
+      this.logger.info(`Attestation sent`)      
     }
-    return this.nonce + "";   // string returned
-  }
 
-  resetNonce() {
-    this.nonce = undefined;
-    this.logger.info(`Nonce reset`);
-  }
-
-
-  async signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE) {
-    let nonce = await this.getNonce();
-    var tx = {
-      from: this.account.address,
-      to: toAddress,
-      gas: gas,
-      gasPrice: gasPrice,
-      data: fnToEncode.encodeABI(),
-      nonce: nonce
-    };
-    var signedTx = await this.account.signTransaction(tx);
-
-    try {
-      let receipt = await this.waitFinalize3(this.account.address, () => this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!));
-      this.logger.info(`Attestation sent for nonce ${nonce}`)
-      return receipt;
-    } catch (e: any) {
-      if (e.message.indexOf("Transaction has been reverted by the EVM") < 0) {
-        this.logger.error(`${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${e.message}`);
-        this.resetNonce();
-      } else {
-        fnToEncode.call({ from: this.account.address })
-          .then((result: any) => { throw Error('unlikely to happen: ' + JSON.stringify(result)) })
-          .catch((revertReason: any) => {
-            this.logger.error(`${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${revertReason}`);
-            this.resetNonce();
-          });
-      }
-    }
+    return receipt;
   }
 
   async waitForStateConnector() {
@@ -234,12 +179,6 @@ class AttestationSpammer {
             toBlock: last
           })
         this.logger.info(`Processing ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
-
-        for(let event of events)
-        {
-          this.logger.info(`   time ${event.returnValues.timestamp}`);
-
-        }
         firstUnprocessedBlockNumber = last + 1;
       } catch (e) {
         this.logger.info(`Error: ${e}`)

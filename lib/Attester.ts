@@ -3,12 +3,15 @@ import { Logger } from "winston";
 import { Attestation } from "./Attestation";
 import { AttestationData, AttestationType } from "./AttestationData";
 import { AttesterEpoch } from "./AttesterEpoch";
+import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
 import { DataProviderConfiguration as AttesterClientConfiguration } from "./DataProviderConfiguration";
 import { EpochSettings } from "./EpochSettings";
 import { getTime } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
-import { partBN, partBNbe, toBN } from "./utils";
+import { partBNbe, toBN } from "./utils";
+
+export class Test {}
 
 export class Attester {
   logger: Logger;
@@ -16,12 +19,14 @@ export class Attester {
   chainManager!: ChainManager;
   epoch: Map<number, AttesterEpoch> = new Map<number, AttesterEpoch>();
   conf!: AttesterClientConfiguration;
+  attesterWeb3: AttesterWeb3;
 
-  constructor(chainManager: ChainManager, conf: AttesterClientConfiguration, logger: Logger) {
+  constructor(chainManager: ChainManager, conf: AttesterClientConfiguration, logger: Logger, attesterWeb3: AttesterWeb3) {
     this.chainManager = chainManager;
     this.conf = conf;
     this.logger = logger;
     this.epochSettings = new EpochSettings(toBN(conf.firstEpochStartTime), toBN(conf.epochPeriod));
+    this.attesterWeb3 = attesterWeb3;
   }
 
   async attestate(tx: AttestationData) {
@@ -33,7 +38,7 @@ export class Attester {
 
     // check if attester epoch already exists - if not - create a new one and assign callbacks
     if (activeEpoch === undefined) {
-      activeEpoch = new AttesterEpoch(epochId, this.logger);
+      activeEpoch = new AttesterEpoch(epochId, this.logger, this.attesterWeb3);
 
       this.epoch.set(epochId, activeEpoch);
 

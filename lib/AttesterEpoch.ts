@@ -1,7 +1,8 @@
-import BN from "bn.js";
 import assert from "assert";
+import BN from "bn.js";
 import { Logger } from "winston";
 import { Attestation, AttestationStatus } from "./Attestation";
+import { AttesterWeb3 } from "./AttesterWeb3";
 import { Hash } from "./Hash";
 import { MerkleTree } from "./MerkleTree";
 import { getRandom, toBN } from "./utils";
@@ -28,15 +29,17 @@ export class AttesterEpoch {
   hash!: string;
   random!: BN;
   attestStatus: AttestStatus;
+  attesterWeb3: AttesterWeb3;
 
   transactionsProcessed: number = 0;
 
-  constructor(epochId: number, logger: Logger) {
+  constructor(epochId: number, logger: Logger, attesterWeb3: AttesterWeb3) {
     this.epochId = epochId;
     this.logger = logger;
     this.status = AttesterEpochStatus.collect;
     this.attestStatus = AttestStatus.collecting;
     this.logger.info(`  * AttestEpoch #${this.epochId} (0) collect`);
+    this.attesterWeb3 = attesterWeb3;
   }
 
   addAttestation(attestation: Attestation) {
@@ -130,10 +133,10 @@ export class AttesterEpoch {
     this.hash = this.merkleTree.root!;
     this.random = await getRandom();
 
-    this.submitAttestation(
+    this.attesterWeb3.submitAttestation(
       // commit index (collect+1)
       toBN(this.epochId + 1),
-      toBN(this.hash).xor(this.random),
+      toBN(this.hash).xor(toBN(this.random)),
       toBN(Hash.create(this.random.toString())),
       toBN(0)
     );
@@ -151,7 +154,7 @@ export class AttesterEpoch {
 
     this.logger.info(` * AttestEpoch #${this.epochId} reveal`);
 
-    this.submitAttestation(
+    this.attesterWeb3.submitAttestation(
       // commit index (collect+1)
       toBN(this.epochId + 1),
       toBN(0),
@@ -160,9 +163,5 @@ export class AttesterEpoch {
     );
 
     this.attestStatus = AttestStatus.revealed;
-  }
-
-  submitAttestation(bufferNumber: BN, maskedMerkleHash: BN, committedRandom: BN, revealedRandom: BN) {
-    // todo: submit to network
   }
 }

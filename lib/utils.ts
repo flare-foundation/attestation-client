@@ -19,6 +19,10 @@ export function partBNbe(x: BN, bitOffset: number, bitCount: number) {
   return partBN(x, 256 - bitOffset - bitCount, bitCount);
 }
 
+export function toHex(x: string | number | BN) {
+  return Web3.utils.toHex(x);
+}
+
 export function toBN(x: string | number | BN, toZeroIfFails = false) {
   if (x && x.constructor?.name === "BN") return x as BN;
   try {

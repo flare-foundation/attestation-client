@@ -4,6 +4,7 @@ import { Logger } from "winston";
 import yargs from "yargs";
 import { AttestationData, AttestationType } from "./AttestationData";
 import { Attester } from "./Attester";
+import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
 import { ChainNode } from "./ChainNode";
 import { DataProviderConfiguration } from "./DataProviderConfiguration";
@@ -23,23 +24,28 @@ const args = yargs.option("config", {
   demand: true,
 }).argv;
 
-class DataProvider {
+export class AttesterClient {
   conf: DataProviderConfiguration;
   logger: Logger = getLogger();
 
   attester: Attester;
+  attesterWeb3: AttesterWeb3;
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
 
   constructor(configuration: DataProviderConfiguration) {
     this.conf = configuration;
     this.chainManager = new ChainManager(this.logger);
-    this.attester = new Attester(this.chainManager, this.conf, this.logger);
+    this.attesterWeb3 = new AttesterWeb3(this.logger, this.conf);
+    this.attester = new Attester(this.chainManager, this.conf, this.logger, this.attesterWeb3);
   }
 
   async start() {
     const version = "1000";
     this.logger.info(`Starting Flare Attester Client v${version}`);
+
+    // create state connector
+    await this.attesterWeb3.initialize();
 
     // process configuration
     await this.initializeConfiguration();
@@ -52,9 +58,16 @@ class DataProvider {
     await this.initializeChains();
 
     // connect to network block callback
-    this.blockCollector = new Web3BlockCollector(this.logger, this.conf.rpcUrl, this.conf.stateConnectorAddress, "StateConnector", undefined, (event: any) => {
-      this.processEvent(event);
-    });
+    this.blockCollector = new Web3BlockCollector(
+      this.logger,
+      this.conf.rpcUrl,
+      this.conf.stateConnectorContractAddress,
+      "StateConnector",
+      undefined,
+      (event: any) => {
+        this.processEvent(event);
+      }
+    );
   }
 
   async initializeConfiguration() {
@@ -170,9 +183,9 @@ class DataProvider {
       tx.instructions = instBN;
 
       // for sorting
-      tx.blockNumber = event.blockNumber;
-      tx.transactionIndex = event.transactionIndex;
-      tx.signature = event.signature;
+      tx.blockNumber = toBN(event.blockNumber);
+      tx.transactionIndex = toBN(event.transactionIndex);
+      tx.signature = toBN(event.signature);
 
       this.attester.attestate(tx);
     }
@@ -183,6 +196,6 @@ class DataProvider {
 // const conf: DataProviderConfiguration = JSON.parse( fs.readFileSync( (args as any).config ).toString() ) as DataProviderConfiguration;
 const conf: DataProviderConfiguration = JSON.parse(fs.readFileSync("configs/config.json").toString()) as DataProviderConfiguration;
 
-const dataProvider = new DataProvider(conf);
+const attesterClient = new AttesterClient(conf);
 
-dataProvider.start();
+attesterClient.start();

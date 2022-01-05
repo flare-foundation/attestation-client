@@ -24,7 +24,7 @@ export class Web3BlockCollector {
     this.logger.info(" * Waiting for network connection...");
     this.startingBlockNumber = await this.web3.eth.getBlockNumber();
 
-    const ftsoContract = await getWeb3Contract(this.web3, contractAddress, contractName);
+    const stateConnectorContract = await getWeb3Contract(this.web3, contractAddress, contractName);
     let processBlock: number = this.startingBlockNumber;
 
     this.logger.info(" * Network event processing started");
@@ -38,7 +38,7 @@ export class Web3BlockCollector {
       }
 
       // process new block
-      const events = await ftsoContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock });
+      const events = await stateConnectorContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock });
 
       this.logger.info(` * New block ${processBlock} with ${events.length} event(s)`);
 

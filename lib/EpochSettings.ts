@@ -14,6 +14,10 @@ export class EpochSettings {
     this._epochPeriod = _epochPeriod;
   }
 
+  getEpochLength(): BN {
+    return this._epochPeriod;
+  }
+
   getEpochIdForTime(timeInMillis: BN): BN {
     const diff: BN = timeInMillis.sub(this._firstEpochStartTime);
     return this._firstEpochId.add(diff.div(this._epochPeriod));
@@ -23,9 +27,14 @@ export class EpochSettings {
     return this.getEpochIdForTime(toBN(getTime()));
   }
 
-  // in milliseconds
+  // in seconds
   getEpochTimeEnd(): BN {
     const id: BN = this.getCurrentEpochId().add(toBN(1)).add(this._firstEpochId);
+    return this._firstEpochStartTime.add(id.mul(this._epochPeriod));
+  }
+
+  // in seconds
+  getEpochIdTimeEnd(id: BN): BN {
     return this._firstEpochStartTime.add(id.mul(this._epochPeriod));
   }
 

@@ -1,24 +1,13 @@
-import BN from "bn.js";
-import { sendAttestationRequest } from "../test/utils/test-utils";
 import { StateConnectorInstance } from "../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "./Attestation";
-import { AttestationData, AttestationRequest, AttestationType } from "./AttestationData";
+import { AttestationData } from "./AttestationData";
+import { Attester } from "./Attester";
 import { ChainManager } from "./ChainManager";
 import { getTime } from "./internetTime";
 import { MCClient as MCClient } from "./MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { MCCTransaction } from "./MCC/MCCTransaction";
-import { MCCTransactionResponse } from "./MCC/MCCTransactionResponse";
-import {
-  attReqToTransactionAttestationRequest,
-  extractAttEvents,
-  NormalizedTransactionData,
-  TransactionAttestationRequest,
-  txAttReqToAttestationRequest,
-  VerificationStatus,
-  verifyTransactionAttestation,
-} from "./MCC/tx-normalize";
-import { arrayRemoveElement, partBN, partBNbe, prefix0x, toBN } from "./utils";
+import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./MCC/tx-normalize";
+import { arrayRemoveElement, toBN } from "./utils";
 
 export class ChainNode {
   chainManager: ChainManager;
@@ -36,6 +25,9 @@ export class ChainNode {
   maxProcessingTransactions: number = 10;
 
   transactionsQueue: Attestation[] = new Array<Attestation>();
+  transactionsPriorityQueue: Attestation[] = new Array<Attestation>();
+  transactionsDelayQueue: Attestation[] = new Array<Attestation>();
+
   transactionsProcessing: Attestation[] = new Array<Attestation>();
   transactionsDone: Attestation[] = new Array<Attestation>();
 
@@ -85,6 +77,14 @@ export class ChainNode {
     }
   }
 
+  canProcess() {
+    return this.canAddRequests() && this.transactionsProcessing.length < this.maxProcessingTransactions;
+  }
+
+  ////////////////////////////////////////////
+  // queue
+  // put transaction into queue
+  ////////////////////////////////////////////
   queue(tx: Attestation) {
     this.chainManager.logger.info(
       `    * chain ${this.chainName} queue ${tx.data.id}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`
@@ -93,6 +93,34 @@ export class ChainNode {
     this.transactionsQueue.push(tx);
   }
 
+  ////////////////////////////////////////////
+  // delayQueue
+  // put transaction into delay queue - queue that can be processed in second part of commit epoch
+  ////////////////////////////////////////////
+  delayQueue(tx: Attestation) {
+    arrayRemoveElement(this.transactionsProcessing, tx);
+    this.transactionsDelayQueue.push(tx);
+
+    // set timeout that removes tx from delayQueue into priorityQueue
+    const now = getTime();
+    const epochCommitEndTime = Attester.epochSettings.getEpochIdTimeEnd(toBN(tx.epochId)).add(Attester.epochSettings.getEpochLength()).toNumber();
+
+    setTimeout(() => {
+      this.chainManager.logger.info(`    * chain ${this.chainName} queue ${tx.data.id} delay queue started`);
+
+      arrayRemoveElement(this.transactionsDelayQueue, tx);
+      this.transactionsPriorityQueue.push(tx);
+
+      // call start next just in case that nothing was processing in the moment
+      this.startNext();
+    }, (epochCommitEndTime - 45 - now) * 1000);
+  }
+
+  ////////////////////////////////////////////
+  // process
+  //
+  // process transaction
+  ////////////////////////////////////////////
   async process(tx: Attestation) {
     this.chainManager.logger.info(
       `    * chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`
@@ -112,13 +140,24 @@ export class ChainNode {
 
     verifyTransactionAttestation(this.client.chainClient, attReq)
       .then((txData: NormalizedTransactionData) => {
-        this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid);
+        // todo: check is status is not OK and FailReason??? is to not ready - it means to recheck in XXX sec but not before time T
+        if (false) {
+          this.delayQueue(tx);
+        } else {
+          this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid);
+        }
       })
       .catch((txData: NormalizedTransactionData) => {
         this.processed(tx, AttestationStatus.invalid);
       });
   }
 
+  ////////////////////////////////////////////
+  // processed
+  //
+  // transaction was processed
+  // move it to transactionsDone
+  ////////////////////////////////////////////
   processed(tx: Attestation, status: AttestationStatus) {
     // set status
     tx.status = status;
@@ -134,29 +173,18 @@ export class ChainNode {
       tx.onProcessed(tx);
     }
 
-    // check if there is any new transaction to be processed
-    while (this.transactionsQueue.length > 0 && this.canProcess()) {
-      const tx = this.transactionsQueue[0];
-      this.transactionsQueue.splice(0, 1);
-
-      this.process(tx);
-    }
-
-    // check if all done and collect epoch is done
+    // start next transaction
+    this.startNext();
   }
 
-  canProcess() {
-    return this.canAddRequests() && this.transactionsProcessing.length < this.maxProcessingTransactions;
-  }
-
+  ////////////////////////////////////////////
+  // validate
+  //
+  // transaction into validation
+  // (1) process
+  // (2) queue - if processing is full
+  ////////////////////////////////////////////
   validate(epoch: number, data: AttestationData): Attestation {
-    // parse data
-    // 16 attestation type
-    // 32 chainId
-    // 64 blockHeight
-
-    //const blockHeight: BN = partBNbe(data.instructions, 16 + 32, 64);
-
     // attestation info
     this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
 
@@ -164,11 +192,6 @@ export class ChainNode {
     transaction.epochId = epoch;
     transaction.chainNode = this;
     transaction.data = data;
-
-    // save transaction meta data
-    // transaction.metaData = {
-    //   blockHeight: blockHeight,
-    // };
 
     // check if transaction can be added into processing
     if (this.canProcess()) {
@@ -178,5 +201,25 @@ export class ChainNode {
     }
 
     return transaction;
+  }
+
+  ////////////////////////////////////////////
+  // startNext
+  // start next queued transaction
+  ////////////////////////////////////////////
+  startNext() {
+    // check if there is queued priority transaction to be processed
+    while (this.transactionsPriorityQueue && this.canProcess()) {
+      const tx = this.transactionsPriorityQueue.shift();
+
+      this.process(tx!);
+    }
+
+    // check if there is any queued transaction to be processed
+    while (this.transactionsQueue.length && this.canProcess()) {
+      const tx = this.transactionsQueue.shift();
+
+      this.process(tx!);
+    }
   }
 }

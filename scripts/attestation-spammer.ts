@@ -106,6 +106,7 @@ class AttestationSpammer {
   PASSWORD?: string = args['blockchainPassword'];
   confirmations: number = args['confirmations'];
   privateKey: string = args['privateKey'];
+
   delay: number = args['delay'];
   lastBlockNumber: number = -1;
   web3Functions!: Web3Functions;
@@ -116,7 +117,9 @@ class AttestationSpammer {
     this.client = mccClient.chainClient;
     this.logger = getLogger(args['loggerLabel']);
     this.web3 = getWeb3(this.rpcLink) as Web3;
-    this.web3Functions = new Web3Functions( this.logger , this.web3 , this.privateKey );
+    this.web3Functions = new Web3Functions(this.logger, this.web3, this.privateKey);
+
+    console.log( args );
 
     getWeb3Contract(this.web3, args['contractAddress'], "StateConnector")
       .then((sc: StateConnector) => {
@@ -144,11 +147,10 @@ class AttestationSpammer {
 
   async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
     let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.dataHash, request.id, request.dataAvailabilityProof)
-    const receipt =  await this.web3Functions.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
+    const receipt = await this.web3Functions.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
 
-    if( receipt )
-    {
-      this.logger.info(`Attestation sent`)      
+    if (receipt) {
+      this.logger.info(`Attestation sent`)
     }
 
     return receipt;
@@ -188,6 +190,7 @@ class AttestationSpammer {
 
   async runSpammer() {
     await this.waitForStateConnector();
+    console.log(`private key=${this.privateKey}`);
     this.logEvents();  // async run
     while (true) {
       try {

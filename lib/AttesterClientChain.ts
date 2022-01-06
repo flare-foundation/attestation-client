@@ -1,4 +1,4 @@
-export class DataProviderChain {
+export class AttesterClientChain {
   public name!: string;
   public url!: string;
 

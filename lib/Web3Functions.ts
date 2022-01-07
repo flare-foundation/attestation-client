@@ -1,5 +1,6 @@
 import Web3 from "web3";
 import { Logger } from "winston";
+import { sleepms } from "./Sleep";
 import { getWeb3Wallet, waitFinalize3Factory } from "./utils";
 
 const DEFAULT_GAS = "2500000";
@@ -15,6 +16,13 @@ export class Web3Functions {
   waitFinalize3: any;
 
   nonce: number | undefined; // if undefined, we retrieve it from blockchain, otherwise we use it
+
+  //submissionQueue = new Array<()=>any>();
+
+  nextIndex = 0;
+  currentIndex = 0;
+
+  working = false;
 
   constructor(logger: Logger, web3: Web3, privateKey: string) {
     this.logger = logger;
@@ -33,6 +41,29 @@ export class Web3Functions {
   }
 
   async signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE): Promise<any> {
+    const waitIndex = this.nextIndex;
+    this.nextIndex += 1;
+
+    if (waitIndex !== this.currentIndex) {
+      this.logger.info(`   # signAndFinalize3 wait #${waitIndex}/${this.currentIndex}`);
+
+      while (waitIndex !== this.currentIndex) {
+        await sleepms(100);
+      }
+    }
+
+    this.logger.info(`   # signAndFinalize3 start #${waitIndex}`);
+
+    const res = await this._signAndFinalize3(label, toAddress, fnToEncode, gas, gasPrice);
+
+    this.logger.info(`   # signAndFinalize3 done #${waitIndex}`);
+
+    this.currentIndex += 1;
+
+    return res;
+  }
+
+  async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE): Promise<any> {
     const nonce = await this.getNonce();
     const tx = {
       from: this.account.address,

@@ -7,7 +7,7 @@ import { Attester } from "./Attester";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
 import { ChainNode } from "./ChainNode";
-import { DataProviderConfiguration } from "./DataProviderConfiguration";
+import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getInternetTime } from "./internetTime";
@@ -25,7 +25,7 @@ const args = yargs.option("config", {
 }).argv;
 
 export class AttesterClient {
-  conf: DataProviderConfiguration;
+  conf: AttesterClientConfiguration;
   logger: Logger = getLogger();
 
   attester: Attester;
@@ -33,7 +33,7 @@ export class AttesterClient {
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
 
-  constructor(configuration: DataProviderConfiguration) {
+  constructor(configuration: AttesterClientConfiguration) {
     this.conf = configuration;
     this.chainManager = new ChainManager(this.logger);
     this.attesterWeb3 = new AttesterWeb3(this.logger, this.conf);
@@ -173,8 +173,8 @@ export class AttesterClient {
       const tx = new AttestationData();
       tx.type = attestationType.toNumber() as AttestationType;
       // !!!!!!
-      //tx.timeStamp = toBN(timeStamp);
-      tx.timeStamp = toBN(getUnixEpochTimestamp());
+      tx.timeStamp = toBN(timeStamp);
+      //tx.timeStamp = toBN(getUnixEpochTimestamp());
       tx.id = id;
       tx.dataHash = event.returnValues.dataHash;
       tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;
@@ -194,7 +194,7 @@ export class AttesterClient {
 
 // Reading configuration
 // const conf: DataProviderConfiguration = JSON.parse( fs.readFileSync( (args as any).config ).toString() ) as DataProviderConfiguration;
-const conf: DataProviderConfiguration = JSON.parse(fs.readFileSync("configs/config.json").toString()) as DataProviderConfiguration;
+const conf: AttesterClientConfiguration = JSON.parse(fs.readFileSync("configs/config.json").toString()) as AttesterClientConfiguration;
 
 const attesterClient = new AttesterClient(conf);
 

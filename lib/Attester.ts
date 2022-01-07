@@ -2,20 +2,20 @@ import BN from "bn.js";
 import { Logger } from "winston";
 import { Attestation } from "./Attestation";
 import { AttestationData, AttestationType } from "./AttestationData";
+import { AttesterClientConfiguration as AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterEpoch } from "./AttesterEpoch";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
-import { DataProviderConfiguration as AttesterClientConfiguration } from "./DataProviderConfiguration";
 import { EpochSettings } from "./EpochSettings";
 import { getTime } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
 import { partBNbe, toBN } from "./utils";
 
-export class Test {}
+export class Test { }
 
 export class Attester {
   logger: Logger;
-  epochSettings: EpochSettings;
+  static epochSettings: EpochSettings;
   chainManager!: ChainManager;
   epoch: Map<number, AttesterEpoch> = new Map<number, AttesterEpoch>();
   conf!: AttesterClientConfiguration;
@@ -25,14 +25,14 @@ export class Attester {
     this.chainManager = chainManager;
     this.conf = conf;
     this.logger = logger;
-    this.epochSettings = new EpochSettings(toBN(conf.firstEpochStartTime), toBN(conf.epochPeriod));
+    Attester.epochSettings = new EpochSettings(toBN(conf.firstEpochStartTime), toBN(conf.epochPeriod));
     this.attesterWeb3 = attesterWeb3;
   }
 
   async attestate(tx: AttestationData) {
     const time = tx.timeStamp.toNumber();
 
-    const epochId: number = this.epochSettings.getEpochIdForTime(tx.timeStamp).toNumber();
+    const epochId: number = Attester.epochSettings.getEpochIdForTime(tx.timeStamp).toNumber();
 
     let activeEpoch = this.epoch.get(epochId);
 
@@ -44,7 +44,7 @@ export class Attester {
 
       // setup commit, reveal and completed callbacks
       const now = getTime();
-      const epochTimeEnd = this.epochSettings.getEpochTimeEnd().toNumber();
+      const epochTimeEnd = Attester.epochSettings.getEpochTimeEnd().toNumber();
       const epochCommitTime: number = epochTimeEnd + this.conf.epochPeriod - this.conf.commitTime;
       const epochRevealTime: number = epochTimeEnd + this.conf.epochPeriod + this.conf.revealTime;
       const epochCompleteTime: number = epochTimeEnd + this.conf.epochPeriod * 2;

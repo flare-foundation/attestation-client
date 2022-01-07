@@ -2,19 +2,19 @@ import BN from "bn.js";
 import Web3 from "web3";
 import { Logger } from "winston";
 import { StateConnector } from "../typechain-web3-v1/StateConnector";
-import { DataProviderConfiguration } from "./DataProviderConfiguration";
+import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { getWeb3, getWeb3Contract, toHex } from "./utils";
 import { Web3Functions } from "./Web3Functions";
 
 export class AttesterWeb3 {
-  conf: DataProviderConfiguration;
+  conf: AttesterClientConfiguration;
   logger: Logger;
 
   web3!: Web3;
   stateConnector!: StateConnector;
   web3Functions!: Web3Functions;
 
-  constructor(logger: Logger, configuration: DataProviderConfiguration) {
+  constructor(logger: Logger, configuration: AttesterClientConfiguration) {
     this.logger = logger;
     this.conf = configuration;
     this.web3 = getWeb3(this.conf.rpcUrl) as Web3;
@@ -25,6 +25,7 @@ export class AttesterWeb3 {
     this.stateConnector = await getWeb3Contract(this.web3, this.conf.stateConnectorContractAddress, "StateConnector");
   }
 
+  // todo: must be a queue
   async submitAttestation(bufferNumber: BN, maskedMerkleHash: BN, committedRandom: BN, revealedRandom: BN) {
     let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, toHex(maskedMerkleHash), toHex(committedRandom), toHex(revealedRandom));
 

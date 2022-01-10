@@ -40,7 +40,7 @@ export class Web3BlockCollector {
       // process new block
       const events = await stateConnectorContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock });
 
-      this.logger.info(` * New block ${processBlock} with ${events.length} event(s)`);
+      this.logger.info(`   * New block ${processBlock} with ${events.length} event(s)`);
 
       for (const event of events) {
         action(event);

@@ -72,9 +72,9 @@ contract StateConnector {
         bytes32 dataAvailabilityProof
     ) external {
         // Check for empty inputs
-        require(instructions > 0);
-        require(id > 0x0);
-        require(dataAvailabilityProof > 0x0);
+        require(instructions > 0,"requestAttestations: 1");
+        require(id > 0x0,"requestAttestations: 2");
+        require(dataAvailabilityProof > 0x0,"requestAttestations: 3");
         // Emit an event containing the details of the request, these details are not stored in 
         // contract storage so they must be retrieved using event filtering.
         emit AttestationRequest(block.timestamp, instructions, id, dataAvailabilityProof); 
@@ -88,7 +88,7 @@ contract StateConnector {
     ) external returns (
         bool _isInitialBufferSlot
     ) {
-        require(bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
+        require(bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW,"submitAttestation: wrong bufferNumber");
         buffers[msg.sender].latestVote = bufferNumber;
         buffers[msg.sender].votes[bufferNumber % TOTAL_STORED_BUFFERS] = Vote(
             maskedMerkleHash,

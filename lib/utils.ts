@@ -4,6 +4,7 @@ import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
 import * as winston from "winston";
+import Transport from "winston-transport";
 
 export const DECIMALS = 5;
 
@@ -152,8 +153,84 @@ export function waitFinalize3Factory(web3: any) {
   };
 }
 
+const level = process.env.LOG_LEVEL || "info";
+
+const Reset = "\x1b[0m";
+const Bright = "\x1b[1m";
+const Dim = "\x1b[2m";
+const Underscore = "\x1b[4m";
+const Blink = "\x1b[5m";
+const Reverse = "\x1b[7m";
+const Hidden = "\x1b[8m";
+
+const FgBlack = "\x1b[30m";
+const FgRed = "\x1b[31m";
+const FgGreen = "\x1b[32m";
+const FgYellow = "\x1b[33m";
+const FgBlue = "\x1b[34m";
+const FgMagenta = "\x1b[35m";
+const FgCyan = "\x1b[36m";
+const FgWhite = "\x1b[37m";
+
+const BgBlack = "\x1b[40m";
+const BgRed = "\x1b[41m";
+const BgGreen = "\x1b[42m";
+const BgYellow = "\x1b[43m";
+const BgBlue = "\x1b[44m";
+const BgMagenta = "\x1b[45m";
+const BgCyan = "\x1b[46m";
+const BgWhite = "\x1b[47m";
+
+class ColorConsole extends Transport {
+  log = (info: any, callback: any) => {
+    setImmediate(() => this.emit("logged", info));
+
+    let color = "";
+
+    switch (info.level) {
+      case "title":
+        color = BgWhite + FgBlack;
+        break;
+      case "info":
+        color = "";
+        break;
+      case "error":
+        color = BgRed + FgWhite;
+        break;
+      case "warning":
+        color = FgYellow;
+        break;
+      case "debug":
+        color = FgGreen;
+        break;
+    }
+
+    console.log(color + info.message + Reset);
+
+    if (callback) {
+      callback();
+    }
+  };
+}
+
+const myCustomLevels = {
+  levels: {
+    title: 20,
+    group: 21,
+    event: 10,
+    debug: 8,
+    info: 7,
+    note: 5,
+    warning: 4,
+    error: 3,
+    exception: 2,
+    alert: 1,
+  },
+};
+
 export function getLogger(label?: string) {
   return winston.createLogger({
+    levels: myCustomLevels.levels,
     format: winston.format.combine(
       winston.format.timestamp(),
       winston.format.json(),
@@ -169,13 +246,13 @@ export function getLogger(label?: string) {
       })
     ),
     transports: [
-      new winston.transports.Console(),
+      new ColorConsole(),
       new winston.transports.File({
         level: "info",
         filename: `./logs/attester-${label}.log`,
       }),
     ],
-  });
+  }) as winston.Logger & Record<keyof typeof myCustomLevels["levels"], winston.LeveledLogMethod>;
 }
 
 // export function bigNumberToMillis(num: number) {

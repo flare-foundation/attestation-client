@@ -12,7 +12,7 @@ yarn ts-node scripts/attestation-spammer.ts \
     -a artifacts/contracts/StateConnector.sol/StateConnector.json \
     -t $(cat .stateconnector-address) \
     -u https://xrplcluster.com \
-    -b 0 \
+    -b 1 \
     -o 10 \
     -f 1 \
     -w 1000 \

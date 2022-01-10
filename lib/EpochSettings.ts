@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { getTime } from "./internetTime";
+import { getTimeMilli } from "./internetTime";
 import { toBN } from "./utils";
 
 export class EpochSettings {
@@ -24,7 +24,7 @@ export class EpochSettings {
   }
 
   getCurrentEpochId(): BN {
-    return this.getEpochIdForTime(toBN(getTime()));
+    return this.getEpochIdForTime(toBN(getTimeMilli()));
   }
 
   // in seconds
@@ -34,8 +34,17 @@ export class EpochSettings {
   }
 
   // in seconds
-  getEpochIdTimeEnd(id: BN): BN {
-    return this._firstEpochStartTime.add(id.mul(this._epochPeriod));
+  getEpochIdTimeEnd(id: BN | number): number {
+    return this._firstEpochStartTime.add(toBN(id).mul(this._epochPeriod)).toNumber();
+  }
+
+  // in seconds
+  getEpochIdCommitTimeEnd(id: number): number {
+    return this.getEpochIdTimeEnd(id) + this._epochPeriod.toNumber();
+  }
+  // in seconds
+  getEpochIdRevealTimeEnd(id: number): number {
+    return this.getEpochIdTimeEnd(id) + this._epochPeriod.toNumber() * 2;
   }
 
   // in milliseconds

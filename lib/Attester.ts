@@ -7,7 +7,7 @@ import { AttesterEpoch } from "./AttesterEpoch";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
 import { EpochSettings } from "./EpochSettings";
-import { getTime } from "./internetTime";
+import { getTimeSec } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
 import { partBNbe, toBN } from "./utils";
 
@@ -43,7 +43,7 @@ export class Attester {
       this.epoch.set(epochId, activeEpoch);
 
       // setup commit, reveal and completed callbacks
-      const now = getTime();
+      const now = getTimeSec();
       const epochTimeEnd = Attester.epochSettings.getEpochTimeEnd().toNumber();
       const epochCommitTime: number = epochTimeEnd + this.conf.epochPeriod - this.conf.commitTime;
       const epochRevealTime: number = epochTimeEnd + this.conf.epochPeriod + this.conf.revealTime;

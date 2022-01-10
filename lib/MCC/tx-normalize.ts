@@ -15,8 +15,11 @@ export enum VerificationStatus {
   NOT_CONFIRMED = "NOT_CONFIRMED",
   NOT_SINGLE_SOURCE_ADDRESS = "NOT_SINGLE_SOURCE_ADDRESS",
   NOT_SINGLE_DESTINATION_ADDRESS = "NOT_SINGLE_DESTINATION_ADDRESS",
-  MISSING_SOURCE_ADDRESS_HASH = "MISSING_SOURCE_ADDRESS_HASH",
-  SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",
+  UNSUPPORTED_SOURCE_ADDRESS = "UNSUPPORTED_SOURCE_ADDRESS",
+  WRONG_IN_UTXO = "WRONG_IN_UTXO",
+  MISSING_IN_UTXO = "MISSING_IN_UTXO",
+  // MISSING_SOURCE_ADDRESS_HASH = "MISSING_SOURCE_ADDRESS_HASH",
+  // SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",
   INSTRUCTIONS_DO_NOT_MATCH = "INSTRUCTIONS_DO_NOT_MATCH",
   WRONG_DATA_AVAILABILITY_PROOF = "WRONG_DATA_AVAILABILITY_PROOF",
   DATA_AVAILABILITY_PROOF_REQUIRED = "DATA_AVAILABILITY_PROOF_REQUIRED",
@@ -43,7 +46,6 @@ export interface AttestationRequest {
   timestamp?: BN;
   instructions: BN;
   id: string;
-  dataHash: string;
   dataAvailabilityProof: string;
   attestationType?: AttestationType;
 }
@@ -175,7 +177,6 @@ export function txAttReqToAttestationRequest(request: TransactionAttestationRequ
       utxo: request.utxo === undefined ? undefined : toBN(request.utxo),
     }),
     id: request.id,
-    dataHash: request.dataHash || "0x0",
     dataAvailabilityProof: request.dataAvailabilityProof,
   } as AttestationRequest;
 }
@@ -206,7 +207,6 @@ export function extractAttEvents(eventLogs: any[]) {
       timestamp: log.args.timestamp,
       instructions: log.args.instructions,
       id: log.args.id,
-      dataHash: log.args.dataHash,
       dataAvailabilityProof: log.args.dataAvailabilityProof,
     });
   }
@@ -375,18 +375,9 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
   ///// Specific checks for attestation types
   // BalanceDecreasingProof checks
   if (attRequest.attestationType === AttestationType.BalanceDecreasingProof) {
-    let sourceAddress = additionalData.sourceAddresses;
-    if (typeof sourceAddress !== "string") {
-      return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS);
-    }
-    if (!attRequest.dataHash) {
-      return genericReturnWithStatus(VerificationStatus.MISSING_SOURCE_ADDRESS_HASH);
-    }
-    if (Web3.utils.soliditySha3(sourceAddress) != attRequest.dataHash) {
-      return genericReturnWithStatus(VerificationStatus.SOURCE_ADDRESS_DOES_NOT_MATCH);
-    }
     return genericReturnWithStatus(VerificationStatus.OK);
   }
+
   // BalanceDecreasingProof checks
   if (attRequest.attestationType === AttestationType.FassetPaymentProof) {
     return genericReturnWithStatus(VerificationStatus.OK);
@@ -394,7 +385,7 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
   throw new Error(`Wrong or missing attestation type: ${attRequest.attestationType}`);
 }
 
-function checkAndAggregateOneToOnePaymentUtxo(
+function checkAndAggregateToOnePaymentUtxo(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest
 ): NormalizedTransactionData {
@@ -412,26 +403,41 @@ function checkAndAggregateOneToOnePaymentUtxo(
     return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
   }
 
-  let sources = new Set<string>();
-  for (let source of additionalData.sourceAddresses) {
-    if (source.length > 1) {
-      return genericReturnWithStatus(VerificationStatus.FORBIDDEN_MULTISIG_SOURCE);
-    }
-    sources.add(source[0]);
+  // Extract source address
+  if(attRequest.utxo === undefined) {
+    return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
   }
-  if (sources.size != 1) {
-    return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS);
+  let inUtxo = toNumber(attRequest.utxo)!;
+  if(inUtxo < 0 || inUtxo >= additionalData.sourceAddresses.length) {
+    return genericReturnWithStatus(VerificationStatus.WRONG_IN_UTXO);
   }
-  let theSource = [...sources][0];
-  if (theSource === "") {
-    // coinbase transaction
-    return genericReturnWithStatus(VerificationStatus.COINBASE_TRANSACTION);
+  let sourceCandidates = additionalData.sourceAddresses[inUtxo!];
+  // TODO: handle multisig
+  if(sourceCandidates.length != 1) {
+    return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
   }
+
+  let theSource = sourceCandidates[0];
   let inFunds = toBN(0);
+  // Calculate in funds
+  for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
+    let sources = additionalData.sourceAddresses[i];
+    // TODO: Handle multisig addresses
+    if (sources.length != 1) {
+      continue;
+    }
+    let aSource = sources[0];
+    if (aSource === theSource) {
+      inFunds = inFunds.add((additionalData.spent as BN[])[i]);
+    }
+  }
+
+  // Calculate total input funds
+  let totalInFunds = toBN(0);
   (additionalData.spent as BN[]).forEach((value) => {
-    inFunds = inFunds.add(value);
+    totalInFunds = totalInFunds.add(value);
   });
-  //////
+
   let destinations = new Set<string>();
   for (let destination of additionalData.destinationAddresses) {
     if (!destination || destination.length === 0) {
@@ -477,7 +483,7 @@ function checkAndAggregateOneToOnePaymentUtxo(
     destinationAddresses: theDestination,
     spent: inFunds.sub(returnedFunds),
     delivered: totalOutFunds.sub(returnedFunds),
-    fee: inFunds.sub(totalOutFunds),
+    fee: totalInFunds.sub(totalOutFunds),
   } as AdditionalTransactionDetails;
 
   function newGenericReturnWithStatus(verificationStatus: VerificationStatus) {
@@ -517,6 +523,23 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
   let sourceIndices: number[] = [];
   let theSource: string | undefined;
   let inFunds = toBN(0);
+
+  if(attRequest.utxo === undefined) {
+    return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
+  }
+  let inUtxo = toNumber(attRequest.utxo)!;
+  if(inUtxo < 0 || inUtxo >= additionalData.sourceAddresses.length) {
+    return genericReturnWithStatus(VerificationStatus.WRONG_IN_UTXO);
+  }
+  let sourceCandidates = additionalData.sourceAddresses[inUtxo!];
+  // TODO: handle multisig
+  if(sourceCandidates.length != 1) {
+    return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
+  }
+
+  theSource = sourceCandidates[0];
+
+  // Calculate in funds
   for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
     let sources = additionalData.sourceAddresses[i];
     // TODO: Handle multisig addresses
@@ -524,14 +547,10 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
       continue;
     }
     let aSource = sources[0];
-    if (Web3.utils.soliditySha3(aSource) === attRequest.dataHash) {
-      theSource = aSource;
+    if (aSource === theSource) {
       sourceIndices.push(i);
       inFunds = inFunds.add((additionalData.spent as BN[])[i]);
     }
-  }
-  if (sourceIndices.length === 0) {
-    return genericReturnWithStatus(VerificationStatus.SOURCE_ADDRESS_DOES_NOT_MATCH);
   }
 
   // calculate returned funds
@@ -542,11 +561,12 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
     if (destination.length != 1) {
       continue;
     }
-    if (Web3.utils.soliditySha3(destination[0]) === attRequest.dataHash) {
+    if (destination[0] === theSource) {
       let destDelivered = (additionalData.delivered as BN[])[i];
       returnedFunds = returnedFunds.add(destDelivered);
     }
   }
+
   if (returnedFunds.eq(inFunds)) {
     return genericReturnWithStatus(VerificationStatus.FUNDS_UNCHANGED);
   }
@@ -581,7 +601,7 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
 function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
   switch (attRequest.attestationType) {
     case AttestationType.FassetPaymentProof:
-      return checkAndAggregateOneToOnePaymentUtxo(additionalData, attRequest);
+      return checkAndAggregateToOnePaymentUtxo(additionalData, attRequest);
     case AttestationType.BalanceDecreasingProof:
       return checkAndAggregateDecreaseBalancePaymentUtxo(additionalData, attRequest);
     default:

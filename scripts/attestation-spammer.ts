@@ -166,7 +166,7 @@ class AttestationSpammer {
   }
 
   async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
-    let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.dataHash, request.id, request.dataAvailabilityProof)
+    let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof)
     const receipt = await this.web3Functions.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
 
     if (receipt) {

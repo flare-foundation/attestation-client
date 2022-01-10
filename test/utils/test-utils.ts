@@ -15,11 +15,14 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
         txData!.chainId,
         txData!.blockNumber,
         txData!.txId,
-        txData!.sourceAddresses as string,
-        txData!.destinationAddresses as string,
+        txData!.inUtxo,
+        web3.utils.soliditySha3(txData!.sourceAddresses as string)!,
+        web3.utils.soliditySha3(txData!.destinationAddresses as string)!,
         txData!.destinationTag!,
         txData!.spent as BN,
         txData!.delivered as BN,
+        txData!.fee as BN,
+        toBN(txData!.status as number),
         hash!
       )
     case AttestationType.BalanceDecreasingProof:
@@ -28,7 +31,7 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
         txData!.chainId,
         txData!.blockNumber,
         txData!.txId,
-        txData!.sourceAddresses as string,
+        web3.utils.soliditySha3(txData!.sourceAddresses as string)!,
         txData!.spent as BN,
         hash!
       )
@@ -38,7 +41,7 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
 }
 
 export async function sendAttestationRequest(stateConnector: StateConnectorInstance, request: AttestationRequest) {
-  return await stateConnector.requestAttestations(request.instructions, request.dataHash, request.id, request.dataAvailabilityProof);
+  return await stateConnector.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
 }
 
 export function verifyReceiptAgainstTemplate(receipt: any, template: TransactionAttestationRequest) {

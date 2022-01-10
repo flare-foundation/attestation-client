@@ -9,17 +9,25 @@ export interface vout_utxo {
   amount?: number;
 }
 
+export enum TransactionStatus {
+  SUCCESS,
+  SENDER_FAILURE,
+  RECEIVER_FAILURE
+}
+
 export interface AdditionalTransactionDetails {
   blockNumber: BN;
   blockHash: string;
   txId: string;
   sourceAddresses: string | string[][]; //
+  inUtxo: BN;
   destinationAddresses: string | string[][];
   destinationTag?: BN;
   spent: BN | BN[];
   delivered: BN | BN[];
   fee: BN;
   dataAvailabilityProof: string;
+  status: TransactionStatus;
 }
 
 export interface AdditionalTxRequest {

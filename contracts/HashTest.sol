@@ -12,12 +12,14 @@ contract HashTest {
     uint64 chainId,
     uint64 blockNumber,
     bytes32 txId,
-    // uint16 utxo,
-    string calldata sourceAddress,
-    string calldata destinationAddress,
+    uint16 inUtxo,
+    bytes32 sourceAddress,
+    bytes32 destinationAddress,
     uint256 destinationTag,
     uint256 spent,
     uint256 received,
+    uint256 fee,
+    uint8 status,
     bytes32 hashToProve
   ) external pure returns (bool _match) {
     bytes32 hash = keccak256(abi.encode(
@@ -25,12 +27,14 @@ contract HashTest {
       chainId,
       blockNumber,
       txId,
-      // utxo,
+      inUtxo,
       sourceAddress,
       destinationAddress,
       destinationTag,
       spent,
-      received
+      received,
+      fee,
+      status
     ));
     return hash == hashToProve;
   }
@@ -41,7 +45,7 @@ contract HashTest {
     uint64 chainId,
     uint64 blockNumber,
     bytes32 txId,
-    string calldata sourceAddress,
+    bytes32 sourceAddress,
     uint256 spent,
     bytes32 hashToProve
   ) external pure returns (bool _match) {

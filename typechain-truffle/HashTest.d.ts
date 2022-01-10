@@ -28,11 +28,14 @@ export interface HashTestInstance extends Truffle.ContractInstance {
     chainId: number | BN | string,
     blockNumber: number | BN | string,
     txId: string,
+    inUtxo: number | BN | string,
     sourceAddress: string,
     destinationAddress: string,
     destinationTag: number | BN | string,
     spent: number | BN | string,
     received: number | BN | string,
+    fee: number | BN | string,
+    status: number | BN | string,
     hashToProve: string,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
@@ -62,11 +65,14 @@ export interface HashTestInstance extends Truffle.ContractInstance {
       chainId: number | BN | string,
       blockNumber: number | BN | string,
       txId: string,
+      inUtxo: number | BN | string,
       sourceAddress: string,
       destinationAddress: string,
       destinationTag: number | BN | string,
       spent: number | BN | string,
       received: number | BN | string,
+      fee: number | BN | string,
+      status: number | BN | string,
       hashToProve: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;

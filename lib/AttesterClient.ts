@@ -148,7 +148,6 @@ export class AttesterClient {
       //     uint256 timestamp,
       //     uint256 instructions,
       //     bytes32 id,
-      //     bytes32 dataHash,
       //     bytes32 dataAvailabilityProof
       // );
 
@@ -176,7 +175,6 @@ export class AttesterClient {
       tx.timeStamp = toBN(timeStamp);
       //tx.timeStamp = toBN(getUnixEpochTimestamp());
       tx.id = id;
-      tx.dataHash = event.returnValues.dataHash;
       tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;
 
       // attestaion data (full instruction)

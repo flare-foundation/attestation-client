@@ -1,5 +1,6 @@
 import Web3 from "web3";
 import { Logger } from "winston";
+import { getTimeMilli as getTimeMilli } from "./internetTime";
 import { sleepms } from "./Sleep";
 import { getWeb3Wallet, waitFinalize3Factory } from "./utils";
 
@@ -44,19 +45,23 @@ export class Web3Functions {
     const waitIndex = this.nextIndex;
     this.nextIndex += 1;
 
+    const time0 = getTimeMilli();
+
     if (waitIndex !== this.currentIndex) {
-      this.logger.info(`   # signAndFinalize3 wait #${waitIndex}/${this.currentIndex}`);
+      this.logger.info(`   # ${label} wait #${waitIndex}/${this.currentIndex}`);
 
       while (waitIndex !== this.currentIndex) {
         await sleepms(100);
       }
     }
 
-    this.logger.info(`   # signAndFinalize3 start #${waitIndex}`);
+    this.logger.info(`   * ${label} start #${waitIndex}`);
 
     const res = await this._signAndFinalize3(label, toAddress, fnToEncode, gas, gasPrice);
 
-    this.logger.info(`   # signAndFinalize3 done #${waitIndex}`);
+    const time1 = getTimeMilli();
+
+    this.logger.info(`   * ${label} done #${waitIndex} (time ${time1 - time0}s)`);
 
     this.currentIndex += 1;
 
@@ -80,15 +85,15 @@ export class Web3Functions {
       return receipt;
     } catch (e: any) {
       if (e.message.indexOf("Transaction has been reverted by the EVM") < 0) {
-        this.logger.error(`${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${e.message}`);
+        this.logger.error(`     ! ${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${e.message}`);
       } else {
-        fnToEncode
+        await fnToEncode
           .call({ from: this.account.address })
           .then((result: any) => {
-            throw Error("unlikely to happen: " + JSON.stringify(result));
+            throw Error("     ! unlikely to happen: " + JSON.stringify(result));
           })
           .catch((revertReason: any) => {
-            this.logger.error(`${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${revertReason}`);
+            this.logger.error(`     ! ${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${revertReason}`);
           });
       }
       return null;

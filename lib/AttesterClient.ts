@@ -42,6 +42,9 @@ export class AttesterClient {
 
   async start() {
     const version = "1000";
+    //this.logger.log(`title`, `Starting Flare Attester Client v${version}`);
+    //this.logger.error(`Starting Flare Attester Client v${version}`);
+    //this.logger.warning(`Starting Flare Attester Client v${version}`);
     this.logger.info(`Starting Flare Attester Client v${version}`);
 
     // create state connector

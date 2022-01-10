@@ -2,8 +2,10 @@ import assert from "assert";
 import BN from "bn.js";
 import { Logger } from "winston";
 import { Attestation, AttestationStatus } from "./Attestation";
+import { Attester } from "./Attester";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { Hash } from "./Hash";
+import { getTimeSec } from "./internetTime";
 import { MerkleTree } from "./MerkleTree";
 import { getRandom, toBN } from "./utils";
 
@@ -38,7 +40,7 @@ export class AttesterEpoch {
     this.logger = logger;
     this.status = AttesterEpochStatus.collect;
     this.attestStatus = AttestStatus.collecting;
-    this.logger.info(`  * AttestEpoch #${this.epochId} (0) collect`);
+    this.logger.info(` * AttestEpoch #${this.epochId} (0) collect`);
     this.attesterWeb3 = attesterWeb3;
   }
 
@@ -77,12 +79,17 @@ export class AttesterEpoch {
     assert(this.transactionsProcessed <= this.attestations.length);
 
     if (this.transactionsProcessed === this.attestations.length) {
-      this.logger.error(`     * AttestEpoch #${this.epochId} all transactions processed ${this.attestations.length}`);
       if (this.status === AttesterEpochStatus.commit) {
+        // all transactions were processed and we are in commit epoch
+        this.logger.info(`     * AttestEpoch #${this.epochId} all transactions processed ${this.attestations.length} commiting...`);
         this.commit();
+      } else {
+        // all transactions were processed but we are NOT in commit epoch yet
+        this.logger.info(`     * AttestEpoch #${this.epochId} all transactions processed ${this.attestations.length} waiting for commit epoch`);
       }
     } else {
-      this.logger.error(`     * AttestEpoch #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
+      // not all transactions were processed
+      //this.logger.info(`     * AttestEpoch #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
     }
   }
 
@@ -100,14 +107,10 @@ export class AttesterEpoch {
     this.logger.info(` * AttestEpoch #${this.epochId} commited (${this.attestations.length} attestation(s))`);
 
     // collect validat attestations
-    let result = "";
     const validated = new Array<Attestation>();
     for (const tx of this.attestations.values()) {
       if (tx.status === AttestationStatus.valid) {
         validated.push(tx);
-        result += "1";
-      } else {
-        result += "0";
       }
     }
 
@@ -116,7 +119,6 @@ export class AttesterEpoch {
       this.logger.info(`  ! no valid attestations`);
       return;
     }
-    this.logger.info(`  # ${result}`);
 
     // sort valid attestations (blockNumber, transactionIndex, signature)
     validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));
@@ -132,6 +134,19 @@ export class AttesterEpoch {
 
     this.hash = this.merkleTree.root!;
     this.random = await getRandom();
+
+    //
+    //   collect   | commit       | reveal
+    //   x         | x+1          | x+2
+    //
+
+    // calculate remaining time in epoch
+
+    const now = getTimeSec();
+    const epochCommitEndTime = Attester.epochSettings.getEpochIdCommitTimeEnd(this.epochId);
+    const commitTimeLeft = epochCommitEndTime - now;
+
+    this.logger.info(`   # Commit time left ${commitTimeLeft}`);
 
     this.attesterWeb3.submitAttestation(
       // commit index (collect+1)
@@ -155,8 +170,8 @@ export class AttesterEpoch {
     this.logger.info(` * AttestEpoch #${this.epochId} reveal`);
 
     this.attesterWeb3.submitAttestation(
-      // commit index (collect+1)
-      toBN(this.epochId + 1),
+      // commit index (collect+2)
+      toBN(this.epochId + 2),
       toBN(0),
       toBN(0),
       this.random

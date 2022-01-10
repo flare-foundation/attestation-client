@@ -3,11 +3,11 @@ import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { Attester } from "./Attester";
 import { ChainManager } from "./ChainManager";
-import { getTime } from "./internetTime";
+import { getTimeSec } from "./internetTime";
 import { MCClient as MCClient } from "./MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
 import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./MCC/tx-normalize";
-import { arrayRemoveElement, toBN } from "./utils";
+import { arrayRemoveElement } from "./utils";
 
 export class ChainNode {
   chainManager: ChainManager;
@@ -59,7 +59,7 @@ export class ChainNode {
   }
 
   canAddRequests() {
-    const time = getTime();
+    const time = getTimeSec();
 
     if (this.requestTime !== time) return true;
 
@@ -67,7 +67,7 @@ export class ChainNode {
   }
 
   addRequestCount() {
-    const time = getTime();
+    const time = getTimeSec();
 
     if (this.requestTime === time) {
       this.requestsPerSecond++;
@@ -86,9 +86,7 @@ export class ChainNode {
   // put transaction into queue
   ////////////////////////////////////////////
   queue(tx: Attestation) {
-    this.chainManager.logger.info(
-      `    * chain ${this.chainName} queue ${tx.data.id}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`
-    );
+    //this.chainManager.logger.info(`    * chain ${this.chainName} queue ${tx.data.id}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`);
     tx.status = AttestationStatus.queued;
     this.transactionsQueue.push(tx);
   }
@@ -102,8 +100,8 @@ export class ChainNode {
     this.transactionsDelayQueue.push(tx);
 
     // set timeout that removes tx from delayQueue into priorityQueue
-    const now = getTime();
-    const epochCommitEndTime = Attester.epochSettings.getEpochIdTimeEnd(toBN(tx.epochId)).add(Attester.epochSettings.getEpochLength()).toNumber();
+    const now = getTimeSec();
+    const epochCommitEndTime = Attester.epochSettings.getEpochIdCommitTimeEnd(tx.epochId);
 
     setTimeout(() => {
       this.chainManager.logger.info(`    * chain ${this.chainName} queue ${tx.data.id} delay queue started`);
@@ -122,15 +120,13 @@ export class ChainNode {
   // process transaction
   ////////////////////////////////////////////
   async process(tx: Attestation) {
-    this.chainManager.logger.info(
-      `    * chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`
-    );
+    //this.chainManager.logger.info(`    * chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
 
     this.addRequestCount();
     this.transactionsProcessing.push(tx);
 
     tx.status = AttestationStatus.processing;
-    tx.startTime = getTime();
+    tx.startTime = getTimeSec();
 
     // Actual Validate
     const attReq = tx.data.getAttestationRequest() as TransactionAttestationRequest;
@@ -161,9 +157,7 @@ export class ChainNode {
   processed(tx: Attestation, status: AttestationStatus) {
     // set status
     tx.status = status;
-    this.chainManager.logger.info(
-      `    * chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`
-    );
+    //this.chainManager.logger.info(`    * chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
 
     // move into processed
     arrayRemoveElement(this.transactionsProcessing, tx);
@@ -186,7 +180,7 @@ export class ChainNode {
   ////////////////////////////////////////////
   validate(epoch: number, data: AttestationData): Attestation {
     // attestation info
-    this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
+    //this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
 
     const transaction = new Attestation();
     transaction.epochId = epoch;
@@ -209,7 +203,7 @@ export class ChainNode {
   ////////////////////////////////////////////
   startNext() {
     // check if there is queued priority transaction to be processed
-    while (this.transactionsPriorityQueue && this.canProcess()) {
+    while (this.transactionsPriorityQueue.length && this.canProcess()) {
       const tx = this.transactionsPriorityQueue.shift();
 
       this.process(tx!);

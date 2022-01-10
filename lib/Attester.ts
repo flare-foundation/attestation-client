@@ -43,6 +43,7 @@ export class Attester {
       this.epoch.set(epochId, activeEpoch);
 
       // setup commit, reveal and completed callbacks
+      // all times are in seconds
       const now = getTimeSec();
       const epochTimeEnd = Attester.epochSettings.getEpochTimeEnd().toNumber();
       const epochCommitTime: number = epochTimeEnd + this.conf.epochPeriod - this.conf.commitTime;

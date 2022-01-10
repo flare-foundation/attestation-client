@@ -1,7 +1,7 @@
 {
     "accountPrivateKey": "0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122",
     "rpcUrl": "http://127.0.0.1:9650/ext/bc/C/rpc",
-    "stateConnectorContractAddress": "0xd63ae78CE8D440CbBc4E9B573AA81522DBf1e4D1",
+    "stateConnectorContractAddress": "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
     "submitOffset": 165000,
     "revealOffset": 8000,
     "gasPrice": "3000000000000",

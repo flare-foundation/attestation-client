@@ -116,7 +116,7 @@ export class AttesterEpoch {
 
     // check if there is any valid attestation
     if (validated.length === 0) {
-      this.logger.info(`  ! no valid attestations`);
+      this.logger.error(`  ! no valid attestations`);
       return;
     }
 
@@ -141,14 +141,14 @@ export class AttesterEpoch {
     //
 
     // calculate remaining time in epoch
-
     const now = getTimeSec();
-    const epochCommitEndTime = Attester.epochSettings.getEpochIdCommitTimeEnd(this.epochId);
+    const epochCommitEndTime = Attester.epochSettings.getEpochIdCommitTimeEnd(this.epochId + 1);
     const commitTimeLeft = epochCommitEndTime - now;
 
-    this.logger.info(`   # Commit time left ${commitTimeLeft}`);
+    this.logger.debug(`   # Commit time left ${commitTimeLeft}s`);
 
     this.attesterWeb3.submitAttestation(
+      "submit",
       // commit index (collect+1)
       toBN(this.epochId + 1),
       toBN(this.hash).xor(toBN(this.random)),
@@ -170,6 +170,7 @@ export class AttesterEpoch {
     this.logger.info(` * AttestEpoch #${this.epochId} reveal`);
 
     this.attesterWeb3.submitAttestation(
+      "reveal",
       // commit index (collect+2)
       toBN(this.epochId + 2),
       toBN(0),

@@ -14,11 +14,11 @@ export interface vout_utxo {
 export enum TransactionSuccessStatus {
   SUCCESS,
   SENDER_FAILURE,
-  RECEIVER_FAILURE
+  RECEIVER_FAILURE,
 }
 
 export interface AdditionalTransactionDetails {
-  transaction: any,
+  transaction: any;
   blockNumber: BN;
   blockHash: string;
   txId: string;

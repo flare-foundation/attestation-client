@@ -139,14 +139,13 @@ export class XRPImplementation implements RPCInterface {
         delivered: toBN(0),
         fee,
         dataAvailabilityProof: prefix0x(confirmationBlock.result.ledger_hash),
-        status
+        status,
       } as AdditionalTransactionDetails;
-
     }
 
     // Transaction is Payment
     let delivered = toBN(metaData.delivered_amount as string); // XRP in drops
-    
+
     return {
       transaction: request.transaction,
       blockNumber: toBN(blockNumber),
@@ -159,7 +158,7 @@ export class XRPImplementation implements RPCInterface {
       delivered: delivered,
       fee,
       dataAvailabilityProof: prefix0x(confirmationBlock.result.ledger_hash),
-      status
+      status,
     } as AdditionalTransactionDetails;
   }
 

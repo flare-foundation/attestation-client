@@ -1,7 +1,7 @@
 {
     "accountPrivateKey": "0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122",
     "rpcUrl": "http://127.0.0.1:9650/ext/bc/C/rpc",
-    "stateConnectorContractAddress": "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
+    "stateConnectorContractAddress": "0xb682dEEf4f8e298d86bFc3e21f50c675151FB974",
     "submitOffset": 165000,
     "revealOffset": 8000,
     "gasPrice": "3000000000000",
@@ -17,13 +17,25 @@
             "name": "XRP",
             "url": "https://xrplcluster.com",
             "username": "",
-            "password": ""
+            "password": "",
+            "metaData": {
+                "requiredBlocks" : 1
+            }
         },
         {
             "name": "BTC",
-            "url": "https://testnode2.c.aflabs.net/btc/",
-            "username": "rpcuser",
-            "password": "rpcpass",
+            "url": "https://bitcoin.flare.network/",
+            "username": "flareadmin",
+            "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
+            "metaData": {
+                "requiredBlocks" : 6
+            }
+        },
+        {
+            "name": "LTC",
+            "url": "https://litecoin.flare.network/",
+            "username": "flareadmin",
+            "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
             "metaData": {
                 "requiredBlocks" : 6
             }

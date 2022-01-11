@@ -426,7 +426,7 @@ export class UtxoCore {
       // delivered: toBN(Math.round(request.transaction.vout[toNumber(request.utxo!)!].value * 100000000)),
       fee: totalInFunds.sub(totalOutFunds),
       dataAvailabilityProof,
-      status: success
+      status: success,
     } as AdditionalTransactionDetails;
     return result;
   }

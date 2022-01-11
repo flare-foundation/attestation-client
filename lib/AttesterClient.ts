@@ -10,6 +10,7 @@ import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getGlobalLogger as getGlobalLogger } from "./logger";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
+import { ATT_BITS } from "./MCC/tx-normalize";
 import { partBNbe, toBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
 
@@ -163,7 +164,7 @@ export class AttesterClient {
 
       const instBN = toBN(instruction);
 
-      const attestationType: BN = partBNbe(instBN, 0, 16);
+      const attestationType: BN = partBNbe(instBN, 0, ATT_BITS);
 
       // attestation info
       const tx = new AttestationData();

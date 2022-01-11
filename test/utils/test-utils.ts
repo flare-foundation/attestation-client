@@ -15,7 +15,7 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
         txData!.chainId,
         txData!.blockNumber,
         txData!.txId,
-        txData!.inUtxo,
+        txData!.utxo || toBN(0),
         web3.utils.soliditySha3(txData!.sourceAddresses as string)!,
         web3.utils.soliditySha3(txData!.destinationAddresses as string)!,
         txData!.destinationTag!,
@@ -50,7 +50,7 @@ export function verifyReceiptAgainstTemplate(receipt: any, template: Transaction
   let parsedEvents = events.map((x: AttestationRequest) => attReqToTransactionAttestationRequest(x))
   assert(parsedEvents.length === 1);
   let eventRequest = parsedEvents[0];
-  assert((eventRequest.blockNumber as BN).eq(toBN(template.blockNumber as number)), "Block number does not match");
+  // assert((eventRequest.blockNumber as BN).eq(toBN(template.blockNumber as number)), "Block number does not match");
   assert((eventRequest.chainId as BN).eq(toBN(template.chainId as number)), "Chain id  does not match");
   assert(eventRequest.attestationType === template.attestationType, "Attestation type does not match");
   return eventRequest;

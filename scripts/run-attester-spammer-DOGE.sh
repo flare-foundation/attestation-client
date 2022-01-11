@@ -5,16 +5,17 @@ CONFIG_PATH=${1:-./configs/config.json}
 # yarn tsc
 
 # Run DataProvider
-# node dist/scripts/attestation-spammer.js
+# node dist/scripts/attestation-spammer.js \
 yarn ts-node scripts/attestation-spammer.ts \
     -c DOGE \
-    -r http://127.0.0.1:8545 \
-    -k 0x87630b2d1de0fbd5044eb6891b3d9d98c34c8d310c852f98550ba774480e47cc \
+    -r http://127.0.0.1:9650/ext/bc/C/rpc \
     -a artifacts/contracts/StateConnector.sol/StateConnector.json \
-    -t 0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F \
-    -u https://testnode2.c.aflabs.net/doge/ \
-    -s rpcuser \
-    -p rpcpass \
+    -t $(cat .stateconnector-address) \
+    -u https://dogecoin.flare.network/ \
+    -s flareadmin \
+    -p mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4= \
+    -b 300 \
+    -o 10 \
     -f 6 \
     -w 1000 \
     -d 500 \

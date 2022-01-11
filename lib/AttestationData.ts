@@ -1,9 +1,8 @@
 import BN from "bn.js";
-import { TransactionAttestationRequest } from "./MCC/tx-normalize";
 
 export enum AttestationType {
-  FassetPaymentProof = 0,
-  BalanceDecreasingProof = 1,
+  FassetPaymentProof = 1,
+  BalanceDecreasingProof = 2,
 }
 
 export interface AttestationRequest {

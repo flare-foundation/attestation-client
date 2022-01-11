@@ -40,7 +40,6 @@ describe(`Test`, async () => {
       instructions: toBN(0),
       id: prefix0x(TEST_TX_ID),
       dataAvailabilityProof: DATA_AVAILABILITY_PROOF,
-      dataHash: "0x0",
       chainId: ChainType.XRP,
       blockNumber: BLOCK_NUMBER
     } as TransactionAttestationRequest;
@@ -80,7 +79,7 @@ describe(`Test`, async () => {
           for (let attType of ATTESTATION_TYPES) {
             let tr = {
               id: prefix0x((tx as any).hash),
-              dataHash: web3.utils.soliditySha3((tx as Payment).Account),  // for decreasing balance
+              // dataHash: web3.utils.soliditySha3((tx as Payment).Account),  // for decreasing balance
               dataAvailabilityProof: prefix0x(nextBlock.result.ledger_hash),
               blockNumber: i,
               chainId: ChainType.XRP,
@@ -100,6 +99,7 @@ describe(`Test`, async () => {
             // verify
             let txData = await verifyTransactionAttestation(client.chainClient, eventRequest)
             assert(txData.verificationStatus === VerificationStatus.OK, `Incorrect verification status ${txData.verificationStatus}`)
+
             let hash = transactionHash(web3, txData!);
             let res = testHashOnContract(txData!, hash!);
             assert(res);

@@ -244,7 +244,6 @@ class AttestationSpammer {
           let attType = AttestationType.FassetPaymentProof;
           let tr = {
             id: tx,
-            dataHash: "0x0",
             dataAvailabilityProof: this.client.getBlockHash(confirmationBlock),
             blockNumber: selectedBlock,
             chainId: this.chainType,

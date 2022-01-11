@@ -1,7 +1,6 @@
-import { Console } from "console";
 import { LedgerRequest, LedgerResponse, Payment, TransactionMetadata, TxResponse } from "xrpl";
 import { prefix0x, toBN } from "../../utils";
-import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, RPCInterface } from "../RPCtypes";
+import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, RPCInterface, TransactionSuccessStatus } from "../RPCtypes";
 import { verifyXRPPayment } from "../tx-normalize";
 import { xrp_ensure_data } from "../utils";
 
@@ -116,32 +115,52 @@ export class XRPImplementation implements RPCInterface {
   }
 
   async getAdditionalTransactionDetails(request: AdditionalTxRequest) {
-    try {
-      let blockNumber = request.transaction.result.ledger_index || 0;
-      const blockResponse = (await this.getBlock(blockNumber)) as LedgerResponse;
-      let metaData: TransactionMetadata = request.transaction.result.meta || (request.transaction.result as any).metaData;
-      let delivered = toBN(metaData.delivered_amount as string); // XRP in drops
+    let blockNumber = request.transaction.result.ledger_index || 0;
+    const blockResponse = (await this.getBlock(blockNumber)) as LedgerResponse;
+    let metaData: TransactionMetadata = request.transaction.result.meta || (request.transaction.result as any).metaData;
+    let transaction = request.transaction as TxResponse;
+    let fee = toBN(request.transaction.result.Fee!);
 
-      let confirmationBlockIndex = blockNumber + request.confirmations;
-      let confirmationBlock = await this.getBlock(confirmationBlockIndex);
-      let fee = toBN(request.transaction.result.Fee!);
+    let confirmationBlockIndex = blockNumber + request.confirmations;
+    let confirmationBlock = await this.getBlock(confirmationBlockIndex);
+
+    // TODO: Check transaction status!!!
+    let status = TransactionSuccessStatus.SUCCESS;
+    if ((request.transaction as TxResponse).result.TransactionType != "Payment") {
       return {
+        transaction: request.transaction,
         blockNumber: toBN(blockNumber),
         blockHash: blockResponse.result.ledger_hash,
         txId: prefix0x(request.transaction.result.hash),
-        sourceAddresses: request.transaction.result.Account,
-        destinationAddresses: (request.transaction.result as Payment).Destination,
-        destinationTag: toBN((request.transaction.result as Payment).DestinationTag || 0),
-        spent: toBN((request.transaction.result as Payment).Amount as any).add(fee), // should be string or number
-        delivered: delivered,
+        sourceAddresses: transaction.result.Account,
+        destinationAddresses: "",
+        destinationTag: toBN(0),
+        spent: toBN(0), // should be string or number
+        delivered: toBN(0),
         fee,
         dataAvailabilityProof: prefix0x(confirmationBlock.result.ledger_hash),
+        status
       } as AdditionalTransactionDetails;
-    } catch (error) {
-      console.log(error);
 
-      return {} as AdditionalTransactionDetails;
     }
+
+    // Transaction is Payment
+    let delivered = toBN(metaData.delivered_amount as string); // XRP in drops
+    
+    return {
+      transaction: request.transaction,
+      blockNumber: toBN(blockNumber),
+      blockHash: blockResponse.result.ledger_hash,
+      txId: prefix0x(request.transaction.result.hash),
+      sourceAddresses: request.transaction.result.Account,
+      destinationAddresses: (request.transaction.result as Payment).Destination,
+      destinationTag: toBN((request.transaction.result as Payment).DestinationTag || 0),
+      spent: toBN((request.transaction.result as Payment).Amount as any).add(fee), // should be string or number
+      delivered: delivered,
+      fee,
+      dataAvailabilityProof: prefix0x(confirmationBlock.result.ledger_hash),
+      status
+    } as AdditionalTransactionDetails;
   }
 
   getTransactionHashesFromBlock(block: LedgerResponse): string[] {

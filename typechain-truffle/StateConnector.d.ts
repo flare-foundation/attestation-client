@@ -16,13 +16,11 @@ export interface AttestationRequest {
     timestamp: BN;
     instructions: BN;
     id: string;
-    dataHash: string;
     dataAvailabilityProof: string;
     0: BN;
     1: BN;
     2: string;
     3: string;
-    4: string;
   };
 }
 
@@ -77,28 +75,24 @@ export interface StateConnectorInstance extends Truffle.ContractInstance {
   requestAttestations: {
     (
       instructions: number | BN | string,
-      dataHash: string,
       id: string,
       dataAvailabilityProof: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<Truffle.TransactionResponse<AllEvents>>;
     call(
       instructions: number | BN | string,
-      dataHash: string,
       id: string,
       dataAvailabilityProof: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<void>;
     sendTransaction(
       instructions: number | BN | string,
-      dataHash: string,
       id: string,
       dataAvailabilityProof: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
       instructions: number | BN | string,
-      dataHash: string,
       id: string,
       dataAvailabilityProof: string,
       txDetails?: Truffle.TransactionDetails
@@ -189,28 +183,24 @@ export interface StateConnectorInstance extends Truffle.ContractInstance {
     requestAttestations: {
       (
         instructions: number | BN | string,
-        dataHash: string,
         id: string,
         dataAvailabilityProof: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<Truffle.TransactionResponse<AllEvents>>;
       call(
         instructions: number | BN | string,
-        dataHash: string,
         id: string,
         dataAvailabilityProof: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<void>;
       sendTransaction(
         instructions: number | BN | string,
-        dataHash: string,
         id: string,
         dataAvailabilityProof: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<string>;
       estimateGas(
         instructions: number | BN | string,
-        dataHash: string,
         id: string,
         dataAvailabilityProof: string,
         txDetails?: Truffle.TransactionDetails

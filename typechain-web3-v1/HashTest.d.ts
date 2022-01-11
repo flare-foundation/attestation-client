@@ -34,7 +34,7 @@ export interface HashTest extends BaseContract {
       chainId: number | string | BN,
       blockNumber: number | string | BN,
       txId: string | number[],
-      sourceAddress: string,
+      sourceAddress: string | number[],
       spent: number | string | BN,
       hashToProve: string | number[]
     ): NonPayableTransactionObject<boolean>;
@@ -44,11 +44,14 @@ export interface HashTest extends BaseContract {
       chainId: number | string | BN,
       blockNumber: number | string | BN,
       txId: string | number[],
-      sourceAddress: string,
-      destinationAddress: string,
+      inUtxo: number | string | BN,
+      sourceAddress: string | number[],
+      destinationAddress: string | number[],
       destinationTag: number | string | BN,
       spent: number | string | BN,
       received: number | string | BN,
+      fee: number | string | BN,
+      status: number | string | BN,
       hashToProve: string | number[]
     ): NonPayableTransactionObject<boolean>;
 

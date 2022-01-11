@@ -1,3 +1,5 @@
+import BN from "bn.js";
+
 export interface vin_utxo {
   txid: string;
   vout: number;
@@ -9,7 +11,14 @@ export interface vout_utxo {
   amount?: number;
 }
 
+export enum TransactionSuccessStatus {
+  SUCCESS,
+  SENDER_FAILURE,
+  RECEIVER_FAILURE
+}
+
 export interface AdditionalTransactionDetails {
+  transaction: any,
   blockNumber: BN;
   blockHash: string;
   txId: string;
@@ -20,6 +29,7 @@ export interface AdditionalTransactionDetails {
   delivered: BN | BN[];
   fee: BN;
   dataAvailabilityProof: string;
+  status: TransactionSuccessStatus;
 }
 
 export interface AdditionalTxRequest {

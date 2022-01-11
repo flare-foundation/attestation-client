@@ -145,7 +145,6 @@ export class AttesterClient {
       //     uint256 timestamp,
       //     uint256 instructions,
       //     bytes32 id,
-      //     bytes32 dataHash,
       //     bytes32 dataAvailabilityProof
       // );
 
@@ -171,7 +170,6 @@ export class AttesterClient {
       tx.type = attestationType.toNumber() as AttestationType;
       tx.timeStamp = toBN(timeStamp);
       tx.id = id;
-      tx.dataHash = event.returnValues.dataHash;
       tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;
 
       // attestaion data (full instruction)

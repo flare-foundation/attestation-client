@@ -1,15 +1,14 @@
 import BN from "bn.js";
 
 export enum AttestationType {
-  FassetPaymentProof = 0,
-  BalanceDecreasingProof = 1,
+  FassetPaymentProof = 1,
+  BalanceDecreasingProof = 2,
 }
 
 export interface AttestationRequest {
   timestamp?: BN;
   instructions: BN;
   id: string;
-  dataHash: string;
   dataAvailabilityProof: string;
   attestationType?: AttestationType;
 }
@@ -19,7 +18,6 @@ export class AttestationData {
   type!: AttestationType;
   timeStamp!: BN;
   id!: string;
-  dataHash!: string;
   dataAvailabilityProof!: string;
 
   // block parameters
@@ -48,7 +46,6 @@ export class AttestationData {
       timestamp: this.timeStamp,
       instructions: this.instructions,
       id: this.id,
-      dataHash: this.dataHash,
       dataAvailabilityProof: this.dataAvailabilityProof,
       attestationType: this.type,
     };

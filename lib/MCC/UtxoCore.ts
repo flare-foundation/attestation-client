@@ -1,5 +1,5 @@
 import { prefix0x, toBN } from "../utils";
-import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, vin_utxo, vout_utxo } from "./RPCtypes";
+import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, TransactionSuccessStatus, vin_utxo, vout_utxo } from "./RPCtypes";
 import { ensure_data, sleep } from "./utils";
 import BN from "bn.js";
 
@@ -408,7 +408,11 @@ export class UtxoCore {
       throw new Error("Destination addresses length and outFunds length do not match!");
     }
 
+    // TODO check success
+    let success = TransactionSuccessStatus.SUCCESS;
+
     let result = {
+      transaction: request.transaction,
       blockNumber: toBN(blockResponse.height || 0),
       blockHash: blockResponse.hash,
       txId: prefix0x(request.transaction.txid),
@@ -422,6 +426,7 @@ export class UtxoCore {
       // delivered: toBN(Math.round(request.transaction.vout[toNumber(request.utxo!)!].value * 100000000)),
       fee: totalInFunds.sub(totalOutFunds),
       dataAvailabilityProof,
+      status: success
     } as AdditionalTransactionDetails;
     return result;
   }

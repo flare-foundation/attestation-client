@@ -15,8 +15,12 @@ export enum VerificationStatus {
   NOT_CONFIRMED = "NOT_CONFIRMED",
   NOT_SINGLE_SOURCE_ADDRESS = "NOT_SINGLE_SOURCE_ADDRESS",
   NOT_SINGLE_DESTINATION_ADDRESS = "NOT_SINGLE_DESTINATION_ADDRESS",
-  MISSING_SOURCE_ADDRESS_HASH = "MISSING_SOURCE_ADDRESS_HASH",
-  SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",
+  UNSUPPORTED_SOURCE_ADDRESS = "UNSUPPORTED_SOURCE_ADDRESS",
+  WRONG_IN_UTXO = "WRONG_IN_UTXO",
+  MISSING_IN_UTXO = "MISSING_IN_UTXO",
+  EMPTY_IN_ADDRESS = "EMPTY_IN_ADDRESS",
+  // MISSING_SOURCE_ADDRESS_HASH = "MISSING_SOURCE_ADDRESS_HASH",
+  // SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",
   INSTRUCTIONS_DO_NOT_MATCH = "INSTRUCTIONS_DO_NOT_MATCH",
   WRONG_DATA_AVAILABILITY_PROOF = "WRONG_DATA_AVAILABILITY_PROOF",
   DATA_AVAILABILITY_PROOF_REQUIRED = "DATA_AVAILABILITY_PROOF_REQUIRED",
@@ -25,7 +29,9 @@ export enum VerificationStatus {
   FORBIDDEN_SELF_SENDING = "FORBIDDEN_SELF_SENDING",
   FUNDS_UNCHANGED = "FUNDS_UNCHANGED",
   FUNDS_INCREASED = "FUNDS_INCREASED",
-  COINBASE_TRANSACTION = "COINBASE_TRANSACTION",
+  // COINBASE_TRANSACTION = "COINBASE_TRANSACTION",
+  UNSUPPORTED_TX_TYPE = "UNSUPPORTED_TX_TYPE"
+
 }
 
 export interface NormalizedTransactionData extends AdditionalTransactionDetails {
@@ -33,6 +39,7 @@ export interface NormalizedTransactionData extends AdditionalTransactionDetails 
   chainId: BN;
   verified: boolean;
   verificationStatus: VerificationStatus;
+  utxo?: BN;
 }
 
 // export interface TransactionData extends NormalizedTransactionData{
@@ -43,7 +50,6 @@ export interface AttestationRequest {
   timestamp?: BN;
   instructions: BN;
   id: string;
-  dataHash: string;
   dataAvailabilityProof: string;
   attestationType?: AttestationType;
 }
@@ -126,29 +132,41 @@ export function verifyXRPPayment(transaction: any): boolean {
 // export const TX_ATT_REQ_SIZES = [16, 32, 64, 16, 128];
 // export const TX_ATT_REQ_KEYS = ["attestationType", "chainId", "blockNumber", "utxo", ""];
 
+const ATT_BITS = 32;
+const CHAIN_ID_BITS = 32;
+const UTXO_BITS = 8;
+
 export function attestationTypeEncodingScheme(type: AttestationType) {
   switch (type) {
     case AttestationType.FassetPaymentProof:
       return {
-        sizes: [16, 32, 64, 144],
-        keys: ["attestationType", "chainId", "blockNumber", ""],
+        sizes: [ATT_BITS, CHAIN_ID_BITS, UTXO_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - UTXO_BITS],
+        keys: ["attestationType", "chainId", "utxo", ""],
         hashTypes: [
           "uint32", // type
           "uint64", // chainId
           "uint64", // blockNumber
           "bytes32", // txId
+          "uint8", // utxo
           "string", // sourceAddress
           "string", // destinationAddress
           "uint256", // destinationTag
           "uint256", // spent
           "uint256", // delivered
+          "uint256", // fee
+          "uint8" // status
         ],
-        hashKeys: ["attestationType", "chainId", "blockNumber", "txId", "sourceAddresses", "destinationAddresses", "destinationTag", "spent", "delivered"],
+        hashKeys: [
+          "attestationType", "chainId", "blockNumber", 
+          "txId", "utxo", "sourceAddresses", 
+          "destinationAddresses", "destinationTag", "spent", 
+          "delivered", "fee", "status"
+        ],
       };
     case AttestationType.BalanceDecreasingProof:
       return {
-        sizes: [16, 32, 64, 144],
-        keys: ["attestationType", "chainId", "blockNumber", ""],
+        sizes: [ATT_BITS, CHAIN_ID_BITS, UTXO_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - UTXO_BITS],
+        keys: ["attestationType", "chainId", "utxo", ""],
         hashTypes: [
           "uint32", // type
           "uint64", // chainId
@@ -175,13 +193,12 @@ export function txAttReqToAttestationRequest(request: TransactionAttestationRequ
       utxo: request.utxo === undefined ? undefined : toBN(request.utxo),
     }),
     id: request.id,
-    dataHash: request.dataHash || "0x0",
     dataAvailabilityProof: request.dataAvailabilityProof,
   } as AttestationRequest;
 }
 
 function getAttestationTypeFromInstructions(request: AttestationRequest): AttestationType {
-  let typeData = decodeUint256(request.instructions, [16, 240], ["attestationType", ""]);
+  let typeData = decodeUint256(request.instructions, [ATT_BITS, 256 - ATT_BITS], ["attestationType", ""]);
   return typeData.attestationType.toNumber() as AttestationType;
 }
 
@@ -206,7 +223,6 @@ export function extractAttEvents(eventLogs: any[]) {
       timestamp: log.args.timestamp,
       instructions: log.args.instructions,
       id: log.args.id,
-      dataHash: log.args.dataHash,
       dataAvailabilityProof: log.args.dataAvailabilityProof,
     });
   }
@@ -272,6 +288,8 @@ export function decodeUint256(encoding: BN, sizes: number[], keys: string[]) {
 export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
   let scheme = attestationTypeEncodingScheme(txData.attestationType!);
   let values = scheme.hashKeys.map((key) => (txData as any)[key]);
+  // prettyPrint(scheme)
+  // prettyPrint(values)
   const encoded = web3.eth.abi.encodeParameters(scheme.hashTypes, values);
   return web3.utils.soliditySha3(encoded);
 }
@@ -358,6 +376,7 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
       attestationType: attRequest.attestationType!,
       ...additionalData,
       verificationStatus,
+      utxo: attRequest.utxo
     } as NormalizedTransactionData;
   }
 
@@ -368,33 +387,33 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
   }
 
   // check against instructions
-  if (!instructionsCheck(additionalData, attRequest)) {
-    return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // if (!instructionsCheck(additionalData, attRequest)) {
+  //   return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // }
+
+  let transaction = additionalData.transaction as TxResponse;
+  ///// Specific checks for attestation types
+
+  // FassetPaymentProof checks
+  if (attRequest.attestationType === AttestationType.FassetPaymentProof) {
+    if (transaction.result.TransactionType != "Payment") {
+      return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_TX_TYPE);
+    }
+    if(transaction.result.Account === transaction.result.Destination) {
+      return genericReturnWithStatus(VerificationStatus.FORBIDDEN_SELF_SENDING);
+    }
+    return genericReturnWithStatus(VerificationStatus.OK);
   }
 
-  ///// Specific checks for attestation types
   // BalanceDecreasingProof checks
   if (attRequest.attestationType === AttestationType.BalanceDecreasingProof) {
-    let sourceAddress = additionalData.sourceAddresses;
-    if (typeof sourceAddress !== "string") {
-      return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS);
-    }
-    if (!attRequest.dataHash) {
-      return genericReturnWithStatus(VerificationStatus.MISSING_SOURCE_ADDRESS_HASH);
-    }
-    if (Web3.utils.soliditySha3(sourceAddress) != attRequest.dataHash) {
-      return genericReturnWithStatus(VerificationStatus.SOURCE_ADDRESS_DOES_NOT_MATCH);
-    }
     return genericReturnWithStatus(VerificationStatus.OK);
   }
-  // BalanceDecreasingProof checks
-  if (attRequest.attestationType === AttestationType.FassetPaymentProof) {
-    return genericReturnWithStatus(VerificationStatus.OK);
-  }
+
   throw new Error(`Wrong or missing attestation type: ${attRequest.attestationType}`);
 }
 
-function checkAndAggregateOneToOnePaymentUtxo(
+function checkAndAggregateToOnePaymentUtxo(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest
 ): NormalizedTransactionData {
@@ -404,34 +423,55 @@ function checkAndAggregateOneToOnePaymentUtxo(
       attestationType: attRequest.attestationType!,
       ...additionalData,
       verificationStatus,
+      utxo: attRequest.utxo
     } as NormalizedTransactionData;
   }
 
   // check against instructions
-  if (!instructionsCheck(additionalData, attRequest)) {
-    return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // if (!instructionsCheck(additionalData, attRequest)) {
+  //   return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // }
+
+  // Extract source address
+  if (attRequest.utxo === undefined) {
+    return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
   }
 
-  let sources = new Set<string>();
-  for (let source of additionalData.sourceAddresses) {
-    if (source.length > 1) {
-      return genericReturnWithStatus(VerificationStatus.FORBIDDEN_MULTISIG_SOURCE);
-    }
-    sources.add(source[0]);
+  let inUtxo = toNumber(attRequest.utxo)!;
+  if (inUtxo < 0 || inUtxo >= additionalData.sourceAddresses.length) {
+    return genericReturnWithStatus(VerificationStatus.WRONG_IN_UTXO);
   }
-  if (sources.size != 1) {
-    return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS);
+  let sourceCandidates = additionalData.sourceAddresses[inUtxo!];
+  // TODO: handle multisig
+  if (sourceCandidates.length != 1) {
+    return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
   }
-  let theSource = [...sources][0];
-  if (theSource === "") {
-    // coinbase transaction
-    return genericReturnWithStatus(VerificationStatus.COINBASE_TRANSACTION);
+
+  let theSource = sourceCandidates[0];
+  if(theSource === '') {
+    // console.log(additionalData.sourceAddresses[inUtxo])
+    return genericReturnWithStatus(VerificationStatus.EMPTY_IN_ADDRESS);
   }
   let inFunds = toBN(0);
+  // Calculate in funds
+  for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
+    let sources = additionalData.sourceAddresses[i];
+    // TODO: Handle multisig addresses
+    if (sources.length != 1) {
+      continue;
+    }
+    let aSource = sources[0];
+    if (aSource === theSource) {
+      inFunds = inFunds.add((additionalData.spent as BN[])[i]);
+    }
+  }
+
+  // Calculate total input funds
+  let totalInFunds = toBN(0);
   (additionalData.spent as BN[]).forEach((value) => {
-    inFunds = inFunds.add(value);
+    totalInFunds = totalInFunds.add(value);
   });
-  //////
+
   let destinations = new Set<string>();
   for (let destination of additionalData.destinationAddresses) {
     if (!destination || destination.length === 0) {
@@ -477,7 +517,7 @@ function checkAndAggregateOneToOnePaymentUtxo(
     destinationAddresses: theDestination,
     spent: inFunds.sub(returnedFunds),
     delivered: totalOutFunds.sub(returnedFunds),
-    fee: inFunds.sub(totalOutFunds),
+    fee: totalInFunds.sub(totalOutFunds),
   } as AdditionalTransactionDetails;
 
   function newGenericReturnWithStatus(verificationStatus: VerificationStatus) {
@@ -486,7 +526,16 @@ function checkAndAggregateOneToOnePaymentUtxo(
       attestationType: attRequest.attestationType!,
       ...newAdditionalData,
       verificationStatus,
+      utxo: attRequest.utxo
     } as NormalizedTransactionData;
+  }
+
+  // Check that net spent amount must be > 0
+  if (returnedFunds.eq(inFunds)) {
+    return genericReturnWithStatus(VerificationStatus.FUNDS_UNCHANGED);
+  }
+  if (returnedFunds.gt(inFunds)) {
+    return genericReturnWithStatus(VerificationStatus.FUNDS_INCREASED);
   }
 
   // check confirmations
@@ -505,18 +554,36 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
       attestationType: attRequest.attestationType!,
       ...additionalData,
       verificationStatus,
+      utxo: attRequest.utxo
     } as NormalizedTransactionData;
   }
 
   // check against instructions
-  if (!instructionsCheck(additionalData, attRequest)) {
-    return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
-  }
+  // if (!instructionsCheck(additionalData, attRequest)) {
+  //   return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // }
 
   // find matching address and calculate funds taken from it
   let sourceIndices: number[] = [];
   let theSource: string | undefined;
   let inFunds = toBN(0);
+
+  if (attRequest.utxo === undefined) {
+    return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
+  }
+  let inUtxo = toNumber(attRequest.utxo)!;
+  if (inUtxo < 0 || inUtxo >= additionalData.sourceAddresses.length) {
+    return genericReturnWithStatus(VerificationStatus.WRONG_IN_UTXO);
+  }
+  let sourceCandidates = additionalData.sourceAddresses[inUtxo!];
+  // TODO: handle multisig
+  if (sourceCandidates.length != 1) {
+    return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
+  }
+
+  theSource = sourceCandidates[0];
+
+  // Calculate in funds
   for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
     let sources = additionalData.sourceAddresses[i];
     // TODO: Handle multisig addresses
@@ -524,14 +591,10 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
       continue;
     }
     let aSource = sources[0];
-    if (Web3.utils.soliditySha3(aSource) === attRequest.dataHash) {
-      theSource = aSource;
+    if (aSource === theSource) {
       sourceIndices.push(i);
       inFunds = inFunds.add((additionalData.spent as BN[])[i]);
     }
-  }
-  if (sourceIndices.length === 0) {
-    return genericReturnWithStatus(VerificationStatus.SOURCE_ADDRESS_DOES_NOT_MATCH);
   }
 
   // calculate returned funds
@@ -542,11 +605,12 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
     if (destination.length != 1) {
       continue;
     }
-    if (Web3.utils.soliditySha3(destination[0]) === attRequest.dataHash) {
+    if (destination[0] === theSource) {
       let destDelivered = (additionalData.delivered as BN[])[i];
       returnedFunds = returnedFunds.add(destDelivered);
     }
   }
+
   if (returnedFunds.eq(inFunds)) {
     return genericReturnWithStatus(VerificationStatus.FUNDS_UNCHANGED);
   }
@@ -566,6 +630,7 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
       attestationType: attRequest.attestationType!,
       ...newAdditionalData,
       verificationStatus,
+      utxo: attRequest.utxo
     } as NormalizedTransactionData;
   }
 
@@ -581,7 +646,7 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
 function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
   switch (attRequest.attestationType) {
     case AttestationType.FassetPaymentProof:
-      return checkAndAggregateOneToOnePaymentUtxo(additionalData, attRequest);
+      return checkAndAggregateToOnePaymentUtxo(additionalData, attRequest);
     case AttestationType.BalanceDecreasingProof:
       return checkAndAggregateDecreaseBalancePaymentUtxo(additionalData, attRequest);
     default:
@@ -599,17 +664,24 @@ async function verififyAttestationUtxo(client: RPCInterface, attRequest: Transac
     });
     return checkAndAggregateUtxo(additionalData, attRequest);
   } catch (error) {
+    // TODO: handle error
     console.log(error);
     return {} as any;
   }
 }
 
 async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest) {
-  let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id))) as TxResponse;
-  let additionalData = await client.getAdditionalTransactionDetails({
-    transaction: txResponse,
-    confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-    dataAvailabilityProof: attRequest.dataAvailabilityProof,
-  });
-  return checkAndAggregateXRP(additionalData, attRequest);
+  try {
+    let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id))) as TxResponse;
+    let additionalData = await client.getAdditionalTransactionDetails({
+      transaction: txResponse,
+      confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
+      dataAvailabilityProof: attRequest.dataAvailabilityProof,
+    });
+    return checkAndAggregateXRP(additionalData, attRequest);
+  } catch (error) {
+    // TODO: handle error
+    console.log(error);
+    return {} as any;
+  }
 }

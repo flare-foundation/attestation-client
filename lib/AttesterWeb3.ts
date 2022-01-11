@@ -29,11 +29,7 @@ export class AttesterWeb3 {
   async submitAttestation(action: string, bufferNumber: BN, maskedMerkleHash: BN, committedRandom: BN, revealedRandom: BN) {
     let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, toHex(maskedMerkleHash), toHex(committedRandom), toHex(revealedRandom));
 
-    const receipt = await this.web3Functions.signAndFinalize3(`${action}Attestation`, this.stateConnector.options.address, fnToEncode);
-
-    if (receipt) {
-      this.logger.warning(`   * attestation ${action}`);
-    }
+    const receipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode);
 
     return receipt;
   }

@@ -10,8 +10,8 @@ export class EpochSettings {
 
   // all values are in seconds
   constructor(_firstEpochStartTime: BN, _epochPeriod: BN) {
-    this._firstEpochStartTime = _firstEpochStartTime;
-    this._epochPeriod = _epochPeriod;
+    this._firstEpochStartTime = _firstEpochStartTime.mul(toBN(1000));
+    this._epochPeriod = _epochPeriod.mul(toBN(1000));
   }
 
   getEpochLength(): BN {
@@ -27,22 +27,32 @@ export class EpochSettings {
     return this.getEpochIdForTime(toBN(getTimeSec()));
   }
 
-  // in seconds
-  getEpochTimeEnd(): BN {
-    const id: BN = this.getCurrentEpochId().add(toBN(1)).add(this._firstEpochId);
-    return this._firstEpochStartTime.add(id.mul(this._epochPeriod));
+  // // in seconds
+  // getEpochTimeStart(): BN {
+  //   const id: BN = this.getCurrentEpochId().add(toBN(1)).add(this._firstEpochId);
+  //   return this._firstEpochStartTime.add(id.mul(this._epochPeriod));
+  // }
+
+  // // in seconds
+  // getEpochTimeEnd(): BN {
+  //   return this.getEpochTimeStart().add(this._epochPeriod);
+  // }
+
+  // in milliseconds
+  getEpochIdTimeStart(id: BN | number): number {
+    return this._firstEpochStartTime.add(toBN(id).mul(this._epochPeriod)).toNumber(); // + this._epochPeriod.toNumber();
   }
 
-  // in seconds
+  // in milliseconds
   getEpochIdTimeEnd(id: BN | number): number {
-    return this._firstEpochStartTime.add(toBN(id).mul(this._epochPeriod)).toNumber();
+    return this.getEpochIdTimeStart(id) + this._epochPeriod.toNumber();
   }
 
-  // in seconds
+  // in milliseconds
   getEpochIdCommitTimeEnd(id: number): number {
     return this.getEpochIdTimeEnd(id) + this._epochPeriod.toNumber();
   }
-  // in seconds
+  // in milliseconds
   getEpochIdRevealTimeEnd(id: number): number {
     return this.getEpochIdTimeEnd(id) + this._epochPeriod.toNumber() * 2;
   }

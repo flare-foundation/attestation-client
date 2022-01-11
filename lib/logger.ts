@@ -51,7 +51,7 @@ class ColorConsole extends Transport {
         color = FgYellow;
         break;
       case "debug":
-        color = FgGreen;
+        color = FgBlue;
         break;
     }
 

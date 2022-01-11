@@ -9,10 +9,14 @@ export class AttesterClientConfiguration {
 
   public gasPrice!: string;
 
+  // start epoch in sec
   public firstEpochStartTime!: number;
+  // epoch perior in sec
   public epochPeriod!: number;
 
+  // in sec
   public commitTime!: number;
+  // in sec
   public revealTime!: number;
 
   public epoch!: number;

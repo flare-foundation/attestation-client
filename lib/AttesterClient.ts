@@ -45,8 +45,8 @@ export class AttesterClient {
     await this.initializeConfiguration();
 
     // initialize time and local time difference
-    const times = await getInternetTime();
-    this.logger.info(` * Internet time sync ${times[0] - times[1]}s`);
+    //const times = await getInternetTime();
+    //this.logger.info(` * Internet time sync ${times[0] - times[1]}s`);
 
     // validate configuration chains and create nodes
     await this.initializeChains();

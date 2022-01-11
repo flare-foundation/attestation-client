@@ -48,7 +48,7 @@ export class Web3Functions {
     const time0 = getTimeMilli();
 
     if (waitIndex !== this.currentIndex) {
-      this.logger.info(`   # ${label} wait #${waitIndex}/${this.currentIndex}`);
+      this.logger.debug(`   # ${label} wait #${waitIndex}/${this.currentIndex}`);
 
       while (waitIndex !== this.currentIndex) {
         await sleepms(100);

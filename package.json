@@ -39,8 +39,10 @@
     "docker-build": "bash scripts/docker-build.sh",
     "docker-deploy": "bash scripts/docker-deploy.sh",
     "prewatch-and-run": "npm-run-all lint typechain-web3-v1",
-    "watch-and-run": "ts-node-dev --notify --respawn -- lib/AttesterClient.ts -c configs/config.json",
+    "watch-and-run": "ts-node-dev --notify --respawn -- lib/runAttesterClient.ts -c configs/config.json",
+    "watch-and-run-multi": "ts-node-dev --notify --respawn -- lib/testMultiAttesterClients.ts -c configs/config.json -m configs/config.multitest.json -n 5",
     "dev": "DOTENV=DEV yarn watch-and-run",
+    "devmulti": "DOTENV=DEV yarn watch-and-run-multi",
     "test": "DOTENV=DEV tsdx test --env=node",
     "testdebug": "DOTENV=DEV tsdx test --env=node test/MerkleTree.test.ts",
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local"

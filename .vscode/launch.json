@@ -15,6 +15,20 @@
                 "dev"
             ]
         },
+
+        
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch dev multi",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devmulti"
+            ]
+        },
+
+        
         {
             "type": "node",
             "request": "launch",

@@ -1,39 +1,30 @@
 import BN from "bn.js";
-import * as fs from "fs";
 import { Logger } from "winston";
-import yargs from "yargs";
 import { AttestationData, AttestationType } from "./AttestationData";
 import { Attester } from "./Attester";
+import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
 import { ChainNode } from "./ChainNode";
-import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getInternetTime } from "./internetTime";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { getLogger, getUnixEpochTimestamp, partBNbe, toBN } from "./utils";
+import { partBNbe, toBN } from "./utils";
+import { getLogger } from "./logger";
 import { Web3BlockCollector } from "./Web3BlockCollector";
-
-// Args parsing
-const args = yargs.option("config", {
-  alias: "c",
-  type: "string",
-  description: "Path to config json file",
-  default: "./config.json",
-  demand: true,
-}).argv;
 
 export class AttesterClient {
   conf: AttesterClientConfiguration;
-  logger: Logger = getLogger();
-
+  logger: Logger;
   attester: Attester;
   attesterWeb3: AttesterWeb3;
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
 
+  // todo: add option to have log name (for multi attester client)
   constructor(configuration: AttesterClientConfiguration) {
+    this.logger = getLogger();
     this.conf = configuration;
     this.chainManager = new ChainManager(this.logger);
     this.attesterWeb3 = new AttesterWeb3(this.logger, this.conf);
@@ -54,8 +45,8 @@ export class AttesterClient {
     await this.initializeConfiguration();
 
     // initialize time and local time difference
-    const times = await getInternetTime();
-    this.logger.info(` * Internet time sync ${times[0] - times[1]}s`);
+    //const times = await getInternetTime();
+    //this.logger.info(` * Internet time sync ${times[0] - times[1]}s`);
 
     // validate configuration chains and create nodes
     await this.initializeChains();
@@ -96,7 +87,7 @@ export class AttesterClient {
     this.logger.info(`   * Network RPC URL from conf '${this.conf.rpcUrl}'`);
 
     if (accountPrivateKey === "" || accountPrivateKey === undefined) {
-      this.logger.info(`   ! ERROR: private key not set`);
+      this.logger.error(`   ! ERROR: private key not set`);
     }
   }
 
@@ -107,7 +98,7 @@ export class AttesterClient {
       const chainType = MCCNodeSettings.getChainType(chain.name);
 
       if (chainType === ChainType.invalid) {
-        this.logger.error(`   # '${chain.name}': undefined chain`);
+        this.logger.debug(`   # '${chain.name}': undefined chain`);
         continue;
       }
 
@@ -128,7 +119,7 @@ export class AttesterClient {
       // validate this chain node
       if (!(await node.isHealthy())) {
         // this is just a warning since node can be inaccessible at start and will become healthy later on
-        this.logger.info(`      ! chain ${chain.name}:#${chainType} is not healthy`);
+        this.logger.error(`      ! chain ${chain.name}:#${chainType} is not healthy`);
         continue;
       }
 
@@ -174,9 +165,7 @@ export class AttesterClient {
       // attestation info
       const tx = new AttestationData();
       tx.type = attestationType.toNumber() as AttestationType;
-      // !!!!!!
       tx.timeStamp = toBN(timeStamp);
-      //tx.timeStamp = toBN(getUnixEpochTimestamp());
       tx.id = id;
       tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;
 
@@ -192,11 +181,3 @@ export class AttesterClient {
     }
   }
 }
-
-// Reading configuration
-// const conf: DataProviderConfiguration = JSON.parse( fs.readFileSync( (args as any).config ).toString() ) as DataProviderConfiguration;
-const conf: AttesterClientConfiguration = JSON.parse(fs.readFileSync("configs/config.json").toString()) as AttesterClientConfiguration;
-
-const attesterClient = new AttesterClient(conf);
-
-attesterClient.start();

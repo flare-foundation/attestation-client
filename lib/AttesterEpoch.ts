@@ -5,7 +5,7 @@ import { Attestation, AttestationStatus } from "./Attestation";
 import { Attester } from "./Attester";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { Hash } from "./Hash";
-import { getTimeSec } from "./internetTime";
+import { getTimeMilli } from "./internetTime";
 import { MerkleTree } from "./MerkleTree";
 import { getRandom, toBN } from "./utils";
 
@@ -18,8 +18,10 @@ export enum AttesterEpochStatus {
 
 export enum AttestStatus {
   collecting,
+  commiting,
   comitted,
   revealed,
+  error,
 }
 
 export class AttesterEpoch {
@@ -40,7 +42,6 @@ export class AttesterEpoch {
     this.logger = logger;
     this.status = AttesterEpochStatus.collect;
     this.attestStatus = AttestStatus.collecting;
-    this.logger.info(` * AttestEpoch #${this.epochId} (0) collect`);
     this.attesterWeb3 = attesterWeb3;
   }
 
@@ -51,8 +52,8 @@ export class AttesterEpoch {
     this.attestations.push(attestation);
   }
 
-  startCommit() {
-    this.logger.info(` * AttestEpoch #${this.epochId} (1) commit`);
+  startCommitEpoch() {
+    this.logger.debug(` # AttestEpoch #${this.epochId} commit epoch started [1]`);
     this.status = AttesterEpochStatus.commit;
 
     // if all transactions are proccessed then commit
@@ -63,13 +64,13 @@ export class AttesterEpoch {
     }
   }
 
-  startReveal() {
-    this.logger.info(` * AttestEpoch #${this.epochId} (2) reveal`);
+  startRevealEpoch() {
+    this.logger.debug(` # AttestEpoch #${this.epochId} reveal epoch started [2]`);
     this.status = AttesterEpochStatus.reveal;
   }
 
   completed() {
-    this.logger.info(` * AttestEpoch #${this.epochId} completed`);
+    this.logger.debug(` # AttestEpoch #${this.epochId} completed`);
     this.status = AttesterEpochStatus.completed;
   }
 
@@ -103,8 +104,7 @@ export class AttesterEpoch {
       return;
     }
 
-    this.attestStatus = AttestStatus.comitted;
-    this.logger.info(` * AttestEpoch #${this.epochId} commited (${this.attestations.length} attestation(s))`);
+    this.attestStatus = AttestStatus.commiting;
 
     // collect validat attestations
     const validated = new Array<Attestation>();
@@ -116,9 +116,11 @@ export class AttesterEpoch {
 
     // check if there is any valid attestation
     if (validated.length === 0) {
-      this.logger.info(`  ! no valid attestations`);
+      this.logger.error(` ! AttestEpoch #${this.epochId} no valid attestation (${this.attestations.length} attestation(s))`);
       return;
     }
+
+    this.logger.info(` * AttestEpoch #${this.epochId} comitting (${validated.length}/${this.attestations.length} attestation(s))`);
 
     // sort valid attestations (blockNumber, transactionIndex, signature)
     validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));
@@ -141,20 +143,29 @@ export class AttesterEpoch {
     //
 
     // calculate remaining time in epoch
-
-    const now = getTimeSec();
+    const now = getTimeMilli();
     const epochCommitEndTime = Attester.epochSettings.getEpochIdCommitTimeEnd(this.epochId);
     const commitTimeLeft = epochCommitEndTime - now;
 
-    this.logger.info(`   # Commit time left ${commitTimeLeft}`);
+    this.logger.debug(`   # commitAttestation ${this.epochId} time left ${commitTimeLeft}ms`);
 
-    this.attesterWeb3.submitAttestation(
-      // commit index (collect+1)
-      toBN(this.epochId + 1),
-      toBN(this.hash).xor(toBN(this.random)),
-      toBN(Hash.create(this.random.toString())),
-      toBN(0)
-    );
+    this.attesterWeb3
+      .submitAttestation(
+        `commitAttestation ${this.epochId}`,
+        // commit index (collect+1)
+        toBN(this.epochId + 1),
+        toBN(this.hash).xor(toBN(this.random)),
+        toBN(Hash.create(this.random.toString())),
+        toBN(0)
+      )
+      .then((receit) => {
+        if (receit) {
+          this.logger.warning(`   * attestation ${this.epochId} commited`);
+          this.attestStatus = AttestStatus.comitted;
+        } else {
+          this.attestStatus = AttestStatus.error;
+        }
+      });
   }
 
   async reveal() {
@@ -169,14 +180,22 @@ export class AttesterEpoch {
 
     this.logger.info(` * AttestEpoch #${this.epochId} reveal`);
 
-    this.attesterWeb3.submitAttestation(
-      // commit index (collect+2)
-      toBN(this.epochId + 2),
-      toBN(0),
-      toBN(0),
-      this.random
-    );
-
-    this.attestStatus = AttestStatus.revealed;
+    this.attesterWeb3
+      .submitAttestation(
+        `revealAttestation ${this.epochId}`,
+        // commit index (collect+2)
+        toBN(this.epochId + 2),
+        toBN(0),
+        toBN(0),
+        this.random
+      )
+      .then((receit) => {
+        if (receit) {
+          this.logger.warning(`   * attestation ${this.epochId} revealed`);
+          this.attestStatus = AttestStatus.revealed;
+        } else {
+          this.attestStatus = AttestStatus.error;
+        }
+      });
   }
 }

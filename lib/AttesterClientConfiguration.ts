@@ -5,16 +5,18 @@ export class AttesterClientConfiguration {
   public rpcUrl!: string;
   public wsUrl!: string;
 
-  public stateConnectorContractAddress: string = "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F";
+  public stateConnectorContractAddress!: string;
 
   public gasPrice!: string;
-  public whitelist!: boolean;
-  public trusted!: boolean;
 
+  // start epoch in sec
   public firstEpochStartTime!: number;
+  // epoch perior in sec
   public epochPeriod!: number;
 
+  // in sec
   public commitTime!: number;
+  // in sec
   public revealTime!: number;
 
   public epoch!: number;

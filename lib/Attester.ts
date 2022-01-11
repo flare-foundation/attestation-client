@@ -7,11 +7,11 @@ import { AttesterEpoch } from "./AttesterEpoch";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
 import { EpochSettings } from "./EpochSettings";
-import { getTimeSec } from "./internetTime";
+import { getTimeMilli } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
 import { partBNbe, toBN } from "./utils";
 
-export class Test { }
+export class Test {}
 
 export class Attester {
   logger: Logger;
@@ -32,7 +32,19 @@ export class Attester {
   async attestate(tx: AttestationData) {
     const time = tx.timeStamp.toNumber();
 
-    const epochId: number = Attester.epochSettings.getEpochIdForTime(tx.timeStamp).toNumber();
+    const epochId: number = Attester.epochSettings.getEpochIdForTime(tx.timeStamp.mul(toBN(1000))).toNumber();
+
+    // all times are in milliseconds
+    const now = getTimeMilli();
+    const epochTimeStart = Attester.epochSettings.getEpochIdTimeStart(epochId);
+    const epochCommitTime: number = epochTimeStart + this.conf.epochPeriod * 1000 + 1;
+    const epochRevealTime: number = epochCommitTime + this.conf.epochPeriod * 1000 + 2;
+    const epochCompleteTime: number = epochRevealTime + this.conf.epochPeriod * 1000 + 3;
+
+    if (now > epochCommitTime) {
+      this.logger.error(` ! attestation timestamp too late ${tx.blockNumber} ${tx.dataHash}`);
+      return;
+    }
 
     let activeEpoch = this.epoch.get(epochId);
 
@@ -40,26 +52,26 @@ export class Attester {
     if (activeEpoch === undefined) {
       activeEpoch = new AttesterEpoch(epochId, this.logger, this.attesterWeb3);
 
-      this.epoch.set(epochId, activeEpoch);
-
       // setup commit, reveal and completed callbacks
-      const now = getTimeSec();
-      const epochTimeEnd = Attester.epochSettings.getEpochTimeEnd().toNumber();
-      const epochCommitTime: number = epochTimeEnd + this.conf.epochPeriod - this.conf.commitTime;
-      const epochRevealTime: number = epochTimeEnd + this.conf.epochPeriod + this.conf.revealTime;
-      const epochCompleteTime: number = epochTimeEnd + this.conf.epochPeriod * 2;
+      this.logger.warning(` * AttestEpoch ${epochId} collect epoch [0]`);
 
       setTimeout(() => {
-        activeEpoch!.startCommit();
-      }, (epochCommitTime - now) * 1000);
+        activeEpoch!.startCommitEpoch();
+      }, epochCommitTime - now);
 
       setTimeout(() => {
-        activeEpoch!.startReveal();
-      }, (epochRevealTime - now) * 1000);
+        activeEpoch!.startRevealEpoch();
+      }, epochRevealTime - now);
+
+      setTimeout(() => {
+        activeEpoch!.reveal();
+      }, epochRevealTime - now + this.conf.revealTime * 1000);
 
       setTimeout(() => {
         activeEpoch!.completed();
-      }, (epochCompleteTime - now) * 1000);
+      }, epochCompleteTime - now);
+
+      this.epoch.set(epochId, activeEpoch);
     }
 
     // todo: clean up old attestations (minor memory leak)

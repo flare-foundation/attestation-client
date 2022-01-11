@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import Web3 from "web3";
 import { AttestationType } from '../lib/AttestationData';
-import { getLogger } from '../lib/logger';
+import { getGlobalLogger } from '../lib/logger';
 import { MCClient } from '../lib/MCC/MCClient';
 import { ChainType, MCCNodeSettings } from '../lib/MCC/MCClientSettings';
 import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/MCC/tx-normalize';
@@ -138,7 +138,7 @@ class AttestationSpammer {
     this.chainType = this.getChainType(args['chain']);
     let mccClient = new MCClient(new MCCNodeSettings(this.chainType, this.URL, this.USERNAME || "", this.PASSWORD || "", null));
     this.client = mccClient.chainClient;
-    this.logger = getLogger(args['loggerLabel']);
+    this.logger = getGlobalLogger(args['loggerLabel']);
     this.web3 = getWeb3(this.rpcLink) as Web3;
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.privateKey);
 

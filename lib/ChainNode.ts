@@ -6,7 +6,7 @@ import { ChainManager } from "./ChainManager";
 import { getTimeSec } from "./internetTime";
 import { MCClient as MCClient } from "./MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./MCC/tx-normalize";
+import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./Verification";
 import { arrayRemoveElement } from "./utils";
 
 export class ChainNode {

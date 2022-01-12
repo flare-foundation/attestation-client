@@ -7,7 +7,7 @@ import { ChainType, MCCNodeSettings as MCClientSettings } from "./MCClientSettin
 import { MCCTransaction } from "./MCCTransaction";
 import { MCCTransactionResponse, TransactionStatus } from "./MCCTransactionResponse";
 import { RPCInterface } from "./RPCtypes";
-import { attReqToTransactionAttestationRequest } from "./tx-normalize";
+import { attReqToTransactionAttestationRequest } from "../Verification";
 
 export enum ResultStatus {
   Success = 0,

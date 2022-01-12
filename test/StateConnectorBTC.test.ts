@@ -1,7 +1,7 @@
 import { AttestationType } from "../lib/AttestationData";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../lib/MCC/tx-normalize";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../lib/Verification";
 import { UtxoBlockResponse } from "../lib/MCC/UtxoCore";
 import { prefix0x, toBN } from "../lib/utils";
 import { StateConnectorInstance } from "../typechain-truffle";

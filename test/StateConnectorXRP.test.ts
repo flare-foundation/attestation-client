@@ -7,7 +7,7 @@ import {
   AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations,
   TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus,
   verifyTransactionAttestation, verifyXRPPayment
-} from "../lib/MCC/tx-normalize";
+} from "../lib/Verification";
 import { prefix0x, toBN } from "../lib/utils";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";

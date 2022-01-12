@@ -1,11 +1,11 @@
 import BN from "bn.js";
 import Web3 from "web3";
 import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
-import { AttestationType } from "../AttestationData";
-import { toBN, toNumber, unPrefix0x } from "../utils";
-import { ChainType } from "./MCClientSettings";
-import { AdditionalTransactionDetails, RPCInterface } from "./RPCtypes";
-import { UtxoTxResponse } from "./UtxoCore";
+import { AttestationType } from "./AttestationData";
+import { toBN, toNumber, unPrefix0x } from "./utils";
+import { ChainType } from "./MCC/MCClientSettings";
+import { AdditionalTransactionDetails, RPCInterface } from "./MCC/RPCtypes";
+import { UtxoTxResponse } from "./MCC/UtxoCore";
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////

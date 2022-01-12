@@ -9,7 +9,7 @@ import { ChainManager } from "./ChainManager";
 import { EpochSettings } from "./EpochSettings";
 import { getTimeMilli } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
-import { ATT_BITS, CHAIN_ID_BITS } from "./MCC/tx-normalize";
+import { ATT_BITS, CHAIN_ID_BITS } from "./Verification";
 import { partBNbe, toBN } from "./utils";
 
 export class Test {}

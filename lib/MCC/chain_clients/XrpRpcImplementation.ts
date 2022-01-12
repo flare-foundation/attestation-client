@@ -1,7 +1,7 @@
 import { LedgerRequest, LedgerResponse, Payment, TransactionMetadata, TxResponse } from "xrpl";
 import { prefix0x, toBN } from "../../utils";
 import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, RPCInterface, TransactionSuccessStatus } from "../RPCtypes";
-import { verifyXRPPayment } from "../tx-normalize";
+import { verifyXRPPayment } from "../../Verification";
 import { xrp_ensure_data } from "../utils";
 
 const axios = require("axios");

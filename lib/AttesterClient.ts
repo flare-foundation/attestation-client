@@ -10,7 +10,7 @@ import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getGlobalLogger as getGlobalLogger } from "./logger";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { ATT_BITS } from "./MCC/tx-normalize";
+import { ATT_BITS } from "./Verification";
 import { partBNbe, toBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
 

@@ -4,7 +4,7 @@ import { AttestationType } from '../lib/AttestationData';
 import { getGlobalLogger } from '../lib/logger';
 import { MCClient } from '../lib/MCC/MCClient';
 import { ChainType, MCCNodeSettings } from '../lib/MCC/MCClientSettings';
-import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/MCC/tx-normalize';
+import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/Verification';
 import { getWeb3, getWeb3Contract, sleep, toBN } from '../lib/utils';
 import { Web3Functions } from '../lib/Web3Functions';
 import { StateConnector } from '../typechain-web3-v1/StateConnector';

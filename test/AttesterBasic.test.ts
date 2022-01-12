@@ -1,6 +1,6 @@
 import { ChainManager } from "../lib/ChainManager";
 import { ChainNode } from "../lib/ChainNode";
-import { ChainType } from "../lib/MCC/MCClientSettings";
+import { ChainType } from "../lib/MCC_old/MCClientSettings";
 import { getGlobalLogger } from "../lib/logger";
 
 // todo test: test per second limiter

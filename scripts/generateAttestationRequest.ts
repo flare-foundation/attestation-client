@@ -1,5 +1,5 @@
 import { AttestationType } from "../lib/AttestationData";
-import { ChainType } from "../lib/MCC/MCClientSettings";
+import { ChainType } from "../lib/MCC/types";
 import { sleepms } from "../lib/Sleep";
 import { etherToValue, getTestStateConnectorAddress } from "../lib/utils";
 

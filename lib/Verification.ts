@@ -3,9 +3,7 @@ import Web3 from "web3";
 import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
 import { AttestationType } from "./AttestationData";
 import { toBN, toNumber, unPrefix0x } from "./utils";
-import { ChainType } from "./MCC/MCClientSettings";
-import { AdditionalTransactionDetails, RPCInterface } from "./MCC/RPCtypes";
-import { IUtxoGetTransactionRes } from "./MCC2/types";
+import { AdditionalTransactionDetails, ChainType, IUtxoGetTransactionRes, RPCInterface } from "./MCC/types";
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////

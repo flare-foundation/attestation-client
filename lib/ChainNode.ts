@@ -4,17 +4,17 @@ import { AttestationData } from "./AttestationData";
 import { Attester } from "./Attester";
 import { ChainManager } from "./ChainManager";
 import { getTimeSec } from "./internetTime";
-import { MCClient as MCClient } from "./MCC/MCClient";
-import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
 import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./Verification";
 import { arrayRemoveElement } from "./utils";
+import { ChainType, RPCInterface } from "./MCC/types";
+import { MCC } from "./MCC";
 
 export class ChainNode {
   chainManager: ChainManager;
 
   chainName: string;
   chainType: ChainType;
-  client: MCClient;
+  client: RPCInterface;
   stateConnector!: StateConnectorInstance;
 
   // node rate limiting control
@@ -49,11 +49,25 @@ export class ChainNode {
     this.maxProcessingTransactions = maxProcessingTransactions;
 
     // create chain client
-    this.client = new MCClient(new MCCNodeSettings(chainType, url, username, password, metadata));
+    switch(this.chainType) {
+      case ChainType.BTC: 
+      case ChainType.LTC:
+      case ChainType.DOGE: 
+        this.client  = MCC.Client(this.chainType, {url, username, password}) as RPCInterface;
+        break;
+      case ChainType.XRP:
+        this.client  = MCC.Client(this.chainType, {url, username, password}) as RPCInterface;
+        break;
+      case ChainType.ALGO:
+        throw new Error("Not yet Implemented");
+      default:
+        throw new Error("")
+    }
+    // this.client = new MCClient(new MCCNodeSettings(chainType, url, username, password, metadata));
   }
 
   async isHealthy() {
-    const valid = await this.client.isHealty();
+    const valid = await this.client.isHealthy();
 
     return true;
   }
@@ -134,7 +148,7 @@ export class ChainNode {
     attReq.chainId = this.chainType;
     attReq.blockNumber = tx.data.blockNumber;
 
-    verifyTransactionAttestation(this.client.chainClient, attReq)
+    verifyTransactionAttestation(this.client, attReq)
       .then((txData: NormalizedTransactionData) => {
         // todo: check is status is not OK and FailReason??? is to not ready - it means to recheck in XXX sec but not before time T
         if (false) {

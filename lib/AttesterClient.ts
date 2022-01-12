@@ -9,10 +9,11 @@ import { ChainNode } from "./ChainNode";
 import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getGlobalLogger as getGlobalLogger } from "./logger";
-import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
 import { ATT_BITS } from "./Verification";
 import { partBNbe, toBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
+import { MCC } from "./MCC";
+import { ChainType } from "./MCC/types";
 
 export class AttesterClient {
   conf: AttesterClientConfiguration;
@@ -99,7 +100,7 @@ export class AttesterClient {
     this.logger.info(" * Initializing chains");
 
     for (const chain of this.conf.chains) {
-      const chainType = MCCNodeSettings.getChainType(chain.name);
+      const chainType = MCC.getChainType(chain.name);
 
       if (chainType === ChainType.invalid) {
         this.logger.debug(`   # '${chain.name}': undefined chain`);

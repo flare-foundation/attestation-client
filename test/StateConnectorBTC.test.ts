@@ -1,11 +1,10 @@
 import { AttestationType } from "../lib/AttestationData";
-import { MCClient } from "../lib/MCC/MCClient";
-import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
+import { MCC } from "../lib/MCC";
+import { ChainType, IUtxoBlockRes } from "../lib/MCC/types";
+import { prefix0x, toBN } from "../lib/MCC/utils";
 import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../lib/Verification";
-import { prefix0x, toBN } from "../lib/utils";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
-import { IUtxoBlockRes } from "../lib/MCC2/types";
 
 const CLIENT = ChainType.BTC;
 const URL = 'https://bitcoin.flare.network/';
@@ -17,10 +16,10 @@ const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof];
 
 const StateConnector = artifacts.require("StateConnector");
 
-async function testBTC(client: MCClient, stateConnector: StateConnectorInstance, txId: string, blockNumber: number, utxo: number, targetStatus: VerificationStatus) {
-  let block = await client.chainClient.getBlock(blockNumber) as IUtxoBlockRes;
+async function testBTC(client: MCC.BTC, stateConnector: StateConnectorInstance, txId: string, blockNumber: number, utxo: number, targetStatus: VerificationStatus) {
+  let block = await client.getBlock(blockNumber) as IUtxoBlockRes;
   let confirmationHeight = block.height + numberOfConfirmations(ChainType.BTC);
-  let confirmationBlock = await client.chainClient.getBlock(confirmationHeight) as IUtxoBlockRes;
+  let confirmationBlock = await client.getBlock(confirmationHeight) as IUtxoBlockRes;
   let template = {
     attestationType: AttestationType.FassetPaymentProof,
     instructions: toBN(0),
@@ -46,7 +45,7 @@ async function testBTC(client: MCClient, stateConnector: StateConnectorInstance,
   let txAttReq = parsedEvents[0];
 
   // verify
-  let txData = await verifyTransactionAttestation(client.chainClient, txAttReq)
+  let txData = await verifyTransactionAttestation(client, txAttReq)
   assert(txData.verificationStatus === targetStatus, `Incorrect status ${txData.verificationStatus}`)
   if (targetStatus === VerificationStatus.OK) {
     let hash = transactionHash(web3, txData!);
@@ -56,12 +55,13 @@ async function testBTC(client: MCClient, stateConnector: StateConnectorInstance,
 }
 
 describe(`Test BTC`, async () => {
-  let client: MCClient;
+  let client: MCC.BTC;
   let stateConnector: StateConnectorInstance;
 
   beforeEach(async () => {
     stateConnector = await StateConnector.new();
-    client = new MCClient(new MCCNodeSettings(CLIENT, URL, USERNAME, PASSWORD, null));
+    client = MCC.Client(CLIENT, {url: URL, username: USERNAME, password: PASSWORD}) as MCC.BTC; 
+    // client = new MCClient(new MCCNodeSettings(CLIENT, URL, USERNAME, PASSWORD, null));
   });
 
   it("Should succeed", async () => {
@@ -120,15 +120,15 @@ describe(`Test BTC`, async () => {
   });
 
   it.skip("Should make lots of attestation requests", async () => {
-    let latestBlockNumber = await client.chainClient.getBlockHeight();
+    let latestBlockNumber = await client.getBlockHeight();
     // let latestBlockNumber = BLOCK_NUMBER + 8;
     let latestBlockNumberToUse = latestBlockNumber - numberOfConfirmations(ChainType.BTC);
 
     let count = 20;
     for (let i = latestBlockNumberToUse - count + 1; i <= latestBlockNumberToUse; i++) {
-      let block = await client.chainClient.getBlock(i) as IUtxoBlockRes;
-      let confirmationBlock = await client.chainClient.getBlock(i + numberOfConfirmations(ChainType.BTC)) as IUtxoBlockRes;
-      for (let id of client.chainClient.getTransactionHashesFromBlock(block)) {
+      let block = await client.getBlock(i) as IUtxoBlockRes;
+      let confirmationBlock = await client.getBlock(i + numberOfConfirmations(ChainType.BTC)) as IUtxoBlockRes;
+      for (let id of client.getTransactionHashesFromBlock(block)) {
         for (let attType of ATTESTATION_TYPES) {
           for (let utxo = 0; utxo < 3; utxo++) {
             let tr = {
@@ -152,7 +152,7 @@ describe(`Test BTC`, async () => {
             let eventRequest = verifyReceiptAgainstTemplate(receipt, tr);
 
             // verify
-            let txData = await verifyTransactionAttestation(client.chainClient, eventRequest)
+            let txData = await verifyTransactionAttestation(client, eventRequest)
 
             /////////////////////////////////////////////////////////////////
             /// Catching examples

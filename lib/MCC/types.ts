@@ -51,9 +51,19 @@ export interface RPCInterface {
   sendRawTransactionInBlock(walletLabel: string, signedRawTx: string): any;
 
   fundAddress(address: string, amount: number): any;
+
+  getBlock(blockNumberOrHash: number | string): any;
+
+  getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails>;
+
+  getTransactionHashesFromBlock(block: any): string[];
+
+  getBlockHash(block: any): string;
+
+  isHealthy(): Promise<boolean>;
 }
 
-export interface DogeRpcInterface extends RPCInterface {}
+export interface DogeRpcInterface extends RPCInterface { }
 
 export interface UtxoRpcInterface extends RPCInterface {
   /**
@@ -134,6 +144,7 @@ export enum ChainType {
   LTC = 1,
   DOGE = 2,
   XRP = 3,
+  ALGO = 4
   // ... make sure IDs are the same as in Flare node
 }
 
@@ -148,7 +159,7 @@ export interface XrpMccCreate {
   inRegTest?: boolean;
 }
 
-export interface XrpCreateAddressData {}
+export interface XrpCreateAddressData { }
 
 interface XrpTransactionAmount {
   currency: string;

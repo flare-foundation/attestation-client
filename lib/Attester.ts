@@ -8,9 +8,9 @@ import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
 import { EpochSettings } from "./EpochSettings";
 import { getTimeMilli } from "./internetTime";
-import { ChainType } from "./MCC/MCClientSettings";
 import { ATT_BITS, CHAIN_ID_BITS } from "./Verification";
 import { partBNbe, toBN } from "./utils";
+import { ChainType } from "./MCC/types";
 
 export class Test {}
 

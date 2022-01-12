@@ -2,7 +2,8 @@ import { AttestationType } from "../../lib/AttestationData";
 import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, NormalizedTransactionData, TransactionAttestationRequest } from "../../lib/Verification";
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { StateConnectorInstance } from "../../typechain-truffle";
-import { toBN } from "../../lib/utils";
+import { toBN } from "../../lib/MCC/utils";
+
 
 export async function testHashOnContract(txData: NormalizedTransactionData, hash: string) {
   let HashTest = artifacts.require("HashTest");

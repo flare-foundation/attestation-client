@@ -2,12 +2,13 @@ import * as dotenv from 'dotenv';
 import Web3 from "web3";
 import { AttestationType } from '../lib/AttestationData';
 import { getGlobalLogger } from '../lib/logger';
-import { MCClient } from '../lib/MCC/MCClient';
-import { ChainType, MCCNodeSettings } from '../lib/MCC/MCClientSettings';
 import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/Verification';
-import { getWeb3, getWeb3Contract, sleep, toBN } from '../lib/utils';
+import { getWeb3, getWeb3Contract } from '../lib/utils';
 import { Web3Functions } from '../lib/Web3Functions';
 import { StateConnector } from '../typechain-web3-v1/StateConnector';
+import { sleep, toBN } from '../lib/MCC/utils';
+import { MCC } from '../lib/MCC';
+import { ChainType, RPCInterface } from '../lib/MCC/types';
 let fs = require('fs');
 
 dotenv.config();
@@ -114,7 +115,7 @@ let args = yargs
 
 class AttestationSpammer {
   chainType!: ChainType;
-  client: any;
+  client!: RPCInterface;
   web3!: Web3;
   logger!: any;
   stateConnector!: StateConnector;
@@ -135,9 +136,23 @@ class AttestationSpammer {
   constructor(privateKey: string, logEvents = true) {
     this.privateKey = privateKey;
     this.logEvents = logEvents;
-    this.chainType = this.getChainType(args['chain']);
-    let mccClient = new MCClient(new MCCNodeSettings(this.chainType, this.URL, this.USERNAME || "", this.PASSWORD || "", null));
-    this.client = mccClient.chainClient;
+    this.chainType = MCC.getChainType(args['chain']);
+    switch(this.chainType) {
+      case ChainType.BTC: 
+      case ChainType.LTC:
+      case ChainType.DOGE: 
+        this.client  = MCC.Client(this.chainType, {url: this.URL, username: this.USERNAME, password: this.PASSWORD}) as RPCInterface;
+        break;
+      case ChainType.XRP:
+        this.client  = MCC.Client(this.chainType, {url: this.URL, username: this.USERNAME, password: this.PASSWORD}) as RPCInterface;
+        break;
+      case ChainType.ALGO:
+        throw new Error("Not yet Implemented");
+      default:
+        throw new Error("")
+    }
+
+    // let mccClient = new MCClient(new MCCNodeSettings(this.chainType, this.URL, this.USERNAME || "", this.PASSWORD || "", null));
     this.logger = getGlobalLogger(args['loggerLabel']);
     this.web3 = getWeb3(this.rpcLink) as Web3;
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.privateKey);
@@ -146,24 +161,6 @@ class AttestationSpammer {
       .then((sc: StateConnector) => {
         this.stateConnector = sc;
       })
-  }
-
-  getChainType(chain: string) {
-    if (!chain) {
-      throw new Error("Chain missing")
-    }
-    switch (chain) {
-      case "XRP":
-        return ChainType.XRP;
-      case "BTC":
-        return ChainType.BTC;
-      case "LTC":
-        return ChainType.LTC;
-      case "DOGE":
-        return ChainType.DOGE;
-      default:
-        throw new Error(`Unsupported chain type ${chain}`)
-    }
   }
 
   async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
@@ -277,7 +274,6 @@ runAllAttestationSpammers()
     console.error(error);
     process.exit(1);
   });
-
 
 
 

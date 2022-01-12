@@ -5,7 +5,7 @@ import { AttestationType } from "./AttestationData";
 import { toBN, toNumber, unPrefix0x } from "./utils";
 import { ChainType } from "./MCC/MCClientSettings";
 import { AdditionalTransactionDetails, RPCInterface } from "./MCC/RPCtypes";
-import { UtxoTxResponse } from "./MCC/UtxoCore";
+import { IUtxoGetTransactionRes } from "./MCC2/types";
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////
@@ -660,7 +660,7 @@ function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, att
 
 async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest) {
   try {
-    let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as UtxoTxResponse;
+    let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
     let additionalData = await client.getAdditionalTransactionDetails({
       transaction: txResponse,
       confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),

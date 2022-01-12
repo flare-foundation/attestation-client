@@ -2,10 +2,10 @@ import { AttestationType } from "../lib/AttestationData";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
 import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../lib/Verification";
-import { UtxoBlockResponse } from "../lib/MCC/UtxoCore";
 import { prefix0x, toBN } from "../lib/utils";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
+import { IUtxoBlockRes } from "../lib/MCC2/types";
 
 const CLIENT = ChainType.BTC;
 const URL = 'https://bitcoin.flare.network/';
@@ -18,9 +18,9 @@ const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof];
 const StateConnector = artifacts.require("StateConnector");
 
 async function testBTC(client: MCClient, stateConnector: StateConnectorInstance, txId: string, blockNumber: number, utxo: number, targetStatus: VerificationStatus) {
-  let block = await client.chainClient.getBlock(blockNumber) as UtxoBlockResponse;
+  let block = await client.chainClient.getBlock(blockNumber) as IUtxoBlockRes;
   let confirmationHeight = block.height + numberOfConfirmations(ChainType.BTC);
-  let confirmationBlock = await client.chainClient.getBlock(confirmationHeight) as UtxoBlockResponse;
+  let confirmationBlock = await client.chainClient.getBlock(confirmationHeight) as IUtxoBlockRes;
   let template = {
     attestationType: AttestationType.FassetPaymentProof,
     instructions: toBN(0),
@@ -126,8 +126,8 @@ describe(`Test BTC`, async () => {
 
     let count = 20;
     for (let i = latestBlockNumberToUse - count + 1; i <= latestBlockNumberToUse; i++) {
-      let block = await client.chainClient.getBlock(i) as UtxoBlockResponse;
-      let confirmationBlock = await client.chainClient.getBlock(i + numberOfConfirmations(ChainType.BTC)) as UtxoBlockResponse;
+      let block = await client.chainClient.getBlock(i) as IUtxoBlockRes;
+      let confirmationBlock = await client.chainClient.getBlock(i + numberOfConfirmations(ChainType.BTC)) as IUtxoBlockRes;
       for (let id of client.chainClient.getTransactionHashesFromBlock(block)) {
         for (let attType of ATTESTATION_TYPES) {
           for (let utxo = 0; utxo < 3; utxo++) {

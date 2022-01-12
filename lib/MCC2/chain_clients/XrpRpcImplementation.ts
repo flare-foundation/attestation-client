@@ -1,12 +1,10 @@
+import { AdditionalTransactionDetails, AdditionalTxRequest, getTransactionOptions, RPCInterface, TransactionSuccessStatus, XrpGetTransactionResponse } from "../types";
+import { prefix0x, toBN, xrp_ensure_data } from "../utils";
+import axios from "axios";
 import { LedgerRequest, LedgerResponse, Payment, TransactionMetadata, TxResponse } from "xrpl";
-import { prefix0x, toBN } from "../../utils";
-import { AdditionalTransactionDetails, AdditionalTxRequest, GetTransactionOptions, RPCInterface, TransactionSuccessStatus } from "../RPCtypes";
-import { verifyXRPPayment } from "../../Verification";
-import { xrp_ensure_data } from "../utils";
-
-const axios = require("axios");
 
 export class XRPImplementation implements RPCInterface {
+  rippleApi: any;
   client: any;
   inRegTest: any;
 
@@ -22,10 +20,10 @@ export class XRPImplementation implements RPCInterface {
     this.inRegTest = _inRegTest;
   }
 
-  async getTransaction(txId: string, options?: GetTransactionOptions): Promise<TxResponse | null> {
-    const binary = options?.binary || false;
-    const min_block = options?.min_block || null;
-    const max_block = options?.max_block || null;
+  async getTransaction(txId: string, options: getTransactionOptions): Promise<XrpGetTransactionResponse> {
+    const binary = options.binary || false;
+    const min_block = options.min_block || undefined;
+    const max_block = options.max_block || undefined;
     interface XrpTxParams {
       transaction: string;
       binary: boolean;
@@ -36,21 +34,16 @@ export class XRPImplementation implements RPCInterface {
       transaction: txId,
       binary: binary,
     };
-    if (min_block !== null && max_block !== null) {
+    if (min_block !== null && min_block !== null) {
       params.min_ledger = min_block;
       params.max_ledger = max_block;
     }
-    try {
-      let res = await this.client.post("", {
-        method: "tx",
-        params: [params],
-      });
-      xrp_ensure_data(res.data);
-      return res.data as TxResponse;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    let res = await this.client.post("", {
+      method: "tx",
+      params: [params],
+    });
+    xrp_ensure_data(res.data);
+    return res.data.result;
   }
 
   async isHealthy() {
@@ -72,6 +65,22 @@ export class XRPImplementation implements RPCInterface {
     });
     xrp_ensure_data(res.data);
     return res.data.result.ledger_current_index;
+  }
+
+  async getBlock(blockNumberOrHash: number | string) {
+    let res = await this.client.post("", {
+      method: "ledger",
+      params: [
+        {
+          ledger_index: blockNumberOrHash,
+          transactions: true,
+          expand: true,
+          binary: false,
+        } as LedgerRequest,
+      ],
+    });
+    xrp_ensure_data(res.data);
+    return res.data as LedgerResponse;
   }
 
   async createAddress(_createAddressData: any) {
@@ -98,23 +107,7 @@ export class XRPImplementation implements RPCInterface {
     return;
   }
 
-  async getBlock(blockNumberOrHash: number | string) {
-    let res = await this.client.post("", {
-      method: "ledger",
-      params: [
-        {
-          ledger_index: blockNumberOrHash,
-          transactions: true,
-          expand: true,
-          binary: false,
-        } as LedgerRequest,
-      ],
-    });
-    xrp_ensure_data(res.data);
-    return res.data as LedgerResponse;
-  }
-
-  async getAdditionalTransactionDetails(request: AdditionalTxRequest) {
+  async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails>{
     let blockNumber = request.transaction.result.ledger_index || 0;
     const blockResponse = (await this.getBlock(blockNumber)) as LedgerResponse;
     let metaData: TransactionMetadata = request.transaction.result.meta || (request.transaction.result as any).metaData;
@@ -161,9 +154,8 @@ export class XRPImplementation implements RPCInterface {
       status,
     } as AdditionalTransactionDetails;
   }
-
   getTransactionHashesFromBlock(block: LedgerResponse): string[] {
-    return (block.result.ledger.transactions! as any).filter((tx: any) => verifyXRPPayment(tx)).map((tx: any) => prefix0x((tx as any).hash));
+    return (block.result.ledger.transactions! as any).map((tx: any) => prefix0x((tx as any).hash));
   }
 
   getBlockHash(block: LedgerResponse): string {

@@ -19,7 +19,7 @@ export enum TransactionSuccessStatus {
 }
 
 export interface AdditionalTransactionDetails {
-  transaction: any,
+  transaction: any;
   blockNumber: BN;
   blockHash: string;
   txId: string;

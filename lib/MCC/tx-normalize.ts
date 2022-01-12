@@ -30,8 +30,7 @@ export enum VerificationStatus {
   FUNDS_UNCHANGED = "FUNDS_UNCHANGED",
   FUNDS_INCREASED = "FUNDS_INCREASED",
   // COINBASE_TRANSACTION = "COINBASE_TRANSACTION",
-  UNSUPPORTED_TX_TYPE = "UNSUPPORTED_TX_TYPE"
-
+  UNSUPPORTED_TX_TYPE = "UNSUPPORTED_TX_TYPE",
 }
 
 export interface NormalizedTransactionData extends AdditionalTransactionDetails {
@@ -132,9 +131,9 @@ export function verifyXRPPayment(transaction: any): boolean {
 // export const TX_ATT_REQ_SIZES = [16, 32, 64, 16, 128];
 // export const TX_ATT_REQ_KEYS = ["attestationType", "chainId", "blockNumber", "utxo", ""];
 
-const ATT_BITS = 32;
-const CHAIN_ID_BITS = 32;
-const UTXO_BITS = 8;
+export const ATT_BITS = 32;
+export const CHAIN_ID_BITS = 32;
+export const UTXO_BITS = 8;
 
 export function attestationTypeEncodingScheme(type: AttestationType) {
   switch (type) {
@@ -154,13 +153,21 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "uint256", // spent
           "uint256", // delivered
           "uint256", // fee
-          "uint8" // status
+          "uint8", // status
         ],
         hashKeys: [
-          "attestationType", "chainId", "blockNumber", 
-          "txId", "utxo", "sourceAddresses", 
-          "destinationAddresses", "destinationTag", "spent", 
-          "delivered", "fee", "status"
+          "attestationType",
+          "chainId",
+          "blockNumber",
+          "txId",
+          "utxo",
+          "sourceAddresses",
+          "destinationAddresses",
+          "destinationTag",
+          "spent",
+          "delivered",
+          "fee",
+          "status",
         ],
       };
     case AttestationType.BalanceDecreasingProof:
@@ -376,7 +383,7 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
       attestationType: attRequest.attestationType!,
       ...additionalData,
       verificationStatus,
-      utxo: attRequest.utxo
+      utxo: attRequest.utxo,
     } as NormalizedTransactionData;
   }
 
@@ -399,7 +406,7 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
     if (transaction.result.TransactionType != "Payment") {
       return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_TX_TYPE);
     }
-    if(transaction.result.Account === transaction.result.Destination) {
+    if (transaction.result.Account === transaction.result.Destination) {
       return genericReturnWithStatus(VerificationStatus.FORBIDDEN_SELF_SENDING);
     }
     return genericReturnWithStatus(VerificationStatus.OK);
@@ -413,17 +420,14 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
   throw new Error(`Wrong or missing attestation type: ${attRequest.attestationType}`);
 }
 
-function checkAndAggregateToOnePaymentUtxo(
-  additionalData: AdditionalTransactionDetails,
-  attRequest: TransactionAttestationRequest
-): NormalizedTransactionData {
+function checkAndAggregateToOnePaymentUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
       chainId: toBN(attRequest.chainId),
       attestationType: attRequest.attestationType!,
       ...additionalData,
       verificationStatus,
-      utxo: attRequest.utxo
+      utxo: attRequest.utxo,
     } as NormalizedTransactionData;
   }
 
@@ -448,7 +452,7 @@ function checkAndAggregateToOnePaymentUtxo(
   }
 
   let theSource = sourceCandidates[0];
-  if(theSource === '') {
+  if (theSource === "") {
     // console.log(additionalData.sourceAddresses[inUtxo])
     return genericReturnWithStatus(VerificationStatus.EMPTY_IN_ADDRESS);
   }
@@ -526,7 +530,7 @@ function checkAndAggregateToOnePaymentUtxo(
       attestationType: attRequest.attestationType!,
       ...newAdditionalData,
       verificationStatus,
-      utxo: attRequest.utxo
+      utxo: attRequest.utxo,
     } as NormalizedTransactionData;
   }
 
@@ -554,7 +558,7 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
       attestationType: attRequest.attestationType!,
       ...additionalData,
       verificationStatus,
-      utxo: attRequest.utxo
+      utxo: attRequest.utxo,
     } as NormalizedTransactionData;
   }
 
@@ -630,7 +634,7 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
       attestationType: attRequest.attestationType!,
       ...newAdditionalData,
       verificationStatus,
-      utxo: attRequest.utxo
+      utxo: attRequest.utxo,
     } as NormalizedTransactionData;
   }
 

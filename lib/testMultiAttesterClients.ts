@@ -2,7 +2,7 @@ import * as fs from "fs";
 import yargs from "yargs";
 import { AttesterClient } from "./AttesterClient";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
-import { getLogger } from "./logger";
+import { createLogger, getGlobalLogger } from "./logger";
 import { sleep } from "./utils";
 
 // Args parsing
@@ -48,7 +48,7 @@ function getRandomInt(min: number, max: number): number {
 }
 
 async function runMultiAttesterClients() {
-  const logger = getLogger();
+  const logger = getGlobalLogger();
 
   const version = "1000";
   logger.error(`Starting Flare MULTI Attester Client v${version}`);
@@ -70,7 +70,7 @@ async function runMultiAttesterClients() {
 
     logger.error(`Starting Flare Attester Client #${c} ${conf.rpcUrl}`);
 
-    const attesterClient = new AttesterClient(conf);
+    const attesterClient = new AttesterClient(conf, createLogger(`multi${c}`));
     attesterClient.start();
   }
 }

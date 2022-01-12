@@ -8,10 +8,10 @@ import { ChainManager } from "./ChainManager";
 import { ChainNode } from "./ChainNode";
 import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
-import { getInternetTime } from "./internetTime";
+import { getGlobalLogger as getGlobalLogger } from "./logger";
 import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
+import { ATT_BITS } from "./MCC/tx-normalize";
 import { partBNbe, toBN } from "./utils";
-import { getLogger } from "./logger";
 import { Web3BlockCollector } from "./Web3BlockCollector";
 
 export class AttesterClient {
@@ -23,8 +23,12 @@ export class AttesterClient {
   blockCollector!: Web3BlockCollector;
 
   // todo: add option to have log name (for multi attester client)
-  constructor(configuration: AttesterClientConfiguration) {
-    this.logger = getLogger();
+  constructor(configuration: AttesterClientConfiguration, logger?: Logger) {
+    if (logger) {
+      this.logger = logger;
+    } else {
+      this.logger = getGlobalLogger();
+    }
     this.conf = configuration;
     this.chainManager = new ChainManager(this.logger);
     this.attesterWeb3 = new AttesterWeb3(this.logger, this.conf);
@@ -160,7 +164,7 @@ export class AttesterClient {
 
       const instBN = toBN(instruction);
 
-      const attestationType: BN = partBNbe(instBN, 0, 16);
+      const attestationType: BN = partBNbe(instBN, 0, ATT_BITS);
 
       // attestation info
       const tx = new AttestationData();

@@ -1,7 +1,7 @@
 import { ChainManager } from "../lib/ChainManager";
 import { ChainNode } from "../lib/ChainNode";
 import { ChainType } from "../lib/MCC/MCClientSettings";
-import { getLogger } from "../lib/logger";
+import { getGlobalLogger } from "../lib/logger";
 
 // todo test: test per second limiter
 // todo test: test queue limiter
@@ -9,7 +9,7 @@ import { getLogger } from "../lib/logger";
 describe("Attester Basic Tests", () => {
   describe("General functionalities", () => {
     it("basic validate transaction", async () => {
-      const chainManager = new ChainManager(getLogger());
+      const chainManager = new ChainManager(getGlobalLogger());
 
       //const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, "http://s1.ripple.com:1151234/", "", "", "");
       const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, "https://xrplcluster.com", "", "", "");

@@ -9,6 +9,7 @@ import { ChainManager } from "./ChainManager";
 import { EpochSettings } from "./EpochSettings";
 import { getTimeMilli } from "./internetTime";
 import { ChainType } from "./MCC/MCClientSettings";
+import { ATT_BITS, CHAIN_ID_BITS } from "./MCC/tx-normalize";
 import { partBNbe, toBN } from "./utils";
 
 export class Test {}
@@ -42,7 +43,7 @@ export class Attester {
     const epochCompleteTime: number = epochRevealTime + this.conf.epochPeriod * 1000 + 3;
 
     if (now > epochCommitTime) {
-      this.logger.error(` ! attestation timestamp too late ${tx.blockNumber} ${tx.dataHash}`);
+      this.logger.error(` ! attestation timestamp too late ${tx.blockNumber}`);
       return;
     }
 
@@ -90,14 +91,14 @@ export class Attester {
     // create attestation depending on type
     switch (tx.type) {
       case AttestationType.FassetPaymentProof: {
-        const chainType: BN = partBNbe(tx.instructions, 16, 32);
+        const chainType: BN = partBNbe(tx.instructions, ATT_BITS, CHAIN_ID_BITS);
 
         return await this.chainManager.validateTransaction(chainType.toNumber() as ChainType, epochId, tx);
       }
       case AttestationType.BalanceDecreasingProof:
         return undefined; // ???
       default: {
-        this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);
+        //this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);
         return undefined;
       }
     }

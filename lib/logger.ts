@@ -32,6 +32,8 @@ const BgWhite = "\x1b[47m";
 const BgGray = "\x1b[100m";
 
 class ColorConsole extends Transport {
+  instance = 0;
+
   log = (info: any, callback: any) => {
     setImmediate(() => this.emit("logged", info));
 
@@ -83,34 +85,38 @@ const myCustomLevels = {
 
 var globalLogger: winston.Logger;
 
+export function createLogger(label?: string): winston.Logger {
+  return winston.createLogger({
+    level: "debug",
+    levels: myCustomLevels.levels,
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json(),
+      winston.format.label({
+        label,
+      }),
+      winston.format.printf((json: any) => {
+        if (json.label) {
+          return `${json.timestamp}  - ${json.label}:[${json.level}]: ${json.message}`;
+        } else {
+          return `${json.timestamp}[${json.level}]: ${json.message}`;
+        }
+      })
+    ),
+    transports: [
+      new ColorConsole(),
+      new winston.transports.File({
+        level: "info",
+        filename: `./logs/attester-${label}.log`,
+      }),
+    ],
+  }) as winston.Logger & Record<keyof typeof myCustomLevels["levels"], winston.LeveledLogMethod>;
+}
+
 // return one instance of logger
-export function getLogger(label?: string): winston.Logger {
+export function getGlobalLogger(label?: string): winston.Logger {
   if (!globalLogger) {
-    globalLogger = winston.createLogger({
-      level: "debug",
-      levels: myCustomLevels.levels,
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json(),
-        winston.format.label({
-          label,
-        }),
-        winston.format.printf((json: any) => {
-          if (json.label) {
-            return `${json.timestamp}  - ${json.label}:[${json.level}]: ${json.message}`;
-          } else {
-            return `${json.timestamp}[${json.level}]: ${json.message}`;
-          }
-        })
-      ),
-      transports: [
-        new ColorConsole(),
-        new winston.transports.File({
-          level: "info",
-          filename: `./logs/attester-${label}.log`,
-        }),
-      ],
-    }) as winston.Logger & Record<keyof typeof myCustomLevels["levels"], winston.LeveledLogMethod>;
+    globalLogger = createLogger(label);
   }
 
   return globalLogger;

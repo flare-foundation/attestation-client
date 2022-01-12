@@ -14,7 +14,8 @@ export interface vout_utxo {
 export enum TransactionSuccessStatus {
   SUCCESS,
   SENDER_FAILURE,
-  RECEIVER_FAILURE
+  RECEIVER_FAILURE,
+  UNKNOWN
 }
 
 export interface AdditionalTransactionDetails {

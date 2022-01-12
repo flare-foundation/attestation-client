@@ -369,6 +369,13 @@ export class UtxoCore {
       if (vin.txid) {
         let rsp = (await this.getTransaction(vin.txid!, { verbose: true })) as UtxoTxResponse;
         let inVout = vin.vout!;
+
+        // ////
+        // let xxx = rsp.vout[inVout].scriptPubKey.addresses;
+        // if(xxx.length > 1) {
+        //   console.log("XXXXXXXX", (request.transaction as UtxoTxResponse).hash);
+        // }
+        // /////
         sourceAddresses.push(rsp.vout[inVout].scriptPubKey.addresses);
         // vinTransactions.push(rsp);
         let outVal = toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC));

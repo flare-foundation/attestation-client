@@ -1,8 +1,7 @@
-import { expectEvent } from "@openzeppelin/test-helpers";
 import { AttestationType } from "../lib/AttestationData";
 import { MCClient } from "../lib/MCC/MCClient";
 import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
-import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations, prettyPrint, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../lib/MCC/tx-normalize";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../lib/MCC/tx-normalize";
 import { UtxoBlockResponse } from "../lib/MCC/UtxoCore";
 import { prefix0x, toBN } from "../lib/utils";
 import { StateConnectorInstance } from "../typechain-truffle";
@@ -12,15 +11,7 @@ const CLIENT = ChainType.BTC;
 const URL = 'https://bitcoin.flare.network/';
 const USERNAME = "flareadmin";
 const PASSWORD = "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=";
-// const TEST_TX_ID = "4d0d61fd3ca1ccc3c023919f31d6a71fc3e0f3018c7238bdfc75a16898d9acbd";
-// const BLOCK_NUMBER = 510824;
 
-// Funds increase example
-// const TEST_TX_ID = "0x8e4e680920a472533854f75bf04f25d1dab233207672ff22db6a691b4fa185ac";
-// const BLOCK_NUMBER = 718109;
-// const UTXO = 0;
-
-// const DATA_AVAILABILITY_PROOF = "0x021b96f76654199b999ed82fc9d2a35f2091d0096a0b216774a7e2557d7fad03";
 // const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof, AttestationType.BalanceDecreasingProof];
 const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof];
 
@@ -64,8 +55,7 @@ async function testBTC(client: MCClient, stateConnector: StateConnectorInstance,
   }
 }
 
-
-describe(`Test`, async () => {
+describe(`Test BTC`, async () => {
   let client: MCClient;
   let stateConnector: StateConnectorInstance;
 
@@ -120,7 +110,16 @@ describe(`Test`, async () => {
     )
   });
 
-  it("Should make lots of attestation requests", async () => {
+  it("Should return WRONG_IN_UTXO", async () => {
+    await testBTC(client, stateConnector,
+      "0xceb8b1b28a12441d924b1443efbb282eec88d8dbd2790b93199cac0add6a0f22",
+      718261,
+      2,
+      VerificationStatus.WRONG_IN_UTXO
+    )
+  });
+
+  it.skip("Should make lots of attestation requests", async () => {
     let latestBlockNumber = await client.chainClient.getBlockHeight();
     // let latestBlockNumber = BLOCK_NUMBER + 8;
     let latestBlockNumberToUse = latestBlockNumber - numberOfConfirmations(ChainType.BTC);
@@ -154,6 +153,22 @@ describe(`Test`, async () => {
 
             // verify
             let txData = await verifyTransactionAttestation(client.chainClient, eventRequest)
+
+            /////////////////////////////////////////////////////////////////
+            /// Catching examples
+            let experienced = [
+              VerificationStatus.OK, 
+              VerificationStatus.FUNDS_INCREASED,
+              VerificationStatus.FORBIDDEN_SELF_SENDING,
+              VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS,
+              VerificationStatus.EMPTY_IN_ADDRESS,
+              VerificationStatus.WRONG_IN_UTXO
+            ]
+            if(experienced.indexOf(txData.verificationStatus) >= 0) {
+              continue;
+            }
+            /////////////////////////////////////////////////////////////////
+
             if (txData.verificationStatus != VerificationStatus.OK) {
               console.log(txData.verificationStatus);
               continue;
@@ -169,17 +184,3 @@ describe(`Test`, async () => {
     }
   });
 });
-
-
-// Checking 0x18310d998004c14db02f92c12263b4ada521a36274c0865e611505cbde9b0b84 for 1, utxo 2
-// GREAT 
-// Checking 0x08449b60f0e9f698a5661f29335f092e6507e4d322c1bfdbac12258fb1c6072f for 1, utxo 0
-// NOT_SINGLE_DESTINATION_ADDRESS
-// Checking 0x08449b60f0e9f698a5661f29335f092e6507e4d322c1bfdbac12258fb1c6072f for 1, utxo 1
-// WRONG_IN_UTXO
-// Checking 0xbc84ba440bd5f97ec4a8037f1361933c65f4c6af385b9c601846b1bd863e0070 for 1, utxo 0
-// EMPTY_IN_ADDRESS
-
-// Crash
-// Block 718109
-// Checking 0x8e4e680920a472533854f75bf04f25d1dab233207672ff22db6a691b4fa185ac for 1, utxo 0

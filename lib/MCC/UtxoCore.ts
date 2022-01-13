@@ -14,6 +14,7 @@ import {
   IUtxoBlockRes,
   AdditionalTransactionDetails,
   AdditionalTxRequest,
+  TransactionSuccessStatus,
 } from './types';
 
 export class UtxoCore {
@@ -413,7 +414,11 @@ export class UtxoCore {
       throw new Error('Destination addresses length and outFunds length do not match!');
     }
 
+    // TODO check success
+    let success = TransactionSuccessStatus.SUCCESS;
+
     let result = {
+      transaction: request.transaction,
       blockNumber: toBN(blockResponse.height || 0),
       blockHash: blockResponse.hash,
       txId: prefix0x(request.transaction.txid),
@@ -424,8 +429,9 @@ export class UtxoCore {
       delivered: outFunds,
       fee: totalInFunds.sub(totalOutFunds),
       dataAvailabilityProof,
+      status: success,
     } as AdditionalTransactionDetails;
-    return result;
+    return result;    
   }
 
   /**

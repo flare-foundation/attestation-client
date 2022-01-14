@@ -414,8 +414,9 @@ export class UtxoCore {
       throw new Error('Destination addresses length and outFunds length do not match!');
     }
 
-    // TODO check success
-    let success = TransactionSuccessStatus.SUCCESS;
+    // TODO verify this!!!
+    // Seams a failed transaction is not included in block in BTC based chains.
+    let success = this.getTransactionStatus(request.transaction);
 
     let result = {
       transaction: request.transaction,
@@ -450,5 +451,9 @@ export class UtxoCore {
    */
   getBlockHash(block: IUtxoBlockRes): string {
     return prefix0x(block.hash);
+  }
+
+  getTransactionStatus(tx: IUtxoGetTransactionRes) {
+    return TransactionSuccessStatus.SUCCESS;
   }
 }

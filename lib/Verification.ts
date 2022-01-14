@@ -2,8 +2,8 @@ import BN from "bn.js";
 import Web3 from "web3";
 import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
 import { AttestationType } from "./AttestationData";
-import { toBN, toNumber, unPrefix0x } from "./utils";
 import { AdditionalTransactionDetails, ChainType, IUtxoGetTransactionRes, RPCInterface } from "./MCC/types";
+import { toBN, toNumber, unPrefix0x } from "./utils";
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////
@@ -95,10 +95,27 @@ export function prettyPrint(normalized: any) {
 }
 
 ////////////////////////////////////////////////////////////////////////
-// Payment verification
+// Filters for "nice" (supported) transaction types 
 ////////////////////////////////////////////////////////////////////////
 
-export function verifyXRPPayment(transaction: any): boolean {
+export function isSupportedTransactionForAttestationType(transaction: any, chainType: ChainType, attType: AttestationType) {
+  switch (chainType) {
+    case ChainType.BTC:
+    case ChainType.LTC:
+    case ChainType.DOGE:
+      return isSupportedTransactionUtxo(transaction, attType);
+    case ChainType.XRP:
+      return isSupportedTransactionXRP(transaction, attType);
+    default:
+      throw new Error("Wrong chain id!");
+  }
+}
+
+function isSupportedTransactionUtxo(transaction: any, attType: AttestationType): boolean {
+  return true;
+}
+
+function isSupportedTransactionXRP(transaction: any, attType: AttestationType): boolean {
   if (!(transaction.metaData || transaction.meta)) {
     // console.log("E-1");
     return false;

@@ -1,18 +1,18 @@
 
-import { LedgerResponse, Payment } from "xrpl";
+import { LedgerResponse } from "xrpl";
 import { AttestationType } from "../lib/AttestationData";
-import {
-  AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations,
-  TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus,
-  verifyTransactionAttestation, verifyXRPPayment
-} from "../lib/Verification";
-import { prefix0x, toBN } from "../lib/MCC/utils";
-import { StateConnectorInstance } from "../typechain-truffle";
-import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
 import { MCC } from "../lib/MCC";
 import { ChainType } from "../lib/MCC/types";
+import { prefix0x, toBN } from "../lib/MCC/utils";
+import {
+  AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, isSupportedTransactionForAttestationType, numberOfConfirmations,
+  TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus,
+  verifyTransactionAttestation
+} from "../lib/Verification";
+import { StateConnectorInstance } from "../typechain-truffle";
+import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
 
-const CLIENT = ChainType.XRP;
+const CHAIN = ChainType.XRP;
 const URL = "https://xrplcluster.com";
 const USERNAME = ""
 const PASSWORD = ""
@@ -24,13 +24,13 @@ const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof, AttestationType.B
 // const HashTest = artifacts.require("HashTest");
 const StateConnector = artifacts.require("StateConnector");
 
-describe(`Test`, async () => {
+describe(`Test ${MCC.getChainTypeName(CHAIN)}`, async () => {
   let client: MCC.XRP;
   let stateConnector: StateConnectorInstance;
 
   beforeEach(async () => {
     stateConnector = await StateConnector.new();
-    client = MCC.Client(CLIENT, {url: URL, username: USERNAME, password: PASSWORD}) as MCC.XRP; 
+    client = MCC.Client(CHAIN, { url: URL, username: USERNAME, password: PASSWORD }) as MCC.XRP;
   });
 
   it("Should hashing of a normalized transaction match to one in contract for XRP", async () => {
@@ -74,9 +74,9 @@ describe(`Test`, async () => {
       let block = await client.getBlock(i) as LedgerResponse;
       let nextBlock = await client.getBlock(i + numberOfConfirmations(ChainType.XRP)) as LedgerResponse;
       for (let tx of block.result.ledger.transactions!) {
-        // console.log("----")
-        if (verifyXRPPayment(tx)) {
-          for (let attType of ATTESTATION_TYPES) {
+        for (let attType of ATTESTATION_TYPES) {
+          // console.log("----")
+          if (isSupportedTransactionForAttestationType(tx, CHAIN, attType)) {
             let tr = {
               id: prefix0x((tx as any).hash),
               // dataHash: web3.utils.soliditySha3((tx as Payment).Account),  // for decreasing balance
@@ -103,12 +103,12 @@ describe(`Test`, async () => {
             let hash = transactionHash(web3, txData!);
             let res = testHashOnContract(txData!, hash!);
             assert(res);
-          }
-        } else {
-          // if((tx as any).TransactionType === 'Payment') {
-          //   console.log(tx)
-          // }
+          } else {
+            // if((tx as any).TransactionType === 'Payment') {
+            //   console.log(tx)
+            // }
 
+          }
         }
       }
 

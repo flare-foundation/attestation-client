@@ -5,7 +5,7 @@ import { VerificationStatus } from "../lib/Verification";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { testUtxo, traverseAndTestUtxoChain, UtxoTraverseTestOptions } from "./utils/test-utils";
 
-const CLIENT = ChainType.BTC;
+const CHAIN = ChainType.BTC;
 const URL = 'https://bitcoin.flare.network/';
 const USERNAME = "flareadmin";
 const PASSWORD = "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=";
@@ -24,13 +24,13 @@ const FILTER_PRINTOUTS_FOR_STATUSES = [
 
 const StateConnector = artifacts.require("StateConnector");
 
-describe(`Test ${ChainType.BTC}`, async () => {
+describe(`Test ${MCC.getChainTypeName(CHAIN)}`, async () => {
   let client: MCC.BTC;
   let stateConnector: StateConnectorInstance;
 
   beforeEach(async () => {
     stateConnector = await StateConnector.new();
-    client = MCC.Client(CLIENT, { url: URL, username: USERNAME, password: PASSWORD }) as MCC.BTC;
+    client = MCC.Client(CHAIN, { url: URL, username: USERNAME, password: PASSWORD }) as MCC.BTC;
   });
 
   it("Should succeed", async () => {

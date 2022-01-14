@@ -60,7 +60,7 @@ export interface RPCInterface {
 
   getBlockHash(block: any): string;
 
-  isHealthy(): Promise<boolean>;
+  getTransactionStatus(tx: any): TransactionSuccessStatus;
 }
 
 export interface DogeRpcInterface extends RPCInterface { }

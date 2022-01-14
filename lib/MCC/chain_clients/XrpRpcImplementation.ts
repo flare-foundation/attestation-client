@@ -114,7 +114,7 @@ export class XRPImplementation implements RPCInterface {
     return res.data as LedgerResponse;
   }
 
-  async getAdditionalTransactionDetails(request: AdditionalTxRequest) {
+  async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails> {
     let blockNumber = request.transaction.result.ledger_index || 0;
     const blockResponse = (await this.getBlock(blockNumber)) as LedgerResponse;
     let metaData: TransactionMetadata = request.transaction.result.meta || (request.transaction.result as any).metaData;

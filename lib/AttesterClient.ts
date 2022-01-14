@@ -106,17 +106,7 @@ export class AttesterClient {
         continue;
       }
 
-      const node = new ChainNode(
-        this.chainManager,
-        chain.name,
-        chainType,
-        chain.url,
-        chain.username,
-        chain.password,
-        chain.metaData,
-        chain.maxRequestsPerSecond,
-        chain.maxProcessingTransactions
-      );
+      const node = new ChainNode(this.chainManager, chain.name, chainType, chain.metaData, chain);
 
       this.logger.info(`    * ${chain.name}:#${chainType} '${chain.url}'`);
 

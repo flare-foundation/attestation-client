@@ -1,4 +1,11 @@
-import { AdditionalTransactionDetails, AdditionalTxRequest, getTransactionOptions, RPCInterface, TransactionSuccessStatus, XrpGetTransactionResponse } from "../types";
+import {
+  AdditionalTransactionDetails,
+  AdditionalTxRequest,
+  getTransactionOptions,
+  RPCInterface,
+  TransactionSuccessStatus,
+  XrpGetTransactionResponse,
+} from "../types";
 import { prefix0x, toBN, xrp_ensure_data } from "../utils";
 import axios from "axios";
 import { LedgerRequest, LedgerResponse, Payment, TransactionMetadata, TxResponse } from "xrpl";
@@ -21,7 +28,6 @@ export class XRPImplementation implements RPCInterface {
   }
 
   async getTransaction(txId: string, options?: getTransactionOptions): Promise<TxResponse> {
-
     const binary = options?.binary || false;
     const min_block = options?.min_block || undefined;
     const max_block = options?.max_block || undefined;

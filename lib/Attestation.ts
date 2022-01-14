@@ -27,5 +27,8 @@ export class Attestation {
 
   data!: AttestationData;
 
+  // how many time was attestation retried
+  retry: number = 0;
+
   onProcessed: EventProcessed | undefined = undefined;
 }

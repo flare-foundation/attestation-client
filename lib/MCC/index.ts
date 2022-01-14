@@ -38,7 +38,7 @@ export module MCC {
 
   export function getChainType(chainIdOrName: number | string | ChainType) {
     if (chainIdOrName == null) {
-      throw new Error("Chain missing")
+      throw new Error("Chain missing");
     }
     switch (chainIdOrName) {
       case "XRP":
@@ -57,9 +57,9 @@ export module MCC {
       case "ALGO":
       case "ALGORAND":
       case ChainType.ALGO:
-        return ChainType.ALGO
+        return ChainType.ALGO;
       default:
-        return ChainType.invalid
+        return ChainType.invalid;
     }
   }
 
@@ -84,7 +84,7 @@ export module MCC {
   }
 
   export function Client(chainIdOrName: number | string | ChainType, options: AlgoMccCreate | UtxoMccCreate | XrpMccCreate) {
-    const chainType = getChainType(chainIdOrName)
+    const chainType = getChainType(chainIdOrName);
     switch (chainType) {
       case ChainType.XRP:
         return new XRP(options as XrpMccCreate);

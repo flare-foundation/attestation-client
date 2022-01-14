@@ -29,7 +29,7 @@ export enum VerificationStatus {
   FUNDS_INCREASED = "FUNDS_INCREASED",
   // COINBASE_TRANSACTION = "COINBASE_TRANSACTION",
   UNSUPPORTED_TX_TYPE = "UNSUPPORTED_TX_TYPE",
-  RECHECK_LATER = "RECHECK_LATER"
+  RECHECK_LATER = "RECHECK_LATER",
 }
 
 export interface NormalizedTransactionData extends AdditionalTransactionDetails {
@@ -398,7 +398,11 @@ function checkDataAvailability(additionalData: AdditionalTransactionDetails, att
   return VerificationStatus.OK;
 }
 
-function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest, testFailProbability = 0): NormalizedTransactionData {
+function checkAndAggregateXRP(
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testFailProbability = 0
+): NormalizedTransactionData {
   // helper return function
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
@@ -450,7 +454,11 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
   throw new Error(`Wrong or missing attestation type: ${attRequest.attestationType}`);
 }
 
-function checkAndAggregateToOnePaymentUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest, testFailProbability = 0): NormalizedTransactionData {
+function checkAndAggregateToOnePaymentUtxo(
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testFailProbability = 0
+): NormalizedTransactionData {
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
       chainId: toBN(attRequest.chainId),
@@ -588,7 +596,11 @@ function checkAndAggregateToOnePaymentUtxo(additionalData: AdditionalTransaction
   return newGenericReturnWithStatus(VerificationStatus.OK);
 }
 
-function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest, testFailProbability = 0) {
+function checkAndAggregateDecreaseBalancePaymentUtxo(
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testFailProbability = 0
+) {
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
       chainId: toBN(attRequest.chainId),
@@ -691,7 +703,11 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
   return newGenericReturnWithStatus(VerificationStatus.OK);
 }
 
-function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest, testFailProbability = 0): NormalizedTransactionData {
+function checkAndAggregateUtxo(
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testFailProbability = 0
+): NormalizedTransactionData {
   switch (attRequest.attestationType) {
     case AttestationType.FassetPaymentProof:
       return checkAndAggregateToOnePaymentUtxo(additionalData, attRequest, testFailProbability);

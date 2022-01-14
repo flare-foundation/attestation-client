@@ -1,13 +1,14 @@
 import { StateConnectorInstance } from "../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
-import { Attester } from "./Attester";
+import { AttesterClientChain } from "./AttesterClientChain";
 import { ChainManager } from "./ChainManager";
-import { getTimeSec } from "./internetTime";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./Verification";
-import { arrayRemoveElement } from "./utils";
-import { ChainType, RPCInterface } from "./MCC/types";
+import { getTimeMilli, getTimeSec } from "./internetTime";
 import { MCC } from "./MCC";
+import { ChainType, RPCInterface } from "./MCC/types";
+import { PriorityQueue } from "./priorityQueue";
+import { arrayRemoveElement } from "./utils";
+import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./Verification";
 
 export class ChainNode {
   chainManager: ChainManager;
@@ -21,49 +22,44 @@ export class ChainNode {
   requestTime: number = 0;
   requestsPerSecond: number = 0;
 
-  maxRequestsPerSecond: number = 2;
-  maxProcessingTransactions: number = 10;
+  conf: AttesterClientChain;
 
-  transactionsQueue: Attestation[] = new Array<Attestation>();
-  transactionsPriorityQueue: Attestation[] = new Array<Attestation>();
-  transactionsDelayQueue: Attestation[] = new Array<Attestation>();
+  transactionsQueue = new Array<Attestation>();
+  transactionsPriorityQueue = new PriorityQueue<Attestation>();
 
-  transactionsProcessing: Attestation[] = new Array<Attestation>();
-  transactionsDone: Attestation[] = new Array<Attestation>();
+  transactionsProcessing = new Array<Attestation>();
+  transactionsDone = new Array<Attestation>();
 
-  constructor(
-    chainManager: ChainManager,
-    chainName: string,
-    chainType: ChainType,
-    url: string,
-    username: string,
-    password: string,
-    metadata: string,
-    maxRequestsPerSecond: number = 10,
-    maxProcessingTransactions: number = 10
-  ) {
+  delayQueueTimer: any = undefined; // todo: type should be Timer
+  delayQueueStartTime = 0;
+
+  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, metadata: string, chainCofiguration: AttesterClientChain) {
     this.chainName = chainName;
     this.chainType = chainType;
     this.chainManager = chainManager;
-    this.maxRequestsPerSecond = maxRequestsPerSecond;
-    this.maxProcessingTransactions = maxProcessingTransactions;
+    this.conf = chainCofiguration;
 
-    // create chain client
-    switch(this.chainType) {
-      case ChainType.BTC: 
+    const url = this.conf.url;
+    const username = this.conf.username;
+    const password = this.conf.password;
+
+    switch (this.chainType) {
+      case ChainType.BTC:
       case ChainType.LTC:
-      case ChainType.DOGE: 
-        this.client  = MCC.Client(this.chainType, {url, username, password}) as RPCInterface;
+      case ChainType.DOGE:
+        this.client = MCC.Client(this.chainType, { url, username, password }) as RPCInterface;
         break;
       case ChainType.XRP:
-        this.client  = MCC.Client(this.chainType, {url, username, password}) as RPCInterface;
+        this.client = MCC.Client(this.chainType, { url, username, password }) as RPCInterface;
         break;
       case ChainType.ALGO:
         throw new Error("Not yet Implemented");
       default:
-        throw new Error("")
+        throw new Error("");
     }
-    // this.client = new MCClient(new MCCNodeSettings(chainType, url, username, password, metadata));
+
+    // create chain client
+    //this.client = MCC.Client(this.chainType, { this.conf.url!, this.conf.username!, this.conf.password! } ) as RPCInterface;
   }
 
   async isHealthy() {
@@ -77,7 +73,7 @@ export class ChainNode {
 
     if (this.requestTime !== time) return true;
 
-    return this.requestsPerSecond < this.maxRequestsPerSecond;
+    return this.requestsPerSecond < this.conf.maxRequestsPerSecond;
   }
 
   addRequestCount() {
@@ -92,7 +88,7 @@ export class ChainNode {
   }
 
   canProcess() {
-    return this.canAddRequests() && this.transactionsProcessing.length < this.maxProcessingTransactions;
+    return this.canAddRequests() && this.transactionsProcessing.length < this.conf.maxProcessingTransactions;
   }
 
   ////////////////////////////////////////////
@@ -107,25 +103,57 @@ export class ChainNode {
 
   ////////////////////////////////////////////
   // delayQueue
-  // put transaction into delay queue - queue that can be processed in second part of commit epoch
+  // put transaction from processing queue into into delay queue - queue that can be processed in second part of commit epoch
+  //
+  // startTime is delay time in sec
+  //
+  // what this function does is to make sure there is a mechanism that will run startNext if nothing is in process
+  //
   ////////////////////////////////////////////
-  delayQueue(tx: Attestation) {
-    arrayRemoveElement(this.transactionsProcessing, tx);
-    this.transactionsDelayQueue.push(tx);
+  delayQueue(tx: Attestation, delayTimeSec: number) {
+    switch (tx.status) {
+      case AttestationStatus.queued:
+        arrayRemoveElement(this.transactionsQueue, tx);
+        break;
+      case AttestationStatus.processing:
+        arrayRemoveElement(this.transactionsProcessing, tx);
+        break;
+    }
 
-    // set timeout that removes tx from delayQueue into priorityQueue
-    const now = getTimeSec();
-    const epochCommitEndTime = Attester.epochSettings.getEpochIdCommitTimeEnd(tx.epochId);
+    this.transactionsPriorityQueue.push(tx, getTimeMilli() + delayTimeSec * 1000);
 
-    setTimeout(() => {
-      this.chainManager.logger.info(`    * chain ${this.chainName} queue ${tx.data.id} delay queue started`);
+    this.updateDelayQueueTimer();
+  }
 
-      arrayRemoveElement(this.transactionsDelayQueue, tx);
-      this.transactionsPriorityQueue.push(tx);
+  updateDelayQueueTimer() {
+    if (this.transactionsPriorityQueue.length() == 0) return;
 
-      // call start next just in case that nothing was processing in the moment
+    // set time to first time in queue
+    const firstStartTime = this.transactionsPriorityQueue.peekKey()!;
+
+    // if start time has passed then just call startNext (no timeout is needed)
+    if (firstStartTime < getTimeMilli()) {
       this.startNext();
-    }, (epochCommitEndTime - 45 - now) * 1000);
+      return;
+    }
+
+    // check if time is before last time
+    if (this.delayQueueTimer === undefined || firstStartTime < this.delayQueueStartTime) {
+      // delete old timer if it exists
+      if (this.delayQueueTimer !== undefined) {
+        clearTimeout(this.delayQueueTimer);
+        this.delayQueueTimer = undefined;
+      }
+
+      // setup new timer
+      this.delayQueueStartTime = firstStartTime;
+      this.delayQueueTimer = setTimeout(() => {
+        this.chainManager.logger.debug(` # priority queue timeout`);
+
+        this.startNext();
+        this.delayQueueTimer = undefined;
+      }, firstStartTime - getTimeMilli());
+    }
   }
 
   ////////////////////////////////////////////
@@ -152,13 +180,22 @@ export class ChainNode {
       .then((txData: NormalizedTransactionData) => {
         // todo: check is status is not OK and FailReason??? is to not ready - it means to recheck in XXX sec but not before time T
         if (false) {
-          this.delayQueue(tx);
+          this.delayQueue(tx, getTimeMilli() + 10 * 1000);
         } else {
           this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid);
         }
       })
       .catch((txData: NormalizedTransactionData) => {
-        this.processed(tx, AttestationStatus.invalid);
+        if (tx.retry < this.conf.maxFailedRetry) {
+          this.chainManager.logger.warning(`  * transaction verification error (retry ${tx.retry})`);
+
+          tx.retry++;
+
+          this.delayQueue(tx, this.conf.delayBeforeRetry);
+        } else {
+          this.chainManager.logger.error(`  * transaction verification error`);
+          this.processed(tx, AttestationStatus.invalid);
+        }
       });
   }
 
@@ -216,9 +253,17 @@ export class ChainNode {
   // start next queued transaction
   ////////////////////////////////////////////
   startNext() {
+    if (!this.canProcess()) return;
+
     // check if there is queued priority transaction to be processed
-    while (this.transactionsPriorityQueue.length && this.canProcess()) {
-      const tx = this.transactionsPriorityQueue.shift();
+    while (this.transactionsPriorityQueue.length() && this.canProcess()) {
+      // check if queue start time is reached
+      const startTime = this.transactionsPriorityQueue.peekKey()!;
+      if (getTimeMilli() < startTime) break;
+
+      // take top and process it then start new top timer
+      const tx = this.transactionsPriorityQueue.pop();
+      this.updateDelayQueueTimer();
 
       this.process(tx!);
     }

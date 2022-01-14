@@ -1,7 +1,7 @@
-import { ensure_data, sleep, toBN, SATOSHI_BTC, prefix0x } from './utils';
-import BN from 'bn.js';
+import { ensure_data, sleep, toBN, SATOSHI_BTC, prefix0x } from "./utils";
+import BN from "bn.js";
 
-import axios from 'axios';
+import axios from "axios";
 import {
   IUtxoWalletRes,
   getAddressByLabelResponse,
@@ -15,7 +15,7 @@ import {
   AdditionalTransactionDetails,
   AdditionalTxRequest,
   TransactionSuccessStatus,
-} from './types';
+} from "./types";
 
 export class UtxoCore {
   client: any;
@@ -25,7 +25,7 @@ export class UtxoCore {
     this.client = axios.create({
       baseURL: url,
       timeout: 5000,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
       auth: {
         username: username,
         password: password,
@@ -48,10 +48,10 @@ export class UtxoCore {
     if (options !== undefined) {
       verbose = options.verbose || false;
     }
-    let res = await this.client.post('', {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'getrawtransaction',
+    let res = await this.client.post("", {
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "getrawtransaction",
       params: [txId, verbose],
     });
     ensure_data(res.data);
@@ -63,10 +63,10 @@ export class UtxoCore {
    * @returns block height (block count)
    */
   async getBlockHeight(): Promise<number> {
-    let res = await this.client.post('', {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'getblockcount',
+    let res = await this.client.post("", {
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "getblockcount",
       params: [],
     });
     ensure_data(res.data);
@@ -85,15 +85,15 @@ export class UtxoCore {
    */
   async getBlockHeader(blockHashOrHeight: string | number): Promise<IUtxoBlockHeaderRes> {
     let blockHash: string | null = null;
-    if (typeof blockHashOrHeight === 'string') {
+    if (typeof blockHashOrHeight === "string") {
       blockHash = blockHashOrHeight as string;
-    } else if (typeof blockHashOrHeight === 'number') {
+    } else if (typeof blockHashOrHeight === "number") {
       blockHash = await this.getBlockHashFromHeight(blockHashOrHeight as number);
     }
-    let res = await this.client.post('', {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'getblockheader',
+    let res = await this.client.post("", {
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "getblockheader",
       params: [blockHash],
     });
     ensure_data(res.data);
@@ -106,10 +106,10 @@ export class UtxoCore {
    * @returns Block hash
    */
   async getBlockHashFromHeight(blockNumber: number): Promise<string> {
-    let res = await this.client.post('', {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'getblockhash',
+    let res = await this.client.post("", {
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "getblockhash",
       params: [blockNumber],
     });
     ensure_data(res.data);
@@ -123,15 +123,15 @@ export class UtxoCore {
    */
   async getBlock(blockHashOrHeight: string | number): Promise<IUtxoBlockRes> {
     let blockHash: string | null = null;
-    if (typeof blockHashOrHeight === 'string') {
+    if (typeof blockHashOrHeight === "string") {
       blockHash = blockHashOrHeight as string;
-    } else if (typeof blockHashOrHeight === 'number') {
+    } else if (typeof blockHashOrHeight === "number") {
       blockHash = await this.getBlockHashFromHeight(blockHashOrHeight as number);
     }
-    let res = await this.client.post('', {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'getblock',
+    let res = await this.client.post("", {
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "getblock",
       params: [blockHash],
     });
     ensure_data(res.data);
@@ -144,10 +144,10 @@ export class UtxoCore {
    * @returns name of the created wallet and possible warnings
    */
   async createWallet(walletLabel: string): Promise<IUtxoWalletRes> {
-    let res = await this.client.post('', {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'createwallet',
+    let res = await this.client.post("", {
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "createwallet",
       params: [walletLabel],
     });
     ensure_data(res.data);
@@ -161,10 +161,10 @@ export class UtxoCore {
    * @returns
    */
   async loadWallet(walletLabel: string): Promise<IUtxoWalletRes> {
-    let res = await this.client.post('', {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'loadwallet',
+    let res = await this.client.post("", {
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "loadwallet",
       params: [walletLabel],
     });
     ensure_data(res.data);
@@ -178,11 +178,11 @@ export class UtxoCore {
    * @param address_type type of address (default to "legacy") options = ["legacy", "p2sh-segwit", "bech32"]
    * @returns
    */
-  async createAddress(walletLabel: string, addressLabel: string = '', address_type: string = 'legacy') {
+  async createAddress(walletLabel: string, addressLabel: string = "", address_type: string = "legacy") {
     let res = await this.client.post(`wallet/${walletLabel}`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'getnewaddress',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "getnewaddress",
       params: [addressLabel, address_type],
     });
     ensure_data(res.data);
@@ -195,9 +195,9 @@ export class UtxoCore {
    */
   async listAllWallets(): Promise<string[]> {
     let res = await this.client.post(``, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'listwallets',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "listwallets",
       params: [],
     });
     ensure_data(res.data);
@@ -210,11 +210,11 @@ export class UtxoCore {
    * @param addressLabel label of the addresses we want to list
    * @returns
    */
-  async listAllAddressesByLabel(walletLabel: string, addressLabel: string = ''): Promise<getAddressByLabelResponse[]> {
+  async listAllAddressesByLabel(walletLabel: string, addressLabel: string = ""): Promise<getAddressByLabelResponse[]> {
     let res = await this.client.post(`wallet/${walletLabel}`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'getaddressesbylabel',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "getaddressesbylabel",
       params: [addressLabel],
     });
     ensure_data(res.data);
@@ -237,9 +237,9 @@ export class UtxoCore {
    */
   async listUnspentTransactions(walletLabel: string, min: number = 0, max: number = 1e6): Promise<IUtxoTransactionListRes[]> {
     let res = await this.client.post(`wallet/${walletLabel}`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'listunspent',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "listunspent",
       params: [min, max],
     });
     ensure_data(res.data);
@@ -247,23 +247,23 @@ export class UtxoCore {
   }
 
   async createRawTransaction(walletLabel: string, vin: IIUtxoVin[], out: IIUtxoVout[]) {
-    let voutArr = '[';
+    let voutArr = "[";
     let first = true;
     for (let i of out) {
       if (first) {
         first = false;
       } else {
-        voutArr += ',';
+        voutArr += ",";
       }
       let row = `{"${i.address}" : ${i.amount}}`;
       voutArr += row;
     }
-    voutArr += ']';
+    voutArr += "]";
     let VoutArr = JSON.parse(voutArr);
     let res = await this.client.post(`wallet/${walletLabel}`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'createrawtransaction',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "createrawtransaction",
       params: [vin, VoutArr],
     });
     ensure_data(res.data);
@@ -272,9 +272,9 @@ export class UtxoCore {
 
   async signRawTransaction(walletLabel: string, rawTx: string, keysList: string[]) {
     let res = await this.client.post(`wallet/${walletLabel}`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'signrawtransactionwithkey',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "signrawtransactionwithkey",
       params: [rawTx, keysList],
     });
     ensure_data(res.data);
@@ -289,9 +289,9 @@ export class UtxoCore {
    */
   async sendRawTransaction(walletLabel: string, signedRawTx: string) {
     let res = await this.client.post(`wallet/${walletLabel}`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'sendrawtransaction',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "sendrawtransaction",
       params: [signedRawTx],
     });
     ensure_data(res.data);
@@ -306,9 +306,9 @@ export class UtxoCore {
    */
   async sendRawTransactionInBlock(walletLabel: string, signedRawTx: string) {
     let res = await this.client.post(`wallet/${walletLabel}`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'sendrawtransaction',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "sendrawtransaction",
       params: [signedRawTx],
     });
     ensure_data(res.data);
@@ -329,9 +329,9 @@ export class UtxoCore {
    */
   async getPrivateKey(walletLabel: string, address: string) {
     let res = await this.client.post(`wallet/${walletLabel}`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'dumpprivkey',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "dumpprivkey",
       params: [address],
     });
     ensure_data(res.data);
@@ -348,12 +348,12 @@ export class UtxoCore {
    */
   async fundAddress(address: string, amount: number) {
     if (!this.inRegTest) {
-      throw Error('You have to run client in regression test mode to use this ');
+      throw Error("You have to run client in regression test mode to use this ");
     }
     let res = await this.client.post(`wallet/miner`, {
-      jsonrpc: '1.0',
-      id: 'rpc',
-      method: 'sendtoaddress',
+      jsonrpc: "1.0",
+      id: "rpc",
+      method: "sendtoaddress",
       params: [address, amount],
     });
     ensure_data(res.data);
@@ -383,7 +383,7 @@ export class UtxoCore {
         inFunds.push(outVal);
         totalInFunds = totalInFunds.add(outVal);
       } else {
-        sourceAddresses.push(['']);
+        sourceAddresses.push([""]);
         inFunds.push(toBN(0));
       }
     }
@@ -408,10 +408,10 @@ export class UtxoCore {
       dataAvailabilityProof = prefix0x(confirmationBlock.hash);
     } catch (e) {}
     if (sourceAddresses.length != inFunds.length) {
-      throw new Error('Source addresses length and inFunds length do not match!');
+      throw new Error("Source addresses length and inFunds length do not match!");
     }
     if (destinationAddresses.length != outFunds.length) {
-      throw new Error('Destination addresses length and outFunds length do not match!');
+      throw new Error("Destination addresses length and outFunds length do not match!");
     }
 
     // TODO verify this!!!
@@ -432,7 +432,7 @@ export class UtxoCore {
       dataAvailabilityProof,
       status: success,
     } as AdditionalTransactionDetails;
-    return result;    
+    return result;
   }
 
   /**

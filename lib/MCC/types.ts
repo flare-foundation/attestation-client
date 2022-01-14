@@ -1,3 +1,5 @@
+import BN from "bn.js";
+
 export interface RPCInterface {
   /**
    *
@@ -63,7 +65,7 @@ export interface RPCInterface {
   getTransactionStatus(tx: any): TransactionSuccessStatus;
 }
 
-export interface DogeRpcInterface extends RPCInterface { }
+export interface DogeRpcInterface extends RPCInterface {}
 
 export interface UtxoRpcInterface extends RPCInterface {
   /**
@@ -125,7 +127,7 @@ export enum TransactionSuccessStatus {
   SUCCESS,
   SENDER_FAILURE,
   RECEIVER_FAILURE,
-  UNKNOWN
+  UNKNOWN,
 }
 
 /**
@@ -144,7 +146,7 @@ export enum ChainType {
   LTC = 1,
   DOGE = 2,
   XRP = 3,
-  ALGO = 4
+  ALGO = 4,
   // ... make sure IDs are the same as in Flare node
 }
 
@@ -159,7 +161,7 @@ export interface XrpMccCreate {
   inRegTest?: boolean;
 }
 
-export interface XrpCreateAddressData { }
+export interface XrpCreateAddressData {}
 
 interface XrpTransactionAmount {
   currency: string;
@@ -190,7 +192,6 @@ export interface XrpGetTransactionResponse {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////// UTXO base interfaces ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 export interface UtxoMccCreate {
   url: string;

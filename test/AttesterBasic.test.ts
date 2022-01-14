@@ -1,8 +1,8 @@
+import { AttesterClientChain } from "../lib/AttesterClientChain";
 import { ChainManager } from "../lib/ChainManager";
 import { ChainNode } from "../lib/ChainNode";
-import { ChainType } from "../lib/MCC/MCClientSettings";
 import { getGlobalLogger } from "../lib/logger";
-import { AttesterClientChain } from "../lib/AttesterClientChain";
+import { ChainType } from "../lib/MCC/types";
 
 // todo test: test per second limiter
 // todo test: test queue limiter
@@ -13,7 +13,7 @@ describe("Attester Basic Tests", () => {
       const chainManager = new ChainManager(getGlobalLogger());
 
       //const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, "http://s1.ripple.com:1151234/", "", "", "");
-      const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, "https://xrplcluster.com", new AttesterClientChain() );
+      const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, "https://xrplcluster.com", new AttesterClientChain());
 
       assert(await chain.isHealthy());
 

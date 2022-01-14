@@ -1,8 +1,8 @@
-import { DogeRpcInterface } from "../RPCtypes";
+import { DogeRpcInterface, UtxoMccCreate } from "../types";
 import { UtxoCore } from "../UtxoCore";
 
 export class DOGEImplementation extends UtxoCore implements DogeRpcInterface {
-  constructor(url: string, username: string, password: string, inRegTest: boolean = false) {
-    super(url, username, password, inRegTest);
+  constructor(options: UtxoMccCreate) {
+    super(options.url, options.username, options.password, options.inRegTest || false);
   }
 }

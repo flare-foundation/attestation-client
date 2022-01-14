@@ -1,8 +1,10 @@
 import { AttestationType } from "../../lib/AttestationData";
-import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, NormalizedTransactionData, TransactionAttestationRequest } from "../../lib/MCC/tx-normalize";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, NormalizedTransactionData, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../../lib/Verification";
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { StateConnectorInstance } from "../../typechain-truffle";
-import { toBN } from "../../lib/utils";
+import { prefix0x, toBN } from "../../lib/MCC/utils";
+import { ChainType, IUtxoBlockRes, RPCInterface } from "../../lib/MCC/types";
+
 
 export async function testHashOnContract(txData: NormalizedTransactionData, hash: string) {
   let HashTest = artifacts.require("HashTest");
@@ -56,11 +58,118 @@ export function verifyReceiptAgainstTemplate(receipt: any, template: Transaction
   return eventRequest;
 }
 
+export async function testUtxo(
+  client: RPCInterface, stateConnector: StateConnectorInstance, chainType: ChainType,
+  txId: string, blockNumber: number, utxo: number, targetStatus: VerificationStatus
+) {
+  let block = await client.getBlock(blockNumber) as IUtxoBlockRes;
+  let confirmationHeight = block.height + numberOfConfirmations(chainType);
+  let confirmationBlock = await client.getBlock(confirmationHeight) as IUtxoBlockRes;
+  let template = {
+    attestationType: AttestationType.FassetPaymentProof,
+    instructions: toBN(0),
+    id: prefix0x(txId),
+    utxo: utxo,
+    dataAvailabilityProof: prefix0x(confirmationBlock.hash),
+    chainId: chainType,
+    blockNumber: blockNumber
+  } as TransactionAttestationRequest;
+  let request = txAttReqToAttestationRequest(template);
 
-// export async function requestAttestation(
-//   instructions: string,   // string encoded uint256
-//   id: string,             // string encoded bytes32
-//   dataAvailabilityProof: string // string encoded bytes32
-// ) {
+  // send it to contract
+  let receipt: any = null;
+  try {
+    receipt = await sendAttestationRequest(stateConnector, request);
+  } catch (e) {
+    throw new Error(`${e}`)
+  }
+  // intercept events
+  let events = extractAttEvents(receipt.logs);
+  let parsedEvents = events.map((x: AttestationRequest) => attReqToTransactionAttestationRequest(x))
+  assert(parsedEvents.length === 1);
+  let txAttReq = parsedEvents[0];
 
-// }
+  // verify
+  let txData = await verifyTransactionAttestation(client, txAttReq)
+  assert(txData.verificationStatus === targetStatus, `Incorrect status ${txData.verificationStatus}`)
+  if (targetStatus === VerificationStatus.OK) {
+    let hash = transactionHash(web3, txData!);
+    let res = testHashOnContract(txData!, hash!);
+    assert(res);
+  }
+}
+
+export interface UtxoTraverseTestOptions {
+  attestationTypes?: AttestationType[];
+  filterStatusPrintouts?: VerificationStatus[];
+  count?: number;
+  numberOfInputsChecked?: number;
+}
+
+export async function traverseAndTestUtxoChain(
+  client: RPCInterface,
+  stateConnector: StateConnectorInstance,
+  chainType: ChainType,
+  options?: UtxoTraverseTestOptions
+) {
+  // Defaults
+  const count = options?.count || 1;
+  const attestationTypes = options?.attestationTypes || [AttestationType.FassetPaymentProof];
+  const filterStatusPrintouts = options?.filterStatusPrintouts || [];
+  const numberOfInputsChecked = options?.numberOfInputsChecked || 3;
+
+  // Validation
+  const latestBlockNumber = await client.getBlockHeight();
+  const latestBlockNumberToUse = latestBlockNumber - numberOfConfirmations(chainType);
+
+  for (let i = latestBlockNumberToUse - count + 1; i <= latestBlockNumberToUse; i++) {
+    let block = await client.getBlock(i) as IUtxoBlockRes;
+    let confirmationBlock = await client.getBlock(i + numberOfConfirmations(chainType)) as IUtxoBlockRes;
+    for (let id of client.getTransactionHashesFromBlock(block)) {
+      for (let attType of attestationTypes) {
+        for (let utxo = 0; utxo < numberOfInputsChecked; utxo++) {
+          let tr = {
+            id: prefix0x(id),
+            dataAvailabilityProof: prefix0x(confirmationBlock.hash),
+            utxo,
+            blockNumber: i,
+            chainId: chainType,
+            attestationType: attType,
+            instructions: toBN(0)   // inital empty setting, will be consturcted
+          } as TransactionAttestationRequest;
+          console.log(`Checking: type: ${attType}, txid: ${tr.id}, block ${i}, utxo ${utxo}`);
+          let attRequest = txAttReqToAttestationRequest(tr);
+          let receipt: any = null;
+
+          try {
+            receipt = await sendAttestationRequest(stateConnector, attRequest);
+          } catch (e) {
+            throw new Error(`${e}`);
+          }
+          let eventRequest = verifyReceiptAgainstTemplate(receipt, tr);
+
+          // verify
+          let txData = await verifyTransactionAttestation(client, eventRequest)
+
+          /////////////////////////////////////////////////////////////////
+          /// Filtering printouts for (known) statuses
+          if (filterStatusPrintouts.indexOf(txData.verificationStatus) >= 0) {
+            continue;
+          }
+          /////////////////////////////////////////////////////////////////
+
+          if (txData.verificationStatus != VerificationStatus.OK) {
+            console.log(txData.verificationStatus);
+            continue;
+          }
+          assert(txData.verificationStatus === VerificationStatus.OK, `Incorrect verification status ${txData.verificationStatus}`)
+          console.log(VerificationStatus.OK);
+          let hash = transactionHash(web3, txData!);
+          let res = testHashOnContract(txData!, hash!);
+          assert(res);
+        }
+      }
+    }
+  }
+
+}

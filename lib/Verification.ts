@@ -1,11 +1,9 @@
 import BN from "bn.js";
 import Web3 from "web3";
 import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
-import { AttestationType } from "../AttestationData";
-import { toBN, toNumber, unPrefix0x } from "../utils";
-import { ChainType } from "./MCClientSettings";
-import { AdditionalTransactionDetails, RPCInterface } from "./RPCtypes";
-import { UtxoTxResponse } from "./UtxoCore";
+import { AttestationType } from "./AttestationData";
+import { toBN, toNumber, unPrefix0x } from "./utils";
+import { AdditionalTransactionDetails, ChainType, IUtxoGetTransactionRes, RPCInterface } from "./MCC/types";
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////
@@ -31,6 +29,7 @@ export enum VerificationStatus {
   FUNDS_INCREASED = "FUNDS_INCREASED",
   // COINBASE_TRANSACTION = "COINBASE_TRANSACTION",
   UNSUPPORTED_TX_TYPE = "UNSUPPORTED_TX_TYPE",
+  RECHECK_LATER = "RECHECK_LATER",
 }
 
 export interface NormalizedTransactionData extends AdditionalTransactionDetails {
@@ -147,8 +146,8 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "uint64", // blockNumber
           "bytes32", // txId
           "uint8", // utxo
-          "string", // sourceAddress
-          "string", // destinationAddress
+          "bytes32", // sourceAddress
+          "bytes32", // destinationAddress
           "uint256", // destinationTag
           "uint256", // spent
           "uint256", // delivered
@@ -179,7 +178,7 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "uint64", // chainId
           "uint64", // blockNumber
           "bytes32", // txId
-          "string", // sourceAddress
+          "bytes32", // sourceAddress
           "uint256", // spent
         ],
         hashKeys: ["attestationType", "chainId", "blockNumber", "txId", "sourceAddresses", "spent"],
@@ -294,9 +293,16 @@ export function decodeUint256(encoding: BN, sizes: number[], keys: string[]) {
 
 export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
   let scheme = attestationTypeEncodingScheme(txData.attestationType!);
-  let values = scheme.hashKeys.map((key) => (txData as any)[key]);
-  // prettyPrint(scheme)
-  // prettyPrint(values)
+  let values = scheme.hashKeys.map((key) => {
+    let val = (txData as any)[key];
+    switch (key) {
+      case "sourceAddresses":
+      case "destinationAddresses":
+        return web3.utils.soliditySha3(val);
+      default:
+        return val;
+    }
+  });
   const encoded = web3.eth.abi.encodeParameters(scheme.hashTypes, values);
   return web3.utils.soliditySha3(encoded);
 }
@@ -307,7 +313,7 @@ export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
 
 // Generic
 // Add here specific calls for verification
-export async function verifyTransactionAttestation(client: any, request: TransactionAttestationRequest) {
+export async function verifyTransactionAttestation(client: any, request: TransactionAttestationRequest, testFailProbability = 0) {
   if (!client) {
     throw new Error("Missing client!");
   }
@@ -319,9 +325,9 @@ export async function verifyTransactionAttestation(client: any, request: Transac
     case ChainType.BTC:
     case ChainType.LTC:
     case ChainType.DOGE:
-      return verififyAttestationUtxo(client, request);
+      return verififyAttestationUtxo(client, request, testFailProbability);
     case ChainType.XRP:
-      return verififyAttestationXRP(client, request);
+      return verififyAttestationXRP(client, request, testFailProbability);
     default:
       throw new Error("Wrong chain id!");
   }
@@ -375,7 +381,11 @@ function checkDataAvailability(additionalData: AdditionalTransactionDetails, att
   return VerificationStatus.OK;
 }
 
-function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
+function checkAndAggregateXRP(
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testFailProbability = 0
+): NormalizedTransactionData {
   // helper return function
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
@@ -385,6 +395,13 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
       verificationStatus,
       utxo: attRequest.utxo,
     } as NormalizedTransactionData;
+  }
+
+  // Test simulation of "too early check"
+  if (testFailProbability > 0) {
+    if (Math.random() < testFailProbability) {
+      return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
+    }
   }
 
   // check confirmations
@@ -420,7 +437,11 @@ function checkAndAggregateXRP(additionalData: AdditionalTransactionDetails, attR
   throw new Error(`Wrong or missing attestation type: ${attRequest.attestationType}`);
 }
 
-function checkAndAggregateToOnePaymentUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
+function checkAndAggregateToOnePaymentUtxo(
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testFailProbability = 0
+): NormalizedTransactionData {
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
       chainId: toBN(attRequest.chainId),
@@ -429,6 +450,13 @@ function checkAndAggregateToOnePaymentUtxo(additionalData: AdditionalTransaction
       verificationStatus,
       utxo: attRequest.utxo,
     } as NormalizedTransactionData;
+  }
+
+  // Test simulation of "too early check"
+  if (testFailProbability > 0) {
+    if (Math.random() < testFailProbability) {
+      return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
+    }
   }
 
   // check against instructions
@@ -551,7 +579,11 @@ function checkAndAggregateToOnePaymentUtxo(additionalData: AdditionalTransaction
   return newGenericReturnWithStatus(VerificationStatus.OK);
 }
 
-function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest) {
+function checkAndAggregateDecreaseBalancePaymentUtxo(
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testFailProbability = 0
+) {
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
       chainId: toBN(attRequest.chainId),
@@ -560,6 +592,13 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
       verificationStatus,
       utxo: attRequest.utxo,
     } as NormalizedTransactionData;
+  }
+
+  // Test simulation of "too early check"
+  if (testFailProbability > 0) {
+    if (Math.random() < testFailProbability) {
+      return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
+    }
   }
 
   // check against instructions
@@ -647,26 +686,30 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(additionalData: AdditionalT
   return newGenericReturnWithStatus(VerificationStatus.OK);
 }
 
-function checkAndAggregateUtxo(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest): NormalizedTransactionData {
+function checkAndAggregateUtxo(
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testFailProbability = 0
+): NormalizedTransactionData {
   switch (attRequest.attestationType) {
     case AttestationType.FassetPaymentProof:
-      return checkAndAggregateToOnePaymentUtxo(additionalData, attRequest);
+      return checkAndAggregateToOnePaymentUtxo(additionalData, attRequest, testFailProbability);
     case AttestationType.BalanceDecreasingProof:
-      return checkAndAggregateDecreaseBalancePaymentUtxo(additionalData, attRequest);
+      return checkAndAggregateDecreaseBalancePaymentUtxo(additionalData, attRequest, testFailProbability);
     default:
       throw new Error(`Invalid attestation type ${attRequest.attestationType}`);
   }
 }
 
-async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest) {
+async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest, testFailProbability = 0) {
   try {
-    let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as UtxoTxResponse;
+    let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
     let additionalData = await client.getAdditionalTransactionDetails({
       transaction: txResponse,
       confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
       dataAvailabilityProof: attRequest.dataAvailabilityProof,
     });
-    return checkAndAggregateUtxo(additionalData, attRequest);
+    return checkAndAggregateUtxo(additionalData, attRequest, testFailProbability);
   } catch (error) {
     // TODO: handle error
     console.log(error);
@@ -674,7 +717,7 @@ async function verififyAttestationUtxo(client: RPCInterface, attRequest: Transac
   }
 }
 
-async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest) {
+async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest, testFailProbability = 0) {
   try {
     let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id))) as TxResponse;
     let additionalData = await client.getAdditionalTransactionDetails({
@@ -682,7 +725,7 @@ async function verififyAttestationXRP(client: RPCInterface, attRequest: Transact
       confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
       dataAvailabilityProof: attRequest.dataAvailabilityProof,
     });
-    return checkAndAggregateXRP(additionalData, attRequest);
+    return checkAndAggregateXRP(additionalData, attRequest, testFailProbability);
   } catch (error) {
     // TODO: handle error
     console.log(error);

@@ -2,21 +2,20 @@ import { StateConnectorInstance } from "../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttesterClientChain } from "./AttesterClientChain";
-import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { ChainManager } from "./ChainManager";
 import { getTimeMilli, getTimeSec } from "./internetTime";
-import { MCClient as MCClient } from "./MCC/MCClient";
-import { ChainType, MCCNodeSettings } from "./MCC/MCClientSettings";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./MCC/tx-normalize";
+import { MCC } from "./MCC";
+import { ChainType, RPCInterface } from "./MCC/types";
 import { PriorityQueue } from "./priorityQueue";
 import { arrayRemoveElement } from "./utils";
+import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./Verification";
 
 export class ChainNode {
   chainManager: ChainManager;
 
   chainName: string;
   chainType: ChainType;
-  client: MCClient;
+  client: RPCInterface;
   stateConnector!: StateConnectorInstance;
 
   // node rate limiting control
@@ -40,12 +39,31 @@ export class ChainNode {
     this.chainManager = chainManager;
     this.conf = chainCofiguration;
 
+    const url = this.conf.url;
+    const username = this.conf.username;
+    const password = this.conf.password;
+
+    switch (this.chainType) {
+      case ChainType.BTC:
+      case ChainType.LTC:
+      case ChainType.DOGE:
+        this.client = MCC.Client(this.chainType, { url, username, password }) as RPCInterface;
+        break;
+      case ChainType.XRP:
+        this.client = MCC.Client(this.chainType, { url, username, password }) as RPCInterface;
+        break;
+      case ChainType.ALGO:
+        throw new Error("Not yet Implemented");
+      default:
+        throw new Error("");
+    }
+
     // create chain client
-    this.client = new MCClient(new MCCNodeSettings(chainType, this.conf.url, this.conf.username, this.conf.password, metadata));
+    //this.client = MCC.Client(this.chainType, { this.conf.url!, this.conf.username!, this.conf.password! } ) as RPCInterface;
   }
 
   async isHealthy() {
-    const valid = await this.client.isHealty();
+    const valid = await this.client.isHealthy();
 
     return true;
   }
@@ -158,7 +176,7 @@ export class ChainNode {
     attReq.chainId = this.chainType;
     attReq.blockNumber = tx.data.blockNumber;
 
-    verifyTransactionAttestation(this.client.chainClient, attReq)
+    verifyTransactionAttestation(this.client, attReq)
       .then((txData: NormalizedTransactionData) => {
         // todo: check is status is not OK and FailReason??? is to not ready - it means to recheck in XXX sec but not before time T
         if (false) {

@@ -1,16 +1,16 @@
 
 import { LedgerResponse, Payment } from "xrpl";
 import { AttestationType } from "../lib/AttestationData";
-import { MCClient } from "../lib/MCC/MCClient";
-import { ChainType, MCCNodeSettings } from "../lib/MCC/MCClientSettings";
 import {
   AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, numberOfConfirmations,
   TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus,
   verifyTransactionAttestation, verifyXRPPayment
-} from "../lib/MCC/tx-normalize";
-import { prefix0x, toBN } from "../lib/utils";
+} from "../lib/Verification";
+import { prefix0x, toBN } from "../lib/MCC/utils";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
+import { MCC } from "../lib/MCC";
+import { ChainType } from "../lib/MCC/types";
 
 const CLIENT = ChainType.XRP;
 const URL = "https://xrplcluster.com";
@@ -25,12 +25,12 @@ const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof, AttestationType.B
 const StateConnector = artifacts.require("StateConnector");
 
 describe(`Test`, async () => {
-  let client: MCClient;
+  let client: MCC.XRP;
   let stateConnector: StateConnectorInstance;
 
   beforeEach(async () => {
     stateConnector = await StateConnector.new();
-    client = new MCClient(new MCCNodeSettings(CLIENT, URL, USERNAME, PASSWORD, null));
+    client = MCC.Client(CLIENT, {url: URL, username: USERNAME, password: PASSWORD}) as MCC.XRP; 
   });
 
   it("Should hashing of a normalized transaction match to one in contract for XRP", async () => {
@@ -59,7 +59,7 @@ describe(`Test`, async () => {
     let txAttReq = parsedEvents[0];
 
     // verify
-    let txData = await verifyTransactionAttestation(client.chainClient, txAttReq)
+    let txData = await verifyTransactionAttestation(client, txAttReq)
     assert(txData.verificationStatus === VerificationStatus.OK, `Incorrect status ${txData.verificationStatus}`)
 
     let hash = transactionHash(web3, txData!);
@@ -68,11 +68,11 @@ describe(`Test`, async () => {
   });
 
   it("Should make lots of attestation requests", async () => {
-    let latestBlockNumber = await client.chainClient.getBlockHeight();
+    let latestBlockNumber = await client.getBlockHeight();
     let count = 3;
     for (let i = latestBlockNumber - count; i < latestBlockNumber; i++) {
-      let block = await client.chainClient.getBlock(i) as LedgerResponse;
-      let nextBlock = await client.chainClient.getBlock(i + numberOfConfirmations(ChainType.XRP)) as LedgerResponse;
+      let block = await client.getBlock(i) as LedgerResponse;
+      let nextBlock = await client.getBlock(i + numberOfConfirmations(ChainType.XRP)) as LedgerResponse;
       for (let tx of block.result.ledger.transactions!) {
         // console.log("----")
         if (verifyXRPPayment(tx)) {
@@ -97,7 +97,7 @@ describe(`Test`, async () => {
             let eventRequest = verifyReceiptAgainstTemplate(receipt, tr);
 
             // verify
-            let txData = await verifyTransactionAttestation(client.chainClient, eventRequest)
+            let txData = await verifyTransactionAttestation(client, eventRequest)
             assert(txData.verificationStatus === VerificationStatus.OK, `Incorrect verification status ${txData.verificationStatus}`)
 
             let hash = transactionHash(web3, txData!);

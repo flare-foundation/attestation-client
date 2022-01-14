@@ -1,5 +1,5 @@
 import { MerkleTree } from "../lib/MerkleTree";
-import { prefix0x } from "../lib/utils";
+import { prefix0x } from "../lib/MCC/utils";
 import { HashTestInstance } from "../typechain-truffle";
 
 describe("Merkle Tree", () => {

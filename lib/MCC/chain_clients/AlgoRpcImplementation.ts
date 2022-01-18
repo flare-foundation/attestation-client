@@ -85,9 +85,14 @@ export class ALGOImplementation {
         return blockData.block.rnd;
     }
 
-    async getBlockHash(): Promise<string> {
-        const blockData = await this.getBlock();
-        return blockData.genesisHash;
+    async getBlockHash(blockData?:IAlgoBlockData): Promise<string> {
+        if(blockData === undefined){
+            const blockData = await this.getBlock();
+            return blockData.genesisHash;
+        }
+        else {
+            return blockData.genesisHash
+        }    
     }
 
     async getTransaction(txid: string): Promise<IAlgoGetTransactionRes> {

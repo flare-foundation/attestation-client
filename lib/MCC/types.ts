@@ -119,6 +119,7 @@ export {
 export {
     AlgoMccCreate,
     IAlgoStatusRes,
+    IAlgoBlockHeaderData,
     IAlgoBlockData,
     IAlgoGetBlockRes,
     IAlgoSignature,

@@ -27,7 +27,7 @@ export interface IAlgoStatusRes {
     timeSinceLastRound: number;
 }
 
-export interface IAlgoBlockData {
+export interface IAlgoBlockHeaderData {
     earn: number;
     fees: string;
     frac: number;
@@ -45,8 +45,23 @@ export interface IAlgoBlockData {
     txns: any[]; // improve
 }
 
+export interface IAlgoBlockData {
+  genesisHash: string;
+  genesisId: string;
+  previousBlockHash: string;
+  rewards?: any;
+  round: number;
+  seed: string;
+  timestamp: number;
+  transactions?: IAlgoTransaction[];
+  transactionsRoot: string;
+  txnCounter?: number;
+  upgradeState: any;
+  upgradeVote: any;
+}
+
 export interface IAlgoGetBlockRes {
-    block: IAlgoBlockData;
+    block: IAlgoBlockHeaderData;
     cert: any;
 }
 

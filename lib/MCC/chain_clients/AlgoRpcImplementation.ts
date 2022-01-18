@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
     AlgoMccCreate,
+    IAlgoBlockData,
     IAlgoGetBlockRes,
     IAlgoGetTransactionRes,
     IAlgoListTransactionRes,
@@ -62,16 +63,31 @@ export class ALGOImplementation {
         return toCamelCase(res.data) as IAlgoStatusRes;
     }
 
-    async getBlock(): Promise<IAlgoGetBlockRes> {
+    async getBlockHeader(): Promise<IAlgoGetBlockRes> {
         const status = await this.getStatus();
         let res = await this.algodClient.get(`/v2/blocks/${status.lastRound}`);
         algo_ensure_data(res);
         return res.data;
     }
 
+    async getBlock(round?:number): Promise<IAlgoBlockData> {
+        if(round === undefined){
+            const status = await this.getStatus();
+            round = status.lastRound - 1
+        }
+        let res = await this.indexerClient.get(`/v2/blocks/${round}`);
+        algo_ensure_data(res);
+        return toCamelCase(res.data) as IAlgoBlockData;
+    }
+
     async getBlockHeight(): Promise<number> {
-        const blockData = await this.getBlock();
+        const blockData = await this.getBlockHeader();
         return blockData.block.rnd;
+    }
+
+    async getBlockHash(): Promise<string> {
+        const blockData = await this.getBlock();
+        return blockData.genesisHash;
     }
 
     async getTransaction(txid: string): Promise<IAlgoGetTransactionRes> {

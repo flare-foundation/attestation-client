@@ -2,6 +2,7 @@ import axios from "axios";
 import {
     AlgoMccCreate,
     IAlgoBlockData,
+    IAlgoGetBlockHeaderRes,
     IAlgoGetBlockRes,
     IAlgoGetTransactionRes,
     IAlgoListTransactionRes,
@@ -63,21 +64,24 @@ export class ALGOImplementation {
         return toCamelCase(res.data) as IAlgoStatusRes;
     }
 
-    async getBlockHeader(): Promise<IAlgoGetBlockRes> {
-        const status = await this.getStatus();
-        let res = await this.algodClient.get(`/v2/blocks/${status.lastRound}`);
+    async getBlockHeader(round?:number): Promise<IAlgoGetBlockHeaderRes> {
+        if(round === undefined){
+            const status = await this.getStatus();
+            round = status.lastRound
+        }
+        let res = await this.algodClient.get(`/v2/blocks/${round}`);
         algo_ensure_data(res);
         return res.data;
     }
 
-    async getBlock(round?:number): Promise<IAlgoBlockData> {
+    async getBlock(round?:number): Promise<IAlgoGetBlockRes> {
         if(round === undefined){
             const status = await this.getStatus();
             round = status.lastRound - 1
         }
         let res = await this.indexerClient.get(`/v2/blocks/${round}`);
         algo_ensure_data(res);
-        return toCamelCase(res.data) as IAlgoBlockData;
+        return toCamelCase(res.data) as IAlgoGetBlockRes;
     }
 
     async getBlockHeight(): Promise<number> {
@@ -123,10 +127,14 @@ export class ALGOImplementation {
         // return toCamelCase(res.data) as IAlgoGetTransactionRes;
     }
 
-    async getTransactionHashesFromBlock(blockDataOrHeight: IAlgoGetBlockRes | number): Promise<string[]> {
+    async getTransactionHashesFromBlock(blockDataOrHeight: IAlgoGetBlockRes | IAlgoGetBlockHeaderRes | number): Promise<string[]> {
         let blockNumber = 0;
         if (typeof blockDataOrHeight === "number") {
             blockNumber = blockDataOrHeight;
+        } else if(blockDataOrHeight.type === "IAlgoGetBlockRes"){
+            if(blockDataOrHeight.transactions){
+                return blockDataOrHeight.transactions?.map(filterHashes)
+            } else return []
         } else {
             blockNumber = blockDataOrHeight.block.rnd;
         }

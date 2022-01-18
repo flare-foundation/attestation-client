@@ -60,7 +60,12 @@ export interface IAlgoBlockData {
   upgradeVote: any;
 }
 
-export interface IAlgoGetBlockRes {
+export interface IAlgoGetBlockRes extends IAlgoBlockData {
+  type: "IAlgoGetBlockRes"
+}
+
+export interface IAlgoGetBlockHeaderRes {
+    type: "IAlgoGetBlockHeaderRes"
     block: IAlgoBlockHeaderData;
     cert: any;
 }

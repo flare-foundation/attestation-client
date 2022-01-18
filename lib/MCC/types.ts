@@ -121,6 +121,7 @@ export {
     IAlgoStatusRes,
     IAlgoBlockHeaderData,
     IAlgoBlockData,
+    IAlgoGetBlockHeaderRes,
     IAlgoGetBlockRes,
     IAlgoSignature,
     IAlgoPaymentTransaction,

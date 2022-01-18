@@ -75,40 +75,33 @@ describe(`Test ${MCC.getChainTypeName(CHAIN)}`, async () => {
       let nextBlock = await client.getBlock(i + numberOfConfirmations(ChainType.XRP)) as LedgerResponse;
       for (let tx of block.result.ledger.transactions!) {
         for (let attType of ATTESTATION_TYPES) {
-          // console.log("----")
-          if (isSupportedTransactionForAttestationType(tx, CHAIN, attType)) {
-            let tr = {
-              id: prefix0x((tx as any).hash),
-              // dataHash: web3.utils.soliditySha3((tx as Payment).Account),  // for decreasing balance
-              dataAvailabilityProof: prefix0x(nextBlock.result.ledger_hash),
-              blockNumber: i,
-              chainId: ChainType.XRP,
-              attestationType: attType,
-              instructions: toBN(0)   // inital empty setting, will be consturcted
-            } as TransactionAttestationRequest;
-            console.log(`Checking ${tr.id} for ${attType}`);
-            let attRequest = txAttReqToAttestationRequest(tr);
-            let receipt: any = null;
-            try {
-              receipt = await sendAttestationRequest(stateConnector, attRequest);
-            } catch (e) {
-              throw new Error(`${e}`);
-            }
-            let eventRequest = verifyReceiptAgainstTemplate(receipt, tr);
-
-            // verify
-            let txData = await verifyTransactionAttestation(client, eventRequest)
-            assert(txData.verificationStatus === VerificationStatus.OK, `Incorrect verification status ${txData.verificationStatus}`)
-
-            let hash = transactionHash(web3, txData!);
-            let res = testHashOnContract(txData!, hash!);
-            assert(res);
-          } else {
-            // if((tx as any).TransactionType === 'Payment') {
-            //   console.log(tx)
-            // }
-
+          let tr = {
+            id: prefix0x((tx as any).hash),
+            dataAvailabilityProof: prefix0x(nextBlock.result.ledger_hash),
+            blockNumber: i,
+            chainId: ChainType.XRP,
+            attestationType: attType,
+            instructions: toBN(0)   // inital empty setting, will be consturcted
+          } as TransactionAttestationRequest;
+          console.log(`Checking ${tr.id} for ${attType}`);
+          let attRequest = txAttReqToAttestationRequest(tr);
+          let receipt: any = null;
+          try {
+            receipt = await sendAttestationRequest(stateConnector, attRequest);
+          } catch (e) {
+            throw new Error(`${e}`);
           }
+          let eventRequest = verifyReceiptAgainstTemplate(receipt, tr);
+
+          // verify
+          let txData = await verifyTransactionAttestation(client, eventRequest)
+          if (txData.verificationStatus !== VerificationStatus.OK) {
+            console.log(`Incorrect verification status ${txData.verificationStatus}`);
+          }
+
+          let hash = transactionHash(web3, txData!);
+          let res = testHashOnContract(txData!, hash!);
+          assert(res);
         }
       }
 

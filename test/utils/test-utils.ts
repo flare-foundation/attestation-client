@@ -1,5 +1,5 @@
 import { AttestationType } from "../../lib/AttestationData";
-import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, NormalizedTransactionData, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../../lib/Verification";
+import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, isSupportedTransactionForAttestationType, NormalizedTransactionData, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../../lib/Verification";
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { StateConnectorInstance } from "../../typechain-truffle";
 import { prefix0x, toBN } from "../../lib/MCC/utils";

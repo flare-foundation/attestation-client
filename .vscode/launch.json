@@ -77,6 +77,21 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Test ALGO",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/StateConnectorALGO.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Attester spammer",
             "runtimeExecutable": "yarn",
             "outFiles": [
@@ -85,7 +100,7 @@
             ],
             "runtimeArgs": [
                 "ts-node",
-                "scripts/attestation-spammer.ts"
+                "lib/spammer/attestation-spammer.ts"
             ]
         },
         

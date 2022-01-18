@@ -8,7 +8,7 @@ import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainManager } from "./ChainManager";
 import { EpochSettings } from "./EpochSettings";
 import { getTimeMilli } from "./internetTime";
-import { ATT_BITS, CHAIN_ID_BITS } from "./Verification";
+import { ATT_BITS, CHAIN_ID_BITS } from "./verification/Verification";
 import { partBNbe, toBN } from "./utils";
 import { ChainType } from "./MCC/types";
 

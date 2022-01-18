@@ -1,7 +1,7 @@
 import { AttestationType } from "../lib/AttestationData";
 import { MCC } from "../lib/MCC";
 import { ChainType } from "../lib/MCC/types";
-import { VerificationStatus } from "../lib/Verification";
+import { VerificationStatus } from "../lib/verification/Verification";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { testUtxo, traverseAndTestUtxoChain, UtxoTraverseTestOptions } from "./utils/test-utils";
 

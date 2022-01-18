@@ -8,7 +8,7 @@ import {
   AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, isSupportedTransactionForAttestationType, numberOfConfirmations,
   TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus,
   verifyTransactionAttestation
-} from "../lib/Verification";
+} from "../lib/verification/Verification";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
 

@@ -9,7 +9,7 @@ import { ChainNode } from "./ChainNode";
 import { DotEnvExt } from "./DotEnvExt";
 import { fetchSecret } from "./GoogleSecret";
 import { getGlobalLogger as getGlobalLogger } from "./logger";
-import { ATT_BITS } from "./Verification";
+import { ATT_BITS } from "./verification/Verification";
 import { partBNbe, toBN } from "./utils";
 import { Web3BlockCollector } from "./Web3BlockCollector";
 import { MCC } from "./MCC";

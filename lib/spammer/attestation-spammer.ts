@@ -1,14 +1,14 @@
 import * as dotenv from 'dotenv';
 import Web3 from "web3";
-import { AttestationType } from '../lib/AttestationData';
-import { getGlobalLogger } from '../lib/logger';
-import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/Verification';
-import { getWeb3, getWeb3Contract } from '../lib/utils';
-import { Web3Functions } from '../lib/Web3Functions';
-import { StateConnector } from '../typechain-web3-v1/StateConnector';
-import { sleep, toBN } from '../lib/MCC/utils';
-import { MCC } from '../lib/MCC';
-import { ChainType, RPCInterface } from '../lib/MCC/types';
+import { AttestationType } from '../AttestationData';
+import { getGlobalLogger } from '../logger';
+import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../verification/Verification';
+import { getWeb3, getWeb3Contract } from '../utils';
+import { Web3Functions } from '../Web3Functions';
+import { StateConnector } from '../../typechain-web3-v1/StateConnector';
+import { sleep, toBN } from '../MCC/utils';
+import { MCC } from '../MCC';
+import { ChainType, RPCInterface } from '../MCC/types';
 let fs = require('fs');
 
 dotenv.config();
@@ -27,12 +27,6 @@ let args = yargs
     description: 'RPC to Flare network',
     default: "http://127.0.0.1:9650/ext/bc/C/rpc"
   })
-  // .option('privateKey', {
-  //   alias: 'k',
-  //   type: 'string',
-  //   description: 'Private key for sending attester requests',
-  //   default: '0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122'
-  // })
   .option('abiPath', {
     alias: 'a',
     type: 'string',
@@ -109,6 +103,12 @@ let args = yargs
     alias: 'l',
     type: 'string',
     description: "Logger label",
+    default: ''
+  })
+  .option('databaseFile', {
+    alias: 'g',
+    type: 'string',
+    description: "Database file",
     default: ''
   })
   .argv;
@@ -212,7 +212,7 @@ class AttestationSpammer {
             fromBlock: firstUnprocessedBlockNumber,
             toBlock: last
           })
-        this.logger.info(`Processing ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
+        this.logger.info(`Receiving ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
         firstUnprocessedBlockNumber = last + 1;
       } catch (e) {
         this.logger.info(`Error: ${e}`)

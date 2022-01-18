@@ -71,7 +71,9 @@ export class ALGOImplementation {
         }
         let res = await this.algodClient.get(`/v2/blocks/${round}`);
         algo_ensure_data(res);
-        return res.data;
+        let responseData = toCamelCase(res.data) as IAlgoGetBlockHeaderRes;
+        responseData.type = "IAlgoGetBlockHeaderRes"
+        return responseData;
     }
 
     async getBlock(round?:number): Promise<IAlgoGetBlockRes> {
@@ -81,7 +83,13 @@ export class ALGOImplementation {
         }
         let res = await this.indexerClient.get(`/v2/blocks/${round}`);
         algo_ensure_data(res);
-        return toCamelCase(res.data) as IAlgoGetBlockRes;
+        let camelList = toCamelCase(res.data) as IAlgoGetBlockRes
+        camelList.transactions = []
+        camelList.type = "IAlgoGetBlockRes"
+        for (let key of Object.keys(res.data.transactions)) {
+            camelList.transactions.push(toCamelCase(res.data.transactions[key]) as IAlgoTransaction);
+        }
+        return camelList as IAlgoGetBlockRes;
     }
 
     async getBlockHeight(): Promise<number> {

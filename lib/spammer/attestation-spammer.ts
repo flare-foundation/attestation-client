@@ -20,7 +20,7 @@ let args = yargs
     alias: 'c',
     type: 'string',
     description: 'Chain (XRP, BTC, LTC, DOGE)',
-    default: 'XRP'
+    default: 'ALGO'
   })
   .option('rpcLink', {
     alias: 'r',
@@ -44,7 +44,7 @@ let args = yargs
     alias: 'u',
     type: 'string',
     description: "RPC url for blockchain",
-    default: 'https://xrplcluster.com'
+    default: 'http://testnode3.c.aflabs.net:4001/'
   })
   .option('blockchainUsername', {
     alias: 's',
@@ -62,9 +62,8 @@ let args = yargs
     alias: 'h',
     type: 'string',
     description: "Blockchain node access token",
-    default: ''
+    default: '7f90419ceab8fde42b2bd50c44ed21c0aefebc614f73b27619549f366b060a14'
   })
-
   .option('blockchainIndexerURL', {
     alias: 'i',
     type: 'string',
@@ -75,10 +74,8 @@ let args = yargs
     alias: 'j',
     type: 'string',
     description: "Blockchain access token for indexer (algo only)",
-    default: ''
+    default: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddd'
   })
-
-
   .option('confirmations', {
     alias: 'f',
     type: 'number',

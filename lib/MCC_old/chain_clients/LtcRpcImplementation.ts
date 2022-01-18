@@ -1,8 +1,8 @@
-// import { UtxoRpcInterface } from "../RPCtypes";
-// import { UtxoCore } from "../UtxoCore";
+import { UtxoMccCreate, UtxoRpcInterface } from "../types";
+import { UtxoCore } from "../UtxoCore";
 
-// export class LTCImplementation extends UtxoCore implements UtxoRpcInterface {
-//   constructor(url: string, username: string, password: string, inRegTest: boolean = false) {
-//     super(url, username, password, inRegTest);
-//   }
-// }
+export class LTCImplementation extends UtxoCore implements UtxoRpcInterface {
+  constructor(options: UtxoMccCreate) {
+    super(options.url, options.username, options.password, options.inRegTest || false);
+  }
+}

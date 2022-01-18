@@ -1,10 +1,10 @@
 import { UtxoMccCreate, UtxoRpcInterface } from "../types";
-import { UtxoCore } from "../UtxoCore";
+import { UtxoCore } from "./UtxoCore";
 
 export class BTCImplementation extends UtxoCore implements UtxoRpcInterface {
-  constructor(options: UtxoMccCreate) {
-    super(options.url, options.username, options.password, options.inRegTest || false);
-  }
+    constructor(options: UtxoMccCreate) {
+        super(options.url, options.username, options.password, options.inRegTest || false);
+    }
 }
 
 // Testing

@@ -63,6 +63,26 @@ export module MCC {
         }
     }
 
+    export function getChainTypeName(chainIdOrName: ChainType) {
+        if (chainIdOrName == null) {
+          throw new Error("Chain missing")
+        }
+        switch (chainIdOrName) {
+          case ChainType.XRP:
+            return "XRP";
+          case ChainType.BTC:
+            return "BTC";
+          case ChainType.LTC:
+            return "LTC";
+          case ChainType.DOGE:
+            return "DOGE";
+          case ChainType.ALGO:
+            return "ALGO"
+          default:
+            return "invalid"
+        }
+    }
+
     export function Client(chainIdOrName: number | string | ChainType, options: AlgoMccCreate | UtxoMccCreate | XrpMccCreate) {
         const chainType = getChainType(chainIdOrName);
         switch (chainType) {

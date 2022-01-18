@@ -6,9 +6,10 @@ import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestatio
 import { getWeb3, getWeb3Contract } from '../utils';
 import { Web3Functions } from '../Web3Functions';
 import { StateConnector } from '../../typechain-web3-v1/StateConnector';
-import { sleep, toBN } from '../MCC/utils';
 import { MCC } from '../MCC';
 import { ChainType, RPCInterface } from '../MCC/types';
+import { sleep, toBN } from '../MCC/utils';
+
 let fs = require('fs');
 
 dotenv.config();
@@ -57,6 +58,27 @@ let args = yargs
     description: "Blockchain node password",
     default: 'rpcpass'
   })
+  .option('blockchainToken', {
+    alias: 'h',
+    type: 'string',
+    description: "Blockchain node access token",
+    default: ''
+  })
+
+  .option('blockchainIndexerURL', {
+    alias: 'i',
+    type: 'string',
+    description: "RPC url for indexer (algo only)",
+    default: 'http://testnode3.c.aflabs.net:8980/'
+  })
+  .option('blockchainIndexerToken', {
+    alias: 'j',
+    type: 'string',
+    description: "Blockchain access token for indexer (algo only)",
+    default: ''
+  })
+
+
   .option('confirmations', {
     alias: 'f',
     type: 'number',
@@ -147,7 +169,18 @@ class AttestationSpammer {
         this.client  = MCC.Client(this.chainType, {url: this.URL, username: this.USERNAME, password: this.PASSWORD}) as RPCInterface;
         break;
       case ChainType.ALGO:
-        throw new Error("Not yet Implemented");
+        const algoCreateConfig = {
+          algod: {
+              url: args['blockchainURL'],
+              token: args['blockchainToken'],
+          },
+          indexer: {
+              url: args['blockchainIndexerURL'],
+              token: args['blockchainIndexerToken'],
+          },
+      };
+        this.client  = MCC.Client(this.chainType, algoCreateConfig) as RPCInterface;
+        break;
       default:
         throw new Error("")
     }

@@ -81,20 +81,22 @@ export class ALGOImplementation {
     }
 
     async listTransactions(options?: IAlgoLitsTransaction): Promise<IAlgoListTransactionRes> {
-        let SnakeObject = toSnakeCase(options);
-
+        let snakeObject = {}
+        if(options !== undefined){
+            snakeObject = toSnakeCase(options);
+        }
         let res = await this.indexerClient.get(`/v2/transactions`, {
-            params: SnakeObject,
+            params: snakeObject,
         });
         algo_ensure_data(res);
         // let camelList = toCamelCase(res.data) as IAlgoListTransactionRes
         let camelList = {
             currentRound: res.data["current-round"],
             nextToken: res.data["next-token"],
-            transactions: [],
+            transactions: [] as IAlgoTransaction[],
         };
         for (let key of Object.keys(res.data.transactions)) {
-            camelList.transactions.push(toCamelCase(res.data.transactions[key]));
+            camelList.transactions.push(toCamelCase(res.data.transactions[key]) as IAlgoTransaction);
         }
         return camelList as IAlgoListTransactionRes;
         // return toCamelCase(res.data) as IAlgoGetTransactionRes;
@@ -117,7 +119,7 @@ export class ALGOImplementation {
     }
 }
 
-function filterHashes(trans) {
+function filterHashes(trans: IAlgoTransaction) {
     if (trans.id) {
         return trans.id;
     } else {

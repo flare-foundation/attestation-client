@@ -271,11 +271,12 @@ class AttestationSpammer {
         let selectedBlock = Math.round(Math.random() * (rangeMax - rangeMin + 1)) + rangeMin;
         let block = await this.client.getBlock(selectedBlock);
         let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations);
-        for (let tx of this.client.getTransactionHashesFromBlock(block)) {
+        let hashes = await this.client.getTransactionHashesFromBlock(block);
+        for (let tx of hashes) {
           let attType = AttestationType.FassetPaymentProof;
           let tr = {
             id: tx,
-            dataAvailabilityProof: this.client.getBlockHash(confirmationBlock),
+            dataAvailabilityProof: await this.client.getBlockHash(confirmationBlock),
             blockNumber: selectedBlock,
             chainId: this.chainType,
             attestationType: attType,

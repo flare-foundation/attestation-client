@@ -1,7 +1,7 @@
 import Web3 from "web3";
 import { Logger } from "winston";
 import { getTimeMilli as getTimeMilli } from "./internetTime";
-import { sleepms } from "./Sleep";
+import { sleepms } from "./utils";
 import { getWeb3Wallet, waitFinalize3Factory } from "./utils";
 
 const DEFAULT_GAS = "2500000";

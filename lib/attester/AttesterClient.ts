@@ -22,7 +22,6 @@ export class AttesterClient {
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
 
-  // todo: add option to have log name (for multi attester client)
   constructor(configuration: AttesterClientConfiguration, logger?: AttLogger) {
     if (logger) {
       this.logger = logger;

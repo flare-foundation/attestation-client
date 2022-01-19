@@ -69,3 +69,19 @@ export function toCamelCase(obj: object): object {
   }
   return camelObject;
 }
+
+export function camelToSnakeCase(str: string, splitWith: string = "-") {
+  return str.replace(/[A-Z]/g, (letter) => `${splitWith}${letter.toLowerCase()}`);
+}
+
+export function toSnakeCase(obj: object, splitWith: string = "-"): object {
+  let camelObject: any = {};
+  for (let prop in obj) {
+    if (typeof (obj as any)[prop] == "object") {
+      camelObject[camelToSnakeCase(camelCase(prop), splitWith)] = toSnakeCase((obj as any)[prop], splitWith);
+    } else {
+      camelObject[camelToSnakeCase(camelCase(prop), splitWith)] = (obj as any)[prop];
+    }
+  }
+  return camelObject;
+}

@@ -22,8 +22,4 @@ export class AttesterClientConfiguration {
   public epoch!: number;
 
   public chains: AttesterClientChain[] = [];
-
-  async validate() {
-    // todo: add validations
-  }
 }

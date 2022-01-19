@@ -31,7 +31,8 @@ export class ChainNode {
   transactionsProcessing = new Array<Attestation>();
   transactionsDone = new Array<Attestation>();
 
-  delayQueueTimer: any = undefined; // todo: type should be Timer
+  // todo: type should be Timer
+  delayQueueTimer: any = undefined;
   delayQueueStartTime = 0;
 
   constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, metadata: string, chainCofiguration: AttesterClientChain) {
@@ -189,8 +190,11 @@ export class ChainNode {
           this.chainManager.logger.warning(` * reverification`);
 
           tx.reverification = true;
-          // todo: 45 must be setting
-          this.delayQueue(tx, Attester.epochSettings.getEpochIdCommitTimeEnd(tx.epochId) / 1000 - 45);
+
+          // delay until end of commit epoch
+          const timeDelay = (Attester.epochSettings.getEpochIdCommitTimeEnd(tx.epochId) - getTimeMilli()) / 1000;
+
+          this.delayQueue(tx, timeDelay - this.conf.reverificationTimeOffset);
         } else {
           this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid);
         }
@@ -222,6 +226,8 @@ export class ChainNode {
 
     // move into processed
     arrayRemoveElement(this.transactionsProcessing, tx);
+
+    // todo: do we really need this after it is done? it is a minnor memory leak
     this.transactionsDone.push(tx);
 
     if (tx.onProcessed !== undefined) {

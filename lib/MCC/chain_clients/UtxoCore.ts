@@ -1,4 +1,4 @@
-import { ensure_data, sleep, toBN, SATOSHI_BTC, prefix0x } from "./utils";
+import { ensure_data, sleep, toBN, SATOSHI_BTC, prefix0x } from "../utils";
 import BN from "bn.js";
 
 import axios from "axios";
@@ -15,7 +15,9 @@ import {
   AdditionalTransactionDetails,
   AdditionalTxRequest,
   TransactionSuccessStatus,
-} from "./types";
+} from "../types";
+
+const UTXOTIMEOUT = 60000;
 
 export class UtxoCore {
   client: any;
@@ -24,7 +26,7 @@ export class UtxoCore {
   constructor(url: string, username: string, password: string, inRegTest: boolean = false) {
     this.client = axios.create({
       baseURL: url,
-      timeout: 5000,
+      timeout: UTXOTIMEOUT,
       headers: { "Content-Type": "application/json" },
       auth: {
         username: username,

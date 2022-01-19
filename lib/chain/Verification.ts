@@ -111,6 +111,10 @@ export function isSupportedTransactionForAttestationType(transaction: any, chain
   }
 }
 
+// export function serializeRequest() {
+
+// }
+
 function isSupportedTransactionUtxo(transaction: any, attType: AttestationType): boolean {
   return true;
 }

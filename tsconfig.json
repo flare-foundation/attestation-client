@@ -14,6 +14,6 @@
     "./typechain-truffle",
     "./typechain-web3-v1", 
     "./typechain-web3-v1-external"
-  ],
+, "lib_old/MCC_old/types.ts", "lib_old/MCC_old/chain_clients/AlgoRpcImplementation.ts"  ],
   "files": ["./hardhat.config.ts"]
 }

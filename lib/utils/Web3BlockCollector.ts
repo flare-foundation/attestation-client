@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { Logger } from "winston";
-import { sleepms } from "./Sleep";
+import { sleepms } from "./utils";
 import { getWeb3, getWeb3Contract } from "./utils";
 
 export class Web3BlockCollector {

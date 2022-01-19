@@ -1,16 +1,16 @@
 import BN from "bn.js";
 import { Logger } from "winston";
+import { ChainManager } from "../chain/ChainManager";
+import { ATT_BITS, CHAIN_ID_BITS } from "../chain/Verification";
+import { ChainType } from "../MCC/types";
+import { EpochSettings } from "../utils/EpochSettings";
+import { getTimeMilli } from "../utils/internetTime";
+import { partBNbe, toBN } from "../utils/utils";
 import { Attestation } from "./Attestation";
 import { AttestationData, AttestationType } from "./AttestationData";
 import { AttesterClientConfiguration as AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterEpoch } from "./AttesterEpoch";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { ChainManager } from "../chain/ChainManager";
-import { EpochSettings } from "../utils/EpochSettings";
-import { getTimeMilli } from "../utils/internetTime";
-import { ATT_BITS, CHAIN_ID_BITS } from "../chain/Verification";
-import { partBNbe, toBN } from "../utils/utils";
-import { ChainType } from "../MCC/types";
 
 export class Test {}
 
@@ -73,9 +73,9 @@ export class Attester {
       }, epochCompleteTime - now);
 
       this.epoch.set(epochId, activeEpoch);
-    }
 
-    // todo: clean up old attestations (minor memory leak)
+      this.cleanup();
+    }
 
     // create, check and add attestation
     const attestation = await this.createAttestation(epochId, tx);
@@ -87,6 +87,15 @@ export class Attester {
     activeEpoch.addAttestation(attestation);
   }
 
+  cleanup() {
+    const epochId = Attester.epochSettings.getCurrentEpochId().toNumber();
+
+    // clear old epochs
+    if (this.epoch.has(epochId - 10)) {
+      this.epoch.delete(epochId - 10);
+    }
+  }
+
   async createAttestation(epochId: number, tx: AttestationData): Promise<Attestation | undefined> {
     // create attestation depending on type
     switch (tx.type) {
@@ -96,9 +105,10 @@ export class Attester {
         return await this.chainManager.validateTransaction(chainType.toNumber() as ChainType, epochId, tx);
       }
       case AttestationType.BalanceDecreasingProof:
-        return undefined; // ???
+        // todo: implement balance change check
+        return undefined;
       default: {
-        //this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);
+        this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);
         return undefined;
       }
     }

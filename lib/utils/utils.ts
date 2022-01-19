@@ -188,10 +188,19 @@ export function etherToValue(web3: Web3, eth: number) {
   return web3.utils.toWei(web3.utils.toBN(eth), "ether");
 }
 
-export async function sleep(ms: number) {
-  await new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
-}
-
+// time
 export function getUnixEpochTimestamp() {
   return Math.floor(Date.now() / 1000);
+}
+
+export async function sleep(seconds: number) {
+  await sleepms(seconds * 1000);
+}
+
+export async function sleepms(milliseconds: number) {
+  await new Promise((resolve: any) => {
+    setTimeout(() => {
+      resolve();
+    }, milliseconds);
+  });
 }

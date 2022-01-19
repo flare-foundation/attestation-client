@@ -1,9 +1,9 @@
 import { AlgoMccCreate, ChainType, RPCInterface, UtxoMccCreate, XrpMccCreate } from "./types";
 import { BTCImplementation } from "./chain_clients/BtcRpcImplementation";
-import { DOGEImplementation } from "./chain_clients/DogeRpcImplementation";
-import { LTCImplementation } from "./chain_clients/LtcRpcImplementation";
 import { XRPImplementation } from "./chain_clients/XrpRpcImplementation";
 import { ALGOImplementation } from "./chain_clients/AlgoRpcImplementation";
+import { DOGEImplementation } from "./chain_clients/DogeRpcImplementation";
+import { LTCImplementation } from "./chain_clients/LtcRpcImplementation";
 
 export module MCC {
   export class LTC extends LTCImplementation implements RPCInterface {

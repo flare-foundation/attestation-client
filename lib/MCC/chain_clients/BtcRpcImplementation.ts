@@ -1,5 +1,5 @@
 import { UtxoMccCreate, UtxoRpcInterface } from "../types";
-import { UtxoCore } from "../UtxoCore";
+import { UtxoCore } from "./UtxoCore";
 
 export class BTCImplementation extends UtxoCore implements UtxoRpcInterface {
   constructor(options: UtxoMccCreate) {

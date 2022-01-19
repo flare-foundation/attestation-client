@@ -1,6 +1,6 @@
 import { AttestationType } from "../lib/attester/AttestationData";
 import { ChainType } from "../lib/MCC/types";
-import { sleepms } from "../lib/utils/Sleep";
+import { sleepms } from "../lib/utils/utils";
 import { etherToValue, getTestStateConnectorAddress } from "../lib/utils/utils";
 
 async function main2() {

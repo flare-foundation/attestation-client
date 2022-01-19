@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import yargs from "yargs";
-import { AttesterClient } from "./AttesterClient";
-import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
+import { AttesterClient } from "./attester/AttesterClient";
+import { AttesterClientConfiguration } from "./attester/AttesterClientConfiguration";
 
 // Args parsing
 const args = yargs.option("config", {

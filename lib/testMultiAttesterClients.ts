@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import yargs from "yargs";
-import { AttesterClient } from "./AttesterClient";
-import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
-import { createLogger, getGlobalLogger } from "./logger";
-import { sleep } from "./utils";
+import { AttesterClient } from "./attester/AttesterClient";
+import { AttesterClientConfiguration } from "./attester/AttesterClientConfiguration";
+import { createLogger, getGlobalLogger } from "./utils/logger";
+import { sleep } from "./utils/utils";
 
 // Args parsing
 const args = yargs

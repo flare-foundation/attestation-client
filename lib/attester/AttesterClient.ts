@@ -1,30 +1,29 @@
 import BN from "bn.js";
-import { Logger } from "winston";
 import { AttestationData, AttestationType } from "./AttestationData";
 import { Attester } from "./Attester";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { ChainManager } from "./ChainManager";
-import { ChainNode } from "./ChainNode";
-import { DotEnvExt } from "./DotEnvExt";
-import { fetchSecret } from "./GoogleSecret";
-import { getGlobalLogger as getGlobalLogger } from "./logger";
-import { ATT_BITS } from "./Verification";
-import { partBNbe, toBN } from "./utils";
-import { Web3BlockCollector } from "./Web3BlockCollector";
-import { MCC } from "./MCC";
-import { ChainType } from "./MCC/types";
+import { ChainManager } from "../chain/ChainManager";
+import { ChainNode } from "../chain/ChainNode";
+import { DotEnvExt } from "../utils/DotEnvExt";
+import { fetchSecret } from "../utils/GoogleSecret";
+import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
+import { MCC } from "../MCC";
+import { ChainType } from "../MCC/types";
+import { partBNbe, toBN } from "../utils/utils";
+import { ATT_BITS } from "../chain/Verification";
+import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 
 export class AttesterClient {
   conf: AttesterClientConfiguration;
-  logger: Logger;
+  logger: AttLogger;
   attester: Attester;
   attesterWeb3: AttesterWeb3;
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
 
   // todo: add option to have log name (for multi attester client)
-  constructor(configuration: AttesterClientConfiguration, logger?: Logger) {
+  constructor(configuration: AttesterClientConfiguration, logger?: AttLogger) {
     if (logger) {
       this.logger = logger;
     } else {
@@ -38,10 +37,8 @@ export class AttesterClient {
 
   async start() {
     const version = "1000";
-    //this.logger.log(`title`, `Starting Flare Attester Client v${version}`);
-    //this.logger.error(`Starting Flare Attester Client v${version}`);
-    //this.logger.warning(`Starting Flare Attester Client v${version}`);
-    this.logger.info(`Starting Flare Attester Client v${version}`);
+
+    this.logger.group(`Starting Flare Attester Client v${version}`);
 
     // create state connector
     await this.attesterWeb3.initialize();

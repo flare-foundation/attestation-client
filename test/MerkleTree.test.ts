@@ -1,4 +1,4 @@
-import { MerkleTree } from "../lib/MerkleTree";
+import { MerkleTree } from "../lib/utils/MerkleTree";
 import { prefix0x } from "../lib/MCC/utils";
 import { HashTestInstance } from "../typechain-truffle";
 

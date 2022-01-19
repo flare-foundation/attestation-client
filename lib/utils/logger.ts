@@ -70,10 +70,10 @@ class ColorConsole extends Transport {
 
 const myCustomLevels = {
   levels: {
+    debug: 100, // all above are filtered out when level is set to debug
     title: 20,
     group: 21,
     event: 10,
-    debug: 8,
     info: 7,
     note: 5,
     warning: 4,
@@ -83,9 +83,13 @@ const myCustomLevels = {
   },
 };
 
-var globalLogger: winston.Logger;
+var globalLogger: AttLogger;
 
-export function createLogger(label?: string): winston.Logger {
+export interface AttLogger extends winston.Logger {
+  group: (message: string) => null;
+}
+
+export function createLogger(label?: string): AttLogger {
   return winston.createLogger({
     level: "debug",
     levels: myCustomLevels.levels,
@@ -110,11 +114,11 @@ export function createLogger(label?: string): winston.Logger {
         filename: `./logs/attester-${label}.log`,
       }),
     ],
-  }) as winston.Logger & Record<keyof typeof myCustomLevels["levels"], winston.LeveledLogMethod>;
+  }) as AttLogger;
 }
 
 // return one instance of logger
-export function getGlobalLogger(label?: string): winston.Logger {
+export function getGlobalLogger(label?: string): AttLogger {
   if (!globalLogger) {
     globalLogger = createLogger(label);
   }

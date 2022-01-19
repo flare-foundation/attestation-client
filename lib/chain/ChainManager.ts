@@ -1,8 +1,8 @@
 import { Logger } from "winston";
-import { Attestation } from "./Attestation";
-import { AttestationData } from "./AttestationData";
+import { Attestation } from "../attester/Attestation";
+import { AttestationData } from "../attester/AttestationData";
+import { ChainType } from "../MCC/types";
 import { ChainNode } from "./ChainNode";
-import { ChainType } from "./MCC/types";
 
 export class ChainManager {
   nodes: Map<ChainType, ChainNode> = new Map<ChainType, ChainNode>();

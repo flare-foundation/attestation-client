@@ -1,9 +1,9 @@
 import BN from "bn.js";
 import Web3 from "web3";
 import { TransactionMetadata, TxResponse } from "xrpl/dist/npm/models";
-import { AttestationType } from "./AttestationData";
-import { AdditionalTransactionDetails, ChainType, IUtxoGetTransactionRes, RPCInterface } from "./MCC/types";
-import { toBN, toNumber, unPrefix0x } from "./utils";
+import { AttestationType } from "../attester/AttestationData";
+import { AdditionalTransactionDetails, ChainType, IUtxoGetTransactionRes, RPCInterface } from "../MCC/types";
+import { toBN, toNumber, unPrefix0x } from "../utils/utils";
 ////////////////////////////////////////////////////////////////////////
 // Interfaces
 ////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ export function prettyPrint(normalized: any) {
 }
 
 ////////////////////////////////////////////////////////////////////////
-// Filters for "nice" (supported) transaction types 
+// Filters for "nice" (supported) transaction types
 ////////////////////////////////////////////////////////////////////////
 
 export function isSupportedTransactionForAttestationType(transaction: any, chainType: ChainType, attType: AttestationType) {

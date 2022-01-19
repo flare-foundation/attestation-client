@@ -1,4 +1,4 @@
-import { ChainNode } from "./ChainNode";
+import { ChainNode } from "../chain/ChainNode";
 import { AttestationData } from "./AttestationData";
 
 export enum AttestationStatus {
@@ -29,6 +29,7 @@ export class Attestation {
 
   // how many time was attestation retried
   retry: number = 0;
+  reverification: boolean = false;
 
   onProcessed: EventProcessed | undefined = undefined;
 }

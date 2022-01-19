@@ -65,7 +65,7 @@ export module MCC {
 
   export function getChainTypeName(chainIdOrName: ChainType) {
     if (chainIdOrName == null) {
-      throw new Error("Chain missing")
+      throw new Error("Chain missing");
     }
     switch (chainIdOrName) {
       case ChainType.XRP:
@@ -77,9 +77,9 @@ export module MCC {
       case ChainType.DOGE:
         return "DOGE";
       case ChainType.ALGO:
-        return "ALGO"
+        return "ALGO";
       default:
-        return "invalid"
+        return "invalid";
     }
   }
 

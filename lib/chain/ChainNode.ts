@@ -1,13 +1,14 @@
-import { StateConnectorInstance } from "../typechain-truffle/StateConnector";
-import { Attestation, AttestationStatus } from "./Attestation";
-import { AttestationData } from "./AttestationData";
-import { AttesterClientChain } from "./AttesterClientChain";
+import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
+import { Attestation, AttestationStatus } from "../attester/Attestation";
+import { AttestationData } from "../attester/AttestationData";
+import { Attester } from "../attester/Attester";
+import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { ChainManager } from "./ChainManager";
-import { getTimeMilli, getTimeSec } from "./internetTime";
-import { MCC } from "./MCC";
-import { ChainType, RPCInterface } from "./MCC/types";
-import { PriorityQueue } from "./priorityQueue";
-import { arrayRemoveElement } from "./utils";
+import { getTimeMilli, getTimeSec } from "../utils/internetTime";
+import { MCC } from "../MCC";
+import { ChainType, RPCInterface } from "../MCC/types";
+import { PriorityQueue } from "../utils/priorityQueue";
+import { arrayRemoveElement } from "../utils/utils";
 import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./Verification";
 
 export class ChainNode {
@@ -176,11 +177,20 @@ export class ChainNode {
     attReq.chainId = this.chainType;
     attReq.blockNumber = tx.data.blockNumber;
 
-    verifyTransactionAttestation(this.client, attReq)
+    // debug test fail
+    let testFail = 0;
+    if (process.env.TEST_FAIL) {
+      testFail = tx.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
+    }
+
+    verifyTransactionAttestation(this.client, attReq, testFail)
       .then((txData: NormalizedTransactionData) => {
-        // todo: check is status is not OK and FailReason??? is to not ready - it means to recheck in XXX sec but not before time T
-        if (false) {
-          this.delayQueue(tx, getTimeMilli() + 10 * 1000);
+        if (txData.verificationStatus === VerificationStatus.RECHECK_LATER) {
+          this.chainManager.logger.warning(` * reverification`);
+
+          tx.reverification = true;
+          // todo: 45 must be setting
+          this.delayQueue(tx, Attester.epochSettings.getEpochIdCommitTimeEnd(tx.epochId) / 1000 - 45);
         } else {
           this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid);
         }
@@ -253,7 +263,16 @@ export class ChainNode {
   // start next queued transaction
   ////////////////////////////////////////////
   startNext() {
-    if (!this.canProcess()) return;
+    if (!this.canProcess()) {
+      if (this.transactionsProcessing.length === 0) {
+        this.chainManager.logger.debug(` # startNext heartbeat`);
+        setTimeout(() => {
+          this.startNext();
+        }, Math.ceil(getTimeMilli() / 1000) * 1000 + 1);
+      }
+      //
+      return;
+    }
 
     // check if there is queued priority transaction to be processed
     while (this.transactionsPriorityQueue.length() && this.canProcess()) {

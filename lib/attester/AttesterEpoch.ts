@@ -4,10 +4,10 @@ import { Logger } from "winston";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { Attester } from "./Attester";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { Hash } from "./Hash";
-import { getTimeMilli } from "./internetTime";
-import { MerkleTree } from "./MerkleTree";
-import { getRandom, toBN } from "./utils";
+import { Hash } from "../utils/Hash";
+import { getTimeMilli } from "../utils/internetTime";
+import { MerkleTree } from "../utils/MerkleTree";
+import { getRandom, toBN } from "../utils/utils";
 
 export enum AttesterEpochStatus {
   collect,

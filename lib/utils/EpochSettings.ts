@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { getTimeMilli, getTimeSec } from "./internetTime";
+import { getTimeSec } from "./internetTime";
 import { toBN } from "./utils";
 
 export class EpochSettings {

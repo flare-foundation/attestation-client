@@ -123,14 +123,15 @@ export class XRPImplementation implements RPCInterface {
 
     let confirmationBlockIndex = blockNumber + request.confirmations;
     let confirmationBlock = await this.getBlock(confirmationBlockIndex);
-    
+
     let status = this.getTransactionStatus(request.transaction);
 
-    let isNonPayment = !metaData 
-                  || typeof metaData === "string"
-                  || (request.transaction as TxResponse).result.TransactionType != "Payment" 
-                  || (typeof metaData.delivered_amount != "string")
-                  || metaData.TransactionResult != "tesSUCCESS"   // TODO - handle this properly
+    let isNonPayment =
+      !metaData ||
+      typeof metaData === "string" ||
+      (request.transaction as TxResponse).result.TransactionType != "Payment" ||
+      typeof metaData.delivered_amount != "string" ||
+      metaData.TransactionResult != "tesSUCCESS"; // TODO - handle this properly
 
     if (isNonPayment) {
       return {
@@ -179,5 +180,4 @@ export class XRPImplementation implements RPCInterface {
     // TODO: Check transaction status!!!
     return TransactionSuccessStatus.SUCCESS;
   }
-
 }

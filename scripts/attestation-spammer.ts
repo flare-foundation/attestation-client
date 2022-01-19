@@ -1,10 +1,10 @@
 import * as dotenv from 'dotenv';
 import Web3 from "web3";
-import { AttestationType } from '../lib/AttestationData';
-import { getGlobalLogger } from '../lib/logger';
-import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/Verification';
-import { getWeb3, getWeb3Contract } from '../lib/utils';
-import { Web3Functions } from '../lib/Web3Functions';
+import { AttestationType } from '../lib/attester/AttestationData';
+import { getGlobalLogger } from '../lib/utils/logger';
+import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from '../lib/chain/Verification';
+import { getWeb3, getWeb3Contract } from '../lib/utils/utils';
+import { Web3Functions } from '../lib/utils/Web3Functions';
 import { StateConnector } from '../typechain-web3-v1/StateConnector';
 import { sleep, toBN } from '../lib/MCC/utils';
 import { MCC } from '../lib/MCC';

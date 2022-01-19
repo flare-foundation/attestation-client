@@ -5,12 +5,12 @@ import { AttestationData, AttestationType } from "./AttestationData";
 import { AttesterClientConfiguration as AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterEpoch } from "./AttesterEpoch";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { ChainManager } from "./ChainManager";
-import { EpochSettings } from "./EpochSettings";
-import { getTimeMilli } from "./internetTime";
-import { ATT_BITS, CHAIN_ID_BITS } from "./Verification";
-import { partBNbe, toBN } from "./utils";
-import { ChainType } from "./MCC/types";
+import { ChainManager } from "../chain/ChainManager";
+import { EpochSettings } from "../utils/EpochSettings";
+import { getTimeMilli } from "../utils/internetTime";
+import { ATT_BITS, CHAIN_ID_BITS } from "../chain/Verification";
+import { partBNbe, toBN } from "../utils/utils";
+import { ChainType } from "../MCC/types";
 
 export class Test {}
 

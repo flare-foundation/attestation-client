@@ -7,7 +7,7 @@
 //   yarn hardhat test test/StateConnector.ts --network local 
 
 import { expectEvent, expectRevert } from "@openzeppelin/test-helpers";
-import { etherToValue, getTestStateConnectorAddress } from "../lib/utils";
+import { etherToValue, getTestStateConnectorAddress } from "../lib/utils/utils";
 import { StateConnectorInstance } from "../typechain-truffle";
 
 

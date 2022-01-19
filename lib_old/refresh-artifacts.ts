@@ -3,7 +3,7 @@
 /// flare-smart-contracts repo.
 //////////////////////////////////////////////////////////////////////////////////////////
 
-import { relativeContractABIPathForContractName } from "./utils";
+import { relativeContractABIPathForContractName } from "./utils/utils";
 const ARTIFACTS_ROOT = "../flare-smart-contracts/artifacts";
 const REQUIRED_CONTRACTS = ["Ftso", "FtsoManager", "PriceSubmitter", "VoterWhitelister", "FtsoRegistry"];
 

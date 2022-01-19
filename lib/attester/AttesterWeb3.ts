@@ -1,10 +1,10 @@
 import BN from "bn.js";
 import Web3 from "web3";
 import { Logger } from "winston";
-import { StateConnector } from "../typechain-web3-v1/StateConnector";
+import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
-import { getWeb3, getWeb3Contract, toHex } from "./utils";
-import { Web3Functions } from "./Web3Functions";
+import { getWeb3, getWeb3Contract, toHex } from "../utils/utils";
+import { Web3Functions } from "../utils/Web3Functions";
 
 export class AttesterWeb3 {
   conf: AttesterClientConfiguration;

@@ -6,7 +6,7 @@ import { toHex } from "../lib/utils/utils";
 const N = 20;
 
 describe("Merkle Tree", () => {
-  const makeHashes = (i: number) => (new Array(i)).fill(0).map(x =>  toHex(Math.floor(Math.random()*10000000000000)));
+  const makeHashes = (i: number) => (new Array(i)).fill(0).map(x =>  toHex(Math.floor(Math.random()*10000000000000), true));
 
   describe("General functionalities", () => {
 

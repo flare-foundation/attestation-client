@@ -18,8 +18,11 @@ export function partBNbe(x: BN, bitOffset: number, bitCount: number) {
   return partBN(x, 256 - bitOffset - bitCount, bitCount);
 }
 
-export function toHex(x: string | number | BN) {
-  return Web3.utils.leftPad(Web3.utils.toHex(x), 64);
+export function toHex(x: string | number | BN, padToBytes32 = false) {
+  if (padToBytes32) {
+    return Web3.utils.leftPad(Web3.utils.toHex(x), 64);
+  }
+  return Web3.utils.toHex(x);
 }
 
 export function toBN(x: string | number | BN, toZeroIfFails = false) {

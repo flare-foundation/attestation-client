@@ -86,16 +86,13 @@ export class MerkleTree {
   }
 
   build(values: string[]) {
-    let sorted = values.map(x => toBN(x))
-    sorted.sort((x: BN, y: BN) => {
-      if(x.lt(y)) return -1;
-      if(x.gt(y)) return 1;
-      return 0;
-    });
+    let sorted = values.map(x => toHex(x,true))
+    sorted.sort();
+    
     let hashes = [];
     for(let i = 0; i < sorted.length; i++) {
-      if(i == 0 || !sorted[i].eq(sorted[i-1])) {
-        hashes.push(toHex(sorted[i], true));
+      if(i == 0 || sorted[i] !== sorted[i-1]) {
+        hashes.push(sorted[i]);
       }
     }
     if(this.initialHash) {

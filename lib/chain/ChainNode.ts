@@ -29,10 +29,8 @@ export class ChainNode {
   transactionsPriorityQueue = new PriorityQueue<Attestation>();
 
   transactionsProcessing = new Array<Attestation>();
-  transactionsDone = new Array<Attestation>();
 
-  // todo: type should be Timer
-  delayQueueTimer: any = undefined;
+  delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
   constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, metadata: string, chainCofiguration: AttesterClientChain) {
@@ -227,8 +225,7 @@ export class ChainNode {
     // move into processed
     arrayRemoveElement(this.transactionsProcessing, tx);
 
-    // todo: do we really need this after it is done? it is a minnor memory leak
-    this.transactionsDone.push(tx);
+    // todo: save transaction data
 
     if (tx.onProcessed !== undefined) {
       tx.onProcessed(tx);

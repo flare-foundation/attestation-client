@@ -1,13 +1,21 @@
 import * as dotenv from "dotenv";
 import Web3 from "web3";
+import { AttestationType } from "../attester/AttestationData";
+import { getGlobalLogger } from "../utils/logger";
+import {
+  AttestationRequest,
+  NormalizedTransactionData,
+  TransactionAttestationRequest,
+  txAttReqToAttestationRequest,
+  VerificationStatus,
+  verifyTransactionAttestation,
+} from "../chain/Verification";
+import { getWeb3, getWeb3Contract } from "../utils/utils";
+import { Web3Functions } from "../utils/Web3Functions";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { AttestationRequest } from "../chain/Verification";
+import { sleep, toBN } from "../MCC/utils";
 import { MCC } from "../MCC";
 import { ChainType, RPCInterface } from "../MCC/types";
-import { sleep } from "../MCC/utils";
-import { getGlobalLogger } from "../utils/logger";
-import { getRandom, getWeb3, getWeb3Contract } from "../utils/utils";
-import { Web3Functions } from "../utils/Web3Functions";
 let fs = require("fs");
 
 dotenv.config();
@@ -190,11 +198,7 @@ class AttestationSpammer {
 
   async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
     let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
-    const receipt = await this.web3Functions.signAndFinalize3(
-      `request attestation #${AttestationSpammer.sendCount}`,
-      this.stateConnector.options.address,
-      fnToEncode
-    );
+    const receipt = await this.web3Functions.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
 
     if (receipt) {
       // this.logger.info(`Attestation sent`)
@@ -209,25 +213,104 @@ class AttestationSpammer {
     }
   }
 
-  static sendCount = 0;
+  async syncBlocks() {
+    while (true) {
+      try {
+        let last = this.lastBlockNumber;
+        this.lastBlockNumber = await this.web3.eth.getBlockNumber();
+        // if(this.lastBlockNumber > last) {
+        //   this.logger.info(`Last block: ${this.lastBlockNumber}`)
+        // }
+        await sleep(200);
+      } catch (e) {
+        this.logger.info(`Error: ${e}`);
+      }
+    }
+  }
+  async startLogEvents(maxBlockFetch = 100) {
+    await this.waitForStateConnector();
+    this.lastBlockNumber = await this.web3.eth.getBlockNumber();
+    let firstUnprocessedBlockNumber = this.lastBlockNumber;
+    this.syncBlocks();
+    while (true) {
+      await sleep(200);
+      try {
+        let last = Math.min(firstUnprocessedBlockNumber + maxBlockFetch, this.lastBlockNumber);
+        if (firstUnprocessedBlockNumber > last) {
+          continue;
+        }
+        let events = await this.stateConnector.getPastEvents("AttestationRequest", {
+          fromBlock: firstUnprocessedBlockNumber,
+          toBlock: last,
+        });
+        this.logger.info(`Receiving ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
+        firstUnprocessedBlockNumber = last + 1;
+      } catch (e) {
+        this.logger.info(`Error: ${e}`);
+      }
+    }
+  }
 
   async runSpammer() {
     await this.waitForStateConnector();
-
-    // load data from 'database'
-    const sData = "[" + fs.readFileSync("transactions.valid.json").toString().slice(0, -1) + "]";
-    const validTransactions: Array<AttestationRequest> = JSON.parse(sData);
-    const invalidTransactions: Array<AttestationRequest> = JSON.parse("[" + fs.readFileSync("transactions.invalid.json").toString().slice(0, -1) + "]");
-
+    if (this.logEvents) {
+      this.startLogEvents(); // async run
+    }
+    const fs = require("fs");
     while (true) {
       try {
-        AttestationSpammer.sendCount++;
-        const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
-        await this.sendAttestationRequest(this.stateConnector, attRequest); // async call
+        // create process that will collect valid transactions
+        //
+        let latestBlockNumber = await this.client.getBlockHeight();
+        let rangeMax = latestBlockNumber - this.confirmations;
+        if (rangeMax < 0) {
+          this.logger.info("Too small number of blocks.");
+          await sleep(1000);
+          continue;
+        }
+        let rangeMin = Math.max(0, latestBlockNumber - this.range - this.confirmations);
+        let selectedBlock = Math.round(Math.random() * (rangeMax - rangeMin + 1)) + rangeMin;
+        let block = await this.client.getBlock(selectedBlock);
+        let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations);
+        let hashes = await this.client.getTransactionHashesFromBlock(block);
+        for (let tx of hashes) {
+          let attType = AttestationType.FassetPaymentProof;
+          let tr = {
+            id: tx,
+            dataAvailabilityProof: await this.client.getBlockHash(confirmationBlock),
+            blockNumber: selectedBlock,
+            chainId: this.chainType,
+            attestationType: attType,
+            instructions: toBN(0),
+          } as TransactionAttestationRequest;
+
+          const attRequest = txAttReqToAttestationRequest(tr);
+
+          this.logger.info("verifyTransactionAttestation");
+          verifyTransactionAttestation(this.client, tr, 0)
+            .then((txData: NormalizedTransactionData) => {
+              const data = JSON.stringify(attRequest);
+              // save
+              if (txData.verificationStatus === VerificationStatus.OK) {
+                this.logger.info("   verified");
+                fs.appendFileSync("transactions.valid.json", data + ",");
+              } else {
+                this.logger.info("   refused");
+                fs.appendFileSync("transactions.invalid.json", data + ",");
+              }
+            })
+            .catch((txData: NormalizedTransactionData) => {
+              // skip
+            });
+
+          //await this.sendAttestationRequest(this.stateConnector, attRequest); // async call
+
+          await sleep(Math.floor(Math.random() * this.delay));
+        }
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);
       }
-      await sleep(Math.floor(Math.random() * this.delay));
+      // must wait a bit - traffic control
     }
   }
 }

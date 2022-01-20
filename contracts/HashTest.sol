@@ -4,9 +4,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
 
+// Should use open zepplin version 3.4.0
+// Newer versions require Solidity ^0.8.0
+import {MerkleProof} from "@openzeppelin/contracts/cryptography/MerkleProof.sol";
+
 // import "hardhat/console.sol";
 
 contract HashTest {
+  using MerkleProof for bytes32[];
+
   function testFassetProof(
     uint32 typ,
     uint64 chainId,
@@ -22,23 +28,11 @@ contract HashTest {
     uint8 status,
     bytes32 hashToProve
   ) external pure returns (bool _match) {
-    bytes32 hash = keccak256(abi.encode(
-      typ,
-      chainId,
-      blockNumber,
-      txId,
-      inUtxo,
-      sourceAddress,
-      destinationAddress,
-      destinationTag,
-      spent,
-      received,
-      fee,
-      status
-    ));
+    bytes32 hash = keccak256(
+      abi.encode(typ, chainId, blockNumber, txId, inUtxo, sourceAddress, destinationAddress, destinationTag, spent, received, fee, status)
+    );
     return hash == hashToProve;
   }
-
 
   function testDecreaseBalanceProof(
     uint32 typ,
@@ -49,32 +43,16 @@ contract HashTest {
     uint256 spent,
     bytes32 hashToProve
   ) external pure returns (bool _match) {
-    bytes32 hash = keccak256(abi.encode(
-      typ,
-      chainId,
-      blockNumber,
-      txId,
-      sourceAddress,
-      spent
-    ));
+    bytes32 hash = keccak256(abi.encode(typ, chainId, blockNumber, txId, sourceAddress, spent));
     return hash == hashToProve;
   }
 
   function verifyMerkleProof(
-    bytes32 txHash, 
-    uint256[] calldata sides, 
-    bytes32[] calldata hashes, 
-    bytes32 targetHash
-  ) external pure returns (bool _match) {
-    bytes32 currentHash = txHash;
-    
-    for(uint256 i = 0; i < sides.length; i++) {
-      if(sides[i] == 0) {
-        currentHash = keccak256(abi.encode(hashes[i], currentHash));
-      } else {
-        currentHash = keccak256(abi.encode(currentHash, hashes[i]));
-      }      
-    }
-    return currentHash == targetHash;
+    bytes32[] calldata proof,
+    bytes32 merkleRoot,
+    bytes32 leaf
+  ) external pure returns (bool) {
+    return proof.verify(merkleRoot, leaf);
   }
+
 }

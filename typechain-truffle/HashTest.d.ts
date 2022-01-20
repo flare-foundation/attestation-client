@@ -41,10 +41,9 @@ export interface HashTestInstance extends Truffle.ContractInstance {
   ): Promise<boolean>;
 
   verifyMerkleProof(
-    txHash: string,
-    sides: (number | BN | string)[],
-    hashes: string[],
-    targetHash: string,
+    proof: string[],
+    merkleRoot: string,
+    leaf: string,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
 
@@ -78,10 +77,9 @@ export interface HashTestInstance extends Truffle.ContractInstance {
     ): Promise<boolean>;
 
     verifyMerkleProof(
-      txHash: string,
-      sides: (number | BN | string)[],
-      hashes: string[],
-      targetHash: string,
+      proof: string[],
+      merkleRoot: string,
+      leaf: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;
   };

@@ -1,6 +1,6 @@
 import Web3 from "web3";
-import { toBN } from "web3-utils";
-import { string } from "yargs";
+import { toBN, toHex } from "./utils";
+
 /**
  * There are several variants for hashing sequences in Merkle trees in cases when there is odd number of hashes on some level.
  * - Bitcoin hashes remaining hash with itself
@@ -25,18 +25,30 @@ import { string } from "yargs";
 //
 
 const web3 = new Web3();
-const hashPair = (x: string, y: string) => web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [x, y]));
 
-export type MerkleSide = 0 | 1;
-export interface HashPairEntry {
-  index: MerkleSide;
-  hash: string;
+export function singleHash(val: string | BN) {
+  return web3.utils.soliditySha3(toHex(val, true));
 }
 
-export interface MerkleProof {
-  tx: string;
-  hashPairs?: HashPairEntry[];
+export function sortedHashPair(x: string, y: string) {
+  if (x <= y) {
+    return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [x, y]));
+  }
+  return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [y, x]));
 }
+
+
+
+// export type MerkleSide = 0 | 1;
+// export interface HashPairEntry {
+//   index: MerkleSide;
+//   hash: string;
+// }
+
+// export interface MerkleProof {
+//   tx: string;
+//   hashPairs?: string[];
+// }
 
 export class MerkleTree {
   _tree: string[] = [];
@@ -64,15 +76,32 @@ export class MerkleTree {
     return this._tree.length ? (this._tree.length + 1) / 2 : 0;
   }
 
+  get sortedHashes() {
+    let n = this.hashCount;
+    return this._tree.slice(this.hashCount - 1);
+  }
+
   parent(i: number) {
     return Math.floor((i - 1) / 2);
   }
 
   build(values: string[]) {
-    let n = values.length;
-    this._tree = [...new Array(n - 1).fill(0), ...values.map((val) => (this.initialHash ? web3.utils.soliditySha3(val)! : val))];
+    let sorted = values.map(x => toHex(x,true))
+    sorted.sort();
+    
+    let hashes = [];
+    for(let i = 0; i < sorted.length; i++) {
+      if(i == 0 || sorted[i] !== sorted[i-1]) {
+        hashes.push(sorted[i]);
+      }
+    }
+    if(this.initialHash) {
+      hashes = hashes.map(x => singleHash(x));
+    }
+    let n = hashes.length;
+    this._tree = [...new Array(n - 1).fill(0), ...hashes];
     for (let i = n - 2; i >= 0; i--) {
-      this._tree[i] = hashPair(this._tree[2 * i + 1], this._tree[2 * i + 2])!;
+      this._tree[i] = sortedHashPair(this._tree[2 * i + 1], this._tree[2 * i + 2])!;
     }
     // console.log(this._tree)
   }
@@ -89,26 +118,22 @@ export class MerkleTree {
     if (this.hashCount === 0 || i < 0 || i >= this.hashCount) {
       return null;
     }
-    let pos = this._tree.length - this.hashCount + i;
-    let proof = {
-      tx: this._tree[pos],
-      hashPairs: [],
-    } as MerkleProof;
+    let proof: string[] = [];
+    let pos = this._tree.length - this.hashCount + i;    
     while (pos > 0) {
-      proof.hashPairs!.push({
-        index: (pos % 2) as MerkleSide,
-        hash: this._tree[pos + 2 * (pos % 2) - 1], // if pos even, take left sibiling at pos - 1, else the right sibiling at pos + 1
-      });
+      proof.push(
+        this._tree[pos + 2 * (pos % 2) - 1], // if pos even, take left sibiling at pos - 1, else the right sibiling at pos + 1
+      );
       pos = this.parent(pos);
     }
     return proof;
   }
 
-  verify(proof: MerkleProof) {
-    if (!proof || !this.root) return false;
-    let hash = proof.tx;
-    for (let pair of proof.hashPairs!) {
-      hash = pair.index === 0 ? hashPair(pair.hash, hash)! : hashPair(hash, pair.hash)!;
+  verify(leaf: string, proof: string[]) {
+    if (!leaf || !proof || !this.root) return false;
+    let hash = leaf;
+    for (let pair of proof) {
+      hash = sortedHashPair(pair, hash)!;
     }
     return hash === this.root;
   }

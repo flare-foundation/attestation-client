@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",
+    "@openzeppelin/contracts": "3.4.0",
     "axios": "^0.24.0",
     "dotenv": "10.0.0",
     "ethers": "5.1.4",

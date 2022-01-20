@@ -19,7 +19,7 @@ export function partBNbe(x: BN, bitOffset: number, bitCount: number) {
 }
 
 export function toHex(x: string | number | BN) {
-  return Web3.utils.toHex(x);
+  return Web3.utils.leftPad(Web3.utils.toHex(x), 64);
 }
 
 export function toBN(x: string | number | BN, toZeroIfFails = false) {

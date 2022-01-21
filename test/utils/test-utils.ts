@@ -1,9 +1,22 @@
-import { AttestationType } from "../../lib/attester/AttestationData";
-import { AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, NormalizedTransactionData, numberOfConfirmations, TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../../lib/verification/Verification";
 import { expectEvent } from "@openzeppelin/test-helpers";
-import { StateConnectorInstance } from "../../typechain-truffle";
-import { prefix0x, toBN } from "../../lib/MCC/utils";
 import { ChainType, IUtxoBlockRes, RPCInterface } from "../../lib/MCC/types";
+import { prefix0x, toBN } from "../../lib/MCC/utils";
+import {
+  attReqToTransactionAttestationRequest,
+  extractAttEvents,
+  transactionHash,
+  txAttReqToAttestationRequest
+} from "../../lib/verification/attestation-request-utils";
+import {
+  AttestationRequest,
+  AttestationType,
+  NormalizedTransactionData,
+  TransactionAttestationRequest,
+  VerificationStatus
+} from "../../lib/verification/attestation-types";
+import { numberOfConfirmations } from "../../lib/verification/confirmations";
+import { verifyTransactionAttestation } from "../../lib/verification/verification";
+import { StateConnectorInstance } from "../../typechain-truffle";
 
 
 export async function testHashOnContract(txData: NormalizedTransactionData, hash: string) {

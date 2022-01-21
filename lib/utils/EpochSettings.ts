@@ -1,6 +1,6 @@
 import BN from "bn.js";
+import { toBN } from "../MCC/utils";
 import { getTimeSec } from "./internetTime";
-import { toBN } from "./utils";
 
 export class EpochSettings {
   private _firstEpochStartTime: BN; // in seconds

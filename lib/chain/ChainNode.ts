@@ -3,13 +3,14 @@ import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationData } from "../attester/AttestationData";
 import { Attester } from "../attester/Attester";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
-import { ChainManager } from "./ChainManager";
-import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { MCC } from "../MCC";
 import { ChainType, RPCInterface } from "../MCC/types";
+import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../verification/Verification";
+import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import { verifyTransactionAttestation } from "../verification/verification";
+import { ChainManager } from "./ChainManager";
 
 export class ChainNode {
   chainManager: ChainManager;
@@ -29,10 +30,8 @@ export class ChainNode {
   transactionsPriorityQueue = new PriorityQueue<Attestation>();
 
   transactionsProcessing = new Array<Attestation>();
-  transactionsDone = new Array<Attestation>();
 
-  // todo: type should be Timer
-  delayQueueTimer: any = undefined;
+  delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
   constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, metadata: string, chainCofiguration: AttesterClientChain) {
@@ -227,8 +226,7 @@ export class ChainNode {
     // move into processed
     arrayRemoveElement(this.transactionsProcessing, tx);
 
-    // todo: do we really need this after it is done? it is a minnor memory leak
-    this.transactionsDone.push(tx);
+    // todo: save transaction data
 
     if (tx.onProcessed !== undefined) {
       tx.onProcessed(tx);

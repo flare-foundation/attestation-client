@@ -1,14 +1,22 @@
 
 import { LedgerResponse } from "xrpl";
-import { AttestationType } from "../lib/attester/AttestationData";
 import { MCC } from "../lib/MCC";
 import { ChainType } from "../lib/MCC/types";
 import { prefix0x, toBN } from "../lib/MCC/utils";
 import {
-  AttestationRequest, attReqToTransactionAttestationRequest, extractAttEvents, isSupportedTransactionForAttestationType, numberOfConfirmations,
-  TransactionAttestationRequest, transactionHash, txAttReqToAttestationRequest, VerificationStatus,
-  verifyTransactionAttestation
-} from "../lib/chain/Verification";
+  attReqToTransactionAttestationRequest,
+  extractAttEvents,
+  transactionHash,
+  txAttReqToAttestationRequest
+} from "../lib/verification/attestation-request-utils";
+import {
+  AttestationRequest,
+  AttestationType,
+  TransactionAttestationRequest,
+  VerificationStatus
+} from "../lib/verification/attestation-types";
+import { numberOfConfirmations } from "../lib/verification/confirmations";
+import { verifyTransactionAttestation } from "../lib/verification/verification";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
 

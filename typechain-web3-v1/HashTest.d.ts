@@ -56,9 +56,10 @@ export interface HashTest extends BaseContract {
     ): NonPayableTransactionObject<boolean>;
 
     verifyMerkleProof(
-      proof: (string | number[])[],
-      merkleRoot: string | number[],
-      leaf: string | number[]
+      txHash: string | number[],
+      sides: (number | string | BN)[],
+      hashes: (string | number[])[],
+      targetHash: string | number[]
     ): NonPayableTransactionObject<boolean>;
   };
   events: {

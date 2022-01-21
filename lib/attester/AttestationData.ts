@@ -1,17 +1,5 @@
 import BN from "bn.js";
-
-export enum AttestationType {
-  FassetPaymentProof = 1,
-  BalanceDecreasingProof = 2,
-}
-
-export interface AttestationRequest {
-  timestamp?: BN;
-  instructions: BN;
-  id: string;
-  dataAvailabilityProof: string;
-  attestationType?: AttestationType;
-}
+import { AttestationRequest, AttestationType } from "../verification/attestation-types";
 
 export class AttestationData {
   // event parameters

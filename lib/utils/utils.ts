@@ -3,14 +3,13 @@ import { ethers } from "ethers";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
+import { prefix0x, toBN } from "../MCC/utils";
 
 export const DECIMALS = 5;
 
 export function partBN(x: BN, bitOffset: number, bitCount: number) {
   const bitMask = toBN(1).shln(bitCount).sub(toBN(1));
-
   const a = x.shrn(bitOffset);
-
   return a.and(bitMask);
 }
 
@@ -23,32 +22,6 @@ export function toHex(x: string | number | BN, padToBytes32 = false) {
     return Web3.utils.leftPad(Web3.utils.toHex(x), 64);
   }
   return Web3.utils.toHex(x);
-}
-
-export function toBN(x: string | number | BN, toZeroIfFails = false) {
-  if (x && x.constructor?.name === "BN") return x as BN;
-  try {
-    return Web3.utils.toBN(x as any);
-  } catch (e) {
-    if (toZeroIfFails) {
-      return Web3.utils.toBN(0);
-    }
-    throw e;
-  }
-}
-
-export function toNumber(x: number | BN | undefined | null) {
-  if (x === undefined || x === null) return undefined;
-  if (x && x.constructor?.name === "BN") return (x as BN).toNumber();
-  return x as number;
-}
-
-export function unPrefix0x(tx: string) {
-  return tx.startsWith("0x") ? tx.slice(2) : tx;
-}
-
-export function prefix0x(tx: string) {
-  return tx.startsWith("0x") ? tx : "0x" + tx;
 }
 
 export function arrayRemoveElement(array: Array<any>, element: any) {
@@ -206,4 +179,17 @@ export async function sleepms(milliseconds: number) {
       resolve();
     }, milliseconds);
   });
+}
+
+export function prettyPrintObject(normalized: any) {
+  let res: any = {};
+  for (let key in normalized) {
+    let obj = (normalized as any)[key];
+    if (typeof obj === "object") {
+      res[key] = (normalized as any)[key]?.toString();
+    } else {
+      res[key] = (normalized as any)[key];
+    }
+  }
+  console.log(JSON.stringify(res, null, 2));
 }

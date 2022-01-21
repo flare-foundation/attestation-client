@@ -1,13 +1,14 @@
 import BN from "bn.js";
 import { Logger } from "winston";
 import { ChainManager } from "../chain/ChainManager";
-import { ATT_BITS, CHAIN_ID_BITS } from "../verification/Verification";
 import { ChainType } from "../MCC/types";
+import { toBN } from "../MCC/utils";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
-import { partBNbe, toBN } from "../utils/utils";
+import { partBNbe } from "../utils/utils";
+import { AttestationType, ATT_BITS, CHAIN_ID_BITS } from "../verification/attestation-types";
 import { Attestation } from "./Attestation";
-import { AttestationData, AttestationType } from "./AttestationData";
+import { AttestationData } from "./AttestationData";
 import { AttesterClientConfiguration as AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterEpoch } from "./AttesterEpoch";
 import { AttesterWeb3 } from "./AttesterWeb3";
@@ -108,7 +109,7 @@ export class Attester {
         // todo: implement balance change check
         return undefined;
       default: {
-        this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);
+        this.logger.error(`  ! '${tx.type}': undefined AttestationType (epoch #${epochId})`);
         return undefined;
       }
     }

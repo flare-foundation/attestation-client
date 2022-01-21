@@ -7,7 +7,8 @@ import { AttesterWeb3 } from "./AttesterWeb3";
 import { Hash } from "../utils/Hash";
 import { getTimeMilli } from "../utils/internetTime";
 import { MerkleTree } from "../utils/MerkleTree";
-import { getRandom, toBN } from "../utils/utils";
+import { getRandom } from "../utils/utils";
+import { toBN } from "../MCC/utils";
 
 export enum AttesterEpochStatus {
   collect,

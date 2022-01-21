@@ -1,5 +1,7 @@
+import BN from "bn.js";
 import Web3 from "web3";
-import { toBN, toHex } from "./utils";
+import { toBN } from "../MCC/utils";
+import { toHex } from "./utils";
 
 /**
  * There are several variants for hashing sequences in Merkle trees in cases when there is odd number of hashes on some level.
@@ -73,17 +75,17 @@ export class MerkleTree {
   }
 
   build(values: string[]) {
-    let sorted = values.map(x => toHex(x,true))
+    let sorted = values.map((x) => toHex(x, true));
     sorted.sort();
-    
+
     let hashes = [];
-    for(let i = 0; i < sorted.length; i++) {
-      if(i == 0 || sorted[i] !== sorted[i-1]) {
+    for (let i = 0; i < sorted.length; i++) {
+      if (i == 0 || sorted[i] !== sorted[i - 1]) {
         hashes.push(sorted[i]);
       }
     }
-    if(this.initialHash) {
-      hashes = hashes.map(x => singleHash(x));
+    if (this.initialHash) {
+      hashes = hashes.map((x) => singleHash(x));
     }
     let n = hashes.length;
     this._tree = [...new Array(n - 1).fill(0), ...hashes];
@@ -105,10 +107,10 @@ export class MerkleTree {
       return null;
     }
     let proof: string[] = [];
-    let pos = this._tree.length - this.hashCount + i;    
+    let pos = this._tree.length - this.hashCount + i;
     while (pos > 0) {
       proof.push(
-        this._tree[pos + 2 * (pos % 2) - 1], // if pos even, take left sibiling at pos - 1, else the right sibiling at pos + 1
+        this._tree[pos + 2 * (pos % 2) - 1] // if pos even, take left sibiling at pos - 1, else the right sibiling at pos + 1
       );
       pos = this.parent(pos);
     }

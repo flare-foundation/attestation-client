@@ -1,21 +1,20 @@
 import * as dotenv from "dotenv";
 import Web3 from "web3";
+import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttestationType } from "../attester/AttestationData";
-import { getGlobalLogger } from "../utils/logger";
 import {
-  AttestationRequest,
-  NormalizedTransactionData,
+  AttestationRequest, NormalizedTransactionData,
   TransactionAttestationRequest,
   txAttReqToAttestationRequest,
   VerificationStatus,
-  verifyTransactionAttestation,
+  verifyTransactionAttestation
 } from "../chain/Verification";
-import { getWeb3, getWeb3Contract } from "../utils/utils";
-import { Web3Functions } from "../utils/Web3Functions";
-import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { sleep, toBN } from "../MCC/utils";
 import { MCC } from "../MCC";
 import { ChainType, RPCInterface } from "../MCC/types";
+import { sleep, toBN } from "../MCC/utils";
+import { getGlobalLogger } from "../utils/logger";
+import { getWeb3, getWeb3Contract } from "../utils/utils";
+import { Web3Functions } from "../utils/Web3Functions";
 let fs = require("fs");
 
 dotenv.config();
@@ -285,11 +284,11 @@ class AttestationSpammer {
           } as TransactionAttestationRequest;
 
           const attRequest = txAttReqToAttestationRequest(tr);
+          const data = JSON.stringify(attRequest);
 
           this.logger.info("verifyTransactionAttestation");
           verifyTransactionAttestation(this.client, tr, 0)
             .then((txData: NormalizedTransactionData) => {
-              const data = JSON.stringify(attRequest);
               // save
               if (txData.verificationStatus === VerificationStatus.OK) {
                 this.logger.info("   verified");

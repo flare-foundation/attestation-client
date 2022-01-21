@@ -1,18 +1,18 @@
 import BN from "bn.js";
+import { ChainManager } from "../chain/ChainManager";
+import { ChainNode } from "../chain/ChainNode";
+import { ATT_BITS } from "../chain/Verification";
+import { MCC } from "../MCC";
+import { ChainType } from "../MCC/types";
+import { DotEnvExt } from "../utils/DotEnvExt";
+import { fetchSecret } from "../utils/GoogleSecret";
+import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
+import { partBNbe, toBN } from "../utils/utils";
+import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationData, AttestationType } from "./AttestationData";
 import { Attester } from "./Attester";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { ChainManager } from "../chain/ChainManager";
-import { ChainNode } from "../chain/ChainNode";
-import { DotEnvExt } from "../utils/DotEnvExt";
-import { fetchSecret } from "../utils/GoogleSecret";
-import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
-import { MCC } from "../MCC";
-import { ChainType } from "../MCC/types";
-import { partBNbe, toBN } from "../utils/utils";
-import { ATT_BITS } from "../chain/Verification";
-import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 
 export class AttesterClient {
   conf: AttesterClientConfiguration;

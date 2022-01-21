@@ -108,7 +108,7 @@ export class Attester {
         // todo: implement balance change check
         return undefined;
       default: {
-        this.logger.error(`  ! #${tx.type} undefined AttestationType epoch: #${epochId})`);
+        this.logger.error(`  ! '${tx.type}': undefined AttestationType (epoch #${epochId})`);
         return undefined;
       }
     }

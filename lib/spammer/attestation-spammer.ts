@@ -1,3 +1,4 @@
+import BN from "bn.js";
 import * as dotenv from "dotenv";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
@@ -218,6 +219,21 @@ class AttestationSpammer {
     const sData = "[" + fs.readFileSync("transactions.valid.json").toString().slice(0, -1) + "]";
     const validTransactions: Array<AttestationRequest> = JSON.parse(sData);
     const invalidTransactions: Array<AttestationRequest> = JSON.parse("[" + fs.readFileSync("transactions.invalid.json").toString().slice(0, -1) + "]");
+
+    // JSON saves BN as hex strings !!!@@!#$!@#
+    for (let a = 0; a < validTransactions.length; a++) {
+      try {
+        validTransactions[a].instructions = new BN(validTransactions[a].instructions, "hex");
+      }
+      catch { }
+    }
+
+    for (let a = 0; a < invalidTransactions.length; a++) {
+      try {
+        invalidTransactions[a].instructions = new BN(invalidTransactions[a].instructions, "hex");
+      }
+      catch { }
+    }
 
     while (true) {
       try {

@@ -115,6 +115,32 @@
                 "-l","XRP"             
             ]
         },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Attester collector XRP",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "ts-node",
+                "lib/spammer/attestation-collector.ts",
+                "-c","XRP",
+                "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
+                "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
+                "-t","0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
+                "-u","https://xrplcluster.com",
+                "-b","1",
+                "-o","1", // numberOfAccounts
+                "-f","1",
+                "-w","1000",
+                "-d","2000",
+                "-l","XRP"             
+            ]
+        },
         
         {
             "type": "node",

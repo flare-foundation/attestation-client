@@ -8,9 +8,7 @@ export const DECIMALS = 5;
 
 export function partBN(x: BN, bitOffset: number, bitCount: number) {
   const bitMask = toBN(1).shln(bitCount).sub(toBN(1));
-
   const a = x.shrn(bitOffset);
-
   return a.and(bitMask);
 }
 

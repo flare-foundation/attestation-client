@@ -15,7 +15,7 @@ export async function verififyAttestationUtxo(client: RPCInterface, attRequest: 
         let additionalData = await client.getAdditionalTransactionDetails({
             transaction: txResponse,
             confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-            dataAvailabilityProof: attRequest.dataAvailabilityProof,
+            getDataAvailabilityProof: false  // obtained separeately
         });
         return checkAndAggregateUtxo(additionalData, attRequest, testFailProbability);
     } catch (error) {

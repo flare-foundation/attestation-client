@@ -9,21 +9,31 @@ import {
 import { prefix0x, toBN, xrp_ensure_data } from "../utils";
 import axios from "axios";
 import { LedgerRequest, LedgerResponse, Payment, TransactionMetadata, TxResponse } from "xrpl";
+import axiosRateLimit, { RateLimitOptions } from "../axios-rate-limiter/axios-rate-limit";
+
+const DEFAULT_TIMEOUT = 15000;
+const DEFAULT_RATE_LIMIT_OPTIONS: RateLimitOptions = {
+  maxRPS: 5
+} 
 
 export class XRPImplementation implements RPCInterface {
   rippleApi: any;
   client: any;
   inRegTest: any;
 
-  constructor(url: string, _username: string, _password: string, _inRegTest: boolean = false) {
-    this.client = axios.create({
+  constructor(url: string, _username: string, _password: string, rateLimitOptions: RateLimitOptions, _inRegTest: boolean = false) {
+    let client = axios.create({
       baseURL: url,
-      timeout: 15000,
+      timeout: rateLimitOptions.timeoutMs || DEFAULT_TIMEOUT,
       headers: { "Content-Type": "application/json" },
       validateStatus: function (status: number) {
         return (status >= 200 && status < 300) || status == 500;
       },
     });
+    this.client = axiosRateLimit(client, {
+      ...DEFAULT_RATE_LIMIT_OPTIONS,
+      ...rateLimitOptions
+    })
     this.inRegTest = _inRegTest;
   }
 
@@ -121,8 +131,12 @@ export class XRPImplementation implements RPCInterface {
     let transaction = request.transaction as TxResponse;
     let fee = toBN(request.transaction.result.Fee!);
 
-    let confirmationBlockIndex = blockNumber + request.confirmations;
-    let confirmationBlock = await this.getBlock(confirmationBlockIndex);
+    let dataAvailabilityProof: string | undefined = undefined;
+    if (request.getDataAvailabilityProof) {
+      let confirmationBlockIndex = blockNumber + request.confirmations;
+      let confirmationBlock = await this.getBlock(confirmationBlockIndex);
+      dataAvailabilityProof = prefix0x(confirmationBlock.result.ledger_hash);
+    }
 
     let status = this.getTransactionStatus(request.transaction);
 
@@ -145,7 +159,7 @@ export class XRPImplementation implements RPCInterface {
         spent: toBN(0), // should be string or number
         delivered: toBN(0),
         fee,
-        dataAvailabilityProof: prefix0x(confirmationBlock.result.ledger_hash),
+        dataAvailabilityProof,
         status,
       } as AdditionalTransactionDetails;
     }
@@ -164,7 +178,7 @@ export class XRPImplementation implements RPCInterface {
       spent: toBN((request.transaction.result as Payment).Amount as any).add(fee), // should be string or number
       delivered: delivered,
       fee,
-      dataAvailabilityProof: prefix0x(confirmationBlock.result.ledger_hash),
+      dataAvailabilityProof,
       status,
     } as AdditionalTransactionDetails;
   }
@@ -177,8 +191,26 @@ export class XRPImplementation implements RPCInterface {
     return prefix0x(block.result.ledger_hash);
   }
 
-  getTransactionStatus(tx: TxResponse) {
-    // TODO: Check transaction status!!!
-    return TransactionSuccessStatus.SUCCESS;
+  getTransactionStatus(transaction: TxResponse) {
+    // https://xrpl.org/transaction-results.html
+    let metaData: TransactionMetadata = transaction.result.meta || (transaction.result as any).metaData;
+    let result = metaData.TransactionResult;
+    if (result === "tesSUCCESS") {
+      // https://xrpl.org/tes-success.html
+      return TransactionSuccessStatus.SUCCESS;
+    }
+    if (result.startsWith("tec")) {
+      // https://xrpl.org/tec-codes.html
+      switch (result) {
+        case "tecDST_TAG_NEEDED":
+        case "tecNO_DST":
+        case "tecNO_DST_INSUF_XRP":
+          return TransactionSuccessStatus.RECEIVER_FAILURE
+        default:
+          return TransactionSuccessStatus.SENDER_FAILURE
+      }
+    }
+    //Other codes: tef, tel, tem, ter are not applied to ledgers
+    return TransactionSuccessStatus.SENDER_FAILURE;
   }
 }

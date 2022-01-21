@@ -11,11 +11,12 @@ import { numberOfConfirmations } from "../confirmations";
 
 export async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest, testFailProbability = 0) {
     try {
+
         let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id))) as TxResponse;
         let additionalData = await client.getAdditionalTransactionDetails({
             transaction: txResponse,
             confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-            dataAvailabilityProof: attRequest.dataAvailabilityProof,
+            getDataAvailabilityProof: true
         });
         return checkAndAggregateXRP(additionalData, attRequest, testFailProbability);
     } catch (error) {

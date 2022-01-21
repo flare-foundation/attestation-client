@@ -137,7 +137,7 @@ export {
 
 export interface AdditionalTxRequest {
   transaction: any;
-  dataAvailabilityProof: any;
+  getDataAvailabilityProof?: boolean;
   confirmations: number;
 }
 

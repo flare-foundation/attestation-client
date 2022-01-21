@@ -26,7 +26,7 @@ export module MCC {
 
   export class XRP extends XRPImplementation implements RPCInterface {
     constructor(options: XrpMccCreate) {
-      super(options.url, options.username || "", options.password || "", options.inRegTest || false);
+      super(options.url, options.username || "", options.password || "", options.rateLimitOptions || {}, options.inRegTest || false);
     }
   }
 

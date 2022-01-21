@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import Web3 from "web3";
 import { AttestationType } from "../attester/AttestationData";
 import { getGlobalLogger } from "../utils/logger";
-import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from "../chain/Verification";
+import { AttestationRequest, TransactionAttestationRequest, txAttReqToAttestationRequest } from "../verification/Verification";
 import { getWeb3, getWeb3Contract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";

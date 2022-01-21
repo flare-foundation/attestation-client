@@ -9,7 +9,7 @@ import { MCC } from "../MCC";
 import { ChainType, RPCInterface } from "../MCC/types";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "./Verification";
+import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, verifyTransactionAttestation } from "../verification/Verification";
 
 export class ChainNode {
   chainManager: ChainManager;

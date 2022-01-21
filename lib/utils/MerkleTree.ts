@@ -18,11 +18,11 @@ import { toBN, toHex } from "./utils";
  * - array[0] is merkle root, array[n-1, ..., 2*n - 2] contains leaf hashes in order
  * - given tree array of length l = 2*n - 1, then n = floor((l + 1)/2) --- be careful with 1 element
  * - parent(i) = Math.floor((i - 1) / 2);
- * - left_son(i) = 2*i + 1
- * - right_son(i) = 2*i + 2
+ * - left(i) = 2*i + 1
+ * - right(i) = 2*i + 2
+ * 
+ * Importants: all input strings should represent bytes32, hence should be 32-byte padded hex strings.
  */
-//
-//
 
 const web3 = new Web3();
 
@@ -36,19 +36,6 @@ export function sortedHashPair(x: string, y: string) {
   }
   return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [y, x]));
 }
-
-
-
-// export type MerkleSide = 0 | 1;
-// export interface HashPairEntry {
-//   index: MerkleSide;
-//   hash: string;
-// }
-
-// export interface MerkleProof {
-//   tx: string;
-//   hashPairs?: string[];
-// }
 
 export class MerkleTree {
   _tree: string[] = [];
@@ -103,7 +90,6 @@ export class MerkleTree {
     for (let i = n - 2; i >= 0; i--) {
       this._tree[i] = sortedHashPair(this._tree[2 * i + 1], this._tree[2 * i + 2])!;
     }
-    // console.log(this._tree)
   }
 
   getHash(i: number) {

@@ -1,7 +1,7 @@
 import BN from "bn.js";
 import { Logger } from "winston";
 import { ChainManager } from "../chain/ChainManager";
-import { ATT_BITS, CHAIN_ID_BITS } from "../chain/Verification";
+import { ATT_BITS, CHAIN_ID_BITS } from "../verification/Verification";
 import { ChainType } from "../MCC/types";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";

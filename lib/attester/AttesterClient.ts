@@ -11,7 +11,7 @@ import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
 import { MCC } from "../MCC";
 import { ChainType } from "../MCC/types";
 import { partBNbe, toBN } from "../utils/utils";
-import { ATT_BITS } from "../chain/Verification";
+import { ATT_BITS } from "../verification/Verification";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 
 export class AttesterClient {

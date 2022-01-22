@@ -1,3 +1,5 @@
+import BN from "bn.js";
+import Web3 from "web3";
 import { AdditionalTransactionDetails } from "../MCC/types";
 import { toBN } from "../MCC/utils";
 import {
@@ -9,6 +11,7 @@ import {
   TransactionAttestationRequest,
   VerificationStatus
 } from "./attestation-types";
+
 
 export function txAttReqToAttestationRequest(request: TransactionAttestationRequest): AttestationRequest {
   let scheme = attestationTypeEncodingScheme(request.attestationType!);

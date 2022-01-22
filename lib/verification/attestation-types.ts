@@ -1,3 +1,4 @@
+import BN from "bn.js";
 import { AdditionalTransactionDetails, ChainType } from "../MCC/types";
 
 export interface VerificationTestOptions {

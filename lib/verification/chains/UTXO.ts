@@ -1,10 +1,9 @@
+import BN from "bn.js";
 import { AdditionalTransactionDetails, ChainType, IUtxoGetTransactionRes, RPCInterface } from "../../MCC/types";
 import { toBN, toNumber, unPrefix0x } from "../../MCC/utils";
-import { prettyPrintObject } from "../../utils/utils";
 import { checkDataAvailability } from "../attestation-request-utils";
 import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../attestation-types";
 import { numberOfConfirmations } from "../confirmations";
-
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Verification

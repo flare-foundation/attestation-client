@@ -1,5 +1,10 @@
 import { AdditionalTransactionDetails, ChainType } from "../MCC/types";
 
+export interface VerificationTestOptions {
+  testFailProbability?: number;
+  getAvailabilityProof?: boolean;
+}
+
 export enum AttestationType {
     FassetPaymentProof = 1,
     BalanceDecreasingProof = 2

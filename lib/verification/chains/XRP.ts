@@ -2,22 +2,22 @@ import { TransactionMetadata, TxResponse } from "xrpl";
 import { AdditionalTransactionDetails, ChainType, RPCInterface } from "../../MCC/types";
 import { toBN, toNumber, unPrefix0x } from "../../MCC/utils";
 import { checkDataAvailability } from "../attestation-request-utils";
-import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../attestation-types";
+import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../attestation-types";
 import { numberOfConfirmations } from "../confirmations";
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Verification
 ////////////////////////////////////////////////////////////////////////////////////////
 
-export async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest, testFailProbability = 0) {
+export async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest, testOptions?: VerificationTestOptions) {
   try {
     let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id))) as TxResponse;
     let additionalData = await client.getAdditionalTransactionDetails({
       transaction: txResponse,
       confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-      dataAvailabilityProof: attRequest.dataAvailabilityProof,
+      getDataAvailabilityProof: !!testOptions?.getAvailabilityProof,
     });
-    return checkAndAggregateXRP(additionalData, attRequest, testFailProbability);
+    return checkAndAggregateXRP(additionalData, attRequest, testOptions);
   } catch (error) {
     // TODO: handle error
     console.log(error);
@@ -28,7 +28,7 @@ export async function verififyAttestationXRP(client: RPCInterface, attRequest: T
 function checkAndAggregateXRP(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
-  testFailProbability = 0
+  testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
   // helper return function
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
@@ -42,6 +42,7 @@ function checkAndAggregateXRP(
   }
 
   // Test simulation of "too early check"
+  let testFailProbability = testOptions?.testFailProbability || 0;
   if (testFailProbability > 0) {
     if (Math.random() < testFailProbability) {
       return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);

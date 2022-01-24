@@ -277,7 +277,7 @@ class AttestationSpammer {
           const data = JSON.stringify(attRequest) + ",\n";
 
           this.logger.info("verifyTransactionAttestation");
-          verifyTransactionAttestation(this.client, tr, 0)
+          verifyTransactionAttestation(this.client, tr, { getAvailabilityProof: true })
             .then((txData: NormalizedTransactionData) => {
               // save
               if (txData.verificationStatus === VerificationStatus.OK) {

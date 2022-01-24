@@ -183,7 +183,7 @@ export class ChainNode {
       testFail = tx.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
-    verifyTransactionAttestation(this.client, attReq, testFail)
+    verifyTransactionAttestation(this.client, attReq, { testFailProbability: testFail })
       .then((txData: NormalizedTransactionData) => {
         if (txData.verificationStatus === VerificationStatus.RECHECK_LATER) {
           this.chainManager.logger.warning(` * reverification`);

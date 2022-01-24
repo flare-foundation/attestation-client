@@ -231,7 +231,7 @@ class AttestationSpammer {
           validTransactions[a].timestamp = new BN(validTransactions[a].timestamp!, "hex");
         }
         validTransactions[a].instructions = new BN(validTransactions[a].instructions, "hex");
-      } catch { }
+      } catch {}
     }
 
     // for (let a = 0; a < invalidTransactions.length; a++) {
@@ -262,14 +262,12 @@ async function displayStats() {
   while (true) {
     await sleep(period);
 
-    logger.info(`${AttestationSpammer.sendCount * 1000 / period} req/sec`)
+    logger.info(`${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
     AttestationSpammer.sendCount = 0;
   }
 }
 
-
 async function runAllAttestationSpammers() {
-
   displayStats();
 
   const accounts = JSON.parse(fs.readFileSync(args["accountsFile"]));

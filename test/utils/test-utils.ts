@@ -1,6 +1,7 @@
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { ChainType, IUtxoBlockRes, RPCInterface } from "../../lib/MCC/types";
 import { prefix0x, toBN } from "../../lib/MCC/utils";
+import { prettyPrintObject } from "../../lib/utils/utils";
 import {
   attReqToTransactionAttestationRequest,
   extractAttEvents,
@@ -103,7 +104,8 @@ export async function testUtxo(
   let txAttReq = parsedEvents[0];
 
   // verify
-  let txData = await verifyTransactionAttestation(client, txAttReq)
+  let txData = await verifyTransactionAttestation(client, txAttReq, {getAvailabilityProof: true})
+  //prettyPrintObject(txData)
   assert(txData.verificationStatus === targetStatus, `Incorrect status ${txData.verificationStatus}`)
   if (targetStatus === VerificationStatus.OK) {
     let hash = transactionHash(web3, txData!);
@@ -162,7 +164,7 @@ export async function traverseAndTestUtxoChain(
           let eventRequest = verifyReceiptAgainstTemplate(receipt, tr);
 
           // verify
-          let txData = await verifyTransactionAttestation(client, eventRequest)
+          let txData = await verifyTransactionAttestation(client, eventRequest, {getAvailabilityProof: true})
 
           /////////////////////////////////////////////////////////////////
           /// Filtering printouts for (known) statuses

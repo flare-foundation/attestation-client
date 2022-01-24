@@ -1,8 +1,11 @@
+import { RateLimitOptions } from "../axios-rate-limiter/axios-rate-limit";
+
 export interface XrpMccCreate {
   url: string;
   username?: string;
   password?: string;
   inRegTest?: boolean;
+  rateLimitOptions?: RateLimitOptions;
 }
 
 export interface XrpCreateAddressData {}

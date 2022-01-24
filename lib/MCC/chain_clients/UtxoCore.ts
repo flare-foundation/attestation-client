@@ -16,17 +16,21 @@ import {
   AdditionalTxRequest,
   TransactionSuccessStatus,
 } from "../types";
+import axiosRateLimit, { RateLimitOptions } from "../axios-rate-limiter/axios-rate-limit";
 
-const UTXOTIMEOUT = 60000;
+const DEFAULT_TIMEOUT = 10000;
+const DEFAULT_RATE_LIMIT_OPTIONS: RateLimitOptions = {
+  maxRPS: 5,
+};
 
 export class UtxoCore {
   client: any;
   inRegTest: boolean;
 
-  constructor(url: string, username: string, password: string, inRegTest: boolean = false) {
-    this.client = axios.create({
+  constructor(url: string, username: string, password: string, rateLimitOptions: RateLimitOptions, inRegTest: boolean = false) {
+    let client = axios.create({
       baseURL: url,
-      timeout: UTXOTIMEOUT,
+      timeout: rateLimitOptions.timeoutMs || DEFAULT_TIMEOUT,
       headers: { "Content-Type": "application/json" },
       auth: {
         username: username,
@@ -35,6 +39,10 @@ export class UtxoCore {
       validateStatus: function (status: number) {
         return (status >= 200 && status < 300) || status == 500;
       },
+    });
+    this.client = axiosRateLimit(client, {
+      ...DEFAULT_RATE_LIMIT_OPTIONS,
+      ...rateLimitOptions,
     });
     this.inRegTest = inRegTest;
   }
@@ -368,7 +376,8 @@ export class UtxoCore {
    * @returns
    */
   async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails> {
-    let blockResponse = (await this.getBlock(request.transaction.blockhash)) as IUtxoBlockRes;
+    let blockResponse = (await this.getBlock(request.transaction.blockhash)) as IUtxoBlockRes; //!!!
+
     let inFunds: BN[] = [];
     let totalInFunds = toBN(0);
     // read input transactions
@@ -403,12 +412,15 @@ export class UtxoCore {
       destinationAddresses.push(targetAddresses);
     }
 
-    let confirmationBlockHeight = blockResponse.height + request.confirmations;
     let dataAvailabilityProof: string | undefined = undefined;
-    try {
-      let confirmationBlock = (await this.getBlock(confirmationBlockHeight)) as IUtxoBlockRes;
-      dataAvailabilityProof = prefix0x(confirmationBlock.hash);
-    } catch (e) {}
+    if (request.getDataAvailabilityProof) {
+      let confirmationBlockHeight = blockResponse.height + request.confirmations;
+      try {
+        let confirmationBlock = (await this.getBlock(confirmationBlockHeight)) as IUtxoBlockRes;
+        dataAvailabilityProof = prefix0x(confirmationBlock.hash);
+      } catch (e) {}
+    }
+
     if (sourceAddresses.length != inFunds.length) {
       throw new Error("Source addresses length and inFunds length do not match!");
     }

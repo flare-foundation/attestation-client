@@ -2,22 +2,22 @@ import BN from "bn.js";
 import { AdditionalTransactionDetails, ChainType, IUtxoGetTransactionRes, RPCInterface } from "../../MCC/types";
 import { toBN, toNumber, unPrefix0x } from "../../MCC/utils";
 import { checkDataAvailability } from "../attestation-request-utils";
-import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../attestation-types";
+import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../attestation-types";
 import { numberOfConfirmations } from "../confirmations";
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Verification
 ////////////////////////////////////////////////////////////////////////////////////////
 
-export async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest, testFailProbability = 0) {
+export async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest, testOptions?: VerificationTestOptions) {
   try {
     let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
     let additionalData = await client.getAdditionalTransactionDetails({
       transaction: txResponse,
       confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-      dataAvailabilityProof: attRequest.dataAvailabilityProof,
+      getDataAvailabilityProof: !!testOptions?.getAvailabilityProof,
     });
-    return checkAndAggregateUtxo(additionalData, attRequest, testFailProbability);
+    return checkAndAggregateUtxo(additionalData, attRequest, testOptions);
   } catch (error) {
     // TODO: handle error
     console.log(error);
@@ -28,7 +28,7 @@ export async function verififyAttestationUtxo(client: RPCInterface, attRequest: 
 function checkAndAggregateToOnePaymentUtxo(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
-  testFailProbability = 0
+  testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
@@ -41,6 +41,7 @@ function checkAndAggregateToOnePaymentUtxo(
   }
 
   // Test simulation of "too early check"
+  let testFailProbability = testOptions?.testFailProbability || 0;
   if (testFailProbability > 0) {
     if (Math.random() < testFailProbability) {
       return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
@@ -170,7 +171,7 @@ function checkAndAggregateToOnePaymentUtxo(
 function checkAndAggregateDecreaseBalancePaymentUtxo(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
-  testFailProbability = 0
+  testOptions?: VerificationTestOptions
 ) {
   function genericReturnWithStatus(verificationStatus: VerificationStatus) {
     return {
@@ -183,6 +184,7 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(
   }
 
   // Test simulation of "too early check"
+  let testFailProbability = testOptions?.testFailProbability || 0;
   if (testFailProbability > 0) {
     if (Math.random() < testFailProbability) {
       return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
@@ -277,13 +279,13 @@ function checkAndAggregateDecreaseBalancePaymentUtxo(
 function checkAndAggregateUtxo(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
-  testFailProbability = 0
+  testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
   switch (attRequest.attestationType) {
     case AttestationType.FassetPaymentProof:
-      return checkAndAggregateToOnePaymentUtxo(additionalData, attRequest, testFailProbability);
+      return checkAndAggregateToOnePaymentUtxo(additionalData, attRequest, testOptions);
     case AttestationType.BalanceDecreasingProof:
-      return checkAndAggregateDecreaseBalancePaymentUtxo(additionalData, attRequest, testFailProbability);
+      return checkAndAggregateDecreaseBalancePaymentUtxo(additionalData, attRequest, testOptions);
     default:
       throw new Error(`Invalid attestation type ${attRequest.attestationType}`);
   }

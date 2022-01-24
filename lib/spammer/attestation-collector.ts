@@ -4,7 +4,7 @@ import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { MCC } from "../MCC";
 import { ChainType, RPCInterface } from "../MCC/types";
 import { sleep, toBN } from "../MCC/utils";
-import { getGlobalLogger } from "../utils/logger";
+import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getWeb3, getWeb3Contract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { txAttReqToAttestationRequest } from "../verification/attestation-request-utils";
@@ -141,7 +141,7 @@ class AttestationSpammer {
   chainType!: ChainType;
   client!: RPCInterface;
   web3!: Web3;
-  logger!: any;
+  logger!: AttLogger;
   stateConnector!: StateConnector;
   range: number = args["range"];
   rpcLink: string = args["rpcLink"];
@@ -157,6 +157,7 @@ class AttestationSpammer {
   logEvents: boolean;
 
   constructor(privateKey: string, logEvents = true) {
+    this.logger = getGlobalLogger(args["loggerLabel"]);
     this.privateKey = privateKey;
     this.logEvents = logEvents;
     this.chainType = MCC.getChainType(args["chain"]);
@@ -164,10 +165,32 @@ class AttestationSpammer {
       case ChainType.BTC:
       case ChainType.LTC:
       case ChainType.DOGE:
-        this.client = MCC.Client(this.chainType, { url: this.URL, username: this.USERNAME, password: this.PASSWORD }) as RPCInterface;
+        this.client = MCC.Client(this.chainType, {
+          url: this.URL,
+          username: this.USERNAME,
+          password: this.PASSWORD,
+          rateLimitOptions: {
+            maxRPS: 14,
+            timeoutMs: 8000,
+            onSend: this.onSend.bind(this),
+            onResponse: this.onResponse.bind(this),
+            onLimitReached: this.limitReached.bind(this),
+          },
+        }) as RPCInterface;
         break;
       case ChainType.XRP:
-        this.client = MCC.Client(this.chainType, { url: this.URL, username: this.USERNAME, password: this.PASSWORD }) as RPCInterface;
+        this.client = MCC.Client(this.chainType, {
+          url: this.URL,
+          username: this.USERNAME,
+          password: this.PASSWORD,
+          rateLimitOptions: {
+            maxRPS: 14,
+            timeoutMs: 8000,
+            onSend: this.onSend.bind(this),
+            onResponse: this.onResponse.bind(this),
+            onLimitReached: this.limitReached.bind(this),
+          },
+        }) as RPCInterface;
         break;
       case ChainType.ALGO:
         const algoCreateConfig = {
@@ -187,13 +210,27 @@ class AttestationSpammer {
     }
 
     // let mccClient = new MCClient(new MCCNodeSettings(this.chainType, this.URL, this.USERNAME || "", this.PASSWORD || "", null));
-    this.logger = getGlobalLogger(args["loggerLabel"]);
     this.web3 = getWeb3(this.rpcLink) as Web3;
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.privateKey);
 
     getWeb3Contract(this.web3, args["contractAddress"], "StateConnector").then((sc: StateConnector) => {
       this.stateConnector = sc;
     });
+  }
+
+  maxQueue = 5;
+  wait: boolean = false;
+
+  limitReached(inProcessing?: number, inQueue?: number) {}
+
+  onSend(inProcessing?: number, inQueue?: number) {
+    this.logger.info(`Send ${inProcessing} ${inQueue}`);
+    this.wait = inQueue! >= this.maxQueue;
+  }
+
+  onResponse(inProcessing?: number, inQueue?: number) {
+    this.logger.info(`Response ${inProcessing} ${inQueue}`);
+    this.wait = inQueue! >= this.maxQueue;
   }
 
   async waitForStateConnector() {
@@ -292,9 +329,11 @@ class AttestationSpammer {
               // skip
             });
 
-          //await this.sendAttestationRequest(this.stateConnector, attRequest); // async call
+          await sleep(100);
 
-          await sleep(Math.floor(Math.random() * this.delay));
+          while (this.wait) {
+            await sleep(50);
+          }
         }
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);

@@ -19,10 +19,10 @@ interface RateLimitOptions {
   perMilliseconds?: number;
   maxRPS?: number;
   timeoutMs?: number;
-  onSend?: (inProcessing?: number, inQueue?: number) => undefined;
-  onResponse?: (inProcessing?: number, inQueue?: number) => undefined;
-  onQueueEmpty?: (inProcessing?: number, inQueue?: number) => undefined;
-  onLimitReached?: (inProcessing?: number, inQueue?: number) => undefined;
+  onSend?: (inProcessing?: number, inQueue?: number) => void;
+  onResponse?: (inProcessing?: number, inQueue?: number) => void;
+  onQueueEmpty?: (inProcessing?: number, inQueue?: number) => void;
+  onLimitReached?: (inProcessing?: number, inQueue?: number) => void;
 }
 
 /**

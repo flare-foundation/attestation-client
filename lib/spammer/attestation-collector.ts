@@ -8,7 +8,13 @@ import { getGlobalLogger } from "../utils/logger";
 import { getWeb3, getWeb3Contract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { txAttReqToAttestationRequest } from "../verification/attestation-request-utils";
-import { AttestationRequest, AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import {
+  AttestationRequest,
+  AttestationType,
+  NormalizedTransactionData,
+  TransactionAttestationRequest,
+  VerificationStatus,
+} from "../verification/attestation-types";
 import { verifyTransactionAttestation } from "../verification/verification";
 let fs = require("fs");
 
@@ -190,17 +196,6 @@ class AttestationSpammer {
     });
   }
 
-  async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
-    let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
-    const receipt = await this.web3Functions.signAndFinalize3("Request attestation", this.stateConnector.options.address, fnToEncode);
-
-    if (receipt) {
-      // this.logger.info(`Attestation sent`)
-    }
-
-    return receipt;
-  }
-
   async waitForStateConnector() {
     while (!this.stateConnector) {
       await sleep(100);
@@ -279,18 +274,18 @@ class AttestationSpammer {
           } as TransactionAttestationRequest;
 
           const attRequest = txAttReqToAttestationRequest(tr);
-          const data = JSON.stringify(attRequest);
+          const data = JSON.stringify(attRequest) + ",\n";
 
           this.logger.info("verifyTransactionAttestation");
-          verifyTransactionAttestation(this.client, tr, {getAvailabilityProof: true})
+          verifyTransactionAttestation(this.client, tr, { getAvailabilityProof: true })
             .then((txData: NormalizedTransactionData) => {
               // save
               if (txData.verificationStatus === VerificationStatus.OK) {
                 this.logger.info("   verified");
-                fs.appendFileSync("transactions.valid.json", data + ",");
+                fs.appendFileSync(`db/transactions.${args.loggerLabel}.valid.json`, data);
               } else {
                 this.logger.info("   refused");
-                fs.appendFileSync("transactions.invalid.json", data + ",");
+                fs.appendFileSync(`db/transactions.${args.loggerLabel}.invalid.json`, data);
               }
             })
             .catch((txData: NormalizedTransactionData) => {

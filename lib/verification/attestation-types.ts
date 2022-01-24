@@ -7,8 +7,8 @@ export interface VerificationTestOptions {
 }
 
 export enum AttestationType {
-    FassetPaymentProof = 1,
-    BalanceDecreasingProof = 2
+  FassetPaymentProof = 1,
+  BalanceDecreasingProof = 2,
 }
 
 export enum VerificationStatus {

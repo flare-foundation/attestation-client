@@ -9,9 +9,8 @@ import {
   ATT_BITS,
   NormalizedTransactionData,
   TransactionAttestationRequest,
-  VerificationStatus
+  VerificationStatus,
 } from "./attestation-types";
-
 
 export function txAttReqToAttestationRequest(request: TransactionAttestationRequest): AttestationRequest {
   let scheme = attestationTypeEncodingScheme(request.attestationType!);

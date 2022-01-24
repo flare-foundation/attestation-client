@@ -183,7 +183,7 @@ export class ChainNode {
       testFail = tx.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
-    verifyTransactionAttestation(this.client, attReq, {testFailProbability: testFail})
+    verifyTransactionAttestation(this.client, attReq, { testFailProbability: testFail })
       .then((txData: NormalizedTransactionData) => {
         if (txData.verificationStatus === VerificationStatus.RECHECK_LATER) {
           this.chainManager.logger.warning(` * reverification`);
@@ -272,7 +272,8 @@ export class ChainNode {
         this.chainManager.logger.debug(` # startNext heartbeat`);
         setTimeout(() => {
           this.startNext();
-        }, Math.ceil(getTimeMilli() / 1000) * 1000 + 1);
+        }, 100);
+        // todo: for how long do I want to wait??????
       }
       //
       return;

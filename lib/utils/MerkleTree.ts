@@ -22,7 +22,7 @@ import { toHex } from "./utils";
  * - parent(i) = Math.floor((i - 1) / 2);
  * - left(i) = 2*i + 1
  * - right(i) = 2*i + 2
- * 
+ *
  * Importants: all input strings should represent bytes32, hence should be 32-byte padded hex strings.
  */
 

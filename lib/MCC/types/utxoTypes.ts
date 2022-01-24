@@ -5,7 +5,7 @@ export interface UtxoMccCreate {
   username: string;
   password: string;
   inRegTest?: boolean;
-  rateLimitOptions?: RateLimitOptions
+  rateLimitOptions?: RateLimitOptions;
 }
 
 // Creating transactions

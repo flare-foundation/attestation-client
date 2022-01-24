@@ -124,7 +124,8 @@ export class AttesterEpoch {
     this.logger.info(` * AttestEpoch #${this.epochId} comitting (${validated.length}/${this.attestations.length} attestation(s))`);
 
     // sort valid attestations (blockNumber, transactionIndex, signature)
-    validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));
+    // external sorting is not needed anymore
+    //validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));
 
     // collect sorted valid attestation ids
     const validatedHashes: string[] = new Array<string>();

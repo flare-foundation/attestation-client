@@ -13,8 +13,8 @@ import axiosRateLimit, { RateLimitOptions } from "../axios-rate-limiter/axios-ra
 
 const DEFAULT_TIMEOUT = 15000;
 const DEFAULT_RATE_LIMIT_OPTIONS: RateLimitOptions = {
-  maxRPS: 5
-} 
+  maxRPS: 5,
+};
 
 export class XRPImplementation implements RPCInterface {
   rippleApi: any;
@@ -32,8 +32,8 @@ export class XRPImplementation implements RPCInterface {
     });
     this.client = axiosRateLimit(client, {
       ...DEFAULT_RATE_LIMIT_OPTIONS,
-      ...rateLimitOptions
-    })
+      ...rateLimitOptions,
+    });
     this.inRegTest = _inRegTest;
   }
 
@@ -205,9 +205,9 @@ export class XRPImplementation implements RPCInterface {
         case "tecDST_TAG_NEEDED":
         case "tecNO_DST":
         case "tecNO_DST_INSUF_XRP":
-          return TransactionSuccessStatus.RECEIVER_FAILURE
+          return TransactionSuccessStatus.RECEIVER_FAILURE;
         default:
-          return TransactionSuccessStatus.SENDER_FAILURE
+          return TransactionSuccessStatus.SENDER_FAILURE;
       }
     }
     //Other codes: tef, tel, tem, ter are not applied to ledgers

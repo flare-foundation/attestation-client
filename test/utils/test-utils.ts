@@ -105,7 +105,7 @@ export async function testUtxo(
 
   // verify
   let txData = await verifyTransactionAttestation(client, txAttReq, {getAvailabilityProof: true})
-  prettyPrintObject(txData)
+  //prettyPrintObject(txData)
   assert(txData.verificationStatus === targetStatus, `Incorrect status ${txData.verificationStatus}`)
   if (targetStatus === VerificationStatus.OK) {
     let hash = transactionHash(web3, txData!);

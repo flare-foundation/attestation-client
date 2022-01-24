@@ -37,7 +37,7 @@ export async function verififyAttestationUtxo(client: RPCInterface, attRequest: 
         // set up the verified 
         if (!testOptions?.getAvailabilityProof) {
             // should be set by the above verification either to the same hash, which means that block exists or undefined otherwise.
-            additionalData.dataAvailabilityProof = confirmationHash!;   
+            additionalData.dataAvailabilityProof = confirmationHash!;
         }
         return checkAndAggregateUtxo(additionalData, attRequest, testOptions);
     } catch (error) {
@@ -278,7 +278,6 @@ function checkAndAggregateUtxo(
             throw new Error(`Invalid attestation type ${attRequest.attestationType}`);
     }
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Support

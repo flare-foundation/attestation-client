@@ -19,8 +19,8 @@
             "username": "",
             "password": "",
             
-            "maxRequestsPerSecond":2,
-            "maxProcessingTransactions":10,
+            "maxRequestsPerSecond":30,
+            "maxProcessingTransactions":3000,
           
             "maxFailedRetry": 1,
             "delayBeforeRetry": 10,

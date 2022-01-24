@@ -20,8 +20,8 @@ import axiosRateLimit, { RateLimitOptions } from "../axios-rate-limiter/axios-ra
 
 const DEFAULT_TIMEOUT = 10000;
 const DEFAULT_RATE_LIMIT_OPTIONS: RateLimitOptions = {
-  maxRPS: 5
-} 
+  maxRPS: 5,
+};
 
 export class UtxoCore {
   client: any;
@@ -42,8 +42,8 @@ export class UtxoCore {
     });
     this.client = axiosRateLimit(client, {
       ...DEFAULT_RATE_LIMIT_OPTIONS,
-      ...rateLimitOptions
-    })
+      ...rateLimitOptions,
+    });
     this.inRegTest = inRegTest;
   }
 
@@ -376,7 +376,7 @@ export class UtxoCore {
    * @returns
    */
   async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails> {
-    let blockResponse = (await this.getBlock(request.transaction.blockhash)) as IUtxoBlockRes;  //!!!
+    let blockResponse = (await this.getBlock(request.transaction.blockhash)) as IUtxoBlockRes; //!!!
 
     let inFunds: BN[] = [];
     let totalInFunds = toBN(0);
@@ -418,9 +418,9 @@ export class UtxoCore {
       try {
         let confirmationBlock = (await this.getBlock(confirmationBlockHeight)) as IUtxoBlockRes;
         dataAvailabilityProof = prefix0x(confirmationBlock.hash);
-      } catch (e) { }
+      } catch (e) {}
     }
-    
+
     if (sourceAddresses.length != inFunds.length) {
       throw new Error("Source addresses length and inFunds length do not match!");
     }

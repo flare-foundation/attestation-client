@@ -28,9 +28,9 @@ export async function verififyAttestationXRP(client: RPCInterface, attRequest: T
 }
 
 function checkAndAggregateXRP(
-    additionalData: AdditionalTransactionDetails,
-    attRequest: TransactionAttestationRequest,
-    testOptions?: VerificationTestOptions
+  additionalData: AdditionalTransactionDetails,
+  attRequest: TransactionAttestationRequest,
+  testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
     // helper return function
     function genericReturnWithStatus(verificationStatus: VerificationStatus) {
@@ -43,73 +43,72 @@ function checkAndAggregateXRP(
         } as NormalizedTransactionData;
     }
 
-    // Test simulation of "too early check"
-    let testFailProbability = testOptions?.testFailProbability || 0;
-    if (testFailProbability > 0) {
-        if (Math.random() < testFailProbability) {
-            return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
-        }
+  // Test simulation of "too early check"
+  let testFailProbability = testOptions?.testFailProbability || 0;
+  if (testFailProbability > 0) {
+    if (Math.random() < testFailProbability) {
+      return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
     }
+  }
 
-    // check confirmations
-    let dataAvailabilityVerification = checkDataAvailability(additionalData, attRequest);
-    if (dataAvailabilityVerification != VerificationStatus.OK) {
-        return genericReturnWithStatus(dataAvailabilityVerification);
+  // check confirmations
+  let dataAvailabilityVerification = checkDataAvailability(additionalData, attRequest);
+  if (dataAvailabilityVerification != VerificationStatus.OK) {
+    return genericReturnWithStatus(dataAvailabilityVerification);
+  }
+
+  // check against instructions
+  // if (!instructionsCheck(additionalData, attRequest)) {
+  //   return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // }
+
+  let transaction = additionalData.transaction as TxResponse;
+  ///// Specific checks for attestation types
+
+  // FassetPaymentProof checks
+  if (attRequest.attestationType === AttestationType.FassetPaymentProof) {
+    if (transaction.result.TransactionType != "Payment") {
+      return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_TX_TYPE);
     }
-
-    // check against instructions
-    // if (!instructionsCheck(additionalData, attRequest)) {
-    //   return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
-    // }
-
-    let transaction = additionalData.transaction as TxResponse;
-    ///// Specific checks for attestation types
-
-    // FassetPaymentProof checks
-    if (attRequest.attestationType === AttestationType.FassetPaymentProof) {
-        if (transaction.result.TransactionType != "Payment") {
-            return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_TX_TYPE);
-        }
-        if (transaction.result.Account === transaction.result.Destination) {
-            return genericReturnWithStatus(VerificationStatus.FORBIDDEN_SELF_SENDING);
-        }
-        return genericReturnWithStatus(VerificationStatus.OK);
+    if (transaction.result.Account === transaction.result.Destination) {
+      return genericReturnWithStatus(VerificationStatus.FORBIDDEN_SELF_SENDING);
     }
+    return genericReturnWithStatus(VerificationStatus.OK);
+  }
 
-    // BalanceDecreasingProof checks
-    if (attRequest.attestationType === AttestationType.BalanceDecreasingProof) {
-        return genericReturnWithStatus(VerificationStatus.OK);
-    }
+  // BalanceDecreasingProof checks
+  if (attRequest.attestationType === AttestationType.BalanceDecreasingProof) {
+    return genericReturnWithStatus(VerificationStatus.OK);
+  }
 
-    throw new Error(`Wrong or missing attestation type: ${attRequest.attestationType}`);
+  throw new Error(`Wrong or missing attestation type: ${attRequest.attestationType}`);
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Support
 ////////////////////////////////////////////////////////////////////////////////////////
 
 export function isSupportedTransactionXRP(transaction: any, attType: AttestationType): boolean {
-    if (!(transaction.metaData || transaction.meta)) {
-        // console.log("E-1");
-        return false;
-    }
-    if (transaction.TransactionType != "Payment") {
-        // console.log("E-2");
-        return false;
-    }
-    let meta = transaction.metaData || transaction.meta;
-    if (typeof meta === "string") {
-        // console.log("E-3");
-        return false;
-    }
-    if (typeof (meta as TransactionMetadata).delivered_amount != "string") {
-        // console.log("E-4");
-        return false;
-    }
-    if (meta!.TransactionResult != "tesSUCCESS") {
-        // console.log("E-5");
-        return false;
-    }
-    return true;
+  if (!(transaction.metaData || transaction.meta)) {
+    // console.log("E-1");
+    return false;
+  }
+  if (transaction.TransactionType != "Payment") {
+    // console.log("E-2");
+    return false;
+  }
+  let meta = transaction.metaData || transaction.meta;
+  if (typeof meta === "string") {
+    // console.log("E-3");
+    return false;
+  }
+  if (typeof (meta as TransactionMetadata).delivered_amount != "string") {
+    // console.log("E-4");
+    return false;
+  }
+  if (meta!.TransactionResult != "tesSUCCESS") {
+    // console.log("E-5");
+    return false;
+  }
+  return true;
 }

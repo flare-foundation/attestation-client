@@ -1,5 +1,6 @@
 import BN from "bn.js";
 import * as dotenv from "dotenv";
+import { logger } from "ethers";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { MCC } from "../MCC";
@@ -7,7 +8,7 @@ import { ChainType, RPCInterface } from "../MCC/types";
 import { sleep } from "../MCC/utils";
 import { getGlobalLogger } from "../utils/logger";
 import { getRandom, getWeb3, getWeb3Contract } from "../utils/utils";
-import { Web3Functions } from "../utils/Web3Functions";
+import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
 import { AttestationRequest } from "../verification/attestation-types";
 let fs = require("fs");
 
@@ -194,7 +195,10 @@ class AttestationSpammer {
     const receipt = await this.web3Functions.signAndFinalize3(
       `request attestation #${AttestationSpammer.sendCount}`,
       this.stateConnector.options.address,
-      fnToEncode
+      fnToEncode,
+      DEFAULT_GAS,
+      DEFAULT_GAS_PRICE,
+      true
     );
 
     if (receipt) {
@@ -216,24 +220,28 @@ class AttestationSpammer {
     await this.waitForStateConnector();
 
     // load data from 'database'
-    const sData = "[" + fs.readFileSync("transactions.valid.json").toString().slice(0, -1) + "]";
-    const validTransactions: Array<AttestationRequest> = JSON.parse(sData);
-    const invalidTransactions: Array<AttestationRequest> = JSON.parse("[" + fs.readFileSync("transactions.invalid.json").toString().slice(0, -1) + "]");
+    const data = "[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.valid.json`).toString().slice(0, -2).replace(/\n/g, "") + "]";
+    const validTransactions: Array<AttestationRequest> = JSON.parse(data);
+    // const invalidTransactions: Array<AttestationRequest> = JSON.parse("[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.invalid.json`).toString().slice(0, -1) + "]");
 
     // JSON saves BN as hex strings !!!@@!#$!@#
     for (let a = 0; a < validTransactions.length; a++) {
       try {
+        if (validTransactions[a].timestamp) {
+          validTransactions[a].timestamp = new BN(validTransactions[a].timestamp!, "hex");
+        }
         validTransactions[a].instructions = new BN(validTransactions[a].instructions, "hex");
-      }
-      catch { }
+      } catch { }
     }
 
-    for (let a = 0; a < invalidTransactions.length; a++) {
-      try {
-        invalidTransactions[a].instructions = new BN(invalidTransactions[a].instructions, "hex");
-      }
-      catch { }
-    }
+    // for (let a = 0; a < invalidTransactions.length; a++) {
+    //   try {
+    //     if (invalidTransactions[a].timestamp) {
+    //       invalidTransactions[a].timestamp = new BN(invalidTransactions[a].timestamp!, "hex");
+    //     }
+    //     invalidTransactions[a].instructions = new BN(invalidTransactions[a].instructions, "hex");
+    //   } catch {}
+    // }
 
     while (true) {
       try {
@@ -243,12 +251,27 @@ class AttestationSpammer {
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);
       }
-      await sleep(Math.floor(Math.random() * this.delay));
+      //await sleep(Math.floor(Math.random() * this.delay));
+      await sleep(Math.floor(this.delay));
     }
   }
 }
 
+async function displayStats() {
+  const period = 5000;
+  while (true) {
+    await sleep(period);
+
+    logger.info(`${AttestationSpammer.sendCount * 1000 / period} req/sec`)
+    AttestationSpammer.sendCount = 0;
+  }
+}
+
+
 async function runAllAttestationSpammers() {
+
+  displayStats();
+
   const accounts = JSON.parse(fs.readFileSync(args["accountsFile"]));
   const privateKeys: string[] = accounts.map((x: any) => x.privateKey).slice(args["startAccountId"], args["startAccountId"] + args["numberOfAccounts"]);
   return Promise.all(privateKeys.map((key, number) => new AttestationSpammer(key, number == 0).runSpammer()));

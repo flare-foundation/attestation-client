@@ -272,7 +272,8 @@ export class ChainNode {
         this.chainManager.logger.debug(` # startNext heartbeat`);
         setTimeout(() => {
           this.startNext();
-        }, Math.ceil(getTimeMilli() / 1000) * 1000 + 1);
+        }, 100);
+        // todo: for how long do I want to wait??????
       }
       //
       return;

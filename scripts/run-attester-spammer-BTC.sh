@@ -17,6 +17,6 @@ yarn ts-node lib/spammer/attestation-spammer.ts \
     -b 100 \
     -o 1 \
     -f 6 \
-    -w 1000 \
+    -w 100 \
     -d 500 \
     -l BTC

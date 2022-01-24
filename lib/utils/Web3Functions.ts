@@ -4,8 +4,8 @@ import { getTimeMilli as getTimeMilli } from "./internetTime";
 import { sleepms } from "./utils";
 import { getWeb3Wallet, waitFinalize3Factory } from "./utils";
 
-const DEFAULT_GAS = "2500000";
-const DEFAULT_GAS_PRICE = "225000000000";
+export const DEFAULT_GAS = "2500000";
+export const DEFAULT_GAS_PRICE = "225000000000";
 
 export class Web3Functions {
   logger: Logger;
@@ -41,27 +41,36 @@ export class Web3Functions {
     return this.nonce + ""; // string returned
   }
 
-  async signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE): Promise<any> {
+  async signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE, quiet: boolean=false): Promise<any> {
     const waitIndex = this.nextIndex;
     this.nextIndex += 1;
 
     const time0 = getTimeMilli();
 
     if (waitIndex !== this.currentIndex) {
-      this.logger.debug(`   # ${label} wait #${waitIndex}/${this.currentIndex}`);
+      if( !quiet )
+      {
+        this.logger.debug(`   # ${label} wait #${waitIndex}/${this.currentIndex}`);
+      }
 
       while (waitIndex !== this.currentIndex) {
         await sleepms(100);
       }
     }
 
-    this.logger.info(`   * ${label} start #${waitIndex}`);
+    if( !quiet )
+    {
+       this.logger.info(`   * ${label} start #${waitIndex}`);
+    }
 
     const res = await this._signAndFinalize3(label, toAddress, fnToEncode, gas, gasPrice);
 
     const time1 = getTimeMilli();
 
-    this.logger.info(`   * ${label} done #${waitIndex} (time ${time1 - time0}s)`);
+    if( !quiet )
+    {
+      this.logger.info(`   * ${label} done #${waitIndex} (time ${time1 - time0}s)`);
+    }
 
     this.currentIndex += 1;
 

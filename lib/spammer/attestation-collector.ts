@@ -274,12 +274,12 @@ class AttestationSpammer {
           } as TransactionAttestationRequest;
 
           const attRequest = txAttReqToAttestationRequest(tr);
-          const data = JSON.stringify(attRequest) + ",\n";
 
           this.logger.info("verifyTransactionAttestation");
           verifyTransactionAttestation(this.client, tr, { getAvailabilityProof: true })
             .then((txData: NormalizedTransactionData) => {
               // save
+              const data = JSON.stringify(attRequest) + ",\n";
               if (txData.verificationStatus === VerificationStatus.OK) {
                 this.logger.info("   verified");
                 fs.appendFileSync(`db/transactions.${args.loggerLabel}.valid.json`, data);

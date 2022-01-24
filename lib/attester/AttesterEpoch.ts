@@ -1,14 +1,14 @@
 import assert from "assert";
 import BN from "bn.js";
 import { Logger } from "winston";
-import { Attestation, AttestationStatus } from "./Attestation";
-import { Attester } from "./Attester";
-import { AttesterWeb3 } from "./AttesterWeb3";
+import { toBN } from "../MCC/utils";
 import { Hash } from "../utils/Hash";
 import { getTimeMilli } from "../utils/internetTime";
 import { MerkleTree } from "../utils/MerkleTree";
 import { getRandom } from "../utils/utils";
-import { toBN } from "../MCC/utils";
+import { Attestation, AttestationStatus } from "./Attestation";
+import { Attester } from "./Attester";
+import { AttesterWeb3 } from "./AttesterWeb3";
 
 export enum AttesterEpochStatus {
   collect,
@@ -22,6 +22,7 @@ export enum AttestStatus {
   commiting,
   comitted,
   revealed,
+  nothingToCommit,
   error,
 }
 
@@ -54,7 +55,11 @@ export class AttesterEpoch {
   }
 
   startCommitEpoch() {
-    this.logger.debug(` # AttestEpoch #${this.epochId} commit epoch started [1]`);
+    this.logger.debug(
+      ` # AttestEpoch #${this.epochId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${
+        (this.attestations.length * 1000) / Attester.epochSettings.getEpochLength().toNumber()
+      } req/sec)`
+    );
     this.status = AttesterEpochStatus.commit;
 
     // if all transactions are proccessed then commit
@@ -117,7 +122,8 @@ export class AttesterEpoch {
 
     // check if there is any valid attestation
     if (validated.length === 0) {
-      this.logger.error(` ! AttestEpoch #${this.epochId} no valid attestation (${this.attestations.length} attestation(s))`);
+      this.logger.error(` ! AttestEpoch #${this.epochId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
+      this.attestStatus = AttestStatus.nothingToCommit;
       return;
     }
 
@@ -176,7 +182,22 @@ export class AttesterEpoch {
       return;
     }
     if (this.attestStatus !== AttestStatus.comitted) {
-      this.logger.error(`  ! AttestEpoch #${this.epochId} cannot reveal (not commited ${this.attestStatus})`);
+      switch (this.attestStatus) {
+        case AttestStatus.nothingToCommit:
+          this.logger.warning(`  ! AttestEpoch #${this.epochId} nothing to reveal`);
+          break;
+        case AttestStatus.collecting:
+          this.logger.error(
+            `  ! AttestEpoch #${this.epochId} cannot reveal (attestations not processed ${this.transactionsProcessed}/${this.attestations.length})`
+          );
+          break;
+        case AttestStatus.commiting:
+          this.logger.error(`  ! AttestEpoch #${this.epochId} cannot reveal (still comitting)`);
+          break;
+        default:
+          this.logger.error(`  ! AttestEpoch #${this.epochId} cannot reveal (not commited ${this.attestStatus})`);
+          break;
+      }
       return;
     }
 

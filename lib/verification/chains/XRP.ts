@@ -10,19 +10,21 @@ import { numberOfConfirmations } from "../confirmations";
 ////////////////////////////////////////////////////////////////////////////////////////
 
 export async function verififyAttestationXRP(client: RPCInterface, attRequest: TransactionAttestationRequest, testOptions?: VerificationTestOptions) {
-  try {
-    let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id))) as TxResponse;
-    let additionalData = await client.getAdditionalTransactionDetails({
-      transaction: txResponse,
-      confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-      getDataAvailabilityProof: !!testOptions?.getAvailabilityProof,
-    });
-    return checkAndAggregateXRP(additionalData, attRequest, testOptions);
-  } catch (error) {
-    // TODO: handle error
-    console.log(error);
-    return {} as any;
-  }
+    try {
+
+        let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id))) as TxResponse;
+        let additionalData = await client.getAdditionalTransactionDetails({
+            transaction: txResponse,
+            confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
+            getDataAvailabilityProof: true  // should be always true as the data availablity proof is the hash of the next block
+        });
+        
+        return checkAndAggregateXRP(additionalData, attRequest, testOptions);
+    } catch (error) {
+        // TODO: handle error
+        console.log(error);
+        return {} as any;
+    }
 }
 
 function checkAndAggregateXRP(
@@ -30,16 +32,16 @@ function checkAndAggregateXRP(
   attRequest: TransactionAttestationRequest,
   testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
-  // helper return function
-  function genericReturnWithStatus(verificationStatus: VerificationStatus) {
-    return {
-      chainId: toBN(attRequest.chainId),
-      attestationType: attRequest.attestationType!,
-      ...additionalData,
-      verificationStatus,
-      utxo: attRequest.utxo,
-    } as NormalizedTransactionData;
-  }
+    // helper return function
+    function genericReturnWithStatus(verificationStatus: VerificationStatus) {
+        return {
+            chainId: toBN(attRequest.chainId),
+            attestationType: attRequest.attestationType!,
+            ...additionalData,
+            verificationStatus,
+            // utxo: attRequest.utxo,
+        } as NormalizedTransactionData;
+    }
 
   // Test simulation of "too early check"
   let testFailProbability = testOptions?.testFailProbability || 0;

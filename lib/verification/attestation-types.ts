@@ -17,9 +17,11 @@ export enum VerificationStatus {
     NOT_SINGLE_SOURCE_ADDRESS = "NOT_SINGLE_SOURCE_ADDRESS",
     NOT_SINGLE_DESTINATION_ADDRESS = "NOT_SINGLE_DESTINATION_ADDRESS",
     UNSUPPORTED_SOURCE_ADDRESS = "UNSUPPORTED_SOURCE_ADDRESS",
+    UNSUPPORTED_DESTINATION_ADDRESS = "UNSUPPORTED_DESTINATION_ADDRESS",
     WRONG_IN_UTXO = "WRONG_IN_UTXO",
     MISSING_IN_UTXO = "MISSING_IN_UTXO",
     EMPTY_IN_ADDRESS = "EMPTY_IN_ADDRESS",
+    EMPTY_OUT_ADDRESS = "EMPTY_OUT_ADDRESS",
     // MISSING_SOURCE_ADDRESS_HASH = "MISSING_SOURCE_ADDRESS_HASH",
     // SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",
     INSTRUCTIONS_DO_NOT_MATCH = "INSTRUCTIONS_DO_NOT_MATCH",
@@ -91,7 +93,7 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "uint64", // chainId
           "uint64", // blockNumber
           "bytes32", // txId
-          "uint8", // utxo
+          // "uint8", // utxo
           "bytes32", // sourceAddress
           "bytes32", // destinationAddress
           "uint256", // destinationTag
@@ -105,7 +107,7 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "chainId",
           "blockNumber",
           "txId",
-          "utxo",
+          // "utxo",
           "sourceAddresses",
           "destinationAddresses",
           "destinationTag",
@@ -127,7 +129,14 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "bytes32", // sourceAddress
           "uint256", // spent
         ],
-        hashKeys: ["attestationType", "chainId", "blockNumber", "txId", "sourceAddresses", "spent"],
+        hashKeys: [
+          "attestationType", 
+          "chainId", 
+          "blockNumber", 
+          "txId", 
+          "sourceAddresses", 
+          "spent"
+        ],
       };
 
     default:

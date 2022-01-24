@@ -16,8 +16,9 @@ export async function verififyAttestationXRP(client: RPCInterface, attRequest: T
         let additionalData = await client.getAdditionalTransactionDetails({
             transaction: txResponse,
             confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-            getDataAvailabilityProof: !!testOptions?.getAvailabilityProof
+            getDataAvailabilityProof: true  // should be always true as the data availablity proof is the hash of the next block
         });
+        
         return checkAndAggregateXRP(additionalData, attRequest, testOptions);
     } catch (error) {
         // TODO: handle error
@@ -38,7 +39,7 @@ function checkAndAggregateXRP(
             attestationType: attRequest.attestationType!,
             ...additionalData,
             verificationStatus,
-            utxo: attRequest.utxo,
+            // utxo: attRequest.utxo,
         } as NormalizedTransactionData;
     }
 

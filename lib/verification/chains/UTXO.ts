@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { AdditionalTransactionDetails, ChainType, IUtxoGetTransactionRes, RPCInterface } from "../../MCC/types";
+import { AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface } from "../../MCC/types";
 import { toBN, toNumber, unPrefix0x } from "../../MCC/utils";
 import { checkDataAvailability } from "../attestation-request-utils";
 import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../attestation-types";
@@ -12,11 +12,33 @@ import { numberOfConfirmations } from "../confirmations";
 export async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest, testOptions?: VerificationTestOptions) {
     try {
         let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
-        let additionalData = await client.getAdditionalTransactionDetails({
-            transaction: txResponse,
-            confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-            getDataAvailabilityProof: !!testOptions?.getAvailabilityProof
-        });
+        async function getAdditionalData() {
+            return await client.getAdditionalTransactionDetails({
+                transaction: txResponse,
+                confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
+                getDataAvailabilityProof: !!testOptions?.getAvailabilityProof
+            });
+        }
+
+        async function getAvailabilityProof() {
+            // Try to obtain the hash of data availability proof.
+            if (!testOptions?.getAvailabilityProof) {
+                try {
+                    let confirmationBlock = await client.getBlock(attRequest.dataAvailabilityProof) as IUtxoBlockRes;
+                    return confirmationBlock.hash;
+                } catch (e) {
+                    return undefined;
+                }
+            }
+            return undefined;
+        }
+
+        let [additionalData, confirmationHash] = await Promise.all([getAdditionalData(), getAvailabilityProof()]);
+        // set up the verified 
+        if (!testOptions?.getAvailabilityProof) {
+            // should be set by the above verification either to the same hash, which means that block exists or undefined otherwise.
+            additionalData.dataAvailabilityProof = confirmationHash!;   
+        }
         return checkAndAggregateUtxo(additionalData, attRequest, testOptions);
     } catch (error) {
         // TODO: handle error
@@ -36,7 +58,7 @@ function checkAndAggregateToOnePaymentUtxo(
             attestationType: attRequest.attestationType!,
             ...additionalData,
             verificationStatus,
-            utxo: attRequest.utxo,
+            // utxo: attRequest.utxo,
         } as NormalizedTransactionData;
     }
 
@@ -58,78 +80,52 @@ function checkAndAggregateToOnePaymentUtxo(
         return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
     }
 
-    let inUtxo = toNumber(attRequest.utxo)!;
-    if (inUtxo < 0 || inUtxo >= additionalData.sourceAddresses.length) {
-        return genericReturnWithStatus(VerificationStatus.WRONG_IN_UTXO);
+    let theSource: string | undefined = undefined;
+    let inFunds = toBN(0);
+    for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
+        let addressList = additionalData.sourceAddresses[i];
+        if (addressList.length !== 1) {
+            return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
+        }
+        if (addressList[0] === "") {
+            return genericReturnWithStatus(VerificationStatus.EMPTY_IN_ADDRESS);
+        }
+        if (theSource && addressList[0] != theSource) {
+            return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS);
+        }
+        theSource = addressList[0];
+        inFunds = inFunds.add((additionalData.spent as BN[])[i]);
     }
-    let sourceCandidates = additionalData.sourceAddresses[inUtxo!];
-    // TODO: handle multisig
-    if (sourceCandidates.length != 1) {
-        return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
-    }
-
-    let theSource = sourceCandidates[0];
-    if (theSource === "") {
-        // console.log(additionalData.sourceAddresses[inUtxo])
+    if (!theSource) {
         return genericReturnWithStatus(VerificationStatus.EMPTY_IN_ADDRESS);
     }
-    let inFunds = toBN(0);
-    // Calculate in funds
-    for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
-        let sources = additionalData.sourceAddresses[i];
-        // TODO: Handle multisig addresses
-        if (sources.length != 1) {
-            continue;
-        }
-        let aSource = sources[0];
-        if (aSource === theSource) {
-            inFunds = inFunds.add((additionalData.spent as BN[])[i]);
-        }
-    }
 
-    // Calculate total input funds
-    let totalInFunds = toBN(0);
-    (additionalData.spent as BN[]).forEach((value) => {
-        totalInFunds = totalInFunds.add(value);
-    });
-
-    let destinations = new Set<string>();
-    for (let destination of additionalData.destinationAddresses) {
-        if (!destination || destination.length === 0) {
-            // TODO: verify if no-address destinations (like type nulldata) can take funds.
-            continue;
-        }
-        if (destination.length > 1) {
-            return genericReturnWithStatus(VerificationStatus.FORBIDDEN_MULTISIG_DESTINATION);
-        }
-        let address = destination[0];
-        if (address != theSource) {
-            destinations.add(address);
-        }
-    }
-    if (destinations.size === 0) {
-        return genericReturnWithStatus(VerificationStatus.FORBIDDEN_SELF_SENDING);
-    }
-    if (destinations.size > 1) {
-        return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS);
-    }
-
-    let theDestination = [...destinations][0];
-    let totalOutFunds = toBN(0);
+    let theDestination: string | undefined = undefined;
+    let outFunds = toBN(0);
     let returnedFunds = toBN(0);
 
-    for (let i = 0; i < (additionalData.delivered as BN[]).length; i++) {
-        let destinations = (additionalData.destinationAddresses as string[][])[i];
-        if (!destinations || destinations.length === 0) {
-            // TODO: check if founds for empty transaction are 0
-            continue;
+    for (let i = 0; i < additionalData.destinationAddresses.length; i++) {
+        let addressList = additionalData.destinationAddresses[i];
+        if (addressList.length !== 1) {
+            return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_DESTINATION_ADDRESS);
         }
-        let destAddress = destinations[0];
+        let destAddress = addressList[0];
+        if (destAddress === "") {
+            return genericReturnWithStatus(VerificationStatus.EMPTY_OUT_ADDRESS);
+        }
         let destDelivered = (additionalData.delivered as BN[])[i];
         if (destAddress === theSource) {
-            returnedFunds = returnedFunds.add(destDelivered);
+            returnedFunds = returnedFunds.add(destDelivered)
+        } else {
+            if (theDestination && theDestination != destAddress) {
+                return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS);
+            }
+            theDestination = destAddress;
+            outFunds = outFunds.add(destDelivered);
         }
-        totalOutFunds = totalOutFunds.add(destDelivered);
+    }
+    if (!theDestination && returnedFunds.gt(toBN(0))) {
+        theDestination = theSource;
     }
 
     let newAdditionalData = {
@@ -137,8 +133,8 @@ function checkAndAggregateToOnePaymentUtxo(
         sourceAddresses: theSource,
         destinationAddresses: theDestination,
         spent: inFunds.sub(returnedFunds),
-        delivered: totalOutFunds.sub(returnedFunds),
-        fee: totalInFunds.sub(totalOutFunds),
+        delivered: outFunds,
+        fee: inFunds.sub(outFunds),
     } as AdditionalTransactionDetails;
 
     function newGenericReturnWithStatus(verificationStatus: VerificationStatus) {
@@ -147,16 +143,8 @@ function checkAndAggregateToOnePaymentUtxo(
             attestationType: attRequest.attestationType!,
             ...newAdditionalData,
             verificationStatus,
-            utxo: attRequest.utxo,
+            // utxo: attRequest.utxo,
         } as NormalizedTransactionData;
-    }
-
-    // Check that net spent amount must be > 0
-    if (returnedFunds.eq(inFunds)) {
-        return genericReturnWithStatus(VerificationStatus.FUNDS_UNCHANGED);
-    }
-    if (returnedFunds.gt(inFunds)) {
-        return genericReturnWithStatus(VerificationStatus.FUNDS_INCREASED);
     }
 
     // check confirmations

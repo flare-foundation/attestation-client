@@ -13,7 +13,7 @@ yarn ts-node lib/spammer/attestation-spammer.ts \
     -t $(cat .stateconnector-address) \
     -u https://xrplcluster.com \
     -b 1 \
-    -o 4 \
+    -o 40 \
     -f 1 \
     -w 1000 \
     -d 500 \

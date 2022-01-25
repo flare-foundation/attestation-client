@@ -9,6 +9,7 @@ export class AttesterClientChain {
 
   public maxRequestsPerSecond: number = 2;
   public maxProcessingTransactions: number = 10;
+  public timeout: number = 3000;
 
   public maxFailedRetry: number = 1;
   public delayBeforeRetry: number = 10;

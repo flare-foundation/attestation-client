@@ -1,5 +1,7 @@
 import Web3 from "web3";
 import BN from "bn.js";
+import { number } from "yargs";
+import { decimalToQuality } from "xrpl";
 const camelCase = require("camelcase");
 
 // Constants
@@ -12,7 +14,7 @@ export function ensure_data(data: any) {
 }
 
 export function xrp_ensure_data(data: any) {
-  if (data.result.status === "error") {
+  if (!data.result.status || data.result.status === "error") {
     throw data.result;
   }
 }
@@ -84,4 +86,16 @@ export function toSnakeCase(obj: object, splitWith: string = "-"): object {
     }
   }
   return camelObject;
+}
+
+
+
+
+export function round(x: number, decimal: number=0)
+{
+  if( decimal === 0 ) return Math.round( x );
+
+  const dec10 = 10 ** decimal;
+
+  return Math.round( x * dec10 ) / dec10;
 }

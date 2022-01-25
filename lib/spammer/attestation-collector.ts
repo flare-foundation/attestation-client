@@ -3,17 +3,16 @@ import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { MCC } from "../MCC";
 import { ChainType, RPCInterface } from "../MCC/types";
-import { sleep, toBN } from "../MCC/utils";
+import { round, sleep, toBN } from "../MCC/utils";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getWeb3, getWeb3Contract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { txAttReqToAttestationRequest } from "../verification/attestation-request-utils";
 import {
-  AttestationRequest,
   AttestationType,
   NormalizedTransactionData,
   TransactionAttestationRequest,
-  VerificationStatus,
+  VerificationStatus
 } from "../verification/attestation-types";
 import { verifyTransactionAttestation } from "../verification/verification";
 let fs = require("fs");
@@ -137,7 +136,7 @@ let args = yargs
     default: "",
   }).argv;
 
-class AttestationSpammer {
+class AttestationCollector {
   chainType!: ChainType;
   client!: RPCInterface;
   web3!: Web3;
@@ -156,6 +155,11 @@ class AttestationSpammer {
   web3Functions!: Web3Functions;
   logEvents: boolean;
 
+  static sendCount = 0;
+  static txCount = 0;
+  static valid = 0;
+  static invalid = 0;
+
   constructor(privateKey: string, logEvents = true) {
     this.logger = getGlobalLogger(args["loggerLabel"]);
     this.privateKey = privateKey;
@@ -170,8 +174,8 @@ class AttestationSpammer {
           username: this.USERNAME,
           password: this.PASSWORD,
           rateLimitOptions: {
-            maxRPS: 14,
-            timeoutMs: 8000,
+            maxRPS: 50,
+            timeoutMs: 3000,
             onSend: this.onSend.bind(this),
             onResponse: this.onResponse.bind(this),
             onLimitReached: this.limitReached.bind(this),
@@ -184,8 +188,8 @@ class AttestationSpammer {
           username: this.USERNAME,
           password: this.PASSWORD,
           rateLimitOptions: {
-            maxRPS: 14,
-            timeoutMs: 8000,
+            maxRPS: 80,
+            timeoutMs: 3000,
             onSend: this.onSend.bind(this),
             onResponse: this.onResponse.bind(this),
             onLimitReached: this.limitReached.bind(this),
@@ -221,15 +225,17 @@ class AttestationSpammer {
   maxQueue = 5;
   wait: boolean = false;
 
-  limitReached(inProcessing?: number, inQueue?: number) {}
+  limitReached(inProcessing?: number, inQueue?: number) { }
 
   onSend(inProcessing?: number, inQueue?: number) {
-    this.logger.info(`Send ${inProcessing} ${inQueue}`);
+    //this.logger.info(`Send ${inProcessing} ${inQueue}`);
     this.wait = inQueue! >= this.maxQueue;
+
+    AttestationCollector.txCount++;
   }
 
   onResponse(inProcessing?: number, inQueue?: number) {
-    this.logger.info(`Response ${inProcessing} ${inQueue}`);
+    //this.logger.info(`Response ${inProcessing} ${inQueue} ${AttestationCollector.txCount}`);
     this.wait = inQueue! >= this.maxQueue;
   }
 
@@ -291,7 +297,7 @@ class AttestationSpammer {
         let rangeMax = latestBlockNumber - this.confirmations;
         if (rangeMax < 0) {
           this.logger.info("Too small number of blocks.");
-          await sleep(1000);
+          await sleep(100);
           continue;
         }
         let rangeMin = Math.max(0, latestBlockNumber - this.range - this.confirmations);
@@ -299,6 +305,7 @@ class AttestationSpammer {
         let block = await this.client.getBlock(selectedBlock);
         let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations);
         let hashes = await this.client.getTransactionHashesFromBlock(block);
+
         for (let tx of hashes) {
           let attType = AttestationType.FassetPaymentProof;
           let tr = {
@@ -312,27 +319,38 @@ class AttestationSpammer {
 
           const attRequest = txAttReqToAttestationRequest(tr);
 
-          this.logger.info("verifyTransactionAttestation");
-          verifyTransactionAttestation(this.client, tr, { getAvailabilityProof: true })
-            .then((txData: NormalizedTransactionData) => {
-              // save
-              const data = JSON.stringify(attRequest) + ",\n";
-              if (txData.verificationStatus === VerificationStatus.OK) {
-                this.logger.info("   verified");
-                fs.appendFileSync(`db/transactions.${args.loggerLabel}.valid.json`, data);
-              } else {
-                this.logger.info("   refused");
-                fs.appendFileSync(`db/transactions.${args.loggerLabel}.invalid.json`, data);
-              }
-            })
-            .catch((txData: NormalizedTransactionData) => {
-              // skip
-            });
+          // duplicate requests so that looks like many verifications
+          for (let a = 0; a < 200; a++) {
+            //this.logger.info("verifyTransactionAttestation");
+            verifyTransactionAttestation(this.client, tr, { getAvailabilityProof: true })
+              .then((txData: NormalizedTransactionData) => {
+                // save
+                const data = JSON.stringify(attRequest) + ",\n";
+                if (txData.verificationStatus === VerificationStatus.OK) {
+                  //this.logger.info("   verified");
+                  if (a === 0) {
+                    AttestationCollector.valid++;
+                    fs.appendFileSync(`db/transactions.${args.loggerLabel}.valid.json`, data);
+                  }
+                } else {
+                  //this.logger.info("   refused");
+                  if (a === 0) {
+                    AttestationCollector.invalid++;
+                    fs.appendFileSync(`db/transactions.${args.loggerLabel}.invalid.json`, data);
+                  }
+                }
+              })
+              .catch((txData: NormalizedTransactionData) => {
+                // skip
+              });
 
-          await sleep(100);
+              AttestationCollector.sendCount++;
 
-          while (this.wait) {
-            await sleep(50);
+            await sleep(5);
+
+            while (this.wait) {
+              await sleep(5);
+            }
           }
         }
       } catch (e) {
@@ -343,14 +361,32 @@ class AttestationSpammer {
   }
 }
 
-async function runAllAttestationSpammers() {
+async function displayStats() {
+  const period = 10000;
+
+  const logger = getGlobalLogger(args["loggerLabel"]);
+
+  while (true) {
+    await sleep(period);
+
+    logger.info(`${round((AttestationCollector.sendCount * 1000) / period, 1)} req/sec  ${round((AttestationCollector.txCount * 1000) / period, 1)} tx/sec (${round(AttestationCollector.txCount / AttestationCollector.sendCount, 1)} tx/req)   valid ${AttestationCollector.valid} invalid ${AttestationCollector.invalid}`);
+    AttestationCollector.sendCount = 0;
+    AttestationCollector.txCount = 0;
+  }
+}
+
+
+async function runAllAttestationCollectors() {
+
+  displayStats();
+
   const accounts = JSON.parse(fs.readFileSync(args["accountsFile"]));
   const privateKeys: string[] = accounts.map((x: any) => x.privateKey).slice(args["startAccountId"], args["startAccountId"] + args["numberOfAccounts"]);
-  return Promise.all(privateKeys.map((key, number) => new AttestationSpammer(key, number == 0).runSpammer()));
+  return Promise.all(privateKeys.map((key, number) => new AttestationCollector(key, number == 0).runSpammer()));
 }
 
 // (new AttestationSpammer()).runSpammer()
-runAllAttestationSpammers()
+runAllAttestationCollectors()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);

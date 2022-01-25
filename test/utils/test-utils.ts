@@ -25,7 +25,7 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
   let hashTest = await HashTest.new();
 
   switch (txData.attestationType) {
-    case AttestationType.FassetPaymentProof:
+    case AttestationType.OneToOnePayment:
       return await hashTest.testFassetProof(
         txData!.attestationType,
         txData!.chainId,
@@ -80,7 +80,7 @@ export async function testUtxo(
   let confirmationHeight = block.height + numberOfConfirmations(chainType);
   let confirmationBlock = await client.getBlock(confirmationHeight) as IUtxoBlockRes;
   let template = {
-    attestationType: AttestationType.FassetPaymentProof,
+    attestationType: AttestationType.OneToOnePayment,
     instructions: toBN(0),
     id: prefix0x(txId),
     utxo: utxo,
@@ -129,7 +129,7 @@ export async function traverseAndTestUtxoChain(
 ) {
   // Defaults
   const count = options?.count || 1;
-  const attestationTypes = options?.attestationTypes || [AttestationType.FassetPaymentProof];
+  const attestationTypes = options?.attestationTypes || [AttestationType.OneToOnePayment];
   const filterStatusPrintouts = options?.filterStatusPrintouts || [];
   const numberOfInputsChecked = options?.numberOfInputsChecked || 3;
 

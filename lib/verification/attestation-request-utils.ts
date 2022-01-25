@@ -1,7 +1,7 @@
 import BN from "bn.js";
 import Web3 from "web3";
 import { AdditionalTransactionDetails } from "../MCC/types";
-import { toBN } from "../MCC/utils";
+import { toBN, toNumber } from "../MCC/utils";
 import {
   AttestationRequest,
   AttestationType,
@@ -11,6 +11,7 @@ import {
   TransactionAttestationRequest,
   VerificationStatus,
 } from "./attestation-types";
+import { numberOfConfirmations } from "./confirmations";
 
 export function txAttReqToAttestationRequest(request: TransactionAttestationRequest): AttestationRequest {
   let scheme = attestationTypeEncodingScheme(request.attestationType!);
@@ -139,8 +140,8 @@ export function instructionsCheck(additionalData: AdditionalTransactionDetails, 
       continue;
     }
     if (!(decoded[key] as BN).eq((additionalData as any)[key] as BN)) {
-      console.log(decoded[key].toString());
-      console.log((additionalData as any)[key].toString());
+      // console.log(decoded[key].toString());
+      // console.log((additionalData as any)[key].toString());
       return false;
     }
   }
@@ -156,8 +157,14 @@ export function checkDataAvailability(additionalData: AdditionalTransactionDetai
     return VerificationStatus.NOT_CONFIRMED;
   }
 
-  if (attRequest.dataAvailabilityProof.toLocaleLowerCase() !== additionalData.dataAvailabilityProof.toLocaleLowerCase()) {
+  if (attRequest.dataAvailabilityProof.toLowerCase() !== additionalData.dataAvailabilityProof.toLowerCase()) {
     return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF;
   }
+
+  if(additionalData.dataAvailabilityBlockOffset != numberOfConfirmations(toNumber(attRequest.chainId)!)) {
+    console.log(additionalData.dataAvailabilityBlockOffset, numberOfConfirmations(toNumber(attRequest.chainId)!))
+    return VerificationStatus.WRONG_DATA_AVAILABILITY_HEIGHT;
+  }
+
   return VerificationStatus.OK;
 }

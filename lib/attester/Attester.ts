@@ -100,7 +100,7 @@ export class Attester {
   async createAttestation(epochId: number, tx: AttestationData): Promise<Attestation | undefined> {
     // create attestation depending on type
     switch (tx.type) {
-      case AttestationType.FassetPaymentProof: {
+      case AttestationType.OneToOnePayment: {
         const chainType: BN = partBNbe(tx.instructions, ATT_BITS, CHAIN_ID_BITS);
 
         return await this.chainManager.validateTransaction(chainType.toNumber() as ChainType, epochId, tx);

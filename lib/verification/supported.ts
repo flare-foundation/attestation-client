@@ -1,7 +1,7 @@
 import { ChainType } from "../MCC/types";
 import { AttestationType } from "./attestation-types";
-import { isSupportedTransactionUtxo } from "./chains/UTXO";
-import { isSupportedTransactionXRP } from "./chains/XRP";
+import { isSupportedTransactionUtxo } from "./chains/UTXO/supported.utxo";
+import { isSupportedTransactionXRP } from "./chains/XRP/supported.xrp";
 
 export function isSupportedTransactionForAttestationType(transaction: any, chainType: ChainType, attType: AttestationType) {
   switch (chainType) {

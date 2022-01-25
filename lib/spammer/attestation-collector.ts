@@ -171,7 +171,7 @@ class AttestationCollector {
           username: this.USERNAME,
           password: this.PASSWORD,
           rateLimitOptions: {
-            maxRPS: 30,
+            maxRPS: 25,
             timeoutMs: 3000,
             onSend: this.onSend.bind(this),
             onResponse: this.onResponse.bind(this),
@@ -185,7 +185,7 @@ class AttestationCollector {
           username: this.USERNAME,
           password: this.PASSWORD,
           rateLimitOptions: {
-            maxRPS: 80,
+            maxRPS: 50,
             timeoutMs: 3000,
             onSend: this.onSend.bind(this),
             onResponse: this.onResponse.bind(this),
@@ -303,7 +303,7 @@ class AttestationCollector {
         let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations);
         let hashes = await this.client.getTransactionHashesFromBlock(block);
         for (let tx of hashes) {
-          let attType = AttestationType.FassetPaymentProof;
+          let attType = AttestationType.OneToOnePayment;
           let tr = {
             id: tx,
             dataAvailabilityProof: await this.client.getBlockHash(confirmationBlock),

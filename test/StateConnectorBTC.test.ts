@@ -10,7 +10,7 @@ const USERNAME = "flareadmin";
 const PASSWORD = "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=";
 
 // const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof, AttestationType.BalanceDecreasingProof];
-const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof];
+const ATTESTATION_TYPES = [AttestationType.OneToOnePayment];
 
 const FILTER_PRINTOUTS_FOR_STATUSES = [
   VerificationStatus.OK,

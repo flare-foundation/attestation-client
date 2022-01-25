@@ -76,9 +76,9 @@ function checkAndAggregateToOnePaymentUtxo(
   // }
 
   // Extract source address
-  if (attRequest.utxo === undefined) {
-    return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
-  }
+//   if (attRequest.utxo === undefined) {
+//     return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
+//   }
 
   let theSource: string | undefined = undefined;
   let inFunds = toBN(0);
@@ -106,7 +106,7 @@ function checkAndAggregateToOnePaymentUtxo(
 
   for (let i = 0; i < additionalData.destinationAddresses.length; i++) {
     let addressList = additionalData.destinationAddresses[i];
-    if (addressList.length !== 1) {
+    if (!addressList || addressList.length !== 1) {
       return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_DESTINATION_ADDRESS);
     }
     let destAddress = addressList[0];

@@ -17,6 +17,8 @@ import {
 import { verifyTransactionAttestation } from "../verification/verification";
 let fs = require("fs");
 
+const DEBUG_REPEATS = 1;
+
 dotenv.config();
 var yargs = require("yargs");
 
@@ -174,7 +176,7 @@ class AttestationCollector {
           username: this.USERNAME,
           password: this.PASSWORD,
           rateLimitOptions: {
-            maxRPS: 50,
+            maxRPS: 30,
             timeoutMs: 3000,
             onSend: this.onSend.bind(this),
             onResponse: this.onResponse.bind(this),
@@ -305,7 +307,6 @@ class AttestationCollector {
         let block = await this.client.getBlock(selectedBlock);
         let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations);
         let hashes = await this.client.getTransactionHashesFromBlock(block);
-
         for (let tx of hashes) {
           let attType = AttestationType.FassetPaymentProof;
           let tr = {
@@ -320,20 +321,20 @@ class AttestationCollector {
           const attRequest = txAttReqToAttestationRequest(tr);
 
           // duplicate requests so that looks like many verifications
-          for (let a = 0; a < 200; a++) {
+          for (let a = 0; a < DEBUG_REPEATS; a++) {
             //this.logger.info("verifyTransactionAttestation");
             verifyTransactionAttestation(this.client, tr, { getAvailabilityProof: true })
               .then((txData: NormalizedTransactionData) => {
                 // save
                 const data = JSON.stringify(attRequest) + ",\n";
                 if (txData.verificationStatus === VerificationStatus.OK) {
-                  //this.logger.info("   verified");
+                  // this.logger.info("   verified");
                   if (a === 0) {
                     AttestationCollector.valid++;
                     fs.appendFileSync(`db/transactions.${args.loggerLabel}.valid.json`, data);
                   }
                 } else {
-                  //this.logger.info("   refused");
+                  // this.logger.info(`   refused ${attType},${txData.verificationStatus}`, );
                   if (a === 0) {
                     AttestationCollector.invalid++;
                     fs.appendFileSync(`db/transactions.${args.loggerLabel}.invalid.json`, data);

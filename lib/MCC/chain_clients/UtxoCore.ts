@@ -376,8 +376,27 @@ export class UtxoCore {
    * @returns
    */
   async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails> {
-    let blockResponse = (await this.getBlock(request.transaction.blockhash)) as IUtxoBlockRes; //!!!
+    let blockResponsePromise = this.getBlock(request.transaction.blockhash); // as IUtxoBlockRes;    
+    let transactionHashes = new Set(request.transaction.vin.map((x: any) => x.txid))
+    let txPromises: Promise<any>[] = [blockResponsePromise];
+    let responses: any[] = [];
 
+    for (let txId of transactionHashes) {
+      if (txId) {
+        await sleep(10);
+        txPromises.push(await this.getTransaction(txId as string, { verbose: true }))
+      }
+    }
+    // let txPromises = [...transactionHashes].filter(x => !!x).map((txId: any) => this.getTransaction(txId , { verbose: true }))
+    responses = await Promise.all(txPromises);
+
+
+    let blockResponse = responses[0] as any as IUtxoBlockRes;
+    let txMap = new Map<string, IUtxoGetTransactionRes>();
+    for (let i = 1; i < responses.length; i++) {
+      let tx = responses[i] as any as IUtxoGetTransactionRes;
+      txMap.set(tx.txid, tx);
+    }
     let inFunds: BN[] = [];
     let totalInFunds = toBN(0);
     // read input transactions
@@ -387,10 +406,10 @@ export class UtxoCore {
     for (let i = 0; i < request.transaction.vin.length; i++) {
       let vin = request.transaction.vin[i];
       if (vin.txid) {
-        let rsp = (await this.getTransaction(vin.txid!, { verbose: true })) as IUtxoGetTransactionRes;
+        let rsp = txMap.get(vin.txid!);
         let inVout = vin.vout!;
-        sourceAddresses.push(rsp.vout[inVout].scriptPubKey.addresses);
-        let outVal = toBN(Math.round(rsp.vout[vin.vout!].value * SATOSHI_BTC));
+        sourceAddresses.push(rsp!.vout[inVout].scriptPubKey.addresses);
+        let outVal = toBN(Math.round(rsp!.vout[vin.vout!].value * SATOSHI_BTC));
         inFunds.push(outVal);
         totalInFunds = totalInFunds.add(outVal);
       } else {
@@ -418,7 +437,7 @@ export class UtxoCore {
       try {
         let confirmationBlock = (await this.getBlock(confirmationBlockHeight)) as IUtxoBlockRes;
         dataAvailabilityProof = prefix0x(confirmationBlock.hash);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (sourceAddresses.length != inFunds.length) {

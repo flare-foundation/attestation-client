@@ -44,23 +44,43 @@ export class ChainNode {
     const username = this.conf.username;
     const password = this.conf.password;
 
+    // create chain client
     switch (this.chainType) {
       case ChainType.BTC:
       case ChainType.LTC:
       case ChainType.DOGE:
-        this.client = MCC.Client(this.chainType, { url, username, password }) as RPCInterface;
+        this.client = MCC.Client(this.chainType, {
+          url,
+          username,
+          password,
+          rateLimitOptions: {
+            maxRPS: chainCofiguration.maxRequestsPerSecond,
+            timeoutMs: chainCofiguration.timeout,
+            onSend: this.onSend.bind(this),
+          },
+        }) as RPCInterface;
         break;
       case ChainType.XRP:
-        this.client = MCC.Client(this.chainType, { url, username, password }) as RPCInterface;
+        this.client = MCC.Client(this.chainType, {
+          url,
+          username,
+          password,
+          rateLimitOptions: {
+            maxRPS: chainCofiguration.maxRequestsPerSecond,
+            timeoutMs: chainCofiguration.timeout,
+            onSend: this.onSend.bind(this),
+          },
+        }) as RPCInterface;
         break;
       case ChainType.ALGO:
         throw new Error("Not yet Implemented");
       default:
         throw new Error("");
     }
+  }
 
-    // create chain client
-    //this.client = MCC.Client(this.chainType, { this.conf.url!, this.conf.username!, this.conf.password! } ) as RPCInterface;
+  onSend(inProcessing?: number, inQueue?: number) {
+    this.addRequestCount();
   }
 
   async isHealthy() {
@@ -165,7 +185,7 @@ export class ChainNode {
   async process(tx: Attestation) {
     //this.chainManager.logger.info(`    * chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
 
-    this.addRequestCount();
+    //this.addRequestCount();
     this.transactionsProcessing.push(tx);
 
     tx.status = AttestationStatus.processing;

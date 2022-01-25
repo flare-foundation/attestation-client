@@ -8,12 +8,7 @@ import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getWeb3, getWeb3Contract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { txAttReqToAttestationRequest } from "../verification/attestation-request-utils";
-import {
-  AttestationType,
-  NormalizedTransactionData,
-  TransactionAttestationRequest,
-  VerificationStatus
-} from "../verification/attestation-types";
+import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
 import { verifyTransactionAttestation } from "../verification/verification";
 let fs = require("fs");
 
@@ -225,7 +220,7 @@ class AttestationCollector {
   maxQueue = 5;
   wait: boolean = false;
 
-  limitReached(inProcessing?: number, inQueue?: number) { }
+  limitReached(inProcessing?: number, inQueue?: number) {}
 
   onSend(inProcessing?: number, inQueue?: number) {
     //this.logger.info(`Send ${inProcessing} ${inQueue}`);
@@ -344,7 +339,7 @@ class AttestationCollector {
                 // skip
               });
 
-              AttestationCollector.sendCount++;
+            AttestationCollector.sendCount++;
 
             await sleep(5);
 
@@ -369,15 +364,18 @@ async function displayStats() {
   while (true) {
     await sleep(period);
 
-    logger.info(`${round((AttestationCollector.sendCount * 1000) / period, 1)} req/sec  ${round((AttestationCollector.txCount * 1000) / period, 1)} tx/sec (${round(AttestationCollector.txCount / AttestationCollector.sendCount, 1)} tx/req)   valid ${AttestationCollector.valid} invalid ${AttestationCollector.invalid}`);
+    logger.info(
+      `${round((AttestationCollector.sendCount * 1000) / period, 1)} req/sec  ${round((AttestationCollector.txCount * 1000) / period, 1)} tx/sec (${round(
+        AttestationCollector.txCount / AttestationCollector.sendCount,
+        1
+      )} tx/req)   valid ${AttestationCollector.valid} invalid ${AttestationCollector.invalid}`
+    );
     AttestationCollector.sendCount = 0;
     AttestationCollector.txCount = 0;
   }
 }
 
-
 async function runAllAttestationCollectors() {
-
   displayStats();
 
   const accounts = JSON.parse(fs.readFileSync(args["accountsFile"]));

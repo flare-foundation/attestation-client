@@ -144,6 +144,33 @@
         
         {
             "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Attester collector BTC",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "ts-node",
+                "lib/spammer/attestation-collector.ts",
+                "-c","BTC",
+                "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
+                "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
+                "-t","0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
+                "-u","http://34.159.118.250:9332/",
+                "-b","1",
+                "-o","1", // numberOfAccounts
+                "-f","1",
+                "-w","1000",
+                "-d","2000",
+                "-l","BTC"             
+            ]
+        },
+        
+        {
+            "type": "node",
             "request": "launch",
             "name": "Test 2",
             "runtimeExecutable": "yarn",

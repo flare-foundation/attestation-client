@@ -1,22 +1,17 @@
-import { ensure_data, sleep, toBN, SATOSHI_BTC, prefix0x } from "../utils";
-import BN from "bn.js";
-
 import axios from "axios";
+import BN from "bn.js";
+import axiosRateLimit, { RateLimitOptions } from "../axios-rate-limiter/axios-rate-limit";
 import {
-  IUtxoWalletRes,
-  getAddressByLabelResponse,
-  getTransactionOptions,
-  IUtxoGetTransactionRes,
-  IUtxoTransactionListRes,
-  IIUtxoVin,
+  AdditionalTransactionDetails,
+  AdditionalTxRequest, getAddressByLabelResponse,
+  getTransactionOptions, IIUtxoVin,
   IIUtxoVout,
   IUtxoBlockHeaderRes,
-  IUtxoBlockRes,
-  AdditionalTransactionDetails,
-  AdditionalTxRequest,
-  TransactionSuccessStatus,
+  IUtxoBlockRes, IUtxoGetTransactionRes,
+  IUtxoTransactionListRes, IUtxoWalletRes, TransactionSuccessStatus
 } from "../types";
-import axiosRateLimit, { RateLimitOptions } from "../axios-rate-limiter/axios-rate-limit";
+import { ensure_data, prefix0x, SATOSHI_BTC, sleep, toBN } from "../utils";
+
 
 const DEFAULT_TIMEOUT = 10000;
 const DEFAULT_RATE_LIMIT_OPTIONS: RateLimitOptions = {
@@ -83,7 +78,7 @@ export class UtxoCore {
     return res.data.result;
   }
 
-  async isHealthy() {
+  async isHealthy(): Promise<boolean> {
     // WIP
     return true;
   }
@@ -383,8 +378,7 @@ export class UtxoCore {
 
     for (let txId of transactionHashes) {
       if (txId) {
-        await sleep(10);
-        txPromises.push(await this.getTransaction(txId as string, { verbose: true }))
+        txPromises.push( this.getTransaction(txId as string, { verbose: true }));
       }
     }
     // let txPromises = [...transactionHashes].filter(x => !!x).map((txId: any) => this.getTransaction(txId , { verbose: true }))
@@ -473,7 +467,7 @@ export class UtxoCore {
    * @param block Object returned by getBlock method
    * @returns array of transaction hashes
    */
-  getTransactionHashesFromBlock(block: IUtxoBlockRes): string[] {
+  async getTransactionHashesFromBlock(block: IUtxoBlockRes): Promise<string[]> {
     return block.tx!.map((tx) => prefix0x(tx));
   }
 
@@ -482,7 +476,7 @@ export class UtxoCore {
    * @param block Object returned by getBlock method
    * @returns array of transaction hashes
    */
-  getBlockHash(block: IUtxoBlockRes): string {
+  async getBlockHash(block: IUtxoBlockRes): Promise<string> {
     return prefix0x(block.hash);
   }
 

@@ -10,42 +10,38 @@ import { verifyOneToOneUtxo } from "./attestation-types/one-to-one.utxo";
 ////////////////////////////////////////////////////////////////////////////////////////
 
 export async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest, testOptions?: VerificationTestOptions) {
-    try {
-        let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
-        async function getAdditionalData() {
-            return await client.getAdditionalTransactionDetails({
-                transaction: txResponse,
-                confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-                getDataAvailabilityProof: !!testOptions?.getAvailabilityProof,
-            });
-        }
-
-        async function getAvailabilityProof() {
-            // Try to obtain the hash of data availability proof.
-            if (!testOptions?.getAvailabilityProof) {
-                try {
-                    let confirmationBlock = (await client.getBlock(attRequest.dataAvailabilityProof)) as IUtxoBlockRes;
-                    return [confirmationBlock.hash, confirmationBlock.height];
-                } catch (e) {
-                    return undefined;
-                }
-            }
-            return undefined;
-        }
-
-        let [additionalData, confirmationData] = await Promise.all([getAdditionalData(), getAvailabilityProof()]);
-        // set up the verified
-        if (!testOptions?.getAvailabilityProof) {
-            // should be set by the above verification either to the same hash, which means that block exists or undefined otherwise.
-            additionalData.dataAvailabilityProof = confirmationData![0] as string;
-            additionalData.dataAvailabilityBlockOffset = (confirmationData![1] as number) - additionalData.blockNumber.toNumber();
-        }
-        return verifyUtxo(additionalData, attRequest, testOptions);
-    } catch (error) {
-        // TODO: handle error
-        console.log(error);
-        return {} as any;
+    let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true }).catch((error: any) => { throw error; })) as IUtxoGetTransactionRes;
+    async function getAdditionalData() {
+        return await client.getAdditionalTransactionDetails({
+            transaction: txResponse,
+            confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
+            getDataAvailabilityProof: !!testOptions?.getAvailabilityProof,
+        }).catch((error: any) => { throw error; });
     }
+
+    async function getAvailabilityProof() {
+        // Try to obtain the hash of data availability proof.
+        if (!testOptions?.getAvailabilityProof) {
+            try {
+                let confirmationBlock = (await client.getBlock(attRequest.dataAvailabilityProof).catch((error: any) => { throw error; })) as IUtxoBlockRes;
+                return [confirmationBlock.hash, confirmationBlock.height];
+            } catch (e) {
+                return undefined;
+            }
+        }
+        return undefined;
+    }
+
+    let [additionalData, confirmationData] = await Promise.all([
+        getAdditionalData().catch((error: any) => { throw error; }),
+        getAvailabilityProof().catch((error: any) => { throw error; })]).catch((error: any) => { throw error; });
+    // set up the verified
+    if (!testOptions?.getAvailabilityProof) {
+        // should be set by the above verification either to the same hash, which means that block exists or undefined otherwise.
+        additionalData.dataAvailabilityProof = confirmationData![0] as string;
+        additionalData.dataAvailabilityBlockOffset = (confirmationData![1] as number) - additionalData.blockNumber.toNumber();
+    }
+    return verifyUtxo(additionalData, attRequest, testOptions);
 }
 
 export function verifyUtxo(

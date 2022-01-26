@@ -63,7 +63,7 @@ export class XRPImplementation implements RPCInterface {
     return res.data;
   }
 
-  async isHealthy() {
+  async isHealthy() : Promise<boolean> {
     let res = await this.client.post("", {
       method: "server_info",
       params: [{}],
@@ -75,7 +75,7 @@ export class XRPImplementation implements RPCInterface {
     return validStates.includes(state);
   }
 
-  async getBlockHeight() {
+  async getBlockHeight() : Promise<number> {
     let res = await this.client.post("", {
       method: "ledger_current",
       params: [{}],
@@ -84,7 +84,7 @@ export class XRPImplementation implements RPCInterface {
     return res.data.result.ledger_current_index;
   }
 
-  async getBlock(blockNumberOrHash: number | string) {
+  async getBlock(blockNumberOrHash: number | string) : Promise<LedgerResponse> {
     let res = await this.client.post("", {
       method: "ledger",
       params: [
@@ -188,11 +188,11 @@ export class XRPImplementation implements RPCInterface {
     } as AdditionalTransactionDetails;
   }
 
-  getTransactionHashesFromBlock(block: LedgerResponse): string[] {
+  async getTransactionHashesFromBlock(block: LedgerResponse): Promise<string[]> {
     return (block.result.ledger.transactions! as any).map((tx: any) => prefix0x((tx as any).hash));
   }
 
-  getBlockHash(block: LedgerResponse): string {
+  async getBlockHash(block: LedgerResponse): Promise<string> {
     return prefix0x(block.result.ledger_hash);
   }
 

@@ -7,14 +7,14 @@ interface ReadRpcInterface {
   isHealthy(): Promise<boolean>;
 
   // Block data
-  getBlock(blockNumberOrHash: number | string): any;
+  getBlock(blockNumberOrHash: number | string): Promise<any>;
   getBlockHeight(): Promise<number>;
-  getBlockHash(block: any): string;
+  getBlockHash(block: any): Promise<string>;
 
   // Transaction data
-  getTransaction(txId: string, metaData?: getTransactionOptions): any;
-  listTransactions?(options?: any): any;
-  getTransactionHashesFromBlock(block: any): string[];
+  getTransaction(txId: string, metaData?: getTransactionOptions): Promise<any>;
+  listTransactions?(options?: any): Promise<any>;
+  getTransactionHashesFromBlock(block: any): Promise<string[]>;
 
   // Flare attestation helpers
   getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails>;

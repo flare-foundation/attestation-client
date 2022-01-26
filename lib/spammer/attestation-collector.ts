@@ -156,6 +156,7 @@ class AttestationCollector {
   static txCount = 0;
   static valid = 0;
   static invalid = 0;
+  static failed = 0;
 
   constructor(privateKey: string, logEvents = true) {
     this.logger = getGlobalLogger(args["loggerLabel"]);
@@ -171,7 +172,7 @@ class AttestationCollector {
           username: this.USERNAME,
           password: this.PASSWORD,
           rateLimitOptions: {
-            maxRPS: 100,
+            maxRPS: 50,
             timeoutMs: 3000,
             onSend: this.onSend.bind(this),
             onResponse: this.onResponse.bind(this),
@@ -299,14 +300,14 @@ class AttestationCollector {
         }
         let rangeMin = Math.max(0, latestBlockNumber - this.range - this.confirmations);
         let selectedBlock = Math.round(Math.random() * (rangeMax - rangeMin + 1)) + rangeMin;
-        let block = await this.client.getBlock(selectedBlock).catch((error:any) => { console.log(`123`); throw error; });
-        let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations).catch((error:any) => { console.log(`123`); throw error; });
-        let hashes = await this.client.getTransactionHashesFromBlock(block);
+        let block = await this.client.getBlock(selectedBlock).catch((error:any) => { console.log(`1`); throw error; });
+        let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations).catch((error:any) => { console.log(`2`); throw error; });
+        let hashes = await this.client.getTransactionHashesFromBlock(block).catch((error:any) => { console.log(`3`); throw error; });
         for (let tx of hashes) {
           let attType = AttestationType.OneToOnePayment;
           let tr = {
             id: tx,
-            dataAvailabilityProof: await this.client.getBlockHash(confirmationBlock),
+            dataAvailabilityProof: await this.client.getBlockHash(confirmationBlock).catch((error:any) => { console.log(`3`); throw error; }),
             blockNumber: selectedBlock,
             chainId: this.chainType,
             attestationType: attType,
@@ -337,8 +338,13 @@ class AttestationCollector {
                 }
               })
               .catch(error => {
+                AttestationCollector.failed++;
                 // skip
-                console.log( `PANIC1 ${error}`)
+                if( !error.message.endsWith("property 'message' of undefined") )
+                {
+                   console.log( `ERROR1 ${error}`)
+                }
+
               });
 
             AttestationCollector.sendCount++;
@@ -351,7 +357,7 @@ class AttestationCollector {
           }
         }
       } catch (e) {
-        this.logger.error(`ERROR: ${e}`);
+        this.logger.error(`ERROR2: ${e}`);
       }
       // must wait a bit - traffic control
     }
@@ -367,13 +373,14 @@ async function displayStats() {
     await sleep(period);
 
     logger.info(
-      `${round((AttestationCollector.sendCount * 1000) / period, 1)} req/sec  ${round((AttestationCollector.txCount * 1000) / period, 1)} tx/sec (${round(
+      `^Y${round((AttestationCollector.sendCount * 1000) / period, 1)} req/sec  ${round((AttestationCollector.txCount * 1000) / period, 1)} tx/sec (${round(
         AttestationCollector.txCount / AttestationCollector.sendCount,
         1
-      )} tx/req)   valid ${AttestationCollector.valid} invalid ${AttestationCollector.invalid}`
+      )} tx/req)   valid ${AttestationCollector.valid} invalid ${AttestationCollector.invalid} failed ${AttestationCollector.failed}`
     );
     AttestationCollector.sendCount = 0;
     AttestationCollector.txCount = 0;
+    AttestationCollector.failed = 0;
   }
 }
 

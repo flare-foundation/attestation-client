@@ -43,11 +43,17 @@ class ColorConsole extends Transport {
       case "title":
         color = BgWhite + FgBlack;
         break;
+      case "group":
+        color = BgGray + FgBlack;
+        break;
       case "info":
         color = "";
         break;
-      case "error":
+      case "error2":
         color = BgRed + FgWhite;
+        break;
+      case "error":
+        color = FgRed;
         break;
       case "warning":
         color = FgYellow;
@@ -60,7 +66,7 @@ class ColorConsole extends Transport {
     //            |           |
     // "2022-01-10T13:13:07.712Z"
 
-    console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + " " + color + info.message + Reset);
+    console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + " " + color + processColors(info.message, color) + Reset);
 
     if (callback) {
       callback();
@@ -68,17 +74,30 @@ class ColorConsole extends Transport {
   };
 }
 
+function processColors(text: string, def: string) {
+  text = text.replace("^^", def);
+  text = text.replace("^R", FgRed);
+  text = text.replace("^G", FgGreen);
+  text = text.replace("^B", FgBlue);
+  text = text.replace("^Y", FgYellow);
+  text = text.replace("^C", FgCyan);
+  text = text.replace("^W", FgWhite);
+
+  return text;
+}
+
 const myCustomLevels = {
   levels: {
     debug: 100, // all above are filtered out when level is set to debug
-    title: 20,
-    group: 21,
-    event: 10,
-    info: 7,
-    note: 5,
-    warning: 4,
-    error: 3,
-    exception: 2,
+    title: 80,
+    group: 70,
+    event: 50,
+    info: 40,
+    note: 39,
+    warning: 20,
+    error: 10,
+    error2: 9,
+    exception: 5,
     alert: 1,
   },
 };
@@ -86,7 +105,12 @@ const myCustomLevels = {
 var globalLogger: AttLogger;
 
 export interface AttLogger extends winston.Logger {
+  title: (message: string) => null;
   group: (message: string) => null;
+  event: (message: string) => null;
+  note: (message: string) => null;
+  error2: (message: string) => null;
+  exception: (message: string) => null;
 }
 
 export function createLogger(label?: string): AttLogger {

@@ -171,7 +171,7 @@ class AttestationCollector {
           username: this.USERNAME,
           password: this.PASSWORD,
           rateLimitOptions: {
-            maxRPS: 30,
+            maxRPS: 100,
             timeoutMs: 3000,
             onSend: this.onSend.bind(this),
             onResponse: this.onResponse.bind(this),
@@ -299,8 +299,8 @@ class AttestationCollector {
         }
         let rangeMin = Math.max(0, latestBlockNumber - this.range - this.confirmations);
         let selectedBlock = Math.round(Math.random() * (rangeMax - rangeMin + 1)) + rangeMin;
-        let block = await this.client.getBlock(selectedBlock);
-        let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations);
+        let block = await this.client.getBlock(selectedBlock).catch((error:any) => { console.log(`123`); throw error; });
+        let confirmationBlock = await this.client.getBlock(selectedBlock + this.confirmations).catch((error:any) => { console.log(`123`); throw error; });
         let hashes = await this.client.getTransactionHashesFromBlock(block);
         for (let tx of hashes) {
           let attType = AttestationType.FassetPaymentProof;
@@ -336,8 +336,9 @@ class AttestationCollector {
                   }
                 }
               })
-              .catch((txData: NormalizedTransactionData) => {
+              .catch(error => {
                 // skip
+                console.log( `PANIC1 ${error}`)
               });
 
             AttestationCollector.sendCount++;

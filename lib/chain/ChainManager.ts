@@ -1,6 +1,7 @@
 import { Logger } from "winston";
 import { Attestation } from "../attester/Attestation";
 import { AttestationData } from "../attester/AttestationData";
+import { AttesterEpoch } from "../attester/AttesterEpoch";
 import { ChainType } from "../MCC/types";
 import { ChainNode } from "./ChainNode";
 
@@ -13,13 +14,13 @@ export class ChainManager {
     this.logger = logger;
   }
 
-  validateTransaction(chain: ChainType, epochId: number, tx: AttestationData): Attestation | undefined {
+  validateTransaction(chain: ChainType, activeEpoch: AttesterEpoch, tx: AttestationData): Attestation | undefined {
     if (!this.nodes.has(chain)) {
       this.logger.error(`  ! '${chain}: undefined chain'`);
       //
       return undefined;
     }
 
-    return this.nodes.get(chain)!.validate(epochId, tx);
+    return this.nodes.get(chain)!.validate(activeEpoch, tx);
   }
 }

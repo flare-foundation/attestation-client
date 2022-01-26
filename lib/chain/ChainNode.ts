@@ -3,6 +3,7 @@ import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationData } from "../attester/AttestationData";
 import { Attester } from "../attester/Attester";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
+import { AttesterEpoch } from "../attester/AttesterEpoch";
 import { MCC } from "../MCC";
 import { ChainType, RPCInterface } from "../MCC/types";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
@@ -185,11 +186,24 @@ export class ChainNode {
   async process(tx: Attestation) {
     //this.chainManager.logger.info(`    * chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
 
+    const now = getTimeMilli();
+
+    // check if the transaction is too late
+    if (now > tx.attesterEpoch.commitEndTime) {
+      //this.chainManager.logger.error(`  * ${tx.epochId} transaction too late to process`);
+
+      tx.status = AttestationStatus.tooLate;
+
+      this.processed(tx, AttestationStatus.tooLate);
+
+      return;
+    }
+
     //this.addRequestCount();
     this.transactionsProcessing.push(tx);
 
     tx.status = AttestationStatus.processing;
-    tx.startTime = getTimeSec();
+    tx.processStartTime = now;
 
     // Actual Validate
     const attReq = tx.data.getAttestationRequest() as TransactionAttestationRequest;
@@ -205,6 +219,7 @@ export class ChainNode {
 
     verifyTransactionAttestation(this.client, attReq, { testFailProbability: testFail })
       .then((txData: NormalizedTransactionData) => {
+        tx.processEndTime = getTimeMilli();
         if (txData.verificationStatus === VerificationStatus.RECHECK_LATER) {
           this.chainManager.logger.warning(` * reverification`);
 
@@ -219,6 +234,7 @@ export class ChainNode {
         }
       })
       .catch((txData: NormalizedTransactionData) => {
+        tx.processEndTime = getTimeMilli();
         if (tx.retry < this.conf.maxFailedRetry) {
           this.chainManager.logger.warning(`  * transaction verification error (retry ${tx.retry})`);
 
@@ -263,12 +279,13 @@ export class ChainNode {
   // (1) process
   // (2) queue - if processing is full
   ////////////////////////////////////////////
-  validate(epoch: number, data: AttestationData): Attestation {
+  validate(activeEpoch: AttesterEpoch, data: AttestationData): Attestation {
     // attestation info
     //this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
 
     const transaction = new Attestation();
-    transaction.epochId = epoch;
+    transaction.attesterEpoch = activeEpoch;
+    transaction.epochId = activeEpoch.epochId;
     transaction.chainNode = this;
     transaction.data = data;
 

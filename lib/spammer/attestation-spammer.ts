@@ -262,7 +262,7 @@ async function displayStats() {
   while (true) {
     await sleep(period);
 
-    logger.info(`${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
+    logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
     AttestationSpammer.sendCount = 0;
   }
 }

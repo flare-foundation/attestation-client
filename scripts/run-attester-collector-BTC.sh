@@ -11,7 +11,7 @@ yarn ts-node lib/spammer/attestation-collector.ts \
     -r http://127.0.0.1:9650/ext/bc/C/rpc \
     -a artifacts/contracts/StateConnector.sol/StateConnector.json \
     -t $(cat .stateconnector-address) \
-    -u https://bitcoin.flare.network/ \
+    -u http://34.159.118.250:9332/ \
     -s flareadmin \
     -p mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4= \
     -b 100 \

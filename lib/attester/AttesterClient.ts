@@ -6,6 +6,7 @@ import { ChainType } from "../MCC/types";
 import { toBN } from "../MCC/utils";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
+import { getInternetTime } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
 import { partBNbe } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
@@ -38,7 +39,7 @@ export class AttesterClient {
   async start() {
     const version = "1000";
 
-    this.logger.group(`Starting Flare Attester Client v${version}`);
+    this.logger.title(`Starting Flare Attester Client v${version}`);
 
     // create state connector
     await this.attesterWeb3.initialize();
@@ -47,8 +48,8 @@ export class AttesterClient {
     await this.initializeConfiguration();
 
     // initialize time and local time difference
-    //const times = await getInternetTime();
-    //this.logger.info(` * Internet time sync ${times[0] - times[1]}s`);
+    //const sync = await getInternetTime();
+    //this.logger.info(` * Internet time sync ${sync}ms`);
 
     // validate configuration chains and create nodes
     await this.initializeChains();

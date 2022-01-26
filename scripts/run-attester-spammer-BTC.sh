@@ -15,7 +15,7 @@ yarn ts-node lib/spammer/attestation-spammer.ts \
     -s flareadmin \
     -p mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4= \
     -b 100 \
-    -o 1 \
+    -o 10 \
     -f 6 \
     -w 100 \
     -d 500 \

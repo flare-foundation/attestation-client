@@ -32,9 +32,14 @@
         },
         {
             "name": "BTC",
-            "url": "https://bitcoin.flare.network/",
+            "url": "http://34.159.118.250:9332/",
             "username": "flareadmin",
             "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
+
+            "maxRequestsPerSecond":300,
+            "maxProcessingTransactions":3000,
+            "timeout": 5000,
+
             "metaData": {
                 "requiredBlocks" : 6
             }

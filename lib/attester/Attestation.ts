@@ -1,5 +1,6 @@
 import { ChainNode } from "../chain/ChainNode";
 import { AttestationData } from "./AttestationData";
+import { AttesterEpoch } from "./AttesterEpoch";
 
 export enum AttestationStatus {
   queued,
@@ -7,6 +8,7 @@ export enum AttestationStatus {
   failed,
   valid,
   invalid,
+  tooLate,
 }
 
 export interface EventProcessed {
@@ -15,13 +17,14 @@ export interface EventProcessed {
 
 export class Attestation {
   epochId!: number;
+  attesterEpoch!: AttesterEpoch;
 
   metaData!: any;
 
   status: AttestationStatus = AttestationStatus.invalid;
 
-  startTime: number = 0;
-  endTime: number = 0;
+  processStartTime: number = 0;
+  processEndTime: number = 0;
 
   chainNode: ChainNode | undefined;
 

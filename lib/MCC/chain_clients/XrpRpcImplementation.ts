@@ -132,10 +132,13 @@ export class XRPImplementation implements RPCInterface {
     let fee = toBN(request.transaction.result.Fee!);
 
     let dataAvailabilityProof: string | undefined = undefined;
+    let dataAvailabilityBlockOffset: number | undefined = undefined;
+
     if (request.getDataAvailabilityProof) {
       let confirmationBlockIndex = blockNumber + request.confirmations;
       let confirmationBlock = await this.getBlock(confirmationBlockIndex);
       dataAvailabilityProof = prefix0x(confirmationBlock.result.ledger_hash);
+      dataAvailabilityBlockOffset = request.confirmations;
     }
 
     let status = this.getTransactionStatus(request.transaction);
@@ -160,6 +163,7 @@ export class XRPImplementation implements RPCInterface {
         delivered: toBN(0),
         fee,
         dataAvailabilityProof,
+        dataAvailabilityBlockOffset,
         status,
       } as AdditionalTransactionDetails;
     }
@@ -179,6 +183,7 @@ export class XRPImplementation implements RPCInterface {
       delivered: delivered,
       fee,
       dataAvailabilityProof,
+      dataAvailabilityBlockOffset,
       status,
     } as AdditionalTransactionDetails;
   }

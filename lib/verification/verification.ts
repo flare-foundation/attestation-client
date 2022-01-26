@@ -1,8 +1,8 @@
 import { ChainType } from "../MCC/types";
 import { toNumber } from "../MCC/utils";
 import { TransactionAttestationRequest, VerificationTestOptions } from "./attestation-types";
-import { verififyAttestationUtxo } from "./chains/UTXO";
-import { verififyAttestationXRP } from "./chains/XRP";
+import { verififyAttestationUtxo } from "./chains/UTXO/verify-attestation.utxo";
+import { verififyAttestationXRP } from "./chains/XRP/verify-attestation.xrp";
 
 // Generic
 // Add here specific calls for verification

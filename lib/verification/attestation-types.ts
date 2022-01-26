@@ -7,8 +7,9 @@ export interface VerificationTestOptions {
 }
 
 export enum AttestationType {
-  FassetPaymentProof = 1,
+  OneToOnePayment = 1,
   BalanceDecreasingProof = 2,
+  BlockHeightExistsProof = 3
 }
 
 export enum VerificationStatus {
@@ -26,6 +27,7 @@ export enum VerificationStatus {
   // SOURCE_ADDRESS_DOES_NOT_MATCH = "SOURCE_ADDRESS_DOES_NOT_MATCH",
   INSTRUCTIONS_DO_NOT_MATCH = "INSTRUCTIONS_DO_NOT_MATCH",
   WRONG_DATA_AVAILABILITY_PROOF = "WRONG_DATA_AVAILABILITY_PROOF",
+  WRONG_DATA_AVAILABILITY_HEIGHT = "WRONG_DATA_AVAILABILITY_HEIGHT",
   DATA_AVAILABILITY_PROOF_REQUIRED = "DATA_AVAILABILITY_PROOF_REQUIRED",
   FORBIDDEN_MULTISIG_SOURCE = "FORBIDDEN_MULTISIG_SOURCE",
   FORBIDDEN_MULTISIG_DESTINATION = "FORBIDDEN_MULTISIG_DESTINATION",
@@ -84,16 +86,15 @@ export const UTXO_BITS = 8;
 
 export function attestationTypeEncodingScheme(type: AttestationType) {
   switch (type) {
-    case AttestationType.FassetPaymentProof:
+    case AttestationType.OneToOnePayment:
       return {
-        sizes: [ATT_BITS, CHAIN_ID_BITS, UTXO_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - UTXO_BITS],
-        keys: ["attestationType", "chainId", "utxo", ""],
+        sizes: [ATT_BITS, CHAIN_ID_BITS, 256 - ATT_BITS - CHAIN_ID_BITS],
+        keys: ["attestationType", "chainId", ""],
         hashTypes: [
           "uint32", // type
           "uint64", // chainId
           "uint64", // blockNumber
           "bytes32", // txId
-          // "uint8", // utxo
           "bytes32", // sourceAddress
           "bytes32", // destinationAddress
           "uint256", // destinationTag
@@ -107,7 +108,6 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "chainId",
           "blockNumber",
           "txId",
-          // "utxo",
           "sourceAddresses",
           "destinationAddresses",
           "destinationTag",
@@ -130,6 +130,17 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "uint256", // spent
         ],
         hashKeys: ["attestationType", "chainId", "blockNumber", "txId", "sourceAddresses", "spent"],
+      };
+    case AttestationType.BlockHeightExistsProof:
+      return {
+        sizes: [ATT_BITS, CHAIN_ID_BITS, 256 - ATT_BITS - CHAIN_ID_BITS],
+        keys: ["attestationType", "chainId", ""],
+        hashTypes: [
+          "uint32", // type
+          "uint64", // chainId
+          "uint64", // blockNumber
+        ],
+        hashKeys: ["attestationType", "chainId", "blockNumber"],
       };
 
     default:

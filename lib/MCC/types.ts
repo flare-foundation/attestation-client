@@ -152,6 +152,7 @@ export interface AdditionalTransactionDetails {
   spent: BN | BN[];
   delivered: BN | BN[];
   fee: BN;
-  dataAvailabilityProof: string;
+  dataAvailabilityProof?: string;
+  dataAvailabilityBlockOffset?: number;
   status: TransactionSuccessStatus;
 }

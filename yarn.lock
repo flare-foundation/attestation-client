@@ -3990,7 +3990,7 @@ find-up@^4.1.0:
     locate-path "^5.0.0"
     path-exists "^4.0.0"
 
-flare-mcc@../Mcc:
+flare-mcc@../mcc:
   version "0.0.3"
   dependencies:
     "@types/node" "^17.0.13"

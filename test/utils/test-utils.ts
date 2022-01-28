@@ -1,6 +1,5 @@
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { ChainType, IUtxoBlockRes, prefix0x, RPCInterface, toBN } from "flare-mcc";
-import { prettyPrintObject } from "../../lib/utils/utils";
 import {
   attReqToTransactionAttestationRequest,
   extractAttEvents,

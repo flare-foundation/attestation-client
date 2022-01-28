@@ -3,15 +3,19 @@ import BN from "bn.js";
 import axiosRateLimit, { RateLimitOptions } from "../axios-rate-limiter/axios-rate-limit";
 import {
   AdditionalTransactionDetails,
-  AdditionalTxRequest, getAddressByLabelResponse,
-  getTransactionOptions, IIUtxoVin,
+  AdditionalTxRequest,
+  getAddressByLabelResponse,
+  getTransactionOptions,
+  IIUtxoVin,
   IIUtxoVout,
   IUtxoBlockHeaderRes,
-  IUtxoBlockRes, IUtxoGetTransactionRes,
-  IUtxoTransactionListRes, IUtxoWalletRes, TransactionSuccessStatus
+  IUtxoBlockRes,
+  IUtxoGetTransactionRes,
+  IUtxoTransactionListRes,
+  IUtxoWalletRes,
+  TransactionSuccessStatus,
 } from "../types";
 import { ensure_data, prefix0x, SATOSHI_BTC, sleep, toBN } from "../utils";
-
 
 const DEFAULT_TIMEOUT = 10000;
 const DEFAULT_RATE_LIMIT_OPTIONS: RateLimitOptions = {
@@ -371,19 +375,18 @@ export class UtxoCore {
    * @returns
    */
   async getAdditionalTransactionDetails(request: AdditionalTxRequest): Promise<AdditionalTransactionDetails> {
-    let blockResponsePromise = this.getBlock(request.transaction.blockhash); // as IUtxoBlockRes;    
-    let transactionHashes = new Set(request.transaction.vin.map((x: any) => x.txid))
+    let blockResponsePromise = this.getBlock(request.transaction.blockhash); // as IUtxoBlockRes;
+    let transactionHashes = new Set(request.transaction.vin.map((x: any) => x.txid));
     let txPromises: Promise<any>[] = [blockResponsePromise];
     let responses: any[] = [];
 
     for (let txId of transactionHashes) {
       if (txId) {
-        txPromises.push( this.getTransaction(txId as string, { verbose: true }));
+        txPromises.push(this.getTransaction(txId as string, { verbose: true }));
       }
     }
     // let txPromises = [...transactionHashes].filter(x => !!x).map((txId: any) => this.getTransaction(txId , { verbose: true }))
     responses = await Promise.all(txPromises);
-
 
     let blockResponse = responses[0] as any as IUtxoBlockRes;
     let txMap = new Map<string, IUtxoGetTransactionRes>();
@@ -431,7 +434,7 @@ export class UtxoCore {
       try {
         let confirmationBlock = (await this.getBlock(confirmationBlockHeight)) as IUtxoBlockRes;
         dataAvailabilityProof = prefix0x(confirmationBlock.hash);
-      } catch (e) { }
+      } catch (e) {}
     }
 
     if (sourceAddresses.length != inFunds.length) {

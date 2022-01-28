@@ -160,6 +160,8 @@
                 "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
                 "-t","0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
                 "-u","http://34.159.118.250:9332/",
+                "-s","flareadmin",
+                "-p","mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
                 "-b","1",
                 "-o","1", // numberOfAccounts
                 "-f","1",

@@ -5,5 +5,5 @@ import { AttestationType } from "../../attestation-types";
 ////////////////////////////////////////////////////////////////////////////////////////
 
 export function isSupportedTransactionUtxo(transaction: any, attType: AttestationType): boolean {
-    return true;
+  return true;
 }

@@ -56,7 +56,8 @@ export class ChainNode {
           password,
           rateLimitOptions: {
             maxRPS: chainCofiguration.maxRequestsPerSecond,
-            timeoutMs: chainCofiguration.timeout,
+            timeoutMs: chainCofiguration.clientTimeout,
+            retries: chainCofiguration.clientRetries,
             onSend: this.onSend.bind(this),
           },
         }) as RPCInterface;
@@ -68,7 +69,8 @@ export class ChainNode {
           password,
           rateLimitOptions: {
             maxRPS: chainCofiguration.maxRequestsPerSecond,
-            timeoutMs: chainCofiguration.timeout,
+            timeoutMs: chainCofiguration.clientTimeout,
+            retries: chainCofiguration.clientRetries,
             onSend: this.onSend.bind(this),
           },
         }) as RPCInterface;
@@ -268,8 +270,10 @@ export class ChainNode {
       tx.onProcessed(tx);
     }
 
-    // start next transaction
-    this.startNext();
+    if (tx.status !== AttestationStatus.tooLate) {
+      // start next transaction
+      this.startNext();
+    }
   }
 
   ////////////////////////////////////////////

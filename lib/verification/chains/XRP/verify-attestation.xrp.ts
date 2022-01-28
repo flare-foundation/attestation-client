@@ -26,18 +26,17 @@ export async function verififyAttestationXRP(client: RPCInterface, attRequest: T
   }
 }
 
-
 export function verifyXrp(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
   testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
   switch (attRequest.attestationType) {
-      case AttestationType.OneToOnePayment:
-          return verifyOneToOneXRP(additionalData, attRequest, testOptions);
-      case AttestationType.BalanceDecreasingProof:
-          return verifyDecreaseBalanceXRP(additionalData, attRequest, testOptions);
-      default:
-          throw new Error(`Invalid attestation type ${attRequest.attestationType}`);
+    case AttestationType.OneToOnePayment:
+      return verifyOneToOneXRP(additionalData, attRequest, testOptions);
+    case AttestationType.BalanceDecreasingProof:
+      return verifyDecreaseBalanceXRP(additionalData, attRequest, testOptions);
+    default:
+      throw new Error(`Invalid attestation type ${attRequest.attestationType}`);
   }
 }

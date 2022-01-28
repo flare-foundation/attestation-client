@@ -161,8 +161,8 @@ export function checkDataAvailability(additionalData: AdditionalTransactionDetai
     return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF;
   }
 
-  if(additionalData.dataAvailabilityBlockOffset != numberOfConfirmations(toNumber(attRequest.chainId)!)) {
-    console.log(additionalData.dataAvailabilityBlockOffset, numberOfConfirmations(toNumber(attRequest.chainId)!))
+  if (additionalData.dataAvailabilityBlockOffset != numberOfConfirmations(toNumber(attRequest.chainId)!)) {
+    console.log(additionalData.dataAvailabilityBlockOffset, numberOfConfirmations(toNumber(attRequest.chainId)!));
     return VerificationStatus.WRONG_DATA_AVAILABILITY_HEIGHT;
   }
 

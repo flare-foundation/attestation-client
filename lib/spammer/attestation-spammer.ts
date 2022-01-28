@@ -251,8 +251,8 @@ class AttestationSpammer {
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);
       }
-      //await sleep(Math.floor(Math.random() * this.delay));
-      await sleep(Math.floor(this.delay));
+      await sleep(Math.floor(Math.random() * this.delay));
+      //await sleep(Math.floor(this.delay));
     }
   }
 }

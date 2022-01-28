@@ -51,6 +51,7 @@
     "@google-cloud/secret-manager": "3.10.1",
     "@openzeppelin/contracts": "3.4.0",
     "axios": "^0.24.0",
+    "axios-retry": "^3.2.4",
     "dotenv": "10.0.0",
     "ethers": "5.1.4",
     "fs": "^0.0.1-security",

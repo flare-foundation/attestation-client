@@ -63,7 +63,7 @@ export class XRPImplementation implements RPCInterface {
     return res.data;
   }
 
-  async isHealthy() : Promise<boolean> {
+  async isHealthy(): Promise<boolean> {
     let res = await this.client.post("", {
       method: "server_info",
       params: [{}],
@@ -75,7 +75,7 @@ export class XRPImplementation implements RPCInterface {
     return validStates.includes(state);
   }
 
-  async getBlockHeight() : Promise<number> {
+  async getBlockHeight(): Promise<number> {
     let res = await this.client.post("", {
       method: "ledger_current",
       params: [{}],
@@ -84,7 +84,7 @@ export class XRPImplementation implements RPCInterface {
     return res.data.result.ledger_current_index;
   }
 
-  async getBlock(blockNumberOrHash: number | string) : Promise<LedgerResponse> {
+  async getBlock(blockNumberOrHash: number | string): Promise<LedgerResponse> {
     let res = await this.client.post("", {
       method: "ledger",
       params: [

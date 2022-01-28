@@ -8,7 +8,7 @@ import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { getInternetTime } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
-import { partBNbe } from "../utils/utils";
+import { partBNbe, sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationType, ATT_BITS } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
@@ -171,6 +171,11 @@ export class AttesterClient {
       tx.signature = toBN(event.signature);
 
       this.attester.attestate(tx);
+
+      // for (let a = 0; a < 150; a++) {
+      //   this.attester.attestate(tx);
+      //   sleepms(2);
+      // }
     }
   }
 }

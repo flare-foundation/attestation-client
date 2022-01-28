@@ -21,7 +21,9 @@
             
             "maxRequestsPerSecond":80,
             "maxProcessingTransactions":3000,
-            "timeout": 5000,
+
+            "clientTimeout": 5000,
+            "clientRetries": 3,
           
             "maxFailedRetry": 1,
             "delayBeforeRetry": 10,
@@ -38,7 +40,9 @@
 
             "maxRequestsPerSecond":300,
             "maxProcessingTransactions":3000,
-            "timeout": 5000,
+
+            "clientTimeout": 5000,
+            "clientRetries": 3,
 
             "metaData": {
                 "requiredBlocks" : 6

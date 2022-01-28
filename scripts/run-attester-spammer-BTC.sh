@@ -14,9 +14,9 @@ yarn ts-node lib/spammer/attestation-spammer.ts \
     -u https://bitcoin.flare.network/ \
     -s flareadmin \
     -p mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4= \
-    -b 100 \
-    -o 10 \
+    -b 501 \
+    -o 100 \
     -f 6 \
     -w 100 \
-    -d 500 \
+    -d 5 \
     -l BTC

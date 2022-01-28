@@ -147,6 +147,8 @@ export class AttesterEpoch {
     // external sorting is not needed anymore
     //validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));
 
+    const time0 = getTimeMilli();
+
     // collect sorted valid attestation ids
     const validatedHashes: string[] = new Array<string>();
     for (const valid of validated) {
@@ -159,6 +161,8 @@ export class AttesterEpoch {
     this.hash = this.merkleTree.root!;
     this.random = await getRandom();
 
+    const time1 = getTimeMilli();
+
     //
     //   collect   | commit       | reveal
     //   x         | x+1          | x+2
@@ -169,7 +173,7 @@ export class AttesterEpoch {
     const epochCommitEndTime = Attester.epochSettings.getEpochIdCommitTimeEnd(this.epochId);
     const commitTimeLeft = epochCommitEndTime - now;
 
-    this.logger.info(`^G   # commitAttestation ${this.epochId} time left ${commitTimeLeft}ms`);
+    this.logger.info(`^G   # commitAttestation ${this.epochId} time left ${commitTimeLeft}ms (prepare time ${time1 - time0}ms)`);
 
     this.attesterWeb3
       .submitAttestation(

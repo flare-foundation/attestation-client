@@ -1,6 +1,6 @@
 import { ChainType } from "../MCC/types";
-import { toNumber } from "../MCC/utils";
-import { TransactionAttestationRequest, VerificationTestOptions } from "./attestation-types";
+import { sleep, toBN, toNumber } from "../MCC/utils";
+import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "./attestation-types";
 import { verififyAttestationUtxo } from "./chains/UTXO/verify-attestation.utxo";
 import { verififyAttestationXRP } from "./chains/XRP/verify-attestation.xrp";
 
@@ -10,6 +10,18 @@ export async function verifyTransactionAttestation(client: any, request: Transac
   if (!client) {
     throw new Error("Missing client!");
   }
+
+  // performance test simulation
+
+  // await sleep(500);
+
+  // return {
+  //   chainId: toBN(request.chainId),
+  //   attestationType: request.attestationType!,
+  //   verificationStatus: VerificationStatus.OK,
+  //   // utxo: attRequest.utxo,
+  // } as NormalizedTransactionData;
+
   // if (!(request.attestationType === AttestationType.Transaction || request.attestationType === AttestationType.FassetPaymentProof)) {
   //     throw new Error("Wrong attestation Type")
   // }

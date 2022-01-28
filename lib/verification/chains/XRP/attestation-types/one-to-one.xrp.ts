@@ -2,7 +2,13 @@ import { TxResponse } from "xrpl";
 import { AdditionalTransactionDetails } from "../../../../MCC/types";
 import { toBN } from "../../../../MCC/utils";
 import { checkDataAvailability } from "../../../attestation-request-utils";
-import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
+import {
+  AttestationType,
+  NormalizedTransactionData,
+  TransactionAttestationRequest,
+  VerificationStatus,
+  VerificationTestOptions,
+} from "../../../attestation-types";
 
 export function verifyOneToOneXRP(
   additionalData: AdditionalTransactionDetails,

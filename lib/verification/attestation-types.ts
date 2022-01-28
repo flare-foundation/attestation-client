@@ -9,7 +9,7 @@ export interface VerificationTestOptions {
 export enum AttestationType {
   OneToOnePayment = 1,
   BalanceDecreasingProof = 2,
-  BlockHeightExistsProof = 3
+  BlockHeightExistsProof = 3,
 }
 
 export enum VerificationStatus {

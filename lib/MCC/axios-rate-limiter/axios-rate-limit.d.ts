@@ -19,10 +19,12 @@ interface RateLimitOptions {
   perMilliseconds?: number;
   maxRPS?: number;
   timeoutMs?: number;
+  retries?: number;
   onSend?: (inProcessing?: number, inQueue?: number) => void;
   onResponse?: (inProcessing?: number, inQueue?: number) => void;
   onQueueEmpty?: (inProcessing?: number, inQueue?: number) => void;
   onLimitReached?: (inProcessing?: number, inQueue?: number) => void;
+  onRetry?: (retryCount?: number) => void;
 }
 
 /**

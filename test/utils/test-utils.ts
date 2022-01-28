@@ -140,7 +140,7 @@ export async function traverseAndTestUtxoChain(
   for (let i = latestBlockNumberToUse - count + 1; i <= latestBlockNumberToUse; i++) {
     let block = await client.getBlock(i) as IUtxoBlockRes;
     let confirmationBlock = await client.getBlock(i + numberOfConfirmations(chainType)) as IUtxoBlockRes;
-    for (let id of client.getTransactionHashesFromBlock(block)) {
+    for (let id of await client.getTransactionHashesFromBlock(block)) {
       for (let attType of attestationTypes) {
         for (let utxo = 0; utxo < numberOfInputsChecked; utxo++) {
           let tr = {

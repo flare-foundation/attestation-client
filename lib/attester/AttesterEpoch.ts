@@ -1,7 +1,6 @@
 import assert from "assert";
 import BN from "bn.js";
-import { Logger } from "winston";
-import { toBN } from "../MCC/utils";
+import { toBN } from "flare-mcc";
 import { Hash } from "../utils/Hash";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";

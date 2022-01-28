@@ -1,8 +1,6 @@
 import BN from "bn.js";
-import { Logger } from "winston";
+import { ChainType, toBN } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
-import { ChainType } from "../MCC/types";
-import { toBN } from "../MCC/utils";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";

@@ -1,11 +1,10 @@
 import * as dotenv from "dotenv";
+import { ChainType, MCC, sleep, toBN } from "flare-mcc";
+import { RPCInterface } from "flare-mcc/dist/types";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { MCC } from "../MCC";
-import { ChainType, RPCInterface } from "../MCC/types";
-import { round, sleep, toBN } from "../MCC/utils";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
-import { getWeb3, getWeb3Contract } from "../utils/utils";
+import { getWeb3, getWeb3Contract, round } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { txAttReqToAttestationRequest } from "../verification/attestation-request-utils";
 import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";

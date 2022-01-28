@@ -1,8 +1,8 @@
+import { ChainType } from "flare-mcc";
 import { Logger } from "winston";
 import { Attestation } from "../attester/Attestation";
 import { AttestationData } from "../attester/AttestationData";
 import { AttesterEpoch } from "../attester/AttesterEpoch";
-import { ChainType } from "../MCC/types";
 import { ChainNode } from "./ChainNode";
 
 export class ChainManager {

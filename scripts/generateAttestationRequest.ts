@@ -1,4 +1,5 @@
-import { ChainType } from "../lib/MCC/types";
+
+import { ChainType } from "flare-mcc";
 import { sleepms } from "../lib/utils/utils";
 import { etherToValue, getTestStateConnectorAddress } from "../lib/utils/utils";
 import { AttestationType } from "../lib/verification/attestation-types";

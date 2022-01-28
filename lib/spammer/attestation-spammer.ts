@@ -1,11 +1,9 @@
 import BN from "bn.js";
 import * as dotenv from "dotenv";
 import { logger } from "ethers";
+import { ChainType, MCC, RPCInterface, sleep } from "flare-mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { MCC } from "../MCC";
-import { ChainType, RPCInterface } from "../MCC/types";
-import { sleep } from "../MCC/utils";
 import { getGlobalLogger } from "../utils/logger";
 import { getRandom, getWeb3, getWeb3Contract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";

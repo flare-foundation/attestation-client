@@ -1,9 +1,7 @@
 import BN from "bn.js";
+import { ChainType, MCC, toBN } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
-import { MCC } from "../MCC";
-import { ChainType } from "../MCC/types";
-import { toBN } from "../MCC/utils";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { getInternetTime } from "../utils/internetTime";

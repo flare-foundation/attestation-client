@@ -1,11 +1,10 @@
+import { ChainType, MCC, RPCInterface } from "flare-mcc";
 import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationData } from "../attester/AttestationData";
 import { Attester } from "../attester/Attester";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { AttesterEpoch } from "../attester/AttesterEpoch";
-import { MCC } from "../MCC";
-import { ChainType, RPCInterface } from "../MCC/types";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";

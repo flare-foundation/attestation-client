@@ -39,3 +39,9 @@ Instead of XRP, one can use BTC, LTC or DOGE.
 
 ## Running attester client
 
+
+## Configuring Local Mcc
+
+1. Make sure this repo and attester-client repo are in the same root
+2. If you make changes to MCC make sure to rebuild it `yarn build` (in MCC project)
+3. Rebuild the local dependency in attester client with `yarn install --force`

@@ -50,6 +50,7 @@
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",
     "@openzeppelin/contracts": "3.4.0",
+    "assert": "^2.0.0",
     "axios": "^0.24.0",
     "axios-retry": "^3.2.4",
     "dotenv": "10.0.0",
@@ -68,6 +69,7 @@
   "devDependencies": {
     "@nomiclabs/hardhat-truffle5": "^2.0.3",
     "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@types/assert": "^1.5.6",
     "@openzeppelin/test-helpers": "^0.5.15",
     "@typechain/hardhat": "^3.0.0",
     "@typechain/truffle-v5": "^6.0.0",

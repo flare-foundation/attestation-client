@@ -1,4 +1,3 @@
-
 import { toNumber, unPrefix0x, AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface } from "flare-mcc";
 import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationTestOptions } from "../../attestation-types";
 import { numberOfConfirmations } from "../../confirmations";

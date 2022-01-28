@@ -1,6 +1,8 @@
 import { ChainNode } from "../chain/ChainNode";
+import { NormalizedTransactionData } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
-import { AttesterEpoch } from "./AttesterEpoch";
+import { AttestationRound } from "./AttestationRound";
+import { SourceHandler } from "./SourceHandler";
 
 export enum AttestationStatus {
   queued,
@@ -9,15 +11,21 @@ export enum AttestationStatus {
   valid,
   invalid,
   tooLate,
+  overLimit,
 }
 
 export interface EventProcessed {
   (tx: Attestation): void;
 }
 
+export interface EventValidate {
+  (): void;
+}
+
 export class Attestation {
   epochId!: number;
-  attesterEpoch!: AttesterEpoch;
+  attesterEpoch!: AttestationRound;
+  sourceHandler!: SourceHandler;
 
   metaData!: any;
 
@@ -29,6 +37,8 @@ export class Attestation {
   chainNode: ChainNode | undefined;
 
   data!: AttestationData;
+
+  verificationData!: NormalizedTransactionData;
 
   // how many time was attestation retried
   retry: number = 0;

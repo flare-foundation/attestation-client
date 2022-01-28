@@ -1,5 +1,13 @@
 # *Flare Network* attester client
 
+## For developers
+
+Install 
+- typelens - get references above functions
+- Visual Studio IntelliCode - more friendly assistance
+- Move TS - if moving files does not relink imports
+
+
 ## Prepare scdev node
 
 Pull repo: https://gitlab.com/flarenetwork/flare

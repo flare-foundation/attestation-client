@@ -4,20 +4,19 @@ import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
-import { getInternetTime } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
-import { partBNbe, sleepms } from "../utils/utils";
+import { partBNbe } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationType, ATT_BITS } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
-import { Attester } from "./Attester";
+import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 
 export class AttesterClient {
   conf: AttesterClientConfiguration;
   logger: AttLogger;
-  attester: Attester;
+  attester: AttestationRoundManager;
   attesterWeb3: AttesterWeb3;
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
@@ -31,7 +30,7 @@ export class AttesterClient {
     this.conf = configuration;
     this.chainManager = new ChainManager(this.logger);
     this.attesterWeb3 = new AttesterWeb3(this.logger, this.conf);
-    this.attester = new Attester(this.chainManager, this.conf, this.logger, this.attesterWeb3);
+    this.attester = new AttestationRoundManager(this.chainManager, this.conf, this.logger, this.attesterWeb3);
   }
 
   async start() {

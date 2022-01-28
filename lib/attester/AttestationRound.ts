@@ -6,9 +6,11 @@ import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
 import { MerkleTree } from "../utils/MerkleTree";
 import { getRandom } from "../utils/utils";
+import { transactionHash } from "../verification/attestation-request-utils";
 import { Attestation, AttestationStatus } from "./Attestation";
-import { Attester } from "./Attester";
+import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterWeb3 } from "./AttesterWeb3";
+import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
 
 export enum AttesterEpochStatus {
   collect,
@@ -28,7 +30,29 @@ export enum AttestStatus {
   processingTimeout,
 }
 
-export class AttesterEpoch {
+// todo: priority attestation
+// make attestation queue per chain
+// make per chain attestation limit
+// remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
+// collect limited transactions
+// cache chain results
+// priority event attestations: allow addidional amount of them
+
+// rename Epoch into Round
+// - Attester -> AttetstationRoundManager
+// - AttesterEpoch -> AttestationRound
+
+// epoch settings manager 'on-the-fly' settings (SourceHandler) `Dynamic Attestation Config`
+// - for each combination source (validate transaction, BTC, ...)
+// - "requiredBlocks" to 'on-the-fly' settings from static config.json
+// - 1000 normal + 50 priority
+// - 'on-the-fly' (from epoch)
+//
+// att/sec
+// call/sec
+//
+
+export class AttestationRound {
   logger: AttLogger;
   status: AttesterEpochStatus = AttesterEpochStatus.collect;
   epochId: number;
@@ -43,6 +67,8 @@ export class AttesterEpoch {
 
   transactionsProcessed: number = 0;
 
+  sourceHandlers = new Map<number, SourceHandler>();
+
   constructor(epochId: number, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.epochId = epochId;
     this.logger = logger;
@@ -51,17 +77,33 @@ export class AttesterEpoch {
     this.attesterWeb3 = attesterWeb3;
   }
 
+  getSourceHandler(source: number, onValidateAttestation: EventValidateAttestation): SourceHandler {
+    if (this.sourceHandlers.has(source)) {
+      return this.sourceHandlers.get(source)!;
+    }
+
+    const sourceHandler = new SourceHandler(this, source, onValidateAttestation);
+
+    this.sourceHandlers.set(source, sourceHandler);
+
+    return sourceHandler;
+  }
+
   addAttestation(attestation: Attestation) {
-    attestation!.onProcessed = (tx) => {
+    attestation.onProcessed = (tx) => {
       this.processed(attestation);
     };
+
     this.attestations.push(attestation);
+
+    // start attestation proces
+    attestation.sourceHandler.validate(attestation);
   }
 
   startCommitEpoch() {
     this.logger.debug(
       ` # AttestEpoch #${this.epochId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / Attester.epochSettings.getEpochLength().toNumber()
+        (this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLength().toNumber()
       } req/sec)`
     );
     this.status = AttesterEpochStatus.commit;
@@ -96,7 +138,7 @@ export class AttesterEpoch {
         this.commit();
       } else {
         // all transactions were processed but we are NOT in commit epoch yet
-        this.logger.info(`     * AttestEpoch #${this.epochId} all transactions processed ${this.attestations.length} waiting for commit epoch`);
+        //this.logger.info(`     * AttestEpoch #${this.epochId} all transactions processed ${this.attestations.length} waiting for commit epoch`);
       }
     } else {
       // not all transactions were processed
@@ -148,11 +190,14 @@ export class AttesterEpoch {
 
     const time0 = getTimeMilli();
 
-    // collect sorted valid attestation ids
+    // collect sorted valid attestation hashes
     const validatedHashes: string[] = new Array<string>();
     for (const valid of validated) {
-      validatedHashes.push(valid.data.id);
+      let hash = transactionHash(this.attesterWeb3.web3, valid.verificationData!);
+      validatedHashes.push(hash!);
     }
+
+    const time1 = getTimeMilli();
 
     // create merkle tree
     this.merkleTree = new MerkleTree(validatedHashes);
@@ -160,7 +205,7 @@ export class AttesterEpoch {
     this.hash = this.merkleTree.root!;
     this.random = await getRandom();
 
-    const time1 = getTimeMilli();
+    const time2 = getTimeMilli();
 
     //
     //   collect   | commit       | reveal
@@ -169,10 +214,14 @@ export class AttesterEpoch {
 
     // calculate remaining time in epoch
     const now = getTimeMilli();
-    const epochCommitEndTime = Attester.epochSettings.getEpochIdCommitTimeEnd(this.epochId);
+    const epochCommitEndTime = AttestationRoundManager.epochSettings.getEpochIdCommitTimeEnd(this.epochId);
     const commitTimeLeft = epochCommitEndTime - now;
 
-    this.logger.info(`^G   # commitAttestation ${this.epochId} time left ${commitTimeLeft}ms (prepare time ${time1 - time0}ms)`);
+    this.logger.info(
+      `^G   # commitAttestation #${this.epochId} ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${
+        time2 - time1
+      }ms)`
+    );
 
     this.attesterWeb3
       .submitAttestation(

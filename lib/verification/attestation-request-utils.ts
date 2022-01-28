@@ -1,7 +1,6 @@
 import BN from "bn.js";
+import { AdditionalTransactionDetails, toBN, toNumber } from "flare-mcc";
 import Web3 from "web3";
-import { AdditionalTransactionDetails } from "../MCC/types";
-import { toBN, toNumber } from "../MCC/utils";
 import {
   AttestationRequest,
   AttestationType,

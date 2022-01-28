@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { AdditionalTransactionDetails, ChainType } from "../MCC/types";
+import { AdditionalTransactionDetails, ChainType } from "flare-mcc";
 
 export interface VerificationTestOptions {
   testFailProbability?: number;

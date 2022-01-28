@@ -1,7 +1,6 @@
 import { MerkleTree } from "../lib/utils/MerkleTree";
-import { prefix0x } from "../lib/MCC/utils";
-import { HashTestInstance } from "../typechain-truffle";
 import { toHex } from "../lib/utils/utils";
+import { HashTestInstance } from "../typechain-truffle";
 
 const N = 20;
 

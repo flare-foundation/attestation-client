@@ -1,6 +1,5 @@
+import { AdditionalTransactionDetails, toBN } from "flare-mcc";
 import { TxResponse } from "xrpl";
-import { AdditionalTransactionDetails } from "../../../../MCC/types";
-import { toBN } from "../../../../MCC/utils";
 import { checkDataAvailability } from "../../../attestation-request-utils";
 import {
   AttestationType,

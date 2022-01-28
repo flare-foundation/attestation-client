@@ -1,9 +1,9 @@
 import BN from "bn.js";
 import { ethers } from "ethers";
+import { prefix0x, toBN } from "flare-mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
-import { prefix0x, toBN } from "../MCC/utils";
 
 export const DECIMALS = 5;
 
@@ -192,4 +192,12 @@ export function prettyPrintObject(normalized: any) {
     }
   }
   console.log(JSON.stringify(res, null, 2));
+}
+
+export function round(x: number, decimal: number = 0) {
+  if (decimal === 0) return Math.round(x);
+
+  const dec10 = 10 ** decimal;
+
+  return Math.round(x * dec10) / dec10;
 }

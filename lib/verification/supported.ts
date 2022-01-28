@@ -1,4 +1,4 @@
-import { ChainType } from "../MCC/types";
+import { ChainType } from "flare-mcc";
 import { AttestationType } from "./attestation-types";
 import { isSupportedTransactionUtxo } from "./chains/UTXO/supported.utxo";
 import { isSupportedTransactionXRP } from "./chains/XRP/supported.xrp";

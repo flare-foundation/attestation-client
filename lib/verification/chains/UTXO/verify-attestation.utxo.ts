@@ -1,5 +1,5 @@
-import { AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface } from "../../../MCC/types";
-import { toNumber, unPrefix0x } from "../../../MCC/utils";
+
+import { toNumber, unPrefix0x, AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface } from "flare-mcc";
 import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationTestOptions } from "../../attestation-types";
 import { numberOfConfirmations } from "../../confirmations";
 import { verifyDecreaseBalanceUtxo } from "./attestation-types/decrease-balance.utxo";

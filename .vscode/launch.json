@@ -181,5 +181,21 @@
             ]
         },
 
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Quick",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/QuickTest.test.ts"
+            ]
+        },
+
     ]
 }

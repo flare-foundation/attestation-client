@@ -1,6 +1,6 @@
 import BN from "bn.js";
+import { toBN } from "flare-mcc";
 import Web3 from "web3";
-import { toBN } from "../MCC/utils";
 import { toHex } from "./utils";
 
 /**

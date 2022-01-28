@@ -1,5 +1,5 @@
-import { MCC } from "../lib/MCC";
-import { ChainType } from "../lib/MCC/types";
+
+import { ChainType, MCC } from "flare-mcc";
 import { AttestationType, VerificationStatus } from "../lib/verification/attestation-types";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { testUtxo, traverseAndTestUtxoChain, UtxoTraverseTestOptions } from "./utils/test-utils";

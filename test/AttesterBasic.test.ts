@@ -1,8 +1,9 @@
+import { ChainType } from "flare-mcc/dist/types";
 import { AttesterClientChain } from "../lib/attester/AttesterClientChain";
 import { ChainManager } from "../lib/chain/ChainManager";
 import { ChainNode } from "../lib/chain/ChainNode";
 import { getGlobalLogger } from "../lib/utils/logger";
-import { ChainType } from "../lib/MCC/types";
+
 
 // todo test: test per second limiter
 // todo test: test queue limiter

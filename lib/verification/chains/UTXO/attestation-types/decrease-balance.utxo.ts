@@ -1,6 +1,5 @@
 import BN from "bn.js";
-import { AdditionalTransactionDetails } from "../../../../MCC/types";
-import { toBN, toNumber } from "../../../../MCC/utils";
+import { AdditionalTransactionDetails, toBN, toNumber } from "flare-mcc";
 import { checkDataAvailability } from "../../../attestation-request-utils";
 import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
 

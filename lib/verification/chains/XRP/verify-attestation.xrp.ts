@@ -1,6 +1,5 @@
+import { AdditionalTransactionDetails, ChainType, unPrefix0x, toNumber, RPCInterface } from "flare-mcc";
 import { TxResponse } from "xrpl";
-import { AdditionalTransactionDetails, ChainType, RPCInterface } from "../../../MCC/types";
-import { toNumber, unPrefix0x } from "../../../MCC/utils";
 import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationTestOptions } from "../../attestation-types";
 import { numberOfConfirmations } from "../../confirmations";
 import { verifyDecreaseBalanceXRP } from "./attestation-types/decrease-balance.xrp";

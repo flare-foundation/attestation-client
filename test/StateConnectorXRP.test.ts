@@ -1,8 +1,6 @@
 
+import { ChainType, MCC, prefix0x, toBN } from "flare-mcc";
 import { LedgerResponse } from "xrpl";
-import { MCC } from "../lib/MCC";
-import { ChainType } from "../lib/MCC/types";
-import { prefix0x, toBN } from "../lib/MCC/utils";
 import {
   attReqToTransactionAttestationRequest,
   extractAttEvents,

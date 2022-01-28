@@ -1,5 +1,5 @@
-import { ChainType } from "../MCC/types";
-import { sleep, toBN, toNumber } from "../MCC/utils";
+
+import { ChainType, toNumber } from "flare-mcc";
 import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "./attestation-types";
 import { verififyAttestationUtxo } from "./chains/UTXO/verify-attestation.utxo";
 import { verififyAttestationXRP } from "./chains/XRP/verify-attestation.xrp";

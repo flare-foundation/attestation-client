@@ -17,7 +17,7 @@ async function main2() {
     let stateConnector = await StateConnector.at(getTestStateConnectorAddress());
 
     // attest transaction on XRP chain
-    const instructions = AttestationType.OneToOnePayment | ( ChainType.XRP << 16 );
+    const instructions = AttestationType.LabeledToOnePayment | ( ChainType.XRP << 16 );
     const id = "0x2BE5EA966817B0BF4E3F66711C979A4B4C88E0EBF99D836505FFA06DC49BA";
 
     let value = etherToValue(web3, 2);

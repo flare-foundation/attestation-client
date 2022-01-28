@@ -110,7 +110,7 @@ export class AttestationRoundManager {
 
     // create attestation depending on type
     switch (tx.type) {
-      case AttestationType.OneToOnePayment: {
+      case AttestationType.LabeledToOnePayment: {
         const chainType: BN = partBNbe(tx.instructions, ATT_BITS, CHAIN_ID_BITS);
 
         // direct chain validation
@@ -120,7 +120,7 @@ export class AttestationRoundManager {
 
         break;
       }
-      case AttestationType.BalanceDecreasingProof:
+      case AttestationType.BalanceDecreasingPayment:
         // todo: implement balance change check
         this.logger.error(`  ! '${tx.type}': unimplemented AttestationType (epoch #${activeRound.epochId})`);
         return undefined;

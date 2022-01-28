@@ -7,9 +7,10 @@ export interface VerificationTestOptions {
 }
 
 export enum AttestationType {
-  OneToOnePayment = 1,
-  BalanceDecreasingProof = 2,
-  BlockHeightExistsProof = 3,
+  LabeledToOnePayment = 1,
+  BalanceDecreasingPayment = 2,
+  BlockHeightExistence = 3,
+  LabeledDeliveryPayment = 4
 }
 
 export enum VerificationStatus {
@@ -36,6 +37,8 @@ export enum VerificationStatus {
   FUNDS_INCREASED = "FUNDS_INCREASED",
   // COINBASE_TRANSACTION = "COINBASE_TRANSACTION",
   UNSUPPORTED_TX_TYPE = "UNSUPPORTED_TX_TYPE",
+  NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",
+  NON_EXISTENT_BLOCK = "NON_EXISTENT_BLOCK",
   RECHECK_LATER = "RECHECK_LATER",
 }
 
@@ -86,7 +89,7 @@ export const UTXO_BITS = 8;
 
 export function attestationTypeEncodingScheme(type: AttestationType) {
   switch (type) {
-    case AttestationType.OneToOnePayment:
+    case AttestationType.LabeledToOnePayment:
       return {
         sizes: [ATT_BITS, CHAIN_ID_BITS, 256 - ATT_BITS - CHAIN_ID_BITS],
         keys: ["attestationType", "chainId", ""],
@@ -117,7 +120,7 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "status",
         ],
       };
-    case AttestationType.BalanceDecreasingProof:
+    case AttestationType.BalanceDecreasingPayment:
       return {
         sizes: [ATT_BITS, CHAIN_ID_BITS, UTXO_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - UTXO_BITS],
         keys: ["attestationType", "chainId", "utxo", ""],
@@ -131,7 +134,7 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
         ],
         hashKeys: ["attestationType", "chainId", "blockNumber", "txId", "sourceAddresses", "spent"],
       };
-    case AttestationType.BlockHeightExistsProof:
+    case AttestationType.BlockHeightExistence:
       return {
         sizes: [ATT_BITS, CHAIN_ID_BITS, 256 - ATT_BITS - CHAIN_ID_BITS],
         keys: ["attestationType", "chainId", ""],

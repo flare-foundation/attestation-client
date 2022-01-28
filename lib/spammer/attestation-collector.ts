@@ -319,7 +319,7 @@ class AttestationCollector {
           throw error;
         });
         for (let tx of hashes) {
-          let attType = AttestationType.OneToOnePayment;
+          let attType = AttestationType.LabeledToOnePayment;
           let tr = {
             id: tx,
             dataAvailabilityProof: await this.client.getBlockHash(confirmationBlock).catch((error: any) => {

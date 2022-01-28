@@ -25,7 +25,7 @@ const PASSWORD = ""
 const TEST_TX_ID = "096C199D08C3718F8E4F46FC43C984143E528F31A81C6B55C7E18B3841CC2B87"
 const BLOCK_NUMBER = 67260195;
 const DATA_AVAILABILITY_PROOF = "0x0071D0A312453E3D31772390BE5B9B06E7BBC40320BAA512FF67E84EE00A9F5F"
-const ATTESTATION_TYPES = [AttestationType.OneToOnePayment, AttestationType.BalanceDecreasingProof];
+const ATTESTATION_TYPES = [AttestationType.LabeledToOnePayment, AttestationType.BalanceDecreasingPayment];
 
 // const HashTest = artifacts.require("HashTest");
 const StateConnector = artifacts.require("StateConnector");
@@ -42,7 +42,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN)}`, async () => {
   it("Should hashing of a normalized transaction match to one in contract for XRP", async () => {
     // create attestation request ("abuse" conversion to build it)
     let template = {
-      attestationType: AttestationType.OneToOnePayment,
+      attestationType: AttestationType.LabeledToOnePayment,
       instructions: toBN(0),
       id: prefix0x(TEST_TX_ID),
       dataAvailabilityProof: DATA_AVAILABILITY_PROOF,

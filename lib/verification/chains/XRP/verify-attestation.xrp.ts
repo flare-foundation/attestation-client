@@ -3,7 +3,7 @@ import { TxResponse } from "xrpl";
 import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationTestOptions } from "../../attestation-types";
 import { numberOfConfirmations } from "../../confirmations";
 import { verifyDecreaseBalanceXRP } from "./attestation-types/decrease-balance.xrp";
-import { verifyOneToOneXRP } from "./attestation-types/one-to-one.xrp";
+import { verifyOneToOneXRP } from "./attestation-types/labeled-to-one-payment.xrp";
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Verification
@@ -31,9 +31,9 @@ export function verifyXrp(
   testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
   switch (attRequest.attestationType) {
-    case AttestationType.OneToOnePayment:
+    case AttestationType.LabeledToOnePayment:
       return verifyOneToOneXRP(additionalData, attRequest, testOptions);
-    case AttestationType.BalanceDecreasingProof:
+    case AttestationType.BalanceDecreasingPayment:
       return verifyDecreaseBalanceXRP(additionalData, attRequest, testOptions);
     default:
       throw new Error(`Invalid attestation type ${attRequest.attestationType}`);

@@ -2,7 +2,7 @@ import { toNumber, unPrefix0x, AdditionalTransactionDetails, ChainType, IUtxoBlo
 import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationTestOptions } from "../../attestation-types";
 import { numberOfConfirmations } from "../../confirmations";
 import { verifyDecreaseBalanceUtxo } from "./attestation-types/decrease-balance.utxo";
-import { verifyOneToOneUtxo } from "./attestation-types/one-to-one.utxo";
+import { verifyLabeldToOnePaymentUtxo } from "./attestation-types/labeled-to-one-payment.utxo";
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Verification
@@ -64,9 +64,9 @@ export function verifyUtxo(
   testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
   switch (attRequest.attestationType) {
-    case AttestationType.OneToOnePayment:
-      return verifyOneToOneUtxo(additionalData, attRequest, testOptions);
-    case AttestationType.BalanceDecreasingProof:
+    case AttestationType.LabeledToOnePayment:
+      return verifyLabeldToOnePaymentUtxo(additionalData, attRequest, testOptions);
+    case AttestationType.BalanceDecreasingPayment:
       return verifyDecreaseBalanceUtxo(additionalData, attRequest, testOptions);
     default:
       throw new Error(`Invalid attestation type ${attRequest.attestationType}`);

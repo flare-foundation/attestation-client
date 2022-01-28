@@ -1,9 +1,10 @@
+import assert from "assert";
 import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationData } from "../attester/AttestationData";
-import { Attester } from "../attester/Attester";
+import { AttestationRound } from "../attester/AttestationRound";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
-import { AttesterEpoch } from "../attester/AttesterEpoch";
 import { MCC } from "../MCC";
 import { ChainType, RPCInterface } from "../MCC/types";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
@@ -228,11 +229,11 @@ export class ChainNode {
           tx.reverification = true;
 
           // delay until end of commit epoch
-          const timeDelay = (Attester.epochSettings.getEpochIdCommitTimeEnd(tx.epochId) - getTimeMilli()) / 1000;
+          const timeDelay = (AttestationRoundManager.epochSettings.getEpochIdCommitTimeEnd(tx.epochId) - getTimeMilli()) / 1000;
 
           this.delayQueue(tx, timeDelay - this.conf.reverificationTimeOffset);
         } else {
-          this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid);
+          this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, txData);
         }
       })
       .catch((txData: NormalizedTransactionData) => {
@@ -256,9 +257,14 @@ export class ChainNode {
   // transaction was processed
   // move it to transactionsDone
   ////////////////////////////////////////////
-  processed(tx: Attestation, status: AttestationStatus) {
+  processed(tx: Attestation, status: AttestationStatus, verificationData?: NormalizedTransactionData) {
+    assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid vefificationData`);
+
     // set status
     tx.status = status;
+
+    tx.verificationData = verificationData!;
+
     //this.chainManager.logger.info(`    * chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
 
     // move into processed
@@ -283,15 +289,29 @@ export class ChainNode {
   // (1) process
   // (2) queue - if processing is full
   ////////////////////////////////////////////
-  validate(activeEpoch: AttesterEpoch, data: AttestationData): Attestation {
-    // attestation info
-    //this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
+  // validate(activeEpoch: AttestationRound, data: AttestationData): Attestation {
+  //   // attestation info
+  //   //this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
 
-    const transaction = new Attestation();
-    transaction.attesterEpoch = activeEpoch;
-    transaction.epochId = activeEpoch.epochId;
+  //   const transaction = new Attestation();
+  //   transaction.attesterEpoch = activeEpoch;
+  //   transaction.epochId = activeEpoch.epochId;
+  //   transaction.chainNode = this;
+  //   transaction.data = data;
+
+  //   // check if transaction can be added into processing
+  //   if (this.canProcess()) {
+  //     this.process(transaction);
+  //   } else {
+  //     this.queue(transaction);
+  //   }
+
+  //   return transaction;
+  // }
+
+  validate(transaction: Attestation) {
+    //this.chainManager.logger.info(`    * chain ${this.chainName} validate ${data.id}`);
     transaction.chainNode = this;
-    transaction.data = data;
 
     // check if transaction can be added into processing
     if (this.canProcess()) {
@@ -299,8 +319,6 @@ export class ChainNode {
     } else {
       this.queue(transaction);
     }
-
-    return transaction;
   }
 
   ////////////////////////////////////////////

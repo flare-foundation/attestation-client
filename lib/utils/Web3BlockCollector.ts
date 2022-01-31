@@ -42,6 +42,13 @@ export class Web3BlockCollector {
 
       this.logger.info(`   * New block ${processBlock} with ${events.length} event(s)`);
 
+      // todo: order events by: blockNumber, log_index
+      // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
+
+      // events.sort( (a: any,b: any)=>{
+      //   return
+      // })
+
       for (const event of events) {
         action(event);
       }

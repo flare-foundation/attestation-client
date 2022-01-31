@@ -1,0 +1,26 @@
+{
+    "sourceHandlers":{
+       "dataType":"Map",
+       "value":[
+         [
+            0,
+            {
+               "attestationLimitNormal":150,
+               "attestationLimitPriority":20,
+               "requiredBlocks":6,
+               "source":0
+            }
+         ],
+         [
+            3,
+            {
+               "attestationLimitNormal":150,
+               "attestationLimitPriority":20,
+               "requiredBlocks":1,
+               "source":3
+            }
+         ]
+       ]
+    },
+    "startEpoch":150
+ }

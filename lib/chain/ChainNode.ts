@@ -90,6 +90,10 @@ export class ChainNode {
     return true;
   }
 
+  getLoad(): number {
+    return this.transactionsQueue.length + this.transactionsProcessing.length + this.transactionsPriorityQueue.length();
+  }
+
   canAddRequests() {
     const time = getTimeSec();
 
@@ -189,7 +193,7 @@ export class ChainNode {
     const now = getTimeMilli();
 
     // check if the transaction is too late
-    if (now > tx.attesterEpoch.commitEndTime) {
+    if (now > tx.round.commitEndTime) {
       //this.chainManager.logger.error(`  * ${tx.epochId} transaction too late to process`);
 
       tx.status = AttestationStatus.tooLate;

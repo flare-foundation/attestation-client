@@ -4,7 +4,7 @@ import { Attestation } from "../attester/Attestation";
 import { ChainNode } from "./ChainNode";
 
 export class ChainManager {
-  nodes: Map<ChainType, ChainNode> = new Map<ChainType, ChainNode>();
+  nodes = new Map<ChainType, Array<ChainNode>>();
 
   logger: Logger;
 
@@ -12,14 +12,38 @@ export class ChainManager {
     this.logger = logger;
   }
 
+  addNode(chain: ChainType, node: ChainNode) {
+    let chainNodes = this.nodes.get(chain);
+
+    if (!chainNodes) {
+      chainNodes = new Array<ChainNode>();
+      this.nodes.set(chain, chainNodes);
+    }
+
+    chainNodes.push(node);
+  }
+
   validateTransaction(chain: ChainType, transaction: Attestation) {
-    if (!this.nodes.has(chain)) {
+    const nodes = this.nodes.get(chain);
+
+    if (!nodes) {
       this.logger.error(`  ! '${chain}: undefined chain'`);
       //
       return undefined;
     }
 
-    // todo: select least used node for this chain
-    return this.nodes.get(chain)!.validate(transaction);
+    if (nodes.length == 1) {
+      return nodes[0].validate(transaction);
+    } else {
+      // find node with least load
+      let bestNode = nodes[0];
+      for (let a = 1; a < nodes.length; a++) {
+        if (bestNode.getLoad() > nodes[a].getLoad()) {
+          bestNode = nodes[a];
+        }
+      }
+
+      return bestNode.validate(transaction);
+    }
   }
 }

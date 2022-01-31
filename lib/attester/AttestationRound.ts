@@ -1,6 +1,7 @@
 import assert from "assert";
 import BN from "bn.js";
 import { toBN } from "flare-mcc";
+import { runInThisContext } from "vm";
 import { Hash } from "../utils/Hash";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";

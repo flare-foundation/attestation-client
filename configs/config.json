@@ -8,6 +8,8 @@
 
     "firstEpochStartTime":1636070400,
     "epochPeriod": 10,
+
+    "dynamicAttestationConfigurationFolder": "./configs/dac/",
     
     "commitTime":5,
     "revealTime":1,

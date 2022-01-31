@@ -14,6 +14,8 @@ export class AttesterClientConfiguration {
   // epoch perior in sec
   public epochPeriod!: number;
 
+  public dynamicAttestationConfigurationFolder: string = "./dac/";
+
   // in sec
   public commitTime!: number;
   // in sec

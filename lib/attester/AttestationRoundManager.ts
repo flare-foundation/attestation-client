@@ -1,4 +1,3 @@
-import BN from "bn.js";
 import { ChainType, toBN } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { EpochSettings } from "../utils/EpochSettings";
@@ -11,22 +10,30 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttesterClientConfiguration as AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
+import { AttestationConfigManager } from "./DynamicAttestationConfig";
 
 export class AttestationRoundManager {
   logger: AttLogger;
   static epochSettings: EpochSettings;
   static chainManager: ChainManager;
+  static attestationConfigManager: AttestationConfigManager;
+
   rounds = new Map<number, AttestationRound>();
-  conf!: AttesterClientConfiguration;
+  config!: AttesterClientConfiguration;
   attesterWeb3: AttesterWeb3;
 
-  constructor(chainManager: ChainManager, conf: AttesterClientConfiguration, logger: AttLogger, attesterWeb3: AttesterWeb3) {
-    this.conf = conf;
+  constructor(chainManager: ChainManager, config: AttesterClientConfiguration, logger: AttLogger, attesterWeb3: AttesterWeb3) {
+    this.config = config;
     this.logger = logger;
     this.attesterWeb3 = attesterWeb3;
 
-    AttestationRoundManager.epochSettings = new EpochSettings(toBN(conf.firstEpochStartTime), toBN(conf.epochPeriod));
+    AttestationRoundManager.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.epochPeriod));
     AttestationRoundManager.chainManager = chainManager;
+    AttestationRoundManager.attestationConfigManager = new AttestationConfigManager(config, logger);
+  }
+
+  async initialize() {
+    await AttestationRoundManager.attestationConfigManager.initialize();
   }
 
   async attestate(tx: AttestationData) {
@@ -37,9 +44,9 @@ export class AttestationRoundManager {
     // all times are in milliseconds
     const now = getTimeMilli();
     const epochTimeStart = AttestationRoundManager.epochSettings.getEpochIdTimeStart(epochId);
-    const epochCommitTime: number = epochTimeStart + this.conf.epochPeriod * 1000 + 1;
-    const epochRevealTime: number = epochCommitTime + this.conf.epochPeriod * 1000 + 2;
-    const epochCompleteTime: number = epochRevealTime + this.conf.epochPeriod * 1000 + 3;
+    const epochCommitTime: number = epochTimeStart + this.config.epochPeriod * 1000 + 1;
+    const epochRevealTime: number = epochCommitTime + this.config.epochPeriod * 1000 + 2;
+    const epochCompleteTime: number = epochRevealTime + this.config.epochPeriod * 1000 + 3;
 
     let activeRound = this.rounds.get(epochId);
 
@@ -63,12 +70,12 @@ export class AttestationRoundManager {
       // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
       setTimeout(() => {
         activeRound!.commitLimit();
-      }, epochRevealTime - now - this.conf.commitTime * 1000);
+      }, epochRevealTime - now - this.config.commitTime * 1000);
 
       // trigger reveal
       setTimeout(() => {
         activeRound!.reveal();
-      }, epochRevealTime - now + this.conf.revealTime * 1000);
+      }, epochRevealTime - now + this.config.revealTime * 1000);
 
       // trigger end of reveal epoch, cycle is completed at this point
       setTimeout(() => {
@@ -79,7 +86,7 @@ export class AttestationRoundManager {
 
       this.cleanup();
 
-      activeRound.commitEndTime = epochRevealTime - this.conf.commitTime * 1000;
+      activeRound.commitEndTime = epochRevealTime - this.config.commitTime * 1000;
     }
 
     // create, check and add attestation
@@ -101,20 +108,16 @@ export class AttestationRoundManager {
     }
   }
 
-  async createAttestation(activeRound: AttestationRound, tx: AttestationData): Promise<Attestation | undefined> {
-    const transaction = new Attestation();
-    transaction.attesterEpoch = activeRound;
-    transaction.epochId = activeRound.epochId;
-    //transaction.chainNode = this;
-    transaction.data = tx;
+  async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
+    const transaction = new Attestation(round, data);
 
     // create attestation depending on type
-    switch (tx.type) {
+    switch (data.type) {
       case AttestationType.OneToOnePayment: {
-        const chainType: BN = partBNbe(tx.instructions, ATT_BITS, CHAIN_ID_BITS);
+        const chainType = partBNbe(data.instructions, ATT_BITS, CHAIN_ID_BITS);
 
         // direct chain validation
-        transaction.sourceHandler = activeRound.getSourceHandler(chainType.toNumber(), (attestation) => {
+        transaction.sourceHandler = round.getSourceHandler(chainType.toNumber(), (attestation) => {
           AttestationRoundManager.chainManager.validateTransaction(chainType.toNumber() as ChainType, attestation);
         });
 
@@ -122,10 +125,10 @@ export class AttestationRoundManager {
       }
       case AttestationType.BalanceDecreasingProof:
         // todo: implement balance change check
-        this.logger.error(`  ! '${tx.type}': unimplemented AttestationType (epoch #${activeRound.epochId})`);
+        this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
         return undefined;
       default: {
-        this.logger.error(`  ! '${tx.type}': undefined AttestationType (epoch #${activeRound.epochId})`);
+        this.logger.error(`  ! '${data.type}': undefined AttestationType (epoch #${round.epochId})`);
         return undefined;
       }
     }

@@ -16,7 +16,7 @@ import { AttesterWeb3 } from "./AttesterWeb3";
 export class AttesterClient {
   conf: AttesterClientConfiguration;
   logger: AttLogger;
-  attester: AttestationRoundManager;
+  roundMng: AttestationRoundManager;
   attesterWeb3: AttesterWeb3;
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
@@ -30,7 +30,7 @@ export class AttesterClient {
     this.conf = configuration;
     this.chainManager = new ChainManager(this.logger);
     this.attesterWeb3 = new AttesterWeb3(this.logger, this.conf);
-    this.attester = new AttestationRoundManager(this.chainManager, this.conf, this.logger, this.attesterWeb3);
+    this.roundMng = new AttestationRoundManager(this.chainManager, this.conf, this.logger, this.attesterWeb3);
   }
 
   async start() {
@@ -43,6 +43,8 @@ export class AttesterClient {
 
     // process configuration
     await this.initializeConfiguration();
+
+    await this.roundMng.initialize();
 
     // initialize time and local time difference
     //const sync = await getInternetTime();
@@ -113,7 +115,7 @@ export class AttesterClient {
         continue;
       }
 
-      this.chainManager.nodes.set(chainType, node);
+      this.chainManager.addNode(chainType, node);
     }
   }
 
@@ -167,7 +169,7 @@ export class AttesterClient {
       tx.transactionIndex = toBN(event.transactionIndex);
       tx.signature = toBN(event.signature);
 
-      this.attester.attestate(tx);
+      this.roundMng.attestate(tx);
 
       // for (let a = 0; a < 150; a++) {
       //   this.attester.attestate(tx);

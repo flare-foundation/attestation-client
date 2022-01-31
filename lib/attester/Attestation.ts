@@ -1,7 +1,7 @@
 import { ChainNode } from "../chain/ChainNode";
 import { NormalizedTransactionData } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
-import { AttestationRound } from "./AttestationRound";
+import { AttestationRound, AttestStatus } from "./AttestationRound";
 import { SourceHandler } from "./SourceHandler";
 
 export enum AttestationStatus {
@@ -23,8 +23,8 @@ export interface EventValidate {
 }
 
 export class Attestation {
-  epochId!: number;
-  attesterEpoch!: AttestationRound;
+  epochId: number;
+  round: AttestationRound;
   sourceHandler!: SourceHandler;
 
   metaData!: any;
@@ -45,4 +45,10 @@ export class Attestation {
   reverification: boolean = false;
 
   onProcessed: EventProcessed | undefined = undefined;
+
+  constructor(round: AttestationRound, data: AttestationData) {
+    this.round = round;
+    this.epochId = round.epochId;
+    this.data = data;
+  }
 }

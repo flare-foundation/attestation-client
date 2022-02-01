@@ -2,14 +2,13 @@ import { AdditionalTransactionDetails, toBN } from "flare-mcc";
 import { TxResponse } from "xrpl";
 import { checkDataAvailability } from "../../../attestation-request-utils";
 import {
-  AttestationType,
   NormalizedTransactionData,
   TransactionAttestationRequest,
   VerificationStatus,
-  VerificationTestOptions,
+  VerificationTestOptions
 } from "../../../attestation-types";
 
-export function verifyOneToOneXRP(
+export function verifyPaymentXRP(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
   testOptions?: VerificationTestOptions

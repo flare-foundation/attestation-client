@@ -14,27 +14,41 @@ contract HashTest {
   using MerkleProof for bytes32[];
 
   function testFassetProof(
-    uint32 typ,
-    uint64 chainId,
+    uint16 typ,
+    uint16 chainId,
     uint64 blockNumber,
+    uint64 blockTimestamp,
     bytes32 txId,
-    uint16 inUtxo,
+    uint8 utxo,
     bytes32 sourceAddress,
     bytes32 destinationAddress,
-    uint256 destinationTag,
+    uint256 paymentReference,
     uint256 spent,
     uint256 received,
-    uint256 fee,
+    bool oneToOne,
     uint8 status,
     bytes32 hashToProve
   ) external pure returns (bool _match) {
     bytes32 hash = keccak256(
-      abi.encode(typ, chainId, blockNumber, txId, inUtxo, sourceAddress, destinationAddress, destinationTag, spent, received, fee, status)
+      abi.encode(typ, chainId, blockNumber, blockTimestamp, txId, utxo, sourceAddress, destinationAddress, paymentReference, spent, received, oneToOne, status)
     );
     return hash == hashToProve;
   }
 
   function testDecreaseBalanceProof(
+    uint32 typ,
+    uint64 chainId,
+    uint64 blockNumber,
+    bytes32 txId,
+    bytes32 sourceAddress,
+    uint256 spent,
+    bytes32 hashToProve
+  ) external pure returns (bool _match) {
+    bytes32 hash = keccak256(abi.encode(typ, chainId, blockNumber, txId, sourceAddress, spent));
+    return hash == hashToProve;
+  }
+
+  function testBlockHeigthProof(
     uint32 typ,
     uint64 chainId,
     uint64 blockNumber,

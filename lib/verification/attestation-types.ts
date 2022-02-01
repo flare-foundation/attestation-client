@@ -7,9 +7,9 @@ export interface VerificationTestOptions {
 }
 
 export enum AttestationType {
-  OneToOnePayment = 1,
-  BalanceDecreasingProof = 2,
-  BlockHeightExistsProof = 3,
+  Payment = 1,
+  BalanceDecreasingPayment = 2,
+  BlockHeightExistence = 3,
 }
 
 export enum VerificationStatus {
@@ -36,6 +36,8 @@ export enum VerificationStatus {
   FUNDS_INCREASED = "FUNDS_INCREASED",
   // COINBASE_TRANSACTION = "COINBASE_TRANSACTION",
   UNSUPPORTED_TX_TYPE = "UNSUPPORTED_TX_TYPE",
+  NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",
+  NON_EXISTENT_BLOCK = "NON_EXISTENT_BLOCK",
   RECHECK_LATER = "RECHECK_LATER",
 }
 
@@ -43,6 +45,7 @@ export interface NormalizedTransactionData extends AdditionalTransactionDetails 
   attestationType: AttestationType;
   chainId: BN;
   verified: boolean;
+  isOneToOne?: boolean;
   verificationStatus: VerificationStatus;
   utxo?: BN;
 }
@@ -86,58 +89,63 @@ export const UTXO_BITS = 8;
 
 export function attestationTypeEncodingScheme(type: AttestationType) {
   switch (type) {
-    case AttestationType.OneToOnePayment:
+    case AttestationType.Payment:
       return {
-        sizes: [ATT_BITS, CHAIN_ID_BITS, 256 - ATT_BITS - CHAIN_ID_BITS],
-        keys: ["attestationType", "chainId", ""],
+        sizes: [ATT_BITS, CHAIN_ID_BITS, UTXO_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - UTXO_BITS],
+        keys: ["attestationType", "chainId", "utxo", ""],
         hashTypes: [
-          "uint32", // type
-          "uint64", // chainId
-          "uint64", // blockNumber
+          "uint16",  // attestationType
+          "uint16",  // chainId
+          "uint64",  // blockNumber
+          "uint64",  // blockTimestamp
           "bytes32", // txId
+          "uint8",   // utxo
           "bytes32", // sourceAddress
           "bytes32", // destinationAddress
-          "uint256", // destinationTag
+          "uint256", // paymentReference
           "uint256", // spent
-          "uint256", // delivered
-          "uint256", // fee
+          "uint256", // received
+          "bool", // oneToOne
           "uint8", // status
         ],
         hashKeys: [
           "attestationType",
           "chainId",
           "blockNumber",
+          "blockTimestamp",
           "txId",
+          "utxo",
           "sourceAddresses",
           "destinationAddresses",
-          "destinationTag",
+          "paymentReference",
           "spent",
-          "delivered",
-          "fee",
+          "received",
+          "oneToOne",
           "status",
         ],
       };
-    case AttestationType.BalanceDecreasingProof:
+    case AttestationType.BalanceDecreasingPayment:
       return {
         sizes: [ATT_BITS, CHAIN_ID_BITS, UTXO_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - UTXO_BITS],
-        keys: ["attestationType", "chainId", "utxo", ""],
+        keys: ["attestationType", "chainId", ""],
         hashTypes: [
-          "uint32", // type
-          "uint64", // chainId
+          "uint16", // attestationType
+          "uint16", // chainId
           "uint64", // blockNumber
+          "uint64", // blockTimestamp
           "bytes32", // txId
           "bytes32", // sourceAddress
           "uint256", // spent
         ],
-        hashKeys: ["attestationType", "chainId", "blockNumber", "txId", "sourceAddresses", "spent"],
+        hashKeys: ["attestationType", "chainId", "blockNumber", "blockTimestamp", "txId", "sourceAddresses", "spent"],
       };
-    case AttestationType.BlockHeightExistsProof:
+    case AttestationType.BlockHeightExistence:
       return {
         sizes: [ATT_BITS, CHAIN_ID_BITS, 256 - ATT_BITS - CHAIN_ID_BITS],
         keys: ["attestationType", "chainId", ""],
         hashTypes: [
-          "uint32", // type
-          "uint64", // chainId
+          "uint16", // attestationType
+          "uint16", // chainId
           "uint64", // blockNumber
         ],
         hashKeys: ["attestationType", "chainId", "blockNumber"],

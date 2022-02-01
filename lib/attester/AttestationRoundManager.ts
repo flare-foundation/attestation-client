@@ -113,8 +113,8 @@ export class AttestationRoundManager {
 
     // create attestation depending on type
     switch (data.type) {
-      case AttestationType.OneToOnePayment: {
-        const chainType = partBNbe(data.instructions, ATT_BITS, CHAIN_ID_BITS);
+      case AttestationType.Payment: {
+        const chainType: BN = partBNbe(data.instructions, ATT_BITS, CHAIN_ID_BITS);
 
         // direct chain validation
         transaction.sourceHandler = round.getSourceHandler(chainType.toNumber(), (attestation) => {
@@ -123,7 +123,7 @@ export class AttestationRoundManager {
 
         break;
       }
-      case AttestationType.BalanceDecreasingProof:
+      case AttestationType.BalanceDecreasingPayment:
         // todo: implement balance change check
         this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
         return undefined;

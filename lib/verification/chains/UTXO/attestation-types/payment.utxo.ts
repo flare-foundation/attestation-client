@@ -3,7 +3,7 @@ import { AdditionalTransactionDetails, toBN } from "flare-mcc";
 import { checkDataAvailability } from "../../../attestation-request-utils";
 import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
 
-export function verifyOneToOneUtxo(
+export function verifyPaymentUtxo(
   additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
   testOptions?: VerificationTestOptions

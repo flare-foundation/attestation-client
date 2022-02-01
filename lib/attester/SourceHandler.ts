@@ -1,4 +1,3 @@
-import { ChainType } from "flare-mcc";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -13,30 +12,22 @@ export class SourceHandler {
 
   round: AttestationRound;
 
-  source: number;
-
-  attestations: number = 0;
-
   onValidateAttestation: EventValidateAttestation | undefined = undefined;
 
-  constructor(round: AttestationRound, source: number, onValidateAttestation: EventValidateAttestation) {
+  constructor(round: AttestationRound, id: number, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
-    this.config = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(source, round.epochId);
-
-    //AttestationRoundManager.logger
-
-    this.source = source as ChainType;
+    this.config = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(id, round.epochId);
     this.onValidateAttestation = onValidateAttestation;
   }
 
   validate(attestation: Attestation) {
-    this.attestations++;
-
-    if (this.attestations > this.config.attestationLimitNormal) {
+    if (this.round.attestationCalls >= this.config.maxCallsPerRound) {
       attestation.status = AttestationStatus.overLimit;
       attestation.onProcessed!(attestation);
       return;
     }
+
+    this.round.attestationCalls += this.config.avgCalls;
 
     this.onValidateAttestation!(attestation);
   }

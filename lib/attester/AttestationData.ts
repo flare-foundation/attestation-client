@@ -1,17 +1,18 @@
 import BN from "bn.js";
+import { Hash } from "../utils/Hash";
 import { AttestationRequest, AttestationType } from "../verification/attestation-types";
 
 export class AttestationData {
   // event parameters
   type!: AttestationType;
+  source!: number;
   timeStamp!: BN;
   id!: string;
   dataAvailabilityProof!: string;
 
   // block parameters
   blockNumber!: BN;
-  transactionIndex!: BN;
-  signature!: BN;
+  logIndex!: number;
 
   // attestation data
   instructions!: BN;
@@ -20,13 +21,18 @@ export class AttestationData {
     if (this.blockNumber.lt(obj.blockNumber)) return -1;
     if (this.blockNumber.gt(obj.blockNumber)) return 1;
 
-    if (this.transactionIndex.lt(obj.transactionIndex)) return -1;
-    if (this.transactionIndex.gt(obj.transactionIndex)) return 1;
-
-    if (this.signature.lt(obj.signature)) return -1;
-    if (this.signature.gt(obj.signature)) return 1;
+    if (this.logIndex < obj.logIndex) return -1;
+    if (this.logIndex > obj.logIndex) return 1;
 
     return 0;
+  }
+
+  getTypeSource(): number {
+    return ((this.type as number) << 16) + this.source;
+  }
+
+  getHash(): string {
+    return Hash.create(this.instructions.toString() + this.id + this.dataAvailabilityProof);
   }
 
   getAttestationRequest(): AttestationRequest {

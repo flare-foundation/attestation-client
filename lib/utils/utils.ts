@@ -201,3 +201,26 @@ export function round(x: number, decimal: number = 0) {
 
   return Math.round(x * dec10) / dec10;
 }
+
+// use in JSON.stringify( x , JSONMapParser ) to save Map
+
+export function JSONMapStringify(key: any, value: any) {
+  if (value instanceof Map) {
+    return {
+      dataType: "Map",
+      value: Array.from(value.entries()), // or with spread: value: [...value]
+    };
+  } else {
+    return value;
+  }
+}
+
+// use in JSON.parse( x , JSONMapParser ) to load Map saved with above function
+export function JSONMapParser(key: any, value: any) {
+  if (typeof value === "object" && value !== null) {
+    if (value.dataType === "Map") {
+      return new Map(value.value);
+    }
+  }
+  return value;
+}

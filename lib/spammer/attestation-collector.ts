@@ -287,7 +287,7 @@ class AttestationCollector {
     }
   }
 
-  async runSpammer() {
+  async runCollector() {
     await this.waitForStateConnector();
     if (this.logEvents) {
       this.startLogEvents(); // async run
@@ -296,7 +296,6 @@ class AttestationCollector {
     while (true) {
       try {
         // create process that will collect valid transactions
-        //
         let latestBlockNumber = await this.client.getBlockHeight();
         let rangeMax = latestBlockNumber - this.confirmations;
         if (rangeMax < 0) {
@@ -348,7 +347,7 @@ class AttestationCollector {
                     fs.appendFileSync(`db/transactions.${args.loggerLabel}.valid.json`, data);
                   }
                 } else {
-                  // this.logger.info(`   refused ${attType},${txData.verificationStatus}`, );
+                  // this.logger.info(`refused ${attType},${txData.verificationStatus}`, );
                   if (a === 0) {
                     AttestationCollector.invalid++;
                     fs.appendFileSync(`db/transactions.${args.loggerLabel}.invalid.json`, data);
@@ -408,7 +407,7 @@ async function runAllAttestationCollectors() {
 
   const accounts = JSON.parse(fs.readFileSync(args["accountsFile"]));
   const privateKeys: string[] = accounts.map((x: any) => x.privateKey).slice(args["startAccountId"], args["startAccountId"] + args["numberOfAccounts"]);
-  return Promise.all(privateKeys.map((key, number) => new AttestationCollector(key, number == 0).runSpammer()));
+  return Promise.all(privateKeys.map((key, number) => new AttestationCollector(key, number == 0).runCollector()));
 }
 
 // (new AttestationSpammer()).runSpammer()

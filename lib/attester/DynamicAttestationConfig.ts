@@ -1,17 +1,39 @@
-import { loadavg } from "os";
+import { ChainType } from "flare-mcc";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { JSONMapParser } from "../utils/utils";
+import { AttestationType } from "../verification/attestation-types";
+import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 
 const fs = require("fs");
 
+export enum Source {
+  // from ChainType (must match)
+  invalid = -1,
+  BTC = 0,
+  LTC = 1,
+  DOGE = 2,
+  XRP = 3,
+  ALGO = 4,
+
+  // ... make sure IDs are the same as in Flare node
+  TEST1,
+  TEST2,
+}
+
 export class SourceHandlerConfig {
-  source!: number;
+  attestationType!: AttestationType;
+  source!: Source;
 
-  attestationLimitNormal: number = 1000;
+  maxCallsPerRound!: number;
 
-  attestationLimitPriority: number = 100;
+  avgCalls!: number;
 
   requiredBlocks: number = 1;
+
+  getId(): number {
+    return ((this.attestationType as number) << 16) + (this.source as number);
+  }
 }
 
 export class AttestationConfig {
@@ -29,32 +51,38 @@ export class AttestationConfigManager {
   constructor(config: AttesterClientConfiguration, logger: AttLogger) {
     this.config = config;
     this.logger = logger;
+
+    this.validateEnumNames();
+  }
+
+  validateEnumNames() {
+    const logger = getGlobalLogger();
+
+    for (let value in ChainType) {
+      if (typeof ChainType[value] === "number") {
+        if (ChainType[value] !== Source[value]) {
+          logger.error2(
+            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${Source[Source[value] as any]}=${
+              Source[value]
+            }`
+          );
+        }
+
+        if (ChainType[ChainType[value] as any] !== Source[Source[value] as any]) {
+          logger.error2(
+            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${Source[Source[value] as any]}=${
+              Source[value]
+            }`
+          );
+        }
+      }
+    }
   }
 
   async initialize() {
     await this.loadAll();
 
     this.dynamicLoadInitialize();
-  }
-
-  replacer(key: any, value: any) {
-    if (value instanceof Map) {
-      return {
-        dataType: "Map",
-        value: Array.from(value.entries()), // or with spread: value: [...value]
-      };
-    } else {
-      return value;
-    }
-  }
-
-  reviver(key: any, value: any) {
-    if (typeof value === "object" && value !== null) {
-      if (value.dataType === "Map") {
-        return new Map(value.value);
-      }
-    }
-    return value;
   }
 
   dynamicLoadInitialize() {
@@ -86,13 +114,35 @@ export class AttestationConfigManager {
     }
   }
 
-  load(filename: string): boolean {
-    this.logger.info(`DAC load '${filename}'`);
+  load(filename: string, disregardObsolete: boolean = false): boolean {
+    this.logger.info(`^GDAC load '${filename}'`);
 
-    const config = JSON.parse(fs.readFileSync(filename), this.reviver) as AttestationConfig;
+    const fileConfig = JSON.parse(fs.readFileSync(filename), JSONMapParser);
 
-    // todo: add warning if loading current epoch (or next one)
-    // todo: disregard if epoch number is less than current epoch
+    // check if loading current epoch (or next one)
+    if (fileConfig.startEpoch == AttestationRoundManager.activeEpochId || fileConfig.startEpoch == AttestationRoundManager.activeEpochId + 1) {
+      this.logger.warning(`DAC almost alive (epoch ${fileConfig.startEpoch})`);
+    }
+
+    // convert from file structure
+    const config = new AttestationConfig();
+    config.startEpoch = fileConfig.startEpoch;
+
+    fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; requiredBlocks: number; maxCallsPerRound: number }) => {
+      source.attestationTypes.forEach((attestationType) => {
+        const sourceHandler = new SourceHandlerConfig();
+
+        sourceHandler.attestationType = (<any>AttestationType)[attestationType.type] as AttestationType;
+        sourceHandler.source = (<any>Source)[source.source] as Source;
+
+        sourceHandler.maxCallsPerRound = source.maxCallsPerRound;
+        sourceHandler.requiredBlocks = source.requiredBlocks;
+
+        sourceHandler.avgCalls = attestationType.avgCalls;
+
+        config.sourceHandlers.set(sourceHandler.getId(), sourceHandler);
+      });
+    });
 
     this.attestationConfig.push(config);
 
@@ -105,6 +155,15 @@ export class AttestationConfigManager {
       if (a.startEpoch > b.startEpoch) return -1;
       return 0;
     });
+
+    // cleanup
+    for (let a = 1; a < this.attestationConfig.length; a++) {
+      if (this.attestationConfig[a].startEpoch < AttestationRoundManager.activeEpochId) {
+        this.logger.debug(`DAC cleanup #${a} (epoch ${this.attestationConfig[a].startEpoch})`);
+        this.attestationConfig.slice(a);
+        return;
+      }
+    }
   }
 
   getSourceHandlerConfig(source: number, epoch: number): SourceHandlerConfig {

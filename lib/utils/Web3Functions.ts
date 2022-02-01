@@ -56,7 +56,7 @@ export class Web3Functions {
 
     if (waitIndex !== this.currentIndex) {
       if (!quiet) {
-        this.logger.debug(`   # ${label} wait #${waitIndex}/${this.currentIndex}`);
+        this.logger.debug(`sign ${label} wait #${waitIndex}/${this.currentIndex}`);
       }
 
       while (waitIndex !== this.currentIndex) {
@@ -65,7 +65,7 @@ export class Web3Functions {
     }
 
     if (!quiet) {
-      this.logger.info(`   * ${label} start #${waitIndex}`);
+      this.logger.info(`sign ${label} start #${waitIndex}`);
     }
 
     const res = await this._signAndFinalize3(label, toAddress, fnToEncode, gas, gasPrice);
@@ -73,7 +73,7 @@ export class Web3Functions {
     const time1 = getTimeMilli();
 
     if (!quiet) {
-      this.logger.info(`   * ${label} done #${waitIndex} (time ${time1 - time0}s)`);
+      this.logger.info(`sign ${label} done #${waitIndex} (time ${time1 - time0}s)`);
     }
 
     this.currentIndex += 1;

@@ -7,7 +7,7 @@ import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
 import { partBNbe } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
-import { AttestationType, ATT_BITS } from "../verification/attestation-types";
+import { AttestationType, ATT_BITS, CHAIN_ID_BITS } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
@@ -36,7 +36,7 @@ export class AttesterClient {
   async start() {
     const version = "1000";
 
-    this.logger.title(`Starting Flare Attester Client v${version}`);
+    this.logger.title(`starting Flare Attester Client v${version}`);
 
     // create state connector
     await this.attesterWeb3.initialize();
@@ -48,7 +48,7 @@ export class AttesterClient {
 
     // initialize time and local time difference
     //const sync = await getInternetTime();
-    //this.logger.info(` * Internet time sync ${sync}ms`);
+    //this.logger.info(`internet time sync ${sync}ms`);
 
     // validate configuration chains and create nodes
     await this.initializeChains();
@@ -73,45 +73,45 @@ export class AttesterClient {
     const configData: string = "";
     let accountPrivateKey: string = "";
 
-    this.logger.info(` * Configuration`);
+    this.logger.info(`configuration`);
 
     if (process.env.PROJECT_SECRET === undefined) {
-      this.logger.info(`   * Account read from .env`);
+      this.logger.info(`account read from .env`);
       accountPrivateKey = this.conf.accountPrivateKey as string;
     } else if (process.env.USE_GCP_SECRET) {
-      this.logger.info(`   * Account read from secret`);
+      this.logger.info(`^Raccount read from secret`);
       accountPrivateKey = (await fetchSecret(process.env.PROJECT_SECRET as string)) as string;
     } else {
-      this.logger.info(`   * Account read from config`);
+      this.logger.info(`^Gaccount read from config`);
       accountPrivateKey = this.conf.accountPrivateKey as string;
     }
 
-    this.logger.info(`   * Network RPC URL from conf '${this.conf.rpcUrl}'`);
+    this.logger.info(`network RPC URL from conf '${this.conf.rpcUrl}'`);
 
     if (accountPrivateKey === "" || accountPrivateKey === undefined) {
-      this.logger.error(`   ! ERROR: private key not set`);
+      this.logger.error(`private key not set`);
     }
   }
 
   async initializeChains() {
-    this.logger.info(" * Initializing chains");
+    this.logger.info("initializing chains");
 
     for (const chain of this.conf.chains) {
       const chainType = MCC.getChainType(chain.name);
 
       if (chainType === ChainType.invalid) {
-        this.logger.debug(`   # '${chain.name}': undefined chain`);
+        this.logger.debug(`chain '${chain.name}': undefined chain`);
         continue;
       }
 
       const node = new ChainNode(this.chainManager, chain.name, chainType, chain.metaData, chain);
 
-      this.logger.info(`    * ${chain.name}:#${chainType} '${chain.url}'`);
+      this.logger.info(`chain ${chain.name}:#${chainType} '${chain.url}'`);
 
       // validate this chain node
       if (!(await node.isHealthy())) {
         // this is just a warning since node can be inaccessible at start and will become healthy later on
-        this.logger.error(`      ! chain ${chain.name}:#${chainType} is not healthy`);
+        this.logger.error(`chain ${chain.name}:#${chainType} is not healthy`);
         continue;
       }
 
@@ -137,15 +137,6 @@ export class AttesterClient {
       //     bytes32 dataAvailabilityProof
       // );
 
-      //  16 attestation type (bits 0..)
-      //  32 chain id
-      //  64 block height
-
-      // if (this.onlyOnce) {
-      //   return;
-      // }
-      // this.onlyOnce = true;
-
       const timeStamp: string = event.returnValues.timestamp;
       const instruction: string = event.returnValues.instructions;
       const id: string = event.returnValues.id;
@@ -153,10 +144,12 @@ export class AttesterClient {
       const instBN = toBN(instruction);
 
       const attestationType: BN = partBNbe(instBN, 0, ATT_BITS);
+      const source = partBNbe(instBN, ATT_BITS, CHAIN_ID_BITS);
 
       // attestation info
       const tx = new AttestationData();
       tx.type = attestationType.toNumber() as AttestationType;
+      tx.source = source.toNumber();
       tx.timeStamp = toBN(timeStamp);
       tx.id = id;
       tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;
@@ -166,11 +159,11 @@ export class AttesterClient {
 
       // for sorting
       tx.blockNumber = toBN(event.blockNumber);
-      tx.transactionIndex = toBN(event.transactionIndex);
-      tx.signature = toBN(event.signature);
+      tx.logIndex = event.logIndex;
 
       this.roundMng.attestate(tx);
 
+      // for syntetic trafic test (will not work now because we filter out duplicates)
       // for (let a = 0; a < 150; a++) {
       //   this.attester.attestate(tx);
       //   sleepms(2);

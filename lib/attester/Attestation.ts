@@ -1,7 +1,7 @@
 import { ChainNode } from "../chain/ChainNode";
-import { NormalizedTransactionData } from "../verification/attestation-types";
+import { AttestationType, NormalizedTransactionData } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
-import { AttestationRound, AttestStatus } from "./AttestationRound";
+import { AttestationRound } from "./AttestationRound";
 import { SourceHandler } from "./SourceHandler";
 
 export enum AttestationStatus {

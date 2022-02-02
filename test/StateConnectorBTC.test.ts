@@ -1,5 +1,5 @@
 
-import { ChainType, MCC } from "flare-mcc";
+import { ChainType, IUtxoGetTransactionRes, MCC } from "flare-mcc";
 import { AttestationType, VerificationStatus } from "../lib/verification/attestation-types";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { testUtxo, traverseAndTestUtxoChain, UtxoTraverseTestOptions } from "./utils/test-utils";
@@ -44,7 +44,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN)}`, async () => {
   it("Should extract correct payment reference based on OP_RETURN", async () => {
     // see: https://bitcoin.stackexchange.com/questions/29554/explanation-of-what-an-op-return-transaction-looks-like
     let targetPaymentReference = "636861726c6579206c6f766573206865696469";
-    let response = await client.getTransaction("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684", {verbose: true});
+    let response = await client.getTransaction("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684", {verbose: true}) as IUtxoGetTransactionRes;
     console.log(response.vout[0].scriptPubKey.asm);
     let payementReference = (response.vout[0].scriptPubKey.asm as string).slice(10);
     assert(targetPaymentReference === payementReference);
@@ -69,34 +69,52 @@ describe(`Test ${MCC.getChainTypeName(CHAIN)}`, async () => {
   // });
 
 
-  it("Should return NOT_SINGLE_DESTINATION_ADDRESS", async () => {
-    await testUtxo(client, stateConnector, ChainType.BTC,
-      "0x642ac657335c3d3ccc61a569f769aa754c0fda6a7155603b8ba12bfc4708fa6e",
-      718115,
-      0,
-      VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS
-    )
-  });
+  // it.only("Should return NOT_SINGLE_DESTINATION_ADDRESS", async () => {
+  //   await testUtxo(client, stateConnector, ChainType.BTC,
+  //     "0x642ac657335c3d3ccc61a569f769aa754c0fda6a7155603b8ba12bfc4708fa6e",
+  //     718115,
+  //     0,
+  //     VerificationStatus.OK
+  //   )
+  // });
 
-  it("Should return EMPTY_IN_ADDRESS", async () => {
+  it("Should return EMPTY_IN_ADDRESS", async () => { /// Multiple OP return
     await testUtxo(client, stateConnector, ChainType.BTC,
       "0x036b40d81875cdd8dfb4f4e114910309173a2d24cf008a6d9febb1ffdd569ea4",
       718115,
       0,
-      VerificationStatus.EMPTY_IN_ADDRESS
+      VerificationStatus.OK
     )
   });
 
-  // it("Should return WRONG_IN_UTXO", async () => {
-  //   await testUtxo(client, stateConnector, ChainType.BTC,
-  //     "0xceb8b1b28a12441d924b1443efbb282eec88d8dbd2790b93199cac0add6a0f22",
-  //     718261,
-  //     2,
-  //     VerificationStatus.WRONG_IN_UTXO
-  //   )
-  // });
+  it("Should pass if only coinbase input and multiple OP_RETURN", async () => {
+    await testUtxo(client, stateConnector, ChainType.BTC,
+      "0xd1bf731559a786908848d4f7f3fb3fa2b66b1ac290aeba9570833b99b903dcc2",
+      721450,
+      0,
+      VerificationStatus.OK
+    )
+  });
 
-  it.skip("Should make lots of attestation requests", async () => {
+  it("Should return UNSUPPORTED_DESTINATION_ADDRESS", async () => {
+    await testUtxo(client, stateConnector, ChainType.BTC,
+      "0xceb8b1b28a12441d924b1443efbb282eec88d8dbd2790b93199cac0add6a0f22",
+      718261,
+      2,
+      VerificationStatus.UNSUPPORTED_DESTINATION_ADDRESS
+    )
+  });
+
+  it("Should return WRONG_OUT_UTXO", async () => {
+    await testUtxo(client, stateConnector, ChainType.BTC,
+      "0xceb8b1b28a12441d924b1443efbb282eec88d8dbd2790b93199cac0add6a0f22",
+      718261,
+      4,
+      VerificationStatus.WRONG_OUT_UTXO
+    )
+  });
+
+  it("Should make lots of attestation requests", async () => {
     await traverseAndTestUtxoChain(
       client, stateConnector, ChainType.BTC,
       {

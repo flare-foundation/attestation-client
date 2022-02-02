@@ -337,7 +337,7 @@ class AttestationCollector {
           // duplicate requests so that looks like many verifications
           for (let a = 0; a < DEBUG_REPEATS; a++) {
             //this.logger.info("verifyTransactionAttestation");
-            verifyTransactionAttestation(this.client, tr, { getAvailabilityProof: true })
+            verifyTransactionAttestation(this.client, tr, { skipDataAvailabilityProof: true })
               .then((txData: NormalizedTransactionData) => {
                 // save
                 const data = JSON.stringify(attRequest) + ",\n";

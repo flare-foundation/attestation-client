@@ -13,7 +13,7 @@ import {MerkleProof} from "@openzeppelin/contracts/cryptography/MerkleProof.sol"
 contract HashTest {
   using MerkleProof for bytes32[];
 
-  function testFassetProof(
+  function testPaymentProof(
     uint16 typ,
     uint16 chainId,
     uint64 blockNumber,
@@ -24,13 +24,13 @@ contract HashTest {
     bytes32 destinationAddress,
     uint256 paymentReference,
     uint256 spent,
-    uint256 received,
-    bool oneToOne,
+    uint256 delivered,
+    bool isFromOne,
     uint8 status,
     bytes32 hashToProve
   ) external pure returns (bool _match) {
     bytes32 hash = keccak256(
-      abi.encode(typ, chainId, blockNumber, blockTimestamp, txId, utxo, sourceAddress, destinationAddress, paymentReference, spent, received, oneToOne, status)
+      abi.encode(typ, chainId, blockNumber, blockTimestamp, txId, utxo, sourceAddress, destinationAddress, paymentReference, spent, delivered, isFromOne, status)
     );
     return hash == hashToProve;
   }
@@ -48,7 +48,7 @@ contract HashTest {
     return hash == hashToProve;
   }
 
-  function testBlockHeigthProof(
+  function testBlockHeightProof(
     uint32 typ,
     uint64 chainId,
     uint64 blockNumber,

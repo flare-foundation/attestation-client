@@ -29,6 +29,16 @@ export interface HashTest extends BaseContract {
   ): HashTest;
   clone(): HashTest;
   methods: {
+    testBlockHeightProof(
+      typ: number | string | BN,
+      chainId: number | string | BN,
+      blockNumber: number | string | BN,
+      txId: string | number[],
+      sourceAddress: string | number[],
+      spent: number | string | BN,
+      hashToProve: string | number[]
+    ): NonPayableTransactionObject<boolean>;
+
     testDecreaseBalanceProof(
       typ: number | string | BN,
       chainId: number | string | BN,
@@ -39,18 +49,19 @@ export interface HashTest extends BaseContract {
       hashToProve: string | number[]
     ): NonPayableTransactionObject<boolean>;
 
-    testFassetProof(
+    testPaymentProof(
       typ: number | string | BN,
       chainId: number | string | BN,
       blockNumber: number | string | BN,
+      blockTimestamp: number | string | BN,
       txId: string | number[],
-      inUtxo: number | string | BN,
+      utxo: number | string | BN,
       sourceAddress: string | number[],
       destinationAddress: string | number[],
-      destinationTag: number | string | BN,
+      paymentReference: number | string | BN,
       spent: number | string | BN,
-      received: number | string | BN,
-      fee: number | string | BN,
+      delivered: number | string | BN,
+      isFromOne: boolean,
       status: number | string | BN,
       hashToProve: string | number[]
     ): NonPayableTransactionObject<boolean>;

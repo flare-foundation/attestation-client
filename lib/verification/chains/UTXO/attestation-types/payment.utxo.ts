@@ -1,112 +1,112 @@
 import BN from "bn.js";
-import { AdditionalTransactionDetails, toBN } from "flare-mcc";
-import { checkDataAvailability } from "../../../attestation-request-utils";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
+import { AdditionalTransactionDetails, toBN, toNumber } from "flare-mcc";
+import { extractBNPaymentReference, genericReturnWithStatus } from "../../../../utils/utils";
+import { checkDataAvailability, instructionsCheck } from "../../../attestation-request-utils";
+import { DataAvailabilityProof, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
 
 export function verifyPaymentUtxo(
   additionalData: AdditionalTransactionDetails,
+  dataAvailability: DataAvailabilityProof,
   attRequest: TransactionAttestationRequest,
   testOptions?: VerificationTestOptions
 ): NormalizedTransactionData {
-  function genericReturnWithStatus(verificationStatus: VerificationStatus) {
-    return {
-      chainId: toBN(attRequest.chainId),
-      attestationType: attRequest.attestationType!,
-      ...additionalData,
-      verificationStatus,
-      // utxo: attRequest.utxo,
-    } as NormalizedTransactionData;
+
+  let RET = (status: VerificationStatus) => genericReturnWithStatus(additionalData, attRequest, status);
+
+  // check against instructions
+  if (!instructionsCheck(additionalData, attRequest)) {
+    return RET(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
   }
 
-  // Test simulation of "too early check"
-  let testFailProbability = testOptions?.testFailProbability || 0;
-  if (testFailProbability > 0) {
-    if (Math.random() < testFailProbability) {
-      return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
+  // check confirmations
+  if (!testOptions?.skipDataAvailabilityProof) {
+    let dataAvailabilityVerification = checkDataAvailability(additionalData, dataAvailability, attRequest);
+    if (dataAvailabilityVerification != VerificationStatus.OK) {
+      return RET(dataAvailabilityVerification);
     }
   }
 
-  // check against instructions
-  // if (!instructionsCheck(additionalData, attRequest)) {
-  //   return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
-  // }
   // Extract source address
-  //   if (attRequest.utxo === undefined) {
-  //     return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
-  //   }
   let theSource: string | undefined = undefined;
-  let inFunds = toBN(0);
+  let allSpentFunds = toBN(0);
+
+  let isSingleSimpleSource = additionalData.sourceAddresses.length > 0;  // true until disproved
+
   for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
     let addressList = additionalData.sourceAddresses[i];
     if (addressList.length !== 1) {
-      return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
+      isSingleSimpleSource = false;
+      // return RET(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
     }
     if (addressList[0] === "") {
-      return genericReturnWithStatus(VerificationStatus.EMPTY_IN_ADDRESS);
+      isSingleSimpleSource = false;
+      // return RET(VerificationStatus.EMPTY_IN_ADDRESS);
     }
-    if (theSource && addressList[0] != theSource) {
-      return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS);
+    if (!theSource) {
+      theSource = addressList[0];
+    } else if (theSource.toLowerCase() != addressList[0].toLowerCase()) {
+      isSingleSimpleSource = false;
     }
-    theSource = addressList[0];
-    inFunds = inFunds.add((additionalData.spent as BN[])[i]);
+    allSpentFunds = allSpentFunds.add((additionalData.spent as BN[])[i]);
   }
-  if (!theSource) {
-    return genericReturnWithStatus(VerificationStatus.EMPTY_IN_ADDRESS);
+  // if (!theSource) {
+  //   return RET(VerificationStatus.EMPTY_IN_ADDRESS);
+  // }
+
+  // Extract destination address
+  let theDestination: string | undefined = undefined;
+  let deliveredFunds = toBN(0); // all delivered
+  let totalOutFunds = toBN(0);
+  let returnedFunds = toBN(0);  // returned if 
+
+  // utxo has to be defined
+
+  if (attRequest.utxo == null) {
+    return RET(VerificationStatus.MISSING_OUT_UTXO);
   }
 
-  let theDestination: string | undefined = undefined;
-  let outFunds = toBN(0);
-  let returnedFunds = toBN(0);
+  let utxo = toNumber(attRequest.utxo)!;
+
+  if (utxo < 0 || utxo >= additionalData.destinationAddresses.length) {
+    return RET(VerificationStatus.WRONG_OUT_UTXO);
+  }
+
+  let addressList = additionalData.destinationAddresses[utxo];
+  if (!addressList || addressList.length !== 1) {
+    return RET(VerificationStatus.UNSUPPORTED_DESTINATION_ADDRESS);
+  }
+
+  theDestination = addressList[0];
 
   for (let i = 0; i < additionalData.destinationAddresses.length; i++) {
-    let addressList = additionalData.destinationAddresses[i];
-    if (!addressList || addressList.length !== 1) {
-      return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_DESTINATION_ADDRESS);
-    }
-    let destAddress = addressList[0];
-    if (destAddress === "") {
-      return genericReturnWithStatus(VerificationStatus.EMPTY_OUT_ADDRESS);
-    }
+    addressList = additionalData.destinationAddresses[i]; // can be undefined, e.g. in case of OP_RETURN
     let destDelivered = (additionalData.delivered as BN[])[i];
-    if (destAddress === theSource) {
-      returnedFunds = returnedFunds.add(destDelivered);
-    } else {
-      if (theDestination && theDestination != destAddress) {
-        return genericReturnWithStatus(VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS);
+    if (addressList && addressList.length === 1) {
+      let destAddress = addressList[0].toLowerCase();
+      if (destAddress === theDestination.toLowerCase()) {
+        deliveredFunds = deliveredFunds.add(destDelivered);
       }
-      theDestination = destAddress;
-      outFunds = outFunds.add(destDelivered);
+      if (theSource && destAddress === theSource.toLowerCase()) {
+        returnedFunds = returnedFunds.add(destDelivered);
+      }
     }
-  }
-  if (!theDestination && returnedFunds.gt(toBN(0))) {
-    theDestination = theSource;
+    totalOutFunds = totalOutFunds.add(destDelivered);
   }
 
+  // NOTE: in case theSource
   let newAdditionalData = {
     ...additionalData,
     sourceAddresses: theSource,
     destinationAddresses: theDestination,
-    spent: inFunds.sub(returnedFunds),
-    delivered: outFunds,
-    fee: inFunds.sub(outFunds),
-  } as AdditionalTransactionDetails;
+    spent: allSpentFunds.sub(returnedFunds),
+    delivered: deliveredFunds,  // just to address address selected by utxo
+    fee: allSpentFunds.sub(totalOutFunds),
+    paymentReference: extractBNPaymentReference(additionalData.paymentReference!),
+    isFromOne: !!theSource
+  } as NormalizedTransactionData;
 
-  function newGenericReturnWithStatus(verificationStatus: VerificationStatus) {
-    return {
-      chainId: toBN(attRequest.chainId),
-      attestationType: attRequest.attestationType!,
-      ...newAdditionalData,
-      verificationStatus,
-      // utxo: attRequest.utxo,
-    } as NormalizedTransactionData;
-  }
+  // new RET
+  RET = (status: VerificationStatus) => genericReturnWithStatus(newAdditionalData, attRequest, status);
 
-  // check confirmations
-  if (!testOptions?.getAvailabilityProof) {
-    let dataAvailabilityVerification = checkDataAvailability(newAdditionalData, attRequest);
-    if (dataAvailabilityVerification != VerificationStatus.OK) {
-      return newGenericReturnWithStatus(dataAvailabilityVerification);
-    }
-  }
-  return newGenericReturnWithStatus(VerificationStatus.OK);
+  return RET(VerificationStatus.OK);
 }

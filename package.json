@@ -55,7 +55,7 @@
     "axios-retry": "^3.2.4",
     "dotenv": "10.0.0",
     "ethers": "5.1.4",
-    "flare-mcc": "../mcc",
+    "flare-mcc": "link:../mcc",
     "fs": "^0.0.1-security",
     "glob": "7.1.7",
     "ntp-time-sync": "^0.2.0",

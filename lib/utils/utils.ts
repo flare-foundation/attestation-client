@@ -1,9 +1,10 @@
 import BN from "bn.js";
 import { ethers } from "ethers";
-import { prefix0x, toBN } from "flare-mcc";
+import { AdditionalTransactionDetails, prefix0x, toBN } from "flare-mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
+import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
 
 export const DECIMALS = 5;
 
@@ -200,4 +201,38 @@ export function round(x: number, decimal: number = 0) {
   const dec10 = 10 ** decimal;
 
   return Math.round(x * dec10) / dec10;
+}
+
+export function extractBNPaymentReference(paymentReference: string | string[] | BN | BN[]): BN {
+  try {
+    let len = (paymentReference as any).length;
+    // handle lists
+    if(len !== undefined) {
+      if(len === 1) {
+        return toBN((paymentReference as any[])[0])
+      } else {
+        return toBN(0);
+      }
+    }
+    // handle values
+    return toBN(paymentReference as any)
+  } catch (e) {
+    return toBN(0);
+  }
+}
+
+
+export function genericReturnWithStatus(
+  additionalData: AdditionalTransactionDetails | NormalizedTransactionData,
+  attRequest: TransactionAttestationRequest,
+  verificationStatus: VerificationStatus,
+  anything?: any) {
+  return {
+    chainId: toBN(attRequest.chainId),
+    attestationType: attRequest.attestationType!,
+    utxo: attRequest.utxo,
+    ...additionalData,
+    verificationStatus,
+    ...anything
+  } as NormalizedTransactionData;
 }

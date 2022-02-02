@@ -1,5 +1,6 @@
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { ChainType, IUtxoBlockRes, prefix0x, RPCInterface, toBN } from "flare-mcc";
+import { extractBNPaymentReference } from "../../lib/utils/utils";
 import {
   attReqToTransactionAttestationRequest,
   extractAttEvents,
@@ -24,18 +25,19 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
 
   switch (txData.attestationType) {
     case AttestationType.Payment:
-      return await hashTest.testFassetProof(
+      return await hashTest.testPaymentProof(
         txData!.attestationType,
         txData!.chainId,
         txData!.blockNumber,
+        txData!.blockTimestamp,
         txData!.txId,
         txData!.utxo || toBN(0),
         web3.utils.soliditySha3(txData!.sourceAddresses as string)!,
         web3.utils.soliditySha3(txData!.destinationAddresses as string)!,
-        txData!.destinationTag!,
+        extractBNPaymentReference(txData!.paymentReference!),
         txData!.spent as BN,
         txData!.delivered as BN,
-        txData!.fee as BN,
+        txData!.isFromOne as boolean,
         toBN(txData!.status as number),
         hash!
       )
@@ -102,8 +104,8 @@ export async function testUtxo(
   let txAttReq = parsedEvents[0];
 
   // verify
-  let txData = await verifyTransactionAttestation(client, txAttReq, {getAvailabilityProof: true})
-  //prettyPrintObject(txData)
+  let txData = await verifyTransactionAttestation(client, txAttReq, {skipDataAvailabilityProof: true})
+
   assert(txData.verificationStatus === targetStatus, `Incorrect status ${txData.verificationStatus}`)
   if (targetStatus === VerificationStatus.OK) {
     let hash = transactionHash(web3, txData!);
@@ -162,7 +164,7 @@ export async function traverseAndTestUtxoChain(
           let eventRequest = verifyReceiptAgainstTemplate(receipt, tr);
 
           // verify
-          let txData = await verifyTransactionAttestation(client, eventRequest, {getAvailabilityProof: true})
+          let txData = await verifyTransactionAttestation(client, eventRequest, {skipDataAvailabilityProof: true})
 
           /////////////////////////////////////////////////////////////////
           /// Filtering printouts for (known) statuses

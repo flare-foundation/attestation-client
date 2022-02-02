@@ -1,6 +1,7 @@
 
 import { ChainType, MCC, prefix0x, toBN } from "flare-mcc";
 import { LedgerResponse } from "xrpl";
+import { prettyPrintObject } from "../lib/utils/utils";
 import {
   attReqToTransactionAttestationRequest,
   extractAttEvents,
@@ -68,6 +69,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN)}`, async () => {
     let txData = await verifyTransactionAttestation(client, txAttReq)
     assert(txData.verificationStatus === VerificationStatus.OK, `Incorrect status ${txData.verificationStatus}`)
 
+    // Test hashes
     let hash = transactionHash(web3, txData!);
     let res = testHashOnContract(txData!, hash!);
     assert(res);

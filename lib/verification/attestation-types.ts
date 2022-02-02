@@ -3,7 +3,7 @@ import { AdditionalTransactionDetails, ChainType } from "flare-mcc";
 
 export interface VerificationTestOptions {
   testFailProbability?: number;
-  getAvailabilityProof?: boolean;
+  skipDataAvailabilityProof?: boolean;
 }
 
 export enum AttestationType {
@@ -21,6 +21,8 @@ export enum VerificationStatus {
   UNSUPPORTED_DESTINATION_ADDRESS = "UNSUPPORTED_DESTINATION_ADDRESS",
   WRONG_IN_UTXO = "WRONG_IN_UTXO",
   MISSING_IN_UTXO = "MISSING_IN_UTXO",
+  WRONG_OUT_UTXO = "WRONG_OUT_UTXO",
+  MISSING_OUT_UTXO = "MISSING_OUT_UTXO",
   EMPTY_IN_ADDRESS = "EMPTY_IN_ADDRESS",
   EMPTY_OUT_ADDRESS = "EMPTY_OUT_ADDRESS",
   // MISSING_SOURCE_ADDRESS_HASH = "MISSING_SOURCE_ADDRESS_HASH",
@@ -44,12 +46,17 @@ export enum VerificationStatus {
 export interface NormalizedTransactionData extends AdditionalTransactionDetails {
   attestationType: AttestationType;
   chainId: BN;
-  verified: boolean;
-  isOneToOne?: boolean;
+  // verified: boolean;
+  isFromOne?: boolean;
   verificationStatus: VerificationStatus;
   utxo?: BN;
+  dataAvailabiltyProof?: string;  // for testing purposes
 }
 
+export interface DataAvailabilityProof {
+  hash: string;
+  blockNumber: number
+}
 export interface AttestationRequest {
   timestamp?: BN;
   instructions: BN;
@@ -62,6 +69,7 @@ export interface TransactionAttestationRequest extends AttestationRequest {
   chainId: BN | number;
   blockNumber: BN | number;
   utxo?: BN | number;
+  skipAvailabilityProofTest?: boolean
 }
 
 export interface VerifiedAttestation {
@@ -99,13 +107,15 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "uint64",  // blockNumber
           "uint64",  // blockTimestamp
           "bytes32", // txId
+
           "uint8",   // utxo
           "bytes32", // sourceAddress
           "bytes32", // destinationAddress
           "uint256", // paymentReference
           "uint256", // spent
-          "uint256", // received
-          "bool", // oneToOne
+
+          "uint256", // delivered
+          "bool", // isFromOne
           "uint8", // status
         ],
         hashKeys: [
@@ -119,15 +129,15 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "destinationAddresses",
           "paymentReference",
           "spent",
-          "received",
-          "oneToOne",
+          "delivered",
+          "isFromOne",
           "status",
         ],
       };
     case AttestationType.BalanceDecreasingPayment:
       return {
         sizes: [ATT_BITS, CHAIN_ID_BITS, UTXO_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - UTXO_BITS],
-        keys: ["attestationType", "chainId", ""],
+        keys: ["attestationType", "chainId", "inUtxo", ""],
         hashTypes: [
           "uint16", // attestationType
           "uint16", // chainId
@@ -137,7 +147,15 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "bytes32", // sourceAddress
           "uint256", // spent
         ],
-        hashKeys: ["attestationType", "chainId", "blockNumber", "blockTimestamp", "txId", "sourceAddresses", "spent"],
+        hashKeys: [
+          "attestationType",
+          "chainId",
+          "blockNumber",
+          "blockTimestamp",
+          "txId",
+          "sourceAddresses",
+          "spent"
+        ],
       };
     case AttestationType.BlockHeightExistence:
       return {
@@ -148,7 +166,11 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "uint16", // chainId
           "uint64", // blockNumber
         ],
-        hashKeys: ["attestationType", "chainId", "blockNumber"],
+        hashKeys: [
+          "attestationType",
+          "chainId",
+          "blockNumber"
+        ],
       };
 
     default:

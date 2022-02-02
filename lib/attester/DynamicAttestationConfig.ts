@@ -17,8 +17,10 @@ export enum Source {
   ALGO = 4,
 
   // ... make sure IDs are the same as in Flare node
-  TEST1,
-  TEST2,
+}
+
+export class SourceHandlerTypeConfig {
+  avgCalls!: number;
 }
 
 export class SourceHandlerConfig {
@@ -27,13 +29,9 @@ export class SourceHandlerConfig {
 
   maxCallsPerRound!: number;
 
-  avgCalls!: number;
-
   requiredBlocks: number = 1;
 
-  getId(): number {
-    return ((this.attestationType as number) << 16) + (this.source as number);
-  }
+  attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
 
 export class AttestationConfig {
@@ -128,19 +126,26 @@ export class AttestationConfigManager {
     const config = new AttestationConfig();
     config.startEpoch = fileConfig.startEpoch;
 
+    // parse sources
     fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; requiredBlocks: number; maxCallsPerRound: number }) => {
+      const sourceHandler = new SourceHandlerConfig();
+
+      sourceHandler.source = (<any>Source)[source.source] as Source;
+
+      sourceHandler.maxCallsPerRound = source.maxCallsPerRound;
+      sourceHandler.requiredBlocks = source.requiredBlocks;
+
+      config.sourceHandlers.set(sourceHandler.source, sourceHandler);
+
+      // parse attestationTypes
       source.attestationTypes.forEach((attestationType) => {
-        const sourceHandler = new SourceHandlerConfig();
+        const type = (<any>AttestationType)[attestationType.type] as AttestationType;
 
-        sourceHandler.attestationType = (<any>AttestationType)[attestationType.type] as AttestationType;
-        sourceHandler.source = (<any>Source)[source.source] as Source;
+        const attestationTypeHandler = new SourceHandlerTypeConfig();
 
-        sourceHandler.maxCallsPerRound = source.maxCallsPerRound;
-        sourceHandler.requiredBlocks = source.requiredBlocks;
+        attestationTypeHandler.avgCalls = attestationType.avgCalls;
 
-        sourceHandler.avgCalls = attestationType.avgCalls;
-
-        config.sourceHandlers.set(sourceHandler.getId(), sourceHandler);
+        sourceHandler.attestationTypes.set(type, attestationTypeHandler);
       });
     });
 

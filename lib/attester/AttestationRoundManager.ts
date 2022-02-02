@@ -114,17 +114,13 @@ export class AttestationRoundManager {
   }
 
   async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
-    const transaction = new Attestation(round, data);
-
-    // create attestation depending on type
+    // create attestation depending on attestation type
     switch (data.type) {
       case AttestationType.OneToOnePayment: {
-        // direct chain validation
-        transaction.sourceHandler = round.getSourceHandler(data, (attestation) => {
+        return new Attestation(round, data, (attestation) => {
+          // chain node validation
           AttestationRoundManager.chainManager.validateTransaction(data.source as ChainType, attestation);
         });
-
-        break;
       }
       case AttestationType.BalanceDecreasingProof:
         // todo: implement balance change check
@@ -135,6 +131,5 @@ export class AttestationRoundManager {
         return undefined;
       }
     }
-    return transaction;
   }
 }

@@ -56,12 +56,9 @@ export enum AttestationRoundStatus {
 // [x] DAC cleanup (remove all that are older than active epoch - but one)
 // [x] make json human readable
 // [x] convert code to read human redable json
-// [ ] check if ChainType and SourceId values and names match
+// [x] check if ChainType and SourceId values and names match
 
 // [ ] make nice text base round display (cursor moving)
-
-// misc
-// get enu name: let nameOfA = Enum[Enum.A]; // "A"
 
 // terminology
 // att/sec
@@ -88,9 +85,6 @@ export class AttestationRound {
 
   sourceHandlers = new Map<number, SourceHandler>();
 
-  // sum of all attesttions avg calls
-  attestationCalls = 0;
-
   constructor(epochId: number, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.epochId = epochId;
     this.logger = logger;
@@ -100,17 +94,15 @@ export class AttestationRound {
   }
 
   getSourceHandler(data: AttestationData, onValidateAttestation: EventValidateAttestation): SourceHandler {
-    const id = data.getTypeSource();
-
-    let sourceHandler = this.sourceHandlers.get(id);
+    let sourceHandler = this.sourceHandlers.get(data.source);
 
     if (sourceHandler) {
       return sourceHandler;
     }
 
-    sourceHandler = new SourceHandler(this, id, onValidateAttestation);
+    sourceHandler = new SourceHandler(this, data.source, onValidateAttestation);
 
-    this.sourceHandlers.set(id, sourceHandler);
+    this.sourceHandlers.set(data.source, sourceHandler);
 
     return sourceHandler;
   }

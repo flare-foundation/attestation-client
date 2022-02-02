@@ -293,7 +293,6 @@ export class ChainNode {
 
   validate(transaction: Attestation) {
     //this.chainManager.logger.info(`chain ${this.chainName} validate ${data.id}`);
-    transaction.chainNode = this;
 
     // check if transaction can be added into processing
     if (this.canProcess()) {

@@ -12,22 +12,34 @@ export class SourceHandler {
 
   round: AttestationRound;
 
-  onValidateAttestation: EventValidateAttestation | undefined = undefined;
+  onValidateAttestation: EventValidateAttestation;
 
-  constructor(round: AttestationRound, id: number, onValidateAttestation: EventValidateAttestation) {
+  attestationCalls = 0;
+
+  constructor(round: AttestationRound, source: number, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
-    this.config = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(id, round.epochId);
+    this.config = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(source, round.epochId);
     this.onValidateAttestation = onValidateAttestation;
   }
 
   validate(attestation: Attestation) {
-    if (this.round.attestationCalls >= this.config.maxCallsPerRound) {
+    if (this.attestationCalls >= this.config.maxCallsPerRound) {
       attestation.status = AttestationStatus.overLimit;
       attestation.onProcessed!(attestation);
       return;
     }
 
-    this.round.attestationCalls += this.config.avgCalls;
+    const typeConfig = this.config.attestationTypes.get(attestation.data.type);
+
+    if (!typeConfig) {
+      this.round.logger.error2(`missing source ${attestation.data.source} config for attestation type (${attestation.data.type})`);
+
+      attestation.status = AttestationStatus.error;
+      attestation.onProcessed!(attestation);
+      return;
+    }
+
+    this.attestationCalls += typeConfig!.avgCalls;
 
     this.onValidateAttestation!(attestation);
   }

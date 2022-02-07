@@ -4,7 +4,7 @@ import { AdditionalTransactionDetails, prefix0x, toBN } from "flare-mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
 
 export const DECIMALS = 5;
 
@@ -207,32 +207,54 @@ export function extractBNPaymentReference(paymentReference: string | string[] | 
   try {
     let len = (paymentReference as any).length;
     // handle lists
-    if(len !== undefined) {
-      if(len === 1) {
-        return toBN((paymentReference as any[])[0])
+    if (len !== undefined) {
+      if (len === 1) {
+        return toBN((paymentReference as any[])[0]);
       } else {
         return toBN(0);
       }
     }
     // handle values
-    return toBN(paymentReference as any)
+    return toBN(paymentReference as any);
   } catch (e) {
     return toBN(0);
   }
 }
 
-
 export function genericReturnWithStatus(
-  additionalData: AdditionalTransactionDetails | NormalizedTransactionData,
+  additionalData: any,
   attRequest: TransactionAttestationRequest,
   verificationStatus: VerificationStatus,
-  anything?: any) {
+  anything?: any
+) {
   return {
-    chainId: toBN(attRequest.chainId),
+    chainId: toBN(attRequest.chainId!),
     attestationType: attRequest.attestationType!,
     utxo: attRequest.utxo,
     ...additionalData,
     verificationStatus,
-    ...anything
-  } as NormalizedTransactionData;
+    ...anything,
+  } as ChainVerification;
+}
+
+// use in JSON.stringify( x , JSONMapParser ) to save Map
+export function JSONMapStringify(key: any, value: any) {
+  if (value instanceof Map) {
+    return {
+      dataType: "Map",
+      value: Array.from(value.entries()), // or with spread: value: [...value]
+    };
+  } else {
+    return value;
+  }
+}
+
+// use in JSON.parse( x , JSONMapParser ) to load Map saved with above function
+export function JSONMapParser(key: any, value: any) {
+  if (typeof value === "object" && value !== null) {
+    if (value.dataType === "Map") {
+      return new Map(value.value);
+    }
+  }
+  return value;
 }

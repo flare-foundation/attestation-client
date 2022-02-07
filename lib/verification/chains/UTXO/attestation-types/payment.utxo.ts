@@ -1,22 +1,25 @@
 import BN from "bn.js";
 import { AdditionalTransactionDetails, toBN, toNumber } from "flare-mcc";
 import { extractBNPaymentReference, genericReturnWithStatus } from "../../../../utils/utils";
-import { checkDataAvailability, instructionsCheck } from "../../../attestation-request-utils";
-import { DataAvailabilityProof, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
+import { checkDataAvailability } from "../../../attestation-request-utils";
+import {
+  ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
+  VerificationStatus,
+  VerificationTestOptions
+} from "../../../attestation-types";
 
 export function verifyPaymentUtxo(
-  additionalData: AdditionalTransactionDetails,
-  dataAvailability: DataAvailabilityProof,
   attRequest: TransactionAttestationRequest,
+  additionalData: AdditionalTransactionDetails,
+  dataAvailability: DataAvailabilityProof,  
   testOptions?: VerificationTestOptions
-): NormalizedTransactionData {
-
+): ChainVerification {
   let RET = (status: VerificationStatus) => genericReturnWithStatus(additionalData, attRequest, status);
 
-  // check against instructions
-  if (!instructionsCheck(additionalData, attRequest)) {
-    return RET(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
-  }
+  // // check against instructions
+  // if (!instructionsCheck(additionalData, attRequest)) {
+  //   return RET(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // }
 
   // check confirmations
   if (!testOptions?.skipDataAvailabilityProof) {
@@ -30,7 +33,7 @@ export function verifyPaymentUtxo(
   let theSource: string | undefined = undefined;
   let allSpentFunds = toBN(0);
 
-  let isSingleSimpleSource = additionalData.sourceAddresses.length > 0;  // true until disproved
+  let isSingleSimpleSource = additionalData.sourceAddresses.length > 0; // true until disproved
 
   for (let i = 0; i < additionalData.sourceAddresses.length; i++) {
     let addressList = additionalData.sourceAddresses[i];
@@ -57,7 +60,7 @@ export function verifyPaymentUtxo(
   let theDestination: string | undefined = undefined;
   let deliveredFunds = toBN(0); // all delivered
   let totalOutFunds = toBN(0);
-  let returnedFunds = toBN(0);  // returned if 
+  let returnedFunds = toBN(0); // returned if
 
   // utxo has to be defined
 
@@ -99,11 +102,11 @@ export function verifyPaymentUtxo(
     sourceAddresses: theSource,
     destinationAddresses: theDestination,
     spent: allSpentFunds.sub(returnedFunds),
-    delivered: deliveredFunds,  // just to address address selected by utxo
+    delivered: deliveredFunds, // just to address address selected by utxo
     fee: allSpentFunds.sub(totalOutFunds),
     paymentReference: extractBNPaymentReference(additionalData.paymentReference!),
-    isFromOne: !!theSource
-  } as NormalizedTransactionData;
+    isFromOne: !!theSource,
+  } as ChainVerification;
 
   // new RET
   RET = (status: VerificationStatus) => genericReturnWithStatus(newAdditionalData, attRequest, status);

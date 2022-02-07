@@ -5,12 +5,12 @@ import {
   attReqToTransactionAttestationRequest,
   extractAttEvents,
   transactionHash,
-  txAttReqToAttestationRequest
+  buildAttestationRequest
 } from "../../lib/verification/attestation-request-utils";
 import {
   AttestationRequest,
   AttestationType,
-  NormalizedTransactionData,
+  ChainVerification,
   TransactionAttestationRequest,
   VerificationStatus
 } from "../../lib/verification/attestation-types";
@@ -19,7 +19,7 @@ import { verifyTransactionAttestation } from "../../lib/verification/verificatio
 import { StateConnectorInstance } from "../../typechain-truffle";
 
 
-export async function testHashOnContract(txData: NormalizedTransactionData, hash: string) {
+export async function testHashOnContract(txData: ChainVerification, hash: string) {
   let HashTest = artifacts.require("HashTest");
   let hashTest = await HashTest.new();
 
@@ -27,7 +27,7 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
     case AttestationType.Payment:
       return await hashTest.testPaymentProof(
         txData!.attestationType,
-        txData!.chainId,
+        txData!.chainId!,
         txData!.blockNumber,
         txData!.blockTimestamp,
         txData!.txId,
@@ -44,7 +44,7 @@ export async function testHashOnContract(txData: NormalizedTransactionData, hash
     case AttestationType.BalanceDecreasingPayment:
       return await hashTest.testDecreaseBalanceProof(
         txData!.attestationType,
-        txData!.chainId,
+        txData!.chainId!,
         txData!.blockNumber,
         txData!.txId,
         web3.utils.soliditySha3(txData!.sourceAddresses as string)!,
@@ -88,7 +88,7 @@ export async function testUtxo(
     chainId: chainType,
     blockNumber: blockNumber
   } as TransactionAttestationRequest;
-  let request = txAttReqToAttestationRequest(template);
+  let request = buildAttestationRequest(template);
 
   // send it to contract
   let receipt: any = null;
@@ -153,7 +153,7 @@ export async function traverseAndTestUtxoChain(
             instructions: toBN(0)   // inital empty setting, will be consturcted
           } as TransactionAttestationRequest;
           console.log(`Checking: type: ${attType}, txid: ${tr.id}, block ${i}, utxo ${utxo}`);
-          let attRequest = txAttReqToAttestationRequest(tr);
+          let attRequest = buildAttestationRequest(tr);
           let receipt: any = null;
 
           try {

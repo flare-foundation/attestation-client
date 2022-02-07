@@ -1,22 +1,25 @@
 import BN from "bn.js";
 import { AdditionalTransactionDetails, toBN, toNumber } from "flare-mcc";
 import { genericReturnWithStatus } from "../../../../utils/utils";
-import { checkDataAvailability, instructionsCheck } from "../../../attestation-request-utils";
-import { DataAvailabilityProof, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
+import { checkDataAvailability } from "../../../attestation-request-utils";
+import {
+  ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
+  VerificationStatus,
+  VerificationTestOptions
+} from "../../../attestation-types";
 
 export function verifyDecreaseBalanceUtxo(
-  additionalData: AdditionalTransactionDetails,
-  availabilityProof: DataAvailabilityProof,
   attRequest: TransactionAttestationRequest,
+  additionalData: AdditionalTransactionDetails,
+  availabilityProof: DataAvailabilityProof,  
   testOptions?: VerificationTestOptions
 ) {
-
   let RET = (status: VerificationStatus) => genericReturnWithStatus(additionalData, attRequest, status);
 
-  // check against instructions
-  if (!instructionsCheck(additionalData, attRequest)) {
-    return RET(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
-  }
+  // // check against instructions
+  // if (!instructionsCheck(additionalData, attRequest)) {
+  //   return RET(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // }
 
   // find matching address and calculate funds taken from it
   let sourceIndices: number[] = [];
@@ -77,7 +80,7 @@ export function verifyDecreaseBalanceUtxo(
     ...additionalData,
     sourceAddresses: theSource,
     spent: inFunds.sub(returnedFunds),
-  } as NormalizedTransactionData;
+  } as ChainVerification;
 
   // redefine RET
   RET = (status: VerificationStatus) => genericReturnWithStatus(newAdditionalData, attRequest, status);

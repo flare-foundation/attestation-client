@@ -1,7 +1,6 @@
 import Web3 from "web3";
 import { Logger } from "winston";
-import { sleepms } from "./utils";
-import { getWeb3, getWeb3Contract } from "./utils";
+import { getWeb3, getWeb3Contract, sleepms } from "./utils";
 
 export class Web3BlockCollector {
   logger: Logger;
@@ -19,15 +18,26 @@ export class Web3BlockCollector {
     this.procesEvents(contractAddress, contractName, startBlock, action);
   }
 
+  // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
+  eventComparator(a: any, b: any): number {
+    if (a.blockNumber < b.blockNumber) return -1;
+    if (a.blockNumber > b.blockNumber) return 1;
+
+    if (a.logIndex > a.logIndex) return -1;
+    if (a.logIndex < b.logIndex) return 1;
+
+    return 0;
+  }
+
   async procesEvents(contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
     // wait until new block is set
-    this.logger.info(" * Waiting for network connection...");
+    this.logger.info(`waiting for network connection...`);
     this.startingBlockNumber = await this.web3.eth.getBlockNumber();
 
     const stateConnectorContract = await getWeb3Contract(this.web3, contractAddress, contractName);
     let processBlock: number = this.startingBlockNumber;
 
-    this.logger.info(" * Network event processing started");
+    this.logger.info(`^Rnetwork event processing started`);
 
     while (true) {
       this.currentBlockNumber = await this.web3.eth.getBlockNumber();
@@ -40,14 +50,12 @@ export class Web3BlockCollector {
       // process new block
       const events = await stateConnectorContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock });
 
-      this.logger.info(`   * New block ${processBlock} with ${events.length} event(s)`);
+      this.logger.debug(`new block ${processBlock} with ${events.length} event(s)`);
 
-      // todo: order events by: blockNumber, log_index
-      // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
-
-      // events.sort( (a: any,b: any)=>{
-      //   return
-      // })
+      // order events by: blockNumber, log_index
+      events.sort((a: any, b: any) => {
+        return this.eventComparator(a, b);
+      });
 
       for (const event of events) {
         action(event);

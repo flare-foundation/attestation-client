@@ -1,26 +1,47 @@
 {
-    "sourceHandlers":{
-       "dataType":"Map",
-       "value":[
+   "startEpoch":100,
+   "sources" :
+   [
+      {
+         "source":"BTC",
+         "requiredBlocks":6,
+         "maxCallsPerRound": 1000,
+         "attestationTypes" :
          [
-            0,
             {
-               "attestationLimitNormal":100,
-               "attestationLimitPriority":10,
-               "requiredBlocks":1,
-               "source":0
-            }
-         ],
-         [
-            3,
+               "type":"OneToOnePayment",
+               "avgCalls": 8
+            },
             {
-               "attestationLimitNormal":100,
-               "attestationLimitPriority":10,
-               "requiredBlocks":6,
-               "source":3
+               "type":"BalanceDecreasingProof",
+               "avgCalls": 7
+            },
+            {
+               "type":"BlockHeightExistsProof",
+               "avgCalls": 1
             }
          ]
-       ]
-    },
-    "startEpoch":100
+      }
+      ,
+      {
+         "source":"XRP",
+         "requiredBlocks":1,
+         "maxCallsPerRound": 1000,
+         "attestationTypes" :
+         [
+            {
+               "type":"OneToOnePayment",
+               "avgCalls": 3
+            },
+            {
+               "type":"BalanceDecreasingProof",
+               "avgCalls": 3
+            },
+            {
+               "type":"BlockHeightExistsProof",
+               "avgCalls": 1
+            }
+         ]
+      }
+   ]
  }

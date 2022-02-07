@@ -3,8 +3,7 @@ import { ChainManager } from "../chain/ChainManager";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
-import { partBNbe } from "../utils/utils";
-import { AttestationType, ATT_BITS, CHAIN_ID_BITS } from "../verification/attestation-types";
+import { AttestationType } from "../verification/attestation-types";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
@@ -18,6 +17,8 @@ export class AttestationRoundManager {
   static chainManager: ChainManager;
   static attestationConfigManager: AttestationConfigManager;
 
+  static activeEpochId: number;
+
   rounds = new Map<number, AttestationRound>();
   config!: AttesterClientConfiguration;
   attesterWeb3: AttesterWeb3;
@@ -30,6 +31,8 @@ export class AttestationRoundManager {
     AttestationRoundManager.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.epochPeriod));
     AttestationRoundManager.chainManager = chainManager;
     AttestationRoundManager.attestationConfigManager = new AttestationConfigManager(config, logger);
+
+    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
   }
 
   async initialize() {
@@ -40,6 +43,8 @@ export class AttestationRoundManager {
     const time = tx.timeStamp.toNumber();
 
     const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(tx.timeStamp.mul(toBN(1000))).toNumber();
+
+    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
     // all times are in milliseconds
     const now = getTimeMilli();
@@ -55,7 +60,7 @@ export class AttestationRoundManager {
       activeRound = new AttestationRound(epochId, this.logger, this.attesterWeb3);
 
       // setup commit, reveal and completed callbacks
-      this.logger.warning(` * AttestEpoch ${epochId} collect epoch [0]`);
+      this.logger.warning(`round ${epochId} collect epoch [0]`);
 
       // trigger start commit epoch
       setTimeout(() => {
@@ -109,19 +114,13 @@ export class AttestationRoundManager {
   }
 
   async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
-    const transaction = new Attestation(round, data);
-
-    // create attestation depending on type
+    // create attestation depending on attestation type
     switch (data.type) {
       case AttestationType.Payment: {
-        const chainType: BN = partBNbe(data.instructions, ATT_BITS, CHAIN_ID_BITS);
-
-        // direct chain validation
-        transaction.sourceHandler = round.getSourceHandler(chainType.toNumber(), (attestation) => {
-          AttestationRoundManager.chainManager.validateTransaction(chainType.toNumber() as ChainType, attestation);
+        return new Attestation(round, data, (attestation: Attestation) => {
+          // chain node validation
+          AttestationRoundManager.chainManager.validateTransaction(data.source as ChainType, attestation);
         });
-
-        break;
       }
       case AttestationType.BalanceDecreasingPayment:
         // todo: implement balance change check
@@ -132,6 +131,5 @@ export class AttestationRoundManager {
         return undefined;
       }
     }
-    return transaction;
   }
 }

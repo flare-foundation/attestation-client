@@ -1,28 +1,29 @@
 import { AdditionalTransactionDetails } from "flare-mcc";
 import { TxResponse } from "xrpl";
 import { genericReturnWithStatus } from "../../../../utils/utils";
-import { checkDataAvailability, instructionsCheck } from "../../../attestation-request-utils";
+import { checkDataAvailability } from "../../../attestation-request-utils";
 import {
-  DataAvailabilityProof,
-  NormalizedTransactionData,
+  ChainVerification, 
+  DataAvailabilityProof, 
   TransactionAttestationRequest,
   VerificationStatus,
   VerificationTestOptions
 } from "../../../attestation-types";
 
 export function verifyPaymentXRP(
+   attRequest: TransactionAttestationRequest,
   additionalData: AdditionalTransactionDetails,
   availabilityProof: DataAvailabilityProof,
-  attRequest: TransactionAttestationRequest,
   testOptions?: VerificationTestOptions
-): NormalizedTransactionData {
+): ChainVerification {
   // helper return function
 
-  const RET = (status: VerificationStatus) => genericReturnWithStatus(additionalData, attRequest, status, {
-    dataAvailabiltyProof: availabilityProof.hash,
-    isFromOne: true,
-    utxo: 0
-  });
+  const RET = (status: VerificationStatus) =>
+    genericReturnWithStatus(additionalData, attRequest, status, {
+      dataAvailabiltyProof: availabilityProof.hash,
+      isFromOne: true,
+      utxo: 0,
+    });
 
   // check if payment
   let transaction = additionalData.transaction as TxResponse;
@@ -38,10 +39,10 @@ export function verifyPaymentXRP(
     }
   }
 
-  // check against instructions
-  if (!instructionsCheck(additionalData, attRequest)) {
-    return RET(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
-  }
+  // // check against instructions
+  // if (!instructionsCheck(additionalData, attRequest)) {
+  //   return RET(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  // }
 
   return RET(VerificationStatus.OK);
 }

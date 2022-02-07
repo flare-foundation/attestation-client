@@ -1,7 +1,17 @@
+import { balance } from "@openzeppelin/test-helpers";
 import { toNumber, unPrefix0x, AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface, prefix0x } from "flare-mcc";
+import { cli } from "winston/lib/winston/config";
 import { genericReturnWithStatus } from "../../../utils/utils";
-import { AttestationType, DataAvailabilityProof, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../attestation-types";
+import {
+  AttestationType,
+  DataAvailabilityProof,
+  ChainVerification,
+  TransactionAttestationRequest,
+  VerificationStatus,
+  VerificationTestOptions,
+} from "../../attestation-types";
 import { numberOfConfirmations } from "../../confirmations";
+import { verifyBlockHeightUtxo } from "./attestation-types/block-height.utxo";
 import { verifyDecreaseBalanceUtxo } from "./attestation-types/decrease-balance.utxo";
 import { verifyPaymentUtxo } from "./attestation-types/payment.utxo";
 
@@ -10,55 +20,66 @@ import { verifyPaymentUtxo } from "./attestation-types/payment.utxo";
 ////////////////////////////////////////////////////////////////////////////////////////
 
 export async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest, testOptions?: VerificationTestOptions) {
-  let txResponse = await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true }) as IUtxoGetTransactionRes;
+  let txResponse: IUtxoGetTransactionRes | undefined;;
+  let additionalData: AdditionalTransactionDetails | undefined;
+  let dataAvailability: DataAvailabilityProof | undefined;
 
-  async function getAdditionalData() {
-    return await client
-      .getAdditionalTransactionDetails(txResponse)
-      .catch((error: any) => {
-        throw error;
-      });
+  switch (attRequest.attestationType) {
+    case AttestationType.Payment:
+    case AttestationType.BalanceDecreasingPayment:
+      txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
+
+      [additionalData, dataAvailability] = await Promise.all([
+        client.getAdditionalTransactionDetails(txResponse),
+        getAvailabilityProof(client, attRequest)
+      ]);
+      break;
+    case AttestationType.BlockHeightExistence:
+      dataAvailability = await getAvailabilityProof(client, attRequest);
+      break;
+    default:
+      throw new Error("Invalid AttestationType")
   }
-
-  async function getAvailabilityProof() {
-    // Try to obtain the hash of data availability proof.
-    let confirmationBlock = (await client.getBlock(unPrefix0x(attRequest.dataAvailabilityProof)).catch((error: any) => {
-      throw error;
-    })) as IUtxoBlockRes;
-    return {
-      hash: prefix0x(confirmationBlock.hash),
-      blockNumber: confirmationBlock.height
-    } as DataAvailabilityProof;
-  }
-
-  let [additionalData, dataAvailability] = await Promise.all([
-    getAdditionalData(),
-    getAvailabilityProof(),
-  ])
+  // Verification
+  let verification = verifyUtxo(attRequest, additionalData, dataAvailability, testOptions);
 
   // Test simulation of "too early check"
   let testFailProbability = testOptions?.testFailProbability || 0;
   if (testFailProbability > 0) {
     if (Math.random() < testFailProbability) {
-      return genericReturnWithStatus(additionalData, attRequest, VerificationStatus.RECHECK_LATER);
+      return genericReturnWithStatus(additionalData! || {}, attRequest, VerificationStatus.RECHECK_LATER);
     }
   }
 
-  // verify
-  return verifyUtxo(additionalData, dataAvailability!, attRequest, testOptions);
+  return verification;
+}
+
+async function getAvailabilityProof(client: RPCInterface, attRequest: TransactionAttestationRequest): Promise<DataAvailabilityProof> {
+  // Try to obtain the hash of data availability proof.
+  let confirmationBlock = await client.getBlock(unPrefix0x(attRequest.dataAvailabilityProof)) as IUtxoBlockRes;
+  // TODO: check that MCC returns null on not found
+  if(confirmationBlock) {
+    return {
+      hash: prefix0x(confirmationBlock.hash),
+      blockNumber: confirmationBlock.height,
+    } as DataAvailabilityProof;  
+  }
+  return {} as DataAvailabilityProof;
 }
 
 export function verifyUtxo(
-  additionalData: AdditionalTransactionDetails,
-  dataAvailability: DataAvailabilityProof,
   attRequest: TransactionAttestationRequest,
+  additionalData?: AdditionalTransactionDetails,
+  dataAvailability?: DataAvailabilityProof,
   testOptions?: VerificationTestOptions
-): NormalizedTransactionData {
+): ChainVerification {
   switch (attRequest.attestationType) {
     case AttestationType.Payment:
-      return verifyPaymentUtxo(additionalData, dataAvailability, attRequest, testOptions);
+      return verifyPaymentUtxo(attRequest, additionalData!, dataAvailability!, testOptions);
     case AttestationType.BalanceDecreasingPayment:
-      return verifyDecreaseBalanceUtxo(additionalData, dataAvailability, attRequest, testOptions);
+      return verifyDecreaseBalanceUtxo(attRequest, additionalData!, dataAvailability!, testOptions);
+    case AttestationType.BlockHeightExistence:
+      return verifyBlockHeightUtxo(attRequest, dataAvailability!, testOptions);
     default:
       throw new Error(`Invalid attestation type ${attRequest.attestationType}`);
   }

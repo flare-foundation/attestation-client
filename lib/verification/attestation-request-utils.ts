@@ -8,18 +8,18 @@ import {
   attestationTypeEncodingScheme,
   ATT_BITS,
   DataAvailabilityProof,
-  NormalizedTransactionData,
+  ChainVerification,
   TransactionAttestationRequest,
-  VerificationStatus
+  VerificationStatus,
 } from "./attestation-types";
 import { numberOfConfirmations } from "./confirmations";
 
-export function txAttReqToAttestationRequest(request: TransactionAttestationRequest): AttestationRequest {
+export function buildAttestationRequest(request: TransactionAttestationRequest): AttestationRequest {
   let scheme = attestationTypeEncodingScheme(request.attestationType!);
   return {
     instructions: encodeToUint256(scheme.sizes, scheme.keys, {
       attestationType: toBN(request.attestationType as number),
-      chainId: toBN(request.chainId),
+      chainId: toBN(request.chainId!),
       blockNumber: toBN(request.blockNumber),
       utxo: request.utxo === undefined ? undefined : toBN(request.utxo),
     }),
@@ -116,7 +116,7 @@ export function decodeUint256(encoding: BN, sizes: number[], keys: string[]) {
   return decoded;
 }
 
-export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
+export function transactionHash(web3: Web3, txData: ChainVerification) {
   let scheme = attestationTypeEncodingScheme(txData.attestationType!);
   let values = scheme.hashKeys.map((key) => {
     let val = (txData as any)[key];
@@ -125,7 +125,7 @@ export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
       case "destinationAddresses":
         return web3.utils.soliditySha3(val);
       case "utxo":
-        return val || 0
+        return val || 0;
       default:
         return val;
     }
@@ -134,25 +134,29 @@ export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
   return web3.utils.soliditySha3(encoded);
 }
 
-export function instructionsCheck(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest) {
-  // let scheme = attestationTypeEncodingScheme(attRequest.attestationType!);
-  // let decoded = decodeUint256(attRequest.instructions, scheme.sizes, scheme.keys);
-  // for (let i = 0; i < scheme.keys.length - 1; i++) {
-  //   let key = scheme.keys[i];
-  //   if (["attestationType", "chainId"].indexOf(key) >= 0) {
-  //     continue;
-  //   }
-  //   if (!(decoded[key] as BN).eq((additionalData as any)[key] as BN)) {
-  //     // console.log(decoded[key].toString());
-  //     // console.log((additionalData as any)[key].toString());
-  //     return false;
-  //   }
-  // }
+export function instructionsCheck(sourceData: any, attRequest: TransactionAttestationRequest) {
+  let scheme = attestationTypeEncodingScheme(attRequest.attestationType!);
+  let decoded = decodeUint256(attRequest.instructions, scheme.sizes, scheme.keys);
+  for (let i = 0; i < scheme.keys.length - 1; i++) {
+    let key = scheme.keys[i];
+    if (["attestationType", "chainId"].indexOf(key) >= 0) {
+      continue;
+    }
+    if (!(decoded[key] as BN).eq(sourceData[key] as BN)) {
+      console.log(decoded[key].toString());
+      console.log(sourceData[key].toString());
+      return false;
+    }
+  }
   // TODO
   return true;
 }
 
-export function checkDataAvailability(additionalData: AdditionalTransactionDetails, availabilityProof: DataAvailabilityProof, attRequest: TransactionAttestationRequest) {
+export function checkDataAvailability(
+  additionalData: AdditionalTransactionDetails,
+  availabilityProof: DataAvailabilityProof,
+  attRequest: TransactionAttestationRequest
+) {
   if (!attRequest?.dataAvailabilityProof) {
     return VerificationStatus.DATA_AVAILABILITY_PROOF_REQUIRED;
   }
@@ -165,7 +169,7 @@ export function checkDataAvailability(additionalData: AdditionalTransactionDetai
     return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF;
   }
 
-  if(toNumber(additionalData.blockNumber)! + numberOfConfirmations(toNumber(attRequest.chainId)!) != availabilityProof?.blockNumber) {
+  if (toNumber(additionalData.blockNumber)! + numberOfConfirmations(toNumber(attRequest.chainId)!) != availabilityProof?.blockNumber) {
     return VerificationStatus.WRONG_DATA_AVAILABILITY_HEIGHT;
   }
 

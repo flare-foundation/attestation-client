@@ -6,8 +6,8 @@ import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getWeb3, getWeb3Contract, round } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
-import { txAttReqToAttestationRequest } from "../verification/attestation-request-utils";
-import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import { buildAttestationRequest } from "../verification/attestation-request-utils";
+import { AttestationType, ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
 import { verifyTransactionAttestation } from "../verification/verification";
 let fs = require("fs");
 
@@ -287,7 +287,7 @@ class AttestationCollector {
     }
   }
 
-  async runSpammer() {
+  async runCollector() {
     await this.waitForStateConnector();
     if (this.logEvents) {
       this.startLogEvents(); // async run
@@ -296,7 +296,6 @@ class AttestationCollector {
     while (true) {
       try {
         // create process that will collect valid transactions
-        //
         let latestBlockNumber = await this.client.getBlockHeight();
         let rangeMax = latestBlockNumber - this.confirmations;
         if (rangeMax < 0) {
@@ -332,13 +331,13 @@ class AttestationCollector {
             instructions: toBN(0),
           } as TransactionAttestationRequest;
 
-          const attRequest = txAttReqToAttestationRequest(tr);
+          const attRequest = buildAttestationRequest(tr);
 
           // duplicate requests so that looks like many verifications
           for (let a = 0; a < DEBUG_REPEATS; a++) {
             //this.logger.info("verifyTransactionAttestation");
             verifyTransactionAttestation(this.client, tr, { skipDataAvailabilityProof: true })
-              .then((txData: NormalizedTransactionData) => {
+              .then((txData: ChainVerification) => {
                 // save
                 const data = JSON.stringify(attRequest) + ",\n";
                 if (txData.verificationStatus === VerificationStatus.OK) {
@@ -348,7 +347,7 @@ class AttestationCollector {
                     fs.appendFileSync(`db/transactions.${args.loggerLabel}.valid.json`, data);
                   }
                 } else {
-                  // this.logger.info(`   refused ${attType},${txData.verificationStatus}`, );
+                  // this.logger.info(`refused ${attType},${txData.verificationStatus}`, );
                   if (a === 0) {
                     AttestationCollector.invalid++;
                     fs.appendFileSync(`db/transactions.${args.loggerLabel}.invalid.json`, data);
@@ -408,7 +407,7 @@ async function runAllAttestationCollectors() {
 
   const accounts = JSON.parse(fs.readFileSync(args["accountsFile"]));
   const privateKeys: string[] = accounts.map((x: any) => x.privateKey).slice(args["startAccountId"], args["startAccountId"] + args["numberOfAccounts"]);
-  return Promise.all(privateKeys.map((key, number) => new AttestationCollector(key, number == 0).runSpammer()));
+  return Promise.all(privateKeys.map((key, number) => new AttestationCollector(key, number == 0).runCollector()));
 }
 
 // (new AttestationSpammer()).runSpammer()

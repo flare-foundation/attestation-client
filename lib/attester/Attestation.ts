@@ -1,8 +1,7 @@
-import { ChainNode } from "../chain/ChainNode";
-import { NormalizedTransactionData } from "../verification/attestation-types";
+import { ChainVerification } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
-import { AttestationRound, AttestStatus } from "./AttestationRound";
-import { SourceHandler } from "./SourceHandler";
+import { AttestationRound } from "./AttestationRound";
+import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
 
 export enum AttestationStatus {
   queued,
@@ -12,6 +11,7 @@ export enum AttestationStatus {
   invalid,
   tooLate,
   overLimit,
+  error,
 }
 
 export interface EventProcessed {
@@ -25,20 +25,16 @@ export interface EventValidate {
 export class Attestation {
   epochId: number;
   round: AttestationRound;
-  sourceHandler!: SourceHandler;
-
-  metaData!: any;
+  sourceHandler: SourceHandler;
 
   status: AttestationStatus = AttestationStatus.invalid;
 
   processStartTime: number = 0;
   processEndTime: number = 0;
 
-  chainNode: ChainNode | undefined;
+  data: AttestationData;
 
-  data!: AttestationData;
-
-  verificationData!: NormalizedTransactionData;
+  verificationData!: ChainVerification;
 
   // how many time was attestation retried
   retry: number = 0;
@@ -46,9 +42,10 @@ export class Attestation {
 
   onProcessed: EventProcessed | undefined = undefined;
 
-  constructor(round: AttestationRound, data: AttestationData) {
+  constructor(round: AttestationRound, data: AttestationData, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
     this.epochId = round.epochId;
     this.data = data;
+    this.sourceHandler = round.getSourceHandler(data, onValidateAttestation);
   }
 }

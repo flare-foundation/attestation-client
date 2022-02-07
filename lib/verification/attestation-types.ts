@@ -40,36 +40,35 @@ export enum VerificationStatus {
   UNSUPPORTED_TX_TYPE = "UNSUPPORTED_TX_TYPE",
   NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",
   NON_EXISTENT_BLOCK = "NON_EXISTENT_BLOCK",
+  BLOCKHASH_DOES_NOT_EXIST = "BLOCK_DOES_NOT_EXIST",
   RECHECK_LATER = "RECHECK_LATER",
 }
 
-export interface NormalizedTransactionData extends AdditionalTransactionDetails {
-  attestationType: AttestationType;
-  chainId: BN;
-  // verified: boolean;
-  isFromOne?: boolean;
-  verificationStatus: VerificationStatus;
-  utxo?: BN;
-  dataAvailabiltyProof?: string;  // for testing purposes
-}
-
-export interface DataAvailabilityProof {
-  hash: string;
-  blockNumber: number
-}
 export interface AttestationRequest {
   timestamp?: BN;
   instructions: BN;
   id: string;
   dataAvailabilityProof: string;
+  // optional fields to which the result gets parsed
   attestationType?: AttestationType;
+  chainId?: BN | number;
+}
+export interface VerificationResult extends AttestationRequest {
+  verificationStatus: VerificationStatus;
+}
+export interface ChainVerification extends AdditionalTransactionDetails, VerificationResult {
+  isFromOne?: boolean;
+  utxo?: BN;
+}
+
+export interface DataAvailabilityProof {
+  hash?: string;
+  blockNumber?: number;
 }
 
 export interface TransactionAttestationRequest extends AttestationRequest {
-  chainId: BN | number;
   blockNumber: BN | number;
   utxo?: BN | number;
-  skipAvailabilityProofTest?: boolean
 }
 
 export interface VerifiedAttestation {
@@ -94,6 +93,7 @@ export interface AttestationTypeEncoding {
 export const ATT_BITS = 32;
 export const CHAIN_ID_BITS = 32;
 export const UTXO_BITS = 8;
+export const BLOCKNUMBER_BITS = 8;
 
 export function attestationTypeEncodingScheme(type: AttestationType) {
   switch (type) {
@@ -102,13 +102,13 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
         sizes: [ATT_BITS, CHAIN_ID_BITS, UTXO_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - UTXO_BITS],
         keys: ["attestationType", "chainId", "utxo", ""],
         hashTypes: [
-          "uint16",  // attestationType
-          "uint16",  // chainId
-          "uint64",  // blockNumber
-          "uint64",  // blockTimestamp
+          "uint16", // attestationType
+          "uint16", // chainId
+          "uint64", // blockNumber
+          "uint64", // blockTimestamp
           "bytes32", // txId
 
-          "uint8",   // utxo
+          "uint8", // utxo
           "bytes32", // sourceAddress
           "bytes32", // destinationAddress
           "uint256", // paymentReference
@@ -147,20 +147,12 @@ export function attestationTypeEncodingScheme(type: AttestationType) {
           "bytes32", // sourceAddress
           "uint256", // spent
         ],
-        hashKeys: [
-          "attestationType",
-          "chainId",
-          "blockNumber",
-          "blockTimestamp",
-          "txId",
-          "sourceAddresses",
-          "spent"
-        ],
+        hashKeys: ["attestationType", "chainId", "blockNumber", "blockTimestamp", "txId", "sourceAddresses", "spent"],
       };
     case AttestationType.BlockHeightExistence:
       return {
-        sizes: [ATT_BITS, CHAIN_ID_BITS, 256 - ATT_BITS - CHAIN_ID_BITS],
-        keys: ["attestationType", "chainId", ""],
+        sizes: [ATT_BITS, CHAIN_ID_BITS, BLOCKNUMBER_BITS, 256 - ATT_BITS - CHAIN_ID_BITS - BLOCKNUMBER_BITS],
+        keys: ["attestationType", "chainId", "blockNumber", ""],
         hashTypes: [
           "uint16", // attestationType
           "uint16", // chainId

@@ -60,6 +60,9 @@ export enum AttestationRoundStatus {
 
 // [ ] make nice text base round display (cursor moving)
 
+// [ ] check performance for new nodes
+// [ ] test two node of single type 
+
 // terminology
 // att/sec
 // call/sec

@@ -5,7 +5,7 @@ import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
-import { partBNbe } from "../utils/utils";
+import { partBNbe, sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationType, ATT_BITS, CHAIN_ID_BITS } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
@@ -64,6 +64,40 @@ export class AttesterClient {
         this.processEvent(event);
       }
     );
+
+    this.startDisplay();
+  }
+
+  async startDisplay() {
+    const tty = require("tty");
+
+    if (!tty.WriteStream.isTTY ) {
+      this.logger.warning(`TTY not supported`);
+    }
+
+    while (true) {
+      // display
+      for (let a = 0; a < 3; a++) {
+        let y = a * 4;
+        tty.WriteStream.cursorTo(0, y++);
+        tty.WriteStream.clearLine(0);
+
+        console.info(`R${100}`);
+
+        tty.WriteStream.cursorTo(0, y++);
+        tty.WriteStream.clearLine(0);
+        console.info(`Attestations ${100}`);
+
+        tty.WriteStream.cursorTo(0, y++);
+        tty.WriteStream.clearLine(0);
+        console.info(`Done ${100}`);
+
+        tty.WriteStream.cursorTo(0, y++);
+        tty.WriteStream.clearLine(0);
+        console.info(`Speed ${100}`);
+      }
+      await sleepms(1000);
+    }
   }
 
   async initializeConfiguration() {

@@ -31,8 +31,8 @@ import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getWeb3, getWeb3Contract, round } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
-import { txAttReqToAttestationRequest } from "../verification/attestation-request-utils";
-import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import { buildAttestationRequest } from "../verification/attestation-request-utils";
+import { AttestationType, ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
 import { verifyTransactionAttestation } from "../verification/verification";
 let fs = require("fs");
 
@@ -343,7 +343,7 @@ class AttestationCollector {
           throw error;
         });
         for (let tx of hashes) {
-          let attType = AttestationType.OneToOnePayment;
+          let attType = AttestationType.Payment;
           let tr = {
             id: tx,
             dataAvailabilityProof: await this.client.getBlockHash(confirmationBlock).catch((error: any) => {
@@ -356,13 +356,13 @@ class AttestationCollector {
             instructions: toBN(0),
           } as TransactionAttestationRequest;
 
-          const attRequest = txAttReqToAttestationRequest(tr);
+          const attRequest = buildAttestationRequest(tr);
 
           // duplicate requests so that looks like many verifications
           for (let a = 0; a < DEBUG_REPEATS; a++) {
             //this.logger.info("verifyTransactionAttestation");
-            verifyTransactionAttestation(this.client, tr, { getAvailabilityProof: true })
-              .then((txData: NormalizedTransactionData) => {
+            verifyTransactionAttestation(this.client, tr, { skipDataAvailabilityProof: true })
+              .then((txData: ChainVerification) => {
                 // save
                 const data = JSON.stringify(attRequest) + ",\n";
                 if (txData.verificationStatus === VerificationStatus.OK) {

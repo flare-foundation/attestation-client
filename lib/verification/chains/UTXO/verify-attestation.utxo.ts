@@ -1,73 +1,85 @@
-import { toNumber, unPrefix0x, AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface } from "flare-mcc";
-import { AttestationType, NormalizedTransactionData, TransactionAttestationRequest, VerificationTestOptions } from "../../attestation-types";
+import { balance } from "@openzeppelin/test-helpers";
+import { toNumber, unPrefix0x, AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface, prefix0x } from "flare-mcc";
+import { cli } from "winston/lib/winston/config";
+import { genericReturnWithStatus } from "../../../utils/utils";
+import {
+  AttestationType,
+  DataAvailabilityProof,
+  ChainVerification,
+  TransactionAttestationRequest,
+  VerificationStatus,
+  VerificationTestOptions,
+} from "../../attestation-types";
 import { numberOfConfirmations } from "../../confirmations";
+import { verifyBlockHeightUtxo } from "./attestation-types/block-height.utxo";
 import { verifyDecreaseBalanceUtxo } from "./attestation-types/decrease-balance.utxo";
-import { verifyOneToOneUtxo } from "./attestation-types/one-to-one.utxo";
+import { verifyPaymentUtxo } from "./attestation-types/payment.utxo";
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Verification
 ////////////////////////////////////////////////////////////////////////////////////////
 
 export async function verififyAttestationUtxo(client: RPCInterface, attRequest: TransactionAttestationRequest, testOptions?: VerificationTestOptions) {
-  let txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true }).catch((error: any) => {
-    throw error;
-  })) as IUtxoGetTransactionRes;
-  async function getAdditionalData() {
-    return await client
-      .getAdditionalTransactionDetails({
-        transaction: txResponse,
-        confirmations: numberOfConfirmations(toNumber(attRequest.chainId) as ChainType),
-        getDataAvailabilityProof: !!testOptions?.getAvailabilityProof,
-      })
-      .catch((error: any) => {
-        throw error;
-      });
-  }
+  let txResponse: IUtxoGetTransactionRes | undefined;;
+  let additionalData: AdditionalTransactionDetails | undefined;
+  let dataAvailability: DataAvailabilityProof | undefined;
 
-  async function getAvailabilityProof() {
-    // Try to obtain the hash of data availability proof.
-    if (!testOptions?.getAvailabilityProof) {
-      try {
-        let confirmationBlock = (await client.getBlock(attRequest.dataAvailabilityProof).catch((error: any) => {
-          throw error;
-        })) as IUtxoBlockRes;
-        return [confirmationBlock.hash, confirmationBlock.height];
-      } catch (e) {
-        return undefined;
-      }
+  switch (attRequest.attestationType) {
+    case AttestationType.Payment:
+    case AttestationType.BalanceDecreasingPayment:
+      txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
+
+      [additionalData, dataAvailability] = await Promise.all([
+        client.getAdditionalTransactionDetails(txResponse),
+        getAvailabilityProof(client, attRequest)
+      ]);
+      break;
+    case AttestationType.BlockHeightExistence:
+      dataAvailability = await getAvailabilityProof(client, attRequest);
+      break;
+    default:
+      throw new Error("Invalid AttestationType")
+  }
+  // Verification
+  let verification = verifyUtxo(attRequest, additionalData, dataAvailability, testOptions);
+
+  // Test simulation of "too early check"
+  let testFailProbability = testOptions?.testFailProbability || 0;
+  if (testFailProbability > 0) {
+    if (Math.random() < testFailProbability) {
+      return genericReturnWithStatus(additionalData! || {}, attRequest, VerificationStatus.RECHECK_LATER);
     }
-    return undefined;
   }
 
-  let [additionalData, confirmationData] = await Promise.all([
-    getAdditionalData().catch((error: any) => {
-      throw error;
-    }),
-    getAvailabilityProof().catch((error: any) => {
-      throw error;
-    }),
-  ]).catch((error: any) => {
-    throw error;
-  });
-  // set up the verified
-  if (!testOptions?.getAvailabilityProof) {
-    // should be set by the above verification either to the same hash, which means that block exists or undefined otherwise.
-    additionalData.dataAvailabilityProof = confirmationData![0] as string;
-    additionalData.dataAvailabilityBlockOffset = (confirmationData![1] as number) - additionalData.blockNumber.toNumber();
+  return verification;
+}
+
+async function getAvailabilityProof(client: RPCInterface, attRequest: TransactionAttestationRequest): Promise<DataAvailabilityProof> {
+  // Try to obtain the hash of data availability proof.
+  let confirmationBlock = await client.getBlock(unPrefix0x(attRequest.dataAvailabilityProof)) as IUtxoBlockRes;
+  // TODO: check that MCC returns null on not found
+  if(confirmationBlock) {
+    return {
+      hash: prefix0x(confirmationBlock.hash),
+      blockNumber: confirmationBlock.height,
+    } as DataAvailabilityProof;  
   }
-  return verifyUtxo(additionalData, attRequest, testOptions);
+  return {} as DataAvailabilityProof;
 }
 
 export function verifyUtxo(
-  additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
+  additionalData?: AdditionalTransactionDetails,
+  dataAvailability?: DataAvailabilityProof,
   testOptions?: VerificationTestOptions
-): NormalizedTransactionData {
+): ChainVerification {
   switch (attRequest.attestationType) {
-    case AttestationType.OneToOnePayment:
-      return verifyOneToOneUtxo(additionalData, attRequest, testOptions);
-    case AttestationType.BalanceDecreasingProof:
-      return verifyDecreaseBalanceUtxo(additionalData, attRequest, testOptions);
+    case AttestationType.Payment:
+      return verifyPaymentUtxo(attRequest, additionalData!, dataAvailability!, testOptions);
+    case AttestationType.BalanceDecreasingPayment:
+      return verifyDecreaseBalanceUtxo(attRequest, additionalData!, dataAvailability!, testOptions);
+    case AttestationType.BlockHeightExistence:
+      return verifyBlockHeightUtxo(attRequest, dataAvailability!, testOptions);
     default:
       throw new Error(`Invalid attestation type ${attRequest.attestationType}`);
   }

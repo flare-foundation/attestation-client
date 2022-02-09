@@ -1,23 +1,25 @@
 import BN from "bn.js";
 import { AdditionalTransactionDetails, toBN, toNumber } from "flare-mcc";
 import Web3 from "web3";
+import { prettyPrintObject } from "../utils/utils";
 import {
   AttestationRequest,
   AttestationType,
   attestationTypeEncodingScheme,
   ATT_BITS,
-  NormalizedTransactionData,
+  DataAvailabilityProof,
+  ChainVerification,
   TransactionAttestationRequest,
   VerificationStatus,
 } from "./attestation-types";
 import { numberOfConfirmations } from "./confirmations";
 
-export function txAttReqToAttestationRequest(request: TransactionAttestationRequest): AttestationRequest {
+export function buildAttestationRequest(request: TransactionAttestationRequest): AttestationRequest {
   let scheme = attestationTypeEncodingScheme(request.attestationType!);
   return {
     instructions: encodeToUint256(scheme.sizes, scheme.keys, {
       attestationType: toBN(request.attestationType as number),
-      chainId: toBN(request.chainId),
+      chainId: toBN(request.chainId!),
       blockNumber: toBN(request.blockNumber),
       utxo: request.utxo === undefined ? undefined : toBN(request.utxo),
     }),
@@ -114,7 +116,7 @@ export function decodeUint256(encoding: BN, sizes: number[], keys: string[]) {
   return decoded;
 }
 
-export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
+export function transactionHash(web3: Web3, txData: ChainVerification) {
   let scheme = attestationTypeEncodingScheme(txData.attestationType!);
   let values = scheme.hashKeys.map((key) => {
     let val = (txData as any)[key];
@@ -122,6 +124,8 @@ export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
       case "sourceAddresses":
       case "destinationAddresses":
         return web3.utils.soliditySha3(val);
+      case "utxo":
+        return val || 0;
       default:
         return val;
     }
@@ -130,7 +134,7 @@ export function transactionHash(web3: Web3, txData: NormalizedTransactionData) {
   return web3.utils.soliditySha3(encoded);
 }
 
-export function instructionsCheck(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest) {
+export function instructionsCheck(sourceData: any, attRequest: TransactionAttestationRequest) {
   let scheme = attestationTypeEncodingScheme(attRequest.attestationType!);
   let decoded = decodeUint256(attRequest.instructions, scheme.sizes, scheme.keys);
   for (let i = 0; i < scheme.keys.length - 1; i++) {
@@ -138,30 +142,34 @@ export function instructionsCheck(additionalData: AdditionalTransactionDetails, 
     if (["attestationType", "chainId"].indexOf(key) >= 0) {
       continue;
     }
-    if (!(decoded[key] as BN).eq((additionalData as any)[key] as BN)) {
-      // console.log(decoded[key].toString());
-      // console.log((additionalData as any)[key].toString());
+    if (!(decoded[key] as BN).eq(sourceData[key] as BN)) {
+      console.log(decoded[key].toString());
+      console.log(sourceData[key].toString());
       return false;
     }
   }
+  // TODO
   return true;
 }
 
-export function checkDataAvailability(additionalData: AdditionalTransactionDetails, attRequest: TransactionAttestationRequest) {
-  if (!attRequest.dataAvailabilityProof) {
+export function checkDataAvailability(
+  additionalData: AdditionalTransactionDetails,
+  availabilityProof: DataAvailabilityProof,
+  attRequest: TransactionAttestationRequest
+) {
+  if (!attRequest?.dataAvailabilityProof) {
     return VerificationStatus.DATA_AVAILABILITY_PROOF_REQUIRED;
   }
   // Proof is empty if availability check was not successful
-  if (!additionalData.dataAvailabilityProof) {
+  if (!availabilityProof?.hash) {
     return VerificationStatus.NOT_CONFIRMED;
   }
 
-  if (attRequest.dataAvailabilityProof.toLowerCase() !== additionalData.dataAvailabilityProof.toLowerCase()) {
+  if (attRequest.dataAvailabilityProof.toLowerCase() !== availabilityProof?.hash?.toLowerCase()) {
     return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF;
   }
 
-  if (additionalData.dataAvailabilityBlockOffset != numberOfConfirmations(toNumber(attRequest.chainId)!)) {
-    console.log(additionalData.dataAvailabilityBlockOffset, numberOfConfirmations(toNumber(attRequest.chainId)!));
+  if (toNumber(additionalData.blockNumber)! + numberOfConfirmations(toNumber(attRequest.chainId)!) != availabilityProof?.blockNumber) {
     return VerificationStatus.WRONG_DATA_AVAILABILITY_HEIGHT;
   }
 

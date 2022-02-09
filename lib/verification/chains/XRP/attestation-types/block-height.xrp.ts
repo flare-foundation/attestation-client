@@ -9,9 +9,9 @@ import {
    VerificationTestOptions
 } from "../../../attestation-types";
 
-export function verifyDecreaseBalanceXRP(
+export function verifyBlockHeightXRP(
    attRequest: TransactionAttestationRequest,
-   additionalData: AdditionalTransactionDetails,
+   additionalData: any,
    availabilityProof: DataAvailabilityProof,
    testOptions?: VerificationTestOptions
 ): ChainVerification {

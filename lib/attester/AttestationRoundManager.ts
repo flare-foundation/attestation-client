@@ -116,13 +116,13 @@ export class AttestationRoundManager {
   async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
     // create attestation depending on attestation type
     switch (data.type) {
-      case AttestationType.OneToOnePayment: {
-        return new Attestation(round, data, (attestation) => {
+      case AttestationType.Payment: {
+        return new Attestation(round, data, (attestation: Attestation) => {
           // chain node validation
           AttestationRoundManager.chainManager.validateTransaction(data.source as ChainType, attestation);
         });
       }
-      case AttestationType.BalanceDecreasingProof:
+      case AttestationType.BalanceDecreasingPayment:
         // todo: implement balance change check
         this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
         return undefined;

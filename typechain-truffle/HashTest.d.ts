@@ -12,6 +12,17 @@ export interface HashTestContract extends Truffle.Contract<HashTestInstance> {
 type AllEvents = never;
 
 export interface HashTestInstance extends Truffle.ContractInstance {
+  testBlockHeightProof(
+    typ: number | BN | string,
+    chainId: number | BN | string,
+    blockNumber: number | BN | string,
+    txId: string,
+    sourceAddress: string,
+    spent: number | BN | string,
+    hashToProve: string,
+    txDetails?: Truffle.TransactionDetails
+  ): Promise<boolean>;
+
   testDecreaseBalanceProof(
     typ: number | BN | string,
     chainId: number | BN | string,
@@ -23,18 +34,19 @@ export interface HashTestInstance extends Truffle.ContractInstance {
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
 
-  testFassetProof(
+  testPaymentProof(
     typ: number | BN | string,
     chainId: number | BN | string,
     blockNumber: number | BN | string,
+    blockTimestamp: number | BN | string,
     txId: string,
-    inUtxo: number | BN | string,
+    utxo: number | BN | string,
     sourceAddress: string,
     destinationAddress: string,
-    destinationTag: number | BN | string,
+    paymentReference: number | BN | string,
     spent: number | BN | string,
-    received: number | BN | string,
-    fee: number | BN | string,
+    delivered: number | BN | string,
+    isFromOne: boolean,
     status: number | BN | string,
     hashToProve: string,
     txDetails?: Truffle.TransactionDetails
@@ -48,6 +60,17 @@ export interface HashTestInstance extends Truffle.ContractInstance {
   ): Promise<boolean>;
 
   methods: {
+    testBlockHeightProof(
+      typ: number | BN | string,
+      chainId: number | BN | string,
+      blockNumber: number | BN | string,
+      txId: string,
+      sourceAddress: string,
+      spent: number | BN | string,
+      hashToProve: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<boolean>;
+
     testDecreaseBalanceProof(
       typ: number | BN | string,
       chainId: number | BN | string,
@@ -59,18 +82,19 @@ export interface HashTestInstance extends Truffle.ContractInstance {
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;
 
-    testFassetProof(
+    testPaymentProof(
       typ: number | BN | string,
       chainId: number | BN | string,
       blockNumber: number | BN | string,
+      blockTimestamp: number | BN | string,
       txId: string,
-      inUtxo: number | BN | string,
+      utxo: number | BN | string,
       sourceAddress: string,
       destinationAddress: string,
-      destinationTag: number | BN | string,
+      paymentReference: number | BN | string,
       spent: number | BN | string,
-      received: number | BN | string,
-      fee: number | BN | string,
+      delivered: number | BN | string,
+      isFromOne: boolean,
       status: number | BN | string,
       hashToProve: string,
       txDetails?: Truffle.TransactionDetails

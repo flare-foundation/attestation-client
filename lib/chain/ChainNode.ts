@@ -7,7 +7,7 @@ import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
 import { verifyTransactionAttestation } from "../verification/verification";
 import { ChainManager } from "./ChainManager";
 
@@ -222,7 +222,7 @@ export class ChainNode {
     }
 
     verifyTransactionAttestation(this.client, attReq, { testFailProbability: testFail })
-      .then((txData: NormalizedTransactionData) => {
+      .then((txData: ChainVerification) => {
         tx.processEndTime = getTimeMilli();
         if (txData.verificationStatus === VerificationStatus.RECHECK_LATER) {
           this.chainManager.logger.warning(` * reverification`);
@@ -237,7 +237,7 @@ export class ChainNode {
           this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, txData);
         }
       })
-      .catch((txData: NormalizedTransactionData) => {
+      .catch((txData: ChainVerification) => {
         tx.processEndTime = getTimeMilli();
         if (tx.retry < this.conf.maxFailedRetry) {
           this.chainManager.logger.warning(`  * transaction verification error (retry ${tx.retry})`);
@@ -258,7 +258,7 @@ export class ChainNode {
   // transaction was processed
   // move it to transactionsDone
   ////////////////////////////////////////////
-  processed(tx: Attestation, status: AttestationStatus, verificationData?: NormalizedTransactionData) {
+  processed(tx: Attestation, status: AttestationStatus, verificationData?: ChainVerification) {
     assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid vefificationData`);
 
     // set status

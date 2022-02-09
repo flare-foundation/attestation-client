@@ -1,15 +1,16 @@
 import { expectEvent } from "@openzeppelin/test-helpers";
 import { ChainType, IUtxoBlockRes, prefix0x, RPCInterface, toBN } from "flare-mcc";
+import { extractBNPaymentReference } from "../../lib/utils/utils";
 import {
   attReqToTransactionAttestationRequest,
   extractAttEvents,
   transactionHash,
-  txAttReqToAttestationRequest
+  buildAttestationRequest
 } from "../../lib/verification/attestation-request-utils";
 import {
   AttestationRequest,
   AttestationType,
-  NormalizedTransactionData,
+  ChainVerification,
   TransactionAttestationRequest,
   VerificationStatus
 } from "../../lib/verification/attestation-types";
@@ -18,31 +19,32 @@ import { verifyTransactionAttestation } from "../../lib/verification/verificatio
 import { StateConnectorInstance } from "../../typechain-truffle";
 
 
-export async function testHashOnContract(txData: NormalizedTransactionData, hash: string) {
+export async function testHashOnContract(txData: ChainVerification, hash: string) {
   let HashTest = artifacts.require("HashTest");
   let hashTest = await HashTest.new();
 
   switch (txData.attestationType) {
-    case AttestationType.OneToOnePayment:
-      return await hashTest.testFassetProof(
+    case AttestationType.Payment:
+      return await hashTest.testPaymentProof(
         txData!.attestationType,
-        txData!.chainId,
+        txData!.chainId!,
         txData!.blockNumber,
+        txData!.blockTimestamp,
         txData!.txId,
         txData!.utxo || toBN(0),
         web3.utils.soliditySha3(txData!.sourceAddresses as string)!,
         web3.utils.soliditySha3(txData!.destinationAddresses as string)!,
-        txData!.destinationTag!,
+        extractBNPaymentReference(txData!.paymentReference!),
         txData!.spent as BN,
         txData!.delivered as BN,
-        txData!.fee as BN,
+        txData!.isFromOne as boolean,
         toBN(txData!.status as number),
         hash!
       )
-    case AttestationType.BalanceDecreasingProof:
+    case AttestationType.BalanceDecreasingPayment:
       return await hashTest.testDecreaseBalanceProof(
         txData!.attestationType,
-        txData!.chainId,
+        txData!.chainId!,
         txData!.blockNumber,
         txData!.txId,
         web3.utils.soliditySha3(txData!.sourceAddresses as string)!,
@@ -78,7 +80,7 @@ export async function testUtxo(
   let confirmationHeight = block.height + numberOfConfirmations(chainType);
   let confirmationBlock = await client.getBlock(confirmationHeight) as IUtxoBlockRes;
   let template = {
-    attestationType: AttestationType.OneToOnePayment,
+    attestationType: AttestationType.Payment,
     instructions: toBN(0),
     id: prefix0x(txId),
     utxo: utxo,
@@ -86,7 +88,7 @@ export async function testUtxo(
     chainId: chainType,
     blockNumber: blockNumber
   } as TransactionAttestationRequest;
-  let request = txAttReqToAttestationRequest(template);
+  let request = buildAttestationRequest(template);
 
   // send it to contract
   let receipt: any = null;
@@ -102,8 +104,8 @@ export async function testUtxo(
   let txAttReq = parsedEvents[0];
 
   // verify
-  let txData = await verifyTransactionAttestation(client, txAttReq, {getAvailabilityProof: true})
-  //prettyPrintObject(txData)
+  let txData = await verifyTransactionAttestation(client, txAttReq, {skipDataAvailabilityProof: true})
+
   assert(txData.verificationStatus === targetStatus, `Incorrect status ${txData.verificationStatus}`)
   if (targetStatus === VerificationStatus.OK) {
     let hash = transactionHash(web3, txData!);
@@ -127,7 +129,7 @@ export async function traverseAndTestUtxoChain(
 ) {
   // Defaults
   const count = options?.count || 1;
-  const attestationTypes = options?.attestationTypes || [AttestationType.OneToOnePayment];
+  const attestationTypes = options?.attestationTypes || [AttestationType.Payment];
   const filterStatusPrintouts = options?.filterStatusPrintouts || [];
   const numberOfInputsChecked = options?.numberOfInputsChecked || 3;
 
@@ -151,7 +153,7 @@ export async function traverseAndTestUtxoChain(
             instructions: toBN(0)   // inital empty setting, will be consturcted
           } as TransactionAttestationRequest;
           console.log(`Checking: type: ${attType}, txid: ${tr.id}, block ${i}, utxo ${utxo}`);
-          let attRequest = txAttReqToAttestationRequest(tr);
+          let attRequest = buildAttestationRequest(tr);
           let receipt: any = null;
 
           try {
@@ -162,7 +164,7 @@ export async function traverseAndTestUtxoChain(
           let eventRequest = verifyReceiptAgainstTemplate(receipt, tr);
 
           // verify
-          let txData = await verifyTransactionAttestation(client, eventRequest, {getAvailabilityProof: true})
+          let txData = await verifyTransactionAttestation(client, eventRequest, {skipDataAvailabilityProof: true})
 
           /////////////////////////////////////////////////////////////////
           /// Filtering printouts for (known) statuses

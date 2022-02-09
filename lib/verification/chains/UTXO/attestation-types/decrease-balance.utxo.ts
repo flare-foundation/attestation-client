@@ -1,34 +1,24 @@
 import BN from "bn.js";
 import { AdditionalTransactionDetails, toBN, toNumber } from "flare-mcc";
+import { genericReturnWithStatus } from "../../../../utils/utils";
 import { checkDataAvailability } from "../../../attestation-request-utils";
-import { NormalizedTransactionData, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
+import {
+  ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
+  VerificationStatus,
+  VerificationTestOptions
+} from "../../../attestation-types";
 
 export function verifyDecreaseBalanceUtxo(
-  additionalData: AdditionalTransactionDetails,
   attRequest: TransactionAttestationRequest,
+  additionalData: AdditionalTransactionDetails,
+  availabilityProof: DataAvailabilityProof,  
   testOptions?: VerificationTestOptions
 ) {
-  function genericReturnWithStatus(verificationStatus: VerificationStatus) {
-    return {
-      chainId: toBN(attRequest.chainId),
-      attestationType: attRequest.attestationType!,
-      ...additionalData,
-      verificationStatus,
-      utxo: attRequest.utxo,
-    } as NormalizedTransactionData;
-  }
+  let RET = (status: VerificationStatus) => genericReturnWithStatus(additionalData, attRequest, status);
 
-  // Test simulation of "too early check"
-  let testFailProbability = testOptions?.testFailProbability || 0;
-  if (testFailProbability > 0) {
-    if (Math.random() < testFailProbability) {
-      return genericReturnWithStatus(VerificationStatus.RECHECK_LATER);
-    }
-  }
-
-  // check against instructions
+  // // check against instructions
   // if (!instructionsCheck(additionalData, attRequest)) {
-  //   return genericReturnWithStatus(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
+  //   return RET(VerificationStatus.INSTRUCTIONS_DO_NOT_MATCH);
   // }
 
   // find matching address and calculate funds taken from it
@@ -37,16 +27,16 @@ export function verifyDecreaseBalanceUtxo(
   let inFunds = toBN(0);
 
   if (attRequest.utxo === undefined) {
-    return genericReturnWithStatus(VerificationStatus.MISSING_IN_UTXO);
+    return RET(VerificationStatus.MISSING_IN_UTXO);
   }
   let inUtxo = toNumber(attRequest.utxo)!;
   if (inUtxo < 0 || inUtxo >= additionalData.sourceAddresses.length) {
-    return genericReturnWithStatus(VerificationStatus.WRONG_IN_UTXO);
+    return RET(VerificationStatus.WRONG_IN_UTXO);
   }
   let sourceCandidates = additionalData.sourceAddresses[inUtxo!];
   // TODO: handle multisig
   if (sourceCandidates.length != 1) {
-    return genericReturnWithStatus(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
+    return RET(VerificationStatus.UNSUPPORTED_SOURCE_ADDRESS);
   }
 
   theSource = sourceCandidates[0];
@@ -80,33 +70,28 @@ export function verifyDecreaseBalanceUtxo(
   }
 
   if (returnedFunds.eq(inFunds)) {
-    return genericReturnWithStatus(VerificationStatus.FUNDS_UNCHANGED);
+    return RET(VerificationStatus.FUNDS_UNCHANGED);
   }
   if (returnedFunds.gt(inFunds)) {
-    return genericReturnWithStatus(VerificationStatus.FUNDS_INCREASED);
+    return RET(VerificationStatus.FUNDS_INCREASED);
   }
 
   let newAdditionalData = {
     ...additionalData,
     sourceAddresses: theSource,
     spent: inFunds.sub(returnedFunds),
-  } as AdditionalTransactionDetails;
+  } as ChainVerification;
 
-  function newGenericReturnWithStatus(verificationStatus: VerificationStatus) {
-    return {
-      chainId: toBN(attRequest.chainId),
-      attestationType: attRequest.attestationType!,
-      ...newAdditionalData,
-      verificationStatus,
-      utxo: attRequest.utxo,
-    } as NormalizedTransactionData;
-  }
+  // redefine RET
+  RET = (status: VerificationStatus) => genericReturnWithStatus(newAdditionalData, attRequest, status);
 
   // check confirmations
-  let dataAvailabilityVerification = checkDataAvailability(newAdditionalData, attRequest);
-  if (dataAvailabilityVerification != VerificationStatus.OK) {
-    return newGenericReturnWithStatus(dataAvailabilityVerification);
+  if (!testOptions?.skipDataAvailabilityProof) {
+    let dataAvailabilityVerification = checkDataAvailability(newAdditionalData, availabilityProof, attRequest);
+    if (dataAvailabilityVerification != VerificationStatus.OK) {
+      return RET(dataAvailabilityVerification);
+    }
   }
 
-  return newGenericReturnWithStatus(VerificationStatus.OK);
+  return RET(VerificationStatus.OK);
 }

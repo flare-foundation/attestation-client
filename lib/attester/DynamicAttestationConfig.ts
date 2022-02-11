@@ -1,7 +1,7 @@
 import { ChainType } from "flare-mcc";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
-import { AttestationType } from "../verification/attestation-types";
+import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 

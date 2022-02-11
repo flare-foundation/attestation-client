@@ -1,11 +1,13 @@
 import BN from "bn.js";
+import { ChainType } from "flare-mcc";
 import { Hash } from "../utils/Hash";
-import { AttestationRequest, AttestationType } from "../verification/attestation-types";
+import { AttestationRequest } from "../verification/attestation-types/attestation-types";
+import { AttestationType } from "../verification/generated/attestation-types-enum";
 
 export class AttestationData {
   // event parameters
   type!: AttestationType;
-  source!: number;
+  source!: ChainType;
   timeStamp!: BN;
   id!: string;
   dataAvailabilityProof!: string;

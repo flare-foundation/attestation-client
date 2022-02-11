@@ -4,15 +4,15 @@ import Web3 from "web3";
 import { prettyPrintObject } from "../utils/utils";
 import {
   AttestationRequest,
-  AttestationType,
   attestationTypeEncodingScheme,
-  ATT_BITS,
+  ATT_BYTES,
   DataAvailabilityProof,
   ChainVerification,
   TransactionAttestationRequest,
   VerificationStatus,
-} from "./attestation-types";
+} from "./attestation-types/attestation-types";
 import { numberOfConfirmations } from "./confirmations";
+import { AttestationType } from "./generated/attestation-types-enum";
 
 export function buildAttestationRequest(request: TransactionAttestationRequest): AttestationRequest {
   let scheme = attestationTypeEncodingScheme(request.attestationType!);
@@ -29,7 +29,7 @@ export function buildAttestationRequest(request: TransactionAttestationRequest):
 }
 
 function getAttestationTypeFromInstructions(request: AttestationRequest): AttestationType {
-  let typeData = decodeUint256(request.instructions, [ATT_BITS, 256 - ATT_BITS], ["attestationType", ""]);
+  let typeData = decodeUint256(request.instructions, [ATT_BYTES, 256 - ATT_BYTES], ["attestationType", ""]);
   return typeData.attestationType.toNumber() as AttestationType;
 }
 

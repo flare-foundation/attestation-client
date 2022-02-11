@@ -7,7 +7,7 @@ import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { verifyTransactionAttestation } from "../verification/verification";
 import { ChainManager } from "./ChainManager";
 

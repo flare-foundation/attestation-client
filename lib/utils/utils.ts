@@ -4,7 +4,7 @@ import { AdditionalTransactionDetails, prefix0x, toBN } from "flare-mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
-import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types/attestation-types";
 
 export const DECIMALS = 5;
 
@@ -18,9 +18,9 @@ export function partBNbe(x: BN, bitOffset: number, bitCount: number) {
   return partBN(x, 256 - bitOffset - bitCount, bitCount);
 }
 
-export function toHex(x: string | number | BN, padToBytes32 = false) {
-  if (padToBytes32) {
-    return Web3.utils.leftPad(Web3.utils.toHex(x), 64);
+export function toHex(x: string | number | BN, padToBytes?: number) {
+  if (padToBytes as any > 0) {
+    return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes!*2);
   }
   return Web3.utils.toHex(x);
 }

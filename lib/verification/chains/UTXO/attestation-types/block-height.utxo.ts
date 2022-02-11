@@ -1,5 +1,5 @@
 import { genericReturnWithStatus } from "../../../../utils/utils";
-import { ChainVerification, DataAvailabilityProof, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types";
+import { ChainVerification, DataAvailabilityProof, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "../../../attestation-types/attestation-types";
 
 export function verifyBlockHeightUtxo(
   attRequest: TransactionAttestationRequest,

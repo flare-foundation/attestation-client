@@ -1,0 +1,55 @@
+import {
+   AttestationTypeScheme, ATT_BYTES,
+   BLOCKNUMBER_BYTES,
+   CHAIN_ID_BYTES,
+   DATA_AVAILABILITY_BYTES
+} from "./attestation-types";
+
+export const TDEF: AttestationTypeScheme = {
+   id: 3,
+   name: "BlockHeightExistence",
+   request: [
+      {
+         key: "attestationType",
+         size: ATT_BYTES,
+         type: "AttestationType"
+      },
+      {
+         key: "chainId",
+         size: CHAIN_ID_BYTES,
+         type: "ChainType"
+      },
+      {
+         key: "blockNumber",
+         size: BLOCKNUMBER_BYTES,
+         type: "NumberLike"
+      },
+      {
+         key: "dataAvailabilityProof",
+         size: DATA_AVAILABILITY_BYTES,
+         type: "BytesLike"
+      },
+   ],
+   dataHashDefinition: [
+      {
+         key: "attestationType",
+         type: "uint16"
+      },
+      {
+         key: "chainId",
+         type: "uint16"
+      },
+      {
+         key: "blockNumber",
+         type: "uint64"
+      },
+      {
+         key: "blockTimestamp",
+         type: "uint64"
+      },
+      {
+         key: "blockHash",
+         type: "bytes32"
+      },
+   ]
+}

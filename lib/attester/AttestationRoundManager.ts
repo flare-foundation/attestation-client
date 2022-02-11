@@ -3,7 +3,7 @@ import { ChainManager } from "../chain/ChainManager";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
-import { AttestationType } from "../verification/attestation-types";
+import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
@@ -119,7 +119,7 @@ export class AttestationRoundManager {
       case AttestationType.Payment: {
         return new Attestation(round, data, (attestation: Attestation) => {
           // chain node validation
-          AttestationRoundManager.chainManager.validateTransaction(data.source as ChainType, attestation);
+          AttestationRoundManager.chainManager.validateTransaction(data.source, attestation);
         });
       }
       case AttestationType.BalanceDecreasingPayment:

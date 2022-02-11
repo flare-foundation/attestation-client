@@ -1,16 +1,13 @@
-import { AdditionalTransactionDetails, ChainType, unPrefix0x, toNumber, RPCInterface, prefix0x } from "flare-mcc";
-import { cli } from "winston/lib/winston/config";
+import { AdditionalTransactionDetails, ChainType, prefix0x, RPCInterface, toNumber, unPrefix0x } from "flare-mcc";
 import { LedgerResponse, TxResponse } from "xrpl";
 import { genericReturnWithStatus } from "../../../utils/utils";
 import {
-   AttestationType,
-   DataAvailabilityProof,
-   ChainVerification,
-   TransactionAttestationRequest,
+   ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
    VerificationStatus,
-   VerificationTestOptions,
-} from "../../attestation-types";
+   VerificationTestOptions
+} from "../../attestation-types/attestation-types";
 import { numberOfConfirmations } from "../../confirmations";
+import { AttestationType } from "../../generated/attestation-types-enum";
 import { verifyBlockHeightXRP } from "./attestation-types/block-height.xrp";
 import { verifyDecreaseBalanceXRP } from "./attestation-types/decrease-balance.xrp";
 import { verifyPaymentXRP } from "./attestation-types/payment.xrp";

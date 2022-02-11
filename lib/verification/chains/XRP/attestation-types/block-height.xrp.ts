@@ -7,7 +7,7 @@ import {
    TransactionAttestationRequest,
    VerificationStatus,
    VerificationTestOptions
-} from "../../../attestation-types";
+} from "../../../attestation-types/attestation-types";
 
 export function verifyBlockHeightXRP(
    attRequest: TransactionAttestationRequest,

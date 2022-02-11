@@ -1,16 +1,13 @@
-import { balance } from "@openzeppelin/test-helpers";
-import { toNumber, unPrefix0x, AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface, prefix0x } from "flare-mcc";
-import { cli } from "winston/lib/winston/config";
+import { AdditionalTransactionDetails, IUtxoBlockRes, IUtxoGetTransactionRes, prefix0x, RPCInterface, unPrefix0x } from "flare-mcc";
 import { genericReturnWithStatus } from "../../../utils/utils";
 import {
-  AttestationType,
-  DataAvailabilityProof,
-  ChainVerification,
+  ChainVerification, 
+  DataAvailabilityProof, 
   TransactionAttestationRequest,
   VerificationStatus,
-  VerificationTestOptions,
-} from "../../attestation-types";
-import { numberOfConfirmations } from "../../confirmations";
+  VerificationTestOptions
+} from "../../attestation-types/attestation-types";
+import { AttestationType } from "../../generated/attestation-types-enum";
 import { verifyBlockHeightUtxo } from "./attestation-types/block-height.utxo";
 import { verifyDecreaseBalanceUtxo } from "./attestation-types/decrease-balance.utxo";
 import { verifyPaymentUtxo } from "./attestation-types/payment.utxo";

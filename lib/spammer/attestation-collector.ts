@@ -7,7 +7,8 @@ import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getWeb3, getWeb3Contract, round } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { buildAttestationRequest } from "../verification/attestation-request-utils";
-import { AttestationType, ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types";
+import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { verifyTransactionAttestation } from "../verification/verification";
 let fs = require("fs");
 

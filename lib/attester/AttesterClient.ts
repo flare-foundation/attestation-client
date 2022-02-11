@@ -7,7 +7,7 @@ import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
 import { partBNbe } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
-import { AttestationType, ATT_BITS, CHAIN_ID_BITS } from "../verification/attestation-types";
+import { getAttestationTypeAndSource } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
@@ -137,20 +137,23 @@ export class AttesterClient {
       //     bytes32 dataAvailabilityProof
       // );
 
-      const timeStamp: string = event.returnValues.timestamp;
+      const timeStamp: BN = toBN(event.returnValues.timestamp);
+      const bytesData: string = event.returnValues.data;
+
       const instruction: string = event.returnValues.instructions;
       const id: string = event.returnValues.id;
 
       const instBN = toBN(instruction);
 
-      const attestationType: BN = partBNbe(instBN, 0, ATT_BITS);
-      const source = partBNbe(instBN, ATT_BITS, CHAIN_ID_BITS);
+      // const attestationType: BN = partBNbe(instBN, 0, ATT_B);
+      // const source = partBNbe(instBN, ATT_BITS, CHAIN_ID_BITS);
+      const {attestationType, source} = getAttestationTypeAndSource(bytesData);
 
       // attestation info
       const tx = new AttestationData();
-      tx.type = attestationType.toNumber() as AttestationType;
-      tx.source = source.toNumber();
-      tx.timeStamp = toBN(timeStamp);
+      tx.type = attestationType;
+      tx.source = source;
+      tx.timeStamp = timeStamp;
       tx.id = id;
       tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;
 

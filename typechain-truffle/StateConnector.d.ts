@@ -14,13 +14,11 @@ export interface AttestationRequest {
   name: "AttestationRequest";
   args: {
     timestamp: BN;
-    instructions: BN;
-    id: string;
-    dataAvailabilityProof: string;
+    sender: string;
+    data: string;
     0: BN;
-    1: BN;
+    1: string;
     2: string;
-    3: string;
   };
 }
 
@@ -73,28 +71,16 @@ export interface StateConnectorInstance extends Truffle.ContractInstance {
   ): Promise<string>;
 
   requestAttestations: {
-    (
-      instructions: number | BN | string,
-      id: string,
-      dataAvailabilityProof: string,
-      txDetails?: Truffle.TransactionDetails
-    ): Promise<Truffle.TransactionResponse<AllEvents>>;
-    call(
-      instructions: number | BN | string,
-      id: string,
-      dataAvailabilityProof: string,
-      txDetails?: Truffle.TransactionDetails
-    ): Promise<void>;
+    (data: string, txDetails?: Truffle.TransactionDetails): Promise<
+      Truffle.TransactionResponse<AllEvents>
+    >;
+    call(data: string, txDetails?: Truffle.TransactionDetails): Promise<void>;
     sendTransaction(
-      instructions: number | BN | string,
-      id: string,
-      dataAvailabilityProof: string,
+      data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<string>;
     estimateGas(
-      instructions: number | BN | string,
-      id: string,
-      dataAvailabilityProof: string,
+      data: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<number>;
   };
@@ -181,28 +167,16 @@ export interface StateConnectorInstance extends Truffle.ContractInstance {
     ): Promise<string>;
 
     requestAttestations: {
-      (
-        instructions: number | BN | string,
-        id: string,
-        dataAvailabilityProof: string,
-        txDetails?: Truffle.TransactionDetails
-      ): Promise<Truffle.TransactionResponse<AllEvents>>;
-      call(
-        instructions: number | BN | string,
-        id: string,
-        dataAvailabilityProof: string,
-        txDetails?: Truffle.TransactionDetails
-      ): Promise<void>;
+      (data: string, txDetails?: Truffle.TransactionDetails): Promise<
+        Truffle.TransactionResponse<AllEvents>
+      >;
+      call(data: string, txDetails?: Truffle.TransactionDetails): Promise<void>;
       sendTransaction(
-        instructions: number | BN | string,
-        id: string,
-        dataAvailabilityProof: string,
+        data: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<string>;
       estimateGas(
-        instructions: number | BN | string,
-        id: string,
-        dataAvailabilityProof: string,
+        data: string,
         txDetails?: Truffle.TransactionDetails
       ): Promise<number>;
     };

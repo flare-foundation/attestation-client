@@ -9,12 +9,12 @@ import {
 } from "../../lib/verification/attestation-request-utils";
 import {
   AttestationRequest,
-  AttestationType,
   ChainVerification,
   TransactionAttestationRequest,
   VerificationStatus
-} from "../../lib/verification/attestation-types";
+} from "../../lib/verification/attestation-types/attestation-types";
 import { numberOfConfirmations } from "../../lib/verification/confirmations";
+import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
 import { verifyTransactionAttestation } from "../../lib/verification/verification";
 import { StateConnectorInstance } from "../../typechain-truffle";
 

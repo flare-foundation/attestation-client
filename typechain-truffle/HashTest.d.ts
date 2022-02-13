@@ -12,43 +12,27 @@ export interface HashTestContract extends Truffle.Contract<HashTestInstance> {
 type AllEvents = never;
 
 export interface HashTestInstance extends Truffle.ContractInstance {
-  testBlockHeightProof(
-    typ: number | BN | string,
-    chainId: number | BN | string,
-    blockNumber: number | BN | string,
-    txId: string,
-    sourceAddress: string,
-    spent: number | BN | string,
-    hashToProve: string,
+  hashTestBalanceDecreasingPayment(
+    _data: string,
+    _hashToProve: string,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
 
-  testDecreaseBalanceProof(
-    typ: number | BN | string,
-    chainId: number | BN | string,
-    blockNumber: number | BN | string,
-    txId: string,
-    sourceAddress: string,
-    spent: number | BN | string,
-    hashToProve: string,
+  hashTestBlockHeightExistence(
+    _data: string,
+    _hashToProve: string,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
 
-  testPaymentProof(
-    typ: number | BN | string,
-    chainId: number | BN | string,
-    blockNumber: number | BN | string,
-    blockTimestamp: number | BN | string,
-    txId: string,
-    utxo: number | BN | string,
-    sourceAddress: string,
-    destinationAddress: string,
-    paymentReference: number | BN | string,
-    spent: number | BN | string,
-    delivered: number | BN | string,
-    isFromOne: boolean,
-    status: number | BN | string,
-    hashToProve: string,
+  hashTestPayment(
+    _data: string,
+    _hashToProve: string,
+    txDetails?: Truffle.TransactionDetails
+  ): Promise<boolean>;
+
+  hashTestReferencedPaymentNonExistence(
+    _data: string,
+    _hashToProve: string,
     txDetails?: Truffle.TransactionDetails
   ): Promise<boolean>;
 
@@ -60,43 +44,27 @@ export interface HashTestInstance extends Truffle.ContractInstance {
   ): Promise<boolean>;
 
   methods: {
-    testBlockHeightProof(
-      typ: number | BN | string,
-      chainId: number | BN | string,
-      blockNumber: number | BN | string,
-      txId: string,
-      sourceAddress: string,
-      spent: number | BN | string,
-      hashToProve: string,
+    hashTestBalanceDecreasingPayment(
+      _data: string,
+      _hashToProve: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;
 
-    testDecreaseBalanceProof(
-      typ: number | BN | string,
-      chainId: number | BN | string,
-      blockNumber: number | BN | string,
-      txId: string,
-      sourceAddress: string,
-      spent: number | BN | string,
-      hashToProve: string,
+    hashTestBlockHeightExistence(
+      _data: string,
+      _hashToProve: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;
 
-    testPaymentProof(
-      typ: number | BN | string,
-      chainId: number | BN | string,
-      blockNumber: number | BN | string,
-      blockTimestamp: number | BN | string,
-      txId: string,
-      utxo: number | BN | string,
-      sourceAddress: string,
-      destinationAddress: string,
-      paymentReference: number | BN | string,
-      spent: number | BN | string,
-      delivered: number | BN | string,
-      isFromOne: boolean,
-      status: number | BN | string,
-      hashToProve: string,
+    hashTestPayment(
+      _data: string,
+      _hashToProve: string,
+      txDetails?: Truffle.TransactionDetails
+    ): Promise<boolean>;
+
+    hashTestReferencedPaymentNonExistence(
+      _data: string,
+      _hashToProve: string,
       txDetails?: Truffle.TransactionDetails
     ): Promise<boolean>;
 

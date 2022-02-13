@@ -45,11 +45,13 @@
     "devmulti": "DOTENV=DEV yarn watch-and-run-multi",
     "test": "DOTENV=DEV tsdx test --env=node",
     "testdebug": "DOTENV=DEV tsdx test --env=node test/MerkleTree.test.ts",
-    "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local"
+    "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local",
+    "codegen": "yarn ts-node lib/verification/utils/attestation-codegen-helpers.ts",
+    "htest": "yarn codegen && yarn c && yarn hardhat test test/HashTest.test.ts"
   },
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",
-    "@openzeppelin/contracts": "3.4.0",
+    "@openzeppelin/contracts": "4.5.0",
     "assert": "^2.0.0",
     "axios": "^0.24.0",
     "axios-retry": "^3.2.4",
@@ -69,11 +71,11 @@
   "devDependencies": {
     "@nomiclabs/hardhat-truffle5": "^2.0.3",
     "@nomiclabs/hardhat-web3": "^2.0.0",
-    "@types/assert": "^1.5.6",
     "@openzeppelin/test-helpers": "^0.5.15",
     "@typechain/hardhat": "^3.0.0",
     "@typechain/truffle-v5": "^6.0.0",
     "@typechain/web3-v1": "3.1.0",
+    "@types/assert": "^1.5.6",
     "@types/chai": "^4.3.0",
     "@types/glob": "7.1.4",
     "@types/mocha": "^9.0.0",

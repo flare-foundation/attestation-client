@@ -1,15 +1,11 @@
 import BN from "bn.js";
 import { AdditionalTransactionDetails, toBN, toNumber } from "flare-mcc";
 import Web3 from "web3";
-import { prettyPrintObject } from "../utils/utils";
 import {
   AttestationRequest,
   attestationTypeEncodingScheme,
-  ATT_BYTES,
-  DataAvailabilityProof,
-  ChainVerification,
-  TransactionAttestationRequest,
-  VerificationStatus,
+  ATT_BYTES, ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
+  VerificationStatus
 } from "./attestation-types/attestation-types";
 import { numberOfConfirmations } from "./confirmations";
 import { AttestationType } from "./generated/attestation-types-enum";

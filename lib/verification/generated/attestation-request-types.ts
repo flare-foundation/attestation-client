@@ -2,6 +2,7 @@
 //////////////////////////////////////////////////////////////
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
+
 import { ChainType } from "flare-mcc";
 import { BytesLike, NumberLike } from "../attestation-types/attestation-types";
 import { AttestationType } from "./attestation-types-enum";

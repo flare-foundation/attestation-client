@@ -62,23 +62,11 @@ export const TDEF: AttestationTypeScheme = {
       },
       {
          key: "sourceAddress",
-         type: "bytes32"
+         type: "string"
       },
       {
-         key: "sourceAddressChecksum",
-         type: "bytes4"
-      },
-      {
-         key: "sourceAddressChecksum",
-         type: "bytes4"
-      },
-      {
-         key: "destinationAddressChecksum",
-         type: "bytes4"
-      },
-      {
-         key: "destinationAddressChecksum",
-         type: "bytes4"
+         key: "destinationAddress",
+         type: "string"
       },
       {
          key: "paymentReference",

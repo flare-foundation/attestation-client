@@ -53,15 +53,7 @@ export const TDEF: AttestationTypeScheme = {
       },
       {
          key: "sourceAddress",
-         type: "bytes32"
-      },
-      {
-         key: "sourceAddressChecksum",
-         type: "bytes4"
-      },
-      {
-         key: "sourceAddressChecksum",
-         type: "bytes4"
+         type: "string"
       },
       {
          key: "spent",

@@ -243,6 +243,8 @@ export class Indexer {
           //this.logger.info("verifyTransactionAttestation");
           collectChainTransactionInformation(this.client, tx)
             .then(async (data: DBTransactionBase) => {
+              // Add block height to transaction data
+              data.blockNumber = blockNumber;
               // save
               this.saveInterlaced(data);
             })

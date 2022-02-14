@@ -1,16 +1,10 @@
-import { balance } from "@openzeppelin/test-helpers";
-import { toNumber, unPrefix0x, AdditionalTransactionDetails, ChainType, IUtxoBlockRes, IUtxoGetTransactionRes, RPCInterface, prefix0x } from "flare-mcc";
-import { cli } from "winston/lib/winston/config";
+import { AdditionalTransactionDetails, IUtxoBlockRes, IUtxoGetTransactionRes, prefix0x, RPCInterface, unPrefix0x } from "flare-mcc";
 import { genericReturnWithStatus } from "../../../utils/utils";
 import {
-  AttestationType,
-  DataAvailabilityProof,
-  ChainVerification,
-  TransactionAttestationRequest,
+  AttestationType, ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
   VerificationStatus,
-  VerificationTestOptions,
+  VerificationTestOptions
 } from "../../attestation-types";
-import { numberOfConfirmations } from "../../confirmations";
 import { verifyBlockHeightUtxo } from "./attestation-types/block-height.utxo";
 import { verifyDecreaseBalanceUtxo } from "./attestation-types/decrease-balance.utxo";
 import { verifyPaymentUtxo } from "./attestation-types/payment.utxo";
@@ -58,11 +52,11 @@ async function getAvailabilityProof(client: RPCInterface, attRequest: Transactio
   // Try to obtain the hash of data availability proof.
   let confirmationBlock = await client.getBlock(unPrefix0x(attRequest.dataAvailabilityProof)) as IUtxoBlockRes;
   // TODO: check that MCC returns null on not found
-  if(confirmationBlock) {
+  if (confirmationBlock) {
     return {
       hash: prefix0x(confirmationBlock.hash),
       blockNumber: confirmationBlock.height,
-    } as DataAvailabilityProof;  
+    } as DataAvailabilityProof;
   }
   return {} as DataAvailabilityProof;
 }

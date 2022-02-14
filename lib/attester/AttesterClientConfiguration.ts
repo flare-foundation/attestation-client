@@ -3,7 +3,6 @@ import { AttesterClientChain } from "./AttesterClientChain";
 export class AttesterClientConfiguration {
   public accountPrivateKey!: string;
   public rpcUrl!: string;
-  public wsUrl!: string;
 
   public stateConnectorContractAddress!: string;
 
@@ -20,8 +19,6 @@ export class AttesterClientConfiguration {
   public commitTime!: number;
   // in sec
   public revealTime!: number;
-
-  public epoch!: number;
 
   public chains: AttesterClientChain[] = [];
 }

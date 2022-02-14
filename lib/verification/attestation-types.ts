@@ -56,7 +56,7 @@ export interface AttestationRequest {
 export interface VerificationResult extends AttestationRequest {
   verificationStatus: VerificationStatus;
 }
-export interface ChainVerification extends AdditionalTransactionDetails, VerificationResult {
+export interface ChainVerification extends AdditionalTransactionDetails , VerificationResult {
   isFromOne?: boolean;
   utxo?: BN;
 }

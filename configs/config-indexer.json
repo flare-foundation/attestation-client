@@ -1,0 +1,37 @@
+{
+
+    "chains": [
+        {
+            "name": "XRP",
+            "url": "https://xrplcluster.com",
+            "username": "",
+            "password": "",
+            
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "clientTimeout": 5000,
+            "clientRetries": 3,
+          
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "confirmations": 6
+        },
+        {
+            "name": "BTC",
+            "url": "http://34.159.118.250:9332/",
+            "username": "flareadmin",
+            "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
+
+            "maxRequestsPerSecond":300,
+            "maxProcessingTransactions":3000,
+
+            "clientTimeout": 5000,
+            "clientRetries": 3,
+
+            "confirmations": 6
+        }
+
+    ]
+}

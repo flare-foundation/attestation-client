@@ -21,6 +21,18 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "Launch indexer",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devindexer"
+            ]
+        },
+
+        
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Launch dev multi",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [

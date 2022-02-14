@@ -73,8 +73,6 @@ export class Indexer {
 
     this.dbService = new DatabaseService(this.logger);
 
-    // this.client should be mapper, where we generate client for each chain type we want to use
-
     switch (this.chainType) {
       case ChainType.BTC:
       case ChainType.LTC:

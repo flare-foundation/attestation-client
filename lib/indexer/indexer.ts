@@ -47,7 +47,7 @@ const args = yargs
   .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false, })
   .argv;
 
-class Indexer {
+export class Indexer {
   config: IndexerConfiguration;
   chainConfig: IndexerChainConfiguration;
   chainType!: ChainType;
@@ -72,6 +72,8 @@ class Indexer {
     this.logger = getGlobalLogger(args["loggerLabel"]);
 
     this.dbService = new DatabaseService(this.logger);
+
+    // this.client should be mapper, where we generate client for each chain type we want to use
 
     switch (this.chainType) {
       case ChainType.BTC:
@@ -241,7 +243,7 @@ class Indexer {
           const attRequest = buildAttestationRequest(tr);
 
           //this.logger.info("verifyTransactionAttestation");
-          collectChainTransactionInformation(this.chainType, tx)
+          collectChainTransactionInformation(this.client, tx)
             .then(async (data: DBTransactionBase) => {
               // save
               this.saveInterlaced(data);

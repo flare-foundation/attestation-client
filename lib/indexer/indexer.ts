@@ -25,18 +25,19 @@
 //  [ ] 100% make sure that block is completely saved until moved to the next block
 //
 //  [ ] indexer sync - create database for x days back
+//
+//  [ ] do not save blocks automatically but save only the ones below confirmationsIndex
 
 
-import { ChainType, MCC, sleep, toBN, unPrefix0x } from "flare-mcc";
+import { ChainType, MCC, sleep, toBN } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/types";
 import { DBTransaction0, DBTransaction1, DBTransactionBase } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
-import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
+import { round, sleepms } from "../utils/utils";
 import { buildAttestationRequest } from "../verification/attestation-request-utils";
-import { AttestationType, ChainVerification, TransactionAttestationRequest } from "../verification/attestation-types";
-import { verifyTransactionAttestation } from "../verification/verification";
+import { AttestationType, TransactionAttestationRequest } from "../verification/attestation-types";
 import { collectChainTransactionInformation } from "./chainCollector";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
@@ -155,11 +156,11 @@ class Indexer {
   prevEpoch = -1;
   tableLock = false;
 
-  async queryInterlaced(reference: string) : Promise<DBTransactionBase[]> {
-    const references0 = await this.dbService.connection.createQueryBuilder().select('*').from(DBTransaction0,'transactions').where('transactions.paymentReference=:ref',{ref:reference}).getRawMany();
-    const references1 = await this.dbService.connection.createQueryBuilder().select('*').from(DBTransaction1,'transactions').where('transactions.paymentReference=:ref',{ref:reference}).getRawMany();
+  async queryInterlaced(reference: string): Promise<DBTransactionBase[]> {
+    const references0 = await this.dbService.connection.createQueryBuilder().select('*').from(DBTransaction0, 'transactions').where('transactions.paymentReference=:ref', { ref: reference }).getRawMany();
+    const references1 = await this.dbService.connection.createQueryBuilder().select('*').from(DBTransaction1, 'transactions').where('transactions.paymentReference=:ref', { ref: reference }).getRawMany();
 
-    return references0.concat( references1 );
+    return references0.concat(references1);
   }
 
   async saveInterlaced(data: DBTransactionBase) {
@@ -168,25 +169,24 @@ class Indexer {
 
     const tableIndex = epoch & 1;
 
-    while( this.tableLock )
-    {
-      await sleepms( 1 );
+    while (this.tableLock) {
+      await sleepms(1);
     }
 
     if (this.prevEpoch !== epoch && this.prevEpoch !== -1) {
 
       this.tableLock = true;
 
-      const time0=Date.now();
+      const time0 = Date.now();
       const queryRunner = this.dbService.connection.createQueryRunner();
       const tableName = `transactions${tableIndex}`;
       const table = await queryRunner.getTable(tableName);
       await queryRunner.dropTable(table);
       await queryRunner.createTable(table);
       await queryRunner.release();
-      const time1=Date.now();
+      const time1 = Date.now();
 
-      this.logger.info(`drop table '${tableName}' (time ${time1-time0}ms)`)
+      this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`)
 
       this.tableLock = false;
     }
@@ -209,39 +209,26 @@ class Indexer {
 
     await this.waitForDBConnection();
 
-    let blockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmations;
+    let blockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
 
     // wait for db to connect
 
     while (true) {
       try {
         // create process that will collect valid transactions
-        let latestBlockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmations;
+        let latestBlockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
         if (blockNumber >= latestBlockNumber) {
           await sleep(100);
           continue;
         }
 
         let block = await this.client.getBlock(blockNumber)
-        let confirmationBlock = await this.client.getBlock(blockNumber + this.chainConfig.confirmations);
+        let confirmationBlock = await this.client.getBlock(blockNumber + this.chainConfig.confirmationsCollect);
 
         let hashes = await this.client.getTransactionHashesFromBlock(block);
 
         for (let tx of hashes) {
-          let attType = AttestationType.Payment;
-          let tr = {
-            id: tx,
-            dataAvailabilityProof: await this.client.getBlockHash(confirmationBlock),
-            blockNumber: blockNumber,
-            chainId: this.chainType,
-            attestationType: attType,
-            instructions: toBN(0),
-          } as TransactionAttestationRequest;
-
-          const attRequest = buildAttestationRequest(tr);
-
-          //this.logger.info("verifyTransactionAttestation");
-          collectChainTransactionInformation(this.chainType, tx)
+          collectChainTransactionInformation(this.client, tx)
             .then(async (data: DBTransactionBase) => {
               // save
               this.saveInterlaced(data);

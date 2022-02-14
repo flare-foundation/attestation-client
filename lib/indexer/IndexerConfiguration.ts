@@ -13,7 +13,8 @@ export class IndexerClientChain {
 
   public maxFailedRetry: number = 1;
   
-  public confirmations: number = 6;
+  public confirmationsCollect: number = 5;
+  public confirmationsIndex: number = 7;
 }
 
 export class IndexerConfiguration {

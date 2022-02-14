@@ -16,7 +16,8 @@
             "maxFailedRetry": 1,
             "delayBeforeRetry": 10,
 
-            "confirmations": 6
+            "confirmationsCollect": 6,
+            "confirmationsIndex": 7
         },
         {
             "name": "BTC",
@@ -30,7 +31,8 @@
             "clientTimeout": 5000,
             "clientRetries": 3,
 
-            "confirmations": 6
+            "confirmationsCollect": 6,
+            "confirmationsIndex": 7
         }
 
     ]

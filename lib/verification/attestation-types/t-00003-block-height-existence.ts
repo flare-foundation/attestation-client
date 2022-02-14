@@ -1,3 +1,4 @@
+import { ChainType } from "flare-mcc";
 import {
    AttestationTypeScheme, ATT_BYTES,
    BLOCKNUMBER_BYTES,
@@ -7,6 +8,7 @@ import {
 
 export const TDEF: AttestationTypeScheme = {
    id: 3,
+   supportedSources: [ChainType.XRP, ChainType.BTC, ChainType.LTC, ChainType.DOGE, ChainType.ALGO],
    name: "BlockHeightExistence",
    request: [
       {

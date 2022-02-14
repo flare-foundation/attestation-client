@@ -1,3 +1,4 @@
+import { ChainType } from "flare-mcc";
 import {
    AMOUNT_BYTES,
    AttestationTypeScheme, ATT_BYTES,
@@ -10,6 +11,7 @@ import {
 
 export const TDEF: AttestationTypeScheme = {
    id: 4,
+   supportedSources: [ChainType.XRP, ChainType.BTC, ChainType.LTC, ChainType.DOGE, ChainType.ALGO],
    name: "ReferencedPaymentNonExistence",
    request: [
       {

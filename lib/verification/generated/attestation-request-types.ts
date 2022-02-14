@@ -12,24 +12,21 @@ export interface ARPayment {
    chainId: ChainType;
    utxo: NumberLike;
    id: BytesLike;
-   dataAvailabilityProof: BytesLike
+   dataAvailabilityProof: BytesLike;
 }
-
 export interface ARBalanceDecreasingPayment {
    attestationType: AttestationType;
    chainId: ChainType;
    inUtxo: NumberLike;
    id: BytesLike;
-   dataAvailabilityProof: BytesLike
+   dataAvailabilityProof: BytesLike;
 }
-
 export interface ARBlockHeightExistence {
    attestationType: AttestationType;
    chainId: ChainType;
    blockNumber: NumberLike;
-   dataAvailabilityProof: BytesLike
+   dataAvailabilityProof: BytesLike;
 }
-
 export interface ARReferencedPaymentNonExistence {
    attestationType: AttestationType;
    chainId: ChainType;
@@ -37,5 +34,5 @@ export interface ARReferencedPaymentNonExistence {
    endBlock: NumberLike;
    amount: NumberLike;
    paymentReference: NumberLike;
-   dataAvailabilityProof: BytesLike
+   dataAvailabilityProof: BytesLike;
 }

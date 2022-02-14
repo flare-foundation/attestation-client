@@ -108,22 +108,28 @@ export const PAYMENT_REFERENCE_BYTES = 32;
 export type NumberLike = number | BN | string;
 export type BytesLike = string;
 
+export type SupportedSolidityType = "uint8" | "uint16" | "uint32" | "uint64" | "uint128" | "uint256" | "int256" | "bytes4" | "bytes32" | "bool" | "string";
+export type SupportedRequestType = "BytesLike" | "NumberLike" | "AttestationType" | "ChainType";
 export interface AttestationRequestScheme {
   key: string;
   size: number;
-  type: "BytesLike" | "NumberLike" | "AttestationType" | "ChainType";
+  type: SupportedRequestType;
 }
 
 export interface DataHashScheme {
   key: string;
-  type: "uint8" | "uint16" | "uint32" | "uint64" | "uint128" | "uint256" | "int256" | "bytes4" | "bytes32" | "bool" | "string"
+  type: SupportedSolidityType;
 }
 
+type AttestationSource = ChainType  // Other source types may be added.
 export interface AttestationTypeScheme {
   id: number;
+  supportedSources: AttestationSource[];
   name: string;
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
 }
 
+export interface SourceIndexer {
 
+}

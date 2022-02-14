@@ -36,7 +36,7 @@ export async function verififyAttestationXRP(
             txResponse = (await client.getTransaction(unPrefix0x(attRequest.id))) as TxResponse;
 
             // get additional data
-            additionalData = await client.getAdditionalTransactionDetails(txResponse);
+            // additionalData = await client.getAdditionalTransactionDetails(txResponse);
 
             // availability proof
             let blockNumber = txResponse.result.ledger_index!;

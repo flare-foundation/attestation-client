@@ -37,6 +37,7 @@ import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
 import { buildAttestationRequest } from "../verification/attestation-request-utils";
 import { AttestationType, ChainVerification, TransactionAttestationRequest } from "../verification/attestation-types";
 import { verifyTransactionAttestation } from "../verification/verification";
+import { collectChainTransactionInformation } from "./chainCollector";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
 var yargs = require("yargs");
@@ -240,26 +241,9 @@ class Indexer {
           const attRequest = buildAttestationRequest(tr);
 
           //this.logger.info("verifyTransactionAttestation");
-          verifyTransactionAttestation(this.client, tr, { skipDataAvailabilityProof: true })
-            .then(async (txData: ChainVerification) => {
+          collectChainTransactionInformation(this.chainType, tx)
+            .then(async (data: DBTransactionBase) => {
               // save
-              const response = JSON.stringify(txData.transaction.result);
-
-              const data = new DBTransactionBase();
-
-              data.chainType = this.chainType;
-              data.blockNumber = blockNumber;
-              data.blockTransactionIndex = 0; // Todo
-              //data.timestamp = txData.blockTimestamp.toNumber();
-              data.timestamp = getUnixEpochTimestamp();
-
-              data.transactionId = unPrefix0x(txData.transaction.result.hash.toLowerCase());
-
-              data.hashVerify = ""; // Todo
-              data.paymentReference = ""; // Todo
-
-              data.response = response;
-
               this.saveInterlaced(data);
             })
             .catch((error) => {
@@ -330,3 +314,4 @@ runIndexer()
     console.error(error);
     process.exit(1);
   });
+

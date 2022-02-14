@@ -21,12 +21,12 @@ export async function verififyAttestationUtxo(client: RPCInterface, attRequest: 
   switch (attRequest.attestationType) {
     case AttestationType.Payment:
     case AttestationType.BalanceDecreasingPayment:
-      txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
+      // txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
 
-      [additionalData, dataAvailability] = await Promise.all([
-        client.getAdditionalTransactionDetails(txResponse),
-        getAvailabilityProof(client, attRequest)
-      ]);
+      // [additionalData, dataAvailability] = await Promise.all([
+      //   client.getAdditionalTransactionDetails(txResponse),
+      //   getAvailabilityProof(client, attRequest)
+      // ]);
       break;
     case AttestationType.BlockHeightExistence:
       dataAvailability = await getAvailabilityProof(client, attRequest);

@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 
-function dotenvInclude() {
-  const include = process.env.DOTENV_INCLUDE;
+function dotenvInclude(include: string) {
 
   if (include === null || include === undefined) return;
 
@@ -20,5 +19,9 @@ export function DotEnvExt() {
     dotenv.config();
   }
 
-  dotenvInclude();
+  dotenvInclude(process.env.DOTENV_DEVINCLUDE);
+  dotenvInclude(process.env.DOTENV_INCLUDE);
+
+  console.log(`[mode=${process.env.NODE_ENV}`);
+  //console.log(process.env);
 }

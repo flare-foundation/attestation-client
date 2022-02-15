@@ -5,6 +5,10 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# sqlite db
+!./indexer
+!./indexer-journal
+
 # Typescript 
 dist
 

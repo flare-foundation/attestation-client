@@ -24,12 +24,12 @@ export async function verififyAttestationUtxo(client: RPCInterface, attRequest: 
   switch (attRequest.attestationType) {
     case AttestationType.Payment:
     case AttestationType.BalanceDecreasingPayment:
-      txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
+      // txResponse = (await client.getTransaction(unPrefix0x(attRequest.id), { verbose: true })) as IUtxoGetTransactionRes;
 
-      [additionalData, dataAvailability] = await Promise.all([
-        client.getAdditionalTransactionDetails(txResponse),
-        getAvailabilityProof(client, attRequest)
-      ]);
+      // [additionalData, dataAvailability] = await Promise.all([
+      //   client.getAdditionalTransactionDetails(txResponse),
+      //   getAvailabilityProof(client, attRequest)
+      // ]);
       break;
     case AttestationType.BlockHeightExistence:
       dataAvailability = await getAvailabilityProof(client, attRequest);
@@ -55,11 +55,11 @@ async function getAvailabilityProof(client: RPCInterface, attRequest: Transactio
   // Try to obtain the hash of data availability proof.
   let confirmationBlock = await client.getBlock(unPrefix0x(attRequest.dataAvailabilityProof)) as IUtxoBlockRes;
   // TODO: check that MCC returns null on not found
-  if(confirmationBlock) {
+  if (confirmationBlock) {
     return {
       hash: prefix0x(confirmationBlock.hash),
       blockNumber: confirmationBlock.height,
-    } as DataAvailabilityProof;  
+    } as DataAvailabilityProof;
   }
   return {} as DataAvailabilityProof;
 }

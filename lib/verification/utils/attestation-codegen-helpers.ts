@@ -167,9 +167,7 @@ function definitionFile(definition: AttestationTypeScheme, folder?: string, addT
 
 function randomHashItemValue(item: DataHashScheme) {
    let res =  `
-         ${item.key}: (request as any).${item.key} 
-            ? (request as any).${item.key} as ${tsTypeForSolidityType(item.type)} 
-            : randSol("${item.type}") as ${tsTypeForSolidityType(item.type)}`;
+         ${item.key}: randSol(request, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`
    return trimStartNewline(res);
 }
 
@@ -179,17 +177,24 @@ function genVerifier(definition: AttestationTypeScheme, sourceId: number, folder
    let types = definition.dataHashDefinition.map(item => `           "${item.type}",\t\t// ${item.key}`).join("\n");
    let values = definition.dataHashDefinition.map(item => `          response.${item.key}`).join(",\n");
    return `${DEFAULT_GEN_FILE_HEADER}
+import BN from "bn.js";
+import Web3 from "web3";   
 import { RPCInterface } from "flare-mcc";
-import { SourceIndexer } from "../../attestation-types/attestation-types";
+import { SourceIndexer, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
 import { TDEF } from "../../attestation-types/${definitionFile(definition, undefined, false)}";
 import { ${ATTESTATION_TYPE_PREFIX}${definition.name} } from "../../generated/attestation-request-types";
+import { ${DATA_HASH_TYPE_PREFIX}${definition.name} } from "../../generated/attestation-hash-types";
+const web3 = new Web3();
 
 export function ${functionName}(client: RPCInterface, bytes: string, indexer: SourceIndexer) {
    let request = parseRequestBytes(bytes, TDEF) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+
+   // Do the magic here and fill the response with the relevant data
+
    let response = {
 ${responseFields}      
-   }
+   } as ${DATA_HASH_TYPE_PREFIX}${definition.name};
    let encoded = web3.eth.abi.encodeParameters(
       [
 ${types}
@@ -199,6 +204,11 @@ ${values}
       ]
    );
    let hash = web3.utils.soliditySha3(encoded)!;
+   return {
+      hash,
+      response,
+      status: VerificationStatus.OK
+   } as Verification<${DATA_HASH_TYPE_PREFIX}${definition.name}>;
 }   
 `
 }

@@ -3,46 +3,33 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
+import BN from "bn.js";
+import Web3 from "web3";   
 import { RPCInterface } from "flare-mcc";
-import { SourceIndexer } from "../../attestation-types/attestation-types";
+import { SourceIndexer, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
 import { TDEF } from "../../attestation-types/t-00004-referenced-payment-non-existence";
 import { ARReferencedPaymentNonExistence } from "../../generated/attestation-request-types";
+import { DHReferencedPaymentNonExistence } from "../../generated/attestation-hash-types";
+const web3 = new Web3();
 
 export function verifyReferencedPaymentNonExistenceLTC(client: RPCInterface, bytes: string, indexer: SourceIndexer) {
    let request = parseRequestBytes(bytes, TDEF) as ARReferencedPaymentNonExistence;
+
+   // Do the magic here and fill the response with the relevant data
+
    let response = {
-         attestationType: (request as any).attestationType 
-            ? (request as any).attestationType as BN 
-            : randSol("uint16") as BN,
-         chainId: (request as any).chainId 
-            ? (request as any).chainId as BN 
-            : randSol("uint16") as BN,
-         endTimestamp: (request as any).endTimestamp 
-            ? (request as any).endTimestamp as BN 
-            : randSol("uint64") as BN,
-         endBlock: (request as any).endBlock 
-            ? (request as any).endBlock as BN 
-            : randSol("uint64") as BN,
-         paymentReference: (request as any).paymentReference 
-            ? (request as any).paymentReference as BN 
-            : randSol("uint128") as BN,
-         amount: (request as any).amount 
-            ? (request as any).amount as BN 
-            : randSol("uint128") as BN,
-         firstCheckedBlockTimestamp: (request as any).firstCheckedBlockTimestamp 
-            ? (request as any).firstCheckedBlockTimestamp as BN 
-            : randSol("uint64") as BN,
-         firstCheckedBlock: (request as any).firstCheckedBlock 
-            ? (request as any).firstCheckedBlock as BN 
-            : randSol("uint64") as BN,
-         firstOverflowBlockTimestamp: (request as any).firstOverflowBlockTimestamp 
-            ? (request as any).firstOverflowBlockTimestamp as BN 
-            : randSol("uint64") as BN,
-         firstOverflowBlock: (request as any).firstOverflowBlock 
-            ? (request as any).firstOverflowBlock as BN 
-            : randSol("uint64") as BN      
-   }
+         attestationType: randSol(request, "attestationType", "uint16") as BN,
+         chainId: randSol(request, "chainId", "uint16") as BN,
+         endTimestamp: randSol(request, "endTimestamp", "uint64") as BN,
+         endBlock: randSol(request, "endBlock", "uint64") as BN,
+         paymentReference: randSol(request, "paymentReference", "uint128") as BN,
+         amount: randSol(request, "amount", "uint128") as BN,
+         firstCheckedBlockTimestamp: randSol(request, "firstCheckedBlockTimestamp", "uint64") as BN,
+         firstCheckedBlock: randSol(request, "firstCheckedBlock", "uint64") as BN,
+         firstOverflowBlockTimestamp: randSol(request, "firstOverflowBlockTimestamp", "uint64") as BN,
+         firstOverflowBlock: randSol(request, "firstOverflowBlock", "uint64") as BN      
+   } as DHReferencedPaymentNonExistence;
    let encoded = web3.eth.abi.encodeParameters(
       [
            "uint16",		// attestationType
@@ -70,4 +57,9 @@ export function verifyReferencedPaymentNonExistenceLTC(client: RPCInterface, byt
       ]
    );
    let hash = web3.utils.soliditySha3(encoded)!;
+   return {
+      hash,
+      response,
+      status: VerificationStatus.OK
+   } as Verification<DHReferencedPaymentNonExistence>;
 }   

@@ -1,5 +1,6 @@
 import assert from "assert";
 import { ChainType, MCC, prefix0x, toBN, unPrefix0x } from "flare-mcc";
+import Web3 from "web3";
 import { toHex } from "../../utils/utils";
 import { AttestationType } from "../generated/attestation-types-enum";
 import { AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, SupportedSolidityType } from "./attestation-types";
@@ -71,8 +72,38 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
   }
 }
 
-export function randomHashValueForSolidityType(type: string) {
-  return toBN(1) as any;
+export function randSol(request: any, key: string, type: SupportedSolidityType) {
+  let web3 = new Web3();
+  if(request[key]) {
+    return request[key];
+  }
+  switch (type) {
+    case "uint8":
+      return toBN(web3.utils.randomHex(1))
+    case "uint16":
+      return toBN(web3.utils.randomHex(2))
+    case "uint32":
+      return toBN(web3.utils.randomHex(4))
+    case "uint64":
+      return toBN(web3.utils.randomHex(8))
+    case "uint128":
+      return toBN(web3.utils.randomHex(16))
+    case "uint256":
+      return toBN(web3.utils.randomHex(32))
+    case "int256":
+      return toBN(web3.utils.randomHex(32))
+    case "bool":
+      return toBN(web3.utils.randomHex(1)).mod(toBN(2));
+    case "string":
+      return web3.utils.randomHex(32)
+    case "bytes4":
+      return web3.utils.randomHex(4)
+    case "bytes32":
+      return web3.utils.randomHex(32)
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => { })(type);
+  }
 }
 
 export function getAttestationTypeAndSource(bytes: string) {

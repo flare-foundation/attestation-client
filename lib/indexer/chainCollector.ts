@@ -1,6 +1,8 @@
-import { ChainType, RPCInterface } from "flare-mcc";
+import { base64ToHex, ChainType, RPCInterface, txIdToHexNo0x } from "flare-mcc";
+import { IalgoGetFulTransactionRes } from "flare-mcc/dist/types/algoTypes";
+import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 import { DBTransactionBase } from "../entity/dbTransaction";
-import { getRandom, getUnixEpochTimestamp } from "../utils/utils";
+import { getRandom } from "../utils/utils";
 
 export async function collectChainTransactionInformation(client: RPCInterface, transactionHash: string) : Promise<DBTransactionBase> {
 
@@ -16,25 +18,50 @@ export async function collectChainTransactionInformation(client: RPCInterface, t
         default:
             throw Error("Not implemented")
     }
-
 }
 
-async function algoCollectTransaction(chain: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
-    return {} as DBTransactionBase
-}
 
-async function utxoCollectTransaction(chain: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
+async function algoCollectTransaction(client: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
+    const fullTransaction = client.getFullTransaction(transactionHash) as IalgoGetFulTransactionRes;
     const res = new DBTransactionBase();
-    res.chainType = chain.chainType;
 
-    res.blockNumber = await getRandom();
-    res.paymentReference = await getRandom().toString();
-    res.timestamp = getUnixEpochTimestamp();
+    res.chainType = client.chainType;
 
-    res.response = "krneki";
+    // Algo specific conversion of transaction hashes to hex 
+    res.transactionId = txIdToHexNo0x(transactionHash);
+
+    // If there is note other
+    res.paymentReference = base64ToHex(fullTransaction.note || "")
+    res.timestamp = fullTransaction.roundTime || 0
+
+    res.response = JSON.stringify(fullTransaction)
     return res as DBTransactionBase
 }
 
-async function xrpCollectTransaction(chain: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
-    return {} as DBTransactionBase
+async function utxoCollectTransaction(client: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
+    const fullTransaction = client.getFullTransaction(transactionHash) as IUtxoGetFullTransactionRes;
+    const res = new DBTransactionBase();
+    
+    res.chainType = client.chainType;
+    res.transactionId = transactionHash;
+
+    const paymentRef = client.getTransactionRefFromTransaction(fullTransaction)
+
+    res.blockNumber = await getRandom();
+    res.paymentReference = JSON.stringify(paymentRef)
+    res.timestamp = fullTransaction.blocktime
+
+    res.response = JSON.stringify(fullTransaction)
+    return res as DBTransactionBase
+}
+
+async function xrpCollectTransaction(client: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
+    const fullTransaction = client.getFullTransaction(transactionHash);
+    const res = new DBTransactionBase();
+
+    res.chainType = client.chainType;
+    res.transactionId = transactionHash;
+
+    res.response = JSON.stringify(fullTransaction)
+    return res as DBTransactionBase
 }

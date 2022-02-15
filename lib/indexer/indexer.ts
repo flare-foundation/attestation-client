@@ -228,6 +228,8 @@ export class Indexer {
         for (let tx of hashes) {
           collectChainTransactionInformation(this.client, tx)
             .then(async (data: DBTransactionBase) => {
+              // Add block height to transaction data
+              data.blockNumber = blockNumber;
               // save
               this.saveInterlaced(data);
             })

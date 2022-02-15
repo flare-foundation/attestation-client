@@ -29,15 +29,13 @@
 //  [ ] do not save blocks automatically but save only the ones below confirmationsIndex
 
 
-import { ChainType, MCC, sleep, toBN } from "flare-mcc";
+import { ChainType, MCC, sleep } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/types";
 import { DBTransaction0, DBTransaction1, DBTransactionBase } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { round, sleepms } from "../utils/utils";
-import { buildAttestationRequest } from "../verification/attestation-request-utils";
-import { AttestationType, TransactionAttestationRequest } from "../verification/attestation-types";
 import { collectChainTransactionInformation } from "./chainCollector";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
@@ -48,7 +46,7 @@ const args = yargs
   .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false, })
   .argv;
 
-class Indexer {
+export class Indexer {
   config: IndexerConfiguration;
   chainConfig: IndexerChainConfiguration;
   chainType!: ChainType;

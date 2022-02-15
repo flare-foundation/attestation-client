@@ -6,14 +6,14 @@
 import BN from "bn.js";
 import Web3 from "web3";   
 import { RPCInterface } from "flare-mcc";
-import { SourceIndexer, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
+import { IndexerQueryHandler, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
 import { TDEF } from "../../attestation-types/t-00004-referenced-payment-non-existence";
 import { ARReferencedPaymentNonExistence } from "../../generated/attestation-request-types";
 import { DHReferencedPaymentNonExistence } from "../../generated/attestation-hash-types";
 const web3 = new Web3();
 
-export function verifyReferencedPaymentNonExistenceXRP(client: RPCInterface, bytes: string, indexer: SourceIndexer) {
+export async function verifyReferencedPaymentNonExistenceXRP(client: RPCInterface, bytes: string, indexer: IndexerQueryHandler) {
    let request = parseRequestBytes(bytes, TDEF) as ARReferencedPaymentNonExistence;
 
    // Do the magic here and fill the response with the relevant data

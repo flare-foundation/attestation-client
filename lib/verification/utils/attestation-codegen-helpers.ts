@@ -180,14 +180,14 @@ function genVerifier(definition: AttestationTypeScheme, sourceId: number, folder
 import BN from "bn.js";
 import Web3 from "web3";   
 import { RPCInterface } from "flare-mcc";
-import { SourceIndexer, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
+import { IndexerQueryHandler, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
 import { TDEF } from "../../attestation-types/${definitionFile(definition, undefined, false)}";
 import { ${ATTESTATION_TYPE_PREFIX}${definition.name} } from "../../generated/attestation-request-types";
 import { ${DATA_HASH_TYPE_PREFIX}${definition.name} } from "../../generated/attestation-hash-types";
 const web3 = new Web3();
 
-export function ${functionName}(client: RPCInterface, bytes: string, indexer: SourceIndexer) {
+export async function ${functionName}(client: RPCInterface, bytes: string, indexer: IndexerQueryHandler) {
    let request = parseRequestBytes(bytes, TDEF) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
    // Do the magic here and fill the response with the relevant data
@@ -257,11 +257,11 @@ function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
 import { ChainType, RPCInterface } from "flare-mcc"
 import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-helpers"
 import { AttestationType } from "../generated/attestation-types-enum"
-import { SourceIndexer } from "../attestation-types/attestation-types"
+import { IndexerQueryHandler, Verification } from "../attestation-types/attestation-types"
       
 ${routerImports}
 
-export function verifyAttestation(client: RPCInterface, request: string, indexer: SourceIndexer) {
+export async function verifyAttestation(client: RPCInterface, request: string, indexer: IndexerQueryHandler): Promise<Verification<any>>{
    let {attestationType, sourceId} = getAttestationTypeAndSource(request);
    switch(attestationType) {
 ${attestationTypeCases}

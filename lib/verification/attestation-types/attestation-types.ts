@@ -136,6 +136,6 @@ export interface AttestationTypeScheme {
   dataHashDefinition: DataHashScheme[];
 }
 
-export interface SourceIndexer {
+export interface IndexerQueryHandler {
 
 }

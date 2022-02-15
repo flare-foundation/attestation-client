@@ -1,7 +1,6 @@
 import BN from "bn.js";
-import { ChainType } from "flare-mcc";
-import { Hash } from "../utils/Hash";
-import { AttestationRequest } from "../verification/attestation-types/attestation-types";
+import { ChainType, toBN } from "flare-mcc";
+import { getAttestationTypeAndSource } from "../verification/attestation-types/attestation-types-helpers";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 
 export class AttestationData {
@@ -9,9 +8,8 @@ export class AttestationData {
   type!: AttestationType;
   source!: ChainType;
   timeStamp!: BN;
-  id!: string;
-  dataAvailabilityProof!: string;
-
+  request!: string;
+  
   // block parameters
   blockNumber!: BN;
   logIndex!: number;
@@ -19,6 +17,19 @@ export class AttestationData {
   // attestation data
   instructions!: BN;
 
+  constructor(event: any) {
+    this.timeStamp = toBN(event.returnValues.timestamp);
+    this.request = event.returnValues.data;
+    
+    const {attestationType, sourceId} = getAttestationTypeAndSource(this.request);
+    this.type = attestationType;
+    this.source = sourceId;
+
+    // for sorting
+    this.blockNumber = toBN(event.blockNumber);
+    this.logIndex = event.logIndex;
+  }
+  
   comparator(obj: AttestationData): number {
     if (this.blockNumber.lt(obj.blockNumber)) return -1;
     if (this.blockNumber.gt(obj.blockNumber)) return 1;
@@ -29,23 +40,8 @@ export class AttestationData {
     return 0;
   }
 
-  getTypeSource(): number {
-    return ((this.type as number) << 16) + this.source;
-  }
-
   getHash(): string {
-    return Hash.create(this.instructions.toString() + this.id + this.dataAvailabilityProof);
+    return this.request;
   }
 
-  getAttestationRequest(): AttestationRequest {
-    let request: AttestationRequest = {
-      timestamp: this.timeStamp,
-      instructions: this.instructions,
-      id: this.id,
-      dataAvailabilityProof: this.dataAvailabilityProof,
-      attestationType: this.type,
-    };
-
-    return request;
-  }
 }

@@ -6,14 +6,14 @@
 import BN from "bn.js";
 import Web3 from "web3";   
 import { RPCInterface } from "flare-mcc";
-import { SourceIndexer, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
+import { IndexerQueryHandler, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
 import { TDEF } from "../../attestation-types/t-00002-balance-decreasing-payment";
 import { ARBalanceDecreasingPayment } from "../../generated/attestation-request-types";
 import { DHBalanceDecreasingPayment } from "../../generated/attestation-hash-types";
 const web3 = new Web3();
 
-export function verifyBalanceDecreasingPaymentALGO(client: RPCInterface, bytes: string, indexer: SourceIndexer) {
+export async function verifyBalanceDecreasingPaymentALGO(client: RPCInterface, bytes: string, indexer: IndexerQueryHandler) {
    let request = parseRequestBytes(bytes, TDEF) as ARBalanceDecreasingPayment;
 
    // Do the magic here and fill the response with the relevant data

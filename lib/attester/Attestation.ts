@@ -1,4 +1,4 @@
-import { ChainVerification } from "../verification/attestation-types/attestation-types";
+import { ChainVerification, Verification } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
@@ -34,7 +34,7 @@ export class Attestation {
 
   data: AttestationData;
 
-  verificationData!: ChainVerification;
+  verificationData!: Verification<any>;
 
   // how many time was attestation retried
   retry: number = 0;

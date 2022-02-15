@@ -215,13 +215,12 @@ export class Indexer {
       try {
         // create process that will collect valid transactions
         let latestBlockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
-        if (blockNumber >= latestBlockNumber) {
+        if (blockNumber >= latestBlockNumber + 1) {
           await sleep(100);
           continue;
         }
 
         let block = await this.client.getBlock(blockNumber)
-        let confirmationBlock = await this.client.getBlock(blockNumber + this.chainConfig.confirmationsCollect);
 
         let hashes = await this.client.getTransactionHashesFromBlock(block);
 
@@ -249,6 +248,9 @@ export class Indexer {
             await sleep(5);
           }
         }
+
+        // move to next block
+        blockNumber++;
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
       }

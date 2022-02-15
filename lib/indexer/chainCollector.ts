@@ -46,9 +46,12 @@ async function utxoCollectTransaction(client: RPCInterface, transactionHash: str
     res.transactionId = transactionHash;
 
     const paymentRef = client.getTransactionRefFromTransaction(fullTransaction)
-
-    res.blockNumber = await getRandom();
-    res.paymentReference = JSON.stringify(paymentRef)
+    if(paymentRef.length === 1){
+        res.paymentReference = paymentRef[0]
+    }
+    // we get block number on top level when we add transactions from indexer into processing queue
+    // res.blockNumber = await getRandom();
+    
     res.timestamp = fullTransaction.blocktime
 
     res.response = JSON.stringify(fullTransaction)

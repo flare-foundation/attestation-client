@@ -1,8 +1,8 @@
-import { RPCInterface } from "flare-mcc";
+import { IAlgoGetBlockRes, IUtxoGetBlockRes, IXrpGetBlockRes, RPCInterface } from "flare-mcc";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
 // TODO this is temp
-interface DBBlockBase {
+export interface DBBlockBase {
   number: number,
   saved: boolean
 }
@@ -24,5 +24,5 @@ export interface augmentBlockSig<B> {
 }
 
 export interface onSaveSig {
-  (block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean>
+  (transactions: DBTransactionBase[]): Promise<boolean>
 }

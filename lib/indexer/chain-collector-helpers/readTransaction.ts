@@ -1,4 +1,4 @@
-import { ChainType, IXrpGetFullTransactionRes, RPCInterface, IAlgoGetFulTransactionRes} from "flare-mcc";
+import { ChainType, IXrpGetFullTransactionRes, RPCInterface, IAlgoGetFulTransactionRes, unPrefix0x} from "flare-mcc";
 import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 
 
@@ -22,7 +22,7 @@ async function readTransactionAlgo(client: RPCInterface, txHash: string):  Promi
 }
 
 async function readTransactionUtxo(client: RPCInterface, txHash: string):  Promise<IUtxoGetFullTransactionRes> {
-  return await client.getFullTransaction(txHash) as IUtxoGetFullTransactionRes
+  return await client.getFullTransaction(unPrefix0x(txHash)) as IUtxoGetFullTransactionRes
 }
 
 

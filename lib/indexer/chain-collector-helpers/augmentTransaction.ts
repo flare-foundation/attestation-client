@@ -1,4 +1,4 @@
-import { base64ToHex, ChainType, IAlgoGetBlockRes, IAlgoGetFulTransactionRes, IUtxoBlockRes, IXrpGetFullTransactionRes, RPCInterface, txIdToHexNo0x } from "flare-mcc";
+import { base64ToHex, ChainType, IAlgoGetBlockRes, IAlgoGetFulTransactionRes, IUtxoGetBlockRes, IXrpGetFullTransactionRes, RPCInterface, txIdToHexNo0x } from "flare-mcc";
 import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
@@ -36,7 +36,7 @@ async function augmentTransactionAlgo(client: RPCInterface, block: IAlgoGetBlock
   return res as DBTransactionBase
 }
 
-async function utxoCollectTransaction(client: RPCInterface, block: IUtxoBlockRes, txData: IUtxoGetFullTransactionRes): Promise<DBTransactionBase> {
+async function utxoCollectTransaction(client: RPCInterface, block: IUtxoGetBlockRes, txData: IUtxoGetFullTransactionRes): Promise<DBTransactionBase> {
   const res = new DBTransactionBase();
   res.blockNumber = block.height;
   res.chainType = client.chainType;

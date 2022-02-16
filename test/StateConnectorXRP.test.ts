@@ -1,13 +1,9 @@
 
 import { ChainType, MCC, prefix0x, toBN } from "flare-mcc";
-import { cli } from "winston/lib/winston/config";
 import { LedgerResponse } from "xrpl";
-import { prettyPrintObject } from "../lib/utils/utils";
 import {
-   attReqToTransactionAttestationRequest,
-   extractAttEvents,
-   transactionHash,
-   buildAttestationRequest
+   attReqToTransactionAttestationRequest, buildAttestationRequest, extractAttEvents,
+   transactionHash
 } from "../lib/verification/attestation-request-utils";
 import {
    AttestationRequest,

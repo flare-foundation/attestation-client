@@ -1,70 +1,56 @@
-import { base64ToHex, ChainType, RPCInterface, txIdToHexNo0x } from "flare-mcc";
-import { IalgoGetFulTransactionRes } from "flare-mcc/dist/types/algoTypes";
+import { base64ToHex, ChainType, RPCInterface, txIdToHexNo0x, IAlgoGetFulTransactionRes } from "flare-mcc";
 import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 import { DBTransactionBase } from "../entity/dbTransaction";
-import { getRandom } from "../utils/utils";
-
-export async function collectChainTransactionInformation(client: RPCInterface, transactionHash: string) : Promise<DBTransactionBase> {
-
-    switch(client.chainType){
-        case ChainType.BTC:
-        case ChainType.LTC:
-        case ChainType.DOGE:
-            return await utxoCollectTransaction(client,transactionHash);
-        case ChainType.ALGO:
-            return await algoCollectTransaction(client,transactionHash);
-        case ChainType.XRP:
-            return await xrpCollectTransaction(client,transactionHash);
-        default:
-            throw Error("Not implemented")
-    }
-}
+import { augmentBlockSig, augmentTransactionSig, onSaveSig, preprocessBlockSig, readTransactionSig } from "./chain-collector-helpers/types";
 
 
-async function algoCollectTransaction(client: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
-    const fullTransaction = client.getFullTransaction(transactionHash) as IalgoGetFulTransactionRes;
-    const res = new DBTransactionBase();
 
-    res.chainType = client.chainType;
 
-    // Algo specific conversion of transaction hashes to hex 
-    res.transactionId = txIdToHexNo0x(transactionHash);
+/**
+ * 
+ * @param client Mcc client for chain we are collecting from
+ * @param block block data from underlying chain
+ * @param preprocessBlock Callback function that pre-process the block data, used if transaction data is in the block
+ * @param readTransaction Method that gets all of the needed transaction data from the chain
+ * @param augmentTransaction Method to prepare transaction data to be saved into indexer
+ * @param augmentBlock Method to preprocess block information 
+ * @param onSave callback to save transaction data and index if block was successfully saved or not
+ */
+async function processBlockTransactions<B, T>(
+   client: RPCInterface,
+   block: B,  // Type is specific to each underlying chain
+   preprocessBlock: preprocessBlockSig<B,T>,
+   readTransaction: readTransactionSig<T>, // getFullTransaction
+   augmentTransaction: augmentTransactionSig<B,T> ,
+   augmentBlock: augmentBlockSig<B>,
+   onSave: onSaveSig
+) {
+   // We preprocess the block
+   //  - For each transaction in block we generate a mapper from tx hash to its data object or in null
+   // then we go over all transaction hashes in block and process them further
 
-    // If there is note other
-    res.paymentReference = base64ToHex(fullTransaction.note || "")
-    res.timestamp = fullTransaction.roundTime || 0
+   // Preprocess transaction 
 
-    res.response = JSON.stringify(fullTransaction)
-    return res as DBTransactionBase
-}
+   // TODO add to mcc
+   const transactionMap = preprocessBlock(block);
 
-async function utxoCollectTransaction(client: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
-    const fullTransaction = client.getFullTransaction(transactionHash) as IUtxoGetFullTransactionRes;
-    const res = new DBTransactionBase();
-    
-    res.chainType = client.chainType;
-    res.transactionId = transactionHash;
+   // go over all transactions and process them
 
-    const paymentRef = client.getTransactionRefFromTransaction(fullTransaction)
-    if(paymentRef.length === 1){
-        res.paymentReference = paymentRef[0]
-    }
-    // we get block number on top level when we add transactions from indexer into processing queue
-    // res.blockNumber = await getRandom();
-    
-    res.timestamp = fullTransaction.blocktime
+   const augmentTransactions:DBTransactionBase[] = []
 
-    res.response = JSON.stringify(fullTransaction)
-    return res as DBTransactionBase
-}
+   const transactionHashes = await client.getTransactionHashesFromBlock(block);
+   for (let txHash of transactionHashes) {
+      let txData = transactionMap.get(txHash);
+      if (txData === null || txData === undefined ) {
+         txData = await readTransaction(client, txHash);
+      }
 
-async function xrpCollectTransaction(client: RPCInterface, transactionHash: string): Promise<DBTransactionBase> {
-    const fullTransaction = client.getFullTransaction(transactionHash);
-    const res = new DBTransactionBase();
+      const dbData = await augmentTransaction(client, block, txData);
+      augmentTransactions.push(dbData);
+   }
 
-    res.chainType = client.chainType;
-    res.transactionId = transactionHash;
+   const blockData = await augmentBlock(client, block)
 
-    res.response = JSON.stringify(fullTransaction)
-    return res as DBTransactionBase
+   await onSave(blockData, augmentTransactions);
+
 }

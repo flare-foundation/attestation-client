@@ -1,0 +1,28 @@
+import { RPCInterface } from "flare-mcc";
+import { DBTransactionBase } from "../../entity/dbTransaction";
+
+// TODO this is temp
+interface DBBlockBase {
+  number: number,
+  saved: boolean
+}
+
+export interface preprocessBlockSig<B,T> {
+  (block: B): Map<string, T | null>
+}
+
+export interface readTransactionSig<T> {
+  (client: RPCInterface, txHash: string): Promise<T>
+}
+
+export interface augmentTransactionSig<B,T> {
+  (client: RPCInterface, block: B, txData: T): Promise<DBTransactionBase>
+}
+
+export interface augmentBlockSig<B> {
+  (client: RPCInterface, block: B): Promise<DBBlockBase>
+}
+
+export interface onSaveSig {
+  (block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean>
+}

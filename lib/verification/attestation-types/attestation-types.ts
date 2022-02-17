@@ -52,8 +52,8 @@ export interface VerificationResult extends AttestationRequest {
 }
 
 export interface Verification<T> {
-  hash: string;
-  response: T
+  hash?: string;
+  response?: T
   status: VerificationStatus;
 }
 export interface ChainVerification extends AdditionalTransactionDetails , VerificationResult {

@@ -17,20 +17,20 @@ export function readTransactionSwitch(chainType: ChainType) {
    }
 }
 
-async function readTransactionAlgo(client: RPCInterface, txHash: string):  Promise<IAlgoGetFullTransactionRes> {
+export async function readTransactionAlgo(client: RPCInterface, txHash: string):  Promise<IAlgoGetFullTransactionRes> {
   return await client.getFullTransaction(txHash) as IAlgoGetFullTransactionRes
 }
 
-async function readTransactionUtxo(client: RPCInterface, txHash: string):  Promise<IUtxoGetFullTransactionRes> {
+export async function readTransactionUtxo(client: RPCInterface, txHash: string):  Promise<IUtxoGetFullTransactionRes> {
   return await client.getFullTransaction(unPrefix0x(txHash)) as IUtxoGetFullTransactionRes
 }
 
 
-async function readTransactionXrp(client: RPCInterface, txHash: string):  Promise<IXrpGetFullTransactionRes> {
+export async function readTransactionXrp(client: RPCInterface, txHash: string):  Promise<IXrpGetFullTransactionRes> {
   return await client.getFullTransaction(txHash) as IXrpGetFullTransactionRes
 }
 
 
-async function readTransactionDefault(client: RPCInterface, txHash: string):  Promise<any> {
+export async function readTransactionDefault(client: RPCInterface, txHash: string):  Promise<any> {
   return await client.getFullTransaction(txHash)
 }

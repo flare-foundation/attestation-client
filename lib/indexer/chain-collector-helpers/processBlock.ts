@@ -14,7 +14,7 @@ export function processBlockSwitch(chainType: ChainType) {
    }
 }
 
-function processBlockXrp(block:any): Map<string, any> {
+export function processBlockXrp(block:any): Map<string, any> {
    const repMap =  new Map<string, any>();
    for(let trans of block.result.ledger.transactions){
       repMap.set(trans.hash,trans)
@@ -22,6 +22,6 @@ function processBlockXrp(block:any): Map<string, any> {
    return repMap
 }
 
-function processBlockDefault(block:any):  Map<string, null> {
+export function processBlockDefault(block:any):  Map<string, null> {
    return new Map<string, null>()
 }

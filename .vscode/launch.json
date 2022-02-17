@@ -212,6 +212,20 @@
                 "test/QuickTest.test.ts"
             ]
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Colector",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "test",
+                "lib/indexer/chain-collector-helpers/test/chainCollector.test.ts"
+            ]
+        },
 
     ]
 }

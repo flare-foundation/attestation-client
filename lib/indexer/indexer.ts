@@ -39,7 +39,7 @@ import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
-import { collectChainTransactionInformation } from "./chainCollector";
+import { processBlock, processBlockTest } from "./chainCollector";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
 var yargs = require("yargs");
@@ -145,11 +145,13 @@ export class Indexer {
     return references0.concat(references1);
   }
 
-  async saveInterlaced(data: DBTransactionBase) {
+  async saveInterlaced(data: DBTransactionBase[]) : Promise<boolean> {
+
+    if( data.length===0 ) return true; 
 
     try {
 
-      const epoch = this.getEpoch(data.timestamp);
+      const epoch = this.getEpoch(data[0].timestamp);
 
       const tableIndex = epoch & 1;
 
@@ -177,21 +179,31 @@ export class Indexer {
 
       this.prevEpoch = epoch;
 
-      //const data0 = tableIndex ? new DBTransaction1() : new DBTransaction0();
-      const data0 = new this.dbTableClass[tableIndex];
+      const entity = this.dbTableClass[tableIndex];
 
-      for (let key of Object.keys(data)) {
-        data0[key] = data[key];
+      // create a copy of data with specific data types (for database)
+      const dataCopy = Array<typeof entity>();
+
+      for(let d of data) {
+        const newData = new this.dbTableClass[tableIndex];
+
+        for (let key of Object.keys(d)) {
+          newData[key] = d[key];
+        }
+
+        dataCopy.push( newData )
       }
 
-      await this.dbService.manager.save(data0).catch((error) => {
+      await this.dbService.manager.save(dataCopy).catch((error) => {
         this.logger.error(`database error: ${error}`);
       });
+
+      return true;
     }
     catch( error ){
       this.logger.error(`saveInterlaced: ${error}`);
+      return false;
     }
-
   }
 
 
@@ -305,34 +317,10 @@ export class Indexer {
   }
 
   async indexBlock(client: RPCInterface, blockNumber: number) {
+
     let block = await client.getBlock(blockNumber)
 
-    let hashes = await client.getTransactionHashesFromBlock(block);
-
-    for (let tx of hashes) {
-      collectChainTransactionInformation(this.client, tx)
-        .then(async (data: DBTransactionBase) => {
-          // Add block height to transaction data
-          data.blockNumber = blockNumber;
-          // save
-          this.saveInterlaced(data);
-        })
-        .catch((error) => {
-          Indexer.failed++;
-          // skip
-          if (!error.message.endsWith("property 'message' of undefined")) {
-            this.logger.error(`Verification error ${error}`);
-          }
-        });
-
-      Indexer.sendCount++;
-
-      // wait a bit
-      await sleep(50);
-      while (this.wait) {
-        await sleep(5);
-      }
-    }
+    processBlockTest(this.client, block, this.saveInterlaced.bind(this) );
   }
 }
 

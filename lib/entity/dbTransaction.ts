@@ -25,12 +25,15 @@ export class DBTransactionBase extends BaseEntity {
     @Column({type: "text" }) response: string = "";
 }
 
-@Entity({ name: "transactions0" })
-export class DBTransaction0 extends DBTransactionBase {
+
+
+@Entity({ name: "xrp_transactions0" })
+export class DBTransactionXRP0 extends DBTransactionBase {
 }
 
-@Entity({ name: "transactions1" })
-export class DBTransaction1 extends DBTransactionBase {
+
+@Entity({ name: "xrp_transactions1" })
+export class DBTransactionXRP1 extends DBTransactionBase {
 }
 
 

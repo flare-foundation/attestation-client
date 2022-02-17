@@ -1,4 +1,4 @@
-import { ChainType, IXrpGetFullTransactionRes, RPCInterface, IAlgoGetFulTransactionRes, unPrefix0x} from "flare-mcc";
+import { ChainType, IXrpGetFullTransactionRes, RPCInterface, IAlgoGetFullTransactionRes, unPrefix0x} from "flare-mcc";
 import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 
 
@@ -17,8 +17,8 @@ export function readTransactionSwitch(chainType: ChainType) {
    }
 }
 
-async function readTransactionAlgo(client: RPCInterface, txHash: string):  Promise<IAlgoGetFulTransactionRes> {
-  return await client.getFullTransaction(txHash) as IAlgoGetFulTransactionRes
+async function readTransactionAlgo(client: RPCInterface, txHash: string):  Promise<IAlgoGetFullTransactionRes> {
+  return await client.getFullTransaction(txHash) as IAlgoGetFullTransactionRes
 }
 
 async function readTransactionUtxo(client: RPCInterface, txHash: string):  Promise<IUtxoGetFullTransactionRes> {

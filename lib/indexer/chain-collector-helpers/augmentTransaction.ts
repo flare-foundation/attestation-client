@@ -1,4 +1,4 @@
-import { base64ToHex, ChainType, IAlgoGetBlockRes, IAlgoGetFulTransactionRes, IUtxoGetBlockRes, IXrpGetFullTransactionRes, RPCInterface, txIdToHexNo0x } from "flare-mcc";
+import { base64ToHex, ChainType, IAlgoGetBlockRes, IAlgoGetFullTransactionRes, IUtxoGetBlockRes, IXrpGetFullTransactionRes, RPCInterface, txIdToHexNo0x } from "flare-mcc";
 import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
@@ -20,7 +20,7 @@ export function augmentTransactionSwitch(chainType: ChainType) {
 }
 
 
-async function augmentTransactionAlgo(client: RPCInterface, block: IAlgoGetBlockRes, txData: IAlgoGetFulTransactionRes): Promise<DBTransactionBase> {
+async function augmentTransactionAlgo(client: RPCInterface, block: IAlgoGetBlockRes, txData: IAlgoGetFullTransactionRes): Promise<DBTransactionBase> {
   const res = new DBTransactionBase();
   res.blockNumber = block.round;
   res.chainType = client.chainType;

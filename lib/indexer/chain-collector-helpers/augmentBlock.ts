@@ -15,7 +15,7 @@ export function augmentBlockSwitch(chainType: ChainType) {
 }
 
 
-async function augmentBlockDefault(client: RPCInterface, block: any): Promise<DBBlockBase> {
+export async function augmentBlockDefault(client: RPCInterface, block: any): Promise<DBBlockBase> {
    return  {
     number: 0,
     saved: false

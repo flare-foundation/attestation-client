@@ -31,9 +31,9 @@ export async function processBlockTransactionsGeneric<B, T>(
 
    const transactionMap = preprocessBlock(block);
 
-   console.log("Transaction map");
-   console.log(transactionMap);
-   console.log();
+   // console.log("Transaction map");
+   // console.log(transactionMap);
+   // console.log();
    
    // go over all transactions and process them
 
@@ -41,9 +41,9 @@ export async function processBlockTransactionsGeneric<B, T>(
 
    const transactionHashes = await client.getTransactionHashesFromBlock(block);
 
-   console.log("Hashes map");
-   console.log(transactionHashes);
-   console.log();
+   // console.log("Hashes map");
+   // console.log(transactionHashes);
+   // console.log();
 
    for (let txHash of transactionHashes) {
       let txData = transactionMap.get(txHash);
@@ -51,20 +51,20 @@ export async function processBlockTransactionsGeneric<B, T>(
          try{
             txData = await readTransaction(client, txHash);
          } catch (e){
-            console.log(e);
+            // console.log(e);
             
          }  
       }
 
-      console.log(txData);
+      // console.log(txData);
       
       const dbData = await augmentTransaction(client, block, txData);
       augmentedTransactions.push(dbData);
    }
 
-   console.log("Augmented map");
-   console.log(augmentedTransactions);
-   console.log();
+   // console.log("Augmented map");
+   // console.log(augmentedTransactions);
+   // console.log();
 
    const blockData = await augmentBlock(client, block)
 

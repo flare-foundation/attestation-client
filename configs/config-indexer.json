@@ -1,4 +1,6 @@
 {
+    "syncEnabled": false,
+    "syncTimeDays": 2,
 
     "chains": [
         {

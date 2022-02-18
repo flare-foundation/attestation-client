@@ -18,5 +18,9 @@ export class IndexerClientChain {
 }
 
 export class IndexerConfiguration {
+
+  public syncEnabled: boolean = true;
+  public syncTimeDays: number = 1;
+
   public chains: IndexerClientChain[] = [];
 }

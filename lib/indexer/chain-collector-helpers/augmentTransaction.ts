@@ -1,24 +1,23 @@
-import { base64ToHex, ChainType, IAlgoGetBlockRes, IAlgoGetFullTransactionRes, IUtxoGetBlockRes, RPCInterface, txIdToHexNo0x } from "flare-mcc";
+import { base64ToHex, IAlgoGetBlockRes, IAlgoGetFullTransactionRes, IUtxoGetBlockRes, RPCInterface, txIdToHexNo0x } from "flare-mcc";
 import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 import { DBTransactionBase } from "../../entity/dbTransaction";
-import { augmentTransactionSig } from "./types";
 
 
-export function augmentTransactionSwitch<B, T>(chainType: ChainType): augmentTransactionSig<B, T> {
+// export function augmentTransactionSwitch<B, T>(chainType: ChainType): augmentTransactionSig {
 
-   switch (chainType) {
-      case ChainType.BTC:
-      case ChainType.LTC:
-      case ChainType.DOGE:
-         return utxoCollectTransaction as any as augmentTransactionSig<B, T>;
-      case ChainType.ALGO:
-         return augmentTransactionAlgo as any as augmentTransactionSig<B, T>;
-      case ChainType.XRP:
-         return xrpCollectTransaction as any as augmentTransactionSig<B, T>;
-      default:
-         throw Error("Not implemented")
-   }
-}
+//    switch (chainType) {
+//       case ChainType.BTC:
+//       case ChainType.LTC:
+//       case ChainType.DOGE:
+//          return augmentTransactionUtxo as any as augmentTransactionSig;
+//       case ChainType.ALGO:
+//          return augmentTransactionAlgo as any as augmentTransactionSig;
+//       case ChainType.XRP:
+//          return augmentTransactionXrp as any as augmentTransactionSig;
+//       default:
+//          throw Error("Not implemented")
+//    }
+// }
 
 
 export async function augmentTransactionAlgo(client: RPCInterface, block: IAlgoGetBlockRes, txData: IAlgoGetFullTransactionRes): Promise<DBTransactionBase> {
@@ -37,7 +36,7 @@ export async function augmentTransactionAlgo(client: RPCInterface, block: IAlgoG
    return res as DBTransactionBase
 }
 
-export async function utxoCollectTransaction(client: RPCInterface, block: IUtxoGetBlockRes, txData: IUtxoGetFullTransactionRes): Promise<DBTransactionBase> {
+export async function augmentTransactionUtxo(client: RPCInterface, block: IUtxoGetBlockRes, txData: IUtxoGetFullTransactionRes): Promise<DBTransactionBase> {
    const res = new DBTransactionBase();
    res.blockNumber = block.height;
    res.chainType = client.chainType;
@@ -56,7 +55,7 @@ export async function utxoCollectTransaction(client: RPCInterface, block: IUtxoG
    return res as DBTransactionBase
 }
 
-export async function xrpCollectTransaction(client: RPCInterface, block: any, txData: any): Promise<DBTransactionBase> {
+export async function augmentTransactionXrp(client: RPCInterface, block: any, txData: any): Promise<DBTransactionBase> {
    const res = new DBTransactionBase();
    res.blockNumber = block.result.ledger_index;
    res.chainType = client.chainType;

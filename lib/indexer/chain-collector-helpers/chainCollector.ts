@@ -1,4 +1,4 @@
-import { RPCInterface } from "flare-mcc";
+import { IIGetBlockRes, RPCInterface } from "flare-mcc";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 import { augmentBlockSig, augmentTransactionSig, onSaveSig, preprocessBlockSig, readTransactionSig } from "./types";
 
@@ -14,13 +14,13 @@ import { augmentBlockSig, augmentTransactionSig, onSaveSig, preprocessBlockSig, 
  * @param augmentBlock Method to preprocess block information 
  * @param onSave callback to save transaction data and index if block was successfully saved or not
  */
-export async function processBlockTransactionsGeneric<B, T>(
+export async function processBlockTransactionsGeneric(
    client: RPCInterface,
-   block: B,  // Type is specific to each underlying chain
-   preprocessBlock: preprocessBlockSig<B,T>,
-   readTransaction: readTransactionSig<T>, // getFullTransaction
-   augmentTransaction: augmentTransactionSig<B,T> ,
-   augmentBlock: augmentBlockSig<B>,
+   block: IIGetBlockRes,  // Type is specific to each underlying chain but they all extend this type IIGetBlockRes
+   preprocessBlock: preprocessBlockSig,
+   readTransaction: readTransactionSig, // getFullTransaction
+   augmentTransaction: augmentTransactionSig ,
+   augmentBlock: augmentBlockSig,
    onSave: onSaveSig
 ) {
    // We preprocess the block
@@ -31,9 +31,9 @@ export async function processBlockTransactionsGeneric<B, T>(
 
    const transactionMap = preprocessBlock(block);
 
-   // console.log("Transaction map");
-   // console.log(transactionMap);
-   // console.log();
+   console.log("Transaction map");
+   console.log(transactionMap);
+   console.log();
    
    // go over all transactions and process them
 
@@ -41,9 +41,9 @@ export async function processBlockTransactionsGeneric<B, T>(
 
    const transactionHashes = await client.getTransactionHashesFromBlock(block);
 
-   // console.log("Hashes map");
-   // console.log(transactionHashes);
-   // console.log();
+   console.log("Hashes map");
+   console.log(transactionHashes);
+   console.log();
 
    for (let txHash of transactionHashes) {
       let txData = transactionMap.get(txHash);
@@ -56,7 +56,7 @@ export async function processBlockTransactionsGeneric<B, T>(
          }  
       }
 
-      // console.log(txData);
+      console.log(txData);
       
       const dbData = await augmentTransaction(client, block, txData);
       augmentedTransactions.push(dbData);
@@ -68,6 +68,6 @@ export async function processBlockTransactionsGeneric<B, T>(
 
    const blockData = await augmentBlock(client, block)
 
-   await onSave(augmentedTransactions);
+   await onSave(blockData, augmentedTransactions);
 
 }

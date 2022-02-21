@@ -1,4 +1,4 @@
-import { AdditionalTransactionDetails, IUtxoBlockRes, IUtxoGetTransactionRes, prefix0x, RPCInterface, unPrefix0x } from "flare-mcc";
+import { AdditionalTransactionDetails, IUtxoGetBlockRes, IUtxoGetTransactionRes, prefix0x, RPCInterface, unPrefix0x } from "flare-mcc";
 import { genericReturnWithStatus } from "../../../utils/utils";
 import {
   AttestationType, ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
@@ -50,7 +50,7 @@ export async function verififyAttestationUtxo(client: RPCInterface, attRequest: 
 
 async function getAvailabilityProof(client: RPCInterface, attRequest: TransactionAttestationRequest): Promise<DataAvailabilityProof> {
   // Try to obtain the hash of data availability proof.
-  let confirmationBlock = await client.getBlock(unPrefix0x(attRequest.dataAvailabilityProof)) as IUtxoBlockRes;
+  let confirmationBlock = await client.getBlock(unPrefix0x(attRequest.dataAvailabilityProof)) as IUtxoGetBlockRes;
   // TODO: check that MCC returns null on not found
   if (confirmationBlock) {
     return {

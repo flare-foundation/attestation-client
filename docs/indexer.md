@@ -14,7 +14,7 @@ Each external chain has a non-decreasing block timestamp. UTXO chains have media
 
 ### Efficient indexing
 
-All blocks but only confirmed transactions are stored into the database. Confirmed blocks are marked. It is required, that once a knowledge of a confirmed block is obtained, all transactions need to be stored into the database practically instantly. 
+All blocks but only confirmed transactions are stored into the database. Blocks are marked when they are confirmed. It is required, that once a knowledge of a confirmed block is obtained, all transactions need to be stored into the database practically instantly. 
 
 In UTXO (Bitcoin) chains reading transactions and their input transactions from a confirmed block can take 5 minutes or more. Hence indexer should read transactions in advance and cache them. Indexer will aggresivelly and periodically check (like every 1s) for main fork blocks after `N`. It will also have a pool of data availability hashes above height `N` which will be checked for existence in a similar aggressive manner.
 

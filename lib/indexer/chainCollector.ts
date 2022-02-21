@@ -29,7 +29,7 @@ export const UtxoProcessBlockFunction: processBlockChainFunctions = {
     augmentBlock: augmentBlockDefault
 }
 
-export function getChainProcesBlockFunctions<B, T>(chainType: ChainType) {
+export function getChainProcesBlockFunctions(chainType: ChainType) {
     switch (chainType) {
         case ChainType.XRP:
             return XrpProcessBlockFunction as processBlockChainFunctions;

@@ -3,23 +3,6 @@ import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
 
-// export function augmentTransactionSwitch<B, T>(chainType: ChainType): augmentTransactionSig {
-
-//    switch (chainType) {
-//       case ChainType.BTC:
-//       case ChainType.LTC:
-//       case ChainType.DOGE:
-//          return augmentTransactionUtxo as any as augmentTransactionSig;
-//       case ChainType.ALGO:
-//          return augmentTransactionAlgo as any as augmentTransactionSig;
-//       case ChainType.XRP:
-//          return augmentTransactionXrp as any as augmentTransactionSig;
-//       default:
-//          throw Error("Not implemented")
-//    }
-// }
-
-
 export async function augmentTransactionAlgo(client: RPCInterface, block: IAlgoGetBlockRes, txData: IAlgoGetFullTransactionRes): Promise<DBTransactionBase> {
    const res = new DBTransactionBase();
    res.blockNumber = block.round;

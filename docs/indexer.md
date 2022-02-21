@@ -26,14 +26,14 @@ Indexed Query Handler is a query service using the persistant database and possi
 
 ### Queries
 
-Two types of queries are supported:
+The following types of queries are supported:
 - (Q1) - block hash existence check
 - (Q2) - transaction existence check
-- (Q3) - referenced transaction non-existence
+- (Q3) - referenced transaction existence
 
 Each attestation request will provide 
 - `roundId`
-- `txId`
+- `txId` or `paymentReference`
 - `blockNumber` in which the confirmed transaction is present.
 - `dataAvailability` - the hash of a block on a confirmation height (`L`)
 
@@ -53,11 +53,10 @@ Only blocks on external chains with timestamps greater or equal `TMIN(roundId) =
 
 Inputs:
 - `hash`
-- `roundId`
 
 If the block with `hash` is stored in the database, it returns a stored block API response subject to timestamp being greater or equal to `TMIN(roundId)`. In case the block is not found in database, query to blockchain is carried out for UTXO chains and result is returned. The reponse contains `status` field, that can be `OK` or `NOT_EXIST`. In case of status `NOT_EXIST`, the `block` field is empty.
 
-Teh response structure
+The response structure
 ```
 {
    status: "OK" | "NOT_EXIST",
@@ -91,7 +90,7 @@ The response structure looks like this:
 
 At the moment of a query the indexer database has indexed transactions up to the block number `N`. These cases can happen:
 
-- `blockNumber` is strictly lower than `N - 1`. Then all transactions in the block with the `blockNumber` exist in the indexer database. Query is carried out on the database and if `txId` exists in the confirmed block with `blockNumber`, the stored transaction API response is returned with status `OK`. Confirmation block `dataAvailability` hash is not used in this case.
+- `blockNumber` is strictly lower than `N - 1`. Then all transactions in the block with the `blockNumber` exist in the indexer database. Query is carried out on the database and if `txId` exists in the confirmed block with `blockNumber`, the stored transaction API response is returned with status `OK`. If `txId` does not exist in this range, status `NOT_EXIST` is returned. Confirmation block `dataAvailability` hash is not used in this case.
 - `blockNumber` equals `N - 1`, `N` or `N + 1`. These situations may happen: (1) `N - 1` - we might be faster then others, (2) `N` - we may be faster or slower then others, (3) `N + 1` - we might be slower then others. In all those cases empty transaction is returned with status `RECHECK`
 - `blockNumber` is strictly greater than `N + 1`. Empty transaction with status `NOT_EXIST` is returned
 
@@ -106,10 +105,8 @@ At the moment of a query the indexer database has indexed transactions up to the
 
 Inputs:
 - `payementReference` - payment reference
-- `blockNumber` - last block number to check
+- `blockNumber` - last block number to check (defines upper bound of search interval)
 - `dataAvailability` - hash of confirmation block for `endBlockNumber` (used for syncing of edge-cases)
-- `endBlockNumber` - end block number to which the transaction has to appear in
-- `endTimestamp` - voting round id for check
 - `type` - `FIRST_CHECK` or `RECHECK`
 
 The query returns a list of transactions in interval from the lower bound to the `blockNumber`. Boundary checks for `blockNumber` are handled in the same manner as with `Q2` (`FIRST_CHECK` and `RECHECKED`). The query can return only two statuses: `OK`, `RECHECK`. With status `OK` the list of candidate transactions matching the query interval and payment reference is provided. If no such transactions are found, empty list is returned.
@@ -120,11 +117,9 @@ The response structure looks like this:
 {
    status: "OK" | "RECHECK",
    transactions?: any[]
+   block?: any
 }
 ```
-
-
-
 
 
 

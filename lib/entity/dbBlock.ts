@@ -17,6 +17,9 @@ export class DBBlock extends BaseEntity {
     timestamp!: number;
 
     @Column()
+    confirmed: boolean;
+
+    @Column()
     response!: string;
 
 }

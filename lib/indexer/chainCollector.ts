@@ -1,4 +1,5 @@
 import { ChainType, IXrpGetBlockRes, IXrpGetFullTransactionRes, RPCInterface } from "flare-mcc";
+import { DBBlock } from "../entity/dbBlock";
 import { DBTransactionBase } from "../entity/dbTransaction";
 import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
 import { augmentBlockDefault } from "./chain-collector-helpers/augmentBlock";
@@ -68,6 +69,8 @@ export async function processBlockTest<B>(
         dataArray.push(data);
     }
 
-    onSave(dataArray);
+    const blockData = new DBBlock;
+
+    onSave(blockData, dataArray);
 }
 

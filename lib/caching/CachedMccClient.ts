@@ -10,12 +10,6 @@ export interface CacherOptions {
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
 }
 
-export interface ClientBehaviourConfig {
-  maxRPS: number;
-  timeoutMs: number;
-  retries: number;
-}
-
 let defaultCacherOptions: CacherOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
@@ -88,6 +82,7 @@ export class CachedMccClient<T, B> {
     }
     let newPromise = this.client.getTransaction(txId);
     this.transactionCache.set(txId, newPromise);
+    this.checkAndCleanup();
     return newPromise;    
   }
 
@@ -115,18 +110,20 @@ export class CachedMccClient<T, B> {
       return null;
     }
     this.blockCache.set(blockHashOrNumber, newPromise); 
-
-    // cleanup if necessary
-    this.cleanupCheckCounter++;
-    if(this.cleanupCheckCounter >= this.settings.cleanupChunkSize) {
-      this.cleanupCheckCounter = 0;
-      setTimeout(() => this.cleanup());   // non-blocking call
-    }
+    this.checkAndCleanup();
     return newPromise;    
   }
 
   public get canAccept(): boolean {
     return !this.settings.maxInAction || this.inProcessing + this.inQueue <= this.settings.maxInAction;
+  }
+
+  private checkAndCleanup() {
+    this.cleanupCheckCounter++;
+    if(this.cleanupCheckCounter >= this.settings.cleanupChunkSize) {
+      this.cleanupCheckCounter = 0;
+      setTimeout(() => this.cleanup());   // non-blocking call
+    }
   }
 
   private cleanup() {

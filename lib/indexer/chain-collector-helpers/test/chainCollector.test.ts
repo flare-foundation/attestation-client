@@ -29,6 +29,7 @@ const algoCreateConfig = {
 
 describe("Test process helpers ", () => {
   let MccClient: MCC.BTC;
+  let AlgoMccClient: MCC.ALGO;
   let save
   before(async function () {
       MccClient = new MCC.BTC(BtcMccConnection);

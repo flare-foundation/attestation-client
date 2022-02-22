@@ -1,3 +1,4 @@
+import { assert } from "console";
 import { ChainType, MCC } from "flare-mcc";
 import { processBlockAlgo, processBlockDefault, processBlockXrp } from "../processBlock";
 
@@ -36,27 +37,31 @@ describe("Test process helpers ", () => {
 
    it(`Test ripple block processing `, async function () {
       const block = await client.getBlock(69_713_705)
-      console.log(block);
-      let defaultMaper = processBlockXrp
-      let mapper = defaultMaper(block)
-      // console.log(mapper);
-      console.log(mapper.get('F976B3BC5E73BC107F75F8E35F00919D4D7DFCFB5B2552F36DD7D8E284BB22C0'));
+      let Mapper = processBlockXrp
+      let mapper = Mapper(block)
+      const txInBlock = 'C2A3295B5D6116AECE3E34D0C5E6901DFCDE63C440401E08351A4A2C855A1387'
+      const acc = 'rEW8BjpMyFZfGMjqbykbhpnr4KEb2qr6PC'
+      // console.log(mapper.get(txInBlock));
+      assert(mapper.get(txInBlock).Account,acc)
    });
 
    it(`Test algo block processing `, async function () {
-      const block = await algoClient.getBlock(69_713_705)
-      console.log(block);
-      let defaultMaper = processBlockAlgo
-      let mapper = defaultMaper(block)
+      const block = await algoClient.getBlock(140_000)
+      // console.log(block);
+      let Mapper = processBlockAlgo
+      let mapper = Mapper(block)
       // console.log(mapper);
-      console.log(mapper.get('F976B3BC5E73BC107F75F8E35F00919D4D7DFCFB5B2552F36DD7D8E284BB22C0'));
+      const txInBlock = 'VRM3PXMX6GAOQWFHN3LIWJJ2WY2DTKB3UETY6K25PXMYHZWA3HLQ'
+      console.log(mapper.get(txInBlock));
+      assert(mapper.get(txInBlock).txType,'pay')
+      
    });
 
 
    it(`Test default block processing `, async function () {
     let defaultMaper = processBlockDefault
     let mapper = defaultMaper({})
-    console.log(mapper);
+   //  console.log(mapper);
     console.log(mapper.get('F976B3BC5E73BC107F75F8E35F00919D4D7DFCFB5B2552F36DD7D8E284BB22C0'));
  });    
 })

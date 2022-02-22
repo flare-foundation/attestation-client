@@ -45,22 +45,23 @@ export async function processBlockTransactionsGeneric(
    console.log(transactionHashes);
    console.log();
 
+   const promisses = []
+
    for (let txHash of transactionHashes) {
       let txData = transactionMap.get(txHash);
       if (txData === null || txData === undefined ) {
          try{
             txData = await readTransaction(client, txHash);
          } catch (e){
-            // console.log(e);
-            
+
          }  
       }
-
-      console.log(txData);
       
-      const dbData = await augmentTransaction(client, block, txData);
-      augmentedTransactions.push(dbData);
+      promisses.push(augmentTransaction(client, block, txData).then(
+         (data) => augmentedTransactions.push(data)
+      ));
    }
+   Promise.all(promisses);
 
    // console.log("Augmented map");
    // console.log(augmentedTransactions);

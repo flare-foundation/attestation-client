@@ -1,4 +1,4 @@
-import { RPCInterface } from "flare-mcc";
+import { IIGetBlockRes, RPCInterface } from "flare-mcc";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 import { augmentBlockSig, augmentTransactionSig, onSaveSig, preprocessBlockSig, readTransactionSig } from "./types";
 
@@ -14,13 +14,13 @@ import { augmentBlockSig, augmentTransactionSig, onSaveSig, preprocessBlockSig, 
  * @param augmentBlock Method to preprocess block information 
  * @param onSave callback to save transaction data and index if block was successfully saved or not
  */
-export async function processBlockTransactionsGeneric<B, T>(
+export async function processBlockTransactionsGeneric(
    client: RPCInterface,
-   block: B,  // Type is specific to each underlying chain
-   preprocessBlock: preprocessBlockSig<B,T>,
-   readTransaction: readTransactionSig<T>, // getFullTransaction
-   augmentTransaction: augmentTransactionSig<B,T> ,
-   augmentBlock: augmentBlockSig<B>,
+   block: IIGetBlockRes,  // Type is specific to each underlying chain but they all extend this type IIGetBlockRes
+   preprocessBlock: preprocessBlockSig,
+   readTransaction: readTransactionSig, // getFullTransaction
+   augmentTransaction: augmentTransactionSig ,
+   augmentBlock: augmentBlockSig,
    onSave: onSaveSig
 ) {
    // We preprocess the block
@@ -51,7 +51,7 @@ export async function processBlockTransactionsGeneric<B, T>(
          try{
             txData = await readTransaction(client, txHash);
          } catch (e){
-            console.log(e);
+            // console.log(e);
             
          }  
       }
@@ -62,12 +62,12 @@ export async function processBlockTransactionsGeneric<B, T>(
       augmentedTransactions.push(dbData);
    }
 
-   console.log("Augmented map");
-   console.log(augmentedTransactions);
-   console.log();
+   // console.log("Augmented map");
+   // console.log(augmentedTransactions);
+   // console.log();
 
    const blockData = await augmentBlock(client, block)
 
-   await onSave(augmentedTransactions);
+   await onSave(blockData, augmentedTransactions);
 
 }

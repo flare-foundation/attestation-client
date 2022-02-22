@@ -1,4 +1,5 @@
-import { AdditionalTransactionDetails } from "flare-mcc";
+import { 
+    AdditionalTransactionDetails } from "flare-mcc";
 
 export class Response {
 

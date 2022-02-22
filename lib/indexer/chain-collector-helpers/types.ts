@@ -1,27 +1,23 @@
-import { RPCInterface } from "flare-mcc";
+import { IIGetBlockRes, IIGetTransactionRes, RPCInterface } from "flare-mcc";
 import { DBBlock } from "../../entity/dbBlock";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
 // TODO this is temp
-export interface DBBlockBase {
-  number: number,
-  saved: boolean
+
+export interface preprocessBlockSig {
+  (block: IIGetBlockRes): Map<string, IIGetTransactionRes | null>
 }
 
-export interface preprocessBlockSig<B, T> {
-  (block: B): Map<string, T | null>
+export interface readTransactionSig {
+  (client: RPCInterface, txHash: string): Promise<IIGetTransactionRes>
 }
 
-export interface readTransactionSig<T> {
-  (client: RPCInterface, txHash: string): Promise<T>
+export interface augmentTransactionSig {
+  (client: RPCInterface, block: IIGetBlockRes, txData: IIGetTransactionRes): Promise<DBTransactionBase>
 }
 
-export interface augmentTransactionSig<B, T> {
-  (client: RPCInterface, block: B, txData: T): Promise<DBTransactionBase>
-}
-
-export interface augmentBlockSig<B> {
-  (client: RPCInterface, block: B): Promise<DBBlockBase>
+export interface augmentBlockSig {
+  (client: RPCInterface, block: IIGetBlockRes): Promise<DBBlock>
 }
 
 export interface onSaveSig {
@@ -29,9 +25,9 @@ export interface onSaveSig {
 }
 
 
-export interface processBlockChainFunctions<B,T> {
-  preProcessBlock:preprocessBlockSig<B, T>; 
-  readTransaction:readTransactionSig<T>;
-  augmentTransaction: augmentTransactionSig<B, T>;
-  augmentBlock: augmentBlockSig<B>;  
+export interface processBlockChainFunctions {
+  preProcessBlock:preprocessBlockSig; 
+  readTransaction:readTransactionSig;
+  augmentTransaction: augmentTransactionSig;
+  augmentBlock: augmentBlockSig;  
 }

@@ -1,7 +1,7 @@
 import { AlgoMccCreate, ChainType, MCC, RPCInterface, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
 import { Queue } from "../utils/Queue";
 
-export interface CacherOptions {
+export interface CachedMccClientOptions {
   transactionCacheSize: number;
   blockCacheSize: number;
   cleanupChunkSize: number;
@@ -10,7 +10,7 @@ export interface CacherOptions {
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
 }
 
-let defaultCacherOptions: CacherOptions = {
+let defaultCacherOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
   cleanupChunkSize: 100,
@@ -37,14 +37,14 @@ export class CachedMccClient<T, B> {
   blockCache: Map<string | number, Promise<B>>;
   blockCleanupQueue: Queue<string>;
 
-  settings: CacherOptions;
+  settings: CachedMccClientOptions;
 
   inProcessing = 0;
   inQueue = 0;
 
   cleanupCheckCounter = 0;
 
-  constructor(chainType: ChainType, options?: CacherOptions) {
+  constructor(chainType: ChainType, options?: CachedMccClientOptions) {
     this.chainType = chainType;
     this.transactionCache = new Map<string, Promise<T>>();
     this.transactionCleanupQueue = new Queue<string>();

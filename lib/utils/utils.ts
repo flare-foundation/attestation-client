@@ -1,6 +1,6 @@
 import BN from "bn.js";
 import { ethers } from "ethers";
-import { AdditionalTransactionDetails, prefix0x, toBN } from "flare-mcc";
+import { prefix0x, toBN } from "flare-mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";

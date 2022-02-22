@@ -1,18 +1,5 @@
-import { ChainType } from "flare-mcc";
+import { IAlgoGetBlockRes } from "flare-mcc";
 
-
-export function processBlockSwitch(chainType: ChainType) {
-   switch (chainType) {
-      case ChainType.XRP:
-         return processBlockXrp
-      case ChainType.BTC:
-      case ChainType.LTC:
-      case ChainType.DOGE:
-      case ChainType.ALGO:
-      default:
-         return processBlockDefault
-   }
-}
 
 export function processBlockXrp(block:any): Map<string, any> {
    const repMap =  new Map<string, any>();
@@ -21,6 +8,15 @@ export function processBlockXrp(block:any): Map<string, any> {
    }
    return repMap
 }
+
+export function processBlockAlgo(block:IAlgoGetBlockRes): Map<string, any> {
+   const repMap =  new Map<string, any>();
+   for(let trans of block.transactions){
+      repMap.set(trans.id,trans)
+   }
+   return repMap
+}
+
 
 export function processBlockDefault(block:any):  Map<string, null> {
    return new Map<string, null>()

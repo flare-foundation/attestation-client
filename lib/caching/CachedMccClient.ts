@@ -10,7 +10,7 @@ export interface CachedMccClientOptions {
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
 }
 
-let defaultCacherOptions: CachedMccClientOptions = {
+let defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
   cleanupChunkSize: 100,
@@ -51,7 +51,7 @@ export class CachedMccClient<T, B> {
     this.blockCache = new Map<string | number, Promise<B>>();
     this.blockCleanupQueue = new Queue<string>();
 
-    this.settings = options || defaultCacherOptions;
+    this.settings = options || defaultCachedMccClientOptions;
 
     // Override onSend
     this.settings.clientConfig.rateLimitOptions = {

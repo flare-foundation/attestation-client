@@ -1,31 +1,25 @@
 import { RPCInterface } from "flare-mcc";
-import { ReturningStatementNotSupportedError } from "typeorm";
 
-class BlockProcessorManager {
+export class BlockProcessorManager {
 
-    blockProcessors : BlockProcessor[] = [];
+    blockProcessors: BlockProcessor[] = [];
 
     async processBlock(client: RPCInterface, block: any, callback: any) {
-        // check if hash exists -> continue
-        // or add new
-
         let started = false;
-        for(let a=0; a<this.blockProcessors.length; a++) {
-            if( this.blockProcessors[a].hash===block.hash )
-            {
+        for (let a = 0; a < this.blockProcessors.length; a++) {
+            if (this.blockProcessors[a].hash === block.hash) {
                 started = true;
                 this.blockProcessors[a].start();
             }
-            else
-            {
+            else {
                 this.blockProcessors[a].stop();
             }
         }
 
-        if( started ) return;
+        if (started) return;
 
-        const processor = new BlockProcessor( block );
-        this.blockProcessors.push( processor );
+        const processor = new BlockProcessor(block);
+        this.blockProcessors.push(processor);
         processor.start();
     }
     async advance(blockNumberCompleted: number) {
@@ -37,30 +31,32 @@ class BlockProcessorManager {
 
 class BlockProcessor {
     active = false;
-    transactions : string[];
+    transactions: string[];
     activeTransaction = 0;
 
     hash: string;
 
-    constructor( block: any ) {
+    constructor(block: any) {
         // get block
         // get all transactions
         this.hash = block.hash;
         this.transactions = block
     }
     async start() {
-        this.active=true;
-        while( this.activeTransaction<this.transactions.length && this.active ) {
-            if( !this.active ) break;
+        this.active = true;
+        while (this.activeTransaction < this.transactions.length && this.active) {
+            if (!this.active) return;
 
             await this.process(this.activeTransaction);
 
             this.activeTransaction++;
         }
+
+
     }
 
     stop() {
-        this.active=false;
+        this.active = false;
     }
 
     async process(transactionIndex: number) {

@@ -51,6 +51,7 @@ import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
+import { BlockProcessorManager } from "./blockProcessorManager";
 import { processBlockTest } from "./chainCollector";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
@@ -79,6 +80,7 @@ export class Indexer {
   client!: RPCInterface;
   logger!: AttLogger;
   dbService: DatabaseService;
+  blockProcessorManager: BlockProcessorManager;
 
   N = 0;
   activeBlock: any = undefined;
@@ -105,6 +107,8 @@ export class Indexer {
     this.logger = getGlobalLogger(chainName);
 
     this.dbService = new DatabaseService(this.logger);
+
+    this.blockProcessorManager = new BlockProcessorManager();
 
     this.client = MCC.Client(this.chainType, {
       url: this.chainConfig.url,
@@ -413,7 +417,8 @@ export class Indexer {
         this.saveBlocksHeaders(latestBlockNumber);
 
         //this.activeBlock = block;
-        processBlockTest(this.client, blockNp1, this.blockPrepared.bind(this));
+        //processBlockTest(this.client, blockNp1, this.blockPrepared.bind(this));
+        this.blockProcessorManager.processBlock(this.client, blockNp1, this.blockPrepared.bind(this));
 
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);

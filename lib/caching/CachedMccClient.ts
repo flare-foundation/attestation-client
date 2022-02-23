@@ -48,7 +48,7 @@ export class CachedMccClient<T, B> {
     this.chainType = chainType;
     this.transactionCache = new Map<string, Promise<T>>();
     this.transactionCleanupQueue = new Queue<string>();
-    this.blockCache = new Map<string | number, Promise<B>>();
+    this.blockCache = new Map<string, Promise<B>>();
     this.blockCleanupQueue = new Queue<string>();
 
     this.settings = options || defaultCachedMccClientOptions;
@@ -86,8 +86,8 @@ export class CachedMccClient<T, B> {
     return newPromise;    
   }
 
-  public async getBlockFromCache(blockHashOrNumber: string | number) {
-    return this.blockCache.get(blockHashOrNumber)
+  public async getBlockFromCache(blockHash: string) {
+    return this.blockCache.get(blockHash)
   }
 
   public async getBlock(blockHashOrNumber: string | number): Promise<B | null> {
@@ -98,18 +98,16 @@ export class CachedMccClient<T, B> {
     if(blockPromise) {
       return blockPromise;
     }
+
+    // MCC client should support hash queries
     let newPromise = this.client.getBlock(blockHashOrNumber);
-    let resp = (await newPromise) as B;
-    if(typeof blockHashOrNumber === "string") {
-      let blockNumber = this.client.blockNumber(resp);       // TODO: implement in MCC (extracts block number from response)  
-      this.transactionCache.set(blockNumber, newPromise);   
-    } else if(typeof blockHashOrNumber === "number") {
-      let blockHash = this.client.blockHash(resp);   // TODO: implement in MCC (extracts block hash from block response)
-      this.transactionCache.set(blockHash, newPromise);   
+    if(typeof blockHashOrNumber === "number") {
+      let block = await newPromise;
+      let blockHash = block.hash // TODO
+      this.blockCache.set(blockHash, newPromise); 
     } else {
-      return null;
-    }
-    this.blockCache.set(blockHashOrNumber, newPromise); 
+      this.blockCache.set(blockHashOrNumber, newPromise); 
+    }    
     this.checkAndCleanup();
     return newPromise;    
   }

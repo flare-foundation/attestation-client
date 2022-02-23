@@ -143,6 +143,10 @@ export class Indexer {
     this.wait = inQueue! >= this.maxQueue;
   }
 
+  get lastConfimedBlockNumber() {
+    return this.N;
+  }
+
   async waitForDBConnection() {
     while (true) {
       if (!this.dbService.connection) {
@@ -355,6 +359,12 @@ export class Indexer {
     return blockNumber;
   }
 
+  async getBlockByHash(hash: string) {
+    // - check if the block with given hash is in cache
+    // - if it is, return it
+    // - if it is not, query for it an return it.
+    throw new Error("Not yet implemented");
+  }
   async runIndexer() {
 
     // wait for db to connect

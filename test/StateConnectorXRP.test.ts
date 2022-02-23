@@ -7,11 +7,11 @@ import {
 } from "../lib/verification/attestation-request-utils";
 import {
    AttestationRequest,
-   AttestationType,
    TransactionAttestationRequest,
    VerificationStatus
-} from "../lib/verification/attestation-types";
+} from "../lib/verification/attestation-types/attestation-types";
 import { numberOfConfirmations } from "../lib/verification/confirmations";
+import { AttestationType } from "../lib/verification/generated/attestation-types-enum";
 import { verifyTransactionAttestation } from "../lib/verification/verification";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { sendAttestationRequest, testHashOnContract, verifyReceiptAgainstTemplate } from "./utils/test-utils";
@@ -36,31 +36,6 @@ describe(`Test ${MCC.getChainTypeName(CHAIN)}`, async () => {
       stateConnector = await StateConnector.new();
       client = MCC.Client(CHAIN, { url: URL, username: USERNAME, password: PASSWORD }) as MCC.XRP;
    });
-
-   it("Should return block if exists", async () => {
-      let n = 69453782;
-      let block = await client.getBlock(n) as LedgerResponse;
-      assert(block.result.ledger_index === n);
-   })
-
-   it("Should return null if block does not exist", async () => {
-      let n = 694537820;
-      let block = await client.getBlock(n) as LedgerResponse;
-      assert(block == null);
-      n *= 100;
-      block = await client.getBlock(n) as LedgerResponse;
-      assert(block == null);
-   })
-
-   it("Should return transaction if exists", async () => {
-      let txResponse = await client.getTransaction("0569969AFDAF91BFCFF709D49FE23DD5656335AFD0A3879C03C8EFADEF83A0C2");
-      assert(txResponse?.result?.Account)
-   })
-
-   it("Should return null if transaction does not exist", async () => {
-      let txResponse = await client.getTransaction("0669969AFDAF91BFCFF709D49FE23DD5656335AFD0A3879C03C8EFADEF83A0C2");
-      assert(txResponse == null);
-   })
 
    it("Should hashing of a normalized transaction match to one in contract for XRP", async () => {
       // create attestation request ("abuse" conversion to build it)

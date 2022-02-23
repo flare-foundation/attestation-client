@@ -1,10 +1,13 @@
 import { AdditionalTransactionDetails, IUtxoGetBlockRes, IUtxoGetTransactionRes, prefix0x, RPCInterface, unPrefix0x } from "flare-mcc";
 import { genericReturnWithStatus } from "../../../utils/utils";
 import {
-  AttestationType, ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
+  ChainVerification, 
+  DataAvailabilityProof, 
+  TransactionAttestationRequest,
   VerificationStatus,
   VerificationTestOptions
-} from "../../attestation-types";
+} from "../../attestation-types/attestation-types";
+import { AttestationType } from "../../generated/attestation-types-enum";
 import { verifyBlockHeightUtxo } from "./attestation-types/block-height.utxo";
 import { verifyDecreaseBalanceUtxo } from "./attestation-types/decrease-balance.utxo";
 import { verifyPaymentUtxo } from "./attestation-types/payment.utxo";

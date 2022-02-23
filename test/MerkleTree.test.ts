@@ -5,7 +5,7 @@ import { HashTestInstance } from "../typechain-truffle";
 const N = 20;
 
 describe("Merkle Tree", () => {
-  const makeHashes = (i: number) => (new Array(i)).fill(0).map(x =>  toHex(Math.floor(Math.random()*10000000000000), true));
+  const makeHashes = (i: number) => (new Array(i)).fill(0).map(x =>  toHex(Math.floor(Math.random()*10000000000000), 32));
 
   describe("General functionalities", () => {
 

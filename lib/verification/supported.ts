@@ -1,7 +1,7 @@
 import { ChainType } from "flare-mcc";
-import { AttestationType } from "./attestation-types";
 import { isSupportedTransactionUtxo } from "./chains/UTXO/supported.utxo";
 import { isSupportedTransactionXRP } from "./chains/XRP/supported.xrp";
+import { AttestationType } from "./generated/attestation-types-enum";
 
 export function isSupportedTransactionForAttestationType(transaction: any, chainType: ChainType, attType: AttestationType) {
   switch (chainType) {

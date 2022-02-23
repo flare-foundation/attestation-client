@@ -1,4 +1,4 @@
-import { AttestationType } from "../../attestation-types";
+import { AttestationType } from "../../generated/attestation-types-enum";
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Support

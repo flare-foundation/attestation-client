@@ -1,13 +1,11 @@
-import BN from "bn.js";
-import { ChainType, MCC, toBN } from "flare-mcc";
+import { ChainType, MCC } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
-import { partBNbe, sleepms } from "../utils/utils";
+import { sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
-import { AttestationType, ATT_BITS, CHAIN_ID_BITS } from "../verification/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
@@ -157,45 +155,9 @@ export class AttesterClient {
 
   processEvent(event: any) {
     if (event.event === "AttestationRequest") {
-      // AttestationRequest
-      // // instructions: (uint64 chainId, uint64 blockHeight, uint16 utxo, bool full)
-      // // The variable 'full' defines whether to provide the complete transaction details
-      // // in the attestation response
+      const attestation = new AttestationData(event);
 
-      //   // 'instructions' and 'id' are purposefully generalised so that the attestation request
-      //   // can pertain to any number of deterministic oracle use-cases in the future.
-      //   event AttestationRequest(
-      //     uint256 timestamp,
-      //     uint256 instructions,
-      //     bytes32 id,
-      //     bytes32 dataAvailabilityProof
-      // );
-
-      const timeStamp: string = event.returnValues.timestamp;
-      const instruction: string = event.returnValues.instructions;
-      const id: string = event.returnValues.id;
-
-      const instBN = toBN(instruction);
-
-      const attestationType: BN = partBNbe(instBN, 0, ATT_BITS);
-      const source = partBNbe(instBN, ATT_BITS, CHAIN_ID_BITS);
-
-      // attestation info
-      const tx = new AttestationData();
-      tx.type = attestationType.toNumber() as AttestationType;
-      tx.source = source.toNumber();
-      tx.timeStamp = toBN(timeStamp);
-      tx.id = id;
-      tx.dataAvailabilityProof = event.returnValues.dataAvailabilityProof;
-
-      // attestaion data (full instruction)
-      tx.instructions = instBN;
-
-      // for sorting
-      tx.blockNumber = toBN(event.blockNumber);
-      tx.logIndex = event.logIndex;
-
-      this.roundMng.attestate(tx);
+      this.roundMng.attestate(attestation);
 
       // for syntetic trafic test (will not work now because we filter out duplicates)
       // for (let a = 0; a < 150; a++) {

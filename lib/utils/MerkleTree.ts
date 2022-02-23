@@ -29,7 +29,7 @@ import { toHex } from "./utils";
 const web3 = new Web3();
 
 export function singleHash(val: string | BN) {
-  return web3.utils.soliditySha3(toHex(val, true));
+  return web3.utils.soliditySha3(toHex(val, 32));
 }
 
 export function sortedHashPair(x: string, y: string) {
@@ -75,7 +75,7 @@ export class MerkleTree {
   }
 
   build(values: string[]) {
-    let sorted = values.map((x) => toHex(x, true));
+    let sorted = values.map((x) => toHex(x, 32));
     sorted.sort();
 
     let hashes = [];

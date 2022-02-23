@@ -1,6 +1,7 @@
 
 import { ChainType, IUtxoGetTransactionRes, MCC } from "flare-mcc";
-import { AttestationType, VerificationStatus } from "../lib/verification/attestation-types";
+import { VerificationStatus } from "../lib/verification/attestation-types/attestation-types";
+import { AttestationType } from "../lib/verification/generated/attestation-types-enum";
 import { StateConnectorInstance } from "../typechain-truffle";
 import { testUtxo, traverseAndTestUtxoChain, UtxoTraverseTestOptions } from "./utils/test-utils";
 

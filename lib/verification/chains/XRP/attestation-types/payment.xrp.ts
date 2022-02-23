@@ -8,7 +8,7 @@ import {
   TransactionAttestationRequest,
   VerificationStatus,
   VerificationTestOptions
-} from "../../../attestation-types";
+} from "../../../attestation-types/attestation-types";
 
 export function verifyPaymentXRP(
    attRequest: TransactionAttestationRequest,

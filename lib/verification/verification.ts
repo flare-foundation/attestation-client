@@ -1,5 +1,5 @@
 import { ChainType, toNumber } from "flare-mcc";
-import { ChainVerification, TransactionAttestationRequest, VerificationStatus, VerificationTestOptions } from "./attestation-types";
+import { TransactionAttestationRequest, VerificationTestOptions } from "./attestation-types/attestation-types";
 import { verififyAttestationUtxo } from "./chains/UTXO/verify-attestation.utxo";
 import { verififyAttestationXRP } from "./chains/XRP/verify-attestation.xrp";
 

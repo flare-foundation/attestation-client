@@ -1,5 +1,5 @@
 import { ChainType } from "flare-mcc";
-import { DBBlockALGO, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/dbBlock";
+import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/dbBlock";
 import {
    DBTransactionALGO0, DBTransactionALGO1,
    DBTransactionBase,
@@ -9,6 +9,7 @@ import {
    DBTransactionXRP0, DBTransactionXRP1
 } from "../entity/dbTransaction";
 import { Indexer } from "../indexer/indexer";
+import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 
 
@@ -31,6 +32,7 @@ export interface TransactionQueryParams {
 
 export interface BlockQueryParams {
    hash: string;
+   roundId: number;
 }
 
 export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
@@ -41,6 +43,7 @@ export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
 
 export interface BlockHashQueryRequest {
    hash: string;
+   roundId: number;
 }
 
 export interface BlockHashQueryResponse {
@@ -59,7 +62,7 @@ export interface TransactionExistenceQueryRequest {
 
 export interface TransactionExistenceQueryResponse {
    status: "OK" | "RECHECK" | "NOT_EXIST";
-   transaction?: any;
+   transaction?: DBTransactionBase;
 }
 
 
@@ -73,8 +76,8 @@ export interface ReferencedTransactionNonExistenceQueryRequest {
 
 export interface ReferencedTransactionNonExistenceQueryResponse {
    status: "OK" | "RECHECK",
-   transactions?: any[]
-   block?: any
+   transactions?: DBTransactionBase[]
+   block?: DBBlockBase
 }
 
 ////////////////////////////////////////////////////////
@@ -96,64 +99,35 @@ export class IndexedQueryHandler {
    }
 
    prepareTables() {
-      switch (this.settings.chainType) {
-         case ChainType.BTC:
-            this.transactionTable[0] = DBTransactionBTC0;
-            this.transactionTable[1] = DBTransactionBTC1;
-            this.blockTable = DBBlockBTC;
-            break;
-         case ChainType.LTC:
-            this.transactionTable[0] = DBTransactionLTC0;
-            this.transactionTable[1] = DBTransactionLTC1;
-            this.blockTable = DBBlockLTC;
-            break;
-         case ChainType.DOGE:
-            this.transactionTable[0] = DBTransactionDOGE0;
-            this.transactionTable[1] = DBTransactionDOGE1;
-            this.blockTable = DBBlockDOGE;
-            break;
-         case ChainType.XRP:
-            this.transactionTable[0] = DBTransactionXRP0;
-            this.transactionTable[1] = DBTransactionXRP1;
-            this.blockTable = DBBlockXRP;
-            break;
-         case ChainType.ALGO:
-            this.transactionTable[0] = DBTransactionALGO0;
-            this.transactionTable[1] = DBTransactionALGO1;
-            this.blockTable = DBBlockALGO;
-            break;
-         case ChainType.invalid:
-            throw new Error("Invalid chain type")
-         default:
-            // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-            ((_: never): void => { })(this.settings.chainType);
-      }
+      let prepared = prepareIndexerTables(this.settings.chainType);
+      this.transactionTable = prepared.transactionTable;
+      this.blockTable = prepared.blockTable;
    }
 
    async queryTransactions(params: TransactionQueryParams): Promise<DBTransactionBase[]> {
       let startTimestamp = this.settings.roundStartTime(params.roundId);
       let query0 = this.dbService.connection.manager
-         .createQueryBuilder(this.transactionTable[0], 'transactions')
-         .andWhere('transactions.timestamp >= :timestamp', { timestamp: startTimestamp })
-         .andWhere('transactions.blockNumber <= :blockNumber', { blockNumber: params.lastConfirmedBlock })
+         .createQueryBuilder(this.transactionTable[0], 'transaction')
+         .andWhere('transaction.timestamp >= :timestamp', { timestamp: startTimestamp })
+         .andWhere('transaction.blockNumber <= :blockNumber', { blockNumber: params.lastConfirmedBlock })
       if (params.paymentReference) {
-         query0 = query0.andWhere('transactions.paymentReference=:ref', { ref: params.paymentReference })
+         query0 = query0.andWhere('transaction.paymentReference=:ref', { ref: params.paymentReference })
       }
       if (params.transactionId) {
-         query0 = query0.andWhere('transactions.transactionId = :txId', { txId: params.transactionId })
+         query0 = query0.andWhere('transaction.transactionId = :txId', { txId: params.transactionId })
       }
 
       const results0 = await query0.getRawMany();
 
       let query1 = this.dbService.connection.manager
-         .createQueryBuilder(this.transactionTable[1], 'transactions')
-         .where('transactions.timestamp >= :timestamp', { timestamp: startTimestamp })
-         .andWhere('transactions.blockNumber <= :blockNumber', { blockNumber: params.lastConfirmedBlock })
+         .createQueryBuilder(this.transactionTable[1], 'transaction')
+         .where('transaction.timestamp >= :timestamp', { timestamp: startTimestamp })
+         .andWhere('transaction.blockNumber <= :blockNumber', { blockNumber: params.lastConfirmedBlock })
       if (params.paymentReference) {
-         query1 = query1.andWhere('transactions.paymentReference=:ref', { ref: params.paymentReference })
+         query1 = query1.andWhere('transaction.paymentReference=:ref', { ref: params.paymentReference })
       }
       if (params.transactionId) {
-         query1 = query1.andWhere('transactions.transactionId = :txId', { txId: params.transactionId })
+         query1 = query1.andWhere('transaction.transactionId = :txId', { txId: params.transactionId })
       }
 
       const results1 = await query1.getMany();
@@ -161,18 +135,136 @@ export class IndexedQueryHandler {
       return results0.concat(results1);
    }
 
-   async queryBlocks(params: BlockQueryParams) {
+   async queryBlock(params: BlockQueryParams): Promise<DBBlockBase> {
+      let startTimestamp = this.settings.roundStartTime(params.roundId);
       let query = this.dbService.connection.manager
-         .createQueryBuilder(this.blockTable, 'blocks')
-         .where('blocks.blockHash = :hash', { hash: params.hash })
+         .createQueryBuilder(this.blockTable, 'block')
+         .where('block.timestamp >= :timestamp', { timestamp: startTimestamp })
+         .where('block.blockHash = :hash', { hash: params.hash })
 
-      let result = await query.getOne();
+      let result = await query.getOne()
       if (result) {
-         return result;
+         return result as DBBlockBase;
       }
-      return this.indexer.getBlockByHash(params.hash)
+      return this.indexer.getBlockByHash(params.hash);
+   }
+
+   // Queries
+
+   public async getBlock(params: BlockHashQueryRequest): Promise<BlockHashQueryResponse> {
+      let block = this.queryBlock({
+         hash: params.hash,
+         roundId: params.roundId
+      });
+      return {
+         status: block ? "OK" : "NOT_EXIST",
+         block
+      }
+   }
+
+   private async checkTransactionExistenceFirstCheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
+      let N = this.indexer.lastConfimedBlockNumber;
+      if (params.blockNumber < N - 1) {
+         let transactions = await this.queryTransactions({
+            roundId: params.roundId,
+            lastConfirmedBlock: N,
+            transactionId: params.txId
+         } as TransactionQueryParams)
+         return {
+            status: transactions && transactions.length > 0? "OK" : "NOT_EXIST",
+            transaction: transactions[0]
+         }
+      } else if (params.blockNumber > N + 1) {
+         return {
+            status: "NOT_EXIST"
+         }
+      } else {  // N - 1, N, N + 1
+         return {
+            status: "RECHECK"
+         }
+      }
+   }
+
+   private async checkTransactionExistenceRecheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
+      let N = this.indexer.lastConfimedBlockNumber;
+      let transactions = await this.queryTransactions({
+         roundId: params.roundId,
+         lastConfirmedBlock: N,
+         transactionId: params.txId
+      } as TransactionQueryParams)
+      let block = await this.queryBlock({
+         hash: params.dataAvailability,
+         roundId: params.roundId
+      } as BlockQueryParams);
+      return {
+         status: transactions && transactions.length > 0 && block ? "OK" : "NOT_EXIST",
+         transaction: transactions[0]
+      }
+   }
+
+   public async checkTransactionExistence(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
+      if (params.type === "FIRST_CHECK") {
+         return this.checkTransactionExistenceFirstCheck(params);
+      }
+      return this.checkTransactionExistenceRecheck(params);
    }
 
 
+   public async checkReferencedTransactionNonExistenceFirstCheck(
+      params: ReferencedTransactionNonExistenceQueryRequest
+   ): Promise<ReferencedTransactionNonExistenceQueryResponse> {
+      let N = this.indexer.lastConfimedBlockNumber;
+      if (params.blockNumber < N - 1) {
+         let transactions = await this.queryTransactions({
+            roundId: params.roundId,
+            lastConfirmedBlock: N,
+            paymentReference: params.payementReference
+         } as TransactionQueryParams)
+         return {
+            status: "OK",
+            transactions
+         }
+      } else if (params.blockNumber > N + 1) {
+         return {
+            status: "OK",
+            transactions: []
+         }
+      } else {  // N - 1, N, N + 1
+         return {
+            status: "RECHECK"
+         }
+      }
+
+   }
+
+   public async checkReferencedTransactionNonExistenceRecheck(
+      params: ReferencedTransactionNonExistenceQueryRequest
+   ): Promise<ReferencedTransactionNonExistenceQueryResponse> {
+      let N = this.indexer.lastConfimedBlockNumber;
+      let transactions = await this.queryTransactions({
+         roundId: params.roundId,
+         lastConfirmedBlock: N,
+         paymentReference: params.payementReference
+      } as TransactionQueryParams)
+      let block = await this.queryBlock({
+         hash: params.dataAvailability,
+         roundId: params.roundId
+      } as BlockQueryParams);
+      return {
+         status: "OK",
+         transactions,
+         block   // What happens if block does not exist???
+      }
+
+   }
+
+   public async checkReferencedTransactionNonExistence(
+      params: ReferencedTransactionNonExistenceQueryRequest
+   ): Promise<ReferencedTransactionNonExistenceQueryResponse> {
+      if (params.type === "FIRST_CHECK") {
+         return this.checkReferencedTransactionNonExistenceFirstCheck(params);
+      }
+      return this.checkReferencedTransactionNonExistenceRecheck(params);
+   }
 
 }

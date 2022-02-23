@@ -44,7 +44,7 @@
 import { ChainType, MCC, sleep } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/types";
 import { Entity } from "typeorm";
-import { DBBlock } from "../entity/dbBlock";
+import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase, DBTransactionXRP0, DBTransactionXRP1 } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
@@ -52,6 +52,7 @@ import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
 import { processBlockTest } from "./chainCollector";
+import { prepareIndexerTables } from "./indexer-utils";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
 var yargs = require("yargs");
@@ -177,7 +178,7 @@ export class Indexer {
     return references0.concat(references1);
   }
 
-  async blockPrepared(block: DBBlock, transactions: DBTransactionBase[]): Promise<boolean> {
+  async blockPrepared(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
 
     // todo: check if blockNumber is already +6
     this.preparedBlocks.set(block.blockNumber, new PreparedBlock(block, transactions));
@@ -186,7 +187,7 @@ export class Indexer {
   }
 
 
-  async blockSave(block: DBBlock, transactions: DBTransactionBase[]): Promise<boolean> {
+  async blockSave(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
 
     if (transactions.length === 0) return true;
 
@@ -278,16 +279,27 @@ export class Indexer {
     return DBChainTransaction;
   }
 
-  dbTableClass = [undefined, undefined];
+  dbTableClass;
+  dbBlockClass;
 
-  async prepareTables() {
-    switch (this.chainConfig.name) {
-      case "XRP":
-        this.dbTableClass[0] = DBTransactionXRP0;
-        this.dbTableClass[1] = DBTransactionXRP1;
-        break;
-    }
-  }
+
+  prepareTables() {
+    // let chainType = getChainType(this.chainConfig.name) // TODO: export this from flare-mcc
+    let chainType = ChainType.XRP;
+    let prepared = prepareIndexerTables(chainType);
+    this.dbTableClass = prepared.transactionTable;
+    this.dbBlockClass = prepared.blockTable;
+ }
+
+  // async prepareTables() {
+  //   this.dbTableClass = []
+  //   switch (this.chainConfig.name) {
+  //     case "XRP":
+  //       this.dbTableClass.push(DBTransactionXRP0;
+  //       this.dbTableClass[1] = DBTransactionXRP1;
+  //       break;
+  //   }
+  // }
 
   async getBlockNumberTimestamp(blockNumber: number): Promise<number> {
     const block = await this.client.getBlock(blockNumber);
@@ -359,12 +371,13 @@ export class Indexer {
     return blockNumber;
   }
 
-  async getBlockByHash(hash: string) {
+  async getBlockByHash(hash: string): Promise<DBBlockBase> {
     // - check if the block with given hash is in cache
     // - if it is, return it
     // - if it is not, query for it an return it.
     throw new Error("Not yet implemented");
   }
+
   async runIndexer() {
 
     // wait for db to connect
@@ -431,8 +444,6 @@ export class Indexer {
     }
   }
 
-
-
   async saveBlocksHeaders(latestBlockNumber: number) {
 
     try {
@@ -441,7 +452,7 @@ export class Indexer {
       for (let blockNumber = this.N + 1; blockNumber <= latestBlockNumber; blockNumber++) {
         const block = this.client.getBlock(blockNumber);
 
-        const dbBlock = new DBBlock();
+        const dbBlock = new this.dbBlockClass();
         dbBlock.blockNumber = blockNumber;
         dbBlock.blockHash = block.hash;
         dbBlock.timestamp = this.getBlockTimestamp(block);

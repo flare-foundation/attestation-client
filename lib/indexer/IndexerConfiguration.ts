@@ -13,14 +13,14 @@ export class IndexerClientChain {
 
   public maxFailedRetry: number = 1;
   
-  public confirmationsCollect: number = 5;
-  public confirmationsIndex: number = 7;
+  public confirmationsCollect: number = 6;
 }
 
 export class IndexerConfiguration {
 
   public syncEnabled: boolean = true;
   public syncTimeDays: number = 1;
+  public blockCollectTimeMs: number = 1000;
 
   public chains: IndexerClientChain[] = [];
 }

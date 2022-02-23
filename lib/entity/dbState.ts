@@ -1,11 +1,10 @@
-import { Column, Entity, Index } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { BaseEntity } from "./base/BaseEntity";
 
 @Entity({name:"state"})
-export class DBState extends BaseEntity {
+export class DBState {
 
-    @Column()
-    @Index()
+    @PrimaryColumn({type: "string"})
     name!: string;
 
     @Column()

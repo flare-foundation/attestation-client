@@ -3,7 +3,7 @@ import { ReturningStatementNotSupportedError } from "typeorm";
 
 class BlockProcessorManager {
 
-    blockProcessors = new BlockProcessor[];
+    blockProcessors : BlockProcessor[] = [];
 
     async processBlock(client: RPCInterface, block: any, callback: any) {
         // check if hash exists -> continue
@@ -34,6 +34,7 @@ class BlockProcessorManager {
 
     }
 }
+
 class BlockProcessor {
     active = false;
     transactions : string[];

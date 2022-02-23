@@ -68,7 +68,7 @@ export class CachedMccClient<T, B> {
   }
 
   // returns T or null
-  public async getTransactionFromCache(txId: string): Promise<T> | null {
+  public getTransactionFromCache(txId: string): Promise<T> | undefined {
     return this.transactionCache.get(txId);
   }
 
@@ -76,7 +76,7 @@ export class CachedMccClient<T, B> {
     // if(!this.canAccept) {
     //   throw Error("Cannot accept transaction requests");
     // }
-    let txPromise = this.transactionCache.get(txId);
+    let txPromise = this.getTransactionFromCache(txId);
     if(txPromise) {
       return txPromise;
     }

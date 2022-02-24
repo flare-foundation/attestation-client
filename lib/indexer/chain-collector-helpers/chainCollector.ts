@@ -1,4 +1,4 @@
-import { IIGetBlockRes, RPCInterface } from "flare-mcc";
+import { filterHashes, IIGetBlockRes, ReadRpcInterface, sleep } from "flare-mcc";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 import { augmentBlockSig, augmentTransactionSig, onSaveSig, preprocessBlockSig, readTransactionSig } from "./types";
 
@@ -15,7 +15,7 @@ import { augmentBlockSig, augmentTransactionSig, onSaveSig, preprocessBlockSig, 
  * @param onSave callback to save transaction data and index if block was successfully saved or not
  */
 export async function processBlockTransactionsGeneric(
-   client: RPCInterface,
+   client: ReadRpcInterface,
    block: IIGetBlockRes,  // Type is specific to each underlying chain but they all extend this type IIGetBlockRes
    preprocessBlock: preprocessBlockSig,
    readTransaction: readTransactionSig, // getFullTransaction
@@ -32,12 +32,21 @@ export async function processBlockTransactionsGeneric(
    const transactionMap = preprocessBlock(block);
 
    console.log("Transaction map");
-   console.log(transactionMap);
+   console.log(transactionMap.size);
    console.log();
    
    // go over all transactions and process them
 
    const augmentedTransactions:DBTransactionBase[] = []
+
+   // console.log(block);
+   // @ts-ignore
+   console.log(block.transactions.map(filterHashes));
+   
+   // console.log(await client.getTransactionHashesFromBlock(block));
+   
+   console.log(client.chainType);
+   
 
    const transactionHashes = await client.getTransactionHashesFromBlock(block);
 
@@ -61,11 +70,11 @@ export async function processBlockTransactionsGeneric(
          (data) => augmentedTransactions.push(data)
       ));
    }
-   Promise.all(promisses);
+   await Promise.all(promisses);
 
-   // console.log("Augmented map");
-   // console.log(augmentedTransactions);
-   // console.log();
+   console.log("Augmented map");
+   console.log(augmentedTransactions);
+   console.log();
 
    const blockData = await augmentBlock(client, block)
 

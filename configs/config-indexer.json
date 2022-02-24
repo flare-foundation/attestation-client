@@ -2,6 +2,8 @@
     "syncEnabled": false,
     "syncTimeDays": 2,
 
+    "blockCollectTimeMs": 1000,
+
     "chains": [
         {
             "name": "XRP",
@@ -18,8 +20,7 @@
             "maxFailedRetry": 1,
             "delayBeforeRetry": 10,
 
-            "confirmationsCollect": 6,
-            "confirmationsIndex": 7
+            "confirmationsCollect": 6
         },
         {
             "name": "BTC",
@@ -33,8 +34,7 @@
             "clientTimeout": 5000,
             "clientRetries": 3,
 
-            "confirmationsCollect": 6,
-            "confirmationsIndex": 7
+            "confirmationsCollect": 6
         }
 
     ]

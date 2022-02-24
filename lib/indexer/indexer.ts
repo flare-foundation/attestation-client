@@ -23,10 +23,20 @@
 //     
 //  [ ] XRP 1st
 //  [ ] 100% make sure that block is completely saved until moved to the next block
+//  [ ] check if using database per chain is easier than tables per chain
 //
 //  [x] indexer sync - create database for x days back
 //  [x] create table for each chain
-//  [ ] option what chains are running
+//  [ ] multiple options what chains are to be started
+//  [x] transaction save (with block and state) must be a transaction!
+//  [x] store ALL block into DB immediately
+//  [x] also save block
+//  [x] 'confirmed' on all unconfirmed blocks than are less than X-this.chainConfig.confirmations
+//  [x] when start N = height - 6
+//  [x] all is now N oriented. I need to add into DB N+1 -> height
+//  [x] we process N+1
+//  [x] blockHash is changed not blockNumber
+//  [ ] if N+1 block is ready go and read N+2
 //
 //  [ ] do not save blocks automatically but save only the ones below confirmationsIndex !!!
 
@@ -34,12 +44,14 @@
 import { ChainType, MCC, sleep } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/types";
 import { Entity } from "typeorm";
+import { DBBlock } from "../entity/dbBlock";
+import { DBState } from "../entity/dbState";
 import { DBTransactionBase, DBTransactionXRP0, DBTransactionXRP1 } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
-import { processBlock, processBlockTest } from "./chainCollector";
+import { processBlockTest } from "./chainCollector";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
 var yargs = require("yargs");
@@ -49,6 +61,17 @@ const args = yargs
   .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false, })
   .argv;
 
+
+class PreparedBlock {
+  block: any;
+  transactions: DBTransactionBase[];
+
+  constructor(block: any, transactions: DBTransactionBase[]) {
+    this.block = block;
+    this.transactions = transactions;
+  }
+}
+
 export class Indexer {
   config: IndexerConfiguration;
   chainConfig: IndexerChainConfiguration;
@@ -56,6 +79,11 @@ export class Indexer {
   client!: RPCInterface;
   logger!: AttLogger;
   dbService: DatabaseService;
+
+  N = 0;
+  activeBlock: any = undefined;
+
+  preparedBlocks = new Map<number, PreparedBlock>();
 
 
   static sendCount = 0;
@@ -145,13 +173,27 @@ export class Indexer {
     return references0.concat(references1);
   }
 
-  async saveInterlaced(data: DBTransactionBase[]) : Promise<boolean> {
+  async blockPrepared(block: DBBlock, transactions: DBTransactionBase[]): Promise<boolean> {
 
-    if( data.length===0 ) return true; 
+    // todo: check if blockNumber is already +6
+    this.preparedBlocks.set(block.blockNumber, new PreparedBlock(block, transactions));
+
+    return true;
+  }
+
+
+  async blockSave(block: DBBlock, transactions: DBTransactionBase[]): Promise<boolean> {
+
+    if (transactions.length === 0) return true;
+
+    if (block.blockNumber !== this.N + 1) {
+      // what now?
+      return;
+    }
 
     try {
 
-      const epoch = this.getEpoch(data[0].timestamp);
+      const epoch = this.getEpoch(transactions[0].timestamp);
 
       const tableIndex = epoch & 1;
 
@@ -159,6 +201,7 @@ export class Indexer {
         await sleepms(1);
       }
 
+      // check if tables need to be dropped and new created
       if (this.prevEpoch !== epoch && this.prevEpoch !== -1) {
 
         this.tableLock = true;
@@ -182,25 +225,43 @@ export class Indexer {
       const entity = this.dbTableClass[tableIndex];
 
       // create a copy of data with specific data types (for database)
+      // we need to make a copy so that entity class is correct
       const dataCopy = Array<typeof entity>();
 
-      for(let d of data) {
+      for (let d of transactions) {
         const newData = new this.dbTableClass[tableIndex];
 
         for (let key of Object.keys(d)) {
           newData[key] = d[key];
         }
 
-        dataCopy.push( newData )
+        dataCopy.push(newData)
       }
 
-      await this.dbService.manager.save(dataCopy).catch((error) => {
+      // create transaction and save everything
+      await this.dbService.connection.transaction("READ COMMITTED", async transaction => {
+
+        // setup new N
+        const state = new DBState();
+        state.name = "N";
+        state.valueNumber = this.N + 1;
+
+        // block must be marked as confirmed
+        await transaction.save(dataCopy);
+        await transaction.save(block);
+        await transaction.save(state);
+
+        // increment N if all is ok
+        this.N++;
+
+      }).catch((error) => {
         this.logger.error(`database error: ${error}`);
+        return false;
       });
 
       return true;
     }
-    catch( error ){
+    catch (error) {
       this.logger.error(`saveInterlaced: ${error}`);
       return false;
     }
@@ -228,12 +289,18 @@ export class Indexer {
     const block = await this.client.getBlock(blockNumber);
 
     // XRP
+    return this.getBlockTimestamp(block);
+  }
+  getBlockTimestamp(block: any): number {
+    // XRP
     return block.result.ledger.close_time;
   }
 
   async getAverageBlocksPerDay(): Promise<number> {
     const blockNumber0 = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
     const blockNumber1 = Math.ceil(blockNumber0 * 0.9);
+
+    // todo: check if blockNumber1 is below out range
 
     const time0 = await this.getBlockNumberTimestamp(blockNumber0);
     const time1 = await this.getBlockNumberTimestamp(blockNumber1);
@@ -244,19 +311,27 @@ export class Indexer {
   }
 
   async getDBStartBlockNumber(): Promise<number> {
-    const entity0 = this.dbTableClass[0];
-    const entity1 = this.dbTableClass[1];
+    // const entity0 = this.dbTableClass[0];
+    // const entity1 = this.dbTableClass[1];
 
-    const res0 = await this.dbService.connection.createQueryBuilder().from(entity0, 'transactions').select('blockNumber').orderBy("id", "DESC").limit(1).getRawMany();
-    const res1 = await this.dbService.connection.createQueryBuilder().from(entity1, 'transactions').select('blockNumber').orderBy("id", "DESC").limit(1).getRawMany();
+    // const res0 = await this.dbService.connection.createQueryBuilder().from(entity0, 'transactions').select('blockNumber').orderBy("id", "DESC").limit(1).getRawMany();
+    // const res1 = await this.dbService.connection.createQueryBuilder().from(entity1, 'transactions').select('blockNumber').orderBy("id", "DESC").limit(1).getRawMany();
 
-    return Math.max(res0.length > 0 ? res0[0].blockNumber : 0, res1.length > 0 ? res1[0].blockNumber : 0);
+    // return Math.max(res0.length > 0 ? res0[0].blockNumber : 0, res1.length > 0 ? res1[0].blockNumber : 0);
+
+    const res = await this.dbService.manager.findOne(DBState, { where: { name: "N" } });
+
+    if (res === undefined) return 0;
+
+    return res.valueNumber;
   }
 
   async getSyncStartBlockNumber(): Promise<number> {
     const latestBlockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
 
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
+
+    // todo: averageBlocksPerDay must be > 0
 
     this.logger.debug(`${this.chainConfig.name} avg blk per day ${averageBlocksPerDay}`);
 
@@ -272,8 +347,10 @@ export class Indexer {
       }
 
       // if time is still in the sync period then add one more hour
-      blockNumber = Math.floor( blockNumber - averageBlocksPerDay / 24 );
+      blockNumber = Math.floor(blockNumber - averageBlocksPerDay / 24);
     }
+
+    // todo: report error
 
     return blockNumber;
   }
@@ -287,40 +364,94 @@ export class Indexer {
 
     const startBlockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
 
-    let blockNumber = startBlockNumber;
+    this.N = startBlockNumber;
+
+    // N is last completed block - confirmed and stored in DB
 
     if (this.config.syncEnabled) {
       // get DB last number
       const dbStartBlockNumber = await this.getDBStartBlockNumber();
       const syncStartBlockNumber = await this.getSyncStartBlockNumber();
 
-      blockNumber = Math.max(dbStartBlockNumber, syncStartBlockNumber);
+      this.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);
     }
 
     while (true) {
       try {
-        // create process that will collect valid transactions
-        const latestBlockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
-        if (blockNumber >= latestBlockNumber + 1) {
-          await sleep(100);
+        // get chain top block
+        const latestBlockNumber = await this.client.getBlockHeight();
+
+        //  change getBlock to getBlockHeader
+        const blockNp1 = this.client.getBlock(this.N + 1);
+
+        // has N+1 confirmation block
+        const newBlock = this.N < latestBlockNumber - this.chainConfig.confirmationsCollect;
+        const changedNp1Hash = this.activeBlock.hash !== blockNp1.hash;
+
+        // check if N + 1 hash is the same
+        if (!newBlock && !changedNp1Hash) {
+          await sleep(this.config.blockCollectTimeMs);
           continue;
         }
 
-        this.indexBlock(this.client, blockNumber);
+        // if new block, check if block is already prepared
+        if (newBlock) {
+          const Np1 = this.N + 1;
+          const preparedBlock = this.preparedBlocks.get(Np1);
 
-        // move to next block
-        blockNumber++;
+          // todo: what to do if this is not prepared yet ???
+          if( preparedBlock!==undefined)
+          {
+            this.blockSave( preparedBlock.block , preparedBlock.transactions );
+
+            this.preparedBlocks.delete( Np1 );
+          }
+        }
+
+
+        // save block headers N+1 ... top
+        this.saveBlocksHeaders(latestBlockNumber);
+
+        //this.activeBlock = block;
+        processBlockTest(this.client, blockNp1, this.blockPrepared.bind(this));
+
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
       }
     }
   }
 
-  async indexBlock(client: RPCInterface, blockNumber: number) {
 
-    let block = await client.getBlock(blockNumber)
 
-    processBlockTest(this.client, block, this.saveInterlaced.bind(this) );
+  async saveBlocksHeaders(latestBlockNumber: number) {
+
+    try {
+      // save blocks from N+1 to latestBlockNumber
+      const dbBlocks = [];
+      for (let blockNumber = this.N + 1; blockNumber <= latestBlockNumber; blockNumber++) {
+        const block = this.client.getBlock(blockNumber);
+
+        const dbBlock = new DBBlock();
+        dbBlock.blockNumber = blockNumber;
+        dbBlock.blockHash = block.hash;
+        dbBlock.timestamp = this.getBlockTimestamp(block);
+
+        dbBlocks.push(dbBlock);
+      }
+
+      this.dbService.manager.save(dbBlocks);
+
+
+      // await this.dbService.manager
+      //   .createQueryBuilder()
+      //   .update(DBBlock)
+      //   .set({ confirmed: true })
+      //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
+      //   .execute();
+    }
+    catch (error) {
+      this.logger.error2(`error ${error}`);
+    }
   }
 }
 

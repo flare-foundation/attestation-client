@@ -1,4 +1,7 @@
 import { ChainType, IIGetBlockRes, RPCInterface } from "flare-mcc";
+import { DBBlock } from "../entity/dbBlock";
+import { DBTransactionBase } from "../entity/dbTransaction";
+import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
 import { augmentBlockDefault } from "./chain-collector-helpers/augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./chain-collector-helpers/augmentTransaction";
 import { processBlockTransactionsGeneric } from "./chain-collector-helpers/chainCollector";
@@ -61,27 +64,29 @@ export async function processBlock(
     )
 }
 
-// export async function processBlockTest<B>(
-//     client: RPCInterface,
-//     block: B,
-//     onSave: onSaveSig
-// ) {
+export async function processBlockTest<B>(
+    client: RPCInterface,
+    block: B,
+    onSave: onSaveSig
+) {
 
-//     await sleepms(100);
+    await sleepms(100);
 
-//     const blocks = 1 + await getRandom(10);
+    const blocks = 1 + await getRandom(10);
 
-//     const dataArray = Array<DBTransactionBase>();
+    const dataArray = Array<DBTransactionBase>();
 
-//     for (let a = 0; a < blocks; a++) {
-//         const data = new DBTransactionBase();
+    for (let a = 0; a < blocks; a++) {
+        const data = new DBTransactionBase();
 
-//         data.timestamp = getUnixEpochTimestamp();
-//         data.paymentReference = getRandom().toString();
+        data.timestamp = getUnixEpochTimestamp();
+        data.paymentReference = getRandom().toString();
 
-//         dataArray.push(data);
-//     }
+        dataArray.push(data);
 
-//     onSave(dataArray);
-// }
+
+    }
+    const blockData = new DBBlock;
+    onSave(blockData, dataArray);
+}
 

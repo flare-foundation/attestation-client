@@ -2,7 +2,7 @@
 import { ChainType } from "flare-mcc";
 import { sleepms } from "../lib/utils/utils";
 import { etherToValue, getTestStateConnectorAddress } from "../lib/utils/utils";
-import { AttestationType } from "../lib/verification/attestation-types";
+import { AttestationType } from "../lib/verification/generated/attestation-types-enum";
 
 async function main2() {
 

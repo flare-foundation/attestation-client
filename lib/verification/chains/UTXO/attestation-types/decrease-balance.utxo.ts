@@ -6,7 +6,7 @@ import {
   ChainVerification, DataAvailabilityProof, TransactionAttestationRequest,
   VerificationStatus,
   VerificationTestOptions
-} from "../../../attestation-types";
+} from "../../../attestation-types/attestation-types";
 
 export function verifyDecreaseBalanceUtxo(
   attRequest: TransactionAttestationRequest,

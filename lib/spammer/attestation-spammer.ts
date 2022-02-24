@@ -7,7 +7,7 @@ import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { getGlobalLogger } from "../utils/logger";
 import { getRandom, getWeb3, getWeb3Contract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
-import { AttestationRequest } from "../verification/attestation-types";
+import { AttestationRequest } from "../verification/attestation-types/attestation-types";
 let fs = require("fs");
 
 dotenv.config();

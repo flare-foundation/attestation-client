@@ -1,20 +1,23 @@
-import { Column, Entity, Index } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn, Unique } from "typeorm";
 import { BaseEntity } from "./base/BaseEntity";
 
 @Entity({name:"block"})
-export class DBBlock extends BaseEntity {
+export class DBBlock {
 
+    @PrimaryColumn({type: "string"})
+    blockHash!: string;
+    
     @Column()
     @Index()
     blockNumber!: number;
 
-    @Column()
-    @Index()
-    blockHash!: string;
 
     @Column()
     @Index()
     timestamp!: number;
+
+    @Column()
+    confirmed: boolean;
 
     @Column()
     response!: string;

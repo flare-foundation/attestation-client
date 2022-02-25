@@ -1,4 +1,4 @@
-import { AlgoMccCreate, ChainType, MCC, RPCInterface, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
+import { AlgoMccCreate, ChainType, MCC, ReadRpcInterface, RPCInterface, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
 import { Queue } from "../utils/Queue";
 
 export interface CachedMccClientOptions {
@@ -30,7 +30,7 @@ let defaultCachedMccClientOptions: CachedMccClientOptions = {
 
 export type OnChangeCallback = (inProcessing?: number, inQueue?: number) => void
 export class CachedMccClient<T, B> {
-  client: RPCInterface;
+  client: ReadRpcInterface;
   chainType: ChainType;
 
   transactionCache: Map<string, Promise<T>>;
@@ -45,9 +45,6 @@ export class CachedMccClient<T, B> {
   inQueue = 0;
 
   cleanupCheckCounter = 0;
-
-  onChangeCallbacks: {[key: number]: OnChangeCallback}
-  onChangeCallbackCount = 0;
 
   constructor(chainType: ChainType, options?: CachedMccClientOptions) {
     this.chainType = chainType;
@@ -71,21 +68,6 @@ export class CachedMccClient<T, B> {
   private onChange(inProcessing?: number, inQueue?: number) {
     this.inProcessing = inProcessing;
     this.inQueue = inQueue;
-    // Call all registered callbacks
-    for(let id in this.onChangeCallbacks) {
-      this.onChangeCallbacks[id](inProcessing, inQueue);
-    }
-  }
-
-  registerOnChangeCallback(callback: OnChangeCallback): number {
-    let id = this.onChangeCallbackCount;
-    this.onChangeCallbacks[id] = callback;
-    this.onChangeCallbackCount++;
-    return id;    
-  }
-
-  unregisterOnChangeCallback(id: number) {
-    delete this.onChangeCallbacks[id];
   }
 
   // returns T or null

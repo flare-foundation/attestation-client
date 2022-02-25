@@ -1,12 +1,14 @@
-import { ChainType, IIGetBlockRes, RPCInterface } from "flare-mcc";
-import { DBBlock } from "../entity/dbBlock";
+import { BlockBase, ChainType, IIGetBlockRes, IUtxoGetFullTransactionRes, RPCInterface } from "flare-mcc";
+import { CachedMccClient } from "../caching/CachedMccClient";
+import { LimitingProcessor } from "../caching/LimitingProcessor";
+import { DBBlockBase } from "../entity/dbBlock";
 import { DBTransactionBase } from "../entity/dbTransaction";
 import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
-import { augmentBlockDefault } from "./chain-collector-helpers/augmentBlock";
+import { augmentBlockDefault, augmentBlockUtxo } from "./chain-collector-helpers/augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./chain-collector-helpers/augmentTransaction";
 import { processBlockTransactionsGeneric } from "./chain-collector-helpers/chainCollector";
 import { processBlockAlgo, processBlockDefault, processBlockXrp } from "./chain-collector-helpers/processBlock";
-import { readTransactionAlgo, readTransactionUtxo, readTransactionXrp } from "./chain-collector-helpers/readTransaction";
+import { getFullTransactionUtxo, readTransactionAlgo, readTransactionUtxo, readTransactionXrp } from "./chain-collector-helpers/readTransaction";
 import { onSaveSig, processBlockChainFunctions } from "./chain-collector-helpers/types";
 
 export const XrpProcessBlockFunction: processBlockChainFunctions = {
@@ -26,7 +28,7 @@ export const AlgoProcessBlockFunction: processBlockChainFunctions = {
 export const UtxoProcessBlockFunction: processBlockChainFunctions = {
     preProcessBlock: processBlockDefault,
     readTransaction: readTransactionUtxo,
-    augmentTransaction: augmentTransactionUtxo,
+    augmentTransaction: augmentTransactionAlgo, // TODO
     augmentBlock: augmentBlockDefault
 }
 
@@ -64,6 +66,28 @@ export async function processBlock(
     )
 }
 
+export async function processBlockUtxo(
+    client: CachedMccClient<any,any>,
+    block: BlockBase<any>,
+    onSave: onSaveSig
+) {
+    // we create limiting processor
+    let processor = new LimitingProcessor(client)
+    
+    const augmentedTransactions:DBTransactionBase[] = []
+
+    let txPromises = block.transactionHashes.map(async (txid) => {
+        let processed = await processor.call(() => getFullTransactionUtxo(client, txid, processor)) as IUtxoGetFullTransactionRes;
+        return augmentTransactionUtxo(client,block,processed);
+    })
+
+    const transDb = await Promise.all(txPromises)
+
+    const blockDb = augmentBlockUtxo(client.client,block)
+
+    onSave(blockDb, transDb);
+}
+
 export async function processBlockTest<B>(
     client: RPCInterface,
     block: B,
@@ -86,7 +110,7 @@ export async function processBlockTest<B>(
 
 
     }
-    const blockData = new DBBlock;
+    const blockData = new DBBlockBase;
     onSave(blockData, dataArray);
 }
 

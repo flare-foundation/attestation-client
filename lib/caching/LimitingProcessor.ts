@@ -51,21 +51,27 @@ export class LimitingProcessor {
    queue = new Queue<DelayedExecution>();
    client: CachedMccClient<any,any>;   
    isActive = false;   
-   inProcessing = 0;
-   inQueue = 0;
    settings: LimitingProcessorOptions;
    onChangeCallbackId: number = -1;
 
    constructor(cachedClient: CachedMccClient<any, any>, options?: LimitingProcessorOptions) {
       this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
       this.client = cachedClient;
-      this.onChangeCallbackId = this.client.registerOnChangeCallback(this.onChange.bind(this));
+      this.start()
    }
 
    public async start() {
       this.isActive = true;
       while (this.isActive) {
-         if (this.queue.size === 0 || this.activeCalls > this.settings.activeLimit) {
+         console.log(
+            this.client.inProcessing, 
+            this.client.inQueue, 
+            this.client.settings.activeLimit,
+            this.client.canAccept,
+            this.queue.size
+             );
+         
+         if (this.queue.size === 0 || !this.client.canAccept) {
             await sleepms(100)
             continue;
          }
@@ -73,24 +79,12 @@ export class LimitingProcessor {
          de.run();
       }
    }
-
-   private onChange(inProcessing?: number, inQueue?: number) {
-      this.inProcessing = inProcessing;
-      this.inQueue = inQueue;
-    }
   
-   get activeCalls() {
-      return this.inProcessing + this.inQueue;
-   }
-
    public stop() {
       this.isActive = false;
    }
 
-   public destroy() {
-      if(this.onChangeCallbackId > 0) {
-         this.client.unregisterOnChangeCallback(this.onChangeCallbackId);
-      }      
+   public destroy() {   
       this.queue.destroy();
    }
 

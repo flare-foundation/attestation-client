@@ -1,5 +1,6 @@
-import { base64ToHex, IAlgoGetBlockRes, IAlgoGetFullTransactionRes, IUtxoGetBlockRes, ReadRpcInterface, txIdToHexNo0x } from "flare-mcc";
+import { base64ToHex, BlockBase, IAlgoGetBlockRes, IAlgoGetFullTransactionRes, IUtxoGetBlockRes, ReadRpcInterface, txIdToHexNo0x, UtxoBlock } from "flare-mcc";
 import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
+import { CachedMccClient } from "../../caching/CachedMccClient";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
 
@@ -19,13 +20,13 @@ export async function augmentTransactionAlgo(client: ReadRpcInterface, block: IA
    return res as DBTransactionBase
 }
 
-export async function augmentTransactionUtxo(client: ReadRpcInterface, block: IUtxoGetBlockRes, txData: IUtxoGetFullTransactionRes): Promise<DBTransactionBase> {
+export async function augmentTransactionUtxo(client: CachedMccClient<any,any>, block: UtxoBlock, txData: IUtxoGetFullTransactionRes): Promise<DBTransactionBase> {
    const res = new DBTransactionBase();
-   res.blockNumber = block.height;
+   res.blockNumber = block.number;
    res.chainType = client.chainType;
    res.transactionId = txData.hash;
 
-   const paymentRef = client.getTransactionRefFromTransaction(txData)
+   const paymentRef = client.client.getTransactionRefFromTransaction(txData)
    if (paymentRef.length === 1) {
       res.paymentReference = paymentRef[0]
    }

@@ -6,15 +6,16 @@ export interface CachedMccClientOptions {
   blockCacheSize: number;
   cleanupChunkSize: number;
      // maximum number of requests that are either in processing or in queue
-  maxInAction: number; 
+  activeLimit: number; 
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
+  // onChange?: (inProcessing?: number, inQueue?: number) => void;
 }
 
 let defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
   cleanupChunkSize: 100,
-  maxInAction: 50, 
+  activeLimit: 50, 
   clientConfig: {} as any
 }
 
@@ -27,6 +28,7 @@ let defaultCachedMccClientOptions: CachedMccClientOptions = {
 //        (ii) if `false` is returned, sleep for a while and retry `canAccept`. Repeat this until `true` is 
 //             eventually returned and then proceed with (i)
 
+export type OnChangeCallback = (inProcessing?: number, inQueue?: number) => void
 export class CachedMccClient<T, B> {
   client: RPCInterface;
   chainType: ChainType;
@@ -44,6 +46,9 @@ export class CachedMccClient<T, B> {
 
   cleanupCheckCounter = 0;
 
+  onChangeCallbacks: {[key: number]: OnChangeCallback}
+  onChangeCallbackCount = 0;
+
   constructor(chainType: ChainType, options?: CachedMccClientOptions) {
     this.chainType = chainType;
     this.transactionCache = new Map<string, Promise<T>>();
@@ -56,15 +61,31 @@ export class CachedMccClient<T, B> {
     // Override onSend
     this.settings.clientConfig.rateLimitOptions = {
       ...this.settings.clientConfig.rateLimitOptions,
-      onSend: this.onSend.bind(this)
+      onSend: this.onChange.bind(this),
+      onResponse: this.onChange.bind(this)
     }
 
     this.client = MCC.Client(this.chainType, this.settings.clientConfig) as any as RPCInterface // TODO
   }
 
-  private onSend(inProcessing?: number, inQueue?: number) {
+  private onChange(inProcessing?: number, inQueue?: number) {
     this.inProcessing = inProcessing;
     this.inQueue = inQueue;
+    // Call all registered callbacks
+    for(let id in this.onChangeCallbacks) {
+      this.onChangeCallbacks[id](inProcessing, inQueue);
+    }
+  }
+
+  registerOnChangeCallback(callback: OnChangeCallback): number {
+    let id = this.onChangeCallbackCount;
+    this.onChangeCallbacks[id] = callback;
+    this.onChangeCallbackCount++;
+    return id;    
+  }
+
+  unregisterOnChangeCallback(id: number) {
+    delete this.onChangeCallbacks[id];
   }
 
   // returns T or null
@@ -113,7 +134,7 @@ export class CachedMccClient<T, B> {
   }
 
   public get canAccept(): boolean {
-    return !this.settings.maxInAction || this.inProcessing + this.inQueue <= this.settings.maxInAction;
+    return !this.settings.activeLimit || this.inProcessing + this.inQueue <= this.settings.activeLimit;
   }
 
   private checkAndCleanup() {

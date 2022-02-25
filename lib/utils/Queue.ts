@@ -1,9 +1,9 @@
 // Simple and efficient implementation of a queue suitable for larger sizes
 
 export class Queue<T> {
-   data: { [key: number]: T } = {};
-   head = 0;
-   tail = 0;
+   private data: { [key: number]: T } = {};
+   private head = 0;
+   private tail = 0;
 
    public push(item: T): void {
       this.data[this.tail] = item;
@@ -19,5 +19,10 @@ export class Queue<T> {
 
    public get size() {
       return this.tail - this.head;
+   }
+
+   public destroy() {
+      delete this.data;
+      this.data = {};
    }
 }

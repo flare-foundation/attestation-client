@@ -1,4 +1,4 @@
-import { IIGetBlockRes, IIGetTransactionRes, RPCInterface } from "flare-mcc";
+import { IIGetBlockRes, IIGetTransactionRes, ReadRpcInterface } from "flare-mcc";
 import { DBBlock } from "../../entity/dbBlock";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
@@ -9,15 +9,15 @@ export interface preprocessBlockSig {
 }
 
 export interface readTransactionSig {
-  (client: RPCInterface, txHash: string): Promise<IIGetTransactionRes>
+  (client: ReadRpcInterface, txHash: string): Promise<IIGetTransactionRes>
 }
 
 export interface augmentTransactionSig {
-  (client: RPCInterface, block: IIGetBlockRes, txData: IIGetTransactionRes): Promise<DBTransactionBase>
+  (client: ReadRpcInterface, block: IIGetBlockRes, txData: IIGetTransactionRes): Promise<DBTransactionBase>
 }
 
 export interface augmentBlockSig {
-  (client: RPCInterface, block: IIGetBlockRes): Promise<DBBlock>
+  (client: ReadRpcInterface, block: IIGetBlockRes): Promise<DBBlock>
 }
 
 export interface onSaveSig {

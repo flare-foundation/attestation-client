@@ -13,7 +13,7 @@ export async function readTransactionUtxo(client: ReadRpcInterface, txHash: stri
 
 export async function getFullTransactionUtxo(client: CachedMccClient<any,any>, txid: string, processor: LimitingProcessor): Promise<IUtxoGetFullTransactionRes> {
   let res = (await processor.call(() => client.getTransaction(txid))) as IUtxoGetTransactionRes;
-  // console.log("Toplevel tx processed");
+  console.log("Toplevel tx processed");
   
   if (res === null) {
     return null;
@@ -21,7 +21,7 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any,any>, t
   let response: IUtxoGetFullTransactionRes = { vinouts: [], ...res };
   let vinPromises = response.vin.map(async (vin: IUtxoVinTransaction) => {
     if (vin.txid) {
-      let tx = (await processor.call(() => client.getTransaction(vin.txid))) as IUtxoGetTransactionRes;
+      let tx = (await processor.call(() => client.getTransaction(vin.txid), true)) as IUtxoGetTransactionRes;
       const inVout = vin.vout!;
       if (tx.vout[inVout].n != inVout) {
         throw Error("Vin and vout transaction miss match");

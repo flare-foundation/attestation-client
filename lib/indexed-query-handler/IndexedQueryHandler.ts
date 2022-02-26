@@ -1,12 +1,7 @@
 import { ChainType } from "flare-mcc";
-import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/dbBlock";
+import { DBBlockBase } from "../entity/dbBlock";
 import {
-   DBTransactionALGO0, DBTransactionALGO1,
-   DBTransactionBase,
-   DBTransactionBTC0, DBTransactionBTC1,
-   DBTransactionDOGE0, DBTransactionDOGE1,
-   DBTransactionLTC0, DBTransactionLTC1,
-   DBTransactionXRP0, DBTransactionXRP1
+   DBTransactionBase
 } from "../entity/dbTransaction";
 import { Indexer } from "../indexer/indexer";
 import { prepareIndexerTables } from "../indexer/indexer-utils";

@@ -28,7 +28,6 @@ let defaultCachedMccClientOptions: CachedMccClientOptions = {
 //        (ii) if `false` is returned, sleep for a while and retry `canAccept`. Repeat this until `true` is 
 //             eventually returned and then proceed with (i)
 
-export type OnChangeCallback = (inProcessing?: number, inQueue?: number) => void
 export class CachedMccClient<T, B> {
   client: ReadRpcInterface;
   chainType: ChainType;
@@ -43,6 +42,8 @@ export class CachedMccClient<T, B> {
 
   inProcessing = 0;
   inQueue = 0;
+  reqsPs = 0;
+  retriesPs = 0;
 
   cleanupCheckCounter = 0;
 
@@ -59,15 +60,18 @@ export class CachedMccClient<T, B> {
     this.settings.clientConfig.rateLimitOptions = {
       ...this.settings.clientConfig.rateLimitOptions,
       onSend: this.onChange.bind(this),
-      onResponse: this.onChange.bind(this)
+      onResponse: this.onChange.bind(this),
+      onPush: this.onChange.bind(this)
     }
 
     this.client = MCC.Client(this.chainType, this.settings.clientConfig) as any as RPCInterface // TODO
   }
 
-  private onChange(inProcessing?: number, inQueue?: number) {
+  private onChange(inProcessing?: number, inQueue?: number, reqsPs?: number, retriesPs?: number) {
     this.inProcessing = inProcessing;
     this.inQueue = inQueue;
+    this.reqsPs = reqsPs;
+    this.retriesPs = retriesPs;
   }
 
   // returns T or null

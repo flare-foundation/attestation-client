@@ -17,7 +17,7 @@ export class DelayedExecution {
    tpp: LimitingProcessor;
 
    constructor(limitingProcessor: LimitingProcessor, func: any, resolve: any, reject: any) {
-      this.tpp = limitingProcessor; 
+      this.tpp = limitingProcessor;
       this.func = func;
       this.resolve = resolve;
       this.reject = reject;
@@ -27,9 +27,9 @@ export class DelayedExecution {
       try {
          let res = await this.func();
          this.resolve(res);
-      } catch(e) {
+      } catch (e) {
          this.reject(e);
-      } 
+      }
    }
 }
 
@@ -47,10 +47,10 @@ export class LimitingProcessor {
       sleepDelayMs: 100,
       activeLimit: 50
    }
-   
+
    queue = new Queue<DelayedExecution>();
-   client: CachedMccClient<any,any>;   
-   isActive = false;   
+   client: CachedMccClient<any, any>;
+   isActive = false;
    settings: LimitingProcessorOptions;
    onChangeCallbackId: number = -1;
 
@@ -60,48 +60,53 @@ export class LimitingProcessor {
       this.start()
    }
 
+   counter = 0;
    public async start() {
       this.isActive = true;
       while (this.isActive) {
-         console.log(
-            this.client.inProcessing, 
-            this.client.inQueue, 
-            this.client.settings.activeLimit,
-            this.client.canAccept,
-            this.queue.size
-             );
-         
+         if (this.counter % 100 === 0) {
+            console.log(`$RPS: ${this.client.reqsPs.toString().padStart(3)}   RetriesPs: ${this.client.retriesPs.toString().padStart(3)}   inProcessing: ${this.client.inProcessing.toString().padStart(3)}   inQueue: ${this.client.inQueue.toString().padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}`);
+         }
+
          if (this.queue.size === 0 || !this.client.canAccept) {
+            // console.log("Sleep:", this.client.inProcessing, this.client.inQueue)
             await sleepms(100)
             continue;
          }
          let de = this.queue.shift();
          de.run();
+         this.counter++;
+         await sleepms(0);
       }
    }
-  
+
    public stop() {
       this.isActive = false;
    }
 
-   public destroy() {   
+   public destroy() {
       this.queue.destroy();
    }
 
-   delayExecuteCallback(func: any, resolve: any, reject: any) {
+   delayExecuteCallback(func: any, resolve: any, reject: any, prepend = false) {
       let de = new DelayedExecution(this, func, resolve, reject);
-      this.queue.push(de);
+      if (prepend) {
+         this.queue.prepend(de);
+      } else {
+         this.queue.push(de);
+      }
    }
-   
-   call(func: any) {
+
+   call(func: any, prepend = false) {
       return new Promise((resolve, reject) => {
-         this.delayExecuteCallback(            
-            func, 
+         this.delayExecuteCallback(
+            func,
             resolve,
-            reject
+            reject,
+            prepend
          )
       });
-   }   
+   }
 }
 
 /*

@@ -9,6 +9,11 @@ const BtcMccConnection = {
   url: "https://bitcoin.flare.network/",
   username: "flareadmin",
   password: "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
+  rateLimitOptions: {
+    maxRPS: 70,
+    timeoutMs: 3000,
+    retries: 2
+  }
 } as UtxoMccCreate;
 
 const testNetUrl = "http://testnode3.c.aflabs.net:4001/";
@@ -51,12 +56,13 @@ describe("Test process helpers ", () => {
     
     // const block = await MccClient.getBlock(723581);
     const block = await BtcMccClient.getBlock(723746);
+    console.log(block)
 
     let defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
-      activeLimit: 50,
+      activeLimit: 70,
       clientConfig: BtcMccConnection,
     };
 

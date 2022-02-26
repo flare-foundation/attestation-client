@@ -67,23 +67,23 @@ export async function processBlock(
 }
 
 export async function processBlockUtxo(
-    client: CachedMccClient<any,any>,
+    client: CachedMccClient<any, any>,
     block: BlockBase<any>,
     onSave: onSaveSig
 ) {
     // we create limiting processor
     let processor = new LimitingProcessor(client)
-    
-    const augmentedTransactions:DBTransactionBase[] = []
+
+    const augmentedTransactions: DBTransactionBase[] = []
 
     let txPromises = block.transactionHashes.map(async (txid) => {
         let processed = await processor.call(() => getFullTransactionUtxo(client, txid, processor)) as IUtxoGetFullTransactionRes;
-        return augmentTransactionUtxo(client,block,processed);
+        return augmentTransactionUtxo(client, block, processed);
     })
 
     const transDb = await Promise.all(txPromises)
 
-    const blockDb = augmentBlockUtxo(client.client,block)
+    const blockDb = augmentBlockUtxo(client.client, block)
 
     onSave(blockDb, transDb);
 }

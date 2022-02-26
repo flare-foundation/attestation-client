@@ -2,14 +2,20 @@
 
 export class Queue<T> {
    private data: { [key: number]: T } = {};
-   private head = 0;
-   private tail = 0;
+   private head = 0;  // first index
+   private tail = 0;  // first empty index
 
    public push(item: T): void {
       this.data[this.tail] = item;
       this.tail++;
    }
 
+   public prepend(item: T): void {
+      this.data[this.head - 1] = item;
+      this.head--;
+   }
+
+   // Can be called only if head < tail
    public shift(): T {
       let item = this.data[this.head];
       delete this.data[this.head];

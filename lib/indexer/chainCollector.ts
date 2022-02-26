@@ -74,6 +74,25 @@ export async function processBlockUtxo(
     // we create limiting processor
     let processor = new LimitingProcessor(client)
 
+    let enabled = true;
+
+    // Simulation of stopping
+    setInterval(() => {
+        if(enabled) {
+            console.log("DISABLING")
+            processor.stop();
+            enabled = false;
+        } else {
+            console.log("ENABLING")
+            processor.start();
+            enabled = true;
+        }        
+    }, 15000)
+
+    setInterval(() => {
+        processor.debugInfo();
+    }, 1000)
+
     const augmentedTransactions: DBTransactionBase[] = []
 
     let txPromises = block.transactionHashes.map(async (txid) => {

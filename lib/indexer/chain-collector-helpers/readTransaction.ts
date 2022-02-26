@@ -13,7 +13,7 @@ export async function readTransactionUtxo(client: ReadRpcInterface, txHash: stri
 
 export async function getFullTransactionUtxo(client: CachedMccClient<any,any>, txid: string, processor: LimitingProcessor): Promise<IUtxoGetFullTransactionRes> {
   let res = (await processor.call(() => client.getTransaction(txid))) as IUtxoGetTransactionRes;
-  console.log("Toplevel tx processed");
+  // console.log("Toplevel tx processed");
   
   if (res === null) {
     return null;

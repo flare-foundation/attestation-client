@@ -61,7 +61,8 @@ export class CachedMccClient<T, B> {
       ...this.settings.clientConfig.rateLimitOptions,
       onSend: this.onChange.bind(this),
       onResponse: this.onChange.bind(this),
-      onPush: this.onChange.bind(this)
+      onPush: this.onChange.bind(this),
+      onRpsSample: this.onChange.bind(this),
     }
 
     this.client = MCC.Client(this.chainType, this.settings.clientConfig) as any as RPCInterface // TODO

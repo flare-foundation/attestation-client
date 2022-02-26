@@ -64,10 +64,6 @@ export class LimitingProcessor {
    public async start() {
       this.isActive = true;
       while (this.isActive) {
-         if (this.counter % 100 === 0) {
-            console.log(`$RPS: ${this.client.reqsPs.toString().padStart(3)}   RetriesPs: ${this.client.retriesPs.toString().padStart(3)}   inProcessing: ${this.client.inProcessing.toString().padStart(3)}   inQueue: ${this.client.inQueue.toString().padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}`);
-         }
-
          if (this.queue.size === 0 || !this.client.canAccept) {
             // console.log("Sleep:", this.client.inProcessing, this.client.inQueue)
             await sleepms(100)
@@ -86,6 +82,10 @@ export class LimitingProcessor {
 
    public destroy() {
       this.queue.destroy();
+   }
+
+   public debugInfo() {
+      console.log(`calls/s: ${this.client.reqsPs.toString().padStart(3)}   retries/s: ${this.client.retriesPs.toString().padStart(3)}   inProcessing: ${this.client.inProcessing.toString().padStart(3)}   inQueue: ${this.client.inQueue.toString().padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}`);
    }
 
    delayExecuteCallback(func: any, resolve: any, reject: any, prepend = false) {

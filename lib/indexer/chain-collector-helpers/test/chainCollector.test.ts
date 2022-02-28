@@ -121,13 +121,11 @@ describe("Test process helpers ", () => {
       clientConfig: BtcMccConnection,
     };
 
-    const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
+    const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
 
     let processor = new AlgoBlockProcessor(cachedClient);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
-
-    processor.stop()
   });
 
 });

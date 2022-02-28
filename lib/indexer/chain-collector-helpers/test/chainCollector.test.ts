@@ -118,7 +118,7 @@ describe("Test process helpers ", () => {
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
       activeLimit: 70,
-      clientConfig: BtcMccConnection,
+      clientConfig: algoCreateConfig,
     };
 
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);

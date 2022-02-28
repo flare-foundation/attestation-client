@@ -36,12 +36,11 @@
 //  [x] all is now N oriented. I need to add into DB N+1 -> height
 //  [x] we process N+1
 //  [x] blockHash is changed not blockNumber
-//  [ ] if N+1 block is ready go and read N+2
-//
-//  [ ] do not save blocks automatically but save only the ones below confirmationsIndex !!!
+//  [x] if N+1 block is ready go and read N+2
+//  [x] do not save blocks automatically but save only the ones below confirmationsIndex !!!
 
 
-import { ChainType, MCC, sleep } from "flare-mcc";
+import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/types";
 import { Entity } from "typeorm";
 import { DBBlock } from "../entity/dbBlock";
@@ -51,8 +50,8 @@ import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
+import { BlockProcessor } from "./blockProcessor";
 import { BlockProcessorManager } from "./blockProcessorManager";
-import { processBlockTest } from "./chainCollector";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
 var yargs = require("yargs");
@@ -64,10 +63,10 @@ const args = yargs
 
 
 class PreparedBlock {
-  block: any;
+  block: DBBlock;
   transactions: DBTransactionBase[];
 
-  constructor(block: any, transactions: DBTransactionBase[]) {
+  constructor(block: DBBlock, transactions: DBTransactionBase[]) {
     this.block = block;
     this.transactions = transactions;
   }
@@ -82,10 +81,15 @@ export class Indexer {
   dbService: DatabaseService;
   blockProcessorManager: BlockProcessorManager;
 
+  // N - last processed and saved
   N = 0;
-  activeBlock: any = undefined;
+  // T - chain height
+  T = 0;
 
-  preparedBlocks = new Map<number, PreparedBlock>();
+  blockNp1hash = "";
+  waitNp1 = false;
+
+  preparedBlocks = new Map<number, PreparedBlock[]>();
 
 
   static sendCount = 0;
@@ -108,8 +112,6 @@ export class Indexer {
 
     this.dbService = new DatabaseService(this.logger);
 
-    this.blockProcessorManager = new BlockProcessorManager();
-
     this.client = MCC.Client(this.chainType, {
       url: this.chainConfig.url,
       username: this.chainConfig.username,
@@ -123,6 +125,8 @@ export class Indexer {
         onRetry: this.onRetry.bind(this),
       },
     }) as RPCInterface;
+
+    this.blockProcessorManager = new BlockProcessorManager(this.client, this.blockCompleted.bind(this));
   }
 
   maxQueue = 5;
@@ -155,9 +159,6 @@ export class Indexer {
         continue;
       }
 
-      // connect dbService to logger
-      //this.logger.dbService = this.dbService;
-
       break;
     }
   }
@@ -177,10 +178,35 @@ export class Indexer {
     return references0.concat(references1);
   }
 
-  async blockPrepared(block: DBBlock, transactions: DBTransactionBase[]): Promise<boolean> {
+  async blockCompleted(blockProcessor: BlockProcessor): Promise<boolean> {
 
-    // todo: check if blockNumber is already +6
-    this.preparedBlocks.set(block.blockNumber, new PreparedBlock(block, transactions));
+
+    this.logger.info( `#${blockProcessor.block.number}:N+${this.T - blockProcessor.block.number} completed`)
+
+    const isBlockNp1 = blockProcessor.block.number == this.N + 1 && blockProcessor.block.hash == this.blockNp1hash;
+
+    if (this.waitNp1) {
+      if (isBlockNp1) {
+
+        // if we are waiting for block N+1 and this is it then no need to put it into queue but just save it
+
+        await this.blockSave(blockProcessor.completedBlock, blockProcessor.completedTransactions);
+
+        this.waitNp1 = false;
+
+        return;
+      }
+    }
+
+    // queue it
+    const processors = this.preparedBlocks.get(blockProcessor.block.number);
+    processors.push(new PreparedBlock(blockProcessor.completedBlock, blockProcessor.completedTransactions));
+
+    // if N+1 is ready then begin processing N+2
+    if (isBlockNp1) {
+      const blockNp2 = this.client.getBlock(this.N + 2);
+      this.blockProcessorManager.process(blockNp2);
+    }
 
     return true;
   }
@@ -191,7 +217,7 @@ export class Indexer {
     if (transactions.length === 0) return true;
 
     if (block.blockNumber !== this.N + 1) {
-      // what now?
+      // what now? PANIC
       return;
     }
 
@@ -255,6 +281,8 @@ export class Indexer {
         await transaction.save(block);
         await transaction.save(state);
 
+        this.blockProcessorManager.clear(this.N + 1);
+
         // increment N if all is ok
         this.N++;
 
@@ -293,11 +321,10 @@ export class Indexer {
     const block = await this.client.getBlock(blockNumber);
 
     // XRP
-    return this.getBlockTimestamp(block);
+    return this.getBlockTimestamp(block as IBlock);
   }
-  getBlockTimestamp(block: any): number {
-    // XRP
-    return block.result.ledger.close_time;
+  getBlockTimestamp(block: IBlock): number {
+    return block.unixTimestamp;
   }
 
   async getAverageBlocksPerDay(): Promise<number> {
@@ -359,6 +386,81 @@ export class Indexer {
     return blockNumber;
   }
 
+
+
+  async saveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
+
+    try {
+      // save blocks from fromBlockNumber to toBlockNumberInc
+      const dbBlocks = [];
+      for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++) {
+        // todo: use fast getblock function (no details)
+        const block = this.client.getBlock(blockNumber);
+
+        const dbBlock = new DBBlock();
+        dbBlock.blockNumber = blockNumber;
+        dbBlock.blockHash = block.hash;
+        dbBlock.timestamp = this.getBlockTimestamp(block);
+
+        dbBlocks.push(dbBlock);
+      }
+
+      this.dbService.manager.save(dbBlocks);
+
+
+      // await this.dbService.manager
+      //   .createQueryBuilder()
+      //   .update(DBBlock)
+      //   .set({ confirmed: true })
+      //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
+      //   .execute();
+    }
+    catch (error) {
+      this.logger.error2(`error ${error}`);
+    }
+  }
+
+
+  async saveOrWaitNp1Block() {
+    const Np1 = this.N + 1;
+
+    const preparedBlocks = this.preparedBlocks.get(Np1);
+
+    // check if N+1 with blockNp1hash is already prepared (otherwise wait for it)
+    for (let preparedBlock of preparedBlocks) {
+      if (preparedBlock.block.blockHash === this.blockNp1hash) {
+
+        // save prepared N+1 block with active hash
+        await this.blockSave(preparedBlock.block, preparedBlock.transactions);
+
+        this.preparedBlocks.delete(Np1);
+
+        return;
+      }
+    }
+
+    // check if Np1 with Np1Hash is in preparation
+    let exists = false;
+    for (let processor of this.blockProcessorManager.blockProcessors) {
+      if (processor.block.number == Np1 && processor.block.hash == this.blockNp1hash) {
+        exists = true;
+      }
+    }
+
+    if (!exists) {
+      // PANIC
+      this.logger.error2(`N+1 block not in processor`);
+      return;
+    }
+
+    this.waitNp1 = true;
+
+    while (this.waitNp1) {
+      await sleepms(100);
+    }
+  }
+
+
   async runIndexer() {
 
     // wait for db to connect
@@ -384,78 +486,38 @@ export class Indexer {
       try {
         // get chain top block
         const latestBlockNumber = await this.client.getBlockHeight();
+        if (this.T !== latestBlockNumber) {
+          // chain height has changes
+          this.T = latestBlockNumber;
+        }
 
         //  change getBlock to getBlockHeader
-        const blockNp1 = this.client.getBlock(this.N + 1);
+        const blockNp1 = this.client.getBlock(this.N + 1) as IBlock;
 
         // has N+1 confirmation block
-        const newBlock = this.N < latestBlockNumber - this.chainConfig.confirmationsCollect;
-        const changedNp1Hash = this.activeBlock.hash !== blockNp1.hash;
+        const isNewBlock = this.N < this.T - this.chainConfig.confirmationsCollect;
+        const isChangedNp1Hash = this.blockNp1hash !== blockNp1.hash;
 
         // check if N + 1 hash is the same
-        if (!newBlock && !changedNp1Hash) {
+        if (!isNewBlock && !isChangedNp1Hash) {
           await sleep(this.config.blockCollectTimeMs);
           continue;
         }
 
-        // if new block, check if block is already prepared
-        if (newBlock) {
-          const Np1 = this.N + 1;
-          const preparedBlock = this.preparedBlocks.get(Np1);
-
-          // todo: what to do if this is not prepared yet ???
-          if( preparedBlock!==undefined)
-          {
-            this.blockSave( preparedBlock.block , preparedBlock.transactions );
-
-            this.preparedBlocks.delete( Np1 );
-          }
+        if (isNewBlock) {
+          await this.saveOrWaitNp1Block();
         }
 
-
         // save block headers N+1 ... top
-        this.saveBlocksHeaders(latestBlockNumber);
+        this.saveBlocksHeaders(this.N + 1, this.T);
 
-        //this.activeBlock = block;
-        //processBlockTest(this.client, blockNp1, this.blockPrepared.bind(this));
-        this.blockProcessorManager.processBlock(this.client, blockNp1, this.blockPrepared.bind(this));
+        // process new or changed N+1
+        this.blockNp1hash = blockNp1.hash;
+        this.blockProcessorManager.process(blockNp1);
 
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
       }
-    }
-  }
-
-
-
-  async saveBlocksHeaders(latestBlockNumber: number) {
-
-    try {
-      // save blocks from N+1 to latestBlockNumber
-      const dbBlocks = [];
-      for (let blockNumber = this.N + 1; blockNumber <= latestBlockNumber; blockNumber++) {
-        const block = this.client.getBlock(blockNumber);
-
-        const dbBlock = new DBBlock();
-        dbBlock.blockNumber = blockNumber;
-        dbBlock.blockHash = block.hash;
-        dbBlock.timestamp = this.getBlockTimestamp(block);
-
-        dbBlocks.push(dbBlock);
-      }
-
-      this.dbService.manager.save(dbBlocks);
-
-
-      // await this.dbService.manager
-      //   .createQueryBuilder()
-      //   .update(DBBlock)
-      //   .set({ confirmed: true })
-      //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
-      //   .execute();
-    }
-    catch (error) {
-      this.logger.error2(`error ${error}`);
     }
   }
 }

@@ -1,15 +1,25 @@
-import { RPCInterface } from "flare-mcc";
+import { IBlock, RPCInterface } from "flare-mcc";
+import { BlockProcessor } from "./blockProcessor";
 
 export class BlockProcessorManager {
 
     blockProcessors: BlockProcessor[] = [];
 
-    async processBlock(client: RPCInterface, block: any, callback: any) {
+    client: RPCInterface;
+
+    completeCallback: any;
+
+    constructor(client: RPCInterface, completeCallback: any) {
+        this.client = client;
+        this.completeCallback = completeCallback;
+    }
+
+    async process(block: IBlock) {
         let started = false;
         for (let a = 0; a < this.blockProcessors.length; a++) {
-            if (this.blockProcessors[a].hash === block.hash) {
+            if (this.blockProcessors[a].block.hash === block.hash) {
                 started = true;
-                this.blockProcessors[a].start();
+                this.blockProcessors[a].continue();
             }
             else {
                 this.blockProcessors[a].stop();
@@ -18,49 +28,21 @@ export class BlockProcessorManager {
 
         if (started) return;
 
-        const processor = new BlockProcessor(block);
+        const processor = new BlockProcessor(this, block);
         this.blockProcessors.push(processor);
         processor.start();
     }
-    async advance(blockNumberCompleted: number) {
 
-        // all <= N should be deleted
-
+    async complete(completedBlock: BlockProcessor) {
+        await this.completeCallback(completedBlock);
     }
-}
 
-class BlockProcessor {
-    active = false;
-    transactions: string[];
-    activeTransaction = 0;
-
-    hash: string;
-
-    constructor(block: any) {
-        // get block
-        // get all transactions
-        this.hash = block.hash;
-        this.transactions = block
-    }
-    async start() {
-        this.active = true;
-        while (this.activeTransaction < this.transactions.length && this.active) {
-            if (!this.active) return;
-
-            await this.process(this.activeTransaction);
-
-            this.activeTransaction++;
+    clear(fromBlock: number) {
+        // delete all that are block number <= completed block number
+        for (let a = 0; a < this.blockProcessors.length; a++) {
+            if (this.blockProcessors[a].block.number <= fromBlock) {
+                this.blockProcessors = this.blockProcessors.splice(a--, 1);
+            }
         }
-
-
     }
-
-    stop() {
-        this.active = false;
-    }
-
-    async process(transactionIndex: number) {
-
-    }
-
 }

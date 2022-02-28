@@ -2,8 +2,8 @@ import { ChainType, MCC, UtxoMccCreate } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../../caching/CachedMccClient";
 import { DBBlockBase } from "../../../entity/dbBlock";
 import { DBTransactionBase } from "../../../entity/dbTransaction";
-import { AlgoProcessBlockFunction, processBlockUtxo, UtxoBlockProcessor, UtxoProcessBlockFunction } from "../../chainCollector";
-import { processBlockTransactionsGeneric } from "../chainCollector";
+import { AlgoBlockProcessor, UtxoBlockProcessor } from "../blockProcessor";
+// import { processBlockTransactionsGeneric } from "../chainCollector";
 
 const BtcMccConnection = {
   url: "https://bitcoin.flare.network/",
@@ -46,7 +46,7 @@ describe("Test process helpers ", () => {
     };
   });
 
-  it.only(`Test btc block processing `, async function () {
+  it(`Test btc block processing `, async function () {
 
     // const block = await MccClient.getBlock(723581);
     const block = await BtcMccClient.getBlock(723746);
@@ -105,20 +105,29 @@ describe("Test process helpers ", () => {
     // )
   });
 
-  it.skip(`Test algo block processing `, async function () {
-    const functions = AlgoProcessBlockFunction;
-    const block = await AlgoMccClient.getBlock(19_300_000);
+  it.only(`Test algo block processing `, async function () {
 
-    console.log(block);
+    // const block = await MccClient.getBlock(723581);
+    const block = await AlgoMccClient.getBlock(723746);
+    // const block2 = await BtcMccClient.getBlock(723746);  // simulation of other block
 
-    await processBlockTransactionsGeneric(
-      AlgoMccClient, //
-      block, //
-      functions.preProcessBlock,
-      functions.readTransaction,
-      functions.augmentTransaction,
-      functions.augmentBlock,
-      save // boolean function
-    );
+    // console.log(block)
+
+    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: BtcMccConnection,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
+
+    let processor = new AlgoBlockProcessor(cachedClient);
+    processor.debugOn("FIRST");
+    processor.initializeJobs(block, save);
+
+    processor.stop()
   });
+
 });

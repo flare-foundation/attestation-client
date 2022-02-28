@@ -52,7 +52,10 @@ export class LimitingProcessor {
    client: CachedMccClient<any, any>;
    isActive = false;
    settings: LimitingProcessorOptions;
-   onChangeCallbackId: number = -1;
+   topLevelJobsCounter = 0;
+   topLevelJobsDoneCounter = 0;
+   debugLogInterval: NodeJS.Timeout;
+   debugLabel = "";
 
    constructor(cachedClient: CachedMccClient<any, any>, options?: LimitingProcessorOptions) {
       this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
@@ -85,7 +88,7 @@ export class LimitingProcessor {
    }
 
    public debugInfo() {
-      console.log(`calls/s: ${this.client.reqsPs.toString().padStart(3)}   retries/s: ${this.client.retriesPs.toString().padStart(3)}   inProcessing: ${this.client.inProcessing.toString().padStart(3)}   inQueue: ${this.client.inQueue.toString().padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}`);
+      console.log(`${(this.debugLabel ? this.debugLabel : "").padEnd(10)}  calls/s: ${this.client.reqsPs.toString().padStart(3)}   retries/s: ${this.client.retriesPs.toString().padStart(3)}   inProcessing: ${this.client.inProcessing.toString().padStart(3)}   inQueue: ${this.client.inQueue.toString().padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}   topLevelJobs: ${this.topLevelJobsDoneCounter}/${this.topLevelJobsCounter}`);
    }
 
    delayExecuteCallback(func: any, resolve: any, reject: any, prepend = false) {
@@ -97,7 +100,7 @@ export class LimitingProcessor {
       }
    }
 
-   call(func: any, prepend = false) {
+   public call(func: any, prepend = false) {
       return new Promise((resolve, reject) => {
          this.delayExecuteCallback(
             func,
@@ -106,6 +109,29 @@ export class LimitingProcessor {
             prepend
          )
       });
+   }
+
+   public registerTopLevelJob(n = 1) {
+      this.topLevelJobsCounter += n;
+   }
+
+   public markTopLevelJobDone() {
+      this.topLevelJobsDoneCounter += 1;
+   }
+
+   public debugOn(label = "", reportInMs = 1000) {
+      this.debugLabel = label;
+      this.debugOff();
+      this.debugLogInterval = setInterval(() => {
+         this.debugInfo();
+      }, reportInMs)
+   }
+
+   public debugOff() {
+      if(this.debugLogInterval !== undefined) {
+         clearInterval(this.debugLogInterval);
+      }
+      this.debugLogInterval = undefined;      
    }
 }
 

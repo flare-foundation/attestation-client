@@ -66,6 +66,28 @@ export async function processBlock(
     )
 }
 
+
+export class UtxoBlockProcessor extends LimitingProcessor {
+    async initializeJobs(
+        block: BlockBase<any>,
+        onSave: onSaveSig
+    ) {
+        const augmentedTransactions: DBTransactionBase[] = []
+
+        let txPromises = block.transactionHashes.map(async (txid) => {
+            let processed = await this.call(() => getFullTransactionUtxo(this.client, txid, this)) as IUtxoGetFullTransactionRes;
+            return augmentTransactionUtxo(this.client, block, processed);
+        })
+    
+        const transDb = await Promise.all(txPromises)
+    
+        const blockDb = augmentBlockUtxo(this.client.client, block)
+    
+        onSave(blockDb, transDb);    
+    }
+}
+
+// OLD VERSION - to delete, packed to class UtxoBlockProcessor above
 export async function processBlockUtxo(
     client: CachedMccClient<any, any>,
     block: BlockBase<any>,
@@ -78,7 +100,7 @@ export async function processBlockUtxo(
 
     // Simulation of stopping
     setInterval(() => {
-        if(enabled) {
+        if (enabled) {
             console.log("DISABLING")
             processor.stop();
             enabled = false;
@@ -86,12 +108,12 @@ export async function processBlockUtxo(
             console.log("ENABLING")
             processor.start();
             enabled = true;
-        }        
+        }
     }, 15000)
 
-    setInterval(() => {
-        processor.debugInfo();
-    }, 1000)
+    // setInterval(() => {
+    //     processor.debugInfo();
+    // }, 1000)
 
     const augmentedTransactions: DBTransactionBase[] = []
 

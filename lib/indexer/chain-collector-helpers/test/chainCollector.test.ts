@@ -2,7 +2,7 @@ import { ChainType, MCC, UtxoMccCreate } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../../caching/CachedMccClient";
 import { DBBlockBase } from "../../../entity/dbBlock";
 import { DBTransactionBase } from "../../../entity/dbTransaction";
-import { AlgoProcessBlockFunction, processBlockUtxo, UtxoProcessBlockFunction } from "../../chainCollector";
+import { AlgoProcessBlockFunction, processBlockUtxo, UtxoBlockProcessor, UtxoProcessBlockFunction } from "../../chainCollector";
 import { processBlockTransactionsGeneric } from "../chainCollector";
 
 const BtcMccConnection = {
@@ -38,25 +38,21 @@ describe("Test process helpers ", () => {
   let AlgoMccClient: MCC.ALGO;
   let save;
   before(async function () {
-    console.log("Before");
-    
     BtcMccClient = new MCC.BTC(BtcMccConnection);
     AlgoMccClient = new MCC.ALGO(algoCreateConfig);
     save = async (block: DBBlockBase, transactions: DBTransactionBase[]) => {
       console.log(transactions);
       return true;
     };
-
-    console.log("Before done");
-    
   });
 
   it.only(`Test btc block processing `, async function () {
-    console.log("Neki");
-    
+
     // const block = await MccClient.getBlock(723581);
     const block = await BtcMccClient.getBlock(723746);
-    console.log(block)
+    const block2 = await BtcMccClient.getBlock(723746);  // simulation of other block
+
+    // console.log(block)
 
     let defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
@@ -68,7 +64,36 @@ describe("Test process helpers ", () => {
 
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
 
-    await processBlockUtxo(cachedClient, block, save);
+    let processor = new UtxoBlockProcessor(cachedClient);
+    processor.debugOn("FIRST");
+    processor.initializeJobs(block, save);
+
+    let processor2 = new UtxoBlockProcessor(cachedClient);
+    processor2.debugOn("SECOND");
+    processor2.initializeJobs(block2, save);
+
+    // Simulation of switching between the two processors
+    let first = false;
+    processor.stop()
+
+    function simulate() {
+      if (first) {
+        console.log("RUNNING 2 ...");
+        processor.stop();
+        processor2.start()
+        first = false;
+        setTimeout(() => {simulate()}, 10000)
+      } else {
+        console.log("RUNNING 1 ...");
+        processor2.stop()
+        processor.start();
+        first = true;
+        setTimeout(() => {simulate()}, 20000)
+      }
+    }
+
+    simulate();
+    // await processBlockUtxo(cachedClient, block, save);
     // await processBlockTransactionsGeneric(
     //   BtcMccClient, //
     //   block, //

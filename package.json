@@ -45,7 +45,7 @@
     "dev": "DOTENV=DEV yarn watch-and-run",
     "devmulti": "DOTENV=DEV yarn watch-and-run-multi",
     "devindexer": "DOTENV=DEV yarn watch-and-run-indexer",
-    "test": "mocha -r ts-node/register -t 0",
+    "test": "mocha -r ts-node/register -t 0 --exit",
     "testdebug": "DOTENV=DEV tsdx test --env=node test/MerkleTree.test.ts",
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local",
     "codegen": "yarn ts-node lib/verification/utils/attestation-codegen-helpers.ts",

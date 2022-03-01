@@ -92,6 +92,13 @@ export class AttestationRoundManager {
       this.cleanup();
 
       activeRound.commitEndTime = epochRevealTime - this.config.commitTime * 1000;
+
+      // link rounds
+      const prevRound = this.rounds.get(epochId - 1);
+      if (prevRound) {
+        activeRound.prevRound = prevRound;
+        prevRound.nextRound = activeRound;
+      }
     }
 
     // create, check and add attestation

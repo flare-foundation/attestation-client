@@ -28,6 +28,12 @@ export class AttesterWeb3 {
   async submitAttestation(action: string, bufferNumber: BN, maskedMerkleHash: BN, committedRandom: BN, revealedRandom: BN) {
     let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, toHex(maskedMerkleHash), toHex(committedRandom), toHex(revealedRandom));
 
+    this.logger.debug( `action ............. : ${action}` )
+    this.logger.debug( `bufferNumber ....... : ${bufferNumber.toString()}` )
+    this.logger.debug( `maskedMerkleHash ... : ${maskedMerkleHash.toString()}` )
+    this.logger.debug( `committedRandom .... : ${committedRandom.toString()}` )
+    this.logger.debug( `revealedRandom ..... : ${revealedRandom.toString()}` )
+
     const receipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode);
 
     return receipt;

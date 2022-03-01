@@ -59,7 +59,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false, })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false, })
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false, })
   .argv;
 
 
@@ -184,8 +184,6 @@ export class Indexer {
   }
 
   async blockCompleted(blockProcessor: BlockProcessor): Promise<boolean> {
-
-
     this.logger.info( `#${blockProcessor.block.number}:N+${this.T - blockProcessor.block.number} completed`)
 
     const isBlockNp1 = blockProcessor.block.number == this.N + 1 && blockProcessor.block.hash == this.blockNp1hash;
@@ -507,8 +505,8 @@ export class Indexer {
           this.T = latestBlockNumber;
         }
 
-        //  change getBlock to getBlockHeader
-        const blockNp1 = this.client.getBlock(this.N + 1) as IBlock;
+        // change getBlock to getBlockHeader
+        const blockNp1 = await this.client.getBlock(this.N + 1) as IBlock;
 
         // has N+1 confirmation block
         const isNewBlock = this.N < this.T - this.chainConfig.confirmationsCollect;

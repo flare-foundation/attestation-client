@@ -4,7 +4,7 @@ import { BaseEntity } from "./base/BaseEntity";
 @Entity({name:"state"})
 export class DBState {
 
-    @PrimaryColumn({type: "string"})
+    @PrimaryColumn({type: "varchar"})
     name!: string;
 
     @Column()

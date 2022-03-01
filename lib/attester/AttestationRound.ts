@@ -75,6 +75,9 @@ export class AttestationRound {
   epochId: number;
   commitEndTime!: number;
 
+  nextRound!: AttestationRound;
+  prevRound!: AttestationRound;
+
   // processing
   attestations = new Array<Attestation>();
   attestationsMap = new Map<string, Attestation>();
@@ -136,8 +139,7 @@ export class AttestationRound {
 
   startCommitEpoch() {
     this.logger.group(
-      `round #${this.epochId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLength().toNumber()
+      `round #${this.epochId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLength().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
@@ -189,6 +191,11 @@ export class AttestationRound {
     }
   }
 
+  canCommit(): boolean {
+    return this.transactionsProcessed === this.attestations.length &&
+      this.status === AttestationRoundEpoch.commit;
+  }
+
   async commit() {
     if (this.status !== AttestationRoundEpoch.commit) {
       this.logger.error(`round #${this.epochId} cannot commit (wrong epoch status ${this.status})`);
@@ -232,7 +239,7 @@ export class AttestationRound {
 
       // this is for SIMULATION only !!!!
       let hash = valid.data.getHash();
-      
+
       validatedHashes.push(hash!);
     }
 
@@ -256,28 +263,30 @@ export class AttestationRound {
     const epochCommitEndTime = AttestationRoundManager.epochSettings.getEpochIdCommitTimeEnd(this.epochId);
     const commitTimeLeft = epochCommitEndTime - now;
 
-    this.logger.info(
-      `^Gcommit round #${this.epochId} ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1}ms)`
-    );
+    if (!this.prevRound) {
+      this.logger.info(
+        `^Gcommit round #${this.epochId} ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1}ms)`
+      );
 
-    this.attesterWeb3
-      .submitAttestation(
-        `commitAttestation ${this.epochId}`,
-        // commit index (collect+1)
-        toBN(this.epochId + 1),
-        toBN(this.hash).xor(toBN(this.random)),
-        toBN(Hash.create(this.random.toString())),
-        toBN(0)
-      )
-      .then((receipt) => {
-        if (receipt) {
-          this.logger.info(`^Ground ${this.epochId} commited`);
-          console.log( receipt );
-          this.attestStatus = AttestationRoundStatus.comitted;
-        } else {
-          this.attestStatus = AttestationRoundStatus.error;
-        }
-      });
+      this.attesterWeb3
+        .submitAttestation(
+          `commitAttestation ${this.epochId}`,
+          // commit index (collect+1)
+          toBN(this.epochId + 1),
+          toBN(this.hash).xor(toBN(this.random)),
+          toBN(Hash.create(this.random.toString())),
+          toBN(0)
+        )
+        .then((receipt) => {
+          if (receipt) {
+            this.logger.info(`^Ground ${this.epochId} commited`);
+            //console.log( receipt );
+            this.attestStatus = AttestationRoundStatus.comitted;
+          } else {
+            this.attestStatus = AttestationRoundStatus.error;
+          }
+        });
+    }
   }
 
   async reveal() {
@@ -307,13 +316,32 @@ export class AttestationRound {
 
     this.logger.info(`^Cround #${this.epochId} reveal`);
 
+    let nextRoundMaskedMerkle = toBN(0);
+    let nextRoundMaskerRandom = toBN(0);
+
+    let action = `revealAttestation ${this.epochId}`;
+
+    if (this.nextRound) {
+      if (this.nextRound.canCommit()) {
+        action += ` commitAttestation ${this.nextRound.epochId}`;
+        nextRoundMaskedMerkle = toBN(this.nextRound.hash).xor(toBN(this.nextRound.random));
+        nextRoundMaskerRandom = toBN(Hash.create(this.nextRound.random.toString()));
+        this.nextRound.attestStatus = AttestationRoundStatus.comitted;
+      }
+      else {
+        action += ` commitAttestation ${this.nextRound.epochId} (too late)`;
+        this.nextRound.random = toBN(0);
+        this.nextRound.attestStatus = AttestationRoundStatus.comitted;
+      }
+    }
+
     this.attesterWeb3
       .submitAttestation(
-        `revealAttestation ${this.epochId}`,
+        action,
         // commit index (collect+2)
         toBN(this.epochId + 2),
-        toBN(0),
-        toBN(0),
+        nextRoundMaskedMerkle,
+        nextRoundMaskerRandom,
         this.random
       )
       .then((receit) => {

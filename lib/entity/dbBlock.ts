@@ -1,10 +1,9 @@
-import { Column, Entity, Index, PrimaryColumn, Unique } from "typeorm";
-import { BaseEntity } from "./base/BaseEntity";
+import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
 // @Entity({name:"block"})
 export class DBBlockBase {
 
-    @PrimaryColumn({ type: "string" })
+    @PrimaryColumn({ type: "varchar" })
     blockHash!: string;
 
     @Column()

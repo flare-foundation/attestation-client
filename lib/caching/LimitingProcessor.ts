@@ -56,6 +56,7 @@ export class LimitingProcessor {
    topLevelJobsDoneCounter = 0;
    debugLogInterval: NodeJS.Timeout;
    debugLabel = "";
+   reportInMs = 1000;
 
    constructor(cachedClient: CachedMccClient<any, any>, options?: LimitingProcessorOptions) {
       this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
@@ -64,7 +65,10 @@ export class LimitingProcessor {
    }
 
    counter = 0;
-   public async start() {
+   public async start(debug = false) {
+      if(debug) {
+         this.debugOn(this.debugLabel, this.reportInMs);
+      }
       this.isActive = true;
       while (this.isActive) {
          if (this.queue.size === 0 || !this.client.canAccept) {
@@ -81,6 +85,7 @@ export class LimitingProcessor {
 
    public stop() {
       this.isActive = false;
+      this.debugOff();
    }
 
    public destroy() {
@@ -121,6 +126,7 @@ export class LimitingProcessor {
 
    public debugOn(label = "", reportInMs = 1000) {
       this.debugLabel = label;
+      this.reportInMs = reportInMs;
       this.debugOff();
       this.debugLogInterval = setInterval(() => {
          this.debugInfo();

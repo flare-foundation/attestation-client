@@ -1,0 +1,73 @@
+USER=ubuntu
+SERVER=141.95.99.38
+WORKDIR="attester-client"
+FNAME=latest-attester-client.tgz
+BACKUPDIR="attester-client-backups"
+CONFIGDIR="attester-client-config"
+BRANCH=main
+SERVICE=attester-client
+#SERVICE2=attester-client-aggregate
+#SERVICE3=attester-client-trades
+#SERVICE4=attester-client-tickers
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+REDBOLD="${RED}$(tput bold)"
+GREENBOLD="${GREEN}$(tput bold)"
+NCNORMAL="${NC}$(tput sgr0)"
+
+# Check if everything is commited localy
+if ! git diff-index --quiet HEAD --; then
+    echo -e "${REDBOLD}Uncommitted changes! Please commit the changes first.${NC}";
+    exit 1;
+fi
+
+# Check if correct branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$CURRENT_BRANCH" != "$BRANCH" ]]; then
+  echo -e "${REDBOLD}Wrong branch for deployment: '$CURRENT_BRANCH'. Should be '$BRANCH'.${NC}";
+  exit 1;
+fi
+
+# Test if build works locally
+yarn build || { echo 'Local build failed. Check errors and fix the code.' ; exit 1; }
+
+# Archive current branch to $FNAME
+echo "Archive started ..."
+mkdir -p tmp_data
+git archive $BRANCH | gzip > tmp_data/$FNAME || { echo 'Archive failed' ; exit 1; }
+
+# Copy $FNAME to server
+echo -e "${GREENBOLD}Archiving done.${NC} Copying to server ..."
+scp tmp_data/$FNAME $USER@$SERVER:~ || { echo 'sco failed' ; exit 1; }
+
+# Crete install folder if they do not exist
+ssh -n $USER@$SERVER "mkdir -p $WORKDIR; mkdir -p $WORKDIR-config; mkdir -p $WORKDIR-backups;"
+
+# Do the following:
+# - Clean $WORKDIR. 
+# - Extract the archived app from $FNAME into $WORKDIR (app is run from here)
+# - backup $FNAME with timestamp in name in $BACKUPDIR
+# - override .env and docker-compose.yaml files from $CONFIGDIR. These files contain credential and must be set up on server.
+echo -e "${GREENBOLD}Copying to server done.${NC} Installing ..."
+ssh -n $USER@$SERVER "rm -rf $WORKDIR/*; mv $FNAME $WORKDIR; cd $WORKDIR; tar xzf $FNAME; mv $FNAME ../$BACKUPDIR/deploy--$(date +\"%Y-%m-%d--%H-%M-%S\").tgz" || { echo 'Remote deployment failed' ; exit 1; }
+
+# echo -e "${GREENBOLD}Initializing configuration${NC} Installing ..."
+ssh -n $USER@$SERVER "cp $CONFIGDIR/.env $WORKDIR;" || { echo 'Remote deployment failed' ; exit 1; }
+
+# Run yarn in $WORKDIR 
+echo -e "${GREENBOLD}Installing done.${NC} Running yarn ..."
+ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn" || { echo 'yarn install failed' ; exit 1; }
+
+# Build the app.
+echo -e "${GREENBOLD}Yarn install done.${NC} Building app ... "
+ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn build" || { echo 'Building app failed' ; exit 1; }
+
+# Restart the app as a service.
+echo -e "${GREENBOLD}Build successful.${NC} Restarting app"
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE" || { echo 'Restarting collector failed' ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE2" || { echo 'Restarting aggregator failed' ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE3" || { echo 'Restarting backend failed' ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE4" || { echo 'Restarting exchanges failed' ; exit 1; }
+echo -e "${GREENBOLD}Done.${NC}"

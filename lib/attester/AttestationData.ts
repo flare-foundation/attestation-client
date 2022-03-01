@@ -18,6 +18,9 @@ export class AttestationData {
   instructions!: BN;
 
   constructor(event: any) {
+
+    if( !event ) return;
+
     this.timeStamp = toBN(event.returnValues.timestamp);
     this.request = event.returnValues.data;
     

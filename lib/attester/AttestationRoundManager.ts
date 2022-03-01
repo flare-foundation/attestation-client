@@ -1,11 +1,8 @@
-import { ChainType, toBN } from "flare-mcc";
-import { Any } from "typeorm";
+import { toBN } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
-import { getRandom } from "../utils/utils";
-import { attestationTypeSchemeIndex } from "../verification/attestation-types/attestation-types-helpers";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
@@ -120,7 +117,7 @@ export class AttestationRoundManager {
     return new Attestation(round, data, (attestation: Attestation) => {
 
       // set status as valid
-      attestation.status=AttestationStatus.valid;
+      attestation.status = AttestationStatus.valid;
       attestation.verificationData = null;
 
       // callback to flag attestation processed
@@ -132,8 +129,8 @@ export class AttestationRoundManager {
     // create attestation depending on attestation type
 
     // Simulation
-    if( this.config.simulation ) {
-      return this.createSimulationAttestation(round, data );
+    if (this.config.simulation) {
+      return this.createSimulationAttestation(round, data);
     }
 
     // processing

@@ -1,5 +1,5 @@
 import { IBlock } from "flare-mcc";
-import { DBBlock } from "../entity/dbBlock";
+import { DBBlockBase } from "../entity/dbBlock";
 import { DBTransactionBase } from "../entity/dbTransaction";
 import { sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
@@ -13,7 +13,7 @@ export class BlockProcessor {
     blockProcessorManager: BlockProcessorManager;
 
     block: IBlock;
-    completedBlock!: DBBlock;
+    completedBlock!: DBBlockBase;
     completedTransactions!: DBTransactionBase[];
 
     constructor(blockProcessorManager: BlockProcessorManager, block: IBlock) {

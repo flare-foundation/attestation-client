@@ -6,7 +6,6 @@ import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
 import { MerkleTree } from "../utils/MerkleTree";
 import { getRandom } from "../utils/utils";
-import { transactionHash } from "../verification/attestation-request-utils";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -270,9 +269,10 @@ export class AttestationRound {
         toBN(Hash.create(this.random.toString())),
         toBN(0)
       )
-      .then((receit) => {
-        if (receit) {
+      .then((receipt) => {
+        if (receipt) {
           this.logger.info(`^Ground ${this.epochId} commited`);
+          console.log( receipt );
           this.attestStatus = AttestationRoundStatus.comitted;
         } else {
           this.attestStatus = AttestationRoundStatus.error;

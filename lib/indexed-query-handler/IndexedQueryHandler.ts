@@ -141,7 +141,9 @@ export class IndexedQueryHandler {
       if (result) {
          return result as DBBlockBase;
       }
-      return this.indexer.getBlockByHash(params.hash);
+      // todo: fix
+      //return this.indexer.getBlockByHash(params.hash);
+      return null;
    }
 
    // Queries

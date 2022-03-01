@@ -68,6 +68,6 @@
     "resolveJsonModule": true /*Allow imports of JSON files with data*/
   },
   "include": [
-    "lib/**/*", "typechain-web3-v1",
+    "lib/**/*", "typechain-web3-v1", "typechain-truffle"
   ]
 }

@@ -1,5 +1,5 @@
 import { IIGetBlockRes, IIGetTransactionRes, ReadRpcInterface } from "flare-mcc";
-import { DBBlock } from "../../entity/dbBlock";
+import { DBBlockBase } from "../../entity/dbBlock";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
 // TODO this is temp
@@ -17,11 +17,11 @@ export interface augmentTransactionSig {
 }
 
 export interface augmentBlockSig {
-  (client: ReadRpcInterface, block: IIGetBlockRes): Promise<DBBlock>
+  (client: ReadRpcInterface, block: IIGetBlockRes): Promise<DBBlockBase>
 }
 
 export interface onSaveSig {
-  (block: DBBlock, transactions: DBTransactionBase[]): Promise<boolean>
+  (block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean>
 }
 
 

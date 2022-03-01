@@ -7,8 +7,7 @@ import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { ChainVerification, TransactionAttestationRequest, Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
-import { verifyTransactionAttestation } from "../verification/verification";
+import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { verifyAttestation } from "../verification/verifiers/verifier_routing";
 import { ChainManager } from "./ChainManager";
 
@@ -217,36 +216,36 @@ export class ChainNode {
     }
 
     let indexerQueryManager: any = null;  // TODO - implement the real one
-                                          // TODO - failure simlation
+    // TODO - failure simlation
     verifyAttestation(this.client, attestation.data.request, indexerQueryManager)
-    .then((verification: Verification<any>) => {
-      attestation.processEndTime = getTimeMilli();
-      if (verification.status === VerificationStatus.RECHECK_LATER) {
-        this.chainManager.logger.warning(` * reverification`);
+      .then((verification: Verification<any>) => {
+        attestation.processEndTime = getTimeMilli();
+        if (verification.status === VerificationStatus.RECHECK_LATER) {
+          this.chainManager.logger.warning(` * reverification`);
 
-        attestation.reverification = true;
+          attestation.reverification = true;
 
-        // delay until end of commit epoch
-        const timeDelay = (AttestationRoundManager.epochSettings.getEpochIdCommitTimeEnd(attestation.epochId) - getTimeMilli()) / 1000;
+          // delay until end of commit epoch
+          const timeDelay = (AttestationRoundManager.epochSettings.getEpochIdCommitTimeEnd(attestation.epochId) - getTimeMilli()) / 1000;
 
-        this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);
-      } else {
-        this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
-      }
-    })
-    .catch((error: any) => {
-      attestation.processEndTime = getTimeMilli();
-      if (attestation.retry < this.conf.maxFailedRetry) {
-        this.chainManager.logger.warning(`  * transaction verification error (retry ${attestation.retry})`);
+          this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);
+        } else {
+          this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
+        }
+      })
+      .catch((error: any) => {
+        attestation.processEndTime = getTimeMilli();
+        if (attestation.retry < this.conf.maxFailedRetry) {
+          this.chainManager.logger.warning(`  * transaction verification error (retry ${attestation.retry})`);
 
-        attestation.retry++;
+          attestation.retry++;
 
-        this.delayQueue(attestation, this.conf.delayBeforeRetry);
-      } else {
-        this.chainManager.logger.error(`  * transaction verification error`);
-        this.processed(attestation, AttestationStatus.invalid);
-      }
-    });
+          this.delayQueue(attestation, this.conf.delayBeforeRetry);
+        } else {
+          this.chainManager.logger.error(`  * transaction verification error`);
+          this.processed(attestation, AttestationStatus.invalid);
+        }
+      });
 
 
 

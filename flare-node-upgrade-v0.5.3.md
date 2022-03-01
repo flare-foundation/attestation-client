@@ -1,41 +1,60 @@
-Flare Node upgrade
+# Flare Node upgrade to version v0.5.3
+
+IMPORTANT: This script is intended for old nodes with LevelDB.
 
 Official Flare Instructions
 https://github.com/flare-foundation/flare.git
 
-
--+-flare <old folder>
- ++flare-new <new folder>
-  +-flare <new repository - point of view>  
+```
++-[root] <start script from here>
+|
++---[flare] <old Flare version>
+|
++-+-[flare-new]
+  |
+  +---[flare] <here will a new git repository be downloaded before put into place>
+```
 
 
 
 Jump to 'Just give me script' :D
 
 
-Details
+## Details
 
 
-Install go
-`gvm install go1.17.7`
+Install go version 1.17.7
+```
+gvm install go1.17.7
+```
 
 Make new folder
-`mkdir flare-new`
-`cd flare-new`
+```
+mkdir flare-new
+cd flare-new
+```
 
 Get new flare
-`git clone https://github.com/flare-foundation/flare.git`
+```
+git clone https://github.com/flare-foundation/flare.git
+```
 
 
 Build
-`gvm use go1.17.7`
-`./scripts/build.sh`
+```
+cd flare
+gvm use go1.17.7
+./scripts/build.sh
+```
 
 Create configuration file
-`mkdir chain-config`
-`nano chain-config/songbird.json`
+```
+mkdir chain-config
+nano chain-config/songbird.json
+```
 
 content:
+```
 {
  "snowman-api-enabled": false,
  "coreth-admin-api-enabled": false,
@@ -59,14 +78,17 @@ content:
  "remote-tx-gossip-only-enabled": false,
  "log-level": "debug"
 }
+```
 
 
 
 Create launch file
-`nano songbird.sh`
+```
+nano songbird.sh
+```
 
 Content:
-``
+```
 #!/bin/bash
 
 # (c) 2021, Flare Networks Limited. All rights reserved.
@@ -96,46 +118,64 @@ nohup ./build/flare --network-id=songbird \
 NODE_PID=`echo $!`
 
 printf "Songbird node successfully launched on PID: ${NODE_PID}"
-``
+```
 
 
-Give 
-`chmod +x songbird.sh`
+Give `songbird.sh` executive priviledges
+```
+chmod +x songbird.sh
+```
 
 Kill old node
-`ps -aux | grep ava`
+```
+ps -aux | grep ava
+```
 Get id from avalanche process
-`kill -2 <id>`
+```
+kill -2 <id>
+```
 
 Make new structure
-`mv ../../flare ../../flare-old`
-`cd ../..`
-`mv flare-new/flare flare`
+```
+cd ../..
+mv flare flare-old
+mv flare-new/flare flare
+```
 
 Move data
-`mv flare-old/db flare/db`
+```
+mv flare-old/db flare/db
+```
 
 Rename fuji into songbird
-`mv flare/db/songbird/node1/fuji flare/db/songbird/node1/songbird`
+```
+mv flare/db/songbird/node1/fuji flare/db/songbird/node1/songbird
+```
 
 
 Run new node
-`cd flare`
-`./songbird.sh`
+```
+cd flare
+./songbird.sh
+```
 
 
 
 
 
-Full script
-
-Get avalance process ID (keep it running)
-`ps -aux | grep ava`
 
 
-You must be in folder where you have `flare` folder (old version)
+## Just script
+
+Get avalance process ID (keep it running) and use it as parameter for next script:
+```
+ps -aux | grep ava
+```
 
 
+You must be in folder where you have `flare` folder with the old version
+
+```
 #!/bin/bash
 
 # (c) 2021, Flare Networks Limited. All rights reserved.
@@ -163,7 +203,7 @@ mv flare/db/songbird/node1/fuji flare/db/songbird/node1/songbird
 
 cd flare
 ./songbird.sh
-
+```
 
 
 

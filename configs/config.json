@@ -1,19 +1,35 @@
 {
-    "accountPrivateKey": "0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122",
-    "rpcUrl": "http://127.0.0.1:9650/ext/bc/C/rpc",
-    "stateConnectorContractAddress": "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
+    "accountPrivateKey": "0x4fbbee647c14fac47065266dfa51e9e2e49a6981ad616cd4978aeada47e3b7f3",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    "rpcUrl": "https://coston-api.flare.network/ext/bc/C/rpc?auth=42f0db1b-58e3-4f76-a5b9-59740f4e88df",
+    "stateConnectorContractAddress": "0x947c76694491d3fD67a73688003c4d36C8780A97",
     
     "submitOffset": 165000,
     "revealOffset": 8000,
     "gasPrice": "3000000000000",
 
     "firstEpochStartTime":1636070400,
-    "epochPeriod": 10,
+    "epochPeriod": 90,
 
     "dynamicAttestationConfigurationFolder": "./configs/dac/",
     
-    "commitTime":5,
-    "revealTime":1,
+    "commitTime":15,
+    "revealTime":20,
 
     "chains": [
         {

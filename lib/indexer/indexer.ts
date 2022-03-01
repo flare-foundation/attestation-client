@@ -50,13 +50,9 @@ import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
-<<<<<<< HEAD
 import { BlockProcessor } from "./blockProcessor";
 import { BlockProcessorManager } from "./blockProcessorManager";
-=======
-import { processBlockTest } from "./chainCollector";
 import { prepareIndexerTables } from "./indexer-utils";
->>>>>>> bytes-data
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
 var yargs = require("yargs");
@@ -68,10 +64,10 @@ const args = yargs
 
 
 class PreparedBlock {
-  block: DBBlock;
+  block: DBBlockBase;
   transactions: DBTransactionBase[];
 
-  constructor(block: DBBlock, transactions: DBTransactionBase[]) {
+  constructor(block: DBBlockBase, transactions: DBTransactionBase[]) {
     this.block = block;
     this.transactions = transactions;
   }
@@ -187,7 +183,6 @@ export class Indexer {
     return references0.concat(references1);
   }
 
-<<<<<<< HEAD
   async blockCompleted(blockProcessor: BlockProcessor): Promise<boolean> {
 
 
@@ -211,9 +206,6 @@ export class Indexer {
     // queue it
     const processors = this.preparedBlocks.get(blockProcessor.block.number);
     processors.push(new PreparedBlock(blockProcessor.completedBlock, blockProcessor.completedTransactions));
-=======
-  async blockPrepared(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
->>>>>>> bytes-data
 
     // if N+1 is ready then begin processing N+2
     if (isBlockNp1) {
@@ -421,7 +413,7 @@ export class Indexer {
         // todo: use fast getblock function (no details)
         const block = this.client.getBlock(blockNumber);
 
-        const dbBlock = new DBBlock();
+        const dbBlock = new DBBlockBase();
         dbBlock.blockNumber = blockNumber;
         dbBlock.blockHash = block.hash;
         dbBlock.timestamp = this.getBlockTimestamp(block);
@@ -544,40 +536,6 @@ export class Indexer {
       }
     }
   }
-<<<<<<< HEAD
-=======
-
-  async saveBlocksHeaders(latestBlockNumber: number) {
-
-    try {
-      // save blocks from N+1 to latestBlockNumber
-      const dbBlocks = [];
-      for (let blockNumber = this.N + 1; blockNumber <= latestBlockNumber; blockNumber++) {
-        const block = this.client.getBlock(blockNumber);
-
-        const dbBlock = new this.dbBlockClass();
-        dbBlock.blockNumber = blockNumber;
-        dbBlock.blockHash = block.hash;
-        dbBlock.timestamp = this.getBlockTimestamp(block);
-
-        dbBlocks.push(dbBlock);
-      }
-
-      this.dbService.manager.save(dbBlocks);
-
-
-      // await this.dbService.manager
-      //   .createQueryBuilder()
-      //   .update(DBBlock)
-      //   .set({ confirmed: true })
-      //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
-      //   .execute();
-    }
-    catch (error) {
-      this.logger.error2(`error ${error}`);
-    }
-  }
->>>>>>> bytes-data
 }
 
 

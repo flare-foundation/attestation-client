@@ -228,7 +228,12 @@ export class AttestationRound {
     // collect sorted valid attestation hashes
     const validatedHashes: string[] = new Array<string>();
     for (const valid of validated) {
-      let hash = transactionHash(this.attesterWeb3.web3, valid.verificationData!);
+      // todo: fix this. transactionHash does not compile ....
+      //let hash = valid.verificationData ? transactionHash(this.attesterWeb3.web3, valid.verificationData!) : valid.data.getHash();
+
+      // this is for SIMULATION only !!!!
+      let hash = valid.data.getHash();
+      
       validatedHashes.push(hash!);
     }
 

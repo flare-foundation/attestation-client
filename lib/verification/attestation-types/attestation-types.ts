@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { AdditionalTransactionDetails, ChainType } from "flare-mcc";
+import { ChainType } from "flare-mcc";
 import { AttestationType } from "../generated/attestation-types-enum";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,6 +56,11 @@ export interface Verification<T> {
   response?: T
   status: VerificationStatus;
 }
+
+export interface AdditionalTransactionDetails {
+  
+}
+
 export interface ChainVerification extends AdditionalTransactionDetails , VerificationResult {
   isFromOne?: boolean;
   utxo?: BN;

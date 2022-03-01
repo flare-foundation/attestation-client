@@ -43,15 +43,20 @@
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/types";
 import { Entity } from "typeorm";
-import { DBBlock } from "../entity/dbBlock";
+import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase, DBTransactionXRP0, DBTransactionXRP1 } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
+<<<<<<< HEAD
 import { BlockProcessor } from "./blockProcessor";
 import { BlockProcessorManager } from "./blockProcessorManager";
+=======
+import { processBlockTest } from "./chainCollector";
+import { prepareIndexerTables } from "./indexer-utils";
+>>>>>>> bytes-data
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
 
 var yargs = require("yargs");
@@ -151,6 +156,10 @@ export class Indexer {
     this.wait = inQueue! >= this.maxQueue;
   }
 
+  get lastConfimedBlockNumber() {
+    return this.N;
+  }
+
   async waitForDBConnection() {
     while (true) {
       if (!this.dbService.connection) {
@@ -178,6 +187,7 @@ export class Indexer {
     return references0.concat(references1);
   }
 
+<<<<<<< HEAD
   async blockCompleted(blockProcessor: BlockProcessor): Promise<boolean> {
 
 
@@ -201,6 +211,9 @@ export class Indexer {
     // queue it
     const processors = this.preparedBlocks.get(blockProcessor.block.number);
     processors.push(new PreparedBlock(blockProcessor.completedBlock, blockProcessor.completedTransactions));
+=======
+  async blockPrepared(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
+>>>>>>> bytes-data
 
     // if N+1 is ready then begin processing N+2
     if (isBlockNp1) {
@@ -212,7 +225,7 @@ export class Indexer {
   }
 
 
-  async blockSave(block: DBBlock, transactions: DBTransactionBase[]): Promise<boolean> {
+  async blockSave(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
 
     if (transactions.length === 0) return true;
 
@@ -306,16 +319,27 @@ export class Indexer {
     return DBChainTransaction;
   }
 
-  dbTableClass = [undefined, undefined];
+  dbTableClass;
+  dbBlockClass;
 
-  async prepareTables() {
-    switch (this.chainConfig.name) {
-      case "XRP":
-        this.dbTableClass[0] = DBTransactionXRP0;
-        this.dbTableClass[1] = DBTransactionXRP1;
-        break;
-    }
-  }
+
+  prepareTables() {
+    // let chainType = getChainType(this.chainConfig.name) // TODO: export this from flare-mcc
+    let chainType = ChainType.XRP;
+    let prepared = prepareIndexerTables(chainType);
+    this.dbTableClass = prepared.transactionTable;
+    this.dbBlockClass = prepared.blockTable;
+ }
+
+  // async prepareTables() {
+  //   this.dbTableClass = []
+  //   switch (this.chainConfig.name) {
+  //     case "XRP":
+  //       this.dbTableClass.push(DBTransactionXRP0;
+  //       this.dbTableClass[1] = DBTransactionXRP1;
+  //       break;
+  //   }
+  // }
 
   async getBlockNumberTimestamp(blockNumber: number): Promise<number> {
     const block = await this.client.getBlock(blockNumber);
@@ -520,6 +544,40 @@ export class Indexer {
       }
     }
   }
+<<<<<<< HEAD
+=======
+
+  async saveBlocksHeaders(latestBlockNumber: number) {
+
+    try {
+      // save blocks from N+1 to latestBlockNumber
+      const dbBlocks = [];
+      for (let blockNumber = this.N + 1; blockNumber <= latestBlockNumber; blockNumber++) {
+        const block = this.client.getBlock(blockNumber);
+
+        const dbBlock = new this.dbBlockClass();
+        dbBlock.blockNumber = blockNumber;
+        dbBlock.blockHash = block.hash;
+        dbBlock.timestamp = this.getBlockTimestamp(block);
+
+        dbBlocks.push(dbBlock);
+      }
+
+      this.dbService.manager.save(dbBlocks);
+
+
+      // await this.dbService.manager
+      //   .createQueryBuilder()
+      //   .update(DBBlock)
+      //   .set({ confirmed: true })
+      //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
+      //   .execute();
+    }
+    catch (error) {
+      this.logger.error2(`error ${error}`);
+    }
+  }
+>>>>>>> bytes-data
 }
 
 

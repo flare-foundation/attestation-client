@@ -1,4 +1,4 @@
-import { AlgoMccCreate, ChainType, MCC, RPCInterface, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
+import { AlgoMccCreate, ChainType, MCC, ReadRpcInterface, RPCInterface, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
 import { Queue } from "../utils/Queue";
 
 export interface CachedMccClientOptions {
@@ -6,15 +6,16 @@ export interface CachedMccClientOptions {
   blockCacheSize: number;
   cleanupChunkSize: number;
      // maximum number of requests that are either in processing or in queue
-  maxInAction: number; 
+  activeLimit: number; 
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
+  // onChange?: (inProcessing?: number, inQueue?: number) => void;
 }
 
 let defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
   cleanupChunkSize: 100,
-  maxInAction: 50, 
+  activeLimit: 50, 
   clientConfig: {} as any
 }
 
@@ -28,7 +29,7 @@ let defaultCachedMccClientOptions: CachedMccClientOptions = {
 //             eventually returned and then proceed with (i)
 
 export class CachedMccClient<T, B> {
-  client: RPCInterface;
+  client: ReadRpcInterface;
   chainType: ChainType;
 
   transactionCache: Map<string, Promise<T>>;
@@ -41,6 +42,8 @@ export class CachedMccClient<T, B> {
 
   inProcessing = 0;
   inQueue = 0;
+  reqsPs = 0;
+  retriesPs = 0;
 
   cleanupCheckCounter = 0;
 
@@ -48,7 +51,7 @@ export class CachedMccClient<T, B> {
     this.chainType = chainType;
     this.transactionCache = new Map<string, Promise<T>>();
     this.transactionCleanupQueue = new Queue<string>();
-    this.blockCache = new Map<string | number, Promise<B>>();
+    this.blockCache = new Map<string, Promise<B>>();
     this.blockCleanupQueue = new Queue<string>();
 
     this.settings = options || defaultCachedMccClientOptions;
@@ -56,15 +59,20 @@ export class CachedMccClient<T, B> {
     // Override onSend
     this.settings.clientConfig.rateLimitOptions = {
       ...this.settings.clientConfig.rateLimitOptions,
-      onSend: this.onSend.bind(this)
+      onSend: this.onChange.bind(this),
+      onResponse: this.onChange.bind(this),
+      onPush: this.onChange.bind(this),
+      onRpsSample: this.onChange.bind(this),
     }
 
     this.client = MCC.Client(this.chainType, this.settings.clientConfig) as any as RPCInterface // TODO
   }
 
-  private onSend(inProcessing?: number, inQueue?: number) {
+  private onChange(inProcessing?: number, inQueue?: number, reqsPs?: number, retriesPs?: number) {
     this.inProcessing = inProcessing;
     this.inQueue = inQueue;
+    this.reqsPs = reqsPs;
+    this.retriesPs = retriesPs;
   }
 
   // returns T or null
@@ -86,8 +94,8 @@ export class CachedMccClient<T, B> {
     return newPromise;    
   }
 
-  public async getBlockFromCache(blockHashOrNumber: string | number) {
-    return this.blockCache.get(blockHashOrNumber)
+  public async getBlockFromCache(blockHash: string) {
+    return this.blockCache.get(blockHash)
   }
 
   public async getBlock(blockHashOrNumber: string | number): Promise<B | null> {
@@ -98,24 +106,22 @@ export class CachedMccClient<T, B> {
     if(blockPromise) {
       return blockPromise;
     }
+
+    // MCC client should support hash queries
     let newPromise = this.client.getBlock(blockHashOrNumber);
-    let resp = (await newPromise) as B;
-    if(typeof blockHashOrNumber === "string") {
-      let blockNumber = this.client.blockNumber(resp);       // TODO: implement in MCC (extracts block number from response)  
-      this.transactionCache.set(blockNumber, newPromise);   
-    } else if(typeof blockHashOrNumber === "number") {
-      let blockHash = this.client.blockHash(resp);   // TODO: implement in MCC (extracts block hash from block response)
-      this.transactionCache.set(blockHash, newPromise);   
+    if(typeof blockHashOrNumber === "number") {
+      let block = await newPromise;
+      let blockHash = block.hash // TODO
+      this.blockCache.set(blockHash, newPromise); 
     } else {
-      return null;
-    }
-    this.blockCache.set(blockHashOrNumber, newPromise); 
+      this.blockCache.set(blockHashOrNumber, newPromise); 
+    }    
     this.checkAndCleanup();
     return newPromise;    
   }
 
   public get canAccept(): boolean {
-    return !this.settings.maxInAction || this.inProcessing + this.inQueue <= this.settings.maxInAction;
+    return !this.settings.activeLimit || this.inProcessing + this.inQueue <= this.settings.activeLimit;
   }
 
   private checkAndCleanup() {

@@ -1,15 +1,17 @@
-import { ChainType, MCC } from "flare-mcc";
+import { ChainType, MCC, toBN } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
-import { sleepms } from "../utils/utils";
+import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
+import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
+import { Source } from "./DynamicAttestationConfig";
 
 export class AttesterClient {
   conf: AttesterClientConfiguration;
@@ -51,6 +53,10 @@ export class AttesterClient {
     // validate configuration chains and create nodes
     await this.initializeChains();
 
+    if( this.conf.simulation ) {
+      this.startSimulation();
+    }
+
     // connect to network block callback
     this.blockCollector = new Web3BlockCollector(
       this.logger,
@@ -63,7 +69,28 @@ export class AttesterClient {
       }
     );
 
-    this.startDisplay();
+    //this.startDisplay();
+  }
+
+  async startSimulation(){
+    while( true ){
+
+      const attestation = new AttestationData(null);
+
+      attestation.timeStamp = toBN( getUnixEpochTimestamp());
+      attestation.request = (await getRandom()).toString();
+      
+      attestation.type = AttestationType.Payment;
+      attestation.source = ChainType.BTC;
+  
+      // for sorting
+      attestation.blockNumber = toBN(await getRandom());
+      attestation.logIndex = await getRandom();
+
+      this.roundMng.attestate(attestation);
+
+      await sleepms( 5000 );
+    }
   }
 
   async startDisplay() {

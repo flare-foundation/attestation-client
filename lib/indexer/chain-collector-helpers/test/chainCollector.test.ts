@@ -1,13 +1,19 @@
-import { MCC, UtxoMccCreate } from "flare-mcc";
-import { DBBlock } from "../../../entity/dbBlock";
+import { ChainType, MCC, UtxoMccCreate } from "flare-mcc";
+import { CachedMccClient, CachedMccClientOptions } from "../../../caching/CachedMccClient";
+import { DBBlockBase } from "../../../entity/dbBlock";
 import { DBTransactionBase } from "../../../entity/dbTransaction";
-import { AlgoProcessBlockFunction, UtxoProcessBlockFunction } from "../../chainCollector";
-import { processBlockTransactionsGeneric } from "../chainCollector";
+import { AlgoBlockProcessor, UtxoBlockProcessor } from "../blockProcessor";
+// import { processBlockTransactionsGeneric } from "../chainCollector";
 
 const BtcMccConnection = {
   url: "https://bitcoin.flare.network/",
   username: "flareadmin",
   password: "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
+  rateLimitOptions: {
+    maxRPS: 70,
+    timeoutMs: 3000,
+    retries: 2
+  }
 } as UtxoMccCreate;
 
 const testNetUrl = "http://testnode3.c.aflabs.net:4001/";
@@ -17,62 +23,110 @@ const testNetUrlIndexer = "http://testnode3.c.aflabs.net:8980/";
 const token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddd";
 
 const algoCreateConfig = {
-    algod: {
-        url: testNetUrl,
-        token: algodToken,
-    },
-    indexer: {
-        url: testNetUrlIndexer,
-        token: token,
-    },
+  algod: {
+    url: testNetUrl,
+    token: algodToken,
+  },
+  indexer: {
+    url: testNetUrlIndexer,
+    token: token,
+  },
 };
 
 describe("Test process helpers ", () => {
   let BtcMccClient: MCC.BTC;
   let AlgoMccClient: MCC.ALGO;
-  let save
+  let save;
   before(async function () {
-      BtcMccClient = new MCC.BTC(BtcMccConnection);
-      AlgoMccClient = new MCC.ALGO(algoCreateConfig);
-      save =  async (block: DBBlock, transactions: DBTransactionBase[]) => {return true}
+    BtcMccClient = new MCC.BTC(BtcMccConnection);
+    AlgoMccClient = new MCC.ALGO(algoCreateConfig);
+    save = async (block: DBBlockBase, transactions: DBTransactionBase[]) => {
+      // console.log(transactions);
+      console.log(transactions.length);
+      return true;
+    };
   });
 
-   it.skip(`Test btc block processing `, async function () {
-      const functions = UtxoProcessBlockFunction
+  it(`Test btc block processing `, async function () {
 
-      // const block = await MccClient.getBlock(723581);
-      const block = await BtcMccClient.getBlock(723746);
+    // const block = await MccClient.getBlock(723581);
+    const block = await BtcMccClient.getBlock(723746);
+    const block2 = await BtcMccClient.getBlock(723746);  // simulation of other block
 
-      await processBlockTransactionsGeneric(
-        BtcMccClient, //
-        block, //
-        functions.preProcessBlock,
-        functions.readTransaction,
-        functions.augmentTransaction,
-        functions.augmentBlock,
-        save // boolean function 
-      )
-   });
+    // console.log(block)
 
+    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: BtcMccConnection,
+    };
 
-   it(`Test algo block processing `, async function () {
-    const functions = AlgoProcessBlockFunction
-    const block = await AlgoMccClient.getBlock(19_300_000);
+    const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
 
-    console.log(block);
-    
+    let processor = new UtxoBlockProcessor(cachedClient);
+    processor.debugOn("FIRST");
+    processor.initializeJobs(block, save);
 
-    await processBlockTransactionsGeneric(
-      AlgoMccClient, //
-      block, //
-      functions.preProcessBlock,
-      functions.readTransaction,
-      functions.augmentTransaction,
-      functions.augmentBlock,
-      save // boolean function 
-    )
- });
-  
-})
+    let processor2 = new UtxoBlockProcessor(cachedClient);
+    processor2.debugOn("SECOND");
+    processor2.initializeJobs(block2, save);
 
+    // Simulation of switching between the two processors
+    let first = false;
+    processor.stop()
 
+    function simulate() {
+      if (first) {
+        console.log("RUNNING 2 ...");
+        processor.stop();
+        processor2.start()
+        first = false;
+        setTimeout(() => {simulate()}, 10000)
+      } else {
+        console.log("RUNNING 1 ...");
+        processor2.stop()
+        processor.start();
+        first = true;
+        setTimeout(() => {simulate()}, 20000)
+      }
+    }
+
+    simulate();
+    // await processBlockUtxo(cachedClient, block, save);
+    // await processBlockTransactionsGeneric(
+    //   BtcMccClient, //
+    //   block, //
+    //   functions.preProcessBlock,
+    //   functions.readTransaction,
+    //   functions.augmentTransaction,
+    //   functions.augmentBlock,
+    //   save // boolean function
+    // )
+  });
+
+  it.only(`Test algo block processing `, async function () {
+
+    // const block = await MccClient.getBlock(723581);
+    const block = await AlgoMccClient.getBlock(723746);
+    // const block2 = await BtcMccClient.getBlock(723746);  // simulation of other block
+
+    // console.log(block)
+
+    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: algoCreateConfig,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
+
+    let processor = new AlgoBlockProcessor(cachedClient);
+    processor.debugOn("FIRST");
+    processor.initializeJobs(block, save);
+  });
+
+});

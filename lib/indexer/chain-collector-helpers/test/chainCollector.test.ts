@@ -2,7 +2,7 @@ import { ChainType, MCC, UtxoMccCreate } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../../caching/CachedMccClient";
 import { DBBlockBase } from "../../../entity/dbBlock";
 import { DBTransactionBase } from "../../../entity/dbTransaction";
-import { AlgoBlockProcessor, UtxoBlockProcessor } from "../blockProcessor";
+import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../blockProcessor";
 // import { processBlockTransactionsGeneric } from "../chainCollector";
 
 const BtcMccConnection = {
@@ -33,13 +33,19 @@ const algoCreateConfig = {
   },
 };
 
+const XRPMccConnection = {
+  url: "https://xrplcluster.com",
+};
+
 describe("Test process helpers ", () => {
   let BtcMccClient: MCC.BTC;
   let AlgoMccClient: MCC.ALGO;
+  let XrpMccClient: MCC.XRP
   let save;
   before(async function () {
     BtcMccClient = new MCC.BTC(BtcMccConnection);
     AlgoMccClient = new MCC.ALGO(algoCreateConfig);
+    XrpMccClient = new MCC.XRP(XRPMccConnection);
     save = async (block: DBBlockBase, transactions: DBTransactionBase[]) => {
       // console.log(transactions);
       console.log(transactions.length);
@@ -125,6 +131,25 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
 
     let processor = new AlgoBlockProcessor(cachedClient);
+    processor.debugOn("FIRST");
+    processor.initializeJobs(block, save);
+  });
+
+
+  it.only(`Test xrp block processing `, async function () {
+    const block = await XrpMccClient.getBlock(70_015_100);
+
+    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: XRPMccConnection,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
+
+    let processor = new XrpBlockProcessor(cachedClient);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
   });

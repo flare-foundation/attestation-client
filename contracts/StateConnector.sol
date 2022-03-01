@@ -80,7 +80,7 @@ contract StateConnector {
     ) external returns (
         bool _isInitialBufferSlot
     ) {
-        require(bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
+        require(bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW, "wrong buffer number");
         buffers[msg.sender].latestVote = bufferNumber;
         buffers[msg.sender].votes[bufferNumber % TOTAL_STORED_BUFFERS] = Vote(
             maskedMerkleHash,
@@ -102,10 +102,10 @@ contract StateConnector {
     ) {
         require(bufferNumber > 1);
         uint256 prevBufferNumber = bufferNumber - 1;
-        require(buffers[msg.sender].latestVote >= prevBufferNumber);
+        require(buffers[msg.sender].latestVote >= prevBufferNumber, "wrong last vote");
         bytes32 revealedRandom = buffers[msg.sender].votes[prevBufferNumber % TOTAL_STORED_BUFFERS].revealedRandom;
         bytes32 committedRandom = buffers[msg.sender].votes[(prevBufferNumber-1) % TOTAL_STORED_BUFFERS].committedRandom;
-        require(committedRandom == keccak256(abi.encodePacked(revealedRandom)));
+        require(committedRandom == keccak256(abi.encodePacked(revealedRandom)), "wrong hash");
         bytes32 maskedMerkleHash = buffers[msg.sender].votes[(prevBufferNumber-1) % TOTAL_STORED_BUFFERS].maskedMerkleHash;
         return (maskedMerkleHash ^ revealedRandom);
     }

@@ -29,30 +29,24 @@ export interface HashTest extends BaseContract {
   ): HashTest;
   clone(): HashTest;
   methods: {
-    testDecreaseBalanceProof(
-      typ: number | string | BN,
-      chainId: number | string | BN,
-      blockNumber: number | string | BN,
-      txId: string | number[],
-      sourceAddress: string | number[],
-      spent: number | string | BN,
-      hashToProve: string | number[]
+    hashTestBalanceDecreasingPayment(
+      _data: string | number[],
+      _hashToProve: string | number[]
     ): NonPayableTransactionObject<boolean>;
 
-    testFassetProof(
-      typ: number | string | BN,
-      chainId: number | string | BN,
-      blockNumber: number | string | BN,
-      txId: string | number[],
-      inUtxo: number | string | BN,
-      sourceAddress: string | number[],
-      destinationAddress: string | number[],
-      destinationTag: number | string | BN,
-      spent: number | string | BN,
-      received: number | string | BN,
-      fee: number | string | BN,
-      status: number | string | BN,
-      hashToProve: string | number[]
+    hashTestBlockHeightExistence(
+      _data: string | number[],
+      _hashToProve: string | number[]
+    ): NonPayableTransactionObject<boolean>;
+
+    hashTestPayment(
+      _data: string | number[],
+      _hashToProve: string | number[]
+    ): NonPayableTransactionObject<boolean>;
+
+    hashTestReferencedPaymentNonExistence(
+      _data: string | number[],
+      _hashToProve: string | number[]
     ): NonPayableTransactionObject<boolean>;
 
     verifyMerkleProof(

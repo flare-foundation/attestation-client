@@ -28,11 +28,12 @@ const algoCreateConfig = {
 };
 
 describe("Test process helpers ", () => {
-  let MccClient: MCC.BTC;
+  let BtcMccClient: MCC.BTC;
   let AlgoMccClient: MCC.ALGO;
   let save
   before(async function () {
-      MccClient = new MCC.BTC(BtcMccConnection);
+      BtcMccClient = new MCC.BTC(BtcMccConnection);
+      AlgoMccClient = new MCC.ALGO(algoCreateConfig);
       save =  async (block: DBBlock, transactions: DBTransactionBase[]) => {return true}
   });
 
@@ -40,10 +41,10 @@ describe("Test process helpers ", () => {
       const functions = UtxoProcessBlockFunction
 
       // const block = await MccClient.getBlock(723581);
-      const block = await MccClient.getBlock(723746);
+      const block = await BtcMccClient.getBlock(723746);
 
       await processBlockTransactionsGeneric(
-        MccClient, //
+        BtcMccClient, //
         block, //
         functions.preProcessBlock,
         functions.readTransaction,
@@ -56,10 +57,13 @@ describe("Test process helpers ", () => {
 
    it(`Test algo block processing `, async function () {
     const functions = AlgoProcessBlockFunction
-    const block = await MccClient.getBlock(19847551);
+    const block = await AlgoMccClient.getBlock(19_300_000);
+
+    console.log(block);
+    
 
     await processBlockTransactionsGeneric(
-      MccClient, //
+      AlgoMccClient, //
       block, //
       functions.preProcessBlock,
       functions.readTransaction,

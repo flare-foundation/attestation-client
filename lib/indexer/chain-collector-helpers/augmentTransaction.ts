@@ -1,9 +1,9 @@
-import { base64ToHex, IAlgoGetBlockRes, IAlgoGetFullTransactionRes, IUtxoGetBlockRes, RPCInterface, txIdToHexNo0x } from "flare-mcc";
+import { base64ToHex, IAlgoGetBlockRes, IAlgoGetFullTransactionRes, IUtxoGetBlockRes, ReadRpcInterface, txIdToHexNo0x } from "flare-mcc";
 import { IUtxoGetFullTransactionRes } from "flare-mcc/dist/types/utxoTypes";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 
 
-export async function augmentTransactionAlgo(client: RPCInterface, block: IAlgoGetBlockRes, txData: IAlgoGetFullTransactionRes): Promise<DBTransactionBase> {
+export async function augmentTransactionAlgo(client: ReadRpcInterface, block: IAlgoGetBlockRes, txData: IAlgoGetFullTransactionRes): Promise<DBTransactionBase> {
    const res = new DBTransactionBase();
    res.blockNumber = block.round;
    res.chainType = client.chainType;
@@ -19,7 +19,7 @@ export async function augmentTransactionAlgo(client: RPCInterface, block: IAlgoG
    return res as DBTransactionBase
 }
 
-export async function augmentTransactionUtxo(client: RPCInterface, block: IUtxoGetBlockRes, txData: IUtxoGetFullTransactionRes): Promise<DBTransactionBase> {
+export async function augmentTransactionUtxo(client: ReadRpcInterface, block: IUtxoGetBlockRes, txData: IUtxoGetFullTransactionRes): Promise<DBTransactionBase> {
    const res = new DBTransactionBase();
    res.blockNumber = block.height;
    res.chainType = client.chainType;
@@ -38,7 +38,7 @@ export async function augmentTransactionUtxo(client: RPCInterface, block: IUtxoG
    return res as DBTransactionBase
 }
 
-export async function augmentTransactionXrp(client: RPCInterface, block: any, txData: any): Promise<DBTransactionBase> {
+export async function augmentTransactionXrp(client: ReadRpcInterface, block: any, txData: any): Promise<DBTransactionBase> {
    const res = new DBTransactionBase();
    res.blockNumber = block.result.ledger_index;
    res.chainType = client.chainType;

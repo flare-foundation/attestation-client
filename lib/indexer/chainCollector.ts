@@ -5,7 +5,7 @@ import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
 import { augmentBlockDefault } from "./chain-collector-helpers/augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./chain-collector-helpers/augmentTransaction";
 import { processBlockTransactionsGeneric } from "./chain-collector-helpers/chainCollector";
-import { processBlockDefault, processBlockXrp } from "./chain-collector-helpers/processBlock";
+import { processBlockAlgo, processBlockDefault, processBlockXrp } from "./chain-collector-helpers/processBlock";
 import { readTransactionAlgo, readTransactionUtxo, readTransactionXrp } from "./chain-collector-helpers/readTransaction";
 import { onSaveSig, processBlockChainFunctions } from "./chain-collector-helpers/types";
 
@@ -17,7 +17,7 @@ export const XrpProcessBlockFunction: processBlockChainFunctions = {
 }
 
 export const AlgoProcessBlockFunction: processBlockChainFunctions = {
-    preProcessBlock: processBlockDefault,
+    preProcessBlock: processBlockAlgo,
     readTransaction: readTransactionAlgo,
     augmentTransaction: augmentTransactionAlgo,
     augmentBlock: augmentBlockDefault

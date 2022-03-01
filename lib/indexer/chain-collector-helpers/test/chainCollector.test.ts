@@ -41,7 +41,8 @@ describe("Test process helpers ", () => {
     BtcMccClient = new MCC.BTC(BtcMccConnection);
     AlgoMccClient = new MCC.ALGO(algoCreateConfig);
     save = async (block: DBBlockBase, transactions: DBTransactionBase[]) => {
-      console.log(transactions);
+      // console.log(transactions);
+      console.log(transactions.length);
       return true;
     };
   });

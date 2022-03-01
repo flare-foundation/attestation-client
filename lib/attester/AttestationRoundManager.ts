@@ -1,10 +1,13 @@
 import { ChainType, toBN } from "flare-mcc";
+import { Any } from "typeorm";
 import { ChainManager } from "../chain/ChainManager";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
+import { getRandom } from "../utils/utils";
+import { attestationTypeSchemeIndex } from "../verification/attestation-types/attestation-types-helpers";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
-import { Attestation } from "./Attestation";
+import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttesterClientConfiguration as AttesterClientConfiguration } from "./AttesterClientConfiguration";
@@ -113,8 +116,27 @@ export class AttestationRoundManager {
     }
   }
 
+  createSimulationAttestation(round: AttestationRound, data: AttestationData): Attestation {
+    return new Attestation(round, data, (attestation: Attestation) => {
+
+      // set status as valid
+      attestation.status=AttestationStatus.valid;
+      attestation.verificationData = null;
+
+      // callback to flag attestation processed
+      attestation.onProcessed!(attestation);
+    });
+  }
+
   async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
     // create attestation depending on attestation type
+
+    // Simulation
+    if( this.config.simulation ) {
+      return this.createSimulationAttestation(round, data );
+    }
+
+    // processing
     switch (data.type) {
       case AttestationType.Payment: {
         return new Attestation(round, data, (attestation: Attestation) => {

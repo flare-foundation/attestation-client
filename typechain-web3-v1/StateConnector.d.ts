@@ -68,7 +68,9 @@ export interface StateConnector extends BaseContract {
     ): NonPayableTransactionObject<string>;
 
     requestAttestations(
-      data: string | number[]
+      instructions: number | string | BN,
+      id: string | number[],
+      dataAvailabilityProof: string | number[]
     ): NonPayableTransactionObject<void>;
 
     submitAttestation(

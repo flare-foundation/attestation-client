@@ -1,4 +1,4 @@
-import { ChainVerification, Verification } from "../verification/attestation-types/attestation-types";
+import { Verification } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { EventValidateAttestation, SourceHandler } from "./SourceHandler";

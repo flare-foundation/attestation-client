@@ -23,11 +23,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
 export class AlgoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: BlockBase<any>, onSave: onSaveSig) {
-    console.log("Algo block processing");
-    console.log(block.data.transactions);
-
     let txPromises = block.data.transactions.map((txObject) => {
-      console.log(txObject);
       const getTxObject = {
         currentRound: block.number,
         transaction: txObject,

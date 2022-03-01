@@ -21,4 +21,7 @@ export class AttesterClientConfiguration {
   public revealTime!: number;
 
   public chains: AttesterClientChain[] = [];
+
+
+  public simulation: boolean = false; 
 }

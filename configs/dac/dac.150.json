@@ -9,7 +9,7 @@
          "attestationTypes" :
          [
             {
-               "type":"OneToOnePayment",
+               "type":"Payment",
                "avgCalls": 8
             },
             {
@@ -30,7 +30,7 @@
          "attestationTypes" :
          [
             {
-               "type":"OneToOnePayment",
+               "type":"Payment",
                "avgCalls": 3
             },
             {

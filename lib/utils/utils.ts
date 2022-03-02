@@ -80,8 +80,13 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
     abiPath = await relativeContractABIPathForContractName(name, "artifacts");
     return new web3.eth.Contract(getAbi(`artifacts/${abiPath}`), address);
   } catch (e: any) {
-    abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
-    return new web3.eth.Contract(getAbi(`data/artifacts/${abiPath}`), address);
+    try {
+      abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
+      return new web3.eth.Contract(getAbi(`data/artifacts/${abiPath}`), address);
+    }
+    catch( e2 ) {
+      console.error( `getWeb3Contract error - ABI not found (run yarn c): ${e2}` );
+    }
   }
 }
 

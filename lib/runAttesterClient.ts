@@ -1,4 +1,3 @@
-import { ConstructorFragment } from "@ethersproject/abi";
 import * as fs from "fs";
 import yargs from "yargs";
 import { AttesterClient } from "./attester/AttesterClient";

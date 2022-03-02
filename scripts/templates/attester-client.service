@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attester-client/dist/runAttesterClient.js -s
+ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attester-client/dist/runAttesterClient.js -s -c configs/config.json
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian

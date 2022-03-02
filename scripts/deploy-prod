@@ -91,6 +91,8 @@ ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn link flare-mcc; yarn" |
 echo -e "${GREENBOLD}Yarn install done.${NC} Building app ... "
 ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn build" || { echo 'Building app failed' ; exit 1; }
 
+echo -e "${GREENBOLD}Yarn C"
+ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn c" || { echo 'Building app failed' ; exit 1; }
 
 
 

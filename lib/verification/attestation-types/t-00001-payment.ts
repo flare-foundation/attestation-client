@@ -38,57 +38,111 @@ export const TDEF: AttestationTypeScheme = {
       },
    ],
    dataHashDefinition: [
-      {
-         key: "attestationType",
-         type: "uint16"
-      },
-      {
-         key: "chainId",
-         type: "uint16"
-      },
+      // {
+      //    key: "attestationType",
+      //    type: "uint16",
+
+      // },
+      // {
+      //    key: "chainId",
+      //    type: "uint16"
+      // },
       {
          key: "blockNumber",
-         type: "uint64"
+         type: "uint64",
+         description: 
+`
+Timestamp of the transaction block on the underlying chain.
+`
       },
       {
          key: "blockTimestamp",
-         type: "uint64"
+         type: "uint64",
+         description:
+`
+Timestamp of the transaction block on the underlying chain.
+`
       },
       {
-         key: "txId",
-         type: "bytes32"
+         key: "transactionHash",
+         type: "bytes32",
+         description:
+`
+Hash of the transaction on the underlying chain.
+`
       },
       {
          key: "utxo",
-         type: "uint8"
+         type: "uint8",
+         description:
+`
+Output index for transactions with multiple outputs.
+`
       },
       {
          key: "sourceAddress",
-         type: "string"
+         type: "bytes32",
+         description:
+`
+In case of single source address (required for redemptions): hash of the source address as a string.
+For multi-source payments (allowed for minting and topup): must be zero.
+`
       },
       {
-         key: "destinationAddress",
-         type: "string"
+         key: "receivingAddress",
+         type: "bytes32",
+         description:
+`
+Hash of the receiving address as a string (there can only be a single address for this type).
+`
       },
       {
          key: "paymentReference",
-         type: "uint128"
+         type: "uint256",
+         description:
+`
+Chain dependent extra data (e.g. memo field, detination tag, tx data)
+For minting and redemption payment it depends on request id, 
+for topup and self-mint it depends on the agent vault address.
+See PaymentReference.sol for details of payment reference calculation.
+`
       },
       {
-         key: "spent",
-         type: "int256"
+         key: "spentAmount",
+         type: "int256",
+         description:
+`
+The amount that what went out of source address (or all source addresses), in smallest underlying units.
+It includes both payment value and fee / gas.
+`
       },
       {
-         key: "delivered",
-         type: "uint256"
+         key: "receivedAmount",
+         type: "uint256",
+         description:
+`
+The amount the receiving address received, in smallest underlying units.
+`
       },
       {
-         key: "isToOne",
-         type: "bool"
+         key: "oneToOne",
+         type: "bool",
+         description:
+`
+True if the transaction has exactly one source address and 
+exactly one receiving address (different from source).
+`
       },
       {
          key: "status",
-         type: "uint8"
+         type: "uint8",
+         description:
+`
+Transaction success status, can have 3 values:
+0 - Success
+1 - Failure due to sender fault (this is the default failure)
+2 - Failure due to receiver fault (bad destination address)
+`
       },
    ]
 }

@@ -1,10 +1,8 @@
-
 //////////////////////////////////////////////////////////////
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-      
-//////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
@@ -25,50 +23,43 @@ contract HashTest {
    using MerkleProof for bytes32[];
 
    struct Payment {
-      uint16 attestationType;
-      uint16 chainId;
       uint64 blockNumber;
       uint64 blockTimestamp;
-      bytes32 txId;
+      bytes32 transactionHash;
       uint8 utxo;
-      string sourceAddress;
-      string destinationAddress;
-      uint128 paymentReference;
-      int256 spent;
-      uint256 delivered;
-      bool isToOne;
+      bytes32 sourceAddress;
+      bytes32 receivingAddress;
+      uint256 paymentReference;
+      int256 spentAmount;
+      uint256 receivedAmount;
+      bool oneToOne;
       uint8 status;
    }
 
-   struct BalanceDecreasingPayment {
-      uint16 attestationType;
-      uint16 chainId;
+   struct BalanceDecreasingTransaction {
       uint64 blockNumber;
       uint64 blockTimestamp;
-      bytes32 txId;
-      string sourceAddress;
-      int256 spent;
+      bytes32 transactionHash;
+      bytes32 sourceAddress;
+      int256 spentAmount;
+      uint256 paymentReference;
    }
 
-   struct BlockHeightExistence {
-      uint16 attestationType;
-      uint16 chainId;
+   struct BlockHeightExists {
       uint64 blockNumber;
       uint64 blockTimestamp;
-      bytes32 blockHash;
    }
 
-   struct ReferencedPaymentNonExistence {
-      uint16 attestationType;
-      uint16 chainId;
+   struct ReferencedPaymentNonexistence {
       uint64 endTimestamp;
       uint64 endBlock;
+      bytes32 destinationAddress;
       uint128 paymentReference;
       uint128 amount;
-      uint64 firstCheckedBlockTimestamp;
       uint64 firstCheckedBlock;
-      uint64 firstOverflowBlockTimestamp;
+      uint64 firstCheckedBlockTimestamp;
       uint64 firstOverflowBlock;
+      uint64 firstOverflowBlockTimestamp;
    }
  
 
@@ -79,40 +70,40 @@ contract HashTest {
       bytes32 hash = keccak256(_data);
       Payment memory data = abi.decode(_data, (Payment));
       require(data.attestationType > 0);
-      bytes32 hash2 = keccak256(abi.encode(data.attestationType,data.chainId,data.blockNumber,data.blockTimestamp,data.txId,data.utxo,data.sourceAddress,data.destinationAddress,data.paymentReference,data.spent,data.delivered,data.isToOne,data.status));
+      bytes32 hash2 = keccak256(abi.encode(data.blockNumber,data.blockTimestamp,data.transactionHash,data.utxo,data.sourceAddress,data.receivingAddress,data.paymentReference,data.spentAmount,data.receivedAmount,data.oneToOne,data.status));
       return hash == _hashToProve && hash == hash2;
     }
 
-   function hashTestBalanceDecreasingPayment(
+   function hashTestBalanceDecreasingTransaction(
       bytes memory _data,
       bytes32 _hashToProve
     ) external pure returns (bool _match) {
       bytes32 hash = keccak256(_data);
-      BalanceDecreasingPayment memory data = abi.decode(_data, (BalanceDecreasingPayment));
+      BalanceDecreasingTransaction memory data = abi.decode(_data, (BalanceDecreasingTransaction));
       require(data.attestationType > 0);
-      bytes32 hash2 = keccak256(abi.encode(data.attestationType,data.chainId,data.blockNumber,data.blockTimestamp,data.txId,data.sourceAddress,data.spent));
+      bytes32 hash2 = keccak256(abi.encode(data.blockNumber,data.blockTimestamp,data.transactionHash,data.sourceAddress,data.spentAmount,data.paymentReference));
       return hash == _hashToProve && hash == hash2;
     }
 
-   function hashTestBlockHeightExistence(
+   function hashTestBlockHeightExists(
       bytes memory _data,
       bytes32 _hashToProve
     ) external pure returns (bool _match) {
       bytes32 hash = keccak256(_data);
-      BlockHeightExistence memory data = abi.decode(_data, (BlockHeightExistence));
+      BlockHeightExists memory data = abi.decode(_data, (BlockHeightExists));
       require(data.attestationType > 0);
-      bytes32 hash2 = keccak256(abi.encode(data.attestationType,data.chainId,data.blockNumber,data.blockTimestamp,data.blockHash));
+      bytes32 hash2 = keccak256(abi.encode(data.blockNumber,data.blockTimestamp));
       return hash == _hashToProve && hash == hash2;
     }
 
-   function hashTestReferencedPaymentNonExistence(
+   function hashTestReferencedPaymentNonexistence(
       bytes memory _data,
       bytes32 _hashToProve
     ) external pure returns (bool _match) {
       bytes32 hash = keccak256(_data);
-      ReferencedPaymentNonExistence memory data = abi.decode(_data, (ReferencedPaymentNonExistence));
+      ReferencedPaymentNonexistence memory data = abi.decode(_data, (ReferencedPaymentNonexistence));
       require(data.attestationType > 0);
-      bytes32 hash2 = keccak256(abi.encode(data.attestationType,data.chainId,data.endTimestamp,data.endBlock,data.paymentReference,data.amount,data.firstCheckedBlockTimestamp,data.firstCheckedBlock,data.firstOverflowBlockTimestamp,data.firstOverflowBlock));
+      bytes32 hash2 = keccak256(abi.encode(data.endTimestamp,data.endBlock,data.destinationAddress,data.paymentReference,data.amount,data.firstCheckedBlock,data.firstCheckedBlockTimestamp,data.firstOverflowBlock,data.firstOverflowBlockTimestamp));
       return hash == _hashToProve && hash == hash2;
     }
 

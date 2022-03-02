@@ -70,7 +70,7 @@ export interface ReferencedTransactionNonExistenceQueryRequest {
 }
 
 export interface ReferencedTransactionNonExistenceQueryResponse {
-   status: "OK" | "RECHECK",
+   status: "OK" | "RECHECK" | "NO_CONFIRMATION_BLOCK",
    transactions?: DBTransactionBase[]
    block?: DBBlockBase
 }
@@ -246,11 +246,11 @@ export class IndexedQueryHandler {
       let block = await this.queryBlock({
          hash: params.dataAvailability,
          roundId: params.roundId
-      } as BlockQueryParams);
+      } as BlockQueryParams);      
       return {
-         status: "OK",
+         status: block ? "OK" : "NO_CONFIRMATION_BLOCK",
          transactions,
-         block   // What happens if block does not exist???
+         block 
       }
 
    }

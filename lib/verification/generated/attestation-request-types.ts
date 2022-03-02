@@ -1,4 +1,3 @@
-
 //////////////////////////////////////////////////////////////
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
@@ -14,20 +13,20 @@ export interface ARPayment {
    id: BytesLike;
    dataAvailabilityProof: BytesLike;
 }
-export interface ARBalanceDecreasingPayment {
+export interface ARBalanceDecreasingTransaction {
    attestationType: AttestationType;
    chainId: ChainType;
    inUtxo: NumberLike;
    id: BytesLike;
    dataAvailabilityProof: BytesLike;
 }
-export interface ARBlockHeightExistence {
+export interface ARBlockHeightExists {
    attestationType: AttestationType;
    chainId: ChainType;
    blockNumber: NumberLike;
    dataAvailabilityProof: BytesLike;
 }
-export interface ARReferencedPaymentNonExistence {
+export interface ARReferencedPaymentNonexistence {
    attestationType: AttestationType;
    chainId: ChainType;
    endTimestamp: NumberLike;

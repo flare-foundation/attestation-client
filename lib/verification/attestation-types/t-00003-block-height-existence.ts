@@ -9,7 +9,7 @@ import {
 export const TDEF: AttestationTypeScheme = {
    id: 3,
    supportedSources: [ChainType.XRP, ChainType.BTC, ChainType.LTC, ChainType.DOGE, ChainType.ALGO],
-   name: "BlockHeightExistence",
+   name: "BlockHeightExists",
    request: [
       {
          key: "attestationType",
@@ -33,25 +33,29 @@ export const TDEF: AttestationTypeScheme = {
       },
    ],
    dataHashDefinition: [
-      {
-         key: "attestationType",
-         type: "uint16"
-      },
-      {
-         key: "chainId",
-         type: "uint16"
-      },
+      // {
+      //    key: "attestationType",
+      //    type: "uint16"
+      // },
+      // {
+      //    key: "chainId",
+      //    type: "uint16"
+      // },
       {
          key: "blockNumber",
-         type: "uint64"
+         type: "uint64",
+         description:
+`
+Number of the block that was proved to exist.
+`
       },
       {
          key: "blockTimestamp",
-         type: "uint64"
-      },
-      {
-         key: "blockHash",
-         type: "bytes32"
+         type: "uint64",
+         description:
+`
+Timestamp of the block that was proved to exist.
+`
       },
    ]
 }

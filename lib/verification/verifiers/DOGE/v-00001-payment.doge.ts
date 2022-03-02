@@ -1,4 +1,3 @@
-
 //////////////////////////////////////////////////////////////
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
@@ -19,49 +18,43 @@ export async function verifyPaymentDOGE(client: RPCInterface, bytes: string, ind
    // Do the magic here and fill the response with the relevant data
 
    let response = {
-         attestationType: randSol(request, "attestationType", "uint16") as BN,
-         chainId: randSol(request, "chainId", "uint16") as BN,
          blockNumber: randSol(request, "blockNumber", "uint64") as BN,
          blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN,
-         txId: randSol(request, "txId", "bytes32") as string,
+         transactionHash: randSol(request, "transactionHash", "bytes32") as string,
          utxo: randSol(request, "utxo", "uint8") as BN,
-         sourceAddress: randSol(request, "sourceAddress", "string") as string,
-         destinationAddress: randSol(request, "destinationAddress", "string") as string,
-         paymentReference: randSol(request, "paymentReference", "uint128") as BN,
-         spent: randSol(request, "spent", "int256") as BN,
-         delivered: randSol(request, "delivered", "uint256") as BN,
-         isToOne: randSol(request, "isToOne", "bool") as boolean,
+         sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
+         receivingAddress: randSol(request, "receivingAddress", "bytes32") as string,
+         paymentReference: randSol(request, "paymentReference", "uint256") as BN,
+         spentAmount: randSol(request, "spentAmount", "int256") as BN,
+         receivedAmount: randSol(request, "receivedAmount", "uint256") as BN,
+         oneToOne: randSol(request, "oneToOne", "bool") as boolean,
          status: randSol(request, "status", "uint8") as BN      
    } as DHPayment;
    let encoded = web3.eth.abi.encodeParameters(
       [
-           "uint16",		// attestationType
-           "uint16",		// chainId
            "uint64",		// blockNumber
            "uint64",		// blockTimestamp
-           "bytes32",		// txId
+           "bytes32",		// transactionHash
            "uint8",		// utxo
-           "string",		// sourceAddress
-           "string",		// destinationAddress
-           "uint128",		// paymentReference
-           "int256",		// spent
-           "uint256",		// delivered
-           "bool",		// isToOne
+           "bytes32",		// sourceAddress
+           "bytes32",		// receivingAddress
+           "uint256",		// paymentReference
+           "int256",		// spentAmount
+           "uint256",		// receivedAmount
+           "bool",		// oneToOne
            "uint8",		// status
       ],
       [
-          response.attestationType,
-          response.chainId,
           response.blockNumber,
           response.blockTimestamp,
-          response.txId,
+          response.transactionHash,
           response.utxo,
           response.sourceAddress,
-          response.destinationAddress,
+          response.receivingAddress,
           response.paymentReference,
-          response.spent,
-          response.delivered,
-          response.isToOne,
+          response.spentAmount,
+          response.receivedAmount,
+          response.oneToOne,
           response.status
       ]
    );

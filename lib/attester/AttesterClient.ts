@@ -27,6 +27,7 @@ export class AttesterClient {
     } else {
       this.logger = getGlobalLogger();
     }
+
     this.conf = configuration;
     this.chainManager = new ChainManager(this.logger);
     this.attesterWeb3 = new AttesterWeb3(this.logger, this.conf);

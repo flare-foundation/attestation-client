@@ -20,7 +20,7 @@ export function partBNbe(x: BN, bitOffset: number, bitCount: number) {
 
 export function toHex(x: string | number | BN, padToBytes?: number) {
   if (padToBytes as any > 0) {
-    return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes!*2);
+    return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
   }
   return Web3.utils.toHex(x);
 }
@@ -156,6 +156,10 @@ export async function getRandom(minnum: number = 0, maxnum: number = 10 ** 5) {
   const randomNumber = require("random-number-csprng");
   return await randomNumber(minnum, maxnum);
 }
+
+export async function getCryptoSafeRandom() {
+  return Web3.utils.toBN(Web3.utils.randomHex(32));
+};
 
 export function getTestStateConnectorAddress() {
   return fs.readFileSync(".stateconnector-address").toString();

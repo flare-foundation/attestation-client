@@ -4,8 +4,8 @@ import { toBN } from "flare-mcc";
 import { Hash } from "../utils/Hash";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
-import { MerkleTree } from "../utils/MerkleTree";
-import { getRandom } from "../utils/utils";
+import { MerkleTree, singleHash } from "../utils/MerkleTree";
+import { getCryptoSafeRandom, getRandom, toHex } from "../utils/utils";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -72,7 +72,7 @@ export class AttestationRound {
   status: AttestationRoundEpoch = AttestationRoundEpoch.collect;
   attestStatus: AttestationRoundStatus;
   attesterWeb3: AttesterWeb3;
-  epochId: number;
+  roundId: number;
   commitEndTime!: number;
 
   nextRound!: AttestationRound;
@@ -91,7 +91,7 @@ export class AttestationRound {
   sourceHandlers = new Map<number, SourceHandler>();
 
   constructor(epochId: number, logger: AttLogger, attesterWeb3: AttesterWeb3) {
-    this.epochId = epochId;
+    this.roundId = epochId;
     this.logger = logger;
     this.status = AttestationRoundEpoch.collect;
     this.attestStatus = AttestationRoundStatus.collecting;
@@ -112,7 +112,7 @@ export class AttestationRound {
     return sourceHandler;
   }
 
-  addAttestation(attestation: Attestation) {
+  addAttestation(attestation: Attestation) {    
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
     // todo: check how fast is hash
 
@@ -139,38 +139,34 @@ export class AttestationRound {
 
   startCommitEpoch() {
     this.logger.group(
-      `round #${this.epochId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLength().toNumber()
+      `round #${this.roundId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLength().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
-
-    // if all transactions are proccessed then commit
-    if (this.transactionsProcessed === this.attestations.length) {
-      if (this.status === AttestationRoundEpoch.commit) {
-        this.commit();
-      }
-    }
+    this.tryTriggerCommit();   // In case all requests are already processed
   }
 
   startRevealEpoch() {
-    this.logger.group(`round #${this.epochId} reveal epoch started [2]`);
+    this.logger.group(`round #${this.roundId} reveal epoch started [2]`);
     this.status = AttestationRoundEpoch.reveal;
   }
 
   completed() {
-    this.logger.group(`round #${this.epochId} completed`);
+    this.logger.group(`round #${this.roundId} completed`);
     this.status = AttestationRoundEpoch.completed;
   }
 
   processed(tx: Attestation) {
     this.transactionsProcessed++;
-
     assert(this.transactionsProcessed <= this.attestations.length);
+    this.tryTriggerCommit();
+  }
 
+  async tryTriggerCommit() {
     if (this.transactionsProcessed === this.attestations.length) {
       if (this.status === AttestationRoundEpoch.commit) {
         // all transactions were processed and we are in commit epoch
-        this.logger.info(`round #${this.epochId} all transactions processed ${this.attestations.length} commiting...`);
+        this.logger.info(`round #${this.roundId} all transactions processed ${this.attestations.length} commiting...`);
         this.commit();
       } else {
         // all transactions were processed but we are NOT in commit epoch yet
@@ -181,10 +177,9 @@ export class AttestationRound {
       //this.logger.info(`round #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
     }
   }
-
   async commitLimit() {
     if (this.attestStatus === AttestationRoundStatus.collecting) {
-      this.logger.error2(`round #${this.epochId} processing timeout (${this.transactionsProcessed}/${this.attestations.length} attestation(s))`);
+      this.logger.error2(`Round #${this.roundId} processing timeout (${this.transactionsProcessed}/${this.attestations.length} attestation(s))`);
 
       // cancel all attestations
       this.attestStatus = AttestationRoundStatus.processingTimeout;
@@ -192,17 +187,19 @@ export class AttestationRound {
   }
 
   canCommit(): boolean {
+    console.log("XXX", this.attestations.length)
     return this.transactionsProcessed === this.attestations.length &&
       this.status === AttestationRoundEpoch.commit;
   }
 
   async commit() {
+    console.log("COMMIT")
     if (this.status !== AttestationRoundEpoch.commit) {
-      this.logger.error(`round #${this.epochId} cannot commit (wrong epoch status ${this.status})`);
+      this.logger.error(`round #${this.roundId} cannot commit (wrong epoch status ${this.status})`);
       return;
     }
     if (this.attestStatus !== AttestationRoundStatus.collecting) {
-      this.logger.error(`round #${this.epochId} cannot commit (wrong attest status ${this.attestStatus})`);
+      this.logger.error(`round #${this.roundId} cannot commit (wrong attest status ${this.attestStatus})`);
       return;
     }
 
@@ -218,12 +215,12 @@ export class AttestationRound {
 
     // check if there is any valid attestation
     if (validated.length === 0) {
-      this.logger.error(`round #${this.epochId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
+      this.logger.error(`round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
       this.attestStatus = AttestationRoundStatus.nothingToCommit;
       return;
     }
 
-    this.logger.info(`round #${this.epochId} comitting (${validated.length}/${this.attestations.length} attestation(s))`);
+    this.logger.info(`round #${this.roundId} comitting (${validated.length}/${this.attestations.length} attestation(s))`);
 
     // sort valid attestations (blockNumber, transactionIndex, signature)
     // external sorting is not needed anymore
@@ -249,7 +246,7 @@ export class AttestationRound {
     this.merkleTree = new MerkleTree(validatedHashes);
 
     this.hash = this.merkleTree.root!;
-    this.random = await getRandom();
+    this.random = await getCryptoSafeRandom();
 
     const time2 = getTimeMilli();
 
@@ -260,76 +257,96 @@ export class AttestationRound {
 
     // calculate remaining time in epoch
     const now = getTimeMilli();
-    const epochCommitEndTime = AttestationRoundManager.epochSettings.getEpochIdCommitTimeEnd(this.epochId);
+    const epochCommitEndTime = AttestationRoundManager.epochSettings.getRoundIdRevealTimeStart(this.roundId);
     const commitTimeLeft = epochCommitEndTime - now;
 
-    if (!this.prevRound) {
-      this.logger.info(
-        `^Gcommit round #${this.epochId} ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1}ms)`
-      );
+    this.logger.info(
+      `^GRound #${this.roundId} - commit hashes collected: ${validatedHashes.length}. Time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1}ms)`
+    );
 
+
+    // First commit after start only!
+    // if (!this.prevRound) {
+    //   let delayToCommit = AttestationRoundManager.epochSettings.getRoundIdCommitTimeStart(this.roundId) - now + 
+    //   // trigger first commit
+    //   setTimeout(() => {
+    //     this.firstCommit();
+    //   }, epochCommitTime - now + this.config.revealTime * 1000);
+    //   this.firstCommit();
+    // }
+  }
+
+  async firstCommit() {
+    if(this.canCommit()) {
+      let action = `Submitting for bufferNumber ${this.roundId + 1} (first commit)`;
+
+      let shouldBe = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+
+      console.log(`Should be ${shouldBe}, is ${this.roundId + 1}`);
       this.attesterWeb3
         .submitAttestation(
-          `commitAttestation ${this.epochId}`,
+          action,
           // commit index (collect+1)
-          toBN(this.epochId + 1),
-          toBN(this.hash).xor(toBN(this.random)),
-          toBN(Hash.create(this.random.toString())),
-          toBN(0)
+          toBN(this.roundId + 1),
+          toHex(toBN(this.hash).xor(this.random), 32),
+          singleHash(this.random),
+          toHex(toBN(0), 32)
         )
         .then((receipt) => {
           if (receipt) {
-            this.logger.info(`^Ground ${this.epochId} commited`);
+            this.logger.info(`^GRound ${this.roundId} commited`);
             //console.log( receipt );
             this.attestStatus = AttestationRoundStatus.comitted;
           } else {
             this.attestStatus = AttestationRoundStatus.error;
           }
-        });
+        });  
+    } else {
+      this.logger.error(`First round #${this.roundId} cannot be commited (too late)`);
     }
   }
-
+  
   async reveal() {
     if (this.status !== AttestationRoundEpoch.reveal) {
-      this.logger.error(`round #${this.epochId} cannot reveal (not in reveal epoch status ${this.status})`);
+      this.logger.error(`round #${this.roundId} cannot reveal (not in reveal epoch status ${this.status})`);
       return;
     }
     if (this.attestStatus !== AttestationRoundStatus.comitted) {
       switch (this.attestStatus) {
         case AttestationRoundStatus.nothingToCommit:
-          this.logger.warning(`round #${this.epochId} nothing to reveal`);
+          this.logger.warning(`round #${this.roundId} nothing to reveal`);
           break;
         case AttestationRoundStatus.collecting:
           this.logger.error(
-            `  ! AttestEpoch #${this.epochId} cannot reveal (attestations not processed ${this.transactionsProcessed}/${this.attestations.length})`
+            `  ! AttestEpoch #${this.roundId} cannot reveal (attestations not processed ${this.transactionsProcessed}/${this.attestations.length})`
           );
           break;
         case AttestationRoundStatus.commiting:
-          this.logger.error(`round #${this.epochId} cannot reveal (still comitting)`);
+          this.logger.error(`round #${this.roundId} cannot reveal (still comitting)`);
           break;
         default:
-          this.logger.error(`round #${this.epochId} cannot reveal (not commited ${this.attestStatus})`);
+          this.logger.error(`round #${this.roundId} cannot reveal (not commited ${this.attestStatus})`);
           break;
       }
-      return;
+      // return;
     }
 
-    this.logger.info(`^Cround #${this.epochId} reveal`);
+    // this.logger.info(`^Cround #${this.roundId} reveal`);
 
-    let nextRoundMaskedMerkle = toBN(0);
-    let nextRoundMaskerRandom = toBN(0);
+    let nextRoundMaskedMerkleRoot = toHex(toBN(0), 32);
+    let nextRoundHashedRandom = toHex(toBN(0), 32);
 
-    let action = `revealAttestation ${this.epochId}`;
+    let action = `Submitting for bufferNumber ${this.roundId + 2}`;
 
     if (this.nextRound) {
       if (this.nextRound.canCommit()) {
-        action += ` commitAttestation ${this.nextRound.epochId}`;
-        nextRoundMaskedMerkle = toBN(this.nextRound.hash).xor(toBN(this.nextRound.random));
-        nextRoundMaskerRandom = toBN(Hash.create(this.nextRound.random.toString()));
+        action += ` (start commit for ${this.nextRound.roundId})`;
+        nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.hash).xor(this.nextRound.random), 32);
+        nextRoundHashedRandom = singleHash(this.nextRound.random),
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
       else {
-        action += ` commitAttestation ${this.nextRound.epochId} (too late)`;
+        action += ` (failed start commit for ${this.nextRound.roundId} - too late)`;
         this.nextRound.random = toBN(0);
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
@@ -339,14 +356,14 @@ export class AttestationRound {
       .submitAttestation(
         action,
         // commit index (collect+2)
-        toBN(this.epochId + 2),
-        nextRoundMaskedMerkle,
-        nextRoundMaskerRandom,
-        this.random
+        toBN(this.roundId + 2),
+        nextRoundMaskedMerkleRoot,
+        nextRoundHashedRandom,
+        this.attestStatus === AttestationRoundStatus.comitted ? toHex(this.random, 32) : toHex(toBN(0), 32)
       )
       .then((receit) => {
         if (receit) {
-          this.logger.info(`^Cround ${this.epochId} revealed`);
+          this.logger.info(`^Cbuffernumber ${this.roundId} submitted.`);
           this.attestStatus = AttestationRoundStatus.revealed;
         } else {
           this.attestStatus = AttestationRoundStatus.error;

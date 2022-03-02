@@ -28,8 +28,8 @@
 
     "dynamicAttestationConfigurationFolder": "./configs/dac/",
     
-    "commitTime":15,
-    "revealTime":20,
+    "commitTime":11,
+    "revealTime":80,
 
     "chains": [
         {

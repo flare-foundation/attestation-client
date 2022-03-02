@@ -12,8 +12,8 @@ contract StateConnector {
 
     address public constant SIGNAL_COINBASE = address(0x000000000000000000000000000000000000dEaD); // Signalling block.coinbase value
     uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1636070400 seconds; // November 5th, 2021
-    // uint256 public constant BUFFER_WINDOW = 90 seconds; // Amount of time a buffer is active before cycling to the next one
-    uint256 public constant BUFFER_WINDOW = 10 seconds; // Amount of time a buffer is active before cycling to the next one
+    uint256 public constant BUFFER_WINDOW = 90 seconds; // Amount of time a buffer is active before cycling to the next one
+    // uint256 public constant BUFFER_WINDOW = 10 seconds; // Amount of time a buffer is active before cycling to the next one
     uint256 public constant TOTAL_STORED_BUFFERS = 3; // {Requests, Votes, Reveals}
     uint256 public constant TOTAL_STORED_PROOFS = (1 weeks)/BUFFER_WINDOW; // Store a proof for one week
 
@@ -107,10 +107,10 @@ contract StateConnector {
     ) {
         require(bufferNumber > 1);
         uint256 prevBufferNumber = bufferNumber - 1;
-        require(buffers[msg.sender].latestVote >= prevBufferNumber);
+        require(buffers[msg.sender].latestVote >= prevBufferNumber, "wrong latest vote");
         bytes32 revealedRandom = buffers[msg.sender].votes[prevBufferNumber % TOTAL_STORED_BUFFERS].revealedRandom;
         bytes32 committedRandom = buffers[msg.sender].votes[(prevBufferNumber-1) % TOTAL_STORED_BUFFERS].committedRandom;
-        require(committedRandom == keccak256(abi.encodePacked(revealedRandom)));
+        require(committedRandom == keccak256(abi.encodePacked(revealedRandom)), "wrong hash");
         bytes32 maskedMerkleHash = buffers[msg.sender].votes[(prevBufferNumber-1) % TOTAL_STORED_BUFFERS].maskedMerkleHash;
         return (maskedMerkleHash ^ revealedRandom);
     }

@@ -11,6 +11,7 @@ import { AttesterClientConfiguration as AttesterClientConfiguration } from "./At
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager } from "./DynamicAttestationConfig";
 
+const cliProgress = require('cli-progress');
 export class AttestationRoundManager {
   logger: AttLogger;
   static epochSettings: EpochSettings;
@@ -48,10 +49,10 @@ export class AttestationRoundManager {
 
     // all times are in milliseconds
     const now = getTimeMilli();
-    const epochTimeStart = AttestationRoundManager.epochSettings.getEpochIdTimeStart(epochId);
-    const epochCommitTime: number = epochTimeStart + this.config.epochPeriod * 1000 + 1;
-    const epochRevealTime: number = epochCommitTime + this.config.epochPeriod * 1000 + 2;
-    const epochCompleteTime: number = epochRevealTime + this.config.epochPeriod * 1000 + 3;
+    const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStart(epochId);
+    const epochCommitTime: number = epochTimeStart + this.config.epochPeriod * 1000;
+    const epochRevealTime: number = epochCommitTime + this.config.epochPeriod * 1000;
+    const epochCompleteTime: number = epochRevealTime + this.config.epochPeriod * 1000;
 
     let activeRound = this.rounds.get(epochId);
 
@@ -59,6 +60,17 @@ export class AttestationRoundManager {
     if (activeRound === undefined) {
       activeRound = new AttestationRound(epochId, this.logger, this.attesterWeb3);
 
+      let bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+      bar1.start(this.config.epochPeriod*1000, now - epochTimeStart);
+      let intervalId = setInterval(() => {
+        const now = getTimeMilli();
+        if(now > epochCommitTime) {
+          clearInterval(intervalId);
+          bar1.stop()
+        }
+        bar1.update(now - epochTimeStart);              
+      }, 1000)
+      
       // setup commit, reveal and completed callbacks
       this.logger.warning(`round ${epochId} collect epoch [0]`);
 
@@ -98,6 +110,11 @@ export class AttestationRoundManager {
       if (prevRound) {
         activeRound.prevRound = prevRound;
         prevRound.nextRound = activeRound;
+      } else {
+        // trigger first commit
+        setTimeout(() => {
+          activeRound!.firstCommit();
+        }, epochCommitTime - now + this.config.revealTime * 1000);
       }
     }
 
@@ -122,7 +139,6 @@ export class AttestationRoundManager {
 
   createSimulationAttestation(round: AttestationRound, data: AttestationData): Attestation {
     return new Attestation(round, data, (attestation: Attestation) => {
-
       // set status as valid
       attestation.status = AttestationStatus.valid;
       attestation.verificationData = null;
@@ -153,7 +169,7 @@ export class AttestationRoundManager {
         this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
         return undefined;
       default: {
-        this.logger.error(`  ! '${data.type}': undefined AttestationType (epoch #${round.epochId})`);
+        this.logger.error(`  ! '${data.type}': undefined AttestationType (epoch #${round.roundId})`);
         return undefined;
       }
     }

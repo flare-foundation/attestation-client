@@ -226,7 +226,7 @@ export class ChainNode {
           attestation.reverification = true;
 
           // delay until end of commit epoch
-          const timeDelay = (AttestationRoundManager.epochSettings.getEpochIdCommitTimeEnd(attestation.epochId) - getTimeMilli()) / 1000;
+          const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStart(attestation.epochId) - getTimeMilli()) / 1000;
 
           this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);
         } else {

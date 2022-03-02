@@ -18,7 +18,7 @@ export class SourceHandler {
 
   constructor(round: AttestationRound, source: number, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
-    this.config = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(source, round.epochId);
+    this.config = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(source, round.roundId);
     this.onValidateAttestation = onValidateAttestation;
   }
 

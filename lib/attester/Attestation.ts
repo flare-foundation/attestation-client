@@ -44,7 +44,7 @@ export class Attestation {
 
   constructor(round: AttestationRound, data: AttestationData, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
-    this.epochId = round.epochId;
+    this.epochId = round.roundId;
     this.data = data;
     this.sourceHandler = round.getSourceHandler(data, onValidateAttestation);
   }

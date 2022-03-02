@@ -39,21 +39,21 @@ export class EpochSettings {
   // }
 
   // in milliseconds
-  getEpochIdTimeStart(id: BN | number): number {
+  getRoundIdTimeStart(id: BN | number): number {
     return this._firstEpochStartTime.add(toBN(id).mul(this._epochPeriod)).toNumber(); // + this._epochPeriod.toNumber();
   }
 
   // in milliseconds
-  getEpochIdTimeEnd(id: BN | number): number {
-    return this.getEpochIdTimeStart(id) + this._epochPeriod.toNumber();
+  getRoundIdCommitTimeStart(id: BN | number): number {
+    return this.getRoundIdTimeStart(id) + this._epochPeriod.toNumber();
   }
 
   // in milliseconds
-  getEpochIdCommitTimeEnd(id: number): number {
-    return this.getEpochIdTimeEnd(id) + this._epochPeriod.toNumber();
+  getRoundIdRevealTimeStart(id: number): number {
+    return this.getRoundIdCommitTimeStart(id) + this._epochPeriod.toNumber();
   }
   // in milliseconds
   getEpochIdRevealTimeEnd(id: number): number {
-    return this.getEpochIdTimeEnd(id) + this._epochPeriod.toNumber() * 2;
+    return this.getRoundIdCommitTimeStart(id) + this._epochPeriod.toNumber() * 2;
   }
 }

@@ -25,8 +25,8 @@ export class AttesterWeb3 {
     this.stateConnector = await getWeb3Contract(this.web3, this.conf.stateConnectorContractAddress, "StateConnector");
   }
 
-  async submitAttestation(action: string, bufferNumber: BN, maskedMerkleHash: BN, committedRandom: BN, revealedRandom: BN) {
-    let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, toHex(maskedMerkleHash), toHex(committedRandom), toHex(revealedRandom));
+  async submitAttestation(action: string, bufferNumber: BN, maskedMerkleHash: string, committedRandom: string, revealedRandom: string) {
+    let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, maskedMerkleHash, committedRandom, revealedRandom);
 
     this.logger.debug( `action ............. : ${action}` )
     this.logger.debug( `bufferNumber ....... : ${bufferNumber.toString()}` )
@@ -35,7 +35,7 @@ export class AttesterWeb3 {
     this.logger.debug( `revealedRandom ..... : ${revealedRandom.toString()}` )
 
     const receipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode);
-
+console.log(receipt);
     return receipt;
   }
 }

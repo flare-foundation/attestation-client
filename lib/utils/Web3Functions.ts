@@ -98,7 +98,7 @@ export class Web3Functions {
       return receipt;
     } catch (e: any) {
       if (e.message.indexOf("Transaction has been reverted by the EVM") < 0) {
-        this.logger.error(`     ! ${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${e.message}`);
+        this.logger.error(`\n     ! ${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${e.message}`);
       } else {
         await fnToEncode
           .call({ from: this.account.address })
@@ -106,7 +106,7 @@ export class Web3Functions {
             throw Error("     ! unlikely to happen: " + JSON.stringify(result));
           })
           .catch((revertReason: any) => {
-            this.logger.error(`     ! ${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${revertReason}`);
+            this.logger.error(`\n     ! ${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${revertReason}`);
           });
       }
       return null;

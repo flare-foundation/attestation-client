@@ -46,12 +46,14 @@ contract StateConnector {
 // Events
 //====================================================================
 
-    // 'instructions' and 'id' are purposefully generalised so that the attestation request
-    // can pertain to any number of deterministic oracle use-cases in the future.
     event AttestationRequest(
         uint256 timestamp,
-        address sender,
         bytes data
+    );
+
+    event RoundFinalised(
+        uint256 bufferNumber,
+        bytes32 merkleHash
     );
 
 //====================================================================
@@ -68,13 +70,7 @@ contract StateConnector {
     function requestAttestations(
         bytes calldata data
     ) external {
-        // Check for empty inputs
-        // require(instructions > 0,"requestAttestations: 1");
-        // require(id > 0x0,"requestAttestations: 2");
-        // require(dataAvailabilityProof > 0x0,"requestAttestations: 3");
-        // Emit an event containing the details of the request, these details are not stored in 
-        // contract storage so they must be retrieved using event filtering.
-        emit AttestationRequest(block.timestamp, msg.sender, data); 
+        emit AttestationRequest(block.timestamp, data); 
     }
 
     function submitAttestation(
@@ -85,7 +81,7 @@ contract StateConnector {
     ) external returns (
         bool _isInitialBufferSlot
     ) {
-        require(bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW,"submitAttestation: wrong bufferNumber");
+        require(bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW, "wrong buffer number");
         buffers[msg.sender].latestVote = bufferNumber;
         buffers[msg.sender].votes[bufferNumber % TOTAL_STORED_BUFFERS] = Vote(
             maskedMerkleHash,
@@ -126,6 +122,7 @@ contract StateConnector {
         if (msg.sender == block.coinbase && block.coinbase == SIGNAL_COINBASE) {
             totalBuffers = bufferNumber;
             merkleRoots[(bufferNumber-1) % TOTAL_STORED_PROOFS] = merkleHash;
+            emit RoundFinalised(bufferNumber, merkleHash);
         }
     }
 

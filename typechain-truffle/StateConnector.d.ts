@@ -14,15 +14,23 @@ export interface AttestationRequest {
   name: "AttestationRequest";
   args: {
     timestamp: BN;
-    sender: string;
     data: string;
     0: BN;
     1: string;
-    2: string;
   };
 }
 
-type AllEvents = AttestationRequest;
+export interface RoundFinalised {
+  name: "RoundFinalised";
+  args: {
+    bufferNumber: BN;
+    merkleHash: string;
+    0: BN;
+    1: string;
+  };
+}
+
+type AllEvents = AttestationRequest | RoundFinalised;
 
 export interface StateConnectorInstance extends Truffle.ContractInstance {
   BUFFER_TIMESTAMP_OFFSET(txDetails?: Truffle.TransactionDetails): Promise<BN>;

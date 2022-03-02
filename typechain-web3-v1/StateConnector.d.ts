@@ -23,13 +23,15 @@ interface EventOptions {
 
 export type AttestationRequest = ContractEventLog<{
   timestamp: string;
-  instructions: string;
-  id: string;
-  dataAvailabilityProof: string;
+  data: string;
   0: string;
   1: string;
-  2: string;
-  3: string;
+}>;
+export type RoundFinalised = ContractEventLog<{
+  bufferNumber: string;
+  merkleHash: string;
+  0: string;
+  1: string;
 }>;
 
 export interface StateConnector extends BaseContract {
@@ -66,9 +68,7 @@ export interface StateConnector extends BaseContract {
     ): NonPayableTransactionObject<string>;
 
     requestAttestations(
-      instructions: number | string | BN,
-      id: string | number[],
-      dataAvailabilityProof: string | number[]
+      data: string | number[]
     ): NonPayableTransactionObject<void>;
 
     submitAttestation(
@@ -87,6 +87,12 @@ export interface StateConnector extends BaseContract {
       cb?: Callback<AttestationRequest>
     ): EventEmitter;
 
+    RoundFinalised(cb?: Callback<RoundFinalised>): EventEmitter;
+    RoundFinalised(
+      options?: EventOptions,
+      cb?: Callback<RoundFinalised>
+    ): EventEmitter;
+
     allEvents(options?: EventOptions, cb?: Callback<EventLog>): EventEmitter;
   };
 
@@ -95,5 +101,12 @@ export interface StateConnector extends BaseContract {
     event: "AttestationRequest",
     options: EventOptions,
     cb: Callback<AttestationRequest>
+  ): void;
+
+  once(event: "RoundFinalised", cb: Callback<RoundFinalised>): void;
+  once(
+    event: "RoundFinalised",
+    options: EventOptions,
+    cb: Callback<RoundFinalised>
   ): void;
 }

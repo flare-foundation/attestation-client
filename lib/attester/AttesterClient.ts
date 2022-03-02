@@ -11,7 +11,6 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { Source } from "./DynamicAttestationConfig";
 
 export class AttesterClient {
   conf: AttesterClientConfiguration;
@@ -35,69 +34,78 @@ export class AttesterClient {
   }
 
   async start() {
-    const version = "1000";
+    try {
+      const version = "1000";
 
-    this.logger.title(`starting Flare Attester Client v${version}`);
+      this.logger.title(`starting Flare Attester Client v${version}`);
 
-    // create state connector
-    await this.attesterWeb3.initialize();
+      // create state connector
+      this.logger.info(`attesterWeb3 initialize`);
+      await this.attesterWeb3.initialize();
 
-    // process configuration
-    await this.initializeConfiguration();
+      // process configuration
+      this.logger.info(`configuration initialize`);
+      await this.initializeConfiguration();
 
-    await this.roundMng.initialize();
+      this.logger.info(`roundManager initialize`);
+      await this.roundMng.initialize();
 
-    // initialize time and local time difference
-    //const sync = await getInternetTime();
-    //this.logger.info(`internet time sync ${sync}ms`);
+      // initialize time and local time difference
+      //const sync = await getInternetTime();
+      //this.logger.info(`internet time sync ${sync}ms`);
 
-    // validate configuration chains and create nodes
-    await this.initializeChains();
+      // validate configuration chains and create nodes
+      this.logger.info(`chains initialize`);
+      await this.initializeChains();
 
-    if( this.conf.simulation ) {
-      this.startSimulation();
-    }
-
-    // connect to network block callback
-    this.blockCollector = new Web3BlockCollector(
-      this.logger,
-      this.conf.rpcUrl,
-      this.conf.stateConnectorContractAddress,
-      "StateConnector",
-      undefined,
-      (event: any) => {
-        this.processEvent(event);
+      if (this.conf.simulation) {
+        this.startSimulation();
       }
-    );
 
-    //this.startDisplay();
+      // connect to network block callback
+      this.blockCollector = new Web3BlockCollector(
+        this.logger,
+        this.conf.rpcUrl,
+        this.conf.stateConnectorContractAddress,
+        "StateConnector",
+        undefined,
+        (event: any) => {
+          this.processEvent(event);
+        }
+      );
+
+      //this.startDisplay();
+    }
+    catch (error) {
+      this.logger.error2(`start error: ${error}`);
+    }
   }
 
-  async startSimulation(){
-    while( true ){
+  async startSimulation() {
+    while (true) {
 
       const attestation = new AttestationData(null);
 
-      attestation.timeStamp = toBN( getUnixEpochTimestamp());
+      attestation.timeStamp = toBN(getUnixEpochTimestamp());
       attestation.request = (await getRandom()).toString();
-      
+
       attestation.type = AttestationType.Payment;
       attestation.source = ChainType.BTC;
-  
+
       // for sorting
       attestation.blockNumber = toBN(await getRandom());
       attestation.logIndex = await getRandom();
 
       this.roundMng.attestate(attestation);
 
-      await sleepms( 5000 );
+      await sleepms(5000);
     }
   }
 
   async startDisplay() {
     const tty = require("tty");
 
-    if (!tty.WriteStream.isTTY ) {
+    if (!tty.WriteStream.isTTY) {
       this.logger.warning(`TTY not supported`);
     }
 

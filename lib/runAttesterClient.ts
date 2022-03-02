@@ -18,11 +18,6 @@ if( (args as any).simulate ) {
 }
 
 // Create and start Attester Client
-
-console.log( "Here 1");
-
 const attesterClient = new AttesterClient(conf);
-
-console.log( "Here 2");
 
 attesterClient.start();

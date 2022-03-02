@@ -189,21 +189,23 @@ class AttestationSpammer {
   }
 
   async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
-    let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
-    const receipt = await this.web3Functions.signAndFinalize3(
-      `request attestation #${AttestationSpammer.sendCount}`,
-      this.stateConnector.options.address,
-      fnToEncode,
-      DEFAULT_GAS,
-      DEFAULT_GAS_PRICE,
-      true
-    );
+    // todo: fix
+    
+    // let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
+    // const receipt = await this.web3Functions.signAndFinalize3(
+    //   `request attestation #${AttestationSpammer.sendCount}`,
+    //   this.stateConnector.options.address,
+    //   fnToEncode,
+    //   DEFAULT_GAS,
+    //   DEFAULT_GAS_PRICE,
+    //   true
+    // );
 
-    if (receipt) {
-      // this.logger.info(`Attestation sent`)
-    }
+    // if (receipt) {
+    //   // this.logger.info(`Attestation sent`)
+    // }
 
-    return receipt;
+    // return receipt;
   }
 
   async waitForStateConnector() {

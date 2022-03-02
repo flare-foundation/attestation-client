@@ -35,7 +35,7 @@ export class AttesterWeb3 {
     this.logger.debug( `revealedRandom ..... : ${revealedRandom.toString()}` )
 
     const receipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode);
-console.log(receipt);
+    //console.log(receipt);
     return receipt;
   }
 }

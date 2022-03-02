@@ -1,11 +1,10 @@
 import assert from "assert";
 import BN from "bn.js";
 import { toBN } from "flare-mcc";
-import { Hash } from "../utils/Hash";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
 import { MerkleTree, singleHash } from "../utils/MerkleTree";
-import { getCryptoSafeRandom, getRandom, toHex } from "../utils/utils";
+import { getCryptoSafeRandom, toHex } from "../utils/utils";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";

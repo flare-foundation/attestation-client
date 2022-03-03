@@ -1,15 +1,14 @@
-
 //
 //
 //  [ ] proof of existance (tx reference, destination address, amount)
-//  
+//
 //  block (from -14d up to -6 blocks)
 //     - block number
 //     - block hash
 //     - block timestamp
 //     - response
 //
-//  transaction 
+//  transaction
 //     - payment reference (non unique!!!) hex string 32 chars (hex lower case)
 //     - transaction id
 //     - timestamp
@@ -20,7 +19,7 @@
 //     - reference
 //     - hash
 //     - sender address
-//     
+//
 //  [ ] XRP 1st
 //  [ ] 100% make sure that block is completely saved until moved to the next block
 //  [ ] check if using database per chain is easier than tables per chain
@@ -41,7 +40,6 @@
 
 //  [x] keep collecting blocks while waiting for N+1 to complete
 
-
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { DBBlockBase } from "../entity/dbBlock";
@@ -58,10 +56,8 @@ import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration }
 var yargs = require("yargs");
 
 const args = yargs
-  .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false, })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false, })
-  .argv;
-
+  .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -92,13 +88,11 @@ export class Indexer {
 
   preparedBlocks = new Map<number, PreparedBlock[]>();
 
-
   // statistics
   static sendCount = 0;
   static txCount = 0;
   static valid = 0;
   static invalid = 0;
-
 
   Csec2day = 60 * 60 * 24;
 
@@ -108,13 +102,10 @@ export class Indexer {
   prevEpoch = -1;
   tableLock = false;
 
-
-
-
   constructor(config: IndexerConfiguration, chainName: string) {
     this.config = config;
     this.chainType = MCC.getChainType(chainName);
-    this.chainConfig = config.chains.find(el => el.name === chainName)!;
+    this.chainConfig = config.chains.find((el) => el.name === chainName)!;
 
     this.logger = getGlobalLogger(chainName);
 
@@ -127,14 +118,9 @@ export class Indexer {
       cleanupChunkSize: 100,
       activeLimit: 70,
       clientConfig: {
-        url: this.chainConfig.url,
-        username: this.chainConfig.username,
-        password: this.chainConfig.password,
-        rateLimitOptions: {
-          maxRPS: this.chainConfig.maxRequestsPerSecond,
-          timeoutMs: this.chainConfig.clientTimeout,
-        }
-      }
+        ...this.chainConfig.mccCreate,
+        rateLimitOptions: this.chainConfig.rateLimitOptions,
+      },
     };
 
     this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
@@ -172,13 +158,12 @@ export class Indexer {
   }
 
   async blockCompleted(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
-    this.logger.info(`#${block.blockNumber}:N+${this.T - block.blockNumber} completed`)
+    this.logger.info(`#${block.blockNumber}:N+${this.T - block.blockNumber} completed`);
 
     const isBlockNp1 = block.blockNumber == this.N + 1 && block.blockHash == this.blockNp1hash;
 
     if (this.waitNp1) {
       if (isBlockNp1) {
-
         // if we are waiting for block N+1 and this is it then no need to put it into queue but just save it
 
         await this.blockSave(block, transactions);
@@ -203,9 +188,7 @@ export class Indexer {
     return true;
   }
 
-
   async blockSave(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
-
     if (transactions.length === 0) return true;
 
     if (block.blockNumber !== this.N + 1) {
@@ -215,7 +198,6 @@ export class Indexer {
     }
 
     try {
-
       const epoch = this.getBlockSaveEpoch(transactions[0].timestamp);
 
       const tableIndex = epoch & 1;
@@ -226,7 +208,6 @@ export class Indexer {
 
       // check if tables need to be dropped and new created
       if (this.prevEpoch !== epoch && this.prevEpoch !== -1) {
-
         this.tableLock = true;
 
         const time0 = Date.now();
@@ -238,7 +219,7 @@ export class Indexer {
         await queryRunner.release();
         const time1 = Date.now();
 
-        this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`)
+        this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`);
 
         this.tableLock = false;
       }
@@ -252,41 +233,40 @@ export class Indexer {
       const dataCopy = Array<typeof entity>();
 
       for (let d of transactions) {
-        const newData = new this.dbTransactionClasses[tableIndex];
+        const newData = new this.dbTransactionClasses[tableIndex]();
 
         for (let key of Object.keys(d)) {
           newData[key] = d[key];
         }
 
-        dataCopy.push(newData)
+        dataCopy.push(newData);
       }
 
       // create transaction and save everything
-      await this.dbService.connection.transaction("READ COMMITTED", async transaction => {
+      await this.dbService.connection
+        .transaction("READ COMMITTED", async (transaction) => {
+          // setup new N
+          const state = new DBState();
+          state.name = "N";
+          state.valueNumber = this.N + 1;
 
-        // setup new N
-        const state = new DBState();
-        state.name = "N";
-        state.valueNumber = this.N + 1;
+          // block must be marked as confirmed
+          await transaction.save(dataCopy);
+          await transaction.save(block);
+          await transaction.save(state);
 
-        // block must be marked as confirmed
-        await transaction.save(dataCopy);
-        await transaction.save(block);
-        await transaction.save(state);
+          this.blockProcessorManager.clear(this.N + 1);
 
-        this.blockProcessorManager.clear(this.N + 1);
-
-        // increment N if all is ok
-        this.N++;
-
-      }).catch((error) => {
-        this.logger.error(`database error: ${error}`);
-        return false;
-      });
+          // increment N if all is ok
+          this.N++;
+        })
+        .catch((error) => {
+          this.logger.error(`database error: ${error}`);
+          return false;
+        });
 
       return true;
-    }
-    catch (error) {
+    } catch (error) {
       this.logger.error(`saveInterlaced: ${error}`);
       return false;
     }
@@ -302,13 +282,13 @@ export class Indexer {
 
   async getBlockNumberTimestamp(blockNumber: number): Promise<number> {
     // todo: use FAST version of block read since we only need timestamp
-    const block = await this.getBlock(blockNumber) as IBlock;
+    const block = (await this.getBlock(blockNumber)) as IBlock;
 
     return block.unixTimestamp;
   }
 
   async getAverageBlocksPerDay(): Promise<number> {
-    const blockNumber0 = await this.getBlockHeight() - this.chainConfig.confirmationsCollect;
+    const blockNumber0 = (await this.getBlockHeight()) - this.chainConfig.confirmationsCollect;
     const blockNumber1 = Math.ceil(blockNumber0 * 0.9);
 
     // todo: check if blockNumber1 is below out range
@@ -338,7 +318,7 @@ export class Indexer {
   }
 
   async getSyncStartBlockNumber(): Promise<number> {
-    const latestBlockNumber = await this.getBlockHeight() - this.chainConfig.confirmationsCollect;
+    const latestBlockNumber = (await this.getBlockHeight()) - this.chainConfig.confirmationsCollect;
 
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
 
@@ -366,10 +346,7 @@ export class Indexer {
     return blockNumber;
   }
 
-
-
   async saveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
-
     try {
       // save blocks from fromBlockNumber to toBlockNumberInc
       const dbBlocks = [];
@@ -377,7 +354,7 @@ export class Indexer {
         // todo: use fast getblock function (no details)
         const block = await this.getBlock(blockNumber);
 
-        const dbBlock = new (this.dbBlockClass)();
+        const dbBlock = new this.dbBlockClass();
 
         dbBlock.blockNumber = blockNumber;
         dbBlock.blockHash = block.hash;
@@ -394,12 +371,10 @@ export class Indexer {
       //   .set({ confirmed: true })
       //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
       //   .execute();
-    }
-    catch (error) {
+    } catch (error) {
       this.logger.error2(`error ${error}`);
     }
   }
-
 
   async saveOrWaitNp1Block() {
     const Np1 = this.N + 1;
@@ -409,7 +384,6 @@ export class Indexer {
     // check if N+1 with blockNp1hash is already prepared (otherwise wait for it)
     for (let preparedBlock of preparedBlocks) {
       if (preparedBlock.block.blockHash === this.blockNp1hash) {
-
         // save prepared N+1 block with active hash
         await this.blockSave(preparedBlock.block, preparedBlock.transactions);
 
@@ -441,7 +415,6 @@ export class Indexer {
     }
   }
 
-
   async runBlockHeaderCollecting() {
     let localN = this.N;
     let localBlockNp1hash = "";
@@ -450,7 +423,7 @@ export class Indexer {
       try {
         // get chain top block
         const localT = await this.getBlockHeight();
-        const blockNp1 = await this.getBlock(localN + 1) as IBlock;
+        const blockNp1 = (await this.getBlock(localN + 1)) as IBlock;
 
         // has N+1 confirmation block
         const isNewBlock = localN < localT - this.chainConfig.confirmationsCollect;
@@ -471,23 +444,19 @@ export class Indexer {
 
         // save block N+1 hash
         localBlockNp1hash = blockNp1.hash;
-
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
       }
     }
   }
 
-
-
   async runIndexer() {
-
     // wait for db to connect
     await this.waitForDBConnection();
 
     await this.prepareTables();
 
-    const startBlockNumber = await this.getBlockHeight() - this.chainConfig.confirmationsCollect;
+    const startBlockNumber = (await this.getBlockHeight()) - this.chainConfig.confirmationsCollect;
 
     this.N = startBlockNumber;
 
@@ -509,7 +478,7 @@ export class Indexer {
         this.T = await this.getBlockHeight();
 
         // change getBlock to getBlockHeader
-        const blockNp1 = await this.getBlock(this.N + 1) as IBlock;
+        const blockNp1 = (await this.getBlock(this.N + 1)) as IBlock;
 
         // has N+1 confirmation block
         const isNewBlock = this.N < this.T - this.chainConfig.confirmationsCollect;
@@ -529,14 +498,12 @@ export class Indexer {
         // process new or changed N+1
         this.blockNp1hash = blockNp1.hash;
         this.blockProcessorManager.process(blockNp1);
-
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
       }
     }
   }
 }
-
 
 async function displayStats() {
   const period = 10000;
@@ -569,7 +536,6 @@ async function runIndexer() {
   return await indexer.runIndexer();
 }
 
-
 // read .env
 DotEnvExt();
 
@@ -580,4 +546,3 @@ runIndexer()
     console.error(error);
     process.exit(1);
   });
-

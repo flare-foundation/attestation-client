@@ -16,10 +16,10 @@ export class DBBlockBase {
     timestamp!: number;
 
     @Column()
-    confirmed: boolean;
+    confirmed: boolean = false;
 
     @Column()
-    response!: string;
+    response: string = "";
 
 }
 

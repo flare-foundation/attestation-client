@@ -53,7 +53,7 @@ export class BlockProcessor {
         await this.blockProcessorManager.complete(this);
     }
 
-    stop() {
+    pause() {
         this.active = false;
     }
 

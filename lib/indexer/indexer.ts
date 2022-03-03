@@ -42,10 +42,9 @@
 
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/types";
-import { Entity } from "typeorm";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
-import { DBTransactionBase, DBTransactionXRP0, DBTransactionXRP1 } from "../entity/dbTransaction";
+import { DBTransactionBase } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
@@ -93,15 +92,22 @@ export class Indexer {
   preparedBlocks = new Map<number, PreparedBlock[]>();
 
 
+  // statistics
   static sendCount = 0;
   static txCount = 0;
   static valid = 0;
   static invalid = 0;
-  static failed = 0;
-  static retry = 0;
 
 
   Csec2day = 60 * 60 * 24;
+
+  dbTransactionClasses;
+  dbBlockClass;
+
+  prevEpoch = -1;
+  tableLock = false;
+
+
 
 
   constructor(config: IndexerConfiguration, chainName: string) {
@@ -120,36 +126,10 @@ export class Indexer {
       rateLimitOptions: {
         maxRPS: this.chainConfig.maxRequestsPerSecond,
         timeoutMs: this.chainConfig.clientTimeout,
-        onSend: this.onSend.bind(this),
-        onResponse: this.onResponse.bind(this),
-        onLimitReached: this.limitReached.bind(this),
-        onRetry: this.onRetry.bind(this),
       },
     }) as RPCInterface;
 
     this.blockProcessorManager = new BlockProcessorManager(this.client, this.blockCompleted.bind(this));
-  }
-
-  maxQueue = 5;
-  wait: boolean = false;
-
-  limitReached(inProcessing?: number, inQueue?: number) { }
-
-  onSend(inProcessing?: number, inQueue?: number) {
-    //this.logger.info(`Send ${inProcessing} ${inQueue}`);
-    this.wait = inQueue! >= this.maxQueue;
-
-    Indexer.txCount++;
-  }
-
-  onRetry(retryCount?: number) {
-    //this.logger.info(`retry ${retryCount}`);
-    Indexer.retry++;
-  }
-
-  onResponse(inProcessing?: number, inQueue?: number) {
-    //this.logger.info(`Response ${inProcessing} ${inQueue} ${AttestationCollector.txCount}`);
-    this.wait = inQueue! >= this.maxQueue;
   }
 
   get lastConfimedBlockNumber() {
@@ -168,23 +148,13 @@ export class Indexer {
     }
   }
 
-  getEpoch(time: number): number {
+  getBlockSaveEpoch(time: number): number {
     // 2022/01/01 00:00:00
     return Math.floor((time - 1640991600) / 60);
   }
 
-  prevEpoch = -1;
-  tableLock = false;
-
-  async queryInterlaced(reference: string): Promise<DBTransactionBase[]> {
-    const references0 = await this.dbService.connection.createQueryBuilder().select('*').from(this.dbTableClass[0], 'transactions').where('transactions.paymentReference=:ref', { ref: reference }).getRawMany();
-    const references1 = await this.dbService.connection.createQueryBuilder().select('*').from(this.dbTableClass[1], 'transactions').where('transactions.paymentReference=:ref', { ref: reference }).getRawMany();
-
-    return references0.concat(references1);
-  }
-
   async blockCompleted(blockProcessor: BlockProcessor): Promise<boolean> {
-    this.logger.info( `#${blockProcessor.block.number}:N+${this.T - blockProcessor.block.number} completed`)
+    this.logger.info(`#${blockProcessor.block.number}:N+${this.T - blockProcessor.block.number} completed`)
 
     const isBlockNp1 = blockProcessor.block.number == this.N + 1 && blockProcessor.block.hash == this.blockNp1hash;
 
@@ -202,7 +172,8 @@ export class Indexer {
     }
 
     // queue it
-    const processors = this.preparedBlocks.get(blockProcessor.block.number);
+    let processors = this.preparedBlocks.get(blockProcessor.block.number);
+    if (!processors) processors = [];
     processors.push(new PreparedBlock(blockProcessor.completedBlock, blockProcessor.completedTransactions));
 
     // if N+1 is ready then begin processing N+2
@@ -221,12 +192,13 @@ export class Indexer {
 
     if (block.blockNumber !== this.N + 1) {
       // what now? PANIC
+      this.logger.error2(`expected to save blockNumber ${this.N + 1} (but got ${block.blockNumber})`);
       return;
     }
 
     try {
 
-      const epoch = this.getEpoch(transactions[0].timestamp);
+      const epoch = this.getBlockSaveEpoch(transactions[0].timestamp);
 
       const tableIndex = epoch & 1;
 
@@ -255,14 +227,14 @@ export class Indexer {
 
       this.prevEpoch = epoch;
 
-      const entity = this.dbTableClass[tableIndex];
+      const entity = this.dbTransactionClasses[tableIndex];
 
       // create a copy of data with specific data types (for database)
       // we need to make a copy so that entity class is correct
       const dataCopy = Array<typeof entity>();
 
       for (let d of transactions) {
-        const newData = new this.dbTableClass[tableIndex];
+        const newData = new this.dbTransactionClasses[tableIndex];
 
         for (let key of Object.keys(d)) {
           newData[key] = d[key];
@@ -302,45 +274,21 @@ export class Indexer {
     }
   }
 
-
-  createChainTransactionEntity(tableName: string) {
-    @Entity({ name: tableName }) class DBChainTransaction extends DBTransactionBase { }
-
-    return DBChainTransaction;
-  }
-
-  dbTableClass;
-  dbBlockClass;
-
-
   prepareTables() {
-    // let chainType = getChainType(this.chainConfig.name) // TODO: export this from flare-mcc
-    let chainType = ChainType.XRP;
+    let chainType = MCC.getChainType(this.chainConfig.name);
     let prepared = prepareIndexerTables(chainType);
-    this.dbTableClass = prepared.transactionTable;
-    this.dbBlockClass = prepared.blockTable;
- }
 
-  // async prepareTables() {
-  //   this.dbTableClass = []
-  //   switch (this.chainConfig.name) {
-  //     case "XRP":
-  //       this.dbTableClass.push(DBTransactionXRP0;
-  //       this.dbTableClass[1] = DBTransactionXRP1;
-  //       break;
-  //   }
-  // }
+    this.dbTransactionClasses = prepared.transactionTable;
+    this.dbBlockClass = prepared.blockTable;
+  }
 
   async getBlockNumberTimestamp(blockNumber: number): Promise<number> {
-    const block = await this.client.getBlock(blockNumber);
+    // todo: use FAST version of block read since we only need timestamp
+    const block = await this.client.getBlock(blockNumber) as IBlock;
 
-    // XRP
-    return this.getBlockTimestamp(block as IBlock);
-  }
-  getBlockTimestamp(block: IBlock): number {
     return block.unixTimestamp;
   }
-
+  
   async getAverageBlocksPerDay(): Promise<number> {
     const blockNumber0 = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
     const blockNumber1 = Math.ceil(blockNumber0 * 0.9);
@@ -409,18 +357,19 @@ export class Indexer {
       const dbBlocks = [];
       for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++) {
         // todo: use fast getblock function (no details)
-        const block = this.client.getBlock(blockNumber);
+        const block = await this.client.getBlock(blockNumber);
 
-        const dbBlock = new DBBlockBase();
+        const dbBlock = new (this.dbBlockClass)();
+
         dbBlock.blockNumber = blockNumber;
         dbBlock.blockHash = block.hash;
-        dbBlock.timestamp = this.getBlockTimestamp(block);
+        dbBlock.timestamp = block.unixTimestamp;
+        dbBlock.response = block.response ? block.response : "";
 
         dbBlocks.push(dbBlock);
       }
 
-      this.dbService.manager.save(dbBlocks);
-
+      await this.dbService.manager.save(dbBlocks);
 
       // await this.dbService.manager
       //   .createQueryBuilder()
@@ -549,13 +498,10 @@ async function displayStats() {
       `^Y${round((Indexer.sendCount * 1000) / period, 1)} req/sec  ${round((Indexer.txCount * 1000) / period, 1)} tx/sec (${round(
         Indexer.txCount / Indexer.sendCount,
         1
-      )} tx/req)   valid ${Indexer.valid} invalid ${Indexer.invalid} failed ${Indexer.failed} retry  ${Indexer.retry
-      }`
+      )} tx/req)   valid ${Indexer.valid} invalid ${Indexer.invalid}`
     );
     Indexer.sendCount = 0;
     Indexer.txCount = 0;
-    Indexer.failed = 0;
-    Indexer.retry = 0;
   }
 }
 

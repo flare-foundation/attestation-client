@@ -1,3 +1,4 @@
+import { IBlock } from "flare-mcc";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
 import { CachedMccClient } from "./CachedMccClient";
@@ -57,6 +58,8 @@ export class LimitingProcessor {
    debugLogInterval: NodeJS.Timeout;
    debugLabel = "";
    reportInMs = 1000;
+
+   block: IBlock;
 
    constructor(cachedClient: CachedMccClient<any, any>, options?: LimitingProcessorOptions) {
       this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;

@@ -24,6 +24,7 @@ export function BlockProcessor(chainType: ChainType) {
 
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
+    this.block=block;
     let txPromises = block.transactionHashes.map(async (txid) => {
       let processed = (await this.call(() => getFullTransactionUtxo(this.client, txid, this))) as UtxoTransaction;
       return augmentTransactionUtxo(this.client, block, processed);
@@ -39,6 +40,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
 export class AlgoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: AlgoBlock, onSave: onSaveSig) {
+    this.block=block;
     let txPromises = block.data.transactions.map((txObject) => {
       const getTxObject = {
         currentRound: block.number,
@@ -48,8 +50,8 @@ export class AlgoBlockProcessor extends LimitingProcessor {
       return augmentTransactionAlgo(this.client, block, processed);
     });
     const transDb = await Promise.all(txPromises) as DBTransactionBase[];
-    this.stop();
-    const blockDb = await augmentBlockAlgo(block);
+    this.pause();
+    const blockDb = await augmentBlockAlgo(this.client.client, block);
     
     onSave(blockDb, transDb);
   }
@@ -57,6 +59,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
 
 export class XrpBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: XrpBlock, onSave: onSaveSig) {
+    this.block=block;
     let txPromises = block.data.result.ledger.transactions.map((txObject) => {
       const newObj = {
         result : txObject
@@ -66,8 +69,8 @@ export class XrpBlockProcessor extends LimitingProcessor {
       return augmentTransactionXrp(this.client, block, processed);
     });
     const transDb = await Promise.all(txPromises) as DBTransactionBase[];
-    this.stop();
-    const blockDb = await augmentBlock(block);
+    this.pause();
+    const blockDb = await augmentBlock(this.client.client, block);
     
     onSave(blockDb, transDb);
   }

@@ -1,16 +1,18 @@
-import { IBlock, RPCInterface } from "flare-mcc";
-import { BlockProcessor } from "./blockProcessor";
+import { IBlock } from "flare-mcc";
+import { CachedMccClient } from "../caching/CachedMccClient";
+import { LimitingProcessor } from "../caching/LimitingProcessor";
+import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
 
 export class BlockProcessorManager {
 
-    blockProcessors: BlockProcessor[] = [];
+    blockProcessors: LimitingProcessor[] = [];
 
-    client: RPCInterface;
+    cachedClient: CachedMccClient<any,any>;
 
     completeCallback: any;
 
-    constructor(client: RPCInterface, completeCallback: any) {
-        this.client = client;
+    constructor(client: CachedMccClient<any,any>, completeCallback: any) {
+        this.cachedClient = client;
         this.completeCallback = completeCallback;
     }
 
@@ -28,19 +30,18 @@ export class BlockProcessorManager {
 
         if (started) return;
 
-        const processor = new BlockProcessor(this, block);
+        const processor = new (BlockProcessor( this.cachedClient.chainType ))( this.cachedClient );
         this.blockProcessors.push(processor);
-        processor.start();
-    }
 
-    async complete(completedBlock: BlockProcessor) {
-        await this.completeCallback(completedBlock);
+        processor.debugOn( block.hash );
+        processor.initializeJobs(block,this.completeCallback);
     }
-
+    
     clear(fromBlock: number) {
         // delete all that are block number <= completed block number
         for (let a = 0; a < this.blockProcessors.length; a++) {
             if (this.blockProcessors[a].block.number <= fromBlock) {
+                this.blockProcessors[a].destroy();
                 this.blockProcessors = this.blockProcessors.splice(a--, 1);
             }
         }

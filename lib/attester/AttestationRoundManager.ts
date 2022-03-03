@@ -164,10 +164,10 @@ export class AttestationRoundManager {
           AttestationRoundManager.chainManager.validateTransaction(data.source, attestation);
         });
       }
-      case AttestationType.BalanceDecreasingPayment:
-        // todo: implement balance change check
-        this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
-        return undefined;
+      // case AttestationType.BalanceDecreasingPayment:
+      //   // todo: implement balance change check
+      //   this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
+      //   return undefined;
       default: {
         this.logger.error(`  ! '${data.type}': undefined AttestationType (epoch #${round.roundId})`);
         return undefined;

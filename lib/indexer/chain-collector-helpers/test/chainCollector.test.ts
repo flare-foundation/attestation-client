@@ -81,19 +81,19 @@ describe("Test process helpers ", () => {
 
     // Simulation of switching between the two processors
     let first = false;
-    processor.stop()
+    processor.pause()
 
     function simulate() {
       if (first) {
         console.log("RUNNING 2 ...");
-        processor.stop();
-        processor2.start()
+        processor.pause();
+        processor2.continue()
         first = false;
         setTimeout(() => {simulate()}, 10000)
       } else {
         console.log("RUNNING 1 ...");
-        processor2.stop()
-        processor.start();
+        processor2.pause()
+        processor.continue();
         first = true;
         setTimeout(() => {simulate()}, 20000)
       }

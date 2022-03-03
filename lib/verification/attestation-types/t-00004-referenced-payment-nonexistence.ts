@@ -6,7 +6,8 @@ import {
    CHAIN_ID_BYTES,
    DATA_AVAILABILITY_BYTES,
    PAYMENT_REFERENCE_BYTES,
-   TIMESTAMP_BYTES
+   TIMESTAMP_BYTES,
+   TX_ID_BYTES
 } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
@@ -20,7 +21,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "AttestationType",
          description: 
 `
-
+Attestation type id for this request, must be 4.
 `
       },
       {
@@ -29,7 +30,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "ChainType",
          description: 
 `
-
+The ID of the underlying chain, e.g. 0 for BTC, 3 for XRP, etc. (see the documentation for supported chain types).
 `
       },
       {
@@ -38,7 +39,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "NumberLike",
          description: 
 `
-
+Maximum median timestamp of the block where the transaction is searched for.
 `
       },
       {
@@ -47,7 +48,20 @@ export const TDEF: AttestationTypeScheme = {
          type: "NumberLike",
          description: 
 `
-
+Maximum number of the block where the transaction is searched for.
+`
+      },
+      {
+         key: "destinationAddress",
+         size: TX_ID_BYTES,
+         type: "BytesLike",
+         description:
+`
+Payment nonexistence is confirmed if there is no payment transaction (attestation of \`PaymentProof\` type)
+with correct \`(destinationAddress, paymentReference, amount)\` combination
+and with transaction status 0 (success) or 2 (failure, receiver's fault). 
+Note: if there exist only payment(s) with status 1 (failure, sender's fault) 
+then payment nonexistence is still confirmed.
 `
       },
       {
@@ -56,7 +70,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "NumberLike",
          description: 
 `
-
+The exact amount to search for.
 `
       },
       {
@@ -65,7 +79,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "NumberLike",
          description: 
 `
-
+The payment reference to search for.
 `
       },
       {
@@ -74,7 +88,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "BytesLike",
          description: 
 `
-
+Block hash of the finalization block for a block that has number above \`endBlock\` and timestamp above \`endTimestamp\`.
 `
       },
    ],
@@ -120,6 +134,7 @@ then payment nonexistence is still confirmed.
          type: "uint128",
          description:
 `
+The payment reference searched for.
 `
       },
       {
@@ -127,6 +142,7 @@ then payment nonexistence is still confirmed.
          type: "uint128",
          description:
 `
+The amount searched for.
 `
       },
       {

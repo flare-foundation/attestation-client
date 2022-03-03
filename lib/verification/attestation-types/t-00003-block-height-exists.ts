@@ -17,7 +17,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "AttestationType",
          description: 
 `
-
+Attestation type id for this request, must be 3.
 `
       },
       {
@@ -26,7 +26,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "ChainType",
          description: 
 `
-
+The ID of the underlying chain, e.g. 0 for BTC, 3 for XRP, etc. (see the documentation for supported chain types).
 `
       },
       {
@@ -35,7 +35,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "NumberLike",
          description: 
 `
-
+Number of the block to prove the existence of.
 `
       },
       {
@@ -44,7 +44,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "BytesLike",
          description: 
 `
-
+Hash of the block to prove the existence of.
 `
       },
    ],

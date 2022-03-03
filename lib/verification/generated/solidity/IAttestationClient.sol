@@ -27,11 +27,12 @@ interface IAttestationClient {
       // Output index for transactions with multiple outputs.
       uint8 utxo;
 
-      // In case of single source address (required for redemptions): hash of the source address as a string.
-      // For multi-source payments (allowed for minting and topup): must be zero.
+      // Hash of the source address as a string. For utxo transactions with multiple addresses,
+      // it is the one for which `spent` is calculated and was indicated 
+      // in the state connector instructions by the `inUtxo` parameter.
       bytes32 sourceAddress;
 
-      // Hash of the receiving address as a string (there can only be a single address for this type).
+      // Hash of the receiving address as a string (the one indicated by the `utxo` parameter).
       bytes32 receivingAddress;
 
       // Chain dependent extra data (e.g. memo field, detination tag, tx data)
@@ -40,8 +41,9 @@ interface IAttestationClient {
       // See PaymentReference.sol for details of payment reference calculation.
       uint256 paymentReference;
 
-      // The amount that what went out of source address (or all source addresses), in smallest underlying units.
-      // It includes both payment value and fee / gas.
+      // The amount that went out of the `sourceAddress`, in smallest underlying units.
+      // It includes both payment value and fee (gas). For utxo chains it is calculcated as 
+      // `outgoing_amount - returned_amount` and can be negative, that's why signed `int256` is used.
       int256 spentAmount;
 
       // The amount the receiving address received, in smallest underlying units.
@@ -74,13 +76,13 @@ interface IAttestationClient {
       // Hash of the transaction on the underlying chain.
       bytes32 transactionHash;
 
-      // Must always be a single address. For utxo transactions with multiple addresses,
+      // Hash of the source address as a string. For utxo transactions with multiple addresses,
       // it is the one for which `spent` is calculated and was indicated in the state connector instructions.
       bytes32 sourceAddress;
 
-      // The amount that what went out of source address, in smallest underlying units.
-      // It includes both payment value and fee (gas).
-      // For utxo chains it can be negative, that's why signed int256 is used.
+      // The amount that went out of the `sourceAddress`, in smallest underlying units.
+      // It includes both payment value and fee (gas). For utxo chains it is calculcated as 
+      // `outgoing_amount - returned_amount` and can be negative, that's why signed `int256` is used.
       int256 spentAmount;
 
       // If the attestation provider detects that the transaction is actually a valid payment (same conditions
@@ -123,10 +125,10 @@ interface IAttestationClient {
       // then payment nonexistence is still confirmed.
       bytes32 destinationAddress;
 
-      // 
+      // The payment reference searched for.
       uint128 paymentReference;
 
-      // 
+      // The amount searched for.
       uint128 amount;
 
       // The first (confirmed) block that gets checked. It is the block that has timestamp (median time) 

@@ -17,7 +17,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "AttestationType",
          description: 
 `
-
+Attestation type id for this request, must be 1.
 `
       },
       {
@@ -26,7 +26,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "ChainType",
          description: 
 `
-
+The ID of the underlying chain, e.g. 0 for BTC, 3 for XRP, etc. (see the documentation for supported chain types).
 `
       },
       {
@@ -35,7 +35,16 @@ export const TDEF: AttestationTypeScheme = {
          type: "NumberLike",
          description: 
 `
-
+Index of the receivingAddress on utxo chains.
+`
+      },
+      {
+         key: "inUtxo",
+         size: UTXO_BYTES,
+         type: "NumberLike",
+         description:
+`
+Index of the sourceAddress on utxo chains.
 `
       },
       {
@@ -44,7 +53,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "BytesLike",
          description: 
 `
-
+Transaction hash to search for.
 `
       },
       {
@@ -53,7 +62,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "BytesLike",
          description: 
 `
-
+Block hash of the finalization block for the searched transaction (e.g. at least 6 blocks after the block with transaction).
 `
       },
    ],
@@ -104,8 +113,9 @@ Output index for transactions with multiple outputs.
          type: "bytes32",
          description:
 `
-In case of single source address (required for redemptions): hash of the source address as a string.
-For multi-source payments (allowed for minting and topup): must be zero.
+Hash of the source address as a string. For utxo transactions with multiple addresses,
+it is the one for which \`spent\` is calculated and was indicated 
+in the state connector instructions by the \`inUtxo\` parameter.
 `
       },
       {
@@ -113,7 +123,7 @@ For multi-source payments (allowed for minting and topup): must be zero.
          type: "bytes32",
          description:
 `
-Hash of the receiving address as a string (there can only be a single address for this type).
+Hash of the receiving address as a string (the one indicated by the \`utxo\` parameter).
 `
       },
       {
@@ -132,8 +142,9 @@ See PaymentReference.sol for details of payment reference calculation.
          type: "int256",
          description:
 `
-The amount that what went out of source address (or all source addresses), in smallest underlying units.
-It includes both payment value and fee / gas.
+The amount that went out of the \`sourceAddress\`, in smallest underlying units.
+It includes both payment value and fee (gas). For utxo chains it is calculcated as 
+\`outgoing_amount - returned_amount\` and can be negative, that's why signed \`int256\` is used.
 `
       },
       {

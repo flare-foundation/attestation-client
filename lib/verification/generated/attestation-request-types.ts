@@ -10,6 +10,7 @@ export interface ARPayment {
    attestationType: AttestationType;
    chainId: ChainType;
    utxo: NumberLike;
+   inUtxo: NumberLike;
    id: BytesLike;
    dataAvailabilityProof: BytesLike;
 }
@@ -31,6 +32,7 @@ export interface ARReferencedPaymentNonexistence {
    chainId: ChainType;
    endTimestamp: NumberLike;
    endBlock: NumberLike;
+   destinationAddress: BytesLike;
    amount: NumberLike;
    paymentReference: NumberLike;
    dataAvailabilityProof: BytesLike;

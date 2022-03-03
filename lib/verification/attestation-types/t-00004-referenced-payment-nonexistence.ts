@@ -21,7 +21,7 @@ export const TDEF: AttestationTypeScheme = {
          type: "AttestationType",
          description: 
 `
-Attestation type id for this request, must be 4.
+Attestation type id for this request, see AttestationType enum.
 `
       },
       {
@@ -30,7 +30,7 @@ Attestation type id for this request, must be 4.
          type: "ChainType",
          description: 
 `
-The ID of the underlying chain, e.g. 0 for BTC, 3 for XRP, etc. (see the documentation for supported chain types).
+The ID of the underlying chain, see ChainType enum.
 `
       },
       {

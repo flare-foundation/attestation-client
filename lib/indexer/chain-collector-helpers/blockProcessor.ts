@@ -1,10 +1,26 @@
-import { AlgoBlock, AlgoTransaction, BlockBase, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
+import { AlgoBlock, AlgoTransaction, BlockBase, ChainType, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 import { augmentBlock, augmentBlockAlgo, augmentBlockUtxo } from "./augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
 import { getFullTransactionUtxo } from "./readTransaction";
 import { onSaveSig } from "./types";
+
+
+export function BlockProcessor(chainType: ChainType) {
+    switch (chainType) {
+        case ChainType.XRP:
+            return XrpBlockProcessor
+        case ChainType.BTC:
+        case ChainType.LTC:
+        case ChainType.DOGE:
+            return UtxoBlockProcessor
+        case ChainType.ALGO:
+            return AlgoBlockProcessor
+        default:
+            return null;
+    }
+}
 
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {

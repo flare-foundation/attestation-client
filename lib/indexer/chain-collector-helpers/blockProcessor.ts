@@ -31,7 +31,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
     const transDb = await Promise.all(txPromises);
 
-    const blockDb = await augmentBlockUtxo(this.client.client, block);
+    const blockDb = await augmentBlockUtxo(block);
 
     onSave(blockDb, transDb);
   }
@@ -49,7 +49,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
     });
     const transDb = await Promise.all(txPromises) as DBTransactionBase[];
     this.stop();
-    const blockDb = await augmentBlockAlgo(this.client.client, block);
+    const blockDb = await augmentBlockAlgo(block);
     
     onSave(blockDb, transDb);
   }
@@ -67,7 +67,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
     });
     const transDb = await Promise.all(txPromises) as DBTransactionBase[];
     this.stop();
-    const blockDb = await augmentBlock(this.client.client, block);
+    const blockDb = await augmentBlock(block);
     
     onSave(blockDb, transDb);
   }

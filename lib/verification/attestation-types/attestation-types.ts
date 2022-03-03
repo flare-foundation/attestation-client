@@ -130,6 +130,7 @@ export interface AttestationRequestScheme {
 export interface DataHashScheme {
   key: string;
   type: SupportedSolidityType;
+  description: string;
 }
 
 type AttestationSource = ChainType  // Other source types may be added.

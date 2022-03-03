@@ -1,4 +1,3 @@
-
 //////////////////////////////////////////////////////////////
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
@@ -13,21 +12,21 @@ import {verifyPaymentBTC} from "./BTC/v-00001-payment.btc"
 import {verifyPaymentLTC} from "./LTC/v-00001-payment.ltc"
 import {verifyPaymentDOGE} from "./DOGE/v-00001-payment.doge"
 import {verifyPaymentALGO} from "./ALGO/v-00001-payment.algo"
-import {verifyBalanceDecreasingPaymentXRP} from "./XRP/v-00002-balance-decreasing-payment.xrp"
-import {verifyBalanceDecreasingPaymentBTC} from "./BTC/v-00002-balance-decreasing-payment.btc"
-import {verifyBalanceDecreasingPaymentLTC} from "./LTC/v-00002-balance-decreasing-payment.ltc"
-import {verifyBalanceDecreasingPaymentDOGE} from "./DOGE/v-00002-balance-decreasing-payment.doge"
-import {verifyBalanceDecreasingPaymentALGO} from "./ALGO/v-00002-balance-decreasing-payment.algo"
-import {verifyBlockHeightExistenceXRP} from "./XRP/v-00003-block-height-existence.xrp"
-import {verifyBlockHeightExistenceBTC} from "./BTC/v-00003-block-height-existence.btc"
-import {verifyBlockHeightExistenceLTC} from "./LTC/v-00003-block-height-existence.ltc"
-import {verifyBlockHeightExistenceDOGE} from "./DOGE/v-00003-block-height-existence.doge"
-import {verifyBlockHeightExistenceALGO} from "./ALGO/v-00003-block-height-existence.algo"
-import {verifyReferencedPaymentNonExistenceXRP} from "./XRP/v-00004-referenced-payment-non-existence.xrp"
-import {verifyReferencedPaymentNonExistenceBTC} from "./BTC/v-00004-referenced-payment-non-existence.btc"
-import {verifyReferencedPaymentNonExistenceLTC} from "./LTC/v-00004-referenced-payment-non-existence.ltc"
-import {verifyReferencedPaymentNonExistenceDOGE} from "./DOGE/v-00004-referenced-payment-non-existence.doge"
-import {verifyReferencedPaymentNonExistenceALGO} from "./ALGO/v-00004-referenced-payment-non-existence.algo"
+import {verifyBalanceDecreasingTransactionXRP} from "./XRP/v-00002-balance-decreasing-transaction.xrp"
+import {verifyBalanceDecreasingTransactionBTC} from "./BTC/v-00002-balance-decreasing-transaction.btc"
+import {verifyBalanceDecreasingTransactionLTC} from "./LTC/v-00002-balance-decreasing-transaction.ltc"
+import {verifyBalanceDecreasingTransactionDOGE} from "./DOGE/v-00002-balance-decreasing-transaction.doge"
+import {verifyBalanceDecreasingTransactionALGO} from "./ALGO/v-00002-balance-decreasing-transaction.algo"
+import {verifyBlockHeightExistsXRP} from "./XRP/v-00003-block-height-exists.xrp"
+import {verifyBlockHeightExistsBTC} from "./BTC/v-00003-block-height-exists.btc"
+import {verifyBlockHeightExistsLTC} from "./LTC/v-00003-block-height-exists.ltc"
+import {verifyBlockHeightExistsDOGE} from "./DOGE/v-00003-block-height-exists.doge"
+import {verifyBlockHeightExistsALGO} from "./ALGO/v-00003-block-height-exists.algo"
+import {verifyReferencedPaymentNonexistenceXRP} from "./XRP/v-00004-referenced-payment-nonexistence.xrp"
+import {verifyReferencedPaymentNonexistenceBTC} from "./BTC/v-00004-referenced-payment-nonexistence.btc"
+import {verifyReferencedPaymentNonexistenceLTC} from "./LTC/v-00004-referenced-payment-nonexistence.ltc"
+import {verifyReferencedPaymentNonexistenceDOGE} from "./DOGE/v-00004-referenced-payment-nonexistence.doge"
+import {verifyReferencedPaymentNonexistenceALGO} from "./ALGO/v-00004-referenced-payment-nonexistence.algo"
 
 
 export async function verifyAttestation(client: RPCInterface, request: string, indexer: IndexerQueryHandler): Promise<Verification<any>>{
@@ -48,48 +47,48 @@ export async function verifyAttestation(client: RPCInterface, request: string, i
             default:
                throw new Error("Wrong source id");
          }
-      case AttestationType.BalanceDecreasingPayment:
+      case AttestationType.BalanceDecreasingTransaction:
          switch(sourceId) {
             case ChainType.XRP:
-               return verifyBalanceDecreasingPaymentXRP(client, request, indexer);
+               return verifyBalanceDecreasingTransactionXRP(client, request, indexer);
             case ChainType.BTC:
-               return verifyBalanceDecreasingPaymentBTC(client, request, indexer);
+               return verifyBalanceDecreasingTransactionBTC(client, request, indexer);
             case ChainType.LTC:
-               return verifyBalanceDecreasingPaymentLTC(client, request, indexer);
+               return verifyBalanceDecreasingTransactionLTC(client, request, indexer);
             case ChainType.DOGE:
-               return verifyBalanceDecreasingPaymentDOGE(client, request, indexer);
+               return verifyBalanceDecreasingTransactionDOGE(client, request, indexer);
             case ChainType.ALGO:
-               return verifyBalanceDecreasingPaymentALGO(client, request, indexer);
+               return verifyBalanceDecreasingTransactionALGO(client, request, indexer);
             default:
                throw new Error("Wrong source id");
          }
-      case AttestationType.BlockHeightExistence:
+      case AttestationType.BlockHeightExists:
          switch(sourceId) {
             case ChainType.XRP:
-               return verifyBlockHeightExistenceXRP(client, request, indexer);
+               return verifyBlockHeightExistsXRP(client, request, indexer);
             case ChainType.BTC:
-               return verifyBlockHeightExistenceBTC(client, request, indexer);
+               return verifyBlockHeightExistsBTC(client, request, indexer);
             case ChainType.LTC:
-               return verifyBlockHeightExistenceLTC(client, request, indexer);
+               return verifyBlockHeightExistsLTC(client, request, indexer);
             case ChainType.DOGE:
-               return verifyBlockHeightExistenceDOGE(client, request, indexer);
+               return verifyBlockHeightExistsDOGE(client, request, indexer);
             case ChainType.ALGO:
-               return verifyBlockHeightExistenceALGO(client, request, indexer);
+               return verifyBlockHeightExistsALGO(client, request, indexer);
             default:
                throw new Error("Wrong source id");
          }
-      case AttestationType.ReferencedPaymentNonExistence:
+      case AttestationType.ReferencedPaymentNonexistence:
          switch(sourceId) {
             case ChainType.XRP:
-               return verifyReferencedPaymentNonExistenceXRP(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceXRP(client, request, indexer);
             case ChainType.BTC:
-               return verifyReferencedPaymentNonExistenceBTC(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceBTC(client, request, indexer);
             case ChainType.LTC:
-               return verifyReferencedPaymentNonExistenceLTC(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceLTC(client, request, indexer);
             case ChainType.DOGE:
-               return verifyReferencedPaymentNonExistenceDOGE(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceDOGE(client, request, indexer);
             case ChainType.ALGO:
-               return verifyReferencedPaymentNonExistenceALGO(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceALGO(client, request, indexer);
             default:
                throw new Error("Wrong source id");
          }

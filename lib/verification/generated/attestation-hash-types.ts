@@ -1,4 +1,3 @@
-
 //////////////////////////////////////////////////////////////
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
@@ -6,45 +5,38 @@
 import BN from "bn.js";
 
 export interface DHPayment {
-   attestationType: BN;
-   chainId: BN;
    blockNumber: BN;
    blockTimestamp: BN;
-   txId: string;
+   transactionHash: string;
    utxo: BN;
    sourceAddress: string;
-   destinationAddress: string;
+   receivingAddress: string;
    paymentReference: BN;
-   spent: BN;
-   delivered: BN;
-   isToOne: boolean;
+   spentAmount: BN;
+   receivedAmount: BN;
+   oneToOne: boolean;
    status: BN;
 }
-export interface DHBalanceDecreasingPayment {
-   attestationType: BN;
-   chainId: BN;
+export interface DHBalanceDecreasingTransaction {
    blockNumber: BN;
    blockTimestamp: BN;
-   txId: string;
+   transactionHash: string;
    sourceAddress: string;
-   spent: BN;
+   spentAmount: BN;
+   paymentReference: BN;
 }
-export interface DHBlockHeightExistence {
-   attestationType: BN;
-   chainId: BN;
+export interface DHBlockHeightExists {
    blockNumber: BN;
    blockTimestamp: BN;
-   blockHash: string;
 }
-export interface DHReferencedPaymentNonExistence {
-   attestationType: BN;
-   chainId: BN;
+export interface DHReferencedPaymentNonexistence {
    endTimestamp: BN;
    endBlock: BN;
+   destinationAddress: string;
    paymentReference: BN;
    amount: BN;
-   firstCheckedBlockTimestamp: BN;
    firstCheckedBlock: BN;
-   firstOverflowBlockTimestamp: BN;
+   firstCheckedBlockTimestamp: BN;
    firstOverflowBlock: BN;
+   firstOverflowBlockTimestamp: BN;
 }

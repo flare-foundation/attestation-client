@@ -115,12 +115,13 @@ The response structure looks like this:
 
 ```
 {
-   status: "OK" | "RECHECK",
+   status: "OK" | "RECHECK" | "NO_CONFIRMATION_BLOCK",
    transactions?: any[]
    block?: any
 }
 ```
 
+When rechecking it is important to find confirmation block. Otherwise the returned status is `NO_CONFIRMATION_BLOCK`, and verification process should treat this as non-ability to prove non-existence.
 
 
 

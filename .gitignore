@@ -19,6 +19,7 @@ accounts.json
 ## Build generated
 build/
 bin/
+tmp_data/
 
 ## Node packages etc
 node_modules/

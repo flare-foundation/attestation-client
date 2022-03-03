@@ -22,7 +22,7 @@ export class BlockProcessorManager {
                 this.blockProcessors[a].continue();
             }
             else {
-                this.blockProcessors[a].stop();
+                this.blockProcessors[a].pause();
             }
         }
 

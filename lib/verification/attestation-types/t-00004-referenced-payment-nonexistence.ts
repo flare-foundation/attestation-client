@@ -57,7 +57,7 @@ Maximum number of the block where the transaction is searched for.
          type: "BytesLike",
          description:
 `
-Payment nonexistence is confirmed if there is no payment transaction (attestation of \`PaymentProof\` type)
+Payment nonexistence is confirmed if there is no payment transaction (attestation of \`Payment\` type)
 with correct \`(destinationAddress, paymentReference, amount)\` combination
 and with transaction status 0 (success) or 2 (failure, receiver's fault). 
 Note: if there exist only payment(s) with status 1 (failure, sender's fault) 
@@ -122,7 +122,7 @@ End block specified in attestation request.
          type: "bytes32",
          description:
 `
-Payment nonexistence is confirmed if there is no payment transaction (attestation of \`PaymentProof\` type)
+Payment nonexistence is confirmed if there is no payment transaction (attestation of \`Payment\` type)
 with correct \`(destinationAddress, paymentReference, amount)\` combination
 and with transaction status 0 (success) or 2 (failure, receiver's fault). 
 Note: if there exist only payment(s) with status 1 (failure, sender's fault) 

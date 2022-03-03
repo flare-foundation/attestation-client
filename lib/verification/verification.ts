@@ -21,7 +21,7 @@
 //   //   // utxo: attRequest.utxo,
 //   // } as NormalizedTransactionData;
 
-//   // if (!(request.attestationType === AttestationType.Transaction || request.attestationType === AttestationType.FassetPaymentProof)) {
+//   // if (!(request.attestationType === AttestationType.Transaction || request.attestationType === AttestationType.Payment)) {
 //   //     throw new Error("Wrong attestation Type")
 //   // }
 //   let chainId = toNumber(request.chainId) as ChainType;

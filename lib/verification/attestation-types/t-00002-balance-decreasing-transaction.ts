@@ -110,7 +110,7 @@ It includes both payment value and fee (gas). For utxo chains it is calculcated 
          description:
 `
 If the attestation provider detects that the transaction is actually a valid payment (same conditions
-as for PaymentProof), it should set this field to its the paymentReference.
+as for Payment), it should set this field to its the paymentReference.
 Otherwise, paymentReference must be 0.
 `
       },

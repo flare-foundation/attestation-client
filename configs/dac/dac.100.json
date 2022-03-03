@@ -13,11 +13,11 @@
                "avgCalls": 8
             },
             {
-               "type":"BalanceDecreasingProof",
+               "type":"BalanceDecreasingTransaction",
                "avgCalls": 7
             },
             {
-               "type":"BlockHeightExistsProof",
+               "type":"BlockHeightExists",
                "avgCalls": 1
             }
          ]
@@ -34,11 +34,11 @@
                "avgCalls": 3
             },
             {
-               "type":"BalanceDecreasingProof",
+               "type":"BalanceDecreasingTransaction",
                "avgCalls": 3
             },
             {
-               "type":"BlockHeightExistsProof",
+               "type":"BlockHeightExists",
                "avgCalls": 1
             }
          ]

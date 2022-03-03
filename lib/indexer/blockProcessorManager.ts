@@ -1,16 +1,17 @@
-import { IBlock, RPCInterface } from "flare-mcc";
-import { BlockProcessor } from "./blockProcessor";
+import { IBlock } from "flare-mcc";
+import { CachedMccClient } from "../caching/CachedMccClient";
+import { LimitingProcessor } from "../caching/LimitingProcessor";
 
 export class BlockProcessorManager {
 
-    blockProcessors: BlockProcessor[] = [];
+    blockProcessors: LimitingProcessor[] = [];
 
-    client: RPCInterface;
+    cachedClient: CachedMccClient<any,any>;
 
     completeCallback: any;
 
-    constructor(client: RPCInterface, completeCallback: any) {
-        this.client = client;
+    constructor(client: CachedMccClient<any,any>, completeCallback: any) {
+        this.cachedClient = client;
         this.completeCallback = completeCallback;
     }
 
@@ -28,12 +29,12 @@ export class BlockProcessorManager {
 
         if (started) return;
 
-        const processor = new BlockProcessor(this, block);
+        const processor = new LimitingProcessor(this, block);
         this.blockProcessors.push(processor);
         processor.start();
     }
 
-    async complete(completedBlock: BlockProcessor) {
+    async complete(completedBlock: LimitingProcessor) {
         await this.completeCallback(completedBlock);
     }
 

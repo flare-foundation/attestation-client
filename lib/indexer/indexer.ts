@@ -42,6 +42,7 @@
 
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { RPCInterface } from "flare-mcc/dist/types";
+import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
@@ -76,7 +77,7 @@ export class Indexer {
   config: IndexerConfiguration;
   chainConfig: IndexerChainConfiguration;
   chainType: ChainType;
-  client!: RPCInterface;
+  cachedClient: CachedMccClient<any,any>;
   logger!: AttLogger;
   dbService: DatabaseService;
   blockProcessorManager: BlockProcessorManager;
@@ -119,17 +120,26 @@ export class Indexer {
 
     this.dbService = new DatabaseService(this.logger);
 
-    this.client = MCC.Client(this.chainType, {
-      url: this.chainConfig.url,
-      username: this.chainConfig.username,
-      password: this.chainConfig.password,
-      rateLimitOptions: {
-        maxRPS: this.chainConfig.maxRequestsPerSecond,
-        timeoutMs: this.chainConfig.clientTimeout,
-      },
-    }) as RPCInterface;
+    // todo: setup options from config
+    let cachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: {
+        url: this.chainConfig.url,
+        username: this.chainConfig.username,
+        password: this.chainConfig.password,
+        rateLimitOptions: {
+          maxRPS: this.chainConfig.maxRequestsPerSecond,
+          timeoutMs: this.chainConfig.clientTimeout,
+        }
+      }
+    };    
 
-    this.blockProcessorManager = new BlockProcessorManager(this.client, this.blockCompleted.bind(this));
+    this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
+
+    this.blockProcessorManager = new BlockProcessorManager(this.cachedClient, this.blockCompleted.bind(this));
   }
 
   get lastConfimedBlockNumber() {
@@ -178,7 +188,7 @@ export class Indexer {
 
     // if N+1 is ready then begin processing N+2
     if (isBlockNp1) {
-      const blockNp2 = this.client.getBlock(this.N + 2);
+      const blockNp2 = this.cachedClient.getBlock(this.N + 2);
       this.blockProcessorManager.process(blockNp2);
     }
 
@@ -284,13 +294,13 @@ export class Indexer {
 
   async getBlockNumberTimestamp(blockNumber: number): Promise<number> {
     // todo: use FAST version of block read since we only need timestamp
-    const block = await this.client.getBlock(blockNumber) as IBlock;
+    const block = await this.cachedClient.getBlock(blockNumber) as IBlock;
 
     return block.unixTimestamp;
   }
   
   async getAverageBlocksPerDay(): Promise<number> {
-    const blockNumber0 = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
+    const blockNumber0 = await this.cachedClient.getBlockHeight() - this.chainConfig.confirmationsCollect;
     const blockNumber1 = Math.ceil(blockNumber0 * 0.9);
 
     // todo: check if blockNumber1 is below out range
@@ -320,7 +330,7 @@ export class Indexer {
   }
 
   async getSyncStartBlockNumber(): Promise<number> {
-    const latestBlockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
+    const latestBlockNumber = await this.cachedClient.getBlockHeight() - this.chainConfig.confirmationsCollect;
 
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
 
@@ -357,7 +367,7 @@ export class Indexer {
       const dbBlocks = [];
       for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++) {
         // todo: use fast getblock function (no details)
-        const block = await this.client.getBlock(blockNumber);
+        const block = await this.cachedClient.getBlock(blockNumber);
 
         const dbBlock = new (this.dbBlockClass)();
 
@@ -431,7 +441,7 @@ export class Indexer {
 
     await this.prepareTables();
 
-    const startBlockNumber = await this.client.getBlockHeight() - this.chainConfig.confirmationsCollect;
+    const startBlockNumber = await this.cachedClient.getBlockHeight() - this.chainConfig.confirmationsCollect;
 
     this.N = startBlockNumber;
 
@@ -448,14 +458,14 @@ export class Indexer {
     while (true) {
       try {
         // get chain top block
-        const latestBlockNumber = await this.client.getBlockHeight();
+        const latestBlockNumber = await this.cachedClient.getBlockHeight();
         if (this.T !== latestBlockNumber) {
           // chain height has changes
           this.T = latestBlockNumber;
         }
 
         // change getBlock to getBlockHeader
-        const blockNp1 = await this.client.getBlock(this.N + 1) as IBlock;
+        const blockNp1 = await this.cachedClient.getBlock(this.N + 1) as IBlock;
 
         // has N+1 confirmation block
         const isNewBlock = this.N < this.T - this.chainConfig.confirmationsCollect;

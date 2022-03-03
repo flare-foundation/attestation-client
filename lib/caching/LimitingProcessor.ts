@@ -61,11 +61,16 @@ export class LimitingProcessor {
    constructor(cachedClient: CachedMccClient<any, any>, options?: LimitingProcessorOptions) {
       this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
       this.client = cachedClient;
-      this.start()
+      this.continue()
    }
 
    counter = 0;
+
    public async start(debug = false) {
+      this.continue( debug );
+   }
+
+   public async continue(debug = false) {
       if(debug) {
          this.debugOn(this.debugLabel, this.reportInMs);
       }
@@ -83,7 +88,7 @@ export class LimitingProcessor {
       }
    }
 
-   public stop() {
+   public pause() {
       this.isActive = false;
       this.debugOff();
    }

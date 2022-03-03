@@ -14,6 +14,7 @@ export const I_ATTESTATION_CLIENT_FILE = `${SOLIDITY_GENERATED_ROOT}/IAttestatio
 export const HASH_TEST_FILE = `${CONTRACTS_ROOT}/HashTest.sol`
 
 export const CODEGEN_TAB = 3;
+export const SOLIDITY_CODEGEN_TAB = 4;
 export const DEFAULT_GEN_FILE_HEADER = 
 `//////////////////////////////////////////////////////////////
 // This file is auto generated. Do not edit.

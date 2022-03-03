@@ -27,5 +27,6 @@ export async function readAttestationTypeSchemes(): Promise<AttestationTypeSchem
 }
 
 export function indentText(text: string, padding: number, prefix = "") {
-   return text.trim().split("\n").map(line => `${"".padEnd(padding)}${prefix} ${line}`).join("\n")
+   if (prefix !== "") prefix += " ";   // add separator
+   return text.trim().split("\n").map(line => `${"".padEnd(padding)}${prefix}${line}`).join("\n")
 }

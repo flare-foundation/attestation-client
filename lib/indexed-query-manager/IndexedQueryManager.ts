@@ -79,7 +79,7 @@ export interface ReferencedTransactionNonExistenceQueryResponse {
 /// IndexedQueryHandler
 ////////////////////////////////////////////////////////
 
-export class IndexedQueryHandler {
+export class IndexedQueryManager {
    indexer: Indexer;
    settings: IndexedQueryHandlerOptions;
    dbService: DatabaseService;

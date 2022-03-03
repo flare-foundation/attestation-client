@@ -17,37 +17,65 @@ export const TDEF: AttestationTypeScheme = {
       {
          key: "attestationType",
          size: ATT_BYTES,
-         type: "AttestationType"
+         type: "AttestationType",
+         description: 
+`
+
+`
       },
       {
          key: "chainId",
          size: CHAIN_ID_BYTES,
-         type: "ChainType"
+         type: "ChainType",
+         description: 
+`
+
+`
       },
       {
          key: "endTimestamp",
          size: TIMESTAMP_BYTES,
-         type: "NumberLike"
+         type: "NumberLike",
+         description: 
+`
+
+`
       },
       {
          key: "endBlock",
          size: BLOCKNUMBER_BYTES,
-         type: "NumberLike"
+         type: "NumberLike",
+         description: 
+`
+
+`
       },
       {
          key: "amount",
          size: AMOUNT_BYTES,
-         type: "NumberLike"
+         type: "NumberLike",
+         description: 
+`
+
+`
       },
       {
          key: "paymentReference",
          size: PAYMENT_REFERENCE_BYTES,
-         type: "NumberLike"
+         type: "NumberLike",
+         description: 
+`
+
+`
       },
       {
          key: "dataAvailabilityProof",
          size: DATA_AVAILABILITY_BYTES,
-         type: "BytesLike"
+         type: "BytesLike",
+         description: 
+`
+
+`
       },
    ],
    dataHashDefinition: [

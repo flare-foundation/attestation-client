@@ -40,14 +40,16 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
 import BN from "bn.js";
 import Web3 from "web3";   
 import { RPCInterface } from "flare-mcc";
-import { IndexerQueryHandler, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
+import { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
 import { TDEF } from "../../attestation-types/${definitionFile(definition, undefined, false)}";
 import { ${ATTESTATION_TYPE_PREFIX}${definition.name} } from "../../generated/attestation-request-types";
 import { ${DATA_HASH_TYPE_PREFIX}${definition.name} } from "../../generated/attestation-hash-types";
+import { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
+
 const web3 = new Web3();
 
-export async function ${functionName}(client: RPCInterface, bytes: string, indexer: IndexerQueryHandler) {
+export async function ${functionName}(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
    let request = parseRequestBytes(bytes, TDEF) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
    // Do the magic here and fill the response with the relevant data

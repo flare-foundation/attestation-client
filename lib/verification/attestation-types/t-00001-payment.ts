@@ -14,27 +14,47 @@ export const TDEF: AttestationTypeScheme = {
       {
          key: "attestationType",
          size: ATT_BYTES,
-         type: "AttestationType"
+         type: "AttestationType",
+         description: 
+`
+
+`
       },
       {
          key: "chainId",
          size: CHAIN_ID_BYTES,
-         type: "ChainType"
+         type: "ChainType",
+         description: 
+`
+
+`
       },
       {
          key: "utxo",
          size: UTXO_BYTES,
-         type: "NumberLike"
+         type: "NumberLike",
+         description: 
+`
+
+`
       },
       {
          key: "id",
          size: TX_ID_BYTES,
-         type: "BytesLike"
+         type: "BytesLike",
+         description: 
+`
+
+`
       },
       {
          key: "dataAvailabilityProof",
          size: DATA_AVAILABILITY_BYTES,
-         type: "BytesLike"
+         type: "BytesLike",
+         description: 
+`
+
+`
       },
    ],
    dataHashDefinition: [

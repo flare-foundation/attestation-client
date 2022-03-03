@@ -164,7 +164,7 @@ export class AttestationRoundManager {
           AttestationRoundManager.chainManager.validateTransaction(data.source, attestation);
         });
       }
-      case AttestationType.BalanceDecreasingPayment:
+      case AttestationType.BalanceDecreasingTransaction:
         // todo: implement balance change check
         this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
         return undefined;

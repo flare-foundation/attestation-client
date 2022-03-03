@@ -33,7 +33,8 @@ function getSolidityHashTest(definitions: AttestationTypeScheme[]) {
    let structs = definitions.map(definition => genTestHashStruct(definition)).join("");
    let functions = definitions.map(definition => genTestHashFunction(definition)).join("");
 
-   return `${DEFAULT_GEN_FILE_HEADER}
+   let content =
+      `${DEFAULT_GEN_FILE_HEADER}
 // (c) 2021, Flare Networks Limited. All rights reserved.
 // Please see the file LICENSE for licensing terms.
 
@@ -62,6 +63,7 @@ ${functions}
 
 }
 `
+   return content;
 }
 
 export function createHashTestSolidityFile(definitions: AttestationTypeScheme[]) {

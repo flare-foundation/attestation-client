@@ -5,7 +5,7 @@
 import { ChainType, RPCInterface } from "flare-mcc"
 import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-helpers"
 import { AttestationType } from "../generated/attestation-types-enum"
-import { IndexerQueryHandler, Verification } from "../attestation-types/attestation-types"
+import { Verification } from "../attestation-types/attestation-types"
       
 import {verifyPaymentXRP} from "./XRP/v-00001-payment.xrp"
 import {verifyPaymentBTC} from "./BTC/v-00001-payment.btc"
@@ -28,8 +28,9 @@ import {verifyReferencedPaymentNonexistenceLTC} from "./LTC/v-00004-referenced-p
 import {verifyReferencedPaymentNonexistenceDOGE} from "./DOGE/v-00004-referenced-payment-nonexistence.doge"
 import {verifyReferencedPaymentNonexistenceALGO} from "./ALGO/v-00004-referenced-payment-nonexistence.algo"
 
+import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager"
 
-export async function verifyAttestation(client: RPCInterface, request: string, indexer: IndexerQueryHandler): Promise<Verification<any>>{
+export async function verifyAttestation(client: RPCInterface, request: string, indexer: IndexedQueryManager): Promise<Verification<any>>{
    let {attestationType, sourceId} = getAttestationTypeAndSource(request);
    switch(attestationType) {
       case AttestationType.Payment:

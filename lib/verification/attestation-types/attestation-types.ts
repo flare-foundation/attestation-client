@@ -53,7 +53,8 @@ export interface VerificationResult extends AttestationRequest {
 
 export interface Verification<T> {
   hash?: string;
-  response?: T
+  response?: T;
+  rawResponse?: any;
   status: VerificationStatus;
 }
 
@@ -125,6 +126,7 @@ export interface AttestationRequestScheme {
   key: string;
   size: number;
   type: SupportedRequestType;
+  description?: string;
 }
 
 export interface DataHashScheme {
@@ -140,8 +142,4 @@ export interface AttestationTypeScheme {
   name: string;
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
-}
-
-export interface IndexerQueryHandler {
-
 }

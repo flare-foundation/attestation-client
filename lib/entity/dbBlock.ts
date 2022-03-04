@@ -16,9 +16,13 @@ export class DBBlockBase {
     timestamp!: number;
 
     @Column()
-    confirmed: boolean = false;
+    transactions: number = 0;
+
 
     @Column()
+    confirmed: boolean = false;
+
+    @Column({ type: "text" })
     response: string = "";
 
 }

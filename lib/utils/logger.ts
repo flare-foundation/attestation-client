@@ -1,5 +1,6 @@
 import * as winston from "winston";
 import Transport from "winston-transport";
+import { string } from "yargs";
 
 const level = process.env.LOG_LEVEL || "info";
 
@@ -74,14 +75,31 @@ class ColorConsole extends Transport {
   };
 }
 
+function replaceAll(text: string, search: string, replaceWith: string) : string {
+
+  while( text.indexOf( search )>=0 ) {
+    text = text.replace( search , replaceWith );
+  }
+
+  return text;
+}
+
 function processColors(text: string, def: string) {
-  text = text.replace("^^", def);
-  text = text.replace("^R", FgRed);
-  text = text.replace("^G", FgGreen);
-  text = text.replace("^B", FgBlue);
-  text = text.replace("^Y", FgYellow);
-  text = text.replace("^C", FgCyan);
-  text = text.replace("^W", FgWhite);
+  text = replaceAll(text , "^^", Reset + def);
+  text = replaceAll(text , "^R", FgRed);
+  text = replaceAll(text , "^G", FgGreen);
+  text = replaceAll(text , "^B", FgBlue);
+  text = replaceAll(text , "^Y", FgYellow);
+  text = replaceAll(text , "^C", FgCyan);
+  text = replaceAll(text , "^W", FgWhite);
+  text = replaceAll(text , "^K", FgBlack);
+  
+  text = replaceAll(text , "^r", BgRed);
+  text = replaceAll(text , "^g", BgGreen);
+  text = replaceAll(text , "^b", BgBlue);
+  text = replaceAll(text , "^y", BgYellow);
+  text = replaceAll(text , "^c", BgCyan);
+  text = replaceAll(text , "^w", BgWhite);
 
   return text;
 }

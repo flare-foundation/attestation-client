@@ -1,6 +1,6 @@
 {
-    "syncEnabled": false,
-    "syncTimeDays": 2,
+    "syncEnabled": true,
+    "syncTimeDays": 0.01,
 
     "blockCollectTimeMs": 1000,
 
@@ -22,7 +22,7 @@
             "mccCreate" : {
                 "url": "https://bitcoin.flare.network/",
                 "username": "flareadmin",
-                "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",                  
+                "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4="                  
             },
             "rateLimitOptions": {
                 "maxRPS": 300,

@@ -8,10 +8,10 @@ export class DBState {
     name!: string;
 
     @Column()
-    valueString!: string;
+    valueString: string="";
 
     @Column()
-    valueNumber!: number;
+    valueNumber: number=0;
 }
 
 

@@ -4,7 +4,7 @@ import { BaseEntity } from "./base/BaseEntity";
 
 export class DBTransactionBase extends BaseEntity {
 
-    @Column({type: "varchar", length:32}) @Index() chainType: number = 0;
+    @Column() @Index() chainType: number = 0;
 
     @Column({type: "varchar", length:64}) @Index() transactionId: string = "";
 

@@ -25,8 +25,19 @@ export function BlockProcessor(chainType: ChainType) {
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
     this.block=block;
-    let txPromises = block.transactionHashes.map(async (txid) => {
-      let processed = (await this.call(() => getFullTransactionUtxo(this.client, txid, this))) as UtxoTransaction;
+    // let txPromises = block.transactionHashes.map(async (txid) => {
+    //   let processed = (await this.call(() => getFullTransactionUtxo(this.client, txid, this))) as UtxoTransaction;
+    //   return augmentTransactionUtxo(this.client, block, processed);
+    // });
+    let txPromises = block.data.tx.map((txObject) => {
+      const getTxObject = {
+        blockhash: block.hash,
+        time: block.unixTimestamp,
+        confirmations: 1, // This is the block 
+        blocktime: block.unixTimestamp,
+        ...txObject,
+      };
+      let processed = new UtxoTransaction(getTxObject);
       return augmentTransactionUtxo(this.client, block, processed);
     });
 

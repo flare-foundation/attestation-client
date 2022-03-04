@@ -112,6 +112,25 @@ describe("Test process helpers ", () => {
     // )
   });
 
+  it.only(`Test btc new block processing `, async function () {
+
+    const block = await BtcMccClient.getBlock(723746);
+
+    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: BtcMccConnection,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
+
+    let processor = new UtxoBlockProcessor(cachedClient);
+    processor.debugOn("FIRST");
+    processor.initializeJobs(block, save);
+  });
+
   it.only(`Test algo block processing `, async function () {
 
     // const block = await MccClient.getBlock(723581);

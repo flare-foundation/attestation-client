@@ -20,9 +20,7 @@ export class DBTransactionBase extends BaseEntity {
 
     @Column({type: "varchar", length:64}) hashVerify: string = "";
 
-    
-
-    @Column({type: "text" }) response: string = "";
+    //@Column({type: "text" }) response: string = "";
 }
 
 

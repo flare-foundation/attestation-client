@@ -22,9 +22,7 @@ export class DBBlockBase {
     @Column()
     confirmed: boolean = false;
 
-    @Column({ type: "text" })
-    response: string = "";
-
+    //@Column({ type: "text" }) response: string = "";
 }
 
 

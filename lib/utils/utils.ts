@@ -5,6 +5,7 @@ import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
 import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
 
@@ -156,6 +157,23 @@ export async function relativeContractABIPathForContractName(name: string, artif
     });
   });
 }
+
+export function prepareString(text: string, maxLength: number, reportOwerflow: string = null): string {
+  if (!text) return "";
+  if (text.length < maxLength) return text;
+
+  if (typeof text != "string") {
+    getGlobalLogger().warning(`prepareString warning: expected type is string`);
+    return text;
+  }
+
+  if (reportOwerflow) {
+    getGlobalLogger().warning(`prepareString warning: ${reportOwerflow} overflow ${maxLength} (length=${text.length})`);
+  }
+
+  return text.substring(0, maxLength - 1);
+}
+
 
 export async function getRandom(minnum: number = 0, maxnum: number = 10 ** 5) {
   const randomNumber = require("random-number-csprng");

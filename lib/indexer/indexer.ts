@@ -41,7 +41,6 @@
 //  [x] keep collecting blocks while waiting for N+1 to complete
 
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
-import { runInContext } from "vm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
@@ -58,7 +57,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -147,7 +146,7 @@ export class Indexer {
 
   getBlockSaveEpoch(time: number): number {
     // 2022/01/01 00:00:00
-    return Math.floor((time - 1640991600) / 60);
+    return Math.floor((time - 1640991600) / (14 * this.Csec2day));
   }
 
   getBlock(blockNumber: number): Promise<IBlock> {
@@ -202,7 +201,7 @@ export class Indexer {
     }
 
     if (reportOwerflow) {
-      this.logger.warning(`prepareString warning: ${reportOwerflow} overflow ${maxLength} (length=${text.length})`);
+      //this.logger.warning(`prepareString warning: ${reportOwerflow} overflow ${maxLength} (length=${text.length})`);
     }
 
     return text.substring(0, maxLength - 1);
@@ -254,43 +253,47 @@ export class Indexer {
 
       const entity = this.dbTransactionClasses[tableIndex];
 
-      // create a copy of data with specific data types (for database)
-      // we need to make a copy so that entity class is correct
-      const transactionsCopy = Array<typeof entity>();
-      for (let d of transactions) {
-        const newData = new (this.dbTransactionClasses[tableIndex])();
+      // // create a copy of data with specific data types (for database)
+      // // we need to make a copy so that entity class is correct
+      // const transactionsCopy = Array<typeof entity>();
+      // for (let d of transactions) {
+      //   const newData = new (this.dbTransactionClasses[tableIndex])();
 
-        for (let key of Object.keys(d)) {
-          newData[key] = d[key];
-        }
+      //   for (let key of Object.keys(d)) {
+      //     newData[key] = d[key];
+      //   }
 
-        // if( newData.paymentReference.length > 64 ) {
-        //   this.logger.warning(`too long paymentReference ${d.transactionId} (len=${newData.paymentReference.length})`);
-        //   newData.paymentReference = "";
-        // }
+      //   // if( newData.paymentReference.length > 64 ) {
+      //   //   this.logger.warning(`too long paymentReference ${d.transactionId} (len=${newData.paymentReference.length})`);
+      //   //   newData.paymentReference = "";
+      //   // }
 
-        newData.transactionId = this.prepareString(newData.transactionId, 64);
-        newData.paymentReference = this.prepareString(newData.paymentReference, 64);
-        newData.hashVerify = this.prepareString(newData.hashVerify, 64);
-        newData.response = this.prepareString(newData.response, 1024 * 4, `transaction.response`);
+      //   newData.transactionId = this.prepareString(newData.transactionId, 64);
+      //   newData.paymentReference = this.prepareString(newData.paymentReference, 64);
+      //   newData.hashVerify = this.prepareString(newData.hashVerify, 64);
+      //   //newData.response = this.prepareString(newData.response, 1024 * 4, `transaction.response`);
 
-        transactionsCopy.push(newData);
-      }
+      //   transactionsCopy.push(newData);
+      // }
 
       // make block copy
+      // todo: Luka do that in augmentBlock
       const blockCopy = new this.dbBlockClass();
       for (let key of Object.keys(block)) {
         blockCopy[key] = block[key];
       }
 
       blockCopy.blockHash = this.prepareString(blockCopy.blockHash, 128);
-      blockCopy.response = this.prepareString(blockCopy.response, 1024 * 4, `block.response`);
+      //blockCopy.response = this.prepareString(blockCopy.response, 1024 * 4, `block.response`);
 
       blockCopy.transactions = transactions.length;
 
       // create transaction and save everything
+
+      const time0 = Date.now();
+
       await this.dbService.connection
-        .transaction("READ COMMITTED", async (transaction) => {
+        .transaction(async (transaction) => {
           // setup new N
           const state = new DBState();
           state.name = "N";
@@ -298,16 +301,17 @@ export class Indexer {
 
           // block must be marked as confirmed
           if (transactions.length > 0) {
-            await transaction.save(transactionsCopy);
+            //await transaction.save(transactionsCopy);
+            await transaction.save(transactions);
           }
           await transaction.save(blockCopy);
           await transaction.save(state);
         })
         .then(() => {
           this.blockProcessorManager.clear(Np1);
-
+          const time1 = Date.now();
           // increment N if all is ok
-          this.logger.debug(`^r^Windexer N=${Np1}`);
+          this.logger.info(`^r^Windexer N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
         })
         .catch((error) => {
           // N is set on previous value
@@ -321,6 +325,8 @@ export class Indexer {
       this.logger.error(`saveInterlaced error (N=${Np1}): ${error}`);
       return false;
     }
+
+
   }
 
   prepareTables() {
@@ -377,7 +383,7 @@ export class Indexer {
 
     this.logger.debug(`${this.chainConfig.name} avg blk per day ${averageBlocksPerDay}`);
 
-    let blockNumber = Math.floor( latestBlockNumber - this.config.syncTimeDays * averageBlocksPerDay );
+    let blockNumber = Math.floor(latestBlockNumber - this.config.syncTimeDays * averageBlocksPerDay);
 
     const targetTime = getUnixEpochTimestamp() - this.config.syncTimeDays * this.Csec2day;
 
@@ -476,7 +482,7 @@ export class Indexer {
     }
   }
 
-  async saveOrWaitNp1Block() : Promise<boolean> {
+  async saveOrWaitNp1Block(): Promise<boolean> {
     const Np1 = this.N + 1;
 
     const preparedBlocks = this.preparedBlocks.get(Np1);
@@ -582,25 +588,25 @@ export class Indexer {
 
         if (blocksPerSec > 0) {
           const timeLeft = (this.T - this.N) / blocksPerSec;
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA ${round(timeLeft/60,1)} min, ${round(blocksPerSec,2)} bps)`);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA ${round(timeLeft / 60, 1)} min, ${round(blocksPerSec, 2)} bps)`);
         }
         else {
           this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks `);
         }
 
-        if( this.N + this.chainConfig.confirmationsCollect >= this.T) {
-          this.logger.group( "Sync completed")
+        if (this.N + this.chainConfig.confirmationsCollect >= this.T) {
+          this.logger.group("Sync completed")
           return;
         }
 
-        for(let a=1; a<10; a++) {
-          if( this.N+1 >= this.T - this.chainConfig.confirmationsCollect ) break;
+        for (let a = 1; a < 10; a++) {
+          if (this.N + 1 >= this.T - this.chainConfig.confirmationsCollect) break;
 
-          this.blockProcessorManager.processSyncBlockNumber( this.N+a );
+          this.blockProcessorManager.processSyncBlockNumber(this.N + a);
         }
 
-        this.blockNp1hash=(await this.cachedClient.getBlock(this.N+1)).hash;
-        await this.saveOrWaitNp1Block();
+        this.blockNp1hash = (await this.cachedClient.getBlock(this.N + 1)).hash;
+        this.saveOrWaitNp1Block();
 
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
@@ -635,7 +641,7 @@ export class Indexer {
 
       syncMode = true;
 
-      this.logger.group( "Sync started")
+      this.logger.group("Sync started")
 
       await this.runSync();
     }

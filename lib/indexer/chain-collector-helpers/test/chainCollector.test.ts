@@ -128,14 +128,12 @@ describe("Test process helpers ", () => {
 
     let processor = new UtxoBlockProcessor(cachedClient);
     processor.debugOn("FIRST");
-    processor.initializeJobs(block, save);
+    await processor.initializeJobs(block, save);
   });
 
-  it.only(`Test algo block processing `, async function () {
+  it(`Test algo block processing `, async function () {
 
-    // const block = await MccClient.getBlock(723581);
     const block = await AlgoMccClient.getBlock(723746);
-    // const block2 = await BtcMccClient.getBlock(723746);  // simulation of other block
 
     // console.log(block)
 
@@ -155,7 +153,7 @@ describe("Test process helpers ", () => {
   });
 
 
-  it.only(`Test xrp block processing `, async function () {
+  it(`Test xrp block processing `, async function () {
     const block = await XrpMccClient.getBlock(70_015_100);
 
     let defaultCachedMccClientOptions: CachedMccClientOptions = {

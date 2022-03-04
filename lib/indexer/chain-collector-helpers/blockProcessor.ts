@@ -29,7 +29,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
     //   let processed = (await this.call(() => getFullTransactionUtxo(this.client, txid, this))) as UtxoTransaction;
     //   return augmentTransactionUtxo(this.client, block, processed);
     // });
-    let txPromises = block.data.tx.map((txObject) => {
+    let txPromises = block.data.tx.map(async (txObject) => {
       const getTxObject = {
         blockhash: block.hash,
         time: block.unixTimestamp,
@@ -38,6 +38,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
         ...txObject,
       };
       let processed = new UtxoTransaction(getTxObject);
+      processed = (await this.call(() => getFullTransactionUtxo(this.client, processed, this))) as UtxoTransaction;
       return augmentTransactionUtxo(this.client, block, processed);
     });
 

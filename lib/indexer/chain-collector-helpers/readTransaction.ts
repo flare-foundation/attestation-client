@@ -5,17 +5,17 @@ import { LimitingProcessor } from "../../caching/LimitingProcessor";
 
 
 
-export async function getFullTransactionUtxo(client: CachedMccClient<any,any>, txid: string, processor: LimitingProcessor): Promise<UtxoTransaction> {
+export async function getFullTransactionUtxo(client: CachedMccClient<any,any>, blockTransaction: UtxoTransaction, processor: LimitingProcessor): Promise<UtxoTransaction> {
   processor.registerTopLevelJob();
-  let res = (await processor.call(() => client.getTransaction(txid))) as UtxoTransaction;
+  // let res = (await processor.call(() => client.getTransaction(txid))) as UtxoTransaction;
   // console.log("Toplevel tx processed");
   
-  if (res === null) {
-    return null;
-  }
+  // if (res === null) {
+  //   return null;
+  // }
   // let response: IUtxoGetFullTransactionRes = { vinouts: [], ...res.data };
-  res.fullData = { vinouts: [], ...res.fullData };
-  let vinPromises = res.data.vin.map(async (vin: IUtxoVinTransaction) => {
+  blockTransaction.fullData = { vinouts: [], ...blockTransaction.fullData };
+  let vinPromises = blockTransaction.data.vin.map(async (vin: IUtxoVinTransaction) => {
     if (vin.txid) {
       // the in-transactions are prepended to queue in order to process them earlier
       let tx = (await processor.call(() => client.getTransaction(vin.txid), true)) as UtxoTransaction;
@@ -29,9 +29,9 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any,any>, t
     }
   });
   let vinInputs = await Promise.all(vinPromises);
-  res.fullData.vinouts = vinInputs;
+  blockTransaction.fullData.vinouts = vinInputs;
   processor.markTopLevelJobDone();
-  return res;
+  return blockTransaction;
 }
 
 

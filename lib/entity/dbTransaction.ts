@@ -10,6 +10,7 @@ export class DBTransactionBase extends BaseEntity {
 
     @Column() @Index() blockNumber: number = 0;
 
+    // Why do we need this
     @Column() @Index() blockTransactionIndex: number = 0;
 
     @Column() @Index() timestamp: number = 0;

@@ -38,7 +38,7 @@ async function augmentTransactionBase(client: CachedMccClient<any, any>, block: 
    // TODO calculate hash
    // res.hashVerify = prepareString(res.hashVerify, 64);
 
-   res.response = prepareString( JSON.stringify(txData.data) , 16 * 1024 );
+   res.response = prepareString( JSON.stringify({...txData.data, ...txData.fullData }) , 16 * 1024 );
 
    return res;
 }

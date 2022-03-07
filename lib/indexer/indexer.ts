@@ -40,6 +40,8 @@
 
 //  [x] keep collecting blocks while waiting for N+1 to complete
 
+//  [ ] end sync issue with block processing
+
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { DBBlockBase } from "../entity/dbBlock";
@@ -57,7 +59,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "LTC", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -191,6 +193,10 @@ export class Indexer {
     return true;
   }
 
+  getChainN() {
+    return this.chainConfig.name + "_N";    
+  }
+
   prepareString(text: string, maxLength: number, reportOwerflow: string = null): string {
     if (!text) return "";
     if (text.length < maxLength) return text;
@@ -296,7 +302,7 @@ export class Indexer {
         .transaction(async (transaction) => {
           // setup new N
           const state = new DBState();
-          state.name = "N";
+          state.name = this.getChainN();
           state.valueNumber = Np1;
 
           // block must be marked as confirmed
@@ -341,6 +347,11 @@ export class Indexer {
     // todo: use FAST version of block read since we only need timestamp
     const block = (await this.getBlock(blockNumber)) as IBlock;
 
+    if( !block ) {
+      this.logger.error2( `getBlockNumberTimestamp(${blockNumber}) invalid block ${block}`);
+      return 0;
+    }
+
     return block.unixTimestamp;
   }
 
@@ -367,7 +378,7 @@ export class Indexer {
 
     // return Math.max(res0.length > 0 ? res0[0].blockNumber : 0, res1.length > 0 ? res1[0].blockNumber : 0);
 
-    const res = await this.dbService.manager.findOne(DBState, { where: { name: "N" } });
+    const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
 
     if (res === undefined) return 0;
 

@@ -1,6 +1,6 @@
 {
     "syncEnabled": true,
-    "syncTimeDays": 14,
+    "syncTimeDays": 2,
 
     "blockCollectTimeMs": 1000,
 
@@ -8,7 +8,8 @@
         {
             "name": "XRP",
             "mccCreate" : {
-                "url": "https://xrplcluster.com"
+                "url": "https://xrplcluster.com",
+                "url2": "http://34.91.7.3:51234/"
             },
             "rateLimitOptions": {
                 "maxRPS": 300,
@@ -20,9 +21,23 @@
         {
             "name": "BTC",
             "mccCreate" : {
-                "url": "https://bitcoin.flare.network/",
-                "username": "flareadmin",
-                "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4="                  
+                "url": "http://34.91.7.3:9332/",
+                "username": "admin",
+                "password": "admin"                  
+            },
+            "rateLimitOptions": {
+                "maxRPS": 300,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "confirmationsCollect": 6
+        },
+        {
+            "name": "LTC",
+            "mccCreate" : {
+                "url": "https://litecoin.flare.network/",
+                "username": "public",
+                "password": "gA4Yv3cnuXrIvP_7VIZjW1yliZ9GAclj1Td6tRITc6s="                
             },
             "rateLimitOptions": {
                 "maxRPS": 300,
@@ -49,6 +64,20 @@
                 "retries": 3
             },
             "confirmationsCollect": 3  
+        },
+        {
+            "name": "DOGE",
+            "mccCreate" : {
+                "url": "http://34.91.7.3:8332/",
+                "username": "admin",
+                "password": "admin"                  
+            },
+            "rateLimitOptions": {
+                "maxRPS": 300,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "confirmationsCollect": 6
         }
 
     ]

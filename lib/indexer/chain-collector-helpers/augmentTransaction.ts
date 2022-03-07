@@ -25,6 +25,7 @@ function DBTransaction(chainType: ChainType, index: number) {
            return null;
    }
 }
+
 async function augmentTransactionBase(client: CachedMccClient<any, any>, block: IBlock, txData: ITransaction): Promise<DBTransactionBase> {
    const epoch = getBlockSaveEpoch(block.unixTimestamp);
    const res = DBTransaction(client.client.chainType, epoch & 1);
@@ -36,7 +37,9 @@ async function augmentTransactionBase(client: CachedMccClient<any, any>, block: 
 
    // TODO calculate hash
    // res.hashVerify = prepareString(res.hashVerify, 64);
-   //res.response = JSON.stringify(txData.data)
+
+   res.response = prepareString( JSON.stringify(txData.data) , 16 * 1024 );
+
    return res;
 }
 

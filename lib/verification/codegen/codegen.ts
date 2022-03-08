@@ -1,3 +1,4 @@
+import { createSolidityAttestationClientMock } from "./cg-attestation-client-mock";
 import { createAttestationHashTypesFile } from "./cg-attestation-data-hash-types";
 import { createAttestationEnumFile } from "./cg-attestation-file-enum";
 import { createAttestationRequestTypesFile } from "./cg-attestation-request-types";
@@ -14,7 +15,8 @@ async function generateCodeFiles() {
    createAttestationHashTypesFile(definitions);
    createHashTestSolidityFile(definitions);
    createVerifiersAndRouter(definitions);
-   createSolidityIAttestationClient(definitions)
+   createSolidityIAttestationClient(definitions);
+   createSolidityAttestationClientMock(definitions);
 }
 
 generateCodeFiles()

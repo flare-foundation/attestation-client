@@ -1,7 +1,7 @@
 import { AttestationTypeScheme, DataHashScheme } from "../attestation-types/attestation-types";
-import { dashCapitalized, getSourceName, tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
+import { getSourceName, tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATTESTATION_TYPE_PREFIX, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, VERIFIER_FUNCTION_PREFIX } from "./cg-constants";
-import { trimStartNewline } from "./cg-utils";
+import { dashCapitalized, trimStartNewline } from "./cg-utils";
 
 export function verifierFolder(sourceId: number, rootFolder?: string) {
    let root = rootFolder ? `${rootFolder}/` : "";

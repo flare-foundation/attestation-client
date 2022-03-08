@@ -81,19 +81,19 @@ describe("Test process helpers ", () => {
 
     // Simulation of switching between the two processors
     let first = false;
-    processor.stop()
+    processor.pause()
 
     function simulate() {
       if (first) {
         console.log("RUNNING 2 ...");
-        processor.stop();
-        processor2.start()
+        processor.pause();
+        processor2.continue()
         first = false;
         setTimeout(() => {simulate()}, 10000)
       } else {
         console.log("RUNNING 1 ...");
-        processor2.stop()
-        processor.start();
+        processor2.pause()
+        processor.continue();
         first = true;
         setTimeout(() => {simulate()}, 20000)
       }
@@ -112,11 +112,28 @@ describe("Test process helpers ", () => {
     // )
   });
 
-  it.only(`Test algo block processing `, async function () {
+  it.only(`Test btc new block processing `, async function () {
 
-    // const block = await MccClient.getBlock(723581);
+    const block = await BtcMccClient.getBlock(723746);
+
+    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: BtcMccConnection,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
+
+    let processor = new UtxoBlockProcessor(cachedClient);
+    processor.debugOn("FIRST");
+    await processor.initializeJobs(block, save);
+  });
+
+  it(`Test algo block processing `, async function () {
+
     const block = await AlgoMccClient.getBlock(723746);
-    // const block2 = await BtcMccClient.getBlock(723746);  // simulation of other block
 
     // console.log(block)
 
@@ -136,7 +153,7 @@ describe("Test process helpers ", () => {
   });
 
 
-  it.only(`Test xrp block processing `, async function () {
+  it(`Test xrp block processing `, async function () {
     const block = await XrpMccClient.getBlock(70_015_100);
 
     let defaultCachedMccClientOptions: CachedMccClientOptions = {

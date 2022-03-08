@@ -1,3 +1,4 @@
+import { IBlock } from "flare-mcc";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
 import { CachedMccClient } from "./CachedMccClient";
@@ -58,14 +59,21 @@ export class LimitingProcessor {
    debugLabel = "";
    reportInMs = 1000;
 
+   block: IBlock;
+
    constructor(cachedClient: CachedMccClient<any, any>, options?: LimitingProcessorOptions) {
       this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
       this.client = cachedClient;
-      this.start()
+      this.continue()
    }
 
    counter = 0;
+
    public async start(debug = false) {
+      this.continue( debug );
+   }
+
+   public async continue(debug = false) {
       if(debug) {
          this.debugOn(this.debugLabel, this.reportInMs);
       }
@@ -83,7 +91,7 @@ export class LimitingProcessor {
       }
    }
 
-   public stop() {
+   public pause() {
       this.isActive = false;
       this.debugOff();
    }

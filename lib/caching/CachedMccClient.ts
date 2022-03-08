@@ -111,6 +111,7 @@ export class CachedMccClient<T, B> {
     let newPromise = this.client.getBlock(blockHashOrNumber);
     if(typeof blockHashOrNumber === "number") {
       let block = await newPromise;
+      if( !block ) return null;
       let blockHash = block.hash // TODO
       this.blockCache.set(blockHash, newPromise); 
     } else {

@@ -11,6 +11,7 @@ export const ATT_REQUEST_TYPES_FILE = `${GENERATED_ROOT}/attestation-request-typ
 export const ATT_HASH_TYPES_FILE = `${GENERATED_ROOT}/attestation-hash-types.ts`;
 export const ATTESTATION_TYPES_ENUM_FILE = `${GENERATED_ROOT}/attestation-types-enum.ts`;
 export const I_ATTESTATION_CLIENT_FILE = `${SOLIDITY_GENERATED_ROOT}/IAttestationClient.sol`;
+export const ATTESTATION_CLIENT_MOCK = `${SOLIDITY_GENERATED_ROOT}/AttestationClientMock.sol`;
 export const HASH_TEST_FILE = `${CONTRACTS_ROOT}/HashTest.sol`
 
 export const CODEGEN_TAB = 3;

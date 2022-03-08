@@ -106,7 +106,7 @@ export interface VerificationTestOptions {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const ATT_BYTES = 2;
-export const CHAIN_ID_BYTES = 2;
+export const CHAIN_ID_BYTES = 4;
 export const UTXO_BYTES = 1;
 export const BLOCKNUMBER_BYTES = 4;
 export const TIMESTAMP_BYTES = 4;

@@ -1,47 +1,78 @@
-import { IBlock, RPCInterface } from "flare-mcc";
-import { BlockProcessor } from "./blockProcessor";
+import { IBlock } from "flare-mcc";
+import { CachedMccClient } from "../caching/CachedMccClient";
+import { LimitingProcessor } from "../caching/LimitingProcessor";
+import { AttLogger } from "../utils/logger";
+import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
 
 export class BlockProcessorManager {
 
-    blockProcessors: BlockProcessor[] = [];
+    logger: AttLogger;
 
-    client: RPCInterface;
+    blockProcessors: LimitingProcessor[] = [];
+
+    cachedClient: CachedMccClient<any,any>;
 
     completeCallback: any;
 
-    constructor(client: RPCInterface, completeCallback: any) {
-        this.client = client;
+    blockCache = new Map<number,IBlock>();
+
+
+    constructor(logger: AttLogger, client: CachedMccClient<any,any>, completeCallback: any) {
+        this.logger=logger;
+        this.cachedClient = client;
         this.completeCallback = completeCallback;
     }
 
-    async process(block: IBlock) {
+    async processSyncBlockNumber(blockNumber: number) {
+        const cachedBlock = this.blockCache.get(blockNumber);
+
+        if( cachedBlock ) return;
+
+        const block = await this.cachedClient.getBlock(blockNumber);
+
+        if( !block ) return;
+
+        this.blockCache.set( blockNumber, block );
+
+        this.process( block , true );
+    }
+
+    async process(block: IBlock, syncMode=false) {
+
         let started = false;
         for (let a = 0; a < this.blockProcessors.length; a++) {
             if (this.blockProcessors[a].block.hash === block.hash) {
                 started = true;
+
+                if( syncMode ) return;
+
+                this.logger.info( `^w^Kprocess ${block.number}^^^W (continue)`)
                 this.blockProcessors[a].continue();
             }
             else {
-                this.blockProcessors[a].stop();
+                if( !syncMode ) {
+                    this.blockProcessors[a].pause();
+                }
             }
         }
 
         if (started) return;
 
-        const processor = new BlockProcessor(this, block);
+        this.logger.info( `^w^Kprocess ${block.number}`)
+
+        const processor = new (BlockProcessor( this.cachedClient.chainType ))( this.cachedClient );
         this.blockProcessors.push(processor);
-        processor.start();
-    }
 
-    async complete(completedBlock: BlockProcessor) {
-        await this.completeCallback(completedBlock);
+        //processor.debugOn( block.hash );
+        processor.initializeJobs(block,this.completeCallback);
     }
-
+    
     clear(fromBlock: number) {
         // delete all that are block number <= completed block number
         for (let a = 0; a < this.blockProcessors.length; a++) {
             if (this.blockProcessors[a].block.number <= fromBlock) {
-                this.blockProcessors = this.blockProcessors.splice(a--, 1);
+                this.blockProcessors[a].destroy();
+                this.blockProcessors.splice(a--, 1);
             }
         }
     }

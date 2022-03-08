@@ -43,5 +43,26 @@
             }
          ]
       }
+      ,
+      {
+         "source":"ALGO",
+         "requiredBlocks":1,
+         "maxCallsPerRound": 1000,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "avgCalls": 3
+            },
+            {
+               "type":"BalanceDecreasingProof",
+               "avgCalls": 3
+            },
+            {
+               "type":"BlockHeightExistsProof",
+               "avgCalls": 1
+            }
+         ]
+      }
    ]
  }

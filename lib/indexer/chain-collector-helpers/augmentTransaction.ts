@@ -12,7 +12,7 @@ function getBlockSaveEpoch(time: number): number {
 function DBTransaction(chainType: ChainType, index: number) {
    switch (chainType) {
        case ChainType.XRP:
-           return new (index ? DBTransactionALGO0 : DBTransactionALGO1)();
+           return new (index ? DBTransactionXRP0 : DBTransactionXRP1)();
        case ChainType.BTC:
          return new (index ? DBTransactionBTC0 : DBTransactionBTC1)();
        case ChainType.LTC:
@@ -33,7 +33,7 @@ async function augmentTransactionBase(client: CachedMccClient<any, any>, block: 
    res.chainType = client.client.chainType;
    res.transactionId = prepareString(txData.hash, 64);
    res.blockNumber = block.number;
-   res.timestamp = txData.unixTimestamp
+   res.timestamp = txData.unixTimestamp;
 
    // TODO calculate hash
    // res.hashVerify = prepareString(res.hashVerify, 64);
@@ -67,6 +67,8 @@ export async function augmentTransactionUtxo(client: CachedMccClient<any, any>, 
 
 export async function augmentTransactionXrp(client: CachedMccClient<any, any>, block: XrpBlock, txData: XrpTransaction): Promise<DBTransactionBase> {
    const res = await augmentTransactionBase(client,block,txData);
+
+   res.timestamp = block.unixTimestamp;
 
    if (txData.reference.length === 1) {
       res.paymentReference = prepareString(txData.reference[0],64);

@@ -1,4 +1,5 @@
 import { AlgoMccCreate, ChainType, MCC, ReadRpcInterface, RPCInterface, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
+import { getGlobalLogger } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 
 export interface CachedMccClientOptions {
@@ -81,17 +82,22 @@ export class CachedMccClient<T, B> {
   }
 
   public async getTransaction(txId: string) {
-    // if(!this.canAccept) {
-    //   throw Error("Cannot accept transaction requests");
-    // }
-    let txPromise = this.getTransactionFromCache(txId);
-    if(txPromise) {
-      return txPromise;
+    try {
+      // if(!this.canAccept) {
+      //   throw Error("Cannot accept transaction requests");
+      // }
+      let txPromise = this.getTransactionFromCache(txId);
+      if(txPromise) {
+        return txPromise;
+      }
+      let newPromise = this.client.getTransaction(txId);
+      this.transactionCache.set(txId, newPromise);
+      this.checkAndCleanup();
+      return newPromise;    
     }
-    let newPromise = this.client.getTransaction(txId);
-    this.transactionCache.set(txId, newPromise);
-    this.checkAndCleanup();
-    return newPromise;    
+    catch( error ) {
+      getGlobalLogger().critical(`CachedMccClient::getTransaction(${txId}) ${error}`);
+    }
   }
 
   public async getBlockFromCache(blockHash: string) {

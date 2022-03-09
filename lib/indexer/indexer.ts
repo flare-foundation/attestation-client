@@ -1,28 +1,6 @@
 //
-//
-//  [ ] proof of existance (tx reference, destination address, amount)
-//
-//  block (from -14d up to -6 blocks)
-//     - block number
-//     - block hash
-//     - block timestamp
-//     - response
-//
-//  transaction
-//     - payment reference (non unique!!!) hex string 32 chars (hex lower case)
-//     - transaction id
-//     - timestamp
-//     - block number
-//     - response
-//
-// search by
-//     - reference
-//     - hash
-//     - sender address
-//
-//  [ ] XRP 1st
-//  [ ] 100% make sure that block is completely saved until moved to the next block
-//  [ ] check if using database per chain is easier than tables per chain
+//  [x] 100% make sure that block is completely saved until moved to the next block
+//  [x] check if using database per chain is easier than tables per chain
 //
 //  [x] indexer sync - create database for x days back
 //  [x] create table for each chain
@@ -41,7 +19,8 @@
 //  [x] keep collecting blocks while waiting for N+1 to complete
 
 //  [ ] end sync issue with block processing
-
+//  [ ] read all forks (utxo only - completely different block header collection)
+ 
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { DBBlockBase } from "../entity/dbBlock";
@@ -59,7 +38,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -104,6 +83,8 @@ export class Indexer {
   prevEpoch = -1;
   tableLock = false;
 
+  sync = false;
+
   constructor(config: IndexerConfiguration, chainName: string) {
     this.config = config;
     this.chainType = MCC.getChainType(chainName);
@@ -127,7 +108,7 @@ export class Indexer {
 
     this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
 
-    this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this));
+    this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this), );
   }
 
   get lastConfimedBlockNumber() {
@@ -185,13 +166,30 @@ export class Indexer {
     processors.push(new PreparedBlock(block, transactions));
 
     // if N+1 is ready then begin processing N+2
-    if (isBlockNp1) {
-      const blockNp2 = await this.getBlock(this.N + 2);
-      this.blockProcessorManager.process(blockNp2);
+    if( !this.sync ) {
+      if (isBlockNp1) {
+        const blockNp2 = await this.getBlock(this.N + 2);
+        this.blockProcessorManager.process(blockNp2);
+      }
     }
 
     return true;
   }
+
+  async blockAlreadyCompleted(block: DBBlockBase) {
+    this.logger.info(`^Galready completed ${block.blockNumber}:N+${block.blockNumber - this.N}`);
+    // if N+1 is ready then begin processing N+2
+
+    const isBlockNp1 = block.blockNumber == this.N + 1 && block.blockHash == this.blockNp1hash;
+
+    if( !this.sync ) {
+      if (isBlockNp1) {
+        const blockNp2 = await this.getBlock(this.N + 2);
+        this.blockProcessorManager.process(blockNp2);
+      }
+    }
+  }
+
 
   getChainN() {
     return this.chainConfig.name + "_N";    
@@ -323,12 +321,14 @@ export class Indexer {
           // N is set on previous value
           this.N--;
           this.logger.error(`database error (N=${Np1}): ${error}`);
+          this.logger.error( error.stack );
           return false;
         });
 
       return true;
     } catch (error) {
-      this.logger.error(`saveInterlaced error (N=${Np1}): ${error}`);
+      this.logger.error2(`saveInterlaced error (N=${Np1}): ${error}`);
+      this.logger.error( error.stack );
       return false;
     }
 
@@ -422,15 +422,15 @@ export class Indexer {
       // save blocks from fromBlockNumber to toBlockNumberInc
       //this.logger.debug( `collect block headers [${fromBlockNumber} .. ${toBlockNumberInc}]` );
 
-      var blocks = "[";
+      let blocks = "[";
 
       // limit number of blocks to look ahead
-      const maxBlocks = 8;
-      if (toBlockNumberInc - fromBlockNumber > maxBlocks) {
-        blocks = `^Wlimited from ${toBlockNumberInc - fromBlockNumber}^^ [`;
+      // const maxBlocks = 8;
+      // if (toBlockNumberInc - fromBlockNumber > maxBlocks) {
+      //   blocks = `^Wlimited from ${toBlockNumberInc - fromBlockNumber}^^ [`;
 
-        toBlockNumberInc = fromBlockNumber + maxBlocks;
-      }
+      //   toBlockNumberInc = fromBlockNumber + maxBlocks;
+      // }
 
       const dbBlocks = [];
       for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++) {
@@ -490,6 +490,7 @@ export class Indexer {
       //   .execute();
     } catch (error) {
       this.logger.error2(`saveBlocksHeaders error: ${error}`);
+      this.logger.error( error.stack );
     }
   }
 
@@ -567,8 +568,10 @@ export class Indexer {
 
         // save block N+1 hash
         localBlockNp1hash = blockNp1.hash;
-      } catch (e) {
-        this.logger.error2(`Exception: ${e}`);
+      } catch (error) {
+        this.logger.error2(`Exception: ${error}`);
+        this.logger.error( error.stack );
+
       }
     }
   }
@@ -579,6 +582,8 @@ export class Indexer {
     let blocksPerSec = 0;
 
     this.T = await this.getBlockHeight();
+
+    this.sync = true;
 
     while (true) {
       try {
@@ -599,19 +604,21 @@ export class Indexer {
 
         if (blocksPerSec > 0) {
           const timeLeft = (this.T - this.N) / blocksPerSec;
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA ${round(timeLeft / 60, 1)} min, ${round(blocksPerSec, 2)} bps)`);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA ${round(timeLeft / 60, 1)} min, ${round(blocksPerSec, 2)} bps calls: ${this.cachedClient.reqsPs} cps)`);
         }
         else {
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks `);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (calls: ${this.cachedClient.reqsPs} cps)`);
         }
 
         if (this.N + this.chainConfig.confirmationsCollect >= this.T) {
           this.logger.group("Sync completed")
+          this.sync = false;
           return;
         }
 
-        for (let a = 1; a < 10; a++) {
-          if (this.N + 1 >= this.T - this.chainConfig.confirmationsCollect) break;
+        // todo: 30 must be in config
+        for (let a = 1; a < 30; a++) {
+          if (this.N >= this.T - this.chainConfig.confirmationsCollect) break;
 
           this.blockProcessorManager.processSyncBlockNumber(this.N + a);
         }
@@ -621,6 +628,7 @@ export class Indexer {
 
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
+        this.logger.error( e.stack );
       }
     }
   }
@@ -700,6 +708,7 @@ export class Indexer {
 
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
+        this.logger.error( e.stack );
       }
     }
   }
@@ -744,5 +753,6 @@ runIndexer()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
+    console.error( error.stack );
     process.exit(1);
   });

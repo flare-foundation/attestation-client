@@ -1,6 +1,6 @@
 {
     "syncEnabled": true,
-    "syncTimeDays": 2,
+    "syncTimeDays": 0.005,
 
     "blockCollectTimeMs": 1000,
 
@@ -26,7 +26,7 @@
                 "password": "admin"                  
             },
             "rateLimitOptions": {
-                "maxRPS": 300,
+                "maxRPS": 80,
                 "timeoutMs": 5000,
                 "retries": 3
             },

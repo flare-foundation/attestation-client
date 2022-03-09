@@ -174,6 +174,10 @@ export function prepareString(text: string, maxLength: number, reportOwerflow: s
   return text.substring(0, maxLength - 1);
 }
 
+export function getSimpleRandom(maxnum: number) : number {
+  return Math.floor( Math.random() * maxnum );
+}
+
 
 export async function getRandom(minnum: number = 0, maxnum: number = 10 ** 5) {
   const randomNumber = require("random-number-csprng");

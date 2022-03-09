@@ -22,3 +22,14 @@ export const DEFAULT_GEN_FILE_HEADER =
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 `
+
+
+export const SEMI_EDITABLE_GEN_FILE_HEADER = 
+`//////////////////////////////////////////////////////////////
+// This file is auto generated. You may edit it only in the 
+// marked section between //-$$$<start> and //-$$$<end>.
+// You may also import custom imports needed for the code
+// in the custom section, which should be placed immediately 
+// in the usual import section (below this comment)
+//////////////////////////////////////////////////////////////
+`

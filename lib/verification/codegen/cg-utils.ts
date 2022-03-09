@@ -44,3 +44,4 @@ export function definitionFile(definition: AttestationTypeScheme, folder?: strin
    let suffix = addTs ? ".ts" : "";
    return `${root}t-${('' + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}${suffix}`
 }
+

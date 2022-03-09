@@ -2,20 +2,12 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import BN from "bn.js";
-import Web3 from "web3";   
-import { RPCInterface } from "flare-mcc";
-import { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
-import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
-import { TDEF } from "../../attestation-types/t-00001-payment";
-import { ARPayment } from "../../generated/attestation-request-types";
-import { DHPayment } from "../../generated/attestation-hash-types";
-import { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
+import { ARPayment, BN, DHPayment, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 
 const web3 = new Web3();
 
 export async function verifyPaymentDOGE(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
-   let request = parseRequestBytes(bytes, TDEF) as ARPayment;
+   let request = parseRequestBytes(bytes, TDEF_payment) as ARPayment;
 
    // Do the magic here and fill the response with the relevant data
 

@@ -1,7 +1,7 @@
 import { AttestationTypeScheme, DataHashScheme } from "../attestation-types/attestation-types";
 import { getSourceName, tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATTESTATION_TYPE_PREFIX, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, VERIFIER_FUNCTION_PREFIX } from "./cg-constants";
-import { dashCapitalized, trimStartNewline } from "./cg-utils";
+import { dashCapitalized, definitionFile, trimStartNewline } from "./cg-utils";
 
 export function verifierFolder(sourceId: number, rootFolder?: string) {
    let root = rootFolder ? `${rootFolder}/` : "";
@@ -19,12 +19,6 @@ export function verifierFunctionName(definition: AttestationTypeScheme, sourceId
    return `${VERIFIER_FUNCTION_PREFIX}${definition.name}${getSourceName(sourceId)}`;
 }
 
-function definitionFile(definition: AttestationTypeScheme, folder?: string, addTs = true) {
-   let root = folder ? `${folder}/` : "";
-   let suffix = addTs ? ".ts" : "";
-   return `${root}t-${('' + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}${suffix}`
-}
-
 function randomHashItemValue(item: DataHashScheme) {
    let res =  `
          ${item.key}: randSol(request, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`
@@ -37,20 +31,12 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
    let types = definition.dataHashDefinition.map(item => `           "${item.type}",\t\t// ${item.key}`).join("\n");
    let values = definition.dataHashDefinition.map(item => `          response.${item.key}`).join(",\n");
    return `${DEFAULT_GEN_FILE_HEADER}
-import BN from "bn.js";
-import Web3 from "web3";   
-import { RPCInterface } from "flare-mcc";
-import { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
-import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
-import { TDEF } from "../../attestation-types/${definitionFile(definition, undefined, false)}";
-import { ${ATTESTATION_TYPE_PREFIX}${definition.name} } from "../../generated/attestation-request-types";
-import { ${DATA_HASH_TYPE_PREFIX}${definition.name} } from "../../generated/attestation-hash-types";
-import { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
+import { AR${definition.name}, BN, DH${definition.name}, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_${dashCapitalized(definition.name, '_')}, Verification, VerificationStatus, Web3 } from "./0imports";
 
 const web3 = new Web3();
 
 export async function ${functionName}(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
-   let request = parseRequestBytes(bytes, TDEF) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+   let request = parseRequestBytes(bytes, TDEF_${dashCapitalized(definition.name, '_')}) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
    // Do the magic here and fill the response with the relevant data
 

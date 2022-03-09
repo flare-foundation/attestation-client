@@ -3,6 +3,7 @@ export const CONTRACTS_ROOT = "contracts";
 export const VERIFIERS_ROOT = "lib/verification/verifiers";
 export const SOLIDITY_GENERATED_ROOT = `${GENERATED_ROOT}/solidity`
 export const VERIFIERS_ROUTING_FILE = `${VERIFIERS_ROOT}/verifier_routing.ts`;
+export const VERIFIERS_IMPORTS = `${VERIFIERS_ROOT}/0-imports.ts`;
 export const VERIFIER_FUNCTION_PREFIX = "verify";
 export const ATTESTATION_TYPE_PREFIX = "AR";
 export const DATA_HASH_TYPE_PREFIX = "DH";

@@ -2,20 +2,12 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import BN from "bn.js";
-import Web3 from "web3";   
-import { RPCInterface } from "flare-mcc";
-import { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
-import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
-import { TDEF } from "../../attestation-types/t-00004-referenced-payment-nonexistence";
-import { ARReferencedPaymentNonexistence } from "../../generated/attestation-request-types";
-import { DHReferencedPaymentNonexistence } from "../../generated/attestation-hash-types";
-import { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
+import { ARReferencedPaymentNonexistence, BN, DHReferencedPaymentNonexistence, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_referenced_payment_nonexistence, Verification, VerificationStatus, Web3 } from "./0imports";
 
 const web3 = new Web3();
 
 export async function verifyReferencedPaymentNonexistenceBTC(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
-   let request = parseRequestBytes(bytes, TDEF) as ARReferencedPaymentNonexistence;
+   let request = parseRequestBytes(bytes, TDEF_referenced_payment_nonexistence) as ARReferencedPaymentNonexistence;
 
    // Do the magic here and fill the response with the relevant data
 

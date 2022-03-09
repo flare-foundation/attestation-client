@@ -5,6 +5,7 @@ import { createAttestationRequestTypesFile } from "./cg-attestation-request-type
 import { createSolidityIAttestationClient } from "./cg-iattestation-client";
 import { createHashTestSolidityFile } from "./cg-test-hash";
 import { readAttestationTypeSchemes } from "./cg-utils";
+import { createVerifiersImportFiles } from "./cg-verifier-imports";
 import { createVerifiersAndRouter } from "./cg-verifiers-router";
 
 async function generateCodeFiles() {
@@ -17,6 +18,7 @@ async function generateCodeFiles() {
    createVerifiersAndRouter(definitions);
    createSolidityIAttestationClient(definitions);
    createSolidityAttestationClientMock(definitions);
+   createVerifiersImportFiles(definitions);
 }
 
 generateCodeFiles()

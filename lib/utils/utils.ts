@@ -289,3 +289,19 @@ export function JSONMapParser(key: any, value: any) {
   }
   return value;
 }
+
+
+
+export function secToHHMMSS(time: number, secDecimals=0)
+{
+    const hours   = Math.floor(time / 3600);
+    const minutes = Math.floor((time - (hours * 3600)) / 60);
+    const seconds = round( time - (hours * 3600) - (minutes * 60) , secDecimals );
+
+    const shours : string = hours.toString().padStart(2,"0")
+    const smin : string = minutes.toString().padStart(2,"0")
+    const ssec : string = seconds.toString().padStart(2,"0")
+
+    return shours+':'+smin+':'+ssec;
+}
+

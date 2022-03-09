@@ -16,7 +16,8 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6
+            "confirmationsCollect": 6,
+            "syncReadAhead":30
         },
         {
             "name": "BTC",
@@ -30,7 +31,8 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6
+            "confirmationsCollect": 6,
+            "syncReadAhead":30
         },
         {
             "name": "LTC",
@@ -44,7 +46,8 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6
+            "confirmationsCollect": 6,
+            "syncReadAhead":30
         },
         {
             "name": "ALGO",
@@ -63,7 +66,8 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 3  
+            "confirmationsCollect": 3,
+            "syncReadAhead":30  
         },
         {
             "name": "DOGE",
@@ -77,7 +81,8 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6
+            "confirmationsCollect": 6,
+            "syncReadAhead":30
         }
 
     ]

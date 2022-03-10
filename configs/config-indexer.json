@@ -16,8 +16,9 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6,
-            "syncReadAhead":30
+            "confirmationsCollect": 3,
+            "syncReadAhead":30,
+            "blockCollecting":"raw"
         },
         {
             "name": "BTC",
@@ -32,7 +33,8 @@
                 "retries": 3
             },
             "confirmationsCollect": 6,
-            "syncReadAhead":30
+            "syncReadAhead":30,
+            "blockCollecting":"tips"
         },
         {
             "name": "LTC",
@@ -47,7 +49,8 @@
                 "retries": 3
             },
             "confirmationsCollect": 6,
-            "syncReadAhead":30
+            "syncReadAhead":30,
+            "blockCollecting":"tips"
         },
         {
             "name": "ALGO",
@@ -67,7 +70,8 @@
                 "retries": 3
             },
             "confirmationsCollect": 3,
-            "syncReadAhead":30  
+            "syncReadAhead":30,
+            "blockCollecting":"raw" 
         },
         {
             "name": "DOGE",
@@ -82,7 +86,8 @@
                 "retries": 3
             },
             "confirmationsCollect": 6,
-            "syncReadAhead":30
+            "syncReadAhead":30,
+            "blockCollecting":"tips"
         }
 
     ]

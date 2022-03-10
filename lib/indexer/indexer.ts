@@ -19,6 +19,7 @@
 //  [x] keep collecting blocks while waiting for N+1 to complete
 
 //  [x] end sync issue with block processing
+//  [x] fix node execution (db is not working)
 //  [ ] read all forks (utxo only - completely different block header collection)
 
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
@@ -38,7 +39,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -443,10 +444,10 @@ export class Indexer {
         blockPromisses.push(this.getBlock(blockNumber));
       }
 
-      const blocks = await Promise.all( blockPromisses );
+      const blocks = await Promise.all(blockPromisses);
 
       const dbBlocks = [];
-      let i=0;
+      let i = 0;
       for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++, i++) {
         const block = blocks[i];
 
@@ -457,7 +458,7 @@ export class Indexer {
         if (cachedBlock) {
           if (cachedBlock.hash === block.hash) {
             // same (ignored)
-            blocksText += "^R" + blockNumber.toString() + "^^,";
+            blocksText += "^G" + blockNumber.toString() + "^^,";
             continue;
           }
           else {
@@ -553,6 +554,16 @@ export class Indexer {
   }
 
   async runBlockHeaderCollecting() {
+    switch (this.chainConfig.blockCollecting) {
+      case "raw": await this.runBlockHeaderCollectingRaw(); break;
+      case "tips": await this.runBlockHeaderCollectingTips(); break;
+    }
+  }
+
+  async runBlockHeaderCollectingTips() {
+  }
+
+  async runBlockHeaderCollectingRaw() {
     let localN = this.N;
     let localBlockNp1hash = "";
 
@@ -617,7 +628,7 @@ export class Indexer {
 
         if (blocksPerSec > 0) {
           const timeLeft = (this.T - this.N) / blocksPerSec;
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS( timeLeft )} bps: ${round(blocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(blocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
         }
         else {
           this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);

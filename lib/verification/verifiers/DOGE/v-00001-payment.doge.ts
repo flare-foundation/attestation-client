@@ -36,6 +36,8 @@ export async function verifyPaymentDOGE(client: RPCInterface, bytes: string, ind
 
    let encoded = web3.eth.abi.encodeParameters(
       [
+         "uint16",
+         "uint32",
          "uint64",		// blockNumber
          "uint64",		// blockTimestamp
          "bytes32",		// transactionHash
@@ -49,6 +51,8 @@ export async function verifyPaymentDOGE(client: RPCInterface, bytes: string, ind
          "uint8",		// status
       ],
       [
+         response.attestationType,
+         response.chainId,
          response.blockNumber,
          response.blockTimestamp,
          response.transactionHash,

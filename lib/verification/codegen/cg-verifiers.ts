@@ -1,5 +1,5 @@
 import fs from "fs";
-import { AttestationTypeScheme, DataHashScheme } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
 import { getSourceName, tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATTESTATION_TYPE_PREFIX, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, SEMI_EDITABLE_GEN_FILE_HEADER, VERIFIER_FUNCTION_PREFIX } from "./cg-constants";
 import { dashCapitalized, indentText, trimStartNewline } from "./cg-utils";
@@ -96,9 +96,13 @@ ${hasResponseDefined ? "" : indentText(randomResponse, CODEGEN_TAB)}
 
    let encoded = web3.eth.abi.encodeParameters(
       [
+         "uint${ATT_BYTES*8}",
+         "uint${CHAIN_ID_BYTES*8}",
 ${indentText(types, CODEGEN_TAB*3)}
       ],
       [
+         response.attestationType,
+         response.chainId,
 ${indentText(values, CODEGEN_TAB*3)}
       ]
    );   

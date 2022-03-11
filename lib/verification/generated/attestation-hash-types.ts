@@ -5,6 +5,9 @@
 import BN from "bn.js";
 
 export interface DHPayment {
+   // Attestation type
+   attestationType: AttestationType,
+   chainId: ChainType,
    // Timestamp of the transaction block on the underlying chain.
    blockNumber: BN;
 
@@ -51,6 +54,9 @@ export interface DHPayment {
 }
 
 export interface DHBalanceDecreasingTransaction {
+   // Attestation type
+   attestationType: AttestationType,
+   chainId: ChainType,
    // Number of the transaction block on the underlying chain.
    blockNumber: BN;
 
@@ -76,6 +82,9 @@ export interface DHBalanceDecreasingTransaction {
 }
 
 export interface DHBlockHeightExists {
+   // Attestation type
+   attestationType: AttestationType,
+   chainId: ChainType,
    // Number of the block that was proved to exist.
    blockNumber: BN;
 
@@ -84,6 +93,9 @@ export interface DHBlockHeightExists {
 }
 
 export interface DHReferencedPaymentNonexistence {
+   // Attestation type
+   attestationType: AttestationType,
+   chainId: ChainType,
    // End timestamp specified in attestation request.
    endTimestamp: BN;
 

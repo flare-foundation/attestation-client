@@ -13,6 +13,9 @@ function genAttestationDataHashType(definition: AttestationTypeScheme) {
    let values = definition.dataHashDefinition.map(item => genDefHashItem(item)).join("\n\n");
    return `
 export interface ${DATA_HASH_TYPE_PREFIX}${definition.name} {
+   // Attestation type
+   attestationType: AttestationType,
+   chainId: ChainType,
 ${values}
 }
 `

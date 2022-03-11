@@ -27,10 +27,14 @@ export async function verifyBlockHeightExistsXRP(client: RPCInterface, bytes: st
 
    let encoded = web3.eth.abi.encodeParameters(
       [
+         "uint16",
+         "uint32",
          "uint64",		// blockNumber
          "uint64",		// blockTimestamp
       ],
       [
+         response.attestationType,
+         response.chainId,
          response.blockNumber,
          response.blockTimestamp
       ]

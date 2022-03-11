@@ -34,6 +34,8 @@ export async function verifyReferencedPaymentNonexistenceBTC(client: RPCInterfac
 
    let encoded = web3.eth.abi.encodeParameters(
       [
+         "uint16",
+         "uint32",
          "uint64",		// endTimestamp
          "uint64",		// endBlock
          "bytes32",		// destinationAddress
@@ -45,6 +47,8 @@ export async function verifyReferencedPaymentNonexistenceBTC(client: RPCInterfac
          "uint64",		// firstOverflowBlockTimestamp
       ],
       [
+         response.attestationType,
+         response.chainId,
          response.endTimestamp,
          response.endBlock,
          response.destinationAddress,

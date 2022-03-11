@@ -27,10 +27,14 @@ export async function verifyBlockHeightExistsDOGE(client: RPCInterface, bytes: s
 
    let encoded = web3.eth.abi.encodeParameters(
       [
+         "uint16",
+         "uint32",
          "uint64",		// blockNumber
          "uint64",		// blockTimestamp
       ],
       [
+         response.attestationType,
+         response.chainId,
          response.blockNumber,
          response.blockTimestamp
       ]

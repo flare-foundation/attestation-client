@@ -14,7 +14,7 @@ async function generateCodeFiles() {
    createAttestationEnumFile(definitions);
    createAttestationRequestTypesFile(definitions);
    createAttestationHashTypesFile(definitions);
-   createHashTestSolidityFile(definitions);
+   // createHashTestSolidityFile(definitions);
    createVerifiersAndRouter(definitions);
    createSolidityIAttestationClient(definitions);
    createSolidityAttestationClientMock(definitions);

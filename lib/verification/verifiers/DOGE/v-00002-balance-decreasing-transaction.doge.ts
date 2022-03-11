@@ -31,6 +31,8 @@ export async function verifyBalanceDecreasingTransactionDOGE(client: RPCInterfac
 
    let encoded = web3.eth.abi.encodeParameters(
       [
+         "uint16",
+         "uint32",
          "uint64",		// blockNumber
          "uint64",		// blockTimestamp
          "bytes32",		// transactionHash
@@ -39,6 +41,8 @@ export async function verifyBalanceDecreasingTransactionDOGE(client: RPCInterfac
          "uint256",		// paymentReference
       ],
       [
+         response.attestationType,
+         response.chainId,
          response.blockNumber,
          response.blockTimestamp,
          response.transactionHash,

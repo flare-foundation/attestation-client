@@ -1,6 +1,6 @@
 import fs from "fs";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { SOLIDITY_CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER, I_ATTESTATION_CLIENT_FILE, SOLIDITY_GENERATED_ROOT } from "./cg-constants";
+import { DEFAULT_GEN_FILE_HEADER, I_ATTESTATION_CLIENT_FILE, SOLIDITY_CODEGEN_TAB, SOLIDITY_GEN_INTERFACES_ROOT } from "./cg-constants";
 import { indentText } from "./cg-utils";
 
 function genProofStructs(definition: AttestationTypeScheme): any {
@@ -59,9 +59,9 @@ ${verifyProofFunctionSignatures}
 export function createSolidityIAttestationClient(definitions: AttestationTypeScheme[]) {
    let content = `${DEFAULT_GEN_FILE_HEADER}
 ${getSolidityIAttestationClient(definitions)}`
-   if (!fs.existsSync(SOLIDITY_GENERATED_ROOT)) {
-      fs.mkdirSync(SOLIDITY_GENERATED_ROOT, { recursive: true });
+   if (!fs.existsSync(SOLIDITY_GEN_INTERFACES_ROOT)) {
+      fs.mkdirSync(SOLIDITY_GEN_INTERFACES_ROOT, { recursive: true });
    }
 
-   fs.writeFileSync(I_ATTESTATION_CLIENT_FILE, content, "utf8");
+   fs.writeFileSync(`${SOLIDITY_GEN_INTERFACES_ROOT}/${I_ATTESTATION_CLIENT_FILE}`, content, "utf8");
 }

@@ -1,6 +1,6 @@
 import fs from "fs";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { DEFAULT_GEN_FILE_HEADER, HASH_TEST_FILE } from "./cg-constants";
+import { DEFAULT_GEN_FILE_HEADER, HASH_TEST_FILE, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 
 function genTestHashStruct(definition: AttestationTypeScheme) {
    let structName = `${definition.name}`;
@@ -22,7 +22,7 @@ function genTestHashFunction(definition: AttestationTypeScheme) {
     ) external pure returns (bool _match) {
       bytes32 hash = keccak256(_data);
       ${definition.name} memory data = abi.decode(_data, (${definition.name}));
-      require(data.attestationType > 0);
+      // require(data.attestationType > 0);
       bytes32 hash2 = keccak256(abi.encode(${params}));
       return hash == _hashToProve && hash == hash2;
     }
@@ -50,7 +50,7 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 
 contract HashTest {
    using MerkleProof for bytes32[];
-${structs} 
+
 ${functions}
 
    function verifyMerkleProof(
@@ -71,5 +71,9 @@ export function createHashTestSolidityFile(definitions: AttestationTypeScheme[])
    let content = `${DEFAULT_GEN_FILE_HEADER}
       ${getSolidityHashTest(definitions)}   
       `
-   fs.writeFileSync(HASH_TEST_FILE, content, "utf8");
+   if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {
+      fs.mkdirSync(SOLIDITY_GEN_CONTRACTS_ROOT, { recursive: true });
+   }
+
+   fs.writeFileSync(`${SOLIDITY_GEN_CONTRACTS_ROOT}/${HASH_TEST_FILE}`, content, "utf8");
 }

@@ -25,7 +25,7 @@ export async function testHashOnContract(txData: ChainVerification, hash: string
 
   switch (txData.attestationType) {
     case AttestationType.Payment:
-      return await hashTest.testPaymentProof(
+      return await hashTest.testPayment(
         txData!.attestationType,
         txData!.chainId!,
         txData!.blockNumber,

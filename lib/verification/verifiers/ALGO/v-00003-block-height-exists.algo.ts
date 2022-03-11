@@ -1,36 +1,45 @@
 //////////////////////////////////////////////////////////////
-// This file is auto generated. Do not edit.
+// This file is auto generated. You may edit it only in the 
+// marked section between //-$$$<start> and //-$$$<end>.
+// You may also import custom imports needed for the code
+// in the custom section, which should be placed immediately 
+// in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import BN from "bn.js";
-import Web3 from "web3";   
-import { RPCInterface } from "flare-mcc";
-import { IndexerQueryHandler, Verification, VerificationStatus } from "../../attestation-types/attestation-types";
-import { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
-import { TDEF } from "../../attestation-types/t-00003-block-height-exists";
-import { ARBlockHeightExists } from "../../generated/attestation-request-types";
-import { DHBlockHeightExists } from "../../generated/attestation-hash-types";
+import { ARBlockHeightExists, BN, DHBlockHeightExists, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
+
+
 const web3 = new Web3();
 
-export async function verifyBlockHeightExistsALGO(client: RPCInterface, bytes: string, indexer: IndexerQueryHandler) {
-   let request = parseRequestBytes(bytes, TDEF) as ARBlockHeightExists;
+export async function verifyBlockHeightExistsALGO(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
+   let request = parseRequestBytes(bytes, TDEF_block_height_exists) as ARBlockHeightExists;
 
-   // Do the magic here and fill the response with the relevant data
+   //-$$$<start> of the custom code section. Do not change this comment. XXX
+
+// XXXX
+
+   //-$$$<end> of the custom section. Do not change this comment.
 
    let response = {
-         blockNumber: randSol(request, "blockNumber", "uint64") as BN,
-         blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN      
+      blockNumber: randSol(request, "blockNumber", "uint64") as BN,
+      blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN      
    } as DHBlockHeightExists;
+
    let encoded = web3.eth.abi.encodeParameters(
       [
-           "uint64",		// blockNumber
-           "uint64",		// blockTimestamp
+         "uint16",
+         "uint32",
+         "uint64",		// blockNumber
+         "uint64",		// blockTimestamp
       ],
       [
-          response.blockNumber,
-          response.blockTimestamp
+         response.attestationType,
+         response.chainId,
+         response.blockNumber,
+         response.blockTimestamp
       ]
-   );
+   );   
+
    let hash = web3.utils.soliditySha3(encoded)!;
    return {
       hash,

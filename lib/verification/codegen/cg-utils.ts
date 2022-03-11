@@ -27,5 +27,21 @@ export async function readAttestationTypeSchemes(): Promise<AttestationTypeSchem
 }
 
 export function indentText(text: string, padding: number, prefix = "") {
-   return text.trim().split("\n").map(line => `${"".padEnd(padding)}${prefix} ${line}`).join("\n")
+   if (prefix !== "") prefix += " ";   // add separator
+   return text.trim().split("\n").map(line => `${"".padEnd(padding)}${prefix}${line}`).join("\n")
 }
+
+export function dashCapitalized(name: string, glue='-') {
+   return name.replace(/([a-z])([A-Z])/g, `$1${glue}$2`).toLowerCase()
+}
+ 
+export function constantize(name: string) {
+   return name.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase()
+}
+
+export function definitionFile(definition: AttestationTypeScheme, folder?: string, addTs = true) {
+   let root = folder ? `${folder}/` : "";
+   let suffix = addTs ? ".ts" : "";
+   return `${root}t-${('' + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}${suffix}`
+}
+

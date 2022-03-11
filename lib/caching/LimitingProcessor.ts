@@ -1,4 +1,5 @@
 import { IBlock } from "flare-mcc";
+import { getGlobalLogger } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
 import { CachedMccClient } from "./CachedMccClient";
@@ -17,6 +18,7 @@ export class DelayedExecution {
    reject: any;
    tpp: LimitingProcessor;
 
+
    constructor(limitingProcessor: LimitingProcessor, func: any, resolve: any, reject: any) {
       this.tpp = limitingProcessor;
       this.func = func;
@@ -24,11 +26,15 @@ export class DelayedExecution {
       this.reject = reject;
    }
 
+
+
    async run() {
       try {
          let res = await this.func();
          this.resolve(res);
       } catch (e) {
+         getGlobalLogger().error2(`DelayedExecution::run exception ${e}`);
+         getGlobalLogger().error(e.stack);
          this.reject(e);
       }
    }
@@ -52,6 +58,7 @@ export class LimitingProcessor {
    queue = new Queue<DelayedExecution>();
    client: CachedMccClient<any, any>;
    isActive = false;
+   isCompleted = false;
    settings: LimitingProcessorOptions;
    topLevelJobsCounter = 0;
    topLevelJobsDoneCounter = 0;
@@ -70,11 +77,15 @@ export class LimitingProcessor {
    counter = 0;
 
    public async start(debug = false) {
-      this.continue( debug );
+      this.continue(debug);
    }
 
    public async continue(debug = false) {
-      if(debug) {
+      if( this.isActive || this.isCompleted ) {
+         return;
+      }
+
+      if (debug) {
          this.debugOn(this.debugLabel, this.reportInMs);
       }
       this.isActive = true;
@@ -92,8 +103,14 @@ export class LimitingProcessor {
    }
 
    public pause() {
+      //getGlobalLogger().info( `pause ^W${this.debugLabel}` );
       this.isActive = false;
       this.debugOff();
+   }
+
+   public stop() {
+      this.pause();
+      this.isCompleted = true;
    }
 
    public destroy() {
@@ -142,10 +159,10 @@ export class LimitingProcessor {
    }
 
    public debugOff() {
-      if(this.debugLogInterval !== undefined) {
+      if (this.debugLogInterval !== undefined) {
          clearInterval(this.debugLogInterval);
       }
-      this.debugLogInterval = undefined;      
+      this.debugLogInterval = undefined;
    }
 }
 

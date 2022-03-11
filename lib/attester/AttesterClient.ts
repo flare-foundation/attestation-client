@@ -90,7 +90,7 @@ export class AttesterClient {
       attestation.request = (await getRandom()).toString();
 
       attestation.type = AttestationType.Payment;
-      attestation.source = ChainType.BTC;
+      attestation.chainType = ChainType.BTC;
 
       // for sorting
       attestation.blockNumber = toBN(await getRandom());
@@ -194,12 +194,6 @@ export class AttesterClient {
       const attestation = new AttestationData(event);
 
       this.roundMng.attestate(attestation);
-
-      // for syntetic trafic test (will not work now because we filter out duplicates)
-      // for (let a = 0; a < 150; a++) {
-      //   this.attester.attestate(tx);
-      //   sleepms(2);
-      // }
     }
   }
 }

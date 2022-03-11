@@ -2,19 +2,28 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { HashTestContract } from "./HashTest";
+import { AttestationClientMockContract } from "./AttestationClientMock";
+import { IAttestationClientContract } from "./IAttestationClient";
 import { StateConnectorContract } from "./StateConnector";
 
 declare global {
   namespace Truffle {
     interface Artifacts {
-      require(name: "HashTest"): HashTestContract;
+      require(name: "AttestationClientMock"): AttestationClientMockContract;
+      require(name: "IAttestationClient"): IAttestationClientContract;
       require(name: "StateConnector"): StateConnectorContract;
     }
   }
 }
 
-export { HashTestContract, HashTestInstance } from "./HashTest";
+export {
+  AttestationClientMockContract,
+  AttestationClientMockInstance,
+} from "./AttestationClientMock";
+export {
+  IAttestationClientContract,
+  IAttestationClientInstance,
+} from "./IAttestationClient";
 export {
   StateConnectorContract,
   StateConnectorInstance,

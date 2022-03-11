@@ -1,9 +1,11 @@
+import { createSolidityAttestationClientMock } from "./cg-attestation-client-mock";
 import { createAttestationHashTypesFile } from "./cg-attestation-data-hash-types";
 import { createAttestationEnumFile } from "./cg-attestation-file-enum";
 import { createAttestationRequestTypesFile } from "./cg-attestation-request-types";
 import { createSolidityIAttestationClient } from "./cg-iattestation-client";
 import { createHashTestSolidityFile } from "./cg-test-hash";
 import { readAttestationTypeSchemes } from "./cg-utils";
+import { createVerifiersImportFiles } from "./cg-verifier-imports";
 import { createVerifiersAndRouter } from "./cg-verifiers-router";
 
 async function generateCodeFiles() {
@@ -12,9 +14,11 @@ async function generateCodeFiles() {
    createAttestationEnumFile(definitions);
    createAttestationRequestTypesFile(definitions);
    createAttestationHashTypesFile(definitions);
-   createHashTestSolidityFile(definitions);
+   // createHashTestSolidityFile(definitions);
    createVerifiersAndRouter(definitions);
-   createSolidityIAttestationClient(definitions)
+   createSolidityIAttestationClient(definitions);
+   createSolidityAttestationClientMock(definitions);
+   createVerifiersImportFiles(definitions);
 }
 
 generateCodeFiles()

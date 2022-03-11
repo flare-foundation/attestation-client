@@ -10,7 +10,7 @@ const URL = 'https://bitcoin.flare.network/';
 const USERNAME = "flareadmin";
 const PASSWORD = "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=";
 
-// const ATTESTATION_TYPES = [AttestationType.FassetPaymentProof, AttestationType.BalanceDecreasingProof];
+// const ATTESTATION_TYPES = [AttestationType.FassetPayment, AttestationType.BalanceDecreasing];
 const ATTESTATION_TYPES = [AttestationType.Payment];
 
 const FILTER_PRINTOUTS_FOR_STATUSES = [

@@ -13,14 +13,16 @@ export class BlockProcessorManager {
     cachedClient: CachedMccClient<any,any>;
 
     completeCallback: any;
+    alreadyCompleteCallback: any;
 
     blockCache = new Map<number,IBlock>();
 
 
-    constructor(logger: AttLogger, client: CachedMccClient<any,any>, completeCallback: any) {
+    constructor(logger: AttLogger, client: CachedMccClient<any,any>, completeCallback: any, alreadyCompleteCallback: any) {
         this.logger=logger;
         this.cachedClient = client;
         this.completeCallback = completeCallback;
+        this.alreadyCompleteCallback = alreadyCompleteCallback;
     }
 
     async processSyncBlockNumber(blockNumber: number) {
@@ -46,6 +48,14 @@ export class BlockProcessorManager {
 
                 if( syncMode ) return;
 
+                if( this.blockProcessors[a].isCompleted ) {
+                    this.logger.info( `^w^Kprocess ${block.number}^^^W (completed)`)
+
+                    this.alreadyCompleteCallback( block );
+
+                    return;
+                }
+
                 this.logger.info( `^w^Kprocess ${block.number}^^^W (continue)`)
                 this.blockProcessors[a].continue();
             }
@@ -64,6 +74,7 @@ export class BlockProcessorManager {
         this.blockProcessors.push(processor);
 
         //processor.debugOn( block.hash );
+        
         processor.initializeJobs(block,this.completeCallback);
     }
     
@@ -72,6 +83,7 @@ export class BlockProcessorManager {
         for (let a = 0; a < this.blockProcessors.length; a++) {
             if (this.blockProcessors[a].block.number <= fromBlock) {
                 this.blockProcessors[a].destroy();
+                
                 this.blockProcessors.splice(a--, 1);
             }
         }

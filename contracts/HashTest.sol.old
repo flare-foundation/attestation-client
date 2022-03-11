@@ -13,7 +13,7 @@ import {MerkleProof} from "@openzeppelin/contracts/cryptography/MerkleProof.sol"
 contract HashTest {
   using MerkleProof for bytes32[];
 
-  function testPaymentProof(
+  function testPayment(
     uint16 typ,
     uint16 chainId,
     uint64 blockNumber,

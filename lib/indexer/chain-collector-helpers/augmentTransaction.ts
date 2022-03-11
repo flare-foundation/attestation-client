@@ -30,6 +30,11 @@ async function augmentTransactionBase(client: CachedMccClient<any, any>, block: 
    const epoch = getBlockSaveEpoch(block.unixTimestamp);
    const res = DBTransaction(client.client.chainType, epoch & 1);
 
+   if( !txData ) {
+      //debugger;
+      let debug=1;
+   }
+
    res.chainType = client.client.chainType;
    res.transactionId = prepareString(txData.hash, 64);
    res.blockNumber = block.number;
@@ -53,7 +58,10 @@ export async function augmentTransactionAlgo(client: CachedMccClient<any, any>, 
    return res as DBTransactionBase
 }
 
-export async function augmentTransactionUtxo(client: CachedMccClient<any, any>, block: UtxoBlock, txData: UtxoTransaction): Promise<DBTransactionBase> {
+export async function augmentTransactionUtxo(client: CachedMccClient<any, any>, block: UtxoBlock, txDataPromise: Promise<UtxoTransaction>): Promise<DBTransactionBase> {
+
+   const txData = await txDataPromise;
+
    const res = await augmentTransactionBase(client,block,txData);
 
    if (txData.reference.length === 1) {

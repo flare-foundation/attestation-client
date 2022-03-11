@@ -98,15 +98,15 @@ export class AttestationRound {
   }
 
   getSourceHandler(data: AttestationData, onValidateAttestation: EventValidateAttestation): SourceHandler {
-    let sourceHandler = this.sourceHandlers.get(data.source);
+    let sourceHandler = this.sourceHandlers.get(data.chainType);
 
     if (sourceHandler) {
       return sourceHandler;
     }
 
-    sourceHandler = new SourceHandler(this, data.source, onValidateAttestation);
+    sourceHandler = new SourceHandler(this, data.chainType, onValidateAttestation);
 
-    this.sourceHandlers.set(data.source, sourceHandler);
+    this.sourceHandlers.set(data.chainType, sourceHandler);
 
     return sourceHandler;
   }

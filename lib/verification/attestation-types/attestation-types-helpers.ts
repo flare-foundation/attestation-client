@@ -168,7 +168,3 @@ export function getSourceName(sourceId: number) {
   // in future check for "invalid" and then use other source name function for sourceId
   return name;
 }
-
-export function dashCapitalized(name: string) {
-  return name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-}

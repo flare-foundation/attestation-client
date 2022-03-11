@@ -53,7 +53,8 @@ export interface VerificationResult extends AttestationRequest {
 
 export interface Verification<T> {
   hash?: string;
-  response?: T
+  response?: T;
+  rawResponse?: any;
   status: VerificationStatus;
 }
 
@@ -105,7 +106,7 @@ export interface VerificationTestOptions {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const ATT_BYTES = 2;
-export const CHAIN_ID_BYTES = 2;
+export const CHAIN_ID_BYTES = 4;
 export const UTXO_BYTES = 1;
 export const BLOCKNUMBER_BYTES = 4;
 export const TIMESTAMP_BYTES = 4;
@@ -125,6 +126,7 @@ export interface AttestationRequestScheme {
   key: string;
   size: number;
   type: SupportedRequestType;
+  description?: string;
 }
 
 export interface DataHashScheme {
@@ -140,8 +142,4 @@ export interface AttestationTypeScheme {
   name: string;
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
-}
-
-export interface IndexerQueryHandler {
-
 }

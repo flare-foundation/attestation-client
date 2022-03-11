@@ -14,22 +14,38 @@ export const TDEF: AttestationTypeScheme = {
       {
          key: "attestationType",
          size: ATT_BYTES,
-         type: "AttestationType"
+         type: "AttestationType",
+         description: 
+`
+Attestation type id for this request, see AttestationType enum.
+`
       },
       {
          key: "chainId",
          size: CHAIN_ID_BYTES,
-         type: "ChainType"
+         type: "ChainType",
+         description: 
+`
+The ID of the underlying chain, see ChainType enum.
+`
       },
       {
          key: "blockNumber",
          size: BLOCKNUMBER_BYTES,
-         type: "NumberLike"
+         type: "NumberLike",
+         description: 
+`
+Number of the block to prove the existence of.
+`
       },
       {
          key: "dataAvailabilityProof",
          size: DATA_AVAILABILITY_BYTES,
-         type: "BytesLike"
+         type: "BytesLike",
+         description: 
+`
+Hash of the block to prove the existence of.
+`
       },
    ],
    dataHashDefinition: [

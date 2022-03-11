@@ -4,6 +4,7 @@ import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
+import { IndexedQueryManager, IndexedQueryManagerOptions } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
@@ -29,6 +30,9 @@ export class ChainNode {
   transactionsPriorityQueue = new PriorityQueue<Attestation>();
 
   transactionsProcessing = new Array<Attestation>();
+
+  indexedQueryManager: IndexedQueryManager;
+
 
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
@@ -78,6 +82,15 @@ export class ChainNode {
       default:
         throw new Error("");
     }
+
+
+    let options: IndexedQueryManagerOptions = {
+      chainType: chainType,
+      // todo: return epochStartTime - query window length, add query window length into DAC
+      windowStartTime: (epochId: number) => { return 0; }
+    };
+
+    this.indexedQueryManager = new IndexedQueryManager(this.client, options);
   }
 
   onSend(inProcessing?: number, inQueue?: number) {
@@ -215,9 +228,8 @@ export class ChainNode {
       testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
-    let indexerQueryManager: any = null;  // TODO - implement the real one
-    // TODO - failure simlation
-    verifyAttestation(this.client, attestation.data.request, indexerQueryManager)
+    // TODO - failure simulation
+    verifyAttestation(this.client, attestation.data.request, this.indexedQueryManager)
       .then((verification: Verification<any>) => {
         attestation.processEndTime = getTimeMilli();
         if (verification.status === VerificationStatus.RECHECK_LATER) {

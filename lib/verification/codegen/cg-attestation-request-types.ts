@@ -1,18 +1,21 @@
 import { AttestationRequestScheme, AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER } from "./cg-constants";
+import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER } from "./cg-constants";
+import { indentText } from "./cg-utils";
 import fs from "fs";
 
 function genDefReqItem(item: AttestationRequestScheme) {
-   return `   ${item.key}: ${item.type};`
+   return `${indentText(item.description, CODEGEN_TAB, "//")}
+   ${item.key}: ${item.type};`
 }
 
 function genAttestationRequestType(definition: AttestationTypeScheme) {
    definition.dataHashDefinition
-   let values = definition.request.map(item => genDefReqItem(item)).join("\n");
+   let values = definition.request.map(item => genDefReqItem(item)).join("\n\n");
    return `
 export interface ${ATTESTATION_TYPE_PREFIX}${definition.name} {
 ${values}
-}`
+}
+`
 }
 
 export function createAttestationRequestTypesFile(definitions: AttestationTypeScheme[]) {

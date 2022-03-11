@@ -3,6 +3,9 @@
 //////////////////////////////////////////////////////////////
 
 import BN from "bn.js";
+import { ChainType } from "flare-mcc";
+import { AttestationType } from "./attestation-types-enum";
+
 
 export interface DHPayment {
    // Attestation type

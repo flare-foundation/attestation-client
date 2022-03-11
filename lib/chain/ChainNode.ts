@@ -4,7 +4,7 @@ import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
-import { IndexedQueryHandler, IndexedQueryHandlerOptions } from "../indexed-query-handler/IndexedQueryHandler";
+import { IndexedQueryManager, IndexedQueryManagerOptions } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
@@ -31,7 +31,7 @@ export class ChainNode {
 
   transactionsProcessing = new Array<Attestation>();
 
-  indexedQueryHandler: IndexedQueryHandler;
+  indexedQueryManager: IndexedQueryManager;
 
 
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
@@ -84,13 +84,13 @@ export class ChainNode {
     }
 
 
-    let options: IndexedQueryHandlerOptions = {
+    let options: IndexedQueryManagerOptions = {
       chainType: chainType,
       // todo: return epochStartTime - query window length, add query window length into DAC
       windowStartTime: (epochId: number) => { return 0; }
     };
 
-    this.indexedQueryHandler = new IndexedQueryHandler(this.client, options);
+    this.indexedQueryManager = new IndexedQueryManager(this.client, options);
   }
 
   onSend(inProcessing?: number, inQueue?: number) {
@@ -229,7 +229,7 @@ export class ChainNode {
     }
 
     // TODO - failure simulation
-    verifyAttestation(this.client, attestation.data.request, this.indexedQueryHandler)
+    verifyAttestation(this.client, attestation.data.request, this.indexedQueryManager)
       .then((verification: Verification<any>) => {
         attestation.processEndTime = getTimeMilli();
         if (verification.status === VerificationStatus.RECHECK_LATER) {

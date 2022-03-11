@@ -25,6 +25,9 @@ export function createAttestationHashTypesFile(definitions: AttestationTypeSchem
    // Request types
    let content = `${DEFAULT_GEN_FILE_HEADER}
 import BN from "bn.js";
+import { ChainType } from "flare-mcc";
+import { AttestationType } from "./attestation-types-enum";
+
 `;
 
    definitions.forEach(definition => {

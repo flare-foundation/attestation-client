@@ -9,7 +9,7 @@ import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 
 
-export interface IndexedQueryHandlerOptions {
+export interface IndexedQueryManagerOptions {
    chainType: ChainType;
    // return windows start time from current epochId
    windowStartTime: (epochId: number) => number;
@@ -77,18 +77,18 @@ export interface ReferencedTransactionNonExistenceQueryResponse {
 }
 
 ////////////////////////////////////////////////////////
-/// IndexedQueryHandler
+/// IndexedQueryManger
 ////////////////////////////////////////////////////////
 
-export class IndexedQueryHandler {
-   settings: IndexedQueryHandlerOptions;
+export class IndexedQueryManager {
+   settings: IndexedQueryManagerOptions;
    dbService: DatabaseService;
    client: RPCInterface;
 
    transactionTable = [undefined, undefined];
    blockTable;
 
-   constructor(client: RPCInterface, options: IndexedQueryHandlerOptions) {
+   constructor(client: RPCInterface, options: IndexedQueryManagerOptions) {
       this.settings = options;
       this.client=client;
       this.prepareTables();

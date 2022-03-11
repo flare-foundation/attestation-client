@@ -1,6 +1,6 @@
 {
     "syncEnabled": true,
-    "syncTimeDays": 1,
+    "syncTimeDays": 0.001,
 
     "blockCollectTimeMs": 1000,
 
@@ -23,9 +23,14 @@
         {
             "name": "BTC",
             "mccCreate" : {
-                "url": "http://34.91.7.3:9332/",
-                "username": "admin",
-                "password": "admin"                  
+                "url": "https://bitcoin.flare.network/",
+                "username": "flareadmin",
+                "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",                  
+
+                
+                "url2": "http://34.91.7.3:9332/",
+                "username2": "admin",
+                "password2": "admin"                  
             },
             "rateLimitOptions": {
                 "maxRPS": 80,
@@ -34,7 +39,7 @@
             },
             "confirmationsCollect": 6,
             "syncReadAhead":10,
-            "blockCollecting":"raw"
+            "blockCollecting":"tips"
         },
         {
             "name": "LTC",
@@ -71,7 +76,7 @@
             },
             "confirmationsCollect": 3,
             "syncReadAhead":30,
-            "blockCollecting":"raw" 
+            "blockCollecting":"rawUnforkable" 
         },
         {
             "name": "DOGE",

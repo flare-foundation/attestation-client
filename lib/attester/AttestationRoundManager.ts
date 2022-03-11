@@ -156,22 +156,27 @@ export class AttestationRoundManager {
       return this.createSimulationAttestation(round, data);
     }
 
-    // processing
-    switch (data.type) {
-      case AttestationType.Payment: {
-        return new Attestation(round, data, (attestation: Attestation) => {
-          // chain node validation
-          AttestationRoundManager.chainManager.validateTransaction(data.source, attestation);
-        });
-      }
-      case AttestationType.BalanceDecreasingTransaction:
-        // todo: implement balance change check
-        this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
-        return undefined;
-      default: {
-        this.logger.error(`  ! '${data.type}': undefined AttestationType (epoch #${round.roundId})`);
-        return undefined;
-      }
-    }
+    return new Attestation(round, data, (attestation: Attestation) => {
+      // chain node validation
+      AttestationRoundManager.chainManager.validateTransaction(data.chainType, attestation);
+    });
+
+    // // processing
+    // switch (data.type) {
+    //   case AttestationType.Payment: {
+    //     return new Attestation(round, data, (attestation: Attestation) => {
+    //       // chain node validation
+    //       AttestationRoundManager.chainManager.validateTransaction(data.source, attestation);
+    //     });
+    //   }
+    //   // case AttestationType.BalanceDecreasingPayment:
+    //   //   // todo: implement balance change check
+    //   //   this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
+    //   //   return undefined;
+    //   default: {
+    //     this.logger.error(`  ! '${data.type}': undefined AttestationType (epoch #${round.roundId})`);
+    //     return undefined;
+    //   }
+    // }
   }
 }

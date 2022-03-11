@@ -7,6 +7,10 @@ export class IndexerClientChain {
   public rateLimitOptions: RateLimitOptions;
   
   public confirmationsCollect: number = 6;
+
+  public syncReadAhead: number = 30;
+
+  public blockCollecting: "raw" | "tips";
 }
 
 export class IndexerConfiguration {

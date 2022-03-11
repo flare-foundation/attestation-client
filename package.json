@@ -41,7 +41,7 @@
     "prewatch-and-run": "npm-run-all typechain-web3-v1",
     "watch-and-run": "ts-node-dev --notify --respawn -- lib/runAttesterClient.ts -c configs/config.json -s",
     "watch-and-run-multi": "ts-node-dev --notify --respawn -- lib/testMultiAttesterClients.ts -c configs/config.json -m configs/config.multitest.json -n 5",
-    "watch-and-run-indexer": "ts-node-dev --notify --respawn -- lib/indexer/indexer.ts",
+    "watch-and-run-indexer": "ts-node-dev --trace-warnings --notify --respawn -- lib/indexer/indexer.ts",
     "dev": "DOTENV=DEV yarn watch-and-run",
     "devmulti": "DOTENV=DEV yarn watch-and-run-multi",
     "devindexer": "DOTENV=DEV yarn watch-and-run-indexer",

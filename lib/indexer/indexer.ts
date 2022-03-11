@@ -1,28 +1,6 @@
 //
-//
-//  [ ] proof of existance (tx reference, destination address, amount)
-//
-//  block (from -14d up to -6 blocks)
-//     - block number
-//     - block hash
-//     - block timestamp
-//     - response
-//
-//  transaction
-//     - payment reference (non unique!!!) hex string 32 chars (hex lower case)
-//     - transaction id
-//     - timestamp
-//     - block number
-//     - response
-//
-// search by
-//     - reference
-//     - hash
-//     - sender address
-//
-//  [ ] XRP 1st
-//  [ ] 100% make sure that block is completely saved until moved to the next block
-//  [ ] check if using database per chain is easier than tables per chain
+//  [x] 100% make sure that block is completely saved until moved to the next block
+//  [x] check if using database per chain is easier than tables per chain
 //
 //  [x] indexer sync - create database for x days back
 //  [x] create table for each chain
@@ -40,7 +18,9 @@
 
 //  [x] keep collecting blocks while waiting for N+1 to complete
 
-//  [ ] end sync issue with block processing
+//  [x] end sync issue with block processing
+//  [x] fix node execution (db is not working)
+//  [ ] read all forks (utxo only - completely different block header collection)
 
 import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
@@ -50,7 +30,7 @@ import { DBTransactionBase } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
-import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
+import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { prepareIndexerTables } from "./indexer-utils";
 import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
@@ -104,6 +84,8 @@ export class Indexer {
   prevEpoch = -1;
   tableLock = false;
 
+  sync = false;
+
   constructor(config: IndexerConfiguration, chainName: string) {
     this.config = config;
     this.chainType = MCC.getChainType(chainName);
@@ -127,7 +109,7 @@ export class Indexer {
 
     this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
 
-    this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this));
+    this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
   }
 
   get lastConfimedBlockNumber() {
@@ -152,6 +134,8 @@ export class Indexer {
   }
 
   getBlock(blockNumber: number): Promise<IBlock> {
+    //this.logger.info( `getBlock(${blockNumber},N=${this.N},T=${this.T})`);
+
     return this.cachedClient.client.getBlock(blockNumber);
   }
 
@@ -185,16 +169,33 @@ export class Indexer {
     processors.push(new PreparedBlock(block, transactions));
 
     // if N+1 is ready then begin processing N+2
-    if (isBlockNp1) {
-      const blockNp2 = await this.getBlock(this.N + 2);
-      this.blockProcessorManager.process(blockNp2);
+    if (!this.sync) {
+      if (isBlockNp1) {
+        const blockNp2 = await this.getBlock(this.N + 2);
+        this.blockProcessorManager.process(blockNp2);
+      }
     }
 
     return true;
   }
 
+  async blockAlreadyCompleted(block: DBBlockBase) {
+    this.logger.info(`^Galready completed ${block.blockNumber}:N+${block.blockNumber - this.N}`);
+    // if N+1 is ready then begin processing N+2
+
+    const isBlockNp1 = block.blockNumber == this.N + 1 && block.blockHash == this.blockNp1hash;
+
+    if (!this.sync) {
+      if (isBlockNp1) {
+        const blockNp2 = await this.getBlock(this.N + 2);
+        this.blockProcessorManager.process(blockNp2);
+      }
+    }
+  }
+
+
   getChainN() {
-    return this.chainConfig.name + "_N";    
+    return this.chainConfig.name + "_N";
   }
 
   prepareString(text: string, maxLength: number, reportOwerflow: string = null): string {
@@ -323,12 +324,14 @@ export class Indexer {
           // N is set on previous value
           this.N--;
           this.logger.error(`database error (N=${Np1}): ${error}`);
+          this.logger.error(error.stack);
           return false;
         });
 
       return true;
     } catch (error) {
-      this.logger.error(`saveInterlaced error (N=${Np1}): ${error}`);
+      this.logger.error2(`saveInterlaced error (N=${Np1}): ${error}`);
+      this.logger.error(error.stack);
       return false;
     }
 
@@ -347,8 +350,8 @@ export class Indexer {
     // todo: use FAST version of block read since we only need timestamp
     const block = (await this.getBlock(blockNumber)) as IBlock;
 
-    if( !block ) {
-      this.logger.error2( `getBlockNumberTimestamp(${blockNumber}) invalid block ${block}`);
+    if (!block) {
+      this.logger.error2(`getBlockNumberTimestamp(${blockNumber}) invalid block ${block}`);
       return 0;
     }
 
@@ -358,8 +361,6 @@ export class Indexer {
   async getAverageBlocksPerDay(): Promise<number> {
     const blockNumber0 = (await this.getBlockHeight()) - this.chainConfig.confirmationsCollect;
     const blockNumber1 = Math.ceil(blockNumber0 * 0.9);
-
-    // todo: check if blockNumber1 is below out range
 
     const time0 = await this.getBlockNumberTimestamp(blockNumber0);
     const time1 = await this.getBlockNumberTimestamp(blockNumber1);
@@ -390,7 +391,10 @@ export class Indexer {
 
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
 
-    // todo: averageBlocksPerDay must be > 0
+    if( averageBlocksPerDay===0 ) {
+      this.logger.critical( `${this.chainConfig.name} avg blk per day is zero` )
+      return 0;
+    }
 
     this.logger.debug(`${this.chainConfig.name} avg blk per day ${averageBlocksPerDay}`);
 
@@ -399,6 +403,7 @@ export class Indexer {
     const targetTime = getUnixEpochTimestamp() - this.config.syncTimeDays * this.Csec2day;
 
     for (let a = 0; a < 100; a++) {
+
       const blockTime = await this.getBlockNumberTimestamp(blockNumber);
 
       if (blockTime <= targetTime) {
@@ -409,7 +414,7 @@ export class Indexer {
       blockNumber = Math.floor(blockNumber - averageBlocksPerDay / 24);
     }
 
-    // todo: report error
+    this.logger.critical( `${this.chainConfig.name} unable to find sync start date` );
 
     return blockNumber;
   }
@@ -422,20 +427,30 @@ export class Indexer {
       // save blocks from fromBlockNumber to toBlockNumberInc
       //this.logger.debug( `collect block headers [${fromBlockNumber} .. ${toBlockNumberInc}]` );
 
-      var blocks = "[";
+      let blocksText = "[";
 
       // limit number of blocks to look ahead
-      const maxBlocks = 8;
-      if (toBlockNumberInc - fromBlockNumber > maxBlocks) {
-        blocks = `^Wlimited from ${toBlockNumberInc - fromBlockNumber}^^ [`;
+      // const maxBlocks = 8;
+      // if (toBlockNumberInc - fromBlockNumber > maxBlocks) {
+      //   blocks = `^Wlimited from ${toBlockNumberInc - fromBlockNumber}^^ [`;
 
-        toBlockNumberInc = fromBlockNumber + maxBlocks;
-      }
+      //   toBlockNumberInc = fromBlockNumber + maxBlocks;
+      // }
 
-      const dbBlocks = [];
+
+      const blockPromisses = []
+
       for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++) {
         // todo: use fast getblock function (no details)
-        const block = await this.getBlock(blockNumber);
+        blockPromisses.push(this.getBlock(blockNumber));
+      }
+
+      const blocks = await Promise.all(blockPromisses);
+
+      const dbBlocks = [];
+      let i = 0;
+      for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++, i++) {
+        const block = blocks[i];
 
         if (!block || !block.hash) continue;
 
@@ -444,17 +459,17 @@ export class Indexer {
         if (cachedBlock) {
           if (cachedBlock.hash === block.hash) {
             // same (ignored)
-            blocks += "^R" + blockNumber.toString() + "^^,";
+            blocksText += "^G" + blockNumber.toString() + "^^,";
             continue;
           }
           else {
             // hash replaced
-            blocks += "^W" + blockNumber.toString() + "^^,";
+            blocksText += "^W" + blockNumber.toString() + "^^,";
           }
         }
         else {
           // new
-          blocks += blockNumber.toString() + ",";
+          blocksText += blockNumber.toString() + ",";
         }
 
         this.blockHeaderHash.set(blockNumber, block);
@@ -478,7 +493,7 @@ export class Indexer {
         return;
       }
 
-      this.logger.debug(`write block headers ${blocks}]`);
+      this.logger.debug(`write block headers ${blocksText}]`);
 
       await this.dbService.manager.save(dbBlocks);
 
@@ -490,6 +505,7 @@ export class Indexer {
       //   .execute();
     } catch (error) {
       this.logger.error2(`saveBlocksHeaders error: ${error}`);
+      this.logger.error(error.stack);
     }
   }
 
@@ -530,7 +546,7 @@ export class Indexer {
     this.waitNp1 = true;
 
     this.logger.debug(`^Gwaiting for block N=${Np1}`);
-    // todo: check how to use signals in TS (instead of loop with sleep)
+    // todo: [optmimization] check how to use signals in TS (instead of loop with sleep)
     while (this.waitNp1) {
       await sleepms(100);
     }
@@ -539,6 +555,16 @@ export class Indexer {
   }
 
   async runBlockHeaderCollecting() {
+    switch (this.chainConfig.blockCollecting) {
+      case "raw": await this.runBlockHeaderCollectingRaw(); break;
+      case "tips": await this.runBlockHeaderCollectingTips(); break;
+    }
+  }
+
+  async runBlockHeaderCollectingTips() {
+  }
+
+  async runBlockHeaderCollectingRaw() {
     let localN = this.N;
     let localBlockNp1hash = "";
 
@@ -567,8 +593,11 @@ export class Indexer {
 
         // save block N+1 hash
         localBlockNp1hash = blockNp1.hash;
-      } catch (e) {
-        this.logger.error2(`Exception: ${e}`);
+
+      } catch (error) {
+        this.logger.error2(`Exception: ${error}`);
+        this.logger.error(error.stack);
+
       }
     }
   }
@@ -580,12 +609,13 @@ export class Indexer {
 
     this.T = await this.getBlockHeight();
 
+    this.sync = true;
+
     while (true) {
       try {
         const now = Date.now();
 
         // get chain top block
-
         if (now > syncTime + 10000) {
           blocksPerSec = (this.N - syncN) * 1000 / (now - syncTime);
 
@@ -599,19 +629,20 @@ export class Indexer {
 
         if (blocksPerSec > 0) {
           const timeLeft = (this.T - this.N) / blocksPerSec;
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA ${round(timeLeft / 60, 1)} min, ${round(blocksPerSec, 2)} bps)`);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(blocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
         }
         else {
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks `);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);
         }
 
-        if (this.N + this.chainConfig.confirmationsCollect >= this.T) {
+        if (this.N >= this.T - this.chainConfig.confirmationsCollect) {
           this.logger.group("Sync completed")
+          this.sync = false;
           return;
         }
 
-        for (let a = 1; a < 10; a++) {
-          if (this.N + 1 >= this.T - this.chainConfig.confirmationsCollect) break;
+        for (let a = 1; a < this.chainConfig.syncReadAhead; a++) {
+          if (this.N + a - 1 >= this.T - this.chainConfig.confirmationsCollect) break;
 
           this.blockProcessorManager.processSyncBlockNumber(this.N + a);
         }
@@ -621,6 +652,7 @@ export class Indexer {
 
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
+        this.logger.error(e.stack);
       }
     }
   }
@@ -700,6 +732,7 @@ export class Indexer {
 
       } catch (e) {
         this.logger.error2(`Exception: ${e}`);
+        this.logger.error(e.stack);
       }
     }
   }
@@ -744,5 +777,6 @@ runIndexer()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
+    console.error(error.stack);
     process.exit(1);
   });

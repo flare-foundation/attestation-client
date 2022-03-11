@@ -116,6 +116,8 @@ const myCustomLevels = {
     error: 10,
     error2: 9,
     exception: 5,
+
+    critical: 2,
     alert: 1,
   },
 };
@@ -129,6 +131,8 @@ export interface AttLogger extends winston.Logger {
   note: (message: string) => null;
   error2: (message: string) => null;
   exception: (message: string) => null;
+
+  critical: (message: string) => null;
 }
 
 export function createLogger(label?: string): AttLogger {

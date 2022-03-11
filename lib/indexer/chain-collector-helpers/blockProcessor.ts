@@ -1,6 +1,7 @@
 import { AlgoBlock, AlgoTransaction, ChainType, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/dbTransaction";
+import { getGlobalLogger } from "../../utils/logger";
 import { augmentBlock, augmentBlockAlgo, augmentBlockUtxo } from "./augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
 import { getFullTransactionUtxo } from "./readTransaction";
@@ -25,11 +26,8 @@ export function BlockProcessor(chainType: ChainType) {
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
     this.block = block;
-    // let txPromises = block.transactionHashes.map(async (txid) => {
-    //   let processed = (await this.call(() => getFullTransactionUtxo(this.client, txid, this))) as UtxoTransaction;
-    //   return augmentTransactionUtxo(this.client, block, processed);
-    // });
-    let txPromises = block.data.tx.map(async (txObject) => {
+    
+    let txPromises = block.data.tx.map( (txObject) => {
       const getTxObject = {
         blockhash: block.hash,
         time: block.unixTimestamp,
@@ -38,13 +36,16 @@ export class UtxoBlockProcessor extends LimitingProcessor {
         ...txObject,
       };
       let processed = new UtxoTransaction(getTxObject);
-      processed = (await this.call(() => getFullTransactionUtxo(this.client, processed, this))) as UtxoTransaction;
-      return augmentTransactionUtxo(this.client, block, processed);
+      return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>; 
     });
 
-    const transDb = await Promise.all(txPromises);
+    const transDbPromisses = txPromises.map( processed => augmentTransactionUtxo(this.client, block, processed ) );
+
+    const transDb = await Promise.all(transDbPromisses);
 
     const blockDb = await augmentBlockUtxo(block);
+
+    this.stop();
 
     onSave(blockDb, transDb);
   }

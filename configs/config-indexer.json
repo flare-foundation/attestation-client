@@ -1,6 +1,6 @@
 {
     "syncEnabled": true,
-    "syncTimeDays": 2,
+    "syncTimeDays": 1,
 
     "blockCollectTimeMs": 1000,
 
@@ -16,7 +16,9 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6
+            "confirmationsCollect": 3,
+            "syncReadAhead":30,
+            "blockCollecting":"raw"
         },
         {
             "name": "BTC",
@@ -26,11 +28,13 @@
                 "password": "admin"                  
             },
             "rateLimitOptions": {
-                "maxRPS": 300,
+                "maxRPS": 80,
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6
+            "confirmationsCollect": 6,
+            "syncReadAhead":10,
+            "blockCollecting":"raw"
         },
         {
             "name": "LTC",
@@ -44,7 +48,9 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6
+            "confirmationsCollect": 6,
+            "syncReadAhead":30,
+            "blockCollecting":"tips"
         },
         {
             "name": "ALGO",
@@ -63,7 +69,9 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 3  
+            "confirmationsCollect": 3,
+            "syncReadAhead":30,
+            "blockCollecting":"raw" 
         },
         {
             "name": "DOGE",
@@ -77,7 +85,9 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6
+            "confirmationsCollect": 6,
+            "syncReadAhead":30,
+            "blockCollecting":"tips"
         }
 
     ]

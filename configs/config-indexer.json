@@ -1,6 +1,6 @@
 {
     "syncEnabled": true,
-    "syncTimeDays": 0.005,
+    "syncTimeDays": 1,
 
     "blockCollectTimeMs": 1000,
 
@@ -33,8 +33,8 @@
                 "retries": 3
             },
             "confirmationsCollect": 6,
-            "syncReadAhead":30,
-            "blockCollecting":"tips"
+            "syncReadAhead":10,
+            "blockCollecting":"raw"
         },
         {
             "name": "LTC",

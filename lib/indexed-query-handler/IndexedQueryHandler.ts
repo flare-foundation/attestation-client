@@ -1,17 +1,18 @@
 import { ChainType } from "flare-mcc";
+import { getChainName, RPCInterface } from "flare-mcc/dist/types/genericMccTypes";
 import { DBBlockBase } from "../entity/dbBlock";
+import { DBState } from "../entity/dbState";
 import {
    DBTransactionBase
 } from "../entity/dbTransaction";
-import { Indexer } from "../indexer/indexer";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 
 
 export interface IndexedQueryHandlerOptions {
    chainType: ChainType;
-   rangeDurationSecs: number;
-   roundStartTime: (epochId: number) => number;
+   // return windows start time from current epochId
+   windowStartTime: (epochId: number) => number;
 }
 
 ////////////////////////////////////////////////////////
@@ -80,16 +81,16 @@ export interface ReferencedTransactionNonExistenceQueryResponse {
 ////////////////////////////////////////////////////////
 
 export class IndexedQueryHandler {
-   indexer: Indexer;
    settings: IndexedQueryHandlerOptions;
    dbService: DatabaseService;
+   client: RPCInterface;
 
    transactionTable = [undefined, undefined];
    blockTable;
 
-   constructor(indexer: Indexer, options: IndexedQueryHandlerOptions) {
-      this.indexer = indexer;
+   constructor(client: RPCInterface, options: IndexedQueryHandlerOptions) {
       this.settings = options;
+      this.client=client;
       this.prepareTables();
    }
 
@@ -100,7 +101,7 @@ export class IndexedQueryHandler {
    }
 
    async queryTransactions(params: TransactionQueryParams): Promise<DBTransactionBase[]> {
-      let startTimestamp = this.settings.roundStartTime(params.roundId);
+      let startTimestamp = this.settings.windowStartTime(params.roundId);
       let query0 = this.dbService.connection.manager
          .createQueryBuilder(this.transactionTable[0], 'transaction')
          .andWhere('transaction.timestamp >= :timestamp', { timestamp: startTimestamp })
@@ -131,7 +132,7 @@ export class IndexedQueryHandler {
    }
 
    async queryBlock(params: BlockQueryParams): Promise<DBBlockBase> {
-      let startTimestamp = this.settings.roundStartTime(params.roundId);
+      let startTimestamp = this.settings.windowStartTime(params.roundId);
       let query = this.dbService.connection.manager
          .createQueryBuilder(this.blockTable, 'block')
          .where('block.timestamp >= :timestamp', { timestamp: startTimestamp })
@@ -159,8 +160,23 @@ export class IndexedQueryHandler {
       }
    }
 
+
+   // todo: this.indexer.lastConfimedBlockNumber must be from DB query
+   getChainN() {
+      return getChainName(this.settings.chainType) + "_N";
+   }
+
+   private async getLastConfimedBlockNumber(): Promise<number> {
+      const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+
+      if (res === undefined) return 0;
+
+      return res.valueNumber;
+   }
+
+
    private async checkTransactionExistenceFirstCheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
-      let N = this.indexer.lastConfimedBlockNumber;
+      let N = await this.getLastConfimedBlockNumber();
       if (params.blockNumber < N - 1) {
          let transactions = await this.queryTransactions({
             roundId: params.roundId,
@@ -168,7 +184,7 @@ export class IndexedQueryHandler {
             transactionId: params.txId
          } as TransactionQueryParams)
          return {
-            status: transactions && transactions.length > 0? "OK" : "NOT_EXIST",
+            status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
             transaction: transactions[0]
          }
       } else if (params.blockNumber > N + 1) {
@@ -183,7 +199,7 @@ export class IndexedQueryHandler {
    }
 
    private async checkTransactionExistenceRecheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
-      let N = this.indexer.lastConfimedBlockNumber;
+      let N = await this.getLastConfimedBlockNumber();
       let transactions = await this.queryTransactions({
          roundId: params.roundId,
          lastConfirmedBlock: N,
@@ -210,7 +226,7 @@ export class IndexedQueryHandler {
    public async checkReferencedTransactionNonExistenceFirstCheck(
       params: ReferencedTransactionNonExistenceQueryRequest
    ): Promise<ReferencedTransactionNonExistenceQueryResponse> {
-      let N = this.indexer.lastConfimedBlockNumber;
+      let N = await this.getLastConfimedBlockNumber();
       if (params.blockNumber < N - 1) {
          let transactions = await this.queryTransactions({
             roundId: params.roundId,
@@ -237,7 +253,7 @@ export class IndexedQueryHandler {
    public async checkReferencedTransactionNonExistenceRecheck(
       params: ReferencedTransactionNonExistenceQueryRequest
    ): Promise<ReferencedTransactionNonExistenceQueryResponse> {
-      let N = this.indexer.lastConfimedBlockNumber;
+      let N = await this.getLastConfimedBlockNumber();
       let transactions = await this.queryTransactions({
          roundId: params.roundId,
          lastConfirmedBlock: N,
@@ -246,11 +262,11 @@ export class IndexedQueryHandler {
       let block = await this.queryBlock({
          hash: params.dataAvailability,
          roundId: params.roundId
-      } as BlockQueryParams);      
+      } as BlockQueryParams);
       return {
          status: block ? "OK" : "NO_CONFIRMATION_BLOCK",
          transactions,
-         block 
+         block
       }
 
    }

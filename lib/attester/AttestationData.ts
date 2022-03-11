@@ -6,7 +6,7 @@ import { AttestationType } from "../verification/generated/attestation-types-enu
 export class AttestationData {
   // event parameters
   type!: AttestationType;
-  source!: ChainType;
+  chainType!: ChainType;
   timeStamp!: BN;
   request!: string;
   
@@ -26,7 +26,7 @@ export class AttestationData {
     
     const {attestationType, sourceId} = getAttestationTypeAndSource(this.request);
     this.type = attestationType;
-    this.source = sourceId;
+    this.chainType = sourceId;
 
     // for sorting
     this.blockNumber = toBN(event.blockNumber);

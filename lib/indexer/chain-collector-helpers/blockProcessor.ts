@@ -26,10 +26,7 @@ export function BlockProcessor(chainType: ChainType) {
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
     this.block = block;
-    // let txPromises = block.transactionHashes.map(async (txid) => {
-    //   let processed = (await this.call(() => getFullTransactionUtxo(this.client, txid, this))) as UtxoTransaction;
-    //   return augmentTransactionUtxo(this.client, block, processed);
-    // });
+    
     let txPromises = block.data.tx.map( (txObject) => {
       const getTxObject = {
         blockhash: block.hash,
@@ -42,22 +39,13 @@ export class UtxoBlockProcessor extends LimitingProcessor {
       return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>; 
     });
 
-    // todo: [optimization] @Luka this primise can be ommited if augmentTransactionUtxo would take this promise
-    //const transDbres = await Promise.all(txPromises);
-
     const transDbPromisses = txPromises.map( processed => augmentTransactionUtxo(this.client, block, processed ) );
 
-    //getGlobalLogger().debug(`UtxoBlockProcessor 1 ${block.number}`);
-
     const transDb = await Promise.all(transDbPromisses);
-
-    //getGlobalLogger().debug(`UtxoBlockProcessor 2 ${block.number}`);
 
     const blockDb = await augmentBlockUtxo(block);
 
     this.stop();
-
-    //getGlobalLogger().debug(`UtxoBlockProcessor 3 ${block.number}`);
 
     onSave(blockDb, transDb);
   }

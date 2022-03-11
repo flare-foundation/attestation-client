@@ -362,8 +362,6 @@ export class Indexer {
     const blockNumber0 = (await this.getBlockHeight()) - this.chainConfig.confirmationsCollect;
     const blockNumber1 = Math.ceil(blockNumber0 * 0.9);
 
-    // todo: check if blockNumber1 is below out range
-
     const time0 = await this.getBlockNumberTimestamp(blockNumber0);
     const time1 = await this.getBlockNumberTimestamp(blockNumber1);
 
@@ -393,7 +391,10 @@ export class Indexer {
 
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
 
-    // todo: averageBlocksPerDay must be > 0
+    if( averageBlocksPerDay===0 ) {
+      this.logger.critical( `${this.chainConfig.name} avg blk per day is zero` )
+      return 0;
+    }
 
     this.logger.debug(`${this.chainConfig.name} avg blk per day ${averageBlocksPerDay}`);
 
@@ -413,7 +414,7 @@ export class Indexer {
       blockNumber = Math.floor(blockNumber - averageBlocksPerDay / 24);
     }
 
-    // todo: report error
+    this.logger.critical( `${this.chainConfig.name} unable to find sync start date` );
 
     return blockNumber;
   }
@@ -545,7 +546,7 @@ export class Indexer {
     this.waitNp1 = true;
 
     this.logger.debug(`^Gwaiting for block N=${Np1}`);
-    // todo: check how to use signals in TS (instead of loop with sleep)
+    // todo: [optmimization] check how to use signals in TS (instead of loop with sleep)
     while (this.waitNp1) {
       await sleepms(100);
     }

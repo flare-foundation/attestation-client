@@ -135,3 +135,4 @@ export interface DHReferencedPaymentNonexistence {
    //      (`= currentUnderlyingBlockTimestamp + time to pay`).
    firstOverflowBlockTimestamp: BN;
 }
+export type DHType = DHPayment | DHBalanceDecreasingTransaction | DHBlockHeightExists | DHReferencedPaymentNonexistence;

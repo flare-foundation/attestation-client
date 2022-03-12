@@ -50,19 +50,20 @@ export function tab(size=CODEGEN_TAB) {
    return ''.padStart(size, " ")
 }
 export function hexlifyBN(obj: any) {
-   let res = {} as any;
-   for(let key in obj) {
-     let value = obj[key];
-     if(value.mul) {  // dirty test if this is BN
-       res[key] = toHex(value);
-     } else if(Array.isArray(value)) {
-       res[key] = (value as any[]).map(item => hexlifyBN(item));
-     } else if(typeof value === "object") {
-       res[key] = hexlifyBN(value);
-     } else {
-       res[key] = value;
-     }    
+   if(obj.mul) {
+      return toHex(obj);
    }
-   return res;
+   if(Array.isArray(obj)) {
+      return (obj as any[]).map(item => hexlifyBN(item));
+   }
+   if(typeof obj === "object") {
+      let res = {} as any;
+      for(let key in obj) {
+         let value = obj[key];
+         res[key] = hexlifyBN(value);
+      }   
+      return res;      
+   }
+   return obj;
  }
  

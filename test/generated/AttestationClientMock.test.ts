@@ -3,24 +3,29 @@
 //////////////////////////////////////////////////////////////
 
 import { ChainType } from "flare-mcc";
+import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
 import { 
-DHPayment,
-DHBalanceDecreasingTransaction,
-DHBlockHeightExists,
-DHReferencedPaymentNonexistence 
+   DHPayment,
+   DHBalanceDecreasingTransaction,
+   DHBlockHeightExists,
+   DHReferencedPaymentNonexistence 
 } from "../../lib/verification/generated/attestation-hash-types";
-import { ARPayment,
-ARBalanceDecreasingTransaction,
-ARBlockHeightExists,
-ARReferencedPaymentNonexistence } from "../../lib/verification/generated/attestation-request-types";
+import { 
+   ARPayment,
+   ARBalanceDecreasingTransaction,
+   ARBlockHeightExists,
+   ARReferencedPaymentNonexistence 
+} from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
 import { 
    getRandomResponseForType, 
    hashPayment,
    hashBalanceDecreasingTransaction,
    hashBlockHeightExists,
-   hashReferencedPaymentNonexistence
+   hashReferencedPaymentNonexistence,
+   getRandomRequest,
+   dataHash
 } from "../../lib/verification/generated/attestation-utils";
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 
@@ -28,6 +33,7 @@ const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
 const STATECONNECTOR_ROUND = 1;
 const CHAIN_ID = ChainType.BTC;
+const NUM_OF_HASHES = 100;
 
 describe("Attestestation Client Mock", function () {
   let attestationClient: AttestationClientSCInstance;
@@ -37,7 +43,7 @@ describe("Attestestation Client Mock", function () {
     attestationClient = await AttestationClientSC.new(stateConnectorMock.address);
   });
 
-   it("'Payment' test", async function () {
+   it("'Payment' test", async function () { 
      let attestationType = AttestationType.Payment;
      let request = { attestationType, chainId: CHAIN_ID } as ARPayment;
    
@@ -59,7 +65,7 @@ describe("Attestestation Client Mock", function () {
    });
    
    
-   it("'BalanceDecreasingTransaction' test", async function () {
+   it("'BalanceDecreasingTransaction' test", async function () { 
      let attestationType = AttestationType.BalanceDecreasingTransaction;
      let request = { attestationType, chainId: CHAIN_ID } as ARBalanceDecreasingTransaction;
    
@@ -81,7 +87,7 @@ describe("Attestestation Client Mock", function () {
    });
    
    
-   it("'BlockHeightExists' test", async function () {
+   it("'BlockHeightExists' test", async function () { 
      let attestationType = AttestationType.BlockHeightExists;
      let request = { attestationType, chainId: CHAIN_ID } as ARBlockHeightExists;
    
@@ -103,7 +109,7 @@ describe("Attestestation Client Mock", function () {
    });
    
    
-   it("'ReferencedPaymentNonexistence' test", async function () {
+   it("'ReferencedPaymentNonexistence' test", async function () { 
      let attestationType = AttestationType.ReferencedPaymentNonexistence;
      let request = { attestationType, chainId: CHAIN_ID } as ARReferencedPaymentNonexistence;
    
@@ -122,5 +128,43 @@ describe("Attestestation Client Mock", function () {
    
      await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, dummyHash);
      assert(await attestationClient.verifyReferencedPaymentNonexistence(CHAIN_ID, responseHex) === false);
+   });
+
+   it("Merkle tree test", async function () {
+      let verifications = [];
+      for(let i = 0; i < NUM_OF_HASHES; i++) {
+         let request = getRandomRequest();
+         let response = getRandomResponseForType(request.attestationType);
+         verifications.push({
+            request,
+            response,
+            hash: dataHash(request, response)
+         })
+      };
+      let hashes = verifications.map(verification => verification.hash);
+      const tree = new MerkleTree(hashes);
+      await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, tree.root);
+      for(let verification of verifications) {
+         verification.response.stateConnectorRound = STATECONNECTOR_ROUND;
+         let index = tree.sortedHashes.findIndex(hash => hash === verification.hash);
+         verification.response.merkleProof = tree.getProof(index);
+         let responseHex = hexlifyBN(verification.response);
+         switch(verification.request.attestationType) {
+            case AttestationType.Payment:
+               assert(await attestationClient.verifyPayment(verification.request.chainId, responseHex));
+               break;
+            case AttestationType.BalanceDecreasingTransaction:
+               assert(await attestationClient.verifyBalanceDecreasingTransaction(verification.request.chainId, responseHex));
+               break;
+            case AttestationType.BlockHeightExists:
+               assert(await attestationClient.verifyBlockHeightExists(verification.request.chainId, responseHex));
+               break;
+            case AttestationType.ReferencedPaymentNonexistence:
+               assert(await attestationClient.verifyReferencedPaymentNonexistence(verification.request.chainId, responseHex));
+               break;
+            default:
+               throw new Error("Wrong attestation type");
+         }
+     }    
    });    
 });  

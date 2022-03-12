@@ -21,6 +21,11 @@ ${values}
 `
 }
 
+function dhType(definitions: AttestationTypeScheme[]) {
+   let dhTypes = definitions.map(definition => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(" | ")
+   return `export type ${DATA_HASH_TYPE_PREFIX}Type = ${dhTypes};`
+}
+
 export function createAttestationHashTypesFile(definitions: AttestationTypeScheme[]) {
    // Request types
    let content = `${DEFAULT_GEN_FILE_HEADER}
@@ -33,5 +38,6 @@ import { AttestationType } from "./attestation-types-enum";
    definitions.forEach(definition => {
       content += genAttestationDataHashType(definition);
    })
+   content += dhType(definitions);
    fs.writeFileSync(ATT_HASH_TYPES_FILE, content, "utf8");
 }

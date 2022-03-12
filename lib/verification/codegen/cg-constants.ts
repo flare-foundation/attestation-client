@@ -11,6 +11,7 @@ export const VERIFIER_FUNCTION_PREFIX = "verify";
 export const WEB3_HASH_PREFIX_FUNCTION = "hash";
 export const ATTESTATION_TYPE_PREFIX = "AR";
 export const DATA_HASH_TYPE_PREFIX = "DH";
+export const SOLIDITY_VERIFICATION_FUNCTION_PREFIX = "verify";
 export const ATT_TYPE_DEFINITIONS_ROOT = "lib/verification/attestation-types";
 export const ATT_REQUEST_TYPES_FILE = `${GENERATED_ROOT}/attestation-request-types.ts`;
 export const ATT_HASH_TYPES_FILE = `${GENERATED_ROOT}/attestation-hash-types.ts`;

@@ -3,10 +3,22 @@
 //////////////////////////////////////////////////////////////
 
 import BN from "bn.js";
+import { ChainType } from "flare-mcc";
 import { randSol } from "../attestation-types/attestation-types-helpers";
-import { ARPayment, ARBalanceDecreasingTransaction, ARBlockHeightExists, ARReferencedPaymentNonexistence } from "./attestation-request-types";
-import { DHPayment, DHBalanceDecreasingTransaction, DHBlockHeightExists, DHReferencedPaymentNonexistence } from "./attestation-hash-types";
-
+import { 
+   ARPayment,
+   ARBalanceDecreasingTransaction,
+   ARBlockHeightExists,
+   ARReferencedPaymentNonexistence,
+   ARType 
+} from "./attestation-request-types";
+import {
+   DHPayment,
+   DHBalanceDecreasingTransaction,
+   DHBlockHeightExists,
+   DHReferencedPaymentNonexistence,
+   DHType 
+} from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
   
 
@@ -78,6 +90,33 @@ export function getRandomResponseForType(attestationType: AttestationType) {
       default:
          throw new Error("Wrong attestation type.")
   }   
+}
+
+export function getRandomRequest() {  
+   let ids = [1, 2, 3, 4];
+   let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*4)];
+   let chainId: ChainType = ChainType.invalid;
+   let chainIds: ChainType[] = [];
+   switch(randomAttestationType) {
+      case AttestationType.Payment:
+         chainIds = [3,0,1,2,4];
+         chainId = chainIds[Math.floor(Math.random()*5)];
+         return {attestationType: randomAttestationType, chainId} as ARPayment;
+      case AttestationType.BalanceDecreasingTransaction:
+         chainIds = [3,0,1,2,4];
+         chainId = chainIds[Math.floor(Math.random()*5)];
+         return {attestationType: randomAttestationType, chainId} as ARBalanceDecreasingTransaction;
+      case AttestationType.BlockHeightExists:
+         chainIds = [3,0,1,2,4];
+         chainId = chainIds[Math.floor(Math.random()*5)];
+         return {attestationType: randomAttestationType, chainId} as ARBlockHeightExists;
+      case AttestationType.ReferencedPaymentNonexistence:
+         chainIds = [3,0,1,2,4];
+         chainId = chainIds[Math.floor(Math.random()*5)];
+         return {attestationType: randomAttestationType, chainId} as ARReferencedPaymentNonexistence;
+      default:
+         throw new Error("Invalid attestation type");
+   }
 }
 //////////////////////////////////////////////////////////////
 // Hash functions for requests and responses for particular 
@@ -194,4 +233,19 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
       ]
    );
    return web3.utils.soliditySha3(encoded)!;
+}
+
+export function dataHash(request: ARType, response: DHType) {  
+   switch(request.attestationType) {
+      case AttestationType.Payment:
+         return hashPayment(request as ARPayment, response as DHPayment);
+      case AttestationType.BalanceDecreasingTransaction:
+         return hashBalanceDecreasingTransaction(request as ARBalanceDecreasingTransaction, response as DHBalanceDecreasingTransaction);
+      case AttestationType.BlockHeightExists:
+         return hashBlockHeightExists(request as ARBlockHeightExists, response as DHBlockHeightExists);
+      case AttestationType.ReferencedPaymentNonexistence:
+         return hashReferencedPaymentNonexistence(request as ARReferencedPaymentNonexistence, response as DHReferencedPaymentNonexistence);
+      default:
+         throw new Error("Invalid attestation type");
+   }
 }

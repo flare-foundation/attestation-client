@@ -18,6 +18,11 @@ ${values}
 `
 }
 
+function arType(definitions: AttestationTypeScheme[]) {
+   let arTypes = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(" | ")
+   return `export type ${ATTESTATION_TYPE_PREFIX}Type = ${arTypes};`
+}
+
 export function createAttestationRequestTypesFile(definitions: AttestationTypeScheme[]) {
    // Request types
    let content = `${DEFAULT_GEN_FILE_HEADER}
@@ -29,5 +34,6 @@ import { AttestationType } from "./attestation-types-enum";
    definitions.forEach(definition => {
       content += genAttestationRequestType(definition);
    })
+   content += arType(definitions);
    fs.writeFileSync(ATT_REQUEST_TYPES_FILE, content, "utf8");
 }

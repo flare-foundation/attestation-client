@@ -86,3 +86,4 @@ export interface ARReferencedPaymentNonexistence {
    // Block hash of the finalization block for a block that has number above `endBlock` and timestamp above `endTimestamp`.
    dataAvailabilityProof: BytesLike;
 }
+export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARBlockHeightExists | ARReferencedPaymentNonexistence;

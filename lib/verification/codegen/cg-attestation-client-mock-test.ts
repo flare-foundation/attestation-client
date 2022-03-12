@@ -1,7 +1,7 @@
 import fs from "fs";
 import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
-import { ATTESTATION_TYPE_PREFIX, ATT_CLIENT_MOCK_TEST_FILE, ATT_UTILS_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, GENERATED_TEST_ROOT, RANDOM_RESPONSE_HEADER, VERIFIER_FUNCTION_PREFIX, WEB3_HASH_FUNCTIONS_HEADER, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
+import { ATTESTATION_TYPE_PREFIX, ATT_CLIENT_MOCK_TEST_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, GENERATED_TEST_ROOT, SOLIDITY_VERIFICATION_FUNCTION_PREFIX, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
 import { indentText, tab, trimStartNewline } from "./cg-utils";
 
 
@@ -86,7 +86,7 @@ ${tab()}return web3.utils.soliditySha3(encoded)!;
 
 function genItForAttestationClientMock(definition: AttestationTypeScheme) {
   return `
-it("'${definition.name}' test", async function () {
+it("'${definition.name}' test", async function () { 
   let attestationType = AttestationType.${definition.name};
   let request = { attestationType, chainId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
@@ -101,13 +101,54 @@ it("'${definition.name}' test", async function () {
   let dummyHash = web3.utils.randomHex(32);
   await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);    
   assert(await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND) === hash);
-  assert(await attestationClient.${VERIFIER_FUNCTION_PREFIX}${definition.name}(CHAIN_ID, responseHex))
+  assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(CHAIN_ID, responseHex))
 
   await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, dummyHash);
-  assert(await attestationClient.${VERIFIER_FUNCTION_PREFIX}${definition.name}(CHAIN_ID, responseHex) === false);
+  assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(CHAIN_ID, responseHex) === false);
 });
 `
 }
+
+function genVerificationCase(definition: AttestationTypeScheme) {
+  return `
+case AttestationType.${definition.name}:
+${tab()}assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(verification.request.chainId, responseHex));
+${tab()}break;`
+}
+
+
+function genItForMerkleTest(definitions: AttestationTypeScheme[]) {
+  let verificationCases = definitions.map(definition => genVerificationCase(definition)).join("");
+  return `
+it("Merkle tree test", async function () {
+${tab()}let verifications = [];
+${tab()}for(let i = 0; i < NUM_OF_HASHES; i++) {
+${tab()}${tab()}let request = getRandomRequest();
+${tab()}${tab()}let response = getRandomResponseForType(request.attestationType);
+${tab()}${tab()}verifications.push({
+${tab()}${tab()}${tab()}request,
+${tab()}${tab()}${tab()}response,
+${tab()}${tab()}${tab()}hash: dataHash(request, response)
+${tab()}${tab()}})
+${tab()}};
+${tab()}let hashes = verifications.map(verification => verification.hash);
+${tab()}const tree = new MerkleTree(hashes);
+${tab()}await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, tree.root);
+${tab()}for(let verification of verifications) {
+${tab()}${tab()}verification.response.stateConnectorRound = STATECONNECTOR_ROUND;
+${tab()}${tab()}let index = tree.sortedHashes.findIndex(hash => hash === verification.hash);
+${tab()}${tab()}verification.response.merkleProof = tree.getProof(index);
+${tab()}${tab()}let responseHex = hexlifyBN(verification.response);
+${tab()}${tab()}switch(verification.request.attestationType) {
+${indentText(verificationCases, CODEGEN_TAB*3)}
+${tab()}${tab()}${tab()}default:
+${tab()}${tab()}${tab()}${tab()}throw new Error("Wrong attestation type");
+${tab()}${tab()}}
+  }    
+});
+`
+}
+
 export function createAttestationClientMockTest(definitions: AttestationTypeScheme[]) {
   let arImports = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n")
   let dhImports = definitions.map(definition => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n")
@@ -116,15 +157,20 @@ export function createAttestationClientMockTest(definitions: AttestationTypeSche
   let itsForDefinitions = definitions.map(definition => genItForAttestationClientMock(definition)).join("\n");
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import { ChainType } from "flare-mcc";
+import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
 import { 
-${dhImports} 
+${indentText(dhImports, CODEGEN_TAB)} 
 } from "../../lib/verification/generated/attestation-hash-types";
-import { ${arImports} } from "../../lib/verification/generated/attestation-request-types";
+import { 
+${indentText(arImports, CODEGEN_TAB)} 
+} from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
 import { 
 ${tab()}getRandomResponseForType, 
-${indentText(hashFunctionsImports, CODEGEN_TAB)}
+${indentText(hashFunctionsImports, CODEGEN_TAB)},
+${tab()}getRandomRequest,
+${tab()}dataHash
 } from "../../lib/verification/generated/attestation-utils";
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 
@@ -132,6 +178,7 @@ const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
 const STATECONNECTOR_ROUND = 1;
 const CHAIN_ID = ChainType.BTC;
+const NUM_OF_HASHES = 100;
 
 describe("Attestestation Client Mock", function () {
   let attestationClient: AttestationClientSCInstance;
@@ -141,7 +188,9 @@ describe("Attestestation Client Mock", function () {
     attestationClient = await AttestationClientSC.new(stateConnectorMock.address);
   });
 
-${indentText(itsForDefinitions, CODEGEN_TAB)}    
+${indentText(itsForDefinitions, CODEGEN_TAB)}
+
+${indentText(genItForMerkleTest(definitions), CODEGEN_TAB)}    
 });  
 `;
 

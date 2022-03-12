@@ -8,8 +8,8 @@ import { AttestationClientSCContract } from "./AttestationClientSC";
 import { StateConnectorMockContract } from "./StateConnectorMock";
 import { IAttestationClientContract } from "./IAttestationClient";
 import { IStateConnectorContract } from "./IStateConnector";
-import { StateConnectorContract } from "./StateConnector";
 import { MerkleContract } from "./Merkle";
+import { StateConnectorContract } from "./StateConnector";
 
 declare global {
   namespace Truffle {
@@ -20,8 +20,8 @@ declare global {
       require(name: "StateConnectorMock"): StateConnectorMockContract;
       require(name: "IAttestationClient"): IAttestationClientContract;
       require(name: "IStateConnector"): IStateConnectorContract;
-      require(name: "StateConnector"): StateConnectorContract;
       require(name: "Merkle"): MerkleContract;
+      require(name: "StateConnector"): StateConnectorContract;
     }
   }
 }
@@ -50,8 +50,8 @@ export {
   IStateConnectorContract,
   IStateConnectorInstance,
 } from "./IStateConnector";
+export { MerkleContract, MerkleInstance } from "./Merkle";
 export {
   StateConnectorContract,
   StateConnectorInstance,
 } from "./StateConnector";
-export { MerkleContract, MerkleInstance } from "./Merkle";

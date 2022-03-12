@@ -84,16 +84,70 @@ ${tab()}return web3.utils.soliditySha3(encoded)!;
 `
 }
 
+function genRandomAttestationCase(definition: AttestationTypeScheme) {
+  let chainIds = definition.supportedSources;
+  return `
+case AttestationType.${definition.name}:
+${tab()}chainIds = [${chainIds}];
+${tab()}chainId = chainIds[Math.floor(Math.random()*${chainIds.length})];
+${tab()}return {attestationType: randomAttestationType, chainId} as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
+}
+
+export function randomRequest(definitions: AttestationTypeScheme[]) {
+  let ids = definitions.map(definition => definition.id).join(", ");
+  let attestationTypeCases = definitions.map(definition => genRandomAttestationCase(definition)).join("");
+  return `
+export function getRandomRequest() {  
+${tab()}let ids = [${ids}];
+${tab()}let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*${definitions.length})];
+${tab()}let chainId: ChainType = ChainType.invalid;
+${tab()}let chainIds: ChainType[] = [];
+${tab()}switch(randomAttestationType) {
+${indentText(attestationTypeCases, CODEGEN_TAB*2)}
+${tab()}${tab()}default:
+${tab()}${tab()}${tab()}throw new Error("Invalid attestation type");
+${tab()}}
+}
+`
+}
+
+function genDatahashCase(definition: AttestationTypeScheme) {
+  let chainIds = definition.supportedSources;
+  return `
+case AttestationType.${definition.name}:
+${tab()}return ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request as ${ATTESTATION_TYPE_PREFIX}${definition.name}, response as ${DATA_HASH_TYPE_PREFIX}${definition.name});`
+}
+
+export function genDataHashFunction(definitions: AttestationTypeScheme[]) {
+  let datahashCases = definitions.map(definition => genDatahashCase(definition)).join("");
+  return `
+export function dataHash(request: ${ATTESTATION_TYPE_PREFIX}Type, response: ${DATA_HASH_TYPE_PREFIX}Type) {  
+${tab()}switch(request.attestationType) {
+${indentText(datahashCases, CODEGEN_TAB*2)}
+${tab()}${tab()}default:
+${tab()}${tab()}${tab()}throw new Error("Invalid attestation type");
+${tab()}}
+}
+`
+}
+
+
 export function createAttestationUtils(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(", ")
-  let dhImports = definitions.map(definition => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(", ")
+  let arImports = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n")
+  let dhImports = definitions.map(definition => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n")
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import BN from "bn.js";
+import { ChainType } from "flare-mcc";
 import { randSol } from "../attestation-types/attestation-types-helpers";
-import { ${arImports} } from "./attestation-request-types";
-import { ${dhImports} } from "./attestation-hash-types";
-
+import { 
+${indentText(arImports, CODEGEN_TAB)},
+${tab()}${ATTESTATION_TYPE_PREFIX}Type 
+} from "./attestation-request-types";
+import {
+${indentText(dhImports, CODEGEN_TAB)},
+${tab()}${DATA_HASH_TYPE_PREFIX}Type 
+} from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
   
 `;
@@ -106,11 +160,15 @@ import { AttestationType } from "./attestation-types-enum";
   
   content += genRandomResponseForAttestationTypeFunction(definitions);
 
+  content += randomRequest(definitions);
+
   content += WEB3_HASH_FUNCTIONS_HEADER;
 
   definitions.forEach(definition => {
     content += genWeb3HashFunction(definition);
   })
+
+  content += genDataHashFunction(definitions);
 
   fs.writeFileSync(ATT_UTILS_FILE, content, "utf8");
 }

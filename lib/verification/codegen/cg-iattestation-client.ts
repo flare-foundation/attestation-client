@@ -1,6 +1,6 @@
 import fs from "fs";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { DEFAULT_GEN_FILE_HEADER, I_ATTESTATION_CLIENT_FILE, SOLIDITY_CODEGEN_TAB, SOLIDITY_GEN_INTERFACES_ROOT } from "./cg-constants";
+import { DEFAULT_GEN_FILE_HEADER, I_ATTESTATION_CLIENT_FILE, SOLIDITY_CODEGEN_TAB, SOLIDITY_GEN_INTERFACES_ROOT, SOLIDITY_VERIFICATION_FUNCTION_PREFIX } from "./cg-constants";
 import { indentText } from "./cg-utils";
 
 function genProofStructs(definition: AttestationTypeScheme): any {
@@ -22,7 +22,7 @@ ${typedParams}
 }
 
 function genProofVerificationFunctionSignatures(definition: AttestationTypeScheme): any {
-   let functionName = `verify${definition.name}`;
+   let functionName = `${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}`;
    return `function ${functionName}(uint32 _chainId, ${definition.name} calldata _data)
     external view
     returns (bool _proved);

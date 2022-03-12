@@ -20,9 +20,10 @@
 
 //  [x] end sync issue with block processing
 //  [x] fix node execution (db is not working)
-//  [ ] read all forks (utxo only - completely different block header collection)
+//  [x] read all forks (utxo only - completely different block header collection)
 
-import { ChainType, IBlock, MCC, sleep } from "flare-mcc";
+import { BlockBase, ChainType, IBlock, MCC, sleep } from "flare-mcc";
+import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
@@ -40,6 +41,31 @@ var yargs = require("yargs");
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
   .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+
+
+
+  class LiteIBlock extends BlockBase<LiteBlock> {
+    public get number(): number {
+       return this.data.number;
+    }
+ 
+    public get hash(): string {
+       return this.data.hash;
+    }
+ 
+    public get unixTimestamp(): number {
+       return 0;
+    }
+ 
+    public get transactionHashes(): string[] {
+      throw new Error( "unimplemented");
+    }
+ 
+    public get transactionCount(): number {
+      throw new Error( "unimplemented");
+    }
+ }
+
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -130,12 +156,13 @@ export class Indexer {
 
   getBlockSaveEpoch(time: number): number {
     // 2022/01/01 00:00:00
+
+    // todo: this function MUST be in utility and it must use config to get number of days to look back!
     return Math.floor((time - 1640991600) / (14 * this.Csec2day));
   }
 
   getBlock(blockNumber: number): Promise<IBlock> {
-    //this.logger.info( `getBlock(${blockNumber},N=${this.N},T=${this.T})`);
-
+    // todo: implement lite version
     return this.cachedClient.client.getBlock(blockNumber);
   }
 
@@ -179,11 +206,11 @@ export class Indexer {
     return true;
   }
 
-  async blockAlreadyCompleted(block: DBBlockBase) {
-    this.logger.info(`^Galready completed ${block.blockNumber}:N+${block.blockNumber - this.N}`);
+  async blockAlreadyCompleted(block: IBlock) {
+    this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.N}`);
     // if N+1 is ready then begin processing N+2
 
-    const isBlockNp1 = block.blockNumber == this.N + 1 && block.blockHash == this.blockNp1hash;
+    const isBlockNp1 = block.number == this.N + 1 && block.hash == this.blockNp1hash;
 
     if (!this.sync) {
       if (isBlockNp1) {
@@ -371,14 +398,6 @@ export class Indexer {
   }
 
   async getDBStartBlockNumber(): Promise<number> {
-    // const entity0 = this.dbTableClass[0];
-    // const entity1 = this.dbTableClass[1];
-
-    // const res0 = await this.dbService.connection.createQueryBuilder().from(entity0, 'transactions').select('blockNumber').orderBy("id", "DESC").limit(1).getRawMany();
-    // const res1 = await this.dbService.connection.createQueryBuilder().from(entity1, 'transactions').select('blockNumber').orderBy("id", "DESC").limit(1).getRawMany();
-
-    // return Math.max(res0.length > 0 ? res0[0].blockNumber : 0, res1.length > 0 ? res1[0].blockNumber : 0);
-
     const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
 
     if (res === undefined) return 0;
@@ -391,8 +410,8 @@ export class Indexer {
 
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
 
-    if( averageBlocksPerDay===0 ) {
-      this.logger.critical( `${this.chainConfig.name} avg blk per day is zero` )
+    if (averageBlocksPerDay === 0) {
+      this.logger.critical(`${this.chainConfig.name} avg blk per day is zero`)
       return 0;
     }
 
@@ -414,65 +433,103 @@ export class Indexer {
       blockNumber = Math.floor(blockNumber - averageBlocksPerDay / 24);
     }
 
-    this.logger.critical( `${this.chainConfig.name} unable to find sync start date` );
+    this.logger.critical(`${this.chainConfig.name} unable to find sync start date`);
 
     return blockNumber;
   }
 
 
-  blockHeaderHash = new Map<number, IBlock>();
+  blockHeaderHash = new Set<string>();
+  blockHeaderNumber = new Set<number>();
+
+  isBlockCached(block: LiteBlock | IBlock) {
+    return this.blockHeaderHash.has(block.hash) && this.blockHeaderNumber.has(block.number);
+  }
+
+  cacheBlock(block: LiteBlock | IBlock) {
+    this.blockHeaderHash.add(block.hash);
+    this.blockHeaderNumber.add(block.number);
+  }
+
 
   async saveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
     try {
-      // save blocks from fromBlockNumber to toBlockNumberInc
-      //this.logger.debug( `collect block headers [${fromBlockNumber} .. ${toBlockNumberInc}]` );
-
-      let blocksText = "[";
-
-      // limit number of blocks to look ahead
-      // const maxBlocks = 8;
-      // if (toBlockNumberInc - fromBlockNumber > maxBlocks) {
-      //   blocks = `^Wlimited from ${toBlockNumberInc - fromBlockNumber}^^ [`;
-
-      //   toBlockNumberInc = fromBlockNumber + maxBlocks;
-      // }
-
-
-      const blockPromisses = []
+      const blockPromisses = [];
 
       for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++) {
-        // todo: use fast getblock function (no details)
+        // if rawUnforkable then we can skip block numbers if they are already written
+        if (this.chainConfig.blockCollecting === "rawUnforkable") {
+          if (this.blockHeaderNumber.has(blockNumber)) {
+            continue;
+          }
+        }
+
         blockPromisses.push(this.getBlock(blockNumber));
       }
 
       const blocks = await Promise.all(blockPromisses);
 
-      const dbBlocks = [];
-      let i = 0;
-      for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++, i++) {
-        const block = blocks[i];
+      await this.saveBlocksHeadersArray(blocks);
 
+    } catch (error) {
+      this.logger.error2(`saveBlocksHeaders error: ${error}`);
+      this.logger.error(error.stack);
+    }
+  }
+
+  async saveLiteBlocksHeaders(blocks: LiteBlock[]) {
+    try {
+      // const blockPromisses = [];
+
+      // for (const block of blocks) {
+      //   if (this.isBlockCached(block)) {
+      //     continue;
+      //   }
+
+      //   // todo: use fast getblock function (no details)
+      //   blockPromisses.push(this.cachedClient.getBlock(block.hash));
+      // }
+
+      // const outBlocks = await Promise.all(blockPromisses);
+
+      const outBlocks = [];
+
+      for(const block of blocks ) {
+        outBlocks.push( new LiteIBlock(block) );
+      }
+
+      await this.saveBlocksHeadersArray(outBlocks);
+
+    } catch (error) {
+      this.logger.error2(`saveLiteBlocksHeaders error: ${error}`);
+      this.logger.error(error.stack);
+    }
+  }
+
+
+  async saveBlocksHeadersArray(blocks: IBlock[]) {
+    try {
+      let blocksText = "[";
+
+      const dbBlocks = [];
+
+      for(const block of blocks) {
         if (!block || !block.hash) continue;
 
+        const blockNumber = block.number;
+
         // check cache
-        const cachedBlock = this.blockHeaderHash.get(blockNumber);
-        if (cachedBlock) {
-          if (cachedBlock.hash === block.hash) {
-            // same (ignored)
-            blocksText += "^G" + blockNumber.toString() + "^^,";
-            continue;
-          }
-          else {
-            // hash replaced
-            blocksText += "^W" + blockNumber.toString() + "^^,";
-          }
+        if (this.isBlockCached(block)) {
+          // cached
+          blocksText += "^G" + blockNumber.toString() + "^^,";
+          continue;
         }
         else {
           // new
           blocksText += blockNumber.toString() + ",";
         }
 
-        this.blockHeaderHash.set(blockNumber, block);
+        this.cacheBlock(block);
 
         const dbBlock = new this.dbBlockClass();
 
@@ -489,7 +546,7 @@ export class Indexer {
       }
 
       if (dbBlocks.length === 0) {
-        this.logger.debug(`write block headers (no new blocks)`);
+        //this.logger.debug(`write block headers (no new blocks)`);
         return;
       }
 
@@ -504,7 +561,7 @@ export class Indexer {
       //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
       //   .execute();
     } catch (error) {
-      this.logger.error2(`saveBlocksHeaders error: ${error}`);
+      this.logger.error2(`saveBlocksHeadersArray error: ${error}`);
       this.logger.error(error.stack);
     }
   }
@@ -556,12 +613,27 @@ export class Indexer {
 
   async runBlockHeaderCollecting() {
     switch (this.chainConfig.blockCollecting) {
-      case "raw": await this.runBlockHeaderCollectingRaw(); break;
-      case "tips": await this.runBlockHeaderCollectingTips(); break;
+      case "raw":
+      case "rawUnforkable": this.runBlockHeaderCollectingRaw(); break;
+      case "tips": this.runBlockHeaderCollectingTips(); break;
     }
   }
 
   async runBlockHeaderCollectingTips() {
+    let localN = this.N;
+    let localBlockNp1hash = "";
+
+    while (true) {
+      try {
+        const blocks: LiteBlock[] = await this.cachedClient.client.getTopLiteBlocks(this.chainConfig.confirmationsCollect);
+
+        await this.saveLiteBlocksHeaders(blocks);
+
+      } catch (error) {
+        this.logger.error2(`runBlockHeaderCollectingTips: ${error}`);
+        this.logger.error(error.stack);
+      }
+    }
   }
 
   async runBlockHeaderCollectingRaw() {
@@ -594,6 +666,11 @@ export class Indexer {
         // save block N+1 hash
         localBlockNp1hash = blockNp1.hash;
 
+        while( localN < localT - this.chainConfig.confirmationsCollect ) {
+          if( this.blockHeaderNumber.has( localN ) ) {
+            localN++;
+          }
+        }
       } catch (error) {
         this.logger.error2(`Exception: ${error}`);
         this.logger.error(error.stack);

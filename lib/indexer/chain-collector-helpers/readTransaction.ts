@@ -26,7 +26,7 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any, any>, 
     // }
     // let response: IUtxoGetFullTransactionRes = { vinouts: [], ...res.data };
 
-
+    // here we could check if reference starts with 0x46425052 ()
     if (blockTransaction.reference.length > 0) {
 
       let txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction) => {

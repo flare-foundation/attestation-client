@@ -10,7 +10,7 @@ export class IndexerClientChain {
 
   public syncReadAhead: number = 30;
 
-  public blockCollecting: "raw" | "tips";
+  public blockCollecting: "raw" | "rawUnforkable" | "tips";
 }
 
 export class IndexerConfiguration {

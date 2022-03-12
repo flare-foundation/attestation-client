@@ -91,7 +91,7 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
     case "uint256":
       return toBN(web3.utils.randomHex(32))
     case "int256":
-      return toBN(web3.utils.randomHex(32))
+      return toBN(web3.utils.randomHex(30))  // signed!
     case "bool":
       return toBN(web3.utils.randomHex(1)).mod(toBN(2));
     case "string":

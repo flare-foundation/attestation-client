@@ -21,19 +21,19 @@ interface EventOptions {
   topics?: string[];
 }
 
-export interface HashTest extends BaseContract {
+export interface IStateConnector extends BaseContract {
   constructor(
     jsonInterface: any[],
     address?: string,
     options?: ContractOptions
-  ): HashTest;
-  clone(): HashTest;
+  ): IStateConnector;
+  clone(): IStateConnector;
   methods: {
-    verifyMerkleProof(
-      proof: (string | number[])[],
-      merkleRoot: string | number[],
-      leaf: string | number[]
-    ): NonPayableTransactionObject<boolean>;
+    TOTAL_STORED_PROOFS(): NonPayableTransactionObject<string>;
+
+    merkleRoots(
+      _index: number | string | BN
+    ): NonPayableTransactionObject<string>;
   };
   events: {
     allEvents(options?: EventOptions, cb?: Callback<EventLog>): EventEmitter;

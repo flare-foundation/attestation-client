@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, BN, DHPayment, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, BN, DHPayment, hashPayment, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
@@ -34,40 +34,8 @@ export async function verifyPaymentDOGE(client: RPCInterface, bytes: string, ind
       status: randSol(request, "status", "uint8") as BN      
    } as DHPayment;
 
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",
-         "uint32",
-         "uint64",		// blockNumber
-         "uint64",		// blockTimestamp
-         "bytes32",		// transactionHash
-         "uint8",		// utxo
-         "bytes32",		// sourceAddress
-         "bytes32",		// receivingAddress
-         "uint256",		// paymentReference
-         "int256",		// spentAmount
-         "uint256",		// receivedAmount
-         "bool",		// oneToOne
-         "uint8",		// status
-      ],
-      [
-         response.attestationType,
-         response.chainId,
-         response.blockNumber,
-         response.blockTimestamp,
-         response.transactionHash,
-         response.utxo,
-         response.sourceAddress,
-         response.receivingAddress,
-         response.paymentReference,
-         response.spentAmount,
-         response.receivedAmount,
-         response.oneToOne,
-         response.status
-      ]
-   );   
+   let hash = hashPayment(request, response);
 
-   let hash = web3.utils.soliditySha3(encoded)!;
    return {
       hash,
       response,

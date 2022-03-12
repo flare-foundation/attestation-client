@@ -21,13 +21,13 @@ interface EventOptions {
   topics?: string[];
 }
 
-export interface HashTest extends BaseContract {
+export interface Merkle extends BaseContract {
   constructor(
     jsonInterface: any[],
     address?: string,
     options?: ContractOptions
-  ): HashTest;
-  clone(): HashTest;
+  ): Merkle;
+  clone(): Merkle;
   methods: {
     verifyMerkleProof(
       proof: (string | number[])[],

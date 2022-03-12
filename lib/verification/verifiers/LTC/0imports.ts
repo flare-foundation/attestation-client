@@ -13,8 +13,24 @@ export { RPCInterface } from "flare-mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
 export { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 export { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
-export { DHPayment, DHBalanceDecreasingTransaction, DHBlockHeightExists, DHReferencedPaymentNonexistence } from "../../generated/attestation-hash-types";
-export { ARPayment, ARBalanceDecreasingTransaction, ARBlockHeightExists, ARReferencedPaymentNonexistence } from "../../generated/attestation-request-types";
+export { 
+   DHPayment,
+   DHBalanceDecreasingTransaction,
+   DHBlockHeightExists,
+   DHReferencedPaymentNonexistence 
+} from "../../generated/attestation-hash-types";
+export { 
+   ARPayment,
+   ARBalanceDecreasingTransaction,
+   ARBlockHeightExists,
+   ARReferencedPaymentNonexistence 
+} from "../../generated/attestation-request-types";
+export { 
+   hashPayment,
+   hashBalanceDecreasingTransaction,
+   hashBlockHeightExists,
+   hashReferencedPaymentNonexistence 
+} from "../../generated/attestation-utils";
 export { BN };
 export { Web3 };
 export { TDEF_payment };

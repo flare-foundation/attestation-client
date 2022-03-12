@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARReferencedPaymentNonexistence, BN, DHReferencedPaymentNonexistence, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_referenced_payment_nonexistence, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARReferencedPaymentNonexistence, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_referenced_payment_nonexistence, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
@@ -32,36 +32,8 @@ export async function verifyReferencedPaymentNonexistenceXRP(client: RPCInterfac
       firstOverflowBlockTimestamp: randSol(request, "firstOverflowBlockTimestamp", "uint64") as BN      
    } as DHReferencedPaymentNonexistence;
 
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",
-         "uint32",
-         "uint64",		// endTimestamp
-         "uint64",		// endBlock
-         "bytes32",		// destinationAddress
-         "uint128",		// paymentReference
-         "uint128",		// amount
-         "uint64",		// firstCheckedBlock
-         "uint64",		// firstCheckedBlockTimestamp
-         "uint64",		// firstOverflowBlock
-         "uint64",		// firstOverflowBlockTimestamp
-      ],
-      [
-         response.attestationType,
-         response.chainId,
-         response.endTimestamp,
-         response.endBlock,
-         response.destinationAddress,
-         response.paymentReference,
-         response.amount,
-         response.firstCheckedBlock,
-         response.firstCheckedBlockTimestamp,
-         response.firstOverflowBlock,
-         response.firstOverflowBlockTimestamp
-      ]
-   );   
+   let hash = hashReferencedPaymentNonexistence(request, response);
 
-   let hash = web3.utils.soliditySha3(encoded)!;
    return {
       hash,
       response,

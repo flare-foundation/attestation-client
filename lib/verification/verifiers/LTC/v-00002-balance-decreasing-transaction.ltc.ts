@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBalanceDecreasingTransaction, BN, DHBalanceDecreasingTransaction, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARBalanceDecreasingTransaction, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
@@ -29,30 +29,8 @@ export async function verifyBalanceDecreasingTransactionLTC(client: RPCInterface
       paymentReference: randSol(request, "paymentReference", "uint256") as BN      
    } as DHBalanceDecreasingTransaction;
 
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",
-         "uint32",
-         "uint64",		// blockNumber
-         "uint64",		// blockTimestamp
-         "bytes32",		// transactionHash
-         "bytes32",		// sourceAddress
-         "int256",		// spentAmount
-         "uint256",		// paymentReference
-      ],
-      [
-         response.attestationType,
-         response.chainId,
-         response.blockNumber,
-         response.blockTimestamp,
-         response.transactionHash,
-         response.sourceAddress,
-         response.spentAmount,
-         response.paymentReference
-      ]
-   );   
+   let hash = hashBalanceDecreasingTransaction(request, response);
 
-   let hash = web3.utils.soliditySha3(encoded)!;
    return {
       hash,
       response,

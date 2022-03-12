@@ -9,8 +9,8 @@ import { AttestationType } from "./attestation-types-enum";
 
 export interface DHPayment {
    // Attestation type
-   attestationType: AttestationType,
-   chainId: ChainType,
+   stateConnectorRound: number;
+   merkleProof: string[];
    // Timestamp of the transaction block on the underlying chain.
    blockNumber: BN;
 
@@ -58,8 +58,8 @@ export interface DHPayment {
 
 export interface DHBalanceDecreasingTransaction {
    // Attestation type
-   attestationType: AttestationType,
-   chainId: ChainType,
+   stateConnectorRound: number;
+   merkleProof: string[];
    // Number of the transaction block on the underlying chain.
    blockNumber: BN;
 
@@ -86,8 +86,8 @@ export interface DHBalanceDecreasingTransaction {
 
 export interface DHBlockHeightExists {
    // Attestation type
-   attestationType: AttestationType,
-   chainId: ChainType,
+   stateConnectorRound: number;
+   merkleProof: string[];
    // Number of the block that was proved to exist.
    blockNumber: BN;
 
@@ -97,8 +97,8 @@ export interface DHBlockHeightExists {
 
 export interface DHReferencedPaymentNonexistence {
    // Attestation type
-   attestationType: AttestationType,
-   chainId: ChainType,
+   stateConnectorRound: number;
+   merkleProof: string[];
    // End timestamp specified in attestation request.
    endTimestamp: BN;
 

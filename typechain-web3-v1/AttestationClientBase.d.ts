@@ -21,13 +21,13 @@ interface EventOptions {
   topics?: string[];
 }
 
-export interface AttestationClientMock extends BaseContract {
+export interface AttestationClientBase extends BaseContract {
   constructor(
     jsonInterface: any[],
     address?: string,
     options?: ContractOptions
-  ): AttestationClientMock;
-  clone(): AttestationClientMock;
+  ): AttestationClientBase;
+  clone(): AttestationClientBase;
   methods: {
     BALANCE_DECREASING_TRANSACTION(): NonPayableTransactionObject<string>;
 
@@ -40,11 +40,6 @@ export interface AttestationClientMock extends BaseContract {
     merkleRootForRound(
       _stateConnectorRound: number | string | BN
     ): NonPayableTransactionObject<string>;
-
-    setMerkleRootForStateConnectorRound(
-      _merkleRoot: string | number[],
-      _stateConnectorRound: number | string | BN
-    ): NonPayableTransactionObject<void>;
 
     verifyBalanceDecreasingTransaction(
       _chainId: number | string | BN,

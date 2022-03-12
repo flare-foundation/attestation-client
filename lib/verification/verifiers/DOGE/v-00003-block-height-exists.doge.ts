@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBlockHeightExists, BN, DHBlockHeightExists, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARBlockHeightExists, BN, DHBlockHeightExists, hashBlockHeightExists, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
@@ -25,22 +25,8 @@ export async function verifyBlockHeightExistsDOGE(client: RPCInterface, bytes: s
       blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN      
    } as DHBlockHeightExists;
 
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",
-         "uint32",
-         "uint64",		// blockNumber
-         "uint64",		// blockTimestamp
-      ],
-      [
-         response.attestationType,
-         response.chainId,
-         response.blockNumber,
-         response.blockTimestamp
-      ]
-   );   
+   let hash = hashBlockHeightExists(request, response);
 
-   let hash = web3.utils.soliditySha3(encoded)!;
    return {
       hash,
       response,

@@ -30,6 +30,20 @@ import {verifyReferencedPaymentNonexistenceALGO} from "./ALGO/v-00004-referenced
 
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager"
 
+export class WrongAttestationTypeError extends Error {
+   constructor(message) {
+      super(message);
+      this.name = 'WrongAttestationTypeError';
+   }
+}
+
+export class WrongSourceIdError extends Error {
+   constructor(message) {
+      super(message);
+      this.name = 'WrongAttestationTypeError';
+   }
+}
+
 export async function verifyAttestation(client: RPCInterface, request: string, indexer: IndexedQueryManager): Promise<Verification<any>>{
    let {attestationType, sourceId} = getAttestationTypeAndSource(request);
    switch(attestationType) {
@@ -46,8 +60,8 @@ export async function verifyAttestation(client: RPCInterface, request: string, i
             case ChainType.ALGO:
                return verifyPaymentALGO(client, request, indexer);
             default:
-               throw new Error("Wrong source id");
-         }
+               throw new WrongSourceIdError("Wrong source id");
+      }
       case AttestationType.BalanceDecreasingTransaction:
          switch(sourceId) {
             case ChainType.XRP:
@@ -61,8 +75,8 @@ export async function verifyAttestation(client: RPCInterface, request: string, i
             case ChainType.ALGO:
                return verifyBalanceDecreasingTransactionALGO(client, request, indexer);
             default:
-               throw new Error("Wrong source id");
-         }
+               throw new WrongSourceIdError("Wrong source id");
+      }
       case AttestationType.BlockHeightExists:
          switch(sourceId) {
             case ChainType.XRP:
@@ -76,8 +90,8 @@ export async function verifyAttestation(client: RPCInterface, request: string, i
             case ChainType.ALGO:
                return verifyBlockHeightExistsALGO(client, request, indexer);
             default:
-               throw new Error("Wrong source id");
-         }
+               throw new WrongSourceIdError("Wrong source id");
+      }
       case AttestationType.ReferencedPaymentNonexistence:
          switch(sourceId) {
             case ChainType.XRP:
@@ -91,9 +105,9 @@ export async function verifyAttestation(client: RPCInterface, request: string, i
             case ChainType.ALGO:
                return verifyReferencedPaymentNonexistenceALGO(client, request, indexer);
             default:
-               throw new Error("Wrong source id");
-         }
+               throw new WrongSourceIdError("Wrong source id");
+      }
       default:
-         throw new Error("Wrong attestation type.")
+         throw new WrongAttestationTypeError("Wrong attestation type.")
    }   
 }

@@ -25,6 +25,8 @@ export class AttestationData {
     this.request = event.returnValues.data;
     
     const {attestationType, sourceId} = getAttestationTypeAndSource(this.request);
+    
+    // If parsing is not successful, null is set for both values
     this.type = attestationType;
     this.chainType = sourceId;
 

@@ -9,7 +9,7 @@ import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
-import { verifyAttestation } from "../verification/verifiers/verifier_routing";
+import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainManager } from "./ChainManager";
 
 export class ChainNode {
@@ -246,6 +246,14 @@ export class ChainNode {
         }
       })
       .catch((error: any) => {
+        // Attestation request parsing errors
+        if(error instanceof WrongSourceIdError) {
+          this.processed(attestation, AttestationStatus.invalid);
+        }
+        if(error instanceof WrongAttestationTypeError) {
+          this.processed(attestation, AttestationStatus.invalid);
+        }
+        // Retries
         attestation.processEndTime = getTimeMilli();
         if (attestation.retry < this.conf.maxFailedRetry) {
           this.chainManager.logger.warning(`  * transaction verification error (retry ${attestation.retry})`);

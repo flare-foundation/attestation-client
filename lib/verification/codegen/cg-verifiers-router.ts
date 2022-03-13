@@ -1,26 +1,26 @@
 import fs from "fs";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { getSourceName } from "../attestation-types/attestation-types-helpers";
-import { DEFAULT_GEN_FILE_HEADER, VERIFIERS_ROOT, VERIFIERS_ROUTING_FILE } from "./cg-constants";
-import { trimStartNewline } from "./cg-utils";
+import { CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER, VERIFIERS_ROOT, VERIFIERS_ROUTING_FILE } from "./cg-constants";
+import { indentText, tab, trimStartNewline } from "./cg-utils";
 import { genVerifier, verifierFile, verifierFolder, verifierFunctionName } from "./cg-verifiers";
 
 function genDefinitionCases(definition: AttestationTypeScheme) {
    let sourceCases = definition.supportedSources.map(sourceId => genSourceCase(definition, sourceId)).join("\n");
    let result = `
-      case AttestationType.${definition.name}:
-         switch(sourceId) {
-${sourceCases}
-            default:
-               throw new Error("Wrong source id");
-         }`;
+case AttestationType.${definition.name}:
+${tab()}switch(sourceId) {
+${indentText(sourceCases, CODEGEN_TAB*2)}
+${tab()}${tab()}default:
+${tab()}${tab()}${tab()}throw new WrongSourceIdError("Wrong source id");
+}`;
    return trimStartNewline(result);
 }
 
 function genSourceCase(definition: AttestationTypeScheme, sourceId: number) {
    let result = `
-            case ChainType.${getSourceName(sourceId)}:
-               return ${verifierFunctionName(definition, sourceId)}(client, request, indexer);`;
+case ChainType.${getSourceName(sourceId)}:
+${tab()}return ${verifierFunctionName(definition, sourceId)}(client, request, indexer);`;
    return trimStartNewline(result);
 }
 
@@ -50,13 +50,27 @@ import { Verification } from "../attestation-types/attestation-types"
 ${routerImports}
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager"
 
+export class WrongAttestationTypeError extends Error {
+${tab()}constructor(message) {
+${tab()}${tab()}super(message);
+${tab()}${tab()}this.name = 'WrongAttestationTypeError';
+${tab()}}
+}
+
+export class WrongSourceIdError extends Error {
+${tab()}constructor(message) {
+${tab()}${tab()}super(message);
+${tab()}${tab()}this.name = 'WrongAttestationTypeError';
+${tab()}}
+}
+
 export async function verifyAttestation(client: RPCInterface, request: string, indexer: IndexedQueryManager): Promise<Verification<any>>{
-   let {attestationType, sourceId} = getAttestationTypeAndSource(request);
-   switch(attestationType) {
-${attestationTypeCases}
-      default:
-         throw new Error("Wrong attestation type.")
-   }   
+${tab()}let {attestationType, sourceId} = getAttestationTypeAndSource(request);
+${tab()}switch(attestationType) {
+${indentText(attestationTypeCases, CODEGEN_TAB*2)}
+${tab()}${tab()}default:
+${tab()}${tab()}${tab()}throw new WrongAttestationTypeError("Wrong attestation type.")
+${tab()}}   
 }`
 
    fs.writeFileSync(`${VERIFIERS_ROUTING_FILE}`, router, "utf8");

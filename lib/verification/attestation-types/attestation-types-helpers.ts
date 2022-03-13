@@ -107,7 +107,14 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
 }
 
 export function getAttestationTypeAndSource(bytes: string) {
+  // TODO: make robust parsing.
   let input = unPrefix0x(bytes);
+  if(!bytes || bytes.length < ATT_BYTES * 2 + CHAIN_ID_BYTES * 2) {
+    return {
+      attestationType: null,
+      sourceId: null
+    }
+  }
   return {
     attestationType: toBN(prefix0x(input.slice(0, ATT_BYTES * 2))).toNumber() as AttestationType,
     sourceId: toBN(prefix0x(input).slice(ATT_BYTES * 2, ATT_BYTES * 2 + CHAIN_ID_BYTES * 2)).toNumber() as ChainType
@@ -137,6 +144,9 @@ export function parseRequestBytes(bytes: string, scheme: AttestationTypeScheme):
   let start = 0;
   for (let item of scheme.request) {
     let end = start + item.size * 2;
+    if(end > bytes.length) {
+      throw new Error("Incorrectly formated ")
+    }
     result[item.key] = fromUnprefixedBytes(input.slice(start, end), item)
   }
   return result;

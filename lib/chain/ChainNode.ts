@@ -8,7 +8,7 @@ import { IndexedQueryManager, IndexedQueryManagerOptions } from "../indexed-quer
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { AttestationRequestParseError, Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainManager } from "./ChainManager";
 
@@ -253,6 +253,10 @@ export class ChainNode {
         if(error instanceof WrongAttestationTypeError) {
           this.processed(attestation, AttestationStatus.invalid);
         }
+        if(error instanceof AttestationRequestParseError) {
+          this.processed(attestation, AttestationStatus.invalid);
+        }
+
         // Retries
         attestation.processEndTime = getTimeMilli();
         if (attestation.retry < this.conf.maxFailedRetry) {

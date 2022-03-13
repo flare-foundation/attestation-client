@@ -143,3 +143,10 @@ export interface AttestationTypeScheme {
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
 }
+
+export class AttestationRequestParseError extends Error {
+  constructor(message) {
+     super(message);
+     this.name = 'AttestationRequestParseError';
+  }
+}

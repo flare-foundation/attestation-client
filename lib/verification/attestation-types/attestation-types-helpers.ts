@@ -3,7 +3,7 @@ import { ChainType, MCC, prefix0x, toBN, unPrefix0x } from "flare-mcc";
 import Web3 from "web3";
 import { toHex } from "../../utils/utils";
 import { AttestationType } from "../generated/attestation-types-enum";
-import { AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, SupportedSolidityType } from "./attestation-types";
+import { AttestationRequestParseError, AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, SupportedSolidityType } from "./attestation-types";
 
 export function attestationTypeSchemeIndex(schemes: AttestationTypeScheme[]): Map<AttestationType, AttestationTypeScheme> {
   let index = new Map<AttestationType, AttestationTypeScheme>();
@@ -145,7 +145,7 @@ export function parseRequestBytes(bytes: string, scheme: AttestationTypeScheme):
   for (let item of scheme.request) {
     let end = start + item.size * 2;
     if(end > bytes.length) {
-      throw new Error("Incorrectly formated ")
+      throw new AttestationRequestParseError("Incorrectly formated attestation request");
     }
     result[item.key] = fromUnprefixedBytes(input.slice(start, end), item)
   }

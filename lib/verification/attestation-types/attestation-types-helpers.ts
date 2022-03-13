@@ -16,7 +16,7 @@ export function attestationTypeSchemeIndex(schemes: AttestationTypeScheme[]): Ma
 }
 
 // Assumes bytes are not 0x prefixed
-function fromUnprefixedBuytes(bytes: string, scheme: AttestationRequestScheme) {
+function fromUnprefixedBytes(bytes: string, scheme: AttestationRequestScheme) {
   assert(bytes.length % 2 === 0, "Bytes length must be even");
   assert(bytes.length === scheme.size * 2, "Bytes length does not match the scheme");
   switch (scheme.type) {
@@ -137,7 +137,7 @@ export function parseRequestBytes(bytes: string, scheme: AttestationTypeScheme):
   let start = 0;
   for (let item of scheme.request) {
     let end = start + item.size * 2;
-    result[item.key] = fromUnprefixedBuytes(input.slice(start, end), item)
+    result[item.key] = fromUnprefixedBytes(input.slice(start, end), item)
   }
   return result;
 }

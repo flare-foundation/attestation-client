@@ -7,7 +7,9 @@
 //////////////////////////////////////////////////////////////
 
 import { ARBlockHeightExists, Attestation, BN, DHBlockHeightExists, hashBlockHeightExists, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { toBN } from "flare-mcc";
+import { BlockHashQueryRequest } from "../../../indexed-query-manager/IndexedQueryManager";
+import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 
 const web3 = new Web3();
 
@@ -17,14 +19,29 @@ export async function verifyBlockHeightExistsALGO(client: RPCInterface, attestat
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// XXXX
+   const blockQueryParams : BlockHashQueryRequest = {
+      hash: request.dataAvailabilityProof,
+      roundId: numberLikeToNumber(request.blockNumber)
+   }
+
+   // We check that block with specified hash exist at specified height
+   const query = await indexer.getBlockByHash(blockQueryParams)
+
+   if(query.status === 'NOT_EXIST'){
+      return {
+         status: VerificationStatus.BLOCK_HASH_DOES_NOT_EXIST
+      }
+   }
+
+   let response = {   
+      stateConnectorRound: roundId,
+      blockNumber: toBN(query.block?.blockNumber),
+      blockTimestamp: toBN(query.block?.timestamp)   
+   } as DHBlockHeightExists;
 
    //-$$$<end> of the custom section. Do not change this comment.
 
-   let response = {
-      blockNumber: randSol(request, "blockNumber", "uint64") as BN,
-      blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN      
-   } as DHBlockHeightExists;
+
 
    let hash = hashBlockHeightExists(request, response);
 

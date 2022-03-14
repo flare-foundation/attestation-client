@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////
 
 import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 
 const web3 = new Web3();
 
@@ -17,7 +17,26 @@ export async function verifyPaymentALGO(client: RPCInterface, attestation: Attes
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// XXXX
+   let result = await indexer.checkTransactionExistence({
+      txId: request.id,
+      blockNumber: numberLikeToNumber(request.blockNumber),
+      dataAvailability: request.dataAvailabilityProof,
+      roundId: roundId,
+      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
+   })
+
+   if (result.status === 'RECHECK') {
+      return {
+         status: VerificationStatus.RECHECK_LATER
+      } as Verification<DHPayment>;
+   }
+
+   if (result.status === 'NOT_EXIST') {
+      return {
+         status: VerificationStatus.NON_EXISTENT_TRANSACTION
+      }
+   }
+   
 
    //-$$$<end> of the custom section. Do not change this comment.
 

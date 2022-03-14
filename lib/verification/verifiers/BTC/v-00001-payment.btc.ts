@@ -7,6 +7,8 @@
 //////////////////////////////////////////////////////////////
 
 import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+
+
 const web3 = new Web3();
 
 export async function verifyPaymentBTC(client: MCC.BTC, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {

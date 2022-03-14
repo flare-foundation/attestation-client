@@ -18,6 +18,7 @@ export const ATT_HASH_TYPES_FILE = `${GENERATED_ROOT}/attestation-hash-types.ts`
 export const ATTESTATION_TYPES_ENUM_FILE = `${GENERATED_ROOT}/attestation-types-enum.ts`;
 export const ATT_UTILS_FILE = `${GENERATED_ROOT}/attestation-utils.ts`;
 export const ATT_CLIENT_MOCK_TEST_FILE = `AttestationClientMock.test.ts`;
+export const ATT_REQ_PARSER_TEST_FILE = `AttestationRequestParser.test.ts`;
 export const I_ATTESTATION_CLIENT_FILE = `IAttestationClient.sol`;
 export const ATTESTATION_CLIENT_BASE = `AttestationClientBase.sol`;
 export const HASH_TEST_FILE = `HashTest.sol`
@@ -43,7 +44,7 @@ export const SEMI_EDITABLE_GEN_FILE_HEADER =
 
 export const RANDOM_RESPONSE_HEADER = 
 `//////////////////////////////////////////////////////////////
-// Random resposes. Used for testing.
+// Random attestation requests and resposes. Used for testing.
 //////////////////////////////////////////////////////////////
 `
 

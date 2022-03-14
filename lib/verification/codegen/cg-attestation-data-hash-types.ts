@@ -15,7 +15,8 @@ function genAttestationDataHashType(definition: AttestationTypeScheme) {
 export interface ${DATA_HASH_TYPE_PREFIX}${definition.name} {
    // Attestation type
    stateConnectorRound: number;
-   merkleProof: string[];
+   merkleProof?: string[];
+   
 ${values}
 }
 `

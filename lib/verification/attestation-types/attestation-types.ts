@@ -36,6 +36,7 @@ export enum VerificationStatus {
   NON_EXISTENT_BLOCK = "NON_EXISTENT_BLOCK",
   BLOCKHASH_DOES_NOT_EXIST = "BLOCK_DOES_NOT_EXIST",
   RECHECK_LATER = "RECHECK_LATER",
+  NOT_PAYMENT = "NOT_PAYMENT"
 }
 
 export interface AttestationRequest {

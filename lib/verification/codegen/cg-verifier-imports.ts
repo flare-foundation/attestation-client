@@ -29,6 +29,7 @@ export function createVerifiersImportFileForSource(definitions: AttestationTypeS
    let content = `${DEFAULT_GEN_FILE_HEADER}
 import BN from "bn.js";
 import Web3 from "web3";
+export { Attestation } from "../../../attester/Attestation";
 ${tdefImports}
 export { RPCInterface } from "flare-mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";

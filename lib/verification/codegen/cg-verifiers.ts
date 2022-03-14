@@ -61,7 +61,7 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
    }
 
    let randomResponse = genRandomResponseCode(definition, "request");
-   let importedSymbols = [`${ATTESTATION_TYPE_PREFIX}${definition.name}`, `BN`, `${DATA_HASH_TYPE_PREFIX}${definition.name}`, 
+   let importedSymbols = [`${ATTESTATION_TYPE_PREFIX}${definition.name}`, `Attestation`, `BN`, `${DATA_HASH_TYPE_PREFIX}${definition.name}`, 
    `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`, `IndexedQueryManager`, `parseRequestBytes`, `randSol`, `RPCInterface`, `TDEF_${dashCapitalized(definition.name, '_')}`, `Verification`, `VerificationStatus`, `Web3`];
    importedSymbols.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
@@ -71,8 +71,9 @@ ${imports}
 
 const web3 = new Web3();
 
-export async function ${functionName}(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
-${tab()}let request = parseRequestBytes(bytes, TDEF_${dashCapitalized(definition.name, '_')}) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+export async function ${functionName}(client: RPCInterface, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+${tab()}let request = parseRequestBytes(attestation.data.request, TDEF_${dashCapitalized(definition.name, '_')}) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+${tab()}let roundId = attestation.round.roundId;
 
 ${tab()}//-$$$<start> of the custom code section. Do not change this comment. XXX
 

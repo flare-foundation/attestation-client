@@ -20,7 +20,7 @@ ${tab()}${tab()}${tab()}throw new WrongSourceIdError("Wrong source id");
 function genSourceCase(definition: AttestationTypeScheme, sourceId: number) {
    let result = `
 case ChainType.${getSourceName(sourceId)}:
-${tab()}return ${verifierFunctionName(definition, sourceId)}(client, request, indexer);`;
+${tab()}return ${verifierFunctionName(definition, sourceId)}(client, attestation, indexer, recheck);`;
    return trimStartNewline(result);
 }
 
@@ -49,6 +49,7 @@ import { Verification } from "../attestation-types/attestation-types"
       
 ${routerImports}
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager"
+import { Attestation } from "../../attester/Attestation"
 
 export class WrongAttestationTypeError extends Error {
 ${tab()}constructor(message) {
@@ -64,8 +65,8 @@ ${tab()}${tab()}this.name = 'WrongAttestationTypeError';
 ${tab()}}
 }
 
-export async function verifyAttestation(client: RPCInterface, request: string, indexer: IndexedQueryManager): Promise<Verification<any>>{
-${tab()}let {attestationType, sourceId} = getAttestationTypeAndSource(request);
+export async function verifyAttestation(client: RPCInterface, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any>>{
+${tab()}let {attestationType, sourceId} = getAttestationTypeAndSource(attestation.data.request);
 ${tab()}switch(attestationType) {
 ${indentText(attestationTypeCases, CODEGEN_TAB*2)}
 ${tab()}${tab()}default:

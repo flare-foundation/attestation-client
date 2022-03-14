@@ -1,9 +1,9 @@
 import assert from "assert";
-import { ChainType, MCC, prefix0x, toBN, unPrefix0x } from "flare-mcc";
+import { ChainType, MCC, prefix0x, toBN, toNumber, unPrefix0x } from "flare-mcc";
 import Web3 from "web3";
 import { toHex } from "../../utils/utils";
 import { AttestationType } from "../generated/attestation-types-enum";
-import { AttestationRequestParseError, AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, SupportedSolidityType } from "./attestation-types";
+import { AttestationRequestParseError, AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, NumberLike, SupportedSolidityType } from "./attestation-types";
 
 export function attestationTypeSchemeIndex(schemes: AttestationTypeScheme[]): Map<AttestationType, AttestationTypeScheme> {
   let index = new Map<AttestationType, AttestationTypeScheme>();
@@ -74,7 +74,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
 
 export function randSol(request: any, key: string, type: SupportedSolidityType) {
   let web3 = new Web3();
-  if(request[key]) {
+  if (request[key]) {
     return request[key];
   }
   switch (type) {
@@ -109,7 +109,7 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
 export function getAttestationTypeAndSource(bytes: string) {
   // TODO: make robust parsing.
   let input = unPrefix0x(bytes);
-  if(!bytes || bytes.length < ATT_BYTES * 2 + CHAIN_ID_BYTES * 2) {
+  if (!bytes || bytes.length < ATT_BYTES * 2 + CHAIN_ID_BYTES * 2) {
     return {
       attestationType: null,
       sourceId: null
@@ -144,7 +144,7 @@ export function parseRequestBytes(bytes: string, scheme: AttestationTypeScheme):
   let start = 0;
   for (let item of scheme.request) {
     let end = start + item.size * 2;
-    if(end > bytes.length) {
+    if (end > bytes.length) {
       throw new AttestationRequestParseError("Incorrectly formated attestation request");
     }
     result[item.key] = fromUnprefixedBytes(input.slice(start, end), item)
@@ -177,4 +177,11 @@ export function getSourceName(sourceId: number) {
   let name = MCC.getChainTypeName(sourceId);
   // in future check for "invalid" and then use other source name function for sourceId
   return name;
+}
+
+export function numberLikeToNumber(n: NumberLike): number {
+  if (typeof n === "string") {
+    return parseInt(n, 10);
+  }
+  return toNumber(n);
 }

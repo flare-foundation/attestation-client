@@ -6,13 +6,14 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, BN, DHPayment, hashPayment, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
 
-export async function verifyPaymentALGO(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
-   let request = parseRequestBytes(bytes, TDEF_payment) as ARPayment;
+export async function verifyPaymentALGO(client: RPCInterface, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+   let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
+   let roundId = attestation.round.roundId;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 

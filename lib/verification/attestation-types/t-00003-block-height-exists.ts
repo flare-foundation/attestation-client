@@ -49,14 +49,6 @@ Hash of the block to prove the existence of.
       },
    ],
    dataHashDefinition: [
-      // {
-      //    key: "attestationType",
-      //    type: "uint16"
-      // },
-      // {
-      //    key: "chainId",
-      //    type: "uint16"
-      // },
       {
          key: "blockNumber",
          type: "uint64",

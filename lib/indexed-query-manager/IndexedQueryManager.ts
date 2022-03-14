@@ -27,8 +27,9 @@ export interface TransactionQueryParams {
 }
 
 export interface BlockQueryParams {
-   hash: string;
-   roundId: number;
+   hash?: string;
+   blockNumber?: number;
+   roundId: number;   
 }
 
 export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
@@ -50,7 +51,7 @@ export interface BlockHashQueryResponse {
 
 export interface TransactionExistenceQueryRequest {
    txId: string;  // transaction id
-   blockNumber: number // block number for the transactio with `txId
+   blockNumber: number // block number for the transaction with `txId
    dataAvailability: string // hash of confirmation block(used for syncing of edge - cases)
    roundId: number // voting round id for check
    type: IndexerQueryType   // FIRST_CHECK` or`RECHECK`
@@ -136,7 +137,11 @@ export class IndexedQueryManager {
       let query = this.dbService.connection.manager
          .createQueryBuilder(this.blockTable, 'block')
          .where('block.timestamp >= :timestamp', { timestamp: startTimestamp })
-         .where('block.blockHash = :hash', { hash: params.hash })
+      if(params.hash) {
+         query.andWhere('block.blockHash = :hash', { hash: params.hash });
+      } else if(params.blockNumber) {
+         query.andWhere('block.blockNumber = :blockNumber', { blockNumber: params.blockNumber });
+      }
 
       let result = await query.getOne()
       if (result) {
@@ -149,7 +154,7 @@ export class IndexedQueryManager {
 
    // Queries
 
-   public async getBlock(params: BlockHashQueryRequest): Promise<BlockHashQueryResponse> {
+   public async getBlockByHash(params: BlockHashQueryRequest): Promise<BlockHashQueryResponse> {
       let block = this.queryBlock({
          hash: params.hash,
          roundId: params.roundId

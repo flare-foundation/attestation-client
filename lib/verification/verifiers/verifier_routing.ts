@@ -29,6 +29,7 @@ import {verifyReferencedPaymentNonexistenceDOGE} from "./DOGE/v-00004-referenced
 import {verifyReferencedPaymentNonexistenceALGO} from "./ALGO/v-00004-referenced-payment-nonexistence.algo"
 
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager"
+import { Attestation } from "../../attester/Attestation"
 
 export class WrongAttestationTypeError extends Error {
    constructor(message) {
@@ -44,66 +45,66 @@ export class WrongSourceIdError extends Error {
    }
 }
 
-export async function verifyAttestation(client: RPCInterface, request: string, indexer: IndexedQueryManager): Promise<Verification<any>>{
-   let {attestationType, sourceId} = getAttestationTypeAndSource(request);
+export async function verifyAttestation(client: RPCInterface, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any>>{
+   let {attestationType, sourceId} = getAttestationTypeAndSource(attestation.data.request);
    switch(attestationType) {
       case AttestationType.Payment:
          switch(sourceId) {
             case ChainType.XRP:
-               return verifyPaymentXRP(client, request, indexer);
+               return verifyPaymentXRP(client, attestation, indexer, recheck);
             case ChainType.BTC:
-               return verifyPaymentBTC(client, request, indexer);
+               return verifyPaymentBTC(client, attestation, indexer, recheck);
             case ChainType.LTC:
-               return verifyPaymentLTC(client, request, indexer);
+               return verifyPaymentLTC(client, attestation, indexer, recheck);
             case ChainType.DOGE:
-               return verifyPaymentDOGE(client, request, indexer);
+               return verifyPaymentDOGE(client, attestation, indexer, recheck);
             case ChainType.ALGO:
-               return verifyPaymentALGO(client, request, indexer);
+               return verifyPaymentALGO(client, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }
       case AttestationType.BalanceDecreasingTransaction:
          switch(sourceId) {
             case ChainType.XRP:
-               return verifyBalanceDecreasingTransactionXRP(client, request, indexer);
+               return verifyBalanceDecreasingTransactionXRP(client, attestation, indexer, recheck);
             case ChainType.BTC:
-               return verifyBalanceDecreasingTransactionBTC(client, request, indexer);
+               return verifyBalanceDecreasingTransactionBTC(client, attestation, indexer, recheck);
             case ChainType.LTC:
-               return verifyBalanceDecreasingTransactionLTC(client, request, indexer);
+               return verifyBalanceDecreasingTransactionLTC(client, attestation, indexer, recheck);
             case ChainType.DOGE:
-               return verifyBalanceDecreasingTransactionDOGE(client, request, indexer);
+               return verifyBalanceDecreasingTransactionDOGE(client, attestation, indexer, recheck);
             case ChainType.ALGO:
-               return verifyBalanceDecreasingTransactionALGO(client, request, indexer);
+               return verifyBalanceDecreasingTransactionALGO(client, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }
       case AttestationType.BlockHeightExists:
          switch(sourceId) {
             case ChainType.XRP:
-               return verifyBlockHeightExistsXRP(client, request, indexer);
+               return verifyBlockHeightExistsXRP(client, attestation, indexer, recheck);
             case ChainType.BTC:
-               return verifyBlockHeightExistsBTC(client, request, indexer);
+               return verifyBlockHeightExistsBTC(client, attestation, indexer, recheck);
             case ChainType.LTC:
-               return verifyBlockHeightExistsLTC(client, request, indexer);
+               return verifyBlockHeightExistsLTC(client, attestation, indexer, recheck);
             case ChainType.DOGE:
-               return verifyBlockHeightExistsDOGE(client, request, indexer);
+               return verifyBlockHeightExistsDOGE(client, attestation, indexer, recheck);
             case ChainType.ALGO:
-               return verifyBlockHeightExistsALGO(client, request, indexer);
+               return verifyBlockHeightExistsALGO(client, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }
       case AttestationType.ReferencedPaymentNonexistence:
          switch(sourceId) {
             case ChainType.XRP:
-               return verifyReferencedPaymentNonexistenceXRP(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceXRP(client, attestation, indexer, recheck);
             case ChainType.BTC:
-               return verifyReferencedPaymentNonexistenceBTC(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceBTC(client, attestation, indexer, recheck);
             case ChainType.LTC:
-               return verifyReferencedPaymentNonexistenceLTC(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceLTC(client, attestation, indexer, recheck);
             case ChainType.DOGE:
-               return verifyReferencedPaymentNonexistenceDOGE(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceDOGE(client, attestation, indexer, recheck);
             case ChainType.ALGO:
-               return verifyReferencedPaymentNonexistenceALGO(client, request, indexer);
+               return verifyReferencedPaymentNonexistenceALGO(client, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }

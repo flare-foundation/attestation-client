@@ -93,14 +93,6 @@ Block hash of the finalization block for a block that has number above \`endBloc
       },
    ],
    dataHashDefinition: [
-      // {
-      //    key: "attestationType",
-      //    type: "uint16"
-      // },
-      // {
-      //    key: "chainId",
-      //    type: "uint16"
-      // },
       {
          key: "endTimestamp",
          type: "uint64",

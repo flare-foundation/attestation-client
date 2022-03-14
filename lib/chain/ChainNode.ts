@@ -229,7 +229,7 @@ export class ChainNode {
     }
 
     // TODO - failure simulation
-    verifyAttestation(this.client, attestation.data.request, this.indexedQueryManager)
+    verifyAttestation(this.client, attestation, this.indexedQueryManager)
       .then((verification: Verification<any>) => {
         attestation.processEndTime = getTimeMilli();
         if (verification.status === VerificationStatus.RECHECK_LATER) {

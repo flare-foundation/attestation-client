@@ -4,6 +4,7 @@
 
 import BN from "bn.js";
 import Web3 from "web3";
+export { Attestation } from "../../../attester/Attestation";
 import {TDEF as TDEF_payment } from "../../attestation-types/t-00001-payment";
 import {TDEF as TDEF_balance_decreasing_transaction } from "../../attestation-types/t-00002-balance-decreasing-transaction";
 import {TDEF as TDEF_block_height_exists } from "../../attestation-types/t-00003-block-height-exists";

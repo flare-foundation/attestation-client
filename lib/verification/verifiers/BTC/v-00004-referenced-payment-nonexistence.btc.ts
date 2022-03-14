@@ -6,13 +6,14 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARReferencedPaymentNonexistence, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_referenced_payment_nonexistence, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARReferencedPaymentNonexistence, Attestation, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_referenced_payment_nonexistence, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
 
-export async function verifyReferencedPaymentNonexistenceBTC(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
-   let request = parseRequestBytes(bytes, TDEF_referenced_payment_nonexistence) as ARReferencedPaymentNonexistence;
+export async function verifyReferencedPaymentNonexistenceBTC(client: RPCInterface, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+   let request = parseRequestBytes(attestation.data.request, TDEF_referenced_payment_nonexistence) as ARReferencedPaymentNonexistence;
+   let roundId = attestation.round.roundId;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 

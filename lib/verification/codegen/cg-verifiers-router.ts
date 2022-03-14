@@ -20,7 +20,7 @@ ${tab()}${tab()}${tab()}throw new WrongSourceIdError("Wrong source id");
 function genSourceCase(definition: AttestationTypeScheme, sourceId: number) {
    let result = `
 case ChainType.${getSourceName(sourceId)}:
-${tab()}return ${verifierFunctionName(definition, sourceId)}(client, attestation, indexer, recheck);`;
+${tab()}return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestation, indexer, recheck);`;
    return trimStartNewline(result);
 }
 
@@ -42,7 +42,7 @@ export function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
    }
 
    let router = `${DEFAULT_GEN_FILE_HEADER}
-import { ChainType, RPCInterface } from "flare-mcc"
+import { ChainType, MccClient, MCC } from "flare-mcc"
 import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-helpers"
 import { AttestationType } from "../generated/attestation-types-enum"
 import { Verification } from "../attestation-types/attestation-types"
@@ -65,7 +65,7 @@ ${tab()}${tab()}this.name = 'WrongAttestationTypeError';
 ${tab()}}
 }
 
-export async function verifyAttestation(client: RPCInterface, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any>>{
+export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any>>{
 ${tab()}let {attestationType, sourceId} = getAttestationTypeAndSource(attestation.data.request);
 ${tab()}switch(attestationType) {
 ${indentText(attestationTypeCases, CODEGEN_TAB*2)}

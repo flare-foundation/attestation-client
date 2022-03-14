@@ -31,7 +31,7 @@ import BN from "bn.js";
 import Web3 from "web3";
 export { Attestation } from "../../../attester/Attestation";
 ${tdefImports}
-export { RPCInterface } from "flare-mcc";
+export { RPCInterface, MCC } from "flare-mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
 export { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 export { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";

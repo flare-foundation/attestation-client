@@ -11,6 +11,7 @@ export interface DHPayment {
    // Attestation type
    stateConnectorRound: number;
    merkleProof?: string[];
+   
    // Timestamp of the transaction block on the underlying chain.
    blockNumber: BN;
 
@@ -60,6 +61,7 @@ export interface DHBalanceDecreasingTransaction {
    // Attestation type
    stateConnectorRound: number;
    merkleProof?: string[];
+   
    // Number of the transaction block on the underlying chain.
    blockNumber: BN;
 
@@ -88,6 +90,7 @@ export interface DHBlockHeightExists {
    // Attestation type
    stateConnectorRound: number;
    merkleProof?: string[];
+   
    // Number of the block that was proved to exist.
    blockNumber: BN;
 
@@ -99,6 +102,7 @@ export interface DHReferencedPaymentNonexistence {
    // Attestation type
    stateConnectorRound: number;
    merkleProof?: string[];
+   
    // End timestamp specified in attestation request.
    endTimestamp: BN;
 

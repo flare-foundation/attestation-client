@@ -1,5 +1,5 @@
 import assert from "assert";
-import { ChainType, MCC, RPCInterface } from "flare-mcc";
+import { ChainType, MCC, MccClient, RPCInterface } from "flare-mcc";
 import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
@@ -17,7 +17,7 @@ export class ChainNode {
 
   chainName: string;
   chainType: ChainType;
-  client: RPCInterface;
+  client: MccClient;
   stateConnector!: StateConnectorInstance;
 
   // node rate limiting control
@@ -62,7 +62,7 @@ export class ChainNode {
             retries: chainCofiguration.clientRetries,
             onSend: this.onSend.bind(this),
           },
-        }) as RPCInterface;
+        });
         break;
       case ChainType.XRP:
         this.client = MCC.Client(this.chainType, {
@@ -75,7 +75,7 @@ export class ChainNode {
             retries: chainCofiguration.clientRetries,
             onSend: this.onSend.bind(this),
           },
-        }) as RPCInterface;
+        });
         break;
       case ChainType.ALGO:
         throw new Error("Not yet Implemented");

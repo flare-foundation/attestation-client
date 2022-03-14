@@ -10,7 +10,7 @@ import {TDEF as TDEF_balance_decreasing_transaction } from "../../attestation-ty
 import {TDEF as TDEF_block_height_exists } from "../../attestation-types/t-00003-block-height-exists";
 import {TDEF as TDEF_referenced_payment_nonexistence } from "../../attestation-types/t-00004-referenced-payment-nonexistence";
 
-export { RPCInterface } from "flare-mcc";
+export { RPCInterface, MCC } from "flare-mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
 export { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 export { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";

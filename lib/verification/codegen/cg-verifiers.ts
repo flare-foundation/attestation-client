@@ -47,6 +47,7 @@ function removeToFirstImport(content: string) {
 
 export function genVerifier(definition: AttestationTypeScheme, sourceId: number, folder: string) {
    let functionName = verifierFunctionName(definition, sourceId);
+   let mccInterface = `MCC.${getSourceName(sourceId)}`
    let hasResponseDefined = false;
    let fname = verifierFile(definition, sourceId, folder);
    let fileContent: string = "";
@@ -62,7 +63,7 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
 
    let randomResponse = genRandomResponseCode(definition, "request");
    let importedSymbols = [`${ATTESTATION_TYPE_PREFIX}${definition.name}`, `Attestation`, `BN`, `${DATA_HASH_TYPE_PREFIX}${definition.name}`, 
-   `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`, `IndexedQueryManager`, `parseRequestBytes`, `randSol`, `RPCInterface`, `TDEF_${dashCapitalized(definition.name, '_')}`, `Verification`, `VerificationStatus`, `Web3`];
+   `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`, `IndexedQueryManager`, `parseRequestBytes`, `randSol`, `RPCInterface`, `MCC`, `TDEF_${dashCapitalized(definition.name, '_')}`, `Verification`, `VerificationStatus`, `Web3`];
    importedSymbols.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
    return `${SEMI_EDITABLE_GEN_FILE_HEADER}
@@ -71,7 +72,7 @@ ${imports}
 
 const web3 = new Web3();
 
-export async function ${functionName}(client: RPCInterface, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function ${functionName}(client: ${mccInterface}, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
 ${tab()}let request = parseRequestBytes(attestation.data.request, TDEF_${dashCapitalized(definition.name, '_')}) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 ${tab()}let roundId = attestation.round.roundId;
 

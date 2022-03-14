@@ -1,4 +1,4 @@
-import { ChainType, RPCInterface } from "flare-mcc";
+import { ChainType, MccClient, RPCInterface } from "flare-mcc";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
@@ -78,12 +78,12 @@ export interface ReferencedTransactionNonExistenceQueryResponse {
 export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
   dbService: DatabaseService;
-  client: RPCInterface;
+  client: MccClient;
 
   transactionTable = [undefined, undefined];
   blockTable;
 
-  constructor(client: RPCInterface, options: IndexedQueryManagerOptions) {
+  constructor(client: MccClient, options: IndexedQueryManagerOptions) {
     this.settings = options;
     this.client = client;
     this.prepareTables();

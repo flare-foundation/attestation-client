@@ -6,14 +6,14 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBlockHeightExists, Attestation, BN, DHBlockHeightExists, hashBlockHeightExists, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARBlockHeightExists, Attestation, BN, DHBlockHeightExists, hashBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
 import { toBN } from "flare-mcc";
 import { BlockHashQueryRequest } from "../../../indexed-query-manager/IndexedQueryManager";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 
 const web3 = new Web3();
 
-export async function verifyBlockHeightExistsALGO(client: RPCInterface, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyBlockHeightExistsALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
    let request = parseRequestBytes(attestation.data.request, TDEF_block_height_exists) as ARBlockHeightExists;
    let roundId = attestation.round.roundId;
 

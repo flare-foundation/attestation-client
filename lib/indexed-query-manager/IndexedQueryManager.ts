@@ -1,13 +1,13 @@
-import { ChainType, MccClient, RPCInterface } from "flare-mcc";
+import { ChainType, MccClient } from "flare-mcc";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
-
+import { getGlobalLogger } from "../utils/logger";
+import { getSourceName } from "../verification/attestation-types/attestation-types-helpers";
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
-
   // number of confirmations required
   noConfirmations: number;
   // return windows start time from current epochId
@@ -100,6 +100,7 @@ export class IndexedQueryManager {
   blockTable;
 
   constructor(client: MccClient, options: IndexedQueryManagerOptions) {
+    this.dbService = new DatabaseService(getGlobalLogger());
     this.settings = options;
     this.client = client;
     this.prepareTables();
@@ -140,7 +141,7 @@ export class IndexedQueryManager {
     //  const results1 = await query1.getMany();
     //  return results0.concat(results1);
 
-    let results = [];
+    let results = []
     for (let table of this.transactionTable) {
       let query = this.dbService.connection.manager
         .createQueryBuilder(table, "transaction")
@@ -155,7 +156,7 @@ export class IndexedQueryManager {
 
       results = results.concat(await query.getRawMany());
     }
-    return results;
+    return results
   }
 
   async queryBlock(params: BlockQueryParams): Promise<DBBlockBase | null> {
@@ -240,10 +241,10 @@ export class IndexedQueryManager {
 
   // todo: this.indexer.lastConfimedBlockNumber must be from DB query
   getChainN() {
-    return getChainTypeName(this.settings.chainType) + "_N";
+    return getSourceName(this.settings.chainType) + "_N";
   }
 
-  private async getLastConfirmedBlockNumber(): Promise<number> {
+  public async getLastConfirmedBlockNumber(): Promise<number> {
     const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
 
     if (res === undefined) return 0;
@@ -371,7 +372,31 @@ export class IndexedQueryManager {
   
 }
 
-function getChainTypeName(chainType: ChainType) {
-  // TODO from MCC
-  throw new Error("Function not implemented.");
+
+  ////////////////////////////////////////////////////////////
+  // Test functions 
+  ////////////////////////////////////////////////////////////
+
+  public async getRandomTransaction() {
+    let result: DBTransactionBase | undefined;
+    while(!result) {
+      let tableId = Math.round(Math.random());
+      let table = this.transactionTable[tableId];
+      const query = this.dbService.connection.manager.createQueryBuilder(table, "transaction")
+      .select(["MIN(transaction.id) AS min", "MAX(transaction.id) as max"])
+      // query.addSelect("MAX(quotation.quotationVersion)", "max");
+      const {min, max} = await query.getRawOne();  
+      console.log(min, max);
+      let randN = Math.floor(Math.random()*(max - min + 1)) + min;
+      console.log(randN);
+      result = await this.dbService.connection.manager.findOne(table, { where: { id: randN } }) as DBTransactionBase;  
+    }
+    return result;  
+  }
+
+  public async getRandomConfirmedBlock() {    
+    const query = this.dbService.connection.manager.createQueryBuilder(this.blockTable, "block")
+    .select(["MIN(block.blockNumber) AS min", "MAX(transaction.id) as max"])
+
+  }
 }

@@ -45,6 +45,7 @@
     "dev": "DOTENV=DEV yarn watch-and-run",
     "devmulti": "DOTENV=DEV yarn watch-and-run-multi",
     "devindexer": "DOTENV=DEV yarn watch-and-run-indexer",
+    "test_indexed_query_manager": "env DOTENV=DEV NODE_ENV=development yarn hardhat test test/IndexedQueryManager.test.ts",
     "test": "mocha -r ts-node/register -t 0 --exit",
     "testdebug": "DOTENV=DEV tsdx test --env=node test/MerkleTree.test.ts",
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local",

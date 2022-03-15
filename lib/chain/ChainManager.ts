@@ -1,14 +1,14 @@
 import { ChainType } from "flare-mcc";
-import { Logger } from "winston";
 import { Attestation } from "../attester/Attestation";
+import { AttLogger } from "../utils/logger";
 import { ChainNode } from "./ChainNode";
 
 export class ChainManager {
   nodes = new Map<ChainType, ChainNode>();
 
-  logger: Logger;
+  logger: AttLogger;
 
-  constructor(logger: Logger) {
+  constructor(logger: AttLogger) {
     this.logger = logger;
   }
 

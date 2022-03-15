@@ -25,9 +25,9 @@ export async function verifyReferencedPaymentNonexistenceALGO(client: MCC.ALGO, 
       // FROM HERE
       endTimestamp: request.endTimestamp,
       endBlock: request.endBlock,
-      destinationAddress: randSol(request, "destinationAddress", "bytes32") as string, 
-      paymentReference: randSol(request, "paymentReference", "bytes32") as string,
-      amount: randSol(request, "amount", "uint128") as BN, 
+      destinationAddress: request.destinationAddress, 
+      paymentReference: request.paymentReference,
+      amount: request.amount, 
       // TO HERE
       firstCheckedBlock: randSol(request, "firstCheckedBlock", "uint64") as BN,
       firstCheckedBlockTimestamp: randSol(request, "firstCheckedBlockTimestamp", "uint64") as BN,

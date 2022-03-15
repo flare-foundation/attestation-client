@@ -36,6 +36,9 @@ export interface ARBalanceDecreasingTransaction {
    // The ID of the underlying chain, see ChainType enum.
    chainId: ChainType;
 
+   // Number of the block of the transaction.
+   blockNumber: NumberLike;
+
    // Index of the sourceAddress on utxo chains.
    inUtxo: NumberLike;
 

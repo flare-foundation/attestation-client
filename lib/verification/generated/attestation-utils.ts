@@ -139,6 +139,7 @@ export function getRandomRequestForAttestationTypeAndChainId (
          return {
             attestationType,
             chainId,
+            blockNumber: toBN(Web3.utils.randomHex(4)),
             inUtxo: toBN(Web3.utils.randomHex(1)),
             id: Web3.utils.randomHex(32),
             dataAvailabilityProof: Web3.utils.randomHex(32)

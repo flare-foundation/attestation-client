@@ -1,5 +1,5 @@
 import { ChainType } from "flare-mcc";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DATA_AVAILABILITY_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, CHAIN_ID_BYTES, DATA_AVAILABILITY_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
    id: 2,
@@ -24,6 +24,15 @@ Attestation type id for this request, see AttestationType enum.
 The ID of the underlying chain, see ChainType enum.
 `
       },
+      {
+         key: "blockNumber",
+         size: BLOCKNUMBER_BYTES,
+         type: "NumberLike",
+         description: 
+`
+Number of the block of the transaction.
+`
+      },  
       {
          key: "inUtxo",
          size: UTXO_BYTES,

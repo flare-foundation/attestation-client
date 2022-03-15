@@ -8,6 +8,7 @@
 
 import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
 import { AlgoTransaction, toBN } from "flare-mcc";
+import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 
 const web3 = new Web3();
 
@@ -19,7 +20,7 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
 
    let result = await indexer.checkTransactionExistence({
       txId: request.id,
-      blockNumber: 0,  // We need different transaction existence query 
+      blockNumber: numberLikeToNumber(request.blockNumber),  // We need different transaction existence query 
       dataAvailability: request.dataAvailabilityProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
@@ -39,8 +40,8 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
 
    const fullTxData = new AlgoTransaction(JSON.parse(result.transaction.response))
 
-   const sourceAddress = fullTxData.sourceAddress.length > 0 ? fullTxData.sourceAddress[0] : ""
-   const paymentReference = fullTxData.reference.length > 0 ? fullTxData.reference[0] : ""
+   const sourceAddress = fullTxData.sourceAddress.length === 1 ? fullTxData.sourceAddress[0] : ""
+   const paymentReference = fullTxData.reference.length === 1 ? fullTxData.reference[0] : ""
    
 
    // Check 

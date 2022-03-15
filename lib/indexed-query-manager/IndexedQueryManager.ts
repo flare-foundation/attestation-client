@@ -4,11 +4,12 @@ import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
-import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger } from "../utils/logger";
 import { getSourceName } from "../verification/attestation-types/attestation-types-helpers";
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
-  logger: AttLogger;
+  // number of confirmations required
+  noConfirmations: number;
   // return windows start time from current epochId
   windowStartTime: (epochId: number) => number;
 }
@@ -39,11 +40,24 @@ export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
 export interface BlockHashQueryRequest {
   hash: string;
   roundId: number;
+  type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
 }
 
 export interface BlockHashQueryResponse {
   status: "OK" | "NOT_EXIST";
-  block?: DBBlockBase; // TODO - correct type
+  block?: DBBlockBase;
+}
+
+export interface BlockNumberQueryRequest {
+  blockNumber: number;
+  roundId: number;
+  dataAvailability: string; // hash of confirmation block(used for syncing of edge - cases)
+  type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
+}
+
+export interface BlockNumberQueryResponse {
+  status: "OK" | "RECHECK" | "NOT_EXIST";
+  block?: DBBlockBase;
 }
 
 export interface TransactionExistenceQueryRequest {
@@ -145,7 +159,7 @@ export class IndexedQueryManager {
     return results
   }
 
-  async queryBlock(params: BlockQueryParams): Promise<DBBlockBase> {
+  async queryBlock(params: BlockQueryParams): Promise<DBBlockBase | null> {
     let startTimestamp = this.settings.windowStartTime(params.roundId);
     let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
@@ -178,11 +192,58 @@ export class IndexedQueryManager {
     };
   }
 
+  private async getConfirmedBlockFirstCheck(params: BlockNumberQueryRequest): Promise<BlockNumberQueryResponse> {
+    let N = await this.getLastConfirmedBlockNumber();
+    if (params.blockNumber < N - 1) {
+      let block = await this.queryBlock({
+        blockNumber: params.blockNumber,
+        roundId: params.roundId,
+      });
+      return {
+        status: block ? "OK" : "NOT_EXIST",
+        block: block,
+      };
+    } else if (params.blockNumber > N + 1) {
+      return {
+        status: "NOT_EXIST",
+      };
+    } else {
+      // N - 1, N, N + 1
+      return {
+        status: "RECHECK",
+      };
+    }
+  }
+
+  private async getConfirmedBlockRecheck(params: BlockNumberQueryRequest): Promise<BlockNumberQueryResponse> {
+    let block = await this.queryBlock({
+      blockNumber: params.blockNumber,
+      roundId: params.roundId,
+    });
+    let confirmationBlock = await this.queryBlock({
+      hash: params.dataAvailability,
+      roundId: params.roundId,
+    } as BlockQueryParams);
+
+    return {
+      status: block && confirmationBlock && confirmationBlock.blockNumber - this.settings.noConfirmations === block.blockNumber ? "OK" : "NOT_EXIST",
+      block: block
+    };
+  }
+
+  public async getConfirmedBlock(params: BlockNumberQueryRequest): Promise<BlockNumberQueryResponse> {
+    if (params.type === "FIRST_CHECK") {
+      return this.getConfirmedBlockFirstCheck(params);
+    }
+    return this.getConfirmedBlockRecheck(params);
+  }
+
+  // todo: this.indexer.lastConfimedBlockNumber must be from DB query
   getChainN() {
     return getSourceName(this.settings.chainType) + "_N";
   }
 
-  public async getLastConfimedBlockNumber(): Promise<number> {
+  public async getLastConfirmedBlockNumber(): Promise<number> {
     const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
 
     if (res === undefined) return 0;
@@ -191,7 +252,7 @@ export class IndexedQueryManager {
   }
 
   private async checkTransactionExistenceFirstCheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
-    let N = await this.getLastConfimedBlockNumber();
+    let N = await this.getLastConfirmedBlockNumber();
     if (params.blockNumber < N - 1) {
       let transactions = await this.queryTransactions({
         roundId: params.roundId,
@@ -215,18 +276,18 @@ export class IndexedQueryManager {
   }
 
   private async checkTransactionExistenceRecheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
-    let N = await this.getLastConfimedBlockNumber();
+    let N = await this.getLastConfirmedBlockNumber();
     let transactions = await this.queryTransactions({
       roundId: params.roundId,
       lastConfirmedBlock: N,
       transactionId: params.txId,
     } as TransactionQueryParams);
-    let block = await this.queryBlock({
+    let confirmationBlock = await this.queryBlock({
       hash: params.dataAvailability,
       roundId: params.roundId,
     } as BlockQueryParams);
     return {
-      status: transactions && transactions.length > 0 && block ? "OK" : "NOT_EXIST",
+      status: transactions && transactions.length === 1 && confirmationBlock && confirmationBlock.blockNumber - this.settings.noConfirmations === transactions[0].blockNumber ? "OK" : "NOT_EXIST",
       transaction: transactions[0],
     };
   }
@@ -241,7 +302,7 @@ export class IndexedQueryManager {
   public async checkReferencedTransactionNonExistenceFirstCheck(
     params: ReferencedTransactionNonExistenceQueryRequest
   ): Promise<ReferencedTransactionNonExistenceQueryResponse> {
-    let N = await this.getLastConfimedBlockNumber();
+    let N = await this.getLastConfirmedBlockNumber();
     if (params.blockNumber < N - 1) {
       let transactions = await this.queryTransactions({
         roundId: params.roundId,
@@ -268,7 +329,7 @@ export class IndexedQueryManager {
   public async checkReferencedTransactionNonExistenceRecheck(
     params: ReferencedTransactionNonExistenceQueryRequest
   ): Promise<ReferencedTransactionNonExistenceQueryResponse> {
-    let N = await this.getLastConfimedBlockNumber();
+    let N = await this.getLastConfirmedBlockNumber();
     let transactions = await this.queryTransactions({
       roundId: params.roundId,
       lastConfirmedBlock: N,

@@ -8,13 +8,13 @@ import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
 import { 
    DHPayment,
    DHBalanceDecreasingTransaction,
-   DHBlockHeightExists,
+   DHConfirmedBlockHeightExists,
    DHReferencedPaymentNonexistence 
 } from "../../lib/verification/generated/attestation-hash-types";
 import { 
    ARPayment,
    ARBalanceDecreasingTransaction,
-   ARBlockHeightExists,
+   ARConfirmedBlockHeightExists,
    ARReferencedPaymentNonexistence 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
@@ -22,7 +22,7 @@ import {
    getRandomResponseForType, 
    hashPayment,
    hashBalanceDecreasingTransaction,
-   hashBlockHeightExists,
+   hashConfirmedBlockHeightExists,
    hashReferencedPaymentNonexistence,
    getRandomRequest,
    dataHash
@@ -87,25 +87,25 @@ describe("Attestestation Client Mock", function () {
    });
    
    
-   it("'BlockHeightExists' test", async function () { 
-     let attestationType = AttestationType.BlockHeightExists;
-     let request = { attestationType, chainId: CHAIN_ID } as ARBlockHeightExists;
+   it("'ConfirmedBlockHeightExists' test", async function () { 
+     let attestationType = AttestationType.ConfirmedBlockHeightExists;
+     let request = { attestationType, chainId: CHAIN_ID } as ARConfirmedBlockHeightExists;
    
-     let response = getRandomResponseForType(attestationType) as DHBlockHeightExists;
+     let response = getRandomResponseForType(attestationType) as DHConfirmedBlockHeightExists;
      response.stateConnectorRound = STATECONNECTOR_ROUND;
      response.merkleProof = [];
    
      let responseHex = hexlifyBN(response);
    
-     let hash = hashBlockHeightExists(request, response);
+     let hash = hashConfirmedBlockHeightExists(request, response);
    
      let dummyHash = web3.utils.randomHex(32);
      await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);    
      assert(await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND) === hash);
-     assert(await attestationClient.verifyBlockHeightExists(CHAIN_ID, responseHex))
+     assert(await attestationClient.verifyConfirmedBlockHeightExists(CHAIN_ID, responseHex))
    
      await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, dummyHash);
-     assert(await attestationClient.verifyBlockHeightExists(CHAIN_ID, responseHex) === false);
+     assert(await attestationClient.verifyConfirmedBlockHeightExists(CHAIN_ID, responseHex) === false);
    });
    
    
@@ -156,8 +156,8 @@ describe("Attestestation Client Mock", function () {
             case AttestationType.BalanceDecreasingTransaction:
                assert(await attestationClient.verifyBalanceDecreasingTransaction(verification.request.chainId, responseHex));
                break;
-            case AttestationType.BlockHeightExists:
-               assert(await attestationClient.verifyBlockHeightExists(verification.request.chainId, responseHex));
+            case AttestationType.ConfirmedBlockHeightExists:
+               assert(await attestationClient.verifyConfirmedBlockHeightExists(verification.request.chainId, responseHex));
                break;
             case AttestationType.ReferencedPaymentNonexistence:
                assert(await attestationClient.verifyReferencedPaymentNonexistence(verification.request.chainId, responseHex));

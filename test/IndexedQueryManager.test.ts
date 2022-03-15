@@ -35,7 +35,7 @@ describe("Indexed query manager", () => {
        startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
        const options: IndexedQueryManagerOptions = {
          chainType: ChainType.XRP,
-         logger,
+         noConfirmations: 1,
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (epochId: number) => { return startTime; }
        };      
@@ -44,7 +44,7 @@ describe("Indexed query manager", () => {
    });
 
    it("Should get last confirmed block number", async () => {
-      let lastConfirmedBlock = await indexedQueryManager.getLastConfimedBlockNumber();
+      let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
       assert(lastConfirmedBlock > 0);
       console.log(`Last confirmed block ${lastConfirmedBlock}`);
       console.log(await indexedQueryManager.getRandomTransaction())

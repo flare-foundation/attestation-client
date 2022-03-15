@@ -14,7 +14,7 @@ abstract contract AttestationClientBase is IAttestationClient {
     // possible attestationType values
     uint16 public constant PAYMENT = 1;
     uint16 public constant BALANCE_DECREASING_TRANSACTION = 2;
-    uint16 public constant BLOCK_HEIGHT_EXISTS = 3;
+    uint16 public constant CONFIRMED_BLOCK_HEIGHT_EXISTS = 3;
     uint16 public constant REFERENCED_PAYMENT_NONEXISTENCE = 4;
 
     function verifyPayment(uint32 _chainId, Payment calldata _data) 
@@ -39,14 +39,14 @@ abstract contract AttestationClientBase is IAttestationClient {
         );
     }
     
-    function verifyBlockHeightExists(uint32 _chainId, BlockHeightExists calldata _data) 
+    function verifyConfirmedBlockHeightExists(uint32 _chainId, ConfirmedBlockHeightExists calldata _data) 
         external view override
         returns (bool _proved)
     {
         return _verifyMerkleProof(
             _data.merkleProof,         
             merkleRootForRound(_data.stateConnectorRound),
-            _hashBlockHeightExists(_chainId, _data)            
+            _hashConfirmedBlockHeightExists(_chainId, _data)            
         );
     }
     
@@ -100,12 +100,12 @@ abstract contract AttestationClientBase is IAttestationClient {
         ));
     }
     
-    function _hashBlockHeightExists(uint32 _chainId, BlockHeightExists calldata _data) 
+    function _hashConfirmedBlockHeightExists(uint32 _chainId, ConfirmedBlockHeightExists calldata _data) 
         private pure
         returns (bytes32)
     {
         return keccak256(abi.encode(
-            BLOCK_HEIGHT_EXISTS,
+            CONFIRMED_BLOCK_HEIGHT_EXISTS,
             _chainId, 
             _data.blockNumber,
             _data.blockTimestamp

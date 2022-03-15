@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
@@ -16,6 +16,9 @@ export async function verifyPaymentBTC(client: MCC.BTC, attestation: Attestation
    let roundId = attestation.round.roundId;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
+
+   // Payment proof must have payment reference!!!
+   // If transaction has payment reference we collect all vins and their vouts (we can calculate all from there)
 
 // XXXX
 

@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
@@ -16,6 +16,10 @@ export async function verifyBalanceDecreasingTransactionBTC(client: MCC.BTC, att
    let roundId = attestation.round.roundId;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
+
+   // If transaction has payment reference we collect all vins and their vouts (we can calculate all from there)
+   // If it does not have the full vins
+   // - check if 
 
 // XXXX
 

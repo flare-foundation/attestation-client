@@ -6,31 +6,31 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBlockHeightExists, Attestation, BN, DHBlockHeightExists, hashBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_confirmed_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
 
-export async function verifyBlockHeightExistsLTC(client: MCC.LTC, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
-   let request = parseRequestBytes(attestation.data.request, TDEF_block_height_exists) as ARBlockHeightExists;
+export async function verifyConfirmedBlockHeightExistsXRP(client: MCC.XRP, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+   let request = parseRequestBytes(attestation.data.request, TDEF_confirmed_block_height_exists) as ARConfirmedBlockHeightExists;
    let roundId = attestation.round.roundId;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// XXXX
+// TYPE THE CODE HERE
 
    //-$$$<end> of the custom section. Do not change this comment.
 
    let response = {
       blockNumber: randSol(request, "blockNumber", "uint64") as BN,
       blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN      
-   } as DHBlockHeightExists;
+   } as DHConfirmedBlockHeightExists;
 
-   let hash = hashBlockHeightExists(request, response);
+   let hash = hashConfirmedBlockHeightExists(request, response);
 
    return {
       hash,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHBlockHeightExists>;
+   } as Verification<DHConfirmedBlockHeightExists>;
 }   

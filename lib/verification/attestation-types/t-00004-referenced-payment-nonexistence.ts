@@ -123,7 +123,7 @@ then payment nonexistence is still confirmed.
       },
       {
          key: "paymentReference",
-         type: "uint128",
+         type: "bytes32",
          description:
 `
 The payment reference searched for.

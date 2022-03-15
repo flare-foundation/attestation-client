@@ -27,7 +27,7 @@ export async function verifyBalanceDecreasingTransactionXRP(client: MCC.XRP, att
       transactionHash: randSol(request, "transactionHash", "bytes32") as string,
       sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
       spentAmount: randSol(request, "spentAmount", "int256") as BN,
-      paymentReference: randSol(request, "paymentReference", "uint256") as BN      
+      paymentReference: randSol(request, "paymentReference", "bytes32") as string      
    } as DHBalanceDecreasingTransaction;
 
    let hash = hashBalanceDecreasingTransaction(request, response);

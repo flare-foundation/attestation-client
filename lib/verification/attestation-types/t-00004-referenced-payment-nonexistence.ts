@@ -34,6 +34,15 @@ The ID of the underlying chain, see ChainType enum.
 `
       },
       {
+         key: "startBlock",
+         size: BLOCKNUMBER_BYTES,
+         type: "NumberLike",
+         description: 
+`
+Start block number for searching the transaction.
+`
+      },
+      {
          key: "endTimestamp",
          size: TIMESTAMP_BYTES,
          type: "NumberLike",

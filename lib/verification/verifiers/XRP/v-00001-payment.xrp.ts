@@ -21,7 +21,7 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
 
    // TODO: pass 
    let blockNumber = numberLikeToNumber(request.blockNumber);
-   let result = await indexer.checkTransactionExistence({
+   let result = await indexer.getConfirmedTransaction({
       txId: request.id,
       blockNumber: numberLikeToNumber(request.blockNumber),
       dataAvailability: request.dataAvailabilityProof,

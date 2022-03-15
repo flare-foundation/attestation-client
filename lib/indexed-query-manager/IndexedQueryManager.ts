@@ -180,6 +180,7 @@ export class IndexedQueryManager {
 
   // Queries
 
+  // deprecated atm
   public async getBlockByHash(params: BlockHashQueryRequest): Promise<BlockHashQueryResponse> {
     let block = await this.queryBlock({
       hash: params.hash,
@@ -250,7 +251,7 @@ export class IndexedQueryManager {
     return res.valueNumber;
   }
 
-  private async checkTransactionExistenceFirstCheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
+  private async getConfirmedTransactionFirstCheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
     let N = await this.getLastConfirmedBlockNumber();
     if (params.blockNumber < N - 1) {
       let transactions = await this.queryTransactions({
@@ -274,7 +275,7 @@ export class IndexedQueryManager {
     }
   }
 
-  private async checkTransactionExistenceRecheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
+  private async getConfirmedTransactionRecheck(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
     let N = await this.getLastConfirmedBlockNumber();
     let transactions = await this.queryTransactions({
       roundId: params.roundId,
@@ -291,11 +292,11 @@ export class IndexedQueryManager {
     };
   }
 
-  public async checkTransactionExistence(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
+  public async getConfirmedTransaction(params: TransactionExistenceQueryRequest): Promise<TransactionExistenceQueryResponse> {
     if (params.type === "FIRST_CHECK") {
-      return this.checkTransactionExistenceFirstCheck(params);
+      return this.getConfirmedTransactionFirstCheck(params);
     }
-    return this.checkTransactionExistenceRecheck(params);
+    return this.getConfirmedTransactionRecheck(params);
   }
 
   public async checkReferencedTransactionNonExistenceFirstCheck(
@@ -353,6 +354,21 @@ export class IndexedQueryManager {
     }
     return this.checkReferencedTransactionNonExistenceRecheck(params);
   }
+
+  public async getFirstBlockAfterTime(timestamp: number) {
+    throw new Error("Not yet implemented")
+  }
+
+  /**
+   * Get first confirmed block that is strictly after timestamp and blockNumber provided in parameters
+   * @param timestamp 
+   * @param blockNumber 
+   */
+  public async getOverflowBlock(timestamp: number, blockNumber: number){
+
+  }
+ 
+  
 }
 
 function getChainTypeName(chainType: ChainType) {

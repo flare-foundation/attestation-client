@@ -18,7 +18,7 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await indexer.checkTransactionExistence({
+   let result = await indexer.getConfirmedTransaction({
       txId: request.id,
       blockNumber: numberLikeToNumber(request.blockNumber),
       dataAvailability: request.dataAvailabilityProof,

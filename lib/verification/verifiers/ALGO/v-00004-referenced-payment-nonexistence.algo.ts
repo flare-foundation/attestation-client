@@ -21,11 +21,14 @@ export async function verifyReferencedPaymentNonexistenceALGO(client: MCC.ALGO, 
 
 
    let response = {
-      endTimestamp: randSol(request, "endTimestamp", "uint64") as BN,
-      endBlock: randSol(request, "endBlock", "uint64") as BN,
-      destinationAddress: randSol(request, "destinationAddress", "bytes32") as string,  // same as bellow, makes little sense
+      // This parameters are only shadowed from request
+      // FROM HERE
+      endTimestamp: request.endTimestamp,
+      endBlock: request.endBlock,
+      destinationAddress: randSol(request, "destinationAddress", "bytes32") as string, 
       paymentReference: randSol(request, "paymentReference", "bytes32") as string,
-      amount: randSol(request, "amount", "uint128") as BN,  // TODO the point of this is to prove the nonexistence (amount makes no sense here)
+      amount: randSol(request, "amount", "uint128") as BN, 
+      // TO HERE
       firstCheckedBlock: randSol(request, "firstCheckedBlock", "uint64") as BN,
       firstCheckedBlockTimestamp: randSol(request, "firstCheckedBlockTimestamp", "uint64") as BN,
       firstOverflowBlock: randSol(request, "firstOverflowBlock", "uint64") as BN,

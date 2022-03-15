@@ -17,6 +17,9 @@ export async function verifyPaymentBTC(client: MCC.BTC, attestation: Attestation
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
+   // Payment proof must have payment reference!!!
+   // If transaction has payment reference we collect all vins and their vouts (we can calculate all from there)
+
 // XXXX
 
    //-$$$<end> of the custom section. Do not change this comment.

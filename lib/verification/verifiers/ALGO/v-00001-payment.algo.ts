@@ -72,7 +72,6 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
       status: toBN(0)     
    } as DHPayment;
 
-
    //-$$$<end> of the custom section. Do not change this comment.
 
 

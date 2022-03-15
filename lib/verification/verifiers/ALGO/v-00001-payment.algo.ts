@@ -8,6 +8,7 @@
 
 import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
+import { AlgoTransaction, IAlgoBlockData, IAlgoGetTransactionRes, toBN } from "flare-mcc";
 
 const web3 = new Web3();
 
@@ -31,28 +32,49 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
       } as Verification<DHPayment>;
    }
 
-   if (result.status === 'NOT_EXIST') {
+   if (result.status === 'NOT_EXIST' || !result.transaction) {
       return {
          status: VerificationStatus.NON_EXISTENT_TRANSACTION
       }
    }
-   
+
+   const fullTxData = new AlgoTransaction(JSON.parse(result.transaction.response))
+
+   if(fullTxData.sourceAddress.length !== 1){
+      return {
+         status: VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS
+      }
+   }
+
+   if(fullTxData.receivingAddress.length !== 1){
+      return {
+         status: VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS
+      }
+   }
+
+   if(fullTxData.reference.length !== 1){
+      return {
+         status: VerificationStatus.NOT_SINGLE_PAYMENT_REFERENCE
+      }
+   }
+
+   let response = {
+      blockNumber: toBN(result.transaction.blockNumber),
+      blockTimestamp: toBN(result.transaction.timestamp),
+      transactionHash: result.transaction.transactionId,
+      utxo: toBN(0), // 0 For non Utxo chains
+      sourceAddress: fullTxData.sourceAddress[0],
+      receivingAddress: fullTxData.receivingAddress[0],
+      paymentReference: fullTxData.reference[0], 
+      spentAmount: toBN(fullTxData.spendAmount),
+      receivedAmount: toBN(fullTxData.receivedAmount),
+      oneToOne: true,
+      status: toBN(0)     
+   } as DHPayment;
 
    //-$$$<end> of the custom section. Do not change this comment.
 
-   let response = {
-      blockNumber: randSol(request, "blockNumber", "uint64") as BN,
-      blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN,
-      transactionHash: randSol(request, "transactionHash", "bytes32") as string,
-      utxo: randSol(request, "utxo", "uint8") as BN,
-      sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
-      receivingAddress: randSol(request, "receivingAddress", "bytes32") as string,
-      paymentReference: randSol(request, "paymentReference", "uint256") as BN,
-      spentAmount: randSol(request, "spentAmount", "int256") as BN,
-      receivedAmount: randSol(request, "receivedAmount", "uint256") as BN,
-      oneToOne: randSol(request, "oneToOne", "bool") as boolean,
-      status: randSol(request, "status", "uint8") as BN      
-   } as DHPayment;
+
 
    let hash = hashPayment(request, response);
 

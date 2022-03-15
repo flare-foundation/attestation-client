@@ -36,7 +36,7 @@ export interface DHPayment {
    // For minting and redemption payment it depends on request id, 
    // for topup and self-mint it depends on the agent vault address.
    // See PaymentReference.sol for details of payment reference calculation.
-   paymentReference: BN;
+   paymentReference: string;
 
    // The amount that went out of the `sourceAddress`, in smallest underlying units.
    // It includes both payment value and fee (gas). For utxo chains it is calculcated as 
@@ -83,7 +83,7 @@ export interface DHBalanceDecreasingTransaction {
    // If the attestation provider detects that the transaction is actually a valid payment (same conditions
    // as for Payment), it should set this field to its the paymentReference.
    // Otherwise, paymentReference must be 0.
-   paymentReference: BN;
+   paymentReference: string;
 }
 
 export interface DHBlockHeightExists {
@@ -117,7 +117,7 @@ export interface DHReferencedPaymentNonexistence {
    destinationAddress: string;
 
    // The payment reference searched for.
-   paymentReference: BN;
+   paymentReference: string;
 
    // The amount searched for.
    amount: BN;

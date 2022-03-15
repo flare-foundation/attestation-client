@@ -31,7 +31,7 @@ export function randomResponsePayment() {
       utxo: randSol({}, "utxo", "uint8") as BN,
       sourceAddress: randSol({}, "sourceAddress", "bytes32") as string,
       receivingAddress: randSol({}, "receivingAddress", "bytes32") as string,
-      paymentReference: randSol({}, "paymentReference", "uint256") as BN,
+      paymentReference: randSol({}, "paymentReference", "bytes32") as string,
       spentAmount: randSol({}, "spentAmount", "int256") as BN,
       receivedAmount: randSol({}, "receivedAmount", "uint256") as BN,
       oneToOne: randSol({}, "oneToOne", "bool") as boolean,
@@ -47,7 +47,7 @@ export function randomResponseBalanceDecreasingTransaction() {
       transactionHash: randSol({}, "transactionHash", "bytes32") as string,
       sourceAddress: randSol({}, "sourceAddress", "bytes32") as string,
       spentAmount: randSol({}, "spentAmount", "int256") as BN,
-      paymentReference: randSol({}, "paymentReference", "uint256") as BN      
+      paymentReference: randSol({}, "paymentReference", "bytes32") as string      
    } as DHBalanceDecreasingTransaction;
    return response;
 }
@@ -65,7 +65,7 @@ export function randomResponseReferencedPaymentNonexistence() {
       endTimestamp: randSol({}, "endTimestamp", "uint64") as BN,
       endBlock: randSol({}, "endBlock", "uint64") as BN,
       destinationAddress: randSol({}, "destinationAddress", "bytes32") as string,
-      paymentReference: randSol({}, "paymentReference", "uint128") as BN,
+      paymentReference: randSol({}, "paymentReference", "bytes32") as string,
       amount: randSol({}, "amount", "uint128") as BN,
       firstCheckedBlock: randSol({}, "firstCheckedBlock", "uint64") as BN,
       firstCheckedBlockTimestamp: randSol({}, "firstCheckedBlockTimestamp", "uint64") as BN,
@@ -181,7 +181,7 @@ export function hashPayment(request: ARPayment, response: DHPayment) {
          "uint8",		// utxo
          "bytes32",		// sourceAddress
          "bytes32",		// receivingAddress
-         "uint256",		// paymentReference
+         "bytes32",		// paymentReference
          "int256",		// spentAmount
          "uint256",		// receivedAmount
          "bool",		// oneToOne
@@ -216,7 +216,7 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
          "bytes32",		// transactionHash
          "bytes32",		// sourceAddress
          "int256",		// spentAmount
-         "uint256",		// paymentReference
+         "bytes32",		// paymentReference
       ],
       [
          request.attestationType,
@@ -258,7 +258,7 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
          "uint64",		// endTimestamp
          "uint64",		// endBlock
          "bytes32",		// destinationAddress
-         "uint128",		// paymentReference
+         "bytes32",		// paymentReference
          "uint128",		// amount
          "uint64",		// firstCheckedBlock
          "uint64",		// firstCheckedBlockTimestamp

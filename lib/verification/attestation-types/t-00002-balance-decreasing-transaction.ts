@@ -98,7 +98,7 @@ It includes both payment value and fee (gas). For utxo chains it is calculcated 
       },
       {
          key: "paymentReference",
-         type: "uint256",
+         type: "bytes32",
          description:
 `
 If the attestation provider detects that the transaction is actually a valid payment (same conditions

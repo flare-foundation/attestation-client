@@ -39,7 +39,7 @@ interface IAttestationClient {
         // For minting and redemption payment it depends on request id, 
         // for topup and self-mint it depends on the agent vault address.
         // See PaymentReference.sol for details of payment reference calculation.
-        uint256 paymentReference;
+        bytes32 paymentReference;
 
         // The amount that went out of the `sourceAddress`, in smallest underlying units.
         // It includes both payment value and fee (gas). For utxo chains it is calculcated as 
@@ -88,7 +88,7 @@ interface IAttestationClient {
         // If the attestation provider detects that the transaction is actually a valid payment (same conditions
         // as for Payment), it should set this field to its the paymentReference.
         // Otherwise, paymentReference must be 0.
-        uint256 paymentReference;
+        bytes32 paymentReference;
     }
 
     struct BlockHeightExists {
@@ -126,7 +126,7 @@ interface IAttestationClient {
         bytes32 destinationAddress;
 
         // The payment reference searched for.
-        uint128 paymentReference;
+        bytes32 paymentReference;
 
         // The amount searched for.
         uint128 amount;

@@ -17,6 +17,10 @@ export async function verifyBalanceDecreasingTransactionBTC(client: MCC.BTC, att
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
+   // If transaction has payment reference we collect all vins and their vouts (we can calculate all from there)
+   // If it does not have the full vins
+   // - check if 
+
 // XXXX
 
    //-$$$<end> of the custom section. Do not change this comment.

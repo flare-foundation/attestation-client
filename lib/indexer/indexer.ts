@@ -41,7 +41,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
 
 
 
@@ -141,18 +141,6 @@ export class Indexer {
 
   get lastConfimedBlockNumber() {
     return this.N;
-  }
-
-  async waitForDBConnection() {
-    while (true) {
-      if (!this.dbService.connection) {
-        this.logger.info("Waiting for DB connection");
-        await sleep(1000);
-        continue;
-      }
-
-      break;
-    }
   }
 
   getBlockSaveEpoch(time: number): number {
@@ -738,8 +726,7 @@ export class Indexer {
 
   async runIndexer() {
     // wait for db to connect
-    await this.waitForDBConnection();
-
+    await this.dbService.waitForDBConnection();
     await this.prepareTables();
 
     const startBlockNumber = (await this.getBlockHeight()) - this.chainConfig.confirmationsCollect;

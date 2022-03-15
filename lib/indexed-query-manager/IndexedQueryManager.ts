@@ -1,12 +1,14 @@
-import { ChainType, MccClient, RPCInterface } from "flare-mcc";
+import { ChainType, MccClient } from "flare-mcc";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
-
+import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { getSourceName } from "../verification/attestation-types/attestation-types-helpers";
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
+  logger: AttLogger;
   // return windows start time from current epochId
   windowStartTime: (epochId: number) => number;
 }
@@ -84,6 +86,7 @@ export class IndexedQueryManager {
   blockTable;
 
   constructor(client: MccClient, options: IndexedQueryManagerOptions) {
+    this.dbService = new DatabaseService(getGlobalLogger());
     this.settings = options;
     this.client = client;
     this.prepareTables();
@@ -97,49 +100,49 @@ export class IndexedQueryManager {
 
   async queryTransactions(params: TransactionQueryParams): Promise<DBTransactionBase[]> {
     let startTimestamp = this.settings.windowStartTime(params.roundId);
-   //  let query0 = this.dbService.connection.manager
-   //    .createQueryBuilder(this.transactionTable[0], "transaction")
-   //    .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
-   //    .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
-   //  if (params.paymentReference) {
-   //    query0 = query0.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
-   //  }
-   //  if (params.transactionId) {
-   //    query0 = query0.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
-   //  }
+    //  let query0 = this.dbService.connection.manager
+    //    .createQueryBuilder(this.transactionTable[0], "transaction")
+    //    .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
+    //    .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
+    //  if (params.paymentReference) {
+    //    query0 = query0.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
+    //  }
+    //  if (params.transactionId) {
+    //    query0 = query0.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
+    //  }
 
-   //  const results0 = await query0.getRawMany();
+    //  const results0 = await query0.getRawMany();
 
-   //  let query1 = this.dbService.connection.manager
-   //    .createQueryBuilder(this.transactionTable[1], "transaction")
-   //    .where("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
-   //    .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
-   //  if (params.paymentReference) {
-   //    query1 = query1.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
-   //  }
-   //  if (params.transactionId) {
-   //    query1 = query1.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
-   //  }
+    //  let query1 = this.dbService.connection.manager
+    //    .createQueryBuilder(this.transactionTable[1], "transaction")
+    //    .where("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
+    //    .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
+    //  if (params.paymentReference) {
+    //    query1 = query1.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
+    //  }
+    //  if (params.transactionId) {
+    //    query1 = query1.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
+    //  }
 
-   //  const results1 = await query1.getMany();
-   //  return results0.concat(results1);
+    //  const results1 = await query1.getMany();
+    //  return results0.concat(results1);
 
     let results = []
-    for(let table of this.transactionTable){
+    for (let table of this.transactionTable) {
       let query = this.dbService.connection.manager
-      .createQueryBuilder(table, "transaction")
-      .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
-      .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
+        .createQueryBuilder(table, "transaction")
+        .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
+        .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
       if (params.paymentReference) {
-         query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
+        query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
       }
       if (params.transactionId) {
-         query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
+        query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
       }
 
       results = results.concat(await query.getRawMany());
     }
-   return results 
+    return results
   }
 
   async queryBlock(params: BlockQueryParams): Promise<DBBlockBase> {
@@ -175,12 +178,11 @@ export class IndexedQueryManager {
     };
   }
 
-  // todo: this.indexer.lastConfimedBlockNumber must be from DB query
   getChainN() {
-    return getChainTypeName(this.settings.chainType) + "_N";
+    return getSourceName(this.settings.chainType) + "_N";
   }
 
-  private async getLastConfimedBlockNumber(): Promise<number> {
+  public async getLastConfimedBlockNumber(): Promise<number> {
     const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
 
     if (res === undefined) return 0;
@@ -291,9 +293,32 @@ export class IndexedQueryManager {
     }
     return this.checkReferencedTransactionNonExistenceRecheck(params);
   }
-}
 
-function getChainTypeName(chainType: ChainType) {
-   // TODO from MCC
-  throw new Error("Function not implemented.");
+
+  ////////////////////////////////////////////////////////////
+  // Test functions 
+  ////////////////////////////////////////////////////////////
+
+  public async getRandomTransaction() {
+    let result: DBTransactionBase | undefined;
+    while(!result) {
+      let tableId = Math.round(Math.random());
+      let table = this.transactionTable[tableId];
+      const query = this.dbService.connection.manager.createQueryBuilder(table, "transaction")
+      .select(["MIN(transaction.id) AS min", "MAX(transaction.id) as max"])
+      // query.addSelect("MAX(quotation.quotationVersion)", "max");
+      const {min, max} = await query.getRawOne();  
+      console.log(min, max);
+      let randN = Math.floor(Math.random()*(max - min + 1)) + min;
+      console.log(randN);
+      result = await this.dbService.connection.manager.findOne(table, { where: { id: randN } }) as DBTransactionBase;  
+    }
+    return result;  
+  }
+
+  public async getRandomConfirmedBlock() {    
+    const query = this.dbService.connection.manager.createQueryBuilder(this.blockTable, "block")
+    .select(["MIN(block.blockNumber) AS min", "MAX(transaction.id) as max"])
+
+  }
 }

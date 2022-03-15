@@ -1,6 +1,6 @@
 import { Connection, createConnection } from "typeorm";
 import { AttLogger } from "./logger";
-import { sleep } from "./utils";
+import { sleepms } from "./utils";
 
 export class DatabaseService {
 
@@ -9,8 +9,8 @@ export class DatabaseService {
     _connection!: Connection;
 
     public constructor(logger: AttLogger) {
-        this.logger=logger;
-        
+        this.logger = logger;
+
         this.connect()
     }
 
@@ -26,20 +26,19 @@ export class DatabaseService {
             : "dist/lib/migration/*.js"
 
 
-        let type : "mysql" | "mariadb" | "postgres" | "cockroachdb" | "sqlite" | "mssql" | "sap" | "oracle" | "cordova" | "nativescript" | "react-native" | "sqljs" | "mongodb" | "aurora-data-api" | "aurora-data-api-pg" | "expo" | "better-sqlite3" | "capacitor";            
+        let type: "mysql" | "mariadb" | "postgres" | "cockroachdb" | "sqlite" | "mssql" | "sap" | "oracle" | "cordova" | "nativescript" | "react-native" | "sqljs" | "mongodb" | "aurora-data-api" | "aurora-data-api-pg" | "expo" | "better-sqlite3" | "capacitor";
 
-        type = "mysql";        
+        type = "mysql";
 
-        switch( process.env.DB_HOST_TYPE ) {
-            case "mysql" : type = "mysql"; break;
-            case "postgres" : type = "postgres"; break;
-            case "sqlite" : type = "sqlite"; break;
+        switch (process.env.DB_HOST_TYPE) {
+            case "mysql": type = "mysql"; break;
+            case "postgres": type = "postgres"; break;
+            case "sqlite": type = "sqlite"; break;
         }
 
         let options;
 
-        if( type==="sqlite")
-        {
+        if (type === "sqlite") {
             options = {
                 type: type,
                 database: process.env.DB_HOST_DATABASE!,
@@ -50,8 +49,7 @@ export class DatabaseService {
             }
 
         }
-        else
-        {
+        else {
             options = {
                 type: type,
                 host: process.env.DB_HOST,
@@ -64,16 +62,16 @@ export class DatabaseService {
                 synchronize: true,
                 migrationsRun: false,
                 logging: false,
-            }      
-        }     
+            }
+        }
 
-        createConnection( options ).then(async conn => {
+        createConnection(options).then(async conn => {
             this.logger.info("Connected to database")
             this._connection = await conn
             return
         }).catch(async e => {
             console.log(e)
-            await sleep(3)
+            await sleepms(3000)
             this.connect()
         })
     }
@@ -87,4 +85,14 @@ export class DatabaseService {
         throw Error("No database connection")
     }
 
+    async waitForDBConnection() {
+        while (true) {
+            if (!this.connection) {
+                this.logger.info("Waiting for DB connection");
+                await sleepms(1000);
+                continue;
+            }            
+            break;
+        }
+    }
 }

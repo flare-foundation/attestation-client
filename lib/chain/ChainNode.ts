@@ -1,10 +1,11 @@
 import assert from "assert";
-import { ChainType, MCC, MccClient, RPCInterface } from "flare-mcc";
+import { ChainType, MCC, MccClient } from "flare-mcc";
 import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
-import { IndexedQueryManager, IndexedQueryManagerOptions } from "../indexed-query-manager/IndexedQueryManager";
+import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";

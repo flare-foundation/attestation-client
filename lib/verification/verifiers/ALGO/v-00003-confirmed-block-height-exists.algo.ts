@@ -7,9 +7,9 @@
 //////////////////////////////////////////////////////////////
 
 import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_confirmed_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
-import { BlockNumberQueryRequest } from "../../../indexed-query-manager/IndexedQueryManager";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 import { toBN } from "flare-mcc";
+import { BlockNumberQueryRequest } from "../../../indexed-query-manager/indexed-query-manager-types";
 
 const web3 = new Web3();
 

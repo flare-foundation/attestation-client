@@ -27,7 +27,7 @@ export async function verifyBlockHeightExistsALGO(client: MCC.ALGO, attestation:
    // We check that block with specified hash exist at specified height
    const query = await indexer.getBlockByHash(blockQueryParams)
 
-   if(query.status === 'NOT_EXIST'){
+   if(query.status === 'NOT_EXIST' || !query.block){
       return {
          status: VerificationStatus.BLOCK_HASH_DOES_NOT_EXIST
       }

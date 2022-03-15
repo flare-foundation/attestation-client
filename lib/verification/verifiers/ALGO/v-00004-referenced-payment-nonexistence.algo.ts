@@ -17,21 +17,24 @@ export async function verifyReferencedPaymentNonexistenceALGO(client: MCC.ALGO, 
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// XXXX
+   // Search all transactions with provided payment reference
 
-   //-$$$<end> of the custom section. Do not change this comment.
 
    let response = {
       endTimestamp: randSol(request, "endTimestamp", "uint64") as BN,
       endBlock: randSol(request, "endBlock", "uint64") as BN,
-      destinationAddress: randSol(request, "destinationAddress", "bytes32") as string,
+      destinationAddress: randSol(request, "destinationAddress", "bytes32") as string,  // same as bellow, makes little sense
       paymentReference: randSol(request, "paymentReference", "bytes32") as string,
-      amount: randSol(request, "amount", "uint128") as BN,
+      amount: randSol(request, "amount", "uint128") as BN,  // TODO the point of this is to prove the nonexistence (amount makes no sense here)
       firstCheckedBlock: randSol(request, "firstCheckedBlock", "uint64") as BN,
       firstCheckedBlockTimestamp: randSol(request, "firstCheckedBlockTimestamp", "uint64") as BN,
       firstOverflowBlock: randSol(request, "firstOverflowBlock", "uint64") as BN,
       firstOverflowBlockTimestamp: randSol(request, "firstOverflowBlockTimestamp", "uint64") as BN      
    } as DHReferencedPaymentNonexistence;
+
+   //-$$$<end> of the custom section. Do not change this comment.
+
+
 
    let hash = hashReferencedPaymentNonexistence(request, response);
 

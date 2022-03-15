@@ -49,7 +49,7 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
       blockTimestamp: toBN(result.transaction.timestamp),
       transactionHash: result.transaction.transactionId,
       sourceAddress: sourceAddress, 
-      spentAmount: randSol(request, "spentAmount", "int256") as BN,
+      spentAmount: toBN(fullTxData.spendAmount),
       paymentReference: paymentReference     
    } as DHBalanceDecreasingTransaction;
 

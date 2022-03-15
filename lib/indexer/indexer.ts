@@ -31,6 +31,7 @@ import { DBTransactionBase } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { PromiseTimeout } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { prepareIndexerTables } from "./indexer-utils";
@@ -44,27 +45,27 @@ const args = yargs
 
 
 
-  class LiteIBlock extends BlockBase<LiteBlock> {
-    public get number(): number {
-       return this.data.number;
-    }
- 
-    public get hash(): string {
-       return this.data.hash;
-    }
- 
-    public get unixTimestamp(): number {
-       return 0;
-    }
- 
-    public get transactionHashes(): string[] {
-      throw new Error( "unimplemented");
-    }
- 
-    public get transactionCount(): number {
-      throw new Error( "unimplemented");
-    }
- }
+class LiteIBlock extends BlockBase<LiteBlock> {
+  public get number(): number {
+    return this.data.number;
+  }
+
+  public get hash(): string {
+    return this.data.hash;
+  }
+
+  public get unixTimestamp(): number {
+    return 0;
+  }
+
+  public get transactionHashes(): string[] {
+    throw new Error("unimplemented");
+  }
+
+  public get transactionCount(): number {
+    throw new Error("unimplemented");
+  }
+}
 
 
 class PreparedBlock {
@@ -494,8 +495,8 @@ export class Indexer {
 
       const outBlocks = [];
 
-      for(const block of blocks ) {
-        outBlocks.push( new LiteIBlock(block) );
+      for (const block of blocks) {
+        outBlocks.push(new LiteIBlock(block));
       }
 
       await this.saveBlocksHeadersArray(outBlocks);
@@ -513,7 +514,7 @@ export class Indexer {
 
       const dbBlocks = [];
 
-      for(const block of blocks) {
+      for (const block of blocks) {
         if (!block || !block.hash) continue;
 
         const blockNumber = block.number;
@@ -666,8 +667,8 @@ export class Indexer {
         // save block N+1 hash
         localBlockNp1hash = blockNp1.hash;
 
-        while( localN < localT - this.chainConfig.confirmationsCollect ) {
-          if( this.blockHeaderNumber.has( localN ) ) {
+        while (localN < localT - this.chainConfig.confirmationsCollect) {
+          if (this.blockHeaderNumber.has(localN)) {
             localN++;
           }
         }
@@ -834,7 +835,36 @@ async function displayStats() {
   }
 }
 
+
+async function testDelay(delay: number, result: number): Promise<number> {
+  console.log( `start ${result}`);
+  await sleepms(delay);
+  console.log( `done ${result}`);
+  return result;
+}
+
 async function runIndexer() {
+
+  const test=[];
+
+  test.push( ()=>testDelay(  100 , 1 ) );
+  test.push( ()=>testDelay(  600 , 2 ) );
+  test.push( ()=>testDelay( 1200 , 3 ) );
+  test.push( ()=>testDelay(  100 , 4 ) );
+
+  const testRes = await PromiseTimeout.allRetry( test , 500 , 3 );
+  //const testRes = await Promise.all( test );
+
+  console.log( testRes );
+  console.log( testRes );
+
+
+
+
+
+
+
+
   // Reading configuration
   const fs = require("fs");
   const config: IndexerConfiguration = JSON.parse(fs.readFileSync((args as any).config).toString()) as IndexerConfiguration;

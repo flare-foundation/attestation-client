@@ -1,7 +1,7 @@
 import { AlgoBlock, AlgoTransaction, ChainType, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/dbTransaction";
-import { getGlobalLogger } from "../../utils/logger";
+import { PromiseTimeout } from "../../utils/PromiseTimeout";
 import { augmentBlock, augmentBlockAlgo, augmentBlockUtxo } from "./augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
 import { getFullTransactionUtxo } from "./readTransaction";
@@ -26,8 +26,23 @@ export function BlockProcessor(chainType: ChainType) {
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
     this.block = block;
-    
-    let txPromises = block.data.tx.map( (txObject) => {
+
+    // let txPromises = block.data.tx.map((txObject) => {
+    //   const getTxObject = {
+    //     blockhash: block.hash,
+    //     time: block.unixTimestamp,
+    //     confirmations: 1, // This is the block 
+    //     blocktime: block.unixTimestamp,
+    //     ...txObject,
+    //   };
+    //   let processed = new UtxoTransaction(getTxObject);
+    //   return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>;
+    // });
+
+    // const transDbPromisses = txPromises.map(processed => augmentTransactionUtxo(this.client, block, processed));
+
+
+    let txPromises = block.data.tx.map((txObject) => {
       const getTxObject = {
         blockhash: block.hash,
         time: block.unixTimestamp,
@@ -36,12 +51,16 @@ export class UtxoBlockProcessor extends LimitingProcessor {
         ...txObject,
       };
       let processed = new UtxoTransaction(getTxObject);
-      return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>; 
+      return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>;
     });
 
-    const transDbPromisses = txPromises.map( processed => augmentTransactionUtxo(this.client, block, processed ) );
+    const transDbPromisses = txPromises.map( (processed) => async () => { return await augmentTransactionUtxo(this.client, block, processed);} );
 
-    const transDb = await Promise.all(transDbPromisses);
+    const transDb = await PromiseTimeout.allRetry(transDbPromisses, this.settings.timeout, this.settings.retry);
+
+    if (!transDb) {
+      return;
+    }
 
     const blockDb = await augmentBlockUtxo(block);
 
@@ -62,7 +81,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
       let processed = new AlgoTransaction(getTxObject);
       return augmentTransactionAlgo(this.client, block, processed);
     });
-    const transDb = await Promise.all(txPromises) as DBTransactionBase[];
+    const transDb = await PromiseTimeout.allRetry(txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
     this.pause();
     const blockDb = await augmentBlockAlgo(block);
 
@@ -79,10 +98,11 @@ export class XrpBlockProcessor extends LimitingProcessor {
       }
       // @ts-ignore
       let processed = new XrpTransaction(newObj);
-      return augmentTransactionXrp(this.client, block, processed);
+      //return augmentTransactionXrp(this.client, block, processed);
+      return async ()=>{return await augmentTransactionXrp(this.client, block, processed);};
     });
-    const transDb = await Promise.all(txPromises) as DBTransactionBase[];
-    this.pause();
+    const transDb = await PromiseTimeout.allRetry(txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
+    this.stop();
     const blockDb = await augmentBlock(block);
 
     onSave(blockDb, transDb);

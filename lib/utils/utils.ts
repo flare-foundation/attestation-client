@@ -304,4 +304,3 @@ export function secToHHMMSS(time: number, secDecimals=0)
 
     return shours+':'+smin+':'+ssec;
 }
-

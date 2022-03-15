@@ -86,6 +86,7 @@ export class ChainNode {
 
     let options: IndexedQueryManagerOptions = {
       chainType: chainType,
+      noConfirmations: 6,  // TODO !!!! @david
       // todo: return epochStartTime - query window length, add query window length into DAC
       windowStartTime: (epochId: number) => { return 0; }
     };

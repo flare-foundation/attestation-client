@@ -49,7 +49,7 @@ export interface ARBalanceDecreasingTransaction {
    dataAvailabilityProof: BytesLike;
 }
 
-export interface ARBlockHeightExists {
+export interface ARConfirmedBlockHeightExists {
    // Attestation type id for this request, see AttestationType enum.
    attestationType: AttestationType;
 
@@ -92,4 +92,4 @@ export interface ARReferencedPaymentNonexistence {
    // Block hash of the finalization block for a block that has number above `endBlock` and timestamp above `endTimestamp`.
    dataAvailabilityProof: BytesLike;
 }
-export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARBlockHeightExists | ARReferencedPaymentNonexistence;
+export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARConfirmedBlockHeightExists | ARReferencedPaymentNonexistence;

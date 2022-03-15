@@ -7,6 +7,9 @@ import { DatabaseService } from "../utils/databaseService";
 
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
+
+  // number of confirmations required
+  noConfirmations: number;
   // return windows start time from current epochId
   windowStartTime: (epochId: number) => number;
 }
@@ -37,11 +40,24 @@ export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
 export interface BlockHashQueryRequest {
   hash: string;
   roundId: number;
+  type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
 }
 
 export interface BlockHashQueryResponse {
   status: "OK" | "NOT_EXIST";
-  block?: DBBlockBase; // TODO - correct type
+  block?: DBBlockBase;
+}
+
+export interface BlockNumberQueryRequest {
+  blockNumber: number;
+  roundId: number;
+  dataAvailability: string; // hash of confirmation block(used for syncing of edge - cases)
+  type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
+}
+
+export interface BlockNumberQueryResponse {
+  status: "OK" | "RECHECK" | "NOT_EXIST";
+  block?: DBBlockBase;
 }
 
 export interface TransactionExistenceQueryRequest {
@@ -97,52 +113,52 @@ export class IndexedQueryManager {
 
   async queryTransactions(params: TransactionQueryParams): Promise<DBTransactionBase[]> {
     let startTimestamp = this.settings.windowStartTime(params.roundId);
-   //  let query0 = this.dbService.connection.manager
-   //    .createQueryBuilder(this.transactionTable[0], "transaction")
-   //    .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
-   //    .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
-   //  if (params.paymentReference) {
-   //    query0 = query0.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
-   //  }
-   //  if (params.transactionId) {
-   //    query0 = query0.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
-   //  }
+    //  let query0 = this.dbService.connection.manager
+    //    .createQueryBuilder(this.transactionTable[0], "transaction")
+    //    .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
+    //    .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
+    //  if (params.paymentReference) {
+    //    query0 = query0.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
+    //  }
+    //  if (params.transactionId) {
+    //    query0 = query0.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
+    //  }
 
-   //  const results0 = await query0.getRawMany();
+    //  const results0 = await query0.getRawMany();
 
-   //  let query1 = this.dbService.connection.manager
-   //    .createQueryBuilder(this.transactionTable[1], "transaction")
-   //    .where("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
-   //    .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
-   //  if (params.paymentReference) {
-   //    query1 = query1.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
-   //  }
-   //  if (params.transactionId) {
-   //    query1 = query1.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
-   //  }
+    //  let query1 = this.dbService.connection.manager
+    //    .createQueryBuilder(this.transactionTable[1], "transaction")
+    //    .where("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
+    //    .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
+    //  if (params.paymentReference) {
+    //    query1 = query1.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
+    //  }
+    //  if (params.transactionId) {
+    //    query1 = query1.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
+    //  }
 
-   //  const results1 = await query1.getMany();
-   //  return results0.concat(results1);
+    //  const results1 = await query1.getMany();
+    //  return results0.concat(results1);
 
-    let results = []
-    for(let table of this.transactionTable){
+    let results = [];
+    for (let table of this.transactionTable) {
       let query = this.dbService.connection.manager
-      .createQueryBuilder(table, "transaction")
-      .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
-      .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
+        .createQueryBuilder(table, "transaction")
+        .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })
+        .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.lastConfirmedBlock });
       if (params.paymentReference) {
-         query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
+        query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
       }
       if (params.transactionId) {
-         query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
+        query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
       }
 
       results = results.concat(await query.getRawMany());
     }
-   return results 
+    return results;
   }
 
-  async queryBlock(params: BlockQueryParams): Promise<DBBlockBase> {
+  async queryBlock(params: BlockQueryParams): Promise<DBBlockBase | null> {
     let startTimestamp = this.settings.windowStartTime(params.roundId);
     let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
@@ -173,6 +189,52 @@ export class IndexedQueryManager {
       status: block ? "OK" : "NOT_EXIST",
       block,
     };
+  }
+
+  private async getConfirmedBlockFirstCheck(params: BlockNumberQueryRequest): Promise<BlockNumberQueryResponse> {
+    let N = await this.getLastConfirmedBlockNumber();
+    if (params.blockNumber < N - 1) {
+      let block = await this.queryBlock({
+        blockNumber: params.blockNumber,
+        roundId: params.roundId,
+      });
+      return {
+        status: block ? "OK" : "NOT_EXIST",
+        block: block,
+      };
+    } else if (params.blockNumber > N + 1) {
+      return {
+        status: "NOT_EXIST",
+      };
+    } else {
+      // N - 1, N, N + 1
+      return {
+        status: "RECHECK",
+      };
+    }
+  }
+
+  private async getConfirmedBlockRecheck(params: BlockNumberQueryRequest): Promise<BlockNumberQueryResponse> {
+    let block = await this.queryBlock({
+      blockNumber: params.blockNumber,
+      roundId: params.roundId,
+    });
+    let confirmationBlock = await this.queryBlock({
+      hash: params.dataAvailability,
+      roundId: params.roundId,
+    } as BlockQueryParams);
+
+    return {
+      status: block && confirmationBlock && confirmationBlock.blockNumber - this.settings.noConfirmations === block.blockNumber ? "OK" : "NOT_EXIST",
+      block: block
+    };
+  }
+
+  public async getConfirmedBlock(params: BlockNumberQueryRequest): Promise<BlockNumberQueryResponse> {
+    if (params.type === "FIRST_CHECK") {
+      return this.getConfirmedBlockFirstCheck(params);
+    }
+    return this.getConfirmedBlockRecheck(params);
   }
 
   // todo: this.indexer.lastConfimedBlockNumber must be from DB query
@@ -219,12 +281,12 @@ export class IndexedQueryManager {
       lastConfirmedBlock: N,
       transactionId: params.txId,
     } as TransactionQueryParams);
-    let block = await this.queryBlock({
+    let confirmationBlock = await this.queryBlock({
       hash: params.dataAvailability,
       roundId: params.roundId,
     } as BlockQueryParams);
     return {
-      status: transactions && transactions.length > 0 && block ? "OK" : "NOT_EXIST",
+      status: transactions && transactions.length === 1 && confirmationBlock && confirmationBlock.blockNumber - this.settings.noConfirmations === transactions[0].blockNumber ? "OK" : "NOT_EXIST",
       transaction: transactions[0],
     };
   }
@@ -294,6 +356,6 @@ export class IndexedQueryManager {
 }
 
 function getChainTypeName(chainType: ChainType) {
-   // TODO from MCC
+  // TODO from MCC
   throw new Error("Function not implemented.");
 }

@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
 import { AlgoTransaction, toBN } from "flare-mcc";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 

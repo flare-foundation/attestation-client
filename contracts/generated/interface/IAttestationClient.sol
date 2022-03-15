@@ -91,7 +91,7 @@ interface IAttestationClient {
         bytes32 paymentReference;
     }
 
-    struct BlockHeightExists {
+    struct ConfirmedBlockHeightExists {
         // Round number (epoch id) of the state connector request
         uint256 stateConnectorRound;
 
@@ -162,7 +162,7 @@ interface IAttestationClient {
         external view
         returns (bool _proved);
 
-    function verifyBlockHeightExists(uint32 _chainId, BlockHeightExists calldata _data)
+    function verifyConfirmedBlockHeightExists(uint32 _chainId, ConfirmedBlockHeightExists calldata _data)
         external view
         returns (bool _proved);
 

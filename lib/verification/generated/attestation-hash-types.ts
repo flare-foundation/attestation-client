@@ -86,7 +86,7 @@ export interface DHBalanceDecreasingTransaction {
    paymentReference: string;
 }
 
-export interface DHBlockHeightExists {
+export interface DHConfirmedBlockHeightExists {
    // Attestation type
    stateConnectorRound: number;
    merkleProof?: string[];
@@ -139,4 +139,4 @@ export interface DHReferencedPaymentNonexistence {
    //      (`= currentUnderlyingBlockTimestamp + time to pay`).
    firstOverflowBlockTimestamp: BN;
 }
-export type DHType = DHPayment | DHBalanceDecreasingTransaction | DHBlockHeightExists | DHReferencedPaymentNonexistence;
+export type DHType = DHPayment | DHBalanceDecreasingTransaction | DHConfirmedBlockHeightExists | DHReferencedPaymentNonexistence;

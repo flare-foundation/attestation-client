@@ -7,6 +7,8 @@
 //////////////////////////////////////////////////////////////
 
 import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+
+
 const web3 = new Web3();
 
 export async function verifyPaymentBTC(client: MCC.BTC, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
@@ -26,7 +28,7 @@ export async function verifyPaymentBTC(client: MCC.BTC, attestation: Attestation
       utxo: randSol(request, "utxo", "uint8") as BN,
       sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
       receivingAddress: randSol(request, "receivingAddress", "bytes32") as string,
-      paymentReference: randSol(request, "paymentReference", "uint256") as BN,
+      paymentReference: randSol(request, "paymentReference", "bytes32") as string,
       spentAmount: randSol(request, "spentAmount", "int256") as BN,
       receivedAmount: randSol(request, "receivedAmount", "uint256") as BN,
       oneToOne: randSol(request, "oneToOne", "bool") as boolean,

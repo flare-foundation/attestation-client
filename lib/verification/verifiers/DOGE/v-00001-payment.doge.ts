@@ -28,7 +28,7 @@ export async function verifyPaymentDOGE(client: MCC.DOGE, attestation: Attestati
       utxo: randSol(request, "utxo", "uint8") as BN,
       sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
       receivingAddress: randSol(request, "receivingAddress", "bytes32") as string,
-      paymentReference: randSol(request, "paymentReference", "uint256") as BN,
+      paymentReference: randSol(request, "paymentReference", "bytes32") as string,
       spentAmount: randSol(request, "spentAmount", "int256") as BN,
       receivedAmount: randSol(request, "receivedAmount", "uint256") as BN,
       oneToOne: randSol(request, "oneToOne", "bool") as boolean,

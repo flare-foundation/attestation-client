@@ -36,7 +36,7 @@ export interface DHPayment {
    // For minting and redemption payment it depends on request id, 
    // for topup and self-mint it depends on the agent vault address.
    // See PaymentReference.sol for details of payment reference calculation.
-   paymentReference: BN;
+   paymentReference: string;
 
    // The amount that went out of the `sourceAddress`, in smallest underlying units.
    // It includes both payment value and fee (gas). For utxo chains it is calculcated as 

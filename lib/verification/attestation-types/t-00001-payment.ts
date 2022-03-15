@@ -129,7 +129,7 @@ Hash of the receiving address as a string (the one indicated by the \`utxo\` par
       },
       {
          key: "paymentReference",
-         type: "uint256",
+         type: "bytes32",
          description:
 `
 Chain dependent extra data (e.g. memo field, detination tag, tx data)

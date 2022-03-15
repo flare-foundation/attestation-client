@@ -30,7 +30,7 @@ export function randomResponsePayment() {
       utxo: randSol({}, "utxo", "uint8") as BN,
       sourceAddress: randSol({}, "sourceAddress", "bytes32") as string,
       receivingAddress: randSol({}, "receivingAddress", "bytes32") as string,
-      paymentReference: randSol({}, "paymentReference", "uint256") as BN,
+      paymentReference: randSol({}, "paymentReference", "bytes32") as string,
       spentAmount: randSol({}, "spentAmount", "int256") as BN,
       receivedAmount: randSol({}, "receivedAmount", "uint256") as BN,
       oneToOne: randSol({}, "oneToOne", "bool") as boolean,
@@ -134,7 +134,7 @@ export function hashPayment(request: ARPayment, response: DHPayment) {
          "uint8",		// utxo
          "bytes32",		// sourceAddress
          "bytes32",		// receivingAddress
-         "uint256",		// paymentReference
+         "bytes32",		// paymentReference
          "int256",		// spentAmount
          "uint256",		// receivedAmount
          "bool",		// oneToOne

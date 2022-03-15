@@ -2,6 +2,7 @@ import { createSolidityAttestationClientBase } from "./cg-attestation-client-bas
 import { createAttestationClientMockTest } from "./cg-attestation-client-mock-test";
 import { createAttestationHashTypesFile } from "./cg-attestation-data-hash-types";
 import { createAttestationEnumFile } from "./cg-attestation-file-enum";
+import { createAttestationParserTest } from "./cg-attestation-parser-test";
 import { createAttestationRequestTypesFile } from "./cg-attestation-request-types";
 import { createAttestationUtils } from "./cg-attestation-utils";
 import { createSolidityIAttestationClient } from "./cg-iattestation-client";
@@ -22,6 +23,7 @@ async function generateCodeFiles() {
    createSolidityAttestationClientBase(definitions);
    createVerifiersImportFiles(definitions);   
    createAttestationClientMockTest(definitions);
+   createAttestationParserTest(definitions);
 }
 
 generateCodeFiles()

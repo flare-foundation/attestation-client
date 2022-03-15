@@ -3,7 +3,8 @@
 //////////////////////////////////////////////////////////////
 
 import BN from "bn.js";
-import { ChainType } from "flare-mcc";
+import Web3 from "web3";
+import { ChainType, toBN } from "flare-mcc";
 import { randSol } from "../attestation-types/attestation-types-helpers";
 import { 
    ARPayment,
@@ -74,7 +75,7 @@ export function randomResponseReferencedPaymentNonexistence() {
    return response;
 }
 //////////////////////////////////////////////////////////////
-// Random resposes. Used for testing.
+// Random attestation requests and resposes. Used for testing.
 //////////////////////////////////////////////////////////////
 
 export function getRandomResponseForType(attestationType: AttestationType) {
@@ -114,6 +115,52 @@ export function getRandomRequest() {
          chainIds = [3,0,1,2,4];
          chainId = chainIds[Math.floor(Math.random()*5)];
          return {attestationType: randomAttestationType, chainId} as ARReferencedPaymentNonexistence;
+      default:
+         throw new Error("Invalid attestation type");
+   }
+}
+
+export function getRandomRequestForAttestationTypeAndChainId (
+   attestationType: AttestationType,
+   chainId: ChainType
+) {  
+   switch(attestationType) {
+      case AttestationType.Payment:
+         return {
+            attestationType,
+            chainId,
+            blockNumber: toBN(Web3.utils.randomHex(4)),
+            utxo: toBN(Web3.utils.randomHex(1)),
+            inUtxo: toBN(Web3.utils.randomHex(1)),
+            id: Web3.utils.randomHex(32),
+            dataAvailabilityProof: Web3.utils.randomHex(32)
+         } as ARPayment;
+      case AttestationType.BalanceDecreasingTransaction:
+         return {
+            attestationType,
+            chainId,
+            inUtxo: toBN(Web3.utils.randomHex(1)),
+            id: Web3.utils.randomHex(32),
+            dataAvailabilityProof: Web3.utils.randomHex(32)
+         } as ARBalanceDecreasingTransaction;
+      case AttestationType.BlockHeightExists:
+         return {
+            attestationType,
+            chainId,
+            blockNumber: toBN(Web3.utils.randomHex(4)),
+            dataAvailabilityProof: Web3.utils.randomHex(32)
+         } as ARBlockHeightExists;
+      case AttestationType.ReferencedPaymentNonexistence:
+         return {
+            attestationType,
+            chainId,
+            endTimestamp: toBN(Web3.utils.randomHex(4)),
+            endBlock: toBN(Web3.utils.randomHex(4)),
+            destinationAddress: Web3.utils.randomHex(32),
+            amount: toBN(Web3.utils.randomHex(16)),
+            paymentReference: toBN(Web3.utils.randomHex(32)),
+            dataAvailabilityProof: Web3.utils.randomHex(32)
+         } as ARReferencedPaymentNonexistence;
       default:
          throw new Error("Invalid attestation type");
    }

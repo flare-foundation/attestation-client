@@ -3,7 +3,7 @@ import { ChainType, MCC, prefix0x, toBN, toNumber, unPrefix0x } from "flare-mcc"
 import Web3 from "web3";
 import { toHex } from "../../utils/utils";
 import { AttestationType } from "../generated/attestation-types-enum";
-import { AttestationRequestParseError, AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, NumberLike, SupportedSolidityType } from "./attestation-types";
+import { AttestationRequestParseError, AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, NumberLike, SupportedRequestType, SupportedSolidityType } from "./attestation-types";
 
 export function attestationTypeSchemeIndex(schemes: AttestationTypeScheme[]): Map<AttestationType, AttestationTypeScheme> {
   let index = new Map<AttestationType, AttestationTypeScheme>();
@@ -37,13 +37,13 @@ function fromUnprefixedBytes(bytes: string, scheme: AttestationRequestScheme) {
 function toUnprefixedBytes(value: any, scheme: AttestationRequestScheme) {
   switch (scheme.type) {
     case "AttestationType":
-      return unPrefix0x(toHex(value as number, scheme.size * 2));
+      return unPrefix0x(toHex(value as number, scheme.size));
     case "NumberLike":
-      return unPrefix0x(toHex(value, scheme.size * 2));
+      return unPrefix0x(toHex(value, scheme.size));
     case "ChainType":
-      return unPrefix0x(toHex(value as number, scheme.size * 2));
+      return unPrefix0x(toHex(value as number, scheme.size));
     case "BytesLike":
-      return unPrefix0x(toHex(value, scheme.size * 2));
+      return unPrefix0x(toHex(value, scheme.size));
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
       ((_: never): void => { })(scheme.type);
@@ -106,6 +106,60 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
   }
 }
 
+export function randReqItem(scheme: AttestationRequestScheme) {
+  let rand = Web3.utils.randomHex(2 * scheme.size);
+  switch (scheme.type) {
+    case "AttestationType":
+      throw new Error("This should not be used")
+    case "NumberLike":
+      return toBN(rand);
+    case "ChainType":
+      throw new Error("This should not be used")
+    case "BytesLike":
+      return rand;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => { })(scheme.type);
+  }
+}
+
+export function randReqItemCode(type: SupportedRequestType, size: number) {
+  let rand = Web3.utils.randomHex(size);
+  switch (type) {
+    case "AttestationType":
+      throw new Error("This should not be used")
+    case "NumberLike":
+      return `toBN(Web3.utils.randomHex(${size}))`;
+    case "ChainType":
+      throw new Error("This should not be used")
+    case "BytesLike":
+      return `Web3.utils.randomHex(${size})`;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => { })(type);
+  }
+}
+
+export function assertEqualsByScheme(a: any, b: any, scheme: AttestationRequestScheme) {
+  switch (scheme.type) {
+    case "AttestationType":
+      assert(a === b);
+      return;
+    case "NumberLike":
+      assert(toBN(a).eq(toBN(b)));
+      return;
+    case "ChainType":
+      assert(a === b);
+      return;
+    case "BytesLike":
+      assert(a === b);
+      return;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => { })(scheme.type);
+  }
+}
+
 export function getAttestationTypeAndSource(bytes: string) {
   // TODO: make robust parsing.
   let input = unPrefix0x(bytes);
@@ -142,12 +196,13 @@ export function parseRequestBytes(bytes: string, scheme: AttestationTypeScheme):
   let result = {} as any;
   let input = unPrefix0x(bytes);
   let start = 0;
-  for (let item of scheme.request) {
+  for (let item of scheme.request) {    
     let end = start + item.size * 2;
     if (end > bytes.length) {
       throw new AttestationRequestParseError("Incorrectly formated attestation request");
     }
-    result[item.key] = fromUnprefixedBytes(input.slice(start, end), item)
+    result[item.key] = fromUnprefixedBytes(input.slice(start, end), item);
+    start = end;
   }
   return result;
 }

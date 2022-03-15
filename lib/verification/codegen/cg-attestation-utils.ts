@@ -1,6 +1,6 @@
 import fs from "fs";
 import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
-import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
+import { randReqItemCode, tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATTESTATION_TYPE_PREFIX, ATT_UTILS_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, RANDOM_RESPONSE_HEADER, WEB3_HASH_FUNCTIONS_HEADER, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
 import { indentText, tab, trimStartNewline } from "./cg-utils";
 
@@ -44,7 +44,7 @@ case AttestationType.${definition.name}:
 
 
 export function genRandomResponseForAttestationTypeFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map(definition => indentText(genRandomResponseCase(definition), CODEGEN_TAB*2)).join("\n")
+  let attestationTypeCases = definitions.map(definition => indentText(genRandomResponseCase(definition), CODEGEN_TAB * 2)).join("\n")
   return `
 export function getRandomResponseForType(attestationType: AttestationType) {
 ${tab()}switch(attestationType) {
@@ -59,7 +59,7 @@ ${tab()}${tab()}${tab()}throw new Error("Wrong attestation type.")
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
   let types = definition.dataHashDefinition.map(item => `"${item.type}",\t\t// ${item.key}`).join("\n");
   let values = definition.dataHashDefinition.map(item => `${defaultResponse}.${item.key}`).join(",\n");
-return `
+  return `
 let encoded = web3.eth.abi.encodeParameters(
 ${tab()}[
 ${tab()}${tab()}"uint${ATT_BYTES * 8}",\t\t// attestationType
@@ -103,7 +103,37 @@ ${tab()}let randomAttestationType: AttestationType = ids[Math.floor(Math.random(
 ${tab()}let chainId: ChainType = ChainType.invalid;
 ${tab()}let chainIds: ChainType[] = [];
 ${tab()}switch(randomAttestationType) {
-${indentText(attestationTypeCases, CODEGEN_TAB*2)}
+${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
+${tab()}${tab()}default:
+${tab()}${tab()}${tab()}throw new Error("Invalid attestation type");
+${tab()}}
+}
+`
+}
+
+function genRandomAttestationCaseForRandomRequest(definition: AttestationTypeScheme) {
+  let randomValuesForRequestItems = definition.request
+    .filter(item => item.key != "attestationType" && item.key != "chainId")
+    .map(item => `${item.key}: ${randReqItemCode(item.type, item.size)}`).join(",\n");
+  return `
+case AttestationType.${definition.name}:
+${tab()}return {
+${tab()}${tab()}attestationType,
+${tab()}${tab()}chainId,
+${indentText(randomValuesForRequestItems, CODEGEN_TAB * 2)}
+${tab()}} as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
+}
+
+export function randomRequestForAttestationTypeAndChainId(definitions: AttestationTypeScheme[]) {
+  let ids = definitions.map(definition => definition.id).join(", ");
+  let attestationTypeCases = definitions.map(definition => genRandomAttestationCaseForRandomRequest(definition)).join("");
+  return `
+export function getRandomRequestForAttestationTypeAndChainId (
+${tab()}attestationType: AttestationType,
+${tab()}chainId: ChainType
+) {  
+${tab()}switch(attestationType) {
+${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
 ${tab()}${tab()}default:
 ${tab()}${tab()}${tab()}throw new Error("Invalid attestation type");
 ${tab()}}
@@ -123,7 +153,7 @@ export function genDataHashFunction(definitions: AttestationTypeScheme[]) {
   return `
 export function dataHash(request: ${ATTESTATION_TYPE_PREFIX}Type, response: ${DATA_HASH_TYPE_PREFIX}Type) {  
 ${tab()}switch(request.attestationType) {
-${indentText(datahashCases, CODEGEN_TAB*2)}
+${indentText(datahashCases, CODEGEN_TAB * 2)}
 ${tab()}${tab()}default:
 ${tab()}${tab()}${tab()}throw new Error("Invalid attestation type");
 ${tab()}}
@@ -138,7 +168,8 @@ export function createAttestationUtils(definitions: AttestationTypeScheme[]) {
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import BN from "bn.js";
-import { ChainType } from "flare-mcc";
+import Web3 from "web3";
+import { ChainType, toBN } from "flare-mcc";
 import { randSol } from "../attestation-types/attestation-types-helpers";
 import { 
 ${indentText(arImports, CODEGEN_TAB)},
@@ -157,10 +188,12 @@ import { AttestationType } from "./attestation-types-enum";
   })
 
   content += RANDOM_RESPONSE_HEADER;
-  
+
   content += genRandomResponseForAttestationTypeFunction(definitions);
 
   content += randomRequest(definitions);
+
+  content += randomRequestForAttestationTypeAndChainId(definitions);
 
   content += WEB3_HASH_FUNCTIONS_HEADER;
 

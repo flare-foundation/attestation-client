@@ -1,7 +1,7 @@
-import * as dotenv from "dotenv";
-
-import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-truffle5";
+import * as dotenv from "dotenv";
+import { HardhatUserConfig } from "hardhat/config";
+
 
 let fs = require('fs');
 

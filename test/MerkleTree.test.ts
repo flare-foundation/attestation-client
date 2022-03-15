@@ -1,6 +1,6 @@
 import { MerkleTree } from "../lib/utils/MerkleTree";
 import { toHex } from "../lib/utils/utils";
-import { HashTestInstance } from "../typechain-truffle";
+import { MerkleInstance } from "../typechain-truffle";
 
 const N = 20;
 
@@ -45,11 +45,11 @@ describe("Merkle Tree", () => {
 
   describe("Checking proofs on a contract", () => {
 
-    let hashTest: HashTestInstance;
+    let merkle: MerkleInstance;
 
     beforeEach(async () => {
-      let HashTest = artifacts.require("HashTest");
-      hashTest = await HashTest.new();
+      let Merkle = artifacts.require("Merkle");
+      merkle = await Merkle.new();
     });
 
     it(`Should proof verification for up to ${N} hashes work on contract`, async () => {
@@ -63,7 +63,7 @@ describe("Merkle Tree", () => {
           let leaf = tree.getHash(j);
           let ver0 = tree.verify(leaf!, proof!);
           assert(ver0, "Not verified TS")
-          let ver = await hashTest.verifyMerkleProof(
+          let ver = await merkle.verifyMerkleProof(
             proof!,
             tree.root!,
             leaf!

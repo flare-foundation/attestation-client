@@ -37,9 +37,13 @@ export interface AttestationClientMock extends BaseContract {
 
     REFERENCED_PAYMENT_NONEXISTENCE(): NonPayableTransactionObject<string>;
 
-    setMerkleRootForVotingRound(
+    merkleRootForRound(
+      _stateConnectorRound: number | string | BN
+    ): NonPayableTransactionObject<string>;
+
+    setMerkleRootForStateConnectorRound(
       _merkleRoot: string | number[],
-      roundId: number | string | BN
+      _stateConnectorRound: number | string | BN
     ): NonPayableTransactionObject<void>;
 
     verifyBalanceDecreasingTransaction(

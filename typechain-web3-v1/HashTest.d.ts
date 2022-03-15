@@ -29,26 +29,6 @@ export interface HashTest extends BaseContract {
   ): HashTest;
   clone(): HashTest;
   methods: {
-    hashTestBalanceDecreasingPayment(
-      _data: string | number[],
-      _hashToProve: string | number[]
-    ): NonPayableTransactionObject<boolean>;
-
-    hashTestBlockHeightExistence(
-      _data: string | number[],
-      _hashToProve: string | number[]
-    ): NonPayableTransactionObject<boolean>;
-
-    hashTestPayment(
-      _data: string | number[],
-      _hashToProve: string | number[]
-    ): NonPayableTransactionObject<boolean>;
-
-    hashTestReferencedPaymentNonExistence(
-      _data: string | number[],
-      _hashToProve: string | number[]
-    ): NonPayableTransactionObject<boolean>;
-
     verifyMerkleProof(
       proof: (string | number[])[],
       merkleRoot: string | number[],

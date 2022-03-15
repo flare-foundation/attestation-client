@@ -1,6 +1,7 @@
 import { ChainType } from "flare-mcc";
 import {
    AttestationTypeScheme, ATT_BYTES,
+   BLOCKNUMBER_BYTES,
    CHAIN_ID_BYTES,
    DATA_AVAILABILITY_BYTES,
    TX_ID_BYTES, UTXO_BYTES
@@ -29,6 +30,15 @@ Attestation type id for this request, see AttestationType enum.
 The ID of the underlying chain, see ChainType enum.
 `
       },
+      {
+         key: "blockNumber",
+         size: BLOCKNUMBER_BYTES,
+         type: "NumberLike",
+         description: 
+`
+Number of the block of the transaction.
+`
+      },      
       {
          key: "utxo",
          size: UTXO_BYTES,
@@ -67,15 +77,6 @@ Block hash of the finalization block for the searched transaction (e.g. at least
       },
    ],
    dataHashDefinition: [
-      // {
-      //    key: "attestationType",
-      //    type: "uint16",
-
-      // },
-      // {
-      //    key: "chainId",
-      //    type: "uint16"
-      // },
       {
          key: "blockNumber",
          type: "uint64",

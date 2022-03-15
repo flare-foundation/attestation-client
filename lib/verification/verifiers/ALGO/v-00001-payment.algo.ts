@@ -6,17 +6,37 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, BN, DHPayment, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 
 const web3 = new Web3();
 
-export async function verifyPaymentALGO(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
-   let request = parseRequestBytes(bytes, TDEF_payment) as ARPayment;
+export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+   let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
+   let roundId = attestation.round.roundId;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// XXXX
+   let result = await indexer.checkTransactionExistence({
+      txId: request.id,
+      blockNumber: numberLikeToNumber(request.blockNumber),
+      dataAvailability: request.dataAvailabilityProof,
+      roundId: roundId,
+      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
+   })
+
+   if (result.status === 'RECHECK') {
+      return {
+         status: VerificationStatus.RECHECK_LATER
+      } as Verification<DHPayment>;
+   }
+
+   if (result.status === 'NOT_EXIST') {
+      return {
+         status: VerificationStatus.NON_EXISTENT_TRANSACTION
+      }
+   }
+   
 
    //-$$$<end> of the custom section. Do not change this comment.
 
@@ -34,40 +54,8 @@ export async function verifyPaymentALGO(client: RPCInterface, bytes: string, ind
       status: randSol(request, "status", "uint8") as BN      
    } as DHPayment;
 
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",
-         "uint32",
-         "uint64",		// blockNumber
-         "uint64",		// blockTimestamp
-         "bytes32",		// transactionHash
-         "uint8",		// utxo
-         "bytes32",		// sourceAddress
-         "bytes32",		// receivingAddress
-         "uint256",		// paymentReference
-         "int256",		// spentAmount
-         "uint256",		// receivedAmount
-         "bool",		// oneToOne
-         "uint8",		// status
-      ],
-      [
-         response.attestationType,
-         response.chainId,
-         response.blockNumber,
-         response.blockTimestamp,
-         response.transactionHash,
-         response.utxo,
-         response.sourceAddress,
-         response.receivingAddress,
-         response.paymentReference,
-         response.spentAmount,
-         response.receivedAmount,
-         response.oneToOne,
-         response.status
-      ]
-   );   
+   let hash = hashPayment(request, response);
 
-   let hash = web3.utils.soliditySha3(encoded)!;
    return {
       hash,
       response,

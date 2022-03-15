@@ -6,41 +6,45 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBlockHeightExists, BN, DHBlockHeightExists, IndexedQueryManager, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { ARBlockHeightExists, Attestation, BN, DHBlockHeightExists, hashBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
+import { toBN } from "flare-mcc";
+import { BlockHashQueryRequest } from "../../../indexed-query-manager/IndexedQueryManager";
+import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 
 const web3 = new Web3();
 
-export async function verifyBlockHeightExistsALGO(client: RPCInterface, bytes: string, indexer: IndexedQueryManager) {
-   let request = parseRequestBytes(bytes, TDEF_block_height_exists) as ARBlockHeightExists;
+export async function verifyBlockHeightExistsALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+   let request = parseRequestBytes(attestation.data.request, TDEF_block_height_exists) as ARBlockHeightExists;
+   let roundId = attestation.round.roundId;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// XXXX
+   const blockQueryParams : BlockHashQueryRequest = {
+      hash: request.dataAvailabilityProof,
+      roundId: numberLikeToNumber(request.blockNumber)
+   }
+
+   // We check that block with specified hash exist at specified height
+   const query = await indexer.getBlockByHash(blockQueryParams)
+
+   if(query.status === 'NOT_EXIST'){
+      return {
+         status: VerificationStatus.BLOCK_HASH_DOES_NOT_EXIST
+      }
+   }
+
+   let response = {   
+      stateConnectorRound: roundId,
+      blockNumber: toBN(query.block?.blockNumber),
+      blockTimestamp: toBN(query.block?.timestamp)   
+   } as DHBlockHeightExists;
 
    //-$$$<end> of the custom section. Do not change this comment.
 
-   let response = {
-      blockNumber: randSol(request, "blockNumber", "uint64") as BN,
-      blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN      
-   } as DHBlockHeightExists;
 
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",
-         "uint32",
-         "uint64",		// blockNumber
-         "uint64",		// blockTimestamp
-      ],
-      [
-         response.attestationType,
-         response.chainId,
-         response.blockNumber,
-         response.blockTimestamp
-      ]
-   );   
 
-   let hash = web3.utils.soliditySha3(encoded)!;
+   let hash = hashBlockHeightExists(request, response);
+
    return {
       hash,
       response,

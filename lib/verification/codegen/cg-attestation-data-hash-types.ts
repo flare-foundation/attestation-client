@@ -14,11 +14,17 @@ function genAttestationDataHashType(definition: AttestationTypeScheme) {
    return `
 export interface ${DATA_HASH_TYPE_PREFIX}${definition.name} {
    // Attestation type
-   attestationType: AttestationType,
-   chainId: ChainType,
+   stateConnectorRound: number;
+   merkleProof?: string[];
+   
 ${values}
 }
 `
+}
+
+function dhType(definitions: AttestationTypeScheme[]) {
+   let dhTypes = definitions.map(definition => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(" | ")
+   return `export type ${DATA_HASH_TYPE_PREFIX}Type = ${dhTypes};`
 }
 
 export function createAttestationHashTypesFile(definitions: AttestationTypeScheme[]) {
@@ -33,5 +39,6 @@ import { AttestationType } from "./attestation-types-enum";
    definitions.forEach(definition => {
       content += genAttestationDataHashType(definition);
    })
+   content += dhType(definitions);
    fs.writeFileSync(ATT_HASH_TYPES_FILE, content, "utf8");
 }

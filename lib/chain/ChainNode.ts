@@ -1,5 +1,5 @@
 import assert from "assert";
-import { ChainType, MCC, RPCInterface } from "flare-mcc";
+import { ChainType, MCC, MccClient, RPCInterface } from "flare-mcc";
 import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
@@ -8,8 +8,8 @@ import { IndexedQueryManager, IndexedQueryManagerOptions } from "../indexed-quer
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
-import { verifyAttestation } from "../verification/verifiers/verifier_routing";
+import { AttestationRequestParseError, Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainManager } from "./ChainManager";
 
 export class ChainNode {
@@ -17,7 +17,7 @@ export class ChainNode {
 
   chainName: string;
   chainType: ChainType;
-  client: RPCInterface;
+  client: MccClient;
   stateConnector!: StateConnectorInstance;
 
   // node rate limiting control
@@ -62,7 +62,7 @@ export class ChainNode {
             retries: chainCofiguration.clientRetries,
             onSend: this.onSend.bind(this),
           },
-        }) as RPCInterface;
+        });
         break;
       case ChainType.XRP:
         this.client = MCC.Client(this.chainType, {
@@ -75,7 +75,7 @@ export class ChainNode {
             retries: chainCofiguration.clientRetries,
             onSend: this.onSend.bind(this),
           },
-        }) as RPCInterface;
+        });
         break;
       case ChainType.ALGO:
         throw new Error("Not yet Implemented");
@@ -229,7 +229,7 @@ export class ChainNode {
     }
 
     // TODO - failure simulation
-    verifyAttestation(this.client, attestation.data.request, this.indexedQueryManager)
+    verifyAttestation(this.client, attestation, this.indexedQueryManager)
       .then((verification: Verification<any>) => {
         attestation.processEndTime = getTimeMilli();
         if (verification.status === VerificationStatus.RECHECK_LATER) {
@@ -246,6 +246,18 @@ export class ChainNode {
         }
       })
       .catch((error: any) => {
+        // Attestation request parsing errors
+        if(error instanceof WrongSourceIdError) {
+          this.processed(attestation, AttestationStatus.invalid);
+        }
+        if(error instanceof WrongAttestationTypeError) {
+          this.processed(attestation, AttestationStatus.invalid);
+        }
+        if(error instanceof AttestationRequestParseError) {
+          this.processed(attestation, AttestationStatus.invalid);
+        }
+
+        // Retries
         attestation.processEndTime = getTimeMilli();
         if (attestation.retry < this.conf.maxFailedRetry) {
           this.chainManager.logger.warning(`  * transaction verification error (retry ${attestation.retry})`);

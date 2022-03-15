@@ -13,6 +13,9 @@ export interface ARPayment {
    // The ID of the underlying chain, see ChainType enum.
    chainId: ChainType;
 
+   // Number of the block of the transaction.
+   blockNumber: NumberLike;
+
    // Index of the receivingAddress on utxo chains.
    utxo: NumberLike;
 
@@ -86,3 +89,4 @@ export interface ARReferencedPaymentNonexistence {
    // Block hash of the finalization block for a block that has number above `endBlock` and timestamp above `endTimestamp`.
    dataAvailabilityProof: BytesLike;
 }
+export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARBlockHeightExists | ARReferencedPaymentNonexistence;

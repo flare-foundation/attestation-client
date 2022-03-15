@@ -53,14 +53,6 @@ Block hash of the finalization block for the searched transaction (e.g. at least
       },
    ],
    dataHashDefinition: [
-      // {
-      //    key: "attestationType",
-      //    type: "uint16"
-      // },
-      // {
-      //    key: "chainId",
-      //    type: "uint16"
-      // },
       {
          key: "blockNumber",
          type: "uint64",

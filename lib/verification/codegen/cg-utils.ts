@@ -1,6 +1,7 @@
 import glob from "glob";
+import { toHex } from "../../utils/utils";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { ATT_TYPE_DEFINITIONS_ROOT } from "./cg-constants";
+import { ATT_TYPE_DEFINITIONS_ROOT, CODEGEN_TAB } from "./cg-constants";
 
 export function trimStartNewline(text: string) {
    return text[0] === "\n" ? text.slice(1) : text;
@@ -45,3 +46,24 @@ export function definitionFile(definition: AttestationTypeScheme, folder?: strin
    return `${root}t-${('' + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}${suffix}`
 }
 
+export function tab(size=CODEGEN_TAB) {
+   return ''.padStart(size, " ")
+}
+export function hexlifyBN(obj: any) {
+   if(obj.mul) {
+      return toHex(obj);
+   }
+   if(Array.isArray(obj)) {
+      return (obj as any[]).map(item => hexlifyBN(item));
+   }
+   if(typeof obj === "object") {
+      let res = {} as any;
+      for(let key in obj) {
+         let value = obj[key];
+         res[key] = hexlifyBN(value);
+      }   
+      return res;      
+   }
+   return obj;
+ }
+ 

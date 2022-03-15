@@ -12,30 +12,6 @@ export interface HashTestContract extends Truffle.Contract<HashTestInstance> {
 type AllEvents = never;
 
 export interface HashTestInstance extends Truffle.ContractInstance {
-  hashTestBalanceDecreasingPayment(
-    _data: string,
-    _hashToProve: string,
-    txDetails?: Truffle.TransactionDetails
-  ): Promise<boolean>;
-
-  hashTestBlockHeightExistence(
-    _data: string,
-    _hashToProve: string,
-    txDetails?: Truffle.TransactionDetails
-  ): Promise<boolean>;
-
-  hashTestPayment(
-    _data: string,
-    _hashToProve: string,
-    txDetails?: Truffle.TransactionDetails
-  ): Promise<boolean>;
-
-  hashTestReferencedPaymentNonExistence(
-    _data: string,
-    _hashToProve: string,
-    txDetails?: Truffle.TransactionDetails
-  ): Promise<boolean>;
-
   verifyMerkleProof(
     proof: string[],
     merkleRoot: string,
@@ -44,30 +20,6 @@ export interface HashTestInstance extends Truffle.ContractInstance {
   ): Promise<boolean>;
 
   methods: {
-    hashTestBalanceDecreasingPayment(
-      _data: string,
-      _hashToProve: string,
-      txDetails?: Truffle.TransactionDetails
-    ): Promise<boolean>;
-
-    hashTestBlockHeightExistence(
-      _data: string,
-      _hashToProve: string,
-      txDetails?: Truffle.TransactionDetails
-    ): Promise<boolean>;
-
-    hashTestPayment(
-      _data: string,
-      _hashToProve: string,
-      txDetails?: Truffle.TransactionDetails
-    ): Promise<boolean>;
-
-    hashTestReferencedPaymentNonExistence(
-      _data: string,
-      _hashToProve: string,
-      txDetails?: Truffle.TransactionDetails
-    ): Promise<boolean>;
-
     verifyMerkleProof(
       proof: string[],
       merkleRoot: string,

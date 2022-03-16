@@ -14,6 +14,7 @@ const web3 = new Web3();
 export async function verifyReferencedPaymentNonexistenceXRP(client: MCC.XRP, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
    let request = parseRequestBytes(attestation.data.request, TDEF_referenced_payment_nonexistence) as ARReferencedPaymentNonexistence;
    let roundId = attestation.round.roundId;
+   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 

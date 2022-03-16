@@ -10,12 +10,14 @@ import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager
 import { toBN } from "flare-mcc/dist/utils/utils";
 import { Payment, TransactionMetadata, TxResponse } from "xrpl";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
+import { XrpTransaction } from "flare-mcc";
 
 const web3 = new Web3();
 
 export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
    let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
    let roundId = attestation.round.roundId;
+   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
@@ -23,6 +25,7 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
    let blockNumber = numberLikeToNumber(request.blockNumber);
    let result = await indexer.getConfirmedTransaction({
       txId: request.id,
+      numberOfConfirmations,
       blockNumber: numberLikeToNumber(request.blockNumber),
       dataAvailabilityProof: request.dataAvailabilityProof,
       roundId: roundId,
@@ -41,13 +44,15 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
       }
    }
 
-   let transaction = JSON.parse(result.transaction.response) as TxResponse;
+   const fullTxData = new XrpTransaction(JSON.parse(result.transaction.response))
+   // let fullTxData = JSON.parse(result.transaction.response) as TxResponse;
 
-   let metaData: TransactionMetadata = transaction.result.meta || (transaction.result as any).metaData;
-   let fee = toBN(transaction.result.Fee!);
+   let metaData: TransactionMetadata = fullTxData.data.result.meta || (fullTxData.data.result as any).metaData;
+   // let fee = toBN(fullTxData.result.Fee!);
+   let fee = fullTxData.fee;
 
    if (recheck) {
-      let confirmationBlockIndex = blockNumber + 1// request.confirmations; TODO
+      let confirmationBlockIndex = blockNumber + numberOfConfirmations;
       let confirmationBlock = await indexer.queryBlock({
          blockNumber: confirmationBlockIndex,
          roundId
@@ -64,7 +69,7 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
       }
    }
 
-   if (transaction.result.TransactionType != "Payment") {
+   if (fullTxData.data.result.TransactionType != "Payment") {
       return {
          status: VerificationStatus.NOT_PAYMENT
       }
@@ -73,38 +78,25 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
    // Transaction is Payment
    let delivered = toBN(metaData.delivered_amount as string); // XRP in drops
 
-   let status = this.client.getTransactionStatus(transaction);
+   let status = this.client.getTransactionStatus(fullTxData.data);
 
-   let payment = transaction.result as Payment;
-   // let response = {
-   //    blockNumber: toBN(blockNumber),
-   //    blockTimestamp: toBN(result.transaction.timestamp),
-   //    transactionHash: result.transaction.transactionId,
-   //    utxo: toBN(0),
-   //    sourceAddress: transaction.result.Account,
-   //    receivingAddress: payment.Destination,
-   //    paymentReference: toBN(0),  // TODO
-   //    spentAmount: toBN(payment.Amount as any).add(fee),
-   //    receivedAmount: delivered,
-   //    oneToOne: true,
-   //    status: toBN(status)
-   // } as DHPayment;
+   let payment = fullTxData.data.result as Payment;
+   let response = {
+      stateConnectorRound: roundId,
+      blockNumber: toBN(blockNumber),
+      blockTimestamp: toBN(result.transaction.timestamp),
+      transactionHash: result.transaction.transactionId,
+      utxo: toBN(0),
+      sourceAddress: fullTxData.sourceAddress[0],
+      receivingAddress: fullTxData.receivingAddress[0], // Payment has unique destination
+      paymentReference: fullTxData.reference.length === 1 ? fullTxData.reference[0]: "",  // TODO
+      spentAmount: fullTxData.spentAmount,
+      receivedAmount: fullTxData.receivedAmount,
+      oneToOne: true,
+      status: toBN(status)
+   } as DHPayment;
 
    //-$$$<end> of the custom section. Do not change this comment.
-
-   let response = {
-      blockNumber: randSol(request, "blockNumber", "uint64") as BN,
-      blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN,
-      transactionHash: randSol(request, "transactionHash", "bytes32") as string,
-      utxo: randSol(request, "utxo", "uint8") as BN,
-      sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
-      receivingAddress: randSol(request, "receivingAddress", "bytes32") as string,
-      paymentReference: randSol(request, "paymentReference", "bytes32") as string,
-      spentAmount: randSol(request, "spentAmount", "int256") as BN,
-      receivedAmount: randSol(request, "receivedAmount", "uint256") as BN,
-      oneToOne: randSol(request, "oneToOne", "bool") as boolean,
-      status: randSol(request, "status", "uint8") as BN      
-   } as DHPayment;
 
    let hash = hashPayment(request, response);
 

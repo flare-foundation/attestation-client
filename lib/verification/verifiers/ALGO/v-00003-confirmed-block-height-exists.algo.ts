@@ -9,18 +9,20 @@
 import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_confirmed_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 import { toBN } from "flare-mcc";
-import { BlockNumberQueryRequest } from "../../../indexed-query-manager/indexed-query-manager-types";
+import { ConfirmedBlockQueryRequest } from "../../../indexed-query-manager/indexed-query-manager-types";
 
 const web3 = new Web3();
 
 export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
    let request = parseRequestBytes(attestation.data.request, TDEF_confirmed_block_height_exists) as ARConfirmedBlockHeightExists;
    let roundId = attestation.round.roundId;
+   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   const blockQueryParams : BlockNumberQueryRequest = {
+   const blockQueryParams : ConfirmedBlockQueryRequest = {
       dataAvailabilityProof: request.dataAvailabilityProof,
+      numberOfConfirmations,
       blockNumber: numberLikeToNumber(request.blockNumber),
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'

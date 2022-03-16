@@ -14,6 +14,7 @@ const web3 = new Web3();
 export async function verifyPaymentDOGE(client: MCC.DOGE, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
    let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
    let roundId = attestation.round.roundId;
+   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 

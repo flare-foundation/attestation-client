@@ -15,11 +15,13 @@ const web3 = new Web3();
 export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
    let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
    let roundId = attestation.round.roundId;
+   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await indexer.getConfirmedTransaction({
+   let result = await indexer.getConfirmedTransaction ({
       txId: request.id,
+      numberOfConfirmations,
       blockNumber: numberLikeToNumber(request.blockNumber),
       dataAvailabilityProof: request.dataAvailabilityProof,
       roundId: roundId,
@@ -66,8 +68,8 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
       sourceAddress: fullTxData.sourceAddress[0],
       receivingAddress: fullTxData.receivingAddress[0],
       paymentReference: fullTxData.reference[0], 
-      spentAmount: toBN(fullTxData.spendAmount),
-      receivedAmount: toBN(fullTxData.receivedAmount),
+      spentAmount: fullTxData.spentAmount,
+      receivedAmount: fullTxData.receivedAmount,
       oneToOne: true,
       status: toBN(0)     
    } as DHPayment;

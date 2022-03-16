@@ -15,11 +15,13 @@ const web3 = new Web3();
 export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
    let request = parseRequestBytes(attestation.data.request, TDEF_balance_decreasing_transaction) as ARBalanceDecreasingTransaction;
    let roundId = attestation.round.roundId;
+   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
    let result = await indexer.getConfirmedTransaction({
       txId: request.id,
+      numberOfConfirmations,
       blockNumber: numberLikeToNumber(request.blockNumber),  // We need different transaction existence query 
       dataAvailabilityProof: request.dataAvailabilityProof,
       roundId: roundId,
@@ -50,7 +52,7 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
       blockTimestamp: toBN(result.transaction.timestamp),
       transactionHash: result.transaction.transactionId,
       sourceAddress: sourceAddress, 
-      spentAmount: toBN(fullTxData.spendAmount),
+      spentAmount: fullTxData.spentAmount,
       paymentReference: paymentReference     
    } as DHBalanceDecreasingTransaction;
 

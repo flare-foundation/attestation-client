@@ -12,6 +12,7 @@ console.log("This test should run while XRP indexer is running")
 const CHAIN_ID = ChainType.XRP;
 const MINUTES = 60;
 const HISTORY_WINDOW = 5 * MINUTES;
+const NUMBER_OF_CONFIRMATIONS = 1;
 
 DotEnvExt();
 
@@ -146,6 +147,7 @@ describe("Indexed query manager", () => {
       }
       let tmpTransactions = await indexedQueryManager.queryTransactions({
          roundId: 0,
+         numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })
@@ -161,6 +163,7 @@ describe("Indexed query manager", () => {
       }
       let tmpTransactions = await indexedQueryManager.queryTransactions({
          roundId: 0,
+         numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })

@@ -21,7 +21,8 @@ import {
    DHType 
 } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
-  
+
+const web3 = new Web3();
 
 export function randomResponsePayment() {
    let response = {

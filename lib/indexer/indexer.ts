@@ -41,7 +41,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
 
 
 
@@ -465,10 +465,10 @@ export class Indexer {
           }
         }
 
-        blockPromisses.push(this.getBlock(blockNumber));
+        blockPromisses.push(async () => this.getBlock(blockNumber));
       }
 
-      const blocks = await Promise.all(blockPromisses);
+      const blocks = await PromiseTimeout.allRetry(blockPromisses, 5000, 5);
 
       await this.saveBlocksHeadersArray(blocks);
 
@@ -837,26 +837,26 @@ async function displayStats() {
 
 
 async function testDelay(delay: number, result: number): Promise<number> {
-  console.log( `start ${result}`);
+  console.log(`start ${result}`);
   await sleepms(delay);
-  console.log( `done ${result}`);
+  console.log(`done ${result}`);
   return result;
 }
 
 async function runIndexer() {
 
-  const test=[];
+  const test = [];
 
-  test.push( ()=>testDelay(  100 , 1 ) );
-  test.push( ()=>testDelay(  600 , 2 ) );
-  test.push( ()=>testDelay( 1200 , 3 ) );
-  test.push( ()=>testDelay(  100 , 4 ) );
+  test.push(() => testDelay(100, 1));
+  test.push(() => testDelay(600, 2));
+  test.push(() => testDelay(1200, 3));
+  test.push(() => testDelay(100, 4));
 
-  const testRes = await PromiseTimeout.allRetry( test , 500 , 3 );
+  const testRes = await PromiseTimeout.allRetry(test, 500, 3);
   //const testRes = await Promise.all( test );
 
-  console.log( testRes );
-  console.log( testRes );
+  console.log(testRes);
+  console.log(testRes);
 
 
 

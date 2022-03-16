@@ -1,6 +1,6 @@
 {
     "syncEnabled": true,
-    "syncTimeDays": 0.1,
+    "syncTimeDays": 0.007,
 
     "blockCollectTimeMs": 1000,
 

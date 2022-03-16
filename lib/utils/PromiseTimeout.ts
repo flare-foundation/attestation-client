@@ -1,4 +1,6 @@
+import { getSimpleRandom } from "flare-mcc";
 import { getGlobalLogger } from "./logger";
+import { sleepms } from "./utils";
 
 export class PromiseTimeout {
 
@@ -53,7 +55,7 @@ export class PromiseTimeout {
         return new Promise(resolve => { resolve(funct()); });
     }
 
-    static async retry(funct: any, timeoutTime: number, retry: number) {
+    static async retry(funct: any, timeoutTime: number, retry: number, backOddTimeout = 1000) {
 
         try {
             //let result = await Promise.race([PromiseTimeout.promiseFunction(funct), this.delay(timeoutTime)]);
@@ -62,9 +64,11 @@ export class PromiseTimeout {
             if (result) return result;
 
             if (retry > 0) {
-                //getGlobalLogger().warning( `PromiseTimeout::retry ${retry}` );
+                getGlobalLogger().warning(`PromiseTimeout::retry ${retry}`);
 
-                return PromiseTimeout.retry(funct, timeoutTime , retry - 1);
+                await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
+
+                return PromiseTimeout.retry(funct, timeoutTime, retry - 1, backOddTimeout * 2);
             }
             else {
                 getGlobalLogger().warning(`PromiseTimeout::retry failed`);
@@ -74,9 +78,11 @@ export class PromiseTimeout {
         catch (error) {
 
             if (retry > 0) {
-                //getGlobalLogger().warning( `PromiseTimeout::catch.retry ${retry} ${error}` );
+                getGlobalLogger().warning(`PromiseTimeout::catch.retry ${retry} ${error}`);
 
-                return PromiseTimeout.retry(funct, timeoutTime, retry - 1);
+                await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
+
+                return PromiseTimeout.retry(funct, timeoutTime, retry - 1, backOddTimeout * 2);
             }
             else {
                 getGlobalLogger().warning(`PromiseTimeout::catch.retry failed ${error}`);

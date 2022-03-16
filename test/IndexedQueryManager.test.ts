@@ -36,10 +36,9 @@ describe("Indexed query manager", () => {
       
        const options: IndexedQueryManagerOptions = {
          chainType: ChainType.XRP,
-         noConfirmations: 1,
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (epochId: number) => { return startTime; }
-       };      
+       } as IndexedQueryManagerOptions;      
       indexedQueryManager = new IndexedQueryManager(client, options);
       //await indexedQueryManager.dbService.waitForDBConnection();
    });

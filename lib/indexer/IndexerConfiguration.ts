@@ -11,6 +11,9 @@ export class IndexerClientChain {
   public syncReadAhead: number = 30;
 
   public blockCollecting: "raw" | "rawUnforkable" | "tips";
+
+  public interlaceTimeRange: number;
+  public interlaceBlockRange: number;
 }
 
 export class IndexerConfiguration {

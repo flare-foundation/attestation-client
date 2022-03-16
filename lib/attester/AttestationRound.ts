@@ -245,6 +245,9 @@ export class AttestationRound {
       dbVoteResult.request = JSON.stringify( valid.verificationData.request );
       dbVoteResult.response = JSON.stringify( valid.verificationData.response );
     }
+    
+    // save to DB
+    AttestationRoundManager.dbService.manager.save( dbVoteResults );
 
     const time1 = getTimeMilli();
 
@@ -253,9 +256,6 @@ export class AttestationRound {
 
     this.hash = this.merkleTree.root!;
     this.random = await getCryptoSafeRandom();
-
-    // save to DB
-    AttestationRoundManager.dbService.manager.save( dbVoteResults );
 
     const time2 = getTimeMilli();
 

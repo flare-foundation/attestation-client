@@ -24,7 +24,7 @@
 
 //  [x] change block database interlace logic (time and block)
 //  [x] save vote verification data
-//  [ ] add indexeQueryHandler DAC info
+//  [x] add indexQueryHandler DAC info
 
 import { BlockBase, ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
@@ -91,12 +91,16 @@ class Interlacing {
 
   logger: AttLogger;
 
-  static timeRange: number = 2 * 24 * 60 * 60;
+  // todo: add settings per source
+  timeRange: number = 2 * 24 * 60 * 60;
 
-  static blockRange: number = 100;
+  blockRange: number = 100;
 
-  async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[]) {
+  async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRange: number, blockRange: number) {
     const items = [];
+
+    this.timeRange = timeRange * 24 * 60 * 60;
+    this.blockRange = blockRange;
 
     this.logger = logger;
 
@@ -121,8 +125,8 @@ class Interlacing {
       }
     }
 
-    this.endTime = items[bIndex][0].timestamp + Interlacing.timeRange;
-    this.endBlock = items[bIndex][0].blockNumber + Interlacing.blockRange;
+    this.endTime = items[bIndex][0].timestamp + this.timeRange;
+    this.endBlock = items[bIndex][0].blockNumber + this.blockRange;
   }
 
   getActiveIndex() {
@@ -132,8 +136,8 @@ class Interlacing {
   update(time: number, block: number): boolean {
     if (this.endTime === -1) {
       // initialize
-      this.endTime = time + Interlacing.timeRange;
-      this.endBlock = block + Interlacing.blockRange;
+      this.endTime = time + this.timeRange;
+      this.endBlock = block + this.blockRange;
       return false;
     }
 
@@ -142,8 +146,8 @@ class Interlacing {
     // change interlacing index
     this.index ^= 1;
 
-    this.endTime = time + Interlacing.timeRange;
-    this.endBlock = block + Interlacing.blockRange;
+    this.endTime = time + this.timeRange;
+    this.endBlock = block + this.blockRange;
 
     this.logger.debug(`interlace ${this.index}`);
 
@@ -815,7 +819,7 @@ export class Indexer {
 
     let syncMode = false;
 
-    await this.interlace.initialize(this.logger, this.dbService, this.dbTransactionClasses);
+    await this.interlace.initialize(this.logger, this.dbService, this.dbTransactionClasses, this.chainConfig.interlaceTimeRange, this.chainConfig.interlaceBlockRange);
 
     // sync date
     if (this.config.syncEnabled) {

@@ -30,7 +30,8 @@ export async function verifyConfirmedBlockHeightExistsDOGE(client: MCC.DOGE, att
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHConfirmedBlockHeightExists>;
+   } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
 }   

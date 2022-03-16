@@ -1,5 +1,7 @@
 import BN from "bn.js";
 import { ChainType } from "flare-mcc";
+import { DHType } from "../generated/attestation-hash-types";
+import { ARType } from "../generated/attestation-request-types";
 import { AttestationType } from "../generated/attestation-types-enum";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,8 +65,9 @@ export interface VerificationResult extends AttestationRequest {
   verificationStatus: VerificationStatus;
 }
 
-export interface Verification<T> {
+export interface Verification<R, T> {
   hash?: string;
+  request?: R;
   response?: T;
   rawResponse?: any;
   status: VerificationStatus;
@@ -111,6 +114,13 @@ export interface AttestationTypeEncoding {
 export interface VerificationTestOptions {
   testFailProbability?: number;
   skipDataAvailabilityProof?: boolean;
+}
+
+export interface RoundVote {
+  roundId: number;
+  hash: string;
+  request: ARType;
+  hashData: DHType;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

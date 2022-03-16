@@ -42,7 +42,8 @@ export async function verifyPaymentBTC(client: MCC.BTC, attestation: Attestation
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHPayment>;
+   } as Verification<ARPayment, DHPayment>;
 }   

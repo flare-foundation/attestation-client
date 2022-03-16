@@ -37,7 +37,8 @@ export async function verifyReferencedPaymentNonexistenceLTC(client: MCC.LTC, at
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHReferencedPaymentNonexistence>;
+   } as Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>;
 }   

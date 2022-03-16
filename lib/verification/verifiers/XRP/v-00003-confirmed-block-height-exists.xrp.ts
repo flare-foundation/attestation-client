@@ -30,7 +30,8 @@ export async function verifyConfirmedBlockHeightExistsXRP(client: MCC.XRP, attes
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHConfirmedBlockHeightExists>;
+   } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
 }   

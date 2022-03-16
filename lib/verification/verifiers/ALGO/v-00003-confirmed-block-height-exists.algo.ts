@@ -20,7 +20,7 @@ export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, att
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
    const blockQueryParams : BlockNumberQueryRequest = {
-      dataAvailability: request.dataAvailabilityProof,
+      dataAvailabilityProof: request.dataAvailabilityProof,
       blockNumber: numberLikeToNumber(request.blockNumber),
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
@@ -32,7 +32,7 @@ export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, att
    if (result.status === 'RECHECK') {
       return {
          status: VerificationStatus.RECHECK_LATER
-      } as Verification<DHConfirmedBlockHeightExists>;
+      } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
    }
 
    if(result.status === 'NOT_EXIST' || !result.block){
@@ -55,7 +55,8 @@ export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, att
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHConfirmedBlockHeightExists>;
+   } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
 }   

@@ -34,7 +34,8 @@ export async function verifyBalanceDecreasingTransactionLTC(client: MCC.LTC, att
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHBalanceDecreasingTransaction>;
+   } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
 }   

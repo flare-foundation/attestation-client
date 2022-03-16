@@ -43,7 +43,8 @@ export async function verifyReferencedPaymentNonexistenceALGO(client: MCC.ALGO, 
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHReferencedPaymentNonexistence>;
+   } as Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>;
 }   

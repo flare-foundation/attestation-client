@@ -70,6 +70,9 @@ export interface ARReferencedPaymentNonexistence {
    // The ID of the underlying chain, see ChainType enum.
    chainId: ChainType;
 
+   // Start block number for searching the transaction.
+   startBlock: NumberLike;
+
    // Maximum median timestamp of the block where the transaction is searched for.
    endTimestamp: NumberLike;
 

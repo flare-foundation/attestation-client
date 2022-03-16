@@ -232,7 +232,7 @@ export class ChainNode {
 
     // TODO - failure simulation
     verifyAttestation(this.client, attestation, this.indexedQueryManager)
-      .then((verification: Verification<any>) => {
+      .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
         if (verification.status === VerificationStatus.RECHECK_LATER) {
           this.chainManager.logger.warning(` * reverification`);
@@ -313,7 +313,7 @@ export class ChainNode {
   // transaction was processed
   // move it to transactionsDone
   ////////////////////////////////////////////
-  processed(tx: Attestation, status: AttestationStatus, verificationData?: Verification<any>) {
+  processed(tx: Attestation, status: AttestationStatus, verificationData?: Verification<any, any>) {
     assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid vefificationData`);
 
     // set status

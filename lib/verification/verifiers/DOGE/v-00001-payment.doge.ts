@@ -39,7 +39,8 @@ export async function verifyPaymentDOGE(client: MCC.DOGE, attestation: Attestati
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHPayment>;
+   } as Verification<ARPayment, DHPayment>;
 }   

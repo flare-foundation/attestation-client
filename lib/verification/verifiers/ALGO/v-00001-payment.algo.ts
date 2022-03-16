@@ -21,7 +21,7 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
    let result = await indexer.getConfirmedTransaction({
       txId: request.id,
       blockNumber: numberLikeToNumber(request.blockNumber),
-      dataAvailability: request.dataAvailabilityProof,
+      dataAvailabilityProof: request.dataAvailabilityProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })
@@ -29,7 +29,7 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
    if (result.status === 'RECHECK') {
       return {
          status: VerificationStatus.RECHECK_LATER
-      } as Verification<DHPayment>;
+      } as Verification<ARPayment, DHPayment>;
    }
 
    if (result.status === 'NOT_EXIST' || !result.transaction) {
@@ -80,7 +80,8 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHPayment>;
+   } as Verification<ARPayment, DHPayment>;
 }   

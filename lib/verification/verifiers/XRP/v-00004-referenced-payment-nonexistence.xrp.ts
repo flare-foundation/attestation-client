@@ -37,7 +37,8 @@ export async function verifyReferencedPaymentNonexistenceXRP(client: MCC.XRP, at
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHReferencedPaymentNonexistence>;
+   } as Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>;
 }   

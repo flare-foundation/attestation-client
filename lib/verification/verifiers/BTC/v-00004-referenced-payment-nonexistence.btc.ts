@@ -37,7 +37,8 @@ export async function verifyReferencedPaymentNonexistenceBTC(client: MCC.BTC, at
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHReferencedPaymentNonexistence>;
+   } as Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>;
 }   

@@ -4,8 +4,6 @@ import { DBTransactionBase } from "../entity/dbTransaction";
 
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
-  // number of confirmations required
-  noConfirmations: number;
   // return windows start time from current epochId
   windowStartTime: (epochId: number) => number;
 }

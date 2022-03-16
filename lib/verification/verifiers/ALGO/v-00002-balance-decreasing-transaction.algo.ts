@@ -21,7 +21,7 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
    let result = await indexer.getConfirmedTransaction({
       txId: request.id,
       blockNumber: numberLikeToNumber(request.blockNumber),  // We need different transaction existence query 
-      dataAvailability: request.dataAvailabilityProof,
+      dataAvailabilityProof: request.dataAvailabilityProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })

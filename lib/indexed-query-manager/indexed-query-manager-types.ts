@@ -49,7 +49,7 @@ export interface IndexedQueryManagerOptions {
  export interface BlockNumberQueryRequest {
    blockNumber: number;
    roundId: number;
-   dataAvailability: string; // hash of confirmation block(used for syncing of edge - cases)
+   dataAvailabilityProof: string; // hash of confirmation block(used for syncing of edge - cases)
    type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
  }
  
@@ -61,7 +61,7 @@ export interface IndexedQueryManagerOptions {
  export interface TransactionExistenceQueryRequest {
    txId: string; // transaction id
    blockNumber: number; // block number for the transaction with `txId
-   dataAvailability: string; // hash of confirmation block(used for syncing of edge - cases)
+   dataAvailabilityProof: string; // hash of confirmation block(used for syncing of edge - cases)
    roundId: number; // voting round id for check
    type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
  }
@@ -73,14 +73,17 @@ export interface IndexedQueryManagerOptions {
  
  export interface ReferencedTransactionsQueryRequest {
    paymentReference: string; // payment reference
-   blockNumber: number; // last block number to check (defines upper bound of search interval)
-   dataAvailability: string; // hash of confirmation block(used for blockNumber
+   startBlock: number; // starting block for search. Overrides default starting time.
+   // Used to determine overflow block - the first block with blockNumber > endBlock and timestamp > endTime
+   endBlock: number;
+   endTime: number;
+   dataAvailabilityProof: string; // hash of confirmation block of the overflow block
    roundId: number; // voting round id for check
    type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
  }
  
  export interface ReferencedTransactionsQueryResponse {
-   status: "OK" | "RECHECK" | "NO_CONFIRMATION_BLOCK";
+   status: "OK" | "RECHECK" | "NO_OVERFLOW_BLOCK";
    transactions?: DBTransactionBase[];
    block?: DBBlockBase;
  }

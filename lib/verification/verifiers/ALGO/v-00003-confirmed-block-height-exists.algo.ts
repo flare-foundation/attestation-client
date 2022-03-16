@@ -20,7 +20,7 @@ export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, att
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
    const blockQueryParams : BlockNumberQueryRequest = {
-      dataAvailability: request.dataAvailabilityProof,
+      dataAvailabilityProof: request.dataAvailabilityProof,
       blockNumber: numberLikeToNumber(request.blockNumber),
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'

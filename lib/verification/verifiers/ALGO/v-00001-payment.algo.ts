@@ -21,7 +21,7 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
    let result = await indexer.getConfirmedTransaction({
       txId: request.id,
       blockNumber: numberLikeToNumber(request.blockNumber),
-      dataAvailability: request.dataAvailabilityProof,
+      dataAvailabilityProof: request.dataAvailabilityProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })

@@ -45,7 +45,7 @@ export class WrongSourceIdError extends Error {
    }
 }
 
-export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any>>{
+export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
    let {attestationType, sourceId} = getAttestationTypeAndSource(attestation.data.request);
    switch(attestationType) {
       case AttestationType.Payment:

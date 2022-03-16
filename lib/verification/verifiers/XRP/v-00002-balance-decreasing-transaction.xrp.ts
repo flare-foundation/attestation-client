@@ -34,7 +34,8 @@ export async function verifyBalanceDecreasingTransactionXRP(client: MCC.XRP, att
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHBalanceDecreasingTransaction>;
+   } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
 }   

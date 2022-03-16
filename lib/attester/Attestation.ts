@@ -34,7 +34,7 @@ export class Attestation {
 
   data: AttestationData;
 
-  verificationData!: Verification<any>;
+  verificationData!: Verification<any, any>;
 
   // how many time was attestation retried
   retry: number = 0;

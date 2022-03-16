@@ -32,7 +32,7 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
    if (result.status === 'RECHECK') {
       return {
          status: VerificationStatus.RECHECK_LATER
-      } as Verification<DHPayment>;
+      } as Verification<ARPayment, DHPayment>;
    }
 
    if (result.status === 'NOT_EXIST') {
@@ -110,7 +110,8 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHPayment>;
+   } as Verification<ARPayment, DHPayment>;
 }   

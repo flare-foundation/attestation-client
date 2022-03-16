@@ -38,7 +38,8 @@ export async function verifyBalanceDecreasingTransactionBTC(client: MCC.BTC, att
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHBalanceDecreasingTransaction>;
+   } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
 }   

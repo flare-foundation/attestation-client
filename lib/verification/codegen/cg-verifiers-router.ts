@@ -65,7 +65,7 @@ ${tab()}${tab()}this.name = 'WrongAttestationTypeError';
 ${tab()}}
 }
 
-export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any>>{
+export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
 ${tab()}let {attestationType, sourceId} = getAttestationTypeAndSource(attestation.data.request);
 ${tab()}switch(attestationType) {
 ${indentText(attestationTypeCases, CODEGEN_TAB*2)}

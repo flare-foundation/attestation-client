@@ -65,8 +65,9 @@ export interface VerificationResult extends AttestationRequest {
   verificationStatus: VerificationStatus;
 }
 
-export interface Verification<T> {
+export interface Verification<R, T> {
   hash?: string;
+  request?: R;
   response?: T;
   rawResponse?: any;
   status: VerificationStatus;

@@ -34,7 +34,8 @@ export async function verifyBalanceDecreasingTransactionDOGE(client: MCC.DOGE, a
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHBalanceDecreasingTransaction>;
+   } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
 }   

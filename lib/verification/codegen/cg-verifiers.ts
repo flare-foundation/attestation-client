@@ -88,9 +88,10 @@ ${tab()}let hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, respo
 
 ${tab()}return {
 ${tab()}${tab()}hash,
+${tab()}${tab()}request,
 ${tab()}${tab()}response,
 ${tab()}${tab()}status: VerificationStatus.OK
-${tab()}} as Verification<${DATA_HASH_TYPE_PREFIX}${definition.name}>;
+${tab()}} as Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>;
 }   
 `
 }

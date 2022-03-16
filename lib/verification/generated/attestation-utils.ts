@@ -155,6 +155,7 @@ export function getRandomRequestForAttestationTypeAndChainId (
          return {
             attestationType,
             chainId,
+            startBlock: toBN(Web3.utils.randomHex(4)),
             endTimestamp: toBN(Web3.utils.randomHex(4)),
             endBlock: toBN(Web3.utils.randomHex(4)),
             destinationAddress: Web3.utils.randomHex(32),

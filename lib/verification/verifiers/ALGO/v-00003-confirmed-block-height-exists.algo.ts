@@ -32,7 +32,7 @@ export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, att
    if (result.status === 'RECHECK') {
       return {
          status: VerificationStatus.RECHECK_LATER
-      } as Verification<DHConfirmedBlockHeightExists>;
+      } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
    }
 
    if(result.status === 'NOT_EXIST' || !result.block){
@@ -55,7 +55,8 @@ export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, att
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHConfirmedBlockHeightExists>;
+   } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
 }   

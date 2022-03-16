@@ -39,7 +39,8 @@ export async function verifyPaymentLTC(client: MCC.LTC, attestation: Attestation
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHPayment>;
+   } as Verification<ARPayment, DHPayment>;
 }   

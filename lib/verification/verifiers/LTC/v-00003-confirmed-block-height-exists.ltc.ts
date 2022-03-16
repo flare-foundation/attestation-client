@@ -30,7 +30,8 @@ export async function verifyConfirmedBlockHeightExistsLTC(client: MCC.LTC, attes
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHConfirmedBlockHeightExists>;
+   } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
 }   

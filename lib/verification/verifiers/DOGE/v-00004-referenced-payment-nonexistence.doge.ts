@@ -37,7 +37,8 @@ export async function verifyReferencedPaymentNonexistenceDOGE(client: MCC.DOGE, 
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHReferencedPaymentNonexistence>;
+   } as Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>;
 }   

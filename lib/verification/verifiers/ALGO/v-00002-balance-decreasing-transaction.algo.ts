@@ -29,13 +29,13 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
    if (result.status === 'RECHECK') {
       return {
          status: VerificationStatus.RECHECK_LATER
-      } as Verification<DHBalanceDecreasingTransaction>;
+      } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
    }
 
    if (result.status === 'NOT_EXIST' || !result.transaction) {
       return {
          status: VerificationStatus.NON_EXISTENT_TRANSACTION
-      } as Verification<DHBalanceDecreasingTransaction>
+      } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>
    }
 
    const fullTxData = new AlgoTransaction(JSON.parse(result.transaction.response))
@@ -62,7 +62,8 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
 
    return {
       hash,
+      request,
       response,
       status: VerificationStatus.OK
-   } as Verification<DHBalanceDecreasingTransaction>;
+   } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
 }   

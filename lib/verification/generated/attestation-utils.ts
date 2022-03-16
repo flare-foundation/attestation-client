@@ -161,6 +161,7 @@ export function getRandomRequestForAttestationTypeAndChainId (
             destinationAddress: Web3.utils.randomHex(32),
             amount: toBN(Web3.utils.randomHex(16)),
             paymentReference: toBN(Web3.utils.randomHex(32)),
+            overflowBlock: toBN(Web3.utils.randomHex(4)),
             dataAvailabilityProof: Web3.utils.randomHex(32)
          } as ARReferencedPaymentNonexistence;
       default:

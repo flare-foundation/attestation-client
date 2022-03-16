@@ -92,7 +92,11 @@ export interface ARReferencedPaymentNonexistence {
    // The payment reference to search for.
    paymentReference: NumberLike;
 
-   // Block hash of the finalization block for a block that has number above `endBlock` and timestamp above `endTimestamp`.
+   // Number of the overflow block - the block which has `block.timestamp > endTimestamp` and `block.blockNumber > endBlock`.
+   // Does not need to be the first such block. It has to be confirmed.
+   overflowBlock: NumberLike;
+
+   // Block hash of the confirmation data availability block for the overflow block.
    dataAvailabilityProof: BytesLike;
 }
 export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARConfirmedBlockHeightExists | ARReferencedPaymentNonexistence;

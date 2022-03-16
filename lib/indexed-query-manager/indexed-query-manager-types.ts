@@ -73,10 +73,9 @@ export interface IndexedQueryManagerOptions {
  
  export interface ReferencedTransactionsQueryRequest {
    paymentReference: string; // payment reference
-   startBlock: number; // starting block for search. Overrides default starting time.
+   startBlockNumber: number; // starting block for search. Overrides default starting time.
    // Used to determine overflow block - the first block with blockNumber > endBlock and timestamp > endTime
-   endBlock: number;
-   endTime: number;
+   overflowBlockNumber: number;
    dataAvailabilityProof: string; // hash of confirmation block of the overflow block
    roundId: number; // voting round id for check
    type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`

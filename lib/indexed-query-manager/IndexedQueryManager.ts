@@ -205,33 +205,31 @@ export class IndexedQueryManager {
     params: ReferencedTransactionsQueryRequest
   ): Promise<ReferencedTransactionsQueryResponse> {
     let N = await this.getLastConfirmedBlockNumber();
-    let overflowBlock = await this.getFirstConfirmedOverflowBlock(params.endTime, params.endBlock);
-
-    if (!overflowBlock) {
-      if (params.endBlock <= N) {   // there are still chances for getting the overflow block
+    if (params.overflowBlockNumber < N - 1) {   // there are still chances for getting the overflow block
+      let overflowBlock = await this.queryBlock({
+        blockNumber: params.overflowBlockNumber,
+        roundId: params.roundId,
+        confirmed: true
+      } as BlockQueryParams);
+      if (!overflowBlock) {
         return {
-          status: "RECHECK",
+          status: "NO_OVERFLOW_BLOCK",
         };
       }
-      return {
-        status: "NO_OVERFLOW_BLOCK"
-      }
-    }
-    if (overflowBlock.blockNumber < N - 1) {
       let transactions = await this.queryTransactions({
         roundId: params.roundId,
-        startBlock: params.startBlock,
+        startBlock: params.startBlockNumber,
         endBlock: overflowBlock.blockNumber - 1,
         paymentReference: params.paymentReference,
-      } as TransactionQueryParams);      
+      } as TransactionQueryParams);
       return {
         status: "OK",
         transactions,
+        block: overflowBlock
       };
-    } else if (params.startBlock > N + 1) {
+    } else if (params.overflowBlockNumber > N + 1) {
       return {
-        status: "OK",    // Status is still OK, but nothing was found.
-        transactions: [],
+        status: "NO_OVERFLOW_BLOCK",    // Status is still OK, but nothing was found.
       };
     } else {
       // N - 1, N, N + 1
@@ -245,17 +243,21 @@ export class IndexedQueryManager {
     params: ReferencedTransactionsQueryRequest
   ): Promise<ReferencedTransactionsQueryResponse> {
     let N = await this.getLastConfirmedBlockNumber();
-    let overflowBlock = await this.getFirstConfirmedOverflowBlock(params.endTime, params.endBlock);
-
+    // let overflowBlock = await this.getFirstConfirmedOverflowBlock(params.endTime, params.overflowBlockNumber);
+    let overflowBlock = await this.queryBlock({
+      blockNumber: params.overflowBlockNumber,
+      roundId: params.roundId,
+      confirmed: true
+    } as BlockQueryParams);
     if (!overflowBlock) {
-      return {
+      return {        
         status: "NO_OVERFLOW_BLOCK"
       }
     }
 
     let transactions = await this.queryTransactions({
       roundId: params.roundId,
-      startBlock: params.startBlock,
+      startBlock: params.startBlockNumber,
       endBlock: overflowBlock.blockNumber - 1,
       paymentReference: params.paymentReference,
     } as TransactionQueryParams);
@@ -266,7 +268,7 @@ export class IndexedQueryManager {
     return {
       status: confirmationBlock && confirmationBlock.blockNumber - this.settings.noConfirmations === overflowBlock.blockNumber ? "OK" : "NO_OVERFLOW_BLOCK",
       transactions,
-      block: confirmationBlock,
+      block: overflowBlock,
     };
   }
 

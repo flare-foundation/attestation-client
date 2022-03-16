@@ -39,11 +39,11 @@ export interface IAttestationClient extends BaseContract {
         string | number[],
         string | number[],
         number | string | BN,
-        number | string | BN
+        string | number[]
       ]
     ): NonPayableTransactionObject<boolean>;
 
-    verifyBlockHeightExists(
+    verifyConfirmedBlockHeightExists(
       _chainId: number | string | BN,
       _data: [
         number | string | BN,
@@ -64,7 +64,7 @@ export interface IAttestationClient extends BaseContract {
         number | string | BN,
         string | number[],
         string | number[],
-        number | string | BN,
+        string | number[],
         number | string | BN,
         number | string | BN,
         boolean,
@@ -80,7 +80,7 @@ export interface IAttestationClient extends BaseContract {
         number | string | BN,
         number | string | BN,
         string | number[],
-        number | string | BN,
+        string | number[],
         number | string | BN,
         number | string | BN,
         number | string | BN,

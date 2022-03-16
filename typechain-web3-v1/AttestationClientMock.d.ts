@@ -31,7 +31,7 @@ export interface AttestationClientMock extends BaseContract {
   methods: {
     BALANCE_DECREASING_TRANSACTION(): NonPayableTransactionObject<string>;
 
-    BLOCK_HEIGHT_EXISTS(): NonPayableTransactionObject<string>;
+    CONFIRMED_BLOCK_HEIGHT_EXISTS(): NonPayableTransactionObject<string>;
 
     PAYMENT(): NonPayableTransactionObject<string>;
 
@@ -56,11 +56,11 @@ export interface AttestationClientMock extends BaseContract {
         string | number[],
         string | number[],
         number | string | BN,
-        number | string | BN
+        string | number[]
       ]
     ): NonPayableTransactionObject<boolean>;
 
-    verifyBlockHeightExists(
+    verifyConfirmedBlockHeightExists(
       _chainId: number | string | BN,
       _data: [
         number | string | BN,
@@ -81,7 +81,7 @@ export interface AttestationClientMock extends BaseContract {
         number | string | BN,
         string | number[],
         string | number[],
-        number | string | BN,
+        string | number[],
         number | string | BN,
         number | string | BN,
         boolean,
@@ -97,7 +97,7 @@ export interface AttestationClientMock extends BaseContract {
         number | string | BN,
         number | string | BN,
         string | number[],
-        number | string | BN,
+        string | number[],
         number | string | BN,
         number | string | BN,
         number | string | BN,

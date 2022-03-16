@@ -143,18 +143,6 @@ export class Indexer {
     return this.N;
   }
 
-  async waitForDBConnection() {
-    while (true) {
-      if (!this.dbService.connection) {
-        this.logger.info("Waiting for DB connection");
-        await sleep(1000);
-        continue;
-      }
-
-      break;
-    }
-  }
-
   getBlockSaveEpoch(time: number): number {
     // 2022/01/01 00:00:00
 
@@ -738,8 +726,7 @@ export class Indexer {
 
   async runIndexer() {
     // wait for db to connect
-    await this.waitForDBConnection();
-
+    await this.dbService.waitForDBConnection();
     await this.prepareTables();
 
     const startBlockNumber = (await this.getBlockHeight()) - this.chainConfig.confirmationsCollect;

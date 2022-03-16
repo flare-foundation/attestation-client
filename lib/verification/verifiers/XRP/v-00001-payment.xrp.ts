@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 import { toBN } from "flare-mcc/dist/utils/utils";
 import { Payment, TransactionMetadata, TxResponse } from "xrpl";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
@@ -21,7 +21,7 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
 
    // TODO: pass 
    let blockNumber = numberLikeToNumber(request.blockNumber);
-   let result = await indexer.checkTransactionExistence({
+   let result = await indexer.getConfirmedTransaction({
       txId: request.id,
       blockNumber: numberLikeToNumber(request.blockNumber),
       dataAvailability: request.dataAvailabilityProof,

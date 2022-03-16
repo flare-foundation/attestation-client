@@ -5,6 +5,6 @@
 export enum AttestationType {
    Payment = 1,
    BalanceDecreasingTransaction = 2,
-   BlockHeightExists = 3,
+   ConfirmedBlockHeightExists = 3,
    ReferencedPaymentNonexistence = 4
 }

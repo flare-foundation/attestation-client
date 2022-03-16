@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 import { AlgoTransaction, IAlgoBlockData, IAlgoGetTransactionRes, toBN } from "flare-mcc";
 
@@ -18,7 +18,7 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await indexer.checkTransactionExistence({
+   let result = await indexer.getConfirmedTransaction({
       txId: request.id,
       blockNumber: numberLikeToNumber(request.blockNumber),
       dataAvailability: request.dataAvailabilityProof,
@@ -71,7 +71,6 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
       oneToOne: true,
       status: toBN(0)     
    } as DHPayment;
-
 
    //-$$$<end> of the custom section. Do not change this comment.
 

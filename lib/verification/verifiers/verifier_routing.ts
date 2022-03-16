@@ -17,11 +17,11 @@ import {verifyBalanceDecreasingTransactionBTC} from "./BTC/v-00002-balance-decre
 import {verifyBalanceDecreasingTransactionLTC} from "./LTC/v-00002-balance-decreasing-transaction.ltc"
 import {verifyBalanceDecreasingTransactionDOGE} from "./DOGE/v-00002-balance-decreasing-transaction.doge"
 import {verifyBalanceDecreasingTransactionALGO} from "./ALGO/v-00002-balance-decreasing-transaction.algo"
-import {verifyBlockHeightExistsXRP} from "./XRP/v-00003-block-height-exists.xrp"
-import {verifyBlockHeightExistsBTC} from "./BTC/v-00003-block-height-exists.btc"
-import {verifyBlockHeightExistsLTC} from "./LTC/v-00003-block-height-exists.ltc"
-import {verifyBlockHeightExistsDOGE} from "./DOGE/v-00003-block-height-exists.doge"
-import {verifyBlockHeightExistsALGO} from "./ALGO/v-00003-block-height-exists.algo"
+import {verifyConfirmedBlockHeightExistsXRP} from "./XRP/v-00003-confirmed-block-height-exists.xrp"
+import {verifyConfirmedBlockHeightExistsBTC} from "./BTC/v-00003-confirmed-block-height-exists.btc"
+import {verifyConfirmedBlockHeightExistsLTC} from "./LTC/v-00003-confirmed-block-height-exists.ltc"
+import {verifyConfirmedBlockHeightExistsDOGE} from "./DOGE/v-00003-confirmed-block-height-exists.doge"
+import {verifyConfirmedBlockHeightExistsALGO} from "./ALGO/v-00003-confirmed-block-height-exists.algo"
 import {verifyReferencedPaymentNonexistenceXRP} from "./XRP/v-00004-referenced-payment-nonexistence.xrp"
 import {verifyReferencedPaymentNonexistenceBTC} from "./BTC/v-00004-referenced-payment-nonexistence.btc"
 import {verifyReferencedPaymentNonexistenceLTC} from "./LTC/v-00004-referenced-payment-nonexistence.ltc"
@@ -78,18 +78,18 @@ export async function verifyAttestation(client: MccClient, attestation: Attestat
             default:
                throw new WrongSourceIdError("Wrong source id");
       }
-      case AttestationType.BlockHeightExists:
+      case AttestationType.ConfirmedBlockHeightExists:
          switch(sourceId) {
             case ChainType.XRP:
-               return verifyBlockHeightExistsXRP(client as MCC.XRP, attestation, indexer, recheck);
+               return verifyConfirmedBlockHeightExistsXRP(client as MCC.XRP, attestation, indexer, recheck);
             case ChainType.BTC:
-               return verifyBlockHeightExistsBTC(client as MCC.BTC, attestation, indexer, recheck);
+               return verifyConfirmedBlockHeightExistsBTC(client as MCC.BTC, attestation, indexer, recheck);
             case ChainType.LTC:
-               return verifyBlockHeightExistsLTC(client as MCC.LTC, attestation, indexer, recheck);
+               return verifyConfirmedBlockHeightExistsLTC(client as MCC.LTC, attestation, indexer, recheck);
             case ChainType.DOGE:
-               return verifyBlockHeightExistsDOGE(client as MCC.DOGE, attestation, indexer, recheck);
+               return verifyConfirmedBlockHeightExistsDOGE(client as MCC.DOGE, attestation, indexer, recheck);
             case ChainType.ALGO:
-               return verifyBlockHeightExistsALGO(client as MCC.ALGO, attestation, indexer, recheck);
+               return verifyConfirmedBlockHeightExistsALGO(client as MCC.ALGO, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }

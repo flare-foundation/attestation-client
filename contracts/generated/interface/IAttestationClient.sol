@@ -88,10 +88,10 @@ interface IAttestationClient {
         // If the attestation provider detects that the transaction is actually a valid payment (same conditions
         // as for Payment), it should set this field to its the paymentReference.
         // Otherwise, paymentReference must be 0.
-        uint256 paymentReference;
+        bytes32 paymentReference;
     }
 
-    struct BlockHeightExists {
+    struct ConfirmedBlockHeightExists {
         // Round number (epoch id) of the state connector request
         uint256 stateConnectorRound;
 
@@ -126,7 +126,7 @@ interface IAttestationClient {
         bytes32 destinationAddress;
 
         // The payment reference searched for.
-        uint128 paymentReference;
+        bytes32 paymentReference;
 
         // The amount searched for.
         uint128 amount;
@@ -162,7 +162,7 @@ interface IAttestationClient {
         external view
         returns (bool _proved);
 
-    function verifyBlockHeightExists(uint32 _chainId, BlockHeightExists calldata _data)
+    function verifyConfirmedBlockHeightExists(uint32 _chainId, ConfirmedBlockHeightExists calldata _data)
         external view
         returns (bool _proved);
 

@@ -9,7 +9,7 @@ import {
 export const TDEF: AttestationTypeScheme = {
    id: 3,
    supportedSources: [ChainType.XRP, ChainType.BTC, ChainType.LTC, ChainType.DOGE, ChainType.ALGO],
-   name: "BlockHeightExists",
+   name: "ConfirmedBlockHeightExists",
    request: [
       {
          key: "attestationType",

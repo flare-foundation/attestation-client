@@ -9,7 +9,7 @@ import { readAttestationTypeSchemes } from "../../lib/verification/codegen/cg-ut
 import { 
    ARPayment,
    ARBalanceDecreasingTransaction,
-   ARBlockHeightExists,
+   ARConfirmedBlockHeightExists,
    ARReferencedPaymentNonexistence 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
@@ -48,9 +48,9 @@ describe("Attestestation Request Parser", function () {
       }
    });
    
-   it("Should encode and decode for 'BlockHeightExists'", async function () { 
+   it("Should encode and decode for 'ConfirmedBlockHeightExists'", async function () { 
       for(let chainId of [3,0,1,2,4]) {
-         let randomRequest = getRandomRequestForAttestationTypeAndChainId(3 as AttestationType, chainId as ChainType) as ARBlockHeightExists;
+         let randomRequest = getRandomRequestForAttestationTypeAndChainId(3 as AttestationType, chainId as ChainType) as ARConfirmedBlockHeightExists;
          let scheme = definitions.find(item => item.id === 3);
          let bytes = encodeRequestBytes(randomRequest, scheme);
          let parsedRequest = parseRequestBytes(bytes, scheme);

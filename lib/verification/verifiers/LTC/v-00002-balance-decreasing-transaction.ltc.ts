@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
 
 
 const web3 = new Web3();
@@ -27,7 +27,7 @@ export async function verifyBalanceDecreasingTransactionLTC(client: MCC.LTC, att
       transactionHash: randSol(request, "transactionHash", "bytes32") as string,
       sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
       spentAmount: randSol(request, "spentAmount", "int256") as BN,
-      paymentReference: randSol(request, "paymentReference", "uint256") as BN      
+      paymentReference: randSol(request, "paymentReference", "bytes32") as string      
    } as DHBalanceDecreasingTransaction;
 
    let hash = hashBalanceDecreasingTransaction(request, response);

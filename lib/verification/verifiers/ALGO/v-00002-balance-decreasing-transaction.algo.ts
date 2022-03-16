@@ -6,8 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, RPCInterface, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
+import { AlgoTransaction, toBN } from "flare-mcc";
+import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 
 const web3 = new Web3();
 
@@ -17,18 +18,45 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
+   let result = await indexer.getConfirmedTransaction({
+      txId: request.id,
+      blockNumber: numberLikeToNumber(request.blockNumber),  // We need different transaction existence query 
+      dataAvailability: request.dataAvailabilityProof,
+      roundId: roundId,
+      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
+   })
 
+   if (result.status === 'RECHECK') {
+      return {
+         status: VerificationStatus.RECHECK_LATER
+      } as Verification<DHBalanceDecreasingTransaction>;
+   }
+
+   if (result.status === 'NOT_EXIST' || !result.transaction) {
+      return {
+         status: VerificationStatus.NON_EXISTENT_TRANSACTION
+      } as Verification<DHBalanceDecreasingTransaction>
+   }
+
+   const fullTxData = new AlgoTransaction(JSON.parse(result.transaction.response))
+
+   const sourceAddress = fullTxData.sourceAddress.length === 1 ? fullTxData.sourceAddress[0] : ""
+   const paymentReference = fullTxData.reference.length === 1 ? fullTxData.reference[0] : ""
+   
+
+   // Check 
+   let response = {
+      blockNumber: toBN(result.transaction.blockNumber),
+      blockTimestamp: toBN(result.transaction.timestamp),
+      transactionHash: result.transaction.transactionId,
+      sourceAddress: sourceAddress, 
+      spentAmount: toBN(fullTxData.spendAmount),
+      paymentReference: paymentReference     
+   } as DHBalanceDecreasingTransaction;
 
    //-$$$<end> of the custom section. Do not change this comment.
 
-   let response = {
-      blockNumber: randSol(request, "blockNumber", "uint64") as BN,
-      blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN,
-      transactionHash: randSol(request, "transactionHash", "bytes32") as string,
-      sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
-      spentAmount: randSol(request, "spentAmount", "int256") as BN,
-      paymentReference: randSol(request, "paymentReference", "uint256") as BN      
-   } as DHBalanceDecreasingTransaction;
+
 
    let hash = hashBalanceDecreasingTransaction(request, response);
 

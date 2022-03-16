@@ -9,14 +9,14 @@ import { randSol } from "../attestation-types/attestation-types-helpers";
 import { 
    ARPayment,
    ARBalanceDecreasingTransaction,
-   ARBlockHeightExists,
+   ARConfirmedBlockHeightExists,
    ARReferencedPaymentNonexistence,
    ARType 
 } from "./attestation-request-types";
 import {
    DHPayment,
    DHBalanceDecreasingTransaction,
-   DHBlockHeightExists,
+   DHConfirmedBlockHeightExists,
    DHReferencedPaymentNonexistence,
    DHType 
 } from "./attestation-hash-types";
@@ -47,16 +47,16 @@ export function randomResponseBalanceDecreasingTransaction() {
       transactionHash: randSol({}, "transactionHash", "bytes32") as string,
       sourceAddress: randSol({}, "sourceAddress", "bytes32") as string,
       spentAmount: randSol({}, "spentAmount", "int256") as BN,
-      paymentReference: randSol({}, "paymentReference", "uint256") as BN      
+      paymentReference: randSol({}, "paymentReference", "bytes32") as string      
    } as DHBalanceDecreasingTransaction;
    return response;
 }
 
-export function randomResponseBlockHeightExists() {
+export function randomResponseConfirmedBlockHeightExists() {
    let response = {
       blockNumber: randSol({}, "blockNumber", "uint64") as BN,
       blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN      
-   } as DHBlockHeightExists;
+   } as DHConfirmedBlockHeightExists;
    return response;
 }
 
@@ -65,7 +65,7 @@ export function randomResponseReferencedPaymentNonexistence() {
       endTimestamp: randSol({}, "endTimestamp", "uint64") as BN,
       endBlock: randSol({}, "endBlock", "uint64") as BN,
       destinationAddress: randSol({}, "destinationAddress", "bytes32") as string,
-      paymentReference: randSol({}, "paymentReference", "uint128") as BN,
+      paymentReference: randSol({}, "paymentReference", "bytes32") as string,
       amount: randSol({}, "amount", "uint128") as BN,
       firstCheckedBlock: randSol({}, "firstCheckedBlock", "uint64") as BN,
       firstCheckedBlockTimestamp: randSol({}, "firstCheckedBlockTimestamp", "uint64") as BN,
@@ -84,8 +84,8 @@ export function getRandomResponseForType(attestationType: AttestationType) {
          return randomResponsePayment();
       case AttestationType.BalanceDecreasingTransaction:
          return randomResponseBalanceDecreasingTransaction();
-      case AttestationType.BlockHeightExists:
-         return randomResponseBlockHeightExists();
+      case AttestationType.ConfirmedBlockHeightExists:
+         return randomResponseConfirmedBlockHeightExists();
       case AttestationType.ReferencedPaymentNonexistence:
          return randomResponseReferencedPaymentNonexistence();
       default:
@@ -107,10 +107,10 @@ export function getRandomRequest() {
          chainIds = [3,0,1,2,4];
          chainId = chainIds[Math.floor(Math.random()*5)];
          return {attestationType: randomAttestationType, chainId} as ARBalanceDecreasingTransaction;
-      case AttestationType.BlockHeightExists:
+      case AttestationType.ConfirmedBlockHeightExists:
          chainIds = [3,0,1,2,4];
          chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId} as ARBlockHeightExists;
+         return {attestationType: randomAttestationType, chainId} as ARConfirmedBlockHeightExists;
       case AttestationType.ReferencedPaymentNonexistence:
          chainIds = [3,0,1,2,4];
          chainId = chainIds[Math.floor(Math.random()*5)];
@@ -139,17 +139,18 @@ export function getRandomRequestForAttestationTypeAndChainId (
          return {
             attestationType,
             chainId,
+            blockNumber: toBN(Web3.utils.randomHex(4)),
             inUtxo: toBN(Web3.utils.randomHex(1)),
             id: Web3.utils.randomHex(32),
             dataAvailabilityProof: Web3.utils.randomHex(32)
          } as ARBalanceDecreasingTransaction;
-      case AttestationType.BlockHeightExists:
+      case AttestationType.ConfirmedBlockHeightExists:
          return {
             attestationType,
             chainId,
             blockNumber: toBN(Web3.utils.randomHex(4)),
             dataAvailabilityProof: Web3.utils.randomHex(32)
-         } as ARBlockHeightExists;
+         } as ARConfirmedBlockHeightExists;
       case AttestationType.ReferencedPaymentNonexistence:
          return {
             attestationType,
@@ -216,7 +217,7 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
          "bytes32",		// transactionHash
          "bytes32",		// sourceAddress
          "int256",		// spentAmount
-         "uint256",		// paymentReference
+         "bytes32",		// paymentReference
       ],
       [
          request.attestationType,
@@ -232,7 +233,7 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
    return web3.utils.soliditySha3(encoded)!;
 }
 
-export function hashBlockHeightExists(request: ARBlockHeightExists, response: DHBlockHeightExists) {
+export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightExists, response: DHConfirmedBlockHeightExists) {
    let encoded = web3.eth.abi.encodeParameters(
       [
          "uint16",		// attestationType
@@ -258,7 +259,7 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
          "uint64",		// endTimestamp
          "uint64",		// endBlock
          "bytes32",		// destinationAddress
-         "uint128",		// paymentReference
+         "bytes32",		// paymentReference
          "uint128",		// amount
          "uint64",		// firstCheckedBlock
          "uint64",		// firstCheckedBlockTimestamp
@@ -288,8 +289,8 @@ export function dataHash(request: ARType, response: DHType) {
          return hashPayment(request as ARPayment, response as DHPayment);
       case AttestationType.BalanceDecreasingTransaction:
          return hashBalanceDecreasingTransaction(request as ARBalanceDecreasingTransaction, response as DHBalanceDecreasingTransaction);
-      case AttestationType.BlockHeightExists:
-         return hashBlockHeightExists(request as ARBlockHeightExists, response as DHBlockHeightExists);
+      case AttestationType.ConfirmedBlockHeightExists:
+         return hashConfirmedBlockHeightExists(request as ARConfirmedBlockHeightExists, response as DHConfirmedBlockHeightExists);
       case AttestationType.ReferencedPaymentNonexistence:
          return hashReferencedPaymentNonexistence(request as ARReferencedPaymentNonexistence, response as DHReferencedPaymentNonexistence);
       default:

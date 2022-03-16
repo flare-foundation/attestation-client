@@ -40,7 +40,7 @@ describe("Indexed query manager", () => {
          windowStartTime: (epochId: number) => { return startTime; }
        };      
       indexedQueryManager = new IndexedQueryManager(client, options);
-      await indexedQueryManager.dbService.waitForDBConnection();
+      //await indexedQueryManager.dbService.waitForDBConnection();
    });
 
    it("Should get last confirmed block number", async () => {

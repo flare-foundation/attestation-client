@@ -1,4 +1,3 @@
-import { ChainType } from "flare-mcc";
 import { Column, Entity, Index } from "typeorm";
 import { BaseEntity } from "./base/BaseEntity";
 
@@ -6,7 +5,7 @@ export class DBTransactionBase extends BaseEntity {
 
     @Column() @Index() chainType: number = 0;
 
-    @Column({type: "varchar", length:64}) @Index() transactionId: string = "";
+    @Column({ type: "varchar", length: 64 }) @Index() transactionId: string = "";
 
     @Column() @Index() blockNumber: number = 0;
 
@@ -17,11 +16,11 @@ export class DBTransactionBase extends BaseEntity {
 
 
 
-    @Column({type: "varchar", length:64}) @Index() paymentReference: string = "";
+    @Column({ type: "varchar", length: 64 }) @Index() paymentReference: string = "";
 
-    @Column({type: "varchar", length:64}) hashVerify: string = "";
+    @Column({ type: "varchar", length: 64 }) hashVerify: string = "";
 
-    @Column({type: "text" }) response: string = "";
+    @Column({ type: "text" }) response: string = "";
 }
 
 

@@ -1,4 +1,5 @@
 import { MccClient } from "flare-mcc";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
@@ -15,14 +16,14 @@ import { BlockHashQueryRequest, BlockHashQueryResponse, BlockNumberQueryRequest,
 
 export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
-  dbService: DatabaseService;
+  //dbService: DatabaseService;
   client: MccClient;
 
   transactionTable = [undefined, undefined];
   blockTable;
 
   constructor(client: MccClient, options: IndexedQueryManagerOptions) {
-    this.dbService = new DatabaseService(getGlobalLogger());
+    //this.dbService = new DatabaseService(getGlobalLogger());
     this.settings = options;
     this.client = client;
     this.prepareTables();
@@ -37,7 +38,7 @@ export class IndexedQueryManager {
   async queryTransactions(params: TransactionQueryParams): Promise<DBTransactionBase[]> {
     let results = []
     for (let table of this.transactionTable) {
-      let query = this.dbService.connection.manager
+      let query = AttestationRoundManager.dbService.connection.manager
         .createQueryBuilder(table, "transaction")
         .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.endBlock });
 
@@ -63,7 +64,7 @@ export class IndexedQueryManager {
 
   async queryBlock(params: BlockQueryParams): Promise<DBBlockBase | null> {
     let startTimestamp = this.settings.windowStartTime(params.roundId);
-    let query = this.dbService.connection.manager
+    let query = AttestationRoundManager.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       // .where("block.confirmed = :confirmed", { confirmed: !!params.confirmed })
       .andWhere("block.timestamp >= :timestamp", { timestamp: startTimestamp });
@@ -146,7 +147,7 @@ export class IndexedQueryManager {
   }
 
   public async getLastConfirmedBlockNumber(): Promise<number> {
-    const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+    const res = await AttestationRoundManager.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
 
     if (res === undefined) return 0;
 
@@ -280,7 +281,7 @@ export class IndexedQueryManager {
   }
 
   public async getFirstConfirmedBlockAfterTime(timestamp: number): Promise<DBBlockBase | null> {
-    let query = this.dbService.connection.manager
+    let query = AttestationRoundManager.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp >= :timestamp", { timestamp: timestamp })
@@ -300,7 +301,7 @@ export class IndexedQueryManager {
    * @param blockNumber 
    */
   public async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | null> {
-    let query = this.dbService.connection.manager
+    let query = AttestationRoundManager.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp > :timestamp", { timestamp: timestamp })

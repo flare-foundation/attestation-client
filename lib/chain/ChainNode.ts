@@ -84,6 +84,8 @@ export class ChainNode {
         throw new Error("");
     }
 
+    //const confirmations = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig( )
+
 
     let options: IndexedQueryManagerOptions = {
       chainType: chainType,

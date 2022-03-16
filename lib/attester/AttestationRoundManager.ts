@@ -1,13 +1,13 @@
 import { toBN } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
+import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
-import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
-import { AttesterClientConfiguration as AttesterClientConfiguration } from "./AttesterClientConfiguration";
+import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager } from "./DynamicAttestationConfig";
 
@@ -17,6 +17,7 @@ export class AttestationRoundManager {
   static epochSettings: EpochSettings;
   static chainManager: ChainManager;
   static attestationConfigManager: AttestationConfigManager;
+  static dbService: DatabaseService;
 
   static activeEpochId: number;
 
@@ -38,6 +39,9 @@ export class AttestationRoundManager {
 
   async initialize() {
     await AttestationRoundManager.attestationConfigManager.initialize();
+    AttestationRoundManager.dbService = new DatabaseService(this.logger);
+
+    await AttestationRoundManager.dbService.waitForDBConnection();
   }
 
   async attestate(tx: AttestationData) {
@@ -61,16 +65,16 @@ export class AttestationRoundManager {
       activeRound = new AttestationRound(epochId, this.logger, this.attesterWeb3);
 
       let bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-      bar1.start(this.config.epochPeriod*1000, now - epochTimeStart);
+      bar1.start(this.config.epochPeriod * 1000, now - epochTimeStart);
       let intervalId = setInterval(() => {
         const now = getTimeMilli();
-        if(now > epochCommitTime) {
+        if (now > epochCommitTime) {
           clearInterval(intervalId);
           bar1.stop()
         }
-        bar1.update(now - epochTimeStart);              
+        bar1.update(now - epochTimeStart);
       }, 1000)
-      
+
       // setup commit, reveal and completed callbacks
       this.logger.warning(`round ${epochId} collect epoch [0]`);
 

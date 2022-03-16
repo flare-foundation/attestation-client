@@ -1,6 +1,7 @@
 import assert from "assert";
 import BN from "bn.js";
 import { toBN } from "flare-mcc";
+import { DBVotingRoundResult } from "../entity/dbVotingRoundResult";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
 import { MerkleTree, singleHash } from "../utils/MerkleTree";
@@ -229,14 +230,20 @@ export class AttestationRound {
 
     // collect sorted valid attestation hashes
     const validatedHashes: string[] = new Array<string>();
+    const dbVoteResults = [];
     for (const valid of validated) {
-      // todo: fix this. transactionHash does not compile ....
-      //let hash = valid.verificationData ? transactionHash(this.attesterWeb3.web3, valid.verificationData!) : valid.data.getHash();
-
-      // this is for SIMULATION only !!!!
-      let hash = valid.data.getHash();
+      let hash = valid.verificationData ? valid.verificationData.hash : valid.data.getHash();
 
       validatedHashes.push(hash!);
+
+      // save to DB
+      const dbVoteResult = new DBVotingRoundResult();
+      dbVoteResults.push( dbVoteResult );
+
+      dbVoteResult.roundId = this.roundId;
+      dbVoteResult.hash = this.hash;
+      dbVoteResult.request = JSON.stringify( valid.verificationData.request );
+      dbVoteResult.response = JSON.stringify( valid.verificationData.response );
     }
 
     const time1 = getTimeMilli();
@@ -246,6 +253,9 @@ export class AttestationRound {
 
     this.hash = this.merkleTree.root!;
     this.random = await getCryptoSafeRandom();
+
+    // save to DB
+    AttestationRoundManager.dbService.manager.save( dbVoteResults );
 
     const time2 = getTimeMilli();
 

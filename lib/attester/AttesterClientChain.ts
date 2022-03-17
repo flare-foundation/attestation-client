@@ -5,7 +5,7 @@ export class AttesterClientChain {
   public username!: string;
   public password!: string;
 
-  public metaData!: string;
+  public metaData!: any;
 
   public maxRequestsPerSecond: number = 2;
   public maxProcessingTransactions: number = 10;

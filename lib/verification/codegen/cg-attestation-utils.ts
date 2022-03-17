@@ -180,7 +180,8 @@ ${indentText(dhImports, CODEGEN_TAB)},
 ${tab()}${DATA_HASH_TYPE_PREFIX}Type 
 } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
-  
+
+const web3 = new Web3();
 `;
 
   definitions.forEach(definition => {

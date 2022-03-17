@@ -98,6 +98,8 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
 
    //-$$$<end> of the custom section. Do not change this comment.
 
+
+
    let hash = hashPayment(request, response);
 
    return {

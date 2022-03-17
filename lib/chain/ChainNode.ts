@@ -84,9 +84,12 @@ export class ChainNode {
         throw new Error("");
     }
 
+    //const confirmations = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig( )
+
 
     let options: IndexedQueryManagerOptions = {
       chainType: chainType,
+      dbService: AttestationRoundManager.dbService,
       // todo: return epochStartTime - query window length, add query window length into DAC
       windowStartTime: (epochId: number) => { return 0; }
     };

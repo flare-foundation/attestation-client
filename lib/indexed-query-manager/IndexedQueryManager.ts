@@ -6,7 +6,7 @@ import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 import { getGlobalLogger } from "../utils/logger";
 import { getSourceName } from "../verification/attestation-types/attestation-types-helpers";
-import { BlockHashQueryRequest, BlockHashQueryResponse, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, BlockQueryParams, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
+import { BlockHashQueryRequest, BlockHashQueryResponse, BlockQueryParams, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
 
 
 ////////////////////////////////////////////////////////
@@ -16,12 +16,17 @@ import { BlockHashQueryRequest, BlockHashQueryResponse, ConfirmedBlockQueryReque
 export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
   dbService: DatabaseService;
+  client: MccClient;
 
   transactionTable = [undefined, undefined];
   blockTable;
 
   constructor(options: IndexedQueryManagerOptions) {
-    this.dbService = new DatabaseService(getGlobalLogger());
+    if(options.dbService) {
+      this.dbService = options.dbService;
+    } else {
+      this.dbService = new DatabaseService(getGlobalLogger());
+    }
     this.settings = options;
     this.prepareTables();
   }

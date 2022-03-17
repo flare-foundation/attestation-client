@@ -22,6 +22,10 @@
 //  [x] fix node execution (db is not working)
 //  [x] read all forks (utxo only - completely different block header collection)
 
+//  [x] change block database interlace logic (time and block)
+//  [x] save vote verification data
+//  [x] add indexQueryHandler DAC info
+
 import { BlockBase, ChainType, IBlock, MCC, sleep } from "flare-mcc";
 import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
@@ -78,6 +82,79 @@ class PreparedBlock {
   }
 }
 
+
+class Interlacing {
+
+  index: number;
+  endTime: number = -1;
+  endBlock: number = -1;
+
+  logger: AttLogger;
+
+  // todo: add settings per source
+  timeRange: number = 2 * 24 * 60 * 60;
+
+  blockRange: number = 100;
+
+  async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRange: number, blockRange: number) {
+    const items = [];
+
+    this.timeRange = timeRange * 24 * 60 * 60;
+    this.blockRange = blockRange;
+
+    this.logger = logger;
+
+    items.push(await dbService.connection.getRepository(dbClasses[0]).find({ order: { blockNumber: 'ASC' }, take: 1 }));
+    items.push(await dbService.connection.getRepository(dbClasses[1]).find({ order: { blockNumber: 'ASC' }, take: 1 }));
+
+    if (items[0].length === 0 && items[1].length === 0) {
+      this.index = 0;
+      return;
+    }
+
+    let bIndex = 0;
+
+    if (items[0].length && items[1].length) {
+      if (items[0][0].timestamp < items[1][0].timestamp) {
+        bIndex = 1;
+      }
+    }
+    else {
+      if (items[1].length) {
+        bIndex = 1;
+      }
+    }
+
+    this.endTime = items[bIndex][0].timestamp + this.timeRange;
+    this.endBlock = items[bIndex][0].blockNumber + this.blockRange;
+  }
+
+  getActiveIndex() {
+    return this.index;
+  }
+
+  update(time: number, block: number): boolean {
+    if (this.endTime === -1) {
+      // initialize
+      this.endTime = time + this.timeRange;
+      this.endBlock = block + this.blockRange;
+      return false;
+    }
+
+    if (time < this.endTime || block < this.endBlock) return false;
+
+    // change interlacing index
+    this.index ^= 1;
+
+    this.endTime = time + this.timeRange;
+    this.endBlock = block + this.blockRange;
+
+    this.logger.debug(`interlace ${this.index}`);
+
+    return true;
+  }
+}
+
 export class Indexer {
   config: IndexerConfiguration;
   chainConfig: IndexerChainConfiguration;
@@ -113,6 +190,8 @@ export class Indexer {
 
   sync = false;
 
+  interlace = new Interlacing();
+
   constructor(config: IndexerConfiguration, chainName: string) {
     this.config = config;
     this.chainType = MCC.getChainType(chainName);
@@ -139,16 +218,13 @@ export class Indexer {
     this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
   }
 
-  get lastConfimedBlockNumber() {
-    return this.N;
-  }
+  // getBlockSaveEpoch(time: number): number {
+  //   // 2022/01/01 00:00:00
 
-  getBlockSaveEpoch(time: number): number {
-    // 2022/01/01 00:00:00
-
-    // todo: this function MUST be in utility and it must use config to get number of days to look back!
-    return Math.floor((time - 1640991600) / (14 * this.Csec2day));
-  }
+  //   // todo: this function MUST be in utility and it must use config to get number of days to look back!
+  //   // todo: DAVID! new logic - make new table WHEN: more than X blocks and more than T time
+  //   return Math.floor((time - 1640991600) / (14 * this.Csec2day));
+  // }
 
   getBlock(blockNumber: number): Promise<IBlock> {
     // todo: implement lite version
@@ -246,16 +322,19 @@ export class Indexer {
     this.logger.debug(`start save block N=${Np1}`);
 
     try {
-      const epoch = this.getBlockSaveEpoch(block.timestamp);
+      //const epoch = this.getBlockSaveEpoch(block.timestamp);
 
-      const tableIndex = epoch & 1;
+      //const tableIndex = epoch & 1;
+
+      const change = this.interlace.update(block.timestamp, block.blockNumber);
+      const tableIndex = this.interlace.getActiveIndex();
 
       while (this.tableLock) {
         await sleepms(1);
       }
 
       // check if tables need to be dropped and new created
-      if (this.prevEpoch !== epoch && this.prevEpoch !== -1) {
+      if (change) {
         this.tableLock = true;
 
         const time0 = Date.now();
@@ -272,7 +351,7 @@ export class Indexer {
         this.tableLock = false;
       }
 
-      this.prevEpoch = epoch;
+      //this.prevEpoch = epoch;
 
       const entity = this.dbTransactionClasses[tableIndex];
 
@@ -453,10 +532,10 @@ export class Indexer {
           }
         }
 
-        blockPromisses.push(this.getBlock(blockNumber));
+        blockPromisses.push(async () => this.getBlock(blockNumber));
       }
 
-      const blocks = await Promise.all(blockPromisses);
+      const blocks = await PromiseTimeout.allRetry(blockPromisses, 5000, 5);
 
       await this.saveBlocksHeadersArray(blocks);
 
@@ -740,6 +819,8 @@ export class Indexer {
 
     let syncMode = false;
 
+    await this.interlace.initialize(this.logger, this.dbService, this.dbTransactionClasses, this.chainConfig.interlaceTimeRange, this.chainConfig.interlaceBlockRange);
+
     // sync date
     if (this.config.syncEnabled) {
       // get DB last number
@@ -824,31 +905,26 @@ async function displayStats() {
 
 
 async function testDelay(delay: number, result: number): Promise<number> {
-  console.log( `start ${result}`);
+  console.log(`start ${result}`);
   await sleepms(delay);
-  console.log( `done ${result}`);
+  console.log(`done ${result}`);
   return result;
 }
 
 async function runIndexer() {
 
-  const test=[];
+  // const test = [];
 
-  test.push( ()=>testDelay(  100 , 1 ) );
-  test.push( ()=>testDelay(  600 , 2 ) );
-  test.push( ()=>testDelay( 1200 , 3 ) );
-  test.push( ()=>testDelay(  100 , 4 ) );
+  // test.push(() => testDelay(100, 1));
+  // test.push(() => testDelay(600, 2));
+  // test.push(() => testDelay(1200, 3));
+  // test.push(() => testDelay(100, 4));
 
-  const testRes = await PromiseTimeout.allRetry( test , 500 , 3 );
-  //const testRes = await Promise.all( test );
+  // const testRes = await PromiseTimeout.allRetry(test, 500, 3);
+  // //const testRes = await Promise.all( test );
 
-  console.log( testRes );
-  console.log( testRes );
-
-
-
-
-
+  // console.log(testRes);
+  // console.log(testRes);
 
 
 

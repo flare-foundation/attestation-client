@@ -18,7 +18,9 @@
             },
             "confirmationsCollect": 3,
             "syncReadAhead":30,
-            "blockCollecting":"raw"
+            "blockCollecting":"raw",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100
         },
         {
             "name": "BTC",
@@ -39,7 +41,9 @@
             },
             "confirmationsCollect": 6,
             "syncReadAhead":10,
-            "blockCollecting":"tips"
+            "blockCollecting":"tips",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100
         },
         {
             "name": "LTC",
@@ -55,7 +59,9 @@
             },
             "confirmationsCollect": 6,
             "syncReadAhead":30,
-            "blockCollecting":"tips"
+            "blockCollecting":"tips",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100
         },
         {
             "name": "ALGO",
@@ -76,7 +82,9 @@
             },
             "confirmationsCollect": 3,
             "syncReadAhead":30,
-            "blockCollecting":"rawUnforkable" 
+            "blockCollecting":"rawUnforkable",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100 
         },
         {
             "name": "DOGE",
@@ -92,7 +100,9 @@
             },
             "confirmationsCollect": 6,
             "syncReadAhead":30,
-            "blockCollecting":"tips"
+            "blockCollecting":"tips",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100
         }
 
     ]

@@ -1,5 +1,6 @@
 import { ChainType, prefix0x, toBN } from "flare-mcc";
 import Web3 from "web3";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBTransactionBase } from "../entity/dbTransaction";
 import { AttestationTypeScheme, WeightedRandomChoice } from "../verification/attestation-types/attestation-types";
@@ -13,11 +14,11 @@ export async function getRandomTransaction(iqm: IndexedQueryManager): Promise<DB
    while (!result) {
       let tableId = Math.round(Math.random());
       let table = iqm.transactionTable[tableId];
-      const query = iqm.dbService.connection.manager.createQueryBuilder(table, "transaction")
+      const query = AttestationRoundManager.dbService.connection.manager.createQueryBuilder(table, "transaction")
          .select(["MIN(transaction.id) AS min", "MAX(transaction.id) as max"])
       const { min, max } = await query.getRawOne();
       let randN = Math.floor(Math.random() * (max - min + 1)) + min;
-      result = await iqm.dbService.connection.manager.findOne(table, { where: { id: randN } }) as DBTransactionBase;
+      result = await AttestationRoundManager.dbService.connection.manager.findOne(table, { where: { id: randN } }) as DBTransactionBase;
    }
    return result;
 }
@@ -28,7 +29,7 @@ export async function getRandomTransactionWithPaymentReference(iqm: IndexedQuery
    while (!result) {
       let tableId = Math.round(Math.random());
       let table = iqm.transactionTable[tableId];
-      let query = iqm.dbService.connection.manager.createQueryBuilder(table, "transaction")
+      let query = AttestationRoundManager.dbService.connection.manager.createQueryBuilder(table, "transaction")
          .where("transaction.paymentReference != ''")
 
       let count = await query.getCount();

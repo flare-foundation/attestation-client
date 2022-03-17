@@ -16,15 +16,13 @@ import { BlockHashQueryRequest, BlockHashQueryResponse, ConfirmedBlockQueryReque
 export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
   dbService: DatabaseService;
-  client: MccClient;
 
   transactionTable = [undefined, undefined];
   blockTable;
 
-  constructor(client: MccClient, options: IndexedQueryManagerOptions) {
+  constructor(options: IndexedQueryManagerOptions) {
     this.dbService = new DatabaseService(getGlobalLogger());
     this.settings = options;
-    this.client = client;
     this.prepareTables();
   }
 

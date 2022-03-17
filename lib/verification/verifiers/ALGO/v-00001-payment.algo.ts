@@ -68,8 +68,8 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
       sourceAddress: fullTxData.sourceAddress[0],
       receivingAddress: fullTxData.receivingAddress[0],
       paymentReference: fullTxData.reference[0], 
-      spentAmount: fullTxData.spentAmount,
-      receivedAmount: fullTxData.receivedAmount,
+      spentAmount: fullTxData.spentAmount[0].amount,
+      receivedAmount: fullTxData.receivedAmount[0].amount,
       oneToOne: true,
       status: toBN(0)     
    } as DHPayment;

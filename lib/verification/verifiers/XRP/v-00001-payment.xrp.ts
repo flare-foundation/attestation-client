@@ -90,8 +90,8 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
       sourceAddress: fullTxData.sourceAddress[0],
       receivingAddress: fullTxData.receivingAddress[0], // Payment has unique destination
       paymentReference: fullTxData.reference.length === 1 ? fullTxData.reference[0]: "",  // TODO
-      spentAmount: fullTxData.spentAmount,
-      receivedAmount: fullTxData.receivedAmount,
+      spentAmount: fullTxData.spentAmount[0].amount,
+      receivedAmount: fullTxData.receivedAmount[0].amount,
       oneToOne: true,
       status: toBN(status)
    } as DHPayment;

@@ -115,14 +115,10 @@ export interface VerificationTestOptions {
   testFailProbability?: number;
   skipDataAvailabilityProof?: boolean;
 }
-
-export interface RoundVote {
-  roundId: number;
-  hash: string;
-  request: ARType;
-  hashData: DHType;
+export interface WeightedRandomChoice {
+  name: string;
+  weight: number;
 }
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Encoding schemes
 //////////////////////////////////////////////////////////////////////////////////////////////////////

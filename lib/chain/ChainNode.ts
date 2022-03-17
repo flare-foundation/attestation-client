@@ -91,7 +91,7 @@ export class ChainNode {
       windowStartTime: (epochId: number) => { return 0; }
     };
 
-    this.indexedQueryManager = new IndexedQueryManager(this.client, options);
+    this.indexedQueryManager = new IndexedQueryManager(options);
   }
 
   onSend(inProcessing?: number, inQueue?: number) {

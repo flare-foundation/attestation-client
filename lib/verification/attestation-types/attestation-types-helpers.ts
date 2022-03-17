@@ -3,7 +3,7 @@ import { ChainType, MCC, prefix0x, toBN, toNumber, unPrefix0x } from "flare-mcc"
 import Web3 from "web3";
 import { toHex } from "../../utils/utils";
 import { AttestationType } from "../generated/attestation-types-enum";
-import { AttestationRequestParseError, AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, NumberLike, SupportedRequestType, SupportedSolidityType } from "./attestation-types";
+import { AttestationRequestParseError, AttestationRequestScheme, AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, NumberLike, SupportedRequestType, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
 
 export function attestationTypeSchemeIndex(schemes: AttestationTypeScheme[]): Map<AttestationType, AttestationTypeScheme> {
   let index = new Map<AttestationType, AttestationTypeScheme>();
@@ -239,4 +239,19 @@ export function numberLikeToNumber(n: NumberLike): number {
     return parseInt(n, 10);
   }
   return toNumber(n);
+}
+
+export function randomListElement<T>(list: T[]) {
+  let randN = Math.floor(Math.random()*list.length);
+  return list[randN];
+}
+
+export function randomWeightedChoice(choices: WeightedRandomChoice[]): string {
+  let weightSum = choices.map(choice => choice.weight).reduce((a, b) => a + b);
+  let randSum = Math.floor(Math.random()*(weightSum + 1));
+  let tmpSum = 0;
+  for(let choice of choices) {
+    tmpSum += choice.weight;
+    if(tmpSum >= randSum) return choice.name;
+  }
 }

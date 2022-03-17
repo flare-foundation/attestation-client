@@ -40,7 +40,8 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
       }
    }
 
-   const fullTxData = new AlgoTransaction(JSON.parse(result.transaction.response))
+   const transactionData = JSON.parse(result.transaction.response)
+   const fullTxData = new AlgoTransaction(transactionData.data, transactionData.additionalData)
 
    if(fullTxData.sourceAddress.length !== 1){
       return {

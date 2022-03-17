@@ -44,7 +44,8 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
    }
 
    let dbTransaction = confirmedTransactionResult.transaction!;
-   const fullTxData = new XrpTransaction(JSON.parse(dbTransaction.response))
+   const transactionData = JSON.parse(dbTransaction.response)
+   const fullTxData = new XrpTransaction(transactionData.data, transactionData.additionalData)
 
    if (recheck) {
       let confirmationBlockIndex = blockNumber + numberOfConfirmations;

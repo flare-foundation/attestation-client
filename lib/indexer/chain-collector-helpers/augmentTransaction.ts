@@ -39,6 +39,8 @@ async function augmentTransactionBase(client: CachedMccClient<any, any>, block: 
    res.transactionId = prepareString(txData.hash, 64);
    res.blockNumber = block.number;
    res.timestamp = txData.unixTimestamp;
+   res.transactionType = txData.type;
+   res.isNativePayment = txData.isNativePayment;
 
    // TODO calculate hash
    // res.hashVerify = prepareString(res.hashVerify, 64);

@@ -1,5 +1,4 @@
 import { MccClient } from "flare-mcc";
-import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
@@ -7,7 +6,7 @@ import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 import { getGlobalLogger } from "../utils/logger";
 import { getSourceName } from "../verification/attestation-types/attestation-types-helpers";
-import { BlockHashQueryRequest, BlockHashQueryResponse, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, BlockQueryParams, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
+import { BlockHashQueryRequest, BlockHashQueryResponse, BlockQueryParams, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
 
 
 ////////////////////////////////////////////////////////
@@ -16,16 +15,19 @@ import { BlockHashQueryRequest, BlockHashQueryResponse, ConfirmedBlockQueryReque
 
 export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
-  //dbService: DatabaseService;
+  dbService: DatabaseService;
   client: MccClient;
 
   transactionTable = [undefined, undefined];
   blockTable;
 
-  constructor(client: MccClient, options: IndexedQueryManagerOptions) {
-    //this.dbService = new DatabaseService(getGlobalLogger());
+  constructor(options: IndexedQueryManagerOptions) {
+    if(options.dbService) {
+      this.dbService = options.dbService;
+    } else {
+      this.dbService = new DatabaseService(getGlobalLogger());
+    }
     this.settings = options;
-    this.client = client;
     this.prepareTables();
   }
 
@@ -39,7 +41,7 @@ export class IndexedQueryManager {
     let results = []
     let startTimestamp = this.settings.windowStartTime(params.roundId);
     for (let table of this.transactionTable) {
-      let query = AttestationRoundManager.dbService.connection.manager
+      let query = this.dbService.connection.manager
         .createQueryBuilder(table, "transaction")
         .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })  // always query in the window.
         .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.endBlock });
@@ -63,7 +65,7 @@ export class IndexedQueryManager {
 
   async queryBlock(params: BlockQueryParams): Promise<DBBlockBase | null> {
     let startTimestamp = this.settings.windowStartTime(params.roundId);
-    let query = AttestationRoundManager.dbService.connection.manager
+    let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       // .where("block.confirmed = :confirmed", { confirmed: !!params.confirmed })
       .andWhere("block.timestamp >= :timestamp", { timestamp: startTimestamp });
@@ -148,7 +150,7 @@ export class IndexedQueryManager {
   }
 
   public async getLastConfirmedBlockNumber(): Promise<number> {
-    const res = await AttestationRoundManager.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+    const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
 
     if (res === undefined) return 0;
 
@@ -284,7 +286,7 @@ export class IndexedQueryManager {
   }
 
   public async getFirstConfirmedBlockAfterTime(timestamp: number): Promise<DBBlockBase | null> {
-    let query = AttestationRoundManager.dbService.connection.manager
+    let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp >= :timestamp", { timestamp: timestamp })
@@ -304,7 +306,7 @@ export class IndexedQueryManager {
    * @param blockNumber 
    */
   public async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | null> {
-    let query = AttestationRoundManager.dbService.connection.manager
+    let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp > :timestamp", { timestamp: timestamp })

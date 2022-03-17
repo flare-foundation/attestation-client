@@ -63,9 +63,9 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any, any>, 
       }
 
       errorPoint=3;
-      blockTransaction.fullData = { vinouts: [], ...blockTransaction.fullData };
+      blockTransaction.additionalData = { vinouts: [], ...blockTransaction.additionalData };
 
-      blockTransaction.fullData.vinouts = vinInputs;
+      blockTransaction.additionalData.vinouts = vinInputs;
       processor.markTopLevelJobDone();
 
       errorPoint=4;

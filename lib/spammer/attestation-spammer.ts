@@ -1,16 +1,28 @@
-import BN from "bn.js";
 import * as dotenv from "dotenv";
 import { logger } from "ethers";
-import { ChainType, MCC, RPCInterface, sleep } from "flare-mcc";
+import { ChainType, MCC, MccClient, sleep } from "flare-mcc";
 import Web3 from "web3";
+import * as configIndexer from "../../configs/config-indexer.json";
+import * as configAttestationClient from "../../configs/config.json";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
+import { AttesterClientChain } from "../attester/AttesterClientChain";
+import { AttesterClientConfiguration } from "../attester/AttesterClientConfiguration";
+import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
+import { getRandomAttestationRequest } from "../indexed-query-manager/random-attestations";
+import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
 import { getGlobalLogger } from "../utils/logger";
-import { getRandom, getWeb3, getWeb3Contract } from "../utils/utils";
+import { getWeb3, getWeb3Contract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
-import { AttestationRequest } from "../verification/attestation-types/attestation-types";
+import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
+import { encodeRequestBytes, getSourceName } from "../verification/attestation-types/attestation-types-helpers";
+import { readAttestationTypeSchemes } from "../verification/codegen/cg-utils";
+import { ARType } from "../verification/generated/attestation-request-types";
+
 let fs = require("fs");
 
 dotenv.config();
+
 var yargs = require("yargs");
 
 let args = yargs
@@ -131,7 +143,7 @@ let args = yargs
 
 class AttestationSpammer {
   chainType!: ChainType;
-  client!: RPCInterface;
+  client!: MccClient;
   web3!: Web3;
   logger!: any;
   stateConnector!: StateConnector;
@@ -148,37 +160,46 @@ class AttestationSpammer {
   web3Functions!: Web3Functions;
   logEvents: boolean;
 
+  configIndexer: IndexerConfiguration;
+  configAttestationClient: AttesterClientConfiguration;
+
+  chainAttestationConfig: AttesterClientChain;
+  chainIndexerConfig: IndexerClientChain;
+
+  indexedQueryManager: IndexedQueryManager;
+  definitions: AttestationTypeScheme[];
+
+  numberOfConfirmations = 6;
+  BUFFER_TIMESTAMP_OFFSET: number = 0;
+  BUFFER_WINDOW: number = 1
+
   constructor(privateKey: string, logEvents = true) {
     this.privateKey = privateKey;
     this.logEvents = logEvents;
     this.chainType = MCC.getChainType(args["chain"]);
-    switch (this.chainType) {
-      case ChainType.BTC:
-      case ChainType.LTC:
-      case ChainType.DOGE:
-        this.client = MCC.Client(this.chainType, { url: this.URL, username: this.USERNAME, password: this.PASSWORD }) as RPCInterface;
-        break;
-      case ChainType.XRP:
-        this.client = MCC.Client(this.chainType, { url: this.URL, username: this.USERNAME, password: this.PASSWORD }) as RPCInterface;
-        break;
-      case ChainType.ALGO:
-        const algoCreateConfig = {
-          algod: {
-            url: args["blockchainURL"],
-            token: args["blockchainToken"],
-          },
-          indexer: {
-            url: args["blockchainIndexerURL"],
-            token: args["blockchainIndexerToken"],
-          },
-        };
-        this.client = MCC.Client(this.chainType, algoCreateConfig) as RPCInterface;
-        break;
-      default:
-        throw new Error("");
-    }
 
-    // let mccClient = new MCClient(new MCCNodeSettings(this.chainType, this.URL, this.USERNAME || "", this.PASSWORD || "", null));
+    this.configAttestationClient = configAttestationClient as any as AttesterClientConfiguration;
+    this.configIndexer = configIndexer as IndexerConfiguration;
+
+    let chainName = getSourceName(this.chainType);
+
+    this.chainAttestationConfig = this.configAttestationClient.chains.find(chain => chain.name === chainName);
+    this.chainIndexerConfig = this.configIndexer.chains.find(chain => chain.name === chainName);
+
+    this.numberOfConfirmations = (this.chainAttestationConfig.metaData as any).requiredBlocks as number;
+    //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
+
+    this.client = MCC.Client(this.chainType, {
+      ...this.chainIndexerConfig.mccCreate,
+      rateLimitOptions: this.chainIndexerConfig.rateLimitOptions
+    });
+
+    const options: IndexedQueryManagerOptions = {
+      chainType: this.chainType,
+      windowStartTime: (epochId: number) => { return 0; }
+    } as IndexedQueryManagerOptions;
+    this.indexedQueryManager = new IndexedQueryManager(options);
+
     this.logger = getGlobalLogger(args["loggerLabel"]);
     this.web3 = getWeb3(this.rpcLink) as Web3;
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.privateKey);
@@ -188,51 +209,62 @@ class AttestationSpammer {
     });
   }
 
-  async sendAttestationRequest(stateConnector: StateConnector, request: AttestationRequest) {
-    // todo: fix
-    
-    // let fnToEncode = stateConnector.methods.requestAttestations(request.instructions, request.id, request.dataAvailabilityProof);
-    // const receipt = await this.web3Functions.signAndFinalize3(
-    //   `request attestation #${AttestationSpammer.sendCount}`,
-    //   this.stateConnector.options.address,
-    //   fnToEncode,
-    //   DEFAULT_GAS,
-    //   DEFAULT_GAS_PRICE,
-    //   true
-    // );
-
-    // if (receipt) {
-    //   // this.logger.info(`Attestation sent`)
-    // }
-
-    // return receipt;
+  getCurrentRound() {
+    let now = Math.floor(Date.now()/1000);
+    return Math.floor((now -  this.BUFFER_TIMESTAMP_OFFSET)/this.BUFFER_WINDOW)
   }
 
-  async waitForStateConnector() {
+
+  async sendAttestationRequest(stateConnector: StateConnector, request: ARType) {
+    let scheme = this.definitions.find(definition => definition.id === request.attestationType);
+    let requestBytes = encodeRequestBytes(request, scheme);
+
+    let fnToEncode = stateConnector.methods.requestAttestations(requestBytes);
+    const receipt = await this.web3Functions.signAndFinalize3(
+      `request attestation #${AttestationSpammer.sendCount}`,
+      this.stateConnector.options.address,
+      fnToEncode,
+      DEFAULT_GAS,
+      DEFAULT_GAS_PRICE,
+      true
+    );
+
+    if (receipt) {
+      // this.logger.info(`Attestation sent`)
+    }
+    return receipt;
+  }
+
+  async initializeStateConnector() {
     while (!this.stateConnector) {
       await sleep(100);
     }
+
+    this.BUFFER_TIMESTAMP_OFFSET = parseInt(await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
+    this.BUFFER_WINDOW = parseInt(await this.stateConnector.methods.BUFFER_WINDOW().call(), 10);
   }
 
   static sendCount = 0;
 
   async runSpammer() {
-    await this.waitForStateConnector();
+    await this.initializeStateConnector();
+    await this.indexedQueryManager.dbService.waitForDBConnection();
+    this.definitions = await readAttestationTypeSchemes();
 
     // load data from 'database'
     const data = "[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.valid.json`).toString().slice(0, -2).replace(/\n/g, "") + "]";
-    const validTransactions: Array<AttestationRequest> = JSON.parse(data);
+    // const validTransactions: Array<AttestationRequest> = JSON.parse(data);
     // const invalidTransactions: Array<AttestationRequest> = JSON.parse("[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.invalid.json`).toString().slice(0, -1) + "]");
 
     // JSON saves BN as hex strings !!!@@!#$!@#
-    for (let a = 0; a < validTransactions.length; a++) {
-      try {
-        if (validTransactions[a].timestamp) {
-          validTransactions[a].timestamp = new BN(validTransactions[a].timestamp!, "hex");
-        }
-        validTransactions[a].instructions = new BN(validTransactions[a].instructions, "hex");
-      } catch {}
-    }
+    // for (let a = 0; a < validTransactions.length; a++) {
+    //   try {
+    //     if (validTransactions[a].timestamp) {
+    //       validTransactions[a].timestamp = new BN(validTransactions[a].timestamp!, "hex");
+    //     }
+    //     validTransactions[a].instructions = new BN(validTransactions[a].instructions, "hex");
+    //   } catch { }
+    // }
 
     // for (let a = 0; a < invalidTransactions.length; a++) {
     //   try {
@@ -243,15 +275,23 @@ class AttestationSpammer {
     //   } catch {}
     // }
 
+    let attRequest: ARType | undefined;
     while (true) {
       try {
         AttestationSpammer.sendCount++;
-        const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
-        await this.sendAttestationRequest(this.stateConnector, attRequest); // async call
+        // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
+        let roundId = this.getCurrentRound();
+        let attRequest = await getRandomAttestationRequest(this.definitions, this.indexedQueryManager, this.chainType, roundId, this.numberOfConfirmations);
+        if(attRequest) {
+          await this.sendAttestationRequest(this.stateConnector, attRequest); // async call
+        }        
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);
       }
-      await sleep(Math.floor(Math.random() * this.delay));
+      if(!attRequest){
+        await sleep(Math.floor(Math.random() * this.delay));
+      }
+      
       //await sleep(Math.floor(this.delay));
     }
   }

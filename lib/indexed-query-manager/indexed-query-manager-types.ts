@@ -1,9 +1,11 @@
 import { ChainType } from "flare-mcc";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBTransactionBase } from "../entity/dbTransaction";
+import { DatabaseService } from "../utils/databaseService";
 
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
+  dbService?: DatabaseService;
   // return windows start time from current epochId
   windowStartTime: (epochId: number) => number;
 }

@@ -1,9 +1,10 @@
 import { ChainType, MCC } from "flare-mcc";
-import * as config from "../configs/config-indexer.json";
+import * as indexerConfig from "../configs/config-indexer.json";
 import { AttesterClientConfiguration } from "../lib/attester/AttesterClientConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
 import { getRandomConfirmedBlock, getRandomTransaction, getRandomTransactionWithPaymentReference } from "../lib/indexed-query-manager/indexed-query-manager-utils";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
+import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
 import { DotEnvExt } from "../lib/utils/DotEnvExt";
 import { getSourceName } from "../lib/verification/attestation-types/attestation-types-helpers";
 
@@ -19,15 +20,15 @@ DotEnvExt();
 describe("Indexed query manager", () => {
    let indexedQueryManager: IndexedQueryManager;
    let client: MCC.XRP;
-   let configuration: AttesterClientConfiguration;
+   let indexerConfiguration: IndexerConfiguration;
    let chainName: string;
    let startTime = 0;
 
    
    before(async () => {
-      configuration = config as any as AttesterClientConfiguration;
+      indexerConfiguration = indexerConfig as IndexerConfiguration
       chainName = getSourceName(CHAIN_ID);
-      let chainConfiguration = config.chains.find(chain => chain.name === chainName);
+      let chainConfiguration = indexerConfig.chains.find(chain => chain.name === chainName);
       client = MCC.Client(CHAIN_ID, {
          ...chainConfiguration.mccCreate,
          rateLimitOptions: chainConfiguration.rateLimitOptions
@@ -39,8 +40,8 @@ describe("Indexed query manager", () => {
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (epochId: number) => { return startTime; }
        } as IndexedQueryManagerOptions;      
-      indexedQueryManager = new IndexedQueryManager(client, options);
-      //await indexedQueryManager.dbService.waitForDBConnection();
+      indexedQueryManager = new IndexedQueryManager(options);
+      await indexedQueryManager.dbService.waitForDBConnection();
    });
 
    it("Should get last confirmed block number", async () => {

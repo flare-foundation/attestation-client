@@ -43,8 +43,8 @@ export async function getRandomTransactionWithPaymentReference(iqm: IndexedQuery
 }
 
 
-export async function getRandomConfirmedBlock(iqm: IndexedQueryManager): Promise<DBBlockBase|undefined> {
-   let query = AttestationRoundManager.dbService.connection.manager.createQueryBuilder(iqm.blockTable, "block")
+export async function getRandomConfirmedBlock(iqm: IndexedQueryManager): Promise<DBBlockBase | undefined> {
+   let query = iqm.dbService.connection.manager.createQueryBuilder(iqm.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
    let count = await query.getCount();
    if (count === 0) {
@@ -55,3 +55,17 @@ export async function getRandomConfirmedBlock(iqm: IndexedQueryManager): Promise
    query = query.offset(randN).limit(1);
    return await query.getOne() as DBBlockBase;
 }
+
+////////////////////////////////////////////////////////////
+// Random attestation requests
+////////////////////////////////////////////////////////////
+
+export async function generateUntilFound<T>(func: () => T | null) {
+   let result: T | undefined = undefined;
+   while(!result) {
+      result = await func();
+   }
+   return result;
+}
+
+

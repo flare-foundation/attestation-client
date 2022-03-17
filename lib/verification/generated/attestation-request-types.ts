@@ -90,7 +90,7 @@ export interface ARReferencedPaymentNonexistence {
    amount: NumberLike;
 
    // The payment reference to search for.
-   paymentReference: NumberLike;
+   paymentReference: BytesLike;
 
    // Number of the overflow block - the block which has `block.timestamp > endTimestamp` and `block.blockNumber > endBlock`.
    // Does not need to be the first such block. It has to be confirmed.

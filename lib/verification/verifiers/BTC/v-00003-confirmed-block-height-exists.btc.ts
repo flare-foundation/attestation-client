@@ -11,7 +11,13 @@ import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightEx
 
 const web3 = new Web3();
 
-export async function verifyConfirmedBlockHeightExistsBTC(client: MCC.BTC, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyConfirmedBlockHeightExistsBTC(
+   client: MCC.BTC, 
+   attestation: Attestation, 
+   indexer: IndexedQueryManager, 
+   recheck = false
+): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>>
+{
    let request = parseRequestBytes(attestation.data.request, TDEF_confirmed_block_height_exists) as ARConfirmedBlockHeightExists;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
@@ -34,5 +40,5 @@ export async function verifyConfirmedBlockHeightExistsBTC(client: MCC.BTC, attes
       request,
       response,
       status: VerificationStatus.OK
-   } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
+   }
 }   

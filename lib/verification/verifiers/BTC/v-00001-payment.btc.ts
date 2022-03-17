@@ -11,7 +11,13 @@ import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager
 
 const web3 = new Web3();
 
-export async function verifyPaymentBTC(client: MCC.BTC, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyPaymentBTC(
+   client: MCC.BTC, 
+   attestation: Attestation, 
+   indexer: IndexedQueryManager, 
+   recheck = false
+): Promise<Verification<ARPayment, DHPayment>>
+{
    let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
@@ -46,5 +52,5 @@ export async function verifyPaymentBTC(client: MCC.BTC, attestation: Attestation
       request,
       response,
       status: VerificationStatus.OK
-   } as Verification<ARPayment, DHPayment>;
+   }
 }   

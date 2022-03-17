@@ -6,86 +6,31 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 import { XrpTransaction } from "flare-mcc";
-import { toBN } from "flare-mcc/dist/utils/utils";
-import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
-import { ARPayment, Attestation, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { accountBasedPaymentVerification } from "../../verification-utils";
 
 const web3 = new Web3();
 
-export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyPaymentXRP(
+   client: MCC.XRP, 
+   attestation: Attestation, 
+   indexer: IndexedQueryManager, 
+   recheck = false
+): Promise<Verification<ARPayment, DHPayment>>
+{
    let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let blockNumber = numberLikeToNumber(request.blockNumber);
-
-   let confirmedTransactionResult = await indexer.getConfirmedTransaction({
-      txId: request.id,
-      numberOfConfirmations,
-      blockNumber: numberLikeToNumber(request.blockNumber),
-      dataAvailabilityProof: request.dataAvailabilityProof,
-      roundId: roundId,
-      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
-   })
-
-   if (confirmedTransactionResult.status === 'RECHECK') {
-      return {
-         status: VerificationStatus.RECHECK_LATER
-      } as Verification<ARPayment, DHPayment>;
+   let result = await accountBasedPaymentVerification(XrpTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+   if (result.status != VerificationStatus.OK) {
+      return { status: result.status }
    }
 
-   if (confirmedTransactionResult.status === 'NOT_EXIST') {
-      return {
-         status: VerificationStatus.NON_EXISTENT_TRANSACTION
-      }
-   }
-
-   let dbTransaction = confirmedTransactionResult.transaction!;
-   const fullTxData = new XrpTransaction(JSON.parse(dbTransaction.response))
-
-   if (recheck) {
-      let confirmationBlockIndex = blockNumber + numberOfConfirmations;
-      let confirmationBlock = await indexer.queryBlock({
-         blockNumber: confirmationBlockIndex,
-         roundId
-      });
-      if (!confirmationBlock) {
-         return {
-            status: VerificationStatus.NOT_CONFIRMED
-         }
-      }
-      if (confirmationBlock.blockHash != request.dataAvailabilityProof) {
-         return {
-            status: VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF
-         }
-      }
-   }
-
-   if (fullTxData.data.result.TransactionType != "Payment") {
-      return {
-         status: VerificationStatus.NOT_PAYMENT
-      }
-   }
-
-   let status = toBN(fullTxData.successStatus);
-
-   let response = {
-      stateConnectorRound: roundId,
-      blockNumber: toBN(blockNumber),
-      blockTimestamp: toBN(dbTransaction.timestamp),
-      transactionHash: dbTransaction.transactionId,
-      utxo: toBN(0),
-      sourceAddress: fullTxData.sourceAddress[0],
-      receivingAddress: fullTxData.receivingAddress[0],
-      paymentReference: fullTxData.reference.length === 1 ? fullTxData.reference[0]: "", 
-      spentAmount: fullTxData.spentAmount[0].amount,
-      receivedAmount: fullTxData.receivedAmount[0].amount,
-      oneToOne: true,
-      status: status
-   } as DHPayment;
+   let response = result.response;   
 
    //-$$$<end> of the custom section. Do not change this comment.
 
@@ -98,5 +43,5 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
       request,
       response,
       status: VerificationStatus.OK
-   } as Verification<ARPayment, DHPayment>;
+   }
 }   

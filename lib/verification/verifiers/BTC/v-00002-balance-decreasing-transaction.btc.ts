@@ -11,7 +11,13 @@ import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTra
 
 const web3 = new Web3();
 
-export async function verifyBalanceDecreasingTransactionBTC(client: MCC.BTC, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyBalanceDecreasingTransactionBTC(
+   client: MCC.BTC, 
+   attestation: Attestation, 
+   indexer: IndexedQueryManager, 
+   recheck = false
+): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>>
+{
    let request = parseRequestBytes(attestation.data.request, TDEF_balance_decreasing_transaction) as ARBalanceDecreasingTransaction;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
@@ -42,5 +48,5 @@ export async function verifyBalanceDecreasingTransactionBTC(client: MCC.BTC, att
       request,
       response,
       status: VerificationStatus.OK
-   } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
+   }
 }   

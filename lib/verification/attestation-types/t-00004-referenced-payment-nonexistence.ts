@@ -85,7 +85,7 @@ The exact amount to search for.
       {
          key: "paymentReference",
          size: PAYMENT_REFERENCE_BYTES,
-         type: "NumberLike",
+         type: "BytesLike",
          description: 
 `
 The payment reference to search for.

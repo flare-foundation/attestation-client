@@ -10,44 +10,29 @@ import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightEx
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 import { toBN } from "flare-mcc";
 import { ConfirmedBlockQueryRequest } from "../../../indexed-query-manager/indexed-query-manager-types";
+import { accountBasedConfirmedBlockHeightExistsVerification } from "../../verification-utils";
 
 const web3 = new Web3();
 
-export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyConfirmedBlockHeightExistsALGO(
+   client: MCC.ALGO, 
+   attestation: Attestation, 
+   indexer: IndexedQueryManager, 
+   recheck = false
+): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>>
+{
    let request = parseRequestBytes(attestation.data.request, TDEF_confirmed_block_height_exists) as ARConfirmedBlockHeightExists;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   const blockQueryParams : ConfirmedBlockQueryRequest = {
-      dataAvailabilityProof: request.dataAvailabilityProof,
-      numberOfConfirmations,
-      blockNumber: numberLikeToNumber(request.blockNumber),
-      roundId: roundId,
-      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
+   let result = await accountBasedConfirmedBlockHeightExistsVerification(request, roundId, numberOfConfirmations, recheck, indexer);
+   if (result.status != VerificationStatus.OK) {
+      return { status: result.status }
    }
 
-   // We check that block with specified hash exist at specified height
-   const result = await indexer.getConfirmedBlock(blockQueryParams)
-
-   if (result.status === 'RECHECK') {
-      return {
-         status: VerificationStatus.RECHECK_LATER
-      } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
-   }
-
-   if(result.status === 'NOT_EXIST' || !result.block){
-      return {
-         status: VerificationStatus.BLOCK_HASH_DOES_NOT_EXIST
-      }
-   }
-
-   let response = {   
-      stateConnectorRound: roundId,
-      blockNumber: toBN(result.block.blockNumber),
-      blockTimestamp: toBN(result.block.timestamp)   
-   } as DHConfirmedBlockHeightExists;
+   let response = result.response;   
 
    //-$$$<end> of the custom section. Do not change this comment.
 
@@ -60,5 +45,5 @@ export async function verifyConfirmedBlockHeightExistsALGO(client: MCC.ALGO, att
       request,
       response,
       status: VerificationStatus.OK
-   } as Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>;
+   }
 }   

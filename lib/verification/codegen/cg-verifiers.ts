@@ -72,7 +72,13 @@ ${imports}
 
 const web3 = new Web3();
 
-export async function ${functionName}(client: ${mccInterface}, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function ${functionName}(
+${tab()}client: ${mccInterface}, 
+${tab()}attestation: Attestation, 
+${tab()}indexer: IndexedQueryManager, 
+${tab()}recheck = false
+): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
+{
 ${tab()}let request = parseRequestBytes(attestation.data.request, TDEF_${dashCapitalized(definition.name, '_')}) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 ${tab()}let roundId = attestation.round.roundId;
 ${tab()}let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
@@ -92,7 +98,7 @@ ${tab()}${tab()}hash,
 ${tab()}${tab()}request,
 ${tab()}${tab()}response,
 ${tab()}${tab()}status: VerificationStatus.OK
-${tab()}} as Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>;
+${tab()}}
 }   
 `
 }

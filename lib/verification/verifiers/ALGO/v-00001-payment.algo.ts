@@ -6,73 +6,32 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
-import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
-import { AlgoTransaction, IAlgoBlockData, IAlgoGetTransactionRes, toBN } from "flare-mcc";
+import { AlgoTransaction } from "flare-mcc";
+import { accountBasedPaymentVerification } from "../../verification-utils";
+import { ARPayment, Attestation, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 
 const web3 = new Web3();
 
-export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyPaymentALGO(
+   client: MCC.ALGO, 
+   attestation: Attestation, 
+   indexer: IndexedQueryManager, 
+   recheck = false
+): Promise<Verification<ARPayment, DHPayment>>
+{
    let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await indexer.getConfirmedTransaction ({
-      txId: request.id,
-      numberOfConfirmations,
-      blockNumber: numberLikeToNumber(request.blockNumber),
-      dataAvailabilityProof: request.dataAvailabilityProof,
-      roundId: roundId,
-      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
-   })
-
-   if (result.status === 'RECHECK') {
-      return {
-         status: VerificationStatus.RECHECK_LATER
-      } as Verification<ARPayment, DHPayment>;
+   let result = await accountBasedPaymentVerification(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+   if (result.status != VerificationStatus.OK) {
+      return { status: result.status }
    }
 
-   if (result.status === 'NOT_EXIST' || !result.transaction) {
-      return {
-         status: VerificationStatus.NON_EXISTENT_TRANSACTION
-      }
-   }
-
-   const fullTxData = new AlgoTransaction(JSON.parse(result.transaction.response))
-
-   if(fullTxData.sourceAddress.length !== 1){
-      return {
-         status: VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS
-      }
-   }
-
-   if(fullTxData.receivingAddress.length !== 1){
-      return {
-         status: VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS
-      }
-   }
-
-   if(fullTxData.reference.length !== 1){
-      return {
-         status: VerificationStatus.NOT_SINGLE_PAYMENT_REFERENCE
-      }
-   }
-
-   let response = {
-      blockNumber: toBN(result.transaction.blockNumber),
-      blockTimestamp: toBN(result.transaction.timestamp),
-      transactionHash: result.transaction.transactionId,
-      utxo: toBN(0), // 0 For non Utxo chains
-      sourceAddress: fullTxData.sourceAddress[0],
-      receivingAddress: fullTxData.receivingAddress[0],
-      paymentReference: fullTxData.reference[0], 
-      spentAmount: fullTxData.spentAmount[0].amount,
-      receivedAmount: fullTxData.receivedAmount[0].amount,
-      oneToOne: true,
-      status: toBN(0)     
-   } as DHPayment;
+   let response = result.response;   
+   
 
    //-$$$<end> of the custom section. Do not change this comment.
 
@@ -85,5 +44,5 @@ export async function verifyPaymentALGO(client: MCC.ALGO, attestation: Attestati
       request,
       response,
       status: VerificationStatus.OK
-   } as Verification<ARPayment, DHPayment>;
+   }
 }   

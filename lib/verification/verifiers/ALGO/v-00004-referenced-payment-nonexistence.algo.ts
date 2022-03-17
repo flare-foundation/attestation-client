@@ -11,7 +11,13 @@ import { ARReferencedPaymentNonexistence, Attestation, BN, DHReferencedPaymentNo
 
 const web3 = new Web3();
 
-export async function verifyReferencedPaymentNonexistenceALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyReferencedPaymentNonexistenceALGO(
+   client: MCC.ALGO, 
+   attestation: Attestation, 
+   indexer: IndexedQueryManager, 
+   recheck = false
+): Promise<Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>>
+{
    let request = parseRequestBytes(attestation.data.request, TDEF_referenced_payment_nonexistence) as ARReferencedPaymentNonexistence;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
@@ -47,5 +53,5 @@ export async function verifyReferencedPaymentNonexistenceALGO(client: MCC.ALGO, 
       request,
       response,
       status: VerificationStatus.OK
-   } as Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>;
+   }
 }   

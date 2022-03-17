@@ -9,52 +9,30 @@
 import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
 import { AlgoTransaction, toBN } from "flare-mcc";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
+import { accountBasedBalanceDecreasingTransactionVerification } from "../../verification-utils";
 
 const web3 = new Web3();
 
-export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, attestation: Attestation, indexer: IndexedQueryManager, recheck = false) {
+export async function verifyBalanceDecreasingTransactionALGO(
+   client: MCC.ALGO, 
+   attestation: Attestation, 
+   indexer: IndexedQueryManager, 
+   recheck = false
+): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>>
+{
    let request = parseRequestBytes(attestation.data.request, TDEF_balance_decreasing_transaction) as ARBalanceDecreasingTransaction;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await indexer.getConfirmedTransaction({
-      txId: request.id,
-      numberOfConfirmations,
-      blockNumber: numberLikeToNumber(request.blockNumber),  // We need different transaction existence query 
-      dataAvailabilityProof: request.dataAvailabilityProof,
-      roundId: roundId,
-      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
-   })
-
-   if (result.status === 'RECHECK') {
-      return {
-         status: VerificationStatus.RECHECK_LATER
-      } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
+   let result = await accountBasedBalanceDecreasingTransactionVerification(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+   if (result.status != VerificationStatus.OK) {
+      return { status: result.status }
    }
 
-   if (result.status === 'NOT_EXIST' || !result.transaction) {
-      return {
-         status: VerificationStatus.NON_EXISTENT_TRANSACTION
-      } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>
-   }
-
-   const fullTxData = new AlgoTransaction(JSON.parse(result.transaction.response))
-
-   const sourceAddress = fullTxData.sourceAddress.length === 1 ? fullTxData.sourceAddress[0] : ""
-   const paymentReference = fullTxData.reference.length === 1 ? fullTxData.reference[0] : ""
+   let response = result.response;   
    
-
-   // Check 
-   let response = {
-      blockNumber: toBN(result.transaction.blockNumber),
-      blockTimestamp: toBN(result.transaction.timestamp),
-      transactionHash: result.transaction.transactionId,
-      sourceAddress: sourceAddress, 
-      spentAmount: fullTxData.spentAmount[0].amount,
-      paymentReference: paymentReference     
-   } as DHBalanceDecreasingTransaction;
 
    //-$$$<end> of the custom section. Do not change this comment.
 
@@ -67,5 +45,5 @@ export async function verifyBalanceDecreasingTransactionALGO(client: MCC.ALGO, a
       request,
       response,
       status: VerificationStatus.OK
-   } as Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>;
+   }
 }   

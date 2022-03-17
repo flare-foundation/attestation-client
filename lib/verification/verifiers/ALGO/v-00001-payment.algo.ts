@@ -6,9 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 import { AlgoTransaction } from "flare-mcc";
 import { accountBasedPaymentVerification } from "../../verification-utils";
-import { ARPayment, Attestation, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 
 const web3 = new Web3();
 
@@ -32,6 +32,40 @@ export async function verifyPaymentALGO(
 
    let response = result.response;   
    
+   // const transactionData = JSON.parse(result.transaction.response)
+   // const fullTxData = new AlgoTransaction(transactionData.data, transactionData.additionalData)
+
+   // if(fullTxData.sourceAddress.length !== 1){
+   //    return {
+   //       status: VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS
+   //    }
+   // }
+
+   // if(fullTxData.receivingAddress.length !== 1){
+   //    return {
+   //       status: VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS
+   //    }
+   // }
+
+   // if(fullTxData.reference.length !== 1){
+   //    return {
+   //       status: VerificationStatus.NOT_SINGLE_PAYMENT_REFERENCE
+   //    }
+   // }
+
+   // let response = {
+   //    blockNumber: toBN(result.transaction.blockNumber),
+   //    blockTimestamp: toBN(result.transaction.timestamp),
+   //    transactionHash: result.transaction.transactionId,
+   //    utxo: toBN(0), // 0 For non Utxo chains
+   //    sourceAddress: fullTxData.sourceAddress[0],
+   //    receivingAddress: fullTxData.receivingAddress[0],
+   //    paymentReference: fullTxData.reference[0], 
+   //    spentAmount: fullTxData.spentAmount[0].amount,
+   //    receivedAmount: fullTxData.receivedAmount[0].amount,
+   //    oneToOne: true,
+   //    status: toBN(0)     
+   // } as DHPayment;
 
    //-$$$<end> of the custom section. Do not change this comment.
 

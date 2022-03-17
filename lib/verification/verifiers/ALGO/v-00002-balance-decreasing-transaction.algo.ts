@@ -32,6 +32,11 @@ export async function verifyBalanceDecreasingTransactionALGO(
    }
 
    let response = result.response;   
+   // const transactionData = JSON.parse(result.transaction.response)
+   // const fullTxData = new AlgoTransaction(transactionData.data, transactionData.additionalData)
+
+   // const sourceAddress = fullTxData.sourceAddress.length === 1 ? fullTxData.sourceAddress[0] : ""
+   // const paymentReference = fullTxData.reference.length === 1 ? fullTxData.reference[0] : ""
    
 
    //-$$$<end> of the custom section. Do not change this comment.

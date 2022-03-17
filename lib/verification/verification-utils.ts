@@ -1,4 +1,4 @@
-import { toBN, TransactionBase } from "flare-mcc";
+import { AlgoTransaction, toBN, TransactionBase } from "flare-mcc";
 import { ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryResponse, ReferencedTransactionsQueryResponse } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { Indexer } from "../indexer/indexer";
@@ -125,7 +125,8 @@ export async function accountBasedPaymentVerification(
    }
 
    const dbTransaction = confirmedTransactionResult.transaction;
-   const fullTxData = new TransactionClass(JSON.parse(confirmedTransactionResult.transaction.response))
+   const parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
+   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData)
 
    status = verifyNativePayment(fullTxData);
    if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
@@ -193,7 +194,8 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
    }
 
    const dbTransaction = confirmedTransactionResult.transaction;
-   const fullTxData = new TransactionClass(JSON.parse(confirmedTransactionResult.transaction.response))
+   const parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
+   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData)
 
    status = await verifyConfirmationBlock({
       recheck, 

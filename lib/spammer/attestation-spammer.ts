@@ -1,26 +1,23 @@
-import BN from "bn.js";
 import * as dotenv from "dotenv";
 import { logger } from "ethers";
-import { ChainType, MCC, MccClient, prefix0x, RPCInterface, sleep, toBN } from "flare-mcc";
+import { ChainType, MCC, MccClient, sleep } from "flare-mcc";
 import Web3 from "web3";
-import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { getGlobalLogger } from "../utils/logger";
-import { getRandom, getWeb3, getWeb3Contract } from "../utils/utils";
-import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
-import { AttestationRequest, AttestationTypeScheme, WeightedRandomChoice } from "../verification/attestation-types/attestation-types";
 import * as configIndexer from "../../configs/config-indexer.json";
 import * as configAttestationClient from "../../configs/config.json";
+import { StateConnector } from "../../typechain-web3-v1/StateConnector";
+import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { AttesterClientConfiguration } from "../attester/AttesterClientConfiguration";
-import { encodeRequestBytes, getSourceName, randomWeightedChoice } from "../verification/attestation-types/attestation-types-helpers";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
-import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence, ARType } from "../verification/generated/attestation-request-types";
-import { readAttestationTypeSchemes } from "../verification/codegen/cg-utils";
-import { AttestationType } from "../verification/generated/attestation-types-enum";
-import { getRandomAttestationRequest, getRandomConfirmedBlock, getRandomTransaction, getRandomTransactionWithPaymentReference } from "../indexed-query-manager/indexed-query-manager-utils";
-import { AttesterClientChain } from "../attester/AttesterClientChain";
+import { getRandomAttestationRequest } from "../indexed-query-manager/random-attestations";
 import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
-import randomNumber from "random-number-csprng";
+import { getGlobalLogger } from "../utils/logger";
+import { getWeb3, getWeb3Contract } from "../utils/utils";
+import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
+import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
+import { encodeRequestBytes, getSourceName } from "../verification/attestation-types/attestation-types-helpers";
+import { readAttestationTypeSchemes } from "../verification/codegen/cg-utils";
+import { ARType } from "../verification/generated/attestation-request-types";
 
 let fs = require("fs");
 

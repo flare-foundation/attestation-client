@@ -6,11 +6,10 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
-import { toBN } from "flare-mcc/dist/utils/utils";
-import { Payment, TransactionMetadata, TxResponse } from "xrpl";
-import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 import { XrpTransaction } from "flare-mcc";
+import { toBN } from "flare-mcc/dist/utils/utils";
+import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
+import { ARPayment, Attestation, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 
 const web3 = new Web3();
 
@@ -21,9 +20,9 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   // TODO: pass 
    let blockNumber = numberLikeToNumber(request.blockNumber);
-   let result = await indexer.getConfirmedTransaction({
+
+   let confirmedTransactionResult = await indexer.getConfirmedTransaction({
       txId: request.id,
       numberOfConfirmations,
       blockNumber: numberLikeToNumber(request.blockNumber),
@@ -32,24 +31,20 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })
 
-   if (result.status === 'RECHECK') {
+   if (confirmedTransactionResult.status === 'RECHECK') {
       return {
          status: VerificationStatus.RECHECK_LATER
       } as Verification<ARPayment, DHPayment>;
    }
 
-   if (result.status === 'NOT_EXIST') {
+   if (confirmedTransactionResult.status === 'NOT_EXIST') {
       return {
          status: VerificationStatus.NON_EXISTENT_TRANSACTION
       }
    }
 
-   const fullTxData = new XrpTransaction(JSON.parse(result.transaction.response))
-   // let fullTxData = JSON.parse(result.transaction.response) as TxResponse;
-
-   let metaData: TransactionMetadata = fullTxData.data.result.meta || (fullTxData.data.result as any).metaData;
-   // let fee = toBN(fullTxData.result.Fee!);
-   let fee = fullTxData.fee;
+   let dbTransaction = confirmedTransactionResult.transaction!;
+   const fullTxData = new XrpTransaction(JSON.parse(dbTransaction.response))
 
    if (recheck) {
       let confirmationBlockIndex = blockNumber + numberOfConfirmations;
@@ -75,25 +70,21 @@ export async function verifyPaymentXRP(client: MCC.XRP, attestation: Attestation
       }
    }
 
-   // Transaction is Payment
-   let delivered = toBN(metaData.delivered_amount as string); // XRP in drops
+   let status = toBN(fullTxData.successStatus);
 
-   let status = this.client.getTransactionStatus(fullTxData.data);
-
-   let payment = fullTxData.data.result as Payment;
    let response = {
       stateConnectorRound: roundId,
       blockNumber: toBN(blockNumber),
-      blockTimestamp: toBN(result.transaction.timestamp),
-      transactionHash: result.transaction.transactionId,
+      blockTimestamp: toBN(dbTransaction.timestamp),
+      transactionHash: dbTransaction.transactionId,
       utxo: toBN(0),
       sourceAddress: fullTxData.sourceAddress[0],
-      receivingAddress: fullTxData.receivingAddress[0], // Payment has unique destination
-      paymentReference: fullTxData.reference.length === 1 ? fullTxData.reference[0]: "",  // TODO
+      receivingAddress: fullTxData.receivingAddress[0],
+      paymentReference: fullTxData.reference.length === 1 ? fullTxData.reference[0]: "", 
       spentAmount: fullTxData.spentAmount[0].amount,
       receivedAmount: fullTxData.receivedAmount[0].amount,
       oneToOne: true,
-      status: toBN(status)
+      status: status
    } as DHPayment;
 
    //-$$$<end> of the custom section. Do not change this comment.

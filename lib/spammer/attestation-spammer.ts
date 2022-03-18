@@ -12,10 +12,10 @@ import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManage
 import { getRandomAttestationRequest } from "../indexed-query-manager/random-attestations";
 import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
 import { getGlobalLogger } from "../utils/logger";
-import { getWeb3, getWeb3Contract } from "../utils/utils";
+import { getTestStateConnectorAddress, getWeb3, getWeb3Contract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
-import { encodeRequestBytes, getSourceName } from "../verification/attestation-types/attestation-types-helpers";
+import { encodeRequestBytes, getSourceName, parseRequestBytesForDefinitions } from "../verification/attestation-types/attestation-types-helpers";
 import { readAttestationTypeSchemes } from "../verification/codegen/cg-utils";
 import { ARType } from "../verification/generated/attestation-request-types";
 
@@ -47,50 +47,7 @@ let args = yargs
   .option("contractAddress", {
     alias: "t",
     type: "string",
-    description: "Address of the deployed contract",
-    default: "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F", // default hardhat address when run with yarn stateconnector
-  })
-  .option("blockchainURL", {
-    alias: "u",
-    type: "string",
-    description: "RPC url for blockchain",
-    default: "http://testnode3.c.aflabs.net:4001/",
-  })
-  .option("blockchainUsername", {
-    alias: "s",
-    type: "string",
-    description: "Blockchain node username",
-    default: "rpcuser",
-  })
-  .option("blockchainPassword", {
-    alias: "p",
-    type: "string",
-    description: "Blockchain node password",
-    default: "rpcpass",
-  })
-  .option("blockchainToken", {
-    alias: "h",
-    type: "string",
-    description: "Blockchain node access token",
-    default: "7f90419ceab8fde42b2bd50c44ed21c0aefebc614f73b27619549f366b060a14",
-  })
-  .option("blockchainIndexerURL", {
-    alias: "i",
-    type: "string",
-    description: "RPC url for indexer (algo only)",
-    default: "http://testnode3.c.aflabs.net:8980/",
-  })
-  .option("blockchainIndexerToken", {
-    alias: "j",
-    type: "string",
-    description: "Blockchain access token for indexer (algo only)",
-    default: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddd",
-  })
-  .option("confirmations", {
-    alias: "f",
-    type: "number",
-    description: "Number of confirmations",
-    default: 6,
+    description: "Address of the deployed contract"
   })
   .option("range", {
     alias: "w",
@@ -134,12 +91,7 @@ let args = yargs
     description: "Logger label",
     default: "",
   })
-  .option("databaseFile", {
-    alias: "g",
-    type: "string",
-    description: "Database file",
-    default: "",
-  }).argv;
+  .argv;
 
 class AttestationSpammer {
   chainType!: ChainType;
@@ -150,9 +102,6 @@ class AttestationSpammer {
   range: number = args["range"];
   rpcLink: string = args["rpcLink"];
 
-  URL: string = args["blockchainURL"];
-  USERNAME?: string = args["blockchainUsername"];
-  PASSWORD?: string = args["blockchainPassword"];
   confirmations: number = args["confirmations"];
   privateKey: string;
   delay: number = args["delay"];
@@ -204,20 +153,27 @@ class AttestationSpammer {
     this.web3 = getWeb3(this.rpcLink) as Web3;
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.privateKey);
 
-    getWeb3Contract(this.web3, args["contractAddress"], "StateConnector").then((sc: StateConnector) => {
+    let stateConnectorAddresss = args["contractAddress"] || getTestStateConnectorAddress()
+
+    this.logger.info(`RPC: ${this.rpcLink}`)
+    this.logger.info(`Using state connector at: ${stateConnectorAddresss}`)
+    getWeb3Contract(this.web3, stateConnectorAddresss, "StateConnector").then((sc: StateConnector) => {
       this.stateConnector = sc;
     });
   }
 
   getCurrentRound() {
-    let now = Math.floor(Date.now()/1000);
-    return Math.floor((now -  this.BUFFER_TIMESTAMP_OFFSET)/this.BUFFER_WINDOW)
+    let now = Math.floor(Date.now() / 1000);
+    return Math.floor((now - this.BUFFER_TIMESTAMP_OFFSET) / this.BUFFER_WINDOW)
   }
 
 
   async sendAttestationRequest(stateConnector: StateConnector, request: ARType) {
     let scheme = this.definitions.find(definition => definition.id === request.attestationType);
     let requestBytes = encodeRequestBytes(request, scheme);
+
+    // // DEBUG CODE
+    // console.log("SENDING:\n", requestBytes, "\n", request);
 
     let fnToEncode = stateConnector.methods.requestAttestations(requestBytes);
     const receipt = await this.web3Functions.signAndFinalize3(
@@ -230,7 +186,7 @@ class AttestationSpammer {
     );
 
     if (receipt) {
-      // this.logger.info(`Attestation sent`)
+      this.logger.info(`Attestation sent`)      
     }
     return receipt;
   }
@@ -244,11 +200,62 @@ class AttestationSpammer {
     this.BUFFER_WINDOW = parseInt(await this.stateConnector.methods.BUFFER_WINDOW().call(), 10);
   }
 
+  async syncBlocks() {
+    while (true) {
+      try {
+        let last = this.lastBlockNumber;
+        this.lastBlockNumber = await this.web3.eth.getBlockNumber();
+        // if(this.lastBlockNumber > last) {
+        //   this.logger.info(`Last block: ${this.lastBlockNumber}`)
+        // }
+        await sleep(200);
+      } catch (e) {
+        this.logger.info(`Error: ${e}`);
+      }
+    }
+  }
+
+  async startLogEvents(maxBlockFetch = 100) {
+    this.lastBlockNumber = await this.web3.eth.getBlockNumber();
+    let firstUnprocessedBlockNumber = this.lastBlockNumber;
+    this.syncBlocks();
+    while (true) {
+      await sleep(200);
+      try {
+        let last = Math.min(firstUnprocessedBlockNumber + maxBlockFetch, this.lastBlockNumber);
+        if (firstUnprocessedBlockNumber > last) {
+          continue;
+        }
+        let events = await this.stateConnector.getPastEvents("AttestationRequest", {
+          fromBlock: firstUnprocessedBlockNumber,
+          toBlock: last,
+        });
+        // // DEBUG CODE
+        // if(events.length) {
+        //   for(let event of events) {
+        //     if(event.event === "AttestationRequest") {
+        //       let timestamp = event.returnValues.timestamp;
+        //       let data = event.returnValues.data;
+        //       let parsedRequest = parseRequestBytesForDefinitions(data, this.definitions);     
+        //       console.log("RECEIVED:\n", data, "\n", parsedRequest);          
+        //     }
+        //   }
+        // }
+        this.logger.info(`Receiving ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
+        firstUnprocessedBlockNumber = last + 1;
+      } catch (e) {
+        this.logger.info(`Error: ${e}`);
+      }
+    }
+  }
+
+
   static sendCount = 0;
 
   async runSpammer() {
     await this.initializeStateConnector();
     await this.indexedQueryManager.dbService.waitForDBConnection();
+    this.startLogEvents();
     this.definitions = await readAttestationTypeSchemes();
 
     // load data from 'database'
@@ -282,20 +289,25 @@ class AttestationSpammer {
         // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
         let roundId = this.getCurrentRound();
         let attRequest = await getRandomAttestationRequest(this.definitions, this.indexedQueryManager, this.chainType, roundId, this.numberOfConfirmations);
-        if(attRequest) {
-          await this.sendAttestationRequest(this.stateConnector, attRequest); // async call
-        }        
+        if (attRequest) {
+          this.sendAttestationRequest(this.stateConnector, attRequest).catch(e => {
+            this.logger.error(`ERROR: ${e}`);
+          })
+        }
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);
       }
-      if(!attRequest){
-        await sleep(Math.floor(Math.random() * this.delay));
-      }
-      
-      //await sleep(Math.floor(this.delay));
+      // if (!attRequest) {
+      //   await sleep(Math.floor(Math.random() * this.delay));
+      // }
+
+      await sleep(Math.floor(this.delay));
     }
   }
 }
+
+
+
 
 async function displayStats() {
   const period = 5000;

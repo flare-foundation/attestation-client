@@ -1,5 +1,5 @@
 import { UtxoTransaction } from "flare-mcc";
-import { IUtxoCoinbase, IUtxoVinTransaction } from "flare-mcc/dist/types/utxoTypes";
+import { IUtxoCoinbase, IUtxoVinTransaction, IUtxoVinVoutsMapper } from "flare-mcc/dist/types/utxoTypes";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { getGlobalLogger } from "../../utils/logger";
@@ -29,6 +29,8 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any, any>, 
     // here we could check if reference starts with 0x46425052 ()
     if (blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase") {
 
+      // We need to create IUtxoTransactionAdditionalData
+
       let txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction) => {
         if (vin.txid) {
           // the in-transactions are prepended to queue in order to process them earlier
@@ -40,7 +42,7 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any, any>, 
 
       let vinTransactions = await Promise.all(txPromises as any);
 
-      const vinInputs = [];
+      const vinInputs: IUtxoVinVoutsMapper[] = [];
 
       errorPoint=2;
 
@@ -52,13 +54,10 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any, any>, 
 
         if (tx) {
           const inVout = vin.vout!;
-          if (tx.data.vout[inVout].n != inVout) {
-            throw Error("Vin and vout transaction miss match");
-          }
-          vinInputs.push(tx.data.vout[inVout]);
-        }
-        else {
-          vinInputs.push({ coinbase: vin.coinbase } as IUtxoCoinbase);
+          vinInputs.push({
+            index: i,
+            vinvout: tx.extractVoutAt(inVout)
+          });
         }
       }
 

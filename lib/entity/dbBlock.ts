@@ -15,14 +15,12 @@ export class DBBlockBase {
     @Index()
     timestamp!: number;
 
-    @Column()
-    transactions: number = 0;
+    @Column({nullable:true})
+    transactions: number;
 
 
-    @Column()
-    confirmed: boolean = false;
-
-    //@Column({ type: "text" }) response: string = "";
+    @Column({nullable:true})
+    confirmed: boolean;
 }
 
 

@@ -14,6 +14,8 @@ import {
    DBTransactionXRP0, DBTransactionXRP1
 } from "../entity/dbTransaction";
 
+export const SECONDS_PER_DAY = 60 * 60 * 24;
+
 export function prepareIndexerTables(type: ChainType) {
    let transactionTable = [];
    let blockTable;

@@ -104,6 +104,7 @@ export class CachedMccClient<T, B> {
     return this.blockCache.get(blockHash)
   }
 
+  // getBlock is caching by hashes only! by blockNumber queries are always executed
   public async getBlock(blockHashOrNumber: string | number): Promise<B | null> {
     // if(!this.canAccept) {
     //   throw Error("Cannot accept block requests");

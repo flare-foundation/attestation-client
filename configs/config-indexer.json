@@ -4,6 +4,8 @@
 
     "blockCollectTimeMs": 1000,
 
+    "syncUpdateTimeMs": 10000,
+
     "chains": [
         {
             "name": "XRP",

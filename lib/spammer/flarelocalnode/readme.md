@@ -1,5 +1,5 @@
 # Spammer local node installation and run
-Written on 18/2/2022 by David for Flare node version 0.5.3
+Written on `18/2/2022` by `David` for Flare node version `0.5.3`
 
 To run spammer you need to run local node.
 
@@ -26,11 +26,11 @@ gvm install go1.17.5
 To install flare local node open new terminal and run next commands:
 
 ```
-mkdir .node
+mkdir .node -p
 cd .node
 git clone https://github.com/flare-foundation/flare.git
-git checkout v0.5.3
 cd flare
+git checkout v0.5.3
 gvm use go1.17.5
 ./scripts/build.sh
 
@@ -38,12 +38,29 @@ cp ../../lib/spammer/flarelocalnode/scdev.json .
 cp ../../lib/spammer/flarelocalnode/launch_localnet_scdev.sh ./scripts
 
 chmod +x ./scripts/launch_localnet_scdev.sh
+
+# deploying state connector
 ```
 
-# Running local node
+## Running local node
 Open new terminal and run next commands:
 ```
 cd ./.node/flare
 ./scripts/launch_localnet_scdev.sh
 ```
 Do not close the teminal.
+
+### Install State Connector
+Run local node and wait until it is healthy `http://127.0.0.1:9650/ext/health`.
+
+Open new terminal window and run state connector deployment:
+```
+yarn stateconnector
+```
+
+
+
+## Running Spammer
+
+```
+```

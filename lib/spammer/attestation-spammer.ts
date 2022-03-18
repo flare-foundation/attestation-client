@@ -11,6 +11,7 @@ import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-que
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getRandomAttestationRequest } from "../indexed-query-manager/random-attestations";
 import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
+import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
 import { getTestStateConnectorAddress, getWeb3, getWeb3Contract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
@@ -21,7 +22,10 @@ import { ARType } from "../verification/generated/attestation-request-types";
 
 let fs = require("fs");
 
-dotenv.config();
+//dotenv.config();
+DotEnvExt();
+
+console.log( process.env );
 
 var yargs = require("yargs");
 

@@ -49,14 +49,14 @@ export class BlockProcessorManager {
                 if( syncMode ) return;
 
                 if( this.blockProcessors[a].isCompleted ) {
-                    this.logger.info( `^w^Kprocess ${block.number}^^^W (completed)`)
+                    this.logger.info( `^w^Kprocess block ${block.number}^^^W (completed)`)
 
                     this.alreadyCompleteCallback( block );
 
                     return;
                 }
 
-                this.logger.info( `^w^Kprocess ${block.number}^^^W (continue)`)
+                this.logger.info( `^w^Kprocess block ${block.number}^^^W (continue)`)
                 this.blockProcessors[a].continue();
             }
             else {
@@ -68,7 +68,7 @@ export class BlockProcessorManager {
 
         if (started) return;
 
-        this.logger.info( `^w^Kprocess ${block.number}`)
+        this.logger.info( `^w^Kprocess block ${block.number}`)
 
         const processor = new (BlockProcessor( this.cachedClient.chainType ))( this.cachedClient );
         this.blockProcessors.push(processor);

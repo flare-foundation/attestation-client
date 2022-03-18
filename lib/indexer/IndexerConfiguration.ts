@@ -22,5 +22,7 @@ export class IndexerConfiguration {
   public syncTimeDays: number = 1;
   public blockCollectTimeMs: number = 1000;
 
+  public syncUpdateTimeMs: number = 10000;
+
   public chains: IndexerClientChain[] = [];
 }

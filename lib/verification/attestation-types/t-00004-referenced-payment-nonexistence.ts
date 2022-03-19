@@ -27,19 +27,10 @@ Attestation type id for this request, see AttestationType enum.
       {
          key: "chainId",
          size: CHAIN_ID_BYTES,
-         type: "ChainType",
+         type: "SourceId",
          description: 
 `
 The ID of the underlying chain, see ChainType enum.
-`
-      },
-      {
-         key: "startBlock",
-         size: BLOCKNUMBER_BYTES,
-         type: "NumberLike",
-         description: 
-`
-Start block number for searching the transaction.
 `
       },
       {
@@ -63,7 +54,7 @@ Maximum number of the block where the transaction is searched for.
       {
          key: "destinationAddress",
          size: TX_ID_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description:
 `
 Payment nonexistence is confirmed if there is no payment transaction (attestation of \`Payment\` type)
@@ -85,7 +76,7 @@ The exact amount to search for.
       {
          key: "paymentReference",
          size: PAYMENT_REFERENCE_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 The payment reference to search for.
@@ -104,7 +95,7 @@ Does not need to be the first such block. It has to be confirmed.
       {
          key: "dataAvailabilityProof",
          size: DATA_AVAILABILITY_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 Block hash of the confirmation data availability block for the overflow block.

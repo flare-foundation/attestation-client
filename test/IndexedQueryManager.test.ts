@@ -1,12 +1,11 @@
 import { ChainType, MCC } from "flare-mcc";
 import * as indexerConfig from "../configs/config-indexer.json";
-import { AttesterClientConfiguration } from "../lib/attester/AttesterClientConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
 import { getRandomConfirmedBlock, getRandomTransaction, getRandomTransactionWithPaymentReference } from "../lib/indexed-query-manager/indexed-query-manager-utils";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
 import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
 import { DotEnvExt } from "../lib/utils/DotEnvExt";
-import { getSourceName } from "../lib/verification/attestation-types/attestation-types-helpers";
+import { getSourceName } from "../lib/verification/sources/sources";
 
 console.log("This test should run while XRP indexer is running")
  

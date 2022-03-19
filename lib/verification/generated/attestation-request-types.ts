@@ -2,16 +2,16 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { ChainType } from "flare-mcc";
-import { BytesLike, NumberLike } from "../attestation-types/attestation-types";
+import { ByteSequenceLike, NumberLike } from "../attestation-types/attestation-types";
 import { AttestationType } from "./attestation-types-enum";
+import { SourceId } from "../sources/sources";
 
 export interface ARPayment {
    // Attestation type id for this request, see AttestationType enum.
    attestationType: AttestationType;
 
    // The ID of the underlying chain, see ChainType enum.
-   chainId: ChainType;
+   chainId: SourceId;
 
    // Number of the block of the transaction.
    blockNumber: NumberLike;
@@ -23,10 +23,10 @@ export interface ARPayment {
    inUtxo: NumberLike;
 
    // Transaction hash to search for.
-   id: BytesLike;
+   id: ByteSequenceLike;
 
    // Block hash of the finalization block for the searched transaction (e.g. at least 6 blocks after the block with transaction).
-   dataAvailabilityProof: BytesLike;
+   dataAvailabilityProof: ByteSequenceLike;
 }
 
 export interface ARBalanceDecreasingTransaction {
@@ -34,7 +34,7 @@ export interface ARBalanceDecreasingTransaction {
    attestationType: AttestationType;
 
    // The ID of the underlying chain, see ChainType enum.
-   chainId: ChainType;
+   chainId: SourceId;
 
    // Number of the block of the transaction.
    blockNumber: NumberLike;
@@ -43,10 +43,10 @@ export interface ARBalanceDecreasingTransaction {
    inUtxo: NumberLike;
 
    // Transaction hash to search for.
-   id: BytesLike;
+   id: ByteSequenceLike;
 
    // Block hash of the finalization block for the searched transaction (e.g. at least 6 blocks after the block with transaction).
-   dataAvailabilityProof: BytesLike;
+   dataAvailabilityProof: ByteSequenceLike;
 }
 
 export interface ARConfirmedBlockHeightExists {
@@ -54,13 +54,13 @@ export interface ARConfirmedBlockHeightExists {
    attestationType: AttestationType;
 
    // The ID of the underlying chain, see ChainType enum.
-   chainId: ChainType;
+   chainId: SourceId;
 
    // Number of the block to prove the existence of.
    blockNumber: NumberLike;
 
    // Hash of the block to prove the existence of.
-   dataAvailabilityProof: BytesLike;
+   dataAvailabilityProof: ByteSequenceLike;
 }
 
 export interface ARReferencedPaymentNonexistence {
@@ -68,10 +68,7 @@ export interface ARReferencedPaymentNonexistence {
    attestationType: AttestationType;
 
    // The ID of the underlying chain, see ChainType enum.
-   chainId: ChainType;
-
-   // Start block number for searching the transaction.
-   startBlock: NumberLike;
+   chainId: SourceId;
 
    // Maximum median timestamp of the block where the transaction is searched for.
    endTimestamp: NumberLike;
@@ -84,19 +81,19 @@ export interface ARReferencedPaymentNonexistence {
    // and with transaction status 0 (success) or 2 (failure, receiver's fault). 
    // Note: if there exist only payment(s) with status 1 (failure, sender's fault) 
    // then payment nonexistence is still confirmed.
-   destinationAddress: BytesLike;
+   destinationAddress: ByteSequenceLike;
 
    // The exact amount to search for.
    amount: NumberLike;
 
    // The payment reference to search for.
-   paymentReference: BytesLike;
+   paymentReference: ByteSequenceLike;
 
    // Number of the overflow block - the block which has `block.timestamp > endTimestamp` and `block.blockNumber > endBlock`.
    // Does not need to be the first such block. It has to be confirmed.
    overflowBlock: NumberLike;
 
    // Block hash of the confirmation data availability block for the overflow block.
-   dataAvailabilityProof: BytesLike;
+   dataAvailabilityProof: ByteSequenceLike;
 }
 export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARConfirmedBlockHeightExists | ARReferencedPaymentNonexistence;

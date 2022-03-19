@@ -1,13 +1,14 @@
-import { ChainType, prefix0x, toBN } from "flare-mcc";
+import { prefix0x, toBN } from "flare-mcc";
 import Web3 from "web3";
 import { AttestationTypeScheme, WeightedRandomChoice } from "../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../verification/attestation-types/attestation-types-helpers";
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../verification/generated/attestation-request-types";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
+import { SourceId } from "../verification/sources/sources";
 import { getRandomConfirmedBlock, getRandomTransaction, getRandomTransactionWithPaymentReference } from "./indexed-query-manager-utils";
 import { IndexedQueryManager } from "./IndexedQueryManager";
 
-export async function getRandomAttestationRequest(definitions: AttestationTypeScheme[], indexedQueryManager: IndexedQueryManager, chainId: ChainType, roundId: number, numberOfConfirmations: number) {
+export async function getRandomAttestationRequest(definitions: AttestationTypeScheme[], indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
    let randN = Math.floor(Math.random() * definitions.length);
    let scheme = definitions[randN];
    let attestationType = scheme.id as AttestationType;
@@ -30,7 +31,7 @@ export async function getRandomAttestationRequest(definitions: AttestationTypeSc
 // Specific random attestation generators for attestation types
 /////////////////////////////////////////////////////////////////
 
-export async function getRandomRequestPayment(indexedQueryManager: IndexedQueryManager, chainId: ChainType, roundId: number, numberOfConfirmations: number) {
+export async function getRandomRequestPayment(indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
    let randomTransaction = await getRandomTransaction(indexedQueryManager);
    if (!randomTransaction) {
       return null;
@@ -65,7 +66,7 @@ export async function getRandomRequestPayment(indexedQueryManager: IndexedQueryM
    } as ARPayment;
 }
 
-export async function getRandomRequestBalanceDecreasingTransaction(indexedQueryManager: IndexedQueryManager, chainId: ChainType, roundId: number, numberOfConfirmations: number) {
+export async function getRandomRequestBalanceDecreasingTransaction(indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
    let randomTransaction = await getRandomTransaction(indexedQueryManager);
    if (!randomTransaction) {
       return null;
@@ -101,7 +102,7 @@ export async function getRandomRequestBalanceDecreasingTransaction(indexedQueryM
 
 }
 
-export async function getRandomRequestConfirmedBlockHeightExists(indexedQueryManager: IndexedQueryManager, chainId: ChainType, roundId: number, numberOfConfirmations: number) {
+export async function getRandomRequestConfirmedBlockHeightExists(indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
    let randomBlock = await getRandomConfirmedBlock(indexedQueryManager);
    if (!randomBlock) {
       return null;
@@ -131,7 +132,7 @@ export async function getRandomRequestConfirmedBlockHeightExists(indexedQueryMan
 
 }
 
-export async function getRandomRequestReferencedPaymentNonexistence(indexedQueryManager: IndexedQueryManager, chainId: ChainType, roundId: number, numberOfConfirmations: number) {
+export async function getRandomRequestReferencedPaymentNonexistence(indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
    const START_BLOCK_OFFSET = 100;
    const OVERFLOW_BLOCK_OFFSET = 10;
 

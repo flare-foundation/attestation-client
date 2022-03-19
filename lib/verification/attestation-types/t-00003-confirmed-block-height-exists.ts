@@ -23,7 +23,7 @@ Attestation type id for this request, see AttestationType enum.
       {
          key: "chainId",
          size: CHAIN_ID_BYTES,
-         type: "ChainType",
+         type: "SourceId",
          description: 
 `
 The ID of the underlying chain, see ChainType enum.
@@ -41,7 +41,7 @@ Number of the block to prove the existence of.
       {
          key: "dataAvailabilityProof",
          size: DATA_AVAILABILITY_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 Hash of the block to prove the existence of.

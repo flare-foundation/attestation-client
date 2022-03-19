@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_confirmed_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequest, randSol, TDEF_confirmed_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 import { toBN } from "flare-mcc";
 import { ConfirmedBlockQueryRequest } from "../../../indexed-query-manager/indexed-query-manager-types";
@@ -21,7 +21,7 @@ export async function verifyConfirmedBlockHeightExistsALGO(
    recheck = false
 ): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>>
 {
-   let request = parseRequestBytes(attestation.data.request, TDEF_confirmed_block_height_exists) as ARConfirmedBlockHeightExists;
+   let request = parseRequest(attestation.data.request) as ARConfirmedBlockHeightExists;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 

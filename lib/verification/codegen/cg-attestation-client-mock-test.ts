@@ -156,7 +156,6 @@ export function createAttestationClientMockTest(definitions: AttestationTypeSche
 
   let itsForDefinitions = definitions.map(definition => genItForAttestationClientMock(definition)).join("\n");
   let content = `${DEFAULT_GEN_FILE_HEADER}
-import { ChainType } from "flare-mcc";
 import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
 import { 
@@ -166,18 +165,22 @@ import {
 ${indentText(arImports, CODEGEN_TAB)} 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
+import { SourceId } from "../../lib/verification/sources/sources";
 import { 
 ${tab()}getRandomResponseForType, 
-${indentText(hashFunctionsImports, CODEGEN_TAB)},
 ${tab()}getRandomRequest,
+} from "../../lib/verification/generated/attestation-random-utils";
+import { 
+${indentText(hashFunctionsImports, CODEGEN_TAB)},
 ${tab()}dataHash
-} from "../../lib/verification/generated/attestation-utils";
+} from "../../lib/verification/generated/attestation-hash-utils";
+  
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 
 const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
 const STATECONNECTOR_ROUND = 1;
-const CHAIN_ID = ChainType.BTC;
+const CHAIN_ID = SourceId.BTC;
 const NUM_OF_HASHES = 100;
 
 describe("Attestestation Client Mock", function () {

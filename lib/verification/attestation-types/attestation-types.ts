@@ -11,6 +11,8 @@ import { AttestationType } from "../generated/attestation-types-enum";
 export enum VerificationStatus {
   OK = "OK",
   RECHECK_LATER = "RECHECK_LATER",
+  // Temporary status during checks
+  NEEDS_MORE_CHECKS = "NEEDS_MORE_CHECKS",
   // Error fields
   NOT_CONFIRMED = "NOT_CONFIRMED",
 
@@ -51,7 +53,9 @@ export enum VerificationStatus {
   NON_EXISTENT_OVERFLOW_BLOCK = "NON_EXISTENT_OVERFLOW_BLOCK",
   BLOCK_HASH_DOES_NOT_EXIST = "BLOCK_DOES_NOT_EXIST",
   NOT_PAYMENT = "NOT_PAYMENT",
-  NEEDS_MORE_CHECKS = "NEEDS_MORE_CHECKS"
+  WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP = "WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP",
+  WRONG_OVERFLOW_BLOCK_ENDTIME = "WRONG_OVERFLOW_BLOCK_ENDTIME",
+  REFERENCED_TRANSACTION_EXISTS = "REFERENCED_TRANSACTION_EXISTS"
 }
 
 export interface AttestationRequest {
@@ -138,10 +142,10 @@ export const SOURCE_ADDRESS_CHEKSUM_BYTES = 4;
 export const PAYMENT_REFERENCE_BYTES = 32;
 
 export type NumberLike = number | BN | string;
-export type BytesLike = string;
+export type ByteSequenceLike = string;
 
 export type SupportedSolidityType = "uint8" | "uint16" | "uint32" | "uint64" | "uint128" | "uint256" | "int256" | "bytes4" | "bytes32" | "bool" | "string";
-export type SupportedRequestType = "BytesLike" | "NumberLike" | "AttestationType" | "ChainType";
+export type SupportedRequestType = "ByteSequenceLike" | "NumberLike" | "AttestationType" | "SourceId";
 export interface AttestationRequestScheme {
   key: string;
   size: number;
@@ -162,11 +166,4 @@ export interface AttestationTypeScheme {
   name: string;
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
-}
-
-export class AttestationRequestParseError extends Error {
-  constructor(message) {
-     super(message);
-     this.name = 'AttestationRequestParseError';
-  }
 }

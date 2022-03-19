@@ -5,7 +5,7 @@ import { DBTransactionBase } from "../entity/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 import { getGlobalLogger } from "../utils/logger";
-import { getSourceName } from "../verification/attestation-types/attestation-types-helpers";
+import { getSourceName } from "../verification/sources/sources";
 import { BlockHashQueryRequest, BlockHashQueryResponse, BlockQueryParams, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
 
 
@@ -39,7 +39,9 @@ export class IndexedQueryManager {
 
   async queryTransactions(params: TransactionQueryParams): Promise<DBTransactionBase[]> {
     let results = []
+
     let startTimestamp = this.settings.windowStartTime(params.roundId);
+
     for (let table of this.transactionTable) {
       let query = this.dbService.connection.manager
         .createQueryBuilder(table, "transaction")
@@ -222,7 +224,6 @@ export class IndexedQueryManager {
       }
       let transactions = await this.queryTransactions({
         roundId: params.roundId,
-        startBlock: params.startBlockNumber,
         endBlock: overflowBlock.blockNumber - 1,
         paymentReference: params.paymentReference,
       } as TransactionQueryParams);
@@ -261,7 +262,6 @@ export class IndexedQueryManager {
 
     let transactions = await this.queryTransactions({
       roundId: params.roundId,
-      startBlock: params.startBlockNumber,
       endBlock: overflowBlock.blockNumber - 1,
       paymentReference: params.paymentReference,
     } as TransactionQueryParams);

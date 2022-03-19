@@ -1,6 +1,6 @@
 import fs from "fs";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { getSourceName } from "../attestation-types/attestation-types-helpers";
+import { getSourceName } from "../sources/sources";
 import { CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER, VERIFIERS_ROOT, VERIFIERS_ROUTING_FILE } from "./cg-constants";
 import { indentText, tab, trimStartNewline } from "./cg-utils";
 import { genVerifier, verifierFile, verifierFolder, verifierFunctionName } from "./cg-verifiers";
@@ -19,7 +19,7 @@ ${tab()}${tab()}${tab()}throw new WrongSourceIdError("Wrong source id");
 
 function genSourceCase(definition: AttestationTypeScheme, sourceId: number) {
    let result = `
-case ChainType.${getSourceName(sourceId)}:
+case SourceId.${getSourceName(sourceId)}:
 ${tab()}return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestation, indexer, recheck);`;
    return trimStartNewline(result);
 }
@@ -42,9 +42,10 @@ export function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
    }
 
    let router = `${DEFAULT_GEN_FILE_HEADER}
-import { ChainType, MccClient, MCC } from "flare-mcc"
-import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-helpers"
+import { MccClient, MCC } from "flare-mcc"
+import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"
+import { SourceId } from "../sources/sources";
 import { Verification } from "../attestation-types/attestation-types"
       
 ${routerImports}

@@ -1,4 +1,3 @@
-import * as dotenv from "dotenv";
 import { logger } from "ethers";
 import { ChainType, MCC, MccClient, sleep } from "flare-mcc";
 import Web3 from "web3";
@@ -16,9 +15,11 @@ import { getGlobalLogger } from "../utils/logger";
 import { getTestStateConnectorAddress, getWeb3, getWeb3Contract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
-import { encodeRequestBytes, getSourceName, parseRequestBytesForDefinitions } from "../verification/attestation-types/attestation-types-helpers";
 import { readAttestationTypeSchemes } from "../verification/codegen/cg-utils";
+import { encodeRequest } from "../verification/generated/attestation-request-encode";
+import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";
+import { getSourceName, SourceId } from "../verification/sources/sources";
 
 let fs = require("fs");
 
@@ -173,9 +174,10 @@ class AttestationSpammer {
 
 
   async sendAttestationRequest(stateConnector: StateConnector, request: ARType) {
-    let scheme = this.definitions.find(definition => definition.id === request.attestationType);
-    let requestBytes = encodeRequestBytes(request, scheme);
+    // let scheme = this.definitions.find(definition => definition.id === request.attestationType);
+    // let requestBytes = encodeRequestBytes(request, scheme);
 
+    let requestBytes = encodeRequest(request);
     // // DEBUG CODE
     // console.log("SENDING:\n", requestBytes, "\n", request);
 
@@ -235,16 +237,16 @@ class AttestationSpammer {
           toBlock: last,
         });
         // // DEBUG CODE
-        // if(events.length) {
-        //   for(let event of events) {
-        //     if(event.event === "AttestationRequest") {
-        //       let timestamp = event.returnValues.timestamp;
-        //       let data = event.returnValues.data;
-        //       let parsedRequest = parseRequestBytesForDefinitions(data, this.definitions);     
-        //       console.log("RECEIVED:\n", data, "\n", parsedRequest);          
-        //     }
-        //   }
-        // }
+        if(events.length) {
+          for(let event of events) {
+            if(event.event === "AttestationRequest") {
+              let timestamp = event.returnValues.timestamp;
+              let data = event.returnValues.data;
+              let parsedRequest = parseRequest(data);
+              console.log("RECEIVED:\n", data, "\n", parsedRequest);          
+            }
+          }
+        }
         this.logger.info(`Receiving ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
         firstUnprocessedBlockNumber = last + 1;
       } catch (e) {
@@ -292,7 +294,7 @@ class AttestationSpammer {
         AttestationSpammer.sendCount++;
         // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
         let roundId = this.getCurrentRound();
-        let attRequest = await getRandomAttestationRequest(this.definitions, this.indexedQueryManager, this.chainType, roundId, this.numberOfConfirmations);
+        let attRequest = await getRandomAttestationRequest(this.definitions, this.indexedQueryManager, this.chainType as number as SourceId, roundId, this.numberOfConfirmations);
         if (attRequest) {
           this.sendAttestationRequest(this.stateConnector, attRequest).catch(e => {
             this.logger.error(`ERROR: ${e}`);

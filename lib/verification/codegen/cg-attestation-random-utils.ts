@@ -1,13 +1,31 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
-import { randReqItemCode, tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
-import { ATTESTATION_TYPE_PREFIX, ATT_UTILS_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, RANDOM_RESPONSE_HEADER, WEB3_HASH_FUNCTIONS_HEADER, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
+import Web3 from "web3";
+import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme, SupportedRequestType } from "../attestation-types/attestation-types";
+import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
+import { ATTESTATION_TYPE_PREFIX, ATT_RANDOM_UTILS_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, RANDOM_RESPONSE_HEADER } from "./cg-constants";
 import { indentText, tab, trimStartNewline } from "./cg-utils";
 
 
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
   let res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`
   return trimStartNewline(res);
+}
+
+export function randReqItemCode(type: SupportedRequestType, size: number) {
+  let rand = Web3.utils.randomHex(size);
+  switch (type) {
+    case "AttestationType":
+      throw new Error("This should not be used")
+    case "NumberLike":
+      return `toBN(Web3.utils.randomHex(${size}))`;
+    case "SourceId":
+      throw new Error("This should not be used")
+    case "ByteSequenceLike":
+      return `Web3.utils.randomHex(${size})`;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => { })(type);
+  }
 }
 
 // Todo utils knjižnica, ki ima za vsak tip random response
@@ -75,22 +93,13 @@ ${tab()}]
 `
 }
 
-export function genWeb3HashFunction(definition: AttestationTypeScheme) {
-  return `
-export function ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}, response: ${DATA_HASH_TYPE_PREFIX}${definition.name}) {
-${indentText(genHashCode(definition, "request", "response"), CODEGEN_TAB)}
-${tab()}return web3.utils.soliditySha3(encoded)!;
-}
-`
-}
-
 function genRandomAttestationCase(definition: AttestationTypeScheme) {
   let chainIds = definition.supportedSources;
   return `
 case AttestationType.${definition.name}:
 ${tab()}chainIds = [${chainIds}];
 ${tab()}chainId = chainIds[Math.floor(Math.random()*${chainIds.length})];
-${tab()}return {attestationType: randomAttestationType, chainId} as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
+${tab()}return {attestationType: randomAttestationType, chainId } as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
 }
 
 export function randomRequest(definitions: AttestationTypeScheme[]) {
@@ -100,8 +109,8 @@ export function randomRequest(definitions: AttestationTypeScheme[]) {
 export function getRandomRequest() {  
 ${tab()}let ids = [${ids}];
 ${tab()}let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*${definitions.length})];
-${tab()}let chainId: ChainType = ChainType.invalid;
-${tab()}let chainIds: ChainType[] = [];
+${tab()}let chainId: SourceId = -1;
+${tab()}let chainIds: SourceId[] = [];
 ${tab()}switch(randomAttestationType) {
 ${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
 ${tab()}${tab()}default:
@@ -130,7 +139,7 @@ export function randomRequestForAttestationTypeAndChainId(definitions: Attestati
   return `
 export function getRandomRequestForAttestationTypeAndChainId (
 ${tab()}attestationType: AttestationType,
-${tab()}chainId: ChainType
+${tab()}chainId: SourceId
 ) {  
 ${tab()}switch(attestationType) {
 ${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
@@ -141,46 +150,24 @@ ${tab()}}
 `
 }
 
-function genDatahashCase(definition: AttestationTypeScheme) {
-  let chainIds = definition.supportedSources;
-  return `
-case AttestationType.${definition.name}:
-${tab()}return ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request as ${ATTESTATION_TYPE_PREFIX}${definition.name}, response as ${DATA_HASH_TYPE_PREFIX}${definition.name});`
-}
-
-export function genDataHashFunction(definitions: AttestationTypeScheme[]) {
-  let datahashCases = definitions.map(definition => genDatahashCase(definition)).join("");
-  return `
-export function dataHash(request: ${ATTESTATION_TYPE_PREFIX}Type, response: ${DATA_HASH_TYPE_PREFIX}Type) {  
-${tab()}switch(request.attestationType) {
-${indentText(datahashCases, CODEGEN_TAB * 2)}
-${tab()}${tab()}default:
-${tab()}${tab()}${tab()}throw new Error("Invalid attestation type");
-${tab()}}
-}
-`
-}
-
-
-export function createAttestationUtils(definitions: AttestationTypeScheme[]) {
+export function createAttestationRandomUtils(definitions: AttestationTypeScheme[]) {
   let arImports = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n")
   let dhImports = definitions.map(definition => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n")
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import BN from "bn.js";
 import Web3 from "web3";
-import { ChainType, toBN } from "flare-mcc";
 import { randSol } from "../attestation-types/attestation-types-helpers";
 import { 
 ${indentText(arImports, CODEGEN_TAB)},
-${tab()}${ATTESTATION_TYPE_PREFIX}Type 
 } from "./attestation-request-types";
 import {
 ${indentText(dhImports, CODEGEN_TAB)},
-${tab()}${DATA_HASH_TYPE_PREFIX}Type 
 } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
+import { SourceId } from "../sources/sources";
 
+const toBN = Web3.utils.toBN;
 const web3 = new Web3();
 `;
 
@@ -196,13 +183,5 @@ const web3 = new Web3();
 
   content += randomRequestForAttestationTypeAndChainId(definitions);
 
-  content += WEB3_HASH_FUNCTIONS_HEADER;
-
-  definitions.forEach(definition => {
-    content += genWeb3HashFunction(definition);
-  })
-
-  content += genDataHashFunction(definitions);
-
-  fs.writeFileSync(ATT_UTILS_FILE, content, "utf8");
+  fs.writeFileSync(ATT_RANDOM_UTILS_FILE, content, "utf8");
 }

@@ -18,7 +18,7 @@ Attestation type id for this request, see AttestationType enum.
       {
          key: "chainId",
          size: CHAIN_ID_BYTES,
-         type: "ChainType",
+         type: "SourceId",
          description: 
 `
 The ID of the underlying chain, see ChainType enum.
@@ -45,7 +45,7 @@ Index of the sourceAddress on utxo chains.
       {
          key: "id",
          size: TX_ID_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 Transaction hash to search for.
@@ -54,7 +54,7 @@ Transaction hash to search for.
       {
          key: "dataAvailabilityProof",
          size: DATA_AVAILABILITY_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 Block hash of the finalization block for the searched transaction (e.g. at least 6 blocks after the block with transaction).

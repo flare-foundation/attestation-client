@@ -26,9 +26,9 @@ function arType(definitions: AttestationTypeScheme[]) {
 export function createAttestationRequestTypesFile(definitions: AttestationTypeScheme[]) {
    // Request types
    let content = `${DEFAULT_GEN_FILE_HEADER}
-import { ChainType } from "flare-mcc";
-import { BytesLike, NumberLike } from "../attestation-types/attestation-types";
+import { ByteSequenceLike, NumberLike } from "../attestation-types/attestation-types";
 import { AttestationType } from "./attestation-types-enum";
+import { SourceId } from "../sources/sources";
 `;
 
    definitions.forEach(definition => {

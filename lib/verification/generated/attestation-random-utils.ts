@@ -4,24 +4,23 @@
 
 import BN from "bn.js";
 import Web3 from "web3";
-import { ChainType, toBN } from "flare-mcc";
 import { randSol } from "../attestation-types/attestation-types-helpers";
 import { 
    ARPayment,
    ARBalanceDecreasingTransaction,
    ARConfirmedBlockHeightExists,
    ARReferencedPaymentNonexistence,
-   ARType 
 } from "./attestation-request-types";
 import {
    DHPayment,
    DHBalanceDecreasingTransaction,
    DHConfirmedBlockHeightExists,
    DHReferencedPaymentNonexistence,
-   DHType 
 } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
+import { SourceId } from "../sources/sources";
 
+const toBN = Web3.utils.toBN;
 const web3 = new Web3();
 
 export function randomResponsePayment() {
@@ -97,25 +96,25 @@ export function getRandomResponseForType(attestationType: AttestationType) {
 export function getRandomRequest() {  
    let ids = [1, 2, 3, 4];
    let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*4)];
-   let chainId: ChainType = ChainType.invalid;
-   let chainIds: ChainType[] = [];
+   let chainId: SourceId = -1;
+   let chainIds: SourceId[] = [];
    switch(randomAttestationType) {
       case AttestationType.Payment:
          chainIds = [3,0,1,2,4];
          chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId} as ARPayment;
+         return {attestationType: randomAttestationType, chainId } as ARPayment;
       case AttestationType.BalanceDecreasingTransaction:
          chainIds = [3,0,1,2,4];
          chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId} as ARBalanceDecreasingTransaction;
+         return {attestationType: randomAttestationType, chainId } as ARBalanceDecreasingTransaction;
       case AttestationType.ConfirmedBlockHeightExists:
          chainIds = [3,0,1,2,4];
          chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId} as ARConfirmedBlockHeightExists;
+         return {attestationType: randomAttestationType, chainId } as ARConfirmedBlockHeightExists;
       case AttestationType.ReferencedPaymentNonexistence:
          chainIds = [3,0,1,2,4];
          chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId} as ARReferencedPaymentNonexistence;
+         return {attestationType: randomAttestationType, chainId } as ARReferencedPaymentNonexistence;
       default:
          throw new Error("Invalid attestation type");
    }
@@ -123,7 +122,7 @@ export function getRandomRequest() {
 
 export function getRandomRequestForAttestationTypeAndChainId (
    attestationType: AttestationType,
-   chainId: ChainType
+   chainId: SourceId
 ) {  
    switch(attestationType) {
       case AttestationType.Payment:
@@ -156,7 +155,6 @@ export function getRandomRequestForAttestationTypeAndChainId (
          return {
             attestationType,
             chainId,
-            startBlock: toBN(Web3.utils.randomHex(4)),
             endTimestamp: toBN(Web3.utils.randomHex(4)),
             endBlock: toBN(Web3.utils.randomHex(4)),
             destinationAddress: Web3.utils.randomHex(32),
@@ -165,137 +163,6 @@ export function getRandomRequestForAttestationTypeAndChainId (
             overflowBlock: toBN(Web3.utils.randomHex(4)),
             dataAvailabilityProof: Web3.utils.randomHex(32)
          } as ARReferencedPaymentNonexistence;
-      default:
-         throw new Error("Invalid attestation type");
-   }
-}
-//////////////////////////////////////////////////////////////
-// Hash functions for requests and responses for particular 
-// Attestation types.
-//////////////////////////////////////////////////////////////
-
-export function hashPayment(request: ARPayment, response: DHPayment) {
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",		// attestationType
-         "uint32",		// chainId
-         "uint64",		// blockNumber
-         "uint64",		// blockTimestamp
-         "bytes32",		// transactionHash
-         "uint8",		// utxo
-         "bytes32",		// sourceAddress
-         "bytes32",		// receivingAddress
-         "bytes32",		// paymentReference
-         "int256",		// spentAmount
-         "uint256",		// receivedAmount
-         "bool",		// oneToOne
-         "uint8",		// status
-      ],
-      [
-         request.attestationType,
-         request.chainId,
-         response.blockNumber,
-         response.blockTimestamp,
-         response.transactionHash,
-         response.utxo,
-         response.sourceAddress,
-         response.receivingAddress,
-         response.paymentReference,
-         response.spentAmount,
-         response.receivedAmount,
-         response.oneToOne,
-         response.status
-      ]
-   );
-   return web3.utils.soliditySha3(encoded)!;
-}
-
-export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTransaction, response: DHBalanceDecreasingTransaction) {
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",		// attestationType
-         "uint32",		// chainId
-         "uint64",		// blockNumber
-         "uint64",		// blockTimestamp
-         "bytes32",		// transactionHash
-         "bytes32",		// sourceAddress
-         "int256",		// spentAmount
-         "bytes32",		// paymentReference
-      ],
-      [
-         request.attestationType,
-         request.chainId,
-         response.blockNumber,
-         response.blockTimestamp,
-         response.transactionHash,
-         response.sourceAddress,
-         response.spentAmount,
-         response.paymentReference
-      ]
-   );
-   return web3.utils.soliditySha3(encoded)!;
-}
-
-export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightExists, response: DHConfirmedBlockHeightExists) {
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",		// attestationType
-         "uint32",		// chainId
-         "uint64",		// blockNumber
-         "uint64",		// blockTimestamp
-      ],
-      [
-         request.attestationType,
-         request.chainId,
-         response.blockNumber,
-         response.blockTimestamp
-      ]
-   );
-   return web3.utils.soliditySha3(encoded)!;
-}
-
-export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNonexistence, response: DHReferencedPaymentNonexistence) {
-   let encoded = web3.eth.abi.encodeParameters(
-      [
-         "uint16",		// attestationType
-         "uint32",		// chainId
-         "uint64",		// endTimestamp
-         "uint64",		// endBlock
-         "bytes32",		// destinationAddress
-         "bytes32",		// paymentReference
-         "uint128",		// amount
-         "uint64",		// firstCheckedBlock
-         "uint64",		// firstCheckedBlockTimestamp
-         "uint64",		// firstOverflowBlock
-         "uint64",		// firstOverflowBlockTimestamp
-      ],
-      [
-         request.attestationType,
-         request.chainId,
-         response.endTimestamp,
-         response.endBlock,
-         response.destinationAddress,
-         response.paymentReference,
-         response.amount,
-         response.firstCheckedBlock,
-         response.firstCheckedBlockTimestamp,
-         response.firstOverflowBlock,
-         response.firstOverflowBlockTimestamp
-      ]
-   );
-   return web3.utils.soliditySha3(encoded)!;
-}
-
-export function dataHash(request: ARType, response: DHType) {  
-   switch(request.attestationType) {
-      case AttestationType.Payment:
-         return hashPayment(request as ARPayment, response as DHPayment);
-      case AttestationType.BalanceDecreasingTransaction:
-         return hashBalanceDecreasingTransaction(request as ARBalanceDecreasingTransaction, response as DHBalanceDecreasingTransaction);
-      case AttestationType.ConfirmedBlockHeightExists:
-         return hashConfirmedBlockHeightExists(request as ARConfirmedBlockHeightExists, response as DHConfirmedBlockHeightExists);
-      case AttestationType.ReferencedPaymentNonexistence:
-         return hashReferencedPaymentNonexistence(request as ARReferencedPaymentNonexistence, response as DHReferencedPaymentNonexistence);
       default:
          throw new Error("Invalid attestation type");
    }

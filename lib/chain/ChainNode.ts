@@ -9,7 +9,8 @@ import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManage
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { AttestationRequestParseError, Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
 import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainManager } from "./ChainManager";
 

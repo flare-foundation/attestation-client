@@ -2,7 +2,6 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { ChainType } from "flare-mcc";
 import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
 import { 
@@ -18,21 +17,25 @@ import {
    ARReferencedPaymentNonexistence 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
+import { SourceId } from "../../lib/verification/sources/sources";
 import { 
    getRandomResponseForType, 
+   getRandomRequest,
+} from "../../lib/verification/generated/attestation-random-utils";
+import { 
    hashPayment,
    hashBalanceDecreasingTransaction,
    hashConfirmedBlockHeightExists,
    hashReferencedPaymentNonexistence,
-   getRandomRequest,
    dataHash
-} from "../../lib/verification/generated/attestation-utils";
+} from "../../lib/verification/generated/attestation-hash-utils";
+  
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 
 const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
 const STATECONNECTOR_ROUND = 1;
-const CHAIN_ID = ChainType.BTC;
+const CHAIN_ID = SourceId.BTC;
 const NUM_OF_HASHES = 100;
 
 describe("Attestestation Client Mock", function () {

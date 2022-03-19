@@ -34,7 +34,8 @@ ${tdefImports}
 export { RPCInterface, MCC } from "flare-mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
 export { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
-export { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
+export { randSol } from "../../attestation-types/attestation-types-helpers";
+export { parseRequest } from "../../generated/attestation-request-parse";
 export { 
 ${indentText(dhTypes, CODEGEN_TAB)} 
 } from "../../generated/attestation-hash-types";
@@ -43,7 +44,7 @@ ${indentText(arTypes, CODEGEN_TAB)}
 } from "../../generated/attestation-request-types";
 export { 
 ${indentText(hashFunctions, CODEGEN_TAB)} 
-} from "../../generated/attestation-utils";
+} from "../../generated/attestation-hash-utils";
 export { BN };
 export { Web3 };
 ${tdefExports}

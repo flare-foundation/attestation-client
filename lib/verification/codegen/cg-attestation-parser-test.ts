@@ -1,8 +1,7 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
-import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
-import { ATTESTATION_TYPE_PREFIX, ATT_CLIENT_MOCK_TEST_FILE, ATT_REQ_PARSER_TEST_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, GENERATED_TEST_ROOT, SOLIDITY_VERIFICATION_FUNCTION_PREFIX, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
-import { indentText, tab, trimStartNewline } from "./cg-utils";
+import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { ATTESTATION_TYPE_PREFIX, ATT_REQ_PARSER_TEST_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, GENERATED_TEST_ROOT, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
+import { indentText, tab } from "./cg-utils";
 
 
 
@@ -11,13 +10,11 @@ function genItForAttestationParser(definition: AttestationTypeScheme) {
   return `
 it("Should encode and decode for '${definition.name}'", async function () { 
 ${tab()}for(let chainId of [${chainIds}]) {
-${tab()}${tab()}let randomRequest = getRandomRequestForAttestationTypeAndChainId(${definition.id} as AttestationType, chainId as ChainType) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
-${tab()}${tab()}let scheme = definitions.find(item => item.id === ${definition.id});
-${tab()}${tab()}let bytes = encodeRequestBytes(randomRequest, scheme);
-${tab()}${tab()}let parsedRequest = parseRequestBytes(bytes, scheme);
-${tab()}${tab()}for(let item of scheme.request) {
-${tab()}${tab()}${tab()}assertEqualsByScheme(randomRequest[item.key], parsedRequest[item.key], item);
-${tab()}${tab()}}
+${tab()}${tab()}let randomRequest = getRandomRequestForAttestationTypeAndChainId(${definition.id} as AttestationType, chainId as SourceId) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+
+${tab()}${tab()}let bytes = encodeRequest(randomRequest);
+${tab()}${tab()}let parsedRequest = parseRequest(bytes);
+${tab()}${tab()}assert(equalsRequest(randomRequest, parsedRequest));
 ${tab()}}
 });`
 }
@@ -30,24 +27,19 @@ export function createAttestationParserTest(definitions: AttestationTypeScheme[]
 
   let itsForDefinitions = definitions.map(definition => genItForAttestationParser(definition)).join("\n");
   let content = `${DEFAULT_GEN_FILE_HEADER}
-import { ChainType } from "flare-mcc";
-import { AttestationTypeScheme } from "../../lib/verification/attestation-types/attestation-types";
-import { assertEqualsByScheme, encodeRequestBytes, parseRequestBytes } from "../../lib/verification/attestation-types/attestation-types-helpers";
-import { readAttestationTypeSchemes } from "../../lib/verification/codegen/cg-utils";
 import { 
 ${indentText(arImports, CODEGEN_TAB)} 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
+import { SourceId } from "../../lib/verification/sources/sources";
 import { 
 ${tab()}getRandomRequestForAttestationTypeAndChainId
-} from "../../lib/verification/generated/attestation-utils";
+} from "../../lib/verification/generated/attestation-random-utils";
+import { encodeRequest } from "../../lib/verification/generated/attestation-request-encode";
+import { parseRequest } from "../../lib/verification/generated/attestation-request-parse";
+import { equalsRequest } from "../../lib/verification/generated/attestation-request-equals";
 
 describe("Attestestation Request Parser", function () {
-${tab()}let definitions: AttestationTypeScheme[];
-
-${tab()}before(async () => {
-${tab()}${tab()}definitions = await readAttestationTypeSchemes();
-${tab()}});
 
 ${indentText(itsForDefinitions, CODEGEN_TAB)}
 

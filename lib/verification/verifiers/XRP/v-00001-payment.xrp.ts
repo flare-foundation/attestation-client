@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
 import { XrpTransaction } from "flare-mcc";
 import { accountBasedPaymentVerification } from "../../verification-utils";
 
@@ -19,7 +19,7 @@ export async function verifyPaymentXRP(
    recheck = false
 ): Promise<Verification<ARPayment, DHPayment>>
 {
-   let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
+   let request = parseRequest(attestation.data.request) as ARPayment;
    let roundId = attestation.round.roundId;
    let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
 

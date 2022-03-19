@@ -1,6 +1,7 @@
 import BN from "bn.js";
 import { ChainType } from "flare-mcc";
 import { AttestationType } from "../generated/attestation-types-enum";
+import { SourceId } from "../sources/sources";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Verification status
@@ -60,20 +61,6 @@ export enum VerificationStatus {
 
 
 }
-
-export interface AttestationRequest {
-  timestamp?: BN;
-  instructions: BN;
-  id: string;
-  dataAvailabilityProof: string;
-  // optional fields to which the result gets parsed
-  attestationType?: AttestationType;
-  chainId?: BN | number;
-}
-export interface VerificationResult extends AttestationRequest {
-  verificationStatus: VerificationStatus;
-}
-
 export interface Verification<R, T> {
   hash?: string;
   request?: R;
@@ -82,48 +69,6 @@ export interface Verification<R, T> {
   status: VerificationStatus;
 }
 
-export interface AdditionalTransactionDetails {
-  
-}
-
-export interface ChainVerification extends AdditionalTransactionDetails , VerificationResult {
-  isFromOne?: boolean;
-  utxo?: BN;
-}
-
-export interface DataAvailabilityProof {
-  hash?: string;
-  blockNumber?: number;
-}
-
-export interface TransactionAttestationRequest extends AttestationRequest {
-  blockNumber: BN | number;
-  utxo?: BN | number;
-}
-
-export interface VerifiedAttestation {
-  chainType: ChainType;
-  attestType: AttestationType;
-  txResponse?: any;
-  blockResponse?: any;
-  sender?: string;
-  utxo?: number;
-  fee?: BN;
-  spent?: BN;
-  delivered?: BN;
-}
-
-export interface AttestationTypeEncoding {
-  sizes: number[];
-  keys: string[];
-  hashTypes: string[];
-  hashKeys: string[];
-}
-
-export interface VerificationTestOptions {
-  testFailProbability?: number;
-  skipDataAvailabilityProof?: boolean;
-}
 export interface WeightedRandomChoice {
   name: string;
   weight: number;
@@ -133,7 +78,7 @@ export interface WeightedRandomChoice {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const ATT_BYTES = 2;
-export const CHAIN_ID_BYTES = 4;
+export const SOURCE_ID_BYTES = 4;
 export const UTXO_BYTES = 1;
 export const BLOCKNUMBER_BYTES = 4;
 export const TIMESTAMP_BYTES = 4;
@@ -161,12 +106,70 @@ export interface DataHashScheme {
   type: SupportedSolidityType;
   description: string;
 }
-
-type AttestationSource = ChainType  // Other source types may be added.
 export interface AttestationTypeScheme {
   id: number;
-  supportedSources: AttestationSource[];
+  supportedSources: SourceId[];
   name: string;
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
 }
+
+
+
+////////// DEPRECATED
+
+// export interface AttestationRequest {
+//   timestamp?: BN;
+//   instructions: BN;
+//   id: string;
+//   dataAvailabilityProof: string;
+//   // optional fields to which the result gets parsed
+//   attestationType?: AttestationType;
+//   chainId?: BN | number;
+// }
+// export interface VerificationResult extends AttestationRequest {
+//   verificationStatus: VerificationStatus;
+// }
+
+// export interface AdditionalTransactionDetails {
+  
+// }
+
+// export interface ChainVerification extends AdditionalTransactionDetails , VerificationResult {
+//   isFromOne?: boolean;
+//   utxo?: BN;
+// }
+
+// export interface DataAvailabilityProof {
+//   hash?: string;
+//   blockNumber?: number;
+// }
+
+// export interface TransactionAttestationRequest extends AttestationRequest {
+//   blockNumber: BN | number;
+//   utxo?: BN | number;
+// }
+
+// export interface VerifiedAttestation {
+//   chainType: ChainType;
+//   attestType: AttestationType;
+//   txResponse?: any;
+//   blockResponse?: any;
+//   sender?: string;
+//   utxo?: number;
+//   fee?: BN;
+//   spent?: BN;
+//   delivered?: BN;
+// }
+
+// export interface AttestationTypeEncoding {
+//   sizes: number[];
+//   keys: string[];
+//   hashTypes: string[];
+//   hashKeys: string[];
+// }
+
+// export interface VerificationTestOptions {
+//   testFailProbability?: number;
+//   skipDataAvailabilityProof?: boolean;
+// }

@@ -15,7 +15,7 @@ import { getGlobalLogger } from "../utils/logger";
 import { getTestStateConnectorAddress, getWeb3, getWeb3Contract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
-import { readAttestationTypeSchemes } from "../verification/codegen/cg-utils";
+import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
 import { encodeRequest } from "../verification/generated/attestation-request-encode";
 import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";

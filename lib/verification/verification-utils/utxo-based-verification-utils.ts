@@ -15,7 +15,6 @@ export async function utxoBasedPaymentVerification(
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHPayment>> {
-   throw new Error("Not yet implemented");
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({

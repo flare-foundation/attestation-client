@@ -1,5 +1,5 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATTESTATION_TYPE_PREFIX, ATT_CLIENT_MOCK_TEST_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, GENERATED_TEST_ROOT, SOLIDITY_VERIFICATION_FUNCTION_PREFIX, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
 import { indentText, tab, trimStartNewline } from "./cg-utils";
@@ -63,12 +63,12 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
 let encoded = web3.eth.abi.encodeParameters(
 ${tab()}[
 ${tab()}${tab()}"uint${ATT_BYTES * 8}",\t\t// attestationType
-${tab()}${tab()}"uint${CHAIN_ID_BYTES * 8}",\t\t// chainId
+${tab()}${tab()}"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
 ${indentText(types, CODEGEN_TAB * 2)}
 ${tab()}],
 ${tab()}[
 ${tab()}${tab()}${defaultRequest}.attestationType,
-${tab()}${tab()}${defaultRequest}.chainId,
+${tab()}${tab()}${defaultRequest}.sourceId,
 ${indentText(values, CODEGEN_TAB * 2)}
 ${tab()}]
 );   
@@ -88,7 +88,7 @@ function genItForAttestationClientMock(definition: AttestationTypeScheme) {
   return `
 it("'${definition.name}' test", async function () { 
   let attestationType = AttestationType.${definition.name};
-  let request = { attestationType, chainId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+  let request = { attestationType, sourceId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
   let response = getRandomResponseForType(attestationType) as ${DATA_HASH_TYPE_PREFIX}${definition.name};
   response.stateConnectorRound = STATECONNECTOR_ROUND;
@@ -112,7 +112,7 @@ it("'${definition.name}' test", async function () {
 function genVerificationCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
-${tab()}assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(verification.request.chainId, responseHex));
+${tab()}assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(verification.request.sourceId, responseHex));
 ${tab()}break;`
 }
 

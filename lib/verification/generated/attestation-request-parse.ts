@@ -83,7 +83,7 @@ export function parsePayment(bytes: string): ARPayment {
   
    return {
       attestationType: fromUnprefixedBytes(input.slice(0, 4), "AttestationType", 2) as AttestationType,
-      chainId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
+      sourceId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
       blockNumber: fromUnprefixedBytes(input.slice(12, 20), "NumberLike", 4) as BN,
       utxo: fromUnprefixedBytes(input.slice(20, 22), "NumberLike", 1) as BN,
       inUtxo: fromUnprefixedBytes(input.slice(22, 24), "NumberLike", 1) as BN,
@@ -103,7 +103,7 @@ export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecre
   
    return {
       attestationType: fromUnprefixedBytes(input.slice(0, 4), "AttestationType", 2) as AttestationType,
-      chainId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
+      sourceId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
       blockNumber: fromUnprefixedBytes(input.slice(12, 20), "NumberLike", 4) as BN,
       inUtxo: fromUnprefixedBytes(input.slice(20, 22), "NumberLike", 1) as BN,
       id: fromUnprefixedBytes(input.slice(22, 86), "ByteSequenceLike", 32) as string,
@@ -122,7 +122,7 @@ export function parseConfirmedBlockHeightExists(bytes: string): ARConfirmedBlock
   
    return {
       attestationType: fromUnprefixedBytes(input.slice(0, 4), "AttestationType", 2) as AttestationType,
-      chainId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
+      sourceId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
       blockNumber: fromUnprefixedBytes(input.slice(12, 20), "NumberLike", 4) as BN,
       dataAvailabilityProof: fromUnprefixedBytes(input.slice(20, 84), "ByteSequenceLike", 32) as string
    }
@@ -139,7 +139,7 @@ export function parseReferencedPaymentNonexistence(bytes: string): ARReferencedP
   
    return {
       attestationType: fromUnprefixedBytes(input.slice(0, 4), "AttestationType", 2) as AttestationType,
-      chainId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
+      sourceId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
       endTimestamp: fromUnprefixedBytes(input.slice(12, 20), "NumberLike", 4) as BN,
       endBlock: fromUnprefixedBytes(input.slice(20, 28), "NumberLike", 4) as BN,
       destinationAddress: fromUnprefixedBytes(input.slice(28, 92), "ByteSequenceLike", 32) as string,

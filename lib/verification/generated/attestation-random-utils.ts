@@ -96,39 +96,39 @@ export function getRandomResponseForType(attestationType: AttestationType) {
 export function getRandomRequest() {  
    let ids = [1, 2, 3, 4];
    let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*4)];
-   let chainId: SourceId = -1;
-   let chainIds: SourceId[] = [];
+   let sourceId: SourceId = -1;
+   let sourceIds: SourceId[] = [];
    switch(randomAttestationType) {
       case AttestationType.Payment:
-         chainIds = [3,0,1,2,4];
-         chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId } as ARPayment;
+         sourceIds = [3,0,1,2,4];
+         sourceId = sourceIds[Math.floor(Math.random()*5)];
+         return {attestationType: randomAttestationType, sourceId } as ARPayment;
       case AttestationType.BalanceDecreasingTransaction:
-         chainIds = [3,0,1,2,4];
-         chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId } as ARBalanceDecreasingTransaction;
+         sourceIds = [3,0,1,2,4];
+         sourceId = sourceIds[Math.floor(Math.random()*5)];
+         return {attestationType: randomAttestationType, sourceId } as ARBalanceDecreasingTransaction;
       case AttestationType.ConfirmedBlockHeightExists:
-         chainIds = [3,0,1,2,4];
-         chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId } as ARConfirmedBlockHeightExists;
+         sourceIds = [3,0,1,2,4];
+         sourceId = sourceIds[Math.floor(Math.random()*5)];
+         return {attestationType: randomAttestationType, sourceId } as ARConfirmedBlockHeightExists;
       case AttestationType.ReferencedPaymentNonexistence:
-         chainIds = [3,0,1,2,4];
-         chainId = chainIds[Math.floor(Math.random()*5)];
-         return {attestationType: randomAttestationType, chainId } as ARReferencedPaymentNonexistence;
+         sourceIds = [3,0,1,2,4];
+         sourceId = sourceIds[Math.floor(Math.random()*5)];
+         return {attestationType: randomAttestationType, sourceId } as ARReferencedPaymentNonexistence;
       default:
          throw new Error("Invalid attestation type");
    }
 }
 
-export function getRandomRequestForAttestationTypeAndChainId (
+export function getRandomRequestForAttestationTypeAndSourceId (
    attestationType: AttestationType,
-   chainId: SourceId
+   sourceId: SourceId
 ) {  
    switch(attestationType) {
       case AttestationType.Payment:
          return {
             attestationType,
-            chainId,
+            sourceId,
             blockNumber: toBN(Web3.utils.randomHex(4)),
             utxo: toBN(Web3.utils.randomHex(1)),
             inUtxo: toBN(Web3.utils.randomHex(1)),
@@ -138,7 +138,7 @@ export function getRandomRequestForAttestationTypeAndChainId (
       case AttestationType.BalanceDecreasingTransaction:
          return {
             attestationType,
-            chainId,
+            sourceId,
             blockNumber: toBN(Web3.utils.randomHex(4)),
             inUtxo: toBN(Web3.utils.randomHex(1)),
             id: Web3.utils.randomHex(32),
@@ -147,14 +147,14 @@ export function getRandomRequestForAttestationTypeAndChainId (
       case AttestationType.ConfirmedBlockHeightExists:
          return {
             attestationType,
-            chainId,
+            sourceId,
             blockNumber: toBN(Web3.utils.randomHex(4)),
             dataAvailabilityProof: Web3.utils.randomHex(32)
          } as ARConfirmedBlockHeightExists;
       case AttestationType.ReferencedPaymentNonexistence:
          return {
             attestationType,
-            chainId,
+            sourceId,
             endTimestamp: toBN(Web3.utils.randomHex(4)),
             endBlock: toBN(Web3.utils.randomHex(4)),
             destinationAddress: Web3.utils.randomHex(32),

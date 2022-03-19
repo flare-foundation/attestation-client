@@ -1,9 +1,9 @@
-import { ChainType } from "flare-mcc";
+import { SourceId } from "../sources/sources";
 import {
    AMOUNT_BYTES,
    AttestationTypeScheme, ATT_BYTES,
    BLOCKNUMBER_BYTES,
-   CHAIN_ID_BYTES,
+   SOURCE_ID_BYTES,
    DATA_AVAILABILITY_BYTES,
    PAYMENT_REFERENCE_BYTES,
    TIMESTAMP_BYTES,
@@ -12,7 +12,7 @@ import {
 
 export const TDEF: AttestationTypeScheme = {
    id: 4,
-   supportedSources: [ChainType.XRP, ChainType.BTC, ChainType.LTC, ChainType.DOGE, ChainType.ALGO],
+   supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
    name: "ReferencedPaymentNonexistence",
    request: [
       {
@@ -25,12 +25,12 @@ Attestation type id for this request, see AttestationType enum.
 `
       },
       {
-         key: "chainId",
-         size: CHAIN_ID_BYTES,
+         key: "sourceId",
+         size: SOURCE_ID_BYTES,
          type: "SourceId",
          description: 
 `
-The ID of the underlying chain, see ChainType enum.
+The ID of the underlying chain, see SourceId enum.
 `
       },
       {

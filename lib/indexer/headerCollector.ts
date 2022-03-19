@@ -2,7 +2,7 @@ import { BlockBase, IBlock } from "flare-mcc";
 import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
 import { AttLogger } from "../utils/logger";
 import { PromiseTimeout } from "../utils/PromiseTimeout";
-import { sleep } from "../utils/utils";
+import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 
 
@@ -71,7 +71,7 @@ export class HeaderCollector {
 
                 // check if N + 1 hash is the same
                 if (!isNewBlock && !isChangedNp1Hash) {
-                    await sleep(this.indexer.config.blockCollectTimeMs);
+                    await sleepms(this.indexer.config.blockCollectTimeMs);
                     continue;
                 }
 

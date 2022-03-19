@@ -29,7 +29,7 @@ export function hashPayment(request: ARPayment, response: DHPayment) {
    let encoded = web3.eth.abi.encodeParameters(
       [
          "uint16",		// attestationType
-         "uint32",		// chainId
+         "uint32",		// sourceId
          "uint64",		// blockNumber
          "uint64",		// blockTimestamp
          "bytes32",		// transactionHash
@@ -44,7 +44,7 @@ export function hashPayment(request: ARPayment, response: DHPayment) {
       ],
       [
          request.attestationType,
-         request.chainId,
+         request.sourceId,
          response.blockNumber,
          response.blockTimestamp,
          response.transactionHash,
@@ -65,7 +65,7 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
    let encoded = web3.eth.abi.encodeParameters(
       [
          "uint16",		// attestationType
-         "uint32",		// chainId
+         "uint32",		// sourceId
          "uint64",		// blockNumber
          "uint64",		// blockTimestamp
          "bytes32",		// transactionHash
@@ -75,7 +75,7 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
       ],
       [
          request.attestationType,
-         request.chainId,
+         request.sourceId,
          response.blockNumber,
          response.blockTimestamp,
          response.transactionHash,
@@ -91,13 +91,13 @@ export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightEx
    let encoded = web3.eth.abi.encodeParameters(
       [
          "uint16",		// attestationType
-         "uint32",		// chainId
+         "uint32",		// sourceId
          "uint64",		// blockNumber
          "uint64",		// blockTimestamp
       ],
       [
          request.attestationType,
-         request.chainId,
+         request.sourceId,
          response.blockNumber,
          response.blockTimestamp
       ]
@@ -109,7 +109,7 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
    let encoded = web3.eth.abi.encodeParameters(
       [
          "uint16",		// attestationType
-         "uint32",		// chainId
+         "uint32",		// sourceId
          "uint64",		// endTimestamp
          "uint64",		// endBlock
          "bytes32",		// destinationAddress
@@ -122,7 +122,7 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
       ],
       [
          request.attestationType,
-         request.chainId,
+         request.sourceId,
          response.endTimestamp,
          response.endBlock,
          response.destinationAddress,

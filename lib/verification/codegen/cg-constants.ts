@@ -15,7 +15,6 @@ export const REQUEST_EQUALS_PREFIX_FUNCTION = "equals";
 export const ATTESTATION_TYPE_PREFIX = "AR";
 export const DATA_HASH_TYPE_PREFIX = "DH";
 export const SOLIDITY_VERIFICATION_FUNCTION_PREFIX = "verify";
-export const ATT_TYPE_DEFINITIONS_ROOT = "lib/verification/attestation-types";
 export const ATT_REQUEST_TYPES_FILE = `${GENERATED_ROOT}/attestation-request-types.ts`;
 export const ATT_HASH_TYPES_FILE = `${GENERATED_ROOT}/attestation-hash-types.ts`;
 export const ATTESTATION_TYPES_ENUM_FILE = `${GENERATED_ROOT}/attestation-types-enum.ts`;

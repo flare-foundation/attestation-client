@@ -1,3 +1,4 @@
+import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { createSolidityAttestationClientBase } from "./cg-attestation-client-base";
 import { createAttestationClientMockTest } from "./cg-attestation-client-mock-test";
 import { createAttestationHashTypesFile } from "./cg-attestation-data-hash-types";
@@ -10,7 +11,6 @@ import { createAttestationRequestEquals } from "./cg-attestation-request-equals"
 import { createAttestationRequestParse } from "./cg-attestation-request-parse";
 import { createAttestationRequestTypesFile } from "./cg-attestation-request-types";
 import { createSolidityIAttestationClient } from "./cg-iattestation-client";
-import { readAttestationTypeSchemes } from "./cg-utils";
 import { createVerifiersImportFiles } from "./cg-verifier-imports";
 import { createVerifiersAndRouter } from "./cg-verifiers-router";
 

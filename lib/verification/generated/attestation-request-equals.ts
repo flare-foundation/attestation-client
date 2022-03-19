@@ -43,7 +43,7 @@ export function equalsPayment(request1: ARPayment, request2: ARPayment) {
    if(!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
       return false;
    }
-   if(!assertEqualsByScheme(request1.chainId, request2.chainId, "SourceId")) {
+   if(!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
       return false;
    }
    if(!assertEqualsByScheme(request1.blockNumber, request2.blockNumber, "NumberLike")) {
@@ -68,7 +68,7 @@ export function equalsBalanceDecreasingTransaction(request1: ARBalanceDecreasing
    if(!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
       return false;
    }
-   if(!assertEqualsByScheme(request1.chainId, request2.chainId, "SourceId")) {
+   if(!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
       return false;
    }
    if(!assertEqualsByScheme(request1.blockNumber, request2.blockNumber, "NumberLike")) {
@@ -90,7 +90,7 @@ export function equalsConfirmedBlockHeightExists(request1: ARConfirmedBlockHeigh
    if(!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
       return false;
    }
-   if(!assertEqualsByScheme(request1.chainId, request2.chainId, "SourceId")) {
+   if(!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
       return false;
    }
    if(!assertEqualsByScheme(request1.blockNumber, request2.blockNumber, "NumberLike")) {
@@ -106,7 +106,7 @@ export function equalsReferencedPaymentNonexistence(request1: ARReferencedPaymen
    if(!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
       return false;
    }
-   if(!assertEqualsByScheme(request1.chainId, request2.chainId, "SourceId")) {
+   if(!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
       return false;
    }
    if(!assertEqualsByScheme(request1.endTimestamp, request2.endTimestamp, "NumberLike")) {

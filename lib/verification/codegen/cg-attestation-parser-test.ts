@@ -6,11 +6,11 @@ import { indentText, tab } from "./cg-utils";
 
 
 function genItForAttestationParser(definition: AttestationTypeScheme) {
-  let chainIds = definition.supportedSources;
+  let sourceIds = definition.supportedSources;
   return `
 it("Should encode and decode for '${definition.name}'", async function () { 
-${tab()}for(let chainId of [${chainIds}]) {
-${tab()}${tab()}let randomRequest = getRandomRequestForAttestationTypeAndChainId(${definition.id} as AttestationType, chainId as SourceId) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+${tab()}for(let sourceId of [${sourceIds}]) {
+${tab()}${tab()}let randomRequest = getRandomRequestForAttestationTypeAndSourceId(${definition.id} as AttestationType, sourceId as SourceId) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
 ${tab()}${tab()}let bytes = encodeRequest(randomRequest);
 ${tab()}${tab()}let parsedRequest = parseRequest(bytes);
@@ -33,7 +33,7 @@ ${indentText(arImports, CODEGEN_TAB)}
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
 import { SourceId } from "../../lib/verification/sources/sources";
 import { 
-${tab()}getRandomRequestForAttestationTypeAndChainId
+${tab()}getRandomRequestForAttestationTypeAndSourceId
 } from "../../lib/verification/generated/attestation-random-utils";
 import { encodeRequest } from "../../lib/verification/generated/attestation-request-encode";
 import { parseRequest } from "../../lib/verification/generated/attestation-request-parse";

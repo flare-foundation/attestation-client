@@ -1,8 +1,11 @@
 import Web3 from "web3";
 import BN from "bn.js";
-import { NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
+import glob from "glob";
+import { AttestationTypeScheme, NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
 
 const toBN = Web3.utils.toBN;
+
+export const ATT_TYPE_DEFINITIONS_ROOT = "lib/verification/attestation-types";
 
 export function tsTypeForSolidityType(type: SupportedSolidityType) {
   switch (type) {
@@ -82,4 +85,25 @@ export function randomWeightedChoice(choices: WeightedRandomChoice[]): string {
     tmpSum += choice.weight;
     if (tmpSum >= randSum) return choice.name;
   }
+}
+
+
+export async function getAttTypesDefinitionFiles(): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+     glob(`t-*.ts`, { cwd: ATT_TYPE_DEFINITIONS_ROOT }, (er: any, files: string[] | null) => {
+        if (er) {
+           reject(er);
+        } else {
+           if (files) {
+              files.sort();
+           }
+           resolve(files || []);
+        }
+     });
+  });
+}
+
+export async function readAttestationTypeSchemes(): Promise<AttestationTypeScheme[]> {
+  let names = await getAttTypesDefinitionFiles();
+  return names.map(name => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme)
 }

@@ -10,8 +10,8 @@ export interface ARPayment {
    // Attestation type id for this request, see AttestationType enum.
    attestationType: AttestationType;
 
-   // The ID of the underlying chain, see ChainType enum.
-   chainId: SourceId;
+   // The ID of the underlying chain, see SourceId enum.
+   sourceId: SourceId;
 
    // Number of the block of the transaction.
    blockNumber: NumberLike;
@@ -33,8 +33,8 @@ export interface ARBalanceDecreasingTransaction {
    // Attestation type id for this request, see AttestationType enum.
    attestationType: AttestationType;
 
-   // The ID of the underlying chain, see ChainType enum.
-   chainId: SourceId;
+   // The ID of the underlying chain, see SourceId enum.
+   sourceId: SourceId;
 
    // Number of the block of the transaction.
    blockNumber: NumberLike;
@@ -53,8 +53,8 @@ export interface ARConfirmedBlockHeightExists {
    // Attestation type id for this request, see AttestationType enum.
    attestationType: AttestationType;
 
-   // The ID of the underlying chain, see ChainType enum.
-   chainId: SourceId;
+   // The ID of the underlying chain, see SourceId enum.
+   sourceId: SourceId;
 
    // Number of the block to prove the existence of.
    blockNumber: NumberLike;
@@ -67,8 +67,8 @@ export interface ARReferencedPaymentNonexistence {
    // Attestation type id for this request, see AttestationType enum.
    attestationType: AttestationType;
 
-   // The ID of the underlying chain, see ChainType enum.
-   chainId: SourceId;
+   // The ID of the underlying chain, see SourceId enum.
+   sourceId: SourceId;
 
    // Maximum median timestamp of the block where the transaction is searched for.
    endTimestamp: NumberLike;

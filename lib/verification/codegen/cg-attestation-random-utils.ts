@@ -1,6 +1,6 @@
 import fs from "fs";
 import Web3 from "web3";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme, SupportedRequestType } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, DataHashScheme, SupportedRequestType } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATTESTATION_TYPE_PREFIX, ATT_RANDOM_UTILS_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, RANDOM_RESPONSE_HEADER } from "./cg-constants";
 import { indentText, tab, trimStartNewline } from "./cg-utils";
@@ -81,12 +81,12 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
 let encoded = web3.eth.abi.encodeParameters(
 ${tab()}[
 ${tab()}${tab()}"uint${ATT_BYTES * 8}",\t\t// attestationType
-${tab()}${tab()}"uint${CHAIN_ID_BYTES * 8}",\t\t// chainId
+${tab()}${tab()}"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
 ${indentText(types, CODEGEN_TAB * 2)}
 ${tab()}],
 ${tab()}[
 ${tab()}${tab()}${defaultRequest}.attestationType,
-${tab()}${tab()}${defaultRequest}.chainId,
+${tab()}${tab()}${defaultRequest}.sourceId,
 ${indentText(values, CODEGEN_TAB * 2)}
 ${tab()}]
 );   
@@ -94,12 +94,12 @@ ${tab()}]
 }
 
 function genRandomAttestationCase(definition: AttestationTypeScheme) {
-  let chainIds = definition.supportedSources;
+  let sourceIds = definition.supportedSources;
   return `
 case AttestationType.${definition.name}:
-${tab()}chainIds = [${chainIds}];
-${tab()}chainId = chainIds[Math.floor(Math.random()*${chainIds.length})];
-${tab()}return {attestationType: randomAttestationType, chainId } as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
+${tab()}sourceIds = [${sourceIds}];
+${tab()}sourceId = sourceIds[Math.floor(Math.random()*${sourceIds.length})];
+${tab()}return {attestationType: randomAttestationType, sourceId } as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
 }
 
 export function randomRequest(definitions: AttestationTypeScheme[]) {
@@ -109,8 +109,8 @@ export function randomRequest(definitions: AttestationTypeScheme[]) {
 export function getRandomRequest() {  
 ${tab()}let ids = [${ids}];
 ${tab()}let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*${definitions.length})];
-${tab()}let chainId: SourceId = -1;
-${tab()}let chainIds: SourceId[] = [];
+${tab()}let sourceId: SourceId = -1;
+${tab()}let sourceIds: SourceId[] = [];
 ${tab()}switch(randomAttestationType) {
 ${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
 ${tab()}${tab()}default:
@@ -122,24 +122,24 @@ ${tab()}}
 
 function genRandomAttestationCaseForRandomRequest(definition: AttestationTypeScheme) {
   let randomValuesForRequestItems = definition.request
-    .filter(item => item.key != "attestationType" && item.key != "chainId")
+    .filter(item => item.key != "attestationType" && item.key != "sourceId")
     .map(item => `${item.key}: ${randReqItemCode(item.type, item.size)}`).join(",\n");
   return `
 case AttestationType.${definition.name}:
 ${tab()}return {
 ${tab()}${tab()}attestationType,
-${tab()}${tab()}chainId,
+${tab()}${tab()}sourceId,
 ${indentText(randomValuesForRequestItems, CODEGEN_TAB * 2)}
 ${tab()}} as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
 }
 
-export function randomRequestForAttestationTypeAndChainId(definitions: AttestationTypeScheme[]) {
+export function randomRequestForAttestationTypeAndSourceId(definitions: AttestationTypeScheme[]) {
   let ids = definitions.map(definition => definition.id).join(", ");
   let attestationTypeCases = definitions.map(definition => genRandomAttestationCaseForRandomRequest(definition)).join("");
   return `
-export function getRandomRequestForAttestationTypeAndChainId (
+export function getRandomRequestForAttestationTypeAndSourceId (
 ${tab()}attestationType: AttestationType,
-${tab()}chainId: SourceId
+${tab()}sourceId: SourceId
 ) {  
 ${tab()}switch(attestationType) {
 ${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
@@ -181,7 +181,7 @@ const web3 = new Web3();
 
   content += randomRequest(definitions);
 
-  content += randomRequestForAttestationTypeAndChainId(definitions);
+  content += randomRequestForAttestationTypeAndSourceId(definitions);
 
   fs.writeFileSync(ATT_RANDOM_UTILS_FILE, content, "utf8");
 }

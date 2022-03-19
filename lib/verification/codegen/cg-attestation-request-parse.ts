@@ -1,5 +1,5 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
 import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_PARSE_FILE, CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER, REQUEST_PARSE_FUNCTIONS_HEADER, REQUEST_PARSE_PREFIX_FUNCTION } from "./cg-constants";
 import { indentText, tab } from "./cg-utils";
 
@@ -104,12 +104,12 @@ function genGetAttestationTypeAndSource() {
 export function getAttestationTypeAndSource(bytes: string) {
 ${tab()}try {
 ${tab()}${tab()}let input = unPrefix0x(bytes);
-${tab()}${tab()}if (!bytes || bytes.length < ${ATT_BYTES * 2 + CHAIN_ID_BYTES * 2}) {
+${tab()}${tab()}if (!bytes || bytes.length < ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}) {
 ${tab()}${tab()}${tab()}throw new AttestationRequestParseError("Cannot read attestation type and source id")
 ${tab()}${tab()}}
 ${tab()}${tab()}return {
 ${tab()}${tab()}${tab()}attestationType: toBN(prefix0x(input.slice(0, ${ATT_BYTES * 2}))).toNumber() as AttestationType,
-${tab()}${tab()}${tab()}sourceId: toBN(prefix0x(input).slice(${ATT_BYTES * 2}, ${ATT_BYTES * 2 + CHAIN_ID_BYTES * 2})).toNumber() as SourceId
+${tab()}${tab()}${tab()}sourceId: toBN(prefix0x(input).slice(${ATT_BYTES * 2}, ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2})).toNumber() as SourceId
 ${tab()}${tab()}}
 ${tab()}} catch(e) {
 ${tab()}${tab()}throw new AttestationRequestParseError(e)

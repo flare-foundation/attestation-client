@@ -8,19 +8,19 @@ import { SourceId } from "../verification/sources/sources";
 import { getRandomConfirmedBlock, getRandomTransaction, getRandomTransactionWithPaymentReference } from "./indexed-query-manager-utils";
 import { IndexedQueryManager } from "./IndexedQueryManager";
 
-export async function getRandomAttestationRequest(definitions: AttestationTypeScheme[], indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
+export async function getRandomAttestationRequest(definitions: AttestationTypeScheme[], indexedQueryManager: IndexedQueryManager, sourceId: SourceId, roundId: number, numberOfConfirmations: number) {
    let randN = Math.floor(Math.random() * definitions.length);
    let scheme = definitions[randN];
    let attestationType = scheme.id as AttestationType;
    switch (attestationType) {
       case AttestationType.Payment:
-         return getRandomRequestPayment(indexedQueryManager, chainId, roundId, numberOfConfirmations);
+         return getRandomRequestPayment(indexedQueryManager, sourceId, roundId, numberOfConfirmations);
       case AttestationType.BalanceDecreasingTransaction:
-         return getRandomRequestBalanceDecreasingTransaction(indexedQueryManager, chainId, roundId, numberOfConfirmations);
+         return getRandomRequestBalanceDecreasingTransaction(indexedQueryManager, sourceId, roundId, numberOfConfirmations);
       case AttestationType.ConfirmedBlockHeightExists:
-         return getRandomRequestConfirmedBlockHeightExists(indexedQueryManager, chainId, roundId, numberOfConfirmations);
+         return getRandomRequestConfirmedBlockHeightExists(indexedQueryManager, sourceId, roundId, numberOfConfirmations);
       case AttestationType.ReferencedPaymentNonexistence:
-         return getRandomRequestReferencedPaymentNonexistence(indexedQueryManager, chainId, roundId, numberOfConfirmations);
+         return getRandomRequestReferencedPaymentNonexistence(indexedQueryManager, sourceId, roundId, numberOfConfirmations);
       default:
          throw new Error("Invalid attestation type");
    }
@@ -31,7 +31,7 @@ export async function getRandomAttestationRequest(definitions: AttestationTypeSc
 // Specific random attestation generators for attestation types
 /////////////////////////////////////////////////////////////////
 
-export async function getRandomRequestPayment(indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
+export async function getRandomRequestPayment(indexedQueryManager: IndexedQueryManager, sourceId: SourceId, roundId: number, numberOfConfirmations: number) {
    let randomTransaction = await getRandomTransaction(indexedQueryManager);
    if (!randomTransaction) {
       return null;
@@ -57,7 +57,7 @@ export async function getRandomRequestPayment(indexedQueryManager: IndexedQueryM
    let dataAvailabilityProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlock.blockHash);
    return {
       attestationType: AttestationType.Payment,
-      chainId,
+      sourceId: sourceId,
       blockNumber,
       utxo: toBN(0),  // TODO: randomize for UTXO chains
       inUtxo: toBN(0), // TODO: randomize for UTXO chains
@@ -66,7 +66,7 @@ export async function getRandomRequestPayment(indexedQueryManager: IndexedQueryM
    } as ARPayment;
 }
 
-export async function getRandomRequestBalanceDecreasingTransaction(indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
+export async function getRandomRequestBalanceDecreasingTransaction(indexedQueryManager: IndexedQueryManager, sourceId: SourceId, roundId: number, numberOfConfirmations: number) {
    let randomTransaction = await getRandomTransaction(indexedQueryManager);
    if (!randomTransaction) {
       return null;
@@ -93,7 +93,7 @@ export async function getRandomRequestBalanceDecreasingTransaction(indexedQueryM
 
    return {
       attestationType: AttestationType.BalanceDecreasingTransaction,
-      chainId,
+      sourceId: sourceId,
       blockNumber,
       inUtxo: toBN(0),  // TODO: randomize for UTXO chains
       id,
@@ -102,7 +102,7 @@ export async function getRandomRequestBalanceDecreasingTransaction(indexedQueryM
 
 }
 
-export async function getRandomRequestConfirmedBlockHeightExists(indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
+export async function getRandomRequestConfirmedBlockHeightExists(indexedQueryManager: IndexedQueryManager, sourceId: SourceId, roundId: number, numberOfConfirmations: number) {
    let randomBlock = await getRandomConfirmedBlock(indexedQueryManager);
    if (!randomBlock) {
       return null;
@@ -125,14 +125,14 @@ export async function getRandomRequestConfirmedBlockHeightExists(indexedQueryMan
    let dataAvailabilityProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlock.blockHash);
    return {
       attestationType: AttestationType.ConfirmedBlockHeightExists,
-      chainId,
+      sourceId,
       blockNumber,
       dataAvailabilityProof
    } as ARConfirmedBlockHeightExists;
 
 }
 
-export async function getRandomRequestReferencedPaymentNonexistence(indexedQueryManager: IndexedQueryManager, chainId: SourceId, roundId: number, numberOfConfirmations: number) {
+export async function getRandomRequestReferencedPaymentNonexistence(indexedQueryManager: IndexedQueryManager, sourceId: SourceId, roundId: number, numberOfConfirmations: number) {
    const START_BLOCK_OFFSET = 100;
    const OVERFLOW_BLOCK_OFFSET = 10;
 
@@ -202,7 +202,7 @@ export async function getRandomRequestReferencedPaymentNonexistence(indexedQuery
    // let destinationAmounts = randomTransaction.
    return {
       attestationType: AttestationType.ReferencedPaymentNonexistence,
-      chainId,
+      sourceId,
       startBlock,
       endTimestamp,
       endBlock,

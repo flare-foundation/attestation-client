@@ -1,5 +1,5 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
 import { ATTESTATION_TYPE_PREFIX, ATT_HASH_UTILS_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, WEB3_HASH_FUNCTIONS_HEADER, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
 import { indentText, tab } from "./cg-utils";
 
@@ -13,12 +13,12 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
 let encoded = web3.eth.abi.encodeParameters(
 ${tab()}[
 ${tab()}${tab()}"uint${ATT_BYTES * 8}",\t\t// attestationType
-${tab()}${tab()}"uint${CHAIN_ID_BYTES * 8}",\t\t// chainId
+${tab()}${tab()}"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
 ${indentText(types, CODEGEN_TAB * 2)}
 ${tab()}],
 ${tab()}[
 ${tab()}${tab()}${defaultRequest}.attestationType,
-${tab()}${tab()}${defaultRequest}.chainId,
+${tab()}${tab()}${defaultRequest}.sourceId,
 ${indentText(values, CODEGEN_TAB * 2)}
 ${tab()}]
 );   
@@ -35,7 +35,6 @@ ${tab()}return web3.utils.soliditySha3(encoded)!;
 }
 
 function genDatahashCase(definition: AttestationTypeScheme) {
-  let chainIds = definition.supportedSources;
   return `
 case AttestationType.${definition.name}:
 ${tab()}return ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request as ${ATTESTATION_TYPE_PREFIX}${definition.name}, response as ${DATA_HASH_TYPE_PREFIX}${definition.name});`

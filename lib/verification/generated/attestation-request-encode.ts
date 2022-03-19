@@ -42,8 +42,8 @@ export function encodePayment(request: ARPayment) {
    if(request.attestationType == null) {
       throw new AttestationRequestEncodeError("Missing 'attestationType'")
    }
-   if(request.chainId == null) {
-      throw new AttestationRequestEncodeError("Missing 'chainId'")
+   if(request.sourceId == null) {
+      throw new AttestationRequestEncodeError("Missing 'sourceId'")
    }
    if(request.blockNumber == null) {
       throw new AttestationRequestEncodeError("Missing 'blockNumber'")
@@ -62,7 +62,7 @@ export function encodePayment(request: ARPayment) {
    }
    let bytes = "0x"
    bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2);
-   bytes += toUnprefixedBytes(request.chainId, "SourceId", 4);
+   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4);
    bytes += toUnprefixedBytes(request.blockNumber, "NumberLike", 4);
    bytes += toUnprefixedBytes(request.utxo, "NumberLike", 1);
    bytes += toUnprefixedBytes(request.inUtxo, "NumberLike", 1);
@@ -75,8 +75,8 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
    if(request.attestationType == null) {
       throw new AttestationRequestEncodeError("Missing 'attestationType'")
    }
-   if(request.chainId == null) {
-      throw new AttestationRequestEncodeError("Missing 'chainId'")
+   if(request.sourceId == null) {
+      throw new AttestationRequestEncodeError("Missing 'sourceId'")
    }
    if(request.blockNumber == null) {
       throw new AttestationRequestEncodeError("Missing 'blockNumber'")
@@ -92,7 +92,7 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
    }
    let bytes = "0x"
    bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2);
-   bytes += toUnprefixedBytes(request.chainId, "SourceId", 4);
+   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4);
    bytes += toUnprefixedBytes(request.blockNumber, "NumberLike", 4);
    bytes += toUnprefixedBytes(request.inUtxo, "NumberLike", 1);
    bytes += toUnprefixedBytes(request.id, "ByteSequenceLike", 32);
@@ -104,8 +104,8 @@ export function encodeConfirmedBlockHeightExists(request: ARConfirmedBlockHeight
    if(request.attestationType == null) {
       throw new AttestationRequestEncodeError("Missing 'attestationType'")
    }
-   if(request.chainId == null) {
-      throw new AttestationRequestEncodeError("Missing 'chainId'")
+   if(request.sourceId == null) {
+      throw new AttestationRequestEncodeError("Missing 'sourceId'")
    }
    if(request.blockNumber == null) {
       throw new AttestationRequestEncodeError("Missing 'blockNumber'")
@@ -115,7 +115,7 @@ export function encodeConfirmedBlockHeightExists(request: ARConfirmedBlockHeight
    }
    let bytes = "0x"
    bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2);
-   bytes += toUnprefixedBytes(request.chainId, "SourceId", 4);
+   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4);
    bytes += toUnprefixedBytes(request.blockNumber, "NumberLike", 4);
    bytes += toUnprefixedBytes(request.dataAvailabilityProof, "ByteSequenceLike", 32);
    return bytes;
@@ -125,8 +125,8 @@ export function encodeReferencedPaymentNonexistence(request: ARReferencedPayment
    if(request.attestationType == null) {
       throw new AttestationRequestEncodeError("Missing 'attestationType'")
    }
-   if(request.chainId == null) {
-      throw new AttestationRequestEncodeError("Missing 'chainId'")
+   if(request.sourceId == null) {
+      throw new AttestationRequestEncodeError("Missing 'sourceId'")
    }
    if(request.endTimestamp == null) {
       throw new AttestationRequestEncodeError("Missing 'endTimestamp'")
@@ -151,7 +151,7 @@ export function encodeReferencedPaymentNonexistence(request: ARReferencedPayment
    }
    let bytes = "0x"
    bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2);
-   bytes += toUnprefixedBytes(request.chainId, "SourceId", 4);
+   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4);
    bytes += toUnprefixedBytes(request.endTimestamp, "NumberLike", 4);
    bytes += toUnprefixedBytes(request.endBlock, "NumberLike", 4);
    bytes += toUnprefixedBytes(request.destinationAddress, "ByteSequenceLike", 32);

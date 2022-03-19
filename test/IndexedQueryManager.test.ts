@@ -146,7 +146,6 @@ describe("Indexed query manager", () => {
       }
       let tmpTransactions = await indexedQueryManager.queryTransactions({
          roundId: 0,
-         numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })
@@ -162,7 +161,6 @@ describe("Indexed query manager", () => {
       }
       let tmpTransactions = await indexedQueryManager.queryTransactions({
          roundId: 0,
-         numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })

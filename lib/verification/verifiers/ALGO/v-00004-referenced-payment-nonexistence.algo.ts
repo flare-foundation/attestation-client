@@ -6,8 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARReferencedPaymentNonexistence, Attestation, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, MCC, parseRequest, randSol, TDEF_referenced_payment_nonexistence, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { ARReferencedPaymentNonexistence, Attestation, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import { AlgoTransaction } from "flare-mcc";
+import { accountBasedReferencedPaymentNonExistence } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 
@@ -24,23 +25,12 @@ export async function verifyReferencedPaymentNonexistenceALGO(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   // Search all transactions with provided payment reference
+   let result = await accountBasedReferencedPaymentNonExistence(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+   if (result.status != VerificationStatus.OK) {
+      return { status: result.status }
+   }
 
-
-   let response = {
-      // This parameters are only shadowed from request
-      // FROM HERE
-      endTimestamp: request.endTimestamp,
-      endBlock: request.endBlock,
-      destinationAddress: request.destinationAddress, 
-      paymentReference: request.paymentReference,
-      amount: request.amount, 
-      // TO HERE
-      firstCheckedBlock: randSol(request, "firstCheckedBlock", "uint64") as BN,
-      firstCheckedBlockTimestamp: randSol(request, "firstCheckedBlockTimestamp", "uint64") as BN,
-      firstOverflowBlock: randSol(request, "firstOverflowBlock", "uint64") as BN,
-      firstOverflowBlockTimestamp: randSol(request, "firstOverflowBlockTimestamp", "uint64") as BN      
-   } as DHReferencedPaymentNonexistence;
+   let response = result.response;   
 
    //-$$$<end> of the custom section. Do not change this comment.
 

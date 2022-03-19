@@ -6,9 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequest, randSol, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { XrpTransaction } from "flare-mcc";
-import { accountBasedBalanceDecreasingTransactionVerification } from "../../verification-utils";
+import { accountBasedBalanceDecreasingTransactionVerification } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 

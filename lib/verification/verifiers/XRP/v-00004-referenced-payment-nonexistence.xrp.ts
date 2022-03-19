@@ -6,8 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARReferencedPaymentNonexistence, Attestation, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, MCC, parseRequest, randSol, TDEF_referenced_payment_nonexistence, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { ARReferencedPaymentNonexistence, Attestation, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import { XrpTransaction } from "flare-mcc";
+import { accountBasedReferencedPaymentNonExistence } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 
@@ -24,21 +25,16 @@ export async function verifyReferencedPaymentNonexistenceXRP(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// XXXX
+   let result = await accountBasedReferencedPaymentNonExistence(XrpTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+   if (result.status != VerificationStatus.OK) {
+      return { status: result.status }
+   }
+
+   let response = result.response;   
 
    //-$$$<end> of the custom section. Do not change this comment.
 
-   let response = {
-      endTimestamp: randSol(request, "endTimestamp", "uint64") as BN,
-      endBlock: randSol(request, "endBlock", "uint64") as BN,
-      destinationAddress: randSol(request, "destinationAddress", "bytes32") as string,
-      paymentReference: randSol(request, "paymentReference", "bytes32") as string,
-      amount: randSol(request, "amount", "uint128") as BN,
-      firstCheckedBlock: randSol(request, "firstCheckedBlock", "uint64") as BN,
-      firstCheckedBlockTimestamp: randSol(request, "firstCheckedBlockTimestamp", "uint64") as BN,
-      firstOverflowBlock: randSol(request, "firstOverflowBlock", "uint64") as BN,
-      firstOverflowBlockTimestamp: randSol(request, "firstOverflowBlockTimestamp", "uint64") as BN      
-   } as DHReferencedPaymentNonexistence;
+
 
    let hash = hashReferencedPaymentNonexistence(request, response);
 

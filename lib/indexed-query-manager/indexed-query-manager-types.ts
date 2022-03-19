@@ -16,8 +16,6 @@ export interface IndexedQueryManagerOptions {
 
 export interface TransactionQueryParams {
   roundId: number;
-  numberOfConfirmations: number;
-  startBlock?: number;
   endBlock: number;
   transactionId?: string;
   paymentReference?: string;

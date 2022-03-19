@@ -1,112 +1,21 @@
-import { AlgoTransaction, toBN, TransactionBase } from "flare-mcc";
-import { ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryResponse, ReferencedTransactionsQueryResponse } from "../indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
-import { Indexer } from "../indexer/indexer";
-import { VerificationStatus } from "./attestation-types/attestation-types";
-import { numberLikeToNumber, randSol } from "./attestation-types/attestation-types-helpers";
-import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "./generated/attestation-hash-types";
-import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence, ARType } from "./generated/attestation-request-types";
-
-export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryResponse) {
-   if (result.status === 'RECHECK') {
-      return VerificationStatus.RECHECK_LATER
-   }
-
-   if (result.status === 'NOT_EXIST' || !result.transaction) {
-      return VerificationStatus.NON_EXISTENT_TRANSACTION
-   }
-
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
+import { BtcTransaction, DogeTransaction, LtcTransaction, toBN } from "flare-mcc";
+import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
+import { VerificationStatus } from "../attestation-types/attestation-types";
+import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
+import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
+import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../generated/attestation-request-types";
+import { VerificationResponse, verifyConfirmationBlock, verifyNativePayment, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
 
 
-export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse) {
-   if (result.status === 'RECHECK') {
-      return VerificationStatus.RECHECK_LATER
-   }
-
-   if (result.status === 'NOT_EXIST' || !result.block) {
-      return VerificationStatus.NON_EXISTENT_BLOCK
-   }
-
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
-
-export function verifyWorkflowForReferencedTransactions(result: ReferencedTransactionsQueryResponse) {
-   if (result.status === 'RECHECK') {
-      return VerificationStatus.RECHECK_LATER
-   }
-
-   if (result.status === 'NO_OVERFLOW_BLOCK' || !result.block) {
-      return VerificationStatus.NON_EXISTENT_BLOCK
-   }
-
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
-
-export function verifyIsAccountBased(fullTxData: TransactionBase<any, any>) {
-   if (fullTxData.sourceAddress.length !== 1) {
-      return VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS
-   }
-
-   if (fullTxData.receivingAddress.length !== 1) {
-      return VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS
-   }
-
-   if (fullTxData.reference.length !== 1) {
-      return VerificationStatus.NOT_SINGLE_PAYMENT_REFERENCE
-   }
-
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
-
-export interface RecheckParams {
-   recheck: boolean;
-   blockNumber: number;
-   numberOfConfirmations: number;
-   roundId: number;
-   dataAvailabilityProof: string
-   iqm: IndexedQueryManager
-}
-
-export async function verifyConfirmationBlock(params: RecheckParams) {
-   if (params.recheck) {
-      let confirmationBlockIndex = params.blockNumber + params.numberOfConfirmations;
-      let confirmationBlock = await params.iqm.queryBlock({
-         blockNumber: confirmationBlockIndex,
-         roundId: params.roundId
-      });
-      if (!confirmationBlock) {
-         return VerificationStatus.NOT_CONFIRMED
-      }
-      if (confirmationBlock.blockHash != params.dataAvailabilityProof) {
-         return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF
-      }
-   }
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
-
-export function verifyNativePayment(fullTxData: TransactionBase<any, any>) {
-   if (!fullTxData.isNativePayment) {
-      return VerificationStatus.NOT_PAYMENT
-   }
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
-
-
-export interface VerificationResponse<T> {
-   status: VerificationStatus;
-   response?: T;
-}
-
-export async function accountBasedPaymentVerification(
-   TransactionClass: any,
+export async function utxoBasedPaymentVerification(
+   TransactionClass: new (...args: any[]) => BtcTransaction | LtcTransaction | DogeTransaction,
    request: ARPayment,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHPayment>> {
+   throw new Error("Not yet implemented");
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
@@ -145,6 +54,16 @@ export async function accountBasedPaymentVerification(
       return { status }
    }
 
+   if(!fullTxData.sourceAddress || fullTxData.sourceAddress.length < request.inUtxo || fullTxData.sourceAddress) {
+      return {
+         status: VerificationStatus.NON_EXTENT_INPUT_UTXO_ADDRESS
+      }
+   }
+
+   let sourceAddress
+   
+   
+   
    let response = {
       stateConnectorRound: roundId,
       blockNumber: toBN(blockNumber),
@@ -167,14 +86,15 @@ export async function accountBasedPaymentVerification(
 }
 
 
-export async function accountBasedBalanceDecreasingTransactionVerification(
-   TransactionClass: any,
+export async function utxoBasedBalanceDecreasingTransactionVerification(
+   TransactionClass: new (...args: any[]) => BtcTransaction | LtcTransaction | DogeTransaction,
    request: ARBalanceDecreasingTransaction,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
+   throw new Error("Not yet implemented");
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
@@ -222,13 +142,14 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
    }
 }
 
-export async function accountBasedConfirmedBlockHeightExistsVerification(
+export async function utxoBasedConfirmedBlockHeightExistsVerification(
    request: ARConfirmedBlockHeightExists,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHConfirmedBlockHeightExists>> {
+   throw new Error("Not yet implemented");
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    const confirmedBlock = await iqm.getConfirmedBlock({
@@ -271,27 +192,17 @@ export async function accountBasedConfirmedBlockHeightExistsVerification(
    }
 }
 
-export async function accountBasedReferencedPaymentNonExistence(
-   TransactionClass: any,
+export async function utxoBasedReferencedPaymentNonExistence(
+   TransactionClass: new (...args: any[]) => BtcTransaction | LtcTransaction | DogeTransaction,
    request: ARReferencedPaymentNonexistence,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {
-   // let blockNumber = numberLikeToNumber(request.blockNumber);
-
-   // numberOfConfirmations: number; 
-   // paymentReference: string; // payment reference
-   // startBlockNumber: number; // starting block for search. Overrides default starting time.
-   // // Used to determine overflow block - the first block with blockNumber > endBlock and timestamp > endTime
-   // overflowBlockNumber: number;
-   // dataAvailabilityProof: string; // hash of confirmation block of the overflow block
-   // roundId: number; // voting round id for check
-   // type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
-
+   throw new Error("Not yet implemented");
    let overflowBlockNumber = numberLikeToNumber(request.overflowBlock);
-   let endBlock = numberLikeToNumber(request.endBlock);
+   let endBlockNumber = numberLikeToNumber(request.endBlock);
    let endTime = numberLikeToNumber(request.endTimestamp);
 
    // TODO: check if anything needs to be done with: startBlock >= overflowBlock 
@@ -334,7 +245,7 @@ export async function accountBasedReferencedPaymentNonExistence(
    }
 
    // Find the first overflow block
-   let firstOverflowBlock = await iqm.getFirstConfirmedOverflowBlock(endTime, endBlock);
+   let firstOverflowBlock = await iqm.getFirstConfirmedOverflowBlock(endTime, endBlockNumber);
 
    let startTimestamp = this.settings.windowStartTime(roundId);
    let firstCheckedBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
@@ -346,7 +257,7 @@ export async function accountBasedReferencedPaymentNonExistence(
       const parsedData = JSON.parse(dbTransaction.response);
       const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
       const destinationAddressHash = web3.utils.soliditySha3(fullTxData.receivingAddress[0]);
-      const amount = toBN(fullTxData.receivedAmount);
+      const amount = toBN(fullTxData.receivedAmount[0].amount);
       if (destinationAddressHash === request.destinationAddress && amount.eq(toBN(request.amount))) {
          matchFound = true;
          break;

@@ -63,7 +63,7 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
 
    let randomResponse = genRandomResponseCode(definition, "request");
    let importedSymbols = [`${ATTESTATION_TYPE_PREFIX}${definition.name}`, `Attestation`, `BN`, `${DATA_HASH_TYPE_PREFIX}${definition.name}`, 
-   `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`, `IndexedQueryManager`, `parseRequest`, `randSol`, `MCC`, `TDEF_${dashCapitalized(definition.name, '_')}`, `Verification`, `VerificationStatus`, `Web3`];
+   `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`, `IndexedQueryManager`, `parseRequest`, `randSol`, `MCC`, `Verification`, `VerificationStatus`, `Web3`];
    importedSymbols.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
    return `${SEMI_EDITABLE_GEN_FILE_HEADER}

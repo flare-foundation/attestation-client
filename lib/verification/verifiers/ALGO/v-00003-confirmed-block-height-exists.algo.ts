@@ -6,11 +6,11 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequest, randSol, TDEF_confirmed_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
 import { toBN } from "flare-mcc";
 import { ConfirmedBlockQueryRequest } from "../../../indexed-query-manager/indexed-query-manager-types";
-import { accountBasedConfirmedBlockHeightExistsVerification } from "../../verification-utils";
+import { accountBasedConfirmedBlockHeightExistsVerification } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 

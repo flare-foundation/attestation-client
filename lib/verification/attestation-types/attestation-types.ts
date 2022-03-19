@@ -1,7 +1,5 @@
 import BN from "bn.js";
 import { ChainType } from "flare-mcc";
-import { DHType } from "../generated/attestation-hash-types";
-import { ARType } from "../generated/attestation-request-types";
 import { AttestationType } from "../generated/attestation-types-enum";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +53,12 @@ export enum VerificationStatus {
   NOT_PAYMENT = "NOT_PAYMENT",
   WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP = "WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP",
   WRONG_OVERFLOW_BLOCK_ENDTIME = "WRONG_OVERFLOW_BLOCK_ENDTIME",
-  REFERENCED_TRANSACTION_EXISTS = "REFERENCED_TRANSACTION_EXISTS"
+  REFERENCED_TRANSACTION_EXISTS = "REFERENCED_TRANSACTION_EXISTS",
+
+  NON_EXTENT_INPUT_UTXO_ADDRESS = "NON_EXTENT_INPUT_UTXO_ADDRESS",
+  NON_EXTENT_OUTPUT_UTXO_ADDRESS = "NON_EXTENT_OUTPUT_UTXO_ADDRESS",
+
+
 }
 
 export interface AttestationRequest {

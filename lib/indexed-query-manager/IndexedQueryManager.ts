@@ -48,11 +48,6 @@ export class IndexedQueryManager {
         .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })  // always query in the window.
         .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.endBlock });
 
-      // startBlock overrides default window
-      if (params.startBlock) {
-        query = query.andWhere("transaction.blockNumber >= :blockNumber", { blockNumber: params.startBlock });
-      } 
-
       if (params.paymentReference) {
         query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
       }

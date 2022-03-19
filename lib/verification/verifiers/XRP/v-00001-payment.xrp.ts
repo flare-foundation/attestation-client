@@ -6,9 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { XrpTransaction } from "flare-mcc";
-import { accountBasedPaymentVerification } from "../../verification-utils";
+import { accountBasedPaymentVerification } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 

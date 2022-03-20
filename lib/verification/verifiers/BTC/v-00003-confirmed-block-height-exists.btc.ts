@@ -6,8 +6,8 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_confirmed_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import { utxoBasedConfirmedBlockHeightExistsVerification } from "../../verification-utils/utxo-based-verification-utils";
 
 const web3 = new Web3();
 
@@ -18,20 +18,22 @@ export async function verifyConfirmedBlockHeightExistsBTC(
    recheck = false
 ): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>>
 {
-   let request = parseRequestBytes(attestation.data.request, TDEF_confirmed_block_height_exists) as ARConfirmedBlockHeightExists;
-   let roundId = attestation.round.roundId;
-   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
+   let request = parseRequest(attestation.data.request) as ARConfirmedBlockHeightExists;
+   let roundId = attestation.roundId;
+   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// TYPE THE CODE HERE
+   let result = await utxoBasedConfirmedBlockHeightExistsVerification(request, roundId, numberOfConfirmations, recheck, indexer);
+   if (result.status != VerificationStatus.OK) {
+      return { status: result.status }
+   }
+
+   let response = result.response;   
 
    //-$$$<end> of the custom section. Do not change this comment.
 
-   let response = {
-      blockNumber: randSol(request, "blockNumber", "uint64") as BN,
-      blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN      
-   } as DHConfirmedBlockHeightExists;
+
 
    let hash = hashConfirmedBlockHeightExists(request, response);
 

@@ -17,14 +17,20 @@ export async function getRandomTransaction(iqm: IndexedQueryManager): Promise<DB
    return result;
 }
 
-export async function getRandomTransactionWithPaymentReference(iqm: IndexedQueryManager): Promise<DBTransactionBase | undefined> {
+export async function getRandomTransactionWithPaymentReference(iqm: IndexedQueryManager, mustBeNativePayment = true, mustNotBeNativePayment = false): Promise<DBTransactionBase | undefined> {
    let result: DBTransactionBase | undefined;
    let maxReps = 5;
    while (!result) {
       let tableId = Math.round(Math.random());
       let table = iqm.transactionTable[tableId];
       let query = iqm.dbService.connection.manager.createQueryBuilder(table, "transaction")
-         .where("transaction.paymentReference != ''")
+         .where("transaction.paymentReference != ''");
+      if (mustBeNativePayment) {
+         query = query.andWhere("transaction.isNativePayment = 1")
+      }
+      if(mustNotBeNativePayment) {
+         query = query.andWhere("transaction.isNativePayment = 0")
+      }
 
       let count = await query.getCount();
       if (count === 0) {
@@ -62,7 +68,7 @@ export async function getRandomConfirmedBlock(iqm: IndexedQueryManager): Promise
 
 export async function generateUntilFound<T>(func: () => T | null) {
    let result: T | undefined = undefined;
-   while(!result) {
+   while (!result) {
       result = await func();
    }
    return result;

@@ -2,9 +2,10 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { ChainType, MccClient, MCC } from "flare-mcc"
-import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-helpers"
+import { MccClient, MCC } from "flare-mcc"
+import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"
+import { SourceId } from "../sources/sources";
 import { Verification } from "../attestation-types/attestation-types"
       
 import {verifyPaymentXRP} from "./XRP/v-00001-payment.xrp"
@@ -50,60 +51,60 @@ export async function verifyAttestation(client: MccClient, attestation: Attestat
    switch(attestationType) {
       case AttestationType.Payment:
          switch(sourceId) {
-            case ChainType.XRP:
+            case SourceId.XRP:
                return verifyPaymentXRP(client as MCC.XRP, attestation, indexer, recheck);
-            case ChainType.BTC:
+            case SourceId.BTC:
                return verifyPaymentBTC(client as MCC.BTC, attestation, indexer, recheck);
-            case ChainType.LTC:
+            case SourceId.LTC:
                return verifyPaymentLTC(client as MCC.LTC, attestation, indexer, recheck);
-            case ChainType.DOGE:
+            case SourceId.DOGE:
                return verifyPaymentDOGE(client as MCC.DOGE, attestation, indexer, recheck);
-            case ChainType.ALGO:
+            case SourceId.ALGO:
                return verifyPaymentALGO(client as MCC.ALGO, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }
       case AttestationType.BalanceDecreasingTransaction:
          switch(sourceId) {
-            case ChainType.XRP:
+            case SourceId.XRP:
                return verifyBalanceDecreasingTransactionXRP(client as MCC.XRP, attestation, indexer, recheck);
-            case ChainType.BTC:
+            case SourceId.BTC:
                return verifyBalanceDecreasingTransactionBTC(client as MCC.BTC, attestation, indexer, recheck);
-            case ChainType.LTC:
+            case SourceId.LTC:
                return verifyBalanceDecreasingTransactionLTC(client as MCC.LTC, attestation, indexer, recheck);
-            case ChainType.DOGE:
+            case SourceId.DOGE:
                return verifyBalanceDecreasingTransactionDOGE(client as MCC.DOGE, attestation, indexer, recheck);
-            case ChainType.ALGO:
+            case SourceId.ALGO:
                return verifyBalanceDecreasingTransactionALGO(client as MCC.ALGO, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }
       case AttestationType.ConfirmedBlockHeightExists:
          switch(sourceId) {
-            case ChainType.XRP:
+            case SourceId.XRP:
                return verifyConfirmedBlockHeightExistsXRP(client as MCC.XRP, attestation, indexer, recheck);
-            case ChainType.BTC:
+            case SourceId.BTC:
                return verifyConfirmedBlockHeightExistsBTC(client as MCC.BTC, attestation, indexer, recheck);
-            case ChainType.LTC:
+            case SourceId.LTC:
                return verifyConfirmedBlockHeightExistsLTC(client as MCC.LTC, attestation, indexer, recheck);
-            case ChainType.DOGE:
+            case SourceId.DOGE:
                return verifyConfirmedBlockHeightExistsDOGE(client as MCC.DOGE, attestation, indexer, recheck);
-            case ChainType.ALGO:
+            case SourceId.ALGO:
                return verifyConfirmedBlockHeightExistsALGO(client as MCC.ALGO, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }
       case AttestationType.ReferencedPaymentNonexistence:
          switch(sourceId) {
-            case ChainType.XRP:
+            case SourceId.XRP:
                return verifyReferencedPaymentNonexistenceXRP(client as MCC.XRP, attestation, indexer, recheck);
-            case ChainType.BTC:
+            case SourceId.BTC:
                return verifyReferencedPaymentNonexistenceBTC(client as MCC.BTC, attestation, indexer, recheck);
-            case ChainType.LTC:
+            case SourceId.LTC:
                return verifyReferencedPaymentNonexistenceLTC(client as MCC.LTC, attestation, indexer, recheck);
-            case ChainType.DOGE:
+            case SourceId.DOGE:
                return verifyReferencedPaymentNonexistenceDOGE(client as MCC.DOGE, attestation, indexer, recheck);
-            case ChainType.ALGO:
+            case SourceId.ALGO:
                return verifyReferencedPaymentNonexistenceALGO(client as MCC.ALGO, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");

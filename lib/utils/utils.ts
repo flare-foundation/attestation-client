@@ -4,7 +4,6 @@ import { prefix0x, toBN } from "flare-mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
-import { ChainVerification, TransactionAttestationRequest, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
@@ -171,7 +170,7 @@ export function prepareString(text: string, maxLength: number, reportOwerflow: s
     getGlobalLogger().warning(`prepareString warning: ${reportOwerflow} overflow ${maxLength} (length=${text.length})`);
   }
 
-  return text.substring(0, maxLength - 1);
+  return text.substring(0, maxLength);
 }
 
 export function getSimpleRandom(maxnum: number) : number {
@@ -246,22 +245,6 @@ export function extractBNPaymentReference(paymentReference: string | string[] | 
   } catch (e) {
     return toBN(0);
   }
-}
-
-export function genericReturnWithStatus(
-  additionalData: any,
-  attRequest: TransactionAttestationRequest,
-  verificationStatus: VerificationStatus,
-  anything?: any
-) {
-  return {
-    chainId: toBN(attRequest.chainId!),
-    attestationType: attRequest.attestationType!,
-    utxo: attRequest.utxo,
-    ...additionalData,
-    verificationStatus,
-    ...anything,
-  } as ChainVerification;
 }
 
 // use in JSON.stringify( x , JSONMapParser ) to save Map

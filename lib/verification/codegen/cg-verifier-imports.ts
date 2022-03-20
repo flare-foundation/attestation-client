@@ -1,11 +1,11 @@
-import { ChainType } from "flare-mcc";
 import fs from "fs";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { SourceId } from "../sources/sources";
 import { ATTESTATION_TYPE_PREFIX, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, VERIFIERS_ROOT, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
 import { dashCapitalized, definitionFile, indentText } from "./cg-utils";
 import { verifierFolder } from "./cg-verifiers";
 
-export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], chainType: ChainType) {
+export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], chainType: SourceId) {
 
    let tdefImports = "";
    let tdefExports = "";
@@ -34,7 +34,8 @@ ${tdefImports}
 export { RPCInterface, MCC } from "flare-mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
 export { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
-export { parseRequestBytes, randSol } from "../../attestation-types/attestation-types-helpers";
+export { randSol } from "../../attestation-types/attestation-types-helpers";
+export { parseRequest } from "../../generated/attestation-request-parse";
 export { 
 ${indentText(dhTypes, CODEGEN_TAB)} 
 } from "../../generated/attestation-hash-types";
@@ -43,7 +44,7 @@ ${indentText(arTypes, CODEGEN_TAB)}
 } from "../../generated/attestation-request-types";
 export { 
 ${indentText(hashFunctions, CODEGEN_TAB)} 
-} from "../../generated/attestation-utils";
+} from "../../generated/attestation-hash-utils";
 export { BN };
 export { Web3 };
 ${tdefExports}
@@ -53,7 +54,7 @@ ${tdefExports}
 
 
 export function createVerifiersImportFiles(definitions: AttestationTypeScheme[]) {
-   let sourceIds = new Set<ChainType>();
+   let sourceIds = new Set<SourceId>();
    for(let definition of definitions) {
       for(let cType of definition.supportedSources) {
          sourceIds.add(cType);

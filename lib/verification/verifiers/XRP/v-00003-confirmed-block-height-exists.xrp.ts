@@ -6,8 +6,8 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_confirmed_block_height_exists, Verification, VerificationStatus, Web3 } from "./0imports";
-import { accountBasedConfirmedBlockHeightExistsVerification } from "../../verification-utils";
+import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import { accountBasedConfirmedBlockHeightExistsVerification } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 
@@ -18,9 +18,9 @@ export async function verifyConfirmedBlockHeightExistsXRP(
    recheck = false
 ): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>>
 {
-   let request = parseRequestBytes(attestation.data.request, TDEF_confirmed_block_height_exists) as ARConfirmedBlockHeightExists;
-   let roundId = attestation.round.roundId;
-   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
+   let request = parseRequest(attestation.data.request) as ARConfirmedBlockHeightExists;
+   let roundId = attestation.roundId;
+   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 

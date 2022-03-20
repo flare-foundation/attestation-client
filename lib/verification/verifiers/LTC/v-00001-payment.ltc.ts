@@ -6,8 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
-
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import { LtcTransaction } from "flare-mcc";
+import { utxoBasedPaymentVerification } from "../../verification-utils/utxo-based-verification-utils";
 
 const web3 = new Web3();
 
@@ -18,29 +19,22 @@ export async function verifyPaymentLTC(
    recheck = false
 ): Promise<Verification<ARPayment, DHPayment>>
 {
-   let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
-   let roundId = attestation.round.roundId;
-   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
+   let request = parseRequest(attestation.data.request) as ARPayment;
+   let roundId = attestation.roundId;
+   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-// XXXX
+   let result = await utxoBasedPaymentVerification(LtcTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+   if (result.status != VerificationStatus.OK) {
+      return { status: result.status }
+   }
+
+   let response = result.response;   
 
    //-$$$<end> of the custom section. Do not change this comment.
 
-   let response = {
-      blockNumber: randSol(request, "blockNumber", "uint64") as BN,
-      blockTimestamp: randSol(request, "blockTimestamp", "uint64") as BN,
-      transactionHash: randSol(request, "transactionHash", "bytes32") as string,
-      utxo: randSol(request, "utxo", "uint8") as BN,
-      sourceAddress: randSol(request, "sourceAddress", "bytes32") as string,
-      receivingAddress: randSol(request, "receivingAddress", "bytes32") as string,
-      paymentReference: randSol(request, "paymentReference", "bytes32") as string,
-      spentAmount: randSol(request, "spentAmount", "int256") as BN,
-      receivedAmount: randSol(request, "receivedAmount", "uint256") as BN,
-      oneToOne: randSol(request, "oneToOne", "bool") as boolean,
-      status: randSol(request, "status", "uint8") as BN      
-   } as DHPayment;
+
 
    let hash = hashPayment(request, response);
 

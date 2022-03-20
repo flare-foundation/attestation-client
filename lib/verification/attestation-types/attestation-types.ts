@@ -1,8 +1,7 @@
 import BN from "bn.js";
 import { ChainType } from "flare-mcc";
-import { DHType } from "../generated/attestation-hash-types";
-import { ARType } from "../generated/attestation-request-types";
 import { AttestationType } from "../generated/attestation-types-enum";
+import { SourceId } from "../sources/sources";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Verification status
@@ -11,6 +10,8 @@ import { AttestationType } from "../generated/attestation-types-enum";
 export enum VerificationStatus {
   OK = "OK",
   RECHECK_LATER = "RECHECK_LATER",
+  // Temporary status during checks
+  NEEDS_MORE_CHECKS = "NEEDS_MORE_CHECKS",
   // Error fields
   NOT_CONFIRMED = "NOT_CONFIRMED",
 
@@ -38,9 +39,8 @@ export enum VerificationStatus {
   WRONG_DATA_AVAILABILITY_HEIGHT = "WRONG_DATA_AVAILABILITY_HEIGHT",
   DATA_AVAILABILITY_PROOF_REQUIRED = "DATA_AVAILABILITY_PROOF_REQUIRED",
 
-  FORBIDDEN_MULTISIG_SOURCE = "FORBIDDEN_MULTISIG_SOURCE",
-  FORBIDDEN_MULTISIG_DESTINATION = "FORBIDDEN_MULTISIG_DESTINATION",
-
+  FORBIDDEN_MULTI_ADDRESS_SOURCE = "FORBIDDEN_MULTI_ADDRESS_SOURCE",
+  FORBIDDEN_MULTI_ADDRESS_DESTINATION = "FORBIDDEN_MULTI_ADDRESS_DESTINATION",
   
   FUNDS_UNCHANGED = "FUNDS_UNCHANGED",
   FUNDS_INCREASED = "FUNDS_INCREASED",
@@ -51,22 +51,15 @@ export enum VerificationStatus {
   NON_EXISTENT_OVERFLOW_BLOCK = "NON_EXISTENT_OVERFLOW_BLOCK",
   BLOCK_HASH_DOES_NOT_EXIST = "BLOCK_DOES_NOT_EXIST",
   NOT_PAYMENT = "NOT_PAYMENT",
-  NEEDS_MORE_CHECKS = "NEEDS_MORE_CHECKS"
-}
+  WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP = "WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP",
+  WRONG_OVERFLOW_BLOCK_ENDTIME = "WRONG_OVERFLOW_BLOCK_ENDTIME",
+  REFERENCED_TRANSACTION_EXISTS = "REFERENCED_TRANSACTION_EXISTS",
 
-export interface AttestationRequest {
-  timestamp?: BN;
-  instructions: BN;
-  id: string;
-  dataAvailabilityProof: string;
-  // optional fields to which the result gets parsed
-  attestationType?: AttestationType;
-  chainId?: BN | number;
-}
-export interface VerificationResult extends AttestationRequest {
-  verificationStatus: VerificationStatus;
-}
+  NON_EXISTENT_INPUT_UTXO_ADDRESS = "NON_EXISTENT_INPUT_UTXO_ADDRESS",
+  NON_EXISTENT_OUTPUT_UTXO_ADDRESS = "NON_EXISTENT_OUTPUT_UTXO_ADDRESS",
 
+
+}
 export interface Verification<R, T> {
   hash?: string;
   request?: R;
@@ -75,50 +68,8 @@ export interface Verification<R, T> {
   status: VerificationStatus;
 }
 
-export interface AdditionalTransactionDetails {
-  
-}
-
-export interface ChainVerification extends AdditionalTransactionDetails , VerificationResult {
-  isFromOne?: boolean;
-  utxo?: BN;
-}
-
-export interface DataAvailabilityProof {
-  hash?: string;
-  blockNumber?: number;
-}
-
-export interface TransactionAttestationRequest extends AttestationRequest {
-  blockNumber: BN | number;
-  utxo?: BN | number;
-}
-
-export interface VerifiedAttestation {
-  chainType: ChainType;
-  attestType: AttestationType;
-  txResponse?: any;
-  blockResponse?: any;
-  sender?: string;
-  utxo?: number;
-  fee?: BN;
-  spent?: BN;
-  delivered?: BN;
-}
-
-export interface AttestationTypeEncoding {
-  sizes: number[];
-  keys: string[];
-  hashTypes: string[];
-  hashKeys: string[];
-}
-
-export interface VerificationTestOptions {
-  testFailProbability?: number;
-  skipDataAvailabilityProof?: boolean;
-}
-export interface WeightedRandomChoice {
-  name: string;
+export interface WeightedRandomChoice<T> {
+  name: T;
   weight: number;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,7 +77,7 @@ export interface WeightedRandomChoice {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const ATT_BYTES = 2;
-export const CHAIN_ID_BYTES = 4;
+export const SOURCE_ID_BYTES = 4;
 export const UTXO_BYTES = 1;
 export const BLOCKNUMBER_BYTES = 4;
 export const TIMESTAMP_BYTES = 4;
@@ -138,10 +89,10 @@ export const SOURCE_ADDRESS_CHEKSUM_BYTES = 4;
 export const PAYMENT_REFERENCE_BYTES = 32;
 
 export type NumberLike = number | BN | string;
-export type BytesLike = string;
+export type ByteSequenceLike = string;
 
 export type SupportedSolidityType = "uint8" | "uint16" | "uint32" | "uint64" | "uint128" | "uint256" | "int256" | "bytes4" | "bytes32" | "bool" | "string";
-export type SupportedRequestType = "BytesLike" | "NumberLike" | "AttestationType" | "ChainType";
+export type SupportedRequestType = "ByteSequenceLike" | "NumberLike" | "AttestationType" | "SourceId";
 export interface AttestationRequestScheme {
   key: string;
   size: number;
@@ -154,19 +105,70 @@ export interface DataHashScheme {
   type: SupportedSolidityType;
   description: string;
 }
-
-type AttestationSource = ChainType  // Other source types may be added.
 export interface AttestationTypeScheme {
   id: number;
-  supportedSources: AttestationSource[];
+  supportedSources: SourceId[];
   name: string;
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
 }
 
-export class AttestationRequestParseError extends Error {
-  constructor(message) {
-     super(message);
-     this.name = 'AttestationRequestParseError';
-  }
-}
+
+
+////////// DEPRECATED
+
+// export interface AttestationRequest {
+//   timestamp?: BN;
+//   instructions: BN;
+//   id: string;
+//   dataAvailabilityProof: string;
+//   // optional fields to which the result gets parsed
+//   attestationType?: AttestationType;
+//   chainId?: BN | number;
+// }
+// export interface VerificationResult extends AttestationRequest {
+//   verificationStatus: VerificationStatus;
+// }
+
+// export interface AdditionalTransactionDetails {
+  
+// }
+
+// export interface ChainVerification extends AdditionalTransactionDetails , VerificationResult {
+//   isFromOne?: boolean;
+//   utxo?: BN;
+// }
+
+// export interface DataAvailabilityProof {
+//   hash?: string;
+//   blockNumber?: number;
+// }
+
+// export interface TransactionAttestationRequest extends AttestationRequest {
+//   blockNumber: BN | number;
+//   utxo?: BN | number;
+// }
+
+// export interface VerifiedAttestation {
+//   chainType: ChainType;
+//   attestType: AttestationType;
+//   txResponse?: any;
+//   blockResponse?: any;
+//   sender?: string;
+//   utxo?: number;
+//   fee?: BN;
+//   spent?: BN;
+//   delivered?: BN;
+// }
+
+// export interface AttestationTypeEncoding {
+//   sizes: number[];
+//   keys: string[];
+//   hashTypes: string[];
+//   hashKeys: string[];
+// }
+
+// export interface VerificationTestOptions {
+//   testFailProbability?: number;
+//   skipDataAvailabilityProof?: boolean;
+// }

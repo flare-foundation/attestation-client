@@ -6,9 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_payment, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { XrpTransaction } from "flare-mcc";
-import { accountBasedPaymentVerification } from "../../verification-utils";
+import { accountBasedPaymentVerification } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 
@@ -19,9 +19,9 @@ export async function verifyPaymentXRP(
    recheck = false
 ): Promise<Verification<ARPayment, DHPayment>>
 {
-   let request = parseRequestBytes(attestation.data.request, TDEF_payment) as ARPayment;
-   let roundId = attestation.round.roundId;
-   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
+   let request = parseRequest(attestation.data.request) as ARPayment;
+   let roundId = attestation.roundId;
+   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 

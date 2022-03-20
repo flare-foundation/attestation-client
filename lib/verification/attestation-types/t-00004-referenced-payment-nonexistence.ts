@@ -1,9 +1,9 @@
-import { ChainType } from "flare-mcc";
+import { SourceId } from "../sources/sources";
 import {
    AMOUNT_BYTES,
    AttestationTypeScheme, ATT_BYTES,
    BLOCKNUMBER_BYTES,
-   CHAIN_ID_BYTES,
+   SOURCE_ID_BYTES,
    DATA_AVAILABILITY_BYTES,
    PAYMENT_REFERENCE_BYTES,
    TIMESTAMP_BYTES,
@@ -12,7 +12,7 @@ import {
 
 export const TDEF: AttestationTypeScheme = {
    id: 4,
-   supportedSources: [ChainType.XRP, ChainType.BTC, ChainType.LTC, ChainType.DOGE, ChainType.ALGO],
+   supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
    name: "ReferencedPaymentNonexistence",
    request: [
       {
@@ -25,21 +25,12 @@ Attestation type id for this request, see AttestationType enum.
 `
       },
       {
-         key: "chainId",
-         size: CHAIN_ID_BYTES,
-         type: "ChainType",
+         key: "sourceId",
+         size: SOURCE_ID_BYTES,
+         type: "SourceId",
          description: 
 `
-The ID of the underlying chain, see ChainType enum.
-`
-      },
-      {
-         key: "startBlock",
-         size: BLOCKNUMBER_BYTES,
-         type: "NumberLike",
-         description: 
-`
-Start block number for searching the transaction.
+The ID of the underlying chain, see SourceId enum.
 `
       },
       {
@@ -63,7 +54,7 @@ Maximum number of the block where the transaction is searched for.
       {
          key: "destinationAddress",
          size: TX_ID_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description:
 `
 Payment nonexistence is confirmed if there is no payment transaction (attestation of \`Payment\` type)
@@ -85,7 +76,7 @@ The exact amount to search for.
       {
          key: "paymentReference",
          size: PAYMENT_REFERENCE_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 The payment reference to search for.
@@ -104,7 +95,7 @@ Does not need to be the first such block. It has to be confirmed.
       {
          key: "dataAvailabilityProof",
          size: DATA_AVAILABILITY_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 Block hash of the confirmation data availability block for the overflow block.

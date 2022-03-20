@@ -9,7 +9,8 @@ import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManage
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { AttestationRequestParseError, Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
 import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainManager } from "./ChainManager";
 
@@ -242,7 +243,7 @@ export class ChainNode {
           attestation.reverification = true;
 
           // delay until end of commit epoch
-          const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStart(attestation.epochId) - getTimeMilli()) / 1000;
+          const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStart(attestation.roundId) - getTimeMilli()) / 1000;
 
           this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);
         } else {

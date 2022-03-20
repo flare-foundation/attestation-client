@@ -16,8 +16,6 @@ export interface IndexedQueryManagerOptions {
 
 export interface TransactionQueryParams {
   roundId: number;
-  numberOfConfirmations: number;
-  startBlock?: number;
   endBlock: number;
   transactionId?: string;
   paymentReference?: string;
@@ -77,7 +75,6 @@ export interface ConfirmedTransactionQueryResponse {
 export interface ReferencedTransactionsQueryRequest {
   numberOfConfirmations: number; 
   paymentReference: string; // payment reference
-  startBlockNumber: number; // starting block for search. Overrides default starting time.
   // Used to determine overflow block - the first block with blockNumber > endBlock and timestamp > endTime
   overflowBlockNumber: number;
   dataAvailabilityProof: string; // hash of confirmation block of the overflow block

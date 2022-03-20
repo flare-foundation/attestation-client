@@ -6,9 +6,9 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequestBytes, randSol, TDEF_balance_decreasing_transaction, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { XrpTransaction } from "flare-mcc";
-import { accountBasedBalanceDecreasingTransactionVerification } from "../../verification-utils";
+import { accountBasedBalanceDecreasingTransactionVerification } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 
@@ -19,9 +19,9 @@ export async function verifyBalanceDecreasingTransactionXRP(
    recheck = false
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>>
 {
-   let request = parseRequestBytes(attestation.data.request, TDEF_balance_decreasing_transaction) as ARBalanceDecreasingTransaction;
-   let roundId = attestation.round.roundId;
-   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
+   let request = parseRequest(attestation.data.request) as ARBalanceDecreasingTransaction;
+   let roundId = attestation.roundId;
+   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 

@@ -2,7 +2,6 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { ChainType } from "flare-mcc";
 import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
 import { 
@@ -18,21 +17,25 @@ import {
    ARReferencedPaymentNonexistence 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
+import { SourceId } from "../../lib/verification/sources/sources";
 import { 
    getRandomResponseForType, 
+   getRandomRequest,
+} from "../../lib/verification/generated/attestation-random-utils";
+import { 
    hashPayment,
    hashBalanceDecreasingTransaction,
    hashConfirmedBlockHeightExists,
    hashReferencedPaymentNonexistence,
-   getRandomRequest,
    dataHash
-} from "../../lib/verification/generated/attestation-utils";
+} from "../../lib/verification/generated/attestation-hash-utils";
+  
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 
 const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
 const STATECONNECTOR_ROUND = 1;
-const CHAIN_ID = ChainType.BTC;
+const CHAIN_ID = SourceId.BTC;
 const NUM_OF_HASHES = 100;
 
 describe("Attestestation Client Mock", function () {
@@ -45,7 +48,7 @@ describe("Attestestation Client Mock", function () {
 
    it("'Payment' test", async function () { 
      let attestationType = AttestationType.Payment;
-     let request = { attestationType, chainId: CHAIN_ID } as ARPayment;
+     let request = { attestationType, sourceId: CHAIN_ID } as ARPayment;
    
      let response = getRandomResponseForType(attestationType) as DHPayment;
      response.stateConnectorRound = STATECONNECTOR_ROUND;
@@ -67,7 +70,7 @@ describe("Attestestation Client Mock", function () {
    
    it("'BalanceDecreasingTransaction' test", async function () { 
      let attestationType = AttestationType.BalanceDecreasingTransaction;
-     let request = { attestationType, chainId: CHAIN_ID } as ARBalanceDecreasingTransaction;
+     let request = { attestationType, sourceId: CHAIN_ID } as ARBalanceDecreasingTransaction;
    
      let response = getRandomResponseForType(attestationType) as DHBalanceDecreasingTransaction;
      response.stateConnectorRound = STATECONNECTOR_ROUND;
@@ -89,7 +92,7 @@ describe("Attestestation Client Mock", function () {
    
    it("'ConfirmedBlockHeightExists' test", async function () { 
      let attestationType = AttestationType.ConfirmedBlockHeightExists;
-     let request = { attestationType, chainId: CHAIN_ID } as ARConfirmedBlockHeightExists;
+     let request = { attestationType, sourceId: CHAIN_ID } as ARConfirmedBlockHeightExists;
    
      let response = getRandomResponseForType(attestationType) as DHConfirmedBlockHeightExists;
      response.stateConnectorRound = STATECONNECTOR_ROUND;
@@ -111,7 +114,7 @@ describe("Attestestation Client Mock", function () {
    
    it("'ReferencedPaymentNonexistence' test", async function () { 
      let attestationType = AttestationType.ReferencedPaymentNonexistence;
-     let request = { attestationType, chainId: CHAIN_ID } as ARReferencedPaymentNonexistence;
+     let request = { attestationType, sourceId: CHAIN_ID } as ARReferencedPaymentNonexistence;
    
      let response = getRandomResponseForType(attestationType) as DHReferencedPaymentNonexistence;
      response.stateConnectorRound = STATECONNECTOR_ROUND;
@@ -151,16 +154,16 @@ describe("Attestestation Client Mock", function () {
          let responseHex = hexlifyBN(verification.response);
          switch(verification.request.attestationType) {
             case AttestationType.Payment:
-               assert(await attestationClient.verifyPayment(verification.request.chainId, responseHex));
+               assert(await attestationClient.verifyPayment(verification.request.sourceId, responseHex));
                break;
             case AttestationType.BalanceDecreasingTransaction:
-               assert(await attestationClient.verifyBalanceDecreasingTransaction(verification.request.chainId, responseHex));
+               assert(await attestationClient.verifyBalanceDecreasingTransaction(verification.request.sourceId, responseHex));
                break;
             case AttestationType.ConfirmedBlockHeightExists:
-               assert(await attestationClient.verifyConfirmedBlockHeightExists(verification.request.chainId, responseHex));
+               assert(await attestationClient.verifyConfirmedBlockHeightExists(verification.request.sourceId, responseHex));
                break;
             case AttestationType.ReferencedPaymentNonexistence:
-               assert(await attestationClient.verifyReferencedPaymentNonexistence(verification.request.chainId, responseHex));
+               assert(await attestationClient.verifyReferencedPaymentNonexistence(verification.request.sourceId, responseHex));
                break;
             default:
                throw new Error("Wrong attestation type");

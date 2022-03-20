@@ -1,5 +1,5 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
 import { ATTESTATION_CLIENT_BASE, DEFAULT_GEN_FILE_HEADER, SOLIDITY_CODEGEN_TAB, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 import { constantize, indentText } from "./cg-utils";
 
@@ -13,7 +13,7 @@ uint${ATT_BYTES * 8} public constant ${constantize(definition.name)} = ${definit
 
 function genProofFunctions(definition: AttestationTypeScheme): any {
    return `
-function prove${definition.name}(uint${CHAIN_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
+function prove${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
     external
 {
     _proofs[_hash${definition.name}(_chainId, _data)] = true;
@@ -34,7 +34,7 @@ function prove${definition.name}(uint${CHAIN_ID_BYTES*8} _chainId, ${definition.
 
 function genVerifyFunctions(definition: AttestationTypeScheme): any {
    return `
-function verify${definition.name}(uint${CHAIN_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
+function verify${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
     external view override
     returns (bool _proved)
 {
@@ -51,7 +51,7 @@ function verify${definition.name}(uint${CHAIN_ID_BYTES*8} _chainId, ${definition
 function genHashFunctions(definition: AttestationTypeScheme): any {
    let params = definition.dataHashDefinition.map(item => `_data.${item.key}`).join(",\n")
    return `
-function _hash${definition.name}(uint${CHAIN_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
+function _hash${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
     private pure
     returns (bytes32)
 {

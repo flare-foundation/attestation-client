@@ -1,9 +1,9 @@
-import { ChainType } from "flare-mcc";
-import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, CHAIN_ID_BYTES, DATA_AVAILABILITY_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
+import { SourceId } from "../sources/sources";
+import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, SOURCE_ID_BYTES, DATA_AVAILABILITY_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
    id: 2,
-   supportedSources: [ChainType.XRP, ChainType.BTC, ChainType.LTC, ChainType.DOGE, ChainType.ALGO],
+   supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
    name: "BalanceDecreasingTransaction",
    request: [
       {
@@ -16,12 +16,12 @@ Attestation type id for this request, see AttestationType enum.
 `
       },
       {
-         key: "chainId",
-         size: CHAIN_ID_BYTES,
-         type: "ChainType",
+         key: "sourceId",
+         size: SOURCE_ID_BYTES,
+         type: "SourceId",
          description: 
 `
-The ID of the underlying chain, see ChainType enum.
+The ID of the underlying chain, see SourceId enum.
 `
       },
       {
@@ -45,7 +45,7 @@ Index of the sourceAddress on utxo chains.
       {
          key: "id",
          size: TX_ID_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 Transaction hash to search for.
@@ -54,7 +54,7 @@ Transaction hash to search for.
       {
          key: "dataAvailabilityProof",
          size: DATA_AVAILABILITY_BYTES,
-         type: "BytesLike",
+         type: "ByteSequenceLike",
          description: 
 `
 Block hash of the finalization block for the searched transaction (e.g. at least 6 blocks after the block with transaction).

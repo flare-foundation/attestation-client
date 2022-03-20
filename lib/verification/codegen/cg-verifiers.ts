@@ -1,7 +1,7 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES } from "../attestation-types/attestation-types";
-import { getSourceName } from "../attestation-types/attestation-types-helpers";
-import { genRandomResponseCode } from "./cg-attestation-utils";
+import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { getSourceName } from "../sources/sources";
+import { genRandomResponseCode } from "./cg-attestation-random-utils";
 import { ATTESTATION_TYPE_PREFIX, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, SEMI_EDITABLE_GEN_FILE_HEADER, VERIFIER_FUNCTION_PREFIX, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
 import { dashCapitalized, indentText, tab } from "./cg-utils";
 
@@ -63,7 +63,7 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
 
    let randomResponse = genRandomResponseCode(definition, "request");
    let importedSymbols = [`${ATTESTATION_TYPE_PREFIX}${definition.name}`, `Attestation`, `BN`, `${DATA_HASH_TYPE_PREFIX}${definition.name}`, 
-   `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`, `IndexedQueryManager`, `parseRequestBytes`, `randSol`, `MCC`, `TDEF_${dashCapitalized(definition.name, '_')}`, `Verification`, `VerificationStatus`, `Web3`];
+   `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`, `IndexedQueryManager`, `parseRequest`, `randSol`, `MCC`, `Verification`, `VerificationStatus`, `Web3`];
    importedSymbols.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
    return `${SEMI_EDITABLE_GEN_FILE_HEADER}
@@ -79,9 +79,9 @@ ${tab()}indexer: IndexedQueryManager,
 ${tab()}recheck = false
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
 {
-${tab()}let request = parseRequestBytes(attestation.data.request, TDEF_${dashCapitalized(definition.name, '_')}) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
-${tab()}let roundId = attestation.round.roundId;
-${tab()}let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
+${tab()}let request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+${tab()}let roundId = attestation.roundId;
+${tab()}let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
 ${tab()}//-$$$<start> of the custom code section. Do not change this comment. XXX
 

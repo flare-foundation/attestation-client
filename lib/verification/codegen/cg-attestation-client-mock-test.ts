@@ -1,5 +1,5 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, CHAIN_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATTESTATION_TYPE_PREFIX, ATT_CLIENT_MOCK_TEST_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, GENERATED_TEST_ROOT, SOLIDITY_VERIFICATION_FUNCTION_PREFIX, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
 import { indentText, tab, trimStartNewline } from "./cg-utils";
@@ -63,12 +63,12 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
 let encoded = web3.eth.abi.encodeParameters(
 ${tab()}[
 ${tab()}${tab()}"uint${ATT_BYTES * 8}",\t\t// attestationType
-${tab()}${tab()}"uint${CHAIN_ID_BYTES * 8}",\t\t// chainId
+${tab()}${tab()}"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
 ${indentText(types, CODEGEN_TAB * 2)}
 ${tab()}],
 ${tab()}[
 ${tab()}${tab()}${defaultRequest}.attestationType,
-${tab()}${tab()}${defaultRequest}.chainId,
+${tab()}${tab()}${defaultRequest}.sourceId,
 ${indentText(values, CODEGEN_TAB * 2)}
 ${tab()}]
 );   
@@ -88,7 +88,7 @@ function genItForAttestationClientMock(definition: AttestationTypeScheme) {
   return `
 it("'${definition.name}' test", async function () { 
   let attestationType = AttestationType.${definition.name};
-  let request = { attestationType, chainId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+  let request = { attestationType, sourceId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
   let response = getRandomResponseForType(attestationType) as ${DATA_HASH_TYPE_PREFIX}${definition.name};
   response.stateConnectorRound = STATECONNECTOR_ROUND;
@@ -112,7 +112,7 @@ it("'${definition.name}' test", async function () {
 function genVerificationCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
-${tab()}assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(verification.request.chainId, responseHex));
+${tab()}assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(verification.request.sourceId, responseHex));
 ${tab()}break;`
 }
 
@@ -156,7 +156,6 @@ export function createAttestationClientMockTest(definitions: AttestationTypeSche
 
   let itsForDefinitions = definitions.map(definition => genItForAttestationClientMock(definition)).join("\n");
   let content = `${DEFAULT_GEN_FILE_HEADER}
-import { ChainType } from "flare-mcc";
 import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
 import { 
@@ -166,18 +165,22 @@ import {
 ${indentText(arImports, CODEGEN_TAB)} 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
+import { SourceId } from "../../lib/verification/sources/sources";
 import { 
 ${tab()}getRandomResponseForType, 
-${indentText(hashFunctionsImports, CODEGEN_TAB)},
 ${tab()}getRandomRequest,
+} from "../../lib/verification/generated/attestation-random-utils";
+import { 
+${indentText(hashFunctionsImports, CODEGEN_TAB)},
 ${tab()}dataHash
-} from "../../lib/verification/generated/attestation-utils";
+} from "../../lib/verification/generated/attestation-hash-utils";
+  
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 
 const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
 const STATECONNECTOR_ROUND = 1;
-const CHAIN_ID = ChainType.BTC;
+const CHAIN_ID = SourceId.BTC;
 const NUM_OF_HASHES = 100;
 
 describe("Attestestation Client Mock", function () {

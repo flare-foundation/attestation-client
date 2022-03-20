@@ -1,7 +1,11 @@
 import { BlockBase, IBlock } from "flare-mcc";
 import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
 import { AttLogger } from "../utils/logger";
+<<<<<<< HEAD
 import { retry, retryMany } from "../utils/PromiseTimeout";
+=======
+import { PromiseTimeout } from "../utils/PromiseTimeout";
+>>>>>>> 5915fd5551d39318aad4db3a7b4776da8d35c340
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 
@@ -57,6 +61,52 @@ export class HeaderCollector {
         }
     }
 
+<<<<<<< HEAD
+=======
+    async runBlockHeaderCollectingRaw() {
+        let localN = this.indexer.N;
+        let localBlockNp1hash = "";
+
+        while (true) {
+            try {
+                // get chain top block
+                const localT = await this.getBlockHeight();
+                const blockNp1 = (await this.getBlock(localN + 1)) as IBlock;
+
+                // has N+1 confirmation block
+                const isNewBlock = localN < localT - this.indexer.chainConfig.confirmationsCollect;
+                const isChangedNp1Hash = localBlockNp1hash !== blockNp1.hash;
+
+                // check if N + 1 hash is the same
+                if (!isNewBlock && !isChangedNp1Hash) {
+                    await sleepms(this.indexer.config.blockCollectTimeMs);
+                    continue;
+                }
+
+                // save block headers N+1 ... T
+                await this.saveBlocksHeaders(localN + 1, localT);
+
+                if (isNewBlock) {
+                    localN++;
+                }
+
+                // save block N+1 hash
+                localBlockNp1hash = blockNp1.hash;
+
+                while (localN < localT - this.indexer.chainConfig.confirmationsCollect) {
+                    if (this.blockHeaderNumber.has(localN)) {
+                        localN++;
+                    }
+                }
+            } catch (error) {
+                this.logger.error2(`runBlockHeaderCollectingRaw exception: ${error}`);
+                this.logger.error(error.stack);
+
+            }
+        }
+    }
+
+>>>>>>> 5915fd5551d39318aad4db3a7b4776da8d35c340
     async saveLiteBlocksHeaders(blocks: LiteBlock[]) {
         try {
             const outBlocks = blocks.map(block => new LiteIBlock(block));

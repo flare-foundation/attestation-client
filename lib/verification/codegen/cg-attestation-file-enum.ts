@@ -1,12 +1,13 @@
 import fs from "fs";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { ATTESTATION_TYPES_ENUM_FILE, DEFAULT_GEN_FILE_HEADER } from "./cg-constants";
+import { ATTESTATION_TYPES_ENUM_FILE, CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER } from "./cg-constants";
+import { indentText, tab } from "./cg-utils";
 
 function genAttestationTypeEnum(definitions: AttestationTypeScheme[]): string {
-   let values = definitions.map(definition => `   ${definition.name} = ${definition.id}`).join(",\n")
+   let values = definitions.map(definition => `${definition.name} = ${definition.id}`).join(",\n")
    return `
 export enum AttestationType {
-${values}
+${indentText(values, CODEGEN_TAB)}
 }
 `
 }

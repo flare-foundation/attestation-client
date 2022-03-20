@@ -78,7 +78,7 @@ export function parsePayment(bytes: string): ARPayment {
    }
    let input = unPrefix0x(bytes);  
    if(input.length != 152) {
-      throw new AttestationRequestParseError("Incorrectly formated attestation request")
+      throw new AttestationRequestParseError("Incorrectly formatted attestation request")
    }
   
    return {
@@ -98,7 +98,7 @@ export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecre
    }
    let input = unPrefix0x(bytes);  
    if(input.length != 150) {
-      throw new AttestationRequestParseError("Incorrectly formated attestation request")
+      throw new AttestationRequestParseError("Incorrectly formatted attestation request")
    }
   
    return {
@@ -117,7 +117,7 @@ export function parseConfirmedBlockHeightExists(bytes: string): ARConfirmedBlock
    }
    let input = unPrefix0x(bytes);  
    if(input.length != 84) {
-      throw new AttestationRequestParseError("Incorrectly formated attestation request")
+      throw new AttestationRequestParseError("Incorrectly formatted attestation request")
    }
   
    return {
@@ -134,7 +134,7 @@ export function parseReferencedPaymentNonexistence(bytes: string): ARReferencedP
    }
    let input = unPrefix0x(bytes);  
    if(input.length != 260) {
-      throw new AttestationRequestParseError("Incorrectly formated attestation request")
+      throw new AttestationRequestParseError("Incorrectly formatted attestation request")
    }
   
    return {

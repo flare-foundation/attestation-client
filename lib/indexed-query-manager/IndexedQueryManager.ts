@@ -46,13 +46,29 @@ export class IndexedQueryManager {
   }
 
   public async getLastConfirmedBlockNumber(): Promise<number> {
-    const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
-    if (res === undefined) {
-      return 0;
+    if(this.debugLastConfirmedBlock == null) {
+      const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+      if (res === undefined) {
+        return 0;
+      }
+      return res.valueNumber;  
     }
-    return res.valueNumber;
+    return this.debugLastConfirmedBlock;
   }
 
+  // Allows for artificial setup of the last known confirmed block
+  public async setDebugLastConfirmedBlock(blockNumber: number | undefined): Promise<number | undefined> {
+    if(blockNumber == null) {
+      this.debugLastConfirmedBlock = undefined;
+    } else if(blockNumber >= 0) {
+      this.debugLastConfirmedBlock = blockNumber;      
+    } else {
+      this.debugLastConfirmedBlock = undefined;
+      let lastBlockNumber = await this.getLastConfirmedBlockNumber();
+      this.debugLastConfirmedBlock = lastBlockNumber - blockNumber;
+    }
+    return this.debugLastConfirmedBlock;
+  }
 
   ////////////////////////////////////////////////////////////
   // General confirm transaction and block queries

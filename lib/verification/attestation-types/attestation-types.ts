@@ -68,8 +68,8 @@ export interface Verification<R, T> {
   status: VerificationStatus;
 }
 
-export interface WeightedRandomChoice {
-  name: string;
+export interface WeightedRandomChoice<T> {
+  name: T;
   weight: number;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////

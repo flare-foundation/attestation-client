@@ -1,0 +1,60 @@
+import { prefix0x, toBN } from "flare-mcc";
+import Web3 from "web3";
+import { DBBlockBase } from "../../entity/dbBlock";
+import { DBTransactionBase } from "../../entity/dbTransaction";
+import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
+import { ARConfirmedBlockHeightExists } from "../../verification/generated/attestation-request-types";
+import { AttestationType } from "../../verification/generated/attestation-types-enum";
+import { SourceId } from "../../verification/sources/sources";
+import { getRandomConfirmedBlock } from "../indexed-query-manager-utils";
+import { IndexedQueryManager } from "../IndexedQueryManager";
+
+export type RandomConfirmedBlockHeightExistsChoiceType = "CORRECT" | "WRONG_DATA_AVAILABILITY_PROOF";
+
+const RANDOM_OPTIONS_CONFIRMED_BLOCK_HEIGHT_EXISTS = [
+   { name: "CORRECT", weight: 10 },
+   { name: "WRONG_DATA_AVAILABILITY_PROOF", weight: 1 },
+] as WeightedRandomChoice<RandomConfirmedBlockHeightExistsChoiceType>[]
+
+export async function getRandomRequestConfirmedBlockHeightExists(
+   indexedQueryManager: IndexedQueryManager,
+   sourceId: SourceId,
+   roundId: number,
+   numberOfConfirmations: number,
+   block?: DBBlockBase,
+   enforcedChoice?: RandomConfirmedBlockHeightExistsChoiceType
+): Promise<ARConfirmedBlockHeightExists | null> {
+   let randomBlock = block
+      ? block
+      : await getRandomConfirmedBlock(indexedQueryManager);
+
+   if (!randomBlock) {
+      return null;
+   }
+   let confirmationBlock = await indexedQueryManager.queryBlock({
+      blockNumber: randomBlock.blockNumber + numberOfConfirmations,
+      roundId
+   });
+   if (!confirmationBlock) {
+      return null;
+   }
+
+   let choice = enforcedChoice
+      ? RANDOM_OPTIONS_CONFIRMED_BLOCK_HEIGHT_EXISTS.find(x => x.name === enforcedChoice)
+      : randomWeightedChoice(RANDOM_OPTIONS_CONFIRMED_BLOCK_HEIGHT_EXISTS);
+
+   if (!choice) {
+      return null;
+   }
+
+   let blockNumber = toBN(randomBlock.blockNumber);
+   let dataAvailabilityProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlock.blockHash);
+   return {
+      attestationType: AttestationType.ConfirmedBlockHeightExists,
+      sourceId,
+      blockNumber,
+      dataAvailabilityProof
+   };
+
+}

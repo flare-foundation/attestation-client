@@ -170,7 +170,7 @@ export function prepareString(text: string, maxLength: number, reportOwerflow: s
     getGlobalLogger().warning(`prepareString warning: ${reportOwerflow} overflow ${maxLength} (length=${text.length})`);
   }
 
-  return text.substring(0, maxLength - 1);
+  return text.substring(0, maxLength);
 }
 
 export function getSimpleRandom(maxnum: number) : number {

@@ -77,7 +77,7 @@ export function randomListElement<T>(list: T[]) {
   return list[randN];
 }
 
-export function randomWeightedChoice(choices: WeightedRandomChoice[]): string {
+export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
   let weightSum = choices.map(choice => choice.weight).reduce((a, b) => a + b);
   let randSum = Math.floor(Math.random() * (weightSum + 1));
   let tmpSum = 0;

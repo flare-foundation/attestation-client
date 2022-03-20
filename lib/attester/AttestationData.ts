@@ -6,7 +6,7 @@ import { AttestationType } from "../verification/generated/attestation-types-enu
 export class AttestationData {
   // event parameters
   type!: AttestationType;
-  chainType!: ChainType;
+  chainType!: ChainType;  // TODO: change this to SourceId
   timeStamp!: BN;
   request!: string;
   
@@ -15,9 +15,9 @@ export class AttestationData {
   logIndex!: number;
 
   // attestation data
-  instructions!: BN;
+  // instructions!: BN;  // obsolete
 
-  constructor(event: any) {
+  constructor(event?: any) {
 
     if( !event ) return;
 

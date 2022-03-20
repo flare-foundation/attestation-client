@@ -8,7 +8,7 @@ import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { AttesterClientConfiguration } from "../attester/AttesterClientConfiguration";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
-import { getRandomAttestationRequest } from "../indexed-query-manager/random-attestations";
+import { getRandomAttestationRequest } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";

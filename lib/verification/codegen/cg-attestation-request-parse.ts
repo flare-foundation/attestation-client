@@ -23,7 +23,7 @@ ${tab()}${tab()}throw new AttestationRequestParseError("Empty attestation reques
 ${tab()}}
 ${tab()}let input = unPrefix0x(bytes);  
 ${tab()}if(input.length != ${totalLength}) {
-${tab()}${tab()}throw new AttestationRequestParseError("Incorrectly formated attestation request")
+${tab()}${tab()}throw new AttestationRequestParseError("Incorrectly formatted attestation request")
 ${tab()}}
   
 ${tab()}return {

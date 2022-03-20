@@ -20,8 +20,8 @@ export async function verifyBalanceDecreasingTransactionXRP(
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>>
 {
    let request = parseRequest(attestation.data.request) as ARBalanceDecreasingTransaction;
-   let roundId = attestation.round.roundId;
-   let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
+   let roundId = attestation.roundId;
+   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 

@@ -80,8 +80,8 @@ ${tab()}recheck = false
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
 {
 ${tab()}let request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
-${tab()}let roundId = attestation.round.roundId;
-${tab()}let numberOfConfirmations = attestation.sourceHandler.config.requiredBlocks;
+${tab()}let roundId = attestation.roundId;
+${tab()}let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
 ${tab()}//-$$$<start> of the custom code section. Do not change this comment. XXX
 

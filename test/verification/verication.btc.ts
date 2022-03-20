@@ -12,14 +12,14 @@ import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
-import { verifyPaymentXRP } from "../../lib/verification/verifiers/XRP/v-00001-payment.xrp";
-import { verifyBalanceDecreasingTransactionXRP } from "../../lib/verification/verifiers/XRP/v-00002-balance-decreasing-transaction.xrp";
-import { verifyConfirmedBlockHeightExistsXRP } from "../../lib/verification/verifiers/XRP/v-00003-confirmed-block-height-exists.xrp";
-import { verifyReferencedPaymentNonexistenceXRP } from "../../lib/verification/verifiers/XRP/v-00004-referenced-payment-nonexistence.xrp";
+import { verifyPaymentBTC } from "../../lib/verification/verifiers/BTC/v-00001-payment.btc";
+import { verifyBalanceDecreasingTransactionBTC } from "../../lib/verification/verifiers/BTC/v-00002-balance-decreasing-transaction.btc";
+import { verifyConfirmedBlockHeightExistsBTC } from "../../lib/verification/verifiers/BTC/v-00003-confirmed-block-height-exists.btc";
+import { verifyReferencedPaymentNonexistenceBTC } from "../../lib/verification/verifiers/BTC/v-00004-referenced-payment-nonexistence.btc";
 
-console.log("This test should run while XRP indexer is running")
+console.log("This test should run while BTC indexer is running")
 
-const SOURCE_ID = SourceId.XRP;
+const SOURCE_ID = SourceId.BTC;
 const ROUND_ID = 1;
 const MINUTES = 60;
 const HISTORY_WINDOW = 5 * MINUTES;
@@ -31,9 +31,9 @@ process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
 DotEnvExt();
 
-describe("XRP verifiers", () => {
+describe("BTC verifiers", () => {
    let indexedQueryManager: IndexedQueryManager;
-   let client: MCC.XRP;
+   let client: MCC.BTC;
    let indexerConfiguration: IndexerConfiguration;
    let chainName: string;
    let startTime = 0;
@@ -46,7 +46,7 @@ describe("XRP verifiers", () => {
       client = MCC.Client(SOURCE_ID, {
          ...chainConfiguration.mccCreate,
          rateLimitOptions: chainConfiguration.rateLimitOptions
-      }) as MCC.XRP;
+      }) as MCC.BTC;
       //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
       const options: IndexedQueryManagerOptions = {
@@ -58,7 +58,7 @@ describe("XRP verifiers", () => {
       await indexedQueryManager.dbService.waitForDBConnection();
    });
 
-   it("Should verify legit Payment", async () => {
+   it.only("Should verify legit Payment", async () => {
       let randomTransaction = await getRandomTransactionWithPaymentReference(indexedQueryManager);
       if(!randomTransaction) {
          return;
@@ -77,7 +77,8 @@ describe("XRP verifiers", () => {
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-      let res = await verifyPaymentXRP(client, attestation, indexedQueryManager);
+      let res = await verifyPaymentBTC(client, attestation, indexedQueryManager);
+      console.log(res); 
       assert(res.status === VerificationStatus.OK);
       // console.log(res); 
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
@@ -103,7 +104,7 @@ describe("XRP verifiers", () => {
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-      let res = await verifyBalanceDecreasingTransactionXRP(client, attestation, indexedQueryManager);
+      let res = await verifyBalanceDecreasingTransactionBTC(client, attestation, indexedQueryManager);
       // console.log(res); 
 
       assert(res.status === VerificationStatus.OK);
@@ -133,7 +134,7 @@ describe("XRP verifiers", () => {
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-      let res = await verifyConfirmedBlockHeightExistsXRP(client, attestation, indexedQueryManager);
+      let res = await verifyConfirmedBlockHeightExistsBTC(client, attestation, indexedQueryManager);
       // console.log(res); 
       assert(res.status === VerificationStatus.OK);
       
@@ -160,7 +161,7 @@ describe("XRP verifiers", () => {
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-      let res = await verifyReferencedPaymentNonexistenceXRP(client, attestation, indexedQueryManager);
+      let res = await verifyReferencedPaymentNonexistenceBTC(client, attestation, indexedQueryManager);
       assert(res.status === VerificationStatus.OK);
       // console.log(res); 
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())

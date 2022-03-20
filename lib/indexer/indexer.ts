@@ -47,7 +47,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;

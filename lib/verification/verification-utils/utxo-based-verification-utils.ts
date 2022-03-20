@@ -1,4 +1,4 @@
-import { BtcTransaction, DogeTransaction, LtcTransaction, toBN } from "flare-mcc";
+import { BtcTransaction, DogeTransaction, LtcTransaction, MCC, toBN } from "flare-mcc";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
@@ -6,14 +6,82 @@ import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../generated/attestation-request-types";
 import { VerificationResponse, verifyConfirmationBlock, verifyNativePayment, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
 
+type UtxoType = BtcTransaction | LtcTransaction | DogeTransaction;
+type UtxoClientType = MCC.BTC | MCC.DOGE | MCC.LTC;
+
+interface SourceProcessingResult {
+   sourceAddress?: string;
+   spentAmount?: BN;
+   oneToOne?: boolean;
+   status: VerificationStatus
+}
+
+function processAllInputs(fullTxData: UtxoType, inUtxoNumber: number, receivingAddress?: string): SourceProcessingResult {
+   // `spentAmount` is difference between the sum of all inputs from sourceAddress and returns to it
+   // `oneToOne` is true, if everyting goes just from one address to another (except returns)
+   let inFunds = toBN(0);
+   let returnFunds = toBN(0);
+   let oneToOne: boolean = !!receivingAddress;
+   let sourceAddress = fullTxData.sourceAddress[inUtxoNumber];
+   for (let vin of fullTxData.spentAmount) {
+      if (vin.address === sourceAddress) {
+         inFunds = inFunds.add(vin.amount);
+      } else {
+         oneToOne = false;
+      }
+   }
+   for (let vout of fullTxData.receivedAmount) {
+      if (vout.address === sourceAddress) {
+         returnFunds = returnFunds.add(vout.amount);
+      } else if (receivingAddress && vout.address != receivingAddress) {
+         oneToOne = false;
+      }
+   }
+   return {
+      sourceAddress,
+      spentAmount: inFunds.sub(returnFunds),
+      oneToOne,
+      status: VerificationStatus.NEEDS_MORE_CHECKS
+   };
+}
+
+async function processSingleInput(client: UtxoClientType, fullTxData: UtxoType, inUtxoNumber: number): Promise<SourceProcessingResult> {
+   let txAddress = fullTxData.data?.vin?.[inUtxoNumber]?.txid;
+   if (!txAddress) {
+      return {
+         status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
+      }
+   }
+
+   // read the relevant in transaction to find out address and value on inUtxo
+   let inTransaction = await client.getTransaction(txAddress);
+   let inVout = fullTxData.data.vin[inUtxoNumber].vout;
+   let sourceAddress = inTransaction?.extractVoutAt(inVout)?.scriptPubKey?.addresses[0];
+   if (!sourceAddress) {
+      return {
+         status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
+      }
+   }
+   // spentAmount just taken from inUtxo
+   let spentAmount = toBN(inTransaction?.extractVoutAt(inVout)?.value || 0);
+   // false since is not determinable
+   let oneToOne = false;
+   return {
+      sourceAddress,
+      spentAmount,
+      oneToOne,
+      status: VerificationStatus.NEEDS_MORE_CHECKS
+   }
+}
 
 export async function utxoBasedPaymentVerification(
-   TransactionClass: new (...args: any[]) => BtcTransaction | LtcTransaction | DogeTransaction,
+   TransactionClass: new (...args: any[]) => UtxoType,
    request: ARPayment,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
-   iqm: IndexedQueryManager
+   iqm: IndexedQueryManager,
+   client: UtxoClientType
 ): Promise<VerificationResponse<DHPayment>> {
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
@@ -45,36 +113,53 @@ export async function utxoBasedPaymentVerification(
       blockNumber,
       numberOfConfirmations,
       roundId,
-      dataAvailabilityProof:
-         request.dataAvailabilityProof,
+      dataAvailabilityProof: request.dataAvailabilityProof,
       iqm
    })
    if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
       return { status }
    }
 
-   if(!fullTxData.sourceAddress || fullTxData.sourceAddress.length < request.inUtxo || fullTxData.sourceAddress) {
+   // Correct receivingAddress
+   let utxoNumber = toBN(request.utxo).toNumber();
+   if (!fullTxData.receivingAddress?.[utxoNumber]) {
       return {
-         status: VerificationStatus.NON_EXTENT_INPUT_UTXO_ADDRESS
+         status: VerificationStatus.NON_EXISTENT_OUTPUT_UTXO_ADDRESS
+      }
+   }
+   let receivingAddress = fullTxData.receivingAddress[utxoNumber];
+
+   // Received amout is always just that one on `utxo` output.
+   let receivedAmount = fullTxData.receivedAmount[utxoNumber].amount;
+
+
+   let inUtxoNumber = toBN(request.inUtxo).toNumber();
+   if (!fullTxData.sourceAddress?.[inUtxoNumber]) {
+      return {
+         status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
       }
    }
 
-   let sourceAddress
-   
-   
-   
+   let result = dbTransaction.paymentReference
+      ? processAllInputs(fullTxData, inUtxoNumber, receivingAddress)
+      : await processSingleInput(client, fullTxData, inUtxoNumber);
+
+   if (result.status != VerificationStatus.NEEDS_MORE_CHECKS) {
+      return { status }
+   }
+
    let response = {
       stateConnectorRound: roundId,
       blockNumber: toBN(blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: dbTransaction.transactionId,
-      utxo: toBN(0),
-      sourceAddress: fullTxData.sourceAddress[0],
-      receivingAddress: fullTxData.receivingAddress[0],
-      paymentReference: fullTxData.reference.length === 1 ? fullTxData.reference[0] : "",
-      spentAmount: fullTxData.spentAmount[0].amount,
-      receivedAmount: fullTxData.receivedAmount[0].amount,
-      oneToOne: true,
+      utxo: toBN(request.utxo),
+      sourceAddress: result.sourceAddress,
+      receivingAddress,
+      paymentReference: dbTransaction.paymentReference || "",
+      spentAmount: result.spentAmount,
+      receivedAmount,
+      oneToOne: result.oneToOne,
       status: toBN(fullTxData.successStatus)
    } as DHPayment;
 
@@ -86,14 +171,14 @@ export async function utxoBasedPaymentVerification(
 
 
 export async function utxoBasedBalanceDecreasingTransactionVerification(
-   TransactionClass: new (...args: any[]) => BtcTransaction | LtcTransaction | DogeTransaction,
+   TransactionClass: new (...args: any[]) => UtxoType,
    request: ARBalanceDecreasingTransaction,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
-   iqm: IndexedQueryManager
+   iqm: IndexedQueryManager,
+   client: UtxoClientType
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
-   throw new Error("Not yet implemented");
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
@@ -126,13 +211,28 @@ export async function utxoBasedBalanceDecreasingTransactionVerification(
       return { status }
    }
 
+   let inUtxoNumber = toBN(request.inUtxo).toNumber();
+   if (!fullTxData.sourceAddress?.[inUtxoNumber]) {
+      return {
+         status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
+      }
+   }
+
+   let result = dbTransaction.paymentReference
+      ? processAllInputs(fullTxData, inUtxoNumber)
+      : await processSingleInput(client, fullTxData, inUtxoNumber);
+
+   if (result.status != VerificationStatus.NEEDS_MORE_CHECKS) {
+      return { status }
+   }
+
    let response = {
       blockNumber: toBN(blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: dbTransaction.transactionId,
-      sourceAddress: fullTxData.sourceAddress[0],
-      spentAmount: fullTxData.spentAmount[0].amount,
-      paymentReference: fullTxData.reference.length === 1 ? fullTxData.reference[0] : ""
+      sourceAddress: result.sourceAddress,
+      spentAmount: result.spentAmount,
+      paymentReference: dbTransaction.paymentReference || ""
    } as DHBalanceDecreasingTransaction;
 
    return {
@@ -148,7 +248,6 @@ export async function utxoBasedConfirmedBlockHeightExistsVerification(
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHConfirmedBlockHeightExists>> {
-   throw new Error("Not yet implemented");
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    const confirmedBlock = await iqm.getConfirmedBlock({
@@ -192,14 +291,13 @@ export async function utxoBasedConfirmedBlockHeightExistsVerification(
 }
 
 export async function utxoBasedReferencedPaymentNonExistence(
-   TransactionClass: new (...args: any[]) => BtcTransaction | LtcTransaction | DogeTransaction,
+   TransactionClass: new (...args: any[]) => UtxoType,
    request: ARReferencedPaymentNonexistence,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {
-   throw new Error("Not yet implemented");
    let overflowBlockNumber = numberLikeToNumber(request.overflowBlock);
    let endBlockNumber = numberLikeToNumber(request.endBlock);
    let endTime = numberLikeToNumber(request.endTimestamp);
@@ -255,9 +353,19 @@ export async function utxoBasedReferencedPaymentNonExistence(
    for (let dbTransaction of dbTransactions) {
       const parsedData = JSON.parse(dbTransaction.response);
       const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
-      const destinationAddressHash = web3.utils.soliditySha3(fullTxData.receivingAddress[0]);
-      const amount = toBN(fullTxData.receivedAmount[0].amount);
-      if (destinationAddressHash === request.destinationAddress && amount.eq(toBN(request.amount))) {
+      
+      let totalAmount = toBN(0);
+      let destinationHashExists = false;
+      for (let output of fullTxData.receivedAmount) {
+         const amount = toBN(output.amount);
+         const destinationAddressHash = web3.utils.soliditySha3(output.address);
+         if (destinationAddressHash === request.destinationAddress) {
+            destinationHashExists = true;
+            totalAmount = totalAmount.add(amount);
+         }
+      }
+
+      if(destinationHashExists && totalAmount.eq(toBN(request.amount))) {
          matchFound = true;
          break;
       }

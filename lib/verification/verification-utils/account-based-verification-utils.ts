@@ -6,8 +6,10 @@ import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../generated/attestation-request-types";
 import { VerificationResponse, verifyWorkflowForTransaction, verifyNativePayment, verifyConfirmationBlock, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions } from "./verification-utils";
 
+export type AccountBasedType = AlgoTransaction | XrpTransaction;
+
 export async function accountBasedPaymentVerification(
-   TransactionClass: new (...args: any[]) => AlgoTransaction | XrpTransaction,
+   TransactionClass: new (...args: any[]) => AccountBasedType,
    request: ARPayment,
    roundId: number,
    numberOfConfirmations: number,
@@ -75,7 +77,7 @@ export async function accountBasedPaymentVerification(
 
 
 export async function accountBasedBalanceDecreasingTransactionVerification(
-   TransactionClass: new (...args: any[]) => AlgoTransaction | XrpTransaction,
+   TransactionClass: new (...args: any[]) => AccountBasedType,
    request: ARBalanceDecreasingTransaction,
    roundId: number,
    numberOfConfirmations: number,
@@ -179,7 +181,7 @@ export async function accountBasedConfirmedBlockHeightExistsVerification(
 }
 
 export async function accountBasedReferencedPaymentNonExistence(
-   TransactionClass: new (...args: any[]) => AlgoTransaction | XrpTransaction,
+   TransactionClass: new (...args: any[]) => AccountBasedType,
    request: ARReferencedPaymentNonexistence,
    roundId: number,
    numberOfConfirmations: number,

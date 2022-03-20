@@ -25,7 +25,7 @@ export async function verifyBalanceDecreasingTransactionDOGE(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await utxoBasedBalanceDecreasingTransactionVerification(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+   let result = await utxoBasedBalanceDecreasingTransactionVerification(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
    if (result.status != VerificationStatus.OK) {
       return { status: result.status }
    }

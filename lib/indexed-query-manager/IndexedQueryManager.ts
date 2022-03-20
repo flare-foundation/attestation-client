@@ -6,7 +6,7 @@ import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 import { getGlobalLogger } from "../utils/logger";
 import { getSourceName } from "../verification/sources/sources";
-import { BlockHashQueryRequest, BlockHashQueryResponse, BlockQueryParams, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
+import { BlockQueryParams, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
 
 
 ////////////////////////////////////////////////////////
@@ -17,12 +17,13 @@ export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
   dbService: DatabaseService;
   client: MccClient;
+  debugLastConfirmedBlock: number | undefined = undefined;
 
   transactionTable = [undefined, undefined];
   blockTable;
 
   constructor(options: IndexedQueryManagerOptions) {
-    if(options.dbService) {
+    if (options.dbService) {
       this.dbService = options.dbService;
     } else {
       this.dbService = new DatabaseService(getGlobalLogger());
@@ -36,6 +37,26 @@ export class IndexedQueryManager {
     this.transactionTable = prepared.transactionTable;
     this.blockTable = prepared.blockTable;
   }
+
+  ////////////////////////////////////////////////////////////
+  // Last confirmed blocks
+  ////////////////////////////////////////////////////////////
+  getChainN() {
+    return getSourceName(this.settings.chainType) + "_N";
+  }
+
+  public async getLastConfirmedBlockNumber(): Promise<number> {
+    const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+    if (res === undefined) {
+      return 0;
+    }
+    return res.valueNumber;
+  }
+
+
+  ////////////////////////////////////////////////////////////
+  // General confirm transaction and block queries
+  ////////////////////////////////////////////////////////////
 
   async queryTransactions(params: TransactionQueryParams): Promise<DBTransactionBase[]> {
     let results = []
@@ -79,19 +100,21 @@ export class IndexedQueryManager {
     return null;
   }
 
-  // Queries
+  // // deprecated atm
+  // public async getBlockByHash(params: BlockHashQueryRequest): Promise<BlockHashQueryResponse> {
+  //   let block = await this.queryBlock({
+  //     hash: params.hash,
+  //     roundId: params.roundId
+  //   });
+  //   return {
+  //     status: block ? "OK" : "NOT_EXIST",
+  //     block,
+  //   };
+  // }
 
-  // deprecated atm
-  public async getBlockByHash(params: BlockHashQueryRequest): Promise<BlockHashQueryResponse> {
-    let block = await this.queryBlock({
-      hash: params.hash,
-      roundId: params.roundId
-    });
-    return {
-      status: block ? "OK" : "NOT_EXIST",
-      block,
-    };
-  }
+  ////////////////////////////////////////////////////////////
+  // Confirmed blocks queries
+  ////////////////////////////////////////////////////////////
 
   private async getConfirmedBlockFirstCheck(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
     let N = await this.getLastConfirmedBlockNumber();
@@ -141,18 +164,9 @@ export class IndexedQueryManager {
     return this.getConfirmedBlockRecheck(params);
   }
 
-  // todo: this.indexer.lastConfimedBlockNumber must be from DB query
-  getChainN() {
-    return getSourceName(this.settings.chainType) + "_N";
-  }
-
-  public async getLastConfirmedBlockNumber(): Promise<number> {
-    const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
-
-    if (res === undefined) return 0;
-
-    return res.valueNumber;
-  }
+  ////////////////////////////////////////////////////////////
+  // Confirmed transaction queries
+  ////////////////////////////////////////////////////////////
 
   private async getConfirmedTransactionFirstCheck(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
     let N = await this.getLastConfirmedBlockNumber();
@@ -202,6 +216,11 @@ export class IndexedQueryManager {
     return this.getConfirmedTransactionRecheck(params);
   }
 
+
+  ////////////////////////////////////////////////////////////
+  // Referenced transactions queries
+  ////////////////////////////////////////////////////////////
+
   private async getReferencedTransactionsFirstCheck(
     params: ReferencedTransactionsQueryRequest
   ): Promise<ReferencedTransactionsQueryResponse> {
@@ -250,7 +269,7 @@ export class IndexedQueryManager {
       confirmed: true
     } as BlockQueryParams);
     if (!overflowBlock) {
-      return {        
+      return {
         status: "NO_OVERFLOW_BLOCK"
       }
     }
@@ -279,6 +298,11 @@ export class IndexedQueryManager {
     }
     return this.getReferencedTransactionsRecheck(params);
   }
+
+
+  ////////////////////////////////////////////////////////////
+  // Special block queries
+  ////////////////////////////////////////////////////////////
 
   public async getFirstConfirmedBlockAfterTime(timestamp: number): Promise<DBBlockBase | null> {
     let query = this.dbService.connection.manager

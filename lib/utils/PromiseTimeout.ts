@@ -2,100 +2,49 @@ import { getSimpleRandom } from "flare-mcc";
 import { getGlobalLogger } from "./logger";
 import { sleepms } from "./utils";
 
-export class PromiseTimeout {
 
-    // static async delay(time: number, val: any) {
-    //     return new Promise(resolve => {
-    //         setTimeout(resolve.bind(null, val), time);
-    //         return null;
-    //     });
-    // }
+let TIMEOUT_STEP_MULTIPLY = 1.2;
+let BACKOFF_TIME_STEP_MULTIPLY = 1.2;
 
-    // static async all(promises: Promise<any>[], timeoutTime: number, timeoutVal?: any) {
-    //     return Promise.all(promises.map(p => {
-    //         return Promise.race([p, this.delay(timeoutTime, timeoutVal)])
-    //     }));
-    // }
+export async function retry<T>(label: string, funct: (...args:any)=>T, timeoutTime: number=5000, numRetries: number=5, backOddTimeout = 1000): Promise<T> {
 
-    // static async retry(promise: Promise<any>, timeoutTime: number, retry: number) {
-    //     return Promise.race([promise, this.delay(timeoutTime,null)]).then( (result)=>{
-    //         if( result ) return result;
+    try {
+        let result = await Promise.race([funct(), sleepms(timeoutTime)]);
 
-    //         if( retry > 0 ) {
-    //             getGlobalLogger().warning( `PromiseTimeout::retry ${retry}` );
+        if (result) return result as T;
 
-    //             //reset( promise , promise );
+        if (numRetries > 0) {
+            getGlobalLogger().warning(`retry ^R${label}^^ ${numRetries}`);
 
-    //             promise.then( (res)=> {
-    //                 return PromiseTimeout.retry( res , timeoutTime , retry - 1 );
-    //             } );
-    //         }
-    //         else {
-    //             getGlobalLogger().warning( `PromiseTimeout::retry failed` );
-    //             return null;
-    //         }
-    //     } )
-    // }
+            await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
 
-    // static async allRetry(promises: Promise<any>[], timeoutTime: number, retry: number, timeoutVal?: any) {
-
-    //     return Promise.all(promises.map(p => {
-    //         return PromiseTimeout.retry(p,timeoutTime, retry);
-    //     }));
-    // }
-
-
-    static async delay(milliseconds: number) {
-        return new Promise((resolve: any) => {
-            setTimeout(() => { resolve(); }, milliseconds);
-        });
-    }
-
-    static async promiseFunction(funct: any) {
-        return new Promise(resolve => { resolve(funct()); });
-    }
-
-    static async retry(funct: any, timeoutTime: number, retry: number, backOddTimeout = 1000) {
-
-        try {
-            //let result = await Promise.race([PromiseTimeout.promiseFunction(funct), this.delay(timeoutTime)]);
-            let result = await Promise.race([funct(), this.delay(timeoutTime)]);
-
-            if (result) return result;
-
-            if (retry > 0) {
-                getGlobalLogger().warning(`PromiseTimeout::retry ${retry}`);
-
-                await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
-
-                return PromiseTimeout.retry(funct, timeoutTime, retry - 1, backOddTimeout * 2);
-            }
-            else {
-                getGlobalLogger().warning(`PromiseTimeout::retry failed`);
-                return null;
-            }
+            return retry(label, funct, timeoutTime * TIMEOUT_STEP_MULTIPLY , numRetries - 1, backOddTimeout * BACKOFF_TIME_STEP_MULTIPLY);
         }
-        catch (error) {
-
-            if (retry > 0) {
-                getGlobalLogger().warning(`PromiseTimeout::catch.retry ${retry} ${error}`);
-
-                await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
-
-                return PromiseTimeout.retry(funct, timeoutTime, retry - 1, backOddTimeout * 2);
-            }
-            else {
-                getGlobalLogger().warning(`PromiseTimeout::catch.retry failed ${error}`);
-                return null;
-            }
-
-        };
+        else {
+            getGlobalLogger().warning(`retry ^R${label}^^ failed`);
+            return null;
+        }
     }
+    catch (error) {
 
-    static async allRetry(functs: any[], timeoutTime: number, retry: number) {
+        if (numRetries > 0) {
+            getGlobalLogger().warning(`retry ^R${label}^^ exception (retry ${numRetries}) ${error}`);
+            getGlobalLogger().debug(error.stack);
 
-        return Promise.all(functs.map(funct => PromiseTimeout.retry(funct, timeoutTime, retry)));
-    }
+            await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
 
+            return retry(label, funct, timeoutTime * TIMEOUT_STEP_MULTIPLY , numRetries - 1, backOddTimeout * BACKOFF_TIME_STEP_MULTIPLY);
+        }
+        else {
+            getGlobalLogger().warning(`retry ^R${label}^^ exception (retry failed) ${error}`);
+            getGlobalLogger().debug(error.stack);
+            return null;
+        }
 
+    };
+}
+
+export async function retryMany(label: string, functs: any[], timeoutTime: number, numRetries: number) {
+
+    return Promise.all(functs.map(funct => retry(label, funct, timeoutTime, numRetries)));
 }

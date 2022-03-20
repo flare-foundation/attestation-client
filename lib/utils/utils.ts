@@ -201,10 +201,6 @@ export function getUnixEpochTimestamp() {
   return Math.floor(Date.now() / 1000);
 }
 
-export async function sleep(seconds: number) {
-  await sleepms(seconds * 1000);
-}
-
 export async function sleepms(milliseconds: number) {
   await new Promise((resolve: any) => {
     setTimeout(() => {

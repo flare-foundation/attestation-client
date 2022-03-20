@@ -1,7 +1,7 @@
 import { AlgoBlock, AlgoTransaction, ChainType, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/dbTransaction";
-import { PromiseTimeout } from "../../utils/PromiseTimeout";
+import { retryMany } from "../../utils/PromiseTimeout";
 import { augmentBlock, augmentBlockAlgo, augmentBlockUtxo } from "./augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
 import { getFullTransactionUtxo } from "./readTransaction";
@@ -54,9 +54,9 @@ export class UtxoBlockProcessor extends LimitingProcessor {
       return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>;
     });
 
-    const transDbPromisses = txPromises.map( (processed) => async () => { return await augmentTransactionUtxo(this.client, block, processed);} );
+    const transDbPromisses = txPromises.map((processed) => async () => { return await augmentTransactionUtxo(this.client, block, processed); });
 
-    const transDb = await PromiseTimeout.allRetry(transDbPromisses, this.settings.timeout, this.settings.retry);
+    const transDb = await retryMany(`UtxoBlockProcessor::initializeJobs`, transDbPromisses, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
 
     if (!transDb) {
       return;
@@ -81,7 +81,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
       let processed = new AlgoTransaction(getTxObject);
       return augmentTransactionAlgo(this.client, block, processed);
     });
-    const transDb = await PromiseTimeout.allRetry(txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
+    const transDb = await retryMany(`AlgoBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
     this.pause();
     const blockDb = await augmentBlockAlgo(block);
 
@@ -99,9 +99,9 @@ export class XrpBlockProcessor extends LimitingProcessor {
       // @ts-ignore
       let processed = new XrpTransaction(newObj);
       //return augmentTransactionXrp(this.client, block, processed);
-      return async ()=>{return await augmentTransactionXrp(this.client, block, processed);};
+      return async () => { return await augmentTransactionXrp(this.client, block, processed); };
     });
-    const transDb = await PromiseTimeout.allRetry(txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
+    const transDb = await retryMany(`XrpBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
     this.stop();
     const blockDb = await augmentBlock(block);
 

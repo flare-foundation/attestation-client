@@ -2,8 +2,8 @@ import { retry as mccRetry, retryMany as mccRetryMany} from "flare-mcc";
 import { getGlobalLogger } from "./logger";
 
 
-let TIMEOUT_STEP_MULTIPLY = 1.2;
-let BACKOFF_TIME_STEP_MULTIPLY = 1.2;
+// let TIMEOUT_STEP_MULTIPLY = 1.2;
+// let BACKOFF_TIME_STEP_MULTIPLY = 1.2;
 
 export async function retry<T>(label: string, funct: (...args:any)=>T, timeoutTime: number=5000, numRetries: number=5, backOddTimeout = 1000): Promise<T> {
 

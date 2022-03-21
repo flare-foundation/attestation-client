@@ -15,7 +15,7 @@ SERVICE1=attester-client
 SERVICE2=indexer-xrp
 SERVICE3=indexer-btc
 SERVICE4=indexer-ltc
-SERVICE5=indexer-ada
+SERVICE5=indexer-algo
 SERVICE6=indexer-doge
 
 RED='\033[0;31m'
@@ -57,7 +57,7 @@ scp tmp_data/$FNAME $USER@$SERVER:~ || { echo 'sco failed' ; exit 1; }
 
 
 # Copy MCC
-echo -e "${GREENBOLD}Copying MCC ..."
+echo -e "${GREENBOLD}Copying MCC ...${NC}"
 cd $MCC_FOLDER
 mkdir -p tmp_data
 git archive $MCC_BRANCH | gzip > tmp_data/$MCC_FNAME || { echo 'Archive failed' ; exit 1; }
@@ -91,20 +91,18 @@ echo -e "${GREENBOLD}Installing done.${NC} Running yarn ..."
 ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn link flare-mcc; yarn" || { echo 'yarn install failed' ; exit 1; }
 
 # Build the app.
-echo -e "${GREENBOLD}Yarn install done.${NC} Building app ... "
-ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn build" || { echo 'Building app failed' ; exit 1; }
-
-echo -e "${GREENBOLD}Yarn C"
+echo -e "${GREENBOLD}Yarn C${NC}"
 ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn c" || { echo 'Building app failed' ; exit 1; }
 
-
+echo -e "${GREENBOLD}Yarn install done.${NC} Building app ... "
+ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn build" || { echo 'Building app failed' ; exit 1; }
 
 # Restart the app as a service.
 echo -e "${GREENBOLD}Build successful.${NC} Restarting app"
 #ssh -n $USER@$SERVER "systemctl --user restart $SERVICE1" || { echo "Restarting $SERVICE1 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE2" || { echo "Restarting $SERVICE2 failed" ; exit 1; }
-#ssh -n $USER@$SERVER "systemctl --user restart $SERVICE3" || { echo "Restarting $SERVICE3 failed" ; exit 1; }
-#ssh -n $USER@$SERVER "systemctl --user restart $SERVICE4" || { echo "Restarting $SERVICE4 failed" ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE3" || { echo "Restarting $SERVICE3 failed" ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE4" || { echo "Restarting $SERVICE4 failed" ; exit 1; }
 #ssh -n $USER@$SERVER "systemctl --user restart $SERVICE5" || { echo "Restarting $SERVICE5 failed" ; exit 1; }
 #ssh -n $USER@$SERVER "systemctl --user restart $SERVICE6" || { echo "Restarting $SERVICE6 failed" ; exit 1; }
 echo -e "${GREENBOLD}Done.${NC}"

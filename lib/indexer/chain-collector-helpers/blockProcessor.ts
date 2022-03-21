@@ -68,31 +68,36 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
       this.stop();
 
-      onSave(blockDb, transDb); 
+      onSave(blockDb, transDb);
     }
-    catch(error) {
-      logException(error, `UtxoBlockProcessor::initializeJobs` );
+    catch (error) {
+      logException(error, `UtxoBlockProcessor::initializeJobs`);
     }
   }
 }
 
 export class AlgoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: AlgoBlock, onSave: onSaveSig) {
-    this.block = block;
-    let txPromises = block.data.transactions.map((txObject) => {
-      const getTxObject = {
-        currentRound: block.number,
-        transaction: txObject,
-      };
-      let processed = new AlgoTransaction(getTxObject);
-      return async () => { return await augmentTransactionAlgo(this.client, block, processed); };
-      // return augmentTransactionAlgo(this.client, block, processed);
-    });
-    const transDb = await retryMany(`AlgoBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
-    this.pause();
-    const blockDb = await augmentBlockAlgo(block);
+    try {
+      this.block = block;
+      let txPromises = block.data.transactions.map((txObject) => {
+        const getTxObject = {
+          currentRound: block.number,
+          transaction: txObject,
+        };
+        let processed = new AlgoTransaction(getTxObject);
+        return async () => { return await augmentTransactionAlgo(this.client, block, processed); };
+        // return augmentTransactionAlgo(this.client, block, processed);
+      });
+      const transDb = await retryMany(`AlgoBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
+      this.pause();
+      const blockDb = await augmentBlockAlgo(block);
 
-    onSave(blockDb, transDb);
+      onSave(blockDb, transDb);
+    }
+    catch (error) {
+      logException(error, `UtxoBlockProcessor::initializeJobs`);
+    }
   }
 }
 
@@ -115,8 +120,8 @@ export class XrpBlockProcessor extends LimitingProcessor {
 
       onSave(blockDb, transDb);
     }
-    catch(error) {
-      logException(error, `XrpBlockProcessor::initializeJobs` );
+    catch (error) {
+      logException(error, `XrpBlockProcessor::initializeJobs`);
     }
   }
 }

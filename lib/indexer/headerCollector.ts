@@ -1,6 +1,6 @@
 import { BlockBase, IBlock } from "flare-mcc";
 import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
-import { AttLogger } from "../utils/logger";
+import { AttLogger, logException } from "../utils/logger";
 import { retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
@@ -51,8 +51,7 @@ export class HeaderCollector {
                 await this.saveLiteBlocksHeaders(blocks);
 
             } catch (error) {
-                this.logger.error2(`runBlockHeaderCollectingTips: ${error}`);
-                this.logger.error(error.stack);
+                logException(error, `runBlockHeaderCollectingTips: `);
             }
         }
     }
@@ -64,8 +63,7 @@ export class HeaderCollector {
             await this.saveBlocksHeadersArray(outBlocks);
 
         } catch (error) {
-            this.logger.error2(`saveLiteBlocksHeaders error: ${error}`);
-            this.logger.error(error.stack);
+            logException(error, `saveLiteBlocksHeaders error: }`);
         }
     }
 
@@ -90,8 +88,7 @@ export class HeaderCollector {
             await this.saveBlocksHeadersArray(blocks);
 
         } catch (error) {
-            this.logger.error2(`saveBlocksHeaders error: ${error}`);
-            this.logger.error(error.stack);
+            logException(error, `saveBlocksHeaders error: `);
         }
     }
 
@@ -149,8 +146,7 @@ export class HeaderCollector {
             //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
             //   .execute();
         } catch (error) {
-            this.logger.error2(`saveBlocksHeadersArray error: ${error}`);
-            this.logger.error(error.stack);
+            logException(error, `saveBlocksHeadersArray error: `);
         }
     }
 
@@ -171,8 +167,21 @@ export class HeaderCollector {
                 const isNewBlock = localN < localT - this.indexer.chainConfig.confirmationBlocks;
                 const isChangedNp1Hash = localBlockNp1hash !== blockNp1.hash;
 
+                // every update save last T
+                try {
+                    const stateTcheckTime = this.indexer.getStateEntry("T", localT);
+
+                    await this.indexer.dbService.manager.save(stateTcheckTime);
+
+                } catch (error) {
+                    logException(error, `runBlockHeaderCollectingRaw database error (T=${localT}):`);
+                    return false;
+                }
+
                 // check if N + 1 hash is the same
                 if (!isNewBlock && !isChangedNp1Hash) {
+
+
                     await sleepms(this.indexer.config.blockCollectTimeMs);
                     continue;
                 }
@@ -200,8 +209,7 @@ export class HeaderCollector {
                 localBlockNp1hash = this.blockNumberHash.get(localN);
 
             } catch (error) {
-                this.logger.error2(`runBlockHeaderCollectingRaw exception: ${error}`);
-                this.logger.error(error.stack);
+                logException(error, `runBlockHeaderCollectingRaw exception: `);
             }
         }
     }

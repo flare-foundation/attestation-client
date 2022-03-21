@@ -2,7 +2,7 @@ import { UtxoTransaction } from "flare-mcc";
 import { IUtxoCoinbase, IUtxoVinTransaction, IUtxoVinVoutsMapper } from "flare-mcc/dist/types/utxoTypes";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
-import { getGlobalLogger } from "../../utils/logger";
+import { getGlobalLogger, logException } from "../../utils/logger";
 
 
 
@@ -76,7 +76,6 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any, any>, 
     }
   }
   catch (error) {
-    getGlobalLogger().error2(`getFullTransactionUtxo2 ${error} ${errorPoint}`);
-    console.log( error.stack );
+    logException(error, `getFullTransactionUtxo2 ${errorPoint}`);
   }
 }

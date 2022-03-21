@@ -1,4 +1,5 @@
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
+import { logException } from "./logger";
 
 export async function fetchSecret(name: string) {
   try {
@@ -15,7 +16,7 @@ export async function fetchSecret(name: string) {
 
     return payload;
   } catch (error) {
-    console.log(`      *** ERROR: failed to fetch secret "${name}"   ${error}`);
+    logException( error , `      *** ERROR: failed to fetch secret "${name}"`);
   }
 
   return undefined;

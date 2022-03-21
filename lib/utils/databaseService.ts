@@ -1,5 +1,5 @@
 import { Connection, createConnection } from "typeorm";
-import { AttLogger } from "./logger";
+import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";
 
 export class DatabaseService {
@@ -70,7 +70,8 @@ export class DatabaseService {
             this._connection = await conn
             return
         }).catch(async e => {
-            console.log(e)
+            logException( e , `connect` );
+
             await sleepms(3000)
             this.connect()
         })

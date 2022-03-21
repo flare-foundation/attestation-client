@@ -35,7 +35,7 @@ import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
-import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { retry } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
@@ -186,8 +186,21 @@ export class Indexer {
   }
 
 
+  getChainName(name: string) {
+    return this.chainConfig.name + "_" + name;
+  }
   getChainN() {
-    return this.chainConfig.name + "_N";
+    return this.getChainName("N");
+  }
+
+  getStateEntry(name: string, value: number): DBState {
+    const state = new DBState();
+
+    state.name = this.getChainName(name);
+    state.valueNumber = value;
+    state.timestamp = getUnixEpochTimestamp();
+
+    return state;
   }
 
   prepareString(text: string, maxLength: number, reportOwerflow: string = null): string {
@@ -267,17 +280,17 @@ export class Indexer {
 
       try {
         await this.dbService.connection.transaction(async (transaction) => {
-          // setup new N
-          const state = new DBState();
-          state.name = this.getChainN();
-          state.valueNumber = Np1;
+          // save state N, T and T_CHECK_TIME
+          const stateEntries = [
+            this.getStateEntry("N", Np1),
+            this.getStateEntry("T", this.T)];
 
           // block must be marked as confirmed
           if (transactions.length > 0) {
             await transaction.save(transactions);
           }
           await transaction.save(blockCopy);
-          await transaction.save(state);
+          await transaction.save(stateEntries);
         });
 
         // increment N if all is ok
@@ -288,14 +301,14 @@ export class Indexer {
         this.logger.info(`^r^Wsave completed - next N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
 
       } catch (error) {
-        this.logger.error(`database error (N=${Np1}): ${error}`);
-        this.logger.error(error.stack);
+        logException( error , `database error (N=${Np1}): `);
+
         return false;
       }
 
     } catch (error) {
-      this.logger.error2(`saveInterlaced error (N=${Np1}): ${error}`);
-      this.logger.error(error.stack);
+      logException( error , `saveInterlaced error (N=${Np1}): ` );
+      
       return false;
     }
 
@@ -497,9 +510,8 @@ export class Indexer {
           await sleepms(100);
         }
 
-      } catch (e) {
-        this.logger.error2(`runSync exception: ${e}`);
-        this.logger.error(e.stack);
+      } catch (error) {
+        logException( error , `runSync exception: `);
       }
     }
   }
@@ -569,9 +581,8 @@ export class Indexer {
         // process new or changed N+1
         this.blockNp1hash = blockNp1.hash;
         this.blockProcessorManager.process(blockNp1);
-      } catch (e) {
-        this.logger.error2(`runIndexer exception: ${e}`);
-        this.logger.error(e.stack);
+      } catch (error) {
+        logException( error , `runIndexer exception: `);
       }
     }
   }
@@ -639,8 +650,7 @@ DotEnvExt();
 runIndexer()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error(error);
-    console.error(error.stack);
+    logException( error , `runIndexer `);
     process.exit(1);
   });
 function retryMany(arg0: string, test: any[], arg2: number, arg3: number) {

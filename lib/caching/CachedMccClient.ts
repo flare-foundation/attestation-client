@@ -1,5 +1,5 @@
 import { AlgoMccCreate, ChainType, MCC, ReadRpcInterface, RPCInterface, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 
 export interface CachedMccClientOptions {
@@ -96,7 +96,7 @@ export class CachedMccClient<T, B> {
       return newPromise;    
     }
     catch( error ) {
-      getGlobalLogger().critical(`CachedMccClient::getTransaction(${txId}) ${error}`);
+      logException(error, `CachedMccClient::getTransaction(${txId})`);
     }
   }
 

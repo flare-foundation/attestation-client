@@ -1,5 +1,5 @@
 import { ChainType } from "flare-mcc";
-import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -108,7 +108,7 @@ export class AttestationConfigManager {
         }
       });
     } catch (error) {
-      this.logger.exception(`error: ${error}`);
+      logException(error,`loadAll `);
     }
   }
 

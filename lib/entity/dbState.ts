@@ -12,6 +12,9 @@ export class DBState {
 
     @Column()
     valueNumber: number=0;
+
+    @Column()
+    timestamp: number=0;
 }
 
 

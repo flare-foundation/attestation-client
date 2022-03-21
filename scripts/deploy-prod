@@ -1,5 +1,5 @@
 USER=ubuntu
-SERVER=34.89.169.205
+#SERVER=34.89.169.205
 CURRENT_DIR=$(pwd)
 WORKDIR="attester-client"
 MCC_WORKDIR="mcc"
@@ -11,9 +11,11 @@ CONFIGDIR="attester-client-config"
 BRANCH=main
 MCC_BRANCH=master
 SERVICE=attester-client
-#SERVICE2=attester-client-aggregate
-#SERVICE3=attester-client-trades
-#SERVICE4=attester-client-tickers
+SERVICE2=indexer-xrp
+#SERVICE3=indexer-btc
+#SERVICE4=indexer-ltc
+#SERVICE5=indexer-ada
+#SERVICE6=indexer-doge
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -99,7 +101,9 @@ ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn c" || { echo 'Building 
 # Restart the app as a service.
 echo -e "${GREENBOLD}Build successful.${NC} Restarting app"
 #ssh -n $USER@$SERVER "systemctl --user restart $SERVICE" || { echo 'Restarting collector failed' ; exit 1; }
-#ssh -n $USER@$SERVER "systemctl --user restart $SERVICE2" || { echo 'Restarting aggregator failed' ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE2" || { echo 'Restarting aggregator failed' ; exit 1; }
 #ssh -n $USER@$SERVER "systemctl --user restart $SERVICE3" || { echo 'Restarting backend failed' ; exit 1; }
 #ssh -n $USER@$SERVER "systemctl --user restart $SERVICE4" || { echo 'Restarting exchanges failed' ; exit 1; }
+#ssh -n $USER@$SERVER "systemctl --user restart $SERVICE5" || { echo 'Restarting exchanges failed' ; exit 1; }
+#ssh -n $USER@$SERVER "systemctl --user restart $SERVICE6" || { echo 'Restarting exchanges failed' ; exit 1; }
 echo -e "${GREENBOLD}Done.${NC}"

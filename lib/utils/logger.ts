@@ -203,3 +203,12 @@ export function getGlobalLogger(label?: string): AttLogger {
 
   return globalLogger;
 }
+
+export function logException(error: any,comment: string) {
+
+  getGlobalLogger();
+
+  globalLogger.error2(`${comment} ${error}`);
+  globalLogger.error(error.stack);
+}
+

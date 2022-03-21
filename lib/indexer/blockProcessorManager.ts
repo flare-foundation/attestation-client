@@ -2,6 +2,7 @@ import { IBlock } from "flare-mcc";
 import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
 import { AttLogger } from "../utils/logger";
+import { retry } from "../utils/PromiseTimeout";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
 
 export class BlockProcessorManager {
@@ -26,11 +27,11 @@ export class BlockProcessorManager {
     }
 
     async processSyncBlockNumber(blockNumber: number) {
-        const cachedBlock = this.blockCache.get(blockNumber);
+        const cachedBlock = await this.blockCache.get(blockNumber);
 
         if( cachedBlock ) return;
 
-        const block = await this.cachedClient.getBlock(blockNumber);
+        const block = await retry( `BlockProcessorManager.getBlock.processSyncBlockNumber` , async ()=>{return await this.cachedClient.getBlock(blockNumber); } );
 
         if( !block ) return;
 

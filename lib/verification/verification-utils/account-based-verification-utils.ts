@@ -123,7 +123,7 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
       return { status }
    }
 
-   let paymentReference = fullTxData.reference.length === 1 ? prefix0x(fullTxData.reference[0]) : "";
+   let paymentReference = dbTransaction.paymentReference || "";
    // Ignore too long payment references
    if(unPrefix0x(paymentReference).length > 64) {
       paymentReference = ""
@@ -134,7 +134,7 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: prefix0x(dbTransaction.transactionId),
       sourceAddress: Web3.utils.soliditySha3(fullTxData.sourceAddress[0]),
-      spentAmount: fullTxData.spentAmount[0].amount,
+      spentAmount: fullTxData.spentAmount?.[0]?.amount || toBN(0), // TODO: Check what is wrong with ALGO
       paymentReference: prefix0x(paymentReference)
    } as DHBalanceDecreasingTransaction;
 

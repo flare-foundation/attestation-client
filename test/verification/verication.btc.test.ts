@@ -58,7 +58,7 @@ describe("BTC verifiers", () => {
       await indexedQueryManager.dbService.waitForDBConnection();
    });
 
-   it.only("Should verify legit Payment", async () => {
+   it("Should verify legit Payment", async () => {
       let randomTransaction = await getRandomTransactionWithPaymentReference(indexedQueryManager);
       if(!randomTransaction) {
          return;
@@ -78,8 +78,8 @@ describe("BTC verifiers", () => {
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
       let res = await verifyPaymentBTC(client, attestation, indexedQueryManager);
-      console.log(res); 
-      assert(res.status === VerificationStatus.OK);
+      // console.log(res); 
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       // console.log(res); 
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 
@@ -107,7 +107,7 @@ describe("BTC verifiers", () => {
       let res = await verifyBalanceDecreasingTransactionBTC(client, attestation, indexedQueryManager);
       // console.log(res); 
 
-      assert(res.status === VerificationStatus.OK);
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 
    });
@@ -130,13 +130,13 @@ describe("BTC verifiers", () => {
          "CORRECT"
       );
 
-      // console.log(request);
+      console.log(request);
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
       let res = await verifyConfirmedBlockHeightExistsBTC(client, attestation, indexedQueryManager);
       // console.log(res); 
-      assert(res.status === VerificationStatus.OK);
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 
@@ -162,7 +162,7 @@ describe("BTC verifiers", () => {
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
       let res = await verifyReferencedPaymentNonexistenceBTC(client, attestation, indexedQueryManager);
-      assert(res.status === VerificationStatus.OK);
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       // console.log(res); 
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 

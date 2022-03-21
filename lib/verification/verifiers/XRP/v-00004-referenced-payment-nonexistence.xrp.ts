@@ -34,6 +34,8 @@ export async function verifyReferencedPaymentNonexistenceXRP(
 
    //-$$$<end> of the custom section. Do not change this comment.
 
+
+
    let hash = hashReferencedPaymentNonexistence(request, response);
 
    return {

@@ -50,3 +50,7 @@ artifacts
 typechain-truffle
 # typechain-web3-v1
 # typechain-web3-v1-external
+
+
+# local node
+.node

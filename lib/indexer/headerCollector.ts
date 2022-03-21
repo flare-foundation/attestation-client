@@ -1,7 +1,7 @@
 import { BlockBase, IBlock } from "flare-mcc";
 import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
 import { AttLogger } from "../utils/logger";
-import { PromiseTimeout } from "../utils/PromiseTimeout";
+import { retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 
@@ -15,6 +15,7 @@ export class HeaderCollector {
 
     private blockHeaderHash = new Set<string>();
     private blockHeaderNumber = new Set<number>();
+    private blockNumberHash = new Map<number, string>();
 
     constructor(logger: AttLogger, indexer: Indexer) {
         this.logger = logger;
@@ -28,14 +29,15 @@ export class HeaderCollector {
     private cacheBlock(block: LiteBlock | IBlock) {
         this.blockHeaderHash.add(block.hash);
         this.blockHeaderNumber.add(block.number);
+        this.blockNumberHash.set(block.number, block.hash);
     }
-    private getBlock(blockNumber: number): Promise<IBlock> {
+    async getBlock(label: string, blockNumber: number): Promise<IBlock> {
         // todo: implement lite version
-        return this.indexer.cachedClient.client.getBlock(blockNumber);
+        return await retry(`headerCollector.getBlock.${label}`, async () => { return await this.indexer.cachedClient.client.getBlock(blockNumber); });
     }
 
-    private getBlockHeight(): Promise<number> {
-        return this.indexer.cachedClient.client.getBlockHeight();
+    async getBlockHeight(label: string): Promise<number> {
+        return await retry(`headerCollector.getBlockHeight.${label}`, async () => { return this.indexer.cachedClient.client.getBlockHeight(); });
     }
 
     async runBlockHeaderCollectingTips() {
@@ -44,56 +46,13 @@ export class HeaderCollector {
 
         while (true) {
             try {
-                const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.confirmationsCollect);
+                const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.confirmationBlocks);
 
                 await this.saveLiteBlocksHeaders(blocks);
 
             } catch (error) {
                 this.logger.error2(`runBlockHeaderCollectingTips: ${error}`);
                 this.logger.error(error.stack);
-            }
-        }
-    }
-
-    async runBlockHeaderCollectingRaw() {
-        let localN = this.indexer.N;
-        let localBlockNp1hash = "";
-
-        while (true) {
-            try {
-                // get chain top block
-                const localT = await this.getBlockHeight();
-                const blockNp1 = (await this.getBlock(localN + 1)) as IBlock;
-
-                // has N+1 confirmation block
-                const isNewBlock = localN < localT - this.indexer.chainConfig.confirmationsCollect;
-                const isChangedNp1Hash = localBlockNp1hash !== blockNp1.hash;
-
-                // check if N + 1 hash is the same
-                if (!isNewBlock && !isChangedNp1Hash) {
-                    await sleepms(this.indexer.config.blockCollectTimeMs);
-                    continue;
-                }
-
-                // save block headers N+1 ... T
-                await this.saveBlocksHeaders(localN + 1, localT);
-
-                if (isNewBlock) {
-                    localN++;
-                }
-
-                // save block N+1 hash
-                localBlockNp1hash = blockNp1.hash;
-
-                while (localN < localT - this.indexer.chainConfig.confirmationsCollect) {
-                    if (this.blockHeaderNumber.has(localN)) {
-                        localN++;
-                    }
-                }
-            } catch (error) {
-                this.logger.error2(`runBlockHeaderCollectingRaw exception: ${error}`);
-                this.logger.error(error.stack);
-
             }
         }
     }
@@ -123,10 +82,10 @@ export class HeaderCollector {
                     }
                 }
 
-                blockPromisses.push(async () => this.getBlock(blockNumber));
+                blockPromisses.push(async () => this.getBlock(`saveBlocksHeaders`, blockNumber));
             }
 
-            const blocks = await PromiseTimeout.allRetry(blockPromisses, 5000, 5);
+            const blocks = await retryMany(`saveBlocksHeaders`, blockPromisses, 5000, 5) as IBlock[];
 
             await this.saveBlocksHeadersArray(blocks);
 
@@ -192,6 +151,58 @@ export class HeaderCollector {
         } catch (error) {
             this.logger.error2(`saveBlocksHeadersArray error: ${error}`);
             this.logger.error(error.stack);
+        }
+    }
+
+    async runBlockHeaderCollectingRaw() {
+        let localN = this.indexer.N;
+        let localBlockNp1hash = "";
+
+        // add initial number
+        this.blockHeaderNumber.add(localN);
+
+        while (true) {
+            try {
+                // get chain top block
+                const localT = await this.getBlockHeight(`runBlockHeaderCollectingRaw`);
+                const blockNp1 = (await this.getBlock(`runBlockHeaderCollectingRaw1`, localN + 1)) as IBlock;
+
+                // has N+1 confirmation block
+                const isNewBlock = localN < localT - this.indexer.chainConfig.confirmationBlocks;
+                const isChangedNp1Hash = localBlockNp1hash !== blockNp1.hash;
+
+                // check if N + 1 hash is the same
+                if (!isNewBlock && !isChangedNp1Hash) {
+                    await sleepms(this.indexer.config.blockCollectTimeMs);
+                    continue;
+                }
+
+                // save block headers N+1 ... T
+                await this.saveBlocksHeaders(localN + 1, localT);
+
+                while (localN < localT - this.indexer.chainConfig.confirmationBlocks) {
+                    if (this.blockHeaderNumber.has(localN)) {
+                        this.logger.debug2(`runBlockCollector N=${localN}++`);
+
+                        localN++;
+                        await sleepms(100);
+                        continue;
+                    }
+                    break;
+                }
+
+                this.logger.debug1(`runBlockCollector final N=${localN}`);
+
+                // todo: optimize to use hash from cache
+                // save block N+1 hash
+                //const newBlockNp1 = (await this.getBlock(`runBlockHeaderCollectingRaw2`, localN + 1)) as IBlock;
+                //localBlockNp1hash = newBlockNp1.hash;
+                localBlockNp1hash = this.blockNumberHash.get(localN);
+
+            } catch (error) {
+                this.logger.error2(`runBlockHeaderCollectingRaw exception: ${error}`);
+                this.logger.error(error.stack);
+            }
         }
     }
 

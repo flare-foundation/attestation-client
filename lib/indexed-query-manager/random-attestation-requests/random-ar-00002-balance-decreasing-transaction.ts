@@ -39,6 +39,7 @@ export async function getRandomRequestBalanceDecreasingTransaction(
       roundId
    });
    if (!confirmationBlock) {
+      console.log("No confirmation block")
       return null;
    }
 

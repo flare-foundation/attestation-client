@@ -1,6 +1,6 @@
 {
     "syncEnabled": true,
-    "syncTimeDays": 1,
+    "syncTimeDays": 0.5,
 
     "blockCollectTimeMs": 1000,
 
@@ -18,7 +18,7 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 3,
+            "confirmationBlocks": 1,
             "syncReadAhead":30,
             "blockCollecting":"raw",
             "interlaceTimeRange":2,
@@ -41,7 +41,7 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6,
+            "confirmationBlocks": 6,
             "syncReadAhead":10,
             "blockCollecting":"tips",
             "interlaceTimeRange":2,
@@ -59,7 +59,7 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6,
+            "confirmationBlocks": 6,
             "syncReadAhead":30,
             "blockCollecting":"tips",
             "interlaceTimeRange":2,
@@ -82,7 +82,7 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 3,
+            "confirmationBlocks": 3,
             "syncReadAhead":30,
             "blockCollecting":"rawUnforkable",
             "interlaceTimeRange":2,
@@ -100,7 +100,7 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationsCollect": 6,
+            "confirmationBlocks": 6,
             "syncReadAhead":30,
             "blockCollecting":"tips",
             "interlaceTimeRange":2,

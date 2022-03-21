@@ -1,6 +1,5 @@
 import * as winston from "winston";
 import Transport from "winston-transport";
-import { string } from "yargs";
 
 const level = process.env.LOG_LEVEL || "info";
 
@@ -35,6 +34,9 @@ const BgGray = "\x1b[100m";
 class ColorConsole extends Transport {
   instance = 0;
 
+  lastLog: string = "";
+  duplicate = 0;
+
   log = (info: any, callback: any) => {
     setImmediate(() => this.emit("logged", info));
 
@@ -62,50 +64,77 @@ class ColorConsole extends Transport {
       case "debug":
         color = FgBlue;
         break;
+      case "debug1":
+        color = FgBlack + BgGray;
+        break;
+      case "debug2":
+        color = FgBlack + BgGray;
+        break;
+      case "debug3":
+        color = FgBlack + BgGray;
+        break;
     }
 
-    //            |           |
-    // "2022-01-10T13:13:07.712Z"
+    if (this.lastLog === info.message) {
+      this.duplicate++;
+      process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + ` ` + BgWhite + FgBlack + ` ${this.duplicate} ` + Reset);
+    }
+    else {
+      if (this.duplicate > 0) {
+        console.log(``);
+      }
+      this.lastLog = info.message;
+      this.duplicate = 0;
 
-    console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + " " + color + processColors(info.message, color) + Reset);
+
+      //            |           |
+      // "2022-01-10T13:13:07.712Z"
+
+      console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + " " + color + processColors(info.message, color) + Reset);
+    }
 
     if (callback) {
       callback();
     }
+
   };
 }
 
-function replaceAll(text: string, search: string, replaceWith: string) : string {
+function replaceAll(text: string, search: string, replaceWith: string): string {
 
-  while( text.indexOf( search )>=0 ) {
-    text = text.replace( search , replaceWith );
+  while (text.indexOf(search) >= 0) {
+    text = text.replace(search, replaceWith);
   }
 
   return text;
 }
 
 function processColors(text: string, def: string) {
-  text = replaceAll(text , "^^", Reset + def);
-  text = replaceAll(text , "^R", FgRed);
-  text = replaceAll(text , "^G", FgGreen);
-  text = replaceAll(text , "^B", FgBlue);
-  text = replaceAll(text , "^Y", FgYellow);
-  text = replaceAll(text , "^C", FgCyan);
-  text = replaceAll(text , "^W", FgWhite);
-  text = replaceAll(text , "^K", FgBlack);
-  
-  text = replaceAll(text , "^r", BgRed);
-  text = replaceAll(text , "^g", BgGreen);
-  text = replaceAll(text , "^b", BgBlue);
-  text = replaceAll(text , "^y", BgYellow);
-  text = replaceAll(text , "^c", BgCyan);
-  text = replaceAll(text , "^w", BgWhite);
+  text = replaceAll(text, "^^", Reset + def);
+  text = replaceAll(text, "^R", FgRed);
+  text = replaceAll(text, "^G", FgGreen);
+  text = replaceAll(text, "^B", FgBlue);
+  text = replaceAll(text, "^Y", FgYellow);
+  text = replaceAll(text, "^C", FgCyan);
+  text = replaceAll(text, "^W", FgWhite);
+  text = replaceAll(text, "^K", FgBlack);
+
+  text = replaceAll(text, "^r", BgRed);
+  text = replaceAll(text, "^g", BgGreen);
+  text = replaceAll(text, "^b", BgBlue);
+  text = replaceAll(text, "^y", BgYellow);
+  text = replaceAll(text, "^c", BgCyan);
+  text = replaceAll(text, "^w", BgWhite);
 
   return text;
 }
 
 const myCustomLevels = {
   levels: {
+
+    debug3: 103,
+    debug2: 102,
+    debug1: 101,
     debug: 100, // all above are filtered out when level is set to debug
     title: 80,
     group: 70,
@@ -133,11 +162,14 @@ export interface AttLogger extends winston.Logger {
   exception: (message: string) => null;
 
   critical: (message: string) => null;
+  debug1: (message: string) => null;
+  debug2: (message: string) => null;
+  debug3: (message: string) => null;
 }
 
 export function createLogger(label?: string): AttLogger {
   return winston.createLogger({
-    level: "debug",
+    level: "debug3",
     levels: myCustomLevels.levels,
     format: winston.format.combine(
       winston.format.timestamp(),
@@ -156,7 +188,7 @@ export function createLogger(label?: string): AttLogger {
     transports: [
       new ColorConsole(),
       new winston.transports.File({
-        level: "info",
+        level: "debug2",
         filename: `./logs/attester-${label}.log`,
       }),
     ],

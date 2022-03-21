@@ -1,4 +1,4 @@
-import { ChainType, MCC } from "flare-mcc";
+import { ChainType, MCC, MccClient } from "flare-mcc";
 import * as indexerConfig from "../../configs/config-indexer.json";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { getRandomTransaction, getRandomTransactionWithPaymentReference } from "../../lib/indexed-query-manager/indexed-query-manager-utils";
@@ -12,28 +12,31 @@ import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
-import { verifyPaymentXRP } from "../../lib/verification/verifiers/XRP/v-00001-payment.xrp";
-import { verifyBalanceDecreasingTransactionXRP } from "../../lib/verification/verifiers/XRP/v-00002-balance-decreasing-transaction.xrp";
-import { verifyConfirmedBlockHeightExistsXRP } from "../../lib/verification/verifiers/XRP/v-00003-confirmed-block-height-exists.xrp";
-import { verifyReferencedPaymentNonexistenceXRP } from "../../lib/verification/verifiers/XRP/v-00004-referenced-payment-nonexistence.xrp";
+import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
 
-console.log("This test should run while XRP indexer is running")
-
-const SOURCE_ID = SourceId.XRP;
+const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;
 const MINUTES = 60;
 const HISTORY_WINDOW = 5 * MINUTES;
-const NUMBER_OF_CONFIRMATIONS = 1;
+const CONFIRMATIONS = {
+   BTC: 6,
+   LTC: 6,
+   DOGE: 6,
+   ALGO: 1,
+   XRP: 1
+}
+const NUMBER_OF_CONFIRMATIONS = CONFIRMATIONS[SourceId[process.env.SOURCE_ID] != null ? process.env.SOURCE_ID : SourceId["XRP"]]
 
+console.warn(`This test should run while ${getSourceName(SOURCE_ID)} indexer is running`)
 // Overriding .env variables for this particular test only
 console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
 process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
 DotEnvExt();
 
-describe("XRP verifiers", () => {
+describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
    let indexedQueryManager: IndexedQueryManager;
-   let client: MCC.XRP;
+   let client: MccClient;
    let indexerConfiguration: IndexerConfiguration;
    let chainName: string;
    let startTime = 0;
@@ -46,7 +49,7 @@ describe("XRP verifiers", () => {
       client = MCC.Client(SOURCE_ID, {
          ...chainConfiguration.mccCreate,
          rateLimitOptions: chainConfiguration.rateLimitOptions
-      }) as MCC.XRP;
+      });
       //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
       const options: IndexedQueryManagerOptions = {
@@ -73,18 +76,17 @@ describe("XRP verifiers", () => {
          "CORRECT"
       );
 
-      // console.log(request);
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-      let res = await verifyPaymentXRP(client, attestation, indexedQueryManager);
-      assert(res.status === VerificationStatus.OK);
+      let res = await verifyAttestation(client, attestation, indexedQueryManager);
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       // console.log(res); 
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 
    });
 
-   it("Should verify legit BalanceDecreasingTransaction", async () => {
+   it.only("Should verify legit BalanceDecreasingTransaction", async () => {
       let randomTransaction = await getRandomTransaction(indexedQueryManager);
       if(!randomTransaction) {
          return;
@@ -99,14 +101,14 @@ describe("XRP verifiers", () => {
          "CORRECT"
       );
 
-      // console.log(request);
+      // console.log(randomTransaction, request);
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-      let res = await verifyBalanceDecreasingTransactionXRP(client, attestation, indexedQueryManager);
+      let res = await verifyAttestation(client, attestation, indexedQueryManager);
       // console.log(res); 
 
-      assert(res.status === VerificationStatus.OK);
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 
    });
@@ -133,9 +135,9 @@ describe("XRP verifiers", () => {
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-      let res = await verifyConfirmedBlockHeightExistsXRP(client, attestation, indexedQueryManager);
+      let res = await verifyAttestation(client, attestation, indexedQueryManager);
       // console.log(res); 
-      assert(res.status === VerificationStatus.OK);
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 
@@ -160,8 +162,8 @@ describe("XRP verifiers", () => {
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-      let res = await verifyReferencedPaymentNonexistenceXRP(client, attestation, indexedQueryManager);
-      assert(res.status === VerificationStatus.OK);
+      let res = await verifyAttestation(client, attestation, indexedQueryManager);
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       // console.log(res); 
       // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 

@@ -17,7 +17,7 @@ import { AttestationType } from "./attestation-types-enum";
 //////////////////////////////////////////////////////////////
 
 export class AttestationRequestEncodeError extends Error {
-   constructor(message) {
+   constructor(message: any) {
       super(message);
       this.name = 'AttestationRequestEncodeError';
    }

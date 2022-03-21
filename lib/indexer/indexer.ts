@@ -47,8 +47,9 @@ import { Interlacing } from "./interlacing";
 var yargs = require("yargs");
 
 const args = yargs
-  .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+.option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
+.option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
+.option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -115,6 +116,11 @@ export class Indexer {
       clientConfig: {
         ...this.chainConfig.mccCreate,
         rateLimitOptions: this.chainConfig.rateLimitOptions,
+        loggingOptions: {
+          mode: "develop",
+          loggingCallback: this.mccLogging,
+          exceptionCallback: this.mccException,
+        }
       },
     };
 
@@ -123,6 +129,14 @@ export class Indexer {
     this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
 
     this.headerCollector = new HeaderCollector(this.logger, this);
+  }
+
+  mccLogging(message: string) {
+    this.logger.info(`MCC ${message}`);
+  }
+
+  mccException(error: any, message: string) {
+    logException(error, message);
   }
 
 
@@ -517,9 +531,50 @@ export class Indexer {
   }
 
 
+  async dropTable(name: string) {
+    try {
+      this.logger.info( `dropping table ${name}` );
+      
+      const queryRunner = this.dbService.connection.createQueryRunner();
+      const table = await queryRunner.getTable(name);
+      if( !table ) {
+        this.logger.error( `unable to find table ${name}` );
+        return;
+      }
+      await queryRunner.dropTable(table);
+      await queryRunner.release();      
+    }
+    catch( error ) {
+      logException( error , `dropTable` );
+    }
+
+  }
+
   async runIndexer() {
     // wait for db to connect
     await this.dbService.waitForDBConnection();
+
+
+    // check if drop database is requested
+    if( args.drop==="DO_DROP" ) {
+      this.logger.error2( "DROPPING DATABASES");
+
+      await this.dropTable( `state` );
+
+      for(let i of [`xrp`,`btc`,`ltc`,'doge','algo']) {
+
+        await this.dropTable( `${i}_block` );
+        await this.dropTable( `${i}_transactions0` );
+        await this.dropTable( `${i}_transactions1` );
+      }
+
+      this.logger.info( "completed - exiting");
+
+      return;
+    }
+
+
+
     await this.prepareTables();
 
     const startBlockNumber = (await this.getBlockHeight(`runIndexer1`)) - this.chainConfig.confirmationBlocks;
@@ -630,8 +685,6 @@ async function runIndexer() {
   // console.log(testRes);
   // console.log(testRes);
 
-
-
   // Reading configuration
   const fs = require("fs");
   const config: IndexerConfiguration = JSON.parse(fs.readFileSync((args as any).config).toString()) as IndexerConfiguration;
@@ -645,6 +698,8 @@ async function runIndexer() {
 
 // read .env
 DotEnvExt();
+
+//console.log(process.env);
 
 // (new AttestationSpammer()).runSpammer()
 runIndexer()

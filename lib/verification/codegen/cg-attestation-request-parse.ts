@@ -91,7 +91,7 @@ ${tab()}}
 function genParseException() {
   return `
 export class AttestationRequestParseError extends Error {
-${tab()}constructor(message) {
+${tab()}constructor(message: any) {
 ${tab()}${tab()}super(message);
 ${tab()}${tab()}this.name = 'AttestationRequestParseError';
 ${tab()}}

@@ -1,6 +1,4 @@
 import BN from "bn.js";
-import { ChainType } from "flare-mcc";
-import { AttestationType } from "../generated/attestation-types-enum";
 import { SourceId } from "../sources/sources";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -8,10 +8,12 @@ import swaggerUi from 'swagger-ui-express';
 import { ValidateError } from "tsoa";
 import { RegisterRoutes } from "../../routes/routes";
 import swaggerDocument from "../../static/swagger.json";
+import { DotEnvExt } from "../utils/DotEnvExt";
 import { ApiResponse } from "./models/ApiResponse";
 
 // initialize configuration
-dotenv.config();
+// dotenv.config();
+DotEnvExt();
 
 export const app = express();
 

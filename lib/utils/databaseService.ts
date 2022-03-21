@@ -19,7 +19,7 @@ export class DatabaseService {
         // Typeorm/ES6/Typescript issue with importing modules
         const entities = process.env.NODE_ENV === 'development'
             ? "lib/entity/**/*.ts"
-            : "dist/entity/**/*.js"
+            : "dist/lib/entity/**/*.js"
 
         const migrations = process.env.NODE_ENV === 'development'
             ? "lib/migration/*.ts"

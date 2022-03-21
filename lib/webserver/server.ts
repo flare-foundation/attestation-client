@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
-import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
 import { app } from "./app";
-
-DotEnvExt();
 
 const port = process.env.SERVER_PORT
 

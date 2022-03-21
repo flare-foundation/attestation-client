@@ -51,7 +51,7 @@
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local",
     "codegen": "yarn ts-node lib/verification/codegen/codegen.ts",
     "htest": "yarn codegen && yarn c && yarn hardhat test test/HashTest.test.ts",
-    "preroutes": "ts-node lib/scripts/create-build-folder.ts",
+    "preroutes": "ts-node lib/scripts/create-routes-folder.ts",
     "routes": "yarn tsoa routes && yarn tsoa spec",
     "devbackend": "DOTENV=DEV yarn ts-node-dev --notify --respawn -- lib/webserver/server.ts"
   },

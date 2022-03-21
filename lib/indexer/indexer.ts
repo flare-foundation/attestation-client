@@ -646,7 +646,7 @@ async function runIndexer() {
 // read .env
 DotEnvExt();
 
-console.log(process.env);
+//console.log(process.env);
 
 // (new AttestationSpammer()).runSpammer()
 runIndexer()

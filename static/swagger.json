@@ -1,0 +1,155 @@
+{
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"DBVotingRoundResult": {
+				"properties": {
+					"id": {
+						"type": "number",
+						"format": "double",
+						"description": "Auto incremented id"
+					},
+					"roundId": {
+						"type": "number",
+						"format": "double",
+						"default": 0
+					},
+					"hash": {
+						"type": "string",
+						"default": ""
+					},
+					"request": {
+						"type": "string",
+						"default": ""
+					},
+					"response": {
+						"type": "string",
+						"default": ""
+					}
+				},
+				"required": [
+					"id"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiDefaultResponseStatusEnum": {
+				"type": "string",
+				"enum": [
+					"OK",
+					"ERROR",
+					"REQUEST_BODY_ERROR",
+					"VALIDATION_ERROR",
+					"TOO_MANY_REQUESTS",
+					"UNAUTHORIZED",
+					"AUTH_ERROR",
+					"UPSTREAM_HTTP_ERROR",
+					"INVALID_REQUEST",
+					"NOT_IMPLEMENTED"
+				],
+				"description": "All possible values of status."
+			},
+			"ApiValidationErrorDetails": {
+				"properties": {
+					"className": {
+						"type": "string"
+					},
+					"fieldErrors": {
+						"properties": {},
+						"additionalProperties": {
+							"type": "string"
+						},
+						"type": "object"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_DBVotingRoundResult-Array_": {
+				"properties": {
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/DBVotingRoundResult"
+						},
+						"type": "array"
+					},
+					"errorDetails": {
+						"type": "string",
+						"description": "Optional details for unexpected error responses."
+					},
+					"errorMessage": {
+						"type": "string",
+						"description": "Simple message to explain client developers the reason for error."
+					},
+					"status": {
+						"$ref": "#/components/schemas/ApiDefaultResponseStatusEnum",
+						"description": "Response status. OK for successful reponses."
+					},
+					"validationErrorDetails": {
+						"$ref": "#/components/schemas/ApiValidationErrorDetails"
+					}
+				},
+				"required": [
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "flare-price-provider",
+		"version": "1.0.0",
+		"license": {
+			"name": "MIT"
+		},
+		"contact": {
+			"name": "flare"
+		}
+	},
+	"openapi": "3.0.0",
+	"paths": {
+		"/api/proof/votes-for-round/{roundId}": {
+			"get": {
+				"operationId": "LastReveals",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_DBVotingRoundResult-Array_"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Proof"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "roundId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}

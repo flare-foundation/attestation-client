@@ -26,7 +26,7 @@ let fs = require("fs");
 //dotenv.config();
 DotEnvExt();
 
-console.log( process.env );
+// console.log( process.env );
 
 var yargs = require("yargs");
 

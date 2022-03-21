@@ -283,6 +283,16 @@
             ]
         },
 
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch backend",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devbackend"
+            ]
+        },
 
     ]
 }

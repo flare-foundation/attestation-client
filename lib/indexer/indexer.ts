@@ -301,14 +301,14 @@ export class Indexer {
         this.logger.info(`^r^Wsave completed - next N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
 
       } catch (error) {
-        logException( error , `database error (N=${Np1}): `);
+        logException(error, `database error (N=${Np1}): `);
 
         return false;
       }
 
     } catch (error) {
-      logException( error , `saveInterlaced error (N=${Np1}): ` );
-      
+      logException(error, `saveInterlaced error (N=${Np1}): `);
+
       return false;
     }
 
@@ -511,7 +511,7 @@ export class Indexer {
         }
 
       } catch (error) {
-        logException( error , `runSync exception: `);
+        logException(error, `runSync exception: `);
       }
     }
   }
@@ -582,7 +582,7 @@ export class Indexer {
         this.blockNp1hash = blockNp1.hash;
         this.blockProcessorManager.process(blockNp1);
       } catch (error) {
-        logException( error , `runIndexer exception: `);
+        logException(error, `runIndexer exception: `);
       }
     }
   }
@@ -646,11 +646,13 @@ async function runIndexer() {
 // read .env
 DotEnvExt();
 
+console.log(process.env);
+
 // (new AttestationSpammer()).runSpammer()
 runIndexer()
   .then(() => process.exit(0))
   .catch((error) => {
-    logException( error , `runIndexer `);
+    logException(error, `runIndexer `);
     process.exit(1);
   });
 function retryMany(arg0: string, test: any[], arg2: number, arg3: number) {

@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attester-client/dist/indexer/indexer.js -a XRP
+ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attester-client/dist/lib/indexer/indexer.js -a XRP
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian

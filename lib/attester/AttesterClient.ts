@@ -3,7 +3,7 @@ import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
-import { AttLogger, getGlobalLogger as getGlobalLogger } from "../utils/logger";
+import { AttLogger, getGlobalLogger as getGlobalLogger, logException } from "../utils/logger";
 import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
@@ -77,7 +77,7 @@ export class AttesterClient {
       //this.startDisplay();
     }
     catch (error) {
-      this.logger.error2(`start error: ${error}`);
+      logException(error,`start error: `);
     }
   }
 

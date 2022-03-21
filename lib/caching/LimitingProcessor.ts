@@ -1,5 +1,5 @@
 import { IBlock } from "flare-mcc";
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
 import { CachedMccClient } from "./CachedMccClient";
@@ -36,8 +36,7 @@ export class DelayedExecution {
          let res = await this.func();
          this.resolve(res);
       } catch (e) {
-         getGlobalLogger().error2(`DelayedExecution::run exception ${e}`);
-         getGlobalLogger().error(e.stack);
+         logException( e, `DelayedExecution::run exception`);
          this.reject(e);
       }
    }

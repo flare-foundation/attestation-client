@@ -1,0 +1,111 @@
+{
+    "syncEnabled": true,
+    "syncTimeDays":2,
+
+    "blockCollectTimeMs": 1000,
+
+    "syncUpdateTimeMs": 10000,
+
+    "chains": [
+        {
+            "name": "XRP",
+            "mccCreate" : {
+                "url": "https://xrplcluster.com",
+                "url2": "http://34.91.7.3:51234/"
+            },
+            "rateLimitOptions": {
+                "maxRPS": 30,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "confirmationBlocks": 1,
+            "syncReadAhead":30,
+            "blockCollecting":"raw",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100
+        },
+        {
+            "name": "BTC",
+            "mccCreate" : {
+                "url": "https://bitcoin.flare.network/",
+                "username": "flareadmin",
+                "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",                  
+
+                
+                "url2": "http://34.91.7.3:9332/",
+                "username2": "admin",
+                "password2": "admin"                  
+            },
+            "rateLimitOptions": {
+                "maxRPS": 20,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "confirmationBlocks": 6,
+            "syncReadAhead":10,
+            "blockCollecting":"tips",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100
+        },
+        {
+            "name": "LTC",
+            "mccCreate" : {
+                "url": "https://litecoin.flare.network/",
+                "username": "public",
+                "password": "gA4Yv3cnuXrIvP_7VIZjW1yliZ9GAclj1Td6tRITc6s="                
+            },
+            "rateLimitOptions": {
+                "maxRPS": 300,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "confirmationBlocks": 6,
+            "syncReadAhead":30,
+            "blockCollecting":"tips",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100
+        },
+        {
+            "name": "ALGO",
+            "mccCreate": {
+                "algod": {
+                  "url": "http://testnode3.c.aflabs.net:4001/",
+                  "token": "7f90419ceab8fde42b2bd50c44ed21c0aefebc614f73b27619549f366b060a14"
+                },
+                "indexer": {
+                  "url": "http://testnode3.c.aflabs.net:8980/",
+                  "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddd"
+                }
+            },
+            "rateLimitOptions": {
+                "maxRPS": 300,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "confirmationBlocks": 3,
+            "syncReadAhead":30,
+            "blockCollecting":"rawUnforkable",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100 
+        },
+        {
+            "name": "DOGE",
+            "mccCreate" : {
+                "url": "http://34.91.7.3:8332/",
+                "username": "admin",
+                "password": "admin"                  
+            },
+            "rateLimitOptions": {
+                "maxRPS": 300,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "confirmationBlocks": 6,
+            "syncReadAhead":30,
+            "blockCollecting":"tips",
+            "interlaceTimeRange":2,
+            "interlaceBlockRange":100
+        }
+
+    ]
+}

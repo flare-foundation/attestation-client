@@ -1,5 +1,5 @@
 import { logger } from "ethers";
-import { ChainType, MCC, MccClient, sleep } from "flare-mcc";
+import { ChainType, MCC, MccClient } from "flare-mcc";
 import Web3 from "web3";
 import * as configIndexer from "../../configs/config-indexer.json";
 import * as configAttestationClient from "../../configs/config.json";
@@ -12,7 +12,7 @@ import { getRandomAttestationRequest } from "../indexed-query-manager/random-att
 import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
-import { getTestStateConnectorAddress, getWeb3, getWeb3Contract } from "../utils/utils";
+import { getTestStateConnectorAddress, getWeb3, getWeb3Contract, sleepms } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
@@ -26,7 +26,7 @@ let fs = require("fs");
 //dotenv.config();
 DotEnvExt();
 
-console.log( process.env );
+console.log(process.env);
 
 var yargs = require("yargs");
 
@@ -192,14 +192,14 @@ class AttestationSpammer {
     );
 
     if (receipt) {
-      this.logger.info(`Attestation sent`)      
+      this.logger.info(`Attestation sent`)
     }
     return receipt;
   }
 
   async initializeStateConnector() {
     while (!this.stateConnector) {
-      await sleep(100);
+      await sleepms(100);
     }
 
     this.BUFFER_TIMESTAMP_OFFSET = parseInt(await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
@@ -214,7 +214,7 @@ class AttestationSpammer {
         // if(this.lastBlockNumber > last) {
         //   this.logger.info(`Last block: ${this.lastBlockNumber}`)
         // }
-        await sleep(200);
+        await sleepms(200);
       } catch (e) {
         this.logger.info(`Error: ${e}`);
       }
@@ -226,7 +226,7 @@ class AttestationSpammer {
     let firstUnprocessedBlockNumber = this.lastBlockNumber;
     this.syncBlocks();
     while (true) {
-      await sleep(200);
+      await sleepms(200);
       try {
         let last = Math.min(firstUnprocessedBlockNumber + maxBlockFetch, this.lastBlockNumber);
         if (firstUnprocessedBlockNumber > last) {
@@ -237,13 +237,13 @@ class AttestationSpammer {
           toBlock: last,
         });
         // // DEBUG CODE
-        if(events.length) {
-          for(let event of events) {
-            if(event.event === "AttestationRequest") {
+        if (events.length) {
+          for (let event of events) {
+            if (event.event === "AttestationRequest") {
               let timestamp = event.returnValues.timestamp;
               let data = event.returnValues.data;
               let parsedRequest = parseRequest(data);
-              console.log("RECEIVED:\n", data, "\n", parsedRequest);          
+              console.log("RECEIVED:\n", data, "\n", parsedRequest);
             }
           }
         }
@@ -307,7 +307,7 @@ class AttestationSpammer {
       //   await sleep(Math.floor(Math.random() * this.delay));
       // }
 
-      await sleep(Math.floor(this.delay));
+      await sleepms(Math.floor(this.delay));
     }
   }
 }
@@ -318,7 +318,7 @@ class AttestationSpammer {
 async function displayStats() {
   const period = 5000;
   while (true) {
-    await sleep(period);
+    await sleepms(period);
 
     logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
     AttestationSpammer.sendCount = 0;

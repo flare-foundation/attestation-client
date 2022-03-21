@@ -47,9 +47,9 @@ import { Interlacing } from "./interlacing";
 var yargs = require("yargs");
 
 const args = yargs
-.option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-.option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
-.option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
+  .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -496,12 +496,14 @@ export class Indexer {
 
         const blockLeft = this.T - this.N;
 
+        //const used = process.memoryUsage().heapUsed / 1024 / 1024;
+
         if (statsBlocksPerSec > 0) {
           const timeLeft = (this.T - this.N) / statsBlocksPerSec;
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);// mem: ${round(used,1)} MB`);
         }
         else {
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);// mem: ${round(used,1)} MB`);
         }
 
         // check if syncing has ended
@@ -533,19 +535,19 @@ export class Indexer {
 
   async dropTable(name: string) {
     try {
-      this.logger.info( `dropping table ${name}` );
-      
+      this.logger.info(`dropping table ${name}`);
+
       const queryRunner = this.dbService.connection.createQueryRunner();
       const table = await queryRunner.getTable(name);
-      if( !table ) {
-        this.logger.error( `unable to find table ${name}` );
+      if (!table) {
+        this.logger.error(`unable to find table ${name}`);
         return;
       }
       await queryRunner.dropTable(table);
-      await queryRunner.release();      
+      await queryRunner.release();
     }
-    catch( error ) {
-      logException( error , `dropTable` );
+    catch (error) {
+      logException(error, `dropTable`);
     }
 
   }
@@ -556,19 +558,19 @@ export class Indexer {
 
 
     // check if drop database is requested
-    if( args.drop==="DO_DROP" ) {
-      this.logger.error2( "DROPPING DATABASES");
+    if (args.drop === "DO_DROP") {
+      this.logger.error2("DROPPING DATABASES");
 
-      await this.dropTable( `state` );
+      await this.dropTable(`state`);
 
-      for(let i of [`xrp`,`btc`,`ltc`,'doge','algo']) {
+      for (let i of [`xrp`, `btc`, `ltc`, 'doge', 'algo']) {
 
-        await this.dropTable( `${i}_block` );
-        await this.dropTable( `${i}_transactions0` );
-        await this.dropTable( `${i}_transactions1` );
+        await this.dropTable(`${i}_block`);
+        await this.dropTable(`${i}_transactions0`);
+        await this.dropTable(`${i}_transactions1`);
       }
 
-      this.logger.info( "completed - exiting");
+      this.logger.info("completed - exiting");
 
       return;
     }

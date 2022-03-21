@@ -94,7 +94,7 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
-      txId: request.id,
+      txId: unPrefix0x(request.id),
       numberOfConfirmations,
       blockNumber,
       dataAvailabilityProof: request.dataAvailabilityProof,
@@ -123,13 +123,19 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
       return { status }
    }
 
+   let paymentReference = dbTransaction.paymentReference || "";
+   // Ignore too long payment references
+   if(unPrefix0x(paymentReference).length > 64) {
+      paymentReference = ""
+   }
+
    let response = {
       blockNumber: toBN(blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
-      transactionHash: dbTransaction.transactionId,
-      sourceAddress: fullTxData.sourceAddress[0],
-      spentAmount: fullTxData.spentAmount[0].amount,
-      paymentReference: fullTxData.reference.length === 1 ? fullTxData.reference[0] : ""
+      transactionHash: prefix0x(dbTransaction.transactionId),
+      sourceAddress: Web3.utils.soliditySha3(fullTxData.sourceAddress[0]),
+      spentAmount: fullTxData.spentAmount?.[0]?.amount || toBN(0), // TODO: Check what is wrong with ALGO
+      paymentReference: prefix0x(paymentReference)
    } as DHBalanceDecreasingTransaction;
 
    return {
@@ -241,8 +247,8 @@ export async function accountBasedReferencedPaymentNonExistence(
    // Find the first overflow block
    let firstOverflowBlock = await iqm.getFirstConfirmedOverflowBlock(endTime, endBlockNumber);
 
-   let startTimestamp = this.settings.windowStartTime(roundId);
-   let firstCheckedBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
+   let startTimestamp = iqm.settings.windowStartTime(roundId);
+   let firstCheckedBlock = await iqm.getFirstConfirmedBlockAfterTime(startTimestamp);
 
    // Check transactions for a matching
    // payment reference is ok, check `destinationAddress` and `amount`
@@ -265,13 +271,13 @@ export async function accountBasedReferencedPaymentNonExistence(
    let response = {
       endTimestamp: request.endTimestamp,
       endBlock: request.endBlock,
-      destinationAddress: request.destinationAddress,
-      paymentReference: request.paymentReference,
+      destinationAddress: Web3.utils.soliditySha3(request.destinationAddress),
+      paymentReference: prefix0x(request.paymentReference),
       amount: request.amount,
       firstCheckedBlock: toBN(firstCheckedBlock.blockNumber),
       firstCheckedBlockTimestamp: toBN(firstCheckedBlock.timestamp),
       firstOverflowBlock: toBN(firstOverflowBlock.blockNumber),
-      firstOverflowBlockTimestamp: toBN(firstOverflowBlock.blockHash)
+      firstOverflowBlockTimestamp: toBN(firstOverflowBlock.timestamp)
    } as DHReferencedPaymentNonexistence;
 
    return {

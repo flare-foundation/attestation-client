@@ -33,7 +33,7 @@ export async function retry<T>(label: string, funct: (...args:any)=>T, timeoutTi
 
             await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
 
-            return retry(label, funct, timeoutTime * TIMEOUT_STEP_MULTIPLY , numRetries - 1, backOddTimeout * BACKOFF_TIME_STEP_MULTIPLY);
+            return  retry(label, funct, timeoutTime * TIMEOUT_STEP_MULTIPLY , numRetries - 1, backOddTimeout * BACKOFF_TIME_STEP_MULTIPLY);
         }
         else {
             getGlobalLogger().warning(`retry ^R${label}^^ exception (retry failed) ${error}`);

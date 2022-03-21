@@ -53,3 +53,46 @@ yarn devindexer
 
 Select `Launch indexer`
 
+
+
+### Services
+
+```
+systemctl --user enable indexer-xrp.service
+systemctl --user enable indexer-btc.service
+systemctl --user enable indexer-ltc.service
+systemctl --user enable indexer-algo.service
+systemctl --user enable indexer-doge.service
+```
+
+```
+systemctl --user start indexer-xrp.service
+systemctl --user start indexer-btc.service
+systemctl --user start indexer-ltc.service
+systemctl --user start indexer-algo.service
+systemctl --user start indexer-doge.service
+```
+
+```
+systemctl --user stop indexer-xrp.service
+systemctl --user stop indexer-btc.service
+systemctl --user stop indexer-ltc.service
+systemctl --user stop indexer-algo.service
+systemctl --user stop indexer-doge.service
+```
+
+```
+systemctl --user restart indexer-xrp.service
+systemctl --user restart indexer-btc.service
+systemctl --user restart indexer-ltc.service
+systemctl --user restart indexer-algo.service
+systemctl --user restart indexer-doge.service
+```
+
+```
+journalctl --user -u indexer-xrp -f -n 1000
+journalctl --user -u indexer-btc -f -n 1000
+journalctl --user -u indexer-ltc -f -n 1000
+journalctl --user -u indexer-algo -f -n 1000
+journalctl --user -u indexer-doge -f -n 1000
+```

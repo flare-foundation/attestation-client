@@ -1,5 +1,6 @@
 import * as winston from "winston";
 import Transport from "winston-transport";
+import { round } from "./utils";
 
 const level = process.env.LOG_LEVEL || "info";
 
@@ -35,6 +36,7 @@ class ColorConsole extends Transport {
   instance = 0;
 
   lastLog: string = "";
+  lastLog2: string = "";
   duplicate = 0;
 
   log = (info: any, callback: any) => {
@@ -75,22 +77,34 @@ class ColorConsole extends Transport {
         break;
     }
 
-    if (this.lastLog === info.message) {
+    const memMb = round( process.memoryUsage().heapUsed / 1024 / 1024 , 1 );
+    const mem = BgBlue + FgBlack + `${memMb.toFixed(1).padStart(6,' ')}` + Reset
+
+    const text = info.message.toString();
+
+    if (this.lastLog === text ) {
       this.duplicate++;
-      process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + ` ` + BgWhite + FgBlack + ` ${this.duplicate} ` + Reset);
+      process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate} ` + Reset);
+    } else if (this.lastLog2 === text ) {
+      this.duplicate++;
+      process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate}+ ` + Reset);
     }
     else {
-      if (this.duplicate > 0) {
-        console.log(``);
+      try {
+        if (this.duplicate > 0) {
+          console.log(``);
+        }
+        this.lastLog2 = this.lastLog;
+        this.lastLog = text;
+        this.duplicate = 0;
+
+        //            |           |
+        // "2022-01-10T13:13:07.712Z"
+
+
+        console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + color + processColors(text, color) + Reset);
       }
-      this.lastLog = info.message;
-      this.duplicate = 0;
-
-
-      //            |           |
-      // "2022-01-10T13:13:07.712Z"
-
-      console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + " " + color + processColors(info.message, color) + Reset);
+      catch{}
     }
 
     if (callback) {
@@ -102,29 +116,35 @@ class ColorConsole extends Transport {
 
 function replaceAll(text: string, search: string, replaceWith: string): string {
 
-  while (text.indexOf(search) >= 0) {
-    text = text.replace(search, replaceWith);
+  try {
+    while (text.indexOf(search) >= 0) {
+      text = text.replace(search, replaceWith);
+    }
   }
+  catch{}
 
   return text;
 }
 
 function processColors(text: string, def: string) {
-  text = replaceAll(text, "^^", Reset + def);
-  text = replaceAll(text, "^R", FgRed);
-  text = replaceAll(text, "^G", FgGreen);
-  text = replaceAll(text, "^B", FgBlue);
-  text = replaceAll(text, "^Y", FgYellow);
-  text = replaceAll(text, "^C", FgCyan);
-  text = replaceAll(text, "^W", FgWhite);
-  text = replaceAll(text, "^K", FgBlack);
+  try {
+    text = replaceAll(text, "^^", Reset + def);
+    text = replaceAll(text, "^R", FgRed);
+    text = replaceAll(text, "^G", FgGreen);
+    text = replaceAll(text, "^B", FgBlue);
+    text = replaceAll(text, "^Y", FgYellow);
+    text = replaceAll(text, "^C", FgCyan);
+    text = replaceAll(text, "^W", FgWhite);
+    text = replaceAll(text, "^K", FgBlack);
 
-  text = replaceAll(text, "^r", BgRed);
-  text = replaceAll(text, "^g", BgGreen);
-  text = replaceAll(text, "^b", BgBlue);
-  text = replaceAll(text, "^y", BgYellow);
-  text = replaceAll(text, "^c", BgCyan);
-  text = replaceAll(text, "^w", BgWhite);
+    text = replaceAll(text, "^r", BgRed);
+    text = replaceAll(text, "^g", BgGreen);
+    text = replaceAll(text, "^b", BgBlue);
+    text = replaceAll(text, "^y", BgYellow);
+    text = replaceAll(text, "^c", BgCyan);
+    text = replaceAll(text, "^w", BgWhite);
+  }
+  catch{}
 
   return text;
 }

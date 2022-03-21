@@ -1,12 +1,12 @@
 import dotenv from "dotenv";
 
-function createBuildFolder() {
+function createRoutesFolder() {
     const fs = require('fs');
-    const dir = 'build';
+    const dir = 'routes';
     
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
 }
 
-createBuildFolder();
+createRoutesFolder();

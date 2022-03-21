@@ -6,7 +6,7 @@ import express, { NextFunction, Request as ExRequest, Response as ExResponse } f
 import helmet from "helmet";
 import swaggerUi from 'swagger-ui-express';
 import { ValidateError } from "tsoa";
-import { RegisterRoutes } from "../../build/routes";
+import { RegisterRoutes } from "../../routes/routes";
 import swaggerDocument from "../../static/swagger.json";
 import { ApiResponse } from "./models/ApiResponse";
 

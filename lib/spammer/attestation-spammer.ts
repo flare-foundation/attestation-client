@@ -1,5 +1,5 @@
 import { logger } from "ethers";
-import { ChainType, MCC, MccClient } from "flare-mcc";
+import { ChainType, MCC, MccClient, sleepMs } from "flare-mcc";
 import Web3 from "web3";
 import * as configIndexer from "../../configs/config-indexer.json";
 import * as configAttestationClient from "../../configs/config.json";
@@ -199,7 +199,7 @@ class AttestationSpammer {
 
   async initializeStateConnector() {
     while (!this.stateConnector) {
-      await sleepms(100);
+      await sleepMs(100);
     }
 
     this.BUFFER_TIMESTAMP_OFFSET = parseInt(await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
@@ -214,7 +214,7 @@ class AttestationSpammer {
         // if(this.lastBlockNumber > last) {
         //   this.logger.info(`Last block: ${this.lastBlockNumber}`)
         // }
-        await sleepms(200);
+        await sleepMs(200);
       } catch (e) {
         this.logger.info(`Error: ${e}`);
       }
@@ -226,7 +226,7 @@ class AttestationSpammer {
     let firstUnprocessedBlockNumber = this.lastBlockNumber;
     this.syncBlocks();
     while (true) {
-      await sleepms(200);
+      await sleepMs(200);
       try {
         let last = Math.min(firstUnprocessedBlockNumber + maxBlockFetch, this.lastBlockNumber);
         if (firstUnprocessedBlockNumber > last) {
@@ -307,7 +307,7 @@ class AttestationSpammer {
       //   await sleep(Math.floor(Math.random() * this.delay));
       // }
 
-      await sleepms(Math.floor(this.delay));
+      await sleepMs(Math.floor(this.delay));
     }
   }
 }
@@ -318,7 +318,7 @@ class AttestationSpammer {
 async function displayStats() {
   const period = 5000;
   while (true) {
-    await sleepms(period);
+    await sleepMs(period);
 
     logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
     AttestationSpammer.sendCount = 0;

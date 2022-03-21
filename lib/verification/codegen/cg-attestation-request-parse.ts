@@ -91,7 +91,7 @@ ${tab()}}
 function genParseException() {
   return `
 export class AttestationRequestParseError extends Error {
-${tab()}constructor(message) {
+${tab()}constructor(message: any) {
 ${tab()}${tab()}super(message);
 ${tab()}${tab()}this.name = 'AttestationRequestParseError';
 ${tab()}}
@@ -109,7 +109,7 @@ ${tab()}${tab()}${tab()}throw new AttestationRequestParseError("Cannot read atte
 ${tab()}${tab()}}
 ${tab()}${tab()}return {
 ${tab()}${tab()}${tab()}attestationType: toBN(prefix0x(input.slice(0, ${ATT_BYTES * 2}))).toNumber() as AttestationType,
-${tab()}${tab()}${tab()}sourceId: toBN(prefix0x(input).slice(${ATT_BYTES * 2}, ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2})).toNumber() as SourceId
+${tab()}${tab()}${tab()}sourceId: toBN(prefix0x(input.slice(${ATT_BYTES * 2}, ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}))).toNumber() as SourceId
 ${tab()}${tab()}}
 ${tab()}} catch(e) {
 ${tab()}${tab()}throw new AttestationRequestParseError(e)

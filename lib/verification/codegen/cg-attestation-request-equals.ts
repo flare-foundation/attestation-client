@@ -6,7 +6,7 @@ import { indentText, tab } from "./cg-utils";
 function genEqualsException() {
   return `
 export class AttestationRequestEqualsError extends Error {
-${tab()}constructor(message) {
+${tab()}constructor(message: any) {
 ${tab()}${tab()}super(message);
 ${tab()}${tab()}this.name = 'AttestationRequestEqualsError';
 ${tab()}}

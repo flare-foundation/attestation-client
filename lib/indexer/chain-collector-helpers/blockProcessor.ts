@@ -79,7 +79,8 @@ export class AlgoBlockProcessor extends LimitingProcessor {
         transaction: txObject,
       };
       let processed = new AlgoTransaction(getTxObject);
-      return augmentTransactionAlgo(this.client, block, processed);
+      return async () => { return await augmentTransactionAlgo(this.client, block, processed); };
+      // return augmentTransactionAlgo(this.client, block, processed);
     });
     const transDb = await retryMany(`AlgoBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
     this.pause();

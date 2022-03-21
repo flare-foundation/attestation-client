@@ -248,7 +248,27 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Test Verification XRP",
+            "name": "Test Verification",
+            "runtimeExecutable": "yarn",
+            "env": {
+                "SOURCE_ID": "ALGO"
+            },
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/verification/verification.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Verification BTC",
             "runtimeExecutable": "yarn",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",
@@ -259,7 +279,7 @@
             "runtimeArgs": [
                 "hardhat",
                 "test",
-                "test/verification/verication.xrp.ts"
+                "test/verification/verification.btc.test.ts"
             ]
         },
 

@@ -79,7 +79,7 @@ export async function getRandomRequestReferencedPaymentNonexistence(
    let endTimestamp = toBN(prevBlock.timestamp);
    let overflowBlock = overflowBlockNum;
    let dataAvailabilityProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlock.blockHash);
-   let paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : randomTransaction.paymentReference;
+   let paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.paymentReference);
    // TODO
    // let destinationAmounts = randomTransaction.
    return {

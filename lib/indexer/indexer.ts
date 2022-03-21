@@ -115,6 +115,11 @@ export class Indexer {
       clientConfig: {
         ...this.chainConfig.mccCreate,
         rateLimitOptions: this.chainConfig.rateLimitOptions,
+        loggingOptions: {
+          mode: "develop",
+          loggingCallback: this.mccLogging,
+          exceptionCallback: this.mccException,
+        }
       },
     };
 
@@ -123,6 +128,14 @@ export class Indexer {
     this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
 
     this.headerCollector = new HeaderCollector(this.logger, this);
+  }
+
+  mccLogging(message: string) {
+    this.logger.info(`MCC ${message}`);
+  }
+
+  mccException(error: any, message: string) {
+    logException(error, message);
   }
 
 

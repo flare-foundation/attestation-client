@@ -1,50 +1,68 @@
-import { getSimpleRandom } from "flare-mcc";
+import { retry as mccRetry, retryMany as mccRetryMany} from "flare-mcc";
 import { getGlobalLogger } from "./logger";
-import { sleepms } from "./utils";
 
 
-let TIMEOUT_STEP_MULTIPLY = 1.2;
-let BACKOFF_TIME_STEP_MULTIPLY = 1.2;
+// let TIMEOUT_STEP_MULTIPLY = 1.2;
+// let BACKOFF_TIME_STEP_MULTIPLY = 1.2;
 
 export async function retry<T>(label: string, funct: (...args:any)=>T, timeoutTime: number=5000, numRetries: number=5, backOddTimeout = 1000): Promise<T> {
 
-    try {
-        let result = await Promise.race([funct(), sleepms(timeoutTime)]);
+    return await mccRetry(
+        label,
+        funct,
+        timeoutTime,
+        numRetries,
+        backOddTimeout,
+        getGlobalLogger().warning,
+        getGlobalLogger().debug
+    )
 
-        if (result) return result as T;
+    // try {
+    //     let result = await Promise.race([funct(), sleepms(timeoutTime)]);
 
-        if (numRetries > 0) {
-            getGlobalLogger().warning(`retry ^R${label}^^ ${numRetries}`);
+    //     if (result) return result as T;
 
-            await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
+    //     if (numRetries > 0) {
+    //         getGlobalLogger().warning(`retry ^R${label}^^ ${numRetries}`);
 
-            return retry(label, funct, timeoutTime * TIMEOUT_STEP_MULTIPLY , numRetries - 1, backOddTimeout * BACKOFF_TIME_STEP_MULTIPLY);
-        }
-        else {
-            getGlobalLogger().warning(`retry ^R${label}^^ failed`);
-            return null;
-        }
-    }
-    catch (error) {
+    //         await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
 
-        if (numRetries > 0) {
-            getGlobalLogger().warning(`retry ^R${label}^^ exception (retry ${numRetries}) ${error}`);
-            getGlobalLogger().debug(error.stack);
+    //         return retry(label, funct, timeoutTime * TIMEOUT_STEP_MULTIPLY , numRetries - 1, backOddTimeout * BACKOFF_TIME_STEP_MULTIPLY);
+    //     }
+    //     else {
+    //         getGlobalLogger().warning(`retry ^R${label}^^ failed`);
+    //         return null;
+    //     }
+    // }
+    // catch (error) {
 
-            await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
+    //     if (numRetries > 0) {
+    //         getGlobalLogger().warning(`retry ^R${label}^^ exception (retry ${numRetries}) ${error}`);
+    //         getGlobalLogger().debug(error.stack);
 
-            return  retry(label, funct, timeoutTime * TIMEOUT_STEP_MULTIPLY , numRetries - 1, backOddTimeout * BACKOFF_TIME_STEP_MULTIPLY);
-        }
-        else {
-            getGlobalLogger().warning(`retry ^R${label}^^ exception (retry failed) ${error}`);
-            getGlobalLogger().debug(error.stack);
-            return null;
-        }
+    //         await sleepms(backOddTimeout / 2 + getSimpleRandom(backOddTimeout / 2));
 
-    };
+    //         return retry(label, funct, timeoutTime * TIMEOUT_STEP_MULTIPLY , numRetries - 1, backOddTimeout * BACKOFF_TIME_STEP_MULTIPLY);
+    //     }
+    //     else {
+    //         getGlobalLogger().warning(`retry ^R${label}^^ exception (retry failed) ${error}`);
+    //         getGlobalLogger().debug(error.stack);
+    //         return null;
+    //     }
+    // };
 }
 
 export async function retryMany(label: string, functs: any[], timeoutTime: number, numRetries: number) {
 
-    return Promise.all(functs.map(funct => retry(label, funct, timeoutTime, numRetries)));
+    return await mccRetryMany(
+        label,
+        functs,
+        timeoutTime,
+        numRetries,
+        1000,
+        getGlobalLogger().warning,
+        getGlobalLogger().debug
+    )
+
+    // return Promise.all(functs.map(funct => retry(label, funct, timeoutTime, numRetries)));
 }

@@ -1,4 +1,4 @@
-import { retry as mccRetry, retryMany as mccRetryMany} from "flare-mcc";
+import { retry as mccRetry} from "flare-mcc";
 import { getGlobalLogger } from "./logger";
 
 
@@ -54,15 +54,15 @@ export async function retry<T>(label: string, funct: (...args:any)=>T, timeoutTi
 
 export async function retryMany(label: string, functs: any[], timeoutTime: number, numRetries: number) {
 
-    return await mccRetryMany(
-        label,
-        functs,
-        timeoutTime,
-        numRetries,
-        1000,
-        getGlobalLogger().warning,
-        getGlobalLogger().debug
-    )
+    // return await mccRetryMany(
+    //     label,
+    //     functs,
+    //     timeoutTime,
+    //     numRetries,
+    //     1000,
+    //     getGlobalLogger().warning,
+    //     getGlobalLogger().debug
+    // )
 
-    // return Promise.all(functs.map(funct => retry(label, funct, timeoutTime, numRetries)));
+    return Promise.all(functs.map(funct => retry(label, funct, timeoutTime, numRetries)));
 }

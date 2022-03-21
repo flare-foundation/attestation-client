@@ -6,7 +6,7 @@ import { indentText, tab } from "./cg-utils";
 function genEncodeException() {
   return `
 export class AttestationRequestEncodeError extends Error {
-${tab()}constructor(message) {
+${tab()}constructor(message: any) {
 ${tab()}${tab()}super(message);
 ${tab()}${tab()}this.name = 'AttestationRequestEncodeError';
 ${tab()}}
@@ -108,4 +108,3 @@ import { AttestationType } from "./attestation-types-enum";
 
   fs.writeFileSync(ATT_REQUEST_ENCODE_FILE, content, "utf8");
 }
-

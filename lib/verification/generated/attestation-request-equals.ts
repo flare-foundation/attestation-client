@@ -18,7 +18,7 @@ const toBN = Web3.utils.toBN;
 //////////////////////////////////////////////////////////////
 
 export class AttestationRequestEqualsError extends Error {
-   constructor(message) {
+   constructor(message: any) {
       super(message);
       this.name = 'AttestationRequestEqualsError';
    }

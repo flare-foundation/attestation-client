@@ -20,7 +20,7 @@ const web3 = new Web3();
 //////////////////////////////////////////////////////////////
 
 export class AttestationRequestParseError extends Error {
-   constructor(message) {
+   constructor(message: any) {
       super(message);
       this.name = 'AttestationRequestParseError';
    }

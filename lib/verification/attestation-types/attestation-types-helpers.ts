@@ -63,7 +63,7 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
   }
 }
 
-export function numberLikeToNumber(n: NumberLike): number {
+export function numberLikeToNumber(n: NumberLike): number | undefined {
   if (typeof n === "string") {
     return parseInt(n, 10);
   }
@@ -85,6 +85,7 @@ export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
     tmpSum += choice.weight;
     if (tmpSum >= randSum) return choice.name;
   }
+  return choices[choices.length - 1].name;
 }
 
 

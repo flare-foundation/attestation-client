@@ -85,7 +85,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     let preprocesedTxPromises = block.transactionHashes.map((txid: string) => {
           // the in-transactions are prepended to queue in order to process them earlier
-          return (this.call(() => this.client.getTransaction(txid), true)) as Promise<UtxoTransaction>;    
+          return (() => (this.call(() => this.client.getTransaction(txid), true)) as Promise<UtxoTransaction>);    
     });
 
     const awaitedTxIds = await retryMany(`DogeBlockProcessor::preprocess all transactions`, preprocesedTxPromises, this.settings.timeout, this.settings.retry) as UtxoTransaction[];

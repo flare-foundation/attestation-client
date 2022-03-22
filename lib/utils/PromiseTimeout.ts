@@ -63,6 +63,8 @@ export async function retryMany(label: string, functs: any[], timeoutTime: numbe
     //     getGlobalLogger().warning,
     //     getGlobalLogger().debug
     // )
+    // console.log(functs);
+    
 
     return Promise.all(functs.map(funct => retry(label, funct, timeoutTime, numRetries)));
 }

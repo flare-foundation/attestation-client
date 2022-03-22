@@ -49,7 +49,7 @@ var yargs = require("yargs");
 const args = yargs
   .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
   .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "DOGE", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;

@@ -66,6 +66,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
       const options: IndexedQueryManagerOptions = {
          chainType: SOURCE_ID as any as ChainType,
+         numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (epochId: number) => { return startTime; }
       } as IndexedQueryManagerOptions;

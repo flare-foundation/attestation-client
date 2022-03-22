@@ -56,7 +56,7 @@ export class Attestation {
 
   public get numberOfConfirmationBlocks() {
     if (this._testNumberOfConfirmationBlocks == null) {
-      return this.sourceHandler?.config?.requiredBlocks;
+      return this.sourceHandler?.config?.numberOfConfirmations;
     }
     return this._testNumberOfConfirmationBlocks;
   }

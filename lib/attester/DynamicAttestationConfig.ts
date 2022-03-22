@@ -2,34 +2,24 @@ import { ChainType } from "flare-mcc";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
+import { SourceId, toSourceId } from "../verification/sources/sources";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 
 const fs = require("fs");
-
-export enum Source {
-  // from ChainType (must match)
-  invalid = -1,
-  BTC = 0,
-  LTC = 1,
-  DOGE = 2,
-  XRP = 3,
-  ALGO = 4,
-
-  // ... make sure IDs are the same as in Flare node
-}
-
 export class SourceHandlerTypeConfig {
   avgCalls!: number;
 }
 
 export class SourceHandlerConfig {
   attestationType!: AttestationType;
-  source!: Source;
+  source!: SourceId;
 
   maxCallsPerRound!: number;
 
-  requiredBlocks: number = 1;
+  maxValidIndexerDelayMs!: number;
+
+  numberOfConfirmations: number = 1;
 
   attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
@@ -58,18 +48,18 @@ export class AttestationConfigManager {
 
     for (let value in ChainType) {
       if (typeof ChainType[value] === "number") {
-        if (ChainType[value] !== Source[value]) {
+        if (ChainType[value] !== SourceId[value]) {
           logger.error2(
-            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${Source[Source[value] as any]}=${
-              Source[value]
+            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]}=${
+              SourceId[value]
             }`
           );
         }
 
-        if (ChainType[ChainType[value] as any] !== Source[Source[value] as any]) {
+        if (ChainType[ChainType[value] as any] !== SourceId[SourceId[value] as any]) {
           logger.error2(
-            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${Source[Source[value] as any]}=${
-              Source[value]
+            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]}=${
+              SourceId[value]
             }`
           );
         }
@@ -127,13 +117,13 @@ export class AttestationConfigManager {
     config.startEpoch = fileConfig.startEpoch;
 
     // parse sources
-    fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; requiredBlocks: number; maxCallsPerRound: number }) => {
+    fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; numberOfConfirmations: number; maxCallsPerRound: number }) => {
       const sourceHandler = new SourceHandlerConfig();
 
-      sourceHandler.source = (<any>Source)[source.source] as Source;
+      sourceHandler.source = toSourceId(source.source);
 
       sourceHandler.maxCallsPerRound = source.maxCallsPerRound;
-      sourceHandler.requiredBlocks = source.requiredBlocks;
+      sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
 
       config.sourceHandlers.set(sourceHandler.source, sourceHandler);
 

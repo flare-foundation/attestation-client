@@ -1,4 +1,4 @@
-import { ChainType } from "flare-mcc/dist/types/genericMccTypes";
+import { SourceId } from "../verification/sources/sources";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -17,9 +17,9 @@ export class SourceHandler {
 
   attestationCalls = 0;
 
-  constructor(round: AttestationRound, chainType: ChainType, onValidateAttestation: EventValidateAttestation) {
+  constructor(round: AttestationRound, sourceId: SourceId, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
-    this.config = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(chainType, round.roundId);
+    this.config = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(sourceId, round.roundId);
 
     this.onValidateAttestation = onValidateAttestation;
   }
@@ -34,7 +34,7 @@ export class SourceHandler {
     const typeConfig = this.config.attestationTypes.get(attestation.data.type);
 
     if (!typeConfig) {
-      this.round.logger.error2(`missing source ${attestation.data.chainType} config for attestation type (${attestation.data.type})`);
+      this.round.logger.error2(`missing source ${attestation.data.sourceId} config for attestation type (${attestation.data.type})`);
 
       attestation.status = AttestationStatus.error;
       attestation.onProcessed!(attestation);

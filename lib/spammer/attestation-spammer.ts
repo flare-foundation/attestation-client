@@ -150,6 +150,7 @@ class AttestationSpammer {
 
     const options: IndexedQueryManagerOptions = {
       chainType: this.chainType,
+      numberOfConfirmations: this.chainIndexerConfig.confirmationBlocks,
       windowStartTime: (epochId: number) => { return 0; }
     } as IndexedQueryManagerOptions;
     this.indexedQueryManager = new IndexedQueryManager(options);

@@ -39,11 +39,11 @@ export class ChainNode {
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
-  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, metadata: string, chainCofiguration: AttesterClientChain) {
+  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, metadata: string, chainConfiguration: AttesterClientChain) {
     this.chainName = chainName;
     this.chainType = chainType;
     this.chainManager = chainManager;
-    this.conf = chainCofiguration;
+    this.conf = chainConfiguration;
 
     const url = this.conf.url;
     const username = this.conf.username;
@@ -59,9 +59,9 @@ export class ChainNode {
           username,
           password,
           rateLimitOptions: {
-            maxRPS: chainCofiguration.maxRequestsPerSecond,
-            timeoutMs: chainCofiguration.clientTimeout,
-            retries: chainCofiguration.clientRetries,
+            maxRPS: chainConfiguration.maxRequestsPerSecond,
+            timeoutMs: chainConfiguration.clientTimeout,
+            retries: chainConfiguration.clientRetries,
             onSend: this.onSend.bind(this),
           },
         });
@@ -72,9 +72,9 @@ export class ChainNode {
           username,
           password,
           rateLimitOptions: {
-            maxRPS: chainCofiguration.maxRequestsPerSecond,
-            timeoutMs: chainCofiguration.clientTimeout,
-            retries: chainCofiguration.clientRetries,
+            maxRPS: chainConfiguration.maxRequestsPerSecond,
+            timeoutMs: chainConfiguration.clientTimeout,
+            retries: chainConfiguration.clientRetries,
             onSend: this.onSend.bind(this),
           },
         });
@@ -91,6 +91,8 @@ export class ChainNode {
     let options: IndexedQueryManagerOptions = {
       chainType: chainType,
       dbService: AttestationRoundManager.dbService,
+      numberOfConfirmations: chainConfiguration.numberOfConfirmations,
+      maxValidIndexerDelayMs: chainConfiguration.maxValidIndexerDelayMs, 
       // todo: return epochStartTime - query window length, add query window length into DAC
       windowStartTime: (epochId: number) => { return 0; }
     };

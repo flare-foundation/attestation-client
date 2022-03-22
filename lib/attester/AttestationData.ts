@@ -2,11 +2,12 @@ import BN from "bn.js";
 import { ChainType, toBN } from "flare-mcc";
 import { getAttestationTypeAndSource } from "../verification/generated/attestation-request-parse";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
+import { SourceId } from "../verification/sources/sources";
 
 export class AttestationData {
   // event parameters
   type!: AttestationType;
-  chainType!: ChainType;  // TODO: change this to SourceId
+  sourceId!: SourceId;
   timeStamp!: BN;
   request!: string;
   
@@ -28,7 +29,7 @@ export class AttestationData {
     
     // If parsing is not successful, null is set for both values
     this.type = attestationType;
-    this.chainType = sourceId as any as ChainType;
+    this.sourceId = sourceId;
 
     // for sorting
     this.blockNumber = toBN(event.blockNumber);

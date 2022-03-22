@@ -5,8 +5,9 @@ import { DBTransactionBase } from "../entity/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 import { getGlobalLogger } from "../utils/logger";
+import { getUnixEpochTimestamp } from "../utils/utils";
 import { getSourceName } from "../verification/sources/sources";
-import { BlockQueryParams, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
+import { BlockHeightSample, BlockQueryParams, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
 
 
 ////////////////////////////////////////////////////////
@@ -39,10 +40,14 @@ export class IndexedQueryManager {
   }
 
   ////////////////////////////////////////////////////////////
-  // Last confirmed blocks
+  // Last confirmed blocks, tips
   ////////////////////////////////////////////////////////////
   getChainN() {
     return getSourceName(this.settings.chainType) + "_N";
+  }
+
+  getChainT() {
+    return getSourceName(this.settings.chainType) + "_T";
   }
 
   public async getLastConfirmedBlockNumber(): Promise<number> {
@@ -54,6 +59,27 @@ export class IndexedQueryManager {
       return res.valueNumber;  
     }
     return this.debugLastConfirmedBlock;
+  }
+
+  public async getBlockHeightSample(): Promise<BlockHeightSample | undefined> {
+    if(this.debugLastConfirmedBlock == null) {
+      const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+      if (res === undefined) {
+        return null;
+      }
+      return {
+        height: res.valueNumber,
+        timestamp: res.timestamp
+      }
+    }
+    return {
+      height: this.debugLastConfirmedBlock + this.settings.numberOfConfirmations,
+      timestamp: getUnixEpochTimestamp()
+    }
+  }
+
+  public isIndexerUpToDate() {
+    
   }
 
   // Allows for artificial setup of the last known confirmed block

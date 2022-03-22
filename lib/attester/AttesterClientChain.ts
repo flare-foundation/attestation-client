@@ -17,4 +17,7 @@ export class AttesterClientChain {
   public delayBeforeRetry: number = 10;
 
   public reverificationTimeOffset: number = 5;
+
+  public maxValidIndexerDelayMs: number = 10000;
+  public numberOfConfirmations: number;
 }

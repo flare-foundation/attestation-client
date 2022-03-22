@@ -162,7 +162,7 @@ export class AttestationRoundManager {
 
     return new Attestation(round, data, (attestation: Attestation) => {
       // chain node validation
-      AttestationRoundManager.chainManager.validateTransaction(data.chainType, attestation);
+      AttestationRoundManager.chainManager.validateTransaction(data.sourceId, attestation);
     });
 
     // // processing

@@ -47,6 +47,8 @@
             "maxFailedRetry": 1,
             "delayBeforeRetry": 10,
 
+            "maxValidIndexerDelayMs": 10000,
+            "numberOfConfirmations": 1,
             "metaData": {
                 "requiredBlocks" : 1
             }
@@ -63,6 +65,8 @@
             "clientTimeout": 5000,
             "clientRetries": 3,
 
+            "maxValidIndexerDelayMs": 10000,
+            "numberOfConfirmations": 6,
             "metaData": {
                 "requiredBlocks" : 6
             }

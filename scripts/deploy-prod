@@ -103,6 +103,6 @@ echo -e "${GREENBOLD}Build successful.${NC} Restarting app"
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE2" || { echo "Restarting $SERVICE2 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE3" || { echo "Restarting $SERVICE3 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE4" || { echo "Restarting $SERVICE4 failed" ; exit 1; }
-#ssh -n $USER@$SERVER "systemctl --user restart $SERVICE5" || { echo "Restarting $SERVICE5 failed" ; exit 1; }
-#ssh -n $USER@$SERVER "systemctl --user restart $SERVICE6" || { echo "Restarting $SERVICE6 failed" ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE5" || { echo "Restarting $SERVICE5 failed" ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE6" || { echo "Restarting $SERVICE6 failed" ; exit 1; }
 echo -e "${GREENBOLD}Done.${NC}"

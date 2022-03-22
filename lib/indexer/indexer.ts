@@ -479,6 +479,7 @@ export class Indexer {
 
     while (true) {
       try {
+        this.logger.debug1( `runSync loop N=${this.N} T=${this.T}` );
         const now = Date.now();
 
         // get chain top block
@@ -494,6 +495,7 @@ export class Indexer {
 
         // wait until we save N+1 block
         if (lastN === this.N) {
+          this.logger.debug( `runSync wait block N=${this.N} T=${this.T}` );
           await sleepms(100);
           continue;
         }
@@ -527,6 +529,7 @@ export class Indexer {
 
         while (!await this.saveOrWaitNp1Block()) {
           await sleepms(100);
+          this.logger.debug( `runSync wait save N=${this.N} T=${this.T}` );
         }
 
       } catch (error) {

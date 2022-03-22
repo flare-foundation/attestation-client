@@ -12,6 +12,9 @@
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
 import * as indexerConfig from "../../configs/config-indexer.json";
+import * as configAttestationClient from "../../configs/config.json";
+import { AttesterClientChain } from "../../lib/attester/AttesterClientChain";
+import { AttesterClientConfiguration } from "../../lib/attester/AttesterClientConfiguration";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { getRandomTransaction, getRandomTransactionWithPaymentReference } from "../../lib/indexed-query-manager/indexed-query-manager-utils";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
@@ -20,8 +23,9 @@ import { getRandomRequestPayment } from "../../lib/indexed-query-manager/random-
 import { getRandomRequestBalanceDecreasingTransaction } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00002-balance-decreasing-transaction";
 import { getRandomRequestConfirmedBlockHeightExists } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
 import { getRandomRequestReferencedPaymentNonexistence } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
-import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
+import { IndexerClientChain, IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
+import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
 import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
@@ -50,25 +54,31 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
    let indexedQueryManager: IndexedQueryManager;
    let client: MccClient;
    let indexerConfiguration: IndexerConfiguration;
+   let attesterClientConfiguration: AttesterClientConfiguration;
    let chainName: string;
    let startTime = 0;
 
 
    before(async () => {
       indexerConfiguration = indexerConfig as IndexerConfiguration
+      attesterClientConfiguration = configAttestationClient as AttesterClientConfiguration;
+
       chainName = getSourceName(SOURCE_ID);
-      let chainConfiguration = indexerConfig.chains.find(chain => chain.name === chainName);
+      let indexerChainConfiguration = indexerConfig.chains.find(chain => chain.name === chainName) as IndexerClientChain;
       client = MCC.Client(SOURCE_ID, {
-         ...chainConfiguration.mccCreate,
-         rateLimitOptions: chainConfiguration.rateLimitOptions
+         ...indexerChainConfiguration.mccCreate,
+         rateLimitOptions: indexerChainConfiguration.rateLimitOptions
       });
       //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
+      let attesterClientChainConfiguration = attesterClientConfiguration.chains.find(chain => chain.name === chainName) as AttesterClientChain;
+
       const options: IndexedQueryManagerOptions = {
          chainType: SOURCE_ID as any as ChainType,
-         numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
+         numberOfConfirmations: indexerChainConfiguration.numberOfConfirmations,
+         maxValidIndexerDelayMs: attesterClientChainConfiguration.maxValidIndexerDelayMs,
          // todo: return epochStartTime - query window length, add query window length into DAC
-         windowStartTime: (epochId: number) => { return startTime; }
+         windowStartTime: (roundId: number) => { return startTime; }
       } as IndexedQueryManagerOptions;
       indexedQueryManager = new IndexedQueryManager(options);
       await indexedQueryManager.dbService.waitForDBConnection();
@@ -182,6 +192,12 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
    });
 
+
+   it.only("Should be IndexedQueryManager in sync", async () => {
+      let res = await indexedQueryManager.getBlockHeightSample();
+      let now = await getUnixEpochTimestamp();
+      console.log(now - res.timestamp)
+   })
    // it("Example of tecUNFUNDED_PAYMENT transaction", async () => {
    //    let txid = "D0AB7DB06EC0D8D0E71A162C8C81ABB6A5C67398BB115F2544D0BA80DA69A96E";
    //    console.log(txid.length)

@@ -19,12 +19,10 @@
     "rpcUrl": "https://coston-api.flare.network/ext/bc/C/rpc?auth=42f0db1b-58e3-4f76-a5b9-59740f4e88df",
     "stateConnectorContractAddress": "0x947c76694491d3fD67a73688003c4d36C8780A97",
     
-    "submitOffset": 165000,
-    "revealOffset": 8000,
     "gasPrice": "3000000000000",
 
     "firstEpochStartTime":1636070400,
-    "epochPeriod": 90,
+    "roundDurationSec": 90,
 
     "dynamicAttestationConfigurationFolder": "./configs/dac/",
     
@@ -49,6 +47,7 @@
 
             "maxValidIndexerDelayMs": 10000,
             "numberOfConfirmations": 1,
+            "queryWindowInSec": 86400,
             "metaData": {
                 "requiredBlocks" : 1
             }
@@ -67,6 +66,7 @@
 
             "maxValidIndexerDelayMs": 10000,
             "numberOfConfirmations": 6,
+            "queryWindowInSec": 86400,
             "metaData": {
                 "requiredBlocks" : 6
             }

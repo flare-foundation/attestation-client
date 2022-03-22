@@ -184,7 +184,7 @@ export class AttesterClient {
         continue;
       }
 
-      this.chainManager.addNode(chainType, node);
+      this.chainManager.addNode(chainType as any as SourceId, node);
     }
   }
 

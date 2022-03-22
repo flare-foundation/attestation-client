@@ -94,7 +94,10 @@ export class ChainNode {
       numberOfConfirmations: chainConfiguration.numberOfConfirmations,
       maxValidIndexerDelayMs: chainConfiguration.maxValidIndexerDelayMs, 
       // todo: return epochStartTime - query window length, add query window length into DAC
-      windowStartTime: (epochId: number) => { return 0; }
+      windowStartTime: (roundId: number) => { 
+        let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
+        return roundStartTime - chainConfiguration.queryWindowInSec;
+      }
     };
 
     this.indexedQueryManager = new IndexedQueryManager(options);
@@ -245,7 +248,7 @@ export class ChainNode {
           attestation.reverification = true;
 
           // delay until end of commit epoch
-          const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStart(attestation.roundId) - getTimeMilli()) / 1000;
+          const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) - getTimeMilli()) / 1000;
 
           this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);
         } else {

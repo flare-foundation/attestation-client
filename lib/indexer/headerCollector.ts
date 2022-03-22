@@ -46,7 +46,7 @@ export class HeaderCollector {
 
         while (true) {
             try {
-                const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.confirmationBlocks);
+                const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
 
                 await this.saveLiteBlocksHeaders(blocks);
 
@@ -164,7 +164,7 @@ export class HeaderCollector {
                 const blockNp1 = (await this.getBlock(`runBlockHeaderCollectingRaw1`, localN + 1)) as IBlock;
 
                 // has N+1 confirmation block
-                const isNewBlock = localN < localT - this.indexer.chainConfig.confirmationBlocks;
+                const isNewBlock = localN < localT - this.indexer.chainConfig.numberOfConfirmations;
                 const isChangedNp1Hash = localBlockNp1hash !== blockNp1.hash;
 
                 // every update save last T
@@ -189,7 +189,7 @@ export class HeaderCollector {
                 // save block headers N+1 ... T
                 await this.saveBlocksHeaders(localN + 1, localT);
 
-                while (localN < localT - this.indexer.chainConfig.confirmationBlocks) {
+                while (localN < localT - this.indexer.chainConfig.numberOfConfirmations) {
                     if (this.blockHeaderNumber.has(localN)) {
                         this.logger.debug2(`runBlockCollector N=${localN}++`);
 

@@ -10,8 +10,9 @@ export class AttesterClientConfiguration {
 
   // start epoch in sec
   public firstEpochStartTime!: number;
-  // epoch perior in sec
-  public epochPeriod!: number;
+
+  // voting round duration in sec
+  public roundDurationSec!: number;
 
   public dynamicAttestationConfigurationFolder: string = "./dac/";
 
@@ -25,3 +26,4 @@ export class AttesterClientConfiguration {
 
   public simulation: boolean = false; 
 }
+

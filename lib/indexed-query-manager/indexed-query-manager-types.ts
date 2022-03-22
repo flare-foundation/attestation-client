@@ -9,7 +9,7 @@ export interface IndexedQueryManagerOptions {
   numberOfConfirmations: number;
   maxValidIndexerDelayMs: number;
   // return windows start time from current epochId
-  windowStartTime: (epochId: number) => number;
+  windowStartTime: (roundId: number) => number;
 }
 
 export interface BlockHeightSample {

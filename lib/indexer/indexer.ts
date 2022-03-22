@@ -355,7 +355,7 @@ export class Indexer {
   }
 
   async getAverageBlocksPerDay(): Promise<number> {
-    const blockNumber0 = (await this.getBlockHeight(`getAverageBlocksPerDay`)) - this.chainConfig.confirmationBlocks;
+    const blockNumber0 = (await this.getBlockHeight(`getAverageBlocksPerDay`)) - this.chainConfig.numberOfConfirmations;
     const blockNumber1 = Math.ceil(blockNumber0 * 0.9);
 
     const time0 = await this.getBlockNumberTimestamp(blockNumber0);
@@ -375,7 +375,7 @@ export class Indexer {
   }
 
   async getSyncStartBlockNumber(): Promise<number> {
-    const latestBlockNumber = (await this.getBlockHeight(`getSyncStartBlockNumber`)) - this.chainConfig.confirmationBlocks;
+    const latestBlockNumber = (await this.getBlockHeight(`getSyncStartBlockNumber`)) - this.chainConfig.numberOfConfirmations;
 
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
 
@@ -510,7 +510,7 @@ export class Indexer {
         }
 
         // check if syncing has ended
-        if (this.N >= this.T - this.chainConfig.confirmationBlocks) {
+        if (this.N >= this.T - this.chainConfig.numberOfConfirmations) {
           this.logger.group("Sync completed")
           this.isSyncing = false;
           return;
@@ -518,7 +518,7 @@ export class Indexer {
 
         for (let i = 0; i < this.chainConfig.syncReadAhead; i++) {
           // do not allow read ahead of T - confirmations
-          if (this.N + i > this.T - this.chainConfig.confirmationBlocks) break;
+          if (this.N + i > this.T - this.chainConfig.numberOfConfirmations) break;
 
           this.blockProcessorManager.processSyncBlockNumber(this.N + i);
         }
@@ -582,7 +582,7 @@ export class Indexer {
 
     await this.prepareTables();
 
-    const startBlockNumber = (await this.getBlockHeight(`runIndexer1`)) - this.chainConfig.confirmationBlocks;
+    const startBlockNumber = (await this.getBlockHeight(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
     // initial N initialization - will be later on assigned to DB or sync N
     this.N = startBlockNumber;
 
@@ -616,7 +616,7 @@ export class Indexer {
         let blockNp1 = await this.getBlock(`runIndexer2`, this.N + 1);
 
         // has N+1 confirmation block
-        const isNewBlock = this.N < this.T - this.chainConfig.confirmationBlocks;
+        const isNewBlock = this.N < this.T - this.chainConfig.numberOfConfirmations;
         const isChangedNp1Hash = this.blockNp1hash !== blockNp1.hash;
 
         // check if N + 1 hash is the same

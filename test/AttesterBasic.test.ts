@@ -3,6 +3,7 @@ import { AttesterClientChain } from "../lib/attester/AttesterClientChain";
 import { ChainManager } from "../lib/chain/ChainManager";
 import { ChainNode } from "../lib/chain/ChainNode";
 import { getGlobalLogger } from "../lib/utils/logger";
+import { SourceId } from "../lib/verification/sources/sources";
 
 
 // todo test: test per second limiter
@@ -18,7 +19,7 @@ describe("Attester Basic Tests", () => {
 
       assert(await chain.isHealthy());
 
-      chainManager.addNode( ChainType.XRP, chain );
+      chainManager.addNode( ChainType.XRP as any as SourceId, chain );
 
       //chainManager.validateTransaction(ChainType.XRP, 0, 1, "0x2BE5EA966817B0BF4E3F66711C979A4B4C88E0EBF99D836505FFA06DC49BA71D", null );
       for (let a = 100; a < 110; a++) {

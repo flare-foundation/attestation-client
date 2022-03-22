@@ -1,4 +1,4 @@
-import { AlgoBlock, AlgoTransaction, ChainType, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
+import { AlgoBlock, AlgoTransaction, ChainType, DogeTransaction, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/dbTransaction";
 import { logException } from "../../utils/logger";
@@ -15,8 +15,9 @@ export function BlockProcessor(chainType: ChainType) {
       return XrpBlockProcessor
     case ChainType.BTC:
     case ChainType.LTC:
-    case ChainType.DOGE:
       return UtxoBlockProcessor
+    case ChainType.DOGE:
+      return DogeBlockProcessor
     case ChainType.ALGO:
       return AlgoBlockProcessor
     default:
@@ -73,6 +74,41 @@ export class UtxoBlockProcessor extends LimitingProcessor {
     catch (error) {
       logException(error, `UtxoBlockProcessor::initializeJobs`);
     }
+  }
+}
+
+export class DogeBlockProcessor extends LimitingProcessor {
+  async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
+    this.registerTopLevelJob();
+    this.block = block;
+
+
+    let preprocesedTxPromises = block.transactionHashes.map((txid: string) => {
+          // the in-transactions are prepended to queue in order to process them earlier
+          return (() => (this.call(() => this.client.getTransaction(txid), true)) as Promise<UtxoTransaction>);    
+    });
+
+    const awaitedTxIds = await retryMany(`DogeBlockProcessor::preprocess all transactions`, preprocesedTxPromises, this.settings.timeout, this.settings.retry) as UtxoTransaction[];
+
+    let txPromises = awaitedTxIds.map((processed) => {
+      return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>;
+    });
+
+    const transDbPromisses = txPromises.map((processed) => async () => { return await augmentTransactionUtxo(this.client, block, processed); });
+
+    const transDb = await retryMany(`DogeBlockProcessor::initializeJobs`, transDbPromisses, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
+
+    if (!transDb) {
+      return;
+    }
+
+    this.markTopLevelJobDone();
+
+    const blockDb = await augmentBlockUtxo(block);
+
+    this.stop();
+
+    onSave(blockDb, transDb);
   }
 }
 

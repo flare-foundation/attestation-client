@@ -100,7 +100,12 @@ export class LimitingProcessor {
             continue;
          }
          let de = this.queue.shift();
-         de.run();
+         if( de ) {
+            de.run();
+         }
+         else {
+            getGlobalLogger().error2( `LimitingProcessor::continue error: de is undefined` );
+         }
          this.counter++;
          await sleepms(0);
       }

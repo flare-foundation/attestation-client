@@ -119,6 +119,7 @@ export class Indexer {
         loggingOptions: {
           mode: "develop",
           loggingCallback: this.mccLogging,
+          warningCallback: this.mccWarning,
           exceptionCallback: this.mccException,
         }
       },
@@ -133,6 +134,10 @@ export class Indexer {
 
   mccLogging(message: string) {
     this.logger.info(`MCC ${message}`);
+  }
+
+  mccWarning(message: string) {
+    this.logger.warning(`MCC ${message}`);
   }
 
   mccException(error: any, message: string) {
@@ -496,14 +501,12 @@ export class Indexer {
 
         const blockLeft = this.T - this.N;
 
-        //const used = process.memoryUsage().heapUsed / 1024 / 1024;
-
         if (statsBlocksPerSec > 0) {
           const timeLeft = (this.T - this.N) / statsBlocksPerSec;
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);// mem: ${round(used,1)} MB`);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
         }
         else {
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);// mem: ${round(used,1)} MB`);
+          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);
         }
 
         // check if syncing has ended

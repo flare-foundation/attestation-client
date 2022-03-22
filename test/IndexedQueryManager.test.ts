@@ -41,7 +41,7 @@ describe("Indexed query manager", () => {
       const options: IndexedQueryManagerOptions = {
          chainType: ChainType.XRP,
          numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
-         maxValidIndexerDelayMs: 10000,
+         maxValidIndexerDelaySec: 10,
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (roundId: number) => { return startTime; }
       } as IndexedQueryManagerOptions;

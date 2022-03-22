@@ -151,7 +151,7 @@ class AttestationSpammer {
     const options: IndexedQueryManagerOptions = {
       chainType: this.chainType,
       numberOfConfirmations: this.chainIndexerConfig.numberOfConfirmations,
-      maxValidIndexerDelayMs: this.chainAttestationConfig.maxValidIndexerDelayMs,
+      maxValidIndexerDelaySec: this.chainAttestationConfig.maxValidIndexerDelaySec,
       windowStartTime: (roundId: number) => {    
         return this.configAttestationClient.firstEpochStartTime + roundId*this.configAttestationClient.roundDurationSec - this.chainAttestationConfig.queryWindowInSec;
       }

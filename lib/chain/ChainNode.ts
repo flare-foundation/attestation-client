@@ -92,7 +92,7 @@ export class ChainNode {
       chainType: chainType,
       dbService: AttestationRoundManager.dbService,
       numberOfConfirmations: chainConfiguration.numberOfConfirmations,
-      maxValidIndexerDelayMs: chainConfiguration.maxValidIndexerDelayMs, 
+      maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec, 
       // todo: return epochStartTime - query window length, add query window length into DAC
       windowStartTime: (roundId: number) => { 
         let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);

@@ -18,7 +18,7 @@ export class AttesterClientChain {
 
   public reverificationTimeOffset: number = 5;
 
-  public maxValidIndexerDelayMs: number = 10000;
+  public maxValidIndexerDelaySec: number = 10;
   public numberOfConfirmations: number;
 
   public queryWindowInSec = 86400;

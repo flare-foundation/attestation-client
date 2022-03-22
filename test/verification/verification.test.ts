@@ -76,7 +76,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       const options: IndexedQueryManagerOptions = {
          chainType: SOURCE_ID as any as ChainType,
          numberOfConfirmations: indexerChainConfiguration.numberOfConfirmations,
-         maxValidIndexerDelayMs: attesterClientChainConfiguration.maxValidIndexerDelayMs,
+         maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (roundId: number) => { return startTime; }
       } as IndexedQueryManagerOptions;
@@ -193,10 +193,12 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
    });
 
 
-   it.only("Should be IndexedQueryManager in sync", async () => {
+   it("Should be IndexedQueryManager in sync", async () => {
+      let N = await indexedQueryManager.getLastConfirmedBlockNumber();
       let res = await indexedQueryManager.getBlockHeightSample();
       let now = await getUnixEpochTimestamp();
-      console.log(now - res.timestamp)
+      let delay = now - res.timestamp;      
+      assert(delay < indexedQueryManager.settings.maxValidIndexerDelaySec, `Delay too big: ${delay}, N = ${N}, T = ${res.height}, h = ${res.height - N}`);
    })
    // it("Example of tecUNFUNDED_PAYMENT transaction", async () => {
    //    let txid = "D0AB7DB06EC0D8D0E71A162C8C81ABB6A5C67398BB115F2544D0BA80DA69A96E";

@@ -7,7 +7,7 @@ export interface IndexedQueryManagerOptions {
   chainType: ChainType;
   dbService?: DatabaseService;
   numberOfConfirmations: number;
-  maxValidIndexerDelayMs: number;
+  maxValidIndexerDelaySec: number;
   // return windows start time from current epochId
   windowStartTime: (roundId: number) => number;
 }
@@ -41,17 +41,6 @@ export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
 /// Specific query requests and responses
 ////////////////////////////////////////////////////////
 
-export interface BlockHashQueryRequest {
-  hash: string;
-  roundId: number;
-  type: IndexerQueryType; // FIRST_CHECK` or `RECHECK`
-}
-
-export interface BlockHashQueryResponse {
-  status: "OK" | "NOT_EXIST";
-  block?: DBBlockBase;
-}
-
 export interface ConfirmedBlockQueryRequest {
   blockNumber: number;
   roundId: number;
@@ -61,7 +50,7 @@ export interface ConfirmedBlockQueryRequest {
 }
 
 export interface ConfirmedBlockQueryResponse {
-  status: "OK" | "RECHECK" | "NOT_EXIST";
+  status: "OK" | "RECHECK" | "NOT_EXIST" | "SYSTEM_FAILURE";
   block?: DBBlockBase;
 }
 
@@ -75,7 +64,7 @@ export interface ConfirmedTransactionQueryRequest {
 }
 
 export interface ConfirmedTransactionQueryResponse {
-  status: "OK" | "RECHECK" | "NOT_EXIST";
+  status: "OK" | "RECHECK" | "NOT_EXIST" | "SYSTEM_FAILURE";
   transaction?: DBTransactionBase;
 }
 
@@ -90,7 +79,7 @@ export interface ReferencedTransactionsQueryRequest {
 }
 
 export interface ReferencedTransactionsQueryResponse {
-  status: "OK" | "RECHECK" | "NO_OVERFLOW_BLOCK";
+  status: "OK" | "RECHECK" | "NO_OVERFLOW_BLOCK" | "SYSTEM_FAILURE";
   transactions?: DBTransactionBase[];
   block?: DBBlockBase;
 }

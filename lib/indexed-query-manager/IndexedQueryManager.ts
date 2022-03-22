@@ -51,19 +51,19 @@ export class IndexedQueryManager {
   }
 
   public async getLastConfirmedBlockNumber(): Promise<number> {
-    if(this.debugLastConfirmedBlock == null) {
+    if (this.debugLastConfirmedBlock == null) {
       const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
       if (res === undefined) {
         return 0;
       }
-      return res.valueNumber;  
+      return res.valueNumber;
     }
     return this.debugLastConfirmedBlock;
   }
 
   public async getBlockHeightSample(): Promise<BlockHeightSample | undefined> {
-    if(this.debugLastConfirmedBlock == null) {
-      const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+    if (this.debugLastConfirmedBlock == null) {
+      const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainT() } });
       if (res === undefined) {
         return null;
       }
@@ -78,16 +78,19 @@ export class IndexedQueryManager {
     }
   }
 
-  public isIndexerUpToDate() {
-    
+  public async isIndexerUpToDate() {
+    let res = await this.getBlockHeightSample();
+    let now = await getUnixEpochTimestamp();
+    let delay = now - res.timestamp;
+    return delay <= this.settings.maxValidIndexerDelaySec;
   }
 
   // Allows for artificial setup of the last known confirmed block
   public async setDebugLastConfirmedBlock(blockNumber: number | undefined): Promise<number | undefined> {
-    if(blockNumber == null) {
+    if (blockNumber == null) {
       this.debugLastConfirmedBlock = undefined;
-    } else if(blockNumber >= 0) {
-      this.debugLastConfirmedBlock = blockNumber;      
+    } else if (blockNumber >= 0) {
+      this.debugLastConfirmedBlock = blockNumber;
     } else {
       this.debugLastConfirmedBlock = undefined;
       let lastBlockNumber = await this.getLastConfirmedBlockNumber();
@@ -142,23 +145,12 @@ export class IndexedQueryManager {
     return null;
   }
 
-  // // deprecated atm
-  // public async getBlockByHash(params: BlockHashQueryRequest): Promise<BlockHashQueryResponse> {
-  //   let block = await this.queryBlock({
-  //     hash: params.hash,
-  //     roundId: params.roundId
-  //   });
-  //   return {
-  //     status: block ? "OK" : "NOT_EXIST",
-  //     block,
-  //   };
-  // }
-
   ////////////////////////////////////////////////////////////
   // Confirmed blocks queries
   ////////////////////////////////////////////////////////////
 
   private async getConfirmedBlockFirstCheck(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
+
     let N = await this.getLastConfirmedBlockNumber();
     if (params.blockNumber < N - 1) {
       let block = await this.queryBlock({
@@ -170,19 +162,27 @@ export class IndexedQueryManager {
         status: block ? "OK" : "NOT_EXIST",
         block: block,
       };
-    } else if (params.blockNumber > N + 1) {
-      return {
-        status: "NOT_EXIST",
-      };
-    } else {
-      // N - 1, N, N + 1
-      return {
-        status: "RECHECK",
-      };
     }
+    // important to have up to date indexing
+    let upToDate = await this.isIndexerUpToDate();
+    if (!upToDate) {
+      return { status: "RECHECK" }
+    }
+    // indexer is up to date
+    if (params.blockNumber > N + 1) {
+      return { status: "NOT_EXIST" };
+    }
+    // N - 1, N, N + 1
+    return { status: "RECHECK" };
+
   }
 
   private async getConfirmedBlockRecheck(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
+    let upToDate = await this.isIndexerUpToDate();
+    if (!upToDate) {
+      return { status: "SYSTEM_FAILURE" }
+    }
+
     let block = await this.queryBlock({
       blockNumber: params.blockNumber,
       roundId: params.roundId,
@@ -222,19 +222,28 @@ export class IndexedQueryManager {
         status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
         transaction: transactions[0],
       };
-    } else if (params.blockNumber > N + 1) {
-      return {
-        status: "NOT_EXIST",
-      };
-    } else {
-      // N - 1, N, N + 1
-      return {
-        status: "RECHECK",
-      };
     }
+
+    // important to have up to date indexing
+    let upToDate = await this.isIndexerUpToDate();
+    if (!upToDate) {
+      return { status: "RECHECK" }
+    }
+    // indexer is up to date
+    if (params.blockNumber > N + 1) {
+      return { status: "NOT_EXIST" };
+    }
+    // N - 1, N, N + 1
+    return { status: "RECHECK" };
+
   }
 
   private async getConfirmedTransactionRecheck(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
+    let upToDate = await this.isIndexerUpToDate();
+    if (!upToDate) {
+      return { status: "SYSTEM_FAILURE" }
+    }
+
     let N = await this.getLastConfirmedBlockNumber();
     let transactions = await this.queryTransactions({
       roundId: params.roundId,
@@ -245,6 +254,7 @@ export class IndexedQueryManager {
       hash: params.dataAvailabilityProof,
       roundId: params.roundId,
     } as BlockQueryParams);
+
     return {
       status: transactions && transactions.length === 1 && confirmationBlock && confirmationBlock.blockNumber - params.numberOfConfirmations === transactions[0].blockNumber ? "OK" : "NOT_EXIST",
       transaction: transactions[0],
@@ -274,37 +284,43 @@ export class IndexedQueryManager {
         confirmed: true
       } as BlockQueryParams);
       if (!overflowBlock) {
-        return {
-          status: "NO_OVERFLOW_BLOCK",
-        };
+        return { status: "NO_OVERFLOW_BLOCK" };
       }
       let transactions = await this.queryTransactions({
         roundId: params.roundId,
         endBlock: overflowBlock.blockNumber - 1,
         paymentReference: params.paymentReference,
       } as TransactionQueryParams);
+
       return {
         status: "OK",
         transactions,
         block: overflowBlock
       };
-    } else if (params.overflowBlockNumber > N + 1) {
-      return {
-        status: "NO_OVERFLOW_BLOCK",    // Status is still OK, but nothing was found.
-      };
-    } else {
-      // N - 1, N, N + 1
-      return {
-        status: "RECHECK",
-      };
     }
+
+    // important to have up to date indexing
+    let upToDate = await this.isIndexerUpToDate();
+    if (!upToDate) {
+      return { status: "RECHECK" }
+    }
+    // indexer is up to date
+    if (params.overflowBlockNumber > N + 1) {
+      return { status: "NO_OVERFLOW_BLOCK" }; // Status is still OK, but nothing was found.
+    }
+    // N - 1, N, N + 1
+    return { status: "RECHECK" };
+
   }
 
   private async getReferencedTransactionsRecheck(
     params: ReferencedTransactionsQueryRequest
   ): Promise<ReferencedTransactionsQueryResponse> {
-    let N = await this.getLastConfirmedBlockNumber();
-    // let overflowBlock = await this.getFirstConfirmedOverflowBlock(params.endTime, params.overflowBlockNumber);
+    let upToDate = await this.isIndexerUpToDate();
+    if (!upToDate) {
+      return { status: "SYSTEM_FAILURE" }
+    }
+
     let overflowBlock = await this.queryBlock({
       blockNumber: params.overflowBlockNumber,
       roundId: params.roundId,

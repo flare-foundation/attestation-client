@@ -17,7 +17,7 @@ export class SourceHandlerConfig {
 
   maxCallsPerRound!: number;
 
-  maxValidIndexerDelayMs!: number;
+  maxValidIndexerDelaySec!: number;
 
   numberOfConfirmations: number = 1;
 

@@ -24,7 +24,7 @@ export function genRequestEncodeFunctionForDefinition(definition: AttestationTyp
 ${tab()}throw new AttestationRequestEncodeError("Missing '${item.key}'")
 }`
     checkList.push(check);
-    let bytesPiece = `bytes += toUnprefixedBytes(request.${item.key}, "${item.type}", ${item.size});`;
+    let bytesPiece = `bytes += toUnprefixedBytes(request.${item.key}, "${item.type}", ${item.size}, "${item.key}");`;
     bytesList.push(bytesPiece);
   }
 
@@ -63,19 +63,28 @@ ${tab()}}
 
 function toUnprefixedBytesFunction() {
   return `
-function toUnprefixedBytes(value: any, type: string, size: number) {
+function toUnprefixedBytes(value: any, type: string, size: number, key: string) {
+${tab()}let bytes = "";  
 ${tab()}switch (type) {
 ${tab()}${tab()}case "AttestationType":
-${tab()}${tab()}${tab()}return unPrefix0x(toHex(value as number, size));
+${tab()}${tab()}${tab()}bytes = unPrefix0x(toHex(value as number, size));
+${tab()}${tab()}${tab()}break;
 ${tab()}${tab()}case "NumberLike":
-${tab()}${tab()}${tab()}return unPrefix0x(toHex(value, size));
+${tab()}${tab()}${tab()}bytes = unPrefix0x(toHex(value, size));
+${tab()}${tab()}${tab()}break;
 ${tab()}${tab()}case "SourceId":
-${tab()}${tab()}${tab()}return unPrefix0x(toHex(value as number, size));
+${tab()}${tab()}${tab()}bytes = unPrefix0x(toHex(value as number, size));
+${tab()}${tab()}${tab()}break;
 ${tab()}${tab()}case "ByteSequenceLike":
-${tab()}${tab()}${tab()}return unPrefix0x(toHex(value, size));
+${tab()}${tab()}${tab()}bytes =  unPrefix0x(toHex(value, size));
+${tab()}${tab()}${tab()}break;
 ${tab()}${tab()}default:
-${tab()}${tab()}${tab()}throw new AttestationRequestEncodeError("Wrong type")
+${tab()}${tab()}${tab()}throw new AttestationRequestEncodeError("Wrong type");
 ${tab()}}
+${tab()}if(bytes.length > size * 2) {
+${tab()}${tab()}throw new AttestationRequestEncodeError("Too long byte string for key: " + key);
+${tab()}}
+${tab()}return bytes; 
 }  
 `
 }

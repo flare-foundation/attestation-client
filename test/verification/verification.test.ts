@@ -1,3 +1,15 @@
+// Run tests with the following command lines:
+// Make sure that you are connected to a synced database and indexers are running
+//
+// SOURCE_ID=XRP DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
+// SOURCE_ID=BTC DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
+// SOURCE_ID=LTC DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
+// SOURCE_ID=DOGE DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
+// SOURCE_ID=ALGO DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
+
+// The file `.indexer.remote.dev.env` is not versioned. Create it by using `.deploy.env` where one can add the correct 
+// credentials
+
 import { ChainType, MCC, MccClient } from "flare-mcc";
 import * as indexerConfig from "../../configs/config-indexer.json";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
@@ -86,7 +98,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
    });
 
-   it.only("Should verify legit BalanceDecreasingTransaction", async () => {
+   it("Should verify legit BalanceDecreasingTransaction", async () => {
       let randomTransaction = await getRandomTransaction(indexedQueryManager);
       if(!randomTransaction) {
          return;

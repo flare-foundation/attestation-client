@@ -15,7 +15,7 @@ export class DatabaseService {
     }
 
     private async connect() {
-        this.logger.info("Connecting to database...")
+        this.logger.info(`Connecting to database at ${process.env.DB_HOST} on port ${parseInt(process.env.DB_HOST_PORT!, 10)} as ${process.env.DB_HOST_USER}`)
         // Typeorm/ES6/Typescript issue with importing modules
         const entities = process.env.NODE_ENV === 'development'
             ? "lib/entity/**/*.ts"
@@ -66,7 +66,7 @@ export class DatabaseService {
         }
 
         createConnection(options).then(async conn => {
-            this.logger.info("Connected to database")
+            this.logger.info(`Connected to database at ${process.env.DB_HOST} on port ${parseInt(process.env.DB_HOST_PORT!, 10)} as ${process.env.DB_HOST_USER}`);
             this._connection = await conn
             return
         }).catch(async e => {

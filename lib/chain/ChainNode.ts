@@ -355,7 +355,7 @@ export class ChainNode {
   ////////////////////////////////////////////
 
   validate(transaction: Attestation) {
-    //this.chainManager.logger.info(`chain ${this.chainName} validate ${data.id}`);
+    this.chainManager.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
     // check if transaction can be added into processing
     if (this.canProcess()) {

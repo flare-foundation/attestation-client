@@ -256,7 +256,7 @@ export async function accountBasedReferencedPaymentNonExistence(
    for (let dbTransaction of dbTransactions) {
       const parsedData = JSON.parse(dbTransaction.response);
       const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
-      const destinationAddressHash = web3.utils.soliditySha3(fullTxData.receivingAddress[0]);
+      const destinationAddressHash = Web3.utils.soliditySha3(fullTxData.receivingAddress[0]);
       const amount = toBN(fullTxData.receivedAmount[0].amount);
       if (destinationAddressHash === request.destinationAddress && amount.eq(toBN(request.amount))) {
          matchFound = true;

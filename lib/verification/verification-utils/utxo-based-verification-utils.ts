@@ -5,6 +5,7 @@ import { numberLikeToNumber } from "../attestation-types/attestation-types-helpe
 import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../generated/attestation-request-types";
 import { VerificationResponse, verifyConfirmationBlock, verifyNativePayment, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
+import BN from "bn.js";
 import Web3 from "web3";
 
 type UtxoType = BtcTransaction | LtcTransaction | DogeTransaction;
@@ -372,7 +373,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
       let destinationHashExists = false;
       for (let output of fullTxData.receivedAmount) {
          const amount = toBN(output.amount);
-         const destinationAddressHash = web3.utils.soliditySha3(output.address);
+         const destinationAddressHash = Web3.utils.soliditySha3(output.address);
          if (destinationAddressHash === request.destinationAddress) {
             destinationHashExists = true;
             totalAmount = totalAmount.add(amount);

@@ -218,7 +218,7 @@ class AttestationSpammer {
 
     let fnToEncode = stateConnector.methods.requestAttestations(requestBytes);
     AttestationSpammer.sendId++;
-    console.time(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
+    //console.time(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     const receipt = await this.web3Functions.signAndFinalize3(
       `request attestation #${AttestationSpammer.sendCount}`,
       this.stateConnector.options.address,
@@ -227,7 +227,7 @@ class AttestationSpammer {
       DEFAULT_GAS_PRICE,
       true
     );
-    console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
+    //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     if (receipt) {
       // this.logger.info(`Attestation sent`)
     }
@@ -285,7 +285,7 @@ class AttestationSpammer {
             }
           }
         }
-        this.logger.info(`Receiving ${events.length} events from block $s{firstUnprocessedBlockNumber} to ${last}`);
+        this.logger.info(`Receiving ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
         firstUnprocessedBlockNumber = last + 1;
       } catch (e) {
         this.logger.info(`Error: ${e}`);

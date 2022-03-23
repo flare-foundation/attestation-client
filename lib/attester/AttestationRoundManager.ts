@@ -3,7 +3,8 @@ import { ChainManager } from "../chain/ChainManager";
 import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger } from "../utils/logger";
+import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { round } from "../utils/utils";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
@@ -64,16 +65,18 @@ export class AttestationRoundManager {
     if (activeRound === undefined) {
       activeRound = new AttestationRound(epochId, this.logger, this.attesterWeb3);
 
-      let bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-      bar1.start(this.config.roundDurationSec * 1000, now - epochTimeStart);
+      //let bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+      //bar1.start(this.config.roundDurationSec * 1000, now - epochTimeStart);
       let intervalId = setInterval(() => {
         const now = getTimeMilli();
         if (now > epochCommitTime) {
           clearInterval(intervalId);
-          bar1.stop()
+          //bar1.stop()
         }
-        bar1.update(now - epochTimeStart);
-      }, 1000)
+        //bar1.update(now - epochTimeStart);
+        getGlobalLogger().debug( `^G${90-(now - epochTimeStart)/1000} ETA` );
+      }, 5000)
+     
 
       // setup commit, reveal and completed callbacks
       this.logger.warning(`round ${epochId} collect epoch [0]`);

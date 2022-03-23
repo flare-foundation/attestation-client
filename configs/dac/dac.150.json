@@ -11,14 +11,18 @@
          [
             {
                "type":"Payment",
-               "avgCalls": 8
+               "avgCalls": 1
             },
             {
                "type":"BalanceDecreasingTransaction",
-               "avgCalls": 7
+               "avgCalls": 3
             },
             {
-               "type":"BlockHeightExists",
+               "type":"ConfirmedBlockHeightExists",
+               "avgCalls": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
                "avgCalls": 1
             }
          ]
@@ -33,14 +37,18 @@
          [
             {
                "type":"Payment",
-               "avgCalls": 3
+               "avgCalls": 1
             },
             {
                "type":"BalanceDecreasingTransaction",
                "avgCalls": 3
             },
             {
-               "type":"BlockHeightExists",
+               "type":"ConfirmedBlockHeightExists",
+               "avgCalls": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
                "avgCalls": 1
             }
          ]

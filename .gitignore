@@ -53,7 +53,7 @@ typechain-truffle
 
 
 # local node
-.node
+.node/
 
 # local configs
 # .indexer.remote.dev.read.env

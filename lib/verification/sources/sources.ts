@@ -17,6 +17,12 @@ export function getSourceName(sourceId: number) {
 }
 
 // TODO: do some verifications
-export function toSourceId(id: any) {
-   return id as SourceId;
+export function toSourceId(id: any) : SourceId {
+   if( typeof id === "number" ) return id as SourceId;
+
+   const sourceId = SourceId[id];
+
+   if( sourceId==null ) return SourceId.invalid;
+
+   return (sourceId as any ) as SourceId;
 }

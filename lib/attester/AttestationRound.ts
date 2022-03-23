@@ -112,7 +112,7 @@ export class AttestationRound {
     return sourceHandler;
   }
 
-  addAttestation(attestation: Attestation) {    
+  addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
     // todo: check how fast is hash
 
@@ -237,17 +237,17 @@ export class AttestationRound {
       validatedHashes.push(hash!);
 
       // save to DB
-      const dbVoteResult = new DBVotingRoundResult();
-      dbVoteResults.push( dbVoteResult );
+      // const dbVoteResult = new DBVotingRoundResult();
+      // dbVoteResults.push(dbVoteResult);
 
-      dbVoteResult.roundId = this.roundId;
-      dbVoteResult.hash = this.hash;
-      dbVoteResult.request = JSON.stringify( valid.verificationData.request );
-      dbVoteResult.response = JSON.stringify( valid.verificationData.response );
+      // dbVoteResult.roundId = this.roundId;
+      // dbVoteResult.hash = this.hash;
+      // dbVoteResult.request = JSON.stringify(valid.verificationData?.request ? valid.verificationData.request : "");
+      // dbVoteResult.response = JSON.stringify(valid.verificationData?.response ? valid.verificationData.response : "");
     }
-    
+
     // save to DB
-    AttestationRoundManager.dbService.manager.save( dbVoteResults );
+    // AttestationRoundManager.dbService.manager.save(dbVoteResults);
 
     const time1 = getTimeMilli();
 
@@ -286,7 +286,7 @@ export class AttestationRound {
   }
 
   async firstCommit() {
-    if(this.canCommit()) {
+    if (this.canCommit()) {
       let action = `Submitting for bufferNumber ${this.roundId + 1} (first commit)`;
 
       let shouldBe = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
@@ -309,12 +309,12 @@ export class AttestationRound {
           } else {
             this.attestStatus = AttestationRoundStatus.error;
           }
-        });  
+        });
     } else {
       this.logger.error(`First round #${this.roundId} cannot be commited (too late)`);
     }
   }
-  
+
   async reveal() {
     if (this.status !== AttestationRoundEpoch.reveal) {
       this.logger.error(`round #${this.roundId} cannot reveal (not in reveal epoch status ${this.status})`);
@@ -352,7 +352,7 @@ export class AttestationRound {
         action += ` (start commit for ${this.nextRound.roundId})`;
         nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.hash).xor(this.nextRound.random), 32);
         nextRoundHashedRandom = singleHash(this.nextRound.random),
-        this.nextRound.attestStatus = AttestationRoundStatus.comitted;
+          this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
       else {
         action += ` (failed start commit for ${this.nextRound.roundId} - too late)`;

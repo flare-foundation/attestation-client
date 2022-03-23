@@ -6,7 +6,6 @@ import { randomWeightedChoice } from "../../verification/attestation-types/attes
 import { ARBalanceDecreasingTransaction } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
-import { getRandomTransaction } from "../indexed-query-manager-utils";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 export type RandomBalanceDecreasingTransactionChoiceType = "CORRECT" | "WRONG_DATA_AVAILABILITY_PROOF" | "WRONG_BLOCK_NUMBER" | "NON_EXISTENT_TX_ID";
@@ -19,17 +18,14 @@ const RANDOM_OPTIONS_BALANCE_DECREASING_TRANSACTION = [
 ] as WeightedRandomChoice<RandomBalanceDecreasingTransactionChoiceType>[]
 
 
-export async function getRandomRequestBalanceDecreasingTransaction(
+export async function prepareRandomizedRequestBalanceDecreasingTransaction(
    indexedQueryManager: IndexedQueryManager,
+   randomTransaction: DBTransactionBase,
    sourceId: SourceId,
    roundId: number,
-   numberOfConfirmations: number,
-   transaction?: DBTransactionBase,
+   numberOfConfirmations: number,   
    enforcedChoice?: RandomBalanceDecreasingTransactionChoiceType
 ): Promise<ARBalanceDecreasingTransaction | null> {
-   let randomTransaction = transaction
-      ? transaction
-      : await getRandomTransaction(indexedQueryManager);
 
    if (!randomTransaction) {
       return null;
@@ -39,7 +35,8 @@ export async function getRandomRequestBalanceDecreasingTransaction(
       roundId
    });
    if (!confirmationBlock) {
-      console.log("No confirmation block")
+      let N = await indexedQueryManager.getLastConfirmedBlockNumber();
+      console.log("No confirmation block", randomTransaction.blockNumber, N, numberOfConfirmations, roundId)
       return null;
    }
 

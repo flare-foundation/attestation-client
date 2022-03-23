@@ -6,7 +6,6 @@ import { randomWeightedChoice } from "../../verification/attestation-types/attes
 import { ARReferencedPaymentNonexistence } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
-import { getRandomTransactionWithPaymentReference } from "../indexed-query-manager-utils";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 export type RandomReferencedPaymentNonexistenceChoiceType = "CORRECT" | "EXISTS" | "WRONG_DATA_AVAILABILITY_PROOF";
@@ -17,20 +16,16 @@ const RANDOM_OPTIONS_REFERENCED_PAYMENT_NONEXISTENCE = [
    { name: "WRONG_DATA_AVAILABILITY_PROOF", weight: 1 },
 ] as WeightedRandomChoice<RandomReferencedPaymentNonexistenceChoiceType>[]
 
-export async function getRandomRequestReferencedPaymentNonexistence(
+export async function prepareRandomizedRequestReferencedPaymentNonexistence(
    indexedQueryManager: IndexedQueryManager,
+   randomTransaction: DBTransactionBase,
    sourceId: SourceId,
    roundId: number,
    numberOfConfirmations: number,
-   transaction?: DBTransactionBase,
    enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType
 ): Promise<ARReferencedPaymentNonexistence | null> {
 
    const OVERFLOW_BLOCK_OFFSET = 10;
-
-   let randomTransaction = transaction
-      ? transaction
-      : await getRandomTransactionWithPaymentReference(indexedQueryManager);
 
    let overflowBlockNum = randomTransaction.blockNumber + OVERFLOW_BLOCK_OFFSET;
 

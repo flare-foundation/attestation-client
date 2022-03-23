@@ -1,4 +1,5 @@
 import { MccClient } from "flare-mcc";
+import { option } from "yargs";
 import { DBBlockBase } from "../entity/dbBlock";
 import { DBState } from "../entity/dbState";
 import { DBTransactionBase } from "../entity/dbTransaction";
@@ -137,7 +138,7 @@ export class IndexedQueryManager {
     } else if (params.blockNumber) {
       query.andWhere("block.blockNumber = :blockNumber", { blockNumber: params.blockNumber });
     }
-
+    // console.log(query.getQuery())
     let result = await query.getOne();
     if (result) {
       return result as DBBlockBase;

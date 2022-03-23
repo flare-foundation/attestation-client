@@ -6,9 +6,12 @@ import * as configAttestationClient from "../../configs/config.json";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { AttesterClientConfiguration } from "../attester/AttesterClientConfiguration";
+import { DBBlockBase } from "../entity/dbBlock";
+import { DBTransactionBase } from "../entity/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
+import { RandomDBIterator } from "../indexed-query-manager/indexed-query-manager-utils";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
-import { getRandomAttestationRequest } from "../indexed-query-manager/random-attestation-requests/random-ar";
+import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
@@ -26,7 +29,7 @@ let fs = require("fs");
 //dotenv.config();
 DotEnvExt();
 
-console.log(process.env);
+// console.log(process.env);
 
 var yargs = require("yargs");
 
@@ -127,6 +130,12 @@ class AttestationSpammer {
   BUFFER_TIMESTAMP_OFFSET: number = 0;
   BUFFER_WINDOW: number = 1
 
+  BATCH_SIZE = 100;
+  TOP_UP_THRESHOLD = 0.25;
+
+
+  randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
+
   constructor(privateKey: string, logEvents = true) {
     this.privateKey = privateKey;
     this.logEvents = logEvents;
@@ -152,8 +161,8 @@ class AttestationSpammer {
       chainType: this.chainType,
       numberOfConfirmations: this.chainIndexerConfig.numberOfConfirmations,
       maxValidIndexerDelaySec: this.chainAttestationConfig.maxValidIndexerDelaySec,
-      windowStartTime: (roundId: number) => {    
-        return this.configAttestationClient.firstEpochStartTime + roundId*this.configAttestationClient.roundDurationSec - this.chainAttestationConfig.queryWindowInSec;
+      windowStartTime: (roundId: number) => {
+        return this.configAttestationClient.firstEpochStartTime + roundId * this.configAttestationClient.roundDurationSec - this.chainAttestationConfig.queryWindowInSec;
       }
     } as IndexedQueryManagerOptions;
     this.indexedQueryManager = new IndexedQueryManager(options);
@@ -171,6 +180,11 @@ class AttestationSpammer {
     });
   }
 
+  async init() {
+    await this.indexedQueryManager.dbService.waitForDBConnection();
+    this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
+  }
+
   getCurrentRound() {
     let now = Math.floor(Date.now() / 1000);
     return Math.floor((now - this.BUFFER_TIMESTAMP_OFFSET) / this.BUFFER_WINDOW)
@@ -184,6 +198,7 @@ class AttestationSpammer {
     let requestBytes = encodeRequest(request);
     // // DEBUG CODE
     // console.log("SENDING:\n", requestBytes, "\n", request);
+    // console.log("SENDING:\n", requestBytes, "\n");
 
     let fnToEncode = stateConnector.methods.requestAttestations(requestBytes);
     const receipt = await this.web3Functions.signAndFinalize3(
@@ -240,14 +255,15 @@ class AttestationSpammer {
           fromBlock: firstUnprocessedBlockNumber,
           toBlock: last,
         });
-        // // DEBUG CODE
+        // DEBUG CODE
         if (events.length) {
           for (let event of events) {
             if (event.event === "AttestationRequest") {
               let timestamp = event.returnValues.timestamp;
               let data = event.returnValues.data;
               let parsedRequest = parseRequest(data);
-              console.log("RECEIVED:\n", data, "\n", parsedRequest);
+              // console.log("RECEIVED:\n", data, "\n", parsedRequest);
+              console.log("RECEIVED:\n", data);
             }
           }
         }
@@ -264,6 +280,7 @@ class AttestationSpammer {
 
   async runSpammer() {
     await this.initializeStateConnector();
+    await this.init();
     await this.indexedQueryManager.dbService.waitForDBConnection();
     this.startLogEvents();
     this.definitions = await readAttestationTypeSchemes();
@@ -294,12 +311,14 @@ class AttestationSpammer {
 
     let attRequest: ARType | undefined;
     while (true) {
+      
       try {
         AttestationSpammer.sendCount++;
         // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
         let roundId = this.getCurrentRound();
-        let attRequest = await getRandomAttestationRequest(this.definitions, this.indexedQueryManager, this.chainType as number as SourceId, roundId, this.numberOfConfirmations);
+        let attRequest = await getRandomAttestationRequest(this.randomGenerators, this.indexedQueryManager, this.chainType as number as SourceId, roundId, this.numberOfConfirmations);
         if (attRequest) {
+          console.log("REALLY SENDING")
           this.sendAttestationRequest(this.stateConnector, attRequest).catch(e => {
             this.logger.error(`ERROR: ${e}`);
           })
@@ -310,7 +329,6 @@ class AttestationSpammer {
       // if (!attRequest) {
       //   await sleep(Math.floor(Math.random() * this.delay));
       // }
-
       await sleepMs(Math.floor(this.delay));
     }
   }

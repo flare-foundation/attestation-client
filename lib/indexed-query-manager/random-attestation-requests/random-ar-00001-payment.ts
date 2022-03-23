@@ -6,7 +6,6 @@ import { randomWeightedChoice } from "../../verification/attestation-types/attes
 import { ARPayment } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
-import { getRandomTransaction } from "../indexed-query-manager-utils";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
@@ -21,17 +20,14 @@ const RANDOM_OPTIONS_PAYMENT = [
    { name: "NON_EXISTENT_TX_ID", weight: 1 }
 ] as WeightedRandomChoice<RandomPaymentChoiceType>[]
 
-export async function getRandomRequestPayment(
+export async function prepareRandomizedRequestPayment(
    indexedQueryManager: IndexedQueryManager,
+   randomTransaction: DBTransactionBase,
    sourceId: SourceId,
    roundId: number,
    numberOfConfirmations: number,
-   transaction?: DBTransactionBase,
    enforcedChoice?: RandomPaymentChoiceType
 ): Promise<ARPayment | null> {
-   let randomTransaction = transaction
-      ? transaction
-      : await getRandomTransaction(indexedQueryManager);
 
    if (!randomTransaction) {
       return null;

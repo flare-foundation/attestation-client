@@ -1,45 +1,61 @@
-import { ChainType, MCC } from "flare-mcc";
+// Run tests with the following command lines:
+// Make sure that you are connected to a synced database and indexers are running
+//
+// SOURCE_ID=XRP DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
+// SOURCE_ID=BTC DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
+// SOURCE_ID=LTC DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
+// SOURCE_ID=DOGE DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
+// SOURCE_ID=ALGO DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
+
+import { ChainType, MCC, MccClient } from "flare-mcc";
 import * as indexerConfig from "../configs/config-indexer.json";
+import { DBBlockBase } from "../lib/entity/dbBlock";
+import { DBTransactionBase } from "../lib/entity/dbTransaction";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
-import { getRandomConfirmedBlock, getRandomTransaction, getRandomTransactionWithPaymentReference } from "../lib/indexed-query-manager/indexed-query-manager-utils";
+import { RandomDBIterator } from "../lib/indexed-query-manager/indexed-query-manager-utils";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
+import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
 import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
 import { DotEnvExt } from "../lib/utils/DotEnvExt";
-import { getSourceName } from "../lib/verification/sources/sources";
+import { getSourceName, SourceId } from "../lib/verification/sources/sources";
 
-console.log("This test should run while XRP indexer is running")
-
-const CHAIN_ID = ChainType.XRP;
+const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const MINUTES = 60;
 const HISTORY_WINDOW = 5 * MINUTES;
-const NUMBER_OF_CONFIRMATIONS = 1;
+let NUMBER_OF_CONFIRMATIONS = 1;
+const BATCH_SIZE = 100;
+const TOP_UP_THRESHOLD = 0.25;
 
+
+console.warn(`This test should run while ${getSourceName(SOURCE_ID)} indexer is running`)
 // Overriding .env variables for this particular test only
 console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
 process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
 DotEnvExt();
 
+
 describe("Indexed query manager", () => {
    let indexedQueryManager: IndexedQueryManager;
-   let client: MCC.XRP;
+   let client: MccClient;
    let indexerConfiguration: IndexerConfiguration;
    let chainName: string;
    let startTime = 0;
-
+   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
    before(async () => {
       indexerConfiguration = indexerConfig as IndexerConfiguration
-      chainName = getSourceName(CHAIN_ID);
+      chainName = getSourceName(SOURCE_ID);
       let chainConfiguration = indexerConfig.chains.find(chain => chain.name === chainName);
-      client = MCC.Client(CHAIN_ID, {
+      client = MCC.Client(SOURCE_ID, {
          ...chainConfiguration.mccCreate,
          rateLimitOptions: chainConfiguration.rateLimitOptions
-      }) as MCC.XRP;
+      }) as MccClient;
       //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
+      NUMBER_OF_CONFIRMATIONS = chainConfiguration.numberOfConfirmations
       const options: IndexedQueryManagerOptions = {
-         chainType: ChainType.XRP,
+         chainType: SOURCE_ID as any as ChainType,
          numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
          maxValidIndexerDelaySec: 10,
          // todo: return epochStartTime - query window length, add query window length into DAC
@@ -47,7 +63,15 @@ describe("Indexed query manager", () => {
       } as IndexedQueryManagerOptions;
       indexedQueryManager = new IndexedQueryManager(options);
       await indexedQueryManager.dbService.waitForDBConnection();
+      randomGenerators = await prepareRandomGenerators(indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD);
    });
+
+   it("Prepare generator", async () => {
+      console.time("XXX")
+      let gen = await prepareGenerator(TxOrBlockGeneratorType.TxReferenced, indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD)
+      await gen.next()
+      console.timeEnd("XXX")
+   })
 
    it("Should get last confirmed block number", async () => {
       let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
@@ -58,16 +82,17 @@ describe("Indexed query manager", () => {
 
    it("Should get a random confirmed transaction", async () => {
       let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
-      let randomTransaction = await getRandomTransaction(indexedQueryManager);
+      let randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxGeneral).next();
       assert(randomTransaction && randomTransaction.blockNumber && randomTransaction.blockNumber <= lastConfirmedBlock)
    });
 
-   it("Should get two different random transactions with payment reference", async () => {
+   it("Should get two different random transactions with payment reference", async () => {      
       let maxReps = 5;
       // Checking for two transactions to verify "randomness"
       while (true) {
-         let randomTransaction1 = await getRandomTransactionWithPaymentReference(indexedQueryManager);
-         let randomTransaction2 = await getRandomTransactionWithPaymentReference(indexedQueryManager);
+         let randomTransaction1 = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as DBTransactionBase;
+         let randomTransaction2 = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as DBTransactionBase;
+
          if (!randomTransaction1 || !randomTransaction1) {
             console.log("Probably empty tables of transactions. Run indexer.");
             return;
@@ -86,28 +111,29 @@ describe("Indexed query manager", () => {
    });
 
    it("Should get random native payment transaction with reference", async () => {
-      let randomTransaction = await getRandomTransactionWithPaymentReference(indexedQueryManager);
+      let randomTransaction = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as DBTransactionBase;
       if (randomTransaction) {
          assert(randomTransaction.isNativePayment, "Not native payment")
          assert(randomTransaction.paymentReference.length > 0, "Should have payment reference");
       }
    })
 
-   it("Should get random non native payment transaction with reference", async () => {
-      let randomTransaction = await getRandomTransactionWithPaymentReference(indexedQueryManager, false, true);
-      if (randomTransaction) {
-         assert(!randomTransaction.isNativePayment, "Should not be native payment")
-         // For XRP only
-         assert(randomTransaction.paymentReference.length > 0, "Should have payment reference");
-      }
-   })
+   // it("Should get random non native payment transaction with reference", async () => {
+   //    let randomTransaction = await getRandomTransactionWithPaymentReference(indexedQueryManager, false, true);
+   //    if (randomTransaction) {
+   //       assert(!randomTransaction.isNativePayment, "Should not be native payment")
+   //       if (SOURCE_ID === SourceId.XRP) {
+   //          assert(randomTransaction.paymentReference.length > 0, "Should have payment reference");
+   //       }
+   //    }
+   // })
 
    it("Should get a random confirmed block", async () => {
       let maxReps = 5;
       let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
       while (true) {
-         let randomBlock1 = await getRandomConfirmedBlock(indexedQueryManager);
-         let randomBlock2 = await getRandomConfirmedBlock(indexedQueryManager);
+         let randomBlock1 = (await randomGenerators.get(TxOrBlockGeneratorType.BlockConfirmed).next()) as DBBlockBase;
+         let randomBlock2 = (await randomGenerators.get(TxOrBlockGeneratorType.BlockConfirmed).next()) as DBBlockBase;
          if (!randomBlock1 || !randomBlock2) {
             console.log("Probably empty table of blocks. Run indexer");
             return;
@@ -120,6 +146,8 @@ describe("Indexed query manager", () => {
                console.log("Too little blocks. Random choices repeat too often");
             }
             continue;
+         } else {
+            break;
          }
       }
    });
@@ -127,7 +155,7 @@ describe("Indexed query manager", () => {
 
    it("Should get the correct block greater or equal to timestamp", async () => {
       startTime = 0;
-      let randomBlock = await getRandomConfirmedBlock(indexedQueryManager);
+      let randomBlock = (await randomGenerators.get(TxOrBlockGeneratorType.BlockConfirmed).next()) as DBBlockBase;
       let timestamp = randomBlock.timestamp - 20;
       let tmpBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(timestamp);
       let currentBlockNumber = tmpBlock.blockNumber;
@@ -140,7 +168,7 @@ describe("Indexed query manager", () => {
 
    it("Should get the correct block overflow block", async () => {
       startTime = 0;
-      let randomBlock = await getRandomConfirmedBlock(indexedQueryManager);
+      let randomBlock = (await randomGenerators.get(TxOrBlockGeneratorType.BlockConfirmed).next()) as DBBlockBase;
       let timestamp = randomBlock.timestamp;
       let tmpBlock = await indexedQueryManager.getFirstConfirmedOverflowBlock(timestamp, randomBlock.blockNumber);
       assert(tmpBlock.blockNumber = randomBlock.blockNumber + 1);
@@ -164,7 +192,7 @@ describe("Indexed query manager", () => {
    it("Should query transactions by transaction id", async () => {
       startTime = 0;
       let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
-      let randomTransaction = await getRandomTransactionWithPaymentReference(indexedQueryManager);
+      let randomTransaction = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as DBTransactionBase;
       if (!randomTransaction) {
          console.log("Probably too little transactions. Run indexer");
       }
@@ -179,7 +207,7 @@ describe("Indexed query manager", () => {
    it("Should query transactions by payment reference", async () => {
       startTime = 0;
       let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
-      let randomTransaction = await getRandomTransactionWithPaymentReference(indexedQueryManager);
+      let randomTransaction = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as DBTransactionBase;
       if (!randomTransaction) {
          console.log("Probably too little transactions. Run indexer");
       }
@@ -188,7 +216,6 @@ describe("Indexed query manager", () => {
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })
-      console.log(tmpTransactions.length)
       assert(tmpTransactions.length > 0);
       let found = false;
       for (let tmpTransaction of tmpTransactions) {
@@ -214,7 +241,7 @@ describe("Indexed query manager", () => {
 
    it("Should confirmed block queries respect start time", async () => {
       startTime = 0;
-      let randomConfirmedBlock = await getRandomConfirmedBlock(indexedQueryManager);
+      let randomConfirmedBlock = (await randomGenerators.get(TxOrBlockGeneratorType.BlockConfirmed).next()) as DBBlockBase;
       let block = await indexedQueryManager.queryBlock({
          roundId: 1,
          blockNumber: randomConfirmedBlock.blockNumber,
@@ -234,7 +261,7 @@ describe("Indexed query manager", () => {
       startTime = 0;
       let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
 
-      let randomTransaction  = await getRandomTransaction(indexedQueryManager);
+      let randomTransaction = (await randomGenerators.get(TxOrBlockGeneratorType.TxGeneral).next()) as DBTransactionBase;
       let transactions = await indexedQueryManager.queryTransactions({
          roundId: 1,
          endBlock: lastConfirmedBlock,
@@ -250,7 +277,7 @@ describe("Indexed query manager", () => {
          transactionId: randomTransaction.transactionId
       })
       assert(transactions.length === 0, "Does not respect start time");
-      
+
       startTime = 0;
       transactions = await indexedQueryManager.queryTransactions({
          roundId: 1,

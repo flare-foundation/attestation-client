@@ -143,6 +143,7 @@ export function createAttestationRequestParse(definitions: AttestationTypeScheme
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import Web3 from "web3";
+import BN from "bn.js";
 import { 
 ${indentText(arImports, CODEGEN_TAB)},
 ${tab()}${ATTESTATION_TYPE_PREFIX}Type 

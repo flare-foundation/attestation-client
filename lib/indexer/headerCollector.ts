@@ -40,22 +40,6 @@ export class HeaderCollector {
         return await retry(`headerCollector.getBlockHeight.${label}`, async () => { return this.indexer.cachedClient.client.getBlockHeight(); });
     }
 
-    async runBlockHeaderCollectingTips() {
-        let localN = this.indexer.N;
-        let localBlockNp1hash = "";
-
-        while (true) {
-            try {
-                const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
-
-                await this.saveLiteBlocksHeaders(blocks);
-
-            } catch (error) {
-                logException(error, `runBlockHeaderCollectingTips: `);
-            }
-        }
-    }
-
     async saveLiteBlocksHeaders(blocks: LiteBlock[]) {
         try {
             const outBlocks = blocks.map(block => new LiteIBlock(block));
@@ -150,6 +134,19 @@ export class HeaderCollector {
         }
     }
 
+    async writeT(T: number) {
+        // every update save last T
+        try {
+            const stateTcheckTime = this.indexer.getStateEntry("T", T);
+
+            await this.indexer.dbService.manager.save(stateTcheckTime);
+
+        } catch (error) {
+            logException(error, `runBlockHeaderCollectingRaw database error (T=${T}):`);
+            return false;
+        }
+    }
+
     async runBlockHeaderCollectingRaw() {
         let localN = this.indexer.N;
         let localBlockNp1hash = "";
@@ -167,16 +164,7 @@ export class HeaderCollector {
                 const isNewBlock = localN < localT - this.indexer.chainConfig.numberOfConfirmations;
                 const isChangedNp1Hash = localBlockNp1hash !== blockNp1.hash;
 
-                // every update save last T
-                try {
-                    const stateTcheckTime = this.indexer.getStateEntry("T", localT);
-
-                    await this.indexer.dbService.manager.save(stateTcheckTime);
-
-                } catch (error) {
-                    logException(error, `runBlockHeaderCollectingRaw database error (T=${localT}):`);
-                    return false;
-                }
+                await this.writeT(localT);
 
                 // check if N + 1 hash is the same
                 if (!isNewBlock && !isChangedNp1Hash) {
@@ -210,6 +198,27 @@ export class HeaderCollector {
 
             } catch (error) {
                 logException(error, `runBlockHeaderCollectingRaw exception: `);
+            }
+        }
+    }
+
+    async runBlockHeaderCollectingTips() {
+        let localN = this.indexer.N;
+        let localBlockNp1hash = "";
+
+        while (true) {
+            try {
+                // get chain top block
+                const localT = await this.getBlockHeight(`runBlockHeaderCollectingRaw`);
+
+                this.writeT(localT);
+
+                const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
+
+                await this.saveLiteBlocksHeaders(blocks);
+
+            } catch (error) {
+                logException(error, `runBlockHeaderCollectingTips: `);
             }
         }
     }

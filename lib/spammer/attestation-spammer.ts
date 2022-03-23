@@ -133,11 +133,13 @@ class AttestationSpammer {
   BATCH_SIZE = 100;
   TOP_UP_THRESHOLD = 0.25;
 
+  id: string;
 
   randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
-  constructor(privateKey: string, logEvents = true) {
+  constructor(privateKey: string, initFrom?: AttestationSpammer, id: string = "default", logEvents = true) {
     this.privateKey = privateKey;
+    this.id = id;
     this.logEvents = logEvents;
     this.chainType = MCC.getChainType(args["chain"]);
 
@@ -152,37 +154,51 @@ class AttestationSpammer {
     this.numberOfConfirmations = (this.chainAttestationConfig.metaData as any).requiredBlocks as number;
     //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
-    this.client = MCC.Client(this.chainType, {
-      ...this.chainIndexerConfig.mccCreate,
-      rateLimitOptions: this.chainIndexerConfig.rateLimitOptions
-    });
+    this.client = initFrom
+      ? initFrom.client
+      : MCC.Client(this.chainType, {
+        ...this.chainIndexerConfig.mccCreate,
+        rateLimitOptions: this.chainIndexerConfig.rateLimitOptions
+      });
 
-    const options: IndexedQueryManagerOptions = {
-      chainType: this.chainType,
-      numberOfConfirmations: this.chainIndexerConfig.numberOfConfirmations,
-      maxValidIndexerDelaySec: this.chainAttestationConfig.maxValidIndexerDelaySec,
-      windowStartTime: (roundId: number) => {
-        return this.configAttestationClient.firstEpochStartTime + roundId * this.configAttestationClient.roundDurationSec - this.chainAttestationConfig.queryWindowInSec;
-      }
-    } as IndexedQueryManagerOptions;
-    this.indexedQueryManager = new IndexedQueryManager(options);
+    if (initFrom) {
+      this.indexedQueryManager = initFrom.indexedQueryManager;
+      this.logger = initFrom.logger;
+      this.web3 = initFrom.web3;
+      this.stateConnector = initFrom.stateConnector;
+      this.definitions = initFrom.definitions;
+      this.BUFFER_TIMESTAMP_OFFSET = initFrom.BUFFER_TIMESTAMP_OFFSET;
+      this.BUFFER_WINDOW = initFrom.BUFFER_WINDOW;
+  
+    } else {
+      const options: IndexedQueryManagerOptions = {
+        chainType: this.chainType,
+        numberOfConfirmations: this.chainIndexerConfig.numberOfConfirmations,
+        maxValidIndexerDelaySec: this.chainAttestationConfig.maxValidIndexerDelaySec,
+        windowStartTime: (roundId: number) => {
+          return this.configAttestationClient.firstEpochStartTime + roundId * this.configAttestationClient.roundDurationSec - this.chainAttestationConfig.queryWindowInSec;
+        }
+      } as IndexedQueryManagerOptions;
+      this.indexedQueryManager = new IndexedQueryManager(options);
+      this.logger = getGlobalLogger(args["loggerLabel"]);
+      this.web3 = getWeb3(this.rpcLink) as Web3;
+      let stateConnectorAddresss = args["contractAddress"] || getTestStateConnectorAddress()
 
-    this.logger = getGlobalLogger(args["loggerLabel"]);
-    this.web3 = getWeb3(this.rpcLink) as Web3;
+      this.logger.info(`RPC: ${this.rpcLink}`)
+      this.logger.info(`Using state connector at: ${stateConnectorAddresss}`)
+      getWeb3Contract(this.web3, stateConnectorAddresss, "StateConnector").then((sc: StateConnector) => {
+        this.stateConnector = sc;
+      });
+    }
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.privateKey);
-
-    let stateConnectorAddresss = args["contractAddress"] || getTestStateConnectorAddress()
-
-    this.logger.info(`RPC: ${this.rpcLink}`)
-    this.logger.info(`Using state connector at: ${stateConnectorAddresss}`)
-    getWeb3Contract(this.web3, stateConnectorAddresss, "StateConnector").then((sc: StateConnector) => {
-      this.stateConnector = sc;
-    });
   }
 
   async init() {
+    await this.initializeStateConnector();
     await this.indexedQueryManager.dbService.waitForDBConnection();
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
+    this.startLogEvents();
+    this.definitions = await readAttestationTypeSchemes();
   }
 
   getCurrentRound() {
@@ -190,7 +206,7 @@ class AttestationSpammer {
     return Math.floor((now - this.BUFFER_TIMESTAMP_OFFSET) / this.BUFFER_WINDOW)
   }
 
-
+  static sendId = 0;
   async sendAttestationRequest(stateConnector: StateConnector, request: ARType) {
     // let scheme = this.definitions.find(definition => definition.id === request.attestationType);
     // let requestBytes = encodeRequestBytes(request, scheme);
@@ -201,6 +217,8 @@ class AttestationSpammer {
     // console.log("SENDING:\n", requestBytes, "\n");
 
     let fnToEncode = stateConnector.methods.requestAttestations(requestBytes);
+    AttestationSpammer.sendId++;
+    console.time(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     const receipt = await this.web3Functions.signAndFinalize3(
       `request attestation #${AttestationSpammer.sendCount}`,
       this.stateConnector.options.address,
@@ -209,9 +227,9 @@ class AttestationSpammer {
       DEFAULT_GAS_PRICE,
       true
     );
-
+    console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     if (receipt) {
-      this.logger.info(`Attestation sent`)
+      // this.logger.info(`Attestation sent`)
     }
     return receipt;
   }
@@ -263,11 +281,11 @@ class AttestationSpammer {
               let data = event.returnValues.data;
               let parsedRequest = parseRequest(data);
               // console.log("RECEIVED:\n", data, "\n", parsedRequest);
-              console.log("RECEIVED:\n", data);
+              // console.log("RECEIVED:\n", data);
             }
           }
         }
-        this.logger.info(`Receiving ${events.length} events from block ${firstUnprocessedBlockNumber} to ${last}`);
+        // this.logger.info(`Receiving ${events.length} events from block $s{firstUnprocessedBlockNumber} to ${last}`);
         firstUnprocessedBlockNumber = last + 1;
       } catch (e) {
         this.logger.info(`Error: ${e}`);
@@ -279,14 +297,12 @@ class AttestationSpammer {
   static sendCount = 0;
 
   async runSpammer() {
-    await this.initializeStateConnector();
-    await this.init();
-    await this.indexedQueryManager.dbService.waitForDBConnection();
-    this.startLogEvents();
-    this.definitions = await readAttestationTypeSchemes();
+    // await this.init();
+    // this.startLogEvents();
+
 
     // load data from 'database'
-    const data = "[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.valid.json`).toString().slice(0, -2).replace(/\n/g, "") + "]";
+    // const data = "[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.valid.json`).toString().slice(0, -2).replace(/\n/g, "") + "]";
     // const validTransactions: Array<AttestationRequest> = JSON.parse(data);
     // const invalidTransactions: Array<AttestationRequest> = JSON.parse("[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.invalid.json`).toString().slice(0, -1) + "]");
 
@@ -311,14 +327,15 @@ class AttestationSpammer {
 
     let attRequest: ARType | undefined;
     while (true) {
-      
       try {
         AttestationSpammer.sendCount++;
         // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
+        
         let roundId = this.getCurrentRound();
+
         let attRequest = await getRandomAttestationRequest(this.randomGenerators, this.indexedQueryManager, this.chainType as number as SourceId, roundId, this.numberOfConfirmations);
+        
         if (attRequest) {
-          console.log("REALLY SENDING")
           this.sendAttestationRequest(this.stateConnector, attRequest).catch(e => {
             this.logger.error(`ERROR: ${e}`);
           })
@@ -329,13 +346,10 @@ class AttestationSpammer {
       // if (!attRequest) {
       //   await sleep(Math.floor(Math.random() * this.delay));
       // }
-      await sleepMs(Math.floor(this.delay));
+      await sleepMs(Math.floor(this.delay + Math.random()*this.delay));
     }
   }
 }
-
-
-
 
 async function displayStats() {
   const period = 5000;
@@ -352,7 +366,16 @@ async function runAllAttestationSpammers() {
 
   const accounts = JSON.parse(fs.readFileSync(args["accountsFile"]));
   const privateKeys: string[] = accounts.map((x: any) => x.privateKey).slice(args["startAccountId"], args["startAccountId"] + args["numberOfAccounts"]);
-  return Promise.all(privateKeys.map((key, number) => new AttestationSpammer(key, number == 0).runSpammer()));
+
+  let first = new AttestationSpammer(privateKeys[0], undefined, "L_" + 0, true);
+  await first.init();
+  
+  let promises = [
+    first.runSpammer(), 
+    ...(privateKeys.slice(1).map((key, number) => new AttestationSpammer(key, first, "L_" + (number + 1), false).runSpammer()))
+  ];
+  return Promise.all(promises)
+  
 }
 
 // (new AttestationSpammer()).runSpammer()

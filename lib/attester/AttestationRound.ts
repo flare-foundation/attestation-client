@@ -84,8 +84,8 @@ export class AttestationRound {
   transactionsProcessed: number = 0;
 
   // save submitted values for reveal
-  hash!: string;
-  random!: BN;
+  roundHash!: string;
+  roundRandom!: BN;
   merkleTree!: MerkleTree;
 
   sourceHandlers = new Map<number, SourceHandler>();
@@ -210,6 +210,8 @@ export class AttestationRound {
     for (const tx of this.attestations.values()) {
       if (tx.status === AttestationStatus.valid) {
         validated.push(tx);
+      } else {
+        console.log("INVALID:", tx.data.request)
       }
     }
 
@@ -232,30 +234,30 @@ export class AttestationRound {
     const validatedHashes: string[] = new Array<string>();
     const dbVoteResults = [];
     for (const valid of validated) {
-      let hash = valid.verificationData ? valid.verificationData.hash : valid.data.getHash();
-
-      validatedHashes.push(hash!);
+      // let hash = valid.verificationData ? valid.verificationData.hash : valid.data.getHash();
+      let voteHash = valid.verificationData.hash!;
+      validatedHashes.push(voteHash);
 
       // save to DB
-      // const dbVoteResult = new DBVotingRoundResult();
-      // dbVoteResults.push(dbVoteResult);
+      const dbVoteResult = new DBVotingRoundResult();
+      dbVoteResults.push(dbVoteResult);
 
-      // dbVoteResult.roundId = this.roundId;
-      // dbVoteResult.hash = this.hash;
-      // dbVoteResult.request = JSON.stringify(valid.verificationData?.request ? valid.verificationData.request : "");
-      // dbVoteResult.response = JSON.stringify(valid.verificationData?.response ? valid.verificationData.response : "");
+      dbVoteResult.roundId = this.roundId;
+      dbVoteResult.hash = voteHash;
+      dbVoteResult.request = JSON.stringify(valid.verificationData?.request ? valid.verificationData.request : "");
+      dbVoteResult.response = JSON.stringify(valid.verificationData?.response ? valid.verificationData.response : "");
     }
 
     // save to DB
-    // AttestationRoundManager.dbService.manager.save(dbVoteResults);
+    AttestationRoundManager.dbService.manager.save(dbVoteResults);
 
     const time1 = getTimeMilli();
 
     // create merkle tree
     this.merkleTree = new MerkleTree(validatedHashes);
 
-    this.hash = this.merkleTree.root!;
-    this.random = await getCryptoSafeRandom();
+    this.roundHash = this.merkleTree.root!;
+    this.roundRandom = await getCryptoSafeRandom();
 
     const time2 = getTimeMilli();
 
@@ -297,8 +299,8 @@ export class AttestationRound {
           action,
           // commit index (collect+1)
           toBN(this.roundId + 1),
-          toHex(toBN(this.hash).xor(this.random), 32),
-          singleHash(this.random),
+          toHex(toBN(this.roundHash).xor(this.roundRandom), 32),
+          singleHash(this.roundRandom),
           toHex(toBN(0), 32)
         )
         .then((receipt) => {
@@ -350,13 +352,13 @@ export class AttestationRound {
     if (this.nextRound) {
       if (this.nextRound.canCommit()) {
         action += ` (start commit for ${this.nextRound.roundId})`;
-        nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.hash).xor(this.nextRound.random), 32);
-        nextRoundHashedRandom = singleHash(this.nextRound.random),
+        nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.roundHash).xor(this.nextRound.roundRandom), 32);
+        nextRoundHashedRandom = singleHash(this.nextRound.roundRandom),
           this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
       else {
         action += ` (failed start commit for ${this.nextRound.roundId} - too late)`;
-        this.nextRound.random = toBN(0);
+        this.nextRound.roundRandom = toBN(0);
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
     }
@@ -368,7 +370,7 @@ export class AttestationRound {
         toBN(this.roundId + 2),
         nextRoundMaskedMerkleRoot,
         nextRoundHashedRandom,
-        this.attestStatus === AttestationRoundStatus.comitted ? toHex(this.random, 32) : toHex(toBN(0), 32)
+        this.attestStatus === AttestationRoundStatus.comitted ? toHex(this.roundRandom, 32) : toHex(toBN(0), 32)
       )
       .then((receit) => {
         if (receit) {

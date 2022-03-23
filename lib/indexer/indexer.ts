@@ -36,7 +36,7 @@ import { DBTransactionBase } from "../entity/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
-import { retry } from "../utils/PromiseTimeout";
+import { retry, setRetryFailureCallback } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
@@ -479,7 +479,7 @@ export class Indexer {
 
     while (true) {
       try {
-        this.logger.debug1( `runSync loop N=${this.N} T=${this.T}` );
+        this.logger.debug1(`runSync loop N=${this.N} T=${this.T}`);
         const now = Date.now();
 
         // get chain top block
@@ -495,7 +495,7 @@ export class Indexer {
 
         // wait until we save N+1 block
         if (lastN === this.N) {
-          this.logger.debug( `runSync wait block N=${this.N} T=${this.T}` );
+          this.logger.debug(`runSync wait block N=${this.N} T=${this.T}`);
           await sleepms(100);
           continue;
         }
@@ -529,7 +529,7 @@ export class Indexer {
 
         while (!await this.saveOrWaitNp1Block()) {
           await sleepms(100);
-          this.logger.debug( `runSync wait save N=${this.N} T=${this.T}` );
+          this.logger.debug(`runSync wait save N=${this.N} T=${this.T}`);
         }
 
       } catch (error) {
@@ -678,7 +678,18 @@ async function testDelay(delay: number, result: number): Promise<number> {
   return result;
 }
 
+process.on('SIGTERM', () => {
+  process.exit(2);
+})
+
+function localRetryFailure(label: string) {
+  getGlobalLogger().error2(`retry failure: ${label} - application exit`);
+  process.exit(2);
+}
+
 async function runIndexer() {
+
+  setRetryFailureCallback(localRetryFailure);
 
   // const test = [];
 
@@ -687,7 +698,8 @@ async function runIndexer() {
   // test.push(() => testDelay(1200, 3));
   // test.push(() => testDelay(100, 4));
 
-  // const testRes = await retry(`test`, () => testDelay(100, 4) , 80 );
+  // const testRes = await retry(`test`, () => testDelay(10000, 4) , 10 , 2 
+  // );
   // //const testRes = await Promise.all( test );
 
   // console.log(testRes);

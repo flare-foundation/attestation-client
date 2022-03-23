@@ -1,3 +1,19 @@
+//
+// [ ] split database to indexer and attester
+// [ ] all settings from .env to config
+// [ ] rename config.json tp config-attester.json
+// [ ] config.json chain metadata is redundant - delete and check
+// [ ] config.json numberOfConfigurations are to be used from DAC
+// [ ] move config.json queryWindowSec to DAC
+// [ ] credential config (with database and network credentials)
+
+// deployments
+// - spammer
+// - att client
+// - indexer
+// - backend
+
+
 import { Verification } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";

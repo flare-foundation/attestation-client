@@ -54,7 +54,7 @@
     "preroutes": "ts-node lib/scripts/create-routes-folder.ts",
     "routes": "yarn tsoa routes && yarn tsoa spec",
     "devbackend": "DOTENV=DEV yarn ts-node-dev --notify --respawn -- lib/webserver/server.ts",
-    "devspammer": "DOTENV=DEV DOTENV_INCLUDE=\".indexer.remote.dev.read.env\" yarn ts-node-dev --notify --respawn -- lib/spammer/attestation-spammer.ts -c XRP -r http://127.0.0.1:9650/ext/bc/C/rpc  -a artifacts/contracts/StateConnector.sol/StateConnector.json -t $(cat .stateconnector-address) -b 1 -o 1 -f 1 -d 1000 -l XRP -k test-1020-accounts.json"
+    "devspammer": "DOTENV=DEV DOTENV_INCLUDE=\".indexer.remote.dev.read.env\" yarn ts-node-dev --notify --respawn -- lib/spammer/attestation-spammer.ts -- -c XRP -r http://127.0.0.1:9650/ext/bc/C/rpc  -a artifacts/contracts/StateConnector.sol/StateConnector.json -t $(cat .stateconnector-address) -b 1 -o 1 -f 1 -d 1000 -l XRP -k test-1020-accounts.json"
   },
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",

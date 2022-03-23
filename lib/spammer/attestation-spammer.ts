@@ -285,7 +285,7 @@ class AttestationSpammer {
             }
           }
         }
-        // this.logger.info(`Receiving ${events.length} events from block $s{firstUnprocessedBlockNumber} to ${last}`);
+        this.logger.info(`Receiving ${events.length} events from block $s{firstUnprocessedBlockNumber} to ${last}`);
         firstUnprocessedBlockNumber = last + 1;
       } catch (e) {
         this.logger.info(`Error: ${e}`);

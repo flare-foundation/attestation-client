@@ -4,7 +4,8 @@
    [
       {
          "source":"BTC",
-         "requiredBlocks":6,
+         "numberOfConfirmations":6,
+         "maxValidIndexerDelaySec": 10,
          "maxCallsPerRound": 1000,
          "attestationTypes" :
          [
@@ -25,7 +26,8 @@
       ,
       {
          "source":"XRP",
-         "requiredBlocks":1,
+         "numberOfConfirmations":1,
+         "maxValidIndexerDelaySec": 10,
          "maxCallsPerRound": 1000,
          "attestationTypes" :
          [
@@ -46,7 +48,8 @@
       ,
       {
          "source":"ALGO",
-         "requiredBlocks":1,
+         "numberOfConfirmations":1,
+         "maxValidIndexerDelaySec": 10,
          "maxCallsPerRound": 1000,
          "attestationTypes" :
          [

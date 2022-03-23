@@ -14,7 +14,7 @@ export class EpochSettings {
     this._epochPeriod = _epochPeriod.mul(toBN(1000));
   }
 
-  getEpochLength(): BN {
+  getEpochLengthMs(): BN {
     return this._epochPeriod;
   }
 
@@ -27,6 +27,7 @@ export class EpochSettings {
     return this.getEpochIdForTime(toBN(getTimeSec()));
   }
 
+  
   // // in seconds
   // getEpochTimeStart(): BN {
   //   const id: BN = this.getCurrentEpochId().add(toBN(1)).add(this._firstEpochId);
@@ -39,21 +40,21 @@ export class EpochSettings {
   // }
 
   // in milliseconds
-  getRoundIdTimeStart(id: BN | number): number {
+  getRoundIdTimeStartMs(id: BN | number): number {
     return this._firstEpochStartTime.add(toBN(id).mul(this._epochPeriod)).toNumber(); // + this._epochPeriod.toNumber();
   }
 
   // in milliseconds
-  getRoundIdCommitTimeStart(id: BN | number): number {
-    return this.getRoundIdTimeStart(id) + this._epochPeriod.toNumber();
+  getRoundIdCommitTimeStartMs(id: BN | number): number {
+    return this.getRoundIdTimeStartMs(id) + this._epochPeriod.toNumber();
   }
 
   // in milliseconds
-  getRoundIdRevealTimeStart(id: number): number {
-    return this.getRoundIdCommitTimeStart(id) + this._epochPeriod.toNumber();
+  getRoundIdRevealTimeStartMs(id: number): number {
+    return this.getRoundIdCommitTimeStartMs(id) + this._epochPeriod.toNumber();
   }
   // in milliseconds
-  getEpochIdRevealTimeEnd(id: number): number {
-    return this.getRoundIdCommitTimeStart(id) + this._epochPeriod.toNumber() * 2;
+  getEpochIdRevealTimeEndMs(id: number): number {
+    return this.getRoundIdCommitTimeStartMs(id) + this._epochPeriod.toNumber() * 2;
   }
 }

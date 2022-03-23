@@ -7,6 +7,7 @@ import { AttLogger, getGlobalLogger as getGlobalLogger, logException } from "../
 import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
+import { SourceId } from "../verification/sources/sources";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
@@ -90,7 +91,7 @@ export class AttesterClient {
       attestation.request = (await getRandom()).toString();
 
       attestation.type = AttestationType.Payment;
-      attestation.chainType = ChainType.BTC;
+      attestation.sourceId = ChainType.BTC as any as SourceId;
 
       // for sorting
       attestation.blockNumber = toBN(await getRandom());
@@ -183,7 +184,7 @@ export class AttesterClient {
         continue;
       }
 
-      this.chainManager.addNode(chainType, node);
+      this.chainManager.addNode(chainType as any as SourceId, node);
     }
   }
 

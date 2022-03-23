@@ -99,15 +99,15 @@ export class AttestationRound {
   }
 
   getSourceHandler(data: AttestationData, onValidateAttestation: EventValidateAttestation): SourceHandler {
-    let sourceHandler = this.sourceHandlers.get(data.chainType);
+    let sourceHandler = this.sourceHandlers.get(data.sourceId);
 
     if (sourceHandler) {
       return sourceHandler;
     }
 
-    sourceHandler = new SourceHandler(this, data.chainType, onValidateAttestation);
+    sourceHandler = new SourceHandler(this, data.sourceId, onValidateAttestation);
 
-    this.sourceHandlers.set(data.chainType, sourceHandler);
+    this.sourceHandlers.set(data.sourceId, sourceHandler);
 
     return sourceHandler;
   }
@@ -139,7 +139,7 @@ export class AttestationRound {
 
   startCommitEpoch() {
     this.logger.group(
-      `round #${this.roundId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLength().toNumber()
+      `round #${this.roundId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
@@ -266,7 +266,7 @@ export class AttestationRound {
 
     // calculate remaining time in epoch
     const now = getTimeMilli();
-    const epochCommitEndTime = AttestationRoundManager.epochSettings.getRoundIdRevealTimeStart(this.roundId);
+    const epochCommitEndTime = AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(this.roundId);
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(

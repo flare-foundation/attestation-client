@@ -30,7 +30,7 @@ export class AttestationRoundManager {
     this.logger = logger;
     this.attesterWeb3 = attesterWeb3;
 
-    AttestationRoundManager.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.epochPeriod));
+    AttestationRoundManager.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
     AttestationRoundManager.chainManager = chainManager;
     AttestationRoundManager.attestationConfigManager = new AttestationConfigManager(config, logger);
 
@@ -53,10 +53,10 @@ export class AttestationRoundManager {
 
     // all times are in milliseconds
     const now = getTimeMilli();
-    const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStart(epochId);
-    const epochCommitTime: number = epochTimeStart + this.config.epochPeriod * 1000;
-    const epochRevealTime: number = epochCommitTime + this.config.epochPeriod * 1000;
-    const epochCompleteTime: number = epochRevealTime + this.config.epochPeriod * 1000;
+    const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(epochId);
+    const epochCommitTime: number = epochTimeStart + this.config.roundDurationSec * 1000;
+    const epochRevealTime: number = epochCommitTime + this.config.roundDurationSec * 1000;
+    const epochCompleteTime: number = epochRevealTime + this.config.roundDurationSec * 1000;
 
     let activeRound = this.rounds.get(epochId);
 
@@ -65,7 +65,7 @@ export class AttestationRoundManager {
       activeRound = new AttestationRound(epochId, this.logger, this.attesterWeb3);
 
       let bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-      bar1.start(this.config.epochPeriod * 1000, now - epochTimeStart);
+      bar1.start(this.config.roundDurationSec * 1000, now - epochTimeStart);
       let intervalId = setInterval(() => {
         const now = getTimeMilli();
         if (now > epochCommitTime) {
@@ -162,7 +162,7 @@ export class AttestationRoundManager {
 
     return new Attestation(round, data, (attestation: Attestation) => {
       // chain node validation
-      AttestationRoundManager.chainManager.validateTransaction(data.chainType, attestation);
+      AttestationRoundManager.chainManager.validateTransaction(data.sourceId, attestation);
     });
 
     // // processing

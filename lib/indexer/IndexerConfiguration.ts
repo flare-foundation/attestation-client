@@ -6,7 +6,7 @@ export class IndexerClientChain {
   public mccCreate: MccCreate
   public rateLimitOptions: RateLimitOptions;
   
-  public confirmationBlocks: number = 6;
+  public numberOfConfirmations: number = 6;
 
   public syncReadAhead: number = 30;
 

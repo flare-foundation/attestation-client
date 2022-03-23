@@ -45,7 +45,7 @@ export function createTestAttestationFromRequest(
 ): Attestation {
    let data = new AttestationData();
    data.type = request.attestationType;
-   data.chainType = request.sourceId as any as ChainType;
+   data.sourceId = request.sourceId;
    data.request = encodeRequest(request);
    let attestation = new Attestation(undefined, data, undefined);
    attestation.setTestNumberOfConfirmationBlocks(numberOfConfirmations);

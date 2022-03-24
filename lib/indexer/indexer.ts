@@ -224,22 +224,6 @@ export class Indexer {
     return state;
   }
 
-  prepareString(text: string, maxLength: number, reportOwerflow: string = null): string {
-    if (!text) return "";
-    if (text.length < maxLength) return text;
-
-    if (typeof text != "string") {
-      this.logger.warning(`prepareString warning: expected type is string`);
-      return text;
-    }
-
-    if (reportOwerflow) {
-      //this.logger.warning(`prepareString warning: ${reportOwerflow} overflow ${maxLength} (length=${text.length})`);
-    }
-
-    return text.substring(0, maxLength - 1);
-  }
-
   async blockSave(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
     const Np1 = this.N + 1;
 

@@ -6,7 +6,7 @@
 // [x] config.json numberOfConfirmations are to be used from DAC
 // [x] move config.json queryWindowSec to DAC
 // [x] credential config (with database and network credentials)
-// [ ] add another table for ALL attesttaion request
+// [x] add another table for ALL attesttaion request
 //      - round id
 //      - block number (log index)  
 //      - requestBytes
@@ -68,6 +68,7 @@ export class Attestation {
   // how many time was attestation retried
   retry: number = 0;
   reverification: boolean = false;
+  exception: any;
 
   onProcessed: EventProcessed | undefined = undefined;
   onValidateAttestation: EventValidateAttestation

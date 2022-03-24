@@ -3,7 +3,7 @@
 // [x] all settings from .env to config
 // [x] rename config.json tp config-attester.json
 // [x] config.json chain metadata is redundant - delete and check
-// [ ] config.json numberOfConfirmations are to be used from DAC
+// [x] config.json numberOfConfirmations are to be used from DAC
 // [x] move config.json queryWindowSec to DAC
 // [x] credential config (with database and network credentials)
 // [ ] add another table for ALL attesttaion request

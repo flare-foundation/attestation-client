@@ -1,16 +1,19 @@
-import { Factory, Singleton } from "typescript-ioc";
-import { DatabaseConnectOptions, DatabaseService } from "../../utils/databaseService";
+import { Factory, Inject, Singleton } from "typescript-ioc";
+import { DatabaseService } from "../../utils/databaseService";
 import { getGlobalLogger } from "../../utils/logger";
+import { ConfigurationService } from "./configurationService";
 
 @Singleton
 @Factory(() => new WebDatabaseService())
 export class WebDatabaseService {
 
+   @Inject
+   configurationService: ConfigurationService;
+
    dbService: DatabaseService;
 
    constructor() {
-      const databaseOptions: DatabaseConnectOptions=null; // ???
-      this.dbService = new DatabaseService(getGlobalLogger("web"), databaseOptions, "indexer");
+      this.dbService = new DatabaseService(getGlobalLogger("web"), this.configurationService.serverCredentials.attesterDatabase, "attester");
    }
 
    public get connection() {

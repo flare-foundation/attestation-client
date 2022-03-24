@@ -146,9 +146,12 @@ class AttestationSpammer {
     // Reading configuration
     this.configIndexer = readConfig<IndexerConfiguration>("indexer");
     this.configAttestationClient = readConfig<AttesterClientConfiguration>( "attester" );
+    const attesterCredentials = readCredentials<AttesterCredentials>( "attester" );
 
-    const DAC = new AttestationRoundManager( null , this.configAttestationClient , readCredentials<AttesterCredentials>( "attester" ) , getGlobalLogger() , null );
+    const DAC = new AttestationRoundManager( null , this.configAttestationClient , attesterCredentials , getGlobalLogger() , null );
     DAC.initialize();
+
+    this.rpcLink = attesterCredentials.web.rpcUrl;
 
     let chainName = getSourceName(this.chainType);
 

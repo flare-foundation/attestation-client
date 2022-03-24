@@ -79,8 +79,8 @@ ssh -n $USER@$SERVER "rm -rf $WORKDIR/*; mv $FNAME $WORKDIR; cd $WORKDIR; tar xz
 
 ssh -n $USER@$SERVER "rm -rf $MCC_WORKDIR/*; mv $MCC_FNAME $MCC_WORKDIR; cd $MCC_WORKDIR; tar xzf $MCC_FNAME; mv $MCC_FNAME ../$BACKUPDIR/mcc-deploy--$(date +\"%Y-%m-%d--%H-%M-%S\").tgz" || { echo 'Remote deployment failed' ; exit 1; }
 
-# echo -e "${GREENBOLD}Initializing configuration${NC} Installing ..."
-ssh -n $USER@$SERVER "cp $CONFIGDIR/.env $WORKDIR;" || { echo 'Remote deployment failed' ; exit 1; }
+echo -e "${GREENBOLD}Initializing configuration${NC} Copying ..."
+ssh -n $USER@$SERVER "cp -a $CONFIGDIR/. $WORKDIR/configs/prod/;" || { echo 'Remote deployment failed' ; exit 1; }
 
 # Build the MCC.
 echo -e "${GREENBOLD}Installing MCC.${NC} Running yarn ..."

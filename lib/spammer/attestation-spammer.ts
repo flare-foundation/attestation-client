@@ -99,6 +99,11 @@ let args = yargs
   })
   .argv;
 
+
+class SpammerCredentials {
+  web : AttesterWebOptions;
+}
+
 class AttestationSpammer {
   chainType!: ChainType;
   client!: MccClient;
@@ -149,12 +154,13 @@ class AttestationSpammer {
     this.configIndexer = readConfig<IndexerConfiguration>("indexer");
     this.configAttestationClient = readConfig<AttesterClientConfiguration>("attester");
     const attesterCredentials = readCredentials<AttesterCredentials>("attester");
+    const spammerCredentials = readCredentials<SpammerCredentials>("spammer");
 
     const DAC = new AttestationRoundManager(null, this.configAttestationClient, attesterCredentials, getGlobalLogger(), null);
     DAC.initialize();
 
-    this.rpcLink = attesterCredentials.web.rpcUrl;
-    this.privateKey = attesterCredentials.web.accountPrivateKey;
+    this.rpcLink = spammerCredentials.web.rpcUrl;
+    this.privateKey = spammerCredentials.web.accountPrivateKey;
 
     let chainName = getSourceName(this.chainType);
 
@@ -195,8 +201,8 @@ class AttestationSpammer {
       this.indexedQueryManager = new IndexedQueryManager(options);
       this.logger = getGlobalLogger(args["loggerLabel"]);
       this.web3 = getWeb3(this.rpcLink) as Web3;
-      //let stateConnectorAddresss = args["contractAddress"] || getTestStateConnectorAddress()
-      let stateConnectorAddresss = attesterCredentials.web.stateConnectorContractAddress;
+      
+      let stateConnectorAddresss = spammerCredentials.web.stateConnectorContractAddress;
 
       this.logger.info(`RPC: ${this.rpcLink}`)
       this.logger.info(`Using state connector at: ${stateConnectorAddresss}`)

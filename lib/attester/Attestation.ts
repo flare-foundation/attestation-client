@@ -20,6 +20,7 @@
 // [ ] create json files dynamic checker (with tsc)
 // [ ] reverification buf in verification (too often) local not updated DB 
 // [ ] handling system_failure blocks
+// [ ] cleanup spammer config definitions
 
 // deployments
 // - spammer

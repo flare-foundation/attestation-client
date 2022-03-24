@@ -4,7 +4,7 @@
 // [x] rename config.json tp config-attester.json
 // [x] config.json chain metadata is redundant - delete and check
 // [ ] config.json numberOfConfigurations are to be used from DAC
-// [ ] move config.json queryWindowSec to DAC
+// [x] move config.json queryWindowSec to DAC
 // [x] credential config (with database and network credentials)
 // [ ] add another table for ALL attesttaion request
 //      - round id

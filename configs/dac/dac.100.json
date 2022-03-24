@@ -6,6 +6,7 @@
          "source":"BTC",
          "numberOfConfirmations":6,
          "maxTotalRoundWeight": 1000,
+         "queryWindowInSec":8640,
          "attestationTypes" :
          [
             {
@@ -31,7 +32,8 @@
          "source":"XRP",
          "numberOfConfirmations":1,
          "maxTotalRoundWeight": 1000,
-         "attestationTypes" :
+         "queryWindowInSec":8640,
+         "attestationTypes":
          [
             {
                "type":"Payment",
@@ -56,6 +58,7 @@
          "source":"ALGO",
          "numberOfConfirmations":1,
          "maxTotalRoundWeight": 1000,
+         "queryWindowInSec":8640,
          "attestationTypes" :
          [
             {

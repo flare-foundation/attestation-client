@@ -19,7 +19,6 @@ export class AttesterClientConfiguration {
 
   public chains: AttesterClientChain[] = [];
 
-
   public simulation: boolean = false; 
 
 }

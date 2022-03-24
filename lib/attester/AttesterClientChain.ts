@@ -18,6 +18,4 @@ export class AttesterClientChain {
 
   public maxValidIndexerDelaySec: number = 10;
   public numberOfConfirmations: number;
-
-  public queryWindowInSec = 86400;
 }

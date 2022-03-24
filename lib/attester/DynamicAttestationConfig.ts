@@ -19,6 +19,8 @@ export class SourceHandlerConfig {
 
   numberOfConfirmations: number = 1;
 
+  queryWindowInSec!: number;  
+
   attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
 
@@ -115,13 +117,14 @@ export class AttestationConfigManager {
     config.startEpoch = fileConfig.startEpoch;
 
     // parse sources
-    fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
+    fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; queryWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
       const sourceHandler = new SourceHandlerConfig();
 
       sourceHandler.source = toSourceId(source.source);
 
       sourceHandler.maxTotalRoundWeight = source.maxTotalRoundWeight;
       sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
+      sourceHandler.queryWindowInSec = source.queryWindowInSec;
 
       config.sourceHandlers.set(sourceHandler.source, sourceHandler);
 

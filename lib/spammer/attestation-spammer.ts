@@ -141,12 +141,11 @@ class AttestationSpammer {
     this.chainType = MCC.getChainType(args["chain"]);
 
     // Reading configuration
-    this.configIndexer = readCredentials<IndexerConfiguration>("indexer");
+    this.configIndexer = readConfig<IndexerConfiguration>("indexer");
     this.configAttestationClient = readConfig<AttesterClientConfiguration>( "attester" );
+    AttestationRoundManager.credentials = readCredentials<AttesterCredentials>( "attester" );
 
     let chainName = getSourceName(this.chainType);
-
-    AttestationRoundManager.credentials = JSON.parse(fs.readFileSync((args as any).credentials).toString()) as AttesterCredentials;
 
     this.chainAttestationConfig = this.configAttestationClient.chains.find(chain => chain.name === chainName);
     this.chainIndexerConfig = this.configIndexer.chains.find(chain => chain.name === chainName);
@@ -176,7 +175,9 @@ class AttestationSpammer {
         numberOfConfirmations: this.chainIndexerConfig.numberOfConfirmations,
         maxValidIndexerDelaySec: this.chainAttestationConfig.maxValidIndexerDelaySec,
         windowStartTime: (roundId: number) => {
-          return this.configAttestationClient.firstEpochStartTime + roundId * this.configAttestationClient.roundDurationSec - this.chainAttestationConfig.queryWindowInSec;
+          // todo: read this from DAC
+          const queryWindowInSec = 86400;
+          return this.configAttestationClient.firstEpochStartTime + roundId * this.configAttestationClient.roundDurationSec - queryWindowInSec;
         }
       } as IndexedQueryManagerOptions;
       this.indexedQueryManager = new IndexedQueryManager(options);

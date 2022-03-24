@@ -26,7 +26,6 @@
             "delayBeforeRetry": 10,
 
             "numberOfConfirmations": 1,
-            "queryWindowInSec": 86400
         },
         {
             "name": "BTC",
@@ -41,7 +40,6 @@
             "clientRetries": 3,
 
             "numberOfConfirmations": 6,
-            "queryWindowInSec": 86400
         },
         {
             "name": "LTC",
@@ -56,7 +54,6 @@
             "clientRetries": 3,
 
             "numberOfConfirmations": 6,
-            "queryWindowInSec": 86400
         }
     ]
 }

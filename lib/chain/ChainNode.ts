@@ -11,6 +11,7 @@ import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
+import { toSourceId } from "../verification/sources/sources";
 import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainManager } from "./ChainManager";
 
@@ -87,16 +88,16 @@ export class ChainNode {
 
     //const confirmations = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig( )
 
-
     let options: IndexedQueryManagerOptions = {
       chainType: chainType,
       dbService: AttestationRoundManager.dbServiceIndexer,
       numberOfConfirmations: chainConfiguration.numberOfConfirmations,
-      maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec, 
-      // todo: return epochStartTime - query window length, add query window length into DAC
-      windowStartTime: (roundId: number) => { 
+      maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec,
+
+      windowStartTime: (roundId: number) => {
         let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-        return roundStartTime - chainConfiguration.queryWindowInSec;
+        const queryWindowsInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(chainConfiguration.name), roundId).queryWindowInSec;
+        return roundStartTime - queryWindowsInSec;
       }
     };
 
@@ -257,13 +258,13 @@ export class ChainNode {
       })
       .catch((error: any) => {
         // Attestation request parsing errors
-        if(error instanceof WrongSourceIdError) {
+        if (error instanceof WrongSourceIdError) {
           this.processed(attestation, AttestationStatus.invalid);
         }
-        if(error instanceof WrongAttestationTypeError) {
+        if (error instanceof WrongAttestationTypeError) {
           this.processed(attestation, AttestationStatus.invalid);
         }
-        if(error instanceof AttestationRequestParseError) {
+        if (error instanceof AttestationRequestParseError) {
           this.processed(attestation, AttestationStatus.invalid);
         }
 

@@ -195,7 +195,8 @@ class AttestationSpammer {
       this.indexedQueryManager = new IndexedQueryManager(options);
       this.logger = getGlobalLogger(args["loggerLabel"]);
       this.web3 = getWeb3(this.rpcLink) as Web3;
-      let stateConnectorAddresss = args["contractAddress"] || getTestStateConnectorAddress()
+      //let stateConnectorAddresss = args["contractAddress"] || getTestStateConnectorAddress()
+      let stateConnectorAddresss = attesterCredentials.web.stateConnectorContractAddress;
 
       this.logger.info(`RPC: ${this.rpcLink}`)
       this.logger.info(`Using state connector at: ${stateConnectorAddresss}`)

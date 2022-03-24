@@ -35,7 +35,7 @@ DotEnvExt();
 var yargs = require("yargs");
 
 let args = yargs
-  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "ALGO", })
+  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "XRP", })
   .option("credentials", { alias: "cred", type: "string", description: "Path to credentials json file", default: "./configs/spammer-credentials.json", demand: false, })
 
   .option("rpcLink", {

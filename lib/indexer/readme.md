@@ -76,6 +76,10 @@ systemctl --user enable indexer-btc.service
 systemctl --user enable indexer-ltc.service
 systemctl --user enable indexer-algo.service
 systemctl --user enable indexer-doge.service
+
+systemctl --user enable attester-spammer.service
+systemctl --user enable attester-client.service
+
 ```
 
 ```
@@ -84,6 +88,10 @@ systemctl --user start indexer-btc.service
 systemctl --user start indexer-ltc.service
 systemctl --user start indexer-algo.service
 systemctl --user start indexer-doge.service
+
+systemctl --user start attester-spammer.service
+systemctl --user start attester-client.service
+
 ```
 
 ```
@@ -92,6 +100,10 @@ systemctl --user stop indexer-btc.service
 systemctl --user stop indexer-ltc.service
 systemctl --user stop indexer-algo.service
 systemctl --user stop indexer-doge.service
+
+systemctl --user stop attester-spammer.service
+systemctl --user stop attester-client.service
+
 ```
 
 ```
@@ -100,6 +112,9 @@ systemctl --user restart indexer-btc.service
 systemctl --user restart indexer-ltc.service
 systemctl --user restart indexer-algo.service
 systemctl --user restart indexer-doge.service
+
+systemctl --user restart attester-spammer.service
+systemctl --user restart attester-client.service
 ```
 
 ```
@@ -108,4 +123,7 @@ journalctl --user -u indexer-btc -f -n 1000
 journalctl --user -u indexer-ltc -f -n 1000
 journalctl --user -u indexer-algo -f -n 1000
 journalctl --user -u indexer-doge -f -n 1000
+
+journalctl --user -u attester-spammer -f -n 1000
+journalctl --user -u attester-client -f -n 1000
 ```

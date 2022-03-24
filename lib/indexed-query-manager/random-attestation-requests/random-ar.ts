@@ -1,7 +1,7 @@
 import { Attestation } from "../../attester/Attestation";
 import { AttestationData } from "../../attester/AttestationData";
-import { DBBlockBase } from "../../entity/dbBlock";
-import { DBTransactionBase } from "../../entity/dbTransaction";
+import { DBBlockBase } from "../../entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { getUnixEpochTimestamp } from "../../utils/utils";
 import { encodeRequest } from "../../verification/generated/attestation-request-encode";
 import { ARType } from "../../verification/generated/attestation-request-types";

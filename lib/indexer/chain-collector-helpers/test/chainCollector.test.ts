@@ -1,7 +1,7 @@
 import { ChainType, MCC, UtxoMccCreate } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../../caching/CachedMccClient";
-import { DBBlockBase } from "../../../entity/dbBlock";
-import { DBTransactionBase } from "../../../entity/dbTransaction";
+import { DBBlockBase } from "../../../entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../../entity/indexer/dbTransaction";
 import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../blockProcessor";
 // import { processBlockTransactionsGeneric } from "../chainCollector";
 

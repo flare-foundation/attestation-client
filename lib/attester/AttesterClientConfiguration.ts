@@ -1,11 +1,7 @@
+import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AttesterClientChain } from "./AttesterClientChain";
 
 export class AttesterClientConfiguration {
-  public accountPrivateKey!: string;
-  public rpcUrl!: string;
-
-  public stateConnectorContractAddress!: string;
-
   public gasPrice!: string;
 
   // start epoch in sec
@@ -25,5 +21,20 @@ export class AttesterClientConfiguration {
 
 
   public simulation: boolean = false; 
+
+}
+
+export class AttesterWebOptions {
+  public accountPrivateKey!: string;
+  public rpcUrl!: string;
+  public stateConnectorContractAddress!: string;
+  
+}
+
+export class AttesterCredentials {
+  public web: AttesterWebOptions;
+  public attesterDatabase : DatabaseConnectOptions;
+  public indexerDatabase : DatabaseConnectOptions;
+
 }
 

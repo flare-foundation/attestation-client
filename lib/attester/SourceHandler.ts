@@ -25,7 +25,7 @@ export class SourceHandler {
   }
 
   validate(attestation: Attestation) {
-    if (this.attestationCalls >= this.config.maxCallsPerRound) {
+    if (this.attestationCalls >= this.config.maxTotalRoundWeight) {
       attestation.status = AttestationStatus.overLimit;
       attestation.onProcessed!(attestation);
       return;
@@ -41,7 +41,7 @@ export class SourceHandler {
       return;
     }
 
-    this.attestationCalls += typeConfig!.avgCalls;
+    this.attestationCalls += typeConfig!.weight;
 
     this.onValidateAttestation!(attestation);
   }

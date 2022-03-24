@@ -1,6 +1,6 @@
 import { AlgoBlock, AlgoTransaction, ChainType, IBlock, ITransaction, txIdToHexNo0x, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { CachedMccClient } from "../../caching/CachedMccClient";
-import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from "../../entity/dbTransaction";
+import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";
 
 const Csec2day = 60 * 60 * 24;

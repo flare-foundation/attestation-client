@@ -1,9 +1,9 @@
 import assert from "assert";
 import BN from "bn.js";
 import { toBN } from "flare-mcc";
-import { DBVotingRoundResult } from "../entity/dbVotingRoundResult";
+import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger } from "../utils/logger";
+import { AttLogger, logException } from "../utils/logger";
 import { MerkleTree, singleHash } from "../utils/MerkleTree";
 import { getCryptoSafeRandom, toHex } from "../utils/utils";
 import { Attestation, AttestationStatus } from "./Attestation";
@@ -249,7 +249,12 @@ export class AttestationRound {
     }
 
     // save to DB
-    AttestationRoundManager.dbService.manager.save(dbVoteResults);
+    try {
+       AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
+    }
+    catch( error ) {
+      logException( error , `AttestationRound::commit save DB` );
+    }
 
     const time1 = getTimeMilli();
 

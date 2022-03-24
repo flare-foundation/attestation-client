@@ -30,9 +30,10 @@
 
 import { ChainType, IBlock, MCC } from "flare-mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
-import { DBBlockBase } from "../entity/dbBlock";
-import { DBState } from "../entity/dbState";
-import { DBTransactionBase } from "../entity/dbTransaction";
+import { DBBlockBase } from "../entity/indexer/dbBlock";
+import { DBState } from "../entity/indexer/dbState";
+import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
@@ -41,14 +42,13 @@ import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/uti
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
 import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
-import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration } from "./IndexerConfiguration";
+import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { Interlacing } from "./interlacing";
 
 var yargs = require("yargs");
 
 const args = yargs
-  .option("config", { alias: "c", type: "string", description: "Path to config json file", default: "./configs/config-indexer.json", demand: false })
-  .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
+.option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
   .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
 
 class PreparedBlock {
@@ -64,6 +64,7 @@ class PreparedBlock {
 export class Indexer {
   config: IndexerConfiguration;
   chainConfig: IndexerChainConfiguration;
+  credentials: IndexerCredentials;
   chainType: ChainType;
   cachedClient: CachedMccClient<any, any>;
   logger!: AttLogger;
@@ -98,14 +99,15 @@ export class Indexer {
 
   interlace = new Interlacing();
 
-  constructor(config: IndexerConfiguration, chainName: string) {
+  constructor(config: IndexerConfiguration, credentials: IndexerCredentials, chainName: string) {
     this.config = config;
+    this.credentials = credentials;
     this.chainType = MCC.getChainType(chainName);
     this.chainConfig = config.chains.find((el) => el.name === chainName)!;
 
     this.logger = getGlobalLogger(chainName);
 
-    this.dbService = new DatabaseService(this.logger);
+    this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
 
     // todo: setup options from config
     let cachedMccClientOptions: CachedMccClientOptions = {
@@ -706,10 +708,10 @@ async function runIndexer() {
   // console.log(testRes);
 
   // Reading configuration
-  const fs = require("fs");
-  const config: IndexerConfiguration = JSON.parse(fs.readFileSync((args as any).config).toString()) as IndexerConfiguration;
+  const config = readConfig<IndexerConfiguration>( "indexer" );
+  const credentials = readCredentials<IndexerCredentials>("indexer");
 
-  const indexer = new Indexer(config, args["chain"]);
+  const indexer = new Indexer(config, credentials, args["chain"]);
 
   //displayStats();
 

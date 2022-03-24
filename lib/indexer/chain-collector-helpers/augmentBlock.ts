@@ -1,5 +1,5 @@
 import { AlgoBlock, UtxoBlock } from "flare-mcc";
-import { DBBlockBase } from "../../entity/dbBlock";
+import { DBBlockBase } from "../../entity/indexer/dbBlock";
 
 
 export async function augmentBlock( block: any): Promise<DBBlockBase> {

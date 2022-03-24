@@ -2,35 +2,57 @@ import { Connection, createConnection } from "typeorm";
 import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";
 
+export class DatabaseConnectOptions {
+    type: string;
+
+    host: string;
+    port: number;
+    database: string;
+    username: string;
+    password: string;
+
+}
+
 export class DatabaseService {
 
     private logger!: AttLogger;
 
     _connection!: Connection;
 
-    public constructor(logger: AttLogger) {
+    private name: string;
+
+    private options: DatabaseConnectOptions;
+
+    public constructor(logger: AttLogger, options: DatabaseConnectOptions, database: string="") {
         this.logger = logger;
+
+        this.name = database;
+
+        this.options = options;
 
         this.connect()
     }
 
     private async connect() {
-        this.logger.info(`Connecting to database at ${process.env.DB_HOST} on port ${parseInt(process.env.DB_HOST_PORT!, 10)} as ${process.env.DB_HOST_USER}`)
         // Typeorm/ES6/Typescript issue with importing modules
+        let path = this.name;
+        if( path!== "" ) path+="/";
         const entities = process.env.NODE_ENV === 'development'
-            ? "lib/entity/**/*.ts"
-            : "dist/lib/entity/**/*.js"
+            ? `lib/entity/${path}**/*.ts`
+            : `dist/lib/entity/${path}**/*.js`
 
         const migrations = process.env.NODE_ENV === 'development'
-            ? "lib/migration/*.ts"
-            : "dist/lib/migration/*.js"
+            ? `lib/migration/${this.name}*.ts`
+            : `dist/lib/migration/${this.name}*.js`
 
+        this.logger.info(`^Yconnecting to database ^g^K${this.name}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`);
+        this.logger.debug2( `entity: ${entities}` );
 
         let type: "mysql" | "mariadb" | "postgres" | "cockroachdb" | "sqlite" | "mssql" | "sap" | "oracle" | "cordova" | "nativescript" | "react-native" | "sqljs" | "mongodb" | "aurora-data-api" | "aurora-data-api-pg" | "expo" | "better-sqlite3" | "capacitor";
 
         type = "mysql";
 
-        switch (process.env.DB_HOST_TYPE) {
+        switch (this.options.type) {
             case "mysql": type = "mysql"; break;
             case "postgres": type = "postgres"; break;
             case "sqlite": type = "sqlite"; break;
@@ -40,8 +62,9 @@ export class DatabaseService {
 
         if (type === "sqlite") {
             options = {
+                name: this.name,
                 type: type,
-                database: process.env.DB_HOST_DATABASE!,
+                database: this.options.database!,
                 entities: [entities],
                 migrations: [migrations],
                 synchronize: true,
@@ -51,12 +74,13 @@ export class DatabaseService {
         }
         else {
             options = {
+                name: this.name,
                 type: type,
-                host: process.env.DB_HOST,
-                port: parseInt(process.env.DB_HOST_PORT!, 10),
-                username: process.env.DB_HOST_USER,
-                password: process.env.DB_HOST_PASSWORD,
-                database: process.env.DB_HOST_DATABASE,
+                host: this.options.host,
+                port: this.options.port,
+                username: this.options.username,
+                password: this.options.password,
+                database: this.options.database,
                 entities: [entities],
                 migrations: [migrations],
                 synchronize: true,
@@ -66,7 +90,7 @@ export class DatabaseService {
         }
 
         createConnection(options).then(async conn => {
-            this.logger.info(`Connected to database at ${process.env.DB_HOST} on port ${parseInt(process.env.DB_HOST_PORT!, 10)} as ${process.env.DB_HOST_USER}`);
+            this.logger.info(`^Gconnected to database ^g^K${this.name}^^`);
             this._connection = await conn
             return
         }).catch(async e => {
@@ -83,13 +107,13 @@ export class DatabaseService {
 
     public get manager() {
         if (this._connection) return this._connection.manager
-        throw Error("No database connection")
+        throw Error(`no database connection ${this.name}`)
     }
 
     async waitForDBConnection() {
         while (true) {
             if (!this.connection) {
-                this.logger.info("Waiting for DB connection");
+                this.logger.debug(`waiting for database connection ^b^K${this.name}^^`);
                 await sleepms(1000);
                 continue;
             }            

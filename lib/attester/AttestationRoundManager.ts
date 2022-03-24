@@ -4,11 +4,10 @@ import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
-import { round } from "../utils/utils";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
-import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
+import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager } from "./DynamicAttestationConfig";
 
@@ -18,16 +17,19 @@ export class AttestationRoundManager {
   static epochSettings: EpochSettings;
   static chainManager: ChainManager;
   static attestationConfigManager: AttestationConfigManager;
-  static dbService: DatabaseService;
+  static dbServiceIndexer: DatabaseService;
+  static dbServiceAttester: DatabaseService;
 
   static activeEpochId: number;
 
   rounds = new Map<number, AttestationRound>();
-  config!: AttesterClientConfiguration;
+  config: AttesterClientConfiguration;
+  static credentials: AttesterCredentials;
   attesterWeb3: AttesterWeb3;
 
-  constructor(chainManager: ChainManager, config: AttesterClientConfiguration, logger: AttLogger, attesterWeb3: AttesterWeb3) {
+  constructor(chainManager: ChainManager, config: AttesterClientConfiguration, credentials: AttesterCredentials, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.config = config;
+    AttestationRoundManager.credentials=credentials;
     this.logger = logger;
     this.attesterWeb3 = attesterWeb3;
 
@@ -40,9 +42,12 @@ export class AttestationRoundManager {
 
   async initialize() {
     await AttestationRoundManager.attestationConfigManager.initialize();
-    AttestationRoundManager.dbService = new DatabaseService(this.logger);
 
-    await AttestationRoundManager.dbService.waitForDBConnection();
+    AttestationRoundManager.dbServiceIndexer = new DatabaseService(this.logger, AttestationRoundManager.credentials.indexerDatabase, "indexer");
+    await AttestationRoundManager.dbServiceIndexer.waitForDBConnection();
+
+    AttestationRoundManager.dbServiceAttester = new DatabaseService(this.logger, AttestationRoundManager.credentials.attesterDatabase, "attester");
+    await AttestationRoundManager.dbServiceAttester.waitForDBConnection();
   }
 
   async attestate(tx: AttestationData) {
@@ -74,9 +79,9 @@ export class AttestationRoundManager {
           //bar1.stop()
         }
         //bar1.update(now - epochTimeStart);
-        getGlobalLogger().debug( `^G${90-(now - epochTimeStart)/1000} ETA` );
+        getGlobalLogger().debug(`^G${90 - (now - epochTimeStart) / 1000} ETA`);
       }, 5000)
-     
+
 
       // setup commit, reveal and completed callbacks
       this.logger.warning(`round ${epochId} collect epoch [0]`);

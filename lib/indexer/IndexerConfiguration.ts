@@ -1,11 +1,12 @@
 import { MccCreate, RateLimitOptions } from "flare-mcc";
+import { DatabaseConnectOptions } from "../utils/databaseService";
 
 export class IndexerClientChain {
   public name!: string;
 
   public mccCreate: MccCreate
   public rateLimitOptions: RateLimitOptions;
-  
+
   public numberOfConfirmations: number = 6;
 
   public syncReadAhead: number = 30;
@@ -25,4 +26,9 @@ export class IndexerConfiguration {
   public syncUpdateTimeMs: number = 10000;
 
   public chains: IndexerClientChain[] = [];
+}
+
+export class IndexerCredentials {
+  indexerDatabase: DatabaseConnectOptions;
+
 }

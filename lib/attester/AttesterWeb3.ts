@@ -2,27 +2,29 @@ import BN from "bn.js";
 import Web3 from "web3";
 import { Logger } from "winston";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
+import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { getWeb3, getWeb3Contract, toHex } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 
 export class AttesterWeb3 {
-  conf: AttesterClientConfiguration;
+  config: AttesterClientConfiguration;
+  credentials: AttesterCredentials;
   logger: Logger;
 
   web3!: Web3;
   stateConnector!: StateConnector;
   web3Functions!: Web3Functions;
 
-  constructor(logger: Logger, configuration: AttesterClientConfiguration) {
+  constructor(logger: Logger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
     this.logger = logger;
-    this.conf = configuration;
-    this.web3 = getWeb3(this.conf.rpcUrl) as Web3;
-    this.web3Functions = new Web3Functions(this.logger, this.web3, this.conf.accountPrivateKey);
+    this.config = configuration;
+    this.credentials=credentials;
+    this.web3 = getWeb3(credentials.web.rpcUrl) as Web3;
+    this.web3Functions = new Web3Functions(this.logger, this.web3, this.credentials.web.accountPrivateKey);
   }
 
   async initialize() {
-    this.stateConnector = await getWeb3Contract(this.web3, this.conf.stateConnectorContractAddress, "StateConnector");
+    this.stateConnector = await getWeb3Contract(this.web3, this.credentials.web.stateConnectorContractAddress, "StateConnector");
   }
 
   async submitAttestation(action: string, bufferNumber: BN, maskedMerkleHash: string, committedRandom: string, revealedRandom: string) {

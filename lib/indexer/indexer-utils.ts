@@ -5,14 +5,14 @@ import {
    DBBlockDOGE,
    DBBlockLTC,
    DBBlockXRP
-} from "../entity/dbBlock";
+} from "../entity/indexer/dbBlock";
 import {
    DBTransactionALGO0, DBTransactionALGO1,
    DBTransactionBTC0, DBTransactionBTC1,
    DBTransactionDOGE0, DBTransactionDOGE1,
    DBTransactionLTC0, DBTransactionLTC1,
    DBTransactionXRP0, DBTransactionXRP1
-} from "../entity/dbTransaction";
+} from "../entity/indexer/dbTransaction";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 

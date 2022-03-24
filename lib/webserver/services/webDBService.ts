@@ -1,5 +1,5 @@
 import { Factory, Singleton } from "typescript-ioc";
-import { DatabaseService } from "../../utils/databaseService";
+import { DatabaseConnectOptions, DatabaseService } from "../../utils/databaseService";
 import { getGlobalLogger } from "../../utils/logger";
 
 @Singleton
@@ -9,7 +9,8 @@ export class WebDatabaseService {
    dbService: DatabaseService;
 
    constructor() {
-      this.dbService = new DatabaseService(getGlobalLogger("web"));
+      const databaseOptions: DatabaseConnectOptions=null; // ???
+      this.dbService = new DatabaseService(getGlobalLogger("web"), databaseOptions, "indexer");
    }
 
    public get connection() {

@@ -1,6 +1,6 @@
 import { prefix0x, toBN } from "flare-mcc";
 import Web3 from "web3";
-import { DBTransactionBase } from "../../entity/dbTransaction";
+import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
 import { ARReferencedPaymentNonexistence } from "../../verification/generated/attestation-request-types";

@@ -3,35 +3,37 @@ import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
-import { AttLogger, getGlobalLogger as getGlobalLogger, logException } from "../utils/logger";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { SourceId } from "../verification/sources/sources";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
+import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 
 export class AttesterClient {
-  conf: AttesterClientConfiguration;
+  config: AttesterClientConfiguration;
+  credentials: AttesterCredentials;
   logger: AttLogger;
   roundMng: AttestationRoundManager;
   attesterWeb3: AttesterWeb3;
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
 
-  constructor(configuration: AttesterClientConfiguration, logger?: AttLogger) {
+  constructor(configuration: AttesterClientConfiguration, credentials: AttesterCredentials, logger?: AttLogger) {
     if (logger) {
       this.logger = logger;
     } else {
       this.logger = getGlobalLogger();
     }
 
-    this.conf = configuration;
+    this.config = configuration;
+    this.credentials = credentials;
     this.chainManager = new ChainManager(this.logger);
-    this.attesterWeb3 = new AttesterWeb3(this.logger, this.conf);
-    this.roundMng = new AttestationRoundManager(this.chainManager, this.conf, this.logger, this.attesterWeb3);
+    this.attesterWeb3 = new AttesterWeb3(this.logger, this.config, this.credentials);
+    this.roundMng = new AttestationRoundManager(this.chainManager, this.config, this.credentials, this.logger, this.attesterWeb3);
   }
 
   async start() {
@@ -59,15 +61,15 @@ export class AttesterClient {
       this.logger.info(`chains initialize`);
       await this.initializeChains();
 
-      if (this.conf.simulation) {
+      if (this.config.simulation) {
         this.startSimulation();
       }
 
       // connect to network block callback
       this.blockCollector = new Web3BlockCollector(
         this.logger,
-        this.conf.rpcUrl,
-        this.conf.stateConnectorContractAddress,
+        this.credentials.web.rpcUrl,
+        this.credentials.web.stateConnectorContractAddress,
         "StateConnector",
         undefined,
         (event: any) => {
@@ -78,7 +80,7 @@ export class AttesterClient {
       //this.startDisplay();
     }
     catch (error) {
-      logException(error,`start error: `);
+      logException(error, `start error: `);
     }
   }
 
@@ -146,16 +148,16 @@ export class AttesterClient {
 
     if (process.env.PROJECT_SECRET === undefined) {
       this.logger.info(`account read from .env`);
-      accountPrivateKey = this.conf.accountPrivateKey as string;
+      accountPrivateKey = this.credentials.web.accountPrivateKey as string;
     } else if (process.env.USE_GCP_SECRET) {
       this.logger.info(`^Raccount read from secret`);
       accountPrivateKey = (await fetchSecret(process.env.PROJECT_SECRET as string)) as string;
     } else {
       this.logger.info(`^Gaccount read from config`);
-      accountPrivateKey = this.conf.accountPrivateKey as string;
+      accountPrivateKey = this.credentials.web.accountPrivateKey as string;
     }
 
-    this.logger.info(`network RPC URL from conf '${this.conf.rpcUrl}'`);
+    this.logger.info(`network RPC URL from conf '${this.credentials.web.rpcUrl}'`);
 
     if (accountPrivateKey === "" || accountPrivateKey === undefined) {
       this.logger.error(`private key not set`);
@@ -165,7 +167,7 @@ export class AttesterClient {
   async initializeChains() {
     this.logger.info("initializing chains");
 
-    for (const chain of this.conf.chains) {
+    for (const chain of this.config.chains) {
       const chainType = MCC.getChainType(chain.name);
 
       if (chainType === ChainType.invalid) {
@@ -173,7 +175,7 @@ export class AttesterClient {
         continue;
       }
 
-      const node = new ChainNode(this.chainManager, chain.name, chainType, chain.metaData, chain);
+      const node = new ChainNode(this.chainManager, chain.name, chainType, chain);
 
       this.logger.info(`chain ${chain.name}:#${chainType} '${chain.url}'`);
 

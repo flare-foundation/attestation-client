@@ -1,5 +1,5 @@
 import { Column, Entity, Index } from "typeorm";
-import { BaseEntity } from "./base/BaseEntity";
+import { BaseEntity } from "../base/BaseEntity";
 
 export class DBTransactionBase extends BaseEntity {
 

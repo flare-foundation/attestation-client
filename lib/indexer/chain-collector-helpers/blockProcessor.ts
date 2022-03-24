@@ -1,6 +1,6 @@
 import { AlgoBlock, AlgoTransaction, ChainType, DogeTransaction, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
-import { DBTransactionBase } from "../../entity/dbTransaction";
+import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { logException } from "../../utils/logger";
 import { retryMany } from "../../utils/PromiseTimeout";
 import { augmentBlock, augmentBlockAlgo, augmentBlockUtxo } from "./augmentBlock";

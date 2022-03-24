@@ -11,12 +11,12 @@
 // credentials
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
-import * as indexerConfig from "../../configs/config-indexer.json";
-import * as configAttestationClient from "../../configs/config.json";
+import * as indexerConfig from "../../configs/dev/indexer-config.json";
+import * as configAttestationClient from "../../configs/dev/attester-config.json";
 import { AttesterClientChain } from "../../lib/attester/AttesterClientChain";
 import { AttesterClientConfiguration } from "../../lib/attester/AttesterClientConfiguration";
-import { DBBlockBase } from "../../lib/entity/dbBlock";
-import { DBTransactionBase } from "../../lib/entity/dbTransaction";
+import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { RandomDBIterator } from "../../lib/indexed-query-manager/indexed-query-manager-utils";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";

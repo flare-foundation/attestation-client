@@ -1,6 +1,6 @@
 import { Controller, Get, Path, Route, Tags } from "tsoa";
 import { Factory, Inject, Singleton } from "typescript-ioc";
-import { DBVotingRoundResult } from "../../entity/dbVotingRoundResult";
+import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
 import { ProofEngine } from "../engines/proofEngine";
 import { ApiResponse, handleApiResponse } from "../models/ApiResponse";
 

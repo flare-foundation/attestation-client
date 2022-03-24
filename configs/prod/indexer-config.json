@@ -11,14 +11,14 @@
             "name": "XRP",
             "mccCreate" : {
                 "url": "https://xrplcluster.com",
-                "url2": "http://34.91.7.3:51234/"
+                "url2": "http://34.91.7.3:51234"
             },
             "rateLimitOptions": {
                 "maxRPS": 30,
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationBlocks": 1,
+            "numberOfConfirmations": 1,
             "syncReadAhead":30,
             "blockCollecting":"raw",
             "interlaceTimeRange":2,
@@ -27,21 +27,16 @@
         {
             "name": "BTC",
             "mccCreate" : {
-                "url": "https://bitcoin.flare.network/",
-                "username": "flareadmin",
-                "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",                  
-
-                
-                "url2": "http://34.91.7.3:9332/",
-                "username2": "admin",
-                "password2": "admin"                  
+                "url": "http://34.91.7.3:9332",
+                "username": "admin",
+                "password": "changeitchangeitchangeitchangeitchangeitchangeitchangeitchangeit"               
             },
             "rateLimitOptions": {
                 "maxRPS": 20,
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationBlocks": 6,
+            "numberOfConfirmations": 6,
             "syncReadAhead":10,
             "blockCollecting":"tips",
             "interlaceTimeRange":2,
@@ -50,16 +45,16 @@
         {
             "name": "LTC",
             "mccCreate" : {
-                "url": "https://litecoin.flare.network/",
-                "username": "public",
-                "password": "gA4Yv3cnuXrIvP_7VIZjW1yliZ9GAclj1Td6tRITc6s="                
+                "url": "http://34.91.7.3:8332",
+                "username": "admin",
+                "password": "changeitchangeitchangeitchangeitchangeitchangeitchangeitchangeit"               
             },
             "rateLimitOptions": {
                 "maxRPS": 300,
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationBlocks": 6,
+            "numberOfConfirmations": 6,
             "syncReadAhead":30,
             "blockCollecting":"tips",
             "interlaceTimeRange":2,
@@ -69,12 +64,12 @@
             "name": "ALGO",
             "mccCreate": {
                 "algod": {
-                  "url": "http://testnode3.c.aflabs.net:4001/",
-                  "token": "7f90419ceab8fde42b2bd50c44ed21c0aefebc614f73b27619549f366b060a14"
+                  "url": "http://34.141.115.105:8080",
+                  "token": "61c3160e49501ee4195cb3e8a8af0e903d4551538589a3fbc23c10f24d665476"
                 },
                 "indexer": {
-                  "url": "http://testnode3.c.aflabs.net:8980/",
-                  "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddd"
+                  "url": "http://34.141.115.105:8980",
+                  "token": "61c3160e49501ee4195cb3e8a8af0e903d4551538589a3fbc23c10f24d665476"
                 }
             },
             "rateLimitOptions": {
@@ -82,7 +77,7 @@
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationBlocks": 3,
+            "numberOfConfirmations": 3,
             "syncReadAhead":30,
             "blockCollecting":"rawUnforkable",
             "interlaceTimeRange":2,
@@ -91,16 +86,16 @@
         {
             "name": "DOGE",
             "mccCreate" : {
-                "url": "http://34.91.7.3:8332/",
+                "url": "http://34.91.7.3:7332",
                 "username": "admin",
-                "password": "admin"                  
+                "password": "changeitchangeitchangeitchangeitchangeitchangeitchangeitchangeit"               
             },
             "rateLimitOptions": {
                 "maxRPS": 300,
                 "timeoutMs": 5000,
                 "retries": 3
             },
-            "confirmationBlocks": 6,
+            "numberOfConfirmations": 6,
             "syncReadAhead":30,
             "blockCollecting":"tips",
             "interlaceTimeRange":2,

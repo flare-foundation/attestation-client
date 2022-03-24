@@ -15,7 +15,7 @@ describe("Attester Basic Tests", () => {
       const chainManager = new ChainManager(getGlobalLogger());
 
       //const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, "http://s1.ripple.com:1151234/", "", "", "");
-      const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, "https://xrplcluster.com", new AttesterClientChain());
+      const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, new AttesterClientChain());
 
       assert(await chain.isHealthy());
 

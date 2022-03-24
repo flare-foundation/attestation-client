@@ -8,16 +8,14 @@ import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 
 const fs = require("fs");
 export class SourceHandlerTypeConfig {
-  avgCalls!: number;
+  weight!: number;
 }
 
 export class SourceHandlerConfig {
   attestationType!: AttestationType;
   source!: SourceId;
 
-  maxCallsPerRound!: number;
-
-  maxValidIndexerDelaySec!: number;
+  maxTotalRoundWeight!: number;
 
   numberOfConfirmations: number = 1;
 
@@ -117,12 +115,12 @@ export class AttestationConfigManager {
     config.startEpoch = fileConfig.startEpoch;
 
     // parse sources
-    fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; numberOfConfirmations: number; maxCallsPerRound: number }) => {
+    fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
       const sourceHandler = new SourceHandlerConfig();
 
       sourceHandler.source = toSourceId(source.source);
 
-      sourceHandler.maxCallsPerRound = source.maxCallsPerRound;
+      sourceHandler.maxTotalRoundWeight = source.maxTotalRoundWeight;
       sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
 
       config.sourceHandlers.set(sourceHandler.source, sourceHandler);
@@ -133,7 +131,7 @@ export class AttestationConfigManager {
 
         const attestationTypeHandler = new SourceHandlerTypeConfig();
 
-        attestationTypeHandler.avgCalls = attestationType.avgCalls;
+        attestationTypeHandler.weight = attestationType.weight;
 
         sourceHandler.attestationTypes.set(type, attestationTypeHandler);
       });

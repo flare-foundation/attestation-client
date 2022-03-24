@@ -1,8 +1,8 @@
 import { MccClient } from "flare-mcc";
-import { option } from "yargs";
-import { DBBlockBase } from "../entity/dbBlock";
-import { DBState } from "../entity/dbState";
-import { DBTransactionBase } from "../entity/dbTransaction";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
+import { DBBlockBase } from "../entity/indexer/dbBlock";
+import { DBState } from "../entity/indexer/dbState";
+import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 import { getGlobalLogger } from "../utils/logger";
@@ -28,7 +28,7 @@ export class IndexedQueryManager {
     if (options.dbService) {
       this.dbService = options.dbService;
     } else {
-      this.dbService = new DatabaseService(getGlobalLogger());
+      this.dbService = new DatabaseService(getGlobalLogger(), AttestationRoundManager.credentials.indexerDatabase, "indexer");
     }
     this.settings = options;
     this.prepareTables();

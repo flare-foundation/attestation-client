@@ -1,6 +1,6 @@
 import { ChainType } from "flare-mcc";
-import { DBBlockBase } from "../entity/dbBlock";
-import { DBTransactionBase } from "../entity/dbTransaction";
+import { DBBlockBase } from "../entity/indexer/dbBlock";
+import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 
 export interface IndexedQueryManagerOptions {

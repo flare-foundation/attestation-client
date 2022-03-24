@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import yargs from "yargs";
 import { AttesterClient } from "./attester/AttesterClient";
-import { AttesterClientConfiguration } from "./attester/AttesterClientConfiguration";
+import { AttesterClientConfiguration, AttesterCredentials } from "./attester/AttesterClientConfiguration";
 import { createLogger, getGlobalLogger } from "./utils/logger";
 
 // Args parsing
@@ -13,6 +13,8 @@ const args = yargs
     default: "./config.json",
     demand: false,
   })
+  .option("credentials", { alias: "cred", type: "string", description: "Path to credentials json file", default: "./attester-credentials.json", demand: false, })
+
   .option("multiconfig", {
     alias: "m",
     type: "string",
@@ -60,16 +62,17 @@ async function runMultiAttesterClients() {
 
   // Create and start Attester Client
   for (let c = 0; c < clients; c++) {
-    const conf: AttesterClientConfiguration = JSON.parse(fs.readFileSync((args as any).config).toString()) as AttesterClientConfiguration;
+    const config: AttesterClientConfiguration = JSON.parse(fs.readFileSync((args as any).config).toString()) as AttesterClientConfiguration;
+    const credentials: AttesterCredentials = JSON.parse(fs.readFileSync((args as any).credentials).toString()) as AttesterCredentials;
 
-    conf.commitTime = getRandomInt(multiconf.commitTimeRange[0], multiconf.commitTimeRange[1]);
-    conf.revealTime = getRandomInt(multiconf.revealTimeRange[0], multiconf.revealTimeRange[1]);
-    conf.rpcUrl = multiconf.rpcUrls[c % multiconf.rpcUrls.length];
-    conf.accountPrivateKey = privateKeys[multiconf.privateKeyFile1020Index + c].privateKey;
+    config.commitTime = getRandomInt(multiconf.commitTimeRange[0], multiconf.commitTimeRange[1]);
+    config.revealTime = getRandomInt(multiconf.revealTimeRange[0], multiconf.revealTimeRange[1]);
+    credentials.web.rpcUrl = multiconf.rpcUrls[c % multiconf.rpcUrls.length];
+    credentials.web.accountPrivateKey = privateKeys[multiconf.privateKeyFile1020Index + c].privateKey;
 
-    logger.error(`Starting Flare Attester Client #${c} ${conf.rpcUrl}`);
+    logger.error(`Starting Flare Attester Client #${c} ${credentials.web.rpcUrl}`);
 
-    const attesterClient = new AttesterClient(conf, createLogger(`multi${c}`));
+    const attesterClient = new AttesterClient(config, credentials, createLogger(`multi${c}`));
     attesterClient.start();
   }
 }

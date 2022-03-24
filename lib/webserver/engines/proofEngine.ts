@@ -1,5 +1,5 @@
 import { Factory, Inject, Singleton } from "typescript-ioc";
-import { DBVotingRoundResult } from "../../entity/dbVotingRoundResult";
+import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
 import { WebDatabaseService } from "../services/webDBService";
 
 @Singleton

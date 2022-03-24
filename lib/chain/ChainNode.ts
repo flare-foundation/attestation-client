@@ -39,7 +39,7 @@ export class ChainNode {
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
-  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, metadata: string, chainConfiguration: AttesterClientChain) {
+  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, chainConfiguration: AttesterClientChain) {
     this.chainName = chainName;
     this.chainType = chainType;
     this.chainManager = chainManager;
@@ -90,7 +90,7 @@ export class ChainNode {
 
     let options: IndexedQueryManagerOptions = {
       chainType: chainType,
-      dbService: AttestationRoundManager.dbService,
+      dbService: AttestationRoundManager.dbServiceIndexer,
       numberOfConfirmations: chainConfiguration.numberOfConfirmations,
       maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec, 
       // todo: return epochStartTime - query window length, add query window length into DAC
@@ -355,7 +355,7 @@ export class ChainNode {
   ////////////////////////////////////////////
 
   validate(transaction: Attestation) {
-    this.chainManager.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
+    //this.chainManager.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
     // check if transaction can be added into processing
     if (this.canProcess()) {

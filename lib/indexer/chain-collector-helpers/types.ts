@@ -1,6 +1,6 @@
 import { IIGetBlockRes, IIGetTransactionRes, ReadRpcInterface } from "flare-mcc";
-import { DBBlockBase } from "../../entity/dbBlock";
-import { DBTransactionBase } from "../../entity/dbTransaction";
+import { DBBlockBase } from "../../entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 
 // TODO this is temp
 

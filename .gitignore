@@ -60,3 +60,5 @@ typechain-truffle
 # local configs
 # .indexer.remote.dev.read.env
 # .indexer.remote.dev.write.env
+
+flattened/

@@ -1,6 +1,7 @@
 import { Controller, Get, Path, Route, Tags } from "tsoa";
 import { Factory, Inject, Singleton } from "typescript-ioc";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
+import { VotingRoundResult } from "../dto/VotingRoundResult";
 import { ProofEngine } from "../engines/proofEngine";
 import { ApiResponse, handleApiResponse } from "../models/ApiResponse";
 
@@ -38,7 +39,7 @@ export class ProofController extends Controller {
     @Get("votes-for-round/{roundId}")
     public async lastReveals(
         @Path() roundId: number,
-    ): Promise<ApiResponse<DBVotingRoundResult[]>> {
+    ): Promise<ApiResponse<VotingRoundResult[]>> {
         return handleApiResponse(
             this.proofEngine.getProofForRound(roundId)
         )

@@ -123,7 +123,10 @@ class AttestationSpammer {
   indexedQueryManager: IndexedQueryManager;
   definitions: AttestationTypeScheme[];
 
-  numberOfConfirmations = 6;
+  get numberOfConfirmations() : number {
+    return AttestationRoundManager.getSourceHandlerConfig(getSourceName(this.chainType)).numberOfConfirmations;;
+  }
+
   BUFFER_TIMESTAMP_OFFSET: number = 0;
   BUFFER_WINDOW: number = 1
 
@@ -143,14 +146,17 @@ class AttestationSpammer {
     // Reading configuration
     this.configIndexer = readConfig<IndexerConfiguration>("indexer");
     this.configAttestationClient = readConfig<AttesterClientConfiguration>( "attester" );
-    AttestationRoundManager.credentials = readCredentials<AttesterCredentials>( "attester" );
+
+    const DAC = new AttestationRoundManager( null , this.configAttestationClient , readCredentials<AttesterCredentials>( "attester" ) , getGlobalLogger() , null );
+    DAC.initialize();
 
     let chainName = getSourceName(this.chainType);
 
     this.chainAttestationConfig = this.configAttestationClient.chains.find(chain => chain.name === chainName);
     this.chainIndexerConfig = this.configIndexer.chains.find(chain => chain.name === chainName);
 
-    this.numberOfConfirmations = this.chainAttestationConfig.numberOfConfirmations;
+    // todo: this should be done every time
+    //this.numberOfConfirmations = ()=>{return AttestationRoundManager.getSourceHandlerConfig(chainName).numberOfConfirmations;}
     //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
     this.client = initFrom
@@ -172,7 +178,7 @@ class AttestationSpammer {
     } else {
       const options: IndexedQueryManagerOptions = {
         chainType: this.chainType,
-        numberOfConfirmations: this.chainIndexerConfig.numberOfConfirmations,
+        numberOfConfirmations: ()=>{return this.numberOfConfirmations;},
         maxValidIndexerDelaySec: this.chainAttestationConfig.maxValidIndexerDelaySec,
         windowStartTime: (roundId: number) => {
           // todo: read this from DAC

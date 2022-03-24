@@ -74,7 +74,7 @@ export class IndexedQueryManager {
       }
     }
     return {
-      height: this.debugLastConfirmedBlock + this.settings.numberOfConfirmations,
+      height: this.debugLastConfirmedBlock + this.settings.numberOfConfirmations(),
       timestamp: getUnixEpochTimestamp()
     }
   }

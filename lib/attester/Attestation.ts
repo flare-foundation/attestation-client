@@ -1,9 +1,9 @@
 //
 // [x] split database to indexer and attester
-// [ ] all settings from .env to config
+// [x] all settings from .env to config
 // [x] rename config.json tp config-attester.json
 // [x] config.json chain metadata is redundant - delete and check
-// [ ] config.json numberOfConfigurations are to be used from DAC
+// [ ] config.json numberOfConfirmations are to be used from DAC
 // [x] move config.json queryWindowSec to DAC
 // [x] credential config (with database and network credentials)
 // [ ] add another table for ALL attesttaion request
@@ -19,6 +19,7 @@
 // [x] .env only config pack folder  CONFIG_PATH
 // [ ] create json files dynamic checker (with tsc)
 // [ ] reverification buf in verification (too often) local not updated DB 
+// [ ] handling system_failure blocks
 
 // deployments
 // - spammer

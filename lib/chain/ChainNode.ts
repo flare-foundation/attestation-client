@@ -91,8 +91,12 @@ export class ChainNode {
     let options: IndexedQueryManagerOptions = {
       chainType: chainType,
       dbService: AttestationRoundManager.dbServiceIndexer,
-      numberOfConfirmations: chainConfiguration.numberOfConfirmations,
       maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec,
+
+      numberOfConfirmations: () => {
+        return AttestationRoundManager.getSourceHandlerConfig(chainConfiguration.name).numberOfConfirmations;
+      },
+
 
       windowStartTime: (roundId: number) => {
         let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);

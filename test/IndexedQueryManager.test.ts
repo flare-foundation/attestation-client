@@ -56,7 +56,7 @@ describe("Indexed query manager", () => {
       NUMBER_OF_CONFIRMATIONS = chainConfiguration.numberOfConfirmations
       const options: IndexedQueryManagerOptions = {
          chainType: SOURCE_ID as any as ChainType,
-         numberOfConfirmations: NUMBER_OF_CONFIRMATIONS,
+         numberOfConfirmations: ()=>{return NUMBER_OF_CONFIRMATIONS},
          maxValidIndexerDelaySec: 10,
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (roundId: number) => { return startTime; }

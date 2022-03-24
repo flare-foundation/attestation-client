@@ -25,7 +25,7 @@
             "maxFailedRetry": 1,
             "delayBeforeRetry": 10,
 
-            "numberOfConfirmations": 1
+            "maxValidIndexerDelaySec": 10
         },
         {
             "name": "BTC",
@@ -39,7 +39,7 @@
             "clientTimeout": 5000,
             "clientRetries": 3,
 
-            "numberOfConfirmations": 6
+            "maxValidIndexerDelaySec": 10
         },
         {
             "name": "LTC",
@@ -53,7 +53,7 @@
             "clientTimeout": 5000,
             "clientRetries": 3,
 
-            "numberOfConfirmations": 6
+            "maxValidIndexerDelaySec": 10
         }
     ]
 }

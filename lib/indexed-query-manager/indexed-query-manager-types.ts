@@ -6,7 +6,7 @@ import { DatabaseService } from "../utils/databaseService";
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
   dbService?: DatabaseService;
-  numberOfConfirmations: number;
+  numberOfConfirmations: ()=> number;
   maxValidIndexerDelaySec: number;
   // return windows start time from current epochId
   windowStartTime: (roundId: number) => number;

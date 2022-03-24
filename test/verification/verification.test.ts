@@ -40,8 +40,6 @@ const TOP_UP_THRESHOLD = 0.25;
 const HISTORY_WINDOW = 5 * MINUTES;
 let NUMBER_OF_CONFIRMATIONS = 6
 
-
-
 console.warn(`This test should run while ${getSourceName(SOURCE_ID)} indexer is running`)
 // Overriding .env variables for this particular test only
 console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
@@ -73,11 +71,11 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
       let attesterClientChainConfiguration = attesterClientConfiguration.chains.find(chain => chain.name === chainName) as AttesterClientChain;
 
-      NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
+      //NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
 
       const options: IndexedQueryManagerOptions = {
          chainType: SOURCE_ID as any as ChainType,
-         numberOfConfirmations: indexerChainConfiguration.numberOfConfirmations,
+         numberOfConfirmations: ()=>{return indexerChainConfiguration.numberOfConfirmations;},
          maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (roundId: number) => { return startTime; }

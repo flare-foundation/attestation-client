@@ -4,12 +4,14 @@ import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { round } from "../utils/utils";
+import { toSourceId } from "../verification/sources/sources";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { AttestationConfigManager } from "./DynamicAttestationConfig";
+import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestationConfig";
 
 const cliProgress = require('cli-progress');
 export class AttestationRoundManager {
@@ -29,7 +31,7 @@ export class AttestationRoundManager {
 
   constructor(chainManager: ChainManager, config: AttesterClientConfiguration, credentials: AttesterCredentials, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.config = config;
-    AttestationRoundManager.credentials=credentials;
+    AttestationRoundManager.credentials = credentials;
     this.logger = logger;
     this.attesterWeb3 = attesterWeb3;
 
@@ -48,6 +50,9 @@ export class AttestationRoundManager {
 
     AttestationRoundManager.dbServiceAttester = new DatabaseService(this.logger, AttestationRoundManager.credentials.attesterDatabase, "attester");
     await AttestationRoundManager.dbServiceAttester.waitForDBConnection();
+  }
+  static getSourceHandlerConfig(name: string): SourceHandlerConfig {
+    return AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), AttestationRoundManager.activeEpochId);
   }
 
   async attestate(tx: AttestationData) {
@@ -149,46 +154,11 @@ export class AttestationRoundManager {
     }
   }
 
-  createSimulationAttestation(round: AttestationRound, data: AttestationData): Attestation {
-    return new Attestation(round, data, (attestation: Attestation) => {
-      // set status as valid
-      attestation.status = AttestationStatus.valid;
-      attestation.verificationData = null;
-
-      // callback to flag attestation processed
-      attestation.onProcessed!(attestation);
-    });
-  }
-
   async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
     // create attestation depending on attestation type
-
-    // Simulation
-    if (this.config.simulation) {
-      return this.createSimulationAttestation(round, data);
-    }
-
     return new Attestation(round, data, (attestation: Attestation) => {
       // chain node validation
       AttestationRoundManager.chainManager.validateTransaction(data.sourceId, attestation);
     });
-
-    // // processing
-    // switch (data.type) {
-    //   case AttestationType.Payment: {
-    //     return new Attestation(round, data, (attestation: Attestation) => {
-    //       // chain node validation
-    //       AttestationRoundManager.chainManager.validateTransaction(data.source, attestation);
-    //     });
-    //   }
-    //   // case AttestationType.BalanceDecreasingPayment:
-    //   //   // todo: implement balance change check
-    //   //   this.logger.error(`  ! '${data.type}': unimplemented AttestationType BalanceDecreasingProof`);
-    //   //   return undefined;
-    //   default: {
-    //     this.logger.error(`  ! '${data.type}': undefined AttestationType (epoch #${round.roundId})`);
-    //     return undefined;
-    //   }
-    // }
   }
 }

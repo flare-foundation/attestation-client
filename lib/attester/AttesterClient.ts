@@ -61,10 +61,6 @@ export class AttesterClient {
       this.logger.info(`chains initialize`);
       await this.initializeChains();
 
-      if (this.config.simulation) {
-        this.startSimulation();
-      }
-
       // connect to network block callback
       this.blockCollector = new Web3BlockCollector(
         this.logger,
@@ -81,27 +77,6 @@ export class AttesterClient {
     }
     catch (error) {
       logException(error, `start error: `);
-    }
-  }
-
-  async startSimulation() {
-    while (true) {
-
-      const attestation = new AttestationData(null);
-
-      attestation.timeStamp = toBN(getUnixEpochTimestamp());
-      attestation.request = (await getRandom()).toString();
-
-      attestation.type = AttestationType.Payment;
-      attestation.sourceId = ChainType.BTC as any as SourceId;
-
-      // for sorting
-      attestation.blockNumber = toBN(await getRandom());
-      attestation.logIndex = await getRandom();
-
-      this.roundMng.attestate(attestation);
-
-      await sleepms(5000);
     }
   }
 

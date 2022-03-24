@@ -4,6 +4,7 @@ import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
+import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
@@ -91,8 +92,12 @@ export class ChainNode {
     let options: IndexedQueryManagerOptions = {
       chainType: chainType,
       dbService: AttestationRoundManager.dbServiceIndexer,
-      numberOfConfirmations: chainConfiguration.numberOfConfirmations,
       maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec,
+
+      numberOfConfirmations: () => {
+        return AttestationRoundManager.getSourceHandlerConfig(chainConfiguration.name).numberOfConfirmations;
+      },
+
 
       windowStartTime: (roundId: number) => {
         let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
@@ -281,39 +286,6 @@ export class ChainNode {
           this.processed(attestation, AttestationStatus.invalid);
         }
       });
-
-
-
-
-    // verifyTransactionAttestation(this.client, attReq, { testFailProbability: testFail })
-    //   .then((txData: ChainVerification) => {
-    //     tx.processEndTime = getTimeMilli();
-    //     if (txData.verificationStatus === VerificationStatus.RECHECK_LATER) {
-    //       this.chainManager.logger.warning(` * reverification`);
-
-    //       tx.reverification = true;
-
-    //       // delay until end of commit epoch
-    //       const timeDelay = (AttestationRoundManager.epochSettings.getEpochIdCommitTimeEnd(tx.epochId) - getTimeMilli()) / 1000;
-
-    //       this.delayQueue(tx, timeDelay - this.conf.reverificationTimeOffset);
-    //     } else {
-    //       this.processed(tx, txData.verificationStatus === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, txData);
-    //     }
-    //   })
-    //   .catch((txData: ChainVerification) => {
-    //     tx.processEndTime = getTimeMilli();
-    //     if (tx.retry < this.conf.maxFailedRetry) {
-    //       this.chainManager.logger.warning(`  * transaction verification error (retry ${tx.retry})`);
-
-    //       tx.retry++;
-
-    //       this.delayQueue(tx, this.conf.delayBeforeRetry);
-    //     } else {
-    //       this.chainManager.logger.error(`  * transaction verification error`);
-    //       this.processed(tx, AttestationStatus.invalid);
-    //     }
-    //   });
   }
 
   ////////////////////////////////////////////

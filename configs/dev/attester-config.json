@@ -23,9 +23,7 @@
             "clientRetries": 3,
           
             "maxFailedRetry": 1,
-            "delayBeforeRetry": 10,
-
-            "numberOfConfirmations": 1,
+            "delayBeforeRetry": 10
         },
         {
             "name": "BTC",
@@ -37,9 +35,7 @@
             "maxProcessingTransactions":3000,
 
             "clientTimeout": 5000,
-            "clientRetries": 3,
-
-            "numberOfConfirmations": 6,
+            "clientRetries": 3
         },
         {
             "name": "LTC",
@@ -51,9 +47,7 @@
             "maxProcessingTransactions":3000,
 
             "clientTimeout": 5000,
-            "clientRetries": 3,
-
-            "numberOfConfirmations": 6,
+            "clientRetries": 3
         }
     ]
 }

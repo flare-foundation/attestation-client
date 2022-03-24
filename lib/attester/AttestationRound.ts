@@ -1,6 +1,7 @@
 import assert from "assert";
 import BN from "bn.js";
 import { toBN } from "flare-mcc";
+import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, logException } from "../utils/logger";
@@ -192,6 +193,29 @@ export class AttestationRound {
       this.status === AttestationRoundEpoch.commit;
   }
 
+
+  prepareDBAttestationRequest(att: Attestation): DBAttestationRequest {
+    const db = new DBAttestationRequest();
+
+    db.roundId = att.roundId;
+    db.blockNumber = att.data.blockNumber.toString();
+    db.logIndex = att.data.logIndex;
+
+    //db.requestBytes = 
+    //db.request = 
+
+    //db.verificationStatus = 
+
+    db.request = JSON.stringify(att.verificationData?.request ? att.verificationData.request : "");
+    db.response = JSON.stringify(att.verificationData?.response ? att.verificationData.response : "");
+
+    //db.response = 
+    //db.exceptionError = 
+    //db.hashData = 
+
+    return db;
+  }
+
   async commit() {
     console.log("COMMIT")
     if (this.status !== AttestationRoundEpoch.commit) {
@@ -206,6 +230,7 @@ export class AttestationRound {
     this.attestStatus = AttestationRoundStatus.commiting;
 
     // collect validat attestations
+    const dbAttesttaionRequests = [];
     const validated = new Array<Attestation>();
     for (const tx of this.attestations.values()) {
       if (tx.status === AttestationStatus.valid) {
@@ -213,6 +238,19 @@ export class AttestationRound {
       } else {
         console.log("INVALID:", tx.data.request)
       }
+
+      // prepare the attestation r
+      const dbAttestationRequest = new DBAttestationRequest();
+
+      dbAttesttaionRequests.push(this.prepareDBAttestationRequest(tx));
+    }
+
+    // save to DB
+    try {
+      AttestationRoundManager.dbServiceAttester.manager.save(dbAttesttaionRequests);
+    }
+    catch (error) {
+      logException(error, `AttestationRound::commit save DB`);
     }
 
     // check if there is any valid attestation
@@ -250,10 +288,10 @@ export class AttestationRound {
 
     // save to DB
     try {
-       AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
+      AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
     }
-    catch( error ) {
-      logException( error , `AttestationRound::commit save DB` );
+    catch (error) {
+      logException(error, `AttestationRound::commit save DB`);
     }
 
     const time1 = getTimeMilli();

@@ -2,8 +2,9 @@ import { logger } from "ethers";
 import { ChainType, MCC, MccClient, sleepMs } from "flare-mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttesterClientChain } from "../attester/AttesterClientChain";
-import { AttesterClientConfiguration, AttesterCredentials } from "../attester/AttesterClientConfiguration";
+import { AttesterClientConfiguration, AttesterCredentials, AttesterWebOptions } from "../attester/AttesterClientConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
@@ -11,6 +12,8 @@ import { RandomDBIterator } from "../indexed-query-manager/indexed-query-manager
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
+import { readConfig, readCredentials } from "../utils/config";
+import { DatabaseConnectOptions } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
 import { getTestStateConnectorAddress, getWeb3, getWeb3Contract } from "../utils/utils";
@@ -21,8 +24,6 @@ import { encodeRequest } from "../verification/generated/attestation-request-enc
 import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";
 import { getSourceName, SourceId } from "../verification/sources/sources";
-import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { readConfig, readCredentials } from "../utils/config";
 
 let fs = require("fs");
 
@@ -34,7 +35,7 @@ DotEnvExt();
 var yargs = require("yargs");
 
 let args = yargs
-  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "ALGO", })
+  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "XRP", })
   .option("credentials", { alias: "cred", type: "string", description: "Path to credentials json file", default: "./configs/spammer-credentials.json", demand: false, })
 
   .option("rpcLink", {
@@ -98,6 +99,11 @@ let args = yargs
   })
   .argv;
 
+
+class SpammerCredentials {
+  web : AttesterWebOptions;
+}
+
 class AttestationSpammer {
   chainType!: ChainType;
   client!: MccClient;
@@ -123,7 +129,10 @@ class AttestationSpammer {
   indexedQueryManager: IndexedQueryManager;
   definitions: AttestationTypeScheme[];
 
-  numberOfConfirmations = 6;
+  get numberOfConfirmations(): number {
+    return AttestationRoundManager.getSourceHandlerConfig(getSourceName(this.chainType)).numberOfConfirmations;;
+  }
+
   BUFFER_TIMESTAMP_OFFSET: number = 0;
   BUFFER_WINDOW: number = 1
 
@@ -135,22 +144,31 @@ class AttestationSpammer {
   randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   constructor(privateKey: string, initFrom?: AttestationSpammer, id: string = "default", logEvents = true) {
-    this.privateKey = privateKey;
+    //this.privateKey = privateKey;
+
     this.id = id;
     this.logEvents = logEvents;
     this.chainType = MCC.getChainType(args["chain"]);
 
     // Reading configuration
     this.configIndexer = readConfig<IndexerConfiguration>("indexer");
-    this.configAttestationClient = readConfig<AttesterClientConfiguration>( "attester" );
-    AttestationRoundManager.credentials = readCredentials<AttesterCredentials>( "attester" );
+    this.configAttestationClient = readConfig<AttesterClientConfiguration>("attester");
+    const attesterCredentials = readCredentials<AttesterCredentials>("attester");
+    const spammerCredentials = readCredentials<SpammerCredentials>("spammer");
+
+    const DAC = new AttestationRoundManager(null, this.configAttestationClient, attesterCredentials, getGlobalLogger(), null);
+    DAC.initialize();
+
+    this.rpcLink = spammerCredentials.web.rpcUrl;
+    this.privateKey = spammerCredentials.web.accountPrivateKey;
 
     let chainName = getSourceName(this.chainType);
 
     this.chainAttestationConfig = this.configAttestationClient.chains.find(chain => chain.name === chainName);
     this.chainIndexerConfig = this.configIndexer.chains.find(chain => chain.name === chainName);
 
-    this.numberOfConfirmations = this.chainAttestationConfig.numberOfConfirmations;
+    // todo: this should be done every time
+    //this.numberOfConfirmations = ()=>{return AttestationRoundManager.getSourceHandlerConfig(chainName).numberOfConfirmations;}
     //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
     this.client = initFrom
@@ -172,7 +190,7 @@ class AttestationSpammer {
     } else {
       const options: IndexedQueryManagerOptions = {
         chainType: this.chainType,
-        numberOfConfirmations: this.chainIndexerConfig.numberOfConfirmations,
+        numberOfConfirmations: () => { return this.numberOfConfirmations; },
         maxValidIndexerDelaySec: this.chainAttestationConfig.maxValidIndexerDelaySec,
         windowStartTime: (roundId: number) => {
           // todo: read this from DAC
@@ -183,7 +201,8 @@ class AttestationSpammer {
       this.indexedQueryManager = new IndexedQueryManager(options);
       this.logger = getGlobalLogger(args["loggerLabel"]);
       this.web3 = getWeb3(this.rpcLink) as Web3;
-      let stateConnectorAddresss = args["contractAddress"] || getTestStateConnectorAddress()
+      
+      let stateConnectorAddresss = spammerCredentials.web.stateConnectorContractAddress;
 
       this.logger.info(`RPC: ${this.rpcLink}`)
       this.logger.info(`Using state connector at: ${stateConnectorAddresss}`)

@@ -80,6 +80,9 @@ systemctl --user enable indexer-doge.service
 systemctl --user enable attester-spammer.service
 systemctl --user enable attester-client.service
 
+systemctl --user enable attester-backend.service
+
+
 ```
 
 ```
@@ -92,6 +95,7 @@ systemctl --user start indexer-doge.service
 systemctl --user start attester-spammer.service
 systemctl --user start attester-client.service
 
+systemctl --user start attester-backend.service
 ```
 
 ```
@@ -104,6 +108,8 @@ systemctl --user stop indexer-doge.service
 systemctl --user stop attester-spammer.service
 systemctl --user stop attester-client.service
 
+systemctl --user stop attester-backend.service
+
 ```
 
 ```
@@ -115,6 +121,8 @@ systemctl --user restart indexer-doge.service
 
 systemctl --user restart attester-spammer.service
 systemctl --user restart attester-client.service
+
+systemctl --user stop attester-backend.service
 ```
 
 ```
@@ -126,4 +134,6 @@ journalctl --user -u indexer-doge -f -n 1000
 
 journalctl --user -u attester-spammer -f -n 1000
 journalctl --user -u attester-client -f -n 1000
+
+journalctl --user -u attester-backend -f -n 1000
 ```

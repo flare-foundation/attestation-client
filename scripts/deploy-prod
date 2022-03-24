@@ -18,6 +18,7 @@ SERVICE3=indexer-btc
 SERVICE4=indexer-ltc
 SERVICE5=indexer-algo
 SERVICE6=indexer-doge
+SERVICE7=attester-backend
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -107,4 +108,5 @@ ssh -n $USER@$SERVER "systemctl --user restart $SERVICE3" || { echo "Restarting 
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE4" || { echo "Restarting $SERVICE4 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE5" || { echo "Restarting $SERVICE5 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE6" || { echo "Restarting $SERVICE6 failed" ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE7" || { echo "Restarting $SERVICE7 failed" ; exit 1; }
 echo -e "${GREENBOLD}Done.${NC}"

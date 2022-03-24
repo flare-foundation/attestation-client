@@ -1,6 +1,6 @@
-import Web3 from "web3";
 import BN from "bn.js";
 import glob from "glob";
+import Web3 from "web3";
 import { AttestationTypeScheme, NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
 
 const toBN = Web3.utils.toBN;
@@ -90,17 +90,20 @@ export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
 
 
 export async function getAttTypesDefinitionFiles(): Promise<string[]> {
+
+  const pattern = `t-*.${process.env.NODE_ENV === "development" ? "ts" : "js"}`;
+
   return new Promise((resolve, reject) => {
-     glob(`t-*.ts`, { cwd: ATT_TYPE_DEFINITIONS_ROOT }, (er: any, files: string[] | null) => {
-        if (er) {
-           reject(er);
-        } else {
-           if (files) {
-              files.sort();
-           }
-           resolve(files || []);
+    glob(pattern, { cwd: ATT_TYPE_DEFINITIONS_ROOT }, (er: any, files: string[] | null) => {
+      if (er) {
+        reject(er);
+      } else {
+        if (files) {
+          files.sort();
         }
-     });
+        resolve(files || []);
+      }
+    });
   });
 }
 

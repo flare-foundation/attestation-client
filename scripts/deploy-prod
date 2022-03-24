@@ -11,12 +11,14 @@ BACKUPDIR="attester-client-backups"
 CONFIGDIR="attester-client-config"
 BRANCH=main
 MCC_BRANCH=master
+SERVICE0=attester-spammer
 SERVICE1=attester-client
 SERVICE2=indexer-xrp
 SERVICE3=indexer-btc
 SERVICE4=indexer-ltc
 SERVICE5=indexer-algo
 SERVICE6=indexer-doge
+SERVICE7=attester-backend
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -99,10 +101,12 @@ ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn build" || { echo 'Build
 
 # Restart the app as a service.
 echo -e "${GREENBOLD}Build successful.${NC} Restarting app"
-#ssh -n $USER@$SERVER "systemctl --user restart $SERVICE1" || { echo "Restarting $SERVICE1 failed" ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE0" || { echo "Restarting $SERVICE0 failed" ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE1" || { echo "Restarting $SERVICE1 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE2" || { echo "Restarting $SERVICE2 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE3" || { echo "Restarting $SERVICE3 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE4" || { echo "Restarting $SERVICE4 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE5" || { echo "Restarting $SERVICE5 failed" ; exit 1; }
 ssh -n $USER@$SERVER "systemctl --user restart $SERVICE6" || { echo "Restarting $SERVICE6 failed" ; exit 1; }
+ssh -n $USER@$SERVER "systemctl --user restart $SERVICE7" || { echo "Restarting $SERVICE7 failed" ; exit 1; }
 echo -e "${GREENBOLD}Done.${NC}"

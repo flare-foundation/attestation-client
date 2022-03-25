@@ -71,16 +71,21 @@ Select `Launch indexer`
 ### Services
 
 ```
+systemctl --user daemon-reload
+
 systemctl --user enable indexer-xrp.service
 systemctl --user enable indexer-btc.service
 systemctl --user enable indexer-ltc.service
 systemctl --user enable indexer-algo.service
 systemctl --user enable indexer-doge.service
 
-systemctl --user enable attester-spammer.service
-systemctl --user enable attester-client.service
+systemctl --user enable coston-attester-client.service
+systemctl --user enable coston-spammer.service
+systemctl --user enable coston-backend.service
 
-systemctl --user enable attester-backend.service
+systemctl --user enable songbird-attester-client.service
+systemctl --user enable songbird-spammer.service
+systemctl --user enable songbird-backend.service
 
 
 ```
@@ -92,10 +97,16 @@ systemctl --user start indexer-ltc.service
 systemctl --user start indexer-algo.service
 systemctl --user start indexer-doge.service
 
-systemctl --user start attester-spammer.service
-systemctl --user start attester-client.service
+systemctl --user start coston-attester-client.service
+systemctl --user start coston-spammer.service
+systemctl --user start coston-backend.service
 
-systemctl --user start attester-backend.service
+systemctl --user start songbird-attester-client.service
+systemctl --user start songbird-spammer.service
+systemctl --user start songbird-backend.service
+
+
+
 ```
 
 ```
@@ -105,10 +116,13 @@ systemctl --user stop indexer-ltc.service
 systemctl --user stop indexer-algo.service
 systemctl --user stop indexer-doge.service
 
-systemctl --user stop attester-spammer.service
-systemctl --user stop attester-client.service
+systemctl --user stop coston-attester-client.service
+systemctl --user stop coston-spammer.service
+systemctl --user stop coston-backend.service
 
-systemctl --user stop attester-backend.service
+systemctl --user stop songbird-attester-client.service
+systemctl --user stop songbird-spammer.service
+systemctl --user stop songbird-backend.service
 
 ```
 
@@ -119,10 +133,14 @@ systemctl --user restart indexer-ltc.service
 systemctl --user restart indexer-algo.service
 systemctl --user restart indexer-doge.service
 
-systemctl --user restart attester-spammer.service
-systemctl --user restart attester-client.service
+systemctl --user restart coston-attester-client.service
+systemctl --user restart coston-spammer.service
+systemctl --user restart coston-backend.service
 
-systemctl --user stop attester-backend.service
+systemctl --user restart songbird-attester-client.service
+systemctl --user restart songbird-spammer.service
+systemctl --user restart songbird-backend.service
+
 ```
 
 ```
@@ -132,8 +150,15 @@ journalctl --user -u indexer-ltc -f -n 1000
 journalctl --user -u indexer-algo -f -n 1000
 journalctl --user -u indexer-doge -f -n 1000
 
-journalctl --user -u attester-spammer -f -n 1000
-journalctl --user -u attester-client -f -n 1000
+journalctl --user -u coston-attester-client -f -n 1000
+journalctl --user -u coston-spammer -f -n 1000
+journalctl --user -u coston-backend -f -n 1000
 
-journalctl --user -u attester-backend -f -n 1000
+journalctl --user -u songbird-attester-client -f -n 1000
+journalctl --user -u songbird-spammer -f -n 1000
+journalctl --user -u songbird-backend -f -n 1000
+
 ```
+
+
+global/indexer

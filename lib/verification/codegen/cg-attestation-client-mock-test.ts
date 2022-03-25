@@ -157,7 +157,7 @@ export function createAttestationClientMockTest(definitions: AttestationTypeSche
   let itsForDefinitions = definitions.map(definition => genItForAttestationClientMock(definition)).join("\n");
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import { MerkleTree } from "../../lib/utils/MerkleTree";
-import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
+import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";
 import { 
 ${indentText(dhImports, CODEGEN_TAB)} 
 } from "../../lib/verification/generated/attestation-hash-types";

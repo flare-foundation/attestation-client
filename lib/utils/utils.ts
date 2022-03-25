@@ -8,23 +8,6 @@ import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
 
-export function partBN(x: BN, bitOffset: number, bitCount: number) {
-  const bitMask = toBN(1).shln(bitCount).sub(toBN(1));
-  const a = x.shrn(bitOffset);
-  return a.and(bitMask);
-}
-
-export function partBNbe(x: BN, bitOffset: number, bitCount: number) {
-  return partBN(x, 256 - bitOffset - bitCount, bitCount);
-}
-
-export function toHex(x: string | number | BN, padToBytes?: number) {
-  if (padToBytes as any > 0) {
-    return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
-  }
-  return Web3.utils.toHex(x);
-}
-
 export function arrayRemoveElement(array: Array<any>, element: any) {
   const index = array.indexOf(element, 0);
   if (index > -1) {

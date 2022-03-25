@@ -21,15 +21,51 @@ The implemented attestation protocol consists of a sequence of rounds. Each roun
 
 ## State connector contract
 
-To facilitate the attestation protocol the `StateConnector` contract is used. This is basically the voting contract, that:
-- manages voting rounds
+To facilitate the attestation protocol the `StateConnector` contract is used. This is basically the voting contract, that does the following.
+- Manages voting rounds.
 - accepts attestation requests all the time. Based on the time of submission each attestation request is mapped to the relevant `collect` phase of the corresponding voting round.
-- accepts commit and reveal submissions by attestation providers, mapping them to the  `commit` and `reveal` phases of the relevant voting rounds.
-- counts the votes (attestations) and declares winner attestation for every voting round (in `count` phase).
+- Accepts commit and reveal submissions by attestation providers, mapping them to the  `commit` and `reveal` phases of the relevant voting rounds.
+- Counts the votes (attestations) and declares winner attestation for every voting round (in `count` phase).
 
 Note that voting rounds are interlaced. For example, if $T_0$, $T_1$, ... are sequential 90s intervals, then the voting round with id 0 has `collect` phase in $T_0$, `commit` phase in $T_1$, etc. Simultaneously, voting round with id 1 has the `collect` phase in $T_1$, `commit` phase in $T_2$, etc. 
 
-Due to the central involvement of `StateConnector` contract in the attestation protocol, the protocol is also often called the State connector protocol.
+Due to the central involvement of the `StateConnector` contract in the attestation protocol, the protocol is also often called the *Stateconnector protocol*.
 
+### Requesting attestations
 
+Attestation request is send as a byte string, that encodes the request, according to the rules stated below. This byte string is sent to `StateConnector` contract using the following function:
 
+```
+function requestAttestations(bytes calldata data) external;
+```
+
+This is a very simple function - all it does is that emits the event of the form below, that includes `block.timestamp` and re-emits the submitted data. 
+
+```
+event AttestationRequest(
+   uint256 timestamp,
+   bytes data
+);
+```
+The data in the request is not stored on blockchain.
+### Providing attestations
+
+Attestation provider listen for the emitted `AttestationRequest` events. They collect all the requests for one voting round, parese them and figure out what kind of verifications they need to carry out. For each successfuly validate request attestation hash is calculated. All the attestation hashes for the round are collected into Merkle tree and Merkle root for the round is calculated.
+
+Attestation provider uses a single function for submitting and revealing its vote:
+
+```
+function submitAttestation(
+   uint256 bufferNumber,
+   bytes32 maskedMerkleHash,
+   bytes32 committedRandom,
+   bytes32 revealedRandom
+) external returns (
+   bool _isInitialBufferSlot
+)
+```
+
+This function is called once per attestation round, usually near the end of it.
+Here `bufferNumber` indicates the round id (the round with current collect phase), `maskedMerkleHash` and `committedRandom` are represent the commit data in commit-reveal 
+scheme for the previous round id `bufferNumber - 1`, while `revealedRandom` is represents 
+the reveal data for the round id `bufferNumber - 2`

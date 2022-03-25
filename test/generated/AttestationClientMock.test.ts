@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////
 
 import { MerkleTree } from "../../lib/utils/MerkleTree";
-import { hexlifyBN } from "../../lib/verification/codegen/cg-utils";
+import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";
 import { 
    DHPayment,
    DHBalanceDecreasingTransaction,

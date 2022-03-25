@@ -32,6 +32,10 @@ export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryRe
       return VerificationStatus.NON_EXISTENT_TRANSACTION;
    }
 
+   if(result.status === "SYSTEM_FAILURE") {
+      return VerificationStatus.SYSTEM_FAILURE;
+   }
+
    return VerificationStatus.NEEDS_MORE_CHECKS;
 }
 
@@ -43,6 +47,10 @@ export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse) {
 
    if (result.status === 'NOT_EXIST' || !result.block) {
       return VerificationStatus.NON_EXISTENT_BLOCK;
+   }
+
+   if(result.status === "SYSTEM_FAILURE") {
+      return VerificationStatus.SYSTEM_FAILURE;
    }
 
    return VerificationStatus.NEEDS_MORE_CHECKS;
@@ -60,21 +68,21 @@ export function verifyWorkflowForReferencedTransactions(result: ReferencedTransa
    return VerificationStatus.NEEDS_MORE_CHECKS;
 }
 
-export function verifyIsAccountBased(fullTxData: TransactionBase<any, any>) {
-   if (fullTxData.sourceAddress.length !== 1) {
-      return VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS;
-   }
+// export function verifyIsAccountBased(fullTxData: TransactionBase<any, any>) {
+//    if (fullTxData.sourceAddress.length !== 1) {
+//       return VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS;
+//    }
 
-   if (fullTxData.receivingAddress.length !== 1) {
-      return VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS;
-   }
+//    if (fullTxData.receivingAddress.length !== 1) {
+//       return VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS;
+//    }
 
-   if (fullTxData.reference.length !== 1) {
-      return VerificationStatus.NOT_SINGLE_PAYMENT_REFERENCE;
-   }
+//    if (fullTxData.reference.length !== 1) {
+//       return VerificationStatus.NOT_SINGLE_PAYMENT_REFERENCE;
+//    }
 
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
+//    return VerificationStatus.NEEDS_MORE_CHECKS;
+// }
 
 export async function verifyConfirmationBlock(params: RecheckParams) {
    if (params.recheck) {

@@ -1,4 +1,3 @@
-import { toHex } from "../../utils/utils";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { CODEGEN_TAB } from "./cg-constants";
 
@@ -28,21 +27,4 @@ export function definitionFile(definition: AttestationTypeScheme, folder?: strin
 export function tab(size=CODEGEN_TAB) {
    return ''.padStart(size, " ")
 }
-export function hexlifyBN(obj: any) {
-   if(obj.mul) {
-      return toHex(obj);
-   }
-   if(Array.isArray(obj)) {
-      return (obj as any[]).map(item => hexlifyBN(item));
-   }
-   if(typeof obj === "object") {
-      let res = {} as any;
-      for(let key in obj) {
-         let value = obj[key];
-         res[key] = hexlifyBN(value);
-      }   
-      return res;      
-   }
-   return obj;
- }
  

@@ -111,3 +111,28 @@ export async function readAttestationTypeSchemes(): Promise<AttestationTypeSchem
   let names = await getAttTypesDefinitionFiles();
   return names.map(name => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme)
 }
+
+export function toHex(x: string | number | BN, padToBytes?: number) {
+  if (padToBytes as any > 0) {
+    return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
+  }
+  return Web3.utils.toHex(x);
+}
+
+export function hexlifyBN(obj: any) {
+  if(obj.mul) {
+     return toHex(obj);
+  }
+  if(Array.isArray(obj)) {
+     return (obj as any[]).map(item => hexlifyBN(item));
+  }
+  if(typeof obj === "object") {
+     let res = {} as any;
+     for(let key in obj) {
+        let value = obj[key];
+        res[key] = hexlifyBN(value);
+     }   
+     return res;      
+  }
+  return obj;
+}

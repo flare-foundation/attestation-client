@@ -248,7 +248,7 @@ export class ChainNode {
     verifyAttestation(this.client, attestation, this.indexedQueryManager)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
-        
+
         if (verification.status === VerificationStatus.RECHECK_LATER) {
           this.chainManager.logger.warning(` * reverification`);
 
@@ -258,6 +258,9 @@ export class ChainNode {
           const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) - getTimeMilli()) / 1000;
 
           this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);
+        } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
+          // TODO: handle this case and do not commit
+          this.processed(attestation, AttestationStatus.invalid, verification);
         } else {
           this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
         }

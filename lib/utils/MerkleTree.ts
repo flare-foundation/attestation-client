@@ -107,7 +107,7 @@ export class MerkleTree {
     return this._tree[pos];
   }
 
-  getProof(i: number) {
+  getProof(i: number): string[] {
     if (this.hashCount === 0 || i < 0 || i >= this.hashCount) {
       return null;
     }

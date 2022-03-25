@@ -9,7 +9,7 @@ export class DBAttestationRequest extends BaseEntity {
     @Column() @Index() blockNumber: string = "";
     @Column() @Index() logIndex: number = 0;
 
-    @Column() requestBytes: string = "";
+    @Column({type: "text"}) requestBytes: string = "";
     @Column({type: "text"}) request: string = "";
     @Column() verificationStatus: string = "";
     @Column({type: "text"}) response: string = "";

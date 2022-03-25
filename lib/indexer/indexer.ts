@@ -38,7 +38,7 @@ import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { retry, setRetryFailureCallback } from "../utils/PromiseTimeout";
-import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
+import { getUnixEpochTimestamp, prepareString, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
 import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
@@ -48,7 +48,7 @@ import { Interlacing } from "./interlacing";
 var yargs = require("yargs");
 
 const args = yargs
-.option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
+  .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
   .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
 
 class PreparedBlock {
@@ -276,7 +276,7 @@ export class Indexer {
         blockCopy[key] = block[key];
       }
 
-      blockCopy.blockHash = this.prepareString(blockCopy.blockHash, 128);
+      blockCopy.blockHash = prepareString(blockCopy.blockHash, 128);
 
       blockCopy.transactions = transactions.length;
 
@@ -692,7 +692,7 @@ async function runIndexer() {
   // console.log(testRes);
 
   // Reading configuration
-  const config = readConfig<IndexerConfiguration>( "indexer" );
+  const config = readConfig<IndexerConfiguration>("indexer");
   const credentials = readCredentials<IndexerCredentials>("indexer");
 
   const indexer = new Indexer(config, credentials, args["chain"]);

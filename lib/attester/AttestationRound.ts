@@ -6,7 +6,7 @@ import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, logException } from "../utils/logger";
 import { MerkleTree, singleHash } from "../utils/MerkleTree";
-import { getCryptoSafeRandom, toHex } from "../utils/utils";
+import { getCryptoSafeRandom, prepareString, toHex } from "../utils/utils";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -198,20 +198,20 @@ export class AttestationRound {
     const db = new DBAttestationRequest();
 
     db.roundId = att.roundId;
-    db.blockNumber = att.data.blockNumber.toString();
+    db.blockNumber = prepareString( att.data.blockNumber.toString() , 128 );
     db.logIndex = att.data.logIndex;
 
+    db.verificationStatus = prepareString( att.verificationData?.status.toString() , 128 );
+
+    db.request = prepareString( JSON.stringify(att.verificationData?.request ? att.verificationData.request : "") , 4 * 1024 );
+    db.response = prepareString( JSON.stringify(att.verificationData?.response ? att.verificationData.response : "") , 4 * 1024 );
+
+    db.exceptionError = prepareString( att.exception?.toString() , 128 );
+
+    db.hashData = prepareString( att.verificationData?.hash , 256 );
+    
+    // todo: fill it in
     //db.requestBytes = 
-    //db.request = 
-
-    //db.verificationStatus = 
-
-    db.request = JSON.stringify(att.verificationData?.request ? att.verificationData.request : "");
-    db.response = JSON.stringify(att.verificationData?.response ? att.verificationData.response : "");
-
-    //db.response = 
-    //db.exceptionError = 
-    //db.hashData = 
 
     return db;
   }

@@ -248,6 +248,7 @@ export class ChainNode {
     verifyAttestation(this.client, attestation, this.indexedQueryManager)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
+        
         if (verification.status === VerificationStatus.RECHECK_LATER) {
           this.chainManager.logger.warning(` * reverification`);
 
@@ -262,6 +263,9 @@ export class ChainNode {
         }
       })
       .catch((error: any) => {
+
+        attestation.exception = error;
+
         // Attestation request parsing errors
         if (error instanceof WrongSourceIdError) {
           this.processed(attestation, AttestationStatus.invalid);

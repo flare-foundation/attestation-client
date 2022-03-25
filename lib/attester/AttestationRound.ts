@@ -210,8 +210,7 @@ export class AttestationRound {
 
     db.hashData = prepareString( att.verificationData?.hash , 256 );
     
-    // todo: fill it in
-    //db.requestBytes = 
+    db.requestBytes = prepareString( att.data.request , 4 * 1024 );
 
     return db;
   }

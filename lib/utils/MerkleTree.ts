@@ -1,7 +1,5 @@
 import BN from "bn.js";
-import { toBN } from "flare-mcc";
 import Web3 from "web3";
-import { toHex } from "./utils";
 
 /**
  * There are several variants for hashing sequences in Merkle trees in cases when there is odd number of hashes on some level.
@@ -26,7 +24,12 @@ import { toHex } from "./utils";
  * Importants: all input strings should represent bytes32, hence should be 32-byte padded hex strings.
  */
 
+
 const web3 = new Web3();
+
+function toHex(x: string | number | BN, padToBytes: number) {
+  return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
+}
 
 export function singleHash(val: string | BN) {
   return web3.utils.soliditySha3(toHex(val, 32));
@@ -38,6 +41,8 @@ export function sortedHashPair(x: string, y: string) {
   }
   return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [y, x]));
 }
+
+
 
 export class MerkleTree {
   _tree: string[] = [];
@@ -54,7 +59,7 @@ export class MerkleTree {
 
   get rootBN() {
     let rt = this.root;
-    return rt ? toBN(rt) : toBN(0);
+    return rt ? web3.utils.toBN(rt) : web3.utils.toBN(0);
   }
 
   get tree(): string[] {

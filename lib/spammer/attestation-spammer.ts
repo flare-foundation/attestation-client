@@ -219,6 +219,8 @@ class AttestationSpammer {
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
     this.startLogEvents();
     this.definitions = await readAttestationTypeSchemes();
+    this.logger.info(`Running spammer for ${args["chain"]}`)
+    this.logger.info(`Sending from address ${this.web3Functions.account.address}`)
   }
 
   getCurrentRound() {
@@ -249,7 +251,7 @@ class AttestationSpammer {
     );
     //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     if (receipt) {
-      // this.logger.info(`Attestation sent`)
+      this.logger.info(`Attestation sent`)
     }
     return receipt;
   }
@@ -359,6 +361,8 @@ class AttestationSpammer {
           this.sendAttestationRequest(this.stateConnector, attRequest).catch(e => {
             this.logger.error(`ERROR: ${e}`);
           })
+        } else {
+          this.logger.info("NO random attestation request")
         }
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);

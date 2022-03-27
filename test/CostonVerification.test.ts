@@ -1,19 +1,19 @@
-import { getUnixEpochTimestamp } from "../lib/utils/utils";
-import fetch from 'node-fetch';
-import { MerkleTree } from "../lib/utils/MerkleTree";
-import { StateConnectorInstance } from "../typechain-truffle";
-import { parseRequest } from "../lib/verification/generated/attestation-request-parse";
-import { verifyAttestation } from "../lib/verification/verifiers/verifier_routing";
+// CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/CostonVerification.test.ts --network coston
+
 import { ChainType, MCC, MccClient } from "flare-mcc";
-import { readConfig, readCredentials } from "../lib/utils/config";
-import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
-import { cli } from "winston/lib/winston/config";
+import { AttestationRoundManager } from "../lib/attester/AttestationRoundManager";
+import { AttesterClientConfiguration, AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { AttestationRoundManager } from "../lib/attester/AttestationRoundManager";
+import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
+import { readConfig, readCredentials } from "../lib/utils/config";
+import { DatabaseService } from "../lib/utils/databaseService";
 import { getGlobalLogger } from "../lib/utils/logger";
-import { AttesterClientConfiguration, AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
+import { getUnixEpochTimestamp } from "../lib/utils/utils";
+import { parseRequest } from "../lib/verification/generated/attestation-request-parse";
+import { verifyAttestation } from "../lib/verification/verifiers/verifier_routing";
+import { StateConnectorInstance } from "../typechain-truffle";
 
 const axios = require('axios');
 
@@ -46,13 +46,14 @@ describe("Coston verification test", () => {
       rateLimitOptions: chainIndexerConfig.rateLimitOptions
     });
 
-    const DAC = new AttestationRoundManager(null, configAttestationClient, attesterCredentials, getGlobalLogger(), null);
-    DAC.initialize();
-
+    // const DAC = new AttestationRoundManager(null, configAttestationClient, attesterCredentials, getGlobalLogger(), null);
+    // DAC.initialize();
+console.log(attesterCredentials.indexerDatabase)
     const options: IndexedQueryManagerOptions = {
       chainType: ChainType.BTC,
       numberOfConfirmations: () => { return 6; },
-      maxValidIndexerDelaySec: 10,
+      maxValidIndexerDelaySec: 10,      
+      dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
       windowStartTime: (roundId: number) => {
         // todo: read this from DAC
         const queryWindowInSec = 86400;
@@ -82,7 +83,7 @@ describe("Coston verification test", () => {
   });
 
   it.only("Fancy request", async () => {
-    let request = '0x000200000000000b20af000df7f038b1f6b61e34cd60abc75d50e1b55ccd8b0f00a6a45f0cfbee639a8fc2000000000000000000071cb9fb9b720cffbabcd8b6438009607577c90e05f0d5';
+    let request = '0x000200000000000b20b900de7774052f50c65aa3c173a00ed7308513750b57f27077ffb8c5f3c9ad5df5f900000000000000000005dc665ce8346580d5e52f0b4a2f3e822fcd574c10154f';
 
     let parsed = parseRequest(request);
     // console.log(parsed)
@@ -90,8 +91,9 @@ describe("Coston verification test", () => {
     let att = createTestAttestationFromRequest(parsed, currentBufferNumber - 2, 6)
     let result = await verifyAttestation(client, att, indexedQueryManager);
 
-    console.log(result)
-
+    console.log(result.status)
+    console.log(result.response.blockNumber.toString())
+    console.log(await indexedQueryManager.getLastConfirmedBlockNumber())
   })
 
 

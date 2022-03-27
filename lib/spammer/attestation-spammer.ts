@@ -219,6 +219,8 @@ class AttestationSpammer {
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
     this.startLogEvents();
     this.definitions = await readAttestationTypeSchemes();
+    this.logger.info(`Running spammer for ${args["chain"]}`)
+    this.logger.info(`Sending from address ${this.web3Functions.account.address}`)
   }
 
   getCurrentRound() {

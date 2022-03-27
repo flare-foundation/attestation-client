@@ -191,6 +191,7 @@ export class AttestationRound {
   }
 
   canCommit(): boolean {
+    this.logger.info(`#${this.roundId}: canCommit: processed: ${this.transactionsProcessed}, all: ${this.attestations.length}, status: ${this.status}`)
     return this.transactionsProcessed === this.attestations.length &&
       this.status === AttestationRoundEpoch.commit;
   }
@@ -301,8 +302,8 @@ export class AttestationRound {
     this.merkleTree = new MerkleTree(validatedHashes);
 
     this.roundHash = this.merkleTree.root!;
-    // this.roundRandom = await getCryptoSafeRandom();
-    this.roundRandom = web3.utils.randomHex(32)
+    this.roundRandom = await getCryptoSafeRandom();
+    // this.roundRandom = web3.utils.randomHex(32)
 
     const time2 = getTimeMilli();
 
@@ -343,7 +344,7 @@ export class AttestationRound {
       let roundHashBN = new BN.BigInteger(this.roundHash, 16);
       let roundRandomBN = new BN.BigInteger(this.roundRandom, 16);
       let xorHash = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
-      let randomHash = web3.utils.soliditySha3(this.roundRandom);
+      let randomHash = singleHash(this.roundRandom);
 
       this.attesterWeb3
         .submitAttestation(
@@ -393,7 +394,7 @@ export class AttestationRound {
           this.logger.error(`round #${this.roundId} cannot reveal (not commited ${this.attestStatus})`);
           break;
       }
-      // return;
+      return;
     }
 
     // this.logger.info(`^Cround #${this.roundId} reveal`);
@@ -410,7 +411,7 @@ export class AttestationRound {
         let roundHashBN = new BN.BigInteger(this.nextRound.roundHash, 16);
         let roundRandomBN = new BN.BigInteger(this.nextRound.roundRandom, 16);
         nextRoundMaskedMerkleRoot = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
-        nextRoundHashedRandom = web3.utils.soliditySha3(this.nextRound.roundRandom);
+        nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
 
 
         // nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.roundHash).xor(this.nextRound.roundRandom), 32);

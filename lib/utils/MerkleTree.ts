@@ -31,8 +31,8 @@ function toHex(x: string | number | BN, padToBytes: number) {
   return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
 }
 
-export function singleHash(val: string | BN) {
-  return web3.utils.soliditySha3(toHex(val, 32));
+export function singleHash(val: string) {
+  return web3.utils.soliditySha3(val);
 }
 
 export function sortedHashPair(x: string, y: string) {

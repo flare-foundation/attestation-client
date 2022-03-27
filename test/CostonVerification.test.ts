@@ -67,36 +67,32 @@ console.log(attesterCredentials.indexerDatabase)
 
   });
 
-  it("Should calculate current buffer number", async () => {
+  it("Should verify that merkle roots match.", async () => {
     // let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
 
-    let N = 2;
-    let roundId = 137193 //currentBufferNumber - N;
+    let totalBuffers = (await stateConnector.totalBuffers()).toNumber();
+    let N = 3;
+    // 137229 //
+    let roundId = totalBuffers - N; //currentBufferNumber - N;
     const response = await axios.get(`http://34.89.247.51/attester-api/proof/votes-for-round/${roundId}`);
     console.log(`roundId: ${roundId}`)
     // console.log(response.data.data)
     let data = response.data.data;
+    if(data.length === 0) {
+      console.log(`No attesations in roundId ${roundId}`);
+      return;
+    }
     let hashes: string[] = data.map(item => item.hash) as string[]
     const tree = new MerkleTree(hashes);
+
+    let stateConnectorMerkleRoot = await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS);
+    
+
     console.log(`Number of attestations ${data.length}`)
     console.log(tree.root);
-    console.log("xxx");
-    console.log(await stateConnector.merkleRoots((roundId + -5) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + -4) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + -3) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + -2) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + -1) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + 0) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + 1) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS), "  x")
-    console.log(await stateConnector.merkleRoots((roundId + 3) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + 4) % TOTAL_STORED_PROOFS))
-
-  
-
-    // console.log("0xc0634e0390de22fc6e11fa053c3b33b18a0c69e33f42aaaece892e04b9d1495b")
-
-    console.log(`Total buffers ${await stateConnector.totalBuffers()}`)
+    console.log(await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS))
+    console.log(`Total buffers ${totalBuffers}`)
+    assert(stateConnectorMerkleRoot === tree.root);
   });
 
   // it.only("Fancy request", async () => {

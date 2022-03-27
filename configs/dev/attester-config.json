@@ -39,9 +39,6 @@
             "clientTimeout": 5000,
             "clientRetries": 3,
 
-            "maxFailedRetry": 1,
-            "delayBeforeRetry": 10,
-
             "maxValidIndexerDelaySec": 10
         },
         {
@@ -55,9 +52,6 @@
 
             "clientTimeout": 5000,
             "clientRetries": 3,
-
-            "maxFailedRetry": 1,
-            "delayBeforeRetry": 10,
 
             "maxValidIndexerDelaySec": 10
         }

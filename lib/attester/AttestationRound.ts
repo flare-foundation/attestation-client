@@ -1,5 +1,5 @@
 import assert from "assert";
-import BN from "bn.js";
+// import BN from "bn.js";
 import { toBN } from "flare-mcc";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
@@ -13,6 +13,8 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
+
+const BN = require("bn");
 
 export enum AttestationRoundEpoch {
   collect,
@@ -87,7 +89,7 @@ export class AttestationRound {
 
   // save submitted values for reveal
   roundHash!: string;
-  roundRandom!: BN;
+  roundRandom!: string;//BN;
   merkleTree!: MerkleTree;
 
   sourceHandlers = new Map<number, SourceHandler>();
@@ -198,19 +200,19 @@ export class AttestationRound {
     const db = new DBAttestationRequest();
 
     db.roundId = att.roundId;
-    db.blockNumber = prepareString( att.data.blockNumber.toString() , 128 );
+    db.blockNumber = prepareString(att.data.blockNumber.toString(), 128);
     db.logIndex = att.data.logIndex;
 
-    db.verificationStatus = prepareString( att.verificationData?.status.toString() , 128 );
+    db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
 
-    db.request = prepareString( JSON.stringify(att.verificationData?.request ? att.verificationData.request : "") , 4 * 1024 );
-    db.response = prepareString( JSON.stringify(att.verificationData?.response ? att.verificationData.response : "") , 4 * 1024 );
+    db.request = prepareString(JSON.stringify(att.verificationData?.request ? att.verificationData.request : ""), 4 * 1024);
+    db.response = prepareString(JSON.stringify(att.verificationData?.response ? att.verificationData.response : ""), 4 * 1024);
 
-    db.exceptionError = prepareString( att.exception?.toString() , 128 );
+    db.exceptionError = prepareString(att.exception?.toString(), 128);
 
-    db.hashData = prepareString( att.verificationData?.hash , 256 );
-    
-    db.requestBytes = prepareString( att.data.request , 4 * 1024 );
+    db.hashData = prepareString(att.verificationData?.hash, 256);
+
+    db.requestBytes = prepareString(att.data.request, 4 * 1024);
 
     return db;
   }
@@ -299,7 +301,8 @@ export class AttestationRound {
     this.merkleTree = new MerkleTree(validatedHashes);
 
     this.roundHash = this.merkleTree.root!;
-    this.roundRandom = await getCryptoSafeRandom();
+    // this.roundRandom = await getCryptoSafeRandom();
+    this.roundRandom = web3.utils.randomHex(32)
 
     const time2 = getTimeMilli();
 
@@ -336,14 +339,23 @@ export class AttestationRound {
       let shouldBe = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
       console.log(`Should be ${shouldBe}, is ${this.roundId + 1}`);
+
+      let roundHashBN = new BN.BigInteger(this.roundHash, 16);
+      let roundRandomBN = new BN.BigInteger(this.roundRandom, 16);
+      let xorHash = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
+      let randomHash = web3.utils.soliditySha3(this.roundRandom);
+
       this.attesterWeb3
         .submitAttestation(
           action,
           // commit index (collect+1)
           toBN(this.roundId + 1),
-          toHex(toBN(this.roundHash).xor(this.roundRandom), 32),
-          singleHash(this.roundRandom),
-          toHex(toBN(0), 32)
+          xorHash,
+          randomHash,
+          toHex(0, 32) // we just put something here
+          // toHex(toBN(this.roundHash).xor(this.roundRandom), 32),
+          // singleHash(this.roundRandom),
+          // toHex(toBN(0), 32)
         )
         .then((receipt) => {
           if (receipt) {
@@ -394,13 +406,21 @@ export class AttestationRound {
     if (this.nextRound) {
       if (this.nextRound.canCommit()) {
         action += ` (start commit for ${this.nextRound.roundId})`;
-        nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.roundHash).xor(this.nextRound.roundRandom), 32);
-        nextRoundHashedRandom = singleHash(this.nextRound.roundRandom),
-          this.nextRound.attestStatus = AttestationRoundStatus.comitted;
+
+        let roundHashBN = new BN.BigInteger(this.nextRound.roundHash, 16);
+        let roundRandomBN = new BN.BigInteger(this.nextRound.roundRandom, 16);
+        nextRoundMaskedMerkleRoot = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
+        nextRoundHashedRandom = web3.utils.soliditySha3(this.nextRound.roundRandom);
+
+
+        // nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.roundHash).xor(this.nextRound.roundRandom), 32);
+        // nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
+        this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
       else {
         action += ` (failed start commit for ${this.nextRound.roundId} - too late)`;
-        this.nextRound.roundRandom = toBN(0);
+        this.nextRound.roundRandom = toHex(0, 32);
+        // this.nextRound.roundRandom = toBN(0);
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
     }
@@ -412,7 +432,7 @@ export class AttestationRound {
         toBN(this.roundId + 2),
         nextRoundMaskedMerkleRoot,
         nextRoundHashedRandom,
-        this.attestStatus === AttestationRoundStatus.comitted ? toHex(this.roundRandom, 32) : toHex(toBN(0), 32)
+        this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32)
       )
       .then((receit) => {
         if (receit) {

@@ -1,6 +1,7 @@
 // CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/CostonVerification.test.ts --network coston
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
+import { stat } from "fs";
 import { AttestationRoundManager } from "../lib/attester/AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
@@ -10,6 +11,7 @@ import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
 import { readConfig, readCredentials } from "../lib/utils/config";
 import { DatabaseService } from "../lib/utils/databaseService";
 import { getGlobalLogger } from "../lib/utils/logger";
+import { MerkleTree } from "../lib/utils/MerkleTree";
 import { getUnixEpochTimestamp } from "../lib/utils/utils";
 import { parseRequest } from "../lib/verification/generated/attestation-request-parse";
 import { verifyAttestation } from "../lib/verification/verifiers/verifier_routing";
@@ -66,35 +68,51 @@ console.log(attesterCredentials.indexerDatabase)
   });
 
   it("Should calculate current buffer number", async () => {
-    let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
+    // let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
 
-    let N = 2;
-    const response = await axios.get(`http://34.89.247.51/attester-api/proof/votes-for-round/${roundId(N)}`);
-    console.log(response.data.data)
-    // let data = response.data.data;
-    // let hashes: string[] = data.map(item => item.hash) as string[]
-    // const tree = new MerkleTree(hashes);
-    // console.log(data.length, tree.root);
+    let N = 4;
+    let roundId = 137164 //currentBufferNumber - N;
+    const response = await axios.get(`http://34.89.247.51/attester-api/proof/votes-for-round/${roundId}`);
+    console.log(`roundId: ${roundId}`)
+    // console.log(response.data.data)
+    let data = response.data.data;
+    let hashes: string[] = data.map(item => item.hash) as string[]
+    const tree = new MerkleTree(hashes);
+    console.log(`Number of attestations ${data.length}`)
+    console.log(tree.root);
+    console.log("xxx");
+    console.log(await stateConnector.merkleRoots((roundId + -5) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + -4) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + -3) % TOTAL_STORED_PROOFS))
 
-    // console.log(await stateConnector.merkleRoots(roundId(N)))
+    console.log(await stateConnector.merkleRoots((roundId + -2) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + -1) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + 0) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + 1) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + 3) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + 4) % TOTAL_STORED_PROOFS))
 
+    console.log(`SENT FOR ${roundId}`)
 
+    console.log("0xc0634e0390de22fc6e11fa053c3b33b18a0c69e33f42aaaece892e04b9d1495b")
 
+    console.log(`Total buffers ${await stateConnector.totalBuffers()}`)
   });
 
-  it.only("Fancy request", async () => {
-    let request = '0x000200000000000b20b900de7774052f50c65aa3c173a00ed7308513750b57f27077ffb8c5f3c9ad5df5f900000000000000000005dc665ce8346580d5e52f0b4a2f3e822fcd574c10154f';
+  // it.only("Fancy request", async () => {
+  //   let request = '0x000200000000000b20b900de7774052f50c65aa3c173a00ed7308513750b57f27077ffb8c5f3c9ad5df5f900000000000000000005dc665ce8346580d5e52f0b4a2f3e822fcd574c10154f';
 
-    let parsed = parseRequest(request);
-    // console.log(parsed)
+  //   let parsed = parseRequest(request);
+  //   // console.log(parsed)
 
-    let att = createTestAttestationFromRequest(parsed, currentBufferNumber - 2, 6)
-    let result = await verifyAttestation(client, att, indexedQueryManager);
+  //   let att = createTestAttestationFromRequest(parsed, currentBufferNumber - 2, 6)
+  //   let result = await verifyAttestation(client, att, indexedQueryManager);
 
-    console.log(result.status)
-    console.log(result.response.blockNumber.toString())
-    console.log(await indexedQueryManager.getLastConfirmedBlockNumber())
-  })
+  //   console.log(result.status)
+  //   console.log(result.response.blockNumber.toString())
+  //   console.log(await indexedQueryManager.getLastConfirmedBlockNumber())
+  // })
 
 
 });

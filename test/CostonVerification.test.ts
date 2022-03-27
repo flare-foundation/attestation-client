@@ -70,8 +70,8 @@ console.log(attesterCredentials.indexerDatabase)
   it("Should calculate current buffer number", async () => {
     // let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
 
-    let N = 4;
-    let roundId = 137164 //currentBufferNumber - N;
+    let N = 2;
+    let roundId = 137193 //currentBufferNumber - N;
     const response = await axios.get(`http://34.89.247.51/attester-api/proof/votes-for-round/${roundId}`);
     console.log(`roundId: ${roundId}`)
     // console.log(response.data.data)
@@ -84,18 +84,17 @@ console.log(attesterCredentials.indexerDatabase)
     console.log(await stateConnector.merkleRoots((roundId + -5) % TOTAL_STORED_PROOFS))
     console.log(await stateConnector.merkleRoots((roundId + -4) % TOTAL_STORED_PROOFS))
     console.log(await stateConnector.merkleRoots((roundId + -3) % TOTAL_STORED_PROOFS))
-
     console.log(await stateConnector.merkleRoots((roundId + -2) % TOTAL_STORED_PROOFS))
     console.log(await stateConnector.merkleRoots((roundId + -1) % TOTAL_STORED_PROOFS))
     console.log(await stateConnector.merkleRoots((roundId + 0) % TOTAL_STORED_PROOFS))
     console.log(await stateConnector.merkleRoots((roundId + 1) % TOTAL_STORED_PROOFS))
-    console.log(await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS))
+    console.log(await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS), "  x")
     console.log(await stateConnector.merkleRoots((roundId + 3) % TOTAL_STORED_PROOFS))
     console.log(await stateConnector.merkleRoots((roundId + 4) % TOTAL_STORED_PROOFS))
 
-    console.log(`SENT FOR ${roundId}`)
+  
 
-    console.log("0xc0634e0390de22fc6e11fa053c3b33b18a0c69e33f42aaaece892e04b9d1495b")
+    // console.log("0xc0634e0390de22fc6e11fa053c3b33b18a0c69e33f42aaaece892e04b9d1495b")
 
     console.log(`Total buffers ${await stateConnector.totalBuffers()}`)
   });

@@ -43,6 +43,16 @@ CREATE USER 'attesterReader'@'%' IDENTIFIED BY 'another.Passw0rd';
 GRANT SELECT ON attester.* TO 'attesterReader'@'%';
 
 
+
+CREATE DATABASE songbird_attester;
+
+CREATE USER 'sgbAttesterWriter'@'localhost' IDENTIFIED BY 'xxx';
+GRANT ALL PRIVILEGES ON songbird_attester.* TO 'sgbAttesterWriter'@'localhost';
+
+CREATE USER 'sgbAttesterReader'@'%' IDENTIFIED BY 'xxx';
+GRANT SELECT ON songbird_attester.* TO 'sgbAttesterReader'@'%';
+
+
 FLUSH PRIVILEGES;
 
 ```
@@ -70,6 +80,8 @@ Select `Launch indexer`
 
 ### Services
 
+
+#### Install services
 ```
 systemctl --user daemon-reload
 
@@ -90,6 +102,7 @@ systemctl --user enable songbird-backend.service
 
 ```
 
+#### Start services
 ```
 systemctl --user start indexer-xrp.service
 systemctl --user start indexer-btc.service
@@ -109,6 +122,7 @@ systemctl --user start songbird-backend.service
 
 ```
 
+#### Stop services
 ```
 systemctl --user stop indexer-xrp.service
 systemctl --user stop indexer-btc.service
@@ -126,6 +140,7 @@ systemctl --user stop songbird-backend.service
 
 ```
 
+#### Restart services
 ```
 systemctl --user restart indexer-xrp.service
 systemctl --user restart indexer-btc.service
@@ -143,6 +158,7 @@ systemctl --user restart songbird-backend.service
 
 ```
 
+#### View service log
 ```
 journalctl --user -u indexer-xrp -f -n 1000
 journalctl --user -u indexer-btc -f -n 1000
@@ -159,6 +175,3 @@ journalctl --user -u songbird-spammer -f -n 1000
 journalctl --user -u songbird-backend -f -n 1000
 
 ```
-
-
-global/indexer

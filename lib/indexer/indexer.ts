@@ -36,7 +36,7 @@ import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
+import { AttLogger, getGlobalLogger, logException, setGlobalLoggerLabel } from "../utils/logger";
 import { retry, setRetryFailureCallback } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, prepareString, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
@@ -105,7 +105,7 @@ export class Indexer {
     this.chainType = MCC.getChainType(chainName);
     this.chainConfig = config.chains.find((el) => el.name === chainName)!;
 
-    this.logger = getGlobalLogger(chainName);
+    this.logger = getGlobalLogger();
 
     this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
 
@@ -701,6 +701,9 @@ async function runIndexer() {
 
   return await indexer.runIndexer();
 }
+
+// set all global loggers to the chain
+setGlobalLoggerLabel(args["chain"]);
 
 // read .env
 DotEnvExt();

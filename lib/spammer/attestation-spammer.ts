@@ -251,7 +251,7 @@ class AttestationSpammer {
     );
     //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     if (receipt) {
-      // this.logger.info(`Attestation sent`)
+      this.logger.info(`Attestation sent`)
     }
     return receipt;
   }

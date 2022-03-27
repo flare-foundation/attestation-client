@@ -35,6 +35,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
       roundId
    });
    if (!blockOverflow) {
+      console.log("No overflow block")
       return null;
    }
 
@@ -43,6 +44,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
       : randomWeightedChoice(RANDOM_OPTIONS_REFERENCED_PAYMENT_NONEXISTENCE);
 
    if (!choice) {
+      console.log("No choice")
       return null;
    }
 
@@ -67,6 +69,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
    });
 
    if (!confirmationBlock) {
+      console.log("No confirmation block")
       return null;
    }
 

@@ -35,7 +35,7 @@ DotEnvExt();
 var yargs = require("yargs");
 
 let args = yargs
-  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "XRP", })
+  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC", })
   .option("credentials", { alias: "cred", type: "string", description: "Path to credentials json file", default: "./configs/spammer-credentials.json", demand: false, })
 
   .option("rpcLink", {
@@ -280,7 +280,7 @@ class AttestationSpammer {
     }
   }
 
-  async startLogEvents(maxBlockFetch = 100) {
+  async startLogEvents(maxBlockFetch = 30) {
     this.lastBlockNumber = await this.web3.eth.getBlockNumber();
     let firstUnprocessedBlockNumber = this.lastBlockNumber;
     this.syncBlocks();

@@ -189,7 +189,6 @@ export class AttestationRound {
   }
 
   canCommit(): boolean {
-    console.log("XXX", this.attestations.length)
     return this.transactionsProcessed === this.attestations.length &&
       this.status === AttestationRoundEpoch.commit;
   }

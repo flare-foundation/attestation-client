@@ -218,7 +218,7 @@ export class IndexedQueryManager {
         roundId: params.roundId,
         endBlock: N,
         transactionId: params.txId,
-      } as TransactionQueryParams);
+      } as TransactionQueryParams);      
       return {
         status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
         transaction: transactions[0],

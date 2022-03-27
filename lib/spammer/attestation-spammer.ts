@@ -361,6 +361,8 @@ class AttestationSpammer {
           this.sendAttestationRequest(this.stateConnector, attRequest).catch(e => {
             this.logger.error(`ERROR: ${e}`);
           })
+        } else {
+          this.logger.info("NO random attestation request")
         }
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);

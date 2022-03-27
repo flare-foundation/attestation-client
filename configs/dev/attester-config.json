@@ -23,7 +23,9 @@
             "clientRetries": 3,
           
             "maxFailedRetry": 1,
-            "delayBeforeRetry": 10
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10
         },
         {
             "name": "BTC",
@@ -37,6 +39,9 @@
             "clientTimeout": 5000,
             "clientRetries": 3,
 
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
             "maxValidIndexerDelaySec": 10
         },
         {
@@ -49,7 +54,12 @@
             "maxProcessingTransactions":3000,
 
             "clientTimeout": 5000,
-            "clientRetries": 3
+            "clientRetries": 3,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10
         }
     ]
 }

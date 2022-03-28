@@ -77,8 +77,10 @@ class ColorConsole extends Transport {
         break;
     }
 
-    const memMb = round( process.memoryUsage().heapUsed / 1024 / 1024 , 1 );
-    const mem = BgBlue + FgBlack + `${memMb.toFixed(1).padStart(6,' ')}` + Reset
+    //const memMb = round( process.memoryUsage().heapUsed / 1024 / 1024 , 1 );
+    //const mem = BgBlue + FgBlack + `${memMb.toFixed(1).padStart(6,' ')}` + Reset
+
+    const mem = "";
 
     const text = info.message.toString();
 
@@ -171,7 +173,9 @@ const myCustomLevels = {
   },
 };
 
-var globalLogger: AttLogger;
+var globalLogger = new Map<string,AttLogger>();
+
+var globalLoggerLabel;
 
 export interface AttLogger extends winston.Logger {
   title: (message: string) => null;
@@ -215,20 +219,36 @@ export function createLogger(label?: string): AttLogger {
   }) as AttLogger;
 }
 
+export function setGlobalLoggerLabel(label: string) {
+  globalLoggerLabel = label;
+}
+
 // return one instance of logger
 export function getGlobalLogger(label?: string): AttLogger {
-  if (!globalLogger) {
-    globalLogger = createLogger(label);
+
+  if( !label ) {
+    label = globalLoggerLabel;
   }
 
-  return globalLogger;
+  if( !label ) {
+    label = "global";
+  }
+
+  let logger = globalLogger[label];
+
+  if (!logger) {
+    logger = createLogger(label);
+    globalLogger.set(label,logger)
+  }
+
+  return logger;
 }
 
 export function logException(error: any,comment: string) {
 
-  getGlobalLogger();
+  const logger = getGlobalLogger();
 
-  globalLogger.error2(`${comment} ${error}`);
-  globalLogger.error(error.stack);
+  logger.error2(`${comment} ${error}`);
+  logger.error(error.stack);
 }
 

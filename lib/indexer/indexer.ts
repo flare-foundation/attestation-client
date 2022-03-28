@@ -36,7 +36,7 @@ import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
+import { AttLogger, getGlobalLogger, logException, setGlobalLoggerLabel } from "../utils/logger";
 import { retry, setRetryFailureCallback } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, prepareString, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
@@ -105,7 +105,7 @@ export class Indexer {
     this.chainType = MCC.getChainType(chainName);
     this.chainConfig = config.chains.find((el) => el.name === chainName)!;
 
-    this.logger = getGlobalLogger(chainName);
+    this.logger = getGlobalLogger();
 
     this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
 
@@ -656,18 +656,6 @@ async function displayStats() {
   }
 }
 
-
-async function testDelay(delay: number, result: number): Promise<number> {
-  console.log(`start ${result}`);
-  await sleepms(delay);
-  console.log(`done ${result}`);
-  return result;
-}
-
-process.on('SIGTERM', () => {
-  process.exit(2);
-})
-
 function localRetryFailure(label: string) {
   getGlobalLogger().error2(`retry failure: ${label} - application exit`);
   process.exit(2);
@@ -676,20 +664,6 @@ function localRetryFailure(label: string) {
 async function runIndexer() {
 
   setRetryFailureCallback(localRetryFailure);
-
-  // const test = [];
-
-  // test.push(() => testDelay(100, 1));
-  // test.push(() => testDelay(600, 2));
-  // test.push(() => testDelay(1200, 3));
-  // test.push(() => testDelay(100, 4));
-
-  // const testRes = await retry(`test`, () => testDelay(10000, 4) , 10 , 2 
-  // );
-  // //const testRes = await Promise.all( test );
-
-  // console.log(testRes);
-  // console.log(testRes);
 
   // Reading configuration
   const config = readConfig<IndexerConfiguration>("indexer");
@@ -702,12 +676,12 @@ async function runIndexer() {
   return await indexer.runIndexer();
 }
 
+// set all global loggers to the chain
+setGlobalLoggerLabel(args["chain"]);
+
 // read .env
 DotEnvExt();
 
-//console.log(process.env);
-
-// (new AttestationSpammer()).runSpammer()
 runIndexer()
   .then(() => process.exit(0))
   .catch((error) => {

@@ -5,7 +5,7 @@ import { sleepms } from "./utils";
 import { getWeb3Wallet, waitFinalize3Factory } from "./utils";
 
 export const DEFAULT_GAS = "2500000";
-export const DEFAULT_GAS_PRICE = "225000000000";
+export const DEFAULT_GAS_PRICE = "300000000000";
 
 export class Web3Functions {
   logger: Logger;

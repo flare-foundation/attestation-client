@@ -92,7 +92,7 @@ export enum TxOrBlockGeneratorType {
 }
 
 export function prepareGenerator(type: TxOrBlockGeneratorType, iqm: IndexedQueryManager, batchSize = 100, topUpThreshold = 0.25): RandomDBIterator<DBTransactionBase | DBBlockBase> {
-   let startTime = getUnixEpochTimestamp() - 2*60*60;
+   let startTime = getUnixEpochTimestamp() - 5*60*60;
    switch (type) {
       case TxOrBlockGeneratorType.TxNativePayment:
          return new RandomDBIterator<DBTransactionBase>(

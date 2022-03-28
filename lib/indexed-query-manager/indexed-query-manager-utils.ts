@@ -1,4 +1,3 @@
-import { start } from "repl";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { sleepms } from "../utils/utils";
@@ -116,9 +115,9 @@ export async function fetchRandomTransactions(
          continue;
       }
       let randN = Math.floor(Math.random() * res.max);
-
       let query = iqm.dbService.connection.manager.createQueryBuilder(table, "transaction")
          .andWhere("transaction.id > :max", { max: randN })
+      // .andWhere("transaction.id < :upper", {upper: randN + 100000})
 
       if (options.mustHavePaymentReference) {
          query = query.andWhere("transaction.paymentReference != ''");
@@ -135,9 +134,12 @@ export async function fetchRandomTransactions(
       if (options.startTime) {
          query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime })
       }
-      query = query.limit(batchSize)
+      query = query
+         .orderBy("transaction.id")
+         .limit(batchSize)
       result = await query.getMany() as DBTransactionBase[];
    }
+
    return result;
 }
 

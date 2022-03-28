@@ -35,7 +35,7 @@ DotEnvExt();
 var yargs = require("yargs");
 
 let args = yargs
-  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "XRP", })
+  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC", })
   .option("credentials", { alias: "cred", type: "string", description: "Path to credentials json file", default: "./configs/spammer-credentials.json", demand: false, })
 
   .option("rpcLink", {
@@ -219,6 +219,8 @@ class AttestationSpammer {
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
     this.startLogEvents();
     this.definitions = await readAttestationTypeSchemes();
+    this.logger.info(`Running spammer for ${args["chain"]}`)
+    this.logger.info(`Sending from address ${this.web3Functions.account.address}`)
   }
 
   getCurrentRound() {
@@ -249,7 +251,7 @@ class AttestationSpammer {
     );
     //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     if (receipt) {
-      // this.logger.info(`Attestation sent`)
+      this.logger.info(`Attestation sent`)
     }
     return receipt;
   }
@@ -278,7 +280,7 @@ class AttestationSpammer {
     }
   }
 
-  async startLogEvents(maxBlockFetch = 100) {
+  async startLogEvents(maxBlockFetch = 30) {
     this.lastBlockNumber = await this.web3.eth.getBlockNumber();
     let firstUnprocessedBlockNumber = this.lastBlockNumber;
     this.syncBlocks();
@@ -359,6 +361,8 @@ class AttestationSpammer {
           this.sendAttestationRequest(this.stateConnector, attRequest).catch(e => {
             this.logger.error(`ERROR: ${e}`);
           })
+        } else {
+          this.logger.info("NO random attestation request")
         }
       } catch (e) {
         this.logger.error(`ERROR: ${e}`);

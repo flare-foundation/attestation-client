@@ -1,20 +1,11 @@
 // Run tests with the following command lines:
 // Make sure that you are connected to a synced database and indexers are running
-//
-// SOURCE_ID=XRP DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
-// SOURCE_ID=BTC DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
-// SOURCE_ID=LTC DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
-// SOURCE_ID=DOGE DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
-// SOURCE_ID=ALGO DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/verification/verification.test.ts
-
-// The file `.indexer.remote.dev.env` is not versioned. Create it by using `.deploy.env` where one can add the correct 
-// credentials
+// Set correct configurations for `dev`
+//  SOURCE_ID=BTC CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/verification/verification.test.ts
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
-import * as indexerConfig from "../../configs/dev/indexer-config.json";
-import * as configAttestationClient from "../../configs/dev/attester-config.json";
 import { AttesterClientChain } from "../../lib/attester/AttesterClientChain";
-import { AttesterClientConfiguration } from "../../lib/attester/AttesterClientConfiguration";
+import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
@@ -26,7 +17,10 @@ import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../lib/
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
 import { IndexerClientChain, IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
+import { readConfig, readCredentials } from "../../lib/utils/config";
+import { DatabaseService } from "../../lib/utils/databaseService";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
+import { getGlobalLogger } from "../../lib/utils/logger";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
@@ -58,11 +52,15 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
 
    before(async () => {
-      indexerConfiguration = indexerConfig as IndexerConfiguration
-      attesterClientConfiguration = configAttestationClient as AttesterClientConfiguration;
+      // indexerConfiguration = indexerConfig as IndexerConfiguration
+      // attesterClientConfiguration = configAttestationClient as AttesterClientConfiguration;
+
+      indexerConfiguration = readConfig<IndexerConfiguration>("indexer");
+      attesterClientConfiguration = readConfig<AttesterClientConfiguration>("attester");
+      const attesterCredentials = readCredentials<AttesterCredentials>("attester");
 
       chainName = getSourceName(SOURCE_ID);
-      let indexerChainConfiguration = indexerConfig.chains.find(chain => chain.name === chainName) as IndexerClientChain;
+      let indexerChainConfiguration = indexerConfiguration.chains.find(chain => chain.name === chainName) as IndexerClientChain;
       client = MCC.Client(SOURCE_ID, {
          ...indexerChainConfiguration.mccCreate,
          rateLimitOptions: indexerChainConfiguration.rateLimitOptions
@@ -75,7 +73,8 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
       const options: IndexedQueryManagerOptions = {
          chainType: SOURCE_ID as any as ChainType,
-         numberOfConfirmations: ()=>{return indexerChainConfiguration.numberOfConfirmations;},
+         numberOfConfirmations: () => { return indexerChainConfiguration.numberOfConfirmations; },
+         dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
          maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
          // todo: return epochStartTime - query window length, add query window length into DAC
          windowStartTime: (roundId: number) => { return startTime; }
@@ -96,7 +95,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
          randomTransaction as DBTransactionBase,
          SOURCE_ID,
          ROUND_ID,
-         NUMBER_OF_CONFIRMATIONS,         
+         NUMBER_OF_CONFIRMATIONS,
          "CORRECT"
       );
 
@@ -121,7 +120,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
          randomTransaction as DBTransactionBase,
          SOURCE_ID,
          ROUND_ID,
-         NUMBER_OF_CONFIRMATIONS,         
+         NUMBER_OF_CONFIRMATIONS,
          "CORRECT"
       );
 
@@ -168,30 +167,48 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
    });
 
    it("Should verify legit ReferencedPaymentNonexistence", async () => {
-      let randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next();
+      let N = await indexedQueryManager.getLastConfirmedBlockNumber();
+      let maxReps = 10;
+      while (maxReps > 0) {
+         maxReps--;
+         let randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxNativeReferencedPayment).next();
 
-      if (!randomTransaction) {
-         return;
+         if (!randomTransaction) {
+            if(maxReps > 0) {
+               continue;
+            }
+            console.log("Cannot find the case - transaction")
+            return;
+         }
+
+         // console.log("block", randomTransaction.blockNumber, N, (randomTransaction as DBTransactionBase).transactionId, )
+         let request = await prepareRandomizedRequestReferencedPaymentNonexistence(
+            indexedQueryManager,
+            randomTransaction as DBTransactionBase,
+            SOURCE_ID,
+            ROUND_ID,
+            NUMBER_OF_CONFIRMATIONS,
+            "CORRECT"
+         );
+
+         if (!request) {
+            if(maxReps > 0) {
+               continue;
+            }
+            console.log("Cannot find the case - request")
+            return;
+         }
+
+         // console.log(randomTransaction.isNativePayment)
+         let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+
+         let res = await verifyAttestation(client, attestation, indexedQueryManager);
+         assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
+         break;
+         // console.log(res); 
+         // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
       }
-
-      let request = await prepareRandomizedRequestReferencedPaymentNonexistence(
-         indexedQueryManager,
-         randomTransaction as DBTransactionBase,
-         SOURCE_ID,
-         ROUND_ID,
-         NUMBER_OF_CONFIRMATIONS,         
-         "CORRECT"
-      );
-
-      // console.log(request);
-      // console.log(randomTransaction.isNativePayment)
-      let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
-
-      let res = await verifyAttestation(client, attestation, indexedQueryManager);
-      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
-      // console.log(res); 
-      // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
-
+      assert(maxReps > 0, "Too many tries")
    });
 
 

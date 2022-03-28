@@ -167,7 +167,7 @@ export async function getRandom(minnum: number = 0, maxnum: number = 10 ** 5) {
 }
 
 export async function getCryptoSafeRandom() {
-  return Web3.utils.toBN(Web3.utils.randomHex(32));
+  return Web3.utils.randomHex(32);
 };
 
 export function getTestStateConnectorAddress() {

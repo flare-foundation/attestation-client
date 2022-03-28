@@ -656,18 +656,6 @@ async function displayStats() {
   }
 }
 
-
-async function testDelay(delay: number, result: number): Promise<number> {
-  console.log(`start ${result}`);
-  await sleepms(delay);
-  console.log(`done ${result}`);
-  return result;
-}
-
-process.on('SIGTERM', () => {
-  process.exit(2);
-})
-
 function localRetryFailure(label: string) {
   getGlobalLogger().error2(`retry failure: ${label} - application exit`);
   process.exit(2);
@@ -676,20 +664,6 @@ function localRetryFailure(label: string) {
 async function runIndexer() {
 
   setRetryFailureCallback(localRetryFailure);
-
-  // const test = [];
-
-  // test.push(() => testDelay(100, 1));
-  // test.push(() => testDelay(600, 2));
-  // test.push(() => testDelay(1200, 3));
-  // test.push(() => testDelay(100, 4));
-
-  // const testRes = await retry(`test`, () => testDelay(10000, 4) , 10 , 2 
-  // );
-  // //const testRes = await Promise.all( test );
-
-  // console.log(testRes);
-  // console.log(testRes);
 
   // Reading configuration
   const config = readConfig<IndexerConfiguration>("indexer");
@@ -708,9 +682,6 @@ setGlobalLoggerLabel(args["chain"]);
 // read .env
 DotEnvExt();
 
-//console.log(process.env);
-
-// (new AttestationSpammer()).runSpammer()
 runIndexer()
   .then(() => process.exit(0))
   .catch((error) => {

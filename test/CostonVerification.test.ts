@@ -136,19 +136,20 @@ describe("Coston verification test", () => {
     // in case of failure, check this: https://coston-explorer.flare.network/address/0x3a6E101103eC3D9267d08f484a6b70e1440A8255/transactions
   });
 
-  // it("Specific request check", async () => {
-  //   let request = '0x000200000000000b20b900de7774052f50c65aa3c173a00ed7308513750b57f27077ffb8c5f3c9ad5df5f900000000000000000005dc665ce8346580d5e52f0b4a2f3e822fcd574c10154f';
+  it.only("Specific request check", async () => {
+    let request = '0x000100000000000b213d000028176f73413b56cb5fef35dfe61c67652f486d6a8d67bc2ae06775fcfb9b6e29000000000000000000034eaac138d6a4472cf5ef0080d26fceb73d03f2cc99bf';
 
-  //   let parsed = parseRequest(request);
-  //   // console.log(parsed)
+    let parsed = parseRequest(request);
+    // console.log(parsed)
+    // let roundId = currentBufferNumber - 2;
+    let roundId = 137860;
+    let att = createTestAttestationFromRequest(parsed, roundId, 6)
+    let result = await verifyAttestation(client, att, indexedQueryManager);
 
-  //   let att = createTestAttestationFromRequest(parsed, currentBufferNumber - 2, 6)
-  //   let result = await verifyAttestation(client, att, indexedQueryManager);
-
-  //   console.log(result.status)
-  //   console.log(result.response.blockNumber.toString())
-  //   console.log(await indexedQueryManager.getLastConfirmedBlockNumber())
-  // })
+    console.log(result.status)
+    console.log(result.response.blockNumber.toString())
+    console.log(await indexedQueryManager.getLastConfirmedBlockNumber())
+  })
 
 
 });

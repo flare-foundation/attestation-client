@@ -36,7 +36,7 @@ async function augmentTransactionBase(client: CachedMccClient<any, any>, block: 
    }
 
    res.chainType = client.client.chainType;
-   res.transactionId = prepareString(txData.hash, 64);
+   res.transactionId = prepareString(txData.txid, 64);
    res.blockNumber = block.number;
    res.timestamp = txData.unixTimestamp;
    res.transactionType = txData.type;
@@ -55,7 +55,7 @@ export async function augmentTransactionAlgo(client: CachedMccClient<any, any>, 
    const res = await augmentTransactionBase(client,block,txData)
 
    // Algo specific conversion of transaction hashes to hex 
-   res.transactionId = txIdToHexNo0x(txData.hash);
+   res.transactionId = txIdToHexNo0x(txData.txid);
    res.paymentReference = prepareString(txData.reference[0], 64);
    return res as DBTransactionBase
 }

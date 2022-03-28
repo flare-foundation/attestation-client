@@ -1,9 +1,12 @@
-import { AttesterCredentials } from "../attester/AttesterClientConfiguration";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
+import { AttesterClientConfiguration, AttesterCredentials } from "../attester/AttesterClientConfiguration";
 import { DBState } from "../entity/indexer/dbState";
+import { IndexerConfiguration } from "../indexer/IndexerConfiguration";
 import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { Terminal1 } from "../utils/terminal";
 import { getUnixEpochTimestamp, secToHHMMSS, sleepms } from "../utils/utils";
 
 
@@ -21,22 +24,26 @@ class Status {
 
 class AlertManager {
     logger: AttLogger;
-    config: AlertConfig;
-    dbService: DatabaseService;
+    //config: AlertConfig;
+    DAC : AttestationRoundManager;
 
     constructor() {
         this.logger = getGlobalLogger();
 
-        this.config = readConfig<AlertConfig>("alert");
+        //this.config = readConfig<AlertConfig>("alert");
+
+        // Reading configuration
+        const configIndexer = readConfig<IndexerConfiguration>("indexer");
+        const configAttestationClient = readConfig<AttesterClientConfiguration>("attester");
         const attesterCredentials = readCredentials<AttesterCredentials>("attester");
 
-        this.dbService = new DatabaseService(this.logger, attesterCredentials.indexerDatabase, "indexer");
+        this.DAC = new AttestationRoundManager(null, configAttestationClient, attesterCredentials, getGlobalLogger(), null);
     }
 
     async checkIndexer(chain: string): Promise<Status> {
 
         const res = new Status();
-        res.name = chain;
+        res.name = `indexer ${chain}`;
 
         // const resT = await this.dbService.manager.findOne(DBState, { where: { name: `${chain}_T` } });
 
@@ -45,7 +52,7 @@ class AlertManager {
         //     return res;
         // }
 
-        const resState = await this.dbService.manager.findOne(DBState, { where: { name: `${chain}_state` } });
+        const resState = await AttestationRoundManager.dbServiceIndexer.manager.findOne(DBState, { where: { name: `${chain}_state` } });
 
         if (resState === undefined) {
             res.state = "state data not available";
@@ -54,7 +61,7 @@ class AlertManager {
 
         const now = getUnixEpochTimestamp();
 
-        res.state = resState.name;
+        res.state = resState.valueString;
         res.valid = resState.timestamp > now - 10;
 
         if (resState.valueString == "sync") {
@@ -67,22 +74,29 @@ class AlertManager {
         return res;
     }
 
-    async runAlerts() {
 
-        await this.dbService.waitForDBConnection();
+    async runAlerts() {
+        await this.DAC.initialize();
+
+        const terminal = new Terminal1(process.stderr);
+        terminal.cursor(false);
+
+        terminal.cursorSave();
 
         while (true) {
 
-            const chains = ["XRP"];
+            const chains = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
 
-            for(let chain of chains ) {
+            terminal.cursorRestore();
+
+            for (let chain of chains) {
                 const res = await this.checkIndexer(chain);
 
-                if( res.valid ) {
-                    this.logger.info( `${res.name} ^gVALID^^   ${res.comment}` );
+                if (res.valid) {
+                    this.logger.info(`${res.name.padEnd(14)} ^g^K VALID ^^   ${res.state.padEnd(10)} ^B${res.comment}`);
                 }
                 else {
-                    this.logger.info( `${res.name} ^rINVALID^^ ${res.comment}` );
+                    this.logger.info(`${res.name.padEnd(14)} ^r^W INVALID ^^ ${res.state.padEnd(10)} ^B${res.comment}`);
                 }
             }
 

@@ -9,7 +9,7 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "Launch dev",
+            "name": "Launch Attester",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
                 "dev"
@@ -21,22 +21,21 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "Launch indexer",
+            "name": "Launch Indexer",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
                 "devindexer"
             ]
         },
 
-        
         {
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "Launch dev multi",
+            "name": "Launch Alerts",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "devmulti"
+                "devalerts"
             ]
         },
 

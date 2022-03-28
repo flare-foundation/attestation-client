@@ -175,3 +175,20 @@ journalctl --user -u songbird-spammer -f -n 1000
 journalctl --user -u songbird-backend -f -n 1000
 
 ```
+
+
+
+### Deploy all
+```
+
+./scripts/deploy-indexer
+
+./scripts/deploy-coston-attester
+./scripts/deploy-coston-spammer
+./scripts/deploy-coston-backoffice
+
+./scripts/deploy-songbird-attester
+./scripts/deploy-songbird-spammer
+./scripts/deploy-songbird-backoffice
+
+```

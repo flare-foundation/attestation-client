@@ -92,10 +92,11 @@ console.log(attesterCredentials.indexerDatabase)
     console.log(tree.root);
     console.log(await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS))
     console.log(`Total buffers ${totalBuffers}`)
-    assert(stateConnectorMerkleRoot === tree.root);
+    assert(stateConnectorMerkleRoot === tree.root,"Merkle roots do not match. Check if attestation provider works well.");
+    // in case of failure, check this: https://coston-explorer.flare.network/address/0x3a6E101103eC3D9267d08f484a6b70e1440A8255/transactions
   });
 
-  // it.only("Fancy request", async () => {
+  // it("Specific request check", async () => {
   //   let request = '0x000200000000000b20b900de7774052f50c65aa3c173a00ed7308513750b57f27077ffb8c5f3c9ad5df5f900000000000000000005dc665ce8346580d5e52f0b4a2f3e822fcd574c10154f';
 
   //   let parsed = parseRequest(request);

@@ -294,5 +294,24 @@
             ]
         },
 
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Coston Verification",
+            "runtimeExecutable": "yarn",
+            "env": {
+                "CONFIG_PATH": "dev",
+                "NODE_ENV":"development"
+            },
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/CostonVerification.test.ts",
+                "--network",
+                "coston"
+            ]
+        },
+
+
     ]
 }

@@ -14,12 +14,12 @@
                 "url2": "http://34.91.7.3:51234"
             },
             "rateLimitOptions": {
-                "maxRPS": 30,
-                "timeoutMs": 15000,
+                "maxRPS": 20,
+                "timeoutMs": 30000,
                 "retries": 10
             },
             "numberOfConfirmations": 1,
-            "syncReadAhead":30,
+            "syncReadAhead":20,
             "blockCollecting":"raw",
             "interlaceTimeRange":2,
             "interlaceBlockRange":100

@@ -10,9 +10,8 @@
         {
             "name": "XRP",
             "mccCreate" : {
-                "url": "https://xrpl-cc.flare.rocks",
-                "username": "admin",
-                "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"
+                "url": "https://xrplcluster.com",
+                "url2": "http://34.91.7.3:51234"
             },
             "rateLimitOptions": {
                 "maxRPS": 30,

@@ -122,7 +122,7 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
 
 export function hexlifyBN(obj: any) {
   const isHexReqex = /^[0-9A-Fa-f]+$/
-  if(obj.mul) {
+  if(obj?.mul) {
      return prefix0x(toHex(obj));
   }
   if(Array.isArray(obj)) {

@@ -83,7 +83,14 @@ export class IndexedQueryManager {
     let res = await this.getBlockHeightSample();
     let now = await getUnixEpochTimestamp();
     let delay = now - res.timestamp;
-    return delay <= this.settings.maxValidIndexerDelaySec;
+    if(delay > this.settings.maxValidIndexerDelaySec) {
+      return false;
+    }
+    let N = await this.getLastConfirmedBlockNumber();
+    if(res.height - N > this.settings.numberOfConfirmations() + 1) {
+      return false;
+    }
+    return true;
   }
 
   // Allows for artificial setup of the last known confirmed block
@@ -218,7 +225,7 @@ export class IndexedQueryManager {
         roundId: params.roundId,
         endBlock: N,
         transactionId: params.txId,
-      } as TransactionQueryParams);
+      } as TransactionQueryParams);      
       return {
         status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
         transaction: transactions[0],

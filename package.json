@@ -42,7 +42,8 @@
     "watch-and-run": "ts-node-dev --notify --respawn -- lib/runAttesterClient.ts",
     "watch-and-run-multi": "ts-node-dev --notify --respawn -- lib/testMultiAttesterClients.ts -c configs/config.json -m configs/config.multitest.json -n 5",
     "watch-and-run-indexer": "ts-node-dev --trace-warnings --notify --respawn -- lib/indexer/indexer.ts",
-    "dev": "DOTENV=DEV DOTENV_INCLUDE=\".indexer.remote.dev.read.env\" yarn watch-and-run",
+    "dev": "CONFIG_PATH=dev NODE_ENV=development yarn watch-and-run",
+    "devprod": "CONFIG_PATH=dev NODE_ENV=production node dist/lib/runAttesterClient.js",
     "devmulti": "DOTENV=DEV yarn watch-and-run-multi",
     "devindexer": "DOTENV=DEV yarn watch-and-run-indexer",
     "test_indexed_query_manager": "env DOTENV=DEV NODE_ENV=development yarn hardhat test test/IndexedQueryManager.test.ts",
@@ -54,7 +55,9 @@
     "preroutes": "ts-node lib/scripts/create-routes-folder.ts",
     "routes": "yarn tsoa routes && yarn tsoa spec",
     "devbackend": "CONFIG_PATH=dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/webserver/server.ts",
-    "devspammer": "DOTENV=DEV DOTENV_INCLUDE=\".indexer.remote.dev.read.env\" yarn ts-node-dev --notify --respawn -- lib/spammer/attestation-spammer.ts -- -c XRP -r http://127.0.0.1:9650/ext/bc/C/rpc  -a artifacts/contracts/StateConnector.sol/StateConnector.json -t $(cat .stateconnector-address) -b 1 -o 1 -f 1 -d 1000 -l XRP -k test-1020-accounts.json"
+    "devspammer_old": "DOTENV=DEV DOTENV_INCLUDE=\".indexer.remote.dev.read.env\" yarn ts-node-dev --notify --respawn -- lib/spammer/attestation-spammer.ts -- -c XRP -r http://127.0.0.1:9650/ext/bc/C/rpc  -a artifacts/contracts/StateConnector.sol/StateConnector.json -t $(cat .stateconnector-address) -b 1 -o 1 -f 1 -d 1000 -l XRP -k test-1020-accounts.json",
+    "devspammer": "CONFIG_PATH=dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/spammer/attestation-spammer.ts -- -c BTC"
+
   },
   "dependencies": {
     "@google-cloud/secret-manager": "3.10.1",

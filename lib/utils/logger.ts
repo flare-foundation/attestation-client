@@ -77,8 +77,10 @@ class ColorConsole extends Transport {
         break;
     }
 
-    const memMb = round( process.memoryUsage().heapUsed / 1024 / 1024 , 1 );
-    const mem = BgBlue + FgBlack + `${memMb.toFixed(1).padStart(6,' ')}` + Reset
+    //const memMb = round( process.memoryUsage().heapUsed / 1024 / 1024 , 1 );
+    //const mem = BgBlue + FgBlack + `${memMb.toFixed(1).padStart(6,' ')}` + Reset
+
+    const mem = "";
 
     const text = info.message.toString();
 

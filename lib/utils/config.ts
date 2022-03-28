@@ -1,6 +1,7 @@
 import { getGlobalLogger, logException } from "./logger";
 
 const DEFAULT_CONFIG_PATH = "prod";
+const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
 
 function isEqualType<T>(A: any): boolean {
@@ -17,8 +18,9 @@ function readConfigBase<T>(project: string, mode: string): T {
     path += `${process.env.CONFIG_PATH}/`;
   }
   else {
-    path += `${DEFAULT_CONFIG_PATH}/`;
-    getGlobalLogger().warning(`configuration path not set. using ^w^Kprod^^`)
+    const modePath =  process.env.NODE_ENV==="development" ? DEFAULT_DEBUG_CONFIG_PATH : DEFAULT_CONFIG_PATH;
+    path += `${modePath}/`;
+    getGlobalLogger().warning(`configuration path not set. using ^w^K${modePath}^^`)
   }
 
   path += `${project}-${mode}.json`;

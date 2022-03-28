@@ -245,7 +245,7 @@ export class ChainNode {
     }
 
     // TODO - failure simulation
-    verifyAttestation(this.client, attestation, this.indexedQueryManager)
+    verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification )
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
 
@@ -260,6 +260,7 @@ export class ChainNode {
           this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);
         } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
           // TODO: handle this case and do not commit
+          // TODO: message other clients or what? do not submit? do not submit that source???
           this.processed(attestation, AttestationStatus.invalid, verification);
         } else {
           this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);

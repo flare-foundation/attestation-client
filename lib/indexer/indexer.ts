@@ -224,6 +224,17 @@ export class Indexer {
     return state;
   }
 
+  getStateEntryString(name: string, valueString: string, valueNum: number): DBState {
+    const state = new DBState();
+
+    state.name = this.getChainName(name);
+    state.valueString = valueString;
+    state.valueNumber = valueNum;
+    state.timestamp = getUnixEpochTimestamp();
+
+    return state;
+  }
+
   async blockSave(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
     const Np1 = this.N + 1;
 
@@ -487,15 +498,23 @@ export class Indexer {
         }
         lastN = this.N;
 
+        // status
+        const dbStatus = this.getStateEntryString("state", "sync", -1);
+
         const blockLeft = this.T - this.N;
 
         if (statsBlocksPerSec > 0) {
           const timeLeft = (this.T - this.N) / statsBlocksPerSec;
+
+          dbStatus.valueNumber = timeLeft;
+
           this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
         }
         else {
           this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);
         }
+
+        this.dbService.manager.save(dbStatus);
 
         // check if syncing has ended
         if (this.N >= this.T - this.chainConfig.numberOfConfirmations) {
@@ -596,6 +615,8 @@ export class Indexer {
 
     this.headerCollector.runBlockHeaderCollecting();
 
+    let processedBlocks = 0;
+
     while (true) {
       try {
         // get chain top block
@@ -607,6 +628,10 @@ export class Indexer {
         // has N+1 confirmation block
         const isNewBlock = this.N < this.T - this.chainConfig.numberOfConfirmations;
         const isChangedNp1Hash = this.blockNp1hash !== blockNp1.hash;
+
+        // status
+        const dbStatus = this.getStateEntryString("state", "running", processedBlocks++);
+        this.dbService.manager.save(dbStatus);
 
         // check if N + 1 hash is the same
         if (!isNewBlock && !isChangedNp1Hash) {

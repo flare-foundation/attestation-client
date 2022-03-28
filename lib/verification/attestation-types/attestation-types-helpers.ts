@@ -1,4 +1,5 @@
 import BN from "bn.js";
+import { prefix0x } from "flare-mcc";
 import glob from "glob";
 import Web3 from "web3";
 import { AttestationTypeScheme, NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
@@ -120,8 +121,9 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
 }
 
 export function hexlifyBN(obj: any) {
+  const isHexReqex = /^[0-9A-Fa-f]+$/
   if(obj.mul) {
-     return toHex(obj);
+     return prefix0x(toHex(obj));
   }
   if(Array.isArray(obj)) {
      return (obj as any[]).map(item => hexlifyBN(item));
@@ -134,5 +136,8 @@ export function hexlifyBN(obj: any) {
      }   
      return res;      
   }
-  return obj;
+  if(typeof obj === "string" && obj.match(isHexReqex)){
+    return prefix0x(obj);
+  }
+  return obj
 }

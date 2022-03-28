@@ -4,6 +4,7 @@ import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
+import { setRetryFailureCallback } from "../utils/PromiseTimeout";
 import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
@@ -36,11 +37,18 @@ export class AttesterClient {
     this.roundMng = new AttestationRoundManager(this.chainManager, this.config, this.credentials, this.logger, this.attesterWeb3);
   }
 
+  localRetryFailure(label: string) {
+    getGlobalLogger().error2(`retry failure: ${label} - application exit`);
+    process.exit(2);
+  }
+  
   async start() {
     try {
-      const version = "1000";
+      const version = "1001";
 
       this.logger.title(`starting Flare Attester Client v${version}`);
+
+      setRetryFailureCallback(this.localRetryFailure);  
 
       // create state connector
       this.logger.info(`attesterWeb3 initialize`);

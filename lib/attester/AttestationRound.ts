@@ -303,7 +303,8 @@ export class AttestationRound {
 
     this.roundHash = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
-    // this.roundRandom = web3.utils.randomHex(32)
+
+    this.logger.debug(`merkleRoot ${this.roundId} ${this.merkleTree.root}`);
 
     const time2 = getTimeMilli();
 

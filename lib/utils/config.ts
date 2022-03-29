@@ -9,13 +9,17 @@ function isEqualType<T>(A: any): boolean {
 }
 
 
-function readConfigBase<T>(project: string, mode: string): T {
+function readConfigBase<T>(project: string, type: string, mode: string=undefined): T {
   const fs = require("fs");
 
   let path = `./configs/`;
 
-  if (process.env.CONFIG_PATH) {
+  if( mode ) {
+    path += `${mode}/`;
+  }
+  else if (process.env.CONFIG_PATH) {
     path += `${process.env.CONFIG_PATH}/`;
+    getGlobalLogger().debug2(`configuration using ^w^K${mode}^^`)
   }
   else {
     const modePath =  process.env.NODE_ENV==="development" ? DEFAULT_DEBUG_CONFIG_PATH : DEFAULT_CONFIG_PATH;
@@ -23,7 +27,7 @@ function readConfigBase<T>(project: string, mode: string): T {
     getGlobalLogger().warning(`configuration path not set. using ^w^K${modePath}^^`)
   }
 
-  path += `${project}-${mode}.json`;
+  path += `${project}-${type}.json`;
 
   try {
 
@@ -36,13 +40,13 @@ function readConfigBase<T>(project: string, mode: string): T {
     return res;
   }
   catch (error) {
-    logException(error, `${mode} file ^K^w${path}^^ load error`);
+    logException(error, `${type} file ^K^w${path}^^ load error`);
   }
 }
 
-export function readConfig<T>(project: string): T {
-  return readConfigBase<T>(project, "config");
+export function readConfig<T>(project: string, mode: string=undefined): T {
+  return readConfigBase<T>(project, "config", mode);
 }
-export function readCredentials<T>(project: string): T {
-  return readConfigBase<T>(project, "credentials");
+export function readCredentials<T>(project: string, mode: string=undefined): T {
+  return readConfigBase<T>(project, "credentials", mode);
 }

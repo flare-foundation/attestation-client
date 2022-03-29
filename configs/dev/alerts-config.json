@@ -1,0 +1,20 @@
+{
+    "interval":5000,
+    "timeLate":5,
+    "timeDown":10,
+    "timeRestart":20,
+    "indexerRestart":"systemctl --user restart indexer-<name>",
+    "indexers" : ["ALGO", "BTC", "DOGE", "LTC", "XRP"],
+    "attesters" : [ 
+        {
+            "name":"Coston", 
+            "mode": "dev", 
+            "restart":"systemctl --user restart coston-attester"
+        },
+        {
+            "name":"Songbird", 
+            "mode": "songbird", 
+            "restart":"systemctl --user restart songbird-attester"
+        }
+    ]
+}

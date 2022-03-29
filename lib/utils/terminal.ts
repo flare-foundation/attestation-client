@@ -1,7 +1,7 @@
 const _readline = require('readline');
 
 // low-level terminal interactions
-export class Terminal1{
+export class Terminal {
 
     stream: any;
     linewrap: boolean;

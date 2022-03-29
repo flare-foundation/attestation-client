@@ -24,7 +24,7 @@ export class EpochSettings {
   }
 
   getCurrentEpochId(): BN {
-    return this.getEpochIdForTime(toBN(getTimeSec()));
+    return this.getEpochIdForTime(toBN(getTimeSec()*1000));
   }
 
   

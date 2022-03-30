@@ -1,5 +1,5 @@
 import assert from "assert";
-// import BN from "bn.js";
+import BN from "bn.js";
 import { toBN } from "flare-mcc";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
@@ -334,6 +334,10 @@ export class AttestationRound {
     // }
   }
 
+  BNtoString(number: BN) {
+    return '0x' + (number.toString(16)).padStart(64,'0');
+  }
+
   async firstCommit() {
     if (this.canCommit()) {
       let action = `Submitting for bufferNumber ${this.roundId + 1} (first commit)`;
@@ -349,7 +353,7 @@ export class AttestationRound {
 
       let roundHashBN = toBN(this.roundHash);
       let roundRandomBN = toBN(this.roundRandom);
-      let xorHash = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
+      let xorHash = this.BNtoString(roundHashBN.xor(roundRandomBN));
       let randomHash = singleHash(this.roundRandom);
 
       this.attesterWeb3
@@ -420,7 +424,7 @@ export class AttestationRound {
         // nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
         let roundHashBN = toBN(this.nextRound.roundHash);
         let roundRandomBN = toBN(this.nextRound.roundRandom);
-        nextRoundMaskedMerkleRoot = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
+        nextRoundMaskedMerkleRoot = this.BNtoString( roundHashBN.xor(roundRandomBN));
         nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
 
         // nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.roundHash).xor(this.nextRound.roundRandom), 32);

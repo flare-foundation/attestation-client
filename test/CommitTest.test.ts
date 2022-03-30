@@ -1,6 +1,7 @@
 // yarn c
 // yarn hardhat test test/CommitTest.test.ts 
 
+import { toBN } from "flare-mcc";
 import { singleHash } from "../lib/utils/MerkleTree";
 import { CommitTestInstance } from "../typechain-truffle";
 
@@ -49,7 +50,90 @@ describe("Coston verification test", () => {
   // 2022-03-30T11:04:20.535Z  - global:[debug]: new block 435814 with 1 event(s)
   // 2022-03-30T11:04:20.536Z  - global:[error]: EVENT RoundFinalised 139642 0x2d8254a033d68c532e3410ac79a09d262fd27be1980b67b33c9451f9e20c044e (commited root 0xefbb53a202d2321b65a5f80909b9731865d2449a98162d2f1d75f05a59317f74)
 
-  it.only("Should check the commit for buffer 139642", async () => {
+
+  it.only("BN XOR TEST", async () => {
+    //                  123456789 123456789 123456789 123456789 123456789 123456789 1234
+    let merkleRoot = "0xe84423e6626d616f4fa7b795563732f402932ce21039f0125d3cd71372a6d3b1";
+    let maskedMerkleRoot = "0x7eecfdea4bdce2b1230c4d3d0f4d41ae9657be4bb3094bcfb74b197545918ae";
+    let revealedRandom = "0xefaaec38c6d0af445d97734686c3e6eeebf65706ab0964aea648668426ffcb1f"
+
+    let merkleRootBN2 = new BN.BigInteger(merkleRoot);
+
+    let merkleRootBN = toBN(merkleRoot);
+    let maskedMerkleRootBN = toBN(maskedMerkleRoot);
+    let randomBN = toBN(revealedRandom);
+
+
+    let testA = merkleRootBN.xor(randomBN);
+    let testB = maskedMerkleRootBN.xor(randomBN);
+
+    const testAStr = testA.toString(16);
+    const testBStr = testB.toString(16);
+
+
+    let test1 = merkleRootBN.xor(randomBN).xor(randomBN);
+
+    const randomStr = randomBN.toString(16);
+    const merkleRootStr = merkleRootBN.toString(16);
+    const merkleRoot2Str = merkleRootBN2.toString(16);
+    const maskedMerkleRootStr = maskedMerkleRootBN.toString(16);
+    const test1Str = test1.toString(16);
+
+
+    console.log("random           = ", randomStr);
+    console.log("merkleRoot       = ", merkleRootStr);
+    console.log("merkleRoot2      = ", merkleRoot2Str);
+    console.log("maskedMerkleRoot = ", maskedMerkleRootStr);
+    console.log("test1            = ", test1Str);
+    console.log("testA            = ", testAStr);
+    console.log("testB            = ", testBStr);
+
+    assert(test1Str === merkleRootStr);
+    assert(testAStr === maskedMerkleRootStr);
+    assert(testBStr === merkleRootStr);
+  });
+
+  it("BN XOR TEST", async () => {
+    //                  123456789 123456789 123456789 123456789 123456789 123456789 1234
+    let merkleRoot = "0x39b9cb7fd4bd42ced11a83fa09f1a6ebe7d05e53d35e470e19bd0bb1a7328b7d";
+    let maskedMerkleRoot = "0x81719674e8fb475ed01f42a8699261e8e11270c628a458960dc3abde0eb4fb38";
+    let committedRandom = "0x345842159fa1a9a788ddcfb7565074e2dc72271f3e568ac22d096a2e4de38558"
+    let revealedRandom = "0xb8c85d0b3c4605900105c1526063c70306c22e95fbfa1f98147ea06fa9867045"
+
+    let merkleRootBN = toBN(merkleRoot);
+    let maskedMerkleRootBN = toBN(maskedMerkleRoot);
+    let randomBN = toBN(revealedRandom);
+
+
+    let testA = merkleRootBN.xor(randomBN);
+    let testB = maskedMerkleRootBN.xor(randomBN);
+
+    const testAStr = testA.toString(16);
+    const testBStr = testB.toString(16);
+
+
+    let test1 = merkleRootBN.xor(randomBN).xor(randomBN);
+
+    const randomStr = randomBN.toString(16);
+    const merkleRootStr = merkleRootBN.toString(16);
+    const maskedMerkleRootStr = maskedMerkleRootBN.toString(16);
+    const test1Str = test1.toString(16);
+
+
+    console.log("random           = ", randomStr);
+    console.log("merkleRoot       = ", merkleRootStr);
+    console.log("maskedMerkleRoot = ", maskedMerkleRootStr);
+    console.log("test1            = ", test1Str);
+    console.log("testA            = ", testAStr);
+    console.log("testB            = ", testBStr);
+
+    assert(test1Str === merkleRootStr);
+    assert(testAStr === maskedMerkleRootStr);
+    assert(testBStr === merkleRootStr);
+  });
+
+
+  it("Should check the commit for buffer 139642", async () => {
 
     let merkleRoot = "0xe84423e6626d616f4fa7b795563732f402932ce21039f0125d3cd71372a6d3b1";
     let maskedMerkleRoot = "0x7eecfdea4bdce2b1230c4d3d0f4d41ae9657be4bb3094bcfb74b197545918ae";
@@ -70,9 +154,9 @@ describe("Coston verification test", () => {
     let merkleRoot2 = '0x' + maskedMerkleRootBN.xor(randomBN).toString(16);
     let committedRandom2 = singleHash(revealedRandom);
 
-    console.log("maskedMerkleRoot2:",maskedMerkleRoot2);
-    console.log("merkleRoot2:",merkleRoot2);
-    console.log("committedRandom2:",committedRandom2);
+    console.log("maskedMerkleRoot2:", maskedMerkleRoot2);
+    console.log("merkleRoot2:", merkleRoot2);
+    console.log("committedRandom2:", committedRandom2);
     console.log("Unmasked contract", result);
     assert(result === merkleRoot);
   });

@@ -14,7 +14,7 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
 
-const BN = require("bn");
+//const BN = require("bn");
 
 export enum AttestationRoundEpoch {
   collect,
@@ -338,12 +338,17 @@ export class AttestationRound {
     if (this.canCommit()) {
       let action = `Submitting for bufferNumber ${this.roundId + 1} (first commit)`;
 
-      let shouldBe = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+      //let shouldBe = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
-      console.log(`Should be ${shouldBe}, is ${this.roundId + 1}`);
+      //console.log(`Should be ${shouldBe}, is ${this.roundId + 1}`);
 
-      let roundHashBN = new BN.BigInteger(this.roundHash, 16);
-      let roundRandomBN = new BN.BigInteger(this.roundRandom, 16);
+      // let roundHashBN = new BN.BigInteger(this.roundHash, 16);
+      // let roundRandomBN = new BN.BigInteger(this.roundRandom, 16);
+      // let xorHash = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
+      // let randomHash = singleHash(this.roundRandom);
+
+      let roundHashBN = toBN(this.roundHash);
+      let roundRandomBN = toBN(this.roundRandom);
       let xorHash = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
       let randomHash = singleHash(this.roundRandom);
 
@@ -409,17 +414,20 @@ export class AttestationRound {
       if (this.nextRound.canCommit()) {
         action += ` (start commit for ${this.nextRound.roundId})`;
 
-        let roundHashBN = new BN.BigInteger(this.nextRound.roundHash, 16);
-        let roundRandomBN = new BN.BigInteger(this.nextRound.roundRandom, 16);
+        // let roundHashBN = new BN.BigInteger(this.nextRound.roundHash, 16);
+        // let roundRandomBN = new BN.BigInteger(this.nextRound.roundRandom, 16);
+        // nextRoundMaskedMerkleRoot = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
+        // nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
+        let roundHashBN = toBN(this.nextRound.roundHash);
+        let roundRandomBN = toBN(this.nextRound.roundRandom);
         nextRoundMaskedMerkleRoot = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
         nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
-
 
         // nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.roundHash).xor(this.nextRound.roundRandom), 32);
         // nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
 
-        this.logger.debug(`commit data prepared: roundId=${this.nextRound.roundId} merkleTree.root=${this.nextRound.merkleTree.root} hash=${this.nextRound.roundRandom}`);
+        this.logger.debug(`commit data prepared: roundId=${this.nextRound.roundId} merkleTree.root=${this.nextRound.merkleTree.root} random=${this.nextRound.roundRandom}`);
       }
       else {
         action += ` (failed start commit for ${this.nextRound.roundId} - too late)`;

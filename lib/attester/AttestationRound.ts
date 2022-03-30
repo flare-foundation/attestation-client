@@ -304,7 +304,7 @@ export class AttestationRound {
     this.roundHash = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
 
-    this.logger.debug(`merkleRoot ${this.roundId} ${this.merkleTree.root}`);
+    this.logger.debug(`commit data prepared: roundId=${this.roundId} merkleTree.root=${this.merkleTree.root} hash=${this.roundRandom}`);
 
     const time2 = getTimeMilli();
 
@@ -427,6 +427,8 @@ export class AttestationRound {
       }
     }
 
+    this.logger.debug2(`submit debug data #${this.roundId}: ${this.roundId+2} ${nextRoundMaskedMerkleRoot} ${nextRoundHashedRandom} ${this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32)}` );
+
     this.attesterWeb3
       .submitAttestation(
         action,
@@ -438,7 +440,7 @@ export class AttestationRound {
       )
       .then((receit) => {
         if (receit) {
-          this.logger.info(`^Cbuffernumber ${this.roundId} submitted.`);
+          this.logger.info(`^Cround ${this.roundId} submitted (buffernumber ${this.roundId+1})`);
           this.attestStatus = AttestationRoundStatus.revealed;
         } else {
           this.attestStatus = AttestationRoundStatus.error;

@@ -1,13 +1,12 @@
-import { ChainType, MCC, toBN } from "flare-mcc";
+import { ChainType, MCC } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { setRetryFailureCallback } from "../utils/PromiseTimeout";
-import { getRandom, getUnixEpochTimestamp, sleepms } from "../utils/utils";
+import { sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
-import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { SourceId } from "../verification/sources/sources";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -41,14 +40,14 @@ export class AttesterClient {
     getGlobalLogger().error2(`retry failure: ${label} - application exit`);
     process.exit(2);
   }
-  
+
   async start() {
     try {
       const version = "1001";
 
       this.logger.title(`starting Flare Attester Client v${version}`);
 
-      setRetryFailureCallback(this.localRetryFailure);  
+      setRetryFailureCallback(this.localRetryFailure);
 
       // create state connector
       this.logger.info(`attesterWeb3 initialize`);
@@ -176,10 +175,23 @@ export class AttesterClient {
   onlyOnce = false;
 
   processEvent(event: any) {
-    if (event.event === "AttestationRequest") {
-      const attestation = new AttestationData(event);
+    try {
+      if (event.event === "AttestationRequest") {
+        const attestation = new AttestationData(event);
 
-      this.roundMng.attestate(attestation);
+        this.roundMng.attestate(attestation);
+      }
+    } catch (error) {
+      logException(error, `processEvent(AttestationRequest)`);
+    }
+
+    try {
+      if (event.event === "RoundFinalised") {
+        this.logger.debug(`round finalized ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash}`);
+
+      }
+    } catch (error) {
+      logException(error, `processEvent(RoundFinalised)`);
     }
   }
 }

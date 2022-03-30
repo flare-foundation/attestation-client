@@ -304,14 +304,14 @@ export class AttestationRound {
     this.roundHash = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
 
-    this.logger.debug(`commit data prepared: roundId=${this.roundId} merkleTree.root=${this.merkleTree.root} hash=${this.roundRandom}`);
-
     const time2 = getTimeMilli();
 
     //
     //   collect   | commit       | reveal
     //   x         | x+1          | x+2
     //
+
+    AttestationRoundManager.commitedMerkleRoots.set(this.roundId, this.roundHash);
 
     // calculate remaining time in epoch
     const now = getTimeMilli();
@@ -418,6 +418,8 @@ export class AttestationRound {
         // nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.roundHash).xor(this.nextRound.roundRandom), 32);
         // nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
+
+        this.logger.debug(`commit data prepared: roundId=${this.nextRound.roundId} merkleTree.root=${this.nextRound.merkleTree.root} hash=${this.nextRound.roundRandom}`);
       }
       else {
         action += ` (failed start commit for ${this.nextRound.roundId} - too late)`;
@@ -426,6 +428,11 @@ export class AttestationRound {
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
     }
+
+    // roundId = x (bufferNumber)
+    // commited on x+1
+    // revealed on x+2
+    // event on reveal x+3
 
     this.attesterWeb3
       .submitAttestation(
@@ -438,10 +445,10 @@ export class AttestationRound {
       )
       .then((receit) => {
         if (receit) {
-          this.logger.info(`^Cround ${this.roundId} submitt completed (buffernumber ${this.roundId+2})`);
+          this.logger.info(`^Cround ${this.roundId} submitt completed (buffernumber ${this.roundId + 2})`);
           this.attestStatus = AttestationRoundStatus.revealed;
         } else {
-          this.logger.info(`^Rround ${this.roundId} submitt error (buffernumber ${this.roundId+2}) - no receipt`);
+          this.logger.info(`^Rround ${this.roundId} submitt error (buffernumber ${this.roundId + 2}) - no receipt`);
           this.attestStatus = AttestationRoundStatus.error;
         }
       });

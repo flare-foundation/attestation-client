@@ -187,7 +187,20 @@ export class AttesterClient {
 
     try {
       if (event.event === "RoundFinalised") {
-        this.logger.debug(`round finalized ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash}`);
+
+        const commitedRoot = AttestationRoundManager.commitedMerkleRoots.get(event.returnValues.bufferNumber - 3);
+
+        if( commitedRoot ) {
+          if( commitedRoot===event.returnValues.merkleHash) {
+            this.logger.info(`^GEVENT RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root as commited)`);
+          }
+          else {
+            this.logger.error(`EVENT RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (commited root ${commitedRoot})`);
+          }
+        }
+        else {
+          this.logger.error(`EVENT RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root not commited)`);
+        }
 
       }
     } catch (error) {

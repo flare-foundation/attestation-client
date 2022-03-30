@@ -48,15 +48,15 @@ function processAllInputs(fullTxData: UtxoType, inUtxoNumber: number, receivingA
 }
 
 async function processSingleInput(client: UtxoClientType, fullTxData: UtxoType, inUtxoNumber: number): Promise<SourceProcessingResult> {
-   let txAddress = fullTxData.data?.vin?.[inUtxoNumber]?.txid;
-   if (!txAddress) {
+   let txId = fullTxData.data?.vin?.[inUtxoNumber]?.txid;
+   if (!txId) {
       return {
          status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
       }
    }
 
    // read the relevant in transaction to find out address and value on inUtxo
-   let inTransaction = await client.getTransaction(txAddress);
+   let inTransaction = await client.getTransaction(txId);
    let inVout = fullTxData.data.vin[inUtxoNumber].vout;
    // let sourceAddress = inTransaction?.extractVoutAt(inVout)?.scriptPubKey?.addresses[0];
    let sourceAddress = inTransaction.receivingAddress?.[inVout];
@@ -136,6 +136,7 @@ export async function utxoBasedPaymentVerification(
    let receivedAmount = fullTxData.receivedAmount[utxoNumber].amount;
 
 
+   // !!!
    let inUtxoNumber = toBN(request.inUtxo).toNumber();
    if (!fullTxData.sourceAddress?.[inUtxoNumber]) {
       return {

@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
+import { CommitTestContract } from "./CommitTest";
 import { AttestationClientBaseContract } from "./AttestationClientBase";
 import { AttestationClientMockContract } from "./AttestationClientMock";
 import { AttestationClientSCContract } from "./AttestationClientSC";
@@ -14,6 +15,7 @@ import { StateConnectorContract } from "./StateConnector";
 declare global {
   namespace Truffle {
     interface Artifacts {
+      require(name: "CommitTest"): CommitTestContract;
       require(name: "AttestationClientBase"): AttestationClientBaseContract;
       require(name: "AttestationClientMock"): AttestationClientMockContract;
       require(name: "AttestationClientSC"): AttestationClientSCContract;
@@ -26,6 +28,7 @@ declare global {
   }
 }
 
+export { CommitTestContract, CommitTestInstance } from "./CommitTest";
 export {
   AttestationClientBaseContract,
   AttestationClientBaseInstance,

@@ -427,8 +427,6 @@ export class AttestationRound {
       }
     }
 
-    this.logger.debug2(`submit debug data #${this.roundId}: ${this.roundId+2} ${nextRoundMaskedMerkleRoot} ${nextRoundHashedRandom} ${this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32)}` );
-
     this.attesterWeb3
       .submitAttestation(
         action,
@@ -440,9 +438,10 @@ export class AttestationRound {
       )
       .then((receit) => {
         if (receit) {
-          this.logger.info(`^Cround ${this.roundId} submitted (buffernumber ${this.roundId+1})`);
+          this.logger.info(`^Cround ${this.roundId} submitt completed (buffernumber ${this.roundId+1})`);
           this.attestStatus = AttestationRoundStatus.revealed;
         } else {
+          this.logger.info(`^Rround ${this.roundId} submitt error (buffernumber ${this.roundId+1}) - no receipt`);
           this.attestStatus = AttestationRoundStatus.error;
         }
       });

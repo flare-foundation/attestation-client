@@ -438,10 +438,10 @@ export class AttestationRound {
       )
       .then((receit) => {
         if (receit) {
-          this.logger.info(`^Cround ${this.roundId} submitt completed (buffernumber ${this.roundId+1})`);
+          this.logger.info(`^Cround ${this.roundId} submitt completed (buffernumber ${this.roundId+2})`);
           this.attestStatus = AttestationRoundStatus.revealed;
         } else {
-          this.logger.info(`^Rround ${this.roundId} submitt error (buffernumber ${this.roundId+1}) - no receipt`);
+          this.logger.info(`^Rround ${this.roundId} submitt error (buffernumber ${this.roundId+2}) - no receipt`);
           this.attestStatus = AttestationRoundStatus.error;
         }
       });

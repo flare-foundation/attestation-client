@@ -27,7 +27,18 @@ export class AttesterWeb3 {
     this.stateConnector = await getWeb3Contract(this.web3, this.credentials.web.stateConnectorContractAddress, "StateConnector");
   }
 
+  check(bnString: string) {
+    if( bnString.length!=64+2 || bnString[0]!=='0' || bnString[1]!=='x' ) {
+      this.logger.error( `invalid BN formating ${bnString}` );
+    }
+  }
+
   async submitAttestation(action: string, bufferNumber: BN, maskedMerkleHash: string, committedRandom: string, revealedRandom: string) {
+
+    this.check(maskedMerkleHash);
+    this.check(committedRandom);
+    this.check(revealedRandom);
+
     let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, maskedMerkleHash, committedRandom, revealedRandom);
 
     this.logger.info( `action ............. : ${action}` )

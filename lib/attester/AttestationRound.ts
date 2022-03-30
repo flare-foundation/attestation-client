@@ -219,7 +219,7 @@ export class AttestationRound {
   }
 
   async commit() {
-    console.log("COMMIT")
+    //console.log("COMMIT")
     if (this.status !== AttestationRoundEpoch.commit) {
       this.logger.error(`round #${this.roundId} cannot commit (wrong epoch status ${this.status})`);
       return;
@@ -238,7 +238,7 @@ export class AttestationRound {
       if (tx.status === AttestationStatus.valid) {
         validated.push(tx);
       } else {
-        console.log("INVALID:", tx.data.request)
+        //console.log("INVALID:", tx.data.request)
       }
 
       // prepare the attestation r

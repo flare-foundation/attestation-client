@@ -142,19 +142,19 @@ systemctl --user stop songbird-backend.service
 
 #### Restart services
 ```
-systemctl --user restart indexer-xrp.service
-systemctl --user restart indexer-btc.service
-systemctl --user restart indexer-ltc.service
-systemctl --user restart indexer-algo.service
-systemctl --user restart indexer-doge.service
+systemctl --user restart indexer-xrp
+systemctl --user restart indexer-btc
+systemctl --user restart indexer-ltc
+systemctl --user restart indexer-algo
+systemctl --user restart indexer-doge
 
-systemctl --user restart coston-attester-client.service
-systemctl --user restart coston-spammer.service
-systemctl --user restart coston-backend.service
+systemctl --user restart coston-attester-client
+systemctl --user restart coston-spammer
+systemctl --user restart coston-backend
 
-systemctl --user restart songbird-attester-client.service
-systemctl --user restart songbird-spammer.service
-systemctl --user restart songbird-backend.service
+systemctl --user restart songbird-attester-client
+systemctl --user restart songbird-spammer
+systemctl --user restart songbird-backend
 
 ```
 

@@ -1,11 +1,23 @@
 // yarn c
 // yarn hardhat test test/CommitTest.test.ts 
 
-import { toBN } from "flare-mcc";
+import { prefix0x, toBN, unPrefix0x } from "flare-mcc";
 import { singleHash } from "../lib/utils/MerkleTree";
 import { CommitTestInstance } from "../typechain-truffle";
 
 const BN = require("bn");
+
+function xor32(hex1: string, hex2: string) {
+  let h1 = unPrefix0x(hex1);
+  let h2 = unPrefix0x(hex2);
+  if (!(/^[a-fA-F0-9]{64}$/.test(h1) && /^[a-fA-F0-9]{64}$/.test(h2))) {
+    throw new Error("Incorrectly formatted 32-byte strings");
+  }
+  const buf1 = Buffer.from(h1, 'hex');
+  const buf2 = Buffer.from(h2, 'hex');
+  const bufResult = buf1.map((b, i) => b ^ buf2[i]);
+  return prefix0x(Buffer.from(bufResult).toString('hex'));
+}
 
 describe("Coston verification test", () => {
 
@@ -16,6 +28,13 @@ describe("Coston verification test", () => {
     commitTest = await CommitTest.new();
   });
 
+  // it("xor check", async () => {
+  //   let merkleRoot = "0xe84423e6626d616f4fa7b795563732f402932ce21039f0125d3cd71372a6d3b1";
+  //   let maskedMerkleRoot = "0x7eecfdea4bdce2b1230c4d3d0f4d41ae9657be4bb3094bcfb74b197545918ae";
+  //   let revealedRandom = "0xefaaec38c6d0af445d97734686c3e6eeebf65706ab0964aea648668426ffcb1f"
+
+  //   let result = xor()
+  // });
 
   // 2022-03-30T11:02:50.002Z  - global:[debug]: commit data prepared: roundId=139640 merkleTree.root=0x1e5862543fe722cd647c30896f35dc1b91863608db8e6515280aa2df20c39dbf hash=0xd48a5e273a02f926559c9de876d29b210ae1e3d78f02dbbb0
   // 9f88050edaad004
@@ -50,12 +69,15 @@ describe("Coston verification test", () => {
   // 2022-03-30T11:04:20.535Z  - global:[debug]: new block 435814 with 1 event(s)
   // 2022-03-30T11:04:20.536Z  - global:[error]: EVENT RoundFinalised 139642 0x2d8254a033d68c532e3410ac79a09d262fd27be1980b67b33c9451f9e20c044e (commited root 0xefbb53a202d2321b65a5f80909b9731865d2449a98162d2f1d75f05a59317f74)
 
+  it("bytes32 test", async () => {
+    console.log(await commitTest.test2("0x012345"));
+  });
 
   it.only("BN XOR TEST", async () => {
     //                  123456789 123456789 123456789 123456789 123456789 123456789 1234
-    let merkleRoot = "0xe84423e6626d616f4fa7b795563732f402932ce21039f0125d3cd71372a6d3b1";
-    let maskedMerkleRoot = "0x7eecfdea4bdce2b1230c4d3d0f4d41ae9657be4bb3094bcfb74b197545918ae";
-    let revealedRandom = "0xefaaec38c6d0af445d97734686c3e6eeebf65706ab0964aea648668426ffcb1f"
+    let merkleRoot =      "0xe84423e6626d616f4fa7b795563732f402932ce21039f0125d3cd71372a6d3b1";
+    let maskedMerkleRoot ="0x07eecfdea4bdce2b1230c4d3d0f4d41ae9657be4bb3094bcfb74b197545918ae";
+    let revealedRandom =  "0xefaaec38c6d0af445d97734686c3e6eeebf65706ab0964aea648668426ffcb1f"
 
     let merkleRootBN2 = new BN.BigInteger(merkleRoot);
 
@@ -66,6 +88,8 @@ describe("Coston verification test", () => {
 
     let testA = merkleRootBN.xor(randomBN);
     let testB = maskedMerkleRootBN.xor(randomBN);
+    let testC = xor32(merkleRoot, revealedRandom);
+    let testD = xor32(maskedMerkleRoot, revealedRandom)
 
     const testAStr = testA.toString(16);
     const testBStr = testB.toString(16);
@@ -87,6 +111,9 @@ describe("Coston verification test", () => {
     console.log("test1            = ", test1Str);
     console.log("testA            = ", testAStr);
     console.log("testB            = ", testBStr);
+    console.log("testC            = ", testC);
+    console.log("testD            = ", testD);
+
 
     assert(test1Str === merkleRootStr);
     assert(testAStr === maskedMerkleRootStr);
@@ -171,12 +198,18 @@ describe("Coston verification test", () => {
   // 2022-03-30T11:05:50.578Z  - global:[debug]: new block 435881 with 1 event(s)
   // 2022-03-30T11:05:50.579Z  - global:[error]: EVENT RoundFinalised 139643 0x2b047807bde298064971e118794219d874451b9f2af7db5745717abfbfc629a3 (commited root 0x1e5862543fe722cd647c30896f35dc1b91863608db8e6515280aa2df20c39dbf)
 
-  it("Should check the commit for buffer 139643", async () => {
+  it.only("Should check the commit for buffer 139643", async () => {
 
     let merkleRoot = "0x39b9cb7fd4bd42ced11a83fa09f1a6ebe7d05e53d35e470e19bd0bb1a7328b7d";
     let maskedMerkleRoot = "0x81719674e8fb475ed01f42a8699261e8e11270c628a458960dc3abde0eb4fb38";
     let committedRandom = "0x345842159fa1a9a788ddcfb7565074e2dc72271f3e568ac22d096a2e4de38558"
     let revealedRandom = "0xb8c85d0b3c4605900105c1526063c70306c22e95fbfa1f98147ea06fa9867045"
+
+    console.log("oms", maskedMerkleRoot)
+    console.log("mas", xor32(merkleRoot, revealedRandom))
+    console.log("mx2", xor32(xor32(merkleRoot, revealedRandom), revealedRandom))
+    console.log("   ", merkleRoot);
+
     let result = await commitTest.test(merkleRoot, maskedMerkleRoot, committedRandom, revealedRandom);
     console.log(result);
     assert(result === merkleRoot);

@@ -138,6 +138,7 @@ function processColors(text: string, def: string) {
     text = replaceAll(text, "^C", FgCyan);
     text = replaceAll(text, "^W", FgWhite);
     text = replaceAll(text, "^K", FgBlack);
+    text = replaceAll(text, "^E", FgGray);
 
     text = replaceAll(text, "^r", BgRed);
     text = replaceAll(text, "^g", BgGreen);
@@ -145,6 +146,7 @@ function processColors(text: string, def: string) {
     text = replaceAll(text, "^y", BgYellow);
     text = replaceAll(text, "^c", BgCyan);
     text = replaceAll(text, "^w", BgWhite);
+    text = replaceAll(text, "^e", BgGray);
   }
   catch{}
 

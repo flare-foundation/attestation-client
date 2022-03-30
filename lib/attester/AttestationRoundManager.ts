@@ -6,7 +6,7 @@ import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { round } from "../utils/utils";
 import { toSourceId } from "../verification/sources/sources";
-import { Attestation, AttestationStatus } from "./Attestation";
+import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
@@ -28,6 +28,8 @@ export class AttestationRoundManager {
   config: AttesterClientConfiguration;
   static credentials: AttesterCredentials;
   attesterWeb3: AttesterWeb3;
+
+  static commitedMerkleRoots =new Map<number,string>();
 
   constructor(chainManager: ChainManager, config: AttesterClientConfiguration, credentials: AttesterCredentials, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.config = config;
@@ -84,7 +86,10 @@ export class AttestationRoundManager {
           //bar1.stop()
         }
         //bar1.update(now - epochTimeStart);
-        getGlobalLogger().debug(`^G${90 - (now - epochTimeStart) / 1000} ETA`);
+        const eta = 90 - (now - epochTimeStart) / 1000;
+        if( eta >=0 ) {
+           getGlobalLogger().debug(`^GETA round end: ${round(eta,0)} sec`);
+        }
       }, 5000)
 
 

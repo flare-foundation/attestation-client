@@ -1,106 +1,74 @@
-import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { AttesterClientConfiguration, AttesterCredentials } from "../attester/AttesterClientConfiguration";
-import { DBState } from "../entity/indexer/dbState";
-import { IndexerConfiguration } from "../indexer/IndexerConfiguration";
-import { readConfig, readCredentials } from "../utils/config";
-import { DatabaseService } from "../utils/databaseService";
+import { readConfig } from "../utils/config";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
-import { Terminal1 } from "../utils/terminal";
-import { getUnixEpochTimestamp, secToHHMMSS, sleepms } from "../utils/utils";
+import { Terminal } from "../utils/terminal";
+import { sleepms } from "../utils/utils";
+import { AlertBase, AlertRestartConfig } from "./AlertBase";
+import { AttesterAlert } from "./AttestationAlert";
+import { IndexerAlert } from "./IndexerAlert";
 
 
-class AlertConfig {
+
+
+
+export class AlertConfig {
+    interval: number = 5000;
+
+    timeLate: number = 5;
+    timeDown: number = 10;
+    timeRestart: number = 20;
+    indexerRestart = "";
+    indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
+    attesters = [
+        { name: "Coston", mode: "dev", restart: "" },
+        { name: "Songbird", mode: "songbird", restart: "" },
+    ]
 
 }
-
-class Status {
-    name: string;
-    valid: boolean = false;
-    state: string = "";
-    comment: string = "";
-}
-
 
 class AlertManager {
     logger: AttLogger;
-    //config: AlertConfig;
-    DAC : AttestationRoundManager;
+    config: AlertConfig;
+
+    alerts: AlertBase[] = [];
 
     constructor() {
         this.logger = getGlobalLogger();
 
-        //this.config = readConfig<AlertConfig>("alert");
+        this.config = readConfig<AlertConfig>("alerts");
 
-        // Reading configuration
-        const configIndexer = readConfig<IndexerConfiguration>("indexer");
-        const configAttestationClient = readConfig<AttesterClientConfiguration>("attester");
-        const attesterCredentials = readCredentials<AttesterCredentials>("attester");
+        for (let indexer of this.config.indexers) {
+            this.alerts.push(new IndexerAlert(indexer, this.logger, this.config));
+        }
 
-        this.DAC = new AttestationRoundManager(null, configAttestationClient, attesterCredentials, getGlobalLogger(), null);
+        for (let attester of this.config.attesters) {
+            this.alerts.push(new AttesterAlert(attester.name, this.logger, attester.mode, new AlertRestartConfig(this.config.timeRestart, attester.mode)));
+        }
     }
-
-    async checkIndexer(chain: string): Promise<Status> {
-
-        const res = new Status();
-        res.name = `indexer ${chain}`;
-
-        // const resT = await this.dbService.manager.findOne(DBState, { where: { name: `${chain}_T` } });
-
-        // if (resT === undefined) {
-        //     res.state = "state data not available";
-        //     return res;
-        // }
-
-        const resState = await AttestationRoundManager.dbServiceIndexer.manager.findOne(DBState, { where: { name: `${chain}_state` } });
-
-        if (resState === undefined) {
-            res.state = "state data not available";
-            return res;
-        }
-
-        const now = getUnixEpochTimestamp();
-
-        res.state = resState.valueString;
-        res.valid = resState.timestamp > now - 10;
-
-        if (resState.valueString == "sync") {
-            res.comment = `ETA ${secToHHMMSS(resState.valueNumber)}`;
-        }
-        else if (resState.valueString == "running") {
-            res.comment = `processed blocks ${resState.valueNumber}`;
-        }
-
-        return res;
-    }
-
 
     async runAlerts() {
-        await this.DAC.initialize();
+        for (let alert of this.alerts) {
+            await alert.initialize();
+        }
 
-        const terminal = new Terminal1(process.stderr);
+        const terminal = new Terminal(process.stderr);
         terminal.cursor(false);
+
+        this.logger.info(`^e^K${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                        `);
 
         terminal.cursorSave();
 
         while (true) {
 
-            const chains = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
-
             terminal.cursorRestore();
 
-            for (let chain of chains) {
-                const res = await this.checkIndexer(chain);
+            for (let alert of this.alerts) {
+                const res = await alert.check();
 
-                if (res.valid) {
-                    this.logger.info(`${res.name.padEnd(14)} ^g^K VALID ^^   ${res.state.padEnd(10)} ^B${res.comment}`);
-                }
-                else {
-                    this.logger.info(`${res.name.padEnd(14)} ^r^W INVALID ^^ ${res.state.padEnd(10)} ^B${res.comment}`);
-                }
+                res.displayStatus(this.logger);
             }
 
-            await sleepms(5000);
+            await sleepms(this.config.interval);
         }
     }
 }

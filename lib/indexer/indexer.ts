@@ -539,6 +539,9 @@ export class Indexer {
 
       } catch (error) {
         logException(error, `runSync exception: `);
+
+        getGlobalLogger().error2(`application exit`);
+        process.exit(2);
       }
     }
   }

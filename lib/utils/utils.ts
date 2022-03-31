@@ -67,8 +67,8 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
       abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
       return new web3.eth.Contract(getAbi(`data/artifacts/${abiPath}`), address);
     }
-    catch( e2 ) {
-      console.error( `getWeb3Contract error - ABI not found (run yarn c): ${e2}` );
+    catch (e2) {
+      console.error(`getWeb3Contract error - ABI not found (run yarn c): ${e2}`);
     }
   }
 }
@@ -156,8 +156,8 @@ export function prepareString(text: string, maxLength: number, reportOwerflow: s
   return text.substring(0, maxLength);
 }
 
-export function getSimpleRandom(maxnum: number) : number {
-  return Math.floor( Math.random() * maxnum );
+export function getSimpleRandom(maxnum: number): number {
+  return Math.floor(Math.random() * maxnum);
 }
 
 
@@ -254,17 +254,25 @@ export function JSONMapParser(key: any, value: any) {
 
 
 
-export function secToHHMMSS(time: number, secDecimals=0)
-{
-    const hours   = Math.floor(time / 3600);
-    const minutes = Math.floor((time - (hours * 3600)) / 60);
-    const seconds = round( time - (hours * 3600) - (minutes * 60) , secDecimals );
+export function secToHHMMSS(time: number, secDecimals = 0) {
+  const days = Math.floor(time / (3600 * 24));
+  let hours = Math.floor(time / 3600);
+  const minutes = Math.floor((time - (hours * 3600)) / 60);
+  const seconds = round(time - (hours * 3600) - (minutes * 60), secDecimals);
 
-    const shours : string = hours.toString().padStart(2,"0")
-    const smin : string = minutes.toString().padStart(2,"0")
-    const ssec : string = seconds.toString().padStart(2,"0")
+  hours = hours % 24;
 
-    return shours+':'+smin+':'+ssec;
+  let sdays = "";
+
+  if (days > 0) {
+    sdays = days.toString() + " ";
+  }
+
+  const shours: string = hours.toString().padStart(2, "0")
+  const smin: string = minutes.toString().padStart(2, "0")
+  const ssec: string = seconds.toString().padStart(2, "0")
+
+  return sdays + shours + ':' + smin + ':' + ssec;
 }
 
 export function xor32(hex1: string, hex2: string) {

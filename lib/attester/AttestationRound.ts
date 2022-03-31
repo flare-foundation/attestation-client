@@ -6,7 +6,7 @@ import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, logException } from "../utils/logger";
 import { MerkleTree, singleHash } from "../utils/MerkleTree";
-import { getCryptoSafeRandom, prepareString } from "../utils/utils";
+import { getCryptoSafeRandom, prepareString, xor32 } from "../utils/utils";
 import { toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
@@ -88,9 +88,13 @@ export class AttestationRound {
   transactionsProcessed: number = 0;
 
   // save submitted values for reveal
-  roundHash!: string;
-  roundRandom!: string;//BN;
+  roundMerkleRoot!: string;
+  roundRandom!: string;
+  roundMaskedMerkleRoot: string;
+  roundHashedRandom: string;
+
   merkleTree!: MerkleTree;
+
 
   sourceHandlers = new Map<number, SourceHandler>();
 
@@ -124,9 +128,7 @@ export class AttestationRound {
     const duplicate = this.attestationsMap.get(attestationHash);
 
     if (duplicate) {
-      this.logger.debug(
-        `attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
-      );
+      this.logger.debug3(`attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`);
       return;
     }
 
@@ -191,8 +193,9 @@ export class AttestationRound {
   }
 
   canCommit(): boolean {
-    this.logger.info(`#${this.roundId}: canCommit: processed: ${this.transactionsProcessed}, all: ${this.attestations.length}, status: ${this.status}`)
+    this.logger.debug(`canCommit(^Y#${this.roundId}^^) processed: ${this.transactionsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`)
     return this.transactionsProcessed === this.attestations.length &&
+      this.attestStatus===AttestationRoundStatus.commiting &&
       this.status === AttestationRoundEpoch.commit;
   }
 
@@ -301,8 +304,27 @@ export class AttestationRound {
     // create merkle tree
     this.merkleTree = new MerkleTree(validatedHashes);
 
-    this.roundHash = this.merkleTree.root!;
+    this.roundMerkleRoot = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
+
+    //const hash = toBN(this.roundHash);
+    //const random = toBN(this.roundRandom);
+    //const maskedHash = hash.xor(random);
+    //this.maskedMerkleRoot = this.BNtoString(maskedHash);
+
+    this.roundMaskedMerkleRoot = xor32(this.roundMerkleRoot, this.roundRandom);
+    this.roundHashedRandom = singleHash(this.roundRandom);
+
+    // validate
+    const hashTest = xor32(this.roundMaskedMerkleRoot, this.roundRandom);
+
+    if (hashTest !== this.roundMerkleRoot) {
+      this.logger.error2(`maskedHash calculated incorrectly !!!`);
+    }
+
+    // after commit state has been calculated add it in state
+    AttestationRoundManager.state.addRound(this);
+    AttestationRoundManager.state.save();
 
     const time2 = getTimeMilli();
 
@@ -311,7 +333,7 @@ export class AttestationRound {
     //   x         | x+1          | x+2
     //
 
-    AttestationRoundManager.commitedMerkleRoots.set(this.roundId, this.roundHash);
+    AttestationRoundManager.commitedMerkleRoots.set(this.roundId, this.roundMerkleRoot);
 
     // calculate remaining time in epoch
     const now = getTimeMilli();
@@ -319,58 +341,34 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `^GRound #${this.roundId} - commit hashes collected: ${validatedHashes.length}. Time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1}ms)`
+      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1}ms)`
     );
-
-
-    // First commit after start only!
-    // if (!this.prevRound) {
-    //   let delayToCommit = AttestationRoundManager.epochSettings.getRoundIdCommitTimeStart(this.roundId) - now + 
-    //   // trigger first commit
-    //   setTimeout(() => {
-    //     this.firstCommit();
-    //   }, epochCommitTime - now + this.config.revealTime * 1000);
-    //   this.firstCommit();
-    // }
   }
 
   BNtoString(number: BN) {
-    return '0x' + (number.toString(16)).padStart(64,'0');
+    return '0x' + (number.toString(16)).padStart(64, '0');
   }
 
   async firstCommit() {
     if (this.canCommit()) {
-      let action = `Submitting for bufferNumber ${this.roundId + 1} (first commit)`;
+      let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
-      //let shouldBe = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
-
-      //console.log(`Should be ${shouldBe}, is ${this.roundId + 1}`);
-
-      // let roundHashBN = new BN.BigInteger(this.roundHash, 16);
-      // let roundRandomBN = new BN.BigInteger(this.roundRandom, 16);
-      // let xorHash = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
-      // let randomHash = singleHash(this.roundRandom);
-
-      let roundHashBN = toBN(this.roundHash);
-      let roundRandomBN = toBN(this.roundRandom);
-      let xorHash = this.BNtoString(roundHashBN.xor(roundRandomBN));
-      let randomHash = singleHash(this.roundRandom);
+      const nextState = AttestationRoundManager.state.getState(this.roundId - 1);
 
       this.attesterWeb3
         .submitAttestation(
           action,
           // commit index (collect+1)
           toBN(this.roundId + 1),
-          xorHash,
-          randomHash,
-          toHex(0, 32) // we just put something here
-          // toHex(toBN(this.roundHash).xor(this.roundRandom), 32),
-          // singleHash(this.roundRandom),
-          // toHex(toBN(0), 32)
+          this.roundMerkleRoot,
+          this.roundMaskedMerkleRoot,
+          this.roundRandom,
+          this.roundHashedRandom,
+          nextState && nextState.random ? nextState.random : toHex(0, 32)
         )
         .then((receipt) => {
           if (receipt) {
-            this.logger.info(`^GRound ${this.roundId} commited`);
+            this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
             //console.log( receipt );
             this.attestStatus = AttestationRoundStatus.comitted;
           } else {
@@ -378,7 +376,7 @@ export class AttestationRound {
           }
         });
     } else {
-      this.logger.error(`First round #${this.roundId} cannot be commited (too late)`);
+      this.logger.error(`first round #${this.roundId} cannot be commited (too late)`);
     }
   }
 
@@ -409,58 +407,46 @@ export class AttestationRound {
 
     // this.logger.info(`^Cround #${this.roundId} reveal`);
 
+    let nextRoundMerkleRoot = toHex(toBN(0), 32);
     let nextRoundMaskedMerkleRoot = toHex(toBN(0), 32);
+    let nextRoundRandom = toHex(toBN(0), 32);
     let nextRoundHashedRandom = toHex(toBN(0), 32);
 
-    let action = `Submitting for bufferNumber ${this.roundId + 2}`;
+    let action = `submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 2}`;
 
     if (this.nextRound) {
       if (this.nextRound.canCommit()) {
-        action += ` (start commit for ${this.nextRound.roundId})`;
+        nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;
+        nextRoundMaskedMerkleRoot = this.nextRound.roundMaskedMerkleRoot;
+        nextRoundRandom = this.nextRound.roundRandom;
+        nextRoundHashedRandom = this.nextRound.roundHashedRandom;
 
-        // let roundHashBN = new BN.BigInteger(this.nextRound.roundHash, 16);
-        // let roundRandomBN = new BN.BigInteger(this.nextRound.roundRandom, 16);
-        // nextRoundMaskedMerkleRoot = '0x' + roundHashBN.xor(roundRandomBN).toString(16);
-        // nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
-        let roundHashBN = toBN(this.nextRound.roundHash);
-        let roundRandomBN = toBN(this.nextRound.roundRandom);
-        nextRoundMaskedMerkleRoot = this.BNtoString( roundHashBN.xor(roundRandomBN));
-        nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
-
-        // nextRoundMaskedMerkleRoot = toHex(toBN(this.nextRound.roundHash).xor(this.nextRound.roundRandom), 32);
-        // nextRoundHashedRandom = singleHash(this.nextRound.roundRandom);
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
-
-        this.logger.debug(`commit data prepared: roundId=${this.nextRound.roundId} merkleTree.root=${this.nextRound.merkleTree.root} random=${this.nextRound.roundRandom}`);
       }
       else {
-        action += ` (failed start commit for ${this.nextRound.roundId} - too late)`;
+        action += ` ^R^w(failed start commit too late)^^`;
         this.nextRound.roundRandom = toHex(0, 32);
-        // this.nextRound.roundRandom = toBN(0);
         this.nextRound.attestStatus = AttestationRoundStatus.comitted;
       }
     }
-
-    // roundId = x (bufferNumber)
-    // commited on x+1
-    // revealed on x+2
-    // event on reveal x+3
 
     this.attesterWeb3
       .submitAttestation(
         action,
         // commit index (collect+2)
         toBN(this.roundId + 2),
+        nextRoundMerkleRoot,
         nextRoundMaskedMerkleRoot,
+        nextRoundRandom,
         nextRoundHashedRandom,
         this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32)
       )
       .then((receit) => {
         if (receit) {
-          this.logger.info(`^Cround ${this.roundId} submitt completed (buffernumber ${this.roundId + 2})`);
+          this.logger.info(`^Cround ^Y#${this.roundId}^C submit completed (buffernumber ${this.roundId + 2})`);
           this.attestStatus = AttestationRoundStatus.revealed;
         } else {
-          this.logger.info(`^Rround ${this.roundId} submitt error (buffernumber ${this.roundId + 2}) - no receipt`);
+          this.logger.info(`^Rround ^Y#${this.roundId}^R submit error (buffernumber ${this.roundId + 2}) - no receipt`);
           this.attestStatus = AttestationRoundStatus.error;
         }
       });

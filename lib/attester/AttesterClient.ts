@@ -5,7 +5,7 @@ import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { setRetryFailureCallback } from "../utils/PromiseTimeout";
-import { sleepms } from "../utils/utils";
+import { secToHHMMSS, sleepms } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { SourceId } from "../verification/sources/sources";
 import { AttestationData } from "./AttestationData";
@@ -41,9 +41,25 @@ export class AttesterClient {
     process.exit(2);
   }
 
+  async getBlockForTime(time: number) {
+    let blockNumber = await this.attesterWeb3.web3Functions.getBlockNumber();
+
+    while (true) {
+
+      let block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
+
+      if (block.timestamp < time) {
+        this.logger.debug2(`start block number ${blockNumber} time ${secToHHMMSS(block.timestamp)}`);
+        return blockNumber;
+      }
+
+      blockNumber -= 10;
+    }
+  }
+
   async start() {
     try {
-      const version = "1001";
+      const version = "1002";
 
       this.logger.title(`starting Flare Attester Client v${version}`);
 
@@ -68,13 +84,18 @@ export class AttesterClient {
       this.logger.info(`chains initialize`);
       await this.initializeChains();
 
+      // get block in curent attestation round
+      const startRoundTime = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(AttestationRoundManager.activeEpochId) / 1000;
+      this.logger.debug(`start round ^Y#${AttestationRoundManager.activeEpochId}^^ time ${secToHHMMSS(startRoundTime)}`);
+      const startBlock = await this.getBlockForTime(startRoundTime);
+
       // connect to network block callback
       this.blockCollector = new Web3BlockCollector(
         this.logger,
         this.credentials.web.rpcUrl,
         this.credentials.web.stateConnectorContractAddress,
         "StateConnector",
-        undefined,
+        startBlock,
         (event: any) => {
           this.processEvent(event);
         }
@@ -190,16 +211,16 @@ export class AttesterClient {
 
         const commitedRoot = AttestationRoundManager.commitedMerkleRoots.get(event.returnValues.bufferNumber - 3);
 
-        if( commitedRoot ) {
-          if( commitedRoot===event.returnValues.merkleHash) {
-            this.logger.info(`^GEVENT RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root as commited)`);
+        if (commitedRoot) {
+          if (commitedRoot === event.returnValues.merkleHash) {
+            this.logger.info(`^e^G^Revent^^^G RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root as commited)`);
           }
           else {
-            this.logger.error(`EVENT RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (commited root ${commitedRoot})`);
+            this.logger.error(`^e^Revent^^ RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (commited root ${commitedRoot})`);
           }
         }
         else {
-          this.logger.error(`EVENT RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root not commited)`);
+          this.logger.error(`^e^Revent^^ RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root not commited)`);
         }
 
       }

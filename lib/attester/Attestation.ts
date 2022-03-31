@@ -22,6 +22,9 @@
 // [ ] handling system_failure blocks
 // [x] cleanup spammer config definitions
 
+// [ ] save attexter state into DB
+// [ ] at start use network to collect all events for active epoch
+
 // deployments
 // - spammer
 // - att client

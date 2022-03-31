@@ -32,12 +32,13 @@ export class Web3BlockCollector {
   async procesEvents(contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
     // wait until new block is set
     this.logger.info(`waiting for network connection...`);
-    this.startingBlockNumber = await this.web3.eth.getBlockNumber();
+    const blockHeight = await this.web3.eth.getBlockNumber();
+    this.startingBlockNumber = startBlock ? startBlock : blockHeight;
 
     const stateConnectorContract = await getWeb3Contract(this.web3, contractAddress, contractName);
     let processBlock: number = this.startingBlockNumber;
 
-    this.logger.info(`^Rnetwork event processing started`);
+    this.logger.info(`^Rnetwork event processing started ^Y${this.startingBlockNumber} (height ${blockHeight})`);
 
     while (true) {
       this.currentBlockNumber = await this.web3.eth.getBlockNumber();
@@ -50,7 +51,7 @@ export class Web3BlockCollector {
       // process new block
       const events = await stateConnectorContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock });
 
-      this.logger.debug(`new block ${processBlock} with ${events.length} event(s)`);
+      //this.logger.debug(`!new block ${processBlock} with ${events.length} event(s)`);
 
       // order events by: blockNumber, log_index
       events.sort((a: any, b: any) => {

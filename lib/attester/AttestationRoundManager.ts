@@ -10,10 +10,12 @@ import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
+import { AttesterState } from "./AttesterState";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestationConfig";
 
 const cliProgress = require('cli-progress');
+
 export class AttestationRoundManager {
   logger: AttLogger;
   static epochSettings: EpochSettings;
@@ -22,6 +24,9 @@ export class AttestationRoundManager {
   static dbServiceIndexer: DatabaseService;
   static dbServiceAttester: DatabaseService;
 
+  static state = new AttesterState();
+
+  static startEpochId: number;
   static activeEpochId: number;
 
   rounds = new Map<number, AttestationRound>();
@@ -52,7 +57,14 @@ export class AttestationRoundManager {
 
     AttestationRoundManager.dbServiceAttester = new DatabaseService(this.logger, AttestationRoundManager.credentials.attesterDatabase, "attester");
     await AttestationRoundManager.dbServiceAttester.waitForDBConnection();
+
+    // update active round again since waitin for DB connection can take time
+    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+    AttestationRoundManager.startEpochId = AttestationRoundManager.activeEpochId;
+
+    AttestationRoundManager.state.load(AttestationRoundManager.activeEpochId);
   }
+  
   static getSourceHandlerConfig(name: string): SourceHandlerConfig {
     return AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), AttestationRoundManager.activeEpochId);
   }
@@ -63,6 +75,11 @@ export class AttestationRoundManager {
     const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(tx.timeStamp.mul(toBN(1000))).toNumber();
 
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+
+    if( epochId < AttestationRoundManager.startEpochId ) {
+      this.logger.debug( `epoch too low ^Y#${epochId}^^` );
+      return;
+    }
 
     // all times are in milliseconds
     const now = getTimeMilli();
@@ -88,13 +105,13 @@ export class AttestationRoundManager {
         //bar1.update(now - epochTimeStart);
         const eta = 90 - (now - epochTimeStart) / 1000;
         if( eta >=0 ) {
-           getGlobalLogger().debug(`^GETA round end: ${round(eta,0)} sec`);
+           getGlobalLogger().debug(`!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta,0)} sec ^Wtransactions: ${activeRound.transactionsProcessed}/${activeRound.attestations.length}  `);
         }
       }, 5000)
 
 
       // setup commit, reveal and completed callbacks
-      this.logger.warning(`round ${epochId} collect epoch [0]`);
+      this.logger.info(`^w^Rcollect epoch started^^ round ^Y#${epochId}^^`);
 
       // trigger start commit epoch
       setTimeout(() => {

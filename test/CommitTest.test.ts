@@ -53,11 +53,9 @@ describe("Coston verification test", () => {
 
   it.only("BN XOR TEST", async () => {
     //                  123456789 123456789 123456789 123456789 123456789 123456789 1234
-    let merkleRoot = "0xe84423e6626d616f4fa7b795563732f402932ce21039f0125d3cd71372a6d3b1";
-    let maskedMerkleRoot = "0x7eecfdea4bdce2b1230c4d3d0f4d41ae9657be4bb3094bcfb74b197545918ae";
-    let revealedRandom = "0xefaaec38c6d0af445d97734686c3e6eeebf65706ab0964aea648668426ffcb1f"
-
-    let merkleRootBN2 = new BN.BigInteger(merkleRoot);
+    let merkleRoot = "0xede51e8a7c0ffdbee0d24a2fe0b5322ef12848fa205a2b62888859812ea6353b";
+    let maskedMerkleRoot = "0xca1802d4bf63eee2ea61c548b3a3ddb05fe290c89cc8b680625a25e1d7cd7086";
+    let revealedRandom = "0x0b875541371dbcdbfab97fee3fa0c245ff3e593ffc9780c05d1781ca8deb36c5"
 
     let merkleRootBN = toBN(merkleRoot);
     let maskedMerkleRootBN = toBN(maskedMerkleRoot);
@@ -75,14 +73,12 @@ describe("Coston verification test", () => {
 
     const randomStr = randomBN.toString(16);
     const merkleRootStr = merkleRootBN.toString(16);
-    const merkleRoot2Str = merkleRootBN2.toString(16);
     const maskedMerkleRootStr = maskedMerkleRootBN.toString(16);
     const test1Str = test1.toString(16);
 
 
     console.log("random           = ", randomStr);
     console.log("merkleRoot       = ", merkleRootStr);
-    console.log("merkleRoot2      = ", merkleRoot2Str);
     console.log("maskedMerkleRoot = ", maskedMerkleRootStr);
     console.log("test1            = ", test1Str);
     console.log("testA            = ", testAStr);

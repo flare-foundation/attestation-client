@@ -1,6 +1,6 @@
 import BN from "bn.js";
 import { ethers } from "ethers";
-import { prefix0x, toBN } from "flare-mcc";
+import { prefix0x, toBN, unPrefix0x } from "flare-mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
@@ -265,4 +265,16 @@ export function secToHHMMSS(time: number, secDecimals=0)
     const ssec : string = seconds.toString().padStart(2,"0")
 
     return shours+':'+smin+':'+ssec;
+}
+
+export function xor32(hex1: string, hex2: string) {
+  let h1 = unPrefix0x(hex1);
+  let h2 = unPrefix0x(hex2);
+  if (!(/^[a-fA-F0-9]{64}$/.test(h1) && /^[a-fA-F0-9]{64}$/.test(h2))) {
+    throw new Error("Incorrectly formatted 32-byte strings");
+  }
+  const buf1 = Buffer.from(h1, 'hex');
+  const buf2 = Buffer.from(h2, 'hex');
+  const bufResult = buf1.map((b, i) => b ^ buf2[i]);
+  return prefix0x(Buffer.from(bufResult).toString('hex'));
 }

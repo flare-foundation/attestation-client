@@ -72,15 +72,15 @@ describe("Coston verification test", () => {
 
   });
 
-  it.only("Should verify that merkle roots match.", async () => {
+  it("Should verify that merkle roots match.", async () => {
     // let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
 
     let totalBuffers = (await stateConnector.totalBuffers()).toNumber();
-    let N = 3;
-    let CHECK_COUNT = 200;
-    let cnt = 0;
+    let N0 = 2;
+    let CHECK_COUNT = 1000;
+    let cnt = 2;
     // 137229 //
-    for (let N = 3; N < CHECK_COUNT; N++) {
+    for (let N = N0; N < CHECK_COUNT; N++) {
       let roundId = totalBuffers - N; //currentBufferNumber - N;
       const resp = await axios.get(`http://34.89.247.51/attester-api/proof/votes-for-round/${roundId}`);
       // console.log(`roundId: ${roundId}`)

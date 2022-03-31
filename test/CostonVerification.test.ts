@@ -4,8 +4,6 @@
 // CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/CostonVerification.test.ts --network coston
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
-import { stat } from "fs";
-import { AttestationRoundManager } from "../lib/attester/AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
@@ -16,9 +14,7 @@ import { DatabaseService } from "../lib/utils/databaseService";
 import { getGlobalLogger } from "../lib/utils/logger";
 import { MerkleTree } from "../lib/utils/MerkleTree";
 import { getUnixEpochTimestamp } from "../lib/utils/utils";
-import { hexlifyBN } from "../lib/verification/attestation-types/attestation-types-helpers";
 import { parseRequest } from "../lib/verification/generated/attestation-request-parse";
-import { AttestationType } from "../lib/verification/generated/attestation-types-enum";
 import { verifyAttestation } from "../lib/verification/verifiers/verifier_routing";
 import { AttestationClientSCInstance, StateConnectorInstance } from "../typechain-truffle";
 
@@ -76,14 +72,15 @@ describe("Coston verification test", () => {
 
   });
 
-  it.only("Should verify that merkle roots match.", async () => {
+  it("Should verify that merkle roots match.", async () => {
     // let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
 
     let totalBuffers = (await stateConnector.totalBuffers()).toNumber();
-    let N = 3;
-    let CHECK_COUNT = 200;
+    let N0 = 2;
+    let CHECK_COUNT = 1000;
+    let cnt = 2;
     // 137229 //
-    for (let N = 3; N < CHECK_COUNT; N++) {
+    for (let N = N0; N < CHECK_COUNT; N++) {
       let roundId = totalBuffers - N; //currentBufferNumber - N;
       const resp = await axios.get(`http://34.89.247.51/attester-api/proof/votes-for-round/${roundId}`);
       // console.log(`roundId: ${roundId}`)
@@ -91,14 +88,16 @@ describe("Coston verification test", () => {
       let data = resp.data.data;
       if (data.length === 0) {
         console.log(`No attesations in roundId ${roundId}`);
-        return;
+        // return;
+        continue;
       }
       let hashes: string[] = data.map(item => item.hash) as string[]
       const tree = new MerkleTree(hashes);
 
       let stateConnectorMerkleRoot = await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS);
 
-      console.log(`${roundId}\t${data.length}\t${stateConnectorMerkleRoot === tree.root ? "OK" : "MISMATCH"}`)
+      console.log(`${cnt}\t${roundId}\t${data.length}\t${stateConnectorMerkleRoot === tree.root ? "OK" : "MISMATCH"}`)
+      cnt++;
       // console.log(`Number of attestations ${data.length}`)
       // console.log(tree.root);
       // console.log(await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS))

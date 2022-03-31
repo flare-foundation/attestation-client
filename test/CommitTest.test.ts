@@ -1,11 +1,23 @@
 // yarn c
 // yarn hardhat test test/CommitTest.test.ts 
 
-import { toBN } from "flare-mcc";
+import { prefix0x, toBN, unPrefix0x } from "flare-mcc";
 import { singleHash } from "../lib/utils/MerkleTree";
 import { CommitTestInstance } from "../typechain-truffle";
 
 const BN = require("bn");
+
+function xor32(hex1: string, hex2: string) {
+  let h1 = unPrefix0x(hex1);
+  let h2 = unPrefix0x(hex2);
+  if (!(/^[a-fA-F0-9]{64}$/.test(h1) && /^[a-fA-F0-9]{64}$/.test(h2))) {
+    throw new Error("Incorrectly formatted 32-byte strings");
+  }
+  const buf1 = Buffer.from(h1, 'hex');
+  const buf2 = Buffer.from(h2, 'hex');
+  const bufResult = buf1.map((b, i) => b ^ buf2[i]);
+  return prefix0x(Buffer.from(bufResult).toString('hex'));
+}
 
 describe("Coston verification test", () => {
 
@@ -16,6 +28,13 @@ describe("Coston verification test", () => {
     commitTest = await CommitTest.new();
   });
 
+  // it("xor check", async () => {
+  //   let merkleRoot = "0xe84423e6626d616f4fa7b795563732f402932ce21039f0125d3cd71372a6d3b1";
+  //   let maskedMerkleRoot = "0x7eecfdea4bdce2b1230c4d3d0f4d41ae9657be4bb3094bcfb74b197545918ae";
+  //   let revealedRandom = "0xefaaec38c6d0af445d97734686c3e6eeebf65706ab0964aea648668426ffcb1f"
+
+  //   let result = xor()
+  // });
 
   // 2022-03-30T11:02:50.002Z  - global:[debug]: commit data prepared: roundId=139640 merkleTree.root=0x1e5862543fe722cd647c30896f35dc1b91863608db8e6515280aa2df20c39dbf hash=0xd48a5e273a02f926559c9de876d29b210ae1e3d78f02dbbb0
   // 9f88050edaad004
@@ -50,12 +69,17 @@ describe("Coston verification test", () => {
   // 2022-03-30T11:04:20.535Z  - global:[debug]: new block 435814 with 1 event(s)
   // 2022-03-30T11:04:20.536Z  - global:[error]: EVENT RoundFinalised 139642 0x2d8254a033d68c532e3410ac79a09d262fd27be1980b67b33c9451f9e20c044e (commited root 0xefbb53a202d2321b65a5f80909b9731865d2449a98162d2f1d75f05a59317f74)
 
+  it("bytes32 test", async () => {
+    console.log(await commitTest.test2("0x012345"));
+  });
 
-  it.only("BN XOR TEST", async () => {
+  it("BN XOR TEST", async () => {
     //                  123456789 123456789 123456789 123456789 123456789 123456789 1234
-    let merkleRoot = "0xede51e8a7c0ffdbee0d24a2fe0b5322ef12848fa205a2b62888859812ea6353b";
-    let maskedMerkleRoot = "0xca1802d4bf63eee2ea61c548b3a3ddb05fe290c89cc8b680625a25e1d7cd7086";
-    let revealedRandom = "0x0b875541371dbcdbfab97fee3fa0c245ff3e593ffc9780c05d1781ca8deb36c5"
+    let merkleRoot =      "0xe84423e6626d616f4fa7b795563732f402932ce21039f0125d3cd71372a6d3b1";
+    let maskedMerkleRoot ="0x07eecfdea4bdce2b1230c4d3d0f4d41ae9657be4bb3094bcfb74b197545918ae";
+    let revealedRandom =  "0xefaaec38c6d0af445d97734686c3e6eeebf65706ab0964aea648668426ffcb1f"
+
+    let merkleRootBN2 = new BN.BigInteger(merkleRoot);
 
     let merkleRootBN = toBN(merkleRoot);
     let maskedMerkleRootBN = toBN(maskedMerkleRoot);
@@ -64,6 +88,8 @@ describe("Coston verification test", () => {
 
     let testA = merkleRootBN.xor(randomBN);
     let testB = maskedMerkleRootBN.xor(randomBN);
+    let testC = xor32(merkleRoot, revealedRandom);
+    let testD = xor32(maskedMerkleRoot, revealedRandom)
 
     const testAStr = testA.toString(16);
     const testBStr = testB.toString(16);
@@ -83,6 +109,9 @@ describe("Coston verification test", () => {
     console.log("test1            = ", test1Str);
     console.log("testA            = ", testAStr);
     console.log("testB            = ", testBStr);
+    console.log("testC            = ", testC);
+    console.log("testD            = ", testD);
+
 
     assert(test1Str === merkleRootStr);
     assert(testAStr === maskedMerkleRootStr);
@@ -173,6 +202,12 @@ describe("Coston verification test", () => {
     let maskedMerkleRoot = "0x81719674e8fb475ed01f42a8699261e8e11270c628a458960dc3abde0eb4fb38";
     let committedRandom = "0x345842159fa1a9a788ddcfb7565074e2dc72271f3e568ac22d096a2e4de38558"
     let revealedRandom = "0xb8c85d0b3c4605900105c1526063c70306c22e95fbfa1f98147ea06fa9867045"
+
+    console.log("oms", maskedMerkleRoot)
+    console.log("mas", xor32(merkleRoot, revealedRandom))
+    console.log("mx2", xor32(xor32(merkleRoot, revealedRandom), revealedRandom))
+    console.log("   ", merkleRoot);
+
     let result = await commitTest.test(merkleRoot, maskedMerkleRoot, committedRandom, revealedRandom);
     console.log(result);
     assert(result === merkleRoot);
@@ -281,5 +316,80 @@ describe("Coston verification test", () => {
   // 2022-03-30T11:53:51.219Z  - global:[debug]: new block 438078 with 1 event(s)
   // 2022-03-30T11:53:51.220Z  - global:[error]: EVENT RoundFinalised 139675 0x8cc209751dc1b01779b09d95345505ed9b07bef189711c88c9fba3a39f2e990e (commited root 0x732697f522b6a189ebd0ff65ed66840f0c8823f6acb7e44da2aecc28e9d28a30)
 
+
+  //=======================================
+
+  // 2022-03-30T15:56:50.000Z  - global:[info]: #139836: canCommit: processed: 27, all: 27, status: 1
+  // 2022-03-30T15:56:50.001Z  - global:[debug]: commit data prepared: roundId=139836 merkleTree.root=0x82e53163698555df7ddd54a0d176130d4a8add7237f4c43068e59b2e14e98831 random=0xe200f7f748261c280454556cc205f1eacc21cd7a96e0c83854947c3cda74382c
+  // 2022-03-30T15:56:50.001Z  - global:[info]: action ............. : Submitting for bufferNumber 139837 (start commit for 139836)
+  // 2022-03-30T15:56:50.001Z  - global:[info]: bufferNumber ....... : 139837
+  // 2022-03-30T15:56:50.001Z  - global:[info]: maskedMerkleHash ... : 0x60e5c69421a349f7798901cc1373e2e786ab1008a1140c083c71e712ce9db01d
+  // 2022-03-30T15:56:50.001Z  - global:[info]: committedRandom .... : 0xeadc3c05fbbe92a47e8c533b650c5e6543a1fb233f4c96efb86105a4891c136d
+  // 2022-03-30T15:56:50.001Z  - global:[info]: revealedRandom ..... : 0x1dc1864e23ea93477fb0e387ca2c76acbafb7954f6d2455ae7fdd96a2147a211
+  // 2022-03-30T15:56:50.001Z  - global:[info]: sign Submitting for bufferNumber 139837 (start commit for 139836) start #11
+  // 2022-03-30T15:56:50.192Z  - global:[debug]: new block 446653 with 1 event(s)
+  // 2022-03-30T15:56:50.513Z  - global:[debug]: new block 446654 with 1 event(s)
+  // 2022-03-30T15:56:50.514Z  - global:[error]: EVENT RoundFinalised 139837 0x2aff8f7dfb0797e49ab35d841fbf72eebdbbd2db7fbfc964320530ce30598f25 (commited root 0x556825785aced354b94a047685ea1773c35be43fb6bda83f246b4b6d7e767701)
+  
+
+  it.only("Should check the commit for buffer 139837", async () => {
+
+    let merkleRoot = "0x82e53163698555df7ddd54a0d176130d4a8add7237f4c43068e59b2e14e98831";
+    let maskedMerkleRoot = "0x60e5c69421a349f7798901cc1373e2e786ab1008a1140c083c71e712ce9db01d";
+    let committedRandom = "0xeadc3c05fbbe92a47e8c533b650c5e6543a1fb233f4c96efb86105a4891c136d"
+    let revealedRandom = "0xe200f7f748261c280454556cc205f1eacc21cd7a96e0c83854947c3cda74382c"
+
+    let result = await commitTest.test(merkleRoot, maskedMerkleRoot, committedRandom, revealedRandom);
+    console.log(result);
+    assert(result === merkleRoot);
+  });
+
+
+
+  // 2022-03-30T15:58:20.001Z  - global:[debug]: commit data prepared: roundId=139837 merkleTree.root=0x55cc2b4d4715b309c67f28cedc417c4ae9a8cd74e0585cc7860e677dd556aff6 random=0xcfc876581e9942776008c084cd6652b20c76f8c598e7d2441e4f55b4e4f30f7d
+  // 2022-03-30T15:58:20.002Z  - global:[info]: action ............. : Submitting for bufferNumber 139838 (start commit for 139837)
+  // 2022-03-30T15:58:20.002Z  - global:[info]: bufferNumber ....... : 139838
+  // 2022-03-30T15:58:20.002Z  - global:[info]: maskedMerkleHash ... : 0x9a045d15598cf17ea677e84a11272ef8e5de35b178bf8e83984132c931a5a08b
+  // 2022-03-30T15:58:20.002Z  - global:[info]: committedRandom .... : 0x54950462e398c0bbd48b9776f82421686da91ca5f7836c7136be854bb0b98e85
+  // 2022-03-30T15:58:20.003Z  - global:[info]: revealedRandom ..... : 0xe200f7f748261c280454556cc205f1eacc21cd7a96e0c83854947c3cda74382c
+  // 2022-03-30T15:58:20.003Z  - global:[debug]: sign Submitting for bufferNumber 139838 (start commit for 139837) wait #12/11
+  // 2022-03-30T15:58:23.458Z  - global:[debug]: ^GETA round end: 7 sec
+  // 2022-03-30T15:58:28.458Z  - global:[debug]: ^GETA round end: 2 sec
+  // 2022-03-30T15:58:28.522Z  - global:[debug]: new block 446691 with 2 event(s)
+  // 2022-03-30T15:58:28.523Z  - global:[error]: EVENT RoundFinalised 139838 0xa2922c06a15c40caf5895660c385db0aceb78948bc90f3f05d3325c39b78745a (commited root 0x3bb385355081b84bf683ede71d782f63c2349dd75e7f05f739b21cd8d3763fe2)
+  
+
+  // 2022-03-30T15:59:50.002Z  - global:[debug]: commit data prepared: roundId=139838 merkleTree.root=0x0d6811dd5dd4f4195be5e5e4da30ff4b86bf9cff32ace20c858a4b153faf5da4 random=0xab1e5afabbaad4ef23873796f67f40e8dfe007425dee0af3850fc95d15926fb6
+  // 2022-03-30T15:59:50.002Z  - global:[info]: action ............. : Submitting for bufferNumber 139839 (start commit for 139838)
+  // 2022-03-30T15:59:50.002Z  - global:[info]: bufferNumber ....... : 139839
+  // 2022-03-30T15:59:50.003Z  - global:[info]: maskedMerkleHash ... : 0xa6764b27e67e20f67862d2722c4fbfa3595f9bbd6f42e8ff008582482a3d3212
+  // 2022-03-30T15:59:50.003Z  - global:[info]: committedRandom .... : 0x6462dea562a50736e72f86cbdd6584a90912b2b70f06f8927f13eaf7b2e5a341
+  // 2022-03-30T15:59:50.003Z  - global:[info]: revealedRandom ..... : 0xcfc876581e9942776008c084cd6652b20c76f8c598e7d2441e4f55b4e4f30f7d
+  // 2022-03-30T15:59:50.004Z  - global:[debug]: sign Submitting for bufferNumber 139839 (start commit for 139838) wait #13/11
+  // 2022-03-30T15:59:50.598Z  - global:[debug]: new block 446724 with 1 event(s)
+  // 2022-03-30T15:59:50.599Z  - global:[error]: EVENT RoundFinalised 139839 0x97cf85454ed2b2b521cede7f410d4d8daf9d7ac896b07b29cc26cce9a75aa9ef (commited root 0x82e53163698555df7ddd54a0d176130d4a8add7237f4c43068e59b2e14e98831)
+
+
+
+  // 2022-03-30T16:01:20.000Z  - global:[debug]: commit data prepared: roundId=139839 merkleTree.root=0xc8ecb68d21ce3ffab0e32765a02f859ff5edff592983fb323da34cf8e2fdec58 random=0x93d98309359803228cd8e8ed0436e0e107c36ca1b03bfb0a41de034f784d6635
+  // 2022-03-30T16:01:20.001Z  - global:[info]: action ............. : Submitting for bufferNumber 139840 (start commit for 139839)
+  // 2022-03-30T16:01:20.001Z  - global:[info]: bufferNumber ....... : 139840
+  // 2022-03-30T16:01:20.001Z  - global:[info]: maskedMerkleHash ... : 0x5b35358414563cd83c3bcf88a419657ef22e93f899b800387c7d4fb79ab08a6d
+  // 2022-03-30T16:01:20.001Z  - global:[info]: committedRandom .... : 0x4496e0674070398e4dadcc4a724a8f35904fe66afd604a9d66a5e43921ee7813
+  // 2022-03-30T16:01:20.001Z  - global:[info]: revealedRandom ..... : 0xab1e5afabbaad4ef23873796f67f40e8dfe007425dee0af3850fc95d15926fb6
+  // 2022-03-30T16:01:20.001Z  - global:[debug]: sign Submitting for bufferNumber 139840 (start commit for 139839) wait #14/11
+  // 2022-03-30T16:01:20.491Z  - global:[debug]: new block 446757 with 1 event(s)
+  // 2022-03-30T16:01:20.491Z  - global:[error]: EVENT RoundFinalised 139840 0x7de864a10b1a24b8e886884a7685d461fba5fb35017f29311c93dca196438a94 (commited root 0x55cc2b4d4715b309c67f28cedc417c4ae9a8cd74e0585cc7860e677dd556aff6) 
+
+
+//   2022-03-30T16:02:50.001Z  - global:[debug]: commit data prepared: roundId=139840 merkleTree.root=0x1d9c406cf65043e733829a436171311a4ea9914f4bf89a1f2244ef21fa65cc82 random=0xcec8d6cefb230eb205907d673036d5f1e34f49ec95cba28ac8bb725d6835b298
+// 2022-03-30T16:02:50.001Z  - global:[info]: action ............. : Submitting for bufferNumber 139841 (start commit for 139840)
+// 2022-03-30T16:02:50.002Z  - global:[info]: bufferNumber ....... : 139841
+// 2022-03-30T16:02:50.002Z  - global:[info]: maskedMerkleHash ... : 0xd35496a20d734d553612e7245147e4ebade6d8a3de333895eaff9d7c92507e1a
+// 2022-03-30T16:02:50.002Z  - global:[info]: committedRandom .... : 0xed840767eeccae7e854327ef7ef77a63ab84bbcabbacc6d8b1b5bb9fc23443f1
+// 2022-03-30T16:02:50.003Z  - global:[info]: revealedRandom ..... : 0x93d98309359803228cd8e8ed0436e0e107c36ca1b03bfb0a41de034f784d6635
+// 2022-03-30T16:02:50.003Z  - global:[debug]: sign Submitting for bufferNumber 139841 (start commit for 139840) wait #15/11
+// 2022-03-30T16:02:50.631Z  - global:[debug]: new block 446804 with 1 event(s)
+// 2022-03-30T16:02:50.632Z  - global:[error]: EVENT RoundFinalised 139841 0xdd2d4de2d9f43cfb568fd10cca4a115676d679f7f3ba0a50e41e6c3a86fd6c4d (commited root 0x0d6811dd5dd4f4195be5e5e4da30ff4b86bf9cff32ace20c858a4b153faf5da4)
 
 });

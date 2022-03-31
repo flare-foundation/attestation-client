@@ -16,6 +16,13 @@ contract CommitTest {
       // return committedRandom == keccak256(abi.encodePacked(revealedRandom)) && (maskedMerkleRoot ^ revealedRandom) == merkleRoot;
       // return true;
    }
+
+
+   function test2(
+      bytes32 merkleRoot
+   ) external pure returns (bytes32) {
+      return merkleRoot;
+   }
 }
    
       

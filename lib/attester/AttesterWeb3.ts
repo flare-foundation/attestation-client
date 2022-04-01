@@ -3,19 +3,21 @@ import Web3 from "web3";
 import { Logger } from "winston";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
-import { getWeb3, getWeb3Contract } from "../utils/utils";
+import { getWeb3, getWeb3Contract, round } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
+import { AttLogger } from "../utils/logger";
+import { AttestationRoundManager } from "./AttestationRoundManager";
 
 export class AttesterWeb3 {
   config: AttesterClientConfiguration;
   credentials: AttesterCredentials;
-  logger: Logger;
+  logger: AttLogger;
 
   web3!: Web3;
   stateConnector!: StateConnector;
   web3Functions!: Web3Functions;
 
-  constructor(logger: Logger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
+  constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
     this.logger = logger;
     this.config = configuration;
     this.credentials=credentials;
@@ -33,22 +35,48 @@ export class AttesterWeb3 {
     }
   }
 
-  async submitAttestation(action: string, bufferNumber: BN, maskedMerkleHash: string, committedRandom: string, revealedRandom: string) {
+  async submitAttestation(action: string, 
+    roundId: number,
+    bufferNumber: BN, 
+    merkleRoot: string, 
+    maskedMerkleRoot: string, 
+    random: string,
+    hashedRandom: string, 
+    revealedRandomPrev: string) {
 
-    this.check(maskedMerkleHash);
-    this.check(committedRandom);
-    this.check(revealedRandom);
+    this.check(maskedMerkleRoot);
+    this.check(hashedRandom);
+    this.check(revealedRandomPrev);
 
-    let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, maskedMerkleHash, committedRandom, revealedRandom);
+    let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
 
-    this.logger.info( `action ............. : ${action}` )
-    this.logger.info( `bufferNumber ....... : ${bufferNumber.toString()}` )
-    this.logger.info( `maskedMerkleHash ... : ${maskedMerkleHash.toString()}` )
-    this.logger.info( `committedRandom .... : ${committedRandom.toString()}` )
-    this.logger.info( `revealedRandom ..... : ${revealedRandom.toString()}` )
+    this.logger.info( `action ................. : ${action}` )
+    this.logger.info( `bufferNumber_n ......... : ${bufferNumber.toString()}` )
+    this.logger.info( `merkleRoot_n ........... : ^e${merkleRoot.toString()}` )
+    this.logger.info( `maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}` )
+    this.logger.info( `random_n ............... : ^e${random.toString()}` )
+    this.logger.info( `hashedRandom_n ......... : ${hashedRandom.toString()}` )
+    this.logger.info( `random_n-1 ............. : ${revealedRandomPrev.toString()}` )
 
-    const receipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode);
-    //console.log(receipt);
-    return receipt;
+
+    if( process.env.NODE_ENV==="production") {
+    //if( true ) {
+
+      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000;
+
+      const {receipt,nonce} = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
+
+      if( receipt ) {
+        AttestationRoundManager.state.saveRoundCommited(roundId,nonce,receipt.transactionHash);
+        AttestationRoundManager.state.saveRoundRevealed(roundId-1,nonce,receipt.transactionHash);
+      }
+
+      return receipt;
+    }
+    else {
+      this.logger.warning(`signAndFinalize3 skipped in ^edevelopment mode^^`);
+
+      return "devmode";
+    }
   }
 }

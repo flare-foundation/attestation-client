@@ -1,14 +1,15 @@
 import Web3 from "web3";
 import { Logger } from "winston";
 import { getTimeMilli as getTimeMilli } from "./internetTime";
-import { sleepms } from "./utils";
+import { AttLogger, logException } from "./logger";
+import { getUnixEpochTimestamp, sleepms } from "./utils";
 import { getWeb3Wallet, waitFinalize3Factory } from "./utils";
 
 export const DEFAULT_GAS = "2500000";
 export const DEFAULT_GAS_PRICE = "300000000000";
 
 export class Web3Functions {
-  logger: Logger;
+  logger: AttLogger;
 
   web3: Web3;
   account: any;
@@ -25,7 +26,7 @@ export class Web3Functions {
 
   working = false;
 
-  constructor(logger: Logger, web3: Web3, privateKey: string) {
+  constructor(logger: AttLogger, web3: Web3, privateKey: string) {
     this.logger = logger;
 
     this.web3 = web3;
@@ -41,13 +42,26 @@ export class Web3Functions {
     return this.nonce + ""; // string returned
   }
 
+  public async getBlock(blockNumber: number) : Promise<any> {
+      return await this.web3.eth.getBlock(blockNumber);
+  }  
+
+  public async getBlockNumber() : Promise<number> {
+    return await this.web3.eth.getBlockNumber();
+  }
+
+  public setTransactionPollingTimeout(timeout: number) {
+    this.web3.eth.transactionPollingTimeout=timeout;
+  }
+
   async signAndFinalize3(
     label: string,
     toAddress: string,
     fnToEncode: any,
+    timeEnd?: number,
     gas: string = DEFAULT_GAS,
     gasPrice: string = DEFAULT_GAS_PRICE,
-    quiet: boolean = false
+    quiet: boolean = false,
   ): Promise<any> {
     const waitIndex = this.nextIndex;
     this.nextIndex += 1;
@@ -56,16 +70,24 @@ export class Web3Functions {
 
     if (waitIndex !== this.currentIndex) {
       if (!quiet) {
-        this.logger.debug(`sign ${label} wait #${waitIndex}/${this.currentIndex}`);
+        this.logger.debug2(`sign ${label} wait #${waitIndex}/${this.currentIndex}`);
       }
 
       while (waitIndex !== this.currentIndex) {
+
+        if( timeEnd ) {
+          if( getUnixEpochTimestamp() > timeEnd ) {
+            this.logger.error2( `sign ${label} timeout #${waitIndex}`);
+            return null;
+          }
+        }
+
         await sleepms(100);
       }
     }
 
     if (!quiet) {
-      this.logger.info(`sign ${label} start #${waitIndex}`);
+      this.logger.debug2(`sign ${label} start #${waitIndex}`);
     }
 
     const res = await this._signAndFinalize3(label, toAddress, fnToEncode, gas, gasPrice);
@@ -73,7 +95,7 @@ export class Web3Functions {
     const time1 = getTimeMilli();
 
     if (!quiet) {
-      this.logger.info(`sign ${label} done #${waitIndex} (time ${time1 - time0}s)`);
+      this.logger.debug2(`sign ${label} done #${waitIndex} (time ${time1 - time0}s)`);
     }
 
     this.currentIndex += 1;
@@ -95,19 +117,20 @@ export class Web3Functions {
 
     try {
       const receipt = await this.waitFinalize3(this.account.address, () => this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!));
-      return receipt;
+      return {receipt,nonce};
     } catch (e: any) {
-      if (e.message.indexOf("Transaction has been reverted by the EVM") < 0) {
-        this.logger.error(`\n     ! ${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${e.message}`);
+      if (e.message.indexOf(`Transaction has been reverted by the EVM`) < 0) {
+        logException( `${label}, nonce sent: ${nonce}`,e);
       } else {
-        await fnToEncode
-          .call({ from: this.account.address })
-          .then((result: any) => {
-            throw Error("     ! unlikely to happen: " + JSON.stringify(result));
-          })
-          .catch((revertReason: any) => {
-            this.logger.error(`\n     ! ${label} | Nonce sent: ${nonce} | signAndFinalize3 error: ${revertReason}`);
-          });
+
+        try {
+          const result = await fnToEncode.call({ from: this.account.address });
+
+          throw Error("unlikely to happen: " + JSON.stringify(result));
+        }
+        catch( revertReason ) {
+            this.logger.error2(`${label}, nonce sent: ${nonce}, revert reason: ${revertReason}` );
+        }
       }
       return null;
     }

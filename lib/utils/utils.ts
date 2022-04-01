@@ -1,6 +1,6 @@
 import BN from "bn.js";
 import { ethers } from "ethers";
-import { prefix0x, toBN } from "flare-mcc";
+import { prefix0x, toBN, unPrefix0x } from "flare-mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
@@ -67,8 +67,8 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
       abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
       return new web3.eth.Contract(getAbi(`data/artifacts/${abiPath}`), address);
     }
-    catch( e2 ) {
-      console.error( `getWeb3Contract error - ABI not found (run yarn c): ${e2}` );
+    catch (e2) {
+      console.error(`getWeb3Contract error - ABI not found (run yarn c): ${e2}`);
     }
   }
 }
@@ -156,8 +156,8 @@ export function prepareString(text: string, maxLength: number, reportOwerflow: s
   return text.substring(0, maxLength);
 }
 
-export function getSimpleRandom(maxnum: number) : number {
-  return Math.floor( Math.random() * maxnum );
+export function getSimpleRandom(maxnum: number): number {
+  return Math.floor(Math.random() * maxnum);
 }
 
 
@@ -254,15 +254,35 @@ export function JSONMapParser(key: any, value: any) {
 
 
 
-export function secToHHMMSS(time: number, secDecimals=0)
-{
-    const hours   = Math.floor(time / 3600);
-    const minutes = Math.floor((time - (hours * 3600)) / 60);
-    const seconds = round( time - (hours * 3600) - (minutes * 60) , secDecimals );
+export function secToHHMMSS(time: number, secDecimals = 0) {
+  const days = Math.floor(time / (3600 * 24));
+  let hours = Math.floor(time / 3600);
+  const minutes = Math.floor((time - (hours * 3600)) / 60);
+  const seconds = round(time - (hours * 3600) - (minutes * 60), secDecimals);
 
-    const shours : string = hours.toString().padStart(2,"0")
-    const smin : string = minutes.toString().padStart(2,"0")
-    const ssec : string = seconds.toString().padStart(2,"0")
+  hours = hours % 24;
 
-    return shours+':'+smin+':'+ssec;
+  let sdays = "";
+
+  if (days > 0) {
+    sdays = days.toString() + " ";
+  }
+
+  const shours: string = hours.toString().padStart(2, "0")
+  const smin: string = minutes.toString().padStart(2, "0")
+  const ssec: string = seconds.toString().padStart(2, "0")
+
+  return sdays + shours + ':' + smin + ':' + ssec;
+}
+
+export function xor32(hex1: string, hex2: string) {
+  let h1 = unPrefix0x(hex1);
+  let h2 = unPrefix0x(hex2);
+  if (!(/^[a-fA-F0-9]{64}$/.test(h1) && /^[a-fA-F0-9]{64}$/.test(h2))) {
+    throw new Error("Incorrectly formatted 32-byte strings");
+  }
+  const buf1 = Buffer.from(h1, 'hex');
+  const buf2 = Buffer.from(h2, 'hex');
+  const bufResult = buf1.map((b, i) => b ^ buf2[i]);
+  return prefix0x(Buffer.from(bufResult).toString('hex'));
 }

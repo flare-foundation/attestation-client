@@ -1,5 +1,6 @@
 import * as winston from "winston";
 import Transport from "winston-transport";
+import { Terminal } from "./terminal";
 import { round } from "./utils";
 
 const level = process.env.LOG_LEVEL || "info";
@@ -39,10 +40,22 @@ class ColorConsole extends Transport {
   lastLog2: string = "";
   duplicate = 0;
 
+  mode : "" | "sticky" | "forgettable" = "";
+
+  terminal : Terminal;
+
+  constructor() {
+    super();
+
+    this.terminal = new Terminal(process.stderr);
+  }
+
   log = (info: any, callback: any) => {
     setImmediate(() => this.emit("logged", info));
 
     let color = "";
+
+    let ignore = false;
 
     switch (info.level) {
       case "title":
@@ -74,6 +87,7 @@ class ColorConsole extends Transport {
         break;
       case "debug3":
         color = FgBlack + BgGray;
+        ignore = true;
         break;
     }
 
@@ -82,31 +96,55 @@ class ColorConsole extends Transport {
 
     //const mem = "";
 
-    const text = info.message.toString();
+    if( !ignore && info.message ) {
 
-    if (this.lastLog === text ) {
-      this.duplicate++;
-      process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate} ` + Reset);
-    } else if (this.lastLog2 === text ) {
-      this.duplicate++;
-      process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate}+ ` + Reset);
-    }
-    else {
-      try {
-        if (this.duplicate > 0) {
-          console.log(``);
+      let text = info.message.toString();
+
+      if( text[0]==='*' || text[0]==='!' ) {
+
+        text = text.substring( 1 );
+
+        if( this.mode ) {
+          this.terminal.cursorRestore();
+          this.terminal.clearLine();
+        } else {
+          this.terminal.cursorSave();
         }
-        this.lastLog2 = this.lastLog;
-        this.lastLog = text;
-        this.duplicate = 0;
-
-        //            |           |
-        // "2022-01-10T13:13:07.712Z"
-
-
-        console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + color + processColors(text, color) + Reset);
+        this.mode=text[0]==='*' ? "sticky" : "forgettable";
       }
-      catch{}
+      else {
+        if( this.mode==="forgettable") {
+          this.terminal.cursorRestore();
+          this.terminal.clearLine();
+        }
+
+        this.mode="";
+      }
+
+
+      if (this.lastLog === text ) {
+        this.duplicate++;
+        process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate} ` + Reset);
+      } else if (this.lastLog2 === text ) {
+        this.duplicate++;
+        process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate}+ ` + Reset);
+      }
+      else {
+        try {
+          if (this.duplicate > 0) {
+            console.log(``);
+          }
+          this.lastLog2 = this.lastLog;
+          this.lastLog = text;
+          this.duplicate = 0;
+
+          //            |           |
+          // "2022-01-10T13:13:07.712Z"
+
+          console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + color + processColors(text, color) + Reset);
+        }
+        catch{}
+      }
     }
 
     if (callback) {
@@ -156,7 +194,7 @@ function processColors(text: string, def: string) {
 const myCustomLevels = {
   levels: {
 
-    debug3: 103,
+    debug3: 103,    // not displayed on console but logged
     debug2: 102,
     debug1: 101,
     debug: 100, // all above are filtered out when level is set to debug
@@ -251,6 +289,8 @@ export function logException(error: any,comment: string) {
   const logger = getGlobalLogger();
 
   logger.error2(`${comment} ${error}`);
-  logger.error(error.stack);
+  if( error.stack ) {
+     logger.error(error.stack);
+  }
 }
 

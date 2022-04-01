@@ -245,6 +245,7 @@ class AttestationSpammer {
       `request attestation #${AttestationSpammer.sendCount}`,
       this.stateConnector.options.address,
       fnToEncode,
+      undefined,
       DEFAULT_GAS,
       DEFAULT_GAS_PRICE,
       true

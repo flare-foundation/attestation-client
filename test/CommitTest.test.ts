@@ -70,7 +70,7 @@ describe("Coston verification test", () => {
   // 2022-03-30T11:04:20.536Z  - global:[error]: EVENT RoundFinalised 139642 0x2d8254a033d68c532e3410ac79a09d262fd27be1980b67b33c9451f9e20c044e (commited root 0xefbb53a202d2321b65a5f80909b9731865d2449a98162d2f1d75f05a59317f74)
 
   it("bytes32 test", async () => {
-    console.log(await commitTest.test2("0x012345"));
+    //console.log(await commitTest.test2("0x012345"));
   });
 
   it("BN XOR TEST", async () => {
@@ -99,14 +99,12 @@ describe("Coston verification test", () => {
 
     const randomStr = randomBN.toString(16);
     const merkleRootStr = merkleRootBN.toString(16);
-    const merkleRoot2Str = merkleRootBN2.toString(16);
     const maskedMerkleRootStr = maskedMerkleRootBN.toString(16);
     const test1Str = test1.toString(16);
 
 
     console.log("random           = ", randomStr);
     console.log("merkleRoot       = ", merkleRootStr);
-    console.log("merkleRoot2      = ", merkleRoot2Str);
     console.log("maskedMerkleRoot = ", maskedMerkleRootStr);
     console.log("test1            = ", test1Str);
     console.log("testA            = ", testAStr);

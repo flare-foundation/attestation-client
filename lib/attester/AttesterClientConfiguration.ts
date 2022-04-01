@@ -4,6 +4,8 @@ import { AttesterClientChain } from "./AttesterClientChain";
 export class AttesterClientConfiguration {
   public gasPrice!: string;
 
+  public transactionPollingTimeout = 750;
+
   // start epoch in sec
   public firstEpochStartTime!: number;
 

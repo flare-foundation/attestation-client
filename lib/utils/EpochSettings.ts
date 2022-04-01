@@ -24,10 +24,10 @@ export class EpochSettings {
   }
 
   getCurrentEpochId(): BN {
-    return this.getEpochIdForTime(toBN(getTimeSec()*1000));
+    return this.getEpochIdForTime(toBN(getTimeSec() * 1000));
   }
 
-  
+
   // // in seconds
   // getEpochTimeStart(): BN {
   //   const id: BN = this.getCurrentEpochId().add(toBN(1)).add(this._firstEpochId);
@@ -45,6 +45,11 @@ export class EpochSettings {
   }
 
   // in milliseconds
+  getEpochIdTimeEndMs(id: BN | number): number {
+    return this.getRoundIdTimeStartMs(id) + this._epochPeriod.toNumber();
+  }
+
+  // in milliseconds
   getRoundIdCommitTimeStartMs(id: BN | number): number {
     return this.getRoundIdTimeStartMs(id) + this._epochPeriod.toNumber();
   }
@@ -52,9 +57,5 @@ export class EpochSettings {
   // in milliseconds
   getRoundIdRevealTimeStartMs(id: number): number {
     return this.getRoundIdCommitTimeStartMs(id) + this._epochPeriod.toNumber();
-  }
-  // in milliseconds
-  getEpochIdRevealTimeEndMs(id: number): number {
-    return this.getRoundIdCommitTimeStartMs(id) + this._epochPeriod.toNumber() * 2;
   }
 }

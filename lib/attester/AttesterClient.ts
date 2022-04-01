@@ -1,4 +1,6 @@
+import { on } from "events";
 import { ChainType, MCC } from "flare-mcc";
+import { rippleTimeToUnixTime } from "xrpl";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
@@ -230,3 +232,16 @@ export class AttesterClient {
     }
   }
 }
+
+
+process.on('SIGINT', () => {
+  console.log('Received SIGINT. Press Control-D to exit.');
+});
+
+// Using a single function to handle multiple signals
+function handle(signal) {
+  console.log(`Received ${signal}`);
+}
+
+process.on('SIGINT', handle);
+process.on('SIGTERM', handle);

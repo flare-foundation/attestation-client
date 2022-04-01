@@ -2,7 +2,7 @@ import Web3 from "web3";
 import { Logger } from "winston";
 import { getTimeMilli as getTimeMilli } from "./internetTime";
 import { AttLogger, logException } from "./logger";
-import { sleepms } from "./utils";
+import { getUnixEpochTimestamp, sleepms } from "./utils";
 import { getWeb3Wallet, waitFinalize3Factory } from "./utils";
 
 export const DEFAULT_GAS = "2500000";
@@ -50,13 +50,18 @@ export class Web3Functions {
     return await this.web3.eth.getBlockNumber();
   }
 
+  public setTransactionPollingTimeout(timeout: number) {
+    this.web3.eth.transactionPollingTimeout=timeout;
+  }
+
   async signAndFinalize3(
     label: string,
     toAddress: string,
     fnToEncode: any,
+    timeEnd?: number,
     gas: string = DEFAULT_GAS,
     gasPrice: string = DEFAULT_GAS_PRICE,
-    quiet: boolean = false
+    quiet: boolean = false,
   ): Promise<any> {
     const waitIndex = this.nextIndex;
     this.nextIndex += 1;
@@ -69,6 +74,14 @@ export class Web3Functions {
       }
 
       while (waitIndex !== this.currentIndex) {
+
+        if( timeEnd ) {
+          if( getUnixEpochTimestamp() > timeEnd ) {
+            this.logger.error2( `sign ${label} timeout #${waitIndex}`);
+            return null;
+          }
+        }
+
         await sleepms(100);
       }
     }

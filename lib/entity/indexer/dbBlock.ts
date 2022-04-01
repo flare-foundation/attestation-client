@@ -20,6 +20,7 @@ export class DBBlockBase {
 
 
     @Column({nullable:true})
+    @Index()
     confirmed: boolean;
 }
 

@@ -61,7 +61,10 @@ export class AttesterWeb3 {
 
     if( process.env.NODE_ENV==="production") {
     //if( true ) {
-      const {receipt,nonce} = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode);
+
+      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000;
+
+      const {receipt,nonce} = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
 
       if( receipt ) {
         AttestationRoundManager.state.saveRoundCommited(roundId,nonce,receipt.transactionHash);
@@ -73,7 +76,7 @@ export class AttesterWeb3 {
     else {
       this.logger.warning(`signAndFinalize3 skipped in ^edevelopment mode^^`);
 
-      return null;
+      return "devmode";
     }
   }
 }

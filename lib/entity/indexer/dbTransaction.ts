@@ -9,8 +9,6 @@ export class DBTransactionBase extends BaseEntity {
 
     @Column() @Index() blockNumber: number = 0;
 
-    // Why do we need this
-    @Column() @Index() blockTransactionIndex: number = 0;
 
     @Column() @Index() timestamp: number = 0;
 
@@ -18,13 +16,11 @@ export class DBTransactionBase extends BaseEntity {
 
     @Column({ type: "varchar", length: 64 }) @Index() paymentReference: string = "";
 
-    @Column({ type: "varchar", length: 64 }) hashVerify: string = "";
-
     @Column({ type: "text" }) response: string = "";
 
     @Column() @Index() isNativePayment: boolean = false;
 
-    @Column({ type: "varchar", length: 64 }) transactionType: string = "";
+    @Column({ type: "varchar", length: 64 }) @Index() transactionType: string = "";
 }
 
 

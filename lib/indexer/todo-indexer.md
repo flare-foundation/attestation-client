@@ -24,8 +24,8 @@
 - [x] split file into logical units
 
 
-[ ] indexer - analytics table 
-     [ ] when block is visible
-     [ ] when all transactions are collected
-     [ ] when it has enough confirmation blocks
-     [ ] when is finalized
+- [ ] indexer - analytics table 
+     - [?] when block is visible
+     - [/] when all transactions are collected
+     - [ ] when it has enough confirmation blocks
+     - [ ] when is finalized

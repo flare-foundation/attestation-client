@@ -323,8 +323,7 @@ export class AttestationRound {
     }
 
     // after commit state has been calculated add it in state
-    AttestationRoundManager.state.addRound(this);
-    AttestationRoundManager.state.save();
+    AttestationRoundManager.state.saveRound(this);
 
     const time2 = getTimeMilli();
 
@@ -332,8 +331,6 @@ export class AttestationRound {
     //   collect   | commit       | reveal
     //   x         | x+1          | x+2
     //
-
-    AttestationRoundManager.commitedMerkleRoots.set(this.roundId, this.roundMerkleRoot);
 
     // calculate remaining time in epoch
     const now = getTimeMilli();
@@ -353,11 +350,12 @@ export class AttestationRound {
     if (this.canCommit()) {
       let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
-      const nextState = AttestationRoundManager.state.getState(this.roundId - 1);
+      const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
 
       this.attesterWeb3
         .submitAttestation(
           action,
+          this.roundId,
           // commit index (collect+1)
           toBN(this.roundId + 1),
           this.roundMerkleRoot,
@@ -412,7 +410,7 @@ export class AttestationRound {
     let nextRoundRandom = toHex(toBN(0), 32);
     let nextRoundHashedRandom = toHex(toBN(0), 32);
 
-    let action = `submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 2}`;
+    let action = `submitting ^Y#${this.roundId+1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
     if (this.nextRound) {
       if (this.nextRound.canCommit()) {
@@ -433,6 +431,7 @@ export class AttestationRound {
     this.attesterWeb3
       .submitAttestation(
         action,
+        this.roundId+1, // the next one is commited and this one is revealed
         // commit index (collect+2)
         toBN(this.roundId + 2),
         nextRoundMerkleRoot,

@@ -1,87 +1,58 @@
-import { getGlobalLogger, logException } from "../utils/logger";
-import { JSONMapParser, JSONMapStringify } from "../utils/utils";
+import { DBRoundResult } from "../entity/attester/dbRoundResult";
+import { getGlobalLogger } from "../utils/logger";
+import { getUnixEpochTimestamp } from "../utils/utils";
 import { AttestationRound } from "./AttestationRound";
-
-
-const SAVE_FILENAME = "attestation_state.json";
-
-export class AttesterRoundState {
-    roundId: number;
-    merkleRoot: string;
-    random: string;
-    maskedMerkleRoot: string;
-    hashedRandom: string;
-
-};
+import { AttestationRoundManager } from "./AttestationRoundManager";
 
 export class AttesterState {
 
-    rounds = new Map<number, AttesterRoundState>();
+    saveRound(round: AttestationRound) {
+        const dbRound = new DBRoundResult();
 
-    save() {
-        try {
-            getGlobalLogger().warning( `saving attester state ${SAVE_FILENAME}` );
+        dbRound.roundId = round.roundId;
+        dbRound.merkleRoot = round.roundMerkleRoot;
+        dbRound.maskedMerkleRoot = round.roundMaskedMerkleRoot;
+        dbRound.random = round.roundRandom;
+        dbRound.hashedRandom = round.roundHashedRandom;
+        dbRound.finalizedTimestamp = getUnixEpochTimestamp();
 
-            const fs = require("fs");
-
-            const data = JSON.stringify(this, JSONMapStringify);
-
-            fs.writeFile(SAVE_FILENAME, data, function (err) {
-                if (err) {
-                    logException(err, `AttesterState::save`);
-                }
-            });
-        }
-        catch (error) { logException(error, `AttesterState::save`); }
+        AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     }
 
-    load(roundId: number) {
-        try {
+    saveRoundCommited(roundId: number, nounce: number, txid: string) {
+        const dbRound = new DBRoundResult();
 
-            getGlobalLogger().warning( `loading attester state ${SAVE_FILENAME}` );
+        dbRound.roundId = roundId;
 
-            const fs = require("fs");
+        dbRound.commitTimestamp = getUnixEpochTimestamp();
 
-            const res = JSON.parse(fs.readFileSync(SAVE_FILENAME).toString(), JSONMapParser) as AttesterState;
+        dbRound.commitNounce = nounce;
+        dbRound.commitTransactionId = txid;
 
-            if( res.rounds ) {
-                for (let round of res.rounds.values()) {
-                    let r = round as any as AttesterRoundState;
-                    if( !r || r.roundId < roundId - 2 ) continue;
-
-                    this.addState(r);
-                }
-            }
-        }
-        catch (error) { logException(error, `AttesterState::load`); }
+        AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     }
 
-    addRound(round: AttestationRound) {
-        const newState = new AttesterRoundState();
+    saveRoundRevealed(roundId: number, nounce: number, txid: string) {
+        const dbRound = new DBRoundResult();
 
-        newState.roundId = round.roundId;
-        newState.merkleRoot = round.roundMerkleRoot;
-        newState.maskedMerkleRoot = round.roundMaskedMerkleRoot;
-        newState.random = round.roundRandom;
-        newState.hashedRandom = round.roundHashedRandom;
+        dbRound.roundId = roundId;
 
-        this.addState(newState);
+        dbRound.revealTimestamp = getUnixEpochTimestamp();
+
+        dbRound.revealNounce = nounce;
+        dbRound.revealTransactionId = txid;
+
+        AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     }
 
-    addState(state: AttesterRoundState) {
-        getGlobalLogger().debug( `save state ^Y#${state.roundId}^^ added` );
+    async getRound(roundId: number): Promise<DBRoundResult> {
+        var dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(
+            DBRoundResult,
+            { where: { roundId: roundId } });
 
-        this.rounds.set(state.roundId, state);
+        if (dbRound) return dbRound;
 
-        this.rounds.delete( state.roundId-2);
-    }
-
-    getState(roundId: number): AttesterRoundState {
-        var state = this.rounds.get(roundId);
-
-        if( state ) return state;
-
-        getGlobalLogger().warning( `save state ^R#${roundId}^^ not found` );
+        getGlobalLogger().warning(`state ^R#${roundId}^^ not found`);
 
         return undefined;
     }

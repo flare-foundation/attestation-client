@@ -195,7 +195,7 @@ export class AttesterClient {
 
   onlyOnce = false;
 
-  processEvent(event: any) {
+  async processEvent(event: any) {
     try {
       if (event.event === "AttestationRequest") {
         const attestation = new AttestationData(event);
@@ -209,7 +209,8 @@ export class AttesterClient {
     try {
       if (event.event === "RoundFinalised") {
 
-        const commitedRoot = AttestationRoundManager.commitedMerkleRoots.get(event.returnValues.bufferNumber - 3);
+        const dbState = await AttestationRoundManager.state.getRound(event.returnValues.bufferNumber - 3);
+        const commitedRoot = dbState ? dbState.merkleRoot : undefined;
 
         if (commitedRoot) {
           if (commitedRoot === event.returnValues.merkleHash) {

@@ -34,8 +34,6 @@ export class AttestationRoundManager {
   static credentials: AttesterCredentials;
   attesterWeb3: AttesterWeb3;
 
-  static commitedMerkleRoots =new Map<number,string>();
-
   constructor(chainManager: ChainManager, config: AttesterClientConfiguration, credentials: AttesterCredentials, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.config = config;
     AttestationRoundManager.credentials = credentials;
@@ -61,8 +59,6 @@ export class AttestationRoundManager {
     // update active round again since waitin for DB connection can take time
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
     AttestationRoundManager.startEpochId = AttestationRoundManager.activeEpochId;
-
-    AttestationRoundManager.state.load(AttestationRoundManager.activeEpochId);
   }
   
   static getSourceHandlerConfig(name: string): SourceHandlerConfig {

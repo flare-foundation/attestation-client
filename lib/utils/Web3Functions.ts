@@ -104,7 +104,7 @@ export class Web3Functions {
 
     try {
       const receipt = await this.waitFinalize3(this.account.address, () => this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!));
-      return receipt;
+      return {receipt,nonce};
     } catch (e: any) {
       if (e.message.indexOf(`Transaction has been reverted by the EVM`) < 0) {
         logException( `${label}, nonce sent: ${nonce}`,e);

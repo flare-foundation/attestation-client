@@ -3,9 +3,10 @@ import Web3 from "web3";
 import { Logger } from "winston";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
-import { getWeb3, getWeb3Contract } from "../utils/utils";
+import { getWeb3, getWeb3Contract, round } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { AttLogger } from "../utils/logger";
+import { AttestationRoundManager } from "./AttestationRoundManager";
 
 export class AttesterWeb3 {
   config: AttesterClientConfiguration;
@@ -35,6 +36,7 @@ export class AttesterWeb3 {
   }
 
   async submitAttestation(action: string, 
+    roundId: number,
     bufferNumber: BN, 
     merkleRoot: string, 
     maskedMerkleRoot: string, 
@@ -56,8 +58,22 @@ export class AttesterWeb3 {
     this.logger.info( `hashedRandom_n ......... : ${hashedRandom.toString()}` )
     this.logger.info( `random_n-1 ............. : ${revealedRandomPrev.toString()}` )
 
-    const receipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode);
-    //console.log(receipt);
-    return receipt;
+
+    if( process.env.NODE_ENV==="production") {
+    //if( true ) {
+      const {receipt,nonce} = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode);
+
+      if( receipt ) {
+        AttestationRoundManager.state.saveRoundCommited(roundId,nonce,receipt.transactionHash);
+        AttestationRoundManager.state.saveRoundRevealed(roundId-1,nonce,receipt.transactionHash);
+      }
+
+      return receipt;
+    }
+    else {
+      this.logger.warning(`signAndFinalize3 skipped in ^edevelopment mode^^`);
+
+      return null;
+    }
   }
 }

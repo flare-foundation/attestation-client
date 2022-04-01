@@ -22,8 +22,17 @@
 // [ ] handling system_failure blocks
 // [x] cleanup spammer config definitions
 
-// [ ] save attexter state into DB
-// [ ] at start use network to collect all events for active epoch
+// [x] at start use network to collect all events for active epoch
+
+// [x] save attester state into DB
+// [x] save attester nounce and txid when commited and revealed (for easy debugging)
+// [x] make DEV build not submit into network and use local DB
+// [ ] gracefull exit/restart (kill -2)
+// [ ] custom tail with our logger
+// [x] RPC exception (simulation attester was running on .205)
+// [ ] signAndFinalize for wait check if we are still in round epoch!
+// [ ] set 750 sec down to X
+// [ ] display nounce and txid for receipt on sign done
 
 // deployments
 // - spammer

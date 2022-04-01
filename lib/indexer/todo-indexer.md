@@ -1,3 +1,4 @@
+# Indexer Todo
 - [x] 100% make sure that block is completely saved until moved to the next block
 - [x] check if using database per chain is easier than tables per chain
 

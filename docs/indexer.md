@@ -34,19 +34,20 @@ On the querying side we take the following approach. Each request should provide
 - the last `blockNumber` that should be used in query,
 - the proof of the existence of the confirmation block of this block, which we call the `dataAvailabilityProof`. 
 
-Consider a blockchain for which the `numberOfConfirmations` is given. For example in Bitcoin, this is usually 6, which means that 5 more blocks above the block must exist. If we want to attest for a transaction with the transaction id `txId`, we should provide in addition the `blockNumber` of the block in which the transaction is placed in, and the hash of a confirmation block `dataAvailabilityProof`. In case of Bitcoin this would be the hash of any block on height `blockNumber + numberOfConfirmations - 1`.
+Consider a blockchain for which the `numberOfConfirmations` is given. For example in Bitcoin, this is usually 6, which means that 5 more blocks above the block must exist. If we want to make a query in a query window ending with the `blockNumber`, we must provide the hash of a confirmation block `dataAvailabilityProof`. In case of Bitcoin this would be the hash of any block on height `blockNumber + numberOfConfirmations - 1`.
 
-Then during querying we follow the 2-step procedure, where we first make a query to see if the request is possibly edge-case decidable.
+Then during querying, we follow the 2-step procedure, where the first step either already handles the query or decides that this is an edge case and postpone the query to the second step.
 
 ### The first step (initial query):
-- check for the last confirmed block number in the indexer `N`.
-- If `blockNumber < N - 1`, then this transaction is in the block which all data providers and their indexers, including us, had enough time to process. Query the database, check the transaction `response` fields and make and return the attestation decision.
+- read the last confirmed block number `N` in the indexer .
+- If `blockNumber < N - 1`, then this is a block that all data providers and their indexers, including us, had enough time to process. Query the database and make the decision.
 - Otherwise, read the timestamp of the latest check for new blocks of the indexer. 
-- If the timestamp is older than 10s (for 90s voting rounds) then there must be something wrong with the indexer, so abstain from the voting round.
+- If the timestamp is older than 10s (for 90s voting rounds), then there must be something wrong with the indexer, so abstain from the attestation round.
 - Read the last perceived block height by the indexer, say `T`. We know now that it is valid for at least the last 10s.
-Verify that the indexing of the confirmed transactions is not significantly late by checking that `N >= T - numberOfConfirmations` (at most one confirmation block is just being written into the database).
-- If the above condition is not met, the indexing is being significantly delayed, and we delay the query to the next step.
-- Otherwise we check whether `blockNumber > N + 1`, and if this is the case, the request was sent too early and no confirmations are possible. We reject the attestation.
+- Verify that the indexing of the confirmed transactions is not significantly late by checking that `N >= T - numberOfConfirmations` (at most one confirmation block is just being written into the database).
+- If the above condition is not met, the indexing is being significantly delayed, and we delay the query to the second step.
+- Otherwise we check whether `blockNumber > N + 1`.
+- If this is the case, the request was sent too early and no confirmations are possible. We reject the attestation.
 - Otherwise we know that `N - 1 <= blockNumber N + 1` and we are in the "edge-case". We delay the query to the second step.
 
 ### The second step (delayed query):
@@ -64,7 +65,9 @@ Note that if the transaction is old enough, everything is decided in the first s
 
 Though, there is a case of a so called "selfish mining", where a miner keeps block for himself to mine the next block and then sends it to others later, gaining some edge over others, but also possibly risking of loosing the advantage, since miners may start mining on other blocks of the same height. In this case one could use the delayed blocks to attack the attestation system by carefully timed sending, thus introducing non-clear-cut decision requests. But such a scenario is highly unprobable and hard to produce, even for a single case, but basically impossible to repeat consistently, unless on a blockchain undergoing 50%+ attack.
 
+### Providing `blockNumber` and `dataAvailabilityProof` in the request.
 
+Consider an approach, where upper query bound would be solely determined by providing `dataAvailabilityProof`. Then the query would be simpler: if you find the block with the hash equal `dataAvailabilityProof`, then you can calculate what is the relevant `blockNumber` and check, whether it is considered confirmed in the indexer. In case it is confirmed, one should perform the query. If not, one should delay it. Note that in this case `dataAvailabilityProof` is used with every query, not just in the second step as described before. We did not choose this approach due to following reason. Namely, such a block with the hash equal `dataAvailabilityProof` may be on dead fork way back in history, but technically would still be a valid confirmation block. We do not have control, whether blockchain nodes keep this stale fork from past history in memory, and if this is not the case, then such a behaviour could be used to destabilize the attestation protocol. On the other hand, we can be fully sure, that newest forks are available. Hence we decided for the redundancy of providing both `blockNumber` and `dataAvailabilityProof`, using the block number for majority of times, while using `dataAvailabilityProof` just in edge cases, which appear near the top of the chain.
 ## Scope of indexing
 
 The most important feature of indexers is that they index blocks and transactions by certain properties allowing us for fast queries on those properties.
@@ -105,137 +108,4 @@ In our implementation in Node.js we use our _Multi Chain Client_ library `flare-
 - get block height.
 
 Hashing is important mainly for the first type of queries, namely for getting transactions. An important use case is in case of Bitcoin and other Bitcoin code based UTXO blockchains. Namely, in UTXO blockchains a source address is obtained by querying the blockchain API for each transaction on each input. There can be up to 20 inputs and possibly many different UTXO outputs from diffrent transactions. Usually we can get a block info and info of all transactions in the block in one request. But then we have to make for each of those transactions many requests for input transactions. Those could repeat and caching reponses helps here a bit. Note that some blocks can have even over 2000 transactions and some experimental calculations showed that we would do for each transaction even than 4 additianal API calls on average for input transactions. With Bitcoin blocks of over 2000 transactions this may take even 5 minutes. Compared to 10 minute average block production of Bitcoin the indexing would take quite some time. Also, the most critical requirement for an indexer is that confirmed transactions are stored into the database immediately after the confirmation block arrives. Hence we have to process transactions from unconfirmed blocks in advance. Since unconfirmed blocks may be in different forks, we might be processing wrong fork. But what we know is that even we are in the wrong fork, transactions in that wrong block will be similar. So here caching can also help a lot. Also noted, that we used another optimization, namely we read all inputs of all transactions that have payment reference defined only. For others, it depends on attestation type, whether we do additinal reads during verification phase or not.
-
-## OLD TEXTS TO BE REVIEWED, REUSED OR DELTED
-
-
-# Blockchains
-
-
-
-
-Indexer consists of:
-- Indexer Service (read/write)
-- Indexed Query Handler - used to make specific queries (read only)
-
-## Indexer Service
-
-Indexer service uses two types of database storage:
-- `database` - persistant self-cleaning indexed SQL database containing only the confirmed transactions and all the read blocks. 
-- `cache` - temporary key-value database, that is used to cache all the read transactions
-
-Each external chain has a non-decreasing block timestamp. UTXO chains have median time. 
-
-### Efficient indexing
-
-All blocks but only confirmed transactions are stored into the database. Confirmed blocks are marked. It is required, that once a knowledge of a confirmed block is obtained, all transactions need to be stored into the database practically instantly. 
-
-In UTXO (Bitcoin) chains reading transactions and their input transactions from a confirmed block can take 5 minutes or more. Hence indexer should read transactions in advance and cache them. Indexer will aggresivelly and periodically check (like every 1s) for main fork blocks after `N`. It will also have a pool of data availability hashes above height `N` which will be checked for existence in a similar aggressive manner.
-
-Also, all transactions in known blocks (obtained from the main fork or as data availability proof) will be read and cached and only after one of the blocks on height above `N` will be confirmed, cached transactions will be used to prepare a package of the transactions in the `N + 1`-th confirmed block. All candidates for `N + 1`-th block will be indexed in a front-running manner. If all candidates for `N + 1`-th blocks are read and cached the algorithm may proceed with indexing transactions from known `N + 2`-th block candidates.
-
-## Indexed Query Handler
-
-Indexed Query Handler is a query service using the persistant database and possibly direct on-chain calls with queries specialized for attestation checks.
-
-### Queries
-
-The following types of queries are supported:
-- (Q1) - block hash existence check
-- (Q2) - transaction existence check
-- (Q3) - referenced transaction existence
-
-Each attestation request will provide 
-- `roundId`
-- `txId` or `paymentReference`
-- `blockNumber` in which the confirmed transaction is present.
-- `dataAvailability` - the hash of a block on a confirmation height (`L`)
-
-The database of the indexer service contains only transactions in confirmed blocks. A block is confirmed if there exists a chain of blocks above it of length `L`, where `L` depends on a specific chain.
-
-### Time boundaries 
-
-Each blockchain has blocks enumerated by `blockNumber` and some kind of a timestamp. In Bitcoin we use `mediantime` for lower bound.
-
-`QTI` - query time interval (14 days in seconds).
-`ARS(roundId)` - the timestamp on Flare blockchain of the start of the attestation round `roundId` (Unix epoch)
-
-Only blocks on external chains with timestamps greater or equal `TMIN(roundId) = ARS(roundId) - QTI` are taken in consideration
-
-
-### Q1 - Block hash check
-
-Inputs:
-- `hash`
-
-If the block with `hash` is stored in the database, it returns a stored block API response subject to timestamp being greater or equal to `TMIN(roundId)`. In case the block is not found in database, query to blockchain is carried out for UTXO chains and result is returned. The reponse contains `status` field, that can be `OK` or `NOT_EXIST`. In case of status `NOT_EXIST`, the `block` field is empty.
-
-The response structure
-```
-{
-   status: "OK" | "NOT_EXIST",
-   block?: any
-}
-```
-
-### Q2 - Transaction existence check
-
-Inputs:
-- `txId` - transaction id
-- `blockNumber` - block number for the transactio with `txId`
-- `dataAvailability` - hash of confirmation block (used for syncing of edge-cases)
-- `roundId` - voting round id for check
-- `type` - `FIRST_CHECK` or `RECHECK`
-
-returns the stored transaction API response with transaction id `txId` if in the block with `blockNumber`, where the block's timestamp is greater or equal to `TMIN(roundId)`. The response contains transaction API response and status. The rules for search depend on the `type`, which can be (1) `FIRST_CHECK` or (2) `RECHECK` (see below)
-
-Response `status` can be one of: `OK`, `RECHECK` and `NOT_EXIST`. Only in case of status `OK`, the stored transaction API response is non-empty.
-
-The response structure looks like this:
-
-```
-{
-   status: "OK" | "RECHECK" | "NOT_EXIST",
-   transaction?: any
-}
-```
-
-#### Q2 - `FIRST_CHECK`
-
-At the moment of a query the indexer database has indexed transactions up to the block number `N`. These cases can happen:
-
-- `blockNumber` is strictly lower than `N - 1`. Then all transactions in the block with the `blockNumber` exist in the indexer database. Query is carried out on the database and if `txId` exists in the confirmed block with `blockNumber`, the stored transaction API response is returned with status `OK`. If `txId` does not exist in this range, status `NOT_EXIST` is returned. Confirmation block `dataAvailability` hash is not used in this case.
-- `blockNumber` equals `N - 1`, `N` or `N + 1`. These situations may happen: (1) `N - 1` - we might be faster then others, (2) `N` - we may be faster or slower then others, (3) `N + 1` - we might be slower then others. In all those cases empty transaction is returned with status `RECHECK`
-- `blockNumber` is strictly greater than `N + 1`. Empty transaction with status `NOT_EXIST` is returned
-
-#### Q2 - `RECHECK`
-
-At the moment of a query the indexer database has indexed transactions up to the block number `N`. These cases can happen:
-- in case `blockNumber` is greater or equal to `N + 1`, empty transaction reponse with status `NOT_EXIST` is returned
-- otherwise we check if a transaction with hash `txId` and `blockNumber` exists. If it does not exist, empty transaction reponse with status `NOT_EXIST` is returned. 
-- if transaction with `txId`and `blockNumber` exists, then we check for existence of the confirmation block with hash `dataAvailability`. We check this by using the query `Q1`. If the confirmation block exists and it is on the correct height (e.g exactly `blockNumber + 6` for Bitcoin) then stored transaction API response is returned with status `OK`. Otherwise empty transaction response with status `NOT_EXIST` is returned.
-
-### Q3 - referenced transaction non-existence
-
-Inputs:
-- `payementReference` - payment reference
-- `blockNumber` - last block number to check (defines upper bound of search interval)
-- `dataAvailability` - hash of confirmation block for `endBlockNumber` (used for syncing of edge-cases)
-- `type` - `FIRST_CHECK` or `RECHECK`
-
-The query returns a list of transactions in interval from the lower bound to the `blockNumber`. Boundary checks for `blockNumber` are handled in the same manner as with `Q2` (`FIRST_CHECK` and `RECHECKED`). The query can return only two statuses: `OK`, `RECHECK`. With status `OK` the list of candidate transactions matching the query interval and payment reference is provided. If no such transactions are found, empty list is returned.
-
-The response structure looks like this:
-
-```
-{
-   status: "OK" | "RECHECK" | "NO_CONFIRMATION_BLOCK",
-   transactions?: any[]
-   block?: any
-}
-```
-
-When rechecking it is important to find confirmation block. Otherwise the returned status is `NO_CONFIRMATION_BLOCK`, and verification process should treat this as non-ability to prove non-existence.
-
-
 

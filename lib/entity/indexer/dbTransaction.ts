@@ -19,6 +19,7 @@ export class DBTransactionBase extends BaseEntity {
     @Column({ type: "text" }) response: string = "";
 
     @Column() @Index() isNativePayment: boolean = false;
+    
 
     @Column({ type: "varchar", length: 64 }) @Index() transactionType: string = "";
 }

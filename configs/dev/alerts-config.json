@@ -13,7 +13,7 @@
         },
         {
             "name":"Songbird", 
-            "mode": "songbird", 
+            "path":"./configs/songbird/",
             "restart":"systemctl --user restart songbird-attester"
         }
     ]

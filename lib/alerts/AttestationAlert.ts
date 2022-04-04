@@ -11,11 +11,11 @@ export class AttesterAlert extends AlertBase {
     dbService: DatabaseService;
     epochSettings: EpochSettings;
 
-    constructor(name: string, logger: AttLogger, mode: string, restart: AlertRestartConfig) {
+    constructor(name: string, logger: AttLogger, mode: string, path: string, restart: AlertRestartConfig) {
         super(name, logger, restart);
 
-        const credentials = readCredentials<AttesterCredentials>("attester", mode);
-        const config = readConfig<AttesterClientConfiguration>("attester", mode);
+        const credentials = readCredentials<AttesterCredentials>("attester", mode, path);
+        const config = readConfig<AttesterClientConfiguration>("attester", mode, path);
 
         this.dbService = new DatabaseService(logger, credentials.attesterDatabase, "attester");
 
@@ -49,7 +49,7 @@ export class AttesterAlert extends AlertBase {
         res.status = (dbRound + 1) >= activeRound ? "running" : "down";
 
         // restart if more than 2 round behind
-        if( dbRound + 2 < activeRound ) {
+        if (dbRound + 2 < activeRound) {
             this.restart();
         }
 

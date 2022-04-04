@@ -1,14 +1,14 @@
-import yargs from "yargs";
 import { processColors } from "../../utils/logger";
 import { Terminal } from "../../utils/terminal";
 
 // Args parsing
+var yargs = require("yargs");
+
 const args = yargs
-//.command()
-.option("filename", { alias: "f", type: "string", description: "Path to config json file", default: "", demand: false, })
-.option("lines"   , { alias: "n", type: "number", description: "output the last NUM lines, instead of the last 10", default: 10, demand: false, })
-.option("follow"  , { alias: "f", type: "boolean", description: "output appended data as the file grows", default: true, demand: false, })
-.argv;
+.option("filename", { alias: "i", type: "string", description: "inputfilename", default: "", demand: true })
+.option("lines", { alias: "n", type: "number", description: "output the last NUM lines, instead of the last 10", default: 10, demand: false, })
+.option("follow", { alias: "f", type: "boolean", description: "output appended data as the file grows", default: false, demand: false, })
+    .argv;
 
 
 const Reset = "\x1b[0m";
@@ -182,9 +182,11 @@ function displayLine(colorConsole: ColorConsole2, data: string) {
     colorConsole.log(info, null);
 }
 
+function displayFile(filename: string, lines: number, follow: boolean) {
 
-
-function displayFile(filename: string, lines: number, displayTail: boolean) {
+    console.log(filename);
+    //console.log(lines);
+    //console.log(follow);
 
     const fs = require('fs');
 
@@ -199,7 +201,7 @@ function displayFile(filename: string, lines: number, displayTail: boolean) {
         };
     }
 
-    if (displayTail) {
+    if (follow) {
         const Tail = require('tail').Tail;
 
         const tail = new Tail(filename);
@@ -208,4 +210,8 @@ function displayFile(filename: string, lines: number, displayTail: boolean) {
     }
 }
 
-displayFile("logs/attester-global.log", (args as any).lines, (args as any).follow);
+//displayFile(process.argv[1], args.lines, args.follow);
+
+//console.log( process.argv );
+
+displayFile(args.filename,  args.lines, args.follow);

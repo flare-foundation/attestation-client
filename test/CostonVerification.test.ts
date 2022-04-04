@@ -72,7 +72,7 @@ describe("Coston verification test", () => {
 
   });
 
-  it("Should verify that merkle roots match.", async () => {
+  it.only("Should verify that merkle roots match.", async () => {
     // let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
 
     let totalBuffers = (await stateConnector.totalBuffers()).toNumber();

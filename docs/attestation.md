@@ -1,4 +1,4 @@
-## Attestation protocol
+# Attestation protocol
 
 Atestation protocol is a protocol in which facts from other (external) chains, or data sources in general, are proposed for attestation by users, and then the set of default attestation providers vote on them by casting their votes in the form of attestations.
 
@@ -28,11 +28,11 @@ To facilitate the attestation protocol the `StateConnector` contract is used. Th
 - Accepts commit and reveal submissions by attestation providers, mapping them to the `commit` and `reveal` phases of the relevant voting rounds.
 - Counts the votes (attestations) and declares winner attestation for every voting round (in `count` phase).
 
-Note that voting rounds are interlaced. For example, if $T_0$, $T_1$, ... are sequential 90s intervals, then the voting round with id 0 has `collect` phase in $T_0$, `commit` phase in $T_1$, etc. Simultaneously, voting round with id 1 has the `collect` phase in $T_1$, `commit` phase in $T_2$, etc.
+Note that voting rounds are interlaced. For example, if _T<sub>0</sub>_, _T<sub>1</sub>_, ... are sequential 90s intervals, then the voting round with id 0 has `collect` phase in _T<sub>0</sub>_, `commit` phase in _T<sub>1</sub>_, etc. Simultaneously, voting round with id 1 has the `collect` phase in _T<sub>1</sub>_, `commit` phase in _T<sub>2</sub>_, etc.
 
 Due to the central involvement of the `StateConnector` contract in the attestation protocol, the protocol is also often called the _Stateconnector protocol_.
 
-### Requesting attestations
+## Requesting attestations
 
 Attestation request is send as a byte string, that encodes the request, according to the rules stated below. This byte string is sent to `StateConnector` contract using the following function:
 
@@ -51,7 +51,7 @@ event AttestationRequest(
 
 The data in the request is not stored on blockchain.
 
-### Providing attestations
+## Providing attestations
 
 Attestation provider listen for the emitted `AttestationRequest` events. They collect all the requests for one voting round, parese them and figure out what kind of verifications they need to carry out. For each successfuly validate request attestation hash is calculated. All the attestation hashes for the round are collected into Merkle tree and Merkle root for the round is calculated.
 
@@ -97,104 +97,3 @@ Attestation providers provide attestations only for specific types of requests. 
 
 Sinchronized data views are also important due to representation of the submitted vote by the Merkle root of all attestations in the voting round. In case of non-syncronized data views, data providers would often vote differently on the most recent attestation requests (depending on the time of query), which would yield completely different Merkle roots and thus cripple the voting round, as achieving at least 50% of all submitted Merkle roots would become extremely difficult. Attestation types and mechanisms to achieve dadta view synchronization will be described later.
 
-## Merkle tree
-
-Attestations for each voting round (data hashes of the atttested data) are assembled into the Merkle tree and only the Merkle root is used in voting. The Merkle root that is sent by majority of attestation providers becomes confirmed Merkle root for the round and it is stored in the `StateConnector` contract. As of current implementation, the confirmed Merkle root is in accessible by calling looking up into the public array on contract `merkleRoots` which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720 - a week of proofs). Note also that the proof for a given voting round is stored at the index `(roundId + 2) % 6720`.
-
-For a specific voting round it suffices for proving verification to know whether an attestation hash of a specific transaction has appeared (or equivalently was confirmed) in the voting round.
-For that purpose, attestion providers (voters) organise submitted attestation hashes in a round as follows.
-
-- They collect all the voting requests for a specific round and try to verify them.
-- For the verified ones, the attestation hashes are calculated. There are no hashes produced for the requests that cannot be verified.
-- All verified attestation hashes are put in the list and sorted (numerically, ascending order). Duplicates are removed.
-- Merkle tree is calculated on those hashes according to the definition below.
-
-### Merkle tree structure
-
-The Merkle tree on $n$ sorted hashes is represented by an array of length $2n - 1$ which represents the complete binary tree. A complete binary tree is a binary tree in which all the levels are completely filled except possibly the lowest one, which is filled from the left.
-
-It can be easily be proven by induction that a complete binary tree with $2n - 1$ elements has exactly $n$ leaves and all nodes are either leaves or have two descendants (left and right). For $n = 1$ we have a tree with only one element, root an leaf simultaneously. If we add two descendants to a single element tree, we get a tree with 2 leaves but $3 = 2 2 - 1$ elements. If we add two descendants to the leftmost leaf, we change a leaf to an internal node (efectively removing one list), but add two more leafs. In general step we thus have a complete binary tree that has all levels filled except the last one. If we enumerate nodes from 0 starting with the root and proceeding through levels from left on right, we take the node with the first index, such that it is a leaf and expand it with two leafs. We again get a complete binary tree with 2 more nodes and 1 more leaf.
-
-The above mentioned indexing enables us to represent a Merkle tree with $n$ leaves in an array of length exactly $2n - 1$, where the last $n$ elements are the leaves. This representation of a complete binary tree is well known from classic implementation of binary heaps. It encodes the tree structure as follows:
-
-- merkle root is at index $0$,
-- leaves are on the last $n$ indices, hence from $n - 1$ to $2n - 2$.
-- given an index $i$ of a node in the tree, we can get parent both descendants as follows:
-  $$
-  {\rm parent}(i) = \left\lfloor \frac{i - 1}{2}\right\rfloor,
-  $$
-  $$
-  {\rm left}(i) = 2 i + 1, \qquad {\rm if }\; 2i + 1 < 2n - 1,
-  $$
-  $$
-  {\rm right}(i) = 2 i + 2, \qquad {\rm if }\; 2i + 2 < 2n - 1.
-  $$
-
-Since we have a complete binary tree, we can easily calculate a sibiling node of the node with index $i$
-
-$$
-{\rm sibiling}(k) = \left\{
-\begin{array}{ll}
-k - 1 & {\rm if}\; k {\rm \; even},\\
-k + 1 & {\rm if}\; k {\rm \; odd}.
-\end{array}
-\right.
-$$
-
-Note that there are several types of Merkle trees depending on a purpose of use. In general a Merkle tree can be used to uniquely produce a representative hash for a _fixed sequence_ of hashes or just for a _set_ of hashes (order of appearance is not important).
-
-For example, with Merkle trees for transactions in a block on Bitcoin the exact order of transactions in the block are important, hence we use _fixed sequence_ Merkle tree. In our case the order of votes is not important and we use _set_ Merkle tree. Namely, each successful vote is identified with the unique hash. For later verification, one only needs to query whether such a hash has appeared among hashes in the Merkle tree. On the other hand, in the Bitcoin transactions example, one needs to verify that the hash of a transaction is a leaf of the tree on the specific index.
-
-In case of set Merkle trees, additional simplification when performing hashes of pairs can be used. Such a simplification makes Merkle proofs shorter and easier. The hash we use for pairs is defined as follows. Let ${\rm hash(data)} be a hash function which given a byte string $data$ produces 32-byte hash, let ${\rm sort}(list)$ be the sorting function for a list of byte strings and let ${\rm join}(list)$ be the function that concatenates byte strings to as single byte string in order of appearance. Define
-
-$$
-{\rm shash}(data_1, data_2) = {\rm hash({\rm join}({\rm sort}([data_1, data_2])))}
-$$
-
-This function will be used for producing pair hashes while building the tree. Basically that means that given two hashes they are first sorted, than joined and then a hash is produced.
-
--
-
-### Building a Merkle tree
-
-Assume attestation provider has performed all necessary verifications and for the confirmed request got $m$ attestation hashes. Some requests may be duplicate, yielding duplicate verification hashes, and thus those can be safely removed. Hence we can assume that the attestation privider has $n$ uniques attestaion hashes. To build the Merkle tree, the attestation providers proceeds as follows:
-
-- $n$ hashes are sorted in the ascending order. Note that the order is unique.
-- Array $M$ with $2n - 1$ elements is allocated.
-- $n$ hashes are put into the slots from $n - 1$ to $2n - 2$, hence $M_{n-1},\dots, M_{2n -2}$.
-- for $i = n - 2$ down to 0 calculate $M[i] = {\rm Shash}(M_{{\rm left}(i)}, M_{{\rm right}(i)})$
-
-### Building a Merkle proof
-
-A Merkle proof for a leaf is the shortest sequence of hashes in the Merkle tree on a path to the Merkle root that enables the calculation of a Merkle root from the leaf. Let $M$ be an array representing a Merkle tree on $n$ leaves with $2n - 1$ nodes defined as above. Note that the attestation hashes appear on indices $n-1$ to $2n -2$ and are sorted. Hence the $k$-th hash appears on the index $n-1 + k$. The Merkle proof for $k$-th hash can be calculated by using the following recursive formulas
-$$
-{\rm next_k}(sequence)=  \left\{
-\begin{array}{ll}
-[{\rm sibling}(n - 1 + k)]  & {\rm if}\; sequence = [\;], \\
-[\ldots, j, {\rm sibling}({\rm parent}(j))] & {\rm if}\; sequence = [\ldots, j]\; {\rm and}\; {\rm parent}(j) \neq M_0,\\
-sequence & {\rm otherwise}
-\end{array}
-\right.
-$$
-
-Starting with an empty sequence and repeatedly applying ${\rm next}_i(...)$ function until it stabilizes produces the Merkle proof for $k$-th attestation hash.
-
-For checking a Merkle proof the following "standard" Open Zepplin library can be used:
-
-https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/MerkleProof.sol
-
-### Hashing function
-
-Given two attestation hashes `a1` and `a2`, ${\rm Shash}(a1, a2)$ function used in Solidity is defined as follows:
-```
-keccak256(abi.encode(v1, v2)) 
-```
-where variables `v1` and `v2` are of type `bytes32`.
-
-In _web3.js_ we the equivalent definition is:
-
-```
-web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [a1, a2]);
-```
-
-where `a1` and `a2` are `0x` prefixed hex strings representing 32-bytes (total string length is 64, hence $2 \cdot 32 = 64$ for encoding bytes and 2 more for prefix `0x`).

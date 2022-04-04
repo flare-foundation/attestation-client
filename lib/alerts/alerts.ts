@@ -52,7 +52,7 @@ class AlertManager {
         }
 
         const terminal = new Terminal(process.stderr);
-        terminal.cursor(false);
+        //terminal.cursor(false);
 
         this.logger.info(`^e^K${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                        `);
 

@@ -20,8 +20,8 @@ export class AlertConfig {
     indexerRestart = "";
     indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
     attesters = [
-        { name: "Coston", mode: "dev", restart: "" },
-        { name: "Songbird", mode: "songbird", restart: "" },
+        { name: "Coston", mode: "dev", path: "", restart: "" },
+        { name: "Songbird", mode: "songbird", path: "", restart: "" },
     ]
 
 }
@@ -42,7 +42,7 @@ class AlertManager {
         }
 
         for (let attester of this.config.attesters) {
-            this.alerts.push(new AttesterAlert(attester.name, this.logger, attester.mode, new AlertRestartConfig(this.config.timeRestart, attester.mode)));
+            this.alerts.push(new AttesterAlert(attester.name, this.logger, attester.mode, attester.path, new AlertRestartConfig(this.config.timeRestart, attester.mode)));
         }
     }
 

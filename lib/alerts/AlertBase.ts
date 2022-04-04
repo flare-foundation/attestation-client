@@ -1,5 +1,3 @@
-import { runInContext } from "vm";
-import { threadId } from "worker_threads";
 import { AttLogger } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 
@@ -27,9 +25,9 @@ export class AlertRestartConfig {
     time: number;
     command: string;
 
-    constructor(time: number, command: string){
-        this.time=time;
-        this.command=command;
+    constructor(time: number, command: string) {
+        this.time = time;
+        this.command = command;
     }
 }
 
@@ -58,7 +56,7 @@ export class AlertBase {
     async restart(): Promise<boolean> {
         // do not restart MIN_RESTART_TIME sec after if was just restarted
         const now = getUnixEpochTimestamp();
-        if( now - this.timeLastRestart < MIN_RESTART_TIME ) return false;
+        if (now - this.timeLastRestart < MIN_RESTART_TIME) return false;
 
         this.timeLastRestart = now;
 

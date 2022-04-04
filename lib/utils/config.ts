@@ -9,22 +9,27 @@ function isEqualType<T>(A: any): boolean {
 }
 
 
-function readConfigBase<T>(project: string, type: string, mode: string=undefined): T {
+function readConfigBase<T>(project: string, type: string, mode: string = undefined, userPath: string = undefined): T {
   const fs = require("fs");
 
   let path = `./configs/`;
 
-  if( mode ) {
-    path += `${mode}/`;
-  }
-  else if (process.env.CONFIG_PATH) {
-    path += `${process.env.CONFIG_PATH}/`;
-    getGlobalLogger().debug2(`configuration using ^w^K${mode}^^`)
+  if (userPath && userPath !== "") {
+    path = userPath;
   }
   else {
-    const modePath =  process.env.NODE_ENV==="development" ? DEFAULT_DEBUG_CONFIG_PATH : DEFAULT_CONFIG_PATH;
-    path += `${modePath}/`;
-    getGlobalLogger().warning(`configuration path not set. using ^w^K${modePath}^^`)
+    if (mode) {
+      path += `${mode}/`;
+    }
+    else if (process.env.CONFIG_PATH) {
+      path += `${process.env.CONFIG_PATH}/`;
+      getGlobalLogger().debug2(`configuration using ^w^K${mode}^^`)
+    }
+    else {
+      const modePath = process.env.NODE_ENV === "development" ? DEFAULT_DEBUG_CONFIG_PATH : DEFAULT_CONFIG_PATH;
+      path += `${modePath}/`;
+      getGlobalLogger().warning(`configuration path not set. using ^w^K${modePath}^^`)
+    }
   }
 
   path += `${project}-${type}.json`;
@@ -44,9 +49,9 @@ function readConfigBase<T>(project: string, type: string, mode: string=undefined
   }
 }
 
-export function readConfig<T>(project: string, mode: string=undefined): T {
-  return readConfigBase<T>(project, "config", mode);
+export function readConfig<T>(project: string, mode: string = undefined, userPath: string = undefined): T {
+  return readConfigBase<T>(project, "config", mode, userPath);
 }
-export function readCredentials<T>(project: string, mode: string=undefined): T {
-  return readConfigBase<T>(project, "credentials", mode);
+export function readCredentials<T>(project: string, mode: string = undefined, userPath: string = undefined): T {
+  return readConfigBase<T>(project, "credentials", mode, userPath);
 }

@@ -15,7 +15,7 @@ export CONFIGDIR="global/.config"
 export BRANCH=main
 export MCC_BRANCH=master
 
-export SERVICE1=atterster-alerts
+export SERVICE1=attester-alerts
 
 # main script
 bash ./scripts/deploy-copy-internal

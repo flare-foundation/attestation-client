@@ -3,6 +3,7 @@
     "timeLate":5,
     "timeDown":10,
     "timeRestart":20,
+    "stateSaveFilename":"../attester-status.json",
     "indexerRestart":"systemctl --user restart indexer-<name>",
     "indexers" : ["ALGO", "BTC", "DOGE", "LTC", "XRP"],
     "attesters" : [

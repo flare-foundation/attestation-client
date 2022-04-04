@@ -35,8 +35,6 @@ export interface CommitTest extends BaseContract {
       committedRandom: string | number[],
       revealedRandom: string | number[]
     ): NonPayableTransactionObject<string>;
-
-    test2(merkleRoot: string | number[]): NonPayableTransactionObject<string>;
   };
   events: {
     allEvents(options?: EventOptions, cb?: Callback<EventLog>): EventEmitter;

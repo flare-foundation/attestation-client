@@ -39,6 +39,17 @@
             ]
         },
 
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch ctail",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devctail"
+            ]
+        },
+
         
         {
             "type": "node",

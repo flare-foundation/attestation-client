@@ -10,7 +10,7 @@
 [x] configs are not specified by specific file but by directory
 [x] .env only config pack folder  CONFIG_PATH
 [ ] create json files dynamic checker (with tsc)
-[ ] reverification buf in verification (too often) local not updated DB 
+[x] reverification buf in verification (too often) local not updated DB 
 [ ] handling system_failure blocks
 [x] cleanup spammer config definitions
 
@@ -24,6 +24,9 @@
 [x] signAndFinalize for wait check if we are still in round epoch!
 [x] set transactionPollingTimeout settable from config (error mining not done in 750 seconds)
 [x] display nounce and txid for receipt on sign done
+
+[+] alerts as a service
+[+] alerts save file json for backoffice (static)
 
 [ ] rename interlaceTimeRange => minimalStorageHistoryDays
 [ ] rename interlaceBlockRange => minimalStorageHistoryBlocks

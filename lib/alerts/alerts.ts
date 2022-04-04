@@ -1,6 +1,6 @@
 import { readConfig } from "../utils/config";
 import { DotEnvExt } from "../utils/DotEnvExt";
-import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { Terminal } from "../utils/terminal";
 import { sleepms } from "../utils/utils";
 import { AlertBase, AlertRestartConfig } from "./AlertBase";
@@ -17,6 +17,7 @@ export class AlertConfig {
     timeLate: number = 5;
     timeDown: number = 10;
     timeRestart: number = 20;
+    stateSaveFilename = "";
     indexerRestart = "";
     indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
     attesters = [
@@ -62,10 +63,28 @@ class AlertManager {
 
             terminal.cursorRestore();
 
+            const status = [];
+
             for (let alert of this.alerts) {
                 const res = await alert.check();
 
+                status.push(res);
+
                 res.displayStatus(this.logger);
+            }
+
+            if (this.config.stateSaveFilename) {
+                try {
+                    var fs = require('fs');
+                    fs.writeFile(this.config.stateSaveFilename, JSON.stringify(status), function (err) {
+                        if (err) {
+                            this.logger.error(err);
+                        }
+                    });
+                }
+                catch (error) {
+                    logException(`save state`, error);
+                }
             }
 
             await sleepms(this.config.interval);

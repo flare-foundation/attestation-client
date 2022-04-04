@@ -4,7 +4,7 @@ import { Terminal } from "../../utils/terminal";
 
 // Args parsing
 const args = yargs
-.command()
+//.command()
 .option("filename", { alias: "f", type: "string", description: "Path to config json file", default: "", demand: false, })
 .option("lines"   , { alias: "n", type: "number", description: "output the last NUM lines, instead of the last 10", default: 10, demand: false, })
 .option("follow"  , { alias: "f", type: "boolean", description: "output appended data as the file grows", default: true, demand: false, })

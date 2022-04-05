@@ -1,4 +1,4 @@
-import { AttLogger } from "../utils/logger";
+import { AttLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 
 export class AlertStatus {
@@ -62,7 +62,21 @@ export class AlertBase {
 
         //this.logger.error2( `restarting ${this.name}` );
 
-        // todo: perform command to restart
+        const command = this.restartConfig.command;
+
+        const { exec } = require("child_process");
+
+        exec( command , (error, stdout, stderr) => {
+            if (error) {
+                logException(`exec '${command}'` , error );
+                return;
+            }
+            if (stderr) {
+                //console.log(`stderr: ${stderr}`);
+                return;
+            }
+            //console.log(`stdout: ${stdout}`);
+        });        
 
         return true;
     }

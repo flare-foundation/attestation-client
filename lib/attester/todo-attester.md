@@ -25,8 +25,9 @@
 [x] set transactionPollingTimeout settable from config (error mining not done in 750 seconds)
 [x] display nounce and txid for receipt on sign done
 
-[+] alerts as a service
-[+] alerts save file json for backoffice (static)
+[x] alerts as a service
+[x] alerts save file json for backoffice (static)
+[x] alerts restart
 
 [ ] rename interlaceTimeRange => minimalStorageHistoryDays
 [ ] rename interlaceBlockRange => minimalStorageHistoryBlocks

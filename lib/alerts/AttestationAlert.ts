@@ -51,6 +51,7 @@ export class AttesterAlert extends AlertBase {
         // restart if more than 2 round behind
         if (dbRound + 2 < activeRound) {
             this.restart();
+            res.comment = "^r^Wrestart^^";
         }
 
         return res;

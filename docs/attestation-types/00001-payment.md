@@ -80,7 +80,7 @@ to a specific destination which is marked by payment reference. This resembles u
 
 - `blockNumber`:
   - type: `uint64`
-  - description: Timestamp of the transaction block on the underlying chain.
+  - description: Number of the transaction block on the underlying chain.
 - `blockTimestamp`:,
   - type: `uint64`
   - description: Timestamp of the transaction block on the underlying chain.
@@ -115,3 +115,20 @@ exactly one receiving address (different from source).
     - 0 - Success
     - 1 - Failure due to sender fault (this is the default failure)
     - 2 - Failure due to receiver fault (bad destination address)
+
+## Comments
+
+NOT ORGANIZED TEXTS ...
+
+Chains that charge for failed transactions (e.g. Ethereum) specific
+If the payment status is failure (1 or 2), the received amount should be 0 and the spent amount should be only the gas/fee spent.
+Gas limits per chain T.B.D:
+Per chain we expect the gas to be limited. If the sender sends with the defined limit and the Tx reverts due out of gas. The attester has to think of that as the receiver's fault.
+- Ethereum: 50K gas
+- UTXO - not relevant.
+- XRP - not relevant
+- Algorand?
+
+General:
+- a transaction must be signed by the key corresponding to the source address
+- Consequently, no smart contract addresses are allowed for the sender address 

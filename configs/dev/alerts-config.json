@@ -10,12 +10,12 @@
         {
             "name":"Coston", 
             "mode": "dev", 
-            "restart":"systemctl --user restart coston-attester"
+            "restart":"systemctl --user restart coston-attester-client"
         },
         {
             "name":"Songbird", 
             "path":"./configs/songbird/",
-            "restart":"systemctl --user restart songbird-attester"
+            "restart":"systemctl --user restart songbird-attester-client"
         }
     ]
 }

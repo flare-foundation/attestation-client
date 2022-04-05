@@ -28,17 +28,17 @@
         {
             "name": "BTC",
             "mccCreate" : {
-                "url": "http://34.91.7.3:9332",
+                "url": "https://bitcoin-cc.flare.rocks",
                 "username": "admin",
-                "password": "changeitchangeitchangeitchangeitchangeitchangeitchangeitchangeit"               
+                "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"               
             },
             "rateLimitOptions": {
                 "maxRPS": 20,
-                "timeoutMs": 5000,
-                "retries": 3
+                "timeoutMs": 15000,
+                "retries": 10
             },
             "numberOfConfirmations": 6,
-            "syncReadAhead":10,
+            "syncReadAhead":5,
             "blockCollecting":"tips",
             "interlaceTimeRange":2,
             "interlaceBlockRange":100

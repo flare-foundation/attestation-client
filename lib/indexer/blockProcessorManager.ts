@@ -17,6 +17,7 @@ export class BlockProcessorManager {
     alreadyCompleteCallback: any;
 
     blockCache = new Map<number,IBlock>();
+    blockHashCache = new Map<string,IBlock>();
 
 
     constructor(logger: AttLogger, client: CachedMccClient<any,any>, completeCallback: any, alreadyCompleteCallback: any) {
@@ -36,6 +37,20 @@ export class BlockProcessorManager {
         if( !block ) return;
 
         this.blockCache.set( blockNumber, block );
+
+        this.process( block , true );
+    }
+
+    async processSyncBlockHash(blockHash: string) {
+        const cachedBlock = await this.blockHashCache.get(blockHash);
+
+        if( cachedBlock ) return;
+
+        const block = await retry( `BlockProcessorManager.getBlock.processSyncBlockHash` , async ()=>{return await this.cachedClient.getBlock(blockHash); } );
+
+        if( !block ) return;
+
+        this.blockHashCache.set( blockHash, block );
 
         this.process( block , true );
     }

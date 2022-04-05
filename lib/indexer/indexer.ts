@@ -1,4 +1,5 @@
 import { ChainType, IBlock, MCC } from "flare-mcc";
+import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
@@ -19,7 +20,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -431,14 +432,14 @@ export class Indexer {
   }
 
 
-  async runSync() {
+  async runSyncRaw() {
 
     // for status display
     let statsN = this.N;
     let statsTime = Date.now();
     let statsBlocksPerSec = 0;
 
-    this.T = await this.getBlockHeight(`runSync1`);
+    this.T = await this.getBlockHeight(`runSyncRaw1`);
 
     this.isSyncing = true;
 
@@ -446,7 +447,7 @@ export class Indexer {
 
     while (true) {
       try {
-        this.logger.debug1(`runSync loop N=${this.N} T=${this.T}`);
+        this.logger.debug1(`runSyncRaw loop N=${this.N} T=${this.T}`);
         const now = Date.now();
 
         // get chain top block
@@ -457,12 +458,12 @@ export class Indexer {
           statsTime = now;
 
           // take actual top
-          this.T = await this.getBlockHeight(`runSync2`);
+          this.T = await this.getBlockHeight(`runSyncRaw2`);
         }
 
         // wait until we save N+1 block
         if (lastN === this.N) {
-          this.logger.debug(`runSync wait block N=${this.N} T=${this.T}`);
+          this.logger.debug(`runSyncRaw wait block N=${this.N} T=${this.T}`);
           await sleepms(100);
           continue;
         }
@@ -488,7 +489,7 @@ export class Indexer {
 
         // check if syncing has ended
         if (this.N >= this.T - this.chainConfig.numberOfConfirmations) {
-          this.logger.group("Sync completed")
+          this.logger.group("SyncRaw completed")
           this.isSyncing = false;
           return;
         }
@@ -504,11 +505,11 @@ export class Indexer {
 
         while (!await this.saveOrWaitNp1Block()) {
           await sleepms(100);
-          this.logger.debug(`runSync wait save N=${this.N} T=${this.T}`);
+          this.logger.debug(`runSyncRaw wait save N=${this.N} T=${this.T}`);
         }
 
       } catch (error) {
-        logException(error, `runSync exception: `);
+        logException(error, `runSyncRaw exception: `);
 
         getGlobalLogger().error2(`application exit`);
         process.exit(2);
@@ -516,6 +517,66 @@ export class Indexer {
     }
   }
 
+  async runSyncTips() {
+    // for status display
+    let statsN = this.N;
+    let statsTime = Date.now();
+    let statsBlocksPerSec = 0;
+
+    this.T = await this.getBlockHeight(`runSyncTips1`);
+
+
+    this.logger.info(`collecting top blocks...`);
+    //const blocks: LiteBlock[] = await this.cachedClient.client.getBlockTips(this.N);
+    const blocks: LiteBlock[] = await this.cachedClient.client.getTopLiteBlocks(this.T - this.N);
+    this.logger.debug(`${blocks.length} block(s) collected`);
+
+    this.isSyncing = true;
+
+    const start = Date.now();
+
+    for (let i = 1; i < blocks.length; i++) {
+
+      for (let j = i; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
+        await this.blockProcessorManager.processSyncBlockHash(blocks[j].hash);
+      }
+
+      const block = blocks[i];
+
+      this.N = block.number - 1;
+      this.blockNp1hash = block.hash;
+
+      await this.saveOrWaitNp1Block();
+
+      // stats
+      const now = Date.now();
+
+      statsBlocksPerSec = (i + 1) * 1000 / (now - start);
+      statsN = this.N;
+      statsTime = now;
+
+      const timeLeft = (this.T - this.N) / statsBlocksPerSec;
+
+      const dbStatus = this.getStateEntryString("state", "sync", -1);
+      dbStatus.valueNumber = timeLeft;
+
+      const blockLeft = this.T - block.number;
+
+      this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
+    }
+
+    this.logger.group("Sync completed")
+    this.isSyncing = false;
+  }
+
+
+  async runSync() {
+    switch (this.chainConfig.blockCollecting) {
+      case "raw":
+      case "rawUnforkable": await this.runSyncRaw(); break;
+      case "tips": await this.runSyncTips(); break;
+    }
+  }
 
   async dropTable(name: string) {
     try {

@@ -43,7 +43,7 @@ class AlertManager {
         }
 
         for (let attester of this.config.attesters) {
-            this.alerts.push(new AttesterAlert(attester.name, this.logger, attester.mode, attester.path, new AlertRestartConfig(this.config.timeRestart, attester.mode)));
+            this.alerts.push(new AttesterAlert(attester.name, this.logger, attester.mode, attester.path, new AlertRestartConfig(this.config.timeRestart, attester.restart)));
         }
     }
 

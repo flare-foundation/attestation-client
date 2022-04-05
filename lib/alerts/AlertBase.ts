@@ -64,6 +64,11 @@ export class AlertBase {
 
         const command = this.restartConfig.command;
 
+        if( !command ) {
+            this.logger.error( `${this.name} restart command not set`);
+            return;
+        }
+
         const { exec } = require("child_process");
 
         exec( command , (error, stdout, stderr) => {

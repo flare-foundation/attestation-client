@@ -62,3 +62,6 @@ typechain-truffle
 # .indexer.remote.dev.write.env
 
 flattened/
+configs/songbird/attester-credentials.json
+configs/dev/indexer-credentials.json
+configs/dev/indexer-credentials.json

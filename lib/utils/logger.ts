@@ -33,7 +33,7 @@ const BgCyan = "\x1b[46m";
 const BgWhite = "\x1b[47m";
 const BgGray = "\x1b[100m";
 
-class ColorConsole extends Transport {
+export class ColorConsole extends Transport {
   instance = 0;
 
   lastLog: string = "";
@@ -166,7 +166,7 @@ function replaceAll(text: string, search: string, replaceWith: string): string {
   return text;
 }
 
-function processColors(text: string, def: string) {
+export function processColors(text: string, def: string) {
   try {
     text = replaceAll(text, "^^", Reset + def);
     text = replaceAll(text, "^R", FgRed);

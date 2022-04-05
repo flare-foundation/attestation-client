@@ -35,7 +35,21 @@
             "name": "Launch Alerts",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "devalerts"
+                "devalerts",
+                "logs/attester-globals.log",
+                "-f",
+                "-n","100"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch ctail",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devctail"
             ]
         },
 

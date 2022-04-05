@@ -13,7 +13,7 @@ export class IndexerAlert extends AlertBase {
     config: AlertConfig;
 
     constructor(name: string, logger: AttLogger, config: AlertConfig) {
-        super(name, logger, new AlertRestartConfig(config.timeRestart, config.indexerRestart.replace("<name>", name)));
+        super(name, logger, new AlertRestartConfig(config.timeRestart, config.indexerRestart.replace("<name>", name).toLowerCase()));
 
         this.config = config;
 

@@ -99,6 +99,8 @@ systemctl --user enable songbird-attester-client.service
 systemctl --user enable songbird-spammer.service
 systemctl --user enable songbird-backend.service
 
+systemctl --user enable attester-alerts
+
 
 ```
 
@@ -117,6 +119,8 @@ systemctl --user start coston-backend.service
 systemctl --user start songbird-attester-client.service
 systemctl --user start songbird-spammer.service
 systemctl --user start songbird-backend.service
+
+systemctl --user start attester-alerts
 
 
 
@@ -138,6 +142,9 @@ systemctl --user stop songbird-attester-client.service
 systemctl --user stop songbird-spammer.service
 systemctl --user stop songbird-backend.service
 
+systemctl --user stop attester-alerts
+
+
 ```
 
 #### Restart services
@@ -155,6 +162,9 @@ systemctl --user restart coston-backend
 systemctl --user restart songbird-attester-client
 systemctl --user restart songbird-spammer
 systemctl --user restart songbird-backend
+
+systemctl --user restart attester-alerts
+
 
 ```
 
@@ -174,6 +184,9 @@ journalctl --user -u songbird-attester-client -f -n 1000
 journalctl --user -u songbird-spammer -f -n 1000
 journalctl --user -u songbird-backend -f -n 1000
 
+
+journalctl --user -u attester-alerts -f -n 1000
+
 ```
 
 
@@ -182,6 +195,7 @@ journalctl --user -u songbird-backend -f -n 1000
 ```
 
 ./scripts/deploy-indexer
+./scripts/deploy-alerts
 
 ./scripts/deploy-coston-attester
 ./scripts/deploy-coston-spammer

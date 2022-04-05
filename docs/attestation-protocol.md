@@ -91,9 +91,23 @@ The currently deployed `StateConnector` contracts on Songbird and Coston network
 
 Both contracts have as the start timestamp set the unix epoch `BUFFER_TIMESTAMP_OFFSET = 1636070400` (November 5th, 2021) and `BUFFER_WINDOW = 90`.
 
-## Attestation types
+## Limiting the number of attestation requests
 
-Attestation providers provide attestations only for specific types of requests. These types are called _attestation types_ and have to be designed in such a way that that they are clear-cut decidable. Clear-cut decidability includes the requirement of having a synchronized view on data from external data sources (e.g. other chains) that are used for data attestations. For example, in slower block producing blockchains like Bitcoin, one attestation provider may see a certain block at the moment of query while the other may not see it yet, as the block might not have been fully distributed throughout the network. Such providers would yield completely different attestations. Hence special data view synchronization protocols have to be applied.
+Submitting an attestation request is a very cheap operation. Conseqently, there is a possiblity of a DOS attack by sending so many attestation requests that attestation providers would get overflooded and would not be able to verify all the submitted requests in due time. This could render attestation mechanisme inoperable for several rounds.
 
-Sinchronized data views are also important due to representation of the submitted vote by the Merkle root of all attestations in the voting round. In case of non-syncronized data views, data providers would often vote differently on the most recent attestation requests (depending on the time of query), which would yield completely different Merkle roots and thus cripple the voting round, as achieving at least 50% of all submitted Merkle roots would become extremely difficult. Attestation types and mechanisms to achieve dadta view synchronization will be described later.
+Using the indexer for the majority of verifications enables faster verifications and consequently higher processing througput for validations. Nevertheless an overflooding prevention mechanism to prevent the case described above should be in place. Note that there are still some cases where data is not read through the indexer database but require a direct request to a blockchain API nodes. 
 
+One of such cases is with UTXO chains. Once the correct transaction is identified from the indexer database, additional reads of transactions on inputs need to be made. Thus we could argue that such request occupy some bandwidth both on database and on APIs. Note that these limitation can be set independently for each data source. Namely, for each data source (or blockchain) we use different API nodes. Though we can use the same database on the same machine, this can be clearly easily separated. Hence we can argue that limitation on one source do not influence limitations on the other, hence attestation request verification related to different sources can be fully parallelized.
+
+Therefore, it suffices to set up a limiting mechanism for each data source independently. The mechanism works as follows.
+- We assign to each attestation type a weight. If the attesatation request uses just a few queries in the indexer database the weight is 1. Otherwise it is higher.
+- We assign to the source (say Bitcoin related requests) the total round weight. 
+- As events for attestation request are being read by the attestation client only a number of the first attestation for a specific source is considered. Duplicate requests are considered only once. The last request considered is the one, that by adding its weight we overflow the total weight limit. All later requests are automatically rejected. They can be resubmitted into the next rounds.
+- This mechanism introduces a "natural" competition on the Flare network. If a requester wants to submit earlier in the collect phase, it should use higher gas price to come in earlier blocks. Specifically, the request submitters that really need to be in a specific attestation round, should use higher gas price and possibly try to submit just before the beginning of the `collect` phase of the attestation round, monitor the timestamp of the event and even try to resubmit, or even submit in parallel from several accounts.
+
+
+In future we might introduce sender based priority passes or whitelists, if the issue with competition becomes severe. In such a case attestation providers would consider requests sent by specific senders as higher priority.
+
+## Global dynamic attestatons 
+
+... TODO

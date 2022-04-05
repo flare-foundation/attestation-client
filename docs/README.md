@@ -1,5 +1,6 @@
 # Documentation for attestation protocol
 
-- [General about attestation](./attestation.md)
+- [Attestation Protocol](./attestation-protocol.md)
 - [Indexer](./indexer.md)
 - [Merkle tree](./merkle-tree.md)
+- [Attestation types](./attestation-types.md)

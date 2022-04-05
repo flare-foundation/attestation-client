@@ -5,10 +5,25 @@
 
 ## Description
 
-The purpose of this type of a proof is to show that the transaction is a native payment on a blockchain - a payment in the system currency. The payment is identified by a transaction id.
+The purpose of this attestation type is to provide general attestation of a native payment transaction. Native payment on a blockchain is an elementary payment with system currency, where funds are sent from one address to another. In case of chains based on UTXO model a specific generalization is used.
+
+Attestation is provided by extracting certain data about the transaction, which includes:
+- block number
+- block timestamp
+- payment reference
+- source address
+- receiving address
+- spent amount
+- received amount
+- whether transaction is sending from a single address to a single other address
+- transaction status (accounts for failed transactions that are recorded on blockchain)
+
+On UTXO blockchains multi-input and multi-output transactions are used. This introduces additional variability for which it has to be accounted.
+
+<!-- of a proof is given a transaction id attestation provider should  a native payment on a blockchain - a payment in the system currency. The payment is identified by a transaction id.
 
 
-to a specific destination which is marked by payment reference. This resembles usual payments in banking systems where a receiving entity, who typically does not have knowledge of the sender's address, prescribes a payment reference (called also message, destination tag or memo). The payment reference is used by the receiver to uniquely identify the payment transaction and match to the receiver, to which the payment reference was sent prior to the payment. 
+to a specific destination which is marked by payment reference. This resembles usual payments in banking systems where a receiving entity, who typically does not have knowledge of the sender's address, prescribes a payment reference (called also message, destination tag or memo). The payment reference is used by the receiver to uniquely identify the payment transaction and match to the receiver, to which the payment reference was sent prior to the payment.  -->
 
 ## Request format
 

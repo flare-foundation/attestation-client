@@ -3,8 +3,8 @@ import { getGlobalLogger } from "./logger";
 
 
 let DEFAULT_TIMEOUT = 15000;
-let DEFAULT_RETRY = 10;
-let DEFAULT_BACK_OFF_TIME = 1000;
+let DEFAULT_RETRY = 20;
+let DEFAULT_BACK_OFF_TIME = 5000;
 
 let onRetryFailure: (label: string) => void = (label) => { };
 export function setRetryFailureCallback(failure: (label: string) => void) {

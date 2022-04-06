@@ -65,12 +65,13 @@ Beside the standard fields (`attestationType`, `sourceId` and `dataAvailabilityP
 
 ## Verification rules
 
+- The transaction to be attested must be signed by the key corresponding to the source address. It should be a native payment transaction. Definition of "native payment" depends on each type of a blockchain.
 - If the payment status is failure (1 or 2), the received amount should be 0 and the spent amount should be only the gas/fee spent.
-- The transaction to be attested must be signed by the key corresponding to the source address. 
 - Consequently, no smart contract addresses are allowed for the sender address 
 
 ### UTXO (BTC, LTC, DOGE) chains
 
+- Every transaction is a native payment.
 - Payment reference is calculated from `OP_RETURN` output. For a valid payment reference, there must be only one `OP_RETURN` output and the value must be long 32 bytes ([standardized payment reference](../payment_reference.md)). In all other cases it is deemed that the payment reference does not exist.
 - Source address is determined by the address on the input with the index `inUtxo`. 
 - If there is no address on the indicated input (`inUtxo`), then the source address does not exist and it is indicated in the data hash as 0 hash. Spent amount is also 0 in this case. Note that if multiple addresses exist on an input (a list of addresses) this is deemed as non-existence of the source address.
@@ -89,8 +90,9 @@ Beside the standard fields (`attestationType`, `sourceId` and `dataAvailabilityP
 
 ### XRP specific
 
-- transaction must be of type `Payment`
-- only direct XRP-to-XRP payments are considered (not cross-currency payments, partial payments, or any other payment type)
+- Native payments are transaction that meet the following conditions:
+  - transaction must be of type `Payment`,
+  - must be a direct XRP-to-XRP payment (not cross-currency payment, partial payment, or any other payment or transaction type)
 - `oneToOne` is always `true` (1).
 - The [following](https://xrpl.org/transaction-results.html) statuses should be considered
   - 0 - Success

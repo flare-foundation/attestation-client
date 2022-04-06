@@ -5,9 +5,14 @@
 
 ## Description
 
-Any transaction can be seen as balance decreasing if funds could have left the source address (e.g. due to fees). So even if no funds are sent out, or even the balance is increased, but the address was used as an input, this is considered as a source address using transaction. 
+The purpose of this attestation type is to prove that a transaction was issued from a given account (address) that could possibly facilitate decreasing a decrease of funds on the account (source address). In some DeFi protocols or applications monitoring the balance of specific accounts is of utmost importance. This includes detecting transactions that are outside of prescribed protocol workflows. Using balance decreasing proof one (e.g. challenger) can signal to a DeFi protocol that some transaction has happened and the protocol can verify, whether the transaction is legit or it is a part of illegal action. Based on that the smart contracts running the protocol can sanction the offender and possibly reward the provider of the proof.
 
-In the context of the fAsset system, this type of transaction is illegal for an Agent’s address unless it is part of some legal flow.
+Any transaction can be seen as balance decreasing if funds could have left the source address (e.g. due to fees). So even if no funds are sent out, or even the balance is increased, but the address was used as an input, this is considered as a balance decreasing transaction for a source address.
+
+For this attestation type we assume that the source address being tested is not a contract account, but something called Externally Owned Account (EOA, in Ethereum terminology). Basically that means that this is an address from which funds can be removed only if the owner of the private key for the address signs the payment transaction. Hence, prior to using the proof the DeFi protocol or application that uses the proof should verify, that the account being checked is EOA.
+
+Namely, if this is a contract account, removal of funds from the contract address could be carried out in many different ways, using the contract calls, self-destruct mechanism, etc. Using the self-destruct mechanism, even an address that could be contract address but nothing is yet deployed there can be abused. 
+Verification whether a certain source address is EOA depends on a chain. In non-smart contract chains (like BTC, LTC, DOGE, XRP, ...) all addresses are EOAs. 
 
 ## Request format
 

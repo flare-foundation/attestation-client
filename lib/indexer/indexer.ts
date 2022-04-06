@@ -634,7 +634,7 @@ export class Indexer {
       this.N = dbStartBlockNumber;
     }
 
-    await this.interlace.initialize(this.logger, this.dbService, this.dbTransactionClasses, this.chainConfig.interlaceTimeRange, this.chainConfig.interlaceBlockRange);
+    await this.interlace.initialize(this.logger, this.dbService, this.dbTransactionClasses, this.chainConfig.minimalStorageHistoryDays, this.chainConfig.minimalStorageHistoryBlocks);
 
     // sync date
     if (this.config.syncEnabled) {

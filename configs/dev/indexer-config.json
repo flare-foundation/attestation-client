@@ -22,8 +22,8 @@
             "numberOfConfirmations": 1,
             "syncReadAhead":30,
             "blockCollecting":"raw",
-            "interlaceTimeRange":2,
-            "interlaceBlockRange":100
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100
         },
         {
             "name": "BTC",
@@ -40,15 +40,15 @@
             "numberOfConfirmations": 6,
             "syncReadAhead":5,
             "blockCollecting":"tips",
-            "interlaceTimeRange":2,
-            "interlaceBlockRange":100
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100
         },
         {
             "name": "LTC",
             "mccCreate" : {
-                "url": "http://34.91.7.3:8332",
+                "url": "https://litecoin-cc.flare.rocks/",
                 "username": "admin",
-                "password": "changeitchangeitchangeitchangeitchangeitchangeitchangeitchangeit"               
+                "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"               
             },
             "rateLimitOptions": {
                 "maxRPS": 300,
@@ -58,8 +58,8 @@
             "numberOfConfirmations": 6,
             "syncReadAhead":30,
             "blockCollecting":"tips",
-            "interlaceTimeRange":2,
-            "interlaceBlockRange":100
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100
         },
         {
             "name": "ALGO",
@@ -81,8 +81,8 @@
             "numberOfConfirmations": 3,
             "syncReadAhead":30,
             "blockCollecting":"rawUnforkable",
-            "interlaceTimeRange":2,
-            "interlaceBlockRange":100 
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100 
         },
         {
             "name": "DOGE",
@@ -99,8 +99,8 @@
             "numberOfConfirmations": 6,
             "syncReadAhead":30,
             "blockCollecting":"tips",
-            "interlaceTimeRange":2,
-            "interlaceBlockRange":100
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100
         }
 
     ]

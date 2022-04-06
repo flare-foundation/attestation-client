@@ -13,8 +13,8 @@ export class IndexerClientChain {
 
   public blockCollecting: "raw" | "rawUnforkable" | "tips";
 
-  public interlaceTimeRange: number;
-  public interlaceBlockRange: number;
+  public minimalStorageHistoryDays: number;
+  public minimalStorageHistoryBlocks: number;
 }
 
 export class IndexerConfiguration {

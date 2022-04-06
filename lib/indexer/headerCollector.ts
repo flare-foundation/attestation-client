@@ -5,7 +5,6 @@ import { retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 
-
 export class HeaderCollector {
 
     private indexer: Indexer;
@@ -122,13 +121,6 @@ export class HeaderCollector {
             this.logger.debug(`write block headers ${blocksText}]`);
 
             await this.indexer.dbService.manager.save(dbBlocks);
-
-            // await this.dbService.manager
-            //   .createQueryBuilder()
-            //   .update(DBBlock)
-            //   .set({ confirmed: true })
-            //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
-            //   .execute();
         } catch (error) {
             logException(error, `saveBlocksHeadersArray error: `);
         }

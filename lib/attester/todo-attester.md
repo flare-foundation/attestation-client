@@ -29,5 +29,11 @@
 [x] alerts save file json for backoffice (static)
 [x] alerts restart
 
-[ ] rename interlaceTimeRange => minimalStorageHistoryDays
-[ ] rename interlaceBlockRange => minimalStorageHistoryBlocks
+[x] rename interlaceTimeRange => minimalStorageHistoryDays
+[x] rename interlaceBlockRange => minimalStorageHistoryBlocks
+
+[ ] attester-config cleanup
+    [/] does not need commitTime (it is used to emit warning)
+    [ ] how much of chain info is needed (can it be used from indexer)
+
+

@@ -3,7 +3,7 @@ import { fail } from "yargs";
 import { getGlobalLogger } from "./logger";
 
 
-let DEFAULT_TIMEOUT = 3000;
+let DEFAULT_TIMEOUT = 10000;
 let DEFAULT_RETRY = 10;
 let DEFAULT_BACK_OFF_TIME = 1000;
 

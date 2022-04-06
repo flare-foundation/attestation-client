@@ -255,6 +255,7 @@ export class ChainNode {
           attestation.reverification = true;
 
           // delay until end of commit epoch
+          // TODO: check this definition with Alen! it should be REVEAL_TIME_END - REVEAL_OFFSET - REVERIFICATION_OFFSET ?
           const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) - getTimeMilli()) / 1000;
 
           this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);

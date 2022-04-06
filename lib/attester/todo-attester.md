@@ -31,3 +31,9 @@
 
 [ ] rename interlaceTimeRange => minimalStorageHistoryDays
 [ ] rename interlaceBlockRange => minimalStorageHistoryBlocks
+
+[ ] attester-config cleanup
+    [ ] does not need commitTime
+    [ ] how much of chain info is needed (can it be used from indexer)
+
+

@@ -35,6 +35,11 @@ Any transaction can be seen as balance decreasing if funds could have left the s
 - `blockTimestamp`:,
   - type: `uint64`
   - description: Timestamp of the confirmed block that was proved to exist.
-
+- `numberOfConfirmations`:
+  - type: `uint8`
+  - description: Number of confirmations for this chain
+- `averageFinalizationTimeSec`:
+  - type: `uint64`
+  - description: Average number of seconds passed between last X blocks
 
 ## Comments

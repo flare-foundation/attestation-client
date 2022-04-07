@@ -16,6 +16,8 @@ Verification whether a certain source address is EOA depends on a chain. In non-
 
 ## Request format
 
+Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`) the request for Payment attestation type contains in addition fields `id` and `inUtxo`.
+
 - `attestationType`:
   - size (bytes): 2
   - internal type: `AttestationType`  
@@ -24,18 +26,18 @@ Verification whether a certain source address is EOA depends on a chain. In non-
   - size (bytes): 4
   - internal type: `SourceId`
   - description: The ID of the underlying chain, see `SourceId` enum.
-- `inUtxo`:
-  - size (bytes): 1
-  - internal type: `NumberLike`
-  - description: Index of the sourceAddress on utxo chains.
+- `upperBoundProof`:
+  - size (bytes): 32
+  - internal type: `ByteSequenceLike`
+  - description: The hash of the confirmation block for an upper query window boundary block.
 - `id`:
   - size (bytes): 32
   - internal type: `ByteSequenceLike`
   - description: Transaction hash to search for.
-- `dataAvailabilityProof`:
-  - size (bytes): 32
-  - internal type: `ByteSequenceLike`
-  - description: Block hash of the confirmation block for the searched transaction (e.g. at least 6 blocks after the block with transaction). Determines the upper bound in terms of blocks for the search.
+- `inUtxo`:
+  - size (bytes): 1
+  - internal type: `NumberLike`
+  - description: Index of the sourceAddress on utxo chains.
 
 ## Verification rules
 

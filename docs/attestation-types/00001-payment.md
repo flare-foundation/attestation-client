@@ -46,22 +46,22 @@ Beside the standard fields (`attestationType`, `sourceId` and `dataAvailabilityP
   - size (bytes): 4
   - internal type: `SourceId`
   - description: The ID of the underlying chain, see `SourceId` enum.
-- `utxo`:
-  - size (bytes): 1
-  - internal type: `NumberLike`
-  - description: Index of the receivingAddress on UTXO chains.
-- `inUtxo`:
-  - size (bytes): 1
-  - internal type: `NumberLike`
-  - description: Index of the sourceAddress on UTXO chains.
-- `id`:
-  - size (bytes): 32
-  - internal type: `ByteSequenceLike`
-  - description: Transaction hash to search for.
 - `dataAvailabilityProof`:
   - size (bytes): 32
   - internal type: `ByteSequenceLike`
   - description: Block hash of the confirmation block for the searched transaction (e.g. at least 6 blocks after the block with transaction). Determines the upper bound in terms of blocks for the search.
+- `id`:
+  - size (bytes): 32
+  - internal type: `ByteSequenceLike`
+  - description: Transaction hash to search for.
+- `inUtxo`:
+  - size (bytes): 1
+  - internal type: `NumberLike`
+  - description: Index of the sourceAddress on UTXO chains.
+- `utxo`:
+  - size (bytes): 1
+  - internal type: `NumberLike`
+  - description: Index of the receivingAddress on UTXO chains.
 
 ## Verification rules
 

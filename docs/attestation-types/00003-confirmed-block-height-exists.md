@@ -5,7 +5,9 @@
 
 ## Description
 
-Any transaction can be seen as balance decreasing if funds could have left the source address (e.g. due to fees). So even if no funds are sent out, or even the balance is increased, but the address was used as an input, this is considered as a source using the transaction. This type of transaction is illegal for an Agent’s address unless it is part of some legal flow.
+The purpose of this attestation type is to prove that a block on a certain height exists and it is confirmed. 
+The attestation uses `upperBoundProof` as a hash of the confirmation block for the highest confirmed block in the query.
+-  
 ## Request format
 
 - `attestationType`:
@@ -16,17 +18,14 @@ Any transaction can be seen as balance decreasing if funds could have left the s
   - size (bytes): 4
   - internal type: `SourceId`
   - description: The ID of the underlying chain, see `SourceId` enum.
-- `blockNumber`:
-  - size (bytes): 4
-  - internal type: `NumberLike`
-  - description: Number of the confirmed block to prove the existence of.
-- `dataAvailabilityProof`:
+- `upperBoundProof`:
   - size (bytes): 32
   - internal type: `ByteSequenceLike`
-  - description: Block hash of the confirmation block for the searched confirmed block number (e.g. at least 6 blocks after the block given by `blockNumber`). Determines the upper bound in terms of blocks for the search.
+  - description: The hash of the confirmation block for an upper query window boundary block.
 
 ## Verification rules
 
+Given the upper boundary for the query range (`upperBoundProof`) the confirmed block on the upper query window boundary is determined and provided in response, together with the block timestamp. In addition, the number of confirmations that was used to determine the confirmation block is provided. Also average block production time in the query window is calculated and returned.
 ## Response format
 
 - `blockNumber`:
@@ -38,7 +37,7 @@ Any transaction can be seen as balance decreasing if funds could have left the s
 - `numberOfConfirmations`:
   - type: `uint8`
   - description: Number of confirmations for this chain
-- `averageFinalizationTimeSec`:
+- `averageBlockProductionTimeMilisec`:
   - type: `uint64`
   - description: Average number of seconds passed between last X blocks
 

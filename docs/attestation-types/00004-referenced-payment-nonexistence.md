@@ -21,6 +21,10 @@ then payment nonexistence is still confirmed.
   - size (bytes): 4
   - internal type: `SourceId`
   - description: The ID of the underlying chain, see `SourceId` enum.
+- `upperBoundProof`:
+  - size (bytes): 32
+  - internal type: `ByteSequenceLike`
+  - description: The hash of the confirmation block for an upper query window boundary block.
 - `endTimestamp`:
   - size (bytes): 4
   - internal type: `NumberLike`
@@ -41,14 +45,11 @@ then payment nonexistence is still confirmed.
   - size (bytes): 32
   - internal type: `ByteSequenceLike`
   - description: The payment reference to search for.
-- `overflowBlock`:
+
+<!-- - `overflowBlock`:
   - size (bytes): 4
   - internal type: `NumberLike`
-  - description: Number of the overflow block - the block which has `block.timestamp > endTimestamp` and `block.blockNumber > endBlock`. Does not need to be the first such block. It has to be confirmed.
-- `dataAvailabilityProof`:
-  - size (bytes): 32
-  - internal type: `ByteSequenceLike`
-  - description: Block hash of the confirmation block for any confirmed block with block number equal or above `overflowBlock`
+  - description: Number of the overflow block - the block which has `block.timestamp > endTimestamp` and `block.blockNumber > endBlock`. Does not need to be the first such block. It has to be confirmed. -->
 ## Verification rules
 
 - For a proof to be valid, there should exist a confirmed block with a strictly bigger timestamp and block number then the ones in instructions.

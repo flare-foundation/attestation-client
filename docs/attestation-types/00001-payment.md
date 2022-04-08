@@ -17,9 +17,9 @@ A successful attestation is provided by extracting certain data about the transa
 - receiving address
 - spent amount
 - received amount
-- [payment reference](../payment-reference.md)
+- [payment reference](../definitions/payment-reference.md)
 - whether transaction is sending from a single address to a single other address
-- [transaction status](../transaction-status.md) (accounts for failed transactions that are recorded on blockchain).
+- [transaction status](../definitions/transaction-status.md) (accounts for failed transactions that are recorded on blockchain).
 
 ## Request format
 
@@ -52,16 +52,16 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 
 ## Verification rules
 
-- The transaction being attested must be a [native payment](../native-payment.md). 
-- Payment reference is calculated only if the attested transaction confirms to ([standardized payment reference](../payment-reference.md)). Otherwise the payment reference is 0.
-- Status of the attestation is determined as described [here](../transaction-status.md)
+- The transaction being attested must be a [native payment](../definitions/native-payment.md). 
+- Payment reference is calculated only if the attested transaction confirms to ([standardized payment reference](../definitions/payment-reference.md)). Otherwise the payment reference is 0.
+- Status of the attestation is determined as described [here](../definitions/transaction-status.md)
 - If the payment status is failure (1 or 2), the received amount should be 0 and the spent amount should be only the fee spent in case of non-UTXO chains. In case of UTXO chain no value is provided.
 - The values of `utxo` and `inUtxo` on non-UTXO chains are always 0.
 ### UTXO (BTC, LTC, DOGE) chains
 
-- Full attestation is performed only if the standardized payment reference exists (see [here](../account-based-vs-utxo-chains.md) for details). Othewise partial attestation si performed. 
+- Full attestation is performed only if the standardized payment reference exists (see [here](../definitions/account-based-vs-utxo-chains.md) for details). Otherwise partial attestation si performed. 
 - Source address exists only if there is unique source address on the selected input (`inUtxo`). To determine it, one needs to make additional RPC API call. If source address does not exist, it is indicated by 0 in response. Spent amount is 0 in this case. If source address exists, a hash (sha3) is provided for `sourceAddress` in response.
-- Receiving address may not exist on the selected output (`utxo`). In this case it is indicated in response by 0. Received amount is 0 in this case. If receiving address exists, the hash of it is provided for `receivingAddress` in reponse.
+- Receiving address may not exist on the selected output (`utxo`). In this case it is indicated in response by 0. Received amount is 0 in this case. If receiving address exists, the hash of it is provided for `receivingAddress` in response.
 
 ## Response format
 

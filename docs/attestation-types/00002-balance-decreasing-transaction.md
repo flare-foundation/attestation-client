@@ -17,13 +17,13 @@ Hence, prior to using the proof in a DeFi protocol, the particular application u
 A successful attestation is provided by extracting certain data about the transaction, which includes:
 - block number
 - block timestamp
-- [payment reference](../payment-reference.md)
+- [payment reference](../definitions/payment-reference.md)
 - source address
 - receiving address
 - spent amount
 - received amount
 - whether transaction is sending from a single address to a single other address
-- [transaction status](../transaction-status.md) (accounts for failed transactions that are recorded on blockchain).
+- [transaction status](../definitions/transaction-status.md) (accounts for failed transactions that are recorded on blockchain).
 
 ## Request format
 
@@ -48,7 +48,7 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 - `inUtxo`:
   - size (bytes): 1
   - internal type: `NumberLike`
-  - description: Index of the sourceAddress on utxo chains.
+  - description: Index of the sourceAddress on UTXO chains.
 
 ## Verification rules
 
@@ -61,8 +61,8 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 ### UTXO (BTC, LTC, DOGE) specific
 
 - A valid (single address) must appear on `inUtxo`. Otherwise attestation is rejected.
-- Payment reference is calculated only if the attested transaction confirms to ([standardized payment reference](../payment-reference.md)). Otherwise the payment reference is 0.
-- Full attestation is performed only if the standardized payment reference exists (see [here](../account-based-vs-utxo-chains.md) for details). Othewise partial attestation si performed. In particular that has an impact how `spentAmount` is calculated.
+- Payment reference is calculated only if the attested transaction confirms to ([standardized payment reference](../definitions/payment-reference.md)). Otherwise the payment reference is 0.
+- Full attestation is performed only if the standardized payment reference exists (see [here](../definitions/account-based-vs-utxo-chains.md) for details). Othewise partial attestation si performed. In particular that has an impact how `spentAmount` is calculated.
 - The value `inUtxo` in response for non-UTXO chains is always 0.
 
 ## Response format
@@ -80,10 +80,10 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
   - description: Index of the sourceAddress on UTXO chains.
 - `sourceAddress`:
   - type: `bytes32`,
-  - description: Hash of the source address as a string. For utxo transactions with multiple input addresses this is the address that is on the input indicated by `inUtxo` parameter. 
+  - description: Hash of the source address as a string. For UTXO transactions with multiple input addresses this is the address that is on the input indicated by `inUtxo` parameter. 
 - `spentAmount`:
   - type: `int256`
-  - description: The amount that went out of the `sourceAddress`, in smallest underlying units. On non-UTXO chains it includes both the payment value and fee (gas). For utxo chains it is calculcated as `outgoing_amount - returned_amount` and can be negative, that's why signed `int256` is used.
+  - description: The amount that went out of the `sourceAddress`, in smallest underlying units. On non-UTXO chains it includes both the payment value and fee (gas). For UTXO chains it is calculated as `outgoing_amount - returned_amount` and can be negative, that's why signed `int256` is used.
 - `paymentReference`: 
   - type: `bytes32`
   - description: If the attestation provider detects that the transaction is actually a valid payment (same conditions as for Payment), it should set this field to its the paymentReference. Otherwise, paymentReference must be 0.

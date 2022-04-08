@@ -38,7 +38,7 @@ If we do all the checks and sums stated above, we call this a **full attestation
 ## Indexing 
 
 As described above, reading all transactions in a block and then all input transactions for each transaction in the block can be quite heavy on RPC API service of a node. In order to optimize the speed of indexing of transactions we chose the following design decision, relevant for UTXO chains. 
-- full indexing of transaction inputs is carried out only for transactions with a [standardized payment reference](../payment-reference.md) only. Such transactions can be fully attested without any additional reads from RPC API, since all relevant data are already in the indexer database.
+- full indexing of transaction inputs is carried out only for transactions with a [standardized payment reference](./payment-reference.md) only. Such transactions can be fully attested without any additional reads from RPC API, since all relevant data are already in the indexer database.
 - for all other transactions indexing is done only for transactions obtained for a specific block. Only partial attestations can be carried out on such transactions. Partial attestation involves reading the transaction data from the indexer database and making the aditional call to RPC API to obtain data about the input transaction on the selected transaction input for which attestation is requered.
 
 In general, we encourage community to use standardized payment references since we offer full support for such transactions. 

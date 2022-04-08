@@ -5,9 +5,9 @@
 
 ## Description
 
-[Standardized payment references](../payment-reference.md) are used to indicate special transactions that a DeFi system using the attestation protocol can require to be made by its users to be able to match them to users and purpose. Such transactions must be executed until certain deadline. The purpose of this attestation type is to provide a proof that a transaction (payment) with a specific payment reference and sending a specific amount of native currency to a specific address was not carried out up to certain deadline. Such an attestation can be used as a breach or payment obligations a user may have in relation to a DeFi system.
+[Standardized payment references](../definitions/payment-reference.md) are used to indicate special transactions that a DeFi system using the attestation protocol can require to be made by its users to be able to match them to users and purpose. Such transactions must be executed until certain deadline. The purpose of this attestation type is to provide a proof that a transaction (payment) with a specific payment reference and sending a specific amount of native currency to a specific address was not carried out up to certain deadline. Such an attestation can be used as a breach or payment obligations a user may have in relation to a DeFi system.
 
-In some cases it could happen that a user tried to fullfil the obligation, but the obligation could not be fulfilled since which was not due to his fault, but rather the fault of the receiver (e.g. input transactions are blocked). On some blockchains such transactions are recorded as failed transaction with special failure statuses, which indicate that the fault is on the receiving side and that the sender did all in its power to fullfil the obligation. See [here](../transaction-status.md for discussion on transaction status).
+In some cases it could happen that a user tried to fullfil the obligation, but the obligation could not be fulfilled since which was not due to his fault, but rather the fault of the receiver (e.g. input transactions are blocked). On some blockchains such transactions are recorded as failed transaction with special failure statuses, which indicate that the fault is on the receiving side and that the sender did all in its power to fullfil the obligation. See [here](../definitions/transaction-status.md for discussion on transaction status).
 
 The attestations of this type are confirmed only if the required transaction was not made in due time or it was made in due time, but it failed due to the receiver's fault. 
 
@@ -75,7 +75,7 @@ In such a way the attestation confirms the required transaction did not appear i
 ## Verification rules
 
 - The confirmed block that is confirmed by the confirmation block with the hash `upperBoundProof` must be an overflow block.
-- Payment nonexistence is confirmed if there is no [native payment](../native-payment.md) transactions with [standardised payment reference](../payment-reference.md) that meets all criteria for Payment attestation type (00001 - Payment) and its transaction status is 0 - Success or 2 - Failure due to receiver. 
+- Payment nonexistence is confirmed if there is no [native payment](../definitions/native-payment.md) transactions with [standardized payment reference](../definitions/payment-reference.md) that meets all criteria for Payment attestation type (00001 - Payment) and its transaction status is 0 - Success or 2 - Failure due to receiver. 
 - If there exist only payment(s) with status 1 (failure, sender's fault) then payment nonexistence is still confirmed.
 
 ## Response format

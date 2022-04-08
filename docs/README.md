@@ -20,8 +20,8 @@
 
 ## Definitions
 
-- [Account based vs. UTXO model](./account-based-vs-utxo-chains.md)
-- [Native payment](./native-payment.md)
-- [Payment reference](./payment-reference.md)
-- [Data sources](./sources.md)
-- [Transaction status](./transaction-status.md)
+- [Account based vs. UTXO model](./definitions/account-based-vs-utxo-chains.md)
+- [Native payment](./definitions/native-payment.md)
+- [Payment reference](./definitions/payment-reference.md)
+- [Data sources](./definitions/sources.md)
+- [Transaction status](./definitions/transaction-status.md)

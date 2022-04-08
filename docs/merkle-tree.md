@@ -1,3 +1,4 @@
+[TOC](./README.md)
 ## Merkle tree
 
 Attestations for each voting round (data hashes of the atttested data) are assembled into the Merkle tree and only the Merkle root is used in voting. The Merkle root that is sent by majority of attestation providers becomes confirmed Merkle root for the round and it is stored in the `StateConnector` contract. As of current implementation, the confirmed Merkle root is in accessible by calling looking up into the public array on contract `merkleRoots` which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720 - a week of proofs). Note also that the proof for a given voting round is stored at the index `(roundId + 2) % 6720`.

@@ -1,3 +1,5 @@
+[TOC](../README.md)
+
 # Native payment
 
 Blockchains may support different transactions. Each blockchain has a single currency that is used to pay fees for transactions. This is called the **native currency** of the blockchain (sometimes also called _system currency__). Blockchain may support alternative currencies, which are usually called _tokens_ and are considered as _application currencies_.

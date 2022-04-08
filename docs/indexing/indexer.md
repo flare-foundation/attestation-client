@@ -1,3 +1,4 @@
+[TOC](../README.md)
 # Blockchain indexer
 
 The main data structure of blockchains typically consists of a sequence of blocks, where each block contains transactions in a specific order.

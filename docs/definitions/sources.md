@@ -1,3 +1,5 @@
+[TOC](../README.md)
+
 # Data source
 
 Attestations are verified through authoritative data sources. At the moment attestation types are mostly based on blockchain date. The following sources, including the IDs are currently available:

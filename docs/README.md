@@ -1,6 +1,6 @@
-# Documentation for attestation protocol
+# State connector protocol
 
-- [Attestation Protocol](./attestation-protocol/attestation-protocol.md)
+- [State connector protocol](./attestation-protocol/attestation-protocol.md)
   - [State connector contract](./attestation-protocol/state-connector-contract.md)
   - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md)
 - [Indexer](./indexing/indexer.md)
@@ -17,7 +17,7 @@
 - [Attestation client](./attestation-client/attestation-client.md)
   - [Configurations](./attestation-client/attestation-configs.md)
   - [Verification](./attestation-client/verification.md)
-  - [Code generation utils](./attestation-client/code-generation-utils.ts)
+  - [Code generation utils](./attestation-client/code-generation-utils.md)
 
 ## Definitions
 

@@ -1,3 +1,4 @@
+[TOC](../README.md)
 # Limiting the number of attestation requests
 
 Submitting an attestation request is a very cheap operation. Conseqently, there is a possibility of a DOS attack by sending so many attestation requests that attestation providers would get overflooded and would not be able to verify all the submitted requests in due time. This could render attestation mechanisme inoperable for several rounds.

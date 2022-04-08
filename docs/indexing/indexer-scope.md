@@ -1,3 +1,4 @@
+[TOC](../README.md)
 # Scope of indexing
 
 The most important feature of indexers is that they index blocks and transactions by certain properties allowing us for fast queries on those properties.

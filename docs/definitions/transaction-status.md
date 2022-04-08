@@ -1,3 +1,5 @@
+[TOC](../README.md)
+
 # Transaction status
 
 Transactions on blockchains that get included into blocks may not be successful. For example, reverted transactions are included into Ethereum blocks. While providing attestation, attestation providers verify the status of a particular transaction. Depending on a blockchain, such transaction may be successful or fail due to various reasons. For the purpose of attestation, we are interested in only three categories:

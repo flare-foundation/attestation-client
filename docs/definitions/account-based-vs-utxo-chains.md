@@ -1,3 +1,5 @@
+[TOC](../README.md)
+
 # Payment data models on blockchains
 
 There are two major groups of data models in blockchains, the Unspent Transaction Output (UTXO) model and the account based model. Here we address implications of these two models in regard to **native payment** transactions (payments in native - or system - currency). 

@@ -1,6 +1,8 @@
 # Documentation for attestation protocol
 
-- [Attestation Protocol](./attestation-protocol.md)
+- [Attestation Protocol](./attestation-protocol/attestation-protocol.md)
+  - [State connector contract](./attestation-protocol/state-connector-contract.md)
+  - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md)
 - [Indexer](./indexing/indexer.md)
   - [Scope of indexing](./indexing/indexer-scope.md)
   - [Sinchronized query window](./indexing/synchronized-query-window.md)

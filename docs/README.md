@@ -13,7 +13,10 @@
   - [00002 - Balance Decreasing Transaction](attestation-types/00002-balance-decreasing-transaction.md)
   - [00003 - Confirmed Block Height](attestation-types/00003-confirmed-block-height-exists.md)
   - [00004 - Referenced Payment Nonexistence](attestation-types/00004-referenced-payment-nonexistence.md)
-
+- [Attestation client](./attestation-client/attestation-client.md)
+  - [Configurations](./attestation-client/attestation-configs.md)
+  - [Verification](./attestation-client/verification.md)
+  - [Code generation utils](./attestation-client/code-generation-utils.ts)
 
 ## Definitions
 

@@ -9,6 +9,15 @@ describe("Merkle Tree", () => {
 
   describe("General functionalities", () => {
 
+    it("Should be able to create empty tree form empty array",async () => {
+      let tree = new MerkleTree([])
+      assert(tree.hashCount === 0);
+      assert(tree.root === null);
+      assert(tree.rootBN.eqn(0));
+      assert(tree.sortedHashes.length === 0);
+      assert(tree.tree.length === 0);
+    });
+
     it("Should tree for n hashes have 2*n - 1 nodes", async () => {
       for (let i = 1; i < 10; i++) {
         let hashes = makeHashes(i)

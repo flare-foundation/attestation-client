@@ -2,9 +2,9 @@
 
 Attestation providers provide attestations only for specific types of requests. These types are called _attestation types_ and have to be designed in such a way that that they are clear-cut decidable. Clear-cut decidability includes the requirement of having a synchronized view on data from external data sources (e.g. other chains) that are used for data attestations. For example, in slower block producing blockchains like Bitcoin, one attestation provider may see a certain block at the moment of query while the other may not see it yet, as the block might not have been fully distributed throughout the network. Such providers would yield completely different attestations. Hence special data view synchronization protocols have to be applied.
 
-Sinchronized data views are also important due to representation of the submitted vote by the Merkle root of all attestations in the voting round. In case of non-syncronized data views, data providers would often vote differently on the most recent attestation requests (depending on the time of query), which would yield completely different Merkle roots and thus cripple the voting round, as achieving at least 50% of all submitted Merkle roots would become extremely difficult. Attestation types and mechanisms to achieve dadta view synchronization will be described later.
+Synchronized data views are also important due to representation of the submitted vote by the Merkle root of all attestations in the voting round. In case of non-synchronized data views, data providers would often vote differently on the most recent attestation requests (depending on the time of query), which would yield completely different Merkle roots and thus cripple the voting round, as achieving at least 50% of all submitted Merkle roots would become extremely difficult. Attestation types and mechanisms to achieve data view synchronization will be described later.
 
-### Attestation type definition
+### Attestation type definitions
 
 Each attestation type is defined by:
 - **request format** - the data that is encoded into the attestation request bytes.

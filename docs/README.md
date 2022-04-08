@@ -1,7 +1,10 @@
 # Documentation for attestation protocol
 
 - [Attestation Protocol](./attestation-protocol.md)
-- [Indexer](./indexer.md)
+- [Indexer](./indexing/indexer.md)
+  - [Scope of indexing](./indexing/indexer-scope.md)
+  - [Sinchronized query window](./indexing/synchronized-query-window.md)
+  - [Optimizations](./indexing/indexer-optimizations.md)
 - [Merkle tree](./merkle-tree.md)
 - [Attestation types](./attestation-types.md)
 

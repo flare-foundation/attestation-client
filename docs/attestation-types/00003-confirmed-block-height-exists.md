@@ -8,7 +8,7 @@
 The purpose of this attestation type is to prove that a block on a certain height exists and it is confirmed. 
 The attestation uses `upperBoundProof` as a hash of the confirmation block for the highest confirmed block in the query.
 
-An attestation is provided by providing the following data:
+A successful attestation is provided by providing the following data:
 - block number
 - block timestamp
 - number of confirmations used

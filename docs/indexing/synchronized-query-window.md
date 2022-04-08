@@ -1,14 +1,13 @@
-# Blockchain indexer
 
-The main data structure of blockchains typically consists of a sequence of blocks, where each block contains transactions in a specific order.
-Each block is identified by a block hash and has a specific block number (height). Each transaction is identified by a transaction id (hash). Blockchain nodes have APIs that allow reading blocks and transactions. An indexer is used to collect the data about the blocks and transactions for a certain period and enable users to make certain types of queries fast. In our use case of attestation providers, indexers are used to read transactions within a certain **indexing time window**  from present back to some past time, for example for the last two days (duration `IndexingWindowSec`).
 
-## Ensuring the same query time window
+
+
+# Synchronized query window
 
 The main purpose of the indexer is to ensure that attestation providers will have the same view on the data that are being queried. 
 In particular this means that for each particular query the attestation providers make for a specific attestation request in a given attestation round `roundId`, they will all agree on a query range defined by `lowest_timestamp` and `highest_block`. These values are prescribed in the attestation protocol and all attestation providers will either ensure that queries were carried out subject to these limitations, or they will abstain from sending attestations.
 
-### Lower query window boundary 
+## Lower query window boundary 
 
 For each attestation round `roundId` a timestamp of the start of its `collect` phase is a well known value that can be calculated from the parameters on `StateConnector` contract, specifically `BUFFER_TIMESTAMP_OFFSET`  and `BUFFER_WINDOW`, as 
 ```
@@ -21,7 +20,7 @@ startQueryTime(roundId) = startTime(roundId) - queryWindowInSec
 Each block in any blockchain has a unique timestamp. Note that block timestamps may differ a lot from the real time of the block production. For example, in a slow block production blockchain like Bitcoin, timestamp may differ from the real time even for up to 2 hours. In addition, timestamps for blocks are not necessarily monotonically non-decreasing, like it is the case with Bitcoin. Specifically with Bitcoin, we can take instead of the block timestamp the value of `mediantime`, which is the median time of the last 11 blocks and it is monotonically non-decreasing. The current choice for the indexer system is that the `medinatime` is used as the timestamp in the indexer for the blockchains that base on the Bitcoin code.
 Hence lower bound for queries is well defined in terms of a timestamp - all transactions in blocks with indexed timestamp greater then or equal to the calculated start time (based on `roundId` start time) are considered in queries. The role of indexer is just to ensure enough of history so that `indexingWindowSec > queryWindowInSec + MG`, where `MG` is some large enough margin.
 
-### Upper query window boundary 
+## Upper query window boundary 
 
 Syncing the query time window on the upper bound requires a bit more sophisticated approach. The practical requirement would be to use all available data up to the present. Even if we decided to use a cut-off time `CT`, we would not be completely sure whether an indexer had indexed all the blocks with timestamps lower or equal to  `CT`. Namely, there might be a block that we did not receive yet with timestamp matching the query. Even if we decided to put the timestamp "early enough" we still get the issue of what is "early enough".
 
@@ -74,46 +73,3 @@ The proper query procedure can be thus summarized in terms of a 2-step procedure
 - Read the last confirmed block number `N` in the indexer.
 - If `N >= U`, then proceed with the query and the upper boundary `U`.
 - Otherwise `U` should have been confirmed height, but since `N < U`, the indexer is lagging. Since we do not have anymore time to delay, we clearly have problems with our indexer and we should completely abstain from voting in this round.
-## Scope of indexing
-
-The most important feature of indexers is that they index blocks and transactions by certain properties allowing us for fast queries on those properties.
-For that purpose, the indexer consists of essentially two tables, one for blocks and one for transaction.
-The entries into the tables are parsed from API responses for blocks and transactions, respectively. 
-
-For blocks, the following properties are stored into the database:
-- `blockHash` - (indexed) hash of the block 
-- `blockNumber` - (indexed) block number of a block 
-- `timestamp` - (indexed) block timestamp
-- `confirmed` - (indexed) whether a block is confirmed or not
-- `transactions` - number of transactions
-
-For transactions, we store 
-- `transactionId` - (indexed) id of the transaction  
-- `blockNumber` - (indexed)  block number in which transaction is present
-- `blockTransactionIndex` - index of transaction in the block (???)
-- `timestamp` - (indexed) timestamp in seconds of a block of the transaction 
-- `paymentReference` - (indexed) payment reference of the transaction if it is a payment 
-- `isNativePayment` - (indexed) whether the transaction is a payment in system currency, e.g. contract calls are not native payments
-- `transactionType` - (indexed) type of transaction (specific for each blockchain)
-- `response` - serialized response from API
-
-## Indexer optimizations
-
-Indexers collect lots of data and as the time goes by, tables can become bigger and queries slower. Slower queries could have impact on the attestation system, as flooding the system with nonsense requests to such an extent, that 90 seconds would not be enough to check all of them, is itself a form of a DOS attack on the system. In addition, syncing indexers also takes some time, and if attestation provider wants to start or is in recovering, the syncing procedure should not last too long. These are the main reasons for choosing limited indexing time windows.
-
-### Double transaction tables
-
-A part of maintaining limited history storage is also efficiently deleting the old data, that fall out of the indexing time window.
-The table of blocks is very light and essentially does not need cleaning up of old blocks. On the other hand, the transactions table can become quite packed, as there are way more transactions then blocks in blockchains and transaction entries are more heavy, containing more indexed fields and potentially much more heavier `response` field. Deleting old transactions periodically could be tricky and could put some load on the database. Instead of that we chose to use to tables, where each table fills transaction until the indexing time window time has passed. Then we switch to the other table. If the other table is non empty, we just drop it prior to switching. The drop is practically an instant operation. In this way we always cleanup the indexes and row counters get reset. The cost is, that we have to make queries into two tables each time.
-
-
-
-### API request rate limiting and caching
-
-In our implementation in Node.js we use our _Multi Chain Client_ library `flare-mcc`. In contains `axios` client to communicate with blockchain APIs. We have upgraded the client to support rate limiting and request caching. Rate limiting is important to ensure stability of communication with API nodes, in order to not get rate limited or cause problems on the nodes. Typically requests from indexers include just the following calls to the blockchain API:
-- get transactions by transaction id,
-- get block by block number or hash,
-- get block height.
-
-Caching of API responses is important mainly for transactions. An important use case is in case of Bitcoin and other Bitcoin code based UTXO blockchains. Namely, in UTXO blockchains a source address is obtained by querying the blockchain API for each transaction on each input. There can be up to 20 inputs and possibly many different UTXO outputs from different transactions. Usually we can get a block info and info of all transactions in the block in one request. But then we have to make for each of those transactions many requests for input transactions. Those could repeat and caching responses helps here a bit. Note that some blocks can have even over 2000 transactions and some experimental calculations showed that we would do for each transaction even than 4 additional API calls on average for input transactions. With Bitcoin blocks of over 2000 transactions this may take even 5 minutes. Compared to 10 minute average block production of Bitcoin the indexing would take quite some time. Also, the most critical requirement for an indexer is that confirmed transactions are stored into the database immediately after the confirmation block arrives. Hence we have to process transactions from unconfirmed blocks in advance. Since unconfirmed blocks may be in different forks, we might be processing wrong fork. But what we know is that even we are in the wrong fork, transactions in that wrong block will be similar. So here caching can also help a lot. Also noted, that we used another optimization, namely we read all inputs of all transactions that have payment reference defined only. For others, it depends on attestation type, whether we do additional reads during verification phase or not.
-

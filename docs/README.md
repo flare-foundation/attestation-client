@@ -7,7 +7,7 @@
   - [Scope of indexing](./indexing/indexer-scope.md)
   - [Sinchronized query window](./indexing/synchronized-query-window.md)
   - [Optimizations](./indexing/indexer-optimizations.md)
-- [Merkle tree](./merkle-tree.md)
+- [Merkle tree and proofs](./merkle-tree.md)
 - [Attestation types](./attestation-types.md)
   - [00001 - Payment](attestation-types/00001-payment.md)
   - [00002 - Balance Decreasing Transaction](attestation-types/00002-balance-decreasing-transaction.md)

@@ -9,6 +9,7 @@
   - [Optimizations](./indexing/indexer-optimizations.md)
 - [Merkle tree and proofs](./merkle-tree.md)
 - [Attestation types](./attestation-types.md)
+  - [Adding new attestation types](./attestation-types/adding-new-attestation-types.md)
   - [00001 - Payment](attestation-types/00001-payment.md)
   - [00002 - Balance Decreasing Transaction](attestation-types/00002-balance-decreasing-transaction.md)
   - [00003 - Confirmed Block Height](attestation-types/00003-confirmed-block-height-exists.md)

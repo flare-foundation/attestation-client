@@ -93,7 +93,7 @@ export class MerkleTree {
       hashes = hashes.map((x) => singleHash(x));
     }
     let n = hashes.length;
-    this._tree = [...new Array(n - 1).fill(0), ...hashes];
+    this._tree = [...new Array(Math.max(n - 1,0)).fill(0), ...hashes];
     for (let i = n - 2; i >= 0; i--) {
       this._tree[i] = sortedHashPair(this._tree[2 * i + 1], this._tree[2 * i + 2])!;
     }

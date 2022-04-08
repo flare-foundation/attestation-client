@@ -7,7 +7,12 @@
 
 The purpose of this attestation type is to prove that a block on a certain height exists and it is confirmed. 
 The attestation uses `upperBoundProof` as a hash of the confirmation block for the highest confirmed block in the query.
--  
+
+An attestation is provided by providing the following data:
+- block number
+- block timestamp
+- number of confirmations used
+- average block production time
 ## Request format
 
 - `attestationType`:
@@ -25,7 +30,13 @@ The attestation uses `upperBoundProof` as a hash of the confirmation block for t
 
 ## Verification rules
 
-Given the upper boundary for the query range (`upperBoundProof`) the confirmed block on the upper query window boundary is determined and provided in response, together with the block timestamp. In addition, the number of confirmations that was used to determine the confirmation block is provided. Also average block production time in the query window is calculated and returned.
+Given the upper boundary for the query range (`upperBoundProof`) the confirmed block on the upper query window boundary is determined and provided in response, together with the block timestamp. In addition, the number of confirmations that was used to determine the confirmation block is provided. Also average block production time in the query window is calculated and returned. Here we take the lowest and the highest (confirmed) block number in the query window and their respective timestamps. The timestamps are given in seconds, but the average block production rate is calculated in milliseconds.
+```
+                                        (highestBlock.timestamp - lowestBlock.timestamp) * 1000
+averageBlockProductionTimeMs = floor(  ---------------------------------------------------------- )
+                                            highestBlock.number - lowestBlock.number
+```
+
 ## Response format
 
 - `blockNumber`:
@@ -37,8 +48,6 @@ Given the upper boundary for the query range (`upperBoundProof`) the confirmed b
 - `numberOfConfirmations`:
   - type: `uint8`
   - description: Number of confirmations for this chain
-- `averageBlockProductionTimeMilisec`:
+- `averageBlockProductionTimeMs`:
   - type: `uint64`
-  - description: Average number of seconds passed between last X blocks
-
-## Comments
+  - description: Average block production time based on the data in the query window.

@@ -5,12 +5,37 @@
 
 ## Description
 
-Payment nonexistence is confirmed if there is no payment transaction (attestation of \`Payment\` type)
-with correct \`(destinationAddress, paymentReference, amount)\` combination
-and with transaction status 0 (success) or 2 (failure, receiver's fault). 
-Note: if there exist only payment(s) with status 1 (failure, sender's fault) 
-then payment nonexistence is still confirmed.
+[Standardized payment references](../payment-reference.md) are used to indicate special transactions that a DeFi system using the attestation protocol can require to be made by its users to be able to match them to users and purpose. Such transactions must be executed until certain deadline. The purpose of this attestation type is to provide a proof that a transaction (payment) with a specific payment reference and sending a specific amount of native currency to a specific address was not carried out up to certain deadline. Such an attestation can be used as a breach or payment obligations a user may have in relation to a DeFi system.
 
+In some cases it could happen that a user tried to fullfil the obligation, but the obligation could not be fulfilled since which was not due to his fault, but rather the fault of the receiver (e.g. input transactions are blocked). On some blockchains such transactions are recorded as failed transaction with special failure statuses, which indicate that the fault is on the receiving side and that the sender did all in its power to fullfil the obligation. See [here](../transaction-status.md for discussion on transaction status).
+
+The attestations of this type are confirmed only if the required transaction was not made in due time or it was made in due time, but it failed due to the receiver's fault. 
+
+Deadline for a transaction to be made is usually provided by two limitations:
+- `deadlineBlockNumber` - the last block number to be counted in as valid
+- `deadlineTimestamp` - the last block timestamp in seconds to be counted in as valid
+
+Given a transaction in block `blockNumber` with `blockTimestamp` a transaction for which one of the following is true meets the criteria of being executed in time:
+- `blockNumber <= deadlineBlockNumber`, or
+- `blockTimestamp <= deadlineTimestamp`.
+
+An **overflow block** block is the first block for which block number and timestamp are both strictly greater than `deadlineBlockNumber` and `deadlineTimestamp`. 
+
+A query window synchronization mechanism uses the hash `upperBoundProof` of a confirmation block for a synchronized confirmed upper boundary block between attestation providers. For this attestation to be valid, the `upperBoundProof` must be provided in the request for such a confirmed block that is overflow block. Otherwise the attestation is rejected.
+
+
+Upon not being able to find the required transaction, a successful attestation is provided by extracting certain data from the indexer and request
+- required deadline timestamp
+- required deadline block number
+- required destination address
+- required amount
+- required payment reference
+- lower query boundary block number
+- lower query boundary block timestamp
+- first overflow block number
+- first overflow block timestamp
+
+In such a way the attestation confirms the required transaction did not appear in the interval between lower query boundary block (included) and the first overflow block (excluded). 
 ## Request format
 
 - `attestationType`:
@@ -46,27 +71,21 @@ then payment nonexistence is still confirmed.
   - internal type: `ByteSequenceLike`
   - description: The payment reference to search for.
 
-<!-- - `overflowBlock`:
-  - size (bytes): 4
-  - internal type: `NumberLike`
-  - description: Number of the overflow block - the block which has `block.timestamp > endTimestamp` and `block.blockNumber > endBlock`. Does not need to be the first such block. It has to be confirmed. -->
+
 ## Verification rules
 
-- For a proof to be valid, there should exist a confirmed block with a strictly bigger timestamp and block number then the ones in instructions.
-- Beginning of search is based on endTimestamp - CHECK_WINDOW(to be defined)
-- We impose limits to endTimestamp (based on the size of the agreed chain history of the attestation providers in the following way:endTimestamp >=flare_timestamp_of_request - MAX_TIME_SKEW (a per-chain constant, large enough to accommodate time skew between flare/other chain and possible flare downtime/congestion). 
-- The size of the chain history indexed by providers must be at least CHECK_WINDOW + MAX_TIME_SKEW.
-- Suggested CHECK_WINDOW and MAX_TIME_SKEW are both 1 day, which requires a total 2 days of indexed history.
-- Payment nonexistence is confirmed if there is no legal payment transaction (attestation type 1) with correct <reference, destination address, amount> combination and with status 0 (success) or 2 (failure, receiver's fault). Note: if there exist only payment(s) with status 1 (failure, sender's fault) then payment nonexistence is still confirmed.
+- The confirmed block that is confirmed by the confirmation block with the hash `upperBoundProof` must be an overflow block.
+- Payment nonexistence is confirmed if there is no [native payment](../native-payment.md) transactions with [standardised payment reference](../payment-reference.md) that meets all criteria for Payment attestation type (00001 - Payment) and its transaction status is 0 - Success or 2 - Failure due to receiver. 
+- If there exist only payment(s) with status 1 (failure, sender's fault) then payment nonexistence is still confirmed.
 
 ## Response format
 
-- `endTimestamp`:
+- `deadlineTimestamp`:
   - type: `uint64`
-  - description: End timestamp specified in attestation request.
-- `endBlock`:
+  - description: Deadline timestamp specified in the attestation request.
+- `deadlineBlockNumber`:
   - type: `uint64`
-  - description: End block specified in attestation request.
+  - description: Deadline block specified in the attestation request.
 - `destinationAddress`:
   - type: `bytes32`
   - description: Hash of the destination address.
@@ -76,15 +95,15 @@ then payment nonexistence is still confirmed.
 - `amount`:
   - type: `uint128`
   - description: The amount searched for.
-- `firstCheckedBlock`:
+- `lowerBoundaryBlockNumber`:
   - type: `uint64`
-  - description: The first confirmed block that gets checked. It is the block that has timestamp (median time) greater or equal to `endTimestamp - CHECK_WINDOW`.  
-- `firstCheckedBlockTimestamp`:
+  - description: The first confirmed block that gets checked. It is the lowest block in the synchronized query window.  
+- `lowerBoundaryBlockTimestamp`:
   - type: `uint64`
   - description: Timestamp of the firstCheckedBlock.
-- `firstOverflowBlock`:
+- `firstOverflowBlockNumber`:
   - type: `uint64`
-  - description: The first confirmed block with `timestamp > endTimestamp` and `blockNumber  > endBlock`. 
+  - description: The first confirmed block with `timestamp > deadlineTimestamp` and `blockNumber  > deadlineBlockNumber`. 
 - `firstOverflowBlockTimestamp`:
   - type: `uint64`
   - description: Timestamp of the firstOverflowBlock.
@@ -92,16 +111,5 @@ then payment nonexistence is still confirmed.
 
 ## Comments
 
+A DeFi system should use the data of from the attestation (proof) according to its needs. Note that due to limited history and time dependant lower query bound (depends on state connector `roundId`) it may happen that `lowerBoundaryBlockNumber` is too high (attestation may be requested too late). Determination of the `lowerBoundaryBlockNumber` depends on Flare network timestamp which may differ from real time and as the block timestamps on other chains could vary even more. The time skew that between the other chain times must also be accounted for.
 
-Payment nonexistence is confirmed if there is no payment transaction (attestation of \`Payment\` type)
-with correct \`(destinationAddress, paymentReference, amount)\` combination
-and with transaction status 0 (success) or 2 (failure, receiver's fault). 
-Note: if there exist only payment(s) with status 1 (failure, sender's fault) 
-then payment nonexistence is still confirmed.
-
-f-asset: check that \`firstCheckBlock <= currentUnderlyingBlock\` at the time of redemption request.
-
-f-asset: check that \`firstOverflowBlock > last payment block\` (\`= currentUnderlyingBlock + blocksToPay\`).
-
-f-asset: check that \`firstOverflowBlockTimestamp > last payment timestamp\` 
-     (\`= currentUnderlyingBlockTimestamp + time to pay\`). 

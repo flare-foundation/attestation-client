@@ -71,4 +71,4 @@ The currently deployed `StateConnector` contracts on Songbird and Coston network
 
 Both contracts have as the start timestamp set the unix epoch `BUFFER_TIMESTAMP_OFFSET = 1636070400` (November 5th, 2021) and `BUFFER_WINDOW = 90`.
 
-Next: [Limiting attestation requests](./attestation-limiter.md)
+Next: [Merkle tree and Merkle proof](./merkle-tree.md)

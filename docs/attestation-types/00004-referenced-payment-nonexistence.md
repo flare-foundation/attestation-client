@@ -114,3 +114,4 @@ In such a way the attestation confirms the required transaction did not appear i
 
 A DeFi system should use the data of from the attestation (proof) according to its needs. Note that due to limited history and time dependant lower query bound (depends on state connector `roundId`) it may happen that `lowerBoundaryBlockNumber` is too high (attestation may be requested too late). Determination of the `lowerBoundaryBlockNumber` depends on Flare network timestamp which may differ from real time and as the block timestamps on other chains could vary even more. The time skew that between the other chain times must also be accounted for.
 
+Next: [Attestation client](../attestation-client/attestation-client.md)

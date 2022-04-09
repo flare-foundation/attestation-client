@@ -22,3 +22,4 @@ For transactions, we store
 - `transactionType` - (indexed) type of transaction (specific for each blockchain)
 - `response` - serialized response from API
 
+Next: [Synchronized query window](./synchronized-query-window.md)

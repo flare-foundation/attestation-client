@@ -20,3 +20,5 @@ Native payments are transaction that meet the following conditions:
 ## Algorand
 
 TODO
+
+Next: [Payment reference](./payment-reference.md)

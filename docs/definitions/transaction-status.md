@@ -25,3 +25,9 @@ The [following](https://xrpl.org/transaction-results.html) statuses should be co
    - [`tecNO_DST`](https://xrpl.org/tec-codes.html)
    - [`tecNO_DST_INSUF_XRP`](https://xrpl.org/tec-codes.html)
    - [`tecNO_PERMISSION`](https://xrpl.org/tec-codes.html)
+
+# Algorand
+
+TODO
+
+Next: [Indexer](../indexing/indexer.md)

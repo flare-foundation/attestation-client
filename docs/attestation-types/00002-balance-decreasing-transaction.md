@@ -93,3 +93,5 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 ## Comments
 
 For EVM: attesting on a proof is very hard if this is not an EOA account. So we must block Agents from using a non EOA address. This will be forced by having them do one payment for the underlying address before it is approved to be used. Might also be relevant for other non EVM chains. We should research how to force it for other chain types.
+
+Next: [00003 - Confirmed Block Height](./00003-confirmed-block-height-exists.md)

@@ -52,3 +52,5 @@ averageBlockProductionTimeMs = floor(  -----------------------------------------
 - `averageBlockProductionTimeMs`:
   - type: `uint64`
   - description: Average block production time based on the data in the query window.
+
+Next: [00004 - Referenced Payment Nonexistence](./00004-referenced-payment-nonexistence.md)

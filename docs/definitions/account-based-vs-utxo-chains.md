@@ -44,3 +44,5 @@ As described above, reading all transactions in a block and then all input trans
 - for all other transactions indexing is done only for transactions obtained for a specific block. Only partial attestations can be carried out on such transactions. Partial attestation involves reading the transaction data from the indexer database and making the aditional call to RPC API to obtain data about the input transaction on the selected transaction input for which attestation is requered.
 
 In general, we encourage community to use standardized payment references since we offer full support for such transactions. 
+
+Next: [Native payment](./native-payment.md)

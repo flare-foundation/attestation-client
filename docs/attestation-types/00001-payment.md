@@ -106,3 +106,5 @@ exactly one receiving address (different from source).
     - 0 - Success
     - 1 - Failure due to sender (this is the default failure)
     - 2 - Failure due to receiver (bad destination address)
+
+Next: [00002 - Balance Decreasing Transaction](./00002-balance-decreasing-transaction.md)

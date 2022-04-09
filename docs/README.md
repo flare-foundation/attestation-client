@@ -2,6 +2,7 @@
 
 - [Attestation protocol](./attestation-protocol/attestation-protocol.md)
   - [State connector contract](./attestation-protocol/state-connector-contract.md)
+  - [Merkle tree and Merkle proofs](./attestation-protocol/merkle-tree.md)
   - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md)
 - Blockchain essentials
   - [Data sources](./definitions/sources.md)
@@ -13,7 +14,6 @@
   - [Scope of indexing](./indexing/indexer-scope.md)
   - [Synchronized query window](./indexing/synchronized-query-window.md)
   - [Optimizations](./indexing/indexer-optimizations.md)
-- [Merkle tree and proofs](./merkle-tree.md)
 - [Attestation types](./attestation-types.md)
   - [Adding new attestation types](./attestation-types/adding-new-attestation-types.md)
   - [00001 - Payment](attestation-types/00001-payment.md)
@@ -24,6 +24,4 @@
   - [Configurations](./attestation-client/attestation-configs.md)
   - [Verification](./attestation-client/verification.md)
   - [Code generation utils](./attestation-client/code-generation-utils.md)
-
-## Definitions
 

@@ -1,5 +1,6 @@
+[TOC](../README.md)
 ## Dynamic attestation configuration 
 
 ... TODO
 
-Next: [Indexer](../indexing/indexer.md)
+Next: [Data sources](../definitions/sources.md)

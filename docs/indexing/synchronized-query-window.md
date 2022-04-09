@@ -73,3 +73,5 @@ The proper query procedure can be thus summarized in terms of a 2-step procedure
 - Read the last confirmed block number `N` in the indexer.
 - If `N >= U`, then proceed with the query and the upper boundary `U`.
 - Otherwise `U` should have been confirmed height, but since `N < U`, the indexer is lagging. Since we do not have anymore time to delay, we clearly have problems with our indexer and we should completely abstain from voting in this round.
+
+Next: [Optimizations](./indexer-optimizations.md)

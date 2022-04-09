@@ -5,3 +5,5 @@
 ## Dynamic attestation configuration
 
 TODO
+
+Next: [Verification](./verification.md)

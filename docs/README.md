@@ -1,11 +1,17 @@
-# State connector protocol
+# Attestation protocol
 
-- [State connector protocol](./attestation-protocol/attestation-protocol.md)
+- [Attestation protocol](./attestation-protocol/attestation-protocol.md)
   - [State connector contract](./attestation-protocol/state-connector-contract.md)
   - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md)
+- Blockchain essentials
+  - [Data sources](./definitions/sources.md)
+  - [Account based vs. UTXO model](./definitions/account-based-vs-utxo-chains.md)
+  - [Native payment](./definitions/native-payment.md)
+  - [Payment reference](./definitions/payment-reference.md)
+  - [Transaction status](./definitions/transaction-status.md)
 - [Indexer](./indexing/indexer.md)
   - [Scope of indexing](./indexing/indexer-scope.md)
-  - [Sinchronized query window](./indexing/synchronized-query-window.md)
+  - [Synchronized query window](./indexing/synchronized-query-window.md)
   - [Optimizations](./indexing/indexer-optimizations.md)
 - [Merkle tree and proofs](./merkle-tree.md)
 - [Attestation types](./attestation-types.md)
@@ -21,8 +27,3 @@
 
 ## Definitions
 
-- [Account based vs. UTXO model](./definitions/account-based-vs-utxo-chains.md)
-- [Native payment](./definitions/native-payment.md)
-- [Payment reference](./definitions/payment-reference.md)
-- [Data sources](./definitions/sources.md)
-- [Transaction status](./definitions/transaction-status.md)

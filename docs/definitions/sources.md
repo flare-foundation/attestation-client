@@ -11,3 +11,7 @@ Attestations are verified through authoritative data sources. At the moment atte
 - 4 - `ALGO` - Algorand
 
 The enum defining the source IDs is available [here](../lib/verification/sources/sources.ts).
+
+## Centralized vs. decentralized data sources
+
+Validator nodes of a blockchain from which attestation providers can read data are an example of a decentralized data source. Namely, each attestation can essentially read from a different validator node.  

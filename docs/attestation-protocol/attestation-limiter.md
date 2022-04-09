@@ -16,6 +16,4 @@ Therefore, it suffices to set up a limiting mechanism for each data source indep
 
 In future we might introduce sender based priority passes or whitelists, if the issue with competition becomes severe. In such a case attestation providers would consider requests sent by specific senders as higher priority.
 
-## Global dynamic attestatons 
-
-... TODO
+Next: [Dynamic attestation configuration](./dynamic-attestation-configuration.md) 

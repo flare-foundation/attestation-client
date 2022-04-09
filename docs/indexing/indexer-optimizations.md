@@ -1,3 +1,4 @@
+[TOC](../README.md)
 # Indexer optimizations
 
 Indexers collect lots of data and as the time goes by, tables can become bigger and queries slower. Slower queries could have impact on the attestation system, as flooding the system with nonsense requests to such an extent, that 90 seconds would not be enough to check all of them, is itself a form of a DOS attack on the system. In addition, syncing indexers also takes some time, and if attestation provider wants to start or is in recovering, the syncing procedure should not last too long. These are the main reasons for choosing limited indexing time windows.

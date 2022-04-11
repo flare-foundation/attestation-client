@@ -19,6 +19,7 @@ Native payments are transaction that meet the following conditions:
 
 ## Algorand
 
-TODO
+Native payments are transactions athat meet the following criteria:
+  - transaction type must equal `pay`
 
 Next: [Payment reference](./payment-reference.md)

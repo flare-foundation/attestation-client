@@ -1,18 +1,18 @@
 [TOC](../README.md)
 # State connector contract
 
-To facilitate the attestation protocol the `StateConnector` contract is used. This is basically the voting contract, that does the following.
+The `StateConnector` smart contract is used to manage the attestation protocol. This is basically the voting contract, that does the following.
 
 - Manages voting rounds.
-- Accepts attestation requests all the time. Based on the time of submission (voting window) each attestation request is mapped to the relevant `collect` phase of the corresponding voting round.
+- Accepts attestation requests all the time. Based on the time of submission each attestation request is mapped to the relevant `collect` phase of the corresponding voting round.
 - Accepts commit and reveal submissions by attestation providers, mapping them to the `commit` and `reveal` phases of the relevant voting rounds.
-- Counts the votes (attestations) and declares the winning attestation hash (confirmed attestation) for every voting round (in the `count` phase).
+- Counts the votes (attestations) and declares the winning attestation hash (confirmed Merkle root) for every voting round (in the `count` phase).
 
-Note that voting rounds are interlaced. For example, if _T<sub>0</sub>_, _T<sub>1</sub>_, ... are sequential 90s intervals, then the voting round with id `0` has the `collect` phase in _T<sub>0</sub>_, the `commit` phase in _T<sub>1</sub>_, etc. Simultaneously, the voting round with id `1` has the `collect` phase in _T<sub>1</sub>_, the `commit` phase in _T<sub>2</sub>_, etc.
+Note that voting rounds are interlaced. For example, if _W<sub>0</sub>_, _W<sub>1</sub>_, ... are sequential 90s voting windows, then the voting round with id `0` has the `collect` phase in _W<sub>0</sub>_, the `commit` phase in _W<sub>1</sub>_, etc. Simultaneously, the voting round with id `1` has the `collect` phase in _W<sub>1</sub>_, the `commit` phase in _W<sub>2</sub>_, etc.
 
 ## Requesting attestations
 
-Attestation request is sent as a byte string, that encodes the request data, according to the rules stated below. This byte string is sent to the `StateConnector` contract using the following function:
+An attestation request is sent as a byte string, that encodes the request data, according to certain rules which depend on definition of attestation types. This byte string is sent to the `StateConnector` contract using the following function:
 
 ```
 function requestAttestations(bytes calldata data) external;
@@ -29,7 +29,7 @@ event AttestationRequest(
 
 The data submitted by a request is not stored on blockchain.
 
-Each [attestation type](../attestation-types.md) defines what data are encoded into the byte string for a specific attestation request.
+Each [attestation type](../attestation-types/attestation-types.md) defines what data are encoded into the byte string for a specific attestation request.
 
 ## Providing attestations
 

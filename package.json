@@ -52,7 +52,7 @@
     "test": "mocha -r ts-node/register -t 0 --exit",
     "testdebug": "DOTENV=DEV tsdx test --env=node test/MerkleTree.test.ts",
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local",
-    "codegen": "NODE_ENV=development yarn ts-node lib/verification/codegen/codegen.ts",
+    "codegen": "env NODE_ENV=development yarn ts-node lib/verification/codegen/codegen.ts",
     "htest": "yarn codegen && yarn c && yarn hardhat test test/HashTest.test.ts",
     "preroutes": "ts-node lib/scripts/create-routes-folder.ts",
     "routes": "yarn tsoa routes && yarn tsoa spec",

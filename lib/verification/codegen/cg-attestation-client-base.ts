@@ -49,17 +49,33 @@ function verify${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definitio
 
 
 function genHashFunctions(definition: AttestationTypeScheme): any {
-   let params = definition.dataHashDefinition.map(item => `_data.${item.key}`).join(",\n")
+   let paramsArr = [
+      constantize(definition.name),
+      '_chainId',
+      ...definition.dataHashDefinition.map(item => `_data.${item.key}`),
+   ];
+   let encodedParams: string;
+   if (paramsArr.length <= 10) {
+      const paramsText = indentText(paramsArr.join(",\n"), SOLIDITY_CODEGEN_TAB * 2);
+      encodedParams = `abi.encode(\n${paramsText}\n    )`;
+   } else {
+      // to avoid horrible "stack too deep" solidity errors, split abi.encode and then combine with bytes.concat
+      const chunk = 8;
+      const parts: string[] = [];
+      const comment = indentText(`// split into parts of length ${chunk} to avoid 'stack too deep' errors`, SOLIDITY_CODEGEN_TAB * 2);
+      for (let start = 0; start < paramsArr.length; start += chunk) {
+         const partArr = paramsArr.slice(start, Math.min(start + chunk, paramsArr.length));
+         const partText = indentText(partArr.join(",\n"), SOLIDITY_CODEGEN_TAB);
+         parts.push(indentText(`abi.encode(\n${partText}\n)`, SOLIDITY_CODEGEN_TAB * 2));
+      }
+      encodedParams = `bytes.concat(\n${comment}\n${parts.join(",\n")}\n    )`;
+   }
    return `
 function _hash${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
     private pure
     returns (bytes32)
 {
-    return keccak256(abi.encode(
-        ${constantize(definition.name)},
-        _chainId, 
-${indentText(params, SOLIDITY_CODEGEN_TAB*2)}
-    ));
+    return keccak256(${encodedParams});
 }
 `.trim();
 }

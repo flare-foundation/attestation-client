@@ -2,29 +2,31 @@
 [TOC](../README.md)
 # 00002 - Balance Decreasing Transaction
 
-[Definition file](../../lib/verification/attestation-types/t-00002-balance-decreasing-transaction.ts)
+- id: 2
+- name: `BalanceDecreasingTransaction`  
+- [Definition file](../../lib/verification/attestation-types/t-00002-balance-decreasing-transaction.ts)
 
 ## Description
 
-The purpose of this attestation type is to prove that a transaction was issued from a given account (address) that could possibly facilitate a decrease of funds on the account (source address). In some DeFi protocols or applications monitoring the balance of specific accounts is of utmost importance (e.g. accounts that keep collateral). This includes detecting transactions that are outside of application specific protocol workflows. Using balance decreasing proof one (e.g. challenger) can signal to a DeFi protocol that some transaction has occurred and the protocol can verify, whether the transaction is legit or it constitutes an illegal action. Based on that, the smart contracts running the protocol can sanction the offender and possibly reward the provider of the proof.
+The purpose of this attestation type is to prove that a transaction was issued from a given account (address), which could possibly facilitate a decrease of funds on the account (the source address). In some DeFi protocols or applications, monitoring the balance of specific accounts is of utmost importance (e.g. accounts that hold collateral). This includes detecting transactions that are outside of the application specific protocol workflows. Using the balance decreasing proof, one (e.g. challenger) can signal to a DeFi protocol that some transaction has occurred. Then the protocol can verify, whether the transaction is legit or it constitutes an illegal action. Based on that, the smart contracts running the protocol can sanction the offender and possibly reward the provider of the proof.
 
-Any transaction can be seen as a balance decreasing transaction if funds could have left the source address (e.g. due to fees). So even if no funds are sent out, or even the balance is increased, but the address was used as an input, this is considered as a balance decreasing transaction for a source address (such cases can happen with UTXO transactions).
+Any transaction can be seen as a balance decreasing transaction, if funds could have left the source address (e.g. due to fees). So even if no funds are sent out, or even the balance is increased, but the address was used as an input, this is considered as a balance decreasing transaction for a source address (such cases can happen with UTXO transactions). 
 
-For this attestation type we assume that the source address being tested is not of a contract account, but something called Externally Owned Account (EOA, in Ethereum terminology). Basically that means that this is an address from which funds can be removed only if the owner of the private key for the address signs the payment transaction. 
+For this attestation type we assume that the source address being tested is not a contract account, but something called Externally Owned Account (EOA, in Ethereum terminology). Basically that means that this is an address from which funds can be removed only if the owner of the private key for the address signs the payment transaction. 
 
-If the account is a contract account, removal of funds from the contract address could be carried out in many different ways, using the contract calls (like claiming), self-destruct mechanism, etc. Using the self-destruct mechanism, even an address that could be a contract address but nothing is yet deployed on it can be abused. 
+If the account is a contract account, removal of funds from the contract address could be carried out in many different ways, using the contract calls (like claiming), self-destruct mechanism, etc. Using the self-destruct mechanism, even an address that could be a contract address but nothing is yet deployed on it, can be abused. 
 Hence, prior to using the proof in a DeFi protocol, the particular application using the proof should verify, that the account being checked is EOA. Verification whether a certain source address is EOA depends of a chain being used. In non-smart contract chains (like BTC, LTC, DOGE, XRP, ...) all addresses are EOAs. 
 
 A successful attestation is provided by extracting certain data about the transaction, which includes:
 - block number
 - block timestamp
-- [payment reference](../definitions/payment-reference.md)
+- transaction hash
 - source address
-- receiving address
+- input utxo, indicating the source address of interest
 - spent amount
-- received amount
-- whether transaction is sending from a single address to a single other address
-- [transaction status](../definitions/transaction-status.md) (accounts for failed transactions that are recorded on blockchain).
+- [payment reference](../definitions/payment-reference.md)
+
+Due to technical limitations on UTXO chains, the procedure for the attestation differs according to the existence of the standardized payment reference. In essence, payments with the standardized payment references undergo [full attestation](../definitions/account-based-vs-utxo-chains.md) while other payments undergo partial attestation. In non-UTXO chains full attestation is always performed.
 
 ## Request format
 
@@ -53,8 +55,6 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 
 ## Verification rules
 
-
-
 ### General
 
 - Only transactions that are signed by the source address' account are considered - so called Externally Owned Accounts (EOA). 
@@ -78,16 +78,16 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
   - description: Hash of the transaction on the underlying chain.
 - `inUtxo`:
   - type: `uint8`
-  - description: Index of the sourceAddress on UTXO chains.
+  - description: Index of the transaction input indicating sourceAddress on UTXO chains, 0 on non-UTXO chains.
 - `sourceAddress`:
   - type: `bytes32`,
   - description: Hash of the source address as a string. For UTXO transactions with multiple input addresses this is the address that is on the input indicated by `inUtxo` parameter. 
 - `spentAmount`:
   - type: `int256`
-  - description: The amount that went out of the `sourceAddress`, in smallest underlying units. On non-UTXO chains it includes both the payment value and fee (gas). For UTXO chains it is calculated as `outgoing_amount - returned_amount` and can be negative, that's why signed `int256` is used.
+  - description: The amount that went out of the `sourceAddress`, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as `outgoing_amount - returned_amount` and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by `inUtxo`.
 - `paymentReference`: 
   - type: `bytes32`
-  - description: If the attestation provider detects that the transaction is actually a valid payment (same conditions as for Payment), it should set this field to its the paymentReference. Otherwise, paymentReference must be 0.
+  - description: Standardized payment reference, if it exists, 0 otherwise.
 
 
 ## Comments

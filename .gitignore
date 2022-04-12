@@ -65,3 +65,6 @@ flattened/
 configs/songbird/attester-credentials.json
 configs/dev/indexer-credentials.json
 configs/dev/indexer-credentials.json
+
+# alerts
+status.json

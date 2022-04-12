@@ -2,7 +2,9 @@
 
 # 00003 - Confirmed Block Height Exists
 
-[Definition file](../../lib/verification/attestation-types/t-00003-confirmed-block-height-exists.ts)
+- id: 3
+- name: `ConfirmedBlockHeightExists`  
+- [Definition file](../../lib/verification/attestation-types/t-00003-confirmed-block-height-exists.ts)
 
 ## Description
 
@@ -31,7 +33,7 @@ A successful attestation is provided by providing the following data:
 
 ## Verification rules
 
-Given the upper boundary for the query range (`upperBoundProof`) the confirmed block on the upper query window boundary is determined and provided in response, together with the block timestamp. In addition, the number of confirmations that was used to determine the confirmation block is provided. Also average block production time in the query window is calculated and returned. Here we take the lowest and the highest (confirmed) block number in the query window and their respective timestamps. The timestamps are given in seconds, but the average block production rate is calculated in milliseconds.
+Given the upper boundary for the query range (`upperBoundProof`), the confirmed block on the upper query window boundary is determined and provided in the response, together with the block timestamp. In addition, the number of confirmations that was used to determine the confirmation block is provided. Also average block production time in the query window is calculated and returned. Here we take the lowest and the highest (confirmed) block number of the query window and their respective block timestamps. The timestamps are given in seconds, but the average block production rate is calculated in milliseconds.
 ```
                                         (highestBlock.timestamp - lowestBlock.timestamp) * 1000
 averageBlockProductionTimeMs = floor(  ---------------------------------------------------------- )
@@ -42,13 +44,13 @@ averageBlockProductionTimeMs = floor(  -----------------------------------------
 
 - `blockNumber`:
   - type: `uint64`
-  - description: Number of the confirmed block that was proved to exist.
+  - description: Number of the highest confirmed block that was proved to exist.
 - `blockTimestamp`:,
   - type: `uint64`
   - description: Timestamp of the confirmed block that was proved to exist.
 - `numberOfConfirmations`:
   - type: `uint8`
-  - description: Number of confirmations for this chain
+  - description: Number of confirmations for the blockchain.
 - `averageBlockProductionTimeMs`:
   - type: `uint64`
   - description: Average block production time based on the data in the query window.

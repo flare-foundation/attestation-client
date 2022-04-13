@@ -69,13 +69,15 @@ export interface ConfirmedBlockQueryRequest {
   numberOfConfirmations: number;
   upperBoundProof: string; // hash of confirmation block(used for syncing of edge - cases)
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
+  returnQueryBoundaryBlocks?: boolean;
 }
 
 export interface ConfirmedBlockQueryResponse {
   status: UpperBoundaryCheckStatus | "NOT_EXIST";
-  block?: DBBlockBase;
+  block?: DBBlockBase;  
+  lowerBoundaryBlock?: DBBlockBase;
+  upperBoundaryBlock?: DBBlockBase;
 }
-
 export interface ConfirmedTransactionQueryRequest {
   txId: string; // transaction id
   // blockNumber: number; // block number for the transaction with `txId
@@ -83,11 +85,14 @@ export interface ConfirmedTransactionQueryRequest {
   roundId: number; // voting round id for check
   numberOfConfirmations: number;
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
+  returnQueryBoundaryBlocks?: boolean;
 }
 
 export interface ConfirmedTransactionQueryResponse {
   status: UpperBoundaryCheckStatus | "NOT_EXIST";
   transaction?: DBTransactionBase;
+  lowerBoundaryBlock?: DBBlockBase;
+  upperBoundaryBlock?: DBBlockBase;
 }
 
 export interface ReferencedTransactionsQueryRequest {
@@ -106,5 +111,6 @@ export interface ReferencedTransactionsQueryResponse {
   status: UpperBoundaryCheckStatus | "NO_OVERFLOW_BLOCK";
   transactions?: DBTransactionBase[];
   firstOverflowBlock?: DBBlockBase;
+  lowerBoundaryBlock?: DBBlockBase;
 }
 

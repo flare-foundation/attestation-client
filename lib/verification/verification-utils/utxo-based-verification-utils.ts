@@ -1,16 +1,24 @@
+import BN from "bn.js";
 import { BtcTransaction, DogeTransaction, LtcTransaction, MCC, prefix0x, toBN, unPrefix0x } from "flare-mcc";
+import Web3 from "web3";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../generated/attestation-request-types";
-import { VerificationResponse, verifyConfirmationBlock, verifyNativePayment, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
-import BN from "bn.js";
-import Web3 from "web3";
+import { VerificationResponse, verifyNativePayment, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
 
 type UtxoType = BtcTransaction | LtcTransaction | DogeTransaction;
 type UtxoClientType = MCC.BTC | MCC.DOGE | MCC.LTC;
 
+export function extractStandardizedPaymentReference(fullTxData: UtxoType) {
+   let paymentReference = fullTxData.reference.length === 1 ? prefix0x(fullTxData.reference[0]) : "";
+   // Ignore too long payment references
+   if (unPrefix0x(paymentReference).length > 64) {
+      paymentReference = ""
+   }
+   return prefix0x(paymentReference);
+}
 interface SourceProcessingResult {
    sourceAddress?: string;
    spentAmount?: BN;
@@ -86,13 +94,12 @@ export async function utxoBasedPaymentVerification(
    iqm: IndexedQueryManager,
    client: UtxoClientType
 ): Promise<VerificationResponse<DHPayment>> {
-   let blockNumber = numberLikeToNumber(request.blockNumber);
+   // let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
       txId: unPrefix0x(request.id),
       numberOfConfirmations,
-      blockNumber,
-      upperBoundProof: request.dataAvailabilityProof,
+      upperBoundProof: request.upperBoundProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })
@@ -111,18 +118,6 @@ export async function utxoBasedPaymentVerification(
       return { status }
    }
 
-   status = await verifyConfirmationBlock({
-      recheck,
-      blockNumber,
-      numberOfConfirmations,
-      roundId,
-      dataAvailabilityProof: request.dataAvailabilityProof,
-      iqm
-   })
-   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
-      return { status }
-   }
-
    // Correct receivingAddress
    let utxoNumber = toBN(request.utxo).toNumber();
    if (!fullTxData.receivingAddress?.[utxoNumber]) {
@@ -132,7 +127,7 @@ export async function utxoBasedPaymentVerification(
    }
    let receivingAddress = fullTxData.receivingAddress[utxoNumber];
 
-   // Received amout is always just that one on `utxo` output.
+   // Received amount is always just that one on `utxo` output.
    let receivedAmount = fullTxData.receivedAmount[utxoNumber].amount;
 
 
@@ -152,21 +147,18 @@ export async function utxoBasedPaymentVerification(
       return { status }
    }
 
-   let paymentReference = dbTransaction.paymentReference || "";
-   // Ignore too long payment references
-   if(unPrefix0x(paymentReference).length > 64) {
-      paymentReference = ""
-   }
+   let paymentReference = extractStandardizedPaymentReference(fullTxData);
 
    let response = {
       stateConnectorRound: roundId,
-      blockNumber: toBN(blockNumber),
+      blockNumber: toBN(dbTransaction.blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: prefix0x(dbTransaction.transactionId),
+      inUtxo: toBN(request.inUtxo),
       utxo: toBN(request.utxo),
-      sourceAddress: Web3.utils.soliditySha3(result.sourceAddress),
-      receivingAddress: Web3.utils.soliditySha3(receivingAddress),
-      paymentReference: prefix0x(paymentReference),
+      sourceAddressHash: Web3.utils.soliditySha3(result.sourceAddress),
+      receivingAddressHash: Web3.utils.soliditySha3(receivingAddress),
+      paymentReference,
       spentAmount: result.spentAmount,
       receivedAmount,
       oneToOne: result.oneToOne,
@@ -189,13 +181,11 @@ export async function utxoBasedBalanceDecreasingTransactionVerification(
    iqm: IndexedQueryManager,
    client: UtxoClientType
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
-   let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
       txId: unPrefix0x(request.id),
       numberOfConfirmations,
-      blockNumber,
-      upperBoundProof: request.dataAvailabilityProof,
+      upperBoundProof: request.upperBoundProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })
@@ -209,24 +199,12 @@ export async function utxoBasedBalanceDecreasingTransactionVerification(
    const parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
    const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData)
 
-   status = await verifyConfirmationBlock({
-      recheck,
-      blockNumber,
-      numberOfConfirmations,
-      roundId,
-      dataAvailabilityProof: request.dataAvailabilityProof,
-      iqm
-   })
-   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
-      return { status }
-   }
-
    let inUtxoNumber = toBN(request.inUtxo).toNumber();
-   // if (!fullTxData.sourceAddress?.[inUtxoNumber]) {
-   //    return {
-   //       status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
-   //    }
-   // }
+   if (!fullTxData.sourceAddress?.[inUtxoNumber]) {
+      return {
+         status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
+      }
+   }
 
    let result = dbTransaction.paymentReference
       ? processAllInputs(fullTxData, inUtxoNumber)
@@ -236,19 +214,17 @@ export async function utxoBasedBalanceDecreasingTransactionVerification(
       return { status }
    }
 
-   let paymentReference = dbTransaction.paymentReference || "";
-   // Ignore too long payment references
-   if(unPrefix0x(paymentReference).length > 64) {
-      paymentReference = ""
-   }
+   let paymentReference = extractStandardizedPaymentReference(fullTxData);
 
    let response = {
-      blockNumber: toBN(blockNumber),
+      stateConnectorRound: roundId,
+      blockNumber: toBN(dbTransaction.blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: prefix0x(dbTransaction.transactionId),
-      sourceAddress: Web3.utils.soliditySha3(result.sourceAddress),
+      inUtxo: request.inUtxo,
+      sourceAddressHash: Web3.utils.soliditySha3(result.sourceAddress),
       spentAmount: result.spentAmount,
-      paymentReference: prefix0x(paymentReference)
+      paymentReference
    } as DHBalanceDecreasingTransaction;
 
    return {
@@ -264,40 +240,34 @@ export async function utxoBasedConfirmedBlockHeightExistsVerification(
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHConfirmedBlockHeightExists>> {
-   let blockNumber = numberLikeToNumber(request.blockNumber);
+   // let blockNumber = numberLikeToNumber(request.blockNumber);
 
-   const confirmedBlock = await iqm.getConfirmedBlock({
+   const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
       upperBoundProof: request.upperBoundProof,
       numberOfConfirmations,
-      blockNumber,
       roundId,
-      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
+      type: recheck ? 'RECHECK' : 'FIRST_CHECK',
+      returnQueryBoundaryBlocks: true
    });
 
-   let status = verifyWorkflowForBlock(confirmedBlock);
+   let status = verifyWorkflowForBlock(confirmedBlockQueryResult);
    if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
       return { status }
    }
 
-   const dbBlock = confirmedBlock.block;
+   const dbBlock = confirmedBlockQueryResult.block;
 
-   status = await verifyConfirmationBlock({
-      recheck,
-      blockNumber,
-      numberOfConfirmations,
-      roundId,
-      dataAvailabilityProof: request.dataAvailabilityProof,
-      iqm
-   })
-
-   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
-      return { status }
-   }
+   let averageBlockProductionTimeMs = toBN(Math.floor(
+      (confirmedBlockQueryResult.upperBoundaryBlock.timestamp - confirmedBlockQueryResult.lowerBoundaryBlock.timestamp)*1000 /
+      (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
+   ));
 
    let response = {
       stateConnectorRound: roundId,
       blockNumber: toBN(dbBlock.blockNumber),
-      blockTimestamp: toBN(dbBlock.timestamp)
+      blockTimestamp: toBN(dbBlock.timestamp),
+      numberOfConfirmations: toBN(numberOfConfirmations),
+      averageBlockProductionTimeMs
    } as DHConfirmedBlockHeightExists;
 
    return {
@@ -314,18 +284,16 @@ export async function utxoBasedReferencedPaymentNonExistence(
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {
-   let overflowBlockNumber = numberLikeToNumber(request.overflowBlock);
-   let endBlockNumber = numberLikeToNumber(request.endBlock);
-   let endTime = numberLikeToNumber(request.endTimestamp);
-
+   
    // TODO: check if anything needs to be done with: startBlock >= overflowBlock 
    const referencedTransactionsResponse = await iqm.getReferencedTransactions({
+      deadlineBlockNumber: numberLikeToNumber(request.deadlineBlockNumber),
+      deadlineBlockTimestamp: numberLikeToNumber(request.deadlineTimestamp),
       numberOfConfirmations,
       paymentReference: request.paymentReference,
-      overflowBlockNumber,
       upperBoundProof: request.upperBoundProof,
       roundId,
-      type: recheck ? 'RECHECK' : 'FIRST_CHECK'
+      type: recheck ? 'RECHECK' : 'FIRST_CHECK',
    });
 
    let status = verifyWorkflowForReferencedTransactions(referencedTransactionsResponse);
@@ -334,34 +302,9 @@ export async function utxoBasedReferencedPaymentNonExistence(
    }
 
    // From here on thhese two exist, dbTransactions can be an empty list.
-   const dbOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
    let dbTransactions = referencedTransactionsResponse.transactions;
-
-   // Verify overflow block is confirmed
-   status = await verifyConfirmationBlock({
-      recheck,
-      blockNumber: overflowBlockNumber,
-      numberOfConfirmations,
-      roundId,
-      dataAvailabilityProof: request.upperBoundProof,
-      iqm
-   })
-   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
-      return { status }
-   }
-
-   if (request.endTimestamp >= dbOverflowBlock.timestamp) {
-      return { status: VerificationStatus.WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP }
-   }
-   if (request.endBlock >= dbOverflowBlock.blockNumber) {
-      return { status: VerificationStatus.WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP }
-   }
-
-   // Find the first overflow block
-   let firstOverflowBlock = await iqm.getFirstConfirmedOverflowBlock(endTime, endBlockNumber);
-
-   let startTimestamp = iqm.settings.windowStartTime(roundId);
-   let firstCheckedBlock = await iqm.getFirstConfirmedBlockAfterTime(startTimestamp);
+   let firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
+   let lowerBoundaryBlock = referencedTransactionsResponse.lowerBoundaryBlock;
 
    // Check transactions for a matching
    // payment reference is ok, check `destinationAddress` and `amount`
@@ -375,7 +318,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
       for (let output of fullTxData.receivedAmount) {
          const amount = toBN(output.amount);
          const destinationAddressHash = Web3.utils.soliditySha3(output.address);
-         if (destinationAddressHash === request.destinationAddress) {
+         if (destinationAddressHash === request.destinationAddressHash) {
             destinationHashExists = true;
             totalAmount = totalAmount.add(amount);
          }
@@ -392,14 +335,15 @@ export async function utxoBasedReferencedPaymentNonExistence(
    }
 
    let response = {
-      endTimestamp: request.endTimestamp,
-      endBlock: request.endBlock,
-      destinationAddress: Web3.utils.soliditySha3(request.destinationAddress),
+      stateConnectorRound: roundId,
+      deadlineBlockNumber: request.deadlineBlockNumber,
+      deadlineTimestamp: request.deadlineTimestamp,
+      destinationAddressHash: Web3.utils.soliditySha3(request.destinationAddressHash),
       paymentReference: prefix0x(request.paymentReference),
       amount: request.amount,
-      firstCheckedBlock: toBN(firstCheckedBlock.blockNumber),
-      firstCheckedBlockTimestamp: toBN(firstCheckedBlock.timestamp),
-      firstOverflowBlock: toBN(firstOverflowBlock.blockNumber),
+      lowerBoundaryBlockNumber: toBN(lowerBoundaryBlock.blockNumber),
+      lowerBoundaryBlockTimestamp: toBN(lowerBoundaryBlock.timestamp),
+      firstOverflowBlockNumber: toBN(firstOverflowBlock.blockNumber),
       firstOverflowBlockTimestamp: toBN(firstOverflowBlock.timestamp)
    } as DHReferencedPaymentNonexistence;
 

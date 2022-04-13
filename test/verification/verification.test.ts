@@ -139,7 +139,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
    it("Should verify legit ConfirmedBlockHeightExists", async () => {
       let lastBlockNumber = await indexedQueryManager.getLastConfirmedBlockNumber();
 
-      let block = await indexedQueryManager.queryBlock({
+      let blockQueryRequest = await indexedQueryManager.queryBlock({
          blockNumber: lastBlockNumber - 2,
          roundId: ROUND_ID,
          confirmed: true
@@ -147,7 +147,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
       let request = await prepareRandomizedRequestConfirmedBlockHeightExists(
          indexedQueryManager,
-         block,
+         blockQueryRequest.result,
          SOURCE_ID,
          ROUND_ID,
          NUMBER_OF_CONFIRMATIONS,

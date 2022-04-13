@@ -29,12 +29,12 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
 
    let overflowBlockNum = randomTransaction.blockNumber + OVERFLOW_BLOCK_OFFSET;
 
-   let blockOverflow = await indexedQueryManager.queryBlock({
+   let blockOverflowQueryResult = await indexedQueryManager.queryBlock({
       blockNumber: overflowBlockNum,
       confirmed: true,
       roundId
    });
-   if (!blockOverflow) {
+   if (!blockOverflowQueryResult?.result) {
       console.log("No overflow block")
       return null;
    }
@@ -49,47 +49,46 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
    }
 
    let prevBlockIndex = overflowBlockNum - 1;
-   let prevBlock = await indexedQueryManager.queryBlock({
+   let prevBlockQueryResult = await indexedQueryManager.queryBlock({
       blockNumber: prevBlockIndex,
       confirmed: true,
       roundId
    });
-   while (prevBlock.timestamp === blockOverflow.timestamp) {
+   while (prevBlockQueryResult.result.timestamp === blockOverflowQueryResult.result.timestamp) {
       prevBlockIndex--;
-      prevBlock = await indexedQueryManager.queryBlock({
+      prevBlockQueryResult = await indexedQueryManager.queryBlock({
          blockNumber: prevBlockIndex,
          confirmed: true,
          roundId
       });
    }
 
-   let confirmationBlock = await indexedQueryManager.queryBlock({
+   let confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
       blockNumber: overflowBlockNum + numberOfConfirmations,
       roundId
    });
 
-   if (!confirmationBlock) {
+   if (!confirmationBlockQueryResult.result) {
       console.log("No confirmation block")
       return null;
    }
 
-   let endBlock = toBN(prevBlock.blockNumber);
-   let endTimestamp = toBN(prevBlock.timestamp);
+   let deadlineBlockNumber = toBN(prevBlockQueryResult.result.blockNumber);
+   let deadlineTimestamp = toBN(prevBlockQueryResult.result.timestamp);
    let overflowBlock = overflowBlockNum;
-   let dataAvailabilityProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlock.blockHash);
+   let upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
    let paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.paymentReference);
    // TODO
    // let destinationAmounts = randomTransaction.
    return {
       attestationType: AttestationType.ReferencedPaymentNonexistence,
       sourceId,
-      endTimestamp,
-      endBlock,
-      destinationAddress: Web3.utils.randomHex(32),
+      upperBoundProof,
+      deadlineBlockNumber,
+      deadlineTimestamp,      
+      destinationAddressHash: Web3.utils.randomHex(32),
       amount: toBN(Web3.utils.randomHex(16)),
-      paymentReference,
-      overflowBlock,
-      dataAvailabilityProof
+      paymentReference
    };
 
 }

@@ -26,11 +26,11 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
    if (!randomBlock) {
       return null;
    }
-   let confirmationBlock = await indexedQueryManager.queryBlock({
+   let confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
       blockNumber: randomBlock.blockNumber + numberOfConfirmations,
       roundId
    });
-   if (!confirmationBlock) {
+   if (!confirmationBlockQueryResult?.result) {
       return null;
    }
 
@@ -43,12 +43,11 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
    }
 
    let blockNumber = toBN(randomBlock.blockNumber);
-   let dataAvailabilityProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlock.blockHash);
+   let upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
    return {
       attestationType: AttestationType.ConfirmedBlockHeightExists,
       sourceId,
-      blockNumber,
-      dataAvailabilityProof
+      upperBoundProof
    };
 
 }

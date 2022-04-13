@@ -160,7 +160,8 @@ describe("Indexed query manager", () => {
       let tmpBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(timestamp);
       let currentBlockNumber = tmpBlock.blockNumber;
       while (currentBlockNumber < randomBlock.blockNumber) {
-         tmpBlock = await indexedQueryManager.queryBlock({ blockNumber: currentBlockNumber, roundId: 0, confirmed: true });
+         let tmpBlockQueryResult = await indexedQueryManager.queryBlock({ blockNumber: currentBlockNumber, roundId: 0, confirmed: true });
+         tmpBlock = tmpBlockQueryResult.result;
          assert(tmpBlock.timestamp < randomBlock.timestamp);
          currentBlockNumber++;
       }
@@ -179,13 +180,13 @@ describe("Indexed query manager", () => {
       let tmpBlock3 = await indexedQueryManager.getFirstConfirmedOverflowBlock(targetTime, randomBlock.blockNumber);
       let currentBlockNumber = randomBlock.blockNumber + 1;
       assert(tmpBlock3.blockNumber > randomBlock.blockNumber && tmpBlock3.timestamp > targetTime);
-      let currentBlock = await indexedQueryManager.queryBlock({ blockNumber: currentBlockNumber, roundId: 0, confirmed: true });
+      let currentBlockQueryResult = await indexedQueryManager.queryBlock({ blockNumber: currentBlockNumber, roundId: 0, confirmed: true });
       while (currentBlockNumber < tmpBlock3.blockNumber) {
-         assert(currentBlock.timestamp <= targetTime);
+         assert(currentBlockQueryResult.result.timestamp <= targetTime);
          currentBlockNumber++;
-         currentBlock = await indexedQueryManager.queryBlock({ blockNumber: currentBlockNumber, roundId: 0, confirmed: true });
+         currentBlockQueryResult = await indexedQueryManager.queryBlock({ blockNumber: currentBlockNumber, roundId: 0, confirmed: true });
       }
-      assert(currentBlock.blockHash === tmpBlock3.blockHash)
+      assert(currentBlockQueryResult.result.blockHash === tmpBlock3.blockHash)
    });
 
 
@@ -196,11 +197,12 @@ describe("Indexed query manager", () => {
       if (!randomTransaction) {
          console.log("Probably too little transactions. Run indexer");
       }
-      let tmpTransactions = await indexedQueryManager.queryTransactions({
+      let tmpTransactionsQueryResult = await indexedQueryManager.queryTransactions({
          roundId: 0,
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })
+      let tmpTransactions = tmpTransactionsQueryResult.result;
       assert(tmpTransactions.length === 1 && tmpTransactions[0].transactionId === randomTransaction.transactionId);
    });
 
@@ -211,14 +213,14 @@ describe("Indexed query manager", () => {
       if (!randomTransaction) {
          console.log("Probably too little transactions. Run indexer");
       }
-      let tmpTransactions = await indexedQueryManager.queryTransactions({
+      let tmpTransactionsQueryResult = await indexedQueryManager.queryTransactions({
          roundId: 0,
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })
-      assert(tmpTransactions.length > 0);
+      assert(tmpTransactionsQueryResult.result.length > 0);
       let found = false;
-      for (let tmpTransaction of tmpTransactions) {
+      for (let tmpTransaction of tmpTransactionsQueryResult.result) {
          if (tmpTransaction.transactionId === randomTransaction.transactionId) {
             found = true;
          }
@@ -242,19 +244,19 @@ describe("Indexed query manager", () => {
    it("Should confirmed block queries respect start time", async () => {
       startTime = 0;
       let randomConfirmedBlock = (await randomGenerators.get(TxOrBlockGeneratorType.BlockConfirmed).next()) as DBBlockBase;
-      let block = await indexedQueryManager.queryBlock({
+      let blockQueryResult = await indexedQueryManager.queryBlock({
          roundId: 1,
          blockNumber: randomConfirmedBlock.blockNumber,
          confirmed: true
       })
-      assert(block, "Block is not returned by query");
-      startTime = block.timestamp + 1;
-      block = await indexedQueryManager.queryBlock({
+      assert(blockQueryResult, "Block is not returned by query");
+      startTime = blockQueryResult.result.timestamp + 1;
+      blockQueryResult = await indexedQueryManager.queryBlock({
          roundId: 1,
          blockNumber: randomConfirmedBlock.blockNumber,
          confirmed: true
       })
-      assert(!block);
+      assert(!blockQueryResult);
    });
 
    it("Should confirmed transactions queries respect start time and endBlock number", async () => {
@@ -262,28 +264,28 @@ describe("Indexed query manager", () => {
       let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
 
       let randomTransaction = (await randomGenerators.get(TxOrBlockGeneratorType.TxGeneral).next()) as DBTransactionBase;
-      let transactions = await indexedQueryManager.queryTransactions({
+      let transactionsQueryResult = await indexedQueryManager.queryTransactions({
          roundId: 1,
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })
-      assert(transactions.length === 1, "Transaction is not returned by query");
+      assert(transactionsQueryResult.result.length === 1, "Transaction is not returned by query");
 
-      let transaction = transactions[0];
+      let transaction = transactionsQueryResult[0];
       startTime = transaction.timestamp + 1;
-      transactions = await indexedQueryManager.queryTransactions({
+      transactionsQueryResult = await indexedQueryManager.queryTransactions({
          roundId: 1,
          endBlock: lastConfirmedBlock,
          transactionId: randomTransaction.transactionId
       })
-      assert(transactions.length === 0, "Does not respect start time");
+      assert(transactionsQueryResult.result.length === 0, "Does not respect start time");
 
       startTime = 0;
-      transactions = await indexedQueryManager.queryTransactions({
+      transactionsQueryResult = await indexedQueryManager.queryTransactions({
          roundId: 1,
          endBlock: transaction.blockNumber - 1,
          transactionId: randomTransaction.transactionId
       })
-      assert(transactions.length === 0, "Does not respect endBlock");
+      assert(transactionsQueryResult.result.length === 0, "Does not respect endBlock");
    });
 });

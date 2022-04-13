@@ -88,22 +88,22 @@ export function verifyWorkflowForReferencedTransactions(result: ReferencedTransa
 //    return VerificationStatus.NEEDS_MORE_CHECKS;
 // }
 
-export async function verifyConfirmationBlock(params: RecheckParams) {
-   if (params.recheck) {
-      let confirmationBlockIndex = params.blockNumber + params.numberOfConfirmations;
-      let confirmationBlock = await params.iqm.queryBlock({
-         blockNumber: confirmationBlockIndex,
-         roundId: params.roundId
-      });
-      if (!confirmationBlock) {
-         return VerificationStatus.NOT_CONFIRMED;
-      }
-      if (confirmationBlock.blockHash != params.dataAvailabilityProof) {
-         return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF;
-      }
-   }
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
+// export async function verifyConfirmationBlock(params: RecheckParams) {
+//    if (params.recheck) {
+//       let confirmationBlockIndex = params.blockNumber + params.numberOfConfirmations;
+//       let confirmationBlock = await params.iqm.queryBlock({
+//          blockNumber: confirmationBlockIndex,
+//          roundId: params.roundId
+//       });
+//       if (!confirmationBlock) {
+//          return VerificationStatus.NOT_CONFIRMED;
+//       }
+//       if (confirmationBlock.blockHash != params.dataAvailabilityProof) {
+//          return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF;
+//       }
+//    }
+//    return VerificationStatus.NEEDS_MORE_CHECKS;
+// }
 
 export function verifyNativePayment(fullTxData: TransactionBase<any, any>) {
    if (!fullTxData.isNativePayment) {

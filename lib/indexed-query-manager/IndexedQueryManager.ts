@@ -133,7 +133,18 @@ export class IndexedQueryManager {
     }
     let lowerQueryWindowBlock: DBBlockBase;
     let upperQueryWindowBlock: DBBlockBase;
-  
+
+    if (params.returnQueryBoundaryBlocks) {
+      lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
+      let upperBlockResult = await this.queryBlock({
+        endBlock: params.endBlock,
+        blockNumber: params.endBlock,
+        roundId: params.roundId,
+        confirmed: true
+      })
+      upperQueryWindowBlock = upperBlockResult.result;
+    }
+
     return {
       result: results as DBTransactionBase[],
       lowerQueryWindowBlock,
@@ -142,17 +153,17 @@ export class IndexedQueryManager {
   }
 
   async queryBlock(params: BlockQueryParams): Promise<BlockQueryResult> {
-    if(!params.blockNumber && !params.hash) {
+    if (!params.blockNumber && !params.hash) {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
     }
     let startTimestamp = this.settings.windowStartTime(params.roundId);
     let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.timestamp >= :timestamp", { timestamp: startTimestamp });
-    if(params.endBlock) {
-      query = query.andWhere("block.blockNumber <= :endBlock", { endBlock: params.endBlock }); 
+    if (params.endBlock) {
+      query = query.andWhere("block.blockNumber <= :endBlock", { endBlock: params.endBlock });
     }
-    if(params.confirmed) {
+    if (params.confirmed) {
       query = query.andWhere("block.confirmed = :confirmed", { confirmed: !!params.confirmed });
     }
     if (params.hash) {
@@ -165,22 +176,20 @@ export class IndexedQueryManager {
     let lowerQueryWindowBlock: DBBlockBase;
     let upperQueryWindowBlock: DBBlockBase;
 
-    if(params.returnQueryBoundaryBlocks) {
-        lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
-        let upperBlockResult = await this.queryBlock({
-
-        })
-    }
-    if (result) {
-      return {
-        result: result as DBBlockBase,
-        lowerQueryWindowBlock,
-        upperQueryWindowBlock  
-      }
+    if (params.returnQueryBoundaryBlocks) {
+      lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
+      let upperBlockResult = await this.queryBlock({
+        endBlock: params.blockNumber,
+        blockNumber: params.blockNumber,
+        roundId: params.roundId,
+        confirmed: true
+      })
+      upperQueryWindowBlock = upperBlockResult.result;
     }
     return {
+      result: result ? result as DBBlockBase : undefined,
       lowerQueryWindowBlock,
-      upperQueryWindowBlock      
+      upperQueryWindowBlock
     }
   }
 
@@ -194,7 +203,7 @@ export class IndexedQueryManager {
     }
     return null;
   }
-  
+
   private async upperBoundaryCheck(upperBoundProof: string, numberOfConfirmations: number, recheck: boolean): Promise<UpperBoundaryCheck> {
     let confBlock = await this.getBlockByHash(upperBoundProof);
     if (!confBlock) {
@@ -228,19 +237,22 @@ export class IndexedQueryManager {
   ////////////////////////////////////////////////////////////
 
   public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-    let {status, U} = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
-    if(status != "OK") {
+    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    if (status != "OK") {
       return { status }
     }
-    let block = await this.queryBlock({
+    let blockQueryResult = await this.queryBlock({
       endBlock: U,
       blockNumber: params.blockNumber ? params.blockNumber : U,
       roundId: params.roundId,
-      confirmed: true
+      confirmed: true,
+      returnQueryBoundaryBlocks: params.returnQueryBoundaryBlocks
     });
     return {
-      status: block ? "OK" : "NOT_EXIST",
-      block: block
+      status: blockQueryResult ? "OK" : "NOT_EXIST",
+      block: blockQueryResult.result,
+      lowerBoundaryBlock: blockQueryResult.lowerQueryWindowBlock,
+      upperBoundaryBlock: blockQueryResult.upperQueryWindowBlock
     };
   }
 
@@ -249,18 +261,22 @@ export class IndexedQueryManager {
   ////////////////////////////////////////////////////////////
 
   public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    let {status, U} = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
-    if(status != "OK") {
+    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    if (status != "OK") {
       return { status }
     }
-    let transactions = await this.queryTransactions({
+    let transactionsQueryResult = await this.queryTransactions({
       roundId: params.roundId,
       endBlock: U,
       transactionId: params.txId,
+      returnQueryBoundaryBlocks: params.returnQueryBoundaryBlocks
     } as TransactionQueryParams);
+    let transactions = transactionsQueryResult.result;
     return {
       status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
       transaction: transactions[0],
+      lowerBoundaryBlock: transactionsQueryResult.lowerQueryWindowBlock,
+      upperBoundaryBlock: transactionsQueryResult.upperQueryWindowBlock
     };
   }
 
@@ -272,8 +288,8 @@ export class IndexedQueryManager {
     params: ReferencedTransactionsQueryRequest
   ): Promise<ReferencedTransactionsQueryResponse> {
 
-    let {status, U} = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
-    if(status != "OK") {
+    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    if (status != "OK") {
       return { status }
     }
 
@@ -284,16 +300,19 @@ export class IndexedQueryManager {
       }
     }
 
-    let transactions = await this.queryTransactions({
+    let transactionsQueryResult = await this.queryTransactions({
       roundId: params.roundId,
       endBlock: firstOverflowBlock.blockNumber - 1,
       paymentReference: params.paymentReference,
+      returnQueryBoundaryBlocks: true
     } as TransactionQueryParams);
 
+    let transactions = transactionsQueryResult.result
     return {
       status: "OK",
       transactions,
-      firstOverflowBlock
+      firstOverflowBlock,
+      lowerBoundaryBlock: transactionsQueryResult.lowerQueryWindowBlock
     };
   }
 

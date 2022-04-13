@@ -12,7 +12,7 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration>{
 
   @optional() public syncReadAhead: number = 30;
 
-  public blockCollecting: "raw" | "rawUnforkable" | "tips" = "raw";
+  @optional() public blockCollecting: "raw" | "rawUnforkable" | "tips" = "raw";
 
   @optional() public minimalStorageHistoryDays: number = 1;
   @optional() public minimalStorageHistoryBlocks: number = 1000;

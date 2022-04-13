@@ -4,8 +4,8 @@
 //  SOURCE_ID=BTC CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/verification/verification.test.ts
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
-import { AttesterClientChain } from "../../lib/attester/AttesterClientChain";
 import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
+import { ChainConfiguration, ChainsConfiguration } from "../../lib/chain/ChainConfiguration";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
@@ -16,7 +16,7 @@ import { prepareRandomizedRequestPayment } from "../../lib/indexed-query-manager
 import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00002-balance-decreasing-transaction";
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
-import { IndexerClientChain, IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
+import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
 import { readConfig, readCredentials } from "../../lib/utils/config";
 import { DatabaseService } from "../../lib/utils/databaseService";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
@@ -46,6 +46,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
    let client: MccClient;
    let indexerConfiguration: IndexerConfiguration;
    let attesterClientConfiguration: AttesterClientConfiguration;
+   let chainsConfiguration: ChainsConfiguration;
    let chainName: string;
    let startTime = 0;
    let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
@@ -55,19 +56,20 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       // indexerConfiguration = indexerConfig as IndexerConfiguration
       // attesterClientConfiguration = configAttestationClient as AttesterClientConfiguration;
 
-      indexerConfiguration = readConfig<IndexerConfiguration>("indexer");
-      attesterClientConfiguration = readConfig<AttesterClientConfiguration>("attester");
-      const attesterCredentials = readCredentials<AttesterCredentials>("attester");
+      indexerConfiguration = readConfig(new IndexerConfiguration(), "indexer");
+      chainsConfiguration = readConfig(new ChainsConfiguration(), "chains");
+      attesterClientConfiguration = readConfig(new AttesterClientConfiguration(), "attester");
+      const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
 
       chainName = getSourceName(SOURCE_ID);
-      let indexerChainConfiguration = indexerConfiguration.chains.find(chain => chain.name === chainName) as IndexerClientChain;
+      let indexerChainConfiguration = chainsConfiguration.chains.find(chain => chain.name === chainName) as ChainConfiguration;
       client = MCC.Client(SOURCE_ID, {
          ...indexerChainConfiguration.mccCreate,
          rateLimitOptions: indexerChainConfiguration.rateLimitOptions
       });
       //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
-      let attesterClientChainConfiguration = attesterClientConfiguration.chains.find(chain => chain.name === chainName) as AttesterClientChain;
+      let attesterClientChainConfiguration = chainsConfiguration.chains.find(chain => chain.name === chainName) as ChainConfiguration;
 
       //NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
 
@@ -174,7 +176,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
          let randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxNativeReferencedPayment).next();
 
          if (!randomTransaction) {
-            if(maxReps > 0) {
+            if (maxReps > 0) {
                continue;
             }
             console.log("Cannot find the case - transaction")
@@ -192,7 +194,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
          );
 
          if (!request) {
-            if(maxReps > 0) {
+            if (maxReps > 0) {
                continue;
             }
             console.log("Cannot find the case - request")

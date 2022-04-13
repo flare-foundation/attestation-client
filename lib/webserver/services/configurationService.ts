@@ -2,13 +2,21 @@ import { Factory, Singleton } from "typescript-ioc";
 import { AttesterWebOptions } from "../../attester/AttesterClientConfiguration";
 import { readCredentials } from "../../utils/config";
 import { DatabaseConnectOptions } from "../../utils/databaseService";
-import { getGlobalLogger } from "../../utils/logger";
+import { AdditionalTypeInfo, IReflection } from "../../utils/typeReflection";
 
 
-export class ServerCredentials {
-   port: number;
-   web: AttesterWebOptions;
-   attesterDatabase: DatabaseConnectOptions;
+export class ServerCredentials implements IReflection<ServerCredentials> {
+   port: number = 9500;
+   web = new AttesterWebOptions();
+   attesterDatabase = new DatabaseConnectOptions();
+
+   instanciate(): ServerCredentials {
+      return new ServerCredentials();
+   }
+   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+      return null;
+   }
+
 };
 
 
@@ -19,7 +27,7 @@ export class ConfigurationService {
    serverCredentials: ServerCredentials;
 
    constructor() {
-      this.serverCredentials = readCredentials<ServerCredentials>("backend");
+      this.serverCredentials = readCredentials(new ServerCredentials(), "backend");
    }
 
 }

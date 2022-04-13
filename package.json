@@ -36,6 +36,7 @@
     "stateconnector-hh": "concurrently -r --success first \"yarn hardhat node > nul\" \"wait-on http://127.0.0.1:8545 && yarn deploy\"",
     "stateconnector": "yarn hardhat run scripts/deploy.ts --network scdev",
     "build": "yarn tsc",
+    "buildmcc": "cd ../mcc && yarn build && cd ../attester-client && yarn link flare-mcc && yarn build",
     "docker-build": "bash scripts/docker-build.sh",
     "docker-deploy": "bash scripts/docker-deploy.sh",
     "prewatch-and-run": "npm-run-all typechain-web3-v1",

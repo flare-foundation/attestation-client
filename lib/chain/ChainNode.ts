@@ -3,8 +3,7 @@ import { ChainType, MCC, MccClient } from "flare-mcc";
 import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { AttesterClientChain } from "../attester/AttesterClientChain";
-import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
+import { ChainConfiguration } from "./ChainConfiguration";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
@@ -22,13 +21,12 @@ export class ChainNode {
   chainName: string;
   chainType: ChainType;
   client: MccClient;
-  stateConnector!: StateConnectorInstance;
 
   // node rate limiting control
   requestTime: number = 0;
   requestsPerSecond: number = 0;
 
-  conf: AttesterClientChain;
+  chainConfig: ChainConfiguration;
 
   transactionsQueue = new Array<Attestation>();
   transactionsPriorityQueue = new PriorityQueue<Attestation>();
@@ -41,51 +39,14 @@ export class ChainNode {
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
-  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, chainConfiguration: AttesterClientChain) {
+  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, chainConfiguration: ChainConfiguration) {
     this.chainName = chainName;
     this.chainType = chainType;
     this.chainManager = chainManager;
-    this.conf = chainConfiguration;
-
-    const url = this.conf.url;
-    const username = this.conf.username;
-    const password = this.conf.password;
+    this.chainConfig = chainConfiguration;
 
     // create chain client
-    switch (this.chainType) {
-      case ChainType.BTC:
-      case ChainType.LTC:
-      case ChainType.DOGE:
-        this.client = MCC.Client(this.chainType, {
-          url,
-          username,
-          password,
-          rateLimitOptions: {
-            maxRPS: chainConfiguration.maxRequestsPerSecond,
-            timeoutMs: chainConfiguration.clientTimeout,
-            retries: chainConfiguration.clientRetries,
-            onSend: this.onSend.bind(this),
-          },
-        });
-        break;
-      case ChainType.XRP:
-        this.client = MCC.Client(this.chainType, {
-          url,
-          username,
-          password,
-          rateLimitOptions: {
-            maxRPS: chainConfiguration.maxRequestsPerSecond,
-            timeoutMs: chainConfiguration.clientTimeout,
-            retries: chainConfiguration.clientRetries,
-            onSend: this.onSend.bind(this),
-          },
-        });
-        break;
-      case ChainType.ALGO:
-        throw new Error("Not yet Implemented");
-      default:
-        throw new Error("");
-    }
+    this.client = MCC.Client(this.chainType, chainConfiguration.mccCreate);
 
     //const confirmations = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig( )
 
@@ -128,7 +89,7 @@ export class ChainNode {
 
     if (this.requestTime !== time) return true;
 
-    return this.requestsPerSecond < this.conf.maxRequestsPerSecond;
+    return this.requestsPerSecond < this.chainConfig.maxRequestsPerSecond;
   }
 
   addRequestCount() {
@@ -143,7 +104,7 @@ export class ChainNode {
   }
 
   canProcess() {
-    return this.canAddRequests() && this.transactionsProcessing.length < this.conf.maxProcessingTransactions;
+    return this.canAddRequests() && this.transactionsProcessing.length < this.chainConfig.maxProcessingTransactions;
   }
 
   ////////////////////////////////////////////
@@ -245,7 +206,7 @@ export class ChainNode {
     }
 
     // TODO - failure simulation
-    verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification )
+    verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
 
@@ -258,7 +219,7 @@ export class ChainNode {
           // TODO: check this definition with Alen! it should be REVEAL_TIME_END - REVEAL_OFFSET - REVERIFICATION_OFFSET ?
           const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) - getTimeMilli()) / 1000;
 
-          this.delayQueue(attestation, timeDelay - this.conf.reverificationTimeOffset);
+          this.delayQueue(attestation, timeDelay - this.chainConfig.reverificationTimeOffset);
         } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
           // TODO: handle this case and do not commit
           // TODO: message other clients or what? do not submit? do not submit that source???
@@ -284,12 +245,12 @@ export class ChainNode {
 
         // Retries
         attestation.processEndTime = getTimeMilli();
-        if (attestation.retry < this.conf.maxFailedRetry) {
+        if (attestation.retry < this.chainConfig.maxFailedRetry) {
           this.chainManager.logger.warning(`  * transaction verification error (retry ${attestation.retry})`);
 
           attestation.retry++;
 
-          this.delayQueue(attestation, this.conf.delayBeforeRetry);
+          this.delayQueue(attestation, this.chainConfig.delayBeforeRetry);
         } else {
           this.chainManager.logger.error(`  * transaction verification error`);
           this.processed(attestation, AttestationStatus.invalid);

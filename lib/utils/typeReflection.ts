@@ -1,8 +1,23 @@
+import { getOptionalKeys } from "flare-mcc";
 import { getGlobalLogger } from "./logger";
 
-const reflect = (target: any, memberName: string) => {
-};
 
+export class AdditionalTypeInfo {
+
+  arrayMap = new Map<string, any>();
+  additionalKeys = new Map<string, any>();
+
+  getArrayType(name: string) {
+    return this.arrayMap.get(name);
+  }
+
+}
+
+export interface IReflection<T> {
+  instanciate(): T;
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo;
+
+}
 
 function getType(object: any) {
   let type = typeof (object);
@@ -14,24 +29,56 @@ function getType(object: any) {
   return type;
 }
 
-function isEqualTypeUni(parent: string, A: any, B: any, issue: string, checkType: boolean): boolean {
+function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, optionalNotFound: string, checkType: boolean): boolean {
   let valid = true;
 
-  for (let keyA of Object.keys(A)) {
+  const typeInfoA = A.getAdditionalTypeInfo ? A.getAdditionalTypeInfo(B) : null;
+
+  const keysA = Object.keys(A);
+  typeInfoA?.additionalKeys?.forEach((value: any, key: string) => { keysA.push(key); });
+
+  const optionalAkeys = getOptionalKeys(A);
+  const optionalA = optionalAkeys ? Object.keys(optionalAkeys) : [];
+
+  for (let keyA of keysA) {
     let found = false;
 
-    const typeA = typeof (A[keyA]);
-    const realTypeA = getType(A[keyA]);
+    let typeA = typeof (A[keyA]);
+    let realTypeA = getType(A[keyA]);
+    let objA = A[keyA];
 
-    for (let keyB of Object.keys(B)) {
+    const userObjA = typeInfoA?.additionalKeys ? typeInfoA.additionalKeys.get(keyA) : undefined;
+
+    if (userObjA) {
+      objA = userObjA;
+      typeA = typeof (objA);
+      realTypeA = getType(objA);
+    }
+
+    const typeInfoB = B.getAdditionalTypeInfo ? B.getAdditionalTypeInfo(A) : null;
+
+    const keysB = Object.keys(B);
+
+    typeInfoB?.additionalKeys?.forEach((value: any, key: string) => { keysB.push(key); });
+
+    for (let keyB of keysB) {
 
       if (keyA === keyB) {
         found = true;
 
         if (checkType) {
 
-          const typeB = typeof (B[keyA]);
-          const realTypeB = getType(B[keyA]);
+          const userObjB = typeInfoB?.additionalKeys ? typeInfoB.additionalKeys.get(keyA) : undefined;
+
+          let objB = B[keyA];
+          let typeB = typeof (objB);
+          let realTypeB = getType(objB);
+
+          if (userObjB) {
+            objB = userObjB;
+            typeB = typeof (objB);
+            realTypeB = getType(objB);
+          }
 
           if (typeA === typeB) {
             // check if this is class
@@ -39,16 +86,11 @@ function isEqualTypeUni(parent: string, A: any, B: any, issue: string, checkType
 
               // handle array
               if (realTypeA as any === "Array" && realTypeB as any === "Array") {
-                const lenA = A[keyA].length;
+                const arrayType = typeInfoA.getArrayType(keyA);
 
-                if (lenA === 0) {
-                  // what now? we do not have a base to compare with
-
-                }
-
-                const lenB = B[keyA].length;
+                const lenB = objB.length;
                 for (let i = 0; i < lenB; i++) {
-                  if (!isEqualType(A[keyA][0], B[keyA][i], `${keyA}[${i}].`)) {
+                  if (!isEqualType(arrayType, objB[i], parent + `${keyA}[${i}].`)) {
                     valid = false;
                   }
                 }
@@ -56,7 +98,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, issue: string, checkType
               }
               else {
                 // handle object
-                if (!isEqualType(A[keyA], B[keyA], `${keyA}.`)) {
+                if (!isEqualType(objA, objB, parent + `${keyA}.`)) {
                   valid = false;
                 }
               }
@@ -73,7 +115,22 @@ function isEqualTypeUni(parent: string, A: any, B: any, issue: string, checkType
 
     if (!found) {
       valid = false;
-      getGlobalLogger().error2(`${issue} "${parent}${keyA}:${realTypeA}"`);
+      if (checkType) {
+        const isOptional = optionalA.find(x=>x==keyA);
+
+        if( isOptional ) {
+          getGlobalLogger().info(`${optionalNotFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
+        }
+        else {
+          getGlobalLogger().error2(`${notFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
+        }
+
+        // unify
+        B[keyA]=A[keyA];
+      }
+      else {
+        getGlobalLogger().warning(`${notFound} "${parent}${keyA}:${realTypeA}"`);
+      }
     }
   }
 
@@ -82,23 +139,20 @@ function isEqualTypeUni(parent: string, A: any, B: any, issue: string, checkType
 
 
 export function isEqualType(A: any, B: any, parent: string = ""): boolean {
-  const testAB = isEqualTypeUni(parent, A, B, "missing propery", true);
-  const testBA = isEqualTypeUni(parent, B, A, "unknown propery", false);
+  const testAB = isEqualTypeUni(parent, A, B, "missing propery", "property using default value" , true);
+  const testBA = isEqualTypeUni(parent, B, A, "unknown propery", "" , false);
 
   return testAB && testBA;
 }
 
+let reflectionMap = new Map<string, Function>();
 
-import "reflect-metadata";
-const formatMetadataKey = Symbol("format");
-function reflection(formatString: string) {
-  return Reflect.metadata(formatMetadataKey, formatString);
-}
-function getReflection(target: any, propertyKey: string) {
-  return Reflect.getMetadata(formatMetadataKey, target, propertyKey);
+function instanciate(className: string) {
+  return reflectionMap.get(className).prototype.instanciate();
 }
 
-class A {
-    @reflection("number")
-    a: number;
+export function reflection() {
+  return function (constructor: Function) {
+    reflectionMap.set(constructor.name, constructor);
+  }
 }

@@ -1,6 +1,4 @@
-import { on } from "events";
 import { ChainType, MCC } from "flare-mcc";
-import { rippleTimeToUnixTime } from "xrpl";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
@@ -14,9 +12,11 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
+import { ChainsConfiguration } from "../chain/ChainConfiguration";
 
 export class AttesterClient {
   config: AttesterClientConfiguration;
+  chainsConfig: ChainsConfiguration;
   credentials: AttesterCredentials;
   logger: AttLogger;
   roundMng: AttestationRoundManager;
@@ -24,7 +24,7 @@ export class AttesterClient {
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
 
-  constructor(configuration: AttesterClientConfiguration, credentials: AttesterCredentials, logger?: AttLogger) {
+  constructor(configuration: AttesterClientConfiguration, credentials: AttesterCredentials, chains: ChainsConfiguration, logger?: AttLogger) {
     if (logger) {
       this.logger = logger;
     } else {
@@ -32,6 +32,7 @@ export class AttesterClient {
     }
 
     this.config = configuration;
+    this.chainsConfig = chains;
     this.credentials = credentials;
     this.chainManager = new ChainManager(this.logger);
     this.attesterWeb3 = new AttesterWeb3(this.logger, this.config, this.credentials);
@@ -172,7 +173,7 @@ export class AttesterClient {
   async initializeChains() {
     this.logger.info("initializing chains");
 
-    for (const chain of this.config.chains) {
+    for (const chain of this.chainsConfig.chains) {
       const chainType = MCC.getChainType(chain.name);
 
       if (chainType === ChainType.invalid) {
@@ -182,7 +183,7 @@ export class AttesterClient {
 
       const node = new ChainNode(this.chainManager, chain.name, chainType, chain);
 
-      this.logger.info(`chain ${chain.name}:#${chainType} '${chain.url}'`);
+      this.logger.info(`chain ${chain.name}:#${chainType}`);
 
       // validate this chain node
       if (!(await node.isHealthy())) {

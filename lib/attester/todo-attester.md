@@ -9,7 +9,7 @@
 [x] add another table for ALL attesttaion request
 [x] configs are not specified by specific file but by directory
 [x] .env only config pack folder  CONFIG_PATH
-[ ] create json files dynamic checker (with tsc)
+[x] create configuration json files runtime validator
 [x] reverification buf in verification (too often) local not updated DB 
 [ ] handling system_failure blocks
 [x] cleanup spammer config definitions
@@ -19,7 +19,7 @@
 [x] save attester nounce and txid when commited and revealed (for easy debugging)
 [x] make DEV build not submit into network and use local DB
 [ ] gracefull exit/restart (kill -2)
-[ ] custom tail with our logger
+[x] custom tail with our logger
 [ ] RPC exception (unhandled promise ~524 timeout ....)
 [x] signAndFinalize for wait check if we are still in round epoch!
 [x] set transactionPollingTimeout settable from config (error mining not done in 750 seconds)
@@ -35,5 +35,10 @@
 [ ] attester-config cleanup
     [/] does not need commitTime (it is used to emit warning)
     [ ] how much of chain info is needed (can it be used from indexer)
+
+[ ] configurations
+    [x] support JSON EOL comment
+    [x] support last comma (,})
+    [ ] make app to validate configurations before actual run
 
 

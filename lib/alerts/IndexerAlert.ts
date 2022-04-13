@@ -19,7 +19,7 @@ export class IndexerAlert extends AlertBase {
 
         if (!IndexerAlert.dbService) {
 
-            const credentials = readCredentials<AttesterCredentials>("attester");
+            const credentials = readCredentials(new AttesterCredentials(), "attester");
 
             IndexerAlert.dbService = new DatabaseService(logger, credentials.indexerDatabase, "indexer");
         }

@@ -1,6 +1,7 @@
 import { ChainType, IBlock, MCC } from "flare-mcc";
 import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
+import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
@@ -13,7 +14,7 @@ import { getUnixEpochTimestamp, prepareString, round, secToHHMMSS, sleepms } fro
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
 import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
-import { IndexerClientChain as IndexerChainConfiguration, IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
+import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { Interlacing } from "./interlacing";
 
 var yargs = require("yargs");
@@ -34,7 +35,8 @@ class PreparedBlock {
 
 export class Indexer {
   config: IndexerConfiguration;
-  chainConfig: IndexerChainConfiguration;
+  chainsConfig: ChainsConfiguration;
+  chainConfig: ChainConfiguration;
   credentials: IndexerCredentials;
   chainType: ChainType;
   cachedClient: CachedMccClient<any, any>;
@@ -70,11 +72,11 @@ export class Indexer {
 
   interlace = new Interlacing();
 
-  constructor(config: IndexerConfiguration, credentials: IndexerCredentials, chainName: string) {
+  constructor(config: IndexerConfiguration, chainsConfig: ChainsConfiguration, credentials: IndexerCredentials, chainName: string) {
     this.config = config;
     this.credentials = credentials;
     this.chainType = MCC.getChainType(chainName);
-    this.chainConfig = config.chains.find((el) => el.name === chainName)!;
+    this.chainConfig = chainsConfig.chains.find((el) => el.name === chainName)!;
 
     this.logger = getGlobalLogger();
 
@@ -725,10 +727,11 @@ async function runIndexer() {
   setRetryFailureCallback(localRetryFailure);
 
   // Reading configuration
-  const config = readConfig<IndexerConfiguration>("indexer");
-  const credentials = readCredentials<IndexerCredentials>("indexer");
+  const config = readConfig(new IndexerConfiguration(), "indexer");
+  const chains = readConfig(new ChainsConfiguration(), "chains");
+  const credentials = readCredentials(new IndexerCredentials(), "indexer");
 
-  const indexer = new Indexer(config, credentials, args["chain"]);
+  const indexer = new Indexer(config, chains, credentials, args["chain"]);
 
   //displayStats();
 

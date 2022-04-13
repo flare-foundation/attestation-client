@@ -14,8 +14,8 @@ export class AttesterAlert extends AlertBase {
     constructor(name: string, logger: AttLogger, mode: string, path: string, restart: AlertRestartConfig) {
         super(name, logger, restart);
 
-        const credentials = readCredentials<AttesterCredentials>("attester", mode, path);
-        const config = readConfig<AttesterClientConfiguration>("attester", mode, path);
+        const credentials = readCredentials(new AttesterCredentials(), "attester", mode, path);
+        const config = readConfig(new AttesterClientConfiguration(), "attester", mode, path);
 
         this.dbService = new DatabaseService(logger, credentials.attesterDatabase, "attester");
 

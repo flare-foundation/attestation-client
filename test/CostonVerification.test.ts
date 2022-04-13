@@ -5,6 +5,7 @@
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
 import { AttesterClientConfiguration, AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
+import { ChainsConfiguration } from "../lib/chain/ChainConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
@@ -43,10 +44,10 @@ describe("Coston verification test", () => {
     currentBufferNumber = Math.floor((now - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
     console.log(`Current buffer number ${currentBufferNumber}, mod: ${currentBufferNumber % TOTAL_STORED_PROOFS}`)
 
-    let configIndexer = readConfig<IndexerConfiguration>("indexer");
+    let configIndexer = readConfig(new ChainsConfiguration(), "chains");
     let chainIndexerConfig = configIndexer.chains.find(item => item.name === 'BTC')
-    let configAttestationClient = readConfig<AttesterClientConfiguration>("attester");
-    let attesterCredentials = readCredentials<AttesterCredentials>("attester");
+    let configAttestationClient = readConfig(new AttesterClientConfiguration(), "attester");
+    let attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
 
     client = MCC.Client(ChainType.BTC, {
       ...chainIndexerConfig.mccCreate,

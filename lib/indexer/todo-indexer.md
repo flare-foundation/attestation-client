@@ -23,7 +23,7 @@
 - [x] save vote verification data
 - [x] add indexQueryHandler DAC info
 - [x] split file into logical units
-
+- [ ] add alerts status 'unhealthy' if node is unhealthy (and check)
 
 - [ ] indexer - analytics table 
      - [ ] when block is visible

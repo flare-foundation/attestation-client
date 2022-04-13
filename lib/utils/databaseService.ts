@@ -1,15 +1,15 @@
+import { optional } from "flare-mcc";
 import { Connection, createConnection } from "typeorm";
 import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";
 
 export class DatabaseConnectOptions {
-    type: string;
-
-    host: string;
-    port: number;
-    database: string;
-    username: string;
-    password: string;
+    @optional() type: string = "mysql";
+    @optional() host: string = "localhost";
+    @optional() port: number = 3306;
+    database: string = "database";
+    username: string = "username";
+    password: string = "password";
 
 }
 

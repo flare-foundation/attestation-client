@@ -3,20 +3,20 @@ import { ChainType, MCC, MccClient, sleepMs } from "flare-mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { AttesterClientChain } from "../attester/AttesterClientChain";
 import { AttesterClientConfiguration, AttesterCredentials, AttesterWebOptions } from "../attester/AttesterClientConfiguration";
+import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { RandomDBIterator } from "../indexed-query-manager/indexed-query-manager-utils";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
-import { IndexerClientChain, IndexerConfiguration } from "../indexer/IndexerConfiguration";
+import { IndexerConfiguration } from "../indexer/IndexerConfiguration";
 import { readConfig, readCredentials } from "../utils/config";
-import { DatabaseConnectOptions } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
-import { getTestStateConnectorAddress, getWeb3, getWeb3Contract } from "../utils/utils";
+import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
+import { getWeb3, getWeb3Contract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
@@ -37,71 +37,30 @@ var yargs = require("yargs");
 let args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC", })
   .option("credentials", { alias: "cred", type: "string", description: "Path to credentials json file", default: "./configs/spammer-credentials.json", demand: false, })
-
-  .option("rpcLink", {
-    alias: "r",
-    type: "string",
-    description: "RPC to Flare network",
-    default: "http://127.0.0.1:9650/ext/bc/C/rpc",
-  })
-  .option("abiPath", {
-    alias: "a",
-    type: "string",
-    description: "Path to abi JSON file",
-    default: "artifacts/contracts/StateConnector.sol/StateConnector.json",
-  })
-  .option("contractAddress", {
-    alias: "t",
-    type: "string",
-    description: "Address of the deployed contract"
-  })
-  .option("range", {
-    alias: "w",
-    type: "number",
-    description: "Random block range",
-    default: 1000,
-  })
-  .option("nonceResetCount", {
-    alias: "e",
-    type: "number",
-    description: "Reset nonce period",
-    default: 10,
-  })
-  .option("delay", {
-    alias: "d",
-    type: "number",
-    description: "Delay between sending transactions from the same block",
-    default: 500,
-  })
-  .option("accountsFile", {
-    alias: "k",
-    type: "string",
-    description: "Private key accounts file",
-    default: "test-1020-accounts.json",
-  })
-  .option("startAccountId", {
-    alias: "b",
-    type: "number",
-    description: "Start account id",
-    default: 0,
-  })
-  .option("numberOfAccounts", {
-    alias: "o",
-    type: "number",
-    description: "Number of accounts",
-    default: 1,
-  })
-  .option("loggerLabel", {
-    alias: "l",
-    type: "string",
-    description: "Logger label",
-    default: "",
-  })
+  .option("rpcLink", {alias: "r",type: "string",description: "RPC to Flare network",default: "http://127.0.0.1:9650/ext/bc/C/rpc",})
+  .option("abiPath", {alias: "a",type: "string",description: "Path to abi JSON file",default: "artifacts/contracts/StateConnector.sol/StateConnector.json",})
+  .option("contractAddress", {alias: "t",type: "string",description: "Address of the deployed contract"})
+  .option("range", {alias: "w",type: "number",description: "Random block range",default: 1000,})
+  .option("nonceResetCount", {alias: "e",type: "number",description: "Reset nonce period",default: 10,})
+  .option("delay", {alias: "d",type: "number",description: "Delay between sending transactions from the same block",default: 500,})
+  .option("accountsFile", {alias: "k",type: "string",description: "Private key accounts file",default: "test-1020-accounts.json",})
+  .option("startAccountId", {alias: "b",type: "number",description: "Start account id",default: 0,})
+  .option("numberOfAccounts", {alias: "o",type: "number",description: "Number of accounts",default: 1,})
+  .option("loggerLabel", {alias: "l",type: "string",description: "Logger label",default: "",})
   .argv;
 
 
-class SpammerCredentials {
-  web : AttesterWebOptions;
+class SpammerCredentials implements IReflection<SpammerCredentials>{
+  web = new AttesterWebOptions();
+
+  instanciate(): SpammerCredentials {
+    return new SpammerCredentials();
+  }
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+    return null;
+  }
+
+
 }
 
 class AttestationSpammer {
@@ -110,10 +69,8 @@ class AttestationSpammer {
   web3!: Web3;
   logger!: any;
   stateConnector!: StateConnector;
-  range: number = args["range"];
   rpcLink: string = args["rpcLink"];
 
-  confirmations: number = args["confirmations"];
   privateKey: string;
   delay: number = args["delay"];
   lastBlockNumber: number = -1;
@@ -122,9 +79,10 @@ class AttestationSpammer {
 
   configIndexer: IndexerConfiguration;
   configAttestationClient: AttesterClientConfiguration;
+  chainsConfig: ChainsConfiguration;
 
-  chainAttestationConfig: AttesterClientChain;
-  chainIndexerConfig: IndexerClientChain;
+  chainAttestationConfig: ChainConfiguration;
+  chainIndexerConfig: ChainConfiguration;
 
   indexedQueryManager: IndexedQueryManager;
   definitions: AttestationTypeScheme[];
@@ -151,10 +109,11 @@ class AttestationSpammer {
     this.chainType = MCC.getChainType(args["chain"]);
 
     // Reading configuration
-    this.configIndexer = readConfig<IndexerConfiguration>("indexer");
-    this.configAttestationClient = readConfig<AttesterClientConfiguration>("attester");
-    const attesterCredentials = readCredentials<AttesterCredentials>("attester");
-    const spammerCredentials = readCredentials<SpammerCredentials>("spammer");
+    this.configIndexer = readConfig(new IndexerConfiguration(), "indexer");
+    this.configAttestationClient = readConfig(new AttesterClientConfiguration(), "attester");
+    this.chainsConfig = readConfig(new ChainsConfiguration(), "chains");
+    const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
+    const spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
 
     const DAC = new AttestationRoundManager(null, this.configAttestationClient, attesterCredentials, getGlobalLogger(), null);
     DAC.initialize();
@@ -164,8 +123,8 @@ class AttestationSpammer {
 
     let chainName = getSourceName(this.chainType);
 
-    this.chainAttestationConfig = this.configAttestationClient.chains.find(chain => chain.name === chainName);
-    this.chainIndexerConfig = this.configIndexer.chains.find(chain => chain.name === chainName);
+    this.chainAttestationConfig = this.chainsConfig.chains.find(chain => chain.name === chainName);
+    this.chainIndexerConfig = this.chainsConfig.chains.find(chain => chain.name === chainName);
 
     // todo: this should be done every time
     //this.numberOfConfirmations = ()=>{return AttestationRoundManager.getSourceHandlerConfig(chainName).numberOfConfirmations;}
@@ -201,7 +160,7 @@ class AttestationSpammer {
       this.indexedQueryManager = new IndexedQueryManager(options);
       this.logger = getGlobalLogger(args["loggerLabel"]);
       this.web3 = getWeb3(this.rpcLink) as Web3;
-      
+
       let stateConnectorAddresss = spammerCredentials.web.stateConnectorContractAddress;
 
       this.logger.info(`RPC: ${this.rpcLink}`)

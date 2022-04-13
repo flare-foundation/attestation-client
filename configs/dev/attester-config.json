@@ -1,61 +1,13 @@
 {
-    "gasPrice": "3000000000000",
+    //"gasPrice": "3000000000000",
 
-    "transactionPollingTimeout" : 30,
+    //"transactionPollingTimeout" : 30,
 
     "firstEpochStartTime":1636070400,
     "roundDurationSec": 90,
 
     "dynamicAttestationConfigurationFolder": "./configs/dac/",
     
-    "commitTime":11,
-    "revealTime":80,
-
-    "chains": [
-        {
-            "name": "XRP",
-            "url": "https://xrplcluster.com",
-            "username": "",
-            "password": "",
-            
-            "maxRequestsPerSecond":80,
-            "maxProcessingTransactions":3000,
-
-            "clientTimeout": 5000,
-            "clientRetries": 3,
-          
-            "maxFailedRetry": 1,
-            "delayBeforeRetry": 10,
-
-            "maxValidIndexerDelaySec": 10
-        },
-        {
-            "name": "BTC",
-            "url": "http://34.159.118.250:9332/",
-            "username": "flareadmin",
-            "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
-
-            "maxRequestsPerSecond":300,
-            "maxProcessingTransactions":3000,
-
-            "clientTimeout": 5000,
-            "clientRetries": 3,
-
-            "maxValidIndexerDelaySec": 10
-        },
-        {
-            "name": "LTC",
-            "url": "https://litecoin.flare.network/",
-            "username": "flareadmin",
-            "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
-
-            "maxRequestsPerSecond":300,
-            "maxProcessingTransactions":3000,
-
-            "clientTimeout": 5000,
-            "clientRetries": 3,
-
-            "maxValidIndexerDelaySec": 10
-        }
-    ]
+    //"commitTime1":11,
+    //"revealTime":80,
 }

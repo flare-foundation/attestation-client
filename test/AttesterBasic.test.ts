@@ -1,5 +1,5 @@
 import { ChainType } from "flare-mcc/dist/types";
-import { AttesterClientChain } from "../lib/attester/AttesterClientChain";
+import { ChainConfiguration } from "../lib/chain/ChainConfiguration";
 import { ChainManager } from "../lib/chain/ChainManager";
 import { ChainNode } from "../lib/chain/ChainNode";
 import { getGlobalLogger } from "../lib/utils/logger";
@@ -15,7 +15,7 @@ describe("Attester Basic Tests", () => {
       const chainManager = new ChainManager(getGlobalLogger());
 
       //const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, "http://s1.ripple.com:1151234/", "", "", "");
-      const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, new AttesterClientChain());
+      const chain = new ChainNode(chainManager, "XRP", ChainType.XRP, new ChainConfiguration());
 
       assert(await chain.isHealthy());
 

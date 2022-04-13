@@ -1,16 +1,26 @@
 import { getGlobalLogger, logException } from "./logger";
+import { IReflection, isEqualType } from "./typeReflection";
 
 const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
+function readJSON<T>(filename: string) {
+  const fs = require("fs");
 
-function isEqualType<T>(A: any): boolean {
-  return true;
+  let data = fs.readFileSync(filename).toString();
+
+  // remove all comments
+  data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|(?:[^\w\s]|^)\s*\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/(?=[gmiy]{0,4}\s*(?![*\/])(?:\W|$)))|\/\/.*?$|\/\*[\s\S]*?\*\//gm, '$1');
+
+  // remove trailing commas
+  data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, '');
+
+  const res = JSON.parse(data) as T;
+
+  return res;
 }
 
-
-function readConfigBase<T>(project: string, type: string, mode: string = undefined, userPath: string = undefined): T {
-  const fs = require("fs");
+function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
 
   let path = `./configs/`;
 
@@ -35,10 +45,9 @@ function readConfigBase<T>(project: string, type: string, mode: string = undefin
   path += `${project}-${type}.json`;
 
   try {
+    const res = readJSON<T>(path);
 
-    const res = JSON.parse(fs.readFileSync(path).toString()) as T;
-
-    isEqualType<T>(res);
+    isEqualType(obj.instanciate(), res);
 
     getGlobalLogger().info(`^Gconfiguration ^K^w${path}^^ loaded`);
 
@@ -49,9 +58,10 @@ function readConfigBase<T>(project: string, type: string, mode: string = undefin
   }
 }
 
-export function readConfig<T>(project: string, mode: string = undefined, userPath: string = undefined): T {
-  return readConfigBase<T>(project, "config", mode, userPath);
+export function readConfig<T extends IReflection<T>>(obj: T, project: string, mode: string = undefined, userPath: string = undefined): T {
+  return readConfigBase<T>(project, "config", mode, userPath, obj);
 }
-export function readCredentials<T>(project: string, mode: string = undefined, userPath: string = undefined): T {
-  return readConfigBase<T>(project, "credentials", mode, userPath);
+
+export function readCredentials<T extends IReflection<T>>(obj: T, project: string, mode: string = undefined, userPath: string = undefined): T {
+  return readConfigBase<T>(project, "credentials", mode, userPath, obj);
 }

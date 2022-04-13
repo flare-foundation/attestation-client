@@ -44,7 +44,7 @@ describe("Indexed query manager", () => {
    let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
    before(async () => {
-      indexerConfiguration = indexerConfig as IndexerConfiguration
+      indexerConfiguration = null;//indexerConfig as IndexerConfiguration
       chainName = getSourceName(SOURCE_ID);
       let chainConfiguration = indexerConfig.chains.find(chain => chain.name === chainName);
       client = MCC.Client(SOURCE_ID, {

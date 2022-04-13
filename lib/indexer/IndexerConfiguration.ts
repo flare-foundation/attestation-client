@@ -1,34 +1,33 @@
-import { MccCreate, RateLimitOptions } from "flare-mcc";
+import { optional } from "flare-mcc";
 import { DatabaseConnectOptions } from "../utils/databaseService";
+import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
-export class IndexerClientChain {
-  public name!: string;
+export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
 
-  public mccCreate: MccCreate
-  public rateLimitOptions: RateLimitOptions;
+  @optional() public syncEnabled: boolean = true;
+  @optional() public syncTimeDays: number = 2;
+  @optional() public blockCollectTimeMs: number = 1000;
 
-  public numberOfConfirmations: number = 6;
+  @optional() public syncUpdateTimeMs: number = 10000;
 
-  public syncReadAhead: number = 30;
+  instanciate(): IndexerConfiguration {
+    return new IndexerConfiguration();
+  }
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+    return null;
+  }
 
-  public blockCollecting: "raw" | "rawUnforkable" | "tips";
 
-  public minimalStorageHistoryDays: number;
-  public minimalStorageHistoryBlocks: number;
 }
 
-export class IndexerConfiguration {
+export class IndexerCredentials implements IReflection<IndexerCredentials> {
+  indexerDatabase = new DatabaseConnectOptions();
 
-  public syncEnabled: boolean = true;
-  public syncTimeDays: number = 1;
-  public blockCollectTimeMs: number = 1000;
-
-  public syncUpdateTimeMs: number = 10000;
-
-  public chains: IndexerClientChain[] = [];
-}
-
-export class IndexerCredentials {
-  indexerDatabase: DatabaseConnectOptions;
+  instanciate() {
+    return new IndexerCredentials();
+  }
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+    return null;
+  }
 
 }

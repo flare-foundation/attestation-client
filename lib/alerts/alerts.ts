@@ -1,22 +1,21 @@
+import { optional } from "flare-mcc";
 import { readConfig } from "../utils/config";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { Terminal } from "../utils/terminal";
+import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 import { sleepms } from "../utils/utils";
 import { AlertBase, AlertRestartConfig } from "./AlertBase";
 import { AttesterAlert } from "./AttestationAlert";
 import { IndexerAlert } from "./IndexerAlert";
 
 
+export class AlertConfig implements IReflection<AlertConfig> {
+    @optional() interval: number = 5000;
 
-
-
-export class AlertConfig {
-    interval: number = 5000;
-
-    timeLate: number = 5;
-    timeDown: number = 10;
-    timeRestart: number = 20;
+    @optional() timeLate: number = 5;
+    @optional() timeDown: number = 10;
+    @optional() timeRestart: number = 20;
     stateSaveFilename = "";
     indexerRestart = "";
     indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
@@ -24,6 +23,14 @@ export class AlertConfig {
         { name: "Coston", mode: "dev", path: "", restart: "" },
         { name: "Songbird", mode: "songbird", path: "", restart: "" },
     ]
+
+    instanciate() {
+        return new AlertConfig();
+    }
+
+    getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+        return null;        
+    }
 
 }
 
@@ -36,7 +43,7 @@ class AlertManager {
     constructor() {
         this.logger = getGlobalLogger();
 
-        this.config = readConfig<AlertConfig>("alerts");
+        this.config = readConfig(new AlertConfig(), "alerts");
 
         for (let indexer of this.config.indexers) {
             this.alerts.push(new IndexerAlert(indexer, this.logger, this.config));

@@ -66,7 +66,7 @@ In such a way the attestation confirms the required transaction did not appear i
   - size (bytes): 4
   - internal type: `NumberLike`
   - description: Maximum median timestamp of the block where the transaction is searched for.
-- `destinationAddress`:
+- `destinationAddressHash`:
   - size (bytes): 32
   - internal type: `NumberLike`
   - description: Hash of exact address to which the payment was done to.
@@ -90,13 +90,13 @@ In such a way the attestation confirms the required transaction did not appear i
 
 - `deadlineBlockNumber`:
   - type: `uint64`
-  - description: Deadline block specified in the attestation request.
+  - description: Deadline block number pecified in the attestation request.
 - `deadlineTimestamp`:
   - type: `uint64`
   - description: Deadline timestamp specified in the attestation request.
-- `destinationAddress`:
+- `destinationAddressHash`:
   - type: `bytes32`
-  - description: Hash of the destination address.
+  - description: Hash of the destination address searched for.
 - `paymentReference`:
   - type: `bytes32`
   - description: The payment reference searched for.
@@ -108,7 +108,7 @@ In such a way the attestation confirms the required transaction did not appear i
   - description: The first confirmed block that gets checked. It is the lowest block in the synchronized query window.  
 - `lowerBoundaryBlockTimestamp`:
   - type: `uint64`
-  - description: Timestamp of the firstCheckedBlock.
+  - description: Timestamp of the lowerBoundaryBlockNumber.
 - `firstOverflowBlockNumber`:
   - type: `uint64`
   - description: The first (lowest) confirmed block with `timestamp > deadlineTimestamp` and `blockNumber  > deadlineBlockNumber`. 

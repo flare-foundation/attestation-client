@@ -28,7 +28,7 @@ export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryRe
       return VerificationStatus.RECHECK_LATER;
    }
 
-   if (result.status === 'NOT_EXIST' || !result.transaction) {
+   if (result.status === 'NOT_EXIST' || result.status === "NO_BOUNDARY" || !result.transaction) {
       return VerificationStatus.NON_EXISTENT_TRANSACTION;
    }
 
@@ -41,11 +41,11 @@ export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryRe
 
 
 export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse) {
-   if (result.status === 'RECHECK') {
+   if (result.status === "RECHECK") {
       return VerificationStatus.RECHECK_LATER;
    }
 
-   if (result.status === 'NOT_EXIST' || !result.block) {
+   if (result.status === "NOT_EXIST" || result.status === "NO_BOUNDARY" || !result.block) {
       return VerificationStatus.NON_EXISTENT_BLOCK;
    }
 
@@ -57,12 +57,16 @@ export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse) {
 }
 
 export function verifyWorkflowForReferencedTransactions(result: ReferencedTransactionsQueryResponse) {
-   if (result.status === 'RECHECK') {
+   if (result.status === "RECHECK") {
       return VerificationStatus.RECHECK_LATER;
    }
 
-   if (result.status === 'NO_OVERFLOW_BLOCK' || !result.block) {
+   if (result.status === "NO_OVERFLOW_BLOCK" || result.status === "NO_BOUNDARY" || !result.firstOverflowBlock) {
       return VerificationStatus.NON_EXISTENT_BLOCK;
+   }
+
+   if(result.status === "SYSTEM_FAILURE") {
+      return VerificationStatus.SYSTEM_FAILURE;
    }
 
    return VerificationStatus.NEEDS_MORE_CHECKS;

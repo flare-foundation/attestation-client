@@ -26,60 +26,85 @@ export interface TransactionQueryParams {
   endBlock: number;
   transactionId?: string;
   paymentReference?: string;
+  returnQueryBoundaryBlocks?: boolean;
 }
 
 export interface BlockQueryParams {
   hash?: string;
+  endBlock?: number;
   blockNumber?: number;
   roundId: number;
   confirmed?: boolean;
+  returnQueryBoundaryBlocks?: boolean;
 }
 
 export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
+
+export interface TransactionQueryResult {
+  result: DBTransactionBase[];
+  lowerQueryWindowBlock?: DBBlockBase;
+  upperQueryWindowBlock?: DBBlockBase;
+}
+
+export interface BlockQueryResult {
+  result?: DBBlockBase;
+  lowerQueryWindowBlock?: DBBlockBase;
+  upperQueryWindowBlock?: DBBlockBase;
+}
 
 ////////////////////////////////////////////////////////
 /// Specific query requests and responses
 ////////////////////////////////////////////////////////
 
+export type UpperBoundaryCheckStatus = "OK" | "RECHECK" | "NO_BOUNDARY" | "SYSTEM_FAILURE";
+
+export interface UpperBoundaryCheck {
+  status: UpperBoundaryCheckStatus;
+  U?: number;
+}
+
 export interface ConfirmedBlockQueryRequest {
-  blockNumber: number;
+  blockNumber?: number;
   roundId: number;
   numberOfConfirmations: number;
-  dataAvailabilityProof: string; // hash of confirmation block(used for syncing of edge - cases)
+  upperBoundProof: string; // hash of confirmation block(used for syncing of edge - cases)
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
 }
 
 export interface ConfirmedBlockQueryResponse {
-  status: "OK" | "RECHECK" | "NOT_EXIST" | "SYSTEM_FAILURE";
+  status: UpperBoundaryCheckStatus | "NOT_EXIST";
   block?: DBBlockBase;
 }
 
 export interface ConfirmedTransactionQueryRequest {
   txId: string; // transaction id
-  blockNumber: number; // block number for the transaction with `txId
-  dataAvailabilityProof: string; // hash of confirmation block(used for syncing of edge - cases)
+  // blockNumber: number; // block number for the transaction with `txId
+  upperBoundProof: string; // hash of confirmation block(used for syncing of edge - cases)
   roundId: number; // voting round id for check
   numberOfConfirmations: number;
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
 }
 
 export interface ConfirmedTransactionQueryResponse {
-  status: "OK" | "RECHECK" | "NOT_EXIST" | "SYSTEM_FAILURE";
+  status: UpperBoundaryCheckStatus | "NOT_EXIST";
   transaction?: DBTransactionBase;
 }
 
 export interface ReferencedTransactionsQueryRequest {
+  deadlineBlockNumber: number;
+  deadlineBlockTimestamp: number;
   numberOfConfirmations: number; 
   paymentReference: string; // payment reference
   // Used to determine overflow block - the first block with blockNumber > endBlock and timestamp > endTime
-  overflowBlockNumber: number;
-  dataAvailabilityProof: string; // hash of confirmation block of the overflow block
+  // overflowBlockNumber: number;
+  upperBoundProof: string; // hash of confirmation block of the overflow block
   roundId: number; // voting round id for check
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
 }
 
 export interface ReferencedTransactionsQueryResponse {
-  status: "OK" | "RECHECK" | "NO_OVERFLOW_BLOCK" | "SYSTEM_FAILURE";
+  status: UpperBoundaryCheckStatus | "NO_OVERFLOW_BLOCK";
   transactions?: DBTransactionBase[];
-  block?: DBBlockBase;
+  firstOverflowBlock?: DBBlockBase;
 }
+

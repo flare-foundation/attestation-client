@@ -92,7 +92,7 @@ export async function utxoBasedPaymentVerification(
       txId: unPrefix0x(request.id),
       numberOfConfirmations,
       blockNumber,
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      upperBoundProof: request.dataAvailabilityProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })
@@ -195,7 +195,7 @@ export async function utxoBasedBalanceDecreasingTransactionVerification(
       txId: unPrefix0x(request.id),
       numberOfConfirmations,
       blockNumber,
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      upperBoundProof: request.dataAvailabilityProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })
@@ -267,7 +267,7 @@ export async function utxoBasedConfirmedBlockHeightExistsVerification(
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    const confirmedBlock = await iqm.getConfirmedBlock({
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      upperBoundProof: request.upperBoundProof,
       numberOfConfirmations,
       blockNumber,
       roundId,
@@ -323,7 +323,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
       numberOfConfirmations,
       paymentReference: request.paymentReference,
       overflowBlockNumber,
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      upperBoundProof: request.upperBoundProof,
       roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    });
@@ -334,7 +334,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
    }
 
    // From here on thhese two exist, dbTransactions can be an empty list.
-   const dbOverflowBlock = referencedTransactionsResponse.block;
+   const dbOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
    let dbTransactions = referencedTransactionsResponse.transactions;
 
    // Verify overflow block is confirmed
@@ -343,7 +343,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
       blockNumber: overflowBlockNumber,
       numberOfConfirmations,
       roundId,
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      dataAvailabilityProof: request.upperBoundProof,
       iqm
    })
    if (status != VerificationStatus.NEEDS_MORE_CHECKS) {

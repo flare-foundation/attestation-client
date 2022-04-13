@@ -9,6 +9,16 @@ import Web3 from "web3";
 
 export type AccountBasedType = AlgoTransaction | XrpTransaction;
 
+
+export function extractStandardizedPaymentReference(fullTxData: AccountBasedType) {
+   let paymentReference = fullTxData.reference.length === 1 ? prefix0x(fullTxData.reference[0]) : "";
+   // Ignore too long payment references
+   if(unPrefix0x(paymentReference).length > 64) {
+      paymentReference = ""
+   }
+   return prefix0x(paymentReference);
+}
+
 export async function accountBasedPaymentVerification(
    TransactionClass: new (...args: any[]) => AccountBasedType,
    request: ARPayment,
@@ -17,13 +27,12 @@ export async function accountBasedPaymentVerification(
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHPayment>> {
-   let blockNumber = numberLikeToNumber(request.blockNumber);
+   // let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
       txId: unPrefix0x(request.id), // TODO: verify this for other chains
       numberOfConfirmations,
-      blockNumber,
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      upperBoundProof: request.upperBoundProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })
@@ -42,34 +51,18 @@ export async function accountBasedPaymentVerification(
       return { status }
    }
 
-   status = await verifyConfirmationBlock({
-      recheck,
-      blockNumber,
-      numberOfConfirmations,
-      roundId,
-      dataAvailabilityProof:
-         request.dataAvailabilityProof,
-      iqm
-   })
-   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
-      return { status }
-   }
-
-   let paymentReference = fullTxData.reference.length === 1 ? prefix0x(fullTxData.reference[0]) : "";
-   // Ignore too long payment references
-   if(unPrefix0x(paymentReference).length > 64) {
-      paymentReference = ""
-   }
-
+   let paymentReference = extractStandardizedPaymentReference(fullTxData);
+   
    let response = {
       stateConnectorRound: roundId,
-      blockNumber: toBN(blockNumber),
+      blockNumber: toBN(dbTransaction.blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: prefix0x(dbTransaction.transactionId),
+      inUtxo: toBN(0),
       utxo: toBN(0),
-      sourceAddress: Web3.utils.soliditySha3(fullTxData.sourceAddress[0]),
-      receivingAddress: Web3.utils.soliditySha3(fullTxData.receivingAddress[0]),
-      paymentReference: prefix0x(paymentReference),
+      sourceAddressHash: Web3.utils.soliditySha3(fullTxData.sourceAddress[0]),
+      receivingAddressHash: Web3.utils.soliditySha3(fullTxData.receivingAddress[0]),
+      paymentReference,
       spentAmount: fullTxData.spentAmount[0].amount,
       receivedAmount: fullTxData.successStatus === TransactionSuccessStatus.SUCCESS ? fullTxData.receivedAmount[0].amount : toBN(0),
       oneToOne: true,
@@ -91,13 +84,12 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
-   let blockNumber = numberLikeToNumber(request.blockNumber);
+   // let blockNumber = numberLikeToNumber(request.blockNumber);
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
       txId: unPrefix0x(request.id),
       numberOfConfirmations,
-      blockNumber,
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      upperBoundProof: request.upperBoundProof,
       roundId: roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    })
@@ -111,31 +103,15 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
    const parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
    const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData)
 
-   status = await verifyConfirmationBlock({
-      recheck,
-      blockNumber,
-      numberOfConfirmations,
-      roundId,
-      dataAvailabilityProof: request.dataAvailabilityProof,
-      iqm
-   })
-   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
-      return { status }
-   }
-
-   let paymentReference = dbTransaction.paymentReference || "";
-   // Ignore too long payment references
-   if(unPrefix0x(paymentReference).length > 64) {
-      paymentReference = ""
-   }
-
+   let paymentReference = extractStandardizedPaymentReference(fullTxData);
    let response = {
-      blockNumber: toBN(blockNumber),
+      blockNumber: toBN(dbTransaction.blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: prefix0x(dbTransaction.transactionId),
-      sourceAddress: Web3.utils.soliditySha3(fullTxData.sourceAddress[0]),
+      inUtxo: toBN(0),
+      sourceAddressHash: Web3.utils.soliditySha3(fullTxData.sourceAddress[0]),
       spentAmount: fullTxData.spentAmount?.[0]?.amount || toBN(0), // TODO: Check what is wrong with ALGO
-      paymentReference: prefix0x(paymentReference)
+      paymentReference
    } as DHBalanceDecreasingTransaction;
 
    return {
@@ -154,7 +130,7 @@ export async function accountBasedConfirmedBlockHeightExistsVerification(
    let blockNumber = numberLikeToNumber(request.blockNumber);
 
    const confirmedBlock = await iqm.getConfirmedBlock({
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      upperBoundProof: request.upperBoundProof,
       numberOfConfirmations,
       blockNumber,
       roundId,
@@ -210,7 +186,7 @@ export async function accountBasedReferencedPaymentNonExistence(
       numberOfConfirmations,
       paymentReference: request.paymentReference,
       overflowBlockNumber,
-      dataAvailabilityProof: request.dataAvailabilityProof,
+      upperBoundProof: request.dataAvailabilityProof,
       roundId,
       type: recheck ? 'RECHECK' : 'FIRST_CHECK'
    });
@@ -221,7 +197,7 @@ export async function accountBasedReferencedPaymentNonExistence(
    }
 
    // From here on thhese two exist, dbTransactions can be an empty list.
-   const dbOverflowBlock = referencedTransactionsResponse.block;
+   const dbOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
    let dbTransactions = referencedTransactionsResponse.transactions;
 
    // Verify overflow block is confirmed

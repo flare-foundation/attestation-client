@@ -8,7 +8,7 @@ import { DatabaseService } from "../utils/databaseService";
 import { getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 import { getSourceName } from "../verification/sources/sources";
-import { BlockHeightSample, BlockQueryParams, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams } from "./indexed-query-manager-types";
+import { BlockHeightSample, BlockQueryParams, BlockQueryResult, ConfirmedBlockQueryRequest, ConfirmedBlockQueryResponse, ConfirmedTransactionQueryRequest, ConfirmedTransactionQueryResponse, IndexedQueryManagerOptions, ReferencedTransactionsQueryRequest, ReferencedTransactionsQueryResponse, TransactionQueryParams, TransactionQueryResult, UpperBoundaryCheck } from "./indexed-query-manager-types";
 
 
 ////////////////////////////////////////////////////////
@@ -83,11 +83,11 @@ export class IndexedQueryManager {
     let res = await this.getBlockHeightSample();
     let now = await getUnixEpochTimestamp();
     let delay = now - res.timestamp;
-    if(delay > this.settings.maxValidIndexerDelaySec) {
+    if (delay > this.settings.maxValidIndexerDelaySec) {
       return false;
     }
     let N = await this.getLastConfirmedBlockNumber();
-    if(res.height - N > this.settings.numberOfConfirmations() + 1) {
+    if (res.height - N > this.settings.numberOfConfirmations() + 1) {
       return false;
     }
     return true;
@@ -111,7 +111,7 @@ export class IndexedQueryManager {
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////
 
-  async queryTransactions(params: TransactionQueryParams): Promise<DBTransactionBase[]> {
+  async queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult> {
     let results = []
 
     let startTimestamp = this.settings.windowStartTime(params.roundId);
@@ -120,7 +120,7 @@ export class IndexedQueryManager {
       let query = this.dbService.connection.manager
         .createQueryBuilder(table, "transaction")
         .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp })  // always query in the window.
-        .andWhere("transaction.blockNumber <= :blockNumber", { blockNumber: params.endBlock });
+        .andWhere("transaction.blockNumber <= :endBlock", { endBlock: params.endBlock });
 
       if (params.paymentReference) {
         query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
@@ -131,15 +131,30 @@ export class IndexedQueryManager {
 
       results = results.concat(await query.getMany());
     }
-    return results
+    let lowerQueryWindowBlock: DBBlockBase;
+    let upperQueryWindowBlock: DBBlockBase;
+  
+    return {
+      result: results as DBTransactionBase[],
+      lowerQueryWindowBlock,
+      upperQueryWindowBlock
+    }
   }
 
-  async queryBlock(params: BlockQueryParams): Promise<DBBlockBase | null> {
+  async queryBlock(params: BlockQueryParams): Promise<BlockQueryResult> {
+    if(!params.blockNumber && !params.hash) {
+      throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
+    }
     let startTimestamp = this.settings.windowStartTime(params.roundId);
     let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
-      // .where("block.confirmed = :confirmed", { confirmed: !!params.confirmed })
-      .andWhere("block.timestamp >= :timestamp", { timestamp: startTimestamp });
+      .where("block.timestamp >= :timestamp", { timestamp: startTimestamp });
+    if(params.endBlock) {
+      query = query.andWhere("block.blockNumber <= :endBlock", { endBlock: params.endBlock }); 
+    }
+    if(params.confirmed) {
+      query = query.andWhere("block.confirmed = :confirmed", { confirmed: !!params.confirmed });
+    }
     if (params.hash) {
       query.andWhere("block.blockHash = :hash", { hash: params.hash });
     } else if (params.blockNumber) {
@@ -147,194 +162,123 @@ export class IndexedQueryManager {
     }
     // console.log(query.getQuery())
     let result = await query.getOne();
+    let lowerQueryWindowBlock: DBBlockBase;
+    let upperQueryWindowBlock: DBBlockBase;
+
+    if(params.returnQueryBoundaryBlocks) {
+        lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
+        let upperBlockResult = await this.queryBlock({
+
+        })
+    }
+    if (result) {
+      return {
+        result: result as DBBlockBase,
+        lowerQueryWindowBlock,
+        upperQueryWindowBlock  
+      }
+    }
+    return {
+      lowerQueryWindowBlock,
+      upperQueryWindowBlock      
+    }
+  }
+
+  async getBlockByHash(hash: string) {
+    let query = this.dbService.connection.manager
+      .createQueryBuilder(this.blockTable, "block")
+      .where("block.blockHash = :hash", { hash: hash });
+    let result = await query.getOne();
     if (result) {
       return result as DBBlockBase;
     }
     return null;
+  }
+  
+  private async upperBoundaryCheck(upperBoundProof: string, numberOfConfirmations: number, recheck: boolean): Promise<UpperBoundaryCheck> {
+    let confBlock = await this.getBlockByHash(upperBoundProof);
+    if (!confBlock) {
+      if (!recheck) {
+        return { status: "RECHECK" }
+      }
+      let upToDate = await this.isIndexerUpToDate();
+      if (!upToDate) {
+        return { status: "SYSTEM_FAILURE" }
+      }
+      return { status: "NO_BOUNDARY" }
+    }
+
+    let H = confBlock.blockNumber;
+    let U = H - numberOfConfirmations + 1; // TODO !!!
+    let N = await this.getLastConfirmedBlockNumber();
+    if (N < U) {
+      if (!recheck) {
+        return { status: "RECHECK" }
+      }
+      return { status: "SYSTEM_FAILURE" }
+    }
+    return {
+      status: "OK",
+      U
+    }
   }
 
   ////////////////////////////////////////////////////////////
   // Confirmed blocks queries
   ////////////////////////////////////////////////////////////
 
-  private async getConfirmedBlockFirstCheck(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-
-    let N = await this.getLastConfirmedBlockNumber();
-    if (params.blockNumber < N - 1) {
-      let block = await this.queryBlock({
-        blockNumber: params.blockNumber,
-        roundId: params.roundId,
-        confirmed: true
-      });
-      return {
-        status: block ? "OK" : "NOT_EXIST",
-        block: block,
-      };
+  public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
+    let {status, U} = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    if(status != "OK") {
+      return { status }
     }
-    // important to have up to date indexing
-    let upToDate = await this.isIndexerUpToDate();
-    if (!upToDate) {
-      return { status: "RECHECK" }
-    }
-    // indexer is up to date
-    if (params.blockNumber > N + 1) {
-      return { status: "NOT_EXIST" };
-    }
-    // N - 1, N, N + 1
-    return { status: "RECHECK" };
-
-  }
-
-  private async getConfirmedBlockRecheck(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-    let upToDate = await this.isIndexerUpToDate();
-    if (!upToDate) {
-      return { status: "SYSTEM_FAILURE" }
-    }
-
     let block = await this.queryBlock({
-      blockNumber: params.blockNumber,
+      endBlock: U,
+      blockNumber: params.blockNumber ? params.blockNumber : U,
       roundId: params.roundId,
       confirmed: true
     });
-    let confirmationBlock = await this.queryBlock({
-      hash: params.dataAvailabilityProof,
-      roundId: params.roundId,
-    } as BlockQueryParams);
-
     return {
-      status: block && confirmationBlock && confirmationBlock.blockNumber - params.numberOfConfirmations === block.blockNumber ? "OK" : "NOT_EXIST",
+      status: block ? "OK" : "NOT_EXIST",
       block: block
     };
-  }
-
-  public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-    if (params.type === "FIRST_CHECK") {
-      return this.getConfirmedBlockFirstCheck(params);
-    }
-    return this.getConfirmedBlockRecheck(params);
   }
 
   ////////////////////////////////////////////////////////////
   // Confirmed transaction queries
   ////////////////////////////////////////////////////////////
 
-  private async getConfirmedTransactionFirstCheck(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    let N = await this.getLastConfirmedBlockNumber();
-    if (params.blockNumber < N - 1) {
-      let transactions = await this.queryTransactions({
-        roundId: params.roundId,
-        endBlock: N,
-        transactionId: params.txId,
-      } as TransactionQueryParams);      
-      return {
-        status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
-        transaction: transactions[0],
-      };
+  public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
+    let {status, U} = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    if(status != "OK") {
+      return { status }
     }
-
-    // important to have up to date indexing
-    let upToDate = await this.isIndexerUpToDate();
-    if (!upToDate) {
-      return { status: "RECHECK" }
-    }
-    // indexer is up to date
-    if (params.blockNumber > N + 1) {
-      return { status: "NOT_EXIST" };
-    }
-    // N - 1, N, N + 1
-    return { status: "RECHECK" };
-
-  }
-
-  private async getConfirmedTransactionRecheck(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    let upToDate = await this.isIndexerUpToDate();
-    if (!upToDate) {
-      return { status: "SYSTEM_FAILURE" }
-    }
-
-    let N = await this.getLastConfirmedBlockNumber();
     let transactions = await this.queryTransactions({
       roundId: params.roundId,
-      endBlock: N,
+      endBlock: U,
       transactionId: params.txId,
     } as TransactionQueryParams);
-    let confirmationBlock = await this.queryBlock({
-      hash: params.dataAvailabilityProof,
-      roundId: params.roundId,
-    } as BlockQueryParams);
-
     return {
-      status: transactions && transactions.length === 1 && confirmationBlock && confirmationBlock.blockNumber - params.numberOfConfirmations === transactions[0].blockNumber ? "OK" : "NOT_EXIST",
+      status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
       transaction: transactions[0],
     };
   }
-
-  public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    if (params.type === "FIRST_CHECK") {
-      return this.getConfirmedTransactionFirstCheck(params);
-    }
-    return this.getConfirmedTransactionRecheck(params);
-  }
-
 
   ////////////////////////////////////////////////////////////
   // Referenced transactions queries
   ////////////////////////////////////////////////////////////
 
-  private async getReferencedTransactionsFirstCheck(
+  public async getReferencedTransactions(
     params: ReferencedTransactionsQueryRequest
   ): Promise<ReferencedTransactionsQueryResponse> {
-    let N = await this.getLastConfirmedBlockNumber();
-    if (params.overflowBlockNumber < N - 1) {   // there are still chances for getting the overflow block
-      let overflowBlock = await this.queryBlock({
-        blockNumber: params.overflowBlockNumber,
-        roundId: params.roundId,
-        confirmed: true
-      } as BlockQueryParams);
-      if (!overflowBlock) {
-        return { status: "NO_OVERFLOW_BLOCK" };
-      }
-      let transactions = await this.queryTransactions({
-        roundId: params.roundId,
-        endBlock: overflowBlock.blockNumber - 1,
-        paymentReference: params.paymentReference,
-      } as TransactionQueryParams);
 
-      return {
-        status: "OK",
-        transactions,
-        block: overflowBlock
-      };
+    let {status, U} = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    if(status != "OK") {
+      return { status }
     }
 
-    // important to have up to date indexing
-    let upToDate = await this.isIndexerUpToDate();
-    if (!upToDate) {
-      return { status: "RECHECK" }
-    }
-    // indexer is up to date
-    if (params.overflowBlockNumber > N + 1) {
-      return { status: "NO_OVERFLOW_BLOCK" }; // Status is still OK, but nothing was found.
-    }
-    // N - 1, N, N + 1
-    return { status: "RECHECK" };
-
-  }
-
-  private async getReferencedTransactionsRecheck(
-    params: ReferencedTransactionsQueryRequest
-  ): Promise<ReferencedTransactionsQueryResponse> {
-    let upToDate = await this.isIndexerUpToDate();
-    if (!upToDate) {
-      return { status: "SYSTEM_FAILURE" }
-    }
-
-    let overflowBlock = await this.queryBlock({
-      blockNumber: params.overflowBlockNumber,
-      roundId: params.roundId,
-      confirmed: true
-    } as BlockQueryParams);
-    if (!overflowBlock) {
+    let firstOverflowBlock = await this.getFirstConfirmedOverflowBlock(params.deadlineBlockTimestamp, params.deadlineBlockNumber)
+    if (!firstOverflowBlock || firstOverflowBlock.blockNumber > U) {
       return {
         status: "NO_OVERFLOW_BLOCK"
       }
@@ -342,29 +286,16 @@ export class IndexedQueryManager {
 
     let transactions = await this.queryTransactions({
       roundId: params.roundId,
-      endBlock: overflowBlock.blockNumber - 1,
+      endBlock: firstOverflowBlock.blockNumber - 1,
       paymentReference: params.paymentReference,
     } as TransactionQueryParams);
-    let confirmationBlock = await this.queryBlock({
-      hash: params.dataAvailabilityProof,
-      roundId: params.roundId,
-    } as BlockQueryParams);
+
     return {
-      status: confirmationBlock && confirmationBlock.blockNumber - params.numberOfConfirmations === overflowBlock.blockNumber ? "OK" : "NO_OVERFLOW_BLOCK",
+      status: "OK",
       transactions,
-      block: overflowBlock,
+      firstOverflowBlock
     };
   }
-
-  public async getReferencedTransactions(
-    params: ReferencedTransactionsQueryRequest
-  ): Promise<ReferencedTransactionsQueryResponse> {
-    if (params.type === "FIRST_CHECK") {
-      return this.getReferencedTransactionsFirstCheck(params);
-    }
-    return this.getReferencedTransactionsRecheck(params);
-  }
-
 
   ////////////////////////////////////////////////////////////
   // Special block queries

@@ -51,7 +51,7 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 - `inUtxo`:
   - size (bytes): 1
   - internal type: `NumberLike`
-  - description: Index of the sourceAddress on UTXO chains.
+  - description: Index of the source address on UTXO chains.
 
 ## Verification rules
 
@@ -78,13 +78,13 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
   - description: Hash of the transaction on the underlying chain.
 - `inUtxo`:
   - type: `uint8`
-  - description: Index of the transaction input indicating sourceAddress on UTXO chains, 0 on non-UTXO chains.
-- `sourceAddress`:
+  - description: Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
+- `sourceAddressHash`:
   - type: `bytes32`,
   - description: Hash of the source address as a string. For UTXO transactions with multiple input addresses this is the address that is on the input indicated by `inUtxo` parameter. 
 - `spentAmount`:
   - type: `int256`
-  - description: The amount that went out of the `sourceAddress`, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as `outgoing_amount - returned_amount` and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by `inUtxo`.
+  - description: The amount that went out of the source address, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as `outgoing_amount - returned_amount` and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by `inUtxo`.
 - `paymentReference`: 
   - type: `bytes32`
   - description: Standardized payment reference, if it exists, 0 otherwise.

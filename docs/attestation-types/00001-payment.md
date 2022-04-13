@@ -47,11 +47,11 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 - `inUtxo`:
   - size (bytes): 1
   - internal type: `NumberLike`
-  - description: Index of the sourceAddress on UTXO chains. Always 0 on non-UTXO chains.
+  - description: Index of the source address on UTXO chains. Always 0 on non-UTXO chains.
 - `utxo`:
   - size (bytes): 1
   - internal type: `NumberLike`
-  - description: Index of the receivingAddress on UTXO chains. Always 0 on non-UTXO chains.
+  - description: Index of the receiving address on UTXO chains. Always 0 on non-UTXO chains.
 
 ## Verification rules
 
@@ -63,9 +63,9 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 ### UTXO (BTC, LTC, DOGE) chains
 
 - Full attestation is performed only if the standardized payment reference exists (see [here](../definitions/account-based-vs-utxo-chains.md) for details). Otherwise partial attestation si performed. 
-- Source address exists only if there is a unique source address on the selected input (`inUtxo`). To determine it, one needs to make additional RPC API call. If the source address does not exist, it is indicated by 0 in the response. The spent amount is 0 in this case. If the source address exists, a hash (sha3) is provided for `sourceAddress` in response.
+- Source address exists only if there is a unique source address on the selected input (`inUtxo`). To determine it, one needs to make additional RPC API call. If the source address does not exist, it is indicated by 0 in the response. The spent amount is 0 in this case. If the source address exists, a hash (sha3) is provided for `sourceAddressHash` in response.
 - The receiving address may not exist on the selected output (`utxo`). In this case it is indicated in the response by 0. 
-The received amount is 0 in this case. If the receiving address exists, the hash of it is provided for `receivingAddress` in response.
+The received amount is 0 in this case. If the receiving address exists, the hash of it is provided for `receivingAddressHash` in response.
 
 ## Response format
 
@@ -80,19 +80,19 @@ The received amount is 0 in this case. If the receiving address exists, the hash
   - description: Hash of the transaction on the underlying chain.
 - `inUtxo`:
   - type: `uint8`
-  - description: Index of the transaction input indicating sourceAddress on UTXO chains, 0 on non-UTXO chains.
+  - description: Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
 - `utxo`:
   - type: `uint8`
   - description: Output index for a transaction with multiple outputs on UTXO chains, 0 on non-UTXO chains. The same as in the `utxo` parameter from the request.
-- `sourceAddress`:
+- `sourceAddressHash`:
   - type: `bytes32`,
-  - description: Hash of the source address viewed as a string (the one indicated by the `inUtxo` parameter for UTXO blockchains)
-- `receivingAddress`:
+  - description: Hash of the source address viewed as a string (the one indicated by the `inUtxo` parameter for UTXO blockchains).
+- `receivingAddressHash`:
   - type: `bytes32`
   - description: Hash of the receiving address as a string (the one indicated by the `utxo` parameter for UTXO blockchains).
 - `spentAmount`:
   - type: `int256`
-  - description: The amount that went out of the `sourceAddress`, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as `outgoing_amount - returned_amount` and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by `inUtxo`.
+  - description: The amount that went out of the source address, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as `outgoing_amount - returned_amount` and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by `inUtxo`.
 - `receivedAmount`:
   - type: `int256`
   - description: The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.

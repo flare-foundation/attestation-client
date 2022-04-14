@@ -29,7 +29,7 @@ export async function accountBasedPaymentVerification(
 ): Promise<VerificationResponse<DHPayment>> {
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
-      txId: unPrefix0x(request.id), // TODO: verify this for other chains
+      txId: unPrefix0x(request.id),
       numberOfConfirmations,
       upperBoundProof: request.upperBoundProof,
       roundId: roundId,
@@ -63,6 +63,7 @@ export async function accountBasedPaymentVerification(
       receivingAddressHash: Web3.utils.soliditySha3(fullTxData.receivingAddress[0]),
       paymentReference,
       spentAmount: fullTxData.spentAmount[0].amount,
+      // TODO: what do we actually get as received amount on failed payments
       receivedAmount: fullTxData.successStatus === TransactionSuccessStatus.SUCCESS ? fullTxData.receivedAmount[0].amount : toBN(0),
       oneToOne: true,
       status: toBN(fullTxData.successStatus)

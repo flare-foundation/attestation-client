@@ -130,7 +130,7 @@ The amount that went out of the source address, in the smallest underlying units
       },
       {
          key: "receivedAmount",
-         type: "uint256",
+         type: "int256",
          description:
 `
 The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.

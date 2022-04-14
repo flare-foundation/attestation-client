@@ -4,14 +4,6 @@ import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryMan
 import { VerificationStatus } from "../attestation-types/attestation-types";
 
 
-export interface RecheckParams {
-   recheck: boolean;
-   blockNumber: number;
-   numberOfConfirmations: number;
-   roundId: number;
-   dataAvailabilityProof: string;
-   iqm: IndexedQueryManager;
-}
 
 export interface VerificationResponse<T> {
    status: VerificationStatus;
@@ -71,39 +63,6 @@ export function verifyWorkflowForReferencedTransactions(result: ReferencedTransa
 
    return VerificationStatus.NEEDS_MORE_CHECKS;
 }
-
-// export function verifyIsAccountBased(fullTxData: TransactionBase<any, any>) {
-//    if (fullTxData.sourceAddress.length !== 1) {
-//       return VerificationStatus.NOT_SINGLE_SOURCE_ADDRESS;
-//    }
-
-//    if (fullTxData.receivingAddress.length !== 1) {
-//       return VerificationStatus.NOT_SINGLE_DESTINATION_ADDRESS;
-//    }
-
-//    if (fullTxData.reference.length !== 1) {
-//       return VerificationStatus.NOT_SINGLE_PAYMENT_REFERENCE;
-//    }
-
-//    return VerificationStatus.NEEDS_MORE_CHECKS;
-// }
-
-// export async function verifyConfirmationBlock(params: RecheckParams) {
-//    if (params.recheck) {
-//       let confirmationBlockIndex = params.blockNumber + params.numberOfConfirmations;
-//       let confirmationBlock = await params.iqm.queryBlock({
-//          blockNumber: confirmationBlockIndex,
-//          roundId: params.roundId
-//       });
-//       if (!confirmationBlock) {
-//          return VerificationStatus.NOT_CONFIRMED;
-//       }
-//       if (confirmationBlock.blockHash != params.dataAvailabilityProof) {
-//          return VerificationStatus.WRONG_DATA_AVAILABILITY_PROOF;
-//       }
-//    }
-//    return VerificationStatus.NEEDS_MORE_CHECKS;
-// }
 
 export function verifyNativePayment(fullTxData: TransactionBase<any, any>) {
    if (!fullTxData.isNativePayment) {

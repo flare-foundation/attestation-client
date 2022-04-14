@@ -40,7 +40,7 @@ interface IAttestationClient {
         int256 spentAmount;
 
         // The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
-        uint256 receivedAmount;
+        int256 receivedAmount;
 
         // Standardized payment reference, if it exists, 0 otherwise.
         bytes32 paymentReference;

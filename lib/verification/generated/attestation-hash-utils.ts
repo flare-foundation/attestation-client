@@ -38,7 +38,7 @@ export function hashPayment(request: ARPayment, response: DHPayment) {
          "bytes32",		// sourceAddressHash
          "bytes32",		// receivingAddressHash
          "int256",		// spentAmount
-         "uint256",		// receivedAmount
+         "int256",		// receivedAmount
          "bytes32",		// paymentReference
          "bool",		// oneToOne
          "uint8",		// status

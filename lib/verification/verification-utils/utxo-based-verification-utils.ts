@@ -1,15 +1,13 @@
 import BN from "bn.js";
-import { BtcTransaction, DogeTransaction, LtcTransaction, MCC, prefix0x, toBN, unPrefix0x } from "flare-mcc";
+import { MccClient, prefix0x, toBN, TransactionSuccessStatus, unPrefix0x } from "flare-mcc";
 import Web3 from "web3";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../generated/attestation-request-types";
-import { VerificationResponse, verifyNativePayment, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
+import { UtxoClientType, UtxoType, VerificationResponse, verifyNativePayment, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
 
-type UtxoType = BtcTransaction | LtcTransaction | DogeTransaction;
-type UtxoClientType = MCC.BTC | MCC.DOGE | MCC.LTC;
 
 export function extractStandardizedPaymentReference(fullTxData: UtxoType) {
    let paymentReference = fullTxData.reference.length === 1 ? prefix0x(fullTxData.reference[0]) : "";
@@ -24,6 +22,100 @@ interface SourceProcessingResult {
    spentAmount?: BN;
    oneToOne?: boolean;
    status: VerificationStatus
+}
+
+
+export interface TransactionInfoResponse {
+   sourceAddress?: string;
+   receivingAddress?: string;
+   spentAmount?: BN;
+   receivedAmount?: BN;
+   oneToOne?: boolean; 
+   isFull?: boolean;
+}
+
+
+function transactionInfoAccountBased(fullTxData: UtxoType, client?: MccClient, inUtxo = 0, utxo = 0): TransactionInfoResponse {
+   return {
+      sourceAddress: fullTxData.sourceAddress[0],
+      receivingAddress: fullTxData.receivingAddress[0],          
+      spentAmount: fullTxData.spentAmount[0].amount,
+      receivedAmount: fullTxData.successStatus === TransactionSuccessStatus.SUCCESS ? fullTxData.receivedAmount[0].amount : toBN(0),
+      oneToOne: true,
+      isFull: true
+   };
+}
+
+function transactionInfoUtxo(fullTxData: UtxoType, client?: MccClient, inUtxo = 0, utxo = 0): TransactionInfoResponse {
+   // check if inUtxo is correct
+   // check inUtxo is refreshed
+   if (inUtxo < 0 || inUtxo >= fullTxData.sourceAddress.length) {
+      throw new Error("Invalid inUtxo");
+   }
+   if (utxo < 0 || utxo >= fullTxData.receivingAddress.length) {
+      throw new Error("Invalid utxo");
+   }
+
+   let sourceAddress = fullTxData.sourceAddress[inUtxo];
+   // if(fullTxData.isInputAvailable(inUtxo)) {
+   //    await fullTxData.refreshInput(client, inUtxo);
+   //    sourceAddress = fullTxData.sourceAddress[inUtxo];
+   // }
+   let receivingAddress = fullTxData.receivingAddress[utxo];
+   let oneToOne: boolean = !!sourceAddress && !!receivingAddress;
+   let isFull = fullTxData.type === "full_payment";
+
+   if (isFull) {
+      let inFunds = toBN(0);
+      let returnFunds = toBN(0);
+      let outFunds = toBN(0);
+      let inFundsOfReceivingAddress = toBN(0);
+
+      for (let vin of fullTxData.spentAmount) {
+         if (sourceAddress && vin.address === sourceAddress) {
+            inFunds = inFunds.add(vin.amount);
+         }
+         if (receivingAddress && vin.address === receivingAddress) {
+            inFundsOfReceivingAddress = inFundsOfReceivingAddress.add(vin.amount);
+         }
+         if(oneToOne && vin.address != sourceAddress && vin.address != receivingAddress) {
+            oneToOne = false;
+         }
+      }
+      for (let vout of fullTxData.receivedAmount) {
+         if (sourceAddress && vout.address === sourceAddress) {
+            returnFunds = returnFunds.add(vout.amount);
+         } 
+         if (receivingAddress && vout.address === receivingAddress) {
+            outFunds = outFunds.add(vout.amount);
+         }
+         // Outputs without address do not break one-to-one condition
+         if(oneToOne && vout.address && vout.address != sourceAddress && vout.address != receivingAddress) {
+            oneToOne = false;
+         }
+      }
+      return {
+         sourceAddress,
+         receivingAddress,          
+         spentAmount: inFunds.sub(returnFunds),
+         receivedAmount: outFunds.sub(inFundsOfReceivingAddress),
+         oneToOne,
+         isFull
+      };
+   }
+   // not isFull
+
+   let spentAmount = sourceAddress ? fullTxData.spentAmount[inUtxo].amount : toBN(0);
+   let receivedAmount = receivingAddress ? fullTxData.receivedAmount[utxo].amount : toBN(0);
+   oneToOne = false;
+   return {
+      sourceAddress,
+      receivingAddress,          
+      spentAmount,
+      receivedAmount,
+      oneToOne,
+      isFull
+   };
 }
 
 function processAllInputs(fullTxData: UtxoType, inUtxoNumber: number, receivingAddress?: string): SourceProcessingResult {
@@ -120,6 +212,7 @@ export async function utxoBasedPaymentVerification(
 
    // Correct receivingAddress
    let utxoNumber = toBN(request.utxo).toNumber();
+   // TODO: check if this throws exceptions
    if (!fullTxData.receivingAddress?.[utxoNumber]) {
       return {
          status: VerificationStatus.NON_EXISTENT_OUTPUT_UTXO_ADDRESS
@@ -130,16 +223,17 @@ export async function utxoBasedPaymentVerification(
    // Received amount is always just that one on `utxo` output.
    let receivedAmount = fullTxData.receivedAmount[utxoNumber].amount;
 
-
-   // !!!
    let inUtxoNumber = toBN(request.inUtxo).toNumber();
+   // TODO: check if this throws exceptions
    if (!fullTxData.sourceAddress?.[inUtxoNumber]) {
       return {
          status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
       }
    }
 
-   let result = dbTransaction.paymentReference
+   let paymentReference = extractStandardizedPaymentReference(fullTxData);
+
+   let result = paymentReference
       ? processAllInputs(fullTxData, inUtxoNumber, receivingAddress)
       : await processSingleInput(client, fullTxData, inUtxoNumber);
 
@@ -147,7 +241,6 @@ export async function utxoBasedPaymentVerification(
       return { status }
    }
 
-   let paymentReference = extractStandardizedPaymentReference(fullTxData);
 
    let response = {
       stateConnectorRound: roundId,
@@ -200,21 +293,22 @@ export async function utxoBasedBalanceDecreasingTransactionVerification(
    const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData)
 
    let inUtxoNumber = toBN(request.inUtxo).toNumber();
+   // TODO: check if this throws exceptions
    if (!fullTxData.sourceAddress?.[inUtxoNumber]) {
       return {
          status: VerificationStatus.NON_EXISTENT_INPUT_UTXO_ADDRESS
       }
    }
 
-   let result = dbTransaction.paymentReference
+   let paymentReference = extractStandardizedPaymentReference(fullTxData);
+
+   let result = paymentReference
       ? processAllInputs(fullTxData, inUtxoNumber)
       : await processSingleInput(client, fullTxData, inUtxoNumber);
 
    if (result.status != VerificationStatus.NEEDS_MORE_CHECKS) {
       return { status }
    }
-
-   let paymentReference = extractStandardizedPaymentReference(fullTxData);
 
    let response = {
       stateConnectorRound: roundId,
@@ -240,7 +334,6 @@ export async function utxoBasedConfirmedBlockHeightExistsVerification(
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHConfirmedBlockHeightExists>> {
-   // let blockNumber = numberLikeToNumber(request.blockNumber);
 
    const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
       upperBoundProof: request.upperBoundProof,
@@ -258,7 +351,7 @@ export async function utxoBasedConfirmedBlockHeightExistsVerification(
    const dbBlock = confirmedBlockQueryResult.block;
 
    let averageBlockProductionTimeMs = toBN(Math.floor(
-      (confirmedBlockQueryResult.upperBoundaryBlock.timestamp - confirmedBlockQueryResult.lowerBoundaryBlock.timestamp)*1000 /
+      (confirmedBlockQueryResult.upperBoundaryBlock.timestamp - confirmedBlockQueryResult.lowerBoundaryBlock.timestamp) * 1000 /
       (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
    ));
 
@@ -284,7 +377,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
    recheck: boolean,
    iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {
-   
+
    // TODO: check if anything needs to be done with: startBlock >= overflowBlock 
    const referencedTransactionsResponse = await iqm.getReferencedTransactions({
       deadlineBlockNumber: numberLikeToNumber(request.deadlineBlockNumber),
@@ -301,7 +394,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
       return { status }
    }
 
-   // From here on thhese two exist, dbTransactions can be an empty list.
+   // From here on these exist, dbTransactions can be an empty list.
    let dbTransactions = referencedTransactionsResponse.transactions;
    let firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
    let lowerBoundaryBlock = referencedTransactionsResponse.lowerBoundaryBlock;
@@ -312,7 +405,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
    for (let dbTransaction of dbTransactions) {
       const parsedData = JSON.parse(dbTransaction.response);
       const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
-      
+
       let totalAmount = toBN(0);
       let destinationHashExists = false;
       for (let output of fullTxData.receivedAmount) {
@@ -324,7 +417,7 @@ export async function utxoBasedReferencedPaymentNonExistence(
          }
       }
 
-      if(destinationHashExists && totalAmount.eq(toBN(request.amount))) {
+      if (destinationHashExists && totalAmount.eq(toBN(request.amount))) {
          matchFound = true;
          break;
       }

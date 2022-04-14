@@ -33,7 +33,7 @@ export function randomResponsePayment() {
       sourceAddressHash: randSol({}, "sourceAddressHash", "bytes32") as string,
       receivingAddressHash: randSol({}, "receivingAddressHash", "bytes32") as string,
       spentAmount: randSol({}, "spentAmount", "int256") as BN,
-      receivedAmount: randSol({}, "receivedAmount", "uint256") as BN,
+      receivedAmount: randSol({}, "receivedAmount", "int256") as BN,
       paymentReference: randSol({}, "paymentReference", "bytes32") as string,
       oneToOne: randSol({}, "oneToOne", "bool") as boolean,
       status: randSol({}, "status", "uint8") as BN      

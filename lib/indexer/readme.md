@@ -189,6 +189,27 @@ journalctl --user -u attester-alerts -f -n 1000
 
 ```
 
+Check logs with ctail
+Next scripts must be run from the user home (/home/ubuntu).
+```
+ctail -f -i global/indexer/logs/attester-XRP.log
+ctail -f -i global/indexer/logs/attester-BTC.log
+ctail -f -i global/indexer/logs/attester-LTC.log
+ctail -f -i global/indexer/logs/attester-ALGO.log
+ctail -f -i global/indexer/logs/attester-DOGE.log
+
+
+ctail -f -i coston/attester-client/logs/attester-global.log
+ctail -f -i coston/spammer/logs/attester-global.log
+ctail -f -i coston/backend/logs/attester-global.log
+
+ctail -f -i songbird/attester-client/logs/attester-global.log
+ctail -f -i songbird/spammer/logs/attester-global.log
+ctail -f -i songbird/backend/logs/attester-global.log
+
+ctail -f -i global/alerts/logs/attester-global.log
+```
+
 
 
 ### Deploy all

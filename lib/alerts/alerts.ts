@@ -1,4 +1,5 @@
 import { optional } from "flare-mcc";
+import { string } from "yargs";
 import { readConfig } from "../utils/config";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
@@ -10,6 +11,14 @@ import { AttesterAlert } from "./AttestationAlert";
 import { IndexerAlert } from "./IndexerAlert";
 
 
+class AlertAttestationConfig {
+    name = "";
+    @optional() mode = "dev";
+    @optional() path: "";
+    restart = "";
+}
+
+
 export class AlertConfig implements IReflection<AlertConfig> {
     @optional() interval: number = 5000;
 
@@ -19,17 +28,20 @@ export class AlertConfig implements IReflection<AlertConfig> {
     stateSaveFilename = "";
     indexerRestart = "";
     indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
-    attesters = [
-        { name: "Coston", mode: "dev", path: "", restart: "" },
-        { name: "Songbird", mode: "songbird", path: "", restart: "" },
-    ]
+    attesters = [];
 
     instanciate() {
         return new AlertConfig();
     }
 
     getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
-        return null;        
+
+        const res = new AdditionalTypeInfo();
+
+        res.arrayMap.set( "indexers" , "string" );
+        res.arrayMap.set( "attesters" , new AlertAttestationConfig() );
+
+        return res;        
     }
 
 }

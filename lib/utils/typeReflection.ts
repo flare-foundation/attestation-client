@@ -32,6 +32,11 @@ function getType(object: any) {
 function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, optionalNotFound: string, checkType: boolean): boolean {
   let valid = true;
 
+  // for array: string[] has keys for every character and is treated as array 
+  if( typeof(A)==="string" && typeof(B)==="string") {
+    return true;
+  }
+
   const typeInfoA = A.getAdditionalTypeInfo ? A.getAdditionalTypeInfo(B) : null;
 
   const keysA = Object.keys(A);
@@ -87,6 +92,11 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
               // handle array
               if (realTypeA as any === "Array" && realTypeB as any === "Array") {
                 const arrayType = typeInfoA.getArrayType(keyA);
+
+                if( !arrayType ) {
+                  getGlobalLogger().error( `'${parent}${keyA}' array item type is not provided` );
+                  continue;
+                }
 
                 const lenB = objB.length;
                 for (let i = 0; i < lenB; i++) {

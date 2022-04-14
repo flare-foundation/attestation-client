@@ -59,7 +59,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
       const transDbPromisses = txPromises.map((processed) => async () => { return await augmentTransactionUtxo(this.client, block, processed); });
 
-      const transDb = await retryMany(`UtxoBlockProcessor::initializeJobs`, transDbPromisses, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
+      const transDb = await retryMany(`UtxoBlockProcessor::initializeJobs`, transDbPromisses ) as DBTransactionBase[];
 
       if (!transDb) {
         return;

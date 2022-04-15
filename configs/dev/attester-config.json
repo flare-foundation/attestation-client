@@ -8,6 +8,6 @@
 
     "dynamicAttestationConfigurationFolder": "./configs/dac/",
     
-    //"commitTime1":11,
-    //"revealTime":80,
+    "commitTime":11,
+    "revealTime":80,
 }

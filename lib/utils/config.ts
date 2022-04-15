@@ -10,10 +10,13 @@ function readJSON<T>(filename: string) {
   let data = fs.readFileSync(filename).toString();
 
   // remove all comments
-  data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|(?:[^\w\s]|^)\s*\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/(?=[gmiy]{0,4}\s*(?![*\/])(?:\W|$)))|\/\/.*?$|\/\*[\s\S]*?\*\//gm, '$1');
+  //data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|(?:[^\w\s]|^)\s*\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/(?=[gmiy]{0,4}\s*(?![*\/])(?:\W|$)))|\/\/.*?$|\/\*[\s\S]*?\*\//gm, '$1');
+  data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, '$1');
 
   // remove trailing commas
   data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, '');
+
+  //console.log( data );
 
   const res = JSON.parse(data) as T;
 
@@ -47,9 +50,15 @@ function readConfigBase<T extends IReflection<T>>(project: string, type: string,
   try {
     const res = readJSON<T>(path);
 
-    isEqualType(obj.instanciate(), res);
+    const valid = isEqualType(obj.instanciate(), res);
 
-    getGlobalLogger().info(`^Gconfiguration ^K^w${path}^^ loaded`);
+    if( valid ) {
+      getGlobalLogger().info(`^g^W ${project} ^^ ^Gconfiguration ^K^w${path}^^ loaded`);
+    }
+    else
+    {
+      getGlobalLogger().error2(` ${project}  configuration ^K^w${path}^^ has errors`);
+    }
 
     return res;
   }

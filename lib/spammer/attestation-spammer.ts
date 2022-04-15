@@ -24,6 +24,7 @@ import { encodeRequest } from "../verification/generated/attestation-request-enc
 import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";
 import { getSourceName, SourceId } from "../verification/sources/sources";
+import { SpammerCredentials } from "./SpammerConfiguration";
 
 let fs = require("fs");
 
@@ -48,20 +49,6 @@ let args = yargs
   .option("numberOfAccounts", {alias: "o",type: "number",description: "Number of accounts",default: 1,})
   .option("loggerLabel", {alias: "l",type: "string",description: "Logger label",default: "",})
   .argv;
-
-
-class SpammerCredentials implements IReflection<SpammerCredentials>{
-  web = new AttesterWebOptions();
-
-  instanciate(): SpammerCredentials {
-    return new SpammerCredentials();
-  }
-  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
-    return null;
-  }
-
-
-}
 
 class AttestationSpammer {
   chainType!: ChainType;

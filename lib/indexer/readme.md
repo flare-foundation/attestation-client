@@ -220,11 +220,11 @@ ctail -f -i global/alerts/logs/attester-global.log
 
 ./scripts/deploy-coston-attester
 ./scripts/deploy-coston-spammer
-./scripts/deploy-coston-backoffice
+./scripts/deploy-coston-backend
 
 ./scripts/deploy-songbird-attester
 ./scripts/deploy-songbird-spammer
-./scripts/deploy-songbird-backoffice
+./scripts/deploy-songbird-backend
 
 ```
 

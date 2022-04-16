@@ -7,9 +7,8 @@
 //////////////////////////////////////////////////////////////
 
 import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
-import { AlgoTransaction, toBN } from "flare-mcc";
-import { numberLikeToNumber } from "../../attestation-types/attestation-types-helpers";
-import { accountBasedBalanceDecreasingTransactionVerification } from "../../verification-utils/account-based-verification-utils";
+import { AlgoTransaction } from "flare-mcc";
+import { verifyBalanceDecreasingTransaction } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();
 
@@ -26,7 +25,7 @@ export async function verifyBalanceDecreasingTransactionALGO(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await accountBasedBalanceDecreasingTransactionVerification(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+   let result = await verifyBalanceDecreasingTransaction(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
    if (result.status != VerificationStatus.OK) {
       return { status: result.status }
    }

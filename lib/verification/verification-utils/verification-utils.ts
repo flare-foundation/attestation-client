@@ -1,10 +1,9 @@
-import { TransactionBase } from "flare-mcc";
+import { AlgoTransaction, BtcTransaction, DogeTransaction, LtcTransaction, XrpTransaction } from "flare-mcc";
 import { ConfirmedBlockQueryResponse, ConfirmedTransactionQueryResponse, ReferencedTransactionsQueryResponse } from "../../indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 
 
-
+export type MccTransactionType = BtcTransaction | LtcTransaction | DogeTransaction | XrpTransaction | AlgoTransaction;
 export interface VerificationResponse<T> {
    status: VerificationStatus;
    response?: T;
@@ -61,12 +60,5 @@ export function verifyWorkflowForReferencedTransactions(result: ReferencedTransa
       return VerificationStatus.SYSTEM_FAILURE;
    }
 
-   return VerificationStatus.NEEDS_MORE_CHECKS;
-}
-
-export function verifyNativePayment(fullTxData: TransactionBase<any, any>) {
-   if (!fullTxData.isNativePayment) {
-      return VerificationStatus.NOT_PAYMENT;
-   }
    return VerificationStatus.NEEDS_MORE_CHECKS;
 }

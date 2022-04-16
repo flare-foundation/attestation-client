@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////
 
 import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
-import { utxoBasedConfirmedBlockHeightExistsVerification } from "../../verification-utils/utxo-based-verification-utils";
+import { verifyConfirmedBlockHeightExists } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();
 
@@ -24,7 +24,7 @@ export async function verifyConfirmedBlockHeightExistsLTC(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await utxoBasedConfirmedBlockHeightExistsVerification(request, roundId, numberOfConfirmations, recheck, indexer);
+   let result = await verifyConfirmedBlockHeightExists(request, roundId, numberOfConfirmations, recheck, indexer);
    if (result.status != VerificationStatus.OK) {
       return { status: result.status }
    }

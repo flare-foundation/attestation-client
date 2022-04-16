@@ -8,7 +8,7 @@
 
 import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { DogeTransaction } from "flare-mcc";
-import { utxoBasedBalanceDecreasingTransactionVerification } from "../../verification-utils/utxo-based-verification-utils";
+import { verifyBalanceDecreasingTransaction } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();
 
@@ -25,7 +25,7 @@ export async function verifyBalanceDecreasingTransactionDOGE(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await utxoBasedBalanceDecreasingTransactionVerification(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+   let result = await verifyBalanceDecreasingTransaction(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
    if (result.status != VerificationStatus.OK) {
       return { status: result.status }
    }

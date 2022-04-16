@@ -6,8 +6,8 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
+import { verifyConfirmedBlockHeightExists } from "../../verification-utils/generic-chain-verifications";
 import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
-import { accountBasedConfirmedBlockHeightExistsVerification } from "../../verification-utils/account-based-verification-utils";
 
 const web3 = new Web3();
 
@@ -24,7 +24,7 @@ export async function verifyConfirmedBlockHeightExistsXRP(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await accountBasedConfirmedBlockHeightExistsVerification(request, roundId, numberOfConfirmations, recheck, indexer);
+   let result = await verifyConfirmedBlockHeightExists(request, roundId, numberOfConfirmations, recheck, indexer);
    if (result.status != VerificationStatus.OK) {
       return { status: result.status }
    }

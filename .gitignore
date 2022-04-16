@@ -36,6 +36,7 @@ cache/
 yarn-error.log
 
 ## Logs
+logs
 *.log
 
 ## Misc
@@ -68,3 +69,6 @@ configs/dev/indexer-credentials.json
 
 # alerts
 status.json
+
+# spammer
+db

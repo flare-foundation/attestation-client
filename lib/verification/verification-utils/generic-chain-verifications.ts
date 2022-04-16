@@ -1,31 +1,24 @@
-import { AlgoTransaction, prefix0x, toBN, TransactionSuccessStatus, unPrefix0x, XrpTransaction } from "flare-mcc";
+import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x } from "flare-mcc";
 import Web3 from "web3";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../generated/attestation-request-types";
-import { VerificationResponse, verifyNativePayment, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
+import { MccTransactionType, VerificationResponse, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
 
-export type AccountBasedType = AlgoTransaction | XrpTransaction;
+//////////////////////////////////////////////////
+// Verification functions 
+/////////////////////////////////////////////////
 
-
-export function extractStandardizedPaymentReference(fullTxData: AccountBasedType) {
-   let paymentReference = fullTxData.reference.length === 1 ? prefix0x(fullTxData.reference[0]) : "";
-   // Ignore too long payment references
-   if (unPrefix0x(paymentReference).length > 64) {
-      paymentReference = ""
-   }
-   return prefix0x(paymentReference);
-}
-
-export async function accountBasedPaymentVerification(
-   TransactionClass: new (...args: any[]) => AccountBasedType,
+export async function verifyPayment(
+   TransactionClass: new (...args: any[]) => MccTransactionType,
    request: ARPayment,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
-   iqm: IndexedQueryManager
+   iqm: IndexedQueryManager,
+   client?: MccClient
 ): Promise<VerificationResponse<DHPayment>> {
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
@@ -45,27 +38,36 @@ export async function accountBasedPaymentVerification(
    const parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
    const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData)
 
-   status = verifyNativePayment(fullTxData);
-   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
-      return { status }
+   let inUtxoNumber = toBN(request.inUtxo).toNumber();
+   let utxoNumber = toBN(request.utxo).toNumber();
+
+
+   let paymentSummary: PaymentSummary;
+   try {
+      paymentSummary = await fullTxData.paymentSummary(client, inUtxoNumber, utxoNumber);
+   } catch (e: any) {
+      // TODO: return status according to exception
+      return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR }
    }
 
-   let paymentReference = extractStandardizedPaymentReference(fullTxData);
+
+   if (!paymentSummary.isNativePayment) {
+      return { status: VerificationStatus.NOT_PAYMENT };
+   }
 
    let response = {
       stateConnectorRound: roundId,
       blockNumber: toBN(dbTransaction.blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: prefix0x(dbTransaction.transactionId),
-      inUtxo: toBN(0),
-      utxo: toBN(0),
-      sourceAddressHash: Web3.utils.soliditySha3(fullTxData.sourceAddress[0]),
-      receivingAddressHash: Web3.utils.soliditySha3(fullTxData.receivingAddress[0]),
-      paymentReference,
-      spentAmount: fullTxData.spentAmount[0].amount,
-      // TODO: what do we actually get as received amount on failed payments
-      receivedAmount: fullTxData.successStatus === TransactionSuccessStatus.SUCCESS ? fullTxData.receivedAmount[0].amount : toBN(0),
-      oneToOne: true,
+      inUtxo: toBN(request.inUtxo),
+      utxo: toBN(request.utxo),
+      sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : "0x",
+      receivingAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.receivingAddress) : "0x",
+      paymentReference: paymentSummary.paymentReference || "0x",
+      spentAmount: paymentSummary.spentAmount || toBN(0),
+      receivedAmount: paymentSummary.receivedAmount || toBN(0),
+      oneToOne: !!paymentSummary.oneToOne,
       status: toBN(fullTxData.successStatus)
    } as DHPayment;
 
@@ -75,14 +77,14 @@ export async function accountBasedPaymentVerification(
    }
 }
 
-
-export async function accountBasedBalanceDecreasingTransactionVerification(
-   TransactionClass: new (...args: any[]) => AccountBasedType,
+export async function verifyBalanceDecreasingTransaction(
+   TransactionClass: new (...args: any[]) => MccTransactionType,
    request: ARBalanceDecreasingTransaction,
    roundId: number,
    numberOfConfirmations: number,
    recheck: boolean,
-   iqm: IndexedQueryManager
+   iqm: IndexedQueryManager,
+   client?: MccClient
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
 
    let confirmedTransactionResult = await iqm.getConfirmedTransaction({
@@ -102,15 +104,25 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
    const parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
    const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData)
 
-   let paymentReference = extractStandardizedPaymentReference(fullTxData);
+   let inUtxoNumber = toBN(request.inUtxo).toNumber();
+
+   let paymentSummary: PaymentSummary;
+   try {
+      paymentSummary = await fullTxData.paymentSummary(client, inUtxoNumber);
+   } catch (e: any) {
+      // TODO: return status according to exception
+      return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR }
+   }
+
    let response = {
+      stateConnectorRound: roundId,
       blockNumber: toBN(dbTransaction.blockNumber),
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: prefix0x(dbTransaction.transactionId),
-      inUtxo: toBN(0),
-      sourceAddressHash: Web3.utils.soliditySha3(fullTxData.sourceAddress[0]),
-      spentAmount: fullTxData.spentAmount?.[0]?.amount || toBN(0), // TODO: Check what is wrong with ALGO
-      paymentReference
+      inUtxo: request.inUtxo,
+      sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : "0x",
+      spentAmount: paymentSummary.spentAmount || toBN(0),
+      paymentReference: paymentSummary.paymentReference || "0x",
    } as DHBalanceDecreasingTransaction;
 
    return {
@@ -119,7 +131,7 @@ export async function accountBasedBalanceDecreasingTransactionVerification(
    }
 }
 
-export async function accountBasedConfirmedBlockHeightExistsVerification(
+export async function verifyConfirmedBlockHeightExists(
    request: ARConfirmedBlockHeightExists,
    roundId: number,
    numberOfConfirmations: number,
@@ -143,9 +155,10 @@ export async function accountBasedConfirmedBlockHeightExistsVerification(
    const dbBlock = confirmedBlockQueryResult.block;
 
    let averageBlockProductionTimeMs = toBN(Math.floor(
-      (confirmedBlockQueryResult.upperBoundaryBlock.timestamp - confirmedBlockQueryResult.lowerBoundaryBlock.timestamp)*1000 /
+      (confirmedBlockQueryResult.upperBoundaryBlock.timestamp - confirmedBlockQueryResult.lowerBoundaryBlock.timestamp) * 1000 /
       (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
    ));
+
    let response = {
       stateConnectorRound: roundId,
       blockNumber: toBN(dbBlock.blockNumber),
@@ -160,8 +173,8 @@ export async function accountBasedConfirmedBlockHeightExistsVerification(
    }
 }
 
-export async function accountBasedReferencedPaymentNonExistence(
-   TransactionClass: new (...args: any[]) => AccountBasedType,
+export async function verifyReferencedPaymentNonExistence(
+   TransactionClass: new (...args: any[]) => MccTransactionType,
    request: ARReferencedPaymentNonexistence,
    roundId: number,
    numberOfConfirmations: number,
@@ -185,27 +198,29 @@ export async function accountBasedReferencedPaymentNonExistence(
       return { status }
    }
 
-   // From here on these two exist, dbTransactions can be an empty list.
+   // From here on these exist, dbTransactions can be an empty list.
    let dbTransactions = referencedTransactionsResponse.transactions;
    let firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
    let lowerBoundaryBlock = referencedTransactionsResponse.lowerBoundaryBlock;
 
    // Check transactions for a matching
-   // payment reference is ok, check `destinationAddress` and `amount`
-   let matchFound = false;
    for (let dbTransaction of dbTransactions) {
       const parsedData = JSON.parse(dbTransaction.response);
       const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
-      const destinationAddressHash = Web3.utils.soliditySha3(fullTxData.receivingAddress[0]);
-      const amount = toBN(fullTxData.receivedAmount[0].amount);
-      if (destinationAddressHash === request.destinationAddressHash && amount.eq(toBN(request.amount))) {
-         matchFound = true;
-         break;
+      
+      // In account based case this loop goes through only once. 
+      for(let outUtxo = 0; outUtxo < fullTxData.receivingAddresses.length; outUtxo++) {
+         let address = fullTxData.receivingAddresses[outUtxo];
+         const destinationAddressHash = Web3.utils.soliditySha3(address);
+         if (destinationAddressHash === request.destinationAddressHash) {
+            let paymentSummary = await fullTxData.paymentSummary(undefined, undefined, outUtxo);
+            if(paymentSummary.receivedAmount.eq(toBN(request.amount))) {
+               return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS }
+            }
+            // no match on that address, proceed to the next transaction
+            break;
+         }
       }
-   }
-
-   if (matchFound) {
-      return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS }
    }
 
    let response = {

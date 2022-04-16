@@ -8,7 +8,7 @@
 
 import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { LtcTransaction } from "flare-mcc";
-import { utxoBasedPaymentVerification } from "../../verification-utils/utxo-based-verification-utils";
+import { verifyPayment } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();
 
@@ -25,7 +25,7 @@ export async function verifyPaymentLTC(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await utxoBasedPaymentVerification(LtcTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+   let result = await verifyPayment(LtcTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
    if (result.status != VerificationStatus.OK) {
       return { status: result.status }
    }

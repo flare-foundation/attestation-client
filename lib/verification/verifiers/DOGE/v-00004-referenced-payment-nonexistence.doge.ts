@@ -8,7 +8,7 @@
 
 import { ARReferencedPaymentNonexistence, Attestation, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { DogeTransaction } from "flare-mcc";
-import { utxoBasedReferencedPaymentNonExistence } from "../../verification-utils/utxo-based-verification-utils";
+import { verifyReferencedPaymentNonExistence } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();
 
@@ -25,7 +25,7 @@ export async function verifyReferencedPaymentNonexistenceDOGE(
 
    //-$$$<start> of the custom code section. Do not change this comment. XXX
 
-   let result = await utxoBasedReferencedPaymentNonExistence(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+   let result = await verifyReferencedPaymentNonExistence(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
    if (result.status != VerificationStatus.OK) {
       return { status: result.status }
    }

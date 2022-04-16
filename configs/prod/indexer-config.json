@@ -1,8 +1,13 @@
 {
+    // enabled sync
     "syncEnabled": true,
+    
+    // how many days back to sync (decimals are supported)
     "syncTimeDays":2,
 
+    // how much time to speep between block collection
     "blockCollectTimeMs": 1000,
 
+    // while syncing every how many milliseconds to get new top block number 
     "syncUpdateTimeMs": 10000
 }

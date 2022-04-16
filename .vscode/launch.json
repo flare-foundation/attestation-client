@@ -16,6 +16,17 @@
             ]
         },
 
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Config Verify",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devconfig"
+            ]
+        },
+
         
         {
             "type": "node",

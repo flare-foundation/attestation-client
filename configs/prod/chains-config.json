@@ -1,11 +1,19 @@
 {
+    // chains definition
     "chains": [
         {
+            // chain name. allowed names are XRP, BTC, LTC, ALGO, DOGE
             "name": "XRP",
+            // MCC create options
             "mccCreate" : {
+                //  
                 "url": "https://xrplcluster.com",
-                "url2": "http://34.91.7.3:51234"
+                //"url2": "http://34.91.7.3:51234"
+
+
             },
+
+            // rate limiting options
             "rateLimitOptions": {
                 "maxRPS": 20,
                 "timeoutMs": 30000,

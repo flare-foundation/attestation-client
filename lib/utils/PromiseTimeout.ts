@@ -33,8 +33,8 @@ export async function retry<T>(
 export async function retryMany(
     label: string,
     functs: any[],
-    timeoutTime: number,
-    numRetries: number,
+    timeoutTime: number = DEFAULT_TIMEOUT,
+    numRetries: number = DEFAULT_RETRY,
     backOffTime = DEFAULT_BACK_OFF_TIME,
 ) {
     return Promise.all(functs.map(funct => retry(label, funct, timeoutTime, numRetries, backOffTime)));

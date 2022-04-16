@@ -32,6 +32,11 @@ function getType(object: any) {
 function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, optionalNotFound: string, checkType: boolean): boolean {
   let valid = true;
 
+  // for array: string[] has keys for every character and is treated as array 
+  if (typeof (A) === "string" && typeof (B) === "string") {
+    return true;
+  }
+
   const typeInfoA = A.getAdditionalTypeInfo ? A.getAdditionalTypeInfo(B) : null;
 
   const keysA = Object.keys(A);
@@ -88,6 +93,11 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
               if (realTypeA as any === "Array" && realTypeB as any === "Array") {
                 const arrayType = typeInfoA.getArrayType(keyA);
 
+                if (!arrayType) {
+                  getGlobalLogger().error(`'${parent}${keyA}' array item type is not provided`);
+                  continue;
+                }
+
                 const lenB = objB.length;
                 for (let i = 0; i < lenB; i++) {
                   if (!isEqualType(arrayType, objB[i], parent + `${keyA}[${i}].`)) {
@@ -114,21 +124,22 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
     }
 
     if (!found) {
-      valid = false;
       if (checkType) {
-        const isOptional = optionalA.find(x=>x==keyA);
+        const isOptional = optionalA.find(x => x == keyA);
 
-        if( isOptional ) {
+        if (isOptional) {
           getGlobalLogger().info(`${optionalNotFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
         }
         else {
+          valid = false;
           getGlobalLogger().error2(`${notFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
         }
 
         // unify
-        B[keyA]=A[keyA];
+        B[keyA] = A[keyA];
       }
       else {
+        // todo: this should be warning
         getGlobalLogger().warning(`${notFound} "${parent}${keyA}:${realTypeA}"`);
       }
     }
@@ -139,8 +150,8 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
 
 
 export function isEqualType(A: any, B: any, parent: string = ""): boolean {
-  const testAB = isEqualTypeUni(parent, A, B, "missing propery", "property using default value" , true);
-  const testBA = isEqualTypeUni(parent, B, A, "unknown propery", "" , false);
+  const testAB = isEqualTypeUni(parent, A, B, "missing propery", "property using default value", true);
+  const testBA = isEqualTypeUni(parent, B, A, "unknown propery", "", false);
 
   return testAB && testBA;
 }

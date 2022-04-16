@@ -56,7 +56,7 @@ export class LimitingProcessor {
       sleepDelayMs: 100,
       activeLimit: 50,
       timeout : 15000,
-      retry : 5
+      retry : 10
    }
 
    queue = new Queue<DelayedExecution>();

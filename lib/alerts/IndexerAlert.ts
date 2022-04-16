@@ -5,7 +5,7 @@ import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, secToHHMMSS } from "../utils/utils";
 import { AlertBase, AlertRestartConfig, AlertStatus } from "./AlertBase";
-import { AlertConfig } from "./alerts";
+import { AlertConfig } from "./AlertsConfiguration";
 
 export class IndexerAlert extends AlertBase {
     static dbService: DatabaseService;

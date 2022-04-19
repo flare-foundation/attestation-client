@@ -156,6 +156,9 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
          "CORRECT"
       );
 
+      if(!request) {
+         console.log("NO REQUEST - Repeat the test", request);
+      }
       // console.log(request);
       // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);

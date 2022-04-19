@@ -1,4 +1,4 @@
-import { MccClient } from "flare-mcc";
+import { MccClient, unPrefix0x } from "flare-mcc";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
@@ -205,7 +205,7 @@ export class IndexedQueryManager {
   }
 
   private async upperBoundaryCheck(upperBoundProof: string, numberOfConfirmations: number, recheck: boolean): Promise<UpperBoundaryCheck> {
-    let confBlock = await this.getBlockByHash(upperBoundProof);
+    let confBlock = await this.getBlockByHash(unPrefix0x(upperBoundProof));
     if (!confBlock) {
       if (!recheck) {
         return { status: "RECHECK" }

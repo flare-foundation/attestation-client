@@ -275,7 +275,8 @@
             "name": "Test Verification",
             "runtimeExecutable": "yarn",
             "env": {
-                "SOURCE_ID": "ALGO"
+                "SOURCE_ID": "ALGO",
+                "CONFIG_PATH": "dev"
             },
             "outFiles": [
                 "${workspaceFolder}/**/*.js",

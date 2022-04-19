@@ -207,15 +207,20 @@ export async function verifyReferencedPaymentNonExistence(
    for (let dbTransaction of dbTransactions) {
       const parsedData = JSON.parse(dbTransaction.response);
       const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
-      
+
       // In account based case this loop goes through only once. 
-      for(let outUtxo = 0; outUtxo < fullTxData.receivingAddresses.length; outUtxo++) {
+      for (let outUtxo = 0; outUtxo < fullTxData.receivingAddresses.length; outUtxo++) {
          let address = fullTxData.receivingAddresses[outUtxo];
          const destinationAddressHash = Web3.utils.soliditySha3(address);
          if (destinationAddressHash === request.destinationAddressHash) {
-            let paymentSummary = await fullTxData.paymentSummary(undefined, undefined, outUtxo);
-            if(paymentSummary.receivedAmount.eq(toBN(request.amount))) {
-               return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS }
+            try {
+               let paymentSummary = await fullTxData.paymentSummary(undefined, undefined, outUtxo);
+
+               if (paymentSummary.receivedAmount.eq(toBN(request.amount))) {
+                  return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS }
+               }
+            } catch (e) {
+               return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR };
             }
             // no match on that address, proceed to the next transaction
             break;

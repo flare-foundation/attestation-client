@@ -1,8 +1,11 @@
+import { toBN } from "flare-mcc";
 import { Factory, Singleton } from "typescript-ioc";
 import { AttesterWebOptions } from "../../attester/AttesterClientConfiguration";
-import { readCredentials } from "../../utils/config";
+import { readConfig, readCredentials } from "../../utils/config";
 import { DatabaseConnectOptions } from "../../utils/databaseService";
+import { EpochSettings } from "../../utils/EpochSettings";
 import { AdditionalTypeInfo, IReflection } from "../../utils/typeReflection";
+import { ServerConfiguration } from "../configs/ServerConfiguration";
 
 
 export class ServerCredentials implements IReflection<ServerCredentials> {
@@ -25,9 +28,13 @@ export class ServerCredentials implements IReflection<ServerCredentials> {
 export class ConfigurationService {
 
    serverCredentials: ServerCredentials;
+   serverConfig: ServerConfiguration;
+   epochSettings: EpochSettings;
 
    constructor() {
       this.serverCredentials = readCredentials(new ServerCredentials(), "backend");
+      this.serverConfig = readConfig(new ServerConfiguration(), "backend");
+      this.epochSettings = new EpochSettings(toBN(this.serverConfig.firstEpochStartTime), toBN(this.serverConfig.roundDurationSec));
    }
 
 }

@@ -19,23 +19,6 @@ export class ProofController extends Controller {
         super()
     }
 
-    // @Get("check-session/{sessionId}")
-    // public async sessionInDatabase(
-    //     @Path() sessionId: string,
-    // ): Promise<ApiResponse<any>> {
-    //     if(!process.env.AUTH_TOKEN) return new ApiResponse(true);
-    //     const result = process.env.AUTH_TOKEN === sessionId || process.env.ADMIN_AUTH_TOKEN === sessionId;
-
-    //     if (result) {
-    //         this.setHeader("Set-Cookie", `flare-auth-token=${sessionId}; HttpOnly; Path=/; Max-Age=86400`)
-    //     }
-    //     else {
-    //         this.setHeader("Set-Cookie", "flare-auth-token=x; HttpOnly; Path=/; Max-Age=-1")
-    //     }
-    //     return new ApiResponse(result)
-    // }
-
-
     @Get("votes-for-round/{roundId}")
     public async lastReveals(
         @Path() roundId: number,

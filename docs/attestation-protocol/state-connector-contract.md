@@ -3,12 +3,14 @@
 
 The `StateConnector` smart contract is used to manage the attestation protocol. This is basically the voting contract, that does the following.
 
-- Manages voting rounds.
+- Manages voting rounds. `[DAVID: what round managing is performed in state connector? it only checks is buffer number is correct]`
 - Accepts attestation requests all the time. Based on the time of submission each attestation request is mapped to the relevant `collect` phase of the corresponding voting round.
 - Accepts commit and reveal submissions by attestation providers, mapping them to the `commit` and `reveal` phases of the relevant voting rounds.
 - Counts the votes (attestations) and declares the winning attestation hash (confirmed Merkle root) for every voting round (in the `count` phase).
 
 Note that voting rounds are interlaced. For example, if _W<sub>0</sub>_, _W<sub>1</sub>_, ... are sequential 90s voting windows, then the voting round with id `0` has the `collect` phase in _W<sub>0</sub>_, the `commit` phase in _W<sub>1</sub>_, etc. Simultaneously, the voting round with id `1` has the `collect` phase in _W<sub>1</sub>_, the `commit` phase in _W<sub>2</sub>_, etc.
+
+Additionaly the data sent per window is interlaced; commit message for window _W<sub>n</sub>_ also contains reveal data for _W<sub>n-1</sub>_.
 
 ## Requesting attestations
 

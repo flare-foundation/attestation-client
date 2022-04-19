@@ -2,7 +2,7 @@
 
 # Merkle tree
 
-Attestations for each voting round (data hashes of the attested data) are assembled into the Merkle tree and only the Merkle root is used in voting. The Merkle root that is sent by the majority of attestation providers becomes confirmed Merkle root for the round and it is stored in the `StateConnector` contract. As of current implementation, the confirmed Merkle root is in accessible by looking up into the public array on the contract, `merkleRoots`, which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720 - a week of proofs). Note also that the proof for a given voting round is stored at the index `(roundId + 2) % TOTAL_STORED_PROOFS`.
+Attestations for each voting round (data hashes of the attested data) are assembled into the Merkle tree and only the Merkle root is used in voting. The Merkle root that is sent by the majority of attestation providers becomes confirmed Merkle root for the round and it is stored in the `StateConnector` contract. As of current implementation, the confirmed Merkle root is accessible by looking up into the public array on the contract, `merkleRoots`, which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720 - a week of proofs). Note also that the proof for a given voting round is stored at the index `(roundId + 2) % TOTAL_STORED_PROOFS`.
 
 For proving verifications of a specific voting round it suffices to know whether an attestation hash of a specific attestation request has appeared (or equivalently was confirmed) in the voting round.
 For that purpose, attestation providers (voters) organize submitted attestation hashes in a round as follows.

@@ -1,9 +1,9 @@
-import { AlgoBlock, AlgoTransaction, ChainType, DogeTransaction, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
+import { AlgoBlock, AlgoTransaction, ChainType, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { logException } from "../../utils/logger";
 import { retryMany } from "../../utils/PromiseTimeout";
-import { augmentBlock, augmentBlockAlgo, augmentBlockUtxo } from "./augmentBlock";
+import { augmentBlock } from "./augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
 import { getFullTransactionUtxo } from "./readTransaction";
 import { onSaveSig } from "./types";
@@ -47,7 +47,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
       let txPromises = block.data.tx.map((txObject) => {
         const getTxObject = {
-          blockhash: block.hash,
+          blockhash: block.stdBlockHash,
           time: block.unixTimestamp,
           confirmations: 1, // This is the block 
           blocktime: block.unixTimestamp,
@@ -65,7 +65,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
         return;
       }
 
-      const blockDb = await augmentBlockUtxo(block);
+      const blockDb = await augmentBlock(block);
 
       this.stop();
 
@@ -83,7 +83,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
     this.block = block;
 
 
-    let preprocesedTxPromises = block.transactionHashes.map((txid: string) => {
+    let preprocesedTxPromises = block.stdTransactionIds.map((txid: string) => {
           // the in-transactions are prepended to queue in order to process them earlier
           return (() => (this.call(() => this.client.getTransaction(txid), true)) as Promise<UtxoTransaction>);    
     });
@@ -104,7 +104,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     this.markTopLevelJobDone();
 
-    const blockDb = await augmentBlockUtxo(block);
+    const blockDb = await augmentBlock(block);
 
     this.stop();
 
@@ -127,7 +127,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
       });
       const transDb = await retryMany(`AlgoBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
       this.pause();
-      const blockDb = await augmentBlockAlgo(block);
+      const blockDb = await augmentBlock(block);
 
       onSave(blockDb, transDb);
     }

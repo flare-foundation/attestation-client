@@ -59,7 +59,7 @@ export class BlockProcessorManager {
 
         let started = false;
         for (let a = 0; a < this.blockProcessors.length; a++) {
-            if (this.blockProcessors[a].block.hash === block.hash) {
+            if (this.blockProcessors[a].block.stdBlockHash === block.stdBlockHash) {
                 started = true;
 
                 if( syncMode ) return;

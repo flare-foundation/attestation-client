@@ -2,6 +2,7 @@
 // Make sure that you are connected to a synced database and indexers are running
 // Set correct configurations for `dev`
 //  SOURCE_ID=BTC CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/verification/verification.test.ts
+//  SOURCE_ID=ALGO CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/verification/verification.test.ts
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
 import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
@@ -241,7 +242,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
    // });
 
 
-   it.only("Attestation Test", async () => {
+   it.skip("Attestation Test", async () => {
 
       const recheck = true;
       const requestBytes = "0x000400000000211a3c847657b9aae1c15bc36a7cf27ffa64d2131e7e5c1817a4d04f3b81ef61000b2de4625f985a298e9a1a8f1b9df62bd3044009249c08336f28160d6f00ead1ff538116d15ee1b675b3b638184a0e1c45fb8d121a0f1000000000000000000000000000000000000000003322a5e5ee8e444367f10656";

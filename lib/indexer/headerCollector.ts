@@ -1,5 +1,5 @@
-import { BlockBase, IBlock } from "flare-mcc";
-import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
+import { IBlock } from "flare-mcc";
+import { LiteBlock } from "flare-mcc/dist/base-objects/blocks/LiteBlock";
 import { AttLogger, logException } from "../utils/logger";
 import { retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
@@ -21,14 +21,14 @@ export class HeaderCollector {
         this.indexer = indexer;
     }
 
-    private isBlockCached(block: LiteBlock | IBlock) {
-        return this.blockHeaderHash.has(block.hash) && this.blockHeaderNumber.has(block.number);
+    private isBlockCached(block: IBlock) {
+        return this.blockHeaderHash.has(block.stdBlockHash) && this.blockHeaderNumber.has(block.number);
     }
 
-    private cacheBlock(block: LiteBlock | IBlock) {
-        this.blockHeaderHash.add(block.hash);
+    private cacheBlock(block: IBlock) {
+        this.blockHeaderHash.add(block.stdBlockHash);
         this.blockHeaderNumber.add(block.number);
-        this.blockNumberHash.set(block.number, block.hash);
+        this.blockNumberHash.set(block.number, block.stdBlockHash);
     }
     async getBlock(label: string, blockNumber: number): Promise<IBlock> {
         // todo: implement lite version
@@ -41,10 +41,7 @@ export class HeaderCollector {
 
     async saveLiteBlocksHeaders(blocks: LiteBlock[]) {
         try {
-            const outBlocks = blocks.map(block => new LiteIBlock(block));
-
-            await this.saveBlocksHeadersArray(outBlocks);
-
+            await this.saveBlocksHeadersArray(blocks);
         } catch (error) {
             logException(error, `saveLiteBlocksHeaders error: }`);
         }
@@ -82,7 +79,7 @@ export class HeaderCollector {
             const dbBlocks = [];
 
             for (const block of blocks) {
-                if (!block || !block.hash) continue;
+                if (!block || !block.stdBlockHash) continue;
 
                 const blockNumber = block.number;
 
@@ -102,7 +99,7 @@ export class HeaderCollector {
                 const dbBlock = new this.indexer.dbBlockClass();
 
                 dbBlock.blockNumber = blockNumber;
-                dbBlock.blockHash = block.hash;
+                dbBlock.blockHash = block.stdBlockHash;
                 dbBlock.timestamp = block.unixTimestamp;
 
                 dbBlocks.push(dbBlock);
@@ -154,7 +151,7 @@ export class HeaderCollector {
 
                 // has N+1 confirmation block
                 const isNewBlock = localN < localT - this.indexer.chainConfig.numberOfConfirmations;
-                const isChangedNp1Hash = localBlockNp1hash !== blockNp1.hash;
+                const isChangedNp1Hash = localBlockNp1hash !== blockNp1.stdBlockHash;
 
                 await this.writeT(localT);
 
@@ -221,29 +218,5 @@ export class HeaderCollector {
             case "rawUnforkable": this.runBlockHeaderCollectingRaw(); break;
             case "tips": this.runBlockHeaderCollectingTips(); break;
         }
-    }
-}
-
-
-
-class LiteIBlock extends BlockBase<LiteBlock> {
-    public get number(): number {
-        return this.data.number;
-    }
-
-    public get hash(): string {
-        return this.data.hash;
-    }
-
-    public get unixTimestamp(): number {
-        return 0;
-    }
-
-    public get transactionHashes(): string[] {
-        throw new Error("unimplemented");
-    }
-
-    public get transactionCount(): number {
-        throw new Error("unimplemented");
     }
 }

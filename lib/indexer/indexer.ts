@@ -1,5 +1,5 @@
 import { ChainType, IBlock, MCC } from "flare-mcc";
-import { LiteBlock } from "flare-mcc/dist/base-objects/LiteBlock";
+import { LiteBlock } from "flare-mcc/dist/base-objects/blocks/LiteBlock";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -169,7 +169,7 @@ export class Indexer {
     this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.N}`);
     // if N+1 is ready then begin processing N+2
 
-    const isBlockNp1 = block.number == this.N + 1 && block.hash == this.blockNp1hash;
+    const isBlockNp1 = block.number == this.N + 1 && block.stdBlockHash == this.blockNp1hash;
 
     if (!this.isSyncing) {
       if (isBlockNp1) {
@@ -400,7 +400,7 @@ export class Indexer {
     // check if Np1 with Np1Hash is in preparation
     let exists = false;
     for (let processor of this.blockProcessorManager.blockProcessors) {
-      if (processor.block.number == Np1 && processor.block.hash == this.blockNp1hash) {
+      if (processor.block.number == Np1 && processor.block.stdBlockHash == this.blockNp1hash) {
         exists = true;
         break;
       }
@@ -540,13 +540,13 @@ export class Indexer {
     for (let i = 1; i < blocks.length; i++) {
 
       for (let j = i; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
-        await this.blockProcessorManager.processSyncBlockHash(blocks[j].hash);
+        await this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash);
       }
 
       const block = blocks[i];
 
       this.N = block.number - 1;
-      this.blockNp1hash = block.hash;
+      this.blockNp1hash = block.stdBlockHash;
 
       await this.saveOrWaitNp1Block();
 
@@ -663,7 +663,7 @@ export class Indexer {
 
         // has N+1 confirmation block
         const isNewBlock = this.N < this.T - this.chainConfig.numberOfConfirmations;
-        const isChangedNp1Hash = this.blockNp1hash !== blockNp1.hash;
+        const isChangedNp1Hash = this.blockNp1hash !== blockNp1.stdBlockHash;
 
         // status
         const dbStatus = this.getStateEntryString("state", "running", processedBlocks++);
@@ -689,7 +689,7 @@ export class Indexer {
         }
 
         // process new or changed N+1
-        this.blockNp1hash = blockNp1.hash;
+        this.blockNp1hash = blockNp1.stdBlockHash;
         this.blockProcessorManager.process(blockNp1);
       } catch (error) {
         logException(error, `runIndexer exception: `);

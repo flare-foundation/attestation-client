@@ -133,12 +133,12 @@
                 "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"               
             },
             "rateLimitOptions": {
-                "maxRPS": 300,
+                "maxRPS": 30,
                 "timeoutMs": 5000,
                 "retries": 3
             },
             "numberOfConfirmations": 6,
-            "syncReadAhead":30,
+            "syncReadAhead":10,
             "blockCollecting":"tips",
             "minimalStorageHistoryDays":2,
             "minimalStorageHistoryBlocks":100,

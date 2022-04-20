@@ -1,4 +1,4 @@
-import { ChainType, IBlock, MCC } from "flare-mcc";
+import { ChainType, IBlock, ITransaction, MCC } from "flare-mcc";
 import { LiteBlock } from "flare-mcc/dist/base-objects/blocks/LiteBlock";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
@@ -21,7 +21,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "DOGE", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -100,7 +100,7 @@ export class Indexer {
       },
     };
 
-    this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
+    this.cachedClient = new CachedMccClient<ITransaction,IBlock>(this.chainType, cachedMccClientOptions);
 
     this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
 

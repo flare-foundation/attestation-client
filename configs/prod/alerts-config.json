@@ -6,7 +6,7 @@
     // time in seconds when system status becomes down
     "timeDown":10,
     // time in seconds when system is restarted
-    "timeRestart":20,
+    "timeRestart":120,
     // path where alert status is saved
     "stateSaveFilename":"../attester-status.json",
     // indexer alert systems

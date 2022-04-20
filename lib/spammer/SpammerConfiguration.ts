@@ -1,13 +1,34 @@
 import { AttesterWebOptions } from "../attester/AttesterClientConfiguration";
+import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
-export class SpammerCredentials implements IReflection<SpammerCredentials>{
-    web = new AttesterWebOptions();
-  
-    instanciate(): SpammerCredentials {
-      return new SpammerCredentials();
-    }
-    getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
-      return null;
-    }
+export class SpammerConfig implements IReflection<SpammerConfig>{
+  // start epoch in sec
+  public firstEpochStartTime: number = 1636070400;
+
+  // voting round duration in sec
+  public roundDurationSec: number = 90;
+
+  instanciate(): SpammerConfig {
+    return new SpammerConfig();
   }
+  
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+    return null;
+  }
+
+}
+
+
+export class SpammerCredentials implements IReflection<SpammerCredentials>{
+  web = new AttesterWebOptions();
+
+  indexerDatabase = new DatabaseConnectOptions();
+
+  instanciate(): SpammerCredentials {
+    return new SpammerCredentials();
+  }
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+    return null;
+  }
+}

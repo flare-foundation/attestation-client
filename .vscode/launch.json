@@ -148,12 +148,6 @@
                 "ts-node",
                 "lib/spammer/attestation-spammer.ts",
                 "-c","XRP",
-                "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
-                "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
-                "-b","1",
-                "-o","1", // numberOfAccounts
-                "-f","1",
-                "-d","5000",
                 "-l","XRP"             
             ]
         },

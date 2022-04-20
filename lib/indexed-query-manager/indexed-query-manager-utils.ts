@@ -135,7 +135,7 @@ export async function fetchRandomTransactions(
          query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime })
       }
       query = query
-         .orderBy("transaction.id")
+         //.orderBy("transaction.id")
          .limit(batchSize)
       result = await query.getMany() as DBTransactionBase[];
    }

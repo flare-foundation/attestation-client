@@ -21,7 +21,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -39,7 +39,7 @@ export class Indexer {
   chainConfig: ChainConfiguration;
   credentials: IndexerCredentials;
   chainType: ChainType;
-  cachedClient: CachedMccClient<any, any>;
+  cachedClient: CachedMccClient<any, IBlock>;
   logger!: AttLogger;
   dbService: DatabaseService;
   blockProcessorManager: BlockProcessorManager;
@@ -504,7 +504,7 @@ export class Indexer {
         }
 
         const blocknp1 = await this.cachedClient.getBlock(this.N + 1);
-        this.blockNp1hash = blocknp1.blockHash;
+        this.blockNp1hash = blocknp1.stdBlockHash;
 
         while (!await this.saveOrWaitNp1Block()) {
           await sleepms(100);

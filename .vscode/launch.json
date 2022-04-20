@@ -266,10 +266,10 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Test Verification",
+            "name": "Test Verification BTC",
             "runtimeExecutable": "yarn",
             "env": {
-                "SOURCE_ID": "ALGO",
+                "SOURCE_ID": "BTC",
                 "CONFIG_PATH": "dev"
             },
             "outFiles": [
@@ -282,23 +282,6 @@
                 "hardhat",
                 "test",
                 "test/verification/verification.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test Verification BTC",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**",
-                "${workspaceFolder}/../mcc/**/*.js",
-                "${workspaceFolder}/../mcc/src/**"
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/verification/verification.btc.test.ts"
             ]
         },
 

@@ -1,9 +1,7 @@
 import assert from "assert";
 import { ChainType, MCC, MccClient } from "flare-mcc";
-import { StateConnectorInstance } from "../../typechain-truffle/StateConnector";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { ChainConfiguration } from "./ChainConfiguration";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
@@ -13,6 +11,7 @@ import { Verification, VerificationStatus } from "../verification/attestation-ty
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
 import { toSourceId } from "../verification/sources/sources";
 import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
+import { ChainConfiguration } from "./ChainConfiguration";
 import { ChainManager } from "./ChainManager";
 
 export class ChainNode {
@@ -126,7 +125,7 @@ export class ChainNode {
   // what this function does is to make sure there is a mechanism that will run startNext if nothing is in process
   //
   ////////////////////////////////////////////
-  delayQueue(tx: Attestation, delayTimeSec: number) {
+  delayQueue(tx: Attestation, startTime: number) {
     switch (tx.status) {
       case AttestationStatus.queued:
         arrayRemoveElement(this.transactionsQueue, tx);
@@ -136,7 +135,7 @@ export class ChainNode {
         break;
     }
 
-    this.transactionsPriorityQueue.push(tx, getTimeMilli() + delayTimeSec * 1000);
+    this.transactionsPriorityQueue.push(tx, startTime);
 
     this.updateDelayQueueTimer();
   }
@@ -164,7 +163,7 @@ export class ChainNode {
       // setup new timer
       this.delayQueueStartTime = firstStartTime;
       this.delayQueueTimer = setTimeout(() => {
-        this.chainManager.logger.debug(` # priority queue timeout`);
+        this.chainManager.logger.debug(`priority queue timeout`);
 
         this.startNext();
         this.delayQueueTimer = undefined;
@@ -211,18 +210,18 @@ export class ChainNode {
         attestation.processEndTime = getTimeMilli();
 
         if (verification.status === VerificationStatus.RECHECK_LATER) {
-          this.chainManager.logger.warning(` * reverification`);
+          this.chainManager.logger.warning(`reverification ${attestation.data.request}`);
 
           attestation.reverification = true;
 
-          // delay until end of commit epoch
-          // TODO: check this definition with Alen! it should be REVEAL_TIME_END - REVEAL_OFFSET - REVERIFICATION_OFFSET ?
-          const timeDelay = (AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) - getTimeMilli()) / 1000;
+          // actualk time when attesttion will be rechecked
+          const startTimeMs = AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) - AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 - this.chainConfig.reverificationTimeOffset * 1000;
 
-          this.delayQueue(attestation, timeDelay - this.chainConfig.reverificationTimeOffset);
+          this.delayQueue(attestation, startTimeMs);
         } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
           // TODO: handle this case and do not commit
           // TODO: message other clients or what? do not submit? do not submit that source???
+          this.chainManager.logger.error2(`SYSTEM_FAILURE ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid, verification);
         } else {
           this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
@@ -246,13 +245,13 @@ export class ChainNode {
         // Retries
         attestation.processEndTime = getTimeMilli();
         if (attestation.retry < this.chainConfig.maxFailedRetry) {
-          this.chainManager.logger.warning(`  * transaction verification error (retry ${attestation.retry})`);
+          this.chainManager.logger.warning(`transaction verification error (retry ${attestation.retry})`);
 
           attestation.retry++;
 
-          this.delayQueue(attestation, this.chainConfig.delayBeforeRetry);
+          this.delayQueue(attestation, getTimeMilli() + this.chainConfig.delayBeforeRetry * 1000);
         } else {
-          this.chainManager.logger.error(`  * transaction verification error`);
+          this.chainManager.logger.error2(`transaction verification error ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid);
         }
       });

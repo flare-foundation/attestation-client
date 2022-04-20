@@ -63,7 +63,7 @@ export async function verifyPayment(
       inUtxo: toBN(request.inUtxo),
       utxo: toBN(request.utxo),
       sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : "0x",
-      receivingAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.receivingAddress) : "0x",
+      receivingAddressHash: paymentSummary.receivingAddress ? Web3.utils.soliditySha3(paymentSummary.receivingAddress) : "0x",
       paymentReference: paymentSummary.paymentReference || "0x",
       spentAmount: paymentSummary.spentAmount || toBN(0),
       receivedAmount: paymentSummary.receivedAmount || toBN(0),

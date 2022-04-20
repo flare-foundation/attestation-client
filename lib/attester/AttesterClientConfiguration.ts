@@ -14,8 +14,6 @@ export class AttesterClientConfiguration implements IReflection<AttesterClientCo
 
   // in sec
   public commitTime: number = 10;
-  // in sec
-  public revealTime: number = 80;
 
   instanciate() {
     return new AttesterClientConfiguration();

@@ -90,9 +90,6 @@ class AttestationSpammer {
     this.spammerConfig = readConfig(new SpammerConfig(), "spammer");
     const spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
 
-    //const DAC = new AttestationRoundManager(null, this.configAttestationClient, attesterCredentials, getGlobalLogger(), null);
-    //DAC.initialize();
-
     this.rpcLink = spammerCredentials.web.rpcUrl;
     this.privateKey = spammerCredentials.web.accountPrivateKey;
 
@@ -243,34 +240,6 @@ class AttestationSpammer {
   static sendCount = 0;
 
   async runSpammer() {
-    // await this.init();
-    // this.startLogEvents();
-
-
-    // load data from 'database'
-    // const data = "[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.valid.json`).toString().slice(0, -2).replace(/\n/g, "") + "]";
-    // const validTransactions: Array<AttestationRequest> = JSON.parse(data);
-    // const invalidTransactions: Array<AttestationRequest> = JSON.parse("[" + fs.readFileSync(`db/transactions.${args.loggerLabel}.invalid.json`).toString().slice(0, -1) + "]");
-
-    // JSON saves BN as hex strings !!!@@!#$!@#
-    // for (let a = 0; a < validTransactions.length; a++) {
-    //   try {
-    //     if (validTransactions[a].timestamp) {
-    //       validTransactions[a].timestamp = new BN(validTransactions[a].timestamp!, "hex");
-    //     }
-    //     validTransactions[a].instructions = new BN(validTransactions[a].instructions, "hex");
-    //   } catch { }
-    // }
-
-    // for (let a = 0; a < invalidTransactions.length; a++) {
-    //   try {
-    //     if (invalidTransactions[a].timestamp) {
-    //       invalidTransactions[a].timestamp = new BN(invalidTransactions[a].timestamp!, "hex");
-    //     }
-    //     invalidTransactions[a].instructions = new BN(invalidTransactions[a].instructions, "hex");
-    //   } catch {}
-    // }
-
     let attRequest: ARType | undefined;
     while (true) {
       try {
@@ -291,9 +260,7 @@ class AttestationSpammer {
       } catch (e) {
         logException("runSpammer", e);
       }
-      // if (!attRequest) {
-      //   await sleep(Math.floor(Math.random() * this.delay));
-      // }
+
       await sleepMs(Math.floor(this.delay + Math.random() * this.delay));
     }
   }

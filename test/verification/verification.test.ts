@@ -23,6 +23,8 @@ import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { getGlobalLogger } from "../../lib/utils/logger";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
+import { parseRequest } from "../../lib/verification/generated/attestation-request-parse";
+import { ARType } from "../../lib/verification/generated/attestation-request-types";
 import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
 import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
 
@@ -156,7 +158,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
          "CORRECT"
       );
 
-      if(!request) {
+      if (!request) {
          console.log("NO REQUEST - Repeat the test", request);
       }
       // console.log(request);
@@ -237,6 +239,22 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
    //    console.log(tx)
    //    console.log(JSON.stringify(JSON.parse(tx.response), null, 3));    
    // });
+
+
+   it.only("Attestation Test", async () => {
+
+      const recheck = true;
+      const requestBytes = "0x000400000000211a3c847657b9aae1c15bc36a7cf27ffa64d2131e7e5c1817a4d04f3b81ef61000b2de4625f985a298e9a1a8f1b9df62bd3044009249c08336f28160d6f00ead1ff538116d15ee1b675b3b638184a0e1c45fb8d121a0f1000000000000000000000000000000000000000003322a5e5ee8e444367f10656";
+
+      let request = parseRequest(requestBytes) as ARType;
+
+      // console.log(randomTransaction.isNativePayment)
+      let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+
+      let res = await verifyAttestation(client, attestation, indexedQueryManager, recheck);
+      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
+   });
+
 
 
 });

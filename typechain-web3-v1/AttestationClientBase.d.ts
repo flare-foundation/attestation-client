@@ -49,6 +49,7 @@ export interface AttestationClientBase extends BaseContract {
         number | string | BN,
         number | string | BN,
         string | number[],
+        number | string | BN,
         string | number[],
         number | string | BN,
         string | number[]
@@ -60,6 +61,8 @@ export interface AttestationClientBase extends BaseContract {
       _data: [
         number | string | BN,
         (string | number[])[],
+        number | string | BN,
+        number | string | BN,
         number | string | BN,
         number | string | BN
       ]
@@ -74,11 +77,12 @@ export interface AttestationClientBase extends BaseContract {
         number | string | BN,
         string | number[],
         number | string | BN,
-        string | number[],
+        number | string | BN,
         string | number[],
         string | number[],
         number | string | BN,
         number | string | BN,
+        string | number[],
         boolean,
         number | string | BN
       ]

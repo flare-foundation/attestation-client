@@ -122,12 +122,12 @@ export class AttestationRoundManager {
       // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
       setTimeout(() => {
         activeRound!.commitLimit();
-      }, epochRevealTime - now - this.config.commitTime * 1000);
+      }, epochRevealTime - this.config.commitTime * 1000 - 1000 - now);
 
       // trigger reveal
       setTimeout(() => {
         activeRound!.reveal();
-      }, epochRevealTime - now + this.config.revealTime * 1000);
+      }, epochCompleteTime - this.config.commitTime * 1000 - now);
 
       // trigger end of reveal epoch, cycle is completed at this point
       setTimeout(() => {
@@ -149,7 +149,7 @@ export class AttestationRoundManager {
         // trigger first commit
         setTimeout(() => {
           activeRound!.firstCommit();
-        }, epochCommitTime - now + this.config.revealTime * 1000);
+        }, epochRevealTime - this.config.commitTime * 1000 - now);
       }
     }
 

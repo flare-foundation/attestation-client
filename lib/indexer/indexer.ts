@@ -503,7 +503,8 @@ export class Indexer {
           this.blockProcessorManager.processSyncBlockNumber(this.N + i);
         }
 
-        this.blockNp1hash = (await this.cachedClient.getBlock(this.N + 1)).hash;
+        const blocknp1 = await this.cachedClient.getBlock(this.N + 1);
+        this.blockNp1hash = blocknp1.blockHash;
 
         while (!await this.saveOrWaitNp1Block()) {
           await sleepms(100);
@@ -537,7 +538,7 @@ export class Indexer {
 
     const start = Date.now();
 
-    for (let i = 1; i < blocks.length; i++) {
+    for (let i = 1; i < blocks.length - this.chainConfig.numberOfConfirmations; i++) {
 
       for (let j = i; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
         await this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash);

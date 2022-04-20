@@ -2,7 +2,7 @@ import { retry as mccRetry } from "flare-mcc";
 import { getGlobalLogger } from "./logger";
 
 
-let DEFAULT_TIMEOUT = 5000;
+let DEFAULT_TIMEOUT = 15000;
 let DEFAULT_RETRY = 10;
 let DEFAULT_BACK_OFF_TIME = 1000;
 

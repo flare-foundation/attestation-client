@@ -15,7 +15,9 @@ import { DatabaseService } from "../lib/utils/databaseService";
 import { getGlobalLogger } from "../lib/utils/logger";
 import { MerkleTree } from "../lib/utils/MerkleTree";
 import { getUnixEpochTimestamp } from "../lib/utils/utils";
+import { hexlifyBN } from "../lib/verification/attestation-types/attestation-types-helpers";
 import { parseRequest } from "../lib/verification/generated/attestation-request-parse";
+import { AttestationType } from "../lib/verification/generated/attestation-types-enum";
 import { verifyAttestation } from "../lib/verification/verifiers/verifier_routing";
 import { AttestationClientSCInstance, StateConnectorInstance } from "../typechain-truffle";
 
@@ -33,10 +35,10 @@ describe("Coston verification test", () => {
 
   const StateConnector = artifacts.require("StateConnector");
   const AttestationClientSC = artifacts.require("AttestationClientSC");
-  
+
   before(async () => {
     stateConnector = await StateConnector.at("0x947c76694491d3fD67a73688003c4d36C8780A97");
-    attestationClient = await AttestationClientSC.at("0xE5E11c0120f176f665f2590a001E3407752fed02");
+    attestationClient = await AttestationClientSC.at("0xFdd0daaC0dc2eb8bD35eBdD8611d5322281fC527");
     BUFFER_TIMESTAMP_OFFSET = (await stateConnector.BUFFER_TIMESTAMP_OFFSET()).toNumber();
     BUFFER_WINDOW = (await stateConnector.BUFFER_WINDOW()).toNumber();
     TOTAL_STORED_PROOFS = (await stateConnector.TOTAL_STORED_PROOFS()).toNumber();
@@ -54,8 +56,6 @@ describe("Coston verification test", () => {
       rateLimitOptions: chainIndexerConfig.rateLimitOptions
     });
 
-    // const DAC = new AttestationRoundManager(null, configAttestationClient, attesterCredentials, getGlobalLogger(), null);
-    // DAC.initialize();
     // console.log(attesterCredentials.indexerDatabase)
     const options: IndexedQueryManagerOptions = {
       chainType: ChainType.BTC,
@@ -73,7 +73,7 @@ describe("Coston verification test", () => {
 
   });
 
-  it.only("Should verify that merkle roots match.", async () => {
+  it("Should verify that merkle roots match.", async () => {
     // let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
 
     let totalBuffers = (await stateConnector.totalBuffers()).toNumber();
@@ -83,12 +83,12 @@ describe("Coston verification test", () => {
     // 137229 //
     for (let N = N0; N < CHECK_COUNT; N++) {
       let roundId = totalBuffers - N; //currentBufferNumber - N;
-      const resp = await axios.get(`http://34.89.247.51/attester-api/proof/votes-for-round/${roundId}`);
+      const resp = await axios.get(`https://attestation.flare.network/attester-api/proof/votes-for-round/${roundId}`);
       // console.log(`roundId: ${roundId}`)
       // console.log(response.data.data)
       let data = resp.data.data;
       if (data.length === 0) {
-        console.log(`No attesations in roundId ${roundId}`);
+        console.log(`No attestations in roundId ${roundId}`);
         // return;
         continue;
       }
@@ -152,6 +152,50 @@ describe("Coston verification test", () => {
     console.log(result.status)
     console.log(result.response.blockNumber.toString())
     console.log(await indexedQueryManager.getLastConfirmedBlockNumber())
+  })
+
+
+  it.skip("Test specific round Merkle proofs", async () => {
+    let roundId = 161166
+    const resp = await axios.get(`https://attestation.flare.network/attester-api/proof/votes-for-round/${roundId}`);
+    let data = resp.data.data;
+    if (data.length === 0) {
+      console.log(`No attestations in roundId ${roundId}`);
+      return;
+    }
+    let hashes: string[] = data.map(item => item.hash) as string[]
+    const tree = new MerkleTree(hashes);
+
+    for (let i = 0; i < data.length; i++) {
+      let chosenRequest = data[i];      
+      let chosenHash = chosenRequest.hash;
+      let index = tree.sortedHashes.findIndex(hash => hash === chosenHash);
+      let response = chosenRequest.response;
+      response.stateConnectorRound = roundId + 2;
+      response.merkleProof = tree.getProof(index);
+      let responseHex = hexlifyBN(response);
+      // console.log(response)
+      // console.log(responseHex)
+      let result: boolean;
+      switch (chosenRequest.request.attestationType) {
+        case AttestationType.Payment:
+          result = await attestationClient.verifyPayment(chosenRequest.request.sourceId, responseHex);
+          break;
+        case AttestationType.BalanceDecreasingTransaction:
+          result = await attestationClient.verifyBalanceDecreasingTransaction(chosenRequest.request.sourceId, responseHex);
+          break;
+        case AttestationType.ConfirmedBlockHeightExists:
+          result = await attestationClient.verifyConfirmedBlockHeightExists(chosenRequest.request.sourceId, responseHex);
+          break;
+        case AttestationType.ReferencedPaymentNonexistence:
+          result = await attestationClient.verifyReferencedPaymentNonexistence(chosenRequest.request.sourceId, responseHex);
+          break;
+        default:
+          throw new Error("Wrong attestation type");
+      }
+      console.log(`${i}/${data.length}\t${result}`);
+    }
+
   })
 
 });

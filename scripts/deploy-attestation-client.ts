@@ -1,3 +1,10 @@
+// setup the following variables in .env:
+// - STATECONNECTOR_ADDRESS
+// - COSTON_RPC or SONGBIRD_RPC
+// - DEPLOYER_PRIVATE_KEY
+// Then use (use the correct network):
+// yarn hardhat run scripts/deploy-attestation-client.ts --network coston
+
 import dotenv from "dotenv";
 dotenv.config();
 

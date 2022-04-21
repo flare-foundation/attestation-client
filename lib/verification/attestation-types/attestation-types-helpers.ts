@@ -142,5 +142,8 @@ export function hexlifyBN(obj: any): any {
   if(typeof obj === "string" && obj.match(isHexReqex)){
     return prefix0x(obj);
   }
+  if(obj === "0x") {
+    return Web3.utils.leftPad(obj, 64);
+  }
   return obj
 }

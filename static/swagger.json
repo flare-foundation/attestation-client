@@ -6,33 +6,23 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
-			"DBVotingRoundResult": {
+			"VotingRoundResult": {
 				"properties": {
-					"id": {
-						"type": "number",
-						"format": "double",
-						"description": "Auto incremented id"
-					},
 					"roundId": {
 						"type": "number",
-						"format": "double",
-						"default": 0
+						"format": "double"
 					},
 					"hash": {
-						"type": "string",
-						"default": ""
+						"type": "string"
 					},
-					"request": {
-						"type": "string",
-						"default": ""
-					},
-					"response": {
-						"type": "string",
-						"default": ""
-					}
+					"request": {},
+					"response": {}
 				},
 				"required": [
-					"id"
+					"roundId",
+					"hash",
+					"request",
+					"response"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -69,13 +59,58 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse_DBVotingRoundResult-Array_": {
+			"ApiResponse_VotingRoundResult-Array_": {
 				"properties": {
 					"data": {
 						"items": {
-							"$ref": "#/components/schemas/DBVotingRoundResult"
+							"$ref": "#/components/schemas/VotingRoundResult"
 						},
 						"type": "array"
+					},
+					"errorDetails": {
+						"type": "string",
+						"description": "Optional details for unexpected error responses."
+					},
+					"errorMessage": {
+						"type": "string",
+						"description": "Simple message to explain client developers the reason for error."
+					},
+					"status": {
+						"$ref": "#/components/schemas/ApiDefaultResponseStatusEnum",
+						"description": "Response status. OK for successful reponses."
+					},
+					"validationErrorDetails": {
+						"$ref": "#/components/schemas/ApiValidationErrorDetails"
+					}
+				},
+				"required": [
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SystemStatus": {
+				"properties": {
+					"currentBufferNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"latestAvailableRoundId": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"currentBufferNumber",
+					"latestAvailableRoundId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_SystemStatus_": {
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/SystemStatus"
 					},
 					"errorDetails": {
 						"type": "string",
@@ -123,7 +158,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_DBVotingRoundResult-Array_"
+									"$ref": "#/components/schemas/ApiResponse_VotingRoundResult-Array_"
 								}
 							}
 						}
@@ -144,6 +179,28 @@
 						}
 					}
 				]
+			}
+		},
+		"/api/proof/status": {
+			"get": {
+				"operationId": "SystemStatus",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_SystemStatus_"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Proof"
+				],
+				"security": [],
+				"parameters": []
 			}
 		}
 	},

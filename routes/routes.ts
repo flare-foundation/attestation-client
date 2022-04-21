@@ -14,14 +14,13 @@ import * as express from 'express';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
 const models: TsoaRoute.Models = {
-    "DBVotingRoundResult": {
+    "VotingRoundResult": {
         "dataType": "refObject",
         "properties": {
-            "id": {"dataType":"double","required":true},
-            "roundId": {"dataType":"double","default":0},
-            "hash": {"dataType":"string","default":""},
-            "request": {"dataType":"string","default":""},
-            "response": {"dataType":"string","default":""},
+            "roundId": {"dataType":"double","required":true},
+            "hash": {"dataType":"string","required":true},
+            "request": {"dataType":"any","required":true},
+            "response": {"dataType":"any","required":true},
         },
         "additionalProperties": false,
     },
@@ -40,10 +39,31 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ApiResponse_DBVotingRoundResult-Array_": {
+    "ApiResponse_VotingRoundResult-Array_": {
         "dataType": "refObject",
         "properties": {
-            "data": {"dataType":"array","array":{"dataType":"refObject","ref":"DBVotingRoundResult"}},
+            "data": {"dataType":"array","array":{"dataType":"refObject","ref":"VotingRoundResult"}},
+            "errorDetails": {"dataType":"string"},
+            "errorMessage": {"dataType":"string"},
+            "status": {"ref":"ApiDefaultResponseStatusEnum","required":true},
+            "validationErrorDetails": {"ref":"ApiValidationErrorDetails"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "SystemStatus": {
+        "dataType": "refObject",
+        "properties": {
+            "currentBufferNumber": {"dataType":"double","required":true},
+            "latestAvailableRoundId": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_SystemStatus_": {
+        "dataType": "refObject",
+        "properties": {
+            "data": {"ref":"SystemStatus"},
             "errorDetails": {"dataType":"string"},
             "errorMessage": {"dataType":"string"},
             "status": {"ref":"ApiDefaultResponseStatusEnum","required":true},
@@ -84,6 +104,33 @@ export function RegisterRoutes(app: express.Router) {
 
 
               const promise = controller.lastReveals.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.get('/api/proof/status',
+
+            async function ProofController_systemStatus(request: any, response: any, next: any) {
+            const args = {
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+                const controller: any = await container.get<ProofController>(ProofController);
+                if (typeof controller['setStatus'] === 'function') {
+                controller.setStatus(undefined);
+                }
+
+
+              const promise = controller.systemStatus.apply(controller, validatedArgs as any);
               promiseHandler(controller, promise, response, undefined, next);
             } catch (err) {
                 return next(err);

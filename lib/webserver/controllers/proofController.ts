@@ -1,6 +1,7 @@
 import { Controller, Get, Path, Route, Tags } from "tsoa";
 import { Factory, Inject, Singleton } from "typescript-ioc";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
+import { SystemStatus } from "../dto/SystemStatus";
 import { VotingRoundResult } from "../dto/VotingRoundResult";
 import { ProofEngine } from "../engines/proofEngine";
 import { ApiResponse, handleApiResponse } from "../models/ApiResponse";
@@ -25,6 +26,14 @@ export class ProofController extends Controller {
     ): Promise<ApiResponse<VotingRoundResult[]>> {
         return handleApiResponse(
             this.proofEngine.getProofForRound(roundId)
+        )
+    }
+
+    @Get("status")
+    public async systemStatus(
+    ): Promise<ApiResponse<SystemStatus>> {
+        return handleApiResponse(
+            this.proofEngine.systemStatus()
         )
     }
 

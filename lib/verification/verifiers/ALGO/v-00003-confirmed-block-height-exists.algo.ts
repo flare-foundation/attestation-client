@@ -6,8 +6,8 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { verifyConfirmedBlockHeightExists } from "../../verification-utils/generic-chain-verifications";
 import { ARConfirmedBlockHeightExists, Attestation, BN, DHConfirmedBlockHeightExists, hashConfirmedBlockHeightExists, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import { verifyConfirmedBlockHeightExists } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();
 

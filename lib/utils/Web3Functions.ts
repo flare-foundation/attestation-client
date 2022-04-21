@@ -1,9 +1,7 @@
 import Web3 from "web3";
-import { Logger } from "winston";
-import { getTimeMilli as getTimeMilli } from "./internetTime";
+import { getTimeMilli } from "./internetTime";
 import { AttLogger, logException } from "./logger";
-import { getUnixEpochTimestamp, sleepms } from "./utils";
-import { getWeb3Wallet, waitFinalize3Factory } from "./utils";
+import { getUnixEpochTimestamp, getWeb3Wallet, sleepms, waitFinalize3Factory } from "./utils";
 
 export const DEFAULT_GAS = "2500000";
 export const DEFAULT_GAS_PRICE = "300000000000";
@@ -42,16 +40,16 @@ export class Web3Functions {
     return this.nonce + ""; // string returned
   }
 
-  public async getBlock(blockNumber: number) : Promise<any> {
-      return await this.web3.eth.getBlock(blockNumber);
-  }  
+  public async getBlock(blockNumber: number): Promise<any> {
+    return await this.web3.eth.getBlock(blockNumber);
+  }
 
-  public async getBlockNumber() : Promise<number> {
+  public async getBlockNumber(): Promise<number> {
     return await this.web3.eth.getBlockNumber();
   }
 
   public setTransactionPollingTimeout(timeout: number) {
-    this.web3.eth.transactionPollingTimeout=timeout;
+    this.web3.eth.transactionPollingTimeout = timeout;
   }
 
   async signAndFinalize3(
@@ -63,76 +61,86 @@ export class Web3Functions {
     gasPrice: string = DEFAULT_GAS_PRICE,
     quiet: boolean = false,
   ): Promise<any> {
-    const waitIndex = this.nextIndex;
-    this.nextIndex += 1;
+    try {
+      const waitIndex = this.nextIndex;
+      this.nextIndex += 1;
 
-    const time0 = getTimeMilli();
+      const time0 = getTimeMilli();
 
-    if (waitIndex !== this.currentIndex) {
-      if (!quiet) {
-        this.logger.debug2(`sign ${label} wait #${waitIndex}/${this.currentIndex}`);
-      }
-
-      while (waitIndex !== this.currentIndex) {
-
-        if( timeEnd ) {
-          if( getUnixEpochTimestamp() > timeEnd ) {
-            this.logger.error2( `sign ${label} timeout #${waitIndex}`);
-            return null;
-          }
+      if (waitIndex !== this.currentIndex) {
+        if (!quiet) {
+          this.logger.debug2(`sign ${label} wait #${waitIndex}/${this.currentIndex}`);
         }
 
-        await sleepms(100);
+        while (waitIndex !== this.currentIndex) {
+
+          if (timeEnd) {
+            if (getUnixEpochTimestamp() > timeEnd) {
+              this.logger.error2(`sign ${label} timeout #${waitIndex}`);
+              return null;
+            }
+          }
+
+          await sleepms(100);
+        }
       }
+
+      if (!quiet) {
+        this.logger.debug2(`sign ${label} start #${waitIndex}`);
+      }
+
+      const res = await this._signAndFinalize3(label, toAddress, fnToEncode, gas, gasPrice);
+
+      const time1 = getTimeMilli();
+
+      if (!quiet) {
+        this.logger.debug2(`sign ${label} done #${waitIndex} (time ${time1 - time0}s)`);
+      }
+
+      this.currentIndex += 1;
+
+      return res;
     }
-
-    if (!quiet) {
-      this.logger.debug2(`sign ${label} start #${waitIndex}`);
+    catch (error) {
+      logException(error, `signAndFinalize3`);
     }
-
-    const res = await this._signAndFinalize3(label, toAddress, fnToEncode, gas, gasPrice);
-
-    const time1 = getTimeMilli();
-
-    if (!quiet) {
-      this.logger.debug2(`sign ${label} done #${waitIndex} (time ${time1 - time0}s)`);
-    }
-
-    this.currentIndex += 1;
-
-    return res;
   }
 
   async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE): Promise<any> {
-    const nonce = await this.getNonce();
-    const tx = {
-      from: this.account.address,
-      to: toAddress,
-      gas,
-      gasPrice,
-      data: fnToEncode.encodeABI(),
-      nonce,
-    };
-    const signedTx = await this.account.signTransaction(tx);
-
     try {
-      const receipt = await this.waitFinalize3(this.account.address, () => this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!));
-      return {receipt,nonce};
-    } catch (e: any) {
-      if (e.message.indexOf(`Transaction has been reverted by the EVM`) < 0) {
-        logException( `${label}, nonce sent: ${nonce}`,e);
-      } else {
+      const nonce = await this.getNonce();
+      const tx = {
+        from: this.account.address,
+        to: toAddress,
+        gas,
+        gasPrice,
+        data: fnToEncode.encodeABI(),
+        nonce,
+      };
+      const signedTx = await this.account.signTransaction(tx);
 
-        try {
-          const result = await fnToEncode.call({ from: this.account.address });
+      try {
+        const receipt = await this.waitFinalize3(this.account.address, () => this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!));
+        return { receipt, nonce };
+      } catch (e: any) {
+        if (e.message.indexOf(`Transaction has been reverted by the EVM`) < 0) {
+          logException(`${label}, nonce sent: ${nonce}`, e);
+        } else {
 
-          throw Error("unlikely to happen: " + JSON.stringify(result));
+          try {
+            const result = await fnToEncode.call({ from: this.account.address });
+
+            throw Error("unlikely to happen: " + JSON.stringify(result));
+          }
+          catch (revertReason) {
+            this.logger.error2(`${label}, nonce sent: ${nonce}, revert reason: ${revertReason}`);
+          }
         }
-        catch( revertReason ) {
-            this.logger.error2(`${label}, nonce sent: ${nonce}, revert reason: ${revertReason}` );
-        }
+        return null;
       }
-      return null;
+    }
+    catch (error) {
+      logException(error, `_signAndFinalize3`);
     }
   }
 }

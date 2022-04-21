@@ -1,5 +1,4 @@
 import assert from "assert";
-import BN from "bn.js";
 import { toBN } from "flare-mcc";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
@@ -195,7 +194,7 @@ export class AttestationRound {
   canCommit(): boolean {
     this.logger.debug(`canCommit(^Y#${this.roundId}^^) processed: ${this.transactionsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`)
     return this.transactionsProcessed === this.attestations.length &&
-      this.attestStatus===AttestationRoundStatus.commiting &&
+      this.attestStatus === AttestationRoundStatus.commiting &&
       this.status === AttestationRoundEpoch.commit;
   }
 
@@ -342,40 +341,49 @@ export class AttestationRound {
     );
   }
 
-  BNtoString(number: BN) {
-    return '0x' + (number.toString(16)).padStart(64, '0');
+  async createEmptyState() {
+    this.logger.debug2(`create empty state for #${this.roundId}`);
+
+    this.roundMerkleRoot = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    this.roundRandom = await getCryptoSafeRandom();
+
+    this.roundMaskedMerkleRoot = xor32(this.roundMerkleRoot, this.roundRandom);
+    this.roundHashedRandom = singleHash(this.roundRandom);
+
+    // after commit state has been calculated add it in state
+    AttestationRoundManager.state.saveRound(this);
   }
 
   async firstCommit() {
-    if (this.canCommit()) {
-      let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
-
-      const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
-
-      this.attesterWeb3
-        .submitAttestation(
-          action,
-          this.roundId,
-          // commit index (collect+1)
-          toBN(this.roundId + 1),
-          this.roundMerkleRoot,
-          this.roundMaskedMerkleRoot,
-          this.roundRandom,
-          this.roundHashedRandom,
-          nextState && nextState.random ? nextState.random : toHex(0, 32)
-        )
-        .then((receipt) => {
-          if (receipt) {
-            this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
-            //console.log( receipt );
-            this.attestStatus = AttestationRoundStatus.comitted;
-          } else {
-            this.attestStatus = AttestationRoundStatus.error;
-          }
-        });
-    } else {
-      this.logger.error(`first round #${this.roundId} cannot be commited (too late)`);
+    if (!this.canCommit()) {
+      await this.createEmptyState();
     }
+
+    let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
+
+    const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
+
+    this.attesterWeb3
+      .submitAttestation(
+        action,
+        this.roundId,
+        // commit index (collect+1)
+        toBN(this.roundId + 1),
+        this.roundMerkleRoot,
+        this.roundMaskedMerkleRoot,
+        this.roundRandom,
+        this.roundHashedRandom,
+        nextState && nextState.random ? nextState.random : toHex(0, 32)
+      )
+      .then((receipt) => {
+        if (receipt) {
+          this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
+          //console.log( receipt );
+          this.attestStatus = AttestationRoundStatus.comitted;
+        } else {
+          this.attestStatus = AttestationRoundStatus.error;
+        }
+      });
   }
 
   async reveal() {
@@ -410,28 +418,25 @@ export class AttestationRound {
     let nextRoundRandom = toHex(toBN(0), 32);
     let nextRoundHashedRandom = toHex(toBN(0), 32);
 
-    let action = `submitting ^Y#${this.roundId+1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
+    let action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
     if (this.nextRound) {
-      if (this.nextRound.canCommit()) {
-        nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;
-        nextRoundMaskedMerkleRoot = this.nextRound.roundMaskedMerkleRoot;
-        nextRoundRandom = this.nextRound.roundRandom;
-        nextRoundHashedRandom = this.nextRound.roundHashedRandom;
+      if (!this.nextRound.canCommit()) {
+        await this.nextRound.createEmptyState();
+      }
 
-        this.nextRound.attestStatus = AttestationRoundStatus.comitted;
-      }
-      else {
-        action += ` ^R^w(failed start commit too late)^^`;
-        this.nextRound.roundRandom = toHex(0, 32);
-        this.nextRound.attestStatus = AttestationRoundStatus.comitted;
-      }
+      nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;
+      nextRoundMaskedMerkleRoot = this.nextRound.roundMaskedMerkleRoot;
+      nextRoundRandom = this.nextRound.roundRandom;
+      nextRoundHashedRandom = this.nextRound.roundHashedRandom;
+
+      this.nextRound.attestStatus = AttestationRoundStatus.comitted;
     }
 
     this.attesterWeb3
       .submitAttestation(
         action,
-        this.roundId+1, // the next one is commited and this one is revealed
+        this.roundId + 1, // the next one is commited and this one is revealed
         // commit index (collect+2)
         toBN(this.roundId + 2),
         nextRoundMerkleRoot,

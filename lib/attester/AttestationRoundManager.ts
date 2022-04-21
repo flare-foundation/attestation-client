@@ -4,7 +4,7 @@ import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger } from "../utils/logger";
-import { round } from "../utils/utils";
+import { round, sleepms } from "../utils/utils";
 import { toSourceId } from "../verification/sources/sources";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
@@ -59,24 +59,26 @@ export class AttestationRoundManager {
     // update active round again since waitin for DB connection can take time
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
     AttestationRoundManager.startEpochId = AttestationRoundManager.activeEpochId;
+
+    this.startRoundUpdate();
   }
-  
+
+  async startRoundUpdate() {
+    while (true) {
+      const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+      AttestationRoundManager.activeEpochId = epochId;
+
+      this.getRound(epochId);
+
+      await sleepms(10000);
+    }
+  }
+
   static getSourceHandlerConfig(name: string): SourceHandlerConfig {
     return AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), AttestationRoundManager.activeEpochId);
   }
 
-  async attestate(tx: AttestationData) {
-    const time = tx.timeStamp.toNumber();
-
-    const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(tx.timeStamp.mul(toBN(1000))).toNumber();
-
-    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
-
-    if( epochId < AttestationRoundManager.startEpochId ) {
-      this.logger.debug( `epoch too low ^Y#${epochId}^^` );
-      return;
-    }
-
+  getRound(epochId: number) {
     // all times are in milliseconds
     const now = getTimeMilli();
     const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(epochId);
@@ -100,8 +102,8 @@ export class AttestationRoundManager {
         }
         //bar1.update(now - epochTimeStart);
         const eta = 90 - (now - epochTimeStart) / 1000;
-        if( eta >=0 ) {
-           getGlobalLogger().debug(`!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta,0)} sec ^Wtransactions: ${activeRound.transactionsProcessed}/${activeRound.attestations.length}  `);
+        if (eta >= 0) {
+          getGlobalLogger().debug(`!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.transactionsProcessed}/${activeRound.attestations.length}  `);
         }
       }, 5000)
 
@@ -152,6 +154,21 @@ export class AttestationRoundManager {
         }, epochRevealTime - this.config.commitTime * 1000 - now);
       }
     }
+
+    return activeRound;
+  }
+
+  async attestate(tx: AttestationData) {
+    const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(tx.timeStamp.mul(toBN(1000))).toNumber();
+
+    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+
+    if (epochId < AttestationRoundManager.startEpochId) {
+      this.logger.debug(`epoch too low ^Y#${epochId}^^`);
+      return;
+    }
+
+    let activeRound = this.getRound(epochId);
 
     // create, check and add attestation
     const attestation = await this.createAttestation(activeRound, tx);

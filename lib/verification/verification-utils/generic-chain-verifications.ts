@@ -62,9 +62,13 @@ export async function verifyPayment(
       transactionHash: prefix0x(dbTransaction.transactionId),
       inUtxo: toBN(request.inUtxo),
       utxo: toBN(request.utxo),
-      sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : "0x",
-      receivingAddressHash: paymentSummary.receivingAddress ? Web3.utils.soliditySha3(paymentSummary.receivingAddress) : "0x",
-      paymentReference: paymentSummary.paymentReference || "0x",
+      sourceAddressHash: paymentSummary.sourceAddress
+         ? Web3.utils.soliditySha3(paymentSummary.sourceAddress)
+         : Web3.utils.leftPad("0x", 64),
+      receivingAddressHash: paymentSummary.receivingAddress
+         ? Web3.utils.soliditySha3(paymentSummary.receivingAddress)
+         : Web3.utils.leftPad("0x", 64),
+      paymentReference: paymentSummary.paymentReference || Web3.utils.leftPad("0x", 64),
       spentAmount: paymentSummary.spentAmount || toBN(0),
       receivedAmount: paymentSummary.receivedAmount || toBN(0),
       oneToOne: !!paymentSummary.oneToOne,
@@ -120,9 +124,11 @@ export async function verifyBalanceDecreasingTransaction(
       blockTimestamp: toBN(dbTransaction.timestamp),
       transactionHash: prefix0x(dbTransaction.transactionId),
       inUtxo: request.inUtxo,
-      sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : "0x",
+      sourceAddressHash: paymentSummary.sourceAddress
+         ? Web3.utils.soliditySha3(paymentSummary.sourceAddress)
+         : Web3.utils.leftPad("0x", 64),
       spentAmount: paymentSummary.spentAmount || toBN(0),
-      paymentReference: paymentSummary.paymentReference || "0x",
+      paymentReference: paymentSummary.paymentReference || Web3.utils.leftPad("0x", 64),
    } as DHBalanceDecreasingTransaction;
 
    return {

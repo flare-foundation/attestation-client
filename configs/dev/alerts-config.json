@@ -17,5 +17,12 @@
             "path":"./configs/songbird/",
             "restart":"systemctl --user restart songbird-attester-client"
         }
-    ]
+    ],
+    "backends" : [
+        {
+            "name": "Coston",
+            "address":"https://attestation.flare.network/attester-api/status/services",
+            "restart":"systemctl --user restart coston-attester-clientxxx"
+        }
+    ],
 }

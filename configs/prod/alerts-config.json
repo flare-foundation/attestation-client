@@ -12,7 +12,7 @@
     // indexer alert systems
     "indexers" : ["ALGO", "BTC", "DOGE", "LTC", "XRP"],
     // indexer restart command
-    "indexerRestart":"systemctl --user restart indexer-<name>",
+    "indexerRestart":"systemctl --user restart indexer-<name>xxx",
     // attester-client alert systems
     "attesters" : [
         {
@@ -21,12 +21,12 @@
             // attester-client configuration path
             "path":"../../coston/attester-client/configs/prod/",
             // attester-client restart command
-            "restart":"systemctl --user restart coston-attester-client"
+            "restart":"systemctl --user restart coston-attester-clientxxx"
         },
         {
             "name":"Songbird",
             "path":"../../songbird/attester-client/configs/prod/",
-            "restart":"systemctl --user restart songbird-attester-client"
+            "restart":"systemctl --user restart songbird-attester-clientxxx"
         },
     ],
     "backends" : [

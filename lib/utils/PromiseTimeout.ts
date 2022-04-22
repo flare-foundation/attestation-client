@@ -1,5 +1,5 @@
 import { retry as mccRetry } from "flare-mcc";
-import { getGlobalLogger } from "./logger";
+import { getGlobalLogger, logException } from "./logger";
 
 
 let DEFAULT_TIMEOUT = 15000;
@@ -38,4 +38,17 @@ export async function retryMany(
     backOffTime = DEFAULT_BACK_OFF_TIME,
 ) {
     return Promise.all(functs.map(funct => retry(label, funct, timeoutTime, numRetries, backOffTime)));
+}
+
+
+export function safeCatch<T>(
+    label: string,
+    funct: any
+) {
+    try {
+        funct();
+    } 
+    catch( error ) {
+        logException( error , label );
+    }
 }

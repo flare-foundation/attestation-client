@@ -8,6 +8,7 @@ import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
+import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger, logException, setGlobalLoggerLabel } from "../utils/logger";
 import { retry, setRetryFailureCallback } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, prepareString, round, secToHHMMSS, sleepms } from "../utils/utils";
@@ -21,7 +22,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "DOGE", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -656,6 +657,7 @@ export class Indexer {
 
     while (true) {
       try {
+        const time0 = getTimeMilli();
         // get chain top block
         this.T = await this.getBlockHeight(`runIndexer2`);
 
@@ -670,11 +672,13 @@ export class Indexer {
         const dbStatus = this.getStateEntryString("state", "running", processedBlocks++);
         this.dbService.manager.save(dbStatus);
 
+        const time1 = getTimeMilli();
+
         // check if N + 1 hash is the same
         if (!isNewBlock && !isChangedNp1Hash) {
           await sleepms(this.config.blockCollectTimeMs);
 
-          this.logger.debug3(`indexer waiting for new block`);
+          this.logger.debug3(`indexer waiting for new block (time ${time1 - time0} ms`);
 
           continue;
         }

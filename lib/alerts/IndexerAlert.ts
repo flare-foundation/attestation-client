@@ -68,7 +68,7 @@ export class IndexerAlert extends AlertBase {
             }
         }
         else if (resState.valueString == "running") {
-            res.comment = `processed blocks ${resState.valueNumber}`;
+            res.comment = `processed blocks ${resState.valueNumber} (late ${late} sec)`;
             res.status = "running";
 
             if (late > this.config.timeLate) {

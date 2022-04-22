@@ -7,7 +7,7 @@
 - [Definition file](../../lib/verification/attestation-types/t-00001-payment.ts)
 ## Description
 
-The purpose of this attestation type is to provide a general attestation of a [native payment](../definitions/native-payment.md) transaction. Native payment on a blockchain is an elementary payment with the system currency, where funds are sent from one address to another. In case of chains based on the UTXO model, a specific generalization is applied.
+The purpose of this attestation type is to provide a general attestation of a _native payment_  transaction. Native payment on a blockchain is an elementary payment with the system currency, where funds are sent from one address to another. In case of chains based on the UTXO model, a specific generalization is applied (see Definitions in [flare-mcc docs](https://gitlab.com/flarenetwork/mcc/-/tree/master/docs)).
 
 A successful attestation is provided by extracting the following data about the transaction, which includes:
 - block number
@@ -19,11 +19,11 @@ A successful attestation is provided by extracting the following data about the 
 - receiving address
 - spent amount
 - received amount
-- [payment reference](../definitions/payment-reference.md)
+- payment reference  (see Definitions in [flare-mcc docs](https://gitlab.com/flarenetwork/mcc/-/tree/master/docs))
 - whether transaction is sending from a single address to a single other address
-- [transaction status](../definitions/transaction-status.md) (accounts for failed transactions that are recorded on blockchain).
+- transaction status (see Definitions in [flare-mcc docs](https://gitlab.com/flarenetwork/mcc/-/tree/master/docs))
 
-Due to technical limitations on UTXO chains, the procedure for the attestation differs according to the existence of the standardized payment reference. In essence, payments with the standardized payment references undergo [full attestation](../definitions/account-based-vs-utxo-chains.md) while other payments undergo partial attestation. In non-UTXO chains full attestation is always performed.
+Due to technical limitations on UTXO chains, the procedure for the attestation differs according to the existence of the standardized payment reference. In essence, payments with the standardized payment references undergo full indexing while other payments undergo partial indexing. In non-UTXO chains full indexing is always performed. 
 ## Request format
 
 Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`) the request for `Payment` attestation type contains in addition fields `id`, `utxo` and `inUtxo`.

@@ -1,10 +1,12 @@
 import { Factory, Inject, Singleton } from "typescript-ioc";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
+import { ServiceStatus } from "../dto/ServiceStatus";
 import { SystemStatus } from "../dto/SystemStatus";
 import { VotingRoundResult } from "../dto/VotingRoundResult";
 import { ConfigurationService } from "../services/configurationService";
 import { WebDatabaseService } from "../services/webDBService";
 
+import fs from "fs";
 @Singleton
 @Factory(() => new ProofEngine())
 export class ProofEngine {
@@ -74,4 +76,83 @@ export class ProofEngine {
          latestAvailableRoundId
       }
    }
+
+   public async serviceStatus(): Promise<ServiceStatus[]> {
+      let path = this.configService.serverConfig.serviceStatusFilePath;
+      if(!path) {
+         return []
+      }
+      let statuses = JSON.parse(fs.readFileSync(path).toString());
+      return statuses as any as ServiceStatus[];
+   }
+
+   public async serviceStatusHtml(): Promise<string> {
+      let path = this.configService.serverConfig.serviceStatusFilePath;
+      let statuses = JSON.parse(fs.readFileSync(path).toString()) as ServiceStatus[];
+      let oneService = (status: ServiceStatus) => {
+         return `
+      <tr>
+         <td>${status.name}</td>
+         <td class="${status.status}">${status.status}</td>
+         <td>${status.state}</td>
+         <td>${status.comment}</td>
+         <td>${status.timeLate ? status.timeLate : (status.timeLate == null ? "" : 0)}</td>   
+      </tr>    
+`;
+      }
+
+      let rows = statuses.map(oneService).join("\n");
+
+      return `
+<html>
+<head>
+<style>
+th {
+   text-align: left; 
+   padding: 2px;
+   padding-left: 0.25rem;
+   padding-right: 0.25rem;
+}
+td {
+   text-align: left; 
+   padding: 2px;
+   padding-left: 0.25rem;
+   padding-right: 0.25rem;
+}
+body {
+   font-family: "Arial";
+}
+.running {
+   background-color: #00ff00;
+   // color: white;   
+}
+.down {
+   background-color: #ff0000;
+   // color: white;   
+}
+.late {
+   background-color: #FFCC00;
+   color: white;   
+}
+
+
+</style>
+<head>
+<body>
+   <h1>Attestation service status (${this.configService.serverConfig.deploymentName})</h1>
+   <table border="0" cellpadding="0" cellspacing="0">
+      <tr>
+         <th style="width: 10rem">name</th>
+         <th style="width: 5rem">status</th>
+         <th style="width: 5rem">state</th>
+         <th style="width: 15rem">comment</th>
+         <th style="width: 5rem">delay</th>
+      </tr>
+${rows}      
+   </table>
+</body>
+</html>
+`
+   }
+
 }

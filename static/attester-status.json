@@ -1,0 +1,49 @@
+[
+   {
+      "status": "down",
+      "state": "running",
+      "comment": "processed blocks 53557",
+      "name": "indexer ALGO",
+      "timeLate": 19
+   },
+   {
+      "status": "running",
+      "state": "running",
+      "comment": "processed blocks 82376",
+      "name": "indexer BTC",
+      "timeLate": 1
+   },
+   {
+      "status": "running",
+      "state": "running",
+      "comment": "processed blocks 63144",
+      "name": "indexer DOGE",
+      "timeLate": 1
+   },
+   {
+      "status": "running",
+      "state": "running",
+      "comment": "processed blocks 9965",
+      "name": "indexer LTC",
+      "timeLate": 1
+   },
+   {
+      "status": "running",
+      "state": "running",
+      "comment": "processed blocks 85887",
+      "name": "indexer XRP",
+      "timeLate": 0
+   },
+   {
+      "status": "down",
+      "state": "running",
+      "comment": "round 161679 (161685)",
+      "name": "attester Coston"
+   },
+   {
+      "status": "down",
+      "state": "running",
+      "comment": "round 138913 (161685)",
+      "name": "attester Songbird"
+   }
+]

@@ -1,5 +1,6 @@
 import Web3 from "web3";
 import { Logger } from "winston";
+import { logException } from "./logger";
 import { getWeb3, getWeb3Contract, sleepms } from "./utils";
 
 export class Web3BlockCollector {
@@ -15,7 +16,7 @@ export class Web3BlockCollector {
 
     this.web3 = getWeb3(url, this.logger);
 
-    this.procesEvents(contractAddress, contractName, startBlock, action);
+    this.processEvents(contractAddress, contractName, startBlock, action);
   }
 
   // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
@@ -29,7 +30,7 @@ export class Web3BlockCollector {
     return 0;
   }
 
-  async procesEvents(contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
+  async processEvents(contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
     // wait until new block is set
     this.logger.info(`waiting for network connection...`);
     const blockHeight = await this.web3.eth.getBlockNumber();
@@ -41,28 +42,33 @@ export class Web3BlockCollector {
     this.logger.info(`^Rnetwork event processing started ^Y${this.startingBlockNumber} (height ${blockHeight})`);
 
     while (true) {
-      this.currentBlockNumber = await this.web3.eth.getBlockNumber();
-      // wait for new block
-      if (processBlock >= this.currentBlockNumber + 1) {
-        await sleepms(100);
-        continue;
+      try {
+        this.currentBlockNumber = await this.web3.eth.getBlockNumber();
+        // wait for new block
+        if (processBlock >= this.currentBlockNumber + 1) {
+          await sleepms(100);
+          continue;
+        }
+
+        // process new block
+        const events = await stateConnectorContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock });
+
+        //this.logger.debug(`!new block ${processBlock} with ${events.length} event(s)`);
+
+        // order events by: blockNumber, log_index
+        events.sort((a: any, b: any) => {
+          return this.eventComparator(a, b);
+        });
+
+        for (const event of events) {
+          action(event);
+        }
+
+        processBlock++;
       }
-
-      // process new block
-      const events = await stateConnectorContract.getPastEvents("allEvents", { fromBlock: processBlock, toBlock: processBlock });
-
-      //this.logger.debug(`!new block ${processBlock} with ${events.length} event(s)`);
-
-      // order events by: blockNumber, log_index
-      events.sort((a: any, b: any) => {
-        return this.eventComparator(a, b);
-      });
-
-      for (const event of events) {
-        action(event);
+      catch (error) {
+        logException(error, `Web3BlockCollector::procesEvents`);
       }
-
-      processBlock++;
     }
   }
 }

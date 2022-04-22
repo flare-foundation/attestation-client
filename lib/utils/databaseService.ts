@@ -23,7 +23,7 @@ export class DatabaseService {
 
     private options: DatabaseConnectOptions;
 
-    public constructor(logger: AttLogger, options: DatabaseConnectOptions, database: string="") {
+    public constructor(logger: AttLogger, options: DatabaseConnectOptions, database: string = "") {
         this.logger = logger;
 
         this.name = database;
@@ -36,7 +36,7 @@ export class DatabaseService {
     private async connect() {
         // Typeorm/ES6/Typescript issue with importing modules
         let path = this.name;
-        if( path!== "" ) path+="/";
+        if (path !== "") path += "/";
         const entities = process.env.NODE_ENV === 'development'
             ? `lib/entity/${path}**/*.ts`
             : `dist/lib/entity/${path}**/*.js`
@@ -46,7 +46,7 @@ export class DatabaseService {
             : `dist/lib/migration/${this.name}*.js`
 
         this.logger.info(`^Yconnecting to database ^g^K${this.name}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`);
-        this.logger.debug2( `entity: ${entities}` );
+        this.logger.debug2(`entity: ${entities}`);
 
         let type: "mysql" | "mariadb" | "postgres" | "cockroachdb" | "sqlite" | "mssql" | "sap" | "oracle" | "cordova" | "nativescript" | "react-native" | "sqljs" | "mongodb" | "aurora-data-api" | "aurora-data-api-pg" | "expo" | "better-sqlite3" | "capacitor";
 
@@ -94,7 +94,7 @@ export class DatabaseService {
             this._connection = await conn
             return
         }).catch(async e => {
-            logException( e , `connect` );
+            logException(e, `connect`);
 
             await sleepms(3000)
             this.connect()
@@ -112,11 +112,18 @@ export class DatabaseService {
 
     async waitForDBConnection() {
         while (true) {
-            if (!this.connection) {
-                this.logger.debug(`waiting for database connection ^b^K${this.name}^^`);
+            try {
+                if (!this.connection) {
+                    this.logger.debug(`waiting for database connection ^b^K${this.name}^^`);
+                    await sleepms(1000);
+                    continue;
+                }
+            }
+            catch (error) {
+                logException(error, `waitForDBConnection`);
                 await sleepms(1000);
                 continue;
-            }            
+            }
             break;
         }
     }

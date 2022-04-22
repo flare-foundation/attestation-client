@@ -40,31 +40,36 @@ export class AlertsManager {
         terminal.cursorSave();
 
         while (true) {
+            try {
 
-            terminal.cursorRestore();
+                terminal.cursorRestore();
 
-            const status = [];
+                const status = [];
 
-            for (let alert of this.alerts) {
-                const res = await alert.check();
+                for (let alert of this.alerts) {
+                    const res = await alert.check();
 
-                status.push(res);
+                    status.push(res);
 
-                res.displayStatus(this.logger);
+                    res.displayStatus(this.logger);
+                }
+
+                if (this.config.stateSaveFilename) {
+                    try {
+                        var fs = require('fs');
+                        fs.writeFile(this.config.stateSaveFilename, JSON.stringify(status), function (err) {
+                            if (err) {
+                                this.logger.error(err);
+                            }
+                        });
+                    }
+                    catch (error) {
+                        logException(error, `save state`);
+                    }
+                }
             }
-
-            if (this.config.stateSaveFilename) {
-                try {
-                    var fs = require('fs');
-                    fs.writeFile(this.config.stateSaveFilename, JSON.stringify(status), function (err) {
-                        if (err) {
-                            this.logger.error(err);
-                        }
-                    });
-                }
-                catch (error) {
-                    logException(`save state`, error);
-                }
+            catch (error) {
+                logException(error, `runAlerts`);
             }
 
             await sleepms(this.config.interval);

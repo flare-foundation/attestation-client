@@ -92,7 +92,13 @@ systemctl --user enable indexer-algo.service
 systemctl --user enable indexer-doge.service
 
 systemctl --user enable coston-attester-client.service
-systemctl --user enable coston-spammer.service
+
+systemctl --user enable coston-spammer-btc.service
+systemctl --user enable coston-spammer-ltc.service
+systemctl --user enable coston-spammer-xrp.service
+systemctl --user enable coston-spammer-algo.service
+systemctl --user enable coston-spammer-doge.service
+
 systemctl --user enable coston-backend.service
 
 systemctl --user enable songbird-attester-client.service
@@ -113,7 +119,13 @@ systemctl --user start indexer-algo.service
 systemctl --user start indexer-doge.service
 
 systemctl --user start coston-attester-client.service
-systemctl --user start coston-spammer.service
+
+systemctl --user start coston-spammer-btc.service
+systemctl --user start coston-spammer-ltc.service
+systemctl --user start coston-spammer-xrp.service
+systemctl --user start coston-spammer-algo.service
+systemctl --user start coston-spammer-doge.service
+
 systemctl --user start coston-backend.service
 
 systemctl --user start songbird-attester-client.service
@@ -135,7 +147,13 @@ systemctl --user stop indexer-algo.service
 systemctl --user stop indexer-doge.service
 
 systemctl --user stop coston-attester-client.service
-systemctl --user stop coston-spammer.service
+
+systemctl --user stop coston-spammer-btc.service
+systemctl --user stop coston-spammer-ltc.service
+systemctl --user stop coston-spammer-xrp.service
+systemctl --user stop coston-spammer-algo.service
+systemctl --user stop coston-spammer-doge.service
+
 systemctl --user stop coston-backend.service
 
 systemctl --user stop songbird-attester-client.service
@@ -156,7 +174,13 @@ systemctl --user restart indexer-algo
 systemctl --user restart indexer-doge
 
 systemctl --user restart coston-attester-client
-systemctl --user restart coston-spammer
+
+systemctl --user restart coston-spammer-btc.service
+systemctl --user restart coston-spammer-ltc.service
+systemctl --user restart coston-spammer-xrp.service
+systemctl --user restart coston-spammer-algo.service
+systemctl --user restart coston-spammer-doge.service
+
 systemctl --user restart coston-backend
 
 systemctl --user restart songbird-attester-client
@@ -177,7 +201,13 @@ journalctl --user -u indexer-algo -f -n 1000
 journalctl --user -u indexer-doge -f -n 1000
 
 journalctl --user -u coston-attester-client -f -n 1000
-journalctl --user -u coston-spammer -f -n 1000
+
+journalctl --user -u coston-spammer-btc -f -n 1000
+journalctl --user -u coston-spammer-ltc -f -n 1000
+journalctl --user -u coston-spammer-xrp -f -n 1000
+journalctl --user -u coston-spammer-doge -f -n 1000
+journalctl --user -u coston-spammer-algo -f -n 1000
+
 journalctl --user -u coston-backend -f -n 1000
 
 journalctl --user -u songbird-attester-client -f -n 1000
@@ -200,7 +230,13 @@ ctail -f -i global/indexer/logs/attester-DOGE.log
 
 
 ctail -f -i coston/attester-client/logs/attester-global.log
-ctail -f -i coston/spammer/logs/attester-global.log
+
+ctail -f -i coston/spammer/logs/attester-btc.log
+ctail -f -i coston/spammer/logs/attester-ltc.log
+ctail -f -i coston/spammer/logs/attester-xrp.log
+ctail -f -i coston/spammer/logs/attester-algo.log
+ctail -f -i coston/spammer/logs/attester-doge.log
+
 ctail -f -i coston/backend/logs/attester-global.log
 
 ctail -f -i songbird/attester-client/logs/attester-global.log

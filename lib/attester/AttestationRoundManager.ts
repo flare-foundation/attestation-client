@@ -1,9 +1,9 @@
-import { toBN } from "flare-mcc";
+import { retry, toBN } from "flare-mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger, getGlobalLogger } from "../utils/logger";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { round, sleepms } from "../utils/utils";
 import { toSourceId } from "../verification/sources/sources";
 import { Attestation } from "./Attestation";
@@ -65,10 +65,15 @@ export class AttestationRoundManager {
 
   async startRoundUpdate() {
     while (true) {
-      const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
-      AttestationRoundManager.activeEpochId = epochId;
+      try {
+        const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+        AttestationRoundManager.activeEpochId = epochId;
 
-      this.getRound(epochId);
+        this.getRound(epochId);
+      }
+      catch (error) {
+        logException(error, `startRoundUpdate`);
+      }
 
       await sleepms(10000);
     }
@@ -113,27 +118,27 @@ export class AttestationRoundManager {
 
       // trigger start commit epoch
       setTimeout(() => {
-        activeRound!.startCommitEpoch();
+        retry(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitEpoch());
       }, epochCommitTime - now);
 
       // trigger start reveal epoch
       setTimeout(() => {
-        activeRound!.startRevealEpoch();
+        retry(`setTimeout:startRevealEpoch`, () => activeRound!.startRevealEpoch());
       }, epochRevealTime - now);
 
       // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
       setTimeout(() => {
-        activeRound!.commitLimit();
+        retry(`setTimeout:commitLimit`, () => activeRound!.commitLimit());
       }, epochRevealTime - this.config.commitTime * 1000 - 1000 - now);
 
       // trigger reveal
       setTimeout(() => {
-        activeRound!.reveal();
+        retry(`setTimeout:reveal`, () => activeRound!.reveal());
       }, epochCompleteTime - this.config.commitTime * 1000 - now);
 
       // trigger end of reveal epoch, cycle is completed at this point
       setTimeout(() => {
-        activeRound!.completed();
+        retry(`setTimeout:completed`, () => activeRound!.completed());
       }, epochCompleteTime - now);
 
       this.rounds.set(epochId, activeRound);
@@ -150,7 +155,7 @@ export class AttestationRoundManager {
       } else {
         // trigger first commit
         setTimeout(() => {
-          activeRound!.firstCommit();
+          retry(`setTimeout:firstCommit`, () => activeRound!.firstCommit());
         }, epochRevealTime - this.config.commitTime * 1000 - now);
       }
     }

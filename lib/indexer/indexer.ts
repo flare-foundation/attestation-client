@@ -100,7 +100,7 @@ export class Indexer {
       },
     };
 
-    this.cachedClient = new CachedMccClient<ITransaction,IBlock>(this.chainType, cachedMccClientOptions);
+    this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
 
     this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
 
@@ -694,27 +694,9 @@ export class Indexer {
         this.blockProcessorManager.process(blockNp1);
       } catch (error) {
         logException(error, `runIndexer exception: `);
+        await sleepms(100);
       }
     }
-  }
-}
-
-async function displayStats() {
-  const period = 10000;
-
-  const logger = getGlobalLogger();
-
-  while (true) {
-    await sleepms(period);
-
-    logger.info(
-      `^Y${round((Indexer.sendCount * 1000) / period, 1)} req/sec  ${round((Indexer.txCount * 1000) / period, 1)} tx/sec (${round(
-        Indexer.txCount / Indexer.sendCount,
-        1
-      )} tx/req)   valid ${Indexer.valid} invalid ${Indexer.invalid}`
-    );
-    Indexer.sendCount = 0;
-    Indexer.txCount = 0;
   }
 }
 

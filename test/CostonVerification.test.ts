@@ -1,11 +1,11 @@
 // Make a tunell to database:
 // ssh -N -L 3337:127.0.0.1:3306 ubuntu@34.89.247.51
 // Run the test
-// CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/CostonVerification.test.ts --network coston
+// SOURCE_ID=ALGO CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/CostonVerification.test.ts --network coston
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
 import { AttesterClientConfiguration, AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
-import { ChainsConfiguration } from "../lib/chain/ChainConfiguration";
+import { ChainConfiguration, ChainsConfiguration } from "../lib/chain/ChainConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
@@ -18,12 +18,15 @@ import { getUnixEpochTimestamp } from "../lib/utils/utils";
 import { hexlifyBN } from "../lib/verification/attestation-types/attestation-types-helpers";
 import { parseRequest } from "../lib/verification/generated/attestation-request-parse";
 import { AttestationType } from "../lib/verification/generated/attestation-types-enum";
+import { getSourceName, SourceId } from "../lib/verification/sources/sources";
 import { verifyAttestation } from "../lib/verification/verifiers/verifier_routing";
 import { AttestationClientSCInstance, StateConnectorInstance } from "../typechain-truffle";
 
+const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
+
 const axios = require('axios');
 
-describe("Coston verification test", () => {
+describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   let currentBufferNumber = 0;
   let BUFFER_TIMESTAMP_OFFSET: number;
   let BUFFER_WINDOW: number;
@@ -32,6 +35,8 @@ describe("Coston verification test", () => {
   let client: MccClient;
   let indexedQueryManager: IndexedQueryManager;
   let attestationClient: AttestationClientSCInstance;
+  let chainName: string;
+  let chainIndexerConfig: ChainConfiguration;
 
   const StateConnector = artifacts.require("StateConnector");
   const AttestationClientSC = artifacts.require("AttestationClientSC");
@@ -45,21 +50,22 @@ describe("Coston verification test", () => {
     let now = getUnixEpochTimestamp();
     currentBufferNumber = Math.floor((now - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
     console.log(`Current buffer number ${currentBufferNumber}, mod: ${currentBufferNumber % TOTAL_STORED_PROOFS}`)
-
+    chainName = SourceId[SOURCE_ID];
     let configIndexer = readConfig(new ChainsConfiguration(), "chains");
-    let chainIndexerConfig = configIndexer.chains.find(item => item.name === 'BTC')
-    let configAttestationClient = readConfig(new AttesterClientConfiguration(), "attester");
+    chainIndexerConfig = configIndexer.chains.find(item => item.name === chainName)
+    console.log(chainIndexerConfig)
+    // let configAttestationClient = readConfig(new AttesterClientConfiguration(), "attester");
     let attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
 
-    client = MCC.Client(ChainType.BTC, {
+    client = MCC.Client(SOURCE_ID, {
       ...chainIndexerConfig.mccCreate,
       rateLimitOptions: chainIndexerConfig.rateLimitOptions
     });
 
     // console.log(attesterCredentials.indexerDatabase)
     const options: IndexedQueryManagerOptions = {
-      chainType: ChainType.ALGO,
-      numberOfConfirmations: () => { return 6; },
+      chainType: SOURCE_ID as ChainType,
+      numberOfConfirmations: () => { return chainIndexerConfig.numberOfConfirmations; },
       maxValidIndexerDelaySec: 10,
       dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
       windowStartTime: (roundId: number) => {
@@ -139,7 +145,7 @@ describe("Coston verification test", () => {
     // in case of failure, check this: https://coston-explorer.flare.network/address/0x3a6E101103eC3D9267d08f484a6b70e1440A8255/transactions
   });
 
-  it.only("Specific request check", async () => {
+  it("Specific request check", async () => {
     let request = '0x0001000000042caeb87690c1435eaf1a17ff1fe6fbbedc36485dcf532fc31c469d7ea118dfb000639a9b9c1b51a1fc86389b79c3b98fd982fd7b6a82a7a06fe55f41113098690000';
     let roundId = 161628;
     let recheck = true;
@@ -147,8 +153,8 @@ describe("Coston verification test", () => {
     let parsed = parseRequest(request);
     // console.log(parsed)
     // let roundId = currentBufferNumber - 2;
-    
-    let att = createTestAttestationFromRequest(parsed, roundId, 6)
+
+    let att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations)
     let result = await verifyAttestation(client, att, indexedQueryManager, recheck);
 
     console.log(`Status ${result.status}`)
@@ -156,6 +162,32 @@ describe("Coston verification test", () => {
     let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
     console.log(`Last confirmed block: ${lastConfirmedBlock}`);
   })
+
+  it.only("Specific parsed request check", async () => {
+    let roundId = 161893;
+    let recheck = true;
+
+    let parsed = {
+      "attestationType": 1,
+      "sourceId": 4,
+      "upperBoundProof": "0xee071caa35d797b46210379dda87c7a970d5d6506443a39a77ffe945cac5d5fc",
+      "id": "0xa87d28432412aa98970ad258974820b029ddf81e8fd517f760728978f1aa9efe",
+      "inUtxo": "0x0",
+      "utxo": "0x0"
+    }
+
+
+    let att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations)
+    let result = await verifyAttestation(client, att, indexedQueryManager, recheck);
+
+    console.log(hexlifyBN(result))
+    console.log(`Status ${result.status}`)
+    console.log(`Block number: ${result.response?.blockNumber?.toString()}`)
+    let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
+    console.log(`Last confirmed block: ${lastConfirmedBlock}`);
+  })
+
+
 
 
   it.skip("Test specific round Merkle proofs", async () => {
@@ -170,7 +202,7 @@ describe("Coston verification test", () => {
     const tree = new MerkleTree(hashes);
 
     for (let i = 0; i < data.length; i++) {
-      let chosenRequest = data[i];      
+      let chosenRequest = data[i];
       let chosenHash = chosenRequest.hash;
       let index = tree.sortedHashes.findIndex(hash => hash === chosenHash);
       let response = chosenRequest.response;

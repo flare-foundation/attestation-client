@@ -49,7 +49,7 @@ export class AttesterAlert extends AlertBase {
         res.status = (dbRound + 1) >= activeRound ? "running" : "down";
 
         // restart if more than 2 round behind
-        if (dbRound + 2 < activeRound) {
+        if (dbRound + 3 < activeRound) {
             if (await this.restart()) {
                 res.comment = "^r^Wrestart^^";
             }

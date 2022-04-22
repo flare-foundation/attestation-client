@@ -4,6 +4,8 @@
 import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from '@tsoa/runtime';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { ProofController } from './../lib/webserver/controllers/proofController';
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import { StatusController } from './../lib/webserver/controllers/statusController';
 import { expressAuthentication } from './../lib/webserver/authentication';
 // @ts-ignore - no great way to install types from subpackage
 const promiseAny = require('promise.any');
@@ -161,9 +163,9 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/api/proof/service-status',
+        app.get('/api/status/services',
 
-            async function ProofController_serviceStatus(request: any, response: any, next: any) {
+            async function StatusController_serviceStatus(request: any, response: any, next: any) {
             const args = {
             };
 
@@ -175,7 +177,7 @@ export function RegisterRoutes(app: express.Router) {
 
                 const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-                const controller: any = await container.get<ProofController>(ProofController);
+                const controller: any = await container.get<StatusController>(StatusController);
                 if (typeof controller['setStatus'] === 'function') {
                 controller.setStatus(undefined);
                 }
@@ -188,9 +190,9 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/api/proof/service-status-html',
+        app.get('/api/status/services-html',
 
-            async function ProofController_serviceStatusHtml(request: any, response: any, next: any) {
+            async function StatusController_serviceStatusHtml(request: any, response: any, next: any) {
             const args = {
                     request: {"in":"request","name":"request","required":true,"dataType":"object"},
             };
@@ -203,7 +205,7 @@ export function RegisterRoutes(app: express.Router) {
 
                 const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-                const controller: any = await container.get<ProofController>(ProofController);
+                const controller: any = await container.get<StatusController>(StatusController);
                 if (typeof controller['setStatus'] === 'function') {
                 controller.setStatus(undefined);
                 }

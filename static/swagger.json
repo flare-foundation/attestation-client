@@ -262,7 +262,7 @@
 				"parameters": []
 			}
 		},
-		"/api/proof/service-status": {
+		"/api/status/services": {
 			"get": {
 				"operationId": "ServiceStatus",
 				"responses": {
@@ -278,13 +278,13 @@
 					}
 				},
 				"tags": [
-					"Proof"
+					"Status"
 				],
 				"security": [],
 				"parameters": []
 			}
 		},
-		"/api/proof/service-status-html": {
+		"/api/status/services-html": {
 			"get": {
 				"operationId": "ServiceStatusHtml",
 				"responses": {
@@ -300,7 +300,7 @@
 					}
 				},
 				"tags": [
-					"Proof"
+					"Status"
 				],
 				"security": [],
 				"parameters": []

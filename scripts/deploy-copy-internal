@@ -64,11 +64,11 @@ ssh -n $USER@$SERVER "cp -a $CONFIGDIR/. $WORKDIR/configs/prod/;" || { echo 'Rem
 
 # Build the MCC.
 echo -e "${GREENBOLD}Installing MCC.${NC} Running yarn ..."
-ssh -n $USER@$SERVER "source .profile; cd $MCC_WORKDIR; yarn; yarn build; yarn link" || { echo 'yarn install failed' ; exit 1; }
+ssh -n $USER@$SERVER "source .profile; cd $MCC_WORKDIR; yarn; yarn build;" || { echo 'yarn install failed' ; exit 1; }
 
 # Run yarn in $WORKDIR 
 echo -e "${GREENBOLD}Installing done.${NC} Running yarn ..."
-ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; yarn link flare-mcc; yarn" || { echo 'yarn install failed' ; exit 1; }
+ssh -n $USER@$SERVER "source .profile; cd $WORKDIR; source scripts/replace-mcc-link.sh; yarn" || { echo 'yarn install failed' ; exit 1; }
 
 # Build the app.
 echo -e "${GREENBOLD}Yarn C${NC}"

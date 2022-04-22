@@ -170,8 +170,8 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     let parsed = {
       "attestationType": 1,
       "sourceId": 4,
-      "upperBoundProof": "0xee071caa35d797b46210379dda87c7a970d5d6506443a39a77ffe945cac5d5fc",
-      "id": "0xa87d28432412aa98970ad258974820b029ddf81e8fd517f760728978f1aa9efe",
+      "upperBoundProof": "0xa8782d710cdffd2e0e440b644d8fad7b5f605a36856e7965427a520c15c46837",
+      "id": "0xbf3f87c72d73bc7aa6ed9aa58b07d747a2a079c3916cb98d755f6c1c64fb268f",
       "inUtxo": "0x0",
       "utxo": "0x0"
     }

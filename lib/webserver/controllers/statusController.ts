@@ -8,11 +8,11 @@ import { ProofEngine } from "../engines/proofEngine";
 import { ApiResponse, handleApiResponse } from "../models/ApiResponse";
 import * as express from "express";
 
-@Tags('Proof')
-@Route("api/proof")
+@Tags('Status')
+@Route("api/status")
 @Singleton
-@Factory(() => new ProofController())
-export class ProofController extends Controller {
+@Factory(() => new StatusController())
+export class StatusController extends Controller {
 
     @Inject
     private proofEngine: ProofEngine;
@@ -21,20 +21,24 @@ export class ProofController extends Controller {
         super()
     }
 
-    @Get("votes-for-round/{roundId}")
-    public async lastReveals(
-        @Path() roundId: number,
-    ): Promise<ApiResponse<VotingRoundResult[]>> {
+    @Get("services")
+    public async serviceStatus(
+    ): Promise<ApiResponse<ServiceStatus[]>> {
         return handleApiResponse(
-            this.proofEngine.getProofForRound(roundId)
+            this.proofEngine.serviceStatus()
         )
     }
 
-    @Get("status")
-    public async systemStatus(
-    ): Promise<ApiResponse<SystemStatus>> {
-        return handleApiResponse(
-            this.proofEngine.systemStatus()
-        )
+    @Get("services-html")
+    public async serviceStatusHtml(
+        @Request() request: express.Request
+    ): Promise<string> {
+        let result = await this.proofEngine.serviceStatusHtml();
+        const response = (<any>request).res as express.Response;
+        this.setStatus(200);
+        response.contentType('text/html');
+        response.send(result).end();
+        return null; // Found via #44        
     }
+
 }

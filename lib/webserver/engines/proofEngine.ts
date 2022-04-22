@@ -1,10 +1,12 @@
 import { Factory, Inject, Singleton } from "typescript-ioc";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
+import { ServiceStatus } from "../dto/ServiceStatus";
 import { SystemStatus } from "../dto/SystemStatus";
 import { VotingRoundResult } from "../dto/VotingRoundResult";
 import { ConfigurationService } from "../services/configurationService";
 import { WebDatabaseService } from "../services/webDBService";
 
+import fs from "fs";
 @Singleton
 @Factory(() => new ProofEngine())
 export class ProofEngine {
@@ -74,4 +76,104 @@ export class ProofEngine {
          latestAvailableRoundId
       }
    }
+
+   public async serviceStatus(): Promise<ServiceStatus[]> {
+      let path = this.configService.serverConfig.serviceStatusFilePath;
+      if(!path) {
+         return []
+      }
+      let statuses = JSON.parse(fs.readFileSync(path).toString());
+      return statuses as any as ServiceStatus[];
+   }
+
+   public async serviceStatusHtml(): Promise<string> {
+      let path = this.configService.serverConfig.serviceStatusFilePath;
+      let statuses = JSON.parse(fs.readFileSync(path).toString()) as ServiceStatus[];
+
+      let stat = fs.statSync(path);
+      let oneService = (status: ServiceStatus) => {
+         return `
+      <tr>
+         <td>${status.name}</td>
+         <td class="${status.status}">${status.status}</td>
+         <td>${status.state}</td>
+         <td>${status.comment}</td>
+      </tr>    
+`;
+      }
+
+      let rows = statuses.map(oneService).join("\n");
+
+      return `
+<html>
+<head>
+<style>
+th {
+   text-align: left; 
+   padding: 2px;
+   padding-left: 0.25rem;
+   padding-right: 0.25rem;
+}
+
+td {
+   text-align: left; 
+   padding: 2px;
+   padding-left: 0.25rem;
+   padding-right: 0.25rem;
+}
+
+h1 {
+   margin-left: 0.25rem;
+}
+
+body {
+   font-family: "Arial";
+}
+
+.first-row {
+   background-color: #eee;
+}
+
+.running {
+   background-color: #00ff00;
+}
+
+.down {
+   background-color: #ff0000;
+}
+
+.late {
+   background-color: #FFCC00;
+}
+
+.time {
+   margin-top: 0.25rem;
+   margin-bottom: 1rem;
+   margin-left: 0.25rem;
+}
+
+.time-label {
+   font-weight: 600;
+   margin-right: 0.25rem;
+}
+
+</style>
+<head>
+<body>
+   <h1>Attestation service status (${this.configService.serverConfig.deploymentName})</h1>
+   <div class="time"><span class="time-label">Time:</span>${stat.mtime.toLocaleString()}</div>
+   <table border="0" cellpadding="0" cellspacing="0">
+      <tr class="first-row">
+         <th style="width: 10rem">name</th>
+         <th style="width: 5rem">status</th>
+         <th style="width: 5rem">state</th>
+         <th>comment</th>
+      </tr>
+${rows}      
+   </table>
+</body>
+</html>
+`
+   }
+
 }

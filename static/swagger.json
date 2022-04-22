@@ -133,6 +133,65 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"ServiceStatus": {
+				"properties": {
+					"status": {
+						"type": "string"
+					},
+					"state": {
+						"type": "string"
+					},
+					"comment": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"timeLate": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"status",
+					"state",
+					"comment",
+					"name",
+					"timeLate"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_ServiceStatus-Array_": {
+				"properties": {
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/ServiceStatus"
+						},
+						"type": "array"
+					},
+					"errorDetails": {
+						"type": "string",
+						"description": "Optional details for unexpected error responses."
+					},
+					"errorMessage": {
+						"type": "string",
+						"description": "Simple message to explain client developers the reason for error."
+					},
+					"status": {
+						"$ref": "#/components/schemas/ApiDefaultResponseStatusEnum",
+						"description": "Response status. OK for successful reponses."
+					},
+					"validationErrorDetails": {
+						"$ref": "#/components/schemas/ApiValidationErrorDetails"
+					}
+				},
+				"required": [
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -198,6 +257,50 @@
 				},
 				"tags": [
 					"Proof"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api/status/services": {
+			"get": {
+				"operationId": "ServiceStatus",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_ServiceStatus-Array_"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Status"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api/status/services-html": {
+			"get": {
+				"operationId": "ServiceStatusHtml",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Status"
 				],
 				"security": [],
 				"parameters": []

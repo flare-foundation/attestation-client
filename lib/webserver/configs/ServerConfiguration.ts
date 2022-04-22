@@ -1,3 +1,4 @@
+import { optional } from "flare-mcc";
 import { AdditionalTypeInfo, IReflection, reflection } from "../../utils/typeReflection";
 
 @reflection()
@@ -8,6 +9,11 @@ export class ServerConfiguration implements IReflection<ServerConfiguration>{
 
   // voting round duration in sec
   public roundDurationSec: number = 90;
+
+  // path to service status file on server
+  @optional() public serviceStatusFilePath: string = "";
+
+  @optional() public deploymentName: string = "";
 
   instanciate() {
     return new ServerConfiguration();

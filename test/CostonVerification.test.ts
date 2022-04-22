@@ -58,7 +58,7 @@ describe("Coston verification test", () => {
 
     // console.log(attesterCredentials.indexerDatabase)
     const options: IndexedQueryManagerOptions = {
-      chainType: ChainType.BTC,
+      chainType: ChainType.ALGO,
       numberOfConfirmations: () => { return 6; },
       maxValidIndexerDelaySec: 10,
       dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
@@ -139,19 +139,22 @@ describe("Coston verification test", () => {
     // in case of failure, check this: https://coston-explorer.flare.network/address/0x3a6E101103eC3D9267d08f484a6b70e1440A8255/transactions
   });
 
-  it.skip("Specific request check", async () => {
-    let request = '0x000100000000000b213d000028176f73413b56cb5fef35dfe61c67652f486d6a8d67bc2ae06775fcfb9b6e29000000000000000000034eaac138d6a4472cf5ef0080d26fceb73d03f2cc99bf';
+  it.only("Specific request check", async () => {
+    let request = '0x0001000000042caeb87690c1435eaf1a17ff1fe6fbbedc36485dcf532fc31c469d7ea118dfb000639a9b9c1b51a1fc86389b79c3b98fd982fd7b6a82a7a06fe55f41113098690000';
+    let roundId = 161628;
+    let recheck = true;
 
     let parsed = parseRequest(request);
     // console.log(parsed)
     // let roundId = currentBufferNumber - 2;
-    let roundId = 137860;
+    
     let att = createTestAttestationFromRequest(parsed, roundId, 6)
-    let result = await verifyAttestation(client, att, indexedQueryManager);
+    let result = await verifyAttestation(client, att, indexedQueryManager, recheck);
 
-    console.log(result.status)
-    console.log(result.response.blockNumber.toString())
-    console.log(await indexedQueryManager.getLastConfirmedBlockNumber())
+    console.log(`Status ${result.status}`)
+    console.log(`Block number: ${result.response?.blockNumber?.toString()}`)
+    let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
+    console.log(`Last confirmed block: ${lastConfirmedBlock}`);
   })
 
 

@@ -8,6 +8,12 @@ class AlertAttestationConfig {
     restart = "";
 }
 
+class AlertBackendConfig {
+    name = "";
+    address = "";
+    restart = "";
+}
+
 
 export class AlertConfig implements IReflection<AlertConfig> {
     @optional() interval: number = 5000;
@@ -18,7 +24,9 @@ export class AlertConfig implements IReflection<AlertConfig> {
     stateSaveFilename = "";
     indexerRestart = "";
     indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
+
     attesters = [];
+    backends = [];
 
     instanciate() {
         return new AlertConfig();
@@ -30,6 +38,7 @@ export class AlertConfig implements IReflection<AlertConfig> {
 
         res.arrayMap.set( "indexers" , "string" );
         res.arrayMap.set( "attesters" , new AlertAttestationConfig() );
+        res.arrayMap.set( "backends" , new AlertBackendConfig() )
 
         return res;        
     }

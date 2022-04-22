@@ -5,6 +5,7 @@ import { sleepms } from "../utils/utils";
 import { AlertBase, AlertRestartConfig } from "./AlertBase";
 import { AlertConfig } from "./AlertsConfiguration";
 import { AttesterAlert } from "./AttestationAlert";
+import { BackendAlert } from "./BackendAlert";
 import { IndexerAlert } from "./IndexerAlert";
 
 export class AlertsManager {
@@ -24,6 +25,10 @@ export class AlertsManager {
 
         for (let attester of this.config.attesters) {
             this.alerts.push(new AttesterAlert(attester.name, this.logger, attester.mode, attester.path, new AlertRestartConfig(this.config.timeRestart, attester.restart)));
+        }
+
+        for (let backend of this.config.backends) {
+            this.alerts.push(new BackendAlert(backend.name, this.logger, new AlertRestartConfig(this.config.timeRestart, backend.restart), backend.address));
         }
     }
 

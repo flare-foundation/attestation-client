@@ -98,7 +98,6 @@ export class ProofEngine {
          <td class="${status.status}">${status.status}</td>
          <td>${status.state}</td>
          <td>${status.comment}</td>
-         <td>${status.timeLate ? status.timeLate : (status.timeLate == null ? "" : 0)}</td>   
       </tr>    
 `;
       }
@@ -168,8 +167,7 @@ body {
          <th style="width: 10rem">name</th>
          <th style="width: 5rem">status</th>
          <th style="width: 5rem">state</th>
-         <th style="width: 15rem">comment</th>
-         <th style="width: 5rem">delay</th>
+         <th>comment</th>
       </tr>
 ${rows}      
    </table>

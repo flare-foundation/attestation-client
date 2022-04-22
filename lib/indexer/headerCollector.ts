@@ -187,6 +187,7 @@ export class HeaderCollector {
 
             } catch (error) {
                 logException(error, `runBlockHeaderCollectingRaw exception: `);
+                await sleepms(100);
             }
         }
     }
@@ -209,6 +210,7 @@ export class HeaderCollector {
             } catch (error) {
                 logException(error, `runBlockHeaderCollectingTips: `);
             }
+            await sleepms(100);
         }
     }
 

@@ -1,5 +1,6 @@
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { logException } from "../utils/logger";
 import { sleepms } from "../utils/utils";
 import { IndexedQueryManager } from "./IndexedQueryManager";
 
@@ -28,10 +29,15 @@ export class RandomDBIterator<T> {
    }
 
    public async next() {
-      while (this.size <= 0) {
-         await this.refresh();
-         await sleepms(100);
+      try {
+         while (this.size <= 0) {
+            await this.refresh();
+         }
       }
+      catch (error) {
+         logException(error, `RandomDBIterator::next`);
+      }
+      await sleepms(100);
       if (this.size / this.batchSize < this.topUpThreshold) {
          this.refresh()  // async call
       }

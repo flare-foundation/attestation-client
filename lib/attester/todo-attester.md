@@ -42,3 +42,7 @@
     [ ] make app to validate configurations before actual run
 
 
+[x] all while loops must be in try catch (sleep must be outside)
+[x] all setTimers must be in try catch or retry
+
+

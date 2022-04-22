@@ -5,6 +5,7 @@ import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
+import { logException } from "../utils/logger";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
@@ -312,36 +313,41 @@ export class ChainNode {
   // start next queued transaction
   ////////////////////////////////////////////
   startNext() {
-    if (!this.canProcess()) {
-      if (this.transactionsProcessing.length === 0) {
-        this.chainManager.logger.debug(` # startNext heartbeat`);
-        setTimeout(() => {
-          this.startNext();
-        }, 100);
-        // todo: for how long do I want to wait??????
+    try {
+      if (!this.canProcess()) {
+        if (this.transactionsProcessing.length === 0) {
+          this.chainManager.logger.debug(` # startNext heartbeat`);
+          setTimeout(() => {
+            this.startNext();
+          }, 100);
+          // todo: for how long do I want to wait??????
+        }
+        //
+        return;
       }
-      //
-      return;
+
+      // check if there is queued priority transaction to be processed
+      while (this.transactionsPriorityQueue.length() && this.canProcess()) {
+        // check if queue start time is reached
+        const startTime = this.transactionsPriorityQueue.peekKey()!;
+        if (getTimeMilli() < startTime) break;
+
+        // take top and process it then start new top timer
+        const tx = this.transactionsPriorityQueue.pop();
+        this.updateDelayQueueTimer();
+
+        this.process(tx!);
+      }
+
+      // check if there is any queued transaction to be processed
+      while (this.transactionsQueue.length && this.canProcess()) {
+        const tx = this.transactionsQueue.shift();
+
+        this.process(tx!);
+      }
     }
-
-    // check if there is queued priority transaction to be processed
-    while (this.transactionsPriorityQueue.length() && this.canProcess()) {
-      // check if queue start time is reached
-      const startTime = this.transactionsPriorityQueue.peekKey()!;
-      if (getTimeMilli() < startTime) break;
-
-      // take top and process it then start new top timer
-      const tx = this.transactionsPriorityQueue.pop();
-      this.updateDelayQueueTimer();
-
-      this.process(tx!);
-    }
-
-    // check if there is any queued transaction to be processed
-    while (this.transactionsQueue.length && this.canProcess()) {
-      const tx = this.transactionsQueue.shift();
-
-      this.process(tx!);
+    catch (error) {
+      logException(error, `ChainNode::startNext`);
     }
   }
 }

@@ -111,38 +111,6 @@ export class AttesterClient {
     }
   }
 
-  async startDisplay() {
-    const tty = require("tty");
-
-    if (!tty.WriteStream.isTTY) {
-      this.logger.warning(`TTY not supported`);
-    }
-
-    while (true) {
-      // display
-      for (let a = 0; a < 3; a++) {
-        let y = a * 4;
-        tty.WriteStream.cursorTo(0, y++);
-        tty.WriteStream.clearLine(0);
-
-        console.info(`R${100}`);
-
-        tty.WriteStream.cursorTo(0, y++);
-        tty.WriteStream.clearLine(0);
-        console.info(`Attestations ${100}`);
-
-        tty.WriteStream.cursorTo(0, y++);
-        tty.WriteStream.clearLine(0);
-        console.info(`Done ${100}`);
-
-        tty.WriteStream.cursorTo(0, y++);
-        tty.WriteStream.clearLine(0);
-        console.info(`Speed ${100}`);
-      }
-      await sleepms(1000);
-    }
-  }
-
   async initializeConfiguration() {
     // read .env
     DotEnvExt();

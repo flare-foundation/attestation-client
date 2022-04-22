@@ -271,8 +271,15 @@ async function displayStats() {
   while (true) {
     await sleepMs(period);
 
-    logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
-    AttestationSpammer.sendCount = 0;
+    try {
+
+      logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
+      AttestationSpammer.sendCount = 0;
+
+    }
+    catch (error) {
+      logException(error, `displayStats`);
+    }
   }
 }
 

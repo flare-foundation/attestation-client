@@ -6,7 +6,7 @@ import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, logException } from "../utils/logger";
 import { MerkleTree, singleHash } from "../utils/MerkleTree";
 import { getCryptoSafeRandom, prepareString, xor32 } from "../utils/utils";
-import { toHex } from "../verification/attestation-types/attestation-types-helpers";
+import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -286,8 +286,16 @@ export class AttestationRound {
 
       dbVoteResult.roundId = this.roundId;
       dbVoteResult.hash = voteHash;
-      dbVoteResult.request = JSON.stringify(valid.verificationData?.request ? valid.verificationData.request : "");
-      dbVoteResult.response = JSON.stringify(valid.verificationData?.response ? valid.verificationData.response : "");
+      dbVoteResult.request = JSON.stringify(
+        valid.verificationData?.request
+          ? hexlifyBN(valid.verificationData.request)
+          : ""
+      );
+      dbVoteResult.response = JSON.stringify(
+        valid.verificationData?.response
+          ? hexlifyBN(valid.verificationData.response)
+          : ""
+      );
     }
 
     // save to DB

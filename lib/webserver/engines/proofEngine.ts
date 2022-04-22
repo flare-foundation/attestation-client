@@ -160,7 +160,7 @@ body {
 </style>
 <head>
 <body>
-   <h1>Attestation service status (${this.configService.serverConfig.deploymentName})</h1>
+   <h1>Attestation service status</h1>
    <div class="time"><span class="time-label">Time:</span>${stat.mtime.toLocaleString()}</div>
    <table border="0" cellpadding="0" cellspacing="0">
       <tr class="first-row">
@@ -171,6 +171,11 @@ body {
       </tr>
 ${rows}      
    </table>
+   <script>
+      setTimeout(() => {
+         location.reload();
+      }, 5000)
+   </script>
 </body>
 </html>
 `

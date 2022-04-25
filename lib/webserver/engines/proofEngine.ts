@@ -27,7 +27,8 @@ export class ProofEngine {
       }
       await this.dbService.waitForDBConnection();
       if (!this.canReveal(roundId)) {
-         throw new Error("Voting round results cannot be revealed yet.");
+         return null;
+         //throw new Error("Voting round results cannot be revealed yet.");
       }
       let query = this.dbService.connection.manager
          .createQueryBuilder(DBVotingRoundResult, "voting_round_result")

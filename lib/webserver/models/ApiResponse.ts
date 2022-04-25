@@ -16,6 +16,7 @@ export type ApiDefaultResponseStatusEnum =
     | 'UPSTREAM_HTTP_ERROR'
     | 'INVALID_REQUEST'
     | 'NOT_IMPLEMENTED'
+    | 'PENDING'
 
 
 export interface ApiValidationErrorDetails {

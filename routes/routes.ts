@@ -29,7 +29,7 @@ const models: TsoaRoute.Models = {
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ApiDefaultResponseStatusEnum": {
         "dataType": "refAlias",
-        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["OK"]},{"dataType":"enum","enums":["ERROR"]},{"dataType":"enum","enums":["REQUEST_BODY_ERROR"]},{"dataType":"enum","enums":["VALIDATION_ERROR"]},{"dataType":"enum","enums":["TOO_MANY_REQUESTS"]},{"dataType":"enum","enums":["UNAUTHORIZED"]},{"dataType":"enum","enums":["AUTH_ERROR"]},{"dataType":"enum","enums":["UPSTREAM_HTTP_ERROR"]},{"dataType":"enum","enums":["INVALID_REQUEST"]},{"dataType":"enum","enums":["NOT_IMPLEMENTED"]}],"validators":{}},
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["OK"]},{"dataType":"enum","enums":["ERROR"]},{"dataType":"enum","enums":["REQUEST_BODY_ERROR"]},{"dataType":"enum","enums":["VALIDATION_ERROR"]},{"dataType":"enum","enums":["TOO_MANY_REQUESTS"]},{"dataType":"enum","enums":["UNAUTHORIZED"]},{"dataType":"enum","enums":["AUTH_ERROR"]},{"dataType":"enum","enums":["UPSTREAM_HTTP_ERROR"]},{"dataType":"enum","enums":["INVALID_REQUEST"]},{"dataType":"enum","enums":["NOT_IMPLEMENTED"]},{"dataType":"enum","enums":["PENDING"]}],"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ApiValidationErrorDetails": {

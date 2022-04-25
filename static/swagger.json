@@ -39,7 +39,8 @@
 					"AUTH_ERROR",
 					"UPSTREAM_HTTP_ERROR",
 					"INVALID_REQUEST",
-					"NOT_IMPLEMENTED"
+					"NOT_IMPLEMENTED",
+					"PENDING"
 				],
 				"description": "All possible values of status."
 			},

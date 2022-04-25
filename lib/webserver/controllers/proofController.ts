@@ -25,11 +25,15 @@ export class ProofController extends Controller {
     public async lastReveals(
         @Path() roundId: number,
     ): Promise<ApiResponse<VotingRoundResult[]>> {
-        let result = await this.proofEngine.getProofForRound(roundId);
-        if(result) {
-            return handleApiResponse(result)
+        try {
+            let result = await this.proofEngine.getProofForRound(roundId);
+            if(result) {
+                return new ApiResponse<VotingRoundResult[]>(result)
+            }
+            return new ApiResponse<VotingRoundResult[]>(null, 'PENDING');            
+        } catch(reason: any) {
+            throw new ApiResponse<VotingRoundResult[]>(undefined as any, 'ERROR', '' + reason, reason)
         }
-        return new ApiResponse<VotingRoundResult[]>(null, 'PENDING');        
     }
 
     @Get("status")

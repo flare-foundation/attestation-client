@@ -330,7 +330,7 @@ export class AttestationRound {
     }
 
     // after commit state has been calculated add it in state
-    AttestationRoundManager.state.saveRound(this);
+    AttestationRoundManager.state.saveRound(this, validated.length);
 
     const time2 = getTimeMilli();
 

@@ -6,7 +6,7 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 
 export class AttesterState {
 
-    saveRound(round: AttestationRound) {
+    saveRound(round: AttestationRound, validTransactionCount: number = 0) {
         const dbRound = new DBRoundResult();
 
         dbRound.roundId = round.roundId;
@@ -15,6 +15,8 @@ export class AttesterState {
         dbRound.random = round.roundRandom;
         dbRound.hashedRandom = round.roundHashedRandom;
         dbRound.finalizedTimestamp = getUnixEpochTimestamp();
+        dbRound.transactionCount = round.attestations.length;
+        dbRound.validTransactionCount = validTransactionCount;
 
         AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     }

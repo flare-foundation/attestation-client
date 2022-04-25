@@ -268,7 +268,8 @@ export class Indexer {
       // create transaction and save everything
       const time0 = Date.now();
 
-      try {
+
+      retry(`blockSave N=${Np1}`, async () => {
         await this.dbService.connection.transaction(async (transaction) => {
           // save state N, T and T_CHECK_TIME
           const stateEntries = [
@@ -282,19 +283,15 @@ export class Indexer {
           await transaction.save(blockCopy);
           await transaction.save(stateEntries);
         });
+        return true;
+      });
 
-        // increment N if all is ok
-        this.N = Np1;
+      // increment N if all is ok
+      this.N = Np1;
 
-        this.blockProcessorManager.clear(Np1);
-        const time1 = Date.now();
-        this.logger.info(`^r^Wsave completed - next N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
-
-      } catch (error) {
-        logException(error, `database error (N=${Np1}): `);
-
-        return false;
-      }
+      this.blockProcessorManager.clear(Np1);
+      const time1 = Date.now();
+      this.logger.info(`^r^Wsave completed - next N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
 
     } catch (error) {
       logException(error, `saveInterlaced error (N=${Np1}): `);
@@ -488,7 +485,7 @@ export class Indexer {
           this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);
         }
 
-        this.dbService.manager.save(dbStatus);
+        retry(`runSyncRaw::saveStatus`, async () => this.dbService.manager.save(dbStatus));
 
         // check if syncing has ended
         if (this.N >= this.T - this.chainConfig.numberOfConfirmations) {
@@ -670,7 +667,8 @@ export class Indexer {
 
         // status
         const dbStatus = this.getStateEntryString("state", "running", processedBlocks++);
-        this.dbService.manager.save(dbStatus);
+
+        retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
 
         const time1 = getTimeMilli();
 

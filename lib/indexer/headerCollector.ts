@@ -117,7 +117,7 @@ export class HeaderCollector {
 
             this.logger.debug(`write block headers ${blocksText}]`);
 
-            await this.indexer.dbService.manager.save(dbBlocks);
+            retry( `saveBlocksHeadersArray` , async () => await this.indexer.dbService.manager.save(dbBlocks) );
         } catch (error) {
             logException(error, `saveBlocksHeadersArray error: `);
         }
@@ -128,7 +128,7 @@ export class HeaderCollector {
         try {
             const stateTcheckTime = this.indexer.getStateEntry("T", T);
 
-            await this.indexer.dbService.manager.save(stateTcheckTime);
+            retry( `writeT` , async ()=>await this.indexer.dbService.manager.save(stateTcheckTime) );
 
         } catch (error) {
             logException(error, `runBlockHeaderCollectingRaw database error (T=${T}):`);

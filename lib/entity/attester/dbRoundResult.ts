@@ -16,4 +16,6 @@ export class DBRoundResult { //extends BaseEntity {
     @Column({nullable:true}) revealTransactionId: string;
     @Column({nullable:true}) revealNounce: number;
     @Column({nullable:true}) revealTimestamp: number;
+    @Column({nullable:true}) transactionCount: number;
+    @Column({nullable:true}) validTransactionCount: number;
 }

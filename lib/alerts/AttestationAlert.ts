@@ -1,6 +1,6 @@
 import { toBN } from "flare-mcc";
 import { AttesterClientConfiguration, AttesterCredentials } from "../attester/AttesterClientConfiguration";
-import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
+import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
@@ -32,10 +32,20 @@ export class AttesterAlert extends AlertBase {
 
         res.name = `attester ${this.name}`;
 
-        const dbRes = await this.dbService.connection.getRepository(DBVotingRoundResult).find({ order: { roundId: 'DESC' }, take: 1 });
+        //const dbRes = await this.dbService.connection.getRepository(DBVotingRoundResult).find({ order: { roundId: 'DESC' }, take: 1 });
+        const dbRes = await this.dbService.connection.getRepository(DBRoundResult).find({ order: { roundId: 'DESC' }, take: 1 });
+
+        let transactions = 0;
+        let validTransactions = 0;
+
 
         if (dbRes.length === 0) {
             res.state = `unable to get valid result`;
+        }
+        else
+        {
+            transactions = (res as any as DBRoundResult).transactionCount;
+            validTransactions = (res as any as DBRoundResult).validTransactionCount;
         }
 
         res.state = `running`;
@@ -43,7 +53,7 @@ export class AttesterAlert extends AlertBase {
         const activeRound = this.epochSettings.getCurrentEpochId().toNumber();
         const dbRound = dbRes[0].roundId;
 
-        res.comment = `round ${dbRound} (${activeRound})`;
+        res.comment = `round ${dbRound} (${activeRound}) transactions ${validTransactions}/${transactions}`;
 
 
         res.status = (dbRound + 2) >= activeRound ? "running" : "down";

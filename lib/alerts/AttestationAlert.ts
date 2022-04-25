@@ -44,8 +44,8 @@ export class AttesterAlert extends AlertBase {
         }
         else
         {
-            transactions = (res as any as DBRoundResult).transactionCount;
-            validTransactions = (res as any as DBRoundResult).validTransactionCount;
+            transactions = dbRes[0].transactionCount;
+            validTransactions = dbRes[0].validTransactionCount;
         }
 
         res.state = `running`;

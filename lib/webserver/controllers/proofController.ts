@@ -30,7 +30,7 @@ export class ProofController extends Controller {
             if(result) {
                 return new ApiResponse<VotingRoundResult[]>(result)
             }
-            return new ApiResponse<VotingRoundResult[]>(null, 'PENDING');            
+            return new ApiResponse<VotingRoundResult[]>([], 'PENDING');
         } catch(reason: any) {
             throw new ApiResponse<VotingRoundResult[]>(undefined as any, 'ERROR', '' + reason, reason)
         }

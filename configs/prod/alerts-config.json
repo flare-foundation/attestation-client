@@ -23,11 +23,11 @@
             // attester-client restart command
             "restart":"systemctl --user restart coston-attester-clientxxx"
         },
-        {
-            "name":"Songbird",
-            "path":"../../songbird/attester-client/configs/prod/",
-            "restart":"systemctl --user restart songbird-attester-clientxxx"
-        },
+        // {
+        //     "name":"Songbird",
+        //     "path":"../../songbird/attester-client/configs/prod/",
+        //     "restart":"systemctl --user restart songbird-attester-clientxxx"
+        // },
     ],
     "backends" : [
         {

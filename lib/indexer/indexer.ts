@@ -198,13 +198,14 @@ export class Indexer {
     return state;
   }
 
-  getStateEntryString(name: string, valueString: string, valueNum: number): DBState {
+  getStateEntryString(name: string, valueString: string, valueNum: number, comment: string = ""): DBState {
     const state = new DBState();
 
     state.name = this.getChainName(name);
     state.valueString = valueString;
     state.valueNumber = valueNum;
     state.timestamp = getUnixEpochTimestamp();
+    state.comment = comment;
 
     return state;
   }
@@ -666,7 +667,7 @@ export class Indexer {
         const isChangedNp1Hash = this.blockNp1hash !== blockNp1.stdBlockHash;
 
         // status
-        const dbStatus = this.getStateEntryString("state", "running", processedBlocks++);
+        const dbStatus = this.getStateEntryString("state", "running", processedBlocks++, `N=${this.N} T=${this.T}` );
 
         retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
 

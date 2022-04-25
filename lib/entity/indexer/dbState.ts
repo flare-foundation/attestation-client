@@ -15,6 +15,10 @@ export class DBState {
 
     @Column()
     timestamp: number=0;
+
+    @Column({nullable:true}) 
+    comment: string="";
+
 }
 
 

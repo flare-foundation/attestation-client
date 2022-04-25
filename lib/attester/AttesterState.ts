@@ -1,3 +1,4 @@
+import { retry } from "flare-mcc";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
@@ -20,6 +21,17 @@ export class AttesterState {
 
         AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     }
+
+    saveRoundComment(round: AttestationRound, validTransactionCount: number = 0) {
+        const dbRound = new DBRoundResult();
+
+        dbRound.roundId = round.roundId;
+        dbRound.transactionCount = round.attestations.length;
+        dbRound.validTransactionCount = validTransactionCount;
+
+        AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    }
+
 
     saveRoundCommited(roundId: number, nounce: number, txid: string) {
         const dbRound = new DBRoundResult();

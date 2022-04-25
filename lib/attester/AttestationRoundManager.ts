@@ -109,7 +109,7 @@ export class AttestationRoundManager {
         //bar1.update(now - epochTimeStart);
         const eta = 90 - (now - epochTimeStart) / 1000;
         if (eta >= 0) {
-          getGlobalLogger().debug(`!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.transactionsProcessed}/${activeRound.attestations.length}  `);
+          getGlobalLogger().debug(`!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.attestationsProcessed}/${activeRound.attestations.length}  `);
         }
       }, 5000)
 
@@ -184,6 +184,8 @@ export class AttestationRoundManager {
     }
 
     activeRound.addAttestation(attestation);
+
+    AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
   }
 
   cleanup() {

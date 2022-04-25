@@ -84,7 +84,7 @@ export class AttestationRound {
   // processing
   attestations = new Array<Attestation>();
   attestationsMap = new Map<string, Attestation>();
-  transactionsProcessed: number = 0;
+  attestationsProcessed: number = 0;
 
   // save submitted values for reveal
   roundMerkleRoot!: string;
@@ -144,7 +144,7 @@ export class AttestationRound {
 
   startCommitEpoch() {
     this.logger.group(
-      `round #${this.roundId} commit epoch started [1] ${this.transactionsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
+      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
@@ -162,13 +162,13 @@ export class AttestationRound {
   }
 
   processed(tx: Attestation) {
-    this.transactionsProcessed++;
-    assert(this.transactionsProcessed <= this.attestations.length);
+    this.attestationsProcessed++;
+    assert(this.attestationsProcessed <= this.attestations.length);
     this.tryTriggerCommit();
   }
 
   async tryTriggerCommit() {
-    if (this.transactionsProcessed === this.attestations.length) {
+    if (this.attestationsProcessed === this.attestations.length) {
       if (this.status === AttestationRoundEpoch.commit) {
         // all transactions were processed and we are in commit epoch
         this.logger.info(`round #${this.roundId} all transactions processed ${this.attestations.length} commiting...`);
@@ -184,7 +184,7 @@ export class AttestationRound {
   }
   async commitLimit() {
     if (this.attestStatus === AttestationRoundStatus.collecting) {
-      this.logger.error2(`Round #${this.roundId} processing timeout (${this.transactionsProcessed}/${this.attestations.length} attestation(s))`);
+      this.logger.error2(`Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
 
       // cancel all attestations
       this.attestStatus = AttestationRoundStatus.processingTimeout;
@@ -192,8 +192,8 @@ export class AttestationRound {
   }
 
   canCommit(): boolean {
-    this.logger.debug(`canCommit(^Y#${this.roundId}^^) processed: ${this.transactionsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`)
-    return this.transactionsProcessed === this.attestations.length &&
+    this.logger.debug(`canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`)
+    return this.attestationsProcessed === this.attestations.length &&
       this.attestStatus === AttestationRoundStatus.commiting &&
       this.status === AttestationRoundEpoch.commit;
   }
@@ -406,7 +406,7 @@ export class AttestationRound {
           break;
         case AttestationRoundStatus.collecting:
           this.logger.error(
-            `  ! AttestEpoch #${this.roundId} cannot reveal (attestations not processed ${this.transactionsProcessed}/${this.attestations.length})`
+            `  ! AttestEpoch #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`
           );
           break;
         case AttestationRoundStatus.commiting:

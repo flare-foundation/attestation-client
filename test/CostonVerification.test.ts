@@ -145,8 +145,8 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     // in case of failure, check this: https://coston-explorer.flare.network/address/0x3a6E101103eC3D9267d08f484a6b70e1440A8255/transactions
   });
 
-  it("Specific request check", async () => {
-    let request = '0x0001000000042caeb87690c1435eaf1a17ff1fe6fbbedc36485dcf532fc31c469d7ea118dfb000639a9b9c1b51a1fc86389b79c3b98fd982fd7b6a82a7a06fe55f41113098690000';
+  it.only("Specific request check", async () => {
+    let request = '0x00010000000400044d5b4718d6bb8daa193c0f3ad27264dd352aee6273aa93d6b2622395313b00066a4953913843c5d2f56568f8fa5633a5eedf99224ea2c4b07af17d58ef600000';
     let roundId = 161628;
     let recheck = true;
 
@@ -163,7 +163,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     console.log(`Last confirmed block: ${lastConfirmedBlock}`);
   })
 
-  it.only("Specific parsed request check", async () => {
+  it("Specific parsed request check", async () => {
     let roundId = 161893;
     let recheck = true;
 

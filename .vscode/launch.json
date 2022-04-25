@@ -302,6 +302,7 @@
             "name": "Coston Verification",
             "runtimeExecutable": "yarn",
             "env": {
+                "SOURCE_ID": "ALGO",
                 "CONFIG_PATH": "dev",
                 "NODE_ENV":"development"
             },

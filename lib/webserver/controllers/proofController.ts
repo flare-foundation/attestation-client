@@ -25,7 +25,7 @@ export class ProofController extends Controller {
     public async lastReveals(
         @Path() roundId: number,
     ): Promise<ApiResponse<VotingRoundResult[]>> {
-        let result = this.proofEngine.getProofForRound(roundId);
+        let result = await this.proofEngine.getProofForRound(roundId);
         if(result) {
             return handleApiResponse(result)
         }

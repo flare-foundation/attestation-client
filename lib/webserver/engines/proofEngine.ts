@@ -87,6 +87,10 @@ export class ProofEngine {
    }
 
    public async serviceStatusHtml(): Promise<string> {
+      let {
+         currentBufferNumber,
+         latestAvailableRoundId
+      } = await this.systemStatus();
       let path = this.configService.serverConfig.serviceStatusFilePath;
       let statuses = JSON.parse(fs.readFileSync(path).toString()) as ServiceStatus[];
 
@@ -157,8 +161,15 @@ body {
    margin-right: 0.25rem;
 }
 
+.status-block {
+   margin-top: 1rem;
+}
+
 </style>
-<head>
+
+<meta http-equiv="refresh" content="5">
+
+</head>
 <body>
    <h1>Attestation service status</h1>
    <div class="time"><span class="time-label">Time:</span>${stat.mtime.toLocaleString()}</div>
@@ -171,11 +182,17 @@ body {
       </tr>
 ${rows}      
    </table>
-   <script>
-      setTimeout(() => {
-         location.reload();
-      }, 5000)
-   </script>
+   
+   <table border="0" cellpadding="0" cellspacing="0" class="status-block">
+      <tr>
+        <td>Current buffer number:</td>
+        <td> ${currentBufferNumber}</td>
+      </tr> 
+      <tr>
+        <td>Latest available round id:</td>
+        <td> <a href="../proof/votes-for-round/${latestAvailableRoundId}" target="_blank">${latestAvailableRoundId}</a></td>
+      </tr> 
+   </table>
 </body>
 </html>
 `

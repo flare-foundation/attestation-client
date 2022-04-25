@@ -1,4 +1,4 @@
-import { AlgoBlock, AlgoTransaction, ChainType, IBlock, ITransaction, txIdToHexNo0x, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
+import { AlgoBlock, AlgoTransaction, ChainType, IBlock, ITransaction, txIdToHexNo0x, unPrefix0x, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";
@@ -56,7 +56,7 @@ export async function augmentTransactionAlgo(client: CachedMccClient<any, any>, 
 
    // Algo specific conversion of transaction hashes to hex 
    res.transactionId = txIdToHexNo0x(txData.txid);
-   res.paymentReference = prepareString(txData.reference[0], 64);
+   res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
    return res as DBTransactionBase
 }
 
@@ -67,7 +67,7 @@ export async function augmentTransactionUtxo(client: CachedMccClient<any, any>, 
    const res = await augmentTransactionBase(client,block,txData);
 
    if (txData.reference.length === 1) {
-      res.paymentReference = prepareString(txData.reference[0], 64);
+      res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
    }
    // we get block number on top level when we add transactions from indexer into processing queue
    // res.blockNumber = await getRandom();
@@ -81,7 +81,7 @@ export async function augmentTransactionXrp(client: CachedMccClient<any, any>, b
    res.timestamp = block.unixTimestamp;
 
    if (txData.reference.length === 1) {
-      res.paymentReference = prepareString(txData.reference[0],64);
+      res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference),64);
    }
 
    return res as DBTransactionBase

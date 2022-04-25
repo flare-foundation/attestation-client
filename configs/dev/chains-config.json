@@ -1,17 +1,24 @@
 {
+    // chains definition
     "chains": [
         {
+            // chain name. allowed names are XRP, BTC, LTC, ALGO, DOGE
             "name": "XRP",
+            // MCC create options
             "mccCreate" : {
+                //  
                 "url": "https://xrplcluster.com",
                 //"url2": "http://34.91.7.3:51234"
+
+
             },
+
+            // rate limiting options
             "rateLimitOptions": {
                 "maxRPS": 20,
                 "timeoutMs": 30000,
                 "retries": 10
             },
-
             "numberOfConfirmations": 1,
             "syncReadAhead":20,
             "blockCollecting":"raw",
@@ -21,12 +28,12 @@
             "maxRequestsPerSecond":80,
             "maxProcessingTransactions":3000,
 
-            //"maxFailedRetry": 1,
-            //"delayBeforeRetry": 10,
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
 
-            //"maxValidIndexerDelaySec": 10,
+            "maxValidIndexerDelaySec": 10,
             
-            //"reverificationTimeOffset": 10
+            "reverificationTimeOffset": 10
         },
         {
             "name": "BTC",
@@ -49,12 +56,12 @@
             "maxRequestsPerSecond":80,
             "maxProcessingTransactions":3000,
 
-            //"maxFailedRetry": 1,
-            //"delayBeforeRetry": 10,
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
 
-            //"maxValidIndexerDelaySec": 10,
+            "maxValidIndexerDelaySec": 10,
             
-            //"reverificationTimeOffset": 10
+            "reverificationTimeOffset": 10
 
         },
         {
@@ -78,12 +85,12 @@
             "maxRequestsPerSecond":80,
             "maxProcessingTransactions":3000,
 
-            //"maxFailedRetry": 1,
-            //"delayBeforeRetry": 10,
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
 
-            //"maxValidIndexerDelaySec": 10,
+            "maxValidIndexerDelaySec": 10,
             
-            //"reverificationTimeOffset": 10
+            "reverificationTimeOffset": 10
         },
         {
             "name": "ALGO",
@@ -111,12 +118,12 @@
             "maxRequestsPerSecond":80,
             "maxProcessingTransactions":3000,
 
-            //"maxFailedRetry": 1,
-            //"delayBeforeRetry": 10,
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
 
-            //"maxValidIndexerDelaySec": 10,
+            "maxValidIndexerDelaySec": 10,
             
-            //"reverificationTimeOffset": 10
+            "reverificationTimeOffset": 10
         },
         {
             "name": "DOGE",
@@ -139,12 +146,12 @@
             "maxRequestsPerSecond":80,
             "maxProcessingTransactions":3000,
 
-            //"maxFailedRetry": 1,
-            //"delayBeforeRetry": 10,
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
 
-            //"maxValidIndexerDelaySec": 10,
+            "maxValidIndexerDelaySec": 10,
             
-            //"reverificationTimeOffset": 10
+            "reverificationTimeOffset": 10
         }
 
     ]

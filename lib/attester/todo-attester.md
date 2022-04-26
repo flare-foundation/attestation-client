@@ -32,9 +32,9 @@
 [x] rename interlaceTimeRange => minimalStorageHistoryDays
 [x] rename interlaceBlockRange => minimalStorageHistoryBlocks
 
-[ ] attester-config cleanup
-    [/] does not need commitTime (it is used to emit warning)
-    [ ] how much of chain info is needed (can it be used from indexer)
+[x] attester-config cleanup
+    [x] does not need commitTime (it is used to emit warning)
+    [x] how much of chain info is needed (can it be used from indexer)
 
 [ ] configurations
     [x] support JSON EOL comment

@@ -70,13 +70,15 @@ export class AttestationRoundManager {
         const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
         AttestationRoundManager.activeEpochId = epochId;
 
-        this.getRound(epochId);
+        const activeRound = this.getRound(epochId);
+
+        AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
       }
       catch (error) {
         logException(error, `startRoundUpdate`);
       }
 
-      await sleepms(10000);
+      await sleepms(5000);
     }
   }
 

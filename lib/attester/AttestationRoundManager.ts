@@ -124,6 +124,11 @@ export class AttestationRoundManager {
         safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitEpoch());
       }, epochCommitTime - now);
 
+      // trigger start commit epoch submit
+      setTimeout(() => {
+        safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitSubmit());
+      }, epochCommitTime - now +  1000 );
+
       // trigger start reveal epoch
       setTimeout(() => {
         safeCatch(`setTimeout:startRevealEpoch`, () => activeRound!.startRevealEpoch());

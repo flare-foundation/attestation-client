@@ -70,13 +70,15 @@ export class AttestationRoundManager {
         const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
         AttestationRoundManager.activeEpochId = epochId;
 
-        this.getRound(epochId);
+        const activeRound = this.getRound(epochId);
+
+        AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
       }
       catch (error) {
         logException(error, `startRoundUpdate`);
       }
 
-      await sleepms(10000);
+      await sleepms(5000);
     }
   }
 
@@ -121,6 +123,11 @@ export class AttestationRoundManager {
       setTimeout(() => {
         safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitEpoch());
       }, epochCommitTime - now);
+
+      // trigger start commit epoch submit
+      setTimeout(() => {
+        safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitSubmit());
+      }, epochCommitTime - now +  1000 );
 
       // trigger start reveal epoch
       setTimeout(() => {

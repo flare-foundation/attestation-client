@@ -4,7 +4,7 @@
 
 - [x] indexer sync - create database for x days back
 - [x] create table for each chain
-- [ ] multiple options what chains are to be started
+- [/] multiple options what chains are to be started
 - [x] transaction save (with block and state) must be a transaction!
 - [x] store ALL block into DB immediately
 - [x] also save block

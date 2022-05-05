@@ -1,4 +1,4 @@
-# Attestation client - Installation and technical reference
+# Attestation client - installation and technical reference
 
 ## Installation and running the attestation client 
 - [General installation](./installation/general-installation.md)

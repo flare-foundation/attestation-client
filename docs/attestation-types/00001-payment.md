@@ -19,9 +19,9 @@ A successful attestation is provided by extracting the following data about the 
 - receiving address
 - spent amount
 - received amount
-- payment reference  (see Definitions in [flare-mcc docs](https://gitlab.com/flarenetwork/mcc/-/tree/master/docs))
+- [payment reference](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/payment-reference.md)
 - whether transaction is sending from a single address to a single other address
-- transaction status (see Definitions in [flare-mcc docs](https://gitlab.com/flarenetwork/mcc/-/tree/master/docs))
+- [transaction status](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/transaction-status.md)
 
 Due to technical limitations on UTXO chains, the procedure for the attestation differs according to the existence of the standardized payment reference. In essence, payments with the standardized payment references undergo full indexing while other payments undergo partial indexing. In non-UTXO chains full indexing is always performed. 
 ## Request format
@@ -55,14 +55,14 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 
 ## Verification rules
 
-- The transaction being attested must be a [native payment](../definitions/native-payment.md). 
-- Payment reference is calculated only if the attested transaction conforms to ([standardized payment reference](../definitions/payment-reference.md)). Otherwise the payment reference is 0.
-- Status of the attestation is determined as described [here](../definitions/transaction-status.md)
+- The transaction being attested must be a [native payment](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/native-payment.md). 
+- Payment reference is calculated only if the attested transaction conforms to [standardized payment reference](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/payment-reference.md). Otherwise the payment reference is 0.
+- Status of the attestation is determined as described [here](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/transaction-status.md)
 - If the payment status is failure (1 or 2), the received amount should be 0 and the spent amount should be only the fee spent in case of non-UTXO chains. In case of UTXO chain 0 value is provided for spent amount.
 - The values of `utxo` and `inUtxo` on non-UTXO chains are always 0.
 ### UTXO (BTC, LTC, DOGE) chains
 
-- Full attestation is performed only if the standardized payment reference exists (see [here](../definitions/account-based-vs-utxo-chains.md) for details). Otherwise partial attestation si performed. 
+- Full attestation is performed only if the standardized payment reference exists (see [here](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/account-based-vs-utxo-chains.md) for details). Otherwise partial attestation si performed. 
 - Source address exists only if there is a unique source address on the selected input (`inUtxo`). To determine it, one needs to make additional RPC API call. If the source address does not exist, it is indicated by 0 in the response. The spent amount is 0 in this case. If the source address exists, a hash (sha3) is provided for `sourceAddressHash` in response.
 - The receiving address may not exist on the selected output (`utxo`). In this case it is indicated in the response by 0. 
 The received amount is 0 in this case. If the receiving address exists, the hash of it is provided for `receivingAddressHash` in response.

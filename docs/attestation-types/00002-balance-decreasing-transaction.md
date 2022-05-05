@@ -24,9 +24,9 @@ A successful attestation is provided by extracting certain data about the transa
 - source address
 - input utxo, indicating the source address of interest
 - spent amount
-- [payment reference](../definitions/payment-reference.md)
+- [payment reference](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/payment-reference.md)
 
-Due to technical limitations on UTXO chains, the procedure for the attestation differs according to the existence of the standardized payment reference. In essence, payments with the standardized payment references undergo [full attestation](../definitions/account-based-vs-utxo-chains.md) while other payments undergo partial attestation. In non-UTXO chains full attestation is always performed.
+Due to technical limitations on UTXO chains, the procedure for the attestation differs according to the existence of the standardized payment reference. In essence, payments with the standardized payment references undergo [full attestation](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/account-based-vs-utxo-chains.md) while other payments undergo partial attestation. In non-UTXO chains full attestation is always performed.
 
 ## Request format
 
@@ -62,8 +62,8 @@ Beside the standard fields (`attestationType`, `sourceId` and `upperBoundProof`)
 ### UTXO (BTC, LTC, DOGE) specific
 
 - A valid (single address) must appear on `inUtxo`. Otherwise attestation is rejected.
-- Payment reference is calculated only if the attested transaction confirms to ([standardized payment reference](../definitions/payment-reference.md)). Otherwise the payment reference is 0.
-- Full attestation is performed only if the standardized payment reference exists (see [here](../definitions/account-based-vs-utxo-chains.md) for details). Othewise partial attestation si performed. In particular that has an impact how `spentAmount` is calculated.
+- Payment reference is calculated only if the attested transaction confirms to ([standardized payment reference](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/payment-reference.md)). Otherwise the payment reference is 0.
+- Full attestation is performed only if the standardized payment reference exists (see [here](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/account-based-vs-utxo-chains.md) for details). Otherwise partial attestation si performed. In particular that has an impact how `spentAmount` is calculated.
 - The value `inUtxo` in response for non-UTXO chains is always 0.
 
 ## Response format

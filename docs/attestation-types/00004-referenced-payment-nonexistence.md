@@ -8,9 +8,9 @@
 
 ## Description
 
-[Standardized payment references](../definitions/payment-reference.md) are used to indicate special transactions. Usual use case involves a DeFi protocol that uses the attestation protocol, which requires from its users to make certain payments until certain deadline. Standardized payment reference is used for matching the payments to the paying users and their purposes. The purpose of this attestation type is to provide a proof that a transaction (payment) with a specific standardized payment reference, sending a specific amount of the native currency to a specific address was not carried out up to certain deadline. Such an attestation can be used as proof of a breach of payment obligations a user may have in relation to a DeFi protocol.
+[Standardized payment references](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/payment-reference.md) are used to indicate special transactions. Usual use case involves a DeFi protocol that uses the attestation protocol, which requires from its users to make certain payments until certain deadline. Standardized payment reference is used for matching the payments to the paying users and their purposes. The purpose of this attestation type is to provide a proof that a transaction (payment) with a specific standardized payment reference, sending a specific amount of the native currency to a specific address was not carried out up to certain deadline. Such an attestation can be used as proof of a breach of payment obligations a user may have in relation to a DeFi protocol.
 
-In some cases it could happen that a user tried to fullfil the obligation, but the obligation could not be fulfilled, which was not due to its fault, but rather the fault of the receiver (e.g. input transactions are blocked). On some blockchains such transactions are recorded in blocks as failed transactions with special failure statuses, that indicate that the fault is on the receiving side and that the sender did all in its power to fullfil the obligation. See [here](../definitions/transaction-status.md for discussion on transaction status).
+In some cases it could happen that a user tried to fullfil the obligation, but the obligation could not be fulfilled, which was not due to its fault, but rather the fault of the receiver (e.g. input transactions are blocked). On some blockchains such transactions are recorded in blocks as failed transactions with special failure statuses, that indicate that the fault is on the receiving side and that the sender did all in its power to fullfil the obligation. See [here](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/transaction-status.md) for discussion on transaction status.
 
 The attestations of this type are confirmed if and only if any of the two cases happened:
 - the required transaction was not made in due time or 
@@ -83,14 +83,14 @@ In such a way the attestation confirms the required transaction did not appear i
 ## Verification rules
 
 - The confirmed block that is confirmed by the confirmation block with the hash `upperBoundProof` must be an overflow block.
-- Payment nonexistence is confirmed if there is no [native payment](../definitions/native-payment.md) transactions with [standardized payment reference](../definitions/payment-reference.md) that meets all criteria for Payment attestation type (00001 - Payment) and its transaction status is 0 - Success or 2 - Failure due to receiver. 
+- Payment nonexistence is confirmed if there is no [native payment](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/native-payment.md) transactions with [standardized payment reference](https://github.com/flare-foundation/multi-chain-client/blob/main/docs/definitions/payment-reference.md) that meets all criteria for Payment attestation type (00001 - Payment) and its transaction status is 0 - Success or 2 - Failure due to receiver. 
 - If there exist only payment(s) with status 1 (failure, sender's fault) then payment nonexistence is still confirmed.
 
 ## Response format
 
 - `deadlineBlockNumber`:
   - type: `uint64`
-  - description: Deadline block number pecified in the attestation request.
+  - description: Deadline block number specified in the attestation request.
 - `deadlineTimestamp`:
   - type: `uint64`
   - description: Deadline timestamp specified in the attestation request.

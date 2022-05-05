@@ -1,4 +1,4 @@
-// Run tests with the following command lines:
+// Run tests with the following command lines.
 // Make sure that you are connected to a synced database and indexers are running
 // Set correct configurations for `dev`
 //  SOURCE_ID=BTC CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/verification/verification.test.ts
@@ -24,8 +24,6 @@ import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { getGlobalLogger } from "../../lib/utils/logger";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
-import { parseRequest } from "../../lib/verification/generated/attestation-request-parse";
-import { ARType } from "../../lib/verification/generated/attestation-request-types";
 import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
 import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
 
@@ -56,9 +54,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
 
    before(async () => {
-      // indexerConfiguration = indexerConfig as IndexerConfiguration
-      // attesterClientConfiguration = configAttestationClient as AttesterClientConfiguration;
-
       indexerConfiguration = readConfig(new IndexerConfiguration(), "indexer");
       chainsConfiguration = readConfig(new ChainsConfiguration(), "chains");
       attesterClientConfiguration = readConfig(new AttesterClientConfiguration(), "attester");
@@ -104,13 +99,10 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
          "CORRECT"
       );
 
-      // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
       let res = await verifyAttestation(client, attestation, indexedQueryManager);
       assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
-      // console.log(res); 
-      // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 
    });
 
@@ -129,15 +121,11 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
          "CORRECT"
       );
 
-      // console.log(randomTransaction, request);
-      // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
       let res = await verifyAttestation(client, attestation, indexedQueryManager);
-      // console.log(res); 
 
       assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
-      // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
 
    });
 
@@ -162,16 +150,10 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       if (!request) {
          console.log("NO REQUEST - Repeat the test", request);
       }
-      // console.log(request);
-      // console.log(randomTransaction.isNativePayment)
       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
       let res = await verifyAttestation(client, attestation, indexedQueryManager);
-      // console.log(res); 
       assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
-
-      // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
-
    });
 
    it("Should verify legit ReferencedPaymentNonexistence", async () => {
@@ -189,7 +171,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
             return;
          }
 
-         // console.log("block", randomTransaction.blockNumber, N, (randomTransaction as DBTransactionBase).transactionId, )
          let request = await prepareRandomizedRequestReferencedPaymentNonexistence(
             indexedQueryManager,
             randomTransaction as DBTransactionBase,
@@ -207,14 +188,11 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
             return;
          }
 
-         // console.log(randomTransaction.isNativePayment)
          let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
          let res = await verifyAttestation(client, attestation, indexedQueryManager);
          assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
-         break;
-         // console.log(res); 
-         // console.log(res.response.spentAmount.toString(), res.response.receivedAmount.toString())
+         // break;
       }
       assert(maxReps > 0, "Too many tries")
    });
@@ -227,38 +205,5 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       let delay = now - res.timestamp;
       assert(delay < indexedQueryManager.settings.maxValidIndexerDelaySec, `Delay too big: ${delay}, N = ${N}, T = ${res.height}, h = ${res.height - N}`);
    })
-   // it("Example of tecUNFUNDED_PAYMENT transaction", async () => {
-   //    let txid = "D0AB7DB06EC0D8D0E71A162C8C81ABB6A5C67398BB115F2544D0BA80DA69A96E";
-   //    console.log(txid.length)
-   //    let endBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
-   //    let txs = await indexedQueryManager.queryTransactions({
-   //       transactionId: txid,
-   //       roundId: ROUND_ID,
-   //       endBlock
-   //    });
-   //    let tx = txs[0];
-   //    console.log(tx)
-   //    console.log(JSON.stringify(JSON.parse(tx.response), null, 3));    
-   // });
-
-
-   it.skip("Attestation Test", async () => {
-
-      const recheck = true;
-      const requestBytes = "0x000400000000211a3c847657b9aae1c15bc36a7cf27ffa64d2131e7e5c1817a4d04f3b81ef61000b2de4625f985a298e9a1a8f1b9df62bd3044009249c08336f28160d6f00ead1ff538116d15ee1b675b3b638184a0e1c45fb8d121a0f1000000000000000000000000000000000000000003322a5e5ee8e444367f10656";
-
-      let request = parseRequest(requestBytes) as ARType;
-
-      // console.log(randomTransaction.isNativePayment)
-      let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
-
-      let res = await verifyAttestation(client, attestation, indexedQueryManager, recheck);
-      assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
-   });
-
-
-
 });
 
-
-// Long payment reference: 0x67390C4BE3210DE207747058499FAFA3E9219E7B7F14E7AE07E033A01E2FC8F

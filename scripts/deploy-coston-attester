@@ -1,9 +1,8 @@
 export USER=ubuntu
-#export SERVER=34.89.169.205
+export SERVER=34.89.247.51
 
 export CHAIN="coston"
 
-export SERVER=34.89.247.51
 export CURRENT_DIR=$(pwd)
 export WORKDIR="$CHAIN/attester-client"
 export MCC_WORKDIR="$CHAIN/mcc"

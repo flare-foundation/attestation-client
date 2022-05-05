@@ -1,6 +1,6 @@
 export USER=ubuntu
-#export SERVER=34.89.169.205
 export SERVER=34.89.247.51
+
 export CURRENT_DIR=$(pwd)
 export WORKDIR="global/indexer"
 export MCC_WORKDIR="global/mcc"

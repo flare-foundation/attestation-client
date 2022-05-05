@@ -44,26 +44,29 @@ describe("Indexed query manager", () => {
    let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
    before(async () => {
-      indexerConfiguration = null;//indexerConfig as IndexerConfiguration
-      chainName = getSourceName(SOURCE_ID);
-      let chainConfiguration = indexerConfig.chains.find(chain => chain.name === chainName);
-      client = MCC.Client(SOURCE_ID, {
-         ...chainConfiguration.mccCreate,
-         rateLimitOptions: chainConfiguration.rateLimitOptions
-      }) as MccClient;
-      //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
-      NUMBER_OF_CONFIRMATIONS = chainConfiguration.numberOfConfirmations
-      const options: IndexedQueryManagerOptions = {
-         chainType: SOURCE_ID as any as ChainType,
-         numberOfConfirmations: ()=>{return NUMBER_OF_CONFIRMATIONS},
-         maxValidIndexerDelaySec: 10,
-         // todo: return epochStartTime - query window length, add query window length into DAC
-         windowStartTime: (roundId: number) => { return startTime; }
-      } as IndexedQueryManagerOptions;
-      indexedQueryManager = new IndexedQueryManager(options);
-      await indexedQueryManager.dbService.waitForDBConnection();
-      randomGenerators = await prepareRandomGenerators(indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD);
+      // INFO: chains is no longer in indexerConfig - it is in chainsConfig
+
+      // indexerConfiguration = null;//indexerConfig as IndexerConfiguration
+      // chainName = getSourceName(SOURCE_ID);
+      // let chainConfiguration = indexerConfig.chains.find(chain => chain.name === chainName);
+      // client = MCC.Client(SOURCE_ID, {
+      //    ...chainConfiguration.mccCreate,
+      //    rateLimitOptions: chainConfiguration.rateLimitOptions
+      // }) as MccClient;
+      // //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
+
+      // NUMBER_OF_CONFIRMATIONS = chainConfiguration.numberOfConfirmations
+      // const options: IndexedQueryManagerOptions = {
+      //    chainType: SOURCE_ID as any as ChainType,
+      //    numberOfConfirmations: ()=>{return NUMBER_OF_CONFIRMATIONS},
+      //    maxValidIndexerDelaySec: 10,
+      //    // todo: return epochStartTime - query window length, add query window length into DAC
+      //    windowStartTime: (roundId: number) => { return startTime; }
+      // } as IndexedQueryManagerOptions;
+      // indexedQueryManager = new IndexedQueryManager(options);
+      // await indexedQueryManager.dbService.waitForDBConnection();
+      // randomGenerators = await prepareRandomGenerators(indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD);
    });
 
    it("Prepare generator", async () => {

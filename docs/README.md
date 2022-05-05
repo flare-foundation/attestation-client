@@ -18,4 +18,8 @@
   - [Configurations](./attestation-client/attestation-configs.md)
   - [Verification](./attestation-client/verification.md)
   - [Code generation utils](./attestation-client/code-generation-utils.md)
+- [General installation](./installation/general-installation.md)
+  - [Indexer installation](./installation/indexer-installation.md)
+  - [Attester client installation](./installation/attester-client-installation.md)
+
 

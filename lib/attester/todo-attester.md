@@ -45,4 +45,6 @@
 [x] all while loops must be in try catch (sleep must be outside)
 [x] all setTimers must be in try catch or retry
 
+[ ] attester-client installation
+
 

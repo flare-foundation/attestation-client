@@ -21,5 +21,7 @@
 - [General installation](./installation/general-installation.md)
   - [Indexer installation](./installation/indexer-installation.md)
   - [Attester client installation](./installation/attester-client-installation.md)
+- [Configuration](./config/config-general.md)
+  - [Attester client](./config/config-attester-client.md)
 
 

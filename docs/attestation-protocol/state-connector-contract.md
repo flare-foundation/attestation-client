@@ -63,6 +63,9 @@ The relation between the voting round id and the `bufferNumber` is defined as fo
 
 Accordingly, calling `submitAttestation` in a given voting window with the `bufferNumber` implies we are sending commit data for `roundId` equal `bufferNumber - 1` and the reveal data for the `roundId` equal `bufferNumber - 2`.
 
+## Confirmed Merkle Roots
+
+As of current implementation, the confirmed Merkle root is accessible by looking up into the public array `merkleRoots` in the contract, which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720 - a week of proofs). Note also that the proof for a given voting round `roundId`is stored at the index `(roundId + 2) % TOTAL_STORED_PROOFS`.
 ## Songbird and Coston deployments
 
 The currently deployed `StateConnector` contracts on Songbird and Coston networks are available here:

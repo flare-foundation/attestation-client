@@ -1,15 +1,13 @@
-// Make a tunell to database:
-// ssh -N -L 3337:127.0.0.1:3306 ubuntu@34.89.247.51
+// Make a tunnel to database
 // Run the test
 // SOURCE_ID=ALGO CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/CostonVerification.test.ts --network coston
 
 import { ChainType, MCC, MccClient } from "flare-mcc";
-import { AttesterClientConfiguration, AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
+import { AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
 import { ChainConfiguration, ChainsConfiguration } from "../lib/chain/ChainConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
 import { readConfig, readCredentials } from "../lib/utils/config";
 import { DatabaseService } from "../lib/utils/databaseService";
 import { getGlobalLogger } from "../lib/utils/logger";
@@ -18,7 +16,7 @@ import { getUnixEpochTimestamp } from "../lib/utils/utils";
 import { hexlifyBN } from "../lib/verification/attestation-types/attestation-types-helpers";
 import { parseRequest } from "../lib/verification/generated/attestation-request-parse";
 import { AttestationType } from "../lib/verification/generated/attestation-types-enum";
-import { getSourceName, SourceId } from "../lib/verification/sources/sources";
+import { SourceId } from "../lib/verification/sources/sources";
 import { verifyAttestation } from "../lib/verification/verifiers/verifier_routing";
 import { AttestationClientSCInstance, StateConnectorInstance } from "../typechain-truffle";
 
@@ -53,8 +51,6 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     chainName = SourceId[SOURCE_ID];
     let configIndexer = readConfig(new ChainsConfiguration(), "chains");
     chainIndexerConfig = configIndexer.chains.find(item => item.name === chainName)
-    console.log(chainIndexerConfig)
-    // let configAttestationClient = readConfig(new AttesterClientConfiguration(), "attester");
     let attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
 
     client = MCC.Client(SOURCE_ID, {
@@ -62,36 +58,29 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       rateLimitOptions: chainIndexerConfig.rateLimitOptions
     });
 
-    // console.log(attesterCredentials.indexerDatabase)
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,
       numberOfConfirmations: () => { return chainIndexerConfig.numberOfConfirmations; },
       maxValidIndexerDelaySec: 10,
       dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
       windowStartTime: (roundId: number) => {
-        // todo: read this from DAC
         const queryWindowInSec = 86400;
         return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - queryWindowInSec;
       }
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
     await indexedQueryManager.dbService.waitForDBConnection()
-
   });
 
   it("Should verify that merkle roots match.", async () => {
-    // let roundId = (n: number) => (currentBufferNumber - n) % TOTAL_STORED_PROOFS;
 
     let totalBuffers = (await stateConnector.totalBuffers()).toNumber();
     let N0 = 2;
     let CHECK_COUNT = 1000;
     let cnt = 2;
-    // 137229 //
     for (let N = N0; N < CHECK_COUNT; N++) {
       let roundId = totalBuffers - N; //currentBufferNumber - N;
       const resp = await axios.get(`https://attestation.flare.network/attester-api/proof/votes-for-round/${roundId}`);
-      // console.log(`roundId: ${roundId}`)
-      // console.log(response.data.data)
       let data = resp.data.data;
       if (data.length === 0) {
         console.log(`No attestations in roundId ${roundId}`);
@@ -105,50 +94,14 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
       console.log(`${cnt}\t${roundId}\t${data.length}\t${stateConnectorMerkleRoot === tree.root ? "OK" : "MISMATCH"}`)
       cnt++;
-      // console.log(`Number of attestations ${data.length}`)
-      // console.log(tree.root);
-      // console.log(await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS))
-      // console.log(`Total buffers ${totalBuffers}`)
-      // assert(stateConnectorMerkleRoot === tree.root, "Merkle roots do not match. Check if attestation provider works well.");
     }
-    // let chosenRequest = data[7];
-    // console.log(chosenRequest);
-    // let chosenHash = chosenRequest.hash;
-    // let index = tree.sortedHashes.findIndex(hash => hash === chosenHash);
-    // let response = chosenRequest.response;
-    // response.stateConnectorRound = roundId + 2;
-    // response.merkleProof = tree.getProof(index);
-    // let responseHex = hexlifyBN(response);
-    // console.log(responseHex)
-    // switch (chosenRequest.request.attestationType) {
-    //   case AttestationType.Payment:
-    //     assert(await attestationClient.verifyPayment(chosenRequest.request.sourceId, responseHex));
-    //     break;
-    //   case AttestationType.BalanceDecreasingTransaction:
-    //     assert(await attestationClient.verifyBalanceDecreasingTransaction(chosenRequest.request.sourceId, responseHex));
-    //     break;
-    //   case AttestationType.ConfirmedBlockHeightExists:
-    //     assert(await attestationClient.verifyConfirmedBlockHeightExists(chosenRequest.request.sourceId, responseHex));
-    //     break;
-    //   case AttestationType.ReferencedPaymentNonexistence:
-    //     assert(await attestationClient.verifyReferencedPaymentNonexistence(chosenRequest.request.sourceId, responseHex));
-    //     break;
-    //   default:
-    //     throw new Error("Wrong attestation type");
-    // }
-
-
-
-    //  .response.merkleProof = tree.getProof(index);
-
-
-    // in case of failure, check this: https://coston-explorer.flare.network/address/0x3a6E101103eC3D9267d08f484a6b70e1440A8255/transactions
   });
 
-  it.only("Specific request check", async () => {
-    let request = '0x00010000000400044d5b4718d6bb8daa193c0f3ad27264dd352aee6273aa93d6b2622395313b00066a4953913843c5d2f56568f8fa5633a5eedf99224ea2c4b07af17d58ef600000';
-    let roundId = 161628;
-    let recheck = true;
+  // Used for debugging specific requests
+  it("Specific request check", async () => {
+    let request = '0x0001000000023d71f97a9ae5679cdd0e6ad4a4693879d01afd641a726d5bafb8af6f6e7447a9684fc55c500f972e6edf5d62fe2a92d7073367899418951e79cc3897b6c6993d0000';
+    let roundId = 165714;
+    let recheck = false;
 
     let parsed = parseRequest(request);
     // console.log(parsed)
@@ -169,13 +122,12 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
     let parsed = {
       "attestationType": 1,
-      "sourceId": 4,
-      "upperBoundProof": "0xa8782d710cdffd2e0e440b644d8fad7b5f605a36856e7965427a520c15c46837",
-      "id": "0xbf3f87c72d73bc7aa6ed9aa58b07d747a2a079c3916cb98d755f6c1c64fb268f",
+      "sourceId": 2,
+      "upperBoundProof": "0x68c840f6ad2f0531e1ff109a1fc908278e4c7055dd3833b2d07d8aad44551030",
+      "id": "0x851f2660dff77e9e54d220ca6d06071ef951612bfbcacc8a35fe20380bacc384",
       "inUtxo": "0x0",
       "utxo": "0x0"
     }
-
 
     let att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations)
     let result = await verifyAttestation(client, att, indexedQueryManager, recheck);
@@ -186,8 +138,6 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
     console.log(`Last confirmed block: ${lastConfirmedBlock}`);
   })
-
-
 
 
   it.skip("Test specific round Merkle proofs", async () => {
@@ -209,8 +159,6 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       response.stateConnectorRound = roundId + 2;
       response.merkleProof = tree.getProof(index);
       let responseHex = hexlifyBN(response);
-      // console.log(response)
-      // console.log(responseHex)
       let result: boolean;
       switch (chosenRequest.request.attestationType) {
         case AttestationType.Payment:

@@ -1,6 +1,6 @@
 [TOC](../README.md)
 ## Configurations
 
-Attestation 
+Attestation
 
 Next: [Data sources](../indexing/indexer.md)

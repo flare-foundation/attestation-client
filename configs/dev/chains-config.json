@@ -6,11 +6,7 @@
             "name": "XRP",
             // MCC create options
             "mccCreate" : {
-                //  
-                "url": "https://xrplcluster.com",
-                //"url2": "http://34.91.7.3:51234"
-
-
+                "url": "",
             },
 
             // rate limiting options
@@ -38,9 +34,9 @@
         {
             "name": "BTC",
             "mccCreate" : {
-                "url": "https://bitcoin-cc.flare.rocks",
-                "username": "admin",
-                "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"               
+                "url": "",
+                "username": "",
+                "password": ""
             },
             "rateLimitOptions": {
                 "maxRPS": 20,
@@ -67,9 +63,9 @@
         {
             "name": "LTC",
             "mccCreate" : {
-                "url": "https://litecoin-cc.flare.rocks/",
-                "username": "admin",
-                "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"               
+                "url": "",
+                "username": "",
+                "password": ""
             },
             "rateLimitOptions": {
                 "maxRPS": 300,
@@ -96,12 +92,12 @@
             "name": "ALGO",
             "mccCreate": {
                 "algod": {
-                  "url": "http://35.205.203.208:8080/",
-                  "token": "61c3160e49501ee4195cb3e8a8af0e903d4551538589a3fbc23c10f24d665476"
+                  "url": "",
+                  "token": ""
                 },
                 "indexer": {
-                  "url": "http://35.205.203.208:8980/",
-                  "token": "61c3160e49501ee4195cb3e8a8af0e903d4551538589a3fbc23c10f24d665476"
+                  "url": "",
+                  "token": ""
                 }
             },
             "rateLimitOptions": {
@@ -128,9 +124,9 @@
         {
             "name": "DOGE",
             "mccCreate" : {
-                "url": "https://dogecoin-cc.flare.rocks",
-                "username": "admin",
-                "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"               
+                "url": "",
+                "username": "",
+                "password": "" 
             },
             "rateLimitOptions": {
                 "maxRPS": 30,

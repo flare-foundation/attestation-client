@@ -1,12 +1,14 @@
-# Attestation client - installation and technical reference
+# Attestation client installation and technical reference
 
-## Installation and running the attestation client 
+## Installing and running the attestation client
+
 - [General installation](./installation/general-installation.md)
   - [Indexer installation](./installation/indexer-installation.md)
   - [Attestation client installation](./installation/attester-client-installation.md)
 - [Configuration](./config/config-general.md)
   - [Attestation client](./config/config-attester-client.md)
 - Monitoring tools
+
 ## Technical reference
 
 - [Attestation protocol](./attestation-protocol/attestation-protocol.md)
@@ -23,4 +25,3 @@
   - [00002 - Balance Decreasing Transaction](attestation-types/00002-balance-decreasing-transaction.md)
   - [00003 - Confirmed Block Height](attestation-types/00003-confirmed-block-height-exists.md)
   - [00004 - Referenced Payment Nonexistence](attestation-types/00004-referenced-payment-nonexistence.md)
-

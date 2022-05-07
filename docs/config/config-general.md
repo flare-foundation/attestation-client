@@ -1,6 +1,6 @@
 # Configuration
 
-All Attestation package modules configuration is done via `json` configuration files.
+All *Attestation Suite* modules configuration is done via `json` configuration files.
 
 Configuration files are separated in two ways:
 - configuration
@@ -22,17 +22,25 @@ Deployment credential files are located in `<installation folder>/../.config/`.
 
 > **IMPORTANT** deployment credential files MUST exist before deployment.
 
-## Specialty
+## **json** Special
 
-For ease of use we added in json configuration ability to use EOL comments and multi line comments and the ability to ignore ending commas.
+For ease of use we added in **json** configuration ability to use EOL and multi line comments and the ability to ignore ending commas.
 
 Example:
 ```json
 {
-    // this is not used
+    // values with default values are optional and are by default commented (this is an EOL comment)
     //"default setting" : 15,
 
-    "End comma" : "here",
+    "test" : 15, 
+
+    /* this is 
+    a multiline 
+    comment 
+    */
+
+    "End comma is ignored" : "here",
+    //"This was before last element without comma" : "but is commented now"
 }
 ```
 
@@ -41,5 +49,5 @@ Example:
 - [Chain configuration](./config-chains.md)
 - [Attester client configuration](./config-attester-client.md)
 - [Indexer configuration](./config-indexer.md)
-- [Backend configuration](./)
-- [Alerts configuration](./)
+- [Backend configuration](config-alerts.md/)
+- [Alerts configuration](./config-backend.md)

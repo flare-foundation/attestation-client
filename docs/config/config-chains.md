@@ -9,12 +9,12 @@ Chains configuration file contains all external chain configuration.
 
 |Name |Description |Default|
 |---|---|---|
-|name|chain name: XRP, BTC, LTC, ALGO, DOGE||
-|mccCreate|[MCC Create Configuration](./)||
-|rateLimitOptions|[Rate Limiting Options](./)||
-|numberOfConfirmations||1|
-|syncReadAhead||20|
-|blockCollecting||"raw"|
+|name|chain name (XRP, BTC, LTC, ALGO, DOGE)||
+|mccCreate|[MCC Create Configuration](./json/json-MCCCreateConfiguration.md)||
+|rateLimitOptions|[Rate Limiting Options](./json/json-RateLimitingOptions.md)||
+|numberOfConfirmations|number of required block confirmations before block is considered final|1|
+|syncReadAhead|how many blocks are synced in parallel|20|
+|blockCollecting|block collection mode (raw, raw, tiled).|"raw"|
 |minimalStorageHistoryDays||2|
 |minimalStorageHistoryBlocks||100|
 |maxRequestsPerSecond||80|

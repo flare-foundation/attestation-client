@@ -1,6 +1,6 @@
 [TOC](../README.md)/[Configuration general](./config-general.md)
 
-# Indexer Configuration
+# Backend Configuration
 
 Indexer configuration is divided in two files:
 - `indexer-config.json`

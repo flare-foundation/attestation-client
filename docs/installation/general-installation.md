@@ -22,7 +22,7 @@ All modules are run as services. Check [services](services.md) section for more 
 
 ## General prerequisits
 
-- NODE
+- NODE add version ....
 - YARN
 - MYSQL server
 - ctail

@@ -26,7 +26,7 @@ Additionally the Attester Client requires `chain-config.json` for chain configur
 `attester-credentials.json`
 |Name |Description |Default|
 |---|---|---|
-|web|[Network Configuration](./json/json-NetworkConfiguration.md)||
+|web|[Network Configuration](./json/json-NetworkConfiguration.md) Attester Client network credentials||
 |attesterDatabase|[Database Configuration](./json/json-DatabaseConfiguration.md) Attester Client requires **read-write** access to attester database||
 |indexerDatabase|[Database Configuration](./json/json-DatabaseConfiguration.md) Attester Client requires **read-only** access to indexer database||
 

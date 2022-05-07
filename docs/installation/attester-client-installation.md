@@ -1,14 +1,14 @@
 [TOC](./../README.md)/[General installation](../installation/general-installation.md)
 # Attester client Installation
 
-## Prerequisits
-Attester client module requires next prerequisits:
+## Prerequisites
+Attester client module requires next prerequisites:
 - NODE
 - YARN
 - MYSQL
 - ctail
 
-Installation instructions for all prerequisits are in [general installation](general-installation.md) section.
+Installation instructions for all prerequisites are in [general installation](general-installation.md) section.
 
 ## Installation
 

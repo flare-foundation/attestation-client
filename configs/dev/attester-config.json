@@ -1,0 +1,13 @@
+{
+    //"gasPrice": "3000000000000",
+
+    //"transactionPollingTimeout" : 30,
+
+    "firstEpochStartTime":1636070400,
+    "roundDurationSec": 90,
+
+    "dynamicAttestationConfigurationFolder": "./configs/dac/",
+    
+    "commitTime":11,
+    "revealTime":80,
+}

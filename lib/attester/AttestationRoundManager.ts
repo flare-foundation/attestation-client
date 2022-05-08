@@ -1,0 +1,214 @@
+import { toBN } from "flare-mcc";
+import { ChainManager } from "../chain/ChainManager";
+import { DatabaseService } from "../utils/databaseService";
+import { EpochSettings } from "../utils/EpochSettings";
+import { getTimeMilli } from "../utils/internetTime";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
+import { safeCatch } from "../utils/PromiseTimeout";
+import { round, sleepms } from "../utils/utils";
+import { toSourceId } from "../verification/sources/sources";
+import { Attestation } from "./Attestation";
+import { AttestationData } from "./AttestationData";
+import { AttestationRound } from "./AttestationRound";
+import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
+import { AttesterState } from "./AttesterState";
+import { AttesterWeb3 } from "./AttesterWeb3";
+import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestationConfig";
+
+const cliProgress = require('cli-progress');
+
+export class AttestationRoundManager {
+  logger: AttLogger;
+  static epochSettings: EpochSettings;
+  static chainManager: ChainManager;
+  static attestationConfigManager: AttestationConfigManager;
+  static dbServiceIndexer: DatabaseService;
+  static dbServiceAttester: DatabaseService;
+
+  static state = new AttesterState();
+
+  static startEpochId: number;
+  static activeEpochId: number;
+
+  rounds = new Map<number, AttestationRound>();
+  config: AttesterClientConfiguration;
+  static credentials: AttesterCredentials;
+  attesterWeb3: AttesterWeb3;
+
+  constructor(chainManager: ChainManager, config: AttesterClientConfiguration, credentials: AttesterCredentials, logger: AttLogger, attesterWeb3: AttesterWeb3) {
+    this.config = config;
+    AttestationRoundManager.credentials = credentials;
+    this.logger = logger;
+    this.attesterWeb3 = attesterWeb3;
+
+    AttestationRoundManager.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
+    AttestationRoundManager.chainManager = chainManager;
+    AttestationRoundManager.attestationConfigManager = new AttestationConfigManager(config, logger);
+
+    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+  }
+
+  async initialize() {
+    await AttestationRoundManager.attestationConfigManager.initialize();
+
+    AttestationRoundManager.dbServiceIndexer = new DatabaseService(this.logger, AttestationRoundManager.credentials.indexerDatabase, "indexer");
+    await AttestationRoundManager.dbServiceIndexer.waitForDBConnection();
+
+    AttestationRoundManager.dbServiceAttester = new DatabaseService(this.logger, AttestationRoundManager.credentials.attesterDatabase, "attester");
+    await AttestationRoundManager.dbServiceAttester.waitForDBConnection();
+
+    // update active round again since waitin for DB connection can take time
+    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+    AttestationRoundManager.startEpochId = AttestationRoundManager.activeEpochId;
+
+    this.startRoundUpdate();
+  }
+
+  async startRoundUpdate() {
+    while (true) {
+      try {
+        const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+        AttestationRoundManager.activeEpochId = epochId;
+
+        const activeRound = this.getRound(epochId);
+
+        AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
+      }
+      catch (error) {
+        logException(error, `startRoundUpdate`);
+      }
+
+      await sleepms(5000);
+    }
+  }
+
+  static getSourceHandlerConfig(name: string): SourceHandlerConfig {
+    return AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), AttestationRoundManager.activeEpochId);
+  }
+
+  getRound(epochId: number) {
+    // all times are in milliseconds
+    const now = getTimeMilli();
+    const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(epochId);
+    const epochCommitTime: number = epochTimeStart + this.config.roundDurationSec * 1000;
+    const epochRevealTime: number = epochCommitTime + this.config.roundDurationSec * 1000;
+    const epochCompleteTime: number = epochRevealTime + this.config.roundDurationSec * 1000;
+
+    let activeRound = this.rounds.get(epochId);
+
+    // check if attester epoch already exists - if not - create a new one and assign callbacks
+    if (activeRound === undefined) {
+      activeRound = new AttestationRound(epochId, this.logger, this.attesterWeb3);
+
+      //let bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+      //bar1.start(this.config.roundDurationSec * 1000, now - epochTimeStart);
+      let intervalId = setInterval(() => {
+        const now = getTimeMilli();
+        if (now > epochCommitTime) {
+          clearInterval(intervalId);
+          //bar1.stop()
+        }
+        //bar1.update(now - epochTimeStart);
+        const eta = 90 - (now - epochTimeStart) / 1000;
+        if (eta >= 0) {
+          getGlobalLogger().debug(`!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.attestationsProcessed}/${activeRound.attestations.length}  `);
+        }
+      }, 5000)
+
+
+      // setup commit, reveal and completed callbacks
+      this.logger.info(`^w^Rcollect epoch started^^ round ^Y#${epochId}^^`);
+
+      // trigger start commit epoch
+      setTimeout(() => {
+        safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitEpoch());
+      }, epochCommitTime - now);
+
+      // trigger start commit epoch submit
+      setTimeout(() => {
+        safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitSubmit());
+      }, epochCommitTime - now +  1000 );
+
+      // trigger start reveal epoch
+      setTimeout(() => {
+        safeCatch(`setTimeout:startRevealEpoch`, () => activeRound!.startRevealEpoch());
+      }, epochRevealTime - now);
+
+      // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
+      setTimeout(() => {
+        safeCatch(`setTimeout:commitLimit`, () => activeRound!.commitLimit());
+      }, epochRevealTime - this.config.commitTime * 1000 - 1000 - now);
+
+      // trigger reveal
+      setTimeout(() => {
+        safeCatch(`setTimeout:reveal`, () => activeRound!.reveal());
+      }, epochCompleteTime - this.config.commitTime * 1000 - now);
+
+      // trigger end of reveal epoch, cycle is completed at this point
+      setTimeout(() => {
+        safeCatch(`setTimeout:completed`, () => activeRound!.completed());
+      }, epochCompleteTime - now);
+
+      this.rounds.set(epochId, activeRound);
+
+      this.cleanup();
+
+      activeRound.commitEndTime = epochRevealTime - this.config.commitTime * 1000;
+
+      // link rounds
+      const prevRound = this.rounds.get(epochId - 1);
+      if (prevRound) {
+        activeRound.prevRound = prevRound;
+        prevRound.nextRound = activeRound;
+      } else {
+        // trigger first commit
+        setTimeout(() => {
+          safeCatch(`setTimeout:firstCommit`, () => activeRound!.firstCommit());
+        }, epochRevealTime - this.config.commitTime * 1000 - now);
+      }
+    }
+
+    return activeRound;
+  }
+
+  async attestate(tx: AttestationData) {
+    const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(tx.timeStamp.mul(toBN(1000))).toNumber();
+
+    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+
+    if (epochId < AttestationRoundManager.startEpochId) {
+      this.logger.debug(`epoch too low ^Y#${epochId}^^`);
+      return;
+    }
+
+    let activeRound = this.getRound(epochId);
+
+    // create, check and add attestation
+    const attestation = await this.createAttestation(activeRound, tx);
+
+    if (attestation === undefined) {
+      return;
+    }
+
+    activeRound.addAttestation(attestation);
+
+    AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
+  }
+
+  cleanup() {
+    const epochId = AttestationRoundManager.epochSettings.getCurrentEpochId().toNumber();
+
+    // clear old epochs
+    if (this.rounds.has(epochId - 10)) {
+      this.rounds.delete(epochId - 10);
+    }
+  }
+
+  async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
+    // create attestation depending on attestation type
+    return new Attestation(round, data, (attestation: Attestation) => {
+      // chain node validation
+      AttestationRoundManager.chainManager.validateTransaction(data.sourceId, attestation);
+    });
+  }
+}

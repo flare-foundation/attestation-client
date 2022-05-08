@@ -1,0 +1,1 @@
+sed -i 's/\"flare-mcc\"\: \"link\:\.\.\/mcc\",/\"flare-mcc\": \"..\/mcc\",/g' package.json

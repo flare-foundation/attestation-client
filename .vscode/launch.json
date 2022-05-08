@@ -1,0 +1,320 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Attester",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "dev"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Config Verify",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devconfig"
+            ]
+        },
+
+        
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Indexer",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devindexer"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Alerts",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devalerts",
+                "logs/attester-globals.log",
+                "-f",
+                "-n","100"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch ctail",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devctail"
+            ]
+        },
+
+        
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test BTC",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/StateConnectorBTC.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test XRP",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/StateConnectorXRP.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test LTC",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/StateConnectorLTC.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test ALGO",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/StateConnectorALGO.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Attester spammer XRP",
+            "env": {
+                "DOTENV": "DEV",
+                "NODE_ENV": "development"
+            },
+            "envFile": "${workspaceFolder}/.deploy.env",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "ts-node",
+                "lib/spammer/attestation-spammer.ts",
+                "-c","XRP",
+                "-l","XRP"             
+            ]
+        },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Attester collector XRP",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "ts-node",
+                "lib/spammer/attestation-collector.ts",
+                "-c","XRP",
+                "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
+                "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
+                "-t","0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
+                "-u","https://xrplcluster.com",
+                "-b","1",
+                "-o","1", // numberOfAccounts
+                "-f","1",
+                "-w","1000",
+                "-d","2000",
+                "-l","XRP"             
+            ]
+        },
+        
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Attester collector BTC",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "ts-node",
+                "lib/spammer/attestation-collector.ts",
+                "-c","BTC",
+                "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
+                "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
+                "-t","0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
+                "-u","http://34.159.118.250:9332/",
+                "-s","flareadmin",
+                "-p","mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
+                "-b","1",
+                "-o","1", // numberOfAccounts
+                "-f","1",
+                "-w","1000",
+                "-d","2000",
+                "-l","BTC"             
+            ]
+        },
+        
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test 2",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "testdebug"
+            ]
+        },
+
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Quick",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/QuickTest.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Colector",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "test",
+                "lib/indexer/chain-collector-helpers/test/chainCollector.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Attestation parser",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/generated/AttestationRequestParser.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Verification BTC",
+            "runtimeExecutable": "yarn",
+            "env": {
+                "SOURCE_ID": "BTC",
+                "CONFIG_PATH": "dev"
+            },
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/verification/verification.test.ts"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch backend",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devbackend"
+            ]
+        },
+
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Coston Verification",
+            "runtimeExecutable": "yarn",
+            "env": {
+                "SOURCE_ID": "DOGE",
+                "CONFIG_PATH": "dev",
+                "NODE_ENV":"development"
+            },
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/CostonVerification.test.ts",
+                "--network",
+                "coston"
+            ]
+        },
+
+
+    ]
+}

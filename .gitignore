@@ -1,0 +1,74 @@
+### VisualStudioCode template
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# sqlite db
+!./indexer
+!./indexer-journal
+
+# Typescript 
+dist
+
+# Testing
+test_logs
+accounts.json
+
+## Build generated
+build/
+bin/
+tmp_data/
+
+## Node packages etc
+node_modules/
+
+## code coverage files
+coverage.json
+.nyc_output/
+coverage/
+
+## hardhat?
+cache/
+
+## yarn
+yarn-error.log
+
+## Logs
+logs
+*.log
+
+## Misc
+nul
+.stateconnector-address
+.attestation-client-address
+.env.att-client-deploy
+.DS_Store
+
+## Solidity
+artifacts
+
+## Typechain
+typechain-truffle
+# typechain-web3-v1
+# typechain-web3-v1-external
+
+
+# local node
+.node/
+
+# local configs
+# .indexer.remote.dev.read.env
+# .indexer.remote.dev.write.env
+
+flattened/
+configs/songbird/attester-credentials.json
+configs/dev/indexer-credentials.json
+configs/dev/indexer-credentials.json
+
+# alerts
+status.json
+
+# spammer
+db

@@ -34,11 +34,10 @@ Each prerequisit should be installed only once.
 For NODE installation use next script:
 
 ```
+sudo apt-get update
 sudo apt install nodejs
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add –
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-sudo apt-get update
-sudo apt-get install yarn
 ```
 ### YARN
 
@@ -47,7 +46,6 @@ YARN can be installed after only after NODE.
 For YARN installation use next script:
 
 ```
-sudo apt-get update
 sudo apt-get install yarn
 ```
 

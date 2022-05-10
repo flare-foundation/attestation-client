@@ -1,9 +1,10 @@
 # Rate Limiting Options
 
-|Name |Description |Default|
-|---|---|---|
-|maxRPS|maximum requests per second|20|
-|timeoutMs|request timeout|30000|
-|retries|number of request retries before failing|10|
+| Name        | Description                              | Default |
+| ----------- | ---------------------------------------- | ------- |
+| `maxRPS`    | Maximum requests per second              | 20      |
+| `timeoutMs` | Request timeout                          | 30000   |
+| `retries`   | Number of request retries before failing | 10      |
 
-> Values with default value are optional.
+> **NOTE:**
+> Entries with default values are optional.

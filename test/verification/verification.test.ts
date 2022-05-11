@@ -4,6 +4,7 @@
 //  SOURCE_ID=BTC CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/verification/verification.test.ts
 //  SOURCE_ID=ALGO CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/verification/verification.test.ts
 
+import assert from "assert";
 import { ChainType, MCC, MccClient } from "flare-mcc";
 import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
 import { ChainConfiguration, ChainsConfiguration } from "../../lib/chain/ChainConfiguration";

@@ -14,6 +14,28 @@ Attestation Client package is divided into several standalone modules that can b
 - [Alerts](./alerts-installation.md)
 - [Back end](./backend-installation.md)
 
+## Repositories
+
+Attester Suite requires two GITHUB repositories:
+- [Attester Suite](https://github.com/flare-foundation/attestation-client)
+- [Multi Chain Client](https://github.com/flare-foundation/multi-chain-client)
+
+Both repositories must be cloned into the same folder.
+
+```bash
+git clone https://github.com/flare-foundation/attestation-client.git
+git clone https://github.com/flare-foundation/multi-chain-client.git
+
+
+cd attester-client
+yarn
+yarn buildmcc
+yarn link flare-mcc
+yarn c
+yarn build
+```
+
+
 
 ## Services
 
@@ -33,11 +55,16 @@ Each prerequisit should be installed only once.
 
 For NODE installation use next script:
 
-```
+```bash
 sudo apt-get update
 sudo apt install nodejs
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add –
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key --keyring /etc/apt/trusted.gpg.d/docker-apt-key.gpg add
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+# to get latest version
+sudo npm cache clean -f
+sudo npm install -g n
+sudo n stable
 ```
 ### YARN
 
@@ -45,25 +72,29 @@ YARN can be installed after only after NODE.
 
 For YARN installation use next script:
 
+```bash
+sudo apt install npm
+sudo npm install --global yarn
+yarn --version
 ```
-sudo apt-get install yarn
-```
+
+It might require new login for yarn to work.
 
 ### MYSQL server
 
 #### Installation
-````
+````bash
 sudo apt install mysql-server
 sudo mysql_secure_installation
 ````
 
 If you need remote access to the MYSQL you need to change MYSQL configuration file `/etc/mysql/mysql.conf.d/mysqld.cnf` line with value `bind-address` from `127.0.0.1` to `0.0.0.0`.
-```
+```bash
 sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 
 After change you must restart MYSQL server.
-```
+```bash
 sudo systemctl restart mysql
 ```
 
@@ -71,7 +102,7 @@ sudo systemctl restart mysql
 
 For security reasons two users are created. User with the write access is linked only to the local machine.
 
-````
+````sql
 CREATE DATABASE indexer;
 
 CREATE USER 'indexWriter'@'localhost' IDENTIFIED BY '.IndexerWriterPassw0rd';
@@ -87,7 +118,7 @@ FLUSH PRIVILEGES;
 
 For security reasons two users are created. User with the write access is linked only to the local machine.
 
-````
+````sql
 CREATE DATABASE attester;
 
 CREATE USER 'attesterWriter'@'localhost' IDENTIFIED BY '.AttesterWriterPassw0rd';

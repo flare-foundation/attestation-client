@@ -1,19 +1,19 @@
 export USER=ubuntu
-export SERVER=34.89.247.51
+export SERVER=34.122.152.143
 
 export CURRENT_DIR=$(pwd)
 export WORKDIR="global/indexer"
-export MCC_WORKDIR="global/mcc"
+export MCC_WORKDIR="global/multi-chain-client"
 export DEPLOY_NAME="indexer"
 
-export MCC_LOCAL_FOLDER="../mcc"
+export MCC_LOCAL_FOLDER="../multi-chain-client"
 export FNAME=latest-attester-client.tgz
 export MCC_FNAME=mcc.tgz
 export BACKUPDIR="global/.backup"
 export CONFIGDIR="global/.config"
 
 export BRANCH=main
-export MCC_BRANCH=master
+export MCC_BRANCH=main
 
 export SERVICE1=indexer-xrp
 export SERVICE2=indexer-btc

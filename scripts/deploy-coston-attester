@@ -5,17 +5,17 @@ export CHAIN="coston"
 
 export CURRENT_DIR=$(pwd)
 export WORKDIR="$CHAIN/attester-client"
-export MCC_WORKDIR="$CHAIN/mcc"
+export MCC_WORKDIR="$CHAIN/multi-chain-client"
 export DEPLOY_NAME="attester-client"
 
-export MCC_LOCAL_FOLDER="../mcc"
+export MCC_LOCAL_FOLDER="../multi-chain-client"
 export FNAME=latest-attester-client.tgz
 export MCC_FNAME=mcc.tgz
 export BACKUPDIR="$CHAIN/.backup"
 export CONFIGDIR="$CHAIN/.config"
 
 export BRANCH=main
-export MCC_BRANCH=master
+export MCC_BRANCH=main
 
 export SERVICE1=coston-attester-client
 

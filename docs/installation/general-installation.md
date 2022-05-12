@@ -1,14 +1,16 @@
-[TOC](./../README.md)
 # General Installation
 
 ## Supported systems
 
-Attestation Client package has been tested on next platforms:
+The Attestation Client package has been tested on the following platforms:
+
 - UBUNTU 20.04
 - WSL 0.2.1
 
 ## Modules
-Attestation Client package is divided into several standalone modules that can be installed on single or multiple machines:
+
+The Attestation Client package is divided into several standalone modules that can be installed on a single or multiple machines:
+
 - [Indexer](./indexer-installation.md)
 - [Attester Client](./attester-client-installation.md)
 - [Alerts](./alerts-installation.md)
@@ -41,19 +43,18 @@ yarn build
 
 All modules are run as services. Check [services](services.md) section for more details.
 
-
-## General prerequisits
+## General prerequisites
 
 - NODE add version ....
 - YARN
 - MYSQL server
 - ctail
 
-Each prerequisit should be installed only once.
+Each prerequisite should be installed only once.
 
 ### NODE
 
-For NODE installation use next script:
+For NODE installation use the following script:
 
 ```bash
 sudo apt-get update
@@ -66,11 +67,12 @@ sudo npm cache clean -f
 sudo npm install -g n
 sudo n stable
 ```
+
 ### YARN
 
-YARN can be installed after only after NODE.
+YARN can be installed only after NODE.
 
-For YARN installation use next script:
+For YARN installation use the following script:
 
 ```bash
 sudo apt install npm
@@ -112,7 +114,7 @@ CREATE USER 'indexReader'@'%' IDENTIFIED BY '.IndexerReaderPassw0rd';
 GRANT SELECT ON indexer.* TO 'indexReader'@'%';
 
 FLUSH PRIVILEGES;
-````
+```
 
 #### Setup Attester Client
 
@@ -128,13 +130,16 @@ CREATE USER 'attesterReader'@'%' IDENTIFIED BY '.AttesterReaderPassw0rd';
 GRANT SELECT ON attester.* TO 'attesterReader'@'%';
 
 FLUSH PRIVILEGES;
-````
+```
 
 ### ctail
 
 Flare modules use specialized color tagged logs. To display them with colors use ctail.
 
 To install ctail use:
-```
+
+``` bash
 npm i -g ctail
 ```
+
+[Back to Home](./../README.md)

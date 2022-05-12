@@ -3,17 +3,17 @@ export USER=ubuntu
 export SERVER=34.89.247.51
 export CURRENT_DIR=$(pwd)
 export WORKDIR="global/alerts"
-export MCC_WORKDIR="global/mcc"
+export MCC_WORKDIR="global/multi-chain-client"
 export DEPLOY_NAME="alerts"
 
-export MCC_LOCAL_FOLDER="../mcc"
+export MCC_LOCAL_FOLDER="../multi-chain-client"
 export FNAME=latest-alerts.tgz
 export MCC_FNAME=mcc.tgz
 export BACKUPDIR="global/.backup"
 export CONFIGDIR="global/.config"
 
 export BRANCH=main
-export MCC_BRANCH=master
+export MCC_BRANCH=main
 
 export SERVICE1=attester-alerts
 

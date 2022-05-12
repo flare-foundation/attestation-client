@@ -1,13 +1,13 @@
 # Database Configuration
 
-|Name |Description |Default|
-|---|---|---|
-|type|server database type. <br>supported database types "mysql", "postgres", "sqlite"|"mysql"|
-|host|server address|"localhost"|
-|port|server port number.<br>default is for `mysql`|3306|
-|database|database name||
-|username|database username||
-|password|database password||
+| Name       | Description                                                                      | Default     |
+| ---------- | -------------------------------------------------------------------------------- | ----------- |
+| `type`     | Server database type. <br>Supported database types "mysql", "postgres", "sqlite" | "mysql"     |
+| `host`     | Server address                                                                   | "localhost" |
+| `port`     | Server port number.<br>default is for `mysql`                                    | 3306        |
+| `database` | Database name                                                                    |             |
+| `username` | Database username                                                                |             |
+| `password` | Database password                                                                |             |
 
-
-> Values with default value are optional.
+> **NOTE:**
+> Entries with default values are optional.

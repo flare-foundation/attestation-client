@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/songbird/attester-client/dist/lib/runAttesterClient.js
+ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attestation-suite/songbird/attester-client/dist/lib/runAttesterClient.js
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian
@@ -7,7 +7,7 @@ Restart=always
 # Group=nogroup
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-WorkingDirectory=/home/ubuntu/songbird/attester-client
+WorkingDirectory=/home/ubuntu/attestation-suite/songbird/attester-client
 
 [Install]
 WantedBy=multi-user.target

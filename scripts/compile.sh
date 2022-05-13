@@ -1,6 +1,11 @@
 export CURRENT_DIR=$(pwd)
 
 yarn
+
+# first yarn calls sometimes fails
+yarn
+
+# hardhat
 yarn c
 bash ./script/replace-mcc-link.sh
 

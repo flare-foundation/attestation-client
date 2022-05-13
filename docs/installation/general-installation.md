@@ -24,7 +24,7 @@ Attester Suite requires two GITHUB repositories:
 
 Both repositories must be cloned into the same folder.
 
-```bash
+``` bash
 git clone https://github.com/flare-foundation/attestation-client.git
 git clone https://github.com/flare-foundation/multi-chain-client.git
 
@@ -38,14 +38,14 @@ yarn build
 ```
 
 ## Local installation
-```
+``` bash
 ./scripts/install.sh
 ```
 
 ## Remote installation from local repository
 
 ### Deploy repo on remote machine
-```
+``` bash
 mkdir -p tmp_data
 git archive main | gzip > tmp_data/deploy.tgz
 sudo scp -i ~/.ssh/id_ed25519 tmp_data/deploy.tgz ubuntu@<server>:~
@@ -57,7 +57,7 @@ sudo scp -i ~/.ssh/id_ed25519 tmp_data/deploy-mcc.tgz ubuntu@<server>:~
 ```
 
 To prepare on remote machine
-```
+``` bash
 mkdir -p attester-suite/base
 mkdir -p attester-suite/multi-chain-client
 
@@ -71,7 +71,6 @@ cd ../multi-chain-client
 tar xzf deploy-mcc.tgz
 
 cd ../base
-
 ```
 
 
@@ -90,9 +89,17 @@ Each prerequisite should be installed only once.
 
 ### NODE
 
-For NODE installation use the following script:
+For NODE installation we use NVM to get specific version and allow multiple node version:
 
-```bash
+``` bash
+sudo apt-get update
+sudo apt install curl 
+curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+source ~/.profile 
+nvm install 14.15.4
+```
+
+``` bash
 sudo apt-get update
 sudo apt install nodejs
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key --keyring /etc/apt/trusted.gpg.d/docker-apt-key.gpg add
@@ -110,7 +117,7 @@ YARN can be installed only after NODE.
 
 For YARN installation use the following script:
 
-```bash
+``` bash
 sudo apt install npm
 sudo npm install --global yarn
 yarn --version
@@ -121,18 +128,18 @@ It might require new login for yarn to work.
 ### MYSQL server
 
 #### Installation
-````bash
+```` bash
 sudo apt install mysql-server
 sudo mysql_secure_installation
 ````
 
 If you need remote access to the MYSQL you need to change MYSQL configuration file `/etc/mysql/mysql.conf.d/mysqld.cnf` line with value `bind-address` from `127.0.0.1` to `0.0.0.0`.
-```bash
+``` bash
 sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 
 After change you must restart MYSQL server.
-```bash
+``` bash
 sudo systemctl restart mysql
 ```
 
@@ -140,7 +147,7 @@ sudo systemctl restart mysql
 
 For security reasons two users are created. User with the write access is linked only to the local machine.
 
-````sql
+``` sql
 CREATE DATABASE indexer;
 
 CREATE USER 'indexWriter'@'localhost' IDENTIFIED BY '.IndexerWriterPassw0rd';
@@ -156,7 +163,7 @@ FLUSH PRIVILEGES;
 
 For security reasons two users are created. User with the write access is linked only to the local machine.
 
-````sql
+``` sql
 CREATE DATABASE attester;
 
 CREATE USER 'attesterWriter'@'localhost' IDENTIFIED BY '.AttesterWriterPassw0rd';
@@ -176,6 +183,11 @@ To install ctail use:
 
 ``` bash
 npm i -g ctail
+```
+
+> ctail might require ccze
+``` bash
+sudo apt-get install ccze
 ```
 
 [Back to Home](./../README.md)

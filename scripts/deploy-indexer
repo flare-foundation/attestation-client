@@ -26,9 +26,9 @@ bash ./scripts/deploy-copy-internal
 
 # Restart the app as a service.
 echo -e "${GREENBOLD}Build successful.${NC} Restarting indexers"
-ssh -n $USER@$SERVER "systemctl --user restart $SERVICE1" || { echo "Restarting $SERVICE1 failed" ; exit 1; }
-ssh -n $USER@$SERVER "systemctl --user restart $SERVICE2" || { echo "Restarting $SERVICE2 failed" ; exit 1; }
-ssh -n $USER@$SERVER "systemctl --user restart $SERVICE3" || { echo "Restarting $SERVICE3 failed" ; exit 1; }
-ssh -n $USER@$SERVER "systemctl --user restart $SERVICE4" || { echo "Restarting $SERVICE4 failed" ; exit 1; }
-ssh -n $USER@$SERVER "systemctl --user restart $SERVICE5" || { echo "Restarting $SERVICE5 failed" ; exit 1; }
+bash ./scripts/restart-service.sh $USER@$SERVER $SERVICE1
+bash ./scripts/restart-service.sh $USER@$SERVER $SERVICE2
+bash ./scripts/restart-service.sh $USER@$SERVER $SERVICE3
+bash ./scripts/restart-service.sh $USER@$SERVER $SERVICE4
+bash ./scripts/restart-service.sh $USER@$SERVER $SERVICE5
 echo -e "${GREENBOLD}Done.${NC}"

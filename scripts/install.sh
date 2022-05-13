@@ -26,6 +26,7 @@ systemctl --user enable songbird-backend.service
 systemctl --user enable attester-alerts
 
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"
-bach ./scripts/compile.sh
+bash ./scripts/compile.sh
 
+echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"
 bash ./scripts/deploy-all.sh

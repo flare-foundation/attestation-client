@@ -25,16 +25,18 @@ Attester Suite requires two GITHUB repositories:
 Both repositories must be cloned into the same folder.
 
 ``` bash
+cd ~
+mkdir -p attestation-suite
+cd attestation-suite
 git clone https://github.com/flare-foundation/attestation-client.git
+
+# install.sh
+
 git clone https://github.com/flare-foundation/multi-chain-client.git
 
+cd attestation-client
 
-cd attester-client
-yarn
-yarn buildmcc
-yarn link flare-mcc
-yarn c
-yarn build
+bash ./scripts/install.sh
 ```
 
 ## Local installation

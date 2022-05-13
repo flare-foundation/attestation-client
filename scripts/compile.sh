@@ -8,10 +8,12 @@ bash ./script/replace-mcc-link.sh
 cd ../multi-chain-client
 yarn
 yarn build
+
 yarn link
 
 cd $CURRENT_DIR
 
 # build
 yarn link flare-mcc
+
 yarn build

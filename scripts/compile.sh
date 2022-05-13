@@ -2,13 +2,15 @@ export CURRENT_DIR=$(pwd)
 
 yarn
 yarn c
+bash ./script/replace-mcc-link.sh
 
 # build MCC
 cd ../multi-chain-client
 yarn
 yarn build
+yarn link
 
-ch $CURRENT_DIR
+cd $CURRENT_DIR
 
 # build
 yarn link flare-mcc

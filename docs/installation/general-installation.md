@@ -37,6 +37,42 @@ yarn c
 yarn build
 ```
 
+## Local installation
+```
+./scripts/install.sh
+```
+
+## Remote installation from local repository
+
+### Deploy repo on remote machine
+```
+mkdir -p tmp_data
+git archive main | gzip > tmp_data/deploy.tgz
+sudo scp -i ~/.ssh/id_ed25519 tmp_data/deploy.tgz ubuntu@<server>:~
+
+cd ../multi-chain-client
+mkdir -p tmp_data
+git archive main | gzip > tmp_data/deploy-mcc.tgz
+sudo scp -i ~/.ssh/id_ed25519 tmp_data/deploy-mcc.tgz ubuntu@<server>:~
+```
+
+To prepare on remote machine
+```
+mkdir -p attester-suite/base
+mkdir -p attester-suite/multi-chain-client
+
+cp deploy.tgz attester-suite/base
+cp deploy-mcc.tgz attester-suite/multi-chain-client
+
+cd attester-suite/base
+tar xzf deploy.tgz
+
+cd ../multi-chain-client
+tar xzf deploy-mcc.tgz
+
+cd ../base
+
+```
 
 
 ## Services

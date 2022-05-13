@@ -12,6 +12,7 @@ cp ./scripts/templates/*.service ~/.config/systemd/user
 
 # enable services
 echo -e "${REDBOLD}[2] ${GREENBOLD}Installing services...${NC}"
+
 systemctl --user daemon-reload
 
 systemctl --user enable indexer-xrp.service

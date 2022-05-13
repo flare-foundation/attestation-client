@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/global/indexer/dist/lib/indexer/indexer.js -a BTC
+ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attestation-suite/global/indexer/dist/lib/indexer/indexer.js -a BTC
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian
@@ -7,7 +7,7 @@ Restart=always
 # Group=nogroup
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-WorkingDirectory=/home/ubuntu/global/indexer
+WorkingDirectory=/home/ubuntu/attestation-suite/global/indexer
 
 [Install]
 WantedBy=multi-user.target

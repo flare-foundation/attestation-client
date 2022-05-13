@@ -74,10 +74,20 @@ cd $MCC_WORKDIR; tar xzf $MCC_FNAME
 mv $MCC_FNAME ../../$BACKUPDIR/mcc-deploy-$DEPLOY_NAME-$(date +\"%Y-%m-%d--%H-%M-%S\").tgz
 # || { echo 'Remote deployment failed' ; exit 1; }
 
-echo -e "${GREENBOLD}Initializing configuration${NC} Copying ..."
-cd $LOCAL_DIR
-cp -a $CONFIGDIR/. $WORKDIR/configs/prod/
+#echo -e "${GREENBOLD}Initializing configuration${NC} Copying ..."
+#cd $LOCAL_DIR
+#cp -a $CONFIGDIR/. $WORKDIR/configs/prod/
 # || { echo 'Remote deployment failed' ; exit 1; }
+
+echo -e "${GREENBOLD}Copy local settings.${NC}"
+
+echo -e "CURRENT_DIR=${CURRENT_DIR}"
+echo -e "WORKDIR=${WORKDIR}"
+
+cd $LOCAL_DIR
+
+mkdir -p $WORKDIR/configs/prod/
+cp -a $CURRENT_DIR/configs/.secure/. $WORKDIR/configs/prod/
 
 # Build the MCC.
 echo -e "${GREENBOLD}Installing MCC.${NC} Running yarn ..."
@@ -112,3 +122,4 @@ source ~/.profile
 cd $WORKDIR
 yarn build
 #|| { echo 'Building app failed' ; exit 1; }
+

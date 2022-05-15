@@ -87,7 +87,7 @@ echo -e "WORKDIR=${WORKDIR}"
 cd $LOCAL_DIR
 
 mkdir -p $WORKDIR/configs/prod/
-cp -a $CURRENT_DIR/configs/.secure/. $WORKDIR/configs/prod/
+cp -a ~/.secure/. $WORKDIR/configs/prod/
 
 # Build the MCC.
 echo -e "${GREENBOLD}Installing MCC.${NC} Running yarn ..."

@@ -29,14 +29,9 @@ cd ~
 mkdir -p attestation-suite
 cd attestation-suite
 git clone https://github.com/flare-foundation/attestation-client.git
-
-# install.sh
-
-git clone https://github.com/flare-foundation/multi-chain-client.git
-
 cd attestation-client
-
 bash ./scripts/install.sh
+
 ```
 
 ## Local installation

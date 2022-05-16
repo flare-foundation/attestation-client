@@ -7,7 +7,7 @@ export NCNORMAL="${NC}$(tput sgr0)"
 
 export LOCAL_DIR=$CURRENT_DIR/..
 
-export CONFIGDIR_SECURE=.attester-suite-config
+export CONFIGDIR_SECURE=.attestation-suite-config
 
 # Check if everything is commited localy
 # if ! git diff-index --quiet HEAD --; then

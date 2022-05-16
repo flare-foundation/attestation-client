@@ -16,60 +16,6 @@ The Attestation Client package is divided into several standalone modules that c
 - [Alerts](./alerts-installation.md)
 - [Back end](./backend-installation.md)
 
-## Repositories
-
-Attester Suite requires two GITHUB repositories:
-- [Attester Suite](https://github.com/flare-foundation/attestation-client)
-- [Multi Chain Client](https://github.com/flare-foundation/multi-chain-client)
-
-Both repositories must be cloned into the same folder.
-
-``` bash
-cd ~
-mkdir -p attestation-suite
-cd attestation-suite
-git clone https://github.com/flare-foundation/attestation-client.git
-cd attestation-client
-bash ./scripts/install.sh
-
-```
-
-## Local installation
-``` bash
-./scripts/install.sh
-```
-
-## Remote installation from local repository
-
-### Deploy repo on remote machine
-``` bash
-mkdir -p tmp_data
-git archive main | gzip > tmp_data/deploy.tgz
-sudo scp -i ~/.ssh/id_ed25519 tmp_data/deploy.tgz ubuntu@<server>:~
-
-cd ../multi-chain-client
-mkdir -p tmp_data
-git archive main | gzip > tmp_data/deploy-mcc.tgz
-sudo scp -i ~/.ssh/id_ed25519 tmp_data/deploy-mcc.tgz ubuntu@<server>:~
-```
-
-To prepare on remote machine
-``` bash
-mkdir -p attester-suite/base
-mkdir -p attester-suite/multi-chain-client
-
-cp deploy.tgz attester-suite/base
-cp deploy-mcc.tgz attester-suite/multi-chain-client
-
-cd attester-suite/base
-tar xzf deploy.tgz
-
-cd ../multi-chain-client
-tar xzf deploy-mcc.tgz
-
-cd ../base
-```
-
 
 ## Services
 
@@ -90,22 +36,10 @@ For NODE installation we use NVM to get specific version and allow multiple node
 
 ``` bash
 sudo apt-get update
-sudo apt install curl 
+sudo apt install curl -y
 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 source ~/.profile 
 nvm install 14.15.4
-```
-
-``` bash
-sudo apt-get update
-sudo apt install nodejs
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key --keyring /etc/apt/trusted.gpg.d/docker-apt-key.gpg add
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-
-# to get latest version
-sudo npm cache clean -f
-sudo npm install -g n
-sudo n stable
 ```
 
 ### YARN
@@ -116,7 +50,8 @@ For YARN installation use the following script:
 
 ``` bash
 sudo apt install npm
-sudo npm install --global yarn
+sudo npm install --global yarn -y
+source ~/.profile 
 yarn --version
 ```
 
@@ -126,7 +61,7 @@ It might require new login for yarn to work.
 
 #### Installation
 ```` bash
-sudo apt install mysql-server
+sudo apt install mysql-server -y
 sudo mysql_secure_installation
 ````
 
@@ -185,6 +120,37 @@ npm i -g ctail
 > ctail might require ccze
 ``` bash
 sudo apt-get install ccze
+```
+
+
+## Installation
+
+Download Attestation Suite repository
+
+``` bash
+cd ~
+mkdir -p attestation-suite
+cd attestation-suite
+git clone https://github.com/flare-foundation/attestation-client.git
+cd attestation-client
+```
+
+Copy the template configuration files and set them up.
+
+``` bash
+mkdir -p ~/.attestation-suite-config
+cp ~/attestation-suite/attestation-client/configs/prod/* ~/.attestation-suite-config
+
+```
+
+After all prerequisites and configuration files are setup you can install the Attesttaion Suite with the installation script:
+
+This script installs all Attestation Suite modules. If you wish to exclude some modules, edit the script `deploy-all.sh`.
+
+``` bash
+cd ~/attestation-suite/attestation-client
+bash ./scripts/install.sh
+
 ```
 
 [Back to Home](./../README.md)

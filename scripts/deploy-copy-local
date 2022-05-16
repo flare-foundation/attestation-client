@@ -7,6 +7,8 @@ export NCNORMAL="${NC}$(tput sgr0)"
 
 export LOCAL_DIR=$CURRENT_DIR/..
 
+export CONFIGDIR_SECURE=.attester-suite-config
+
 # Check if everything is commited localy
 # if ! git diff-index --quiet HEAD --; then
 #     echo -e "${REDBOLD}Uncommitted changes! Please commit the changes first.${NC}";
@@ -87,7 +89,7 @@ echo -e "WORKDIR=${WORKDIR}"
 cd $LOCAL_DIR
 
 mkdir -p $WORKDIR/configs/prod/
-cp -a ~/.secure/. $WORKDIR/configs/prod/
+cp -a ~/$CONFIGDIR_SECURE/. $WORKDIR/configs/prod/
 
 # Build the MCC.
 echo -e "${GREENBOLD}Installing MCC.${NC} Running yarn ..."

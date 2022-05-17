@@ -1,5 +1,5 @@
-import { UtxoTransaction } from "flare-mcc";
-import { IUtxoCoinbase, IUtxoVinTransaction, IUtxoVinVoutsMapper } from "flare-mcc/dist/types/utxoTypes";
+import { IUtxoVinTransaction, UtxoTransaction } from "@flarenetwork/mcc";
+import { IUtxoVinVoutsMapper } from "@flarenetwork/mcc/dist/types/utxoTypes";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { getGlobalLogger, logException } from "../../utils/logger";

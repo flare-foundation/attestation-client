@@ -1,4 +1,4 @@
-import { ChainType, MCC } from "flare-mcc";
+import { ChainType, MCC } from "@flarenetwork/mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";

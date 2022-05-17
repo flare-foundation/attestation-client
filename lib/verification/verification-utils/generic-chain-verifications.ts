@@ -1,4 +1,4 @@
-import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x } from "flare-mcc";
+import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { VerificationStatus } from "../attestation-types/attestation-types";

@@ -1,4 +1,4 @@
-import { optional } from "flare-mcc";
+import { optional } from "@flarenetwork/mcc";
 import { Connection, createConnection } from "typeorm";
 import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";

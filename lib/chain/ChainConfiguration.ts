@@ -1,4 +1,4 @@
-import { AlgoMccCreate, MccCreate, optional, RateLimitOptions, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
+import { AlgoMccCreate, MccCreate, optional, RateLimitOptions, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
 export class ChainConfiguration implements IReflection<ChainsConfiguration>{

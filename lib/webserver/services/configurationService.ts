@@ -1,4 +1,4 @@
-import { toBN } from "flare-mcc";
+import { toBN } from "@flarenetwork/mcc";
 import { Factory, Singleton } from "typescript-ioc";
 import { AttesterWebOptions } from "../../attester/AttesterClientConfiguration";
 import { readConfig, readCredentials } from "../../utils/config";

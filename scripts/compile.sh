@@ -19,6 +19,6 @@ yarn link
 cd $CURRENT_DIR
 
 # build
-yarn link flare-mcc
+# yarn link flare-mcc
 
 yarn build

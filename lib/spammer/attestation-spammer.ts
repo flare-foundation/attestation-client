@@ -1,5 +1,5 @@
 import { logger } from "ethers";
-import { ChainType, MCC, sleepMs } from "flare-mcc";
+import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { DBBlockBase } from "../entity/indexer/dbBlock";

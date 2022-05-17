@@ -1,4 +1,4 @@
-import { toBN } from "flare-mcc";
+import { toBN } from "@flarenetwork/mcc";
 import { AttesterClientConfiguration, AttesterCredentials } from "../attester/AttesterClientConfiguration";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { readConfig, readCredentials } from "../utils/config";

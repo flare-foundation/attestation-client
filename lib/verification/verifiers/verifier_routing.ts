@@ -2,7 +2,7 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { MccClient, MCC } from "flare-mcc"
+import { MccClient, MCC } from "@flarenetwork/mcc"
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"
 import { SourceId } from "../sources/sources";

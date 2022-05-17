@@ -1,4 +1,4 @@
-import { toBN } from "flare-mcc";
+import { toBN } from "@flarenetwork/mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";

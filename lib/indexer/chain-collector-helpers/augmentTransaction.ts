@@ -1,4 +1,4 @@
-import { AlgoBlock, AlgoTransaction, ChainType, IBlock, ITransaction, txIdToHexNo0x, unPrefix0x, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "flare-mcc";
+import { AlgoBlock, AlgoTransaction, ChainType, IBlock, ITransaction, txIdToHexNo0x, unPrefix0x, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";

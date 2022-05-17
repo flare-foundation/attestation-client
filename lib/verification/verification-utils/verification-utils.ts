@@ -1,4 +1,4 @@
-import { AlgoTransaction, BtcTransaction, DogeTransaction, LtcTransaction, XrpTransaction } from "flare-mcc";
+import { AlgoTransaction, BtcTransaction, DogeTransaction, LtcTransaction, XrpTransaction } from "@flarenetwork/mcc";
 import { ConfirmedBlockQueryResponse, ConfirmedTransactionQueryResponse, ReferencedTransactionsQueryResponse } from "../../indexed-query-manager/indexed-query-manager-types";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 

@@ -1,4 +1,4 @@
-import { IIGetBlockRes, IIGetTransactionRes, ReadRpcInterface } from "flare-mcc";
+import { IIGetBlockRes, IIGetTransactionRes, ReadRpcInterface } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 

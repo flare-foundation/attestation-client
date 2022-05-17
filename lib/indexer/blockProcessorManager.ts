@@ -1,4 +1,4 @@
-import { IBlock } from "flare-mcc";
+import { IBlock } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
 import { AttLogger } from "../utils/logger";

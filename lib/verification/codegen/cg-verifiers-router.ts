@@ -42,7 +42,7 @@ export function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
    }
 
    let router = `${DEFAULT_GEN_FILE_HEADER}
-import { MccClient, MCC } from "flare-mcc"
+import { MccClient, MCC } from "@flarenetwork/mcc"
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"
 import { SourceId } from "../sources/sources";

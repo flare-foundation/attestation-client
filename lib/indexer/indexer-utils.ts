@@ -1,4 +1,4 @@
-import { ChainType } from "flare-mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import {
    DBBlockALGO,
    DBBlockBTC,

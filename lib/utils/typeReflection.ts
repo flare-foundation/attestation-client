@@ -1,4 +1,4 @@
-import { getOptionalKeys } from "flare-mcc";
+import { getOptionalKeys } from "@flarenetwork/mcc";
 import { getGlobalLogger } from "./logger";
 
 

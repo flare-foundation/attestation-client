@@ -46,7 +46,7 @@ describe("Attestestation Client Mock", function () {
     attestationClient = await AttestationClientSC.new(stateConnectorMock.address);
   });
 
-   it.only("'Payment' test", async function () { 
+   it("'Payment' test", async function () { 
      let attestationType = AttestationType.Payment;
      let request = { attestationType, sourceId: CHAIN_ID } as ARPayment;
    

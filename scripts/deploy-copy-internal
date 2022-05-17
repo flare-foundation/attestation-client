@@ -1,1 +1,2 @@
 bash ./scripts/deploy-copy-local
+#bash ./scripts/deploy-copy-ssh

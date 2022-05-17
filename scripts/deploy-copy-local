@@ -105,7 +105,7 @@ echo -e "${GREENBOLD}Installing done.${NC} Running yarn ..."
 cd $LOCAL_DIR
 source ~/.profile
 cd $WORKDIR
-source scripts/replace-mcc-link.sh
+#source scripts/replace-mcc-link.sh
 yarn
 # || { echo 'yarn install failed' ; exit 1; }
 

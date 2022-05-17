@@ -21,11 +21,11 @@ if [[ "$CURRENT_BRANCH" != "$BRANCH" ]]; then
   echo -e "${REDBOLD}Wrong branch for deployment: '$CURRENT_BRANCH'. Should be '$BRANCH'.${NC}";
   exit 1;
 fi
-CURRENT_BRANCH=$(git -C $MCC_LOCAL_FOLDER rev-parse --abbrev-ref HEAD)
-if [[ "$CURRENT_BRANCH" != "$MCC_BRANCH" ]]; then
-  echo -e "${REDBOLD}Wrong branch for deployment: '$CURRENT_BRANCH'. Should be '$MCC_BRANCH'.${NC}";
-  exit 1;
-fi
+# CURRENT_BRANCH=$(git -C $MCC_LOCAL_FOLDER rev-parse --abbrev-ref HEAD)
+# if [[ "$CURRENT_BRANCH" != "$MCC_BRANCH" ]]; then
+#   echo -e "${REDBOLD}Wrong branch for deployment: '$CURRENT_BRANCH'. Should be '$MCC_BRANCH'.${NC}";
+#   exit 1;
+# fi
 
 # Test if build works locally
 yarn build || { echo 'Local build failed. Check errors and fix the code.' ; exit 1; }
@@ -41,11 +41,11 @@ cp tmp_data/$FNAME $LOCAL_DIR || { echo 'sco failed' ; exit 1; }
 
 
 # Copy MCC
-echo -e "${GREENBOLD}Copying MCC ...${NC}"
-cd $MCC_LOCAL_FOLDER
-mkdir -p tmp_data
-git archive $MCC_BRANCH | gzip > tmp_data/$MCC_FNAME || { echo 'Archive failed' ; exit 1; }
-cp tmp_data/$MCC_FNAME $LOCAL_DIR || { echo 'sco failed' ; exit 1; }
+# echo -e "${GREENBOLD}Copying MCC ...${NC}"
+# cd $MCC_LOCAL_FOLDER
+# mkdir -p tmp_data
+# git archive $MCC_BRANCH | gzip > tmp_data/$MCC_FNAME || { echo 'Archive failed' ; exit 1; }
+# cp tmp_data/$MCC_FNAME $LOCAL_DIR || { echo 'sco failed' ; exit 1; }
 
 # Crete install folder if they do not exist
 cd $LOCAL_DIR
@@ -53,8 +53,8 @@ mkdir -p $WORKDIR
 mkdir -p $CONFIGDIR
 mkdir -p $BACKUPDIR
 
-cd $LOCAL_DIR
-mkdir -p $MCC_WORKDIR
+# cd $LOCAL_DIR
+# mkdir -p $MCC_WORKDIR
 
 # Do the following:
 # - Clean $WORKDIR. 
@@ -69,11 +69,11 @@ cd $WORKDIR
 tar xzf $FNAME
 mv $FNAME ../../$BACKUPDIR/deploy-$DEPLOY_NAME-$(date +\"%Y-%m-%d--%H-%M-%S\").tgz
 
-cd $LOCAL_DIR
-rm -rf $MCC_WORKDIR/*
-mv $MCC_FNAME $MCC_WORKDIR
-cd $MCC_WORKDIR; tar xzf $MCC_FNAME
-mv $MCC_FNAME ../../$BACKUPDIR/mcc-deploy-$DEPLOY_NAME-$(date +\"%Y-%m-%d--%H-%M-%S\").tgz
+# cd $LOCAL_DIR
+# rm -rf $MCC_WORKDIR/*
+# mv $MCC_FNAME $MCC_WORKDIR
+# cd $MCC_WORKDIR; tar xzf $MCC_FNAME
+# mv $MCC_FNAME ../../$BACKUPDIR/mcc-deploy-$DEPLOY_NAME-$(date +\"%Y-%m-%d--%H-%M-%S\").tgz
 # || { echo 'Remote deployment failed' ; exit 1; }
 
 #echo -e "${GREENBOLD}Initializing configuration${NC} Copying ..."
@@ -92,12 +92,12 @@ mkdir -p $WORKDIR/configs/prod/
 cp -a ~/$CONFIGDIR_SECURE/. $WORKDIR/configs/prod/
 
 # Build the MCC.
-echo -e "${GREENBOLD}Installing MCC.${NC} Running yarn ..."
-cd $LOCAL_DIR
-source ~/.profile
-cd $MCC_WORKDIR
-yarn
-yarn build
+# echo -e "${GREENBOLD}Installing MCC.${NC} Running yarn ..."
+# cd $LOCAL_DIR
+# source ~/.profile
+# cd $MCC_WORKDIR
+# yarn
+# yarn build
 # || { echo 'yarn install failed' ; exit 1; }
 
 # Run yarn in $WORKDIR 

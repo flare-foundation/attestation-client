@@ -30,9 +30,9 @@ systemctl --user enable attester-alerts
 
 # clone mcc repo
 
-cd ..
-git clone https://github.com/flare-foundation/multi-chain-client.git
-cd $CURRENT_DIR
+# cd ..
+# git clone https://github.com/flare-foundation/multi-chain-client.git
+# cd $CURRENT_DIR
 
 # compile
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"

@@ -1,4 +1,4 @@
-import { MccClient, unPrefix0x } from "flare-mcc";
+import { MccClient, unPrefix0x } from "@flarenetwork/mcc";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";

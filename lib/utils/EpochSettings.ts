@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { toBN } from "flare-mcc";
+import { toBN } from "@flarenetwork/mcc";
 import { getTimeSec } from "./internetTime";
 
 export class EpochSettings {

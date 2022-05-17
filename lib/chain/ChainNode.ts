@@ -1,5 +1,5 @@
 import assert from "assert";
-import { ChainType, MCC, MccClient } from "flare-mcc";
+import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";

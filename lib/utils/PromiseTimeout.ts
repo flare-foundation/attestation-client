@@ -1,4 +1,4 @@
-import { retry as mccRetry } from "flare-mcc";
+import { retry as mccRetry } from "@flarenetwork/mcc";
 import { getGlobalLogger, logException } from "./logger";
 
 

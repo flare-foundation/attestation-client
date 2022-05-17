@@ -35,7 +35,7 @@ import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../t
 const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
 const STATECONNECTOR_ROUND = 1;
-const CHAIN_ID = SourceId.ALGO;
+const CHAIN_ID = SourceId.BTC;
 const NUM_OF_HASHES = 100;
 
 describe("Attestestation Client Mock", function () {
@@ -46,7 +46,7 @@ describe("Attestestation Client Mock", function () {
     attestationClient = await AttestationClientSC.new(stateConnectorMock.address);
   });
 
-   it.only("'Payment' test", async function () { 
+   it("'Payment' test", async function () { 
      let attestationType = AttestationType.Payment;
      let request = { attestationType, sourceId: CHAIN_ID } as ARPayment;
    
@@ -58,14 +58,9 @@ describe("Attestestation Client Mock", function () {
    
      let hash = hashPayment(request, response);
    
-     console.log("HASH", hash)
-     let tree = new MerkleTree([hash]);
-     console.log("ROOT", tree.root)
-
      let dummyHash = web3.utils.randomHex(32);
      await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);    
      assert(await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND) === hash);
-     console.log(responseHex);
      assert(await attestationClient.verifyPayment(CHAIN_ID, responseHex))
    
      await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, dummyHash);

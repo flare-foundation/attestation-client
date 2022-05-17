@@ -1,5 +1,5 @@
-import { ChainType, IBlock, ITransaction, MCC } from "flare-mcc";
-import { LiteBlock } from "flare-mcc/dist/base-objects/blocks/LiteBlock";
+import { ChainType, IBlock, ITransaction, MCC } from "@flarenetwork/mcc";
+import { LiteBlock } from "@flarenetwork/mcc/dist/base-objects/blocks/LiteBlock";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";

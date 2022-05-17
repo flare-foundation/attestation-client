@@ -1,4 +1,4 @@
-import { IBlock } from "flare-mcc";
+import { IBlock } from "@flarenetwork/mcc";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";

@@ -75,3 +75,4 @@ db
 
 # user private credentials
 configs/.secure
+configs/.secure.dev

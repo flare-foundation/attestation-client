@@ -1,4 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
+import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
 class AlertAttestationConfig {
@@ -14,6 +15,12 @@ class AlertBackendConfig {
     restart = "";
 }
 
+class AlertDatabaseConfig {
+    name = "";
+    @optional() database = "attester";
+    connection = new DatabaseConnectOptions();
+}
+
 
 export class AlertConfig implements IReflection<AlertConfig> {
     @optional() interval: number = 5000;
@@ -27,6 +34,7 @@ export class AlertConfig implements IReflection<AlertConfig> {
 
     attesters = [];
     backends = [];
+    databases = [];
 
     instanciate() {
         return new AlertConfig();
@@ -39,6 +47,7 @@ export class AlertConfig implements IReflection<AlertConfig> {
         res.arrayMap.set( "indexers" , "string" );
         res.arrayMap.set( "attesters" , new AlertAttestationConfig() );
         res.arrayMap.set( "backends" , new AlertBackendConfig() )
+        res.arrayMap.set( "database" , new AlertDatabaseConfig() )
 
         return res;        
     }

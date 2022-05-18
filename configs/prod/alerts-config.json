@@ -36,4 +36,15 @@
             "restart":"systemctl --user restart coston-attester-clientxxx"
         }
     ],
+    "databases" : [
+        {
+            "name": "global",
+            "database": "",
+            "connection": {
+                "database": "",
+                "username": "",
+                "password": ""
+            }            
+        }
+    ]    
 }

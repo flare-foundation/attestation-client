@@ -72,10 +72,9 @@ export class AlertsManager {
 
                     if( !resPerfs ) continue;
 
-                    statusPerfs.push(resPerfs);
-
                     for(let perf of resPerfs ) {
-                       perf.displayStatus(this.logger);
+                        statusPerfs.push(perf);
+                        perf.displayStatus(this.logger);
                     }
                 }
 

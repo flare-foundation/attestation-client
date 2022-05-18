@@ -7,6 +7,7 @@ import { AlertConfig } from "./AlertsConfiguration";
 import { AttesterAlert } from "./AttestationAlert";
 import { BackendAlert } from "./BackendAlert";
 import { IndexerAlert } from "./IndexerAlert";
+import { DatabaseAlert } from "./DatabaseAlert";
 
 export class AlertsManager {
     logger: AttLogger;
@@ -30,6 +31,10 @@ export class AlertsManager {
         for (let backend of this.config.backends) {
             this.alerts.push(new BackendAlert(backend.name, this.logger, new AlertRestartConfig(this.config.timeRestart, backend.restart), backend.address));
         }
+
+        for (let database of this.config.databases) {
+            this.alerts.push(new DatabaseAlert(database.name, this.logger, database.database , database.connection ));
+        }
     }
 
     async runAlerts() {
@@ -49,20 +54,35 @@ export class AlertsManager {
 
                 terminal.cursorRestore();
 
-                const status = [];
+                const statusAlerts = [];
+                const statusPerfs = [];
 
                 for (let alert of this.alerts) {
-                    const res = await alert.check();
+                    const resAlert = await alert.check();
 
-                    status.push(res);
+                    if( !resAlert ) continue;
 
-                    res.displayStatus(this.logger);
+                    statusAlerts.push(resAlert);
+
+                    resAlert.displayStatus(this.logger);
+                }
+
+                for (let alert of this.alerts) {
+                    const resPerfs = await alert.perf();
+
+                    if( !resPerfs ) continue;
+
+                    statusPerfs.push(resPerfs);
+
+                    for(let perf of resPerfs ) {
+                       perf.displayStatus(this.logger);
+                    }
                 }
 
                 if (this.config.stateSaveFilename) {
                     try {
                         var fs = require('fs');
-                        fs.writeFile(this.config.stateSaveFilename, JSON.stringify(status), function (err) {
+                        fs.writeFile(this.config.stateSaveFilename, JSON.stringify({"alerts":statusAlerts,"perf":statusPerfs}), function (err) {
                             if (err) {
                                 this.logger.error(err);
                             }

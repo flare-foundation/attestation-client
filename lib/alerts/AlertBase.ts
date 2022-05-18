@@ -19,11 +19,21 @@ export class AlertStatus {
         logger.info(`${this.name.padEnd(20)}  ${color} ${this.status.padEnd(10)} ^^  ${this.state.padEnd(10)} ^B${this.comment}                  `);
     }
 }
+export class PerformanceInfo {    
+    name: string;
+    valueName: string = "";
+    valueUnit: string = "";
+    value: number;
+    comment: string = "";
 
+    displayStatus(logger: AttLogger) {
+        logger.info(`${this.name.padEnd(20)}  ${this.valueName.padEnd(14)}  ${this.value.toString().padStart(10)} ${this.valueUnit.padEnd(5)} ^B${this.comment}                  `);
+    }
+}
 
 export class AlertRestartConfig {
-    time: number;
-    command: string;
+    time: number=0;
+    command: string="";
 
     constructor(time: number, command: string) {
         this.time = time;
@@ -53,7 +63,11 @@ export class AlertBase {
     async initialize?();
 
     async check?(): Promise<AlertStatus>;
+    async perf?(): Promise<PerformanceInfo[]>;
     async restart(): Promise<boolean> {
+
+        if( !this.restartConfig || this.restartConfig.time<=0 ) return false;
+
         // do not restart MIN_RESTART_TIME sec after if was just restarted
         const now = getUnixEpochTimestamp();
         if (now - this.timeLastRestart < MIN_RESTART_TIME) return false;

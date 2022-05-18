@@ -23,7 +23,7 @@ export class StatusController extends Controller {
 
     @Get("services")
     public async serviceStatus(
-    ): Promise<ApiResponse<ServiceStatus[]>> {
+    ): Promise<ApiResponse<ServiceStatus>> {
         return handleApiResponse(
             this.proofEngine.serviceStatus()
         )

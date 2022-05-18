@@ -12,8 +12,14 @@ bash ./scripts/deploy-indexer
 echo -e "${REDBOLD}[4.2] ${GREENBOLD}Installing Alerts...${NC}"
 bash ./scripts/deploy-alerts
 
-echo -e "${REDBOLD}[4.3] ${GREENBOLD}Installing Songbird Attester Client...${NC}"
-bash ./scripts/deploy-songbird-attester
+#echo -e "${REDBOLD}[4.3] ${GREENBOLD}Installing Songbird Attester Client...${NC}"
+#bash ./scripts/deploy-songbird-attester
 
-echo -e "${REDBOLD}[4.4] ${GREENBOLD}Installing Songbird Backend...${NC}"
-bash ./scripts/deploy-songbird-backend
+#echo -e "${REDBOLD}[4.4] ${GREENBOLD}Installing Songbird Backend...${NC}"
+#bash ./scripts/deploy-songbird-backend
+
+echo -e "${REDBOLD}[4.3] ${GREENBOLD}Installing Coston Attester Client...${NC}"
+bash ./scripts/deploy-coston-attester
+
+echo -e "${REDBOLD}[4.4] ${GREENBOLD}Installing Coston Backend...${NC}"
+bash ./scripts/deploy-coston-backend

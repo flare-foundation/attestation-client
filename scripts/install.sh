@@ -23,16 +23,15 @@ systemctl --user enable indexer-ltc.service
 systemctl --user enable indexer-algo.service
 systemctl --user enable indexer-doge.service
 
-systemctl --user enable songbird-attester-client.service
-systemctl --user enable songbird-backend.service
+# songbird
+#systemctl --user enable songbird-attester-client.service
+#systemctl --user enable songbird-backend.service
+
+# coston
+systemctl --user enable coston-attester-client.service
+systemctl --user enable coston-backend.service
 
 systemctl --user enable attester-alerts
-
-# clone mcc repo
-
-# cd ..
-# git clone https://github.com/flare-foundation/multi-chain-client.git
-# cd $CURRENT_DIR
 
 # compile
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"

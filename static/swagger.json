@@ -135,7 +135,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ServiceStatus": {
+			"AlertsStatus": {
 				"properties": {
 					"status": {
 						"type": "string"
@@ -164,13 +164,61 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse_ServiceStatus-Array_": {
+			"PerformanceStatus": {
 				"properties": {
-					"data": {
+					"valueName": {
+						"type": "string"
+					},
+					"valueUnit": {
+						"type": "string"
+					},
+					"comment": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"value": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"valueName",
+					"valueUnit",
+					"comment",
+					"name",
+					"value"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ServiceStatus": {
+				"properties": {
+					"alerts": {
 						"items": {
-							"$ref": "#/components/schemas/ServiceStatus"
+							"$ref": "#/components/schemas/AlertsStatus"
 						},
 						"type": "array"
+					},
+					"perf": {
+						"items": {
+							"$ref": "#/components/schemas/PerformanceStatus"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"alerts",
+					"perf"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_ServiceStatus_": {
+				"properties": {
+					"data": {
+						"$ref": "#/components/schemas/ServiceStatus"
 					},
 					"errorDetails": {
 						"type": "string",
@@ -272,7 +320,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_ServiceStatus-Array_"
+									"$ref": "#/components/schemas/ApiResponse_ServiceStatus_"
 								}
 							}
 						}

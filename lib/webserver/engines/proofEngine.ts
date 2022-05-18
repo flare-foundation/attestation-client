@@ -88,9 +88,6 @@ export class ProofEngine {
       }
       let statuses = JSON.parse(fs.readFileSync(path).toString());
       let perf = (statuses as any).perf;
-      if(perf.length === 1) {
-         perf = perf[0];
-      }
       return {
          alerts: (statuses as any).alerts as AlertsStatus[],
          perf

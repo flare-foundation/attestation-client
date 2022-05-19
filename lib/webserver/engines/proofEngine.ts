@@ -119,8 +119,9 @@ export class ProofEngine {
          return `
       <tr>
          <td>${status.name}</td>
-         <td>${status.valueName}</td>
-         <td>${status.value} ${status.valueUnit}</td>         
+         <td style="padding-right: 1rem">${status.valueName}</td>
+         <td class="align-right">${status.value}</td>         
+         <td style="padding-right: 1rem">${status.valueUnit}</td>         
          <td>${status.comment}</td>
       </tr>    
 `;
@@ -193,9 +194,14 @@ body {
    font-size: 1.2rem;   
    font-weight: 600;
 }
+
+.align-right {
+   text-align: right;
+}
+
 </style>
 
-<meta http-equiv="refresh" content="5">
+<!-- <meta http-equiv="refresh" content="5"> -->
 
 </head>
 <body>
@@ -231,8 +237,9 @@ ${rows}
    <table border="0" cellpadding="0" cellspacing="0">
       <tr class="first-row">
          <th style="width: 10rem">group</th>
-         <th style="width: 10rem">name</th>
-         <th style="width: 10rem">value</th>
+         <th>name</th>
+         <th>value</th>
+         <th></th>
          <th>comment</th>
       </tr>
 ${performanceRows}      

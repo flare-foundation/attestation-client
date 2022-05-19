@@ -119,6 +119,7 @@ export class ProofEngine {
          return `
       <tr>
          <td>${status.name}</td>
+         <td>${status.valueName}</td>
          <td>${status.value} ${status.valueUnit}</td>         
          <td>${status.comment}</td>
       </tr>    
@@ -207,7 +208,7 @@ body {
       <tr class="first-row">
          <th style="width: 10rem">name</th>
          <th style="width: 5rem">status</th>
-         <th style="width: 5rem">state</th>
+         <th style="width: 5rem">action</th>
          <th>comment</th>
       </tr>
 ${rows}      
@@ -229,6 +230,7 @@ ${rows}
    <div class="mid-title">Performance</div>
    <table border="0" cellpadding="0" cellspacing="0">
       <tr class="first-row">
+         <th style="width: 10rem">group</th>
          <th style="width: 10rem">name</th>
          <th style="width: 10rem">value</th>
          <th>comment</th>

@@ -1,5 +1,6 @@
 import { ColorConsole, getGlobalLogger, logException } from "../utils/logger";
 import { Terminal } from "../utils/terminal";
+import { sleepms } from "../utils/utils";
 
 export class MenuItemBase {
     name: string = "";
@@ -58,22 +59,24 @@ export class MenuItemCommand extends MenuItemBase {
 
         getGlobalLogger().info(`execute ^g${this.command}^^`);
 
-        const { exec } = require("child_process");
+        let done = false;
 
-        exec(this.command, (error, stdout, stderr) => {
-            if (error) {
-                logException(`exec '${this.command}'`, error);
-                return;
-            }
-            if (stderr) {
-                getGlobalLogger().error2('error');
-                getGlobalLogger().error(`\n${stderr}`);
-                getGlobalLogger().error2('exec error');
-                return;
-            }
-            getGlobalLogger().info(`\n${stdout}`);
-            getGlobalLogger().info('exec completed\n');
-        });
+        const { exec } = require("child_process");
+        const execObj = exec(this.command);
+
+        execObj.stdout.on('data', function(data) {
+            console.log(data); 
+        });    
+
+        execObj.on('exit', function() {
+            done = true;
+          })
+
+        while( !done ) {
+            await sleepms( 100 );
+        }
+
+        getGlobalLogger().info('exec completed\n');
     }
 }
 

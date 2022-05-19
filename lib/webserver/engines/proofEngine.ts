@@ -201,7 +201,7 @@ body {
 
 </style>
 
-<!-- <meta http-equiv="refresh" content="5"> -->
+<meta http-equiv="refresh" content="5">
 
 </head>
 <body>

@@ -3,7 +3,7 @@ import { Menu } from "./menu";
 function admin() {
     const menu = new Menu();
 
-    menu.addCommand("Update", "git pull & ./script/compile.sh");
+    menu.addCommand("Update", "git pull & ./scripts/compile.sh");
     menu.addSubmenu("Deploy").
         addCommand("^RAll", "./scripts/deploy-all").parent.
         addCommand("Indexers", "./scripts/deploy-indexer").parent.
@@ -28,7 +28,7 @@ function admin() {
             addCommand("Coston Attestation Client", "systemctl --user stop coston-attester-client").parent.
             addCommand("Coston backend", "systemctl --user stop coston-backend").parent.
             addCommand("Songbird Attestation Client", "systemctl --user stop songbird-attester-client").parent.
-            addCommand("Songbird backend", "systemctl --user stop songbird-backend").parent;
+            addCommand("Songbird backend", "systemctl --user stop songbird-backend").parent.
         parent.
         addSubmenu("Restart").
             addSubmenu("Indexer").

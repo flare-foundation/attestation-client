@@ -23,10 +23,6 @@ export class MenuItemBase {
         return this.add(new MenuItemCommand(name, command, this));
     }
 
-    addExit(): MenuItemBase {
-        return this.add(new MenuItemExit(this));
-    }
-
     add(item: MenuItemBase): MenuItemBase {
         this.items.push(item);
 
@@ -60,7 +56,7 @@ export class MenuItemCommand extends MenuItemBase {
 
     async onExecute() {
 
-        console.log(`execute '${this.command}'`);
+        getGlobalLogger().info(`execute ^g${this.command}^^`);
 
         const { exec } = require("child_process");
 
@@ -77,19 +73,6 @@ export class MenuItemCommand extends MenuItemBase {
         });
     }
 }
-
-export class MenuItemExit extends MenuItemBase {
-
-    constructor(parent: MenuItemBase) {
-        super("Exit", parent);
-    }
-
-    async onExecute() {
-        this.menu.done = true;
-    }
-}
-
-
 
 export class Menu {
     root: MenuItemBase;
@@ -111,10 +94,6 @@ export class Menu {
     }
     addCommand(name: string, command: string): MenuItemBase {
         return this.add(new MenuItemCommand(name, command, this.root));
-    }
-
-    addExit(): MenuItemBase {
-        return this.add(new MenuItemExit(this.root));
     }
 
     add(item: MenuItemBase): MenuItemBase {

@@ -3,19 +3,19 @@ import { Menu } from "./menu";
 function admin() {
     const menu = new Menu();
 
-    menu.addCommand("Update", "git pull & ./scripts/compile.sh");
+    menu.addCommand("Update", "git pull & bash ./scripts/compile.sh");
     menu.addSubmenu("Deploy").
-        addCommand("^RAll", "./scripts/deploy-all").parent.
-        addCommand("Indexers", "./scripts/deploy-indexer").parent.
-        addCommand("Alerts", "./scripts/deploy-alerts").parent.
-        addCommand("Coston Attestation Client", "./scripts/deploy-coston-attester").parent.
-        addCommand("Coston backend", "./scripts/deploy-coston-backend").parent.
-        addCommand("Songbird Attestation Client", "./scripts/deploy-songbird-attester").parent.
-        addCommand("Songbird backend", "./scripts/deplay-songbird-backend");
+        addCommand("^RAll", "bash ./scripts/deploy-all").parent.
+        addCommand("Indexers", "bash ./scripts/deploy-indexer").parent.
+        addCommand("Alerts", "bash ./scripts/deploy-alerts").parent.
+        addCommand("Coston Attestation Client", "bash ./scripts/deploy-coston-attester").parent.
+        addCommand("Coston backend", "bash ./scripts/deploy-coston-backend").parent.
+        addCommand("Songbird Attestation Client", "bash ./scripts/deploy-songbird-attester").parent.
+        addCommand("Songbird backend", "bash ./scripts/deplay-songbird-backend");
 
     menu.addSubmenu("Services").
-        addCommand("^RRestart all", "./scripts/services-restart-all").parent.
-        addCommand("^RStop all", "./scripts/services-stop-all").parent.
+        addCommand("^RRestart all", "bash ./scripts/services-restart-all").parent.
+        addCommand("^RStop all", "bash ./scripts/services-stop-all").parent.
         addSubmenu("Stop").
             addSubmenu("Indexer").
                 addCommand("ALGO", "systemctl --user stop indexer-algo").parent.

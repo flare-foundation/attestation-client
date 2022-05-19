@@ -66,10 +66,13 @@ export class MenuItemCommand extends MenuItemBase {
                 return;
             }
             if (stderr) {
-                //console.log(`stderr: ${stderr}`);
+                getGlobalLogger().error2('error');
+                getGlobalLogger().error(`\n${stderr}`);
+                getGlobalLogger().error2('exec error');
                 return;
             }
-            //console.log(`stdout: ${stdout}`);
+            getGlobalLogger().info(`\n${stdout}`);
+            getGlobalLogger().info('exec completed\n');
         });
     }
 }

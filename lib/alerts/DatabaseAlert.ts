@@ -27,7 +27,7 @@ export class DatabaseAlert extends AlertBase {
 
         const resArray = [];
 
-        const dbRes = await this.dbService.manager.query("SELECT user, count(*) as conn, sum(time) as time FROM information_schema.processlist group by user order by time desc;");
+        const dbRes = await this.dbService.manager.query("SELECT user, count(*) as conn, sum(time) as time FROM information_schema.processlist where command<>'Sleep' group by user order by time desc;");
 
         if (dbRes.length === 0) {
         }

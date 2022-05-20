@@ -194,6 +194,8 @@ export class MenuItemLog extends MenuItemBase {
 
     filename: string ="";
 
+    static working = false;
+
 
     constructor(name: string, filename: string, parent: MenuItemBase) {
         super(name, parent);
@@ -206,7 +208,7 @@ export class MenuItemLog extends MenuItemBase {
         //console.log(filename);
         //console.log(lines);
         //console.log(follow);
-    
+
         const fs = require('fs');
     
         const colorConsole = new ColorConsole();
@@ -239,7 +241,21 @@ export class MenuItemLog extends MenuItemBase {
     
 
     async onExecute() {
-        await this.displayFile( this.filename , 100 , true );
+        MenuItemLog.working = true;
+
+        getGlobalLogger().group( `File '${this.filename}'                                                         `)
+
+        try {
+
+            await this.displayFile( this.filename , 100 , true );
+        }
+        catch(error ) {
+            logException( error , "" );
+        }
+
+        getGlobalLogger().group( `                                                                                      `)
+
+        MenuItemLog.working = false;
     }
 }
 

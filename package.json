@@ -54,7 +54,7 @@
     "devspammer": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/spammer/attestation-spammer.ts -- -c ALGO",
     "devctail": "CONFIG_PATH=dev NODE_ENV=development yarn ts-node-dev --notify --respawn lib/tools/ctail/ctail.ts",
     "devconfig": "yarn ts-node-dev --notify --respawn lib/attester/configvalidate.ts",
-    "devadmin": "yarn ts-node-dev --notify --respawn lib/admin/admin.ts"
+    "devadmin": "yarn ts-node lib/admin/admin.ts"
   },
   "dependencies": {
     "@flarenetwork/mcc": "1.0.4",

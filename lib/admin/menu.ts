@@ -1,6 +1,6 @@
 import { getTimeMilli } from "../utils/internetTime";
 import { getGlobalLogger, logException } from "../utils/logger";
-import { ServiceStatus } from "../utils/serviced";
+import { EServiceStatus, ServiceStatus } from "../utils/serviced";
 import { Terminal } from "../utils/terminal";
 import { sleepms } from "../utils/utils";
 
@@ -20,9 +20,9 @@ export class MenuItemBase {
         this.parent = parent;
     }
 
-    refresh() {
+    refresh(newLocation = false) {
         if (this.menu.activeItem === this.parent) {
-            this.menu.refresh();
+            this.menu.refresh(newLocation);
         }
     }
 
@@ -81,7 +81,7 @@ export class MenuItemCommand extends MenuItemBase {
         const execObj = exec(this.command);
 
         execObj.stdout.on('data', function (data) {
-            console.log(data);
+            console.log(data.replace(/\n$/, ""));
         });
 
         execObj.on('exit', function () {
@@ -94,6 +94,8 @@ export class MenuItemCommand extends MenuItemBase {
         }
 
         getGlobalLogger().info('exec completed\n');
+
+        this.refresh(true);
     }
 }
 
@@ -101,7 +103,7 @@ type NewType = ServiceStatus;
 
 export class MenuItemService extends MenuItemBase {
 
-    serviceStatus: NewType;
+    serviceStatus : ServiceStatus;
 
     constructor(name: string, serviceName: string, parent: MenuItemBase) {
         super(name, parent);
@@ -111,15 +113,18 @@ export class MenuItemService extends MenuItemBase {
         this.displayName = `${name} ...`;
 
         this.serviceStatus.getStatus().then( (status)=>{
-            this.displayName = `${this.name} ${status}`;
+            getGlobalLogger().debug( `MenuItemService status ${status}`)
+
+            this.displayName = `${this.name} ^w^R${EServiceStatus[status]}^^`;
 
             this.refresh();
         }).catch( (error)=>{
+            logException( error , `MenuItemService`);
+
             this.displayName = `${this.name} ^r${error}^^`;
 
             this.refresh();
         })
-        //this.update();
     }
 
     async update() {
@@ -179,21 +184,21 @@ export class Menu {
         this.navigate(this.activeItem.parent);
     }
 
-    lastRefresh = 0;
-
-    refresh() {
+    refresh(newLocation=false) {
 
         //if( this.lastRefresh - getTimeMilli() < 500 ) return;
 
-        this.display();
+        this.display(newLocation);
     }
 
-    display() {
+    display(newLocation=false) {
 
-
-        this.lastRefresh = getTimeMilli();
-
-        this.terminal.cursorRestore();
+        if( newLocation ) {
+            this.terminal.cursorSave();
+        }
+        else {
+            this.terminal.cursorRestore();
+        }
 
         let a = 1;
 

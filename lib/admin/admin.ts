@@ -43,6 +43,7 @@ async function admin() {
             addLog("LTC", "../global/indexer/logs/attester-LTC.log").parent.
             addLog("XRP", "../global/indexer/logs/attester-XRP.log").parent.
         parent.
+        addLog("app", "logs/attester-global.log").parent.
         addLog("Alerts", "../global/alerts/logs/attester-global.log").parent.
         addLog("Coston Attestation Client", "../coston/attester-client/logs/attester-global.log").parent.
         addLog("Coston backend", "../coston/backend/logs/attester-global.log").parent.

@@ -124,7 +124,7 @@ async function admin() {
         const key = await menu.waitForInputTimeout(5000);
 
         if (key) {
-            menu.processInput(menu.getKey());
+            menu.processInput(key);
         }
         else {
             // wait for execution to stop

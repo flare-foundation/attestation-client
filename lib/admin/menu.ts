@@ -163,6 +163,33 @@ export class MenuItemService extends MenuItemBase {
     }
 }
 
+function displayLine(colorConsole: ColorConsole, data: string) {
+    //console.log(data);
+
+    // 123456789 123456789 123456789 123456789 123456789 
+    // 2022-04-04T08:09:02.230Z  - global:[info]: roundManager initialize
+
+    const pos0 = data.indexOf(' ');
+    const pos1 = data.indexOf('[');
+    const pos2 = data.indexOf(']');
+
+    if (pos0 === -1 || pos1 === -1 || pos2 === -1) {
+        console.log(data);
+        return;
+    }
+
+    const info = {
+        level: data.substring(pos1 + 1, pos2),
+        message: data.substring(pos2 + 2),
+        timestamp: data.substring(0, pos0)
+    }
+
+    //console.log( info );
+
+    colorConsole.log(info, null);
+}
+
+
 export class MenuItemLog extends MenuItemBase {
 
     filename: string ="";
@@ -174,31 +201,6 @@ export class MenuItemLog extends MenuItemBase {
         this.filename=filename;
     }
 
-    displayLine(colorConsole: ColorConsole, data: string) {
-        //console.log(data);
-    
-        // 123456789 123456789 123456789 123456789 123456789 
-        // 2022-04-04T08:09:02.230Z  - global:[info]: roundManager initialize
-    
-        const pos0 = data.indexOf(' ');
-        const pos1 = data.indexOf('[');
-        const pos2 = data.indexOf(']');
-    
-        if (pos0 === -1 || pos1 === -1 || pos2 === -1) {
-            console.log(data);
-            return;
-        }
-    
-        const info = {
-            level: data.substring(pos1 + 1, pos2),
-            message: data.substring(pos2 + 2),
-            timestamp: data.substring(0, pos0)
-        }
-    
-        //console.log( info );
-    
-        colorConsole.log(info, null);
-    }
     
     async displayFile(filename: string, lines: number, follow: boolean) {
         //console.log(filename);
@@ -213,7 +215,7 @@ export class MenuItemLog extends MenuItemBase {
             let data = fs.readFileSync(filename).toString('utf-8'); {
                 let textByLine = data.split("\n")
                 for (let i = Math.max(0, textByLine.length - lines); i < textByLine.length; i++) {
-                    this.displayLine(colorConsole, textByLine[i]);
+                    displayLine(colorConsole, textByLine[i]);
                 }
             };
         }
@@ -223,7 +225,7 @@ export class MenuItemLog extends MenuItemBase {
     
             const tail = new Tail(filename);
     
-            tail.on("line", function (data) { this.displayLine(colorConsole, data); }).bind(this);
+            tail.on("line", function (data) { displayLine(colorConsole, data); });
 
             while(1) {
                 await sleepms( 100 );

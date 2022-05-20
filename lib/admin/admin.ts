@@ -1,3 +1,4 @@
+import { AlertBase } from "../alerts/AlertBase";
 import { AlertsManager } from "../alerts/AlertsManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
@@ -20,41 +21,12 @@ async function admin() {
     menu.addSubmenu("Services").
         addCommand("^RRestart all", "bash ./scripts/services-restart-all").parent.
         addCommand("^RStop all", "bash ./scripts/services-stop-all").parent.
-        addSubmenu("Stop").
         addSubmenu("Indexer").
-        addCommand("ALGO", "systemctl --user stop indexer-algo").parent.
-        addCommand("BTC", "systemctl --user stop indexer-btc").parent.
-        addCommand("DOGE", "systemctl --user stop indexer-doge").parent.
-        addCommand("LTC", "systemctl --user stop indexer-ltc").parent.
-        addCommand("XRP", "systemctl --user stop indexer-xrp").parent.
-        parent.
-        addCommand("Alerts", "systemctl --user stop attester-alerts").parent.
-        addCommand("Coston Attestation Client", "systemctl --user stop coston-attester-client").parent.
-        addCommand("Coston backend", "systemctl --user stop coston-backend").parent.
-        addCommand("Songbird Attestation Client", "systemctl --user stop songbird-attester-client").parent.
-        addCommand("Songbird backend", "systemctl --user stop songbird-backend").parent.
-        parent.
-        addSubmenu("Restart").
-        addSubmenu("Indexer").
-        addCommand("ALGO", "systemctl --user restart indexer-algo").parent.
-        addCommand("BTC", "systemctl --user restart indexer-btc").parent.
-        addCommand("DOGE", "systemctl --user restart indexer-doge").parent.
-        addCommand("LTC", "systemctl --user restart indexer-ltc").parent.
-        addCommand("XRP", "systemctl --user restart indexer-xrp").parent.
-        parent.
-        addCommand("Alerts", "systemctl --user restart attester-alerts").parent.
-        addCommand("Coston Attestation Client", "systemctl --user restart coston-attester-client").parent.
-        addCommand("Coston backend", "systemctl --user restart coston-backend").parent.
-        addCommand("Songbird Attestation Client", "systemctl --user restart songbird-attester-client").parent.
-        addCommand("Songbird backend", "systemctl --user restart songbird-backend").parent.
-        parent.
-        addSubmenu("Status").
-        addSubmenu("Indexer").
-        addService("ALGO", "indexer-algo").parent.
-        addService("BTC", "indexer-btc").parent.
-        addService("DOGE", "indexer-doge").parent.
-        addService("LTC", "indexer-ltc").parent.
-        addService("XRP", "indexer-xrp").parent.
+            addService("ALGO", "indexer-algo").parent.
+            addService("BTC", "indexer-btc").parent.
+            addService("DOGE", "indexer-doge").parent.
+            addService("LTC", "indexer-ltc").parent.
+            addService("XRP", "indexer-xrp").parent.
         parent.
         addService("Alerts", "attester-alerts").parent.
         addService("Coston Attestation Client", "coston-attester-client").parent.
@@ -81,6 +53,7 @@ async function admin() {
     menu.startInputRead();
 
     // initialize alerts
+    AlertBase.restartEnabled=false;
     const alerts = new AlertsManager();
     for (let alert of alerts.alerts) {
         await alert.initialize();

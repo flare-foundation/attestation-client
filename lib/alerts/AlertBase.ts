@@ -54,6 +54,8 @@ export class AlertBase {
     name: string;
     timeLastRestart: number = 0;
 
+    static restartEnabled = true;
+
     constructor(name: string, logger: AttLogger, restart: AlertRestartConfig) {
         this.name = name;
         this.logger = logger;
@@ -65,6 +67,8 @@ export class AlertBase {
     async check?(): Promise<AlertStatus>;
     async perf?(): Promise<PerformanceInfo[]>;
     async restart(): Promise<boolean> {
+
+        if( !AlertBase.restartEnabled ) return false;
 
         if( !this.restartConfig || this.restartConfig.time<=0 ) return false;
 

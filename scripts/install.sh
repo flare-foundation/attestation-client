@@ -33,6 +33,12 @@ systemctl --user enable coston-backend.service
 
 systemctl --user enable attester-alerts
 
+# dependecies
+#bash ./scripts/install-dependencies.sh
+
+# prepare configurations
+yarn ts-node lib/install/install.ts ../attestation-suite-config/
+
 # compile
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"
 bash ./scripts/compile.sh

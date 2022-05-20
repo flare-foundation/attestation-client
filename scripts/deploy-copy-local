@@ -7,7 +7,11 @@ export NCNORMAL="${NC}$(tput sgr0)"
 
 export LOCAL_DIR=$CURRENT_DIR/..
 
-export CONFIGDIR_SECURE=.attestation-suite-config
+#export CONFIGDIR_SECURE=../attester-suite-config/prepared/coston
+export CONFIGDIR_SECURE=attestation-suite-config/prepared/${CHAIN}
+
+echo ${CHAIN}
+echo ${CONFIGDIR_SECURE}
 
 # Create install folder if they do not exist
 cd $LOCAL_DIR
@@ -26,4 +30,4 @@ cp -a $CURRENT_DIR/* $WORKDIR/ || { echo 'sco failed' ; exit 1; }
 
 echo -e "${GREENBOLD}Copy configuration...${NC}"
 mkdir -p $WORKDIR/configs/prod/
-cp -a ~/$CONFIGDIR_SECURE/. $WORKDIR/configs/prod/
+cp -a $CONFIGDIR_SECURE/. $WORKDIR/configs/prod/

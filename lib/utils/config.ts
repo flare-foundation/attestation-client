@@ -4,7 +4,7 @@ import { IReflection, isEqualType } from "./typeReflection";
 const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
-function readJSON<T>(filename: string) {
+export function readJSON<T>(filename: string) {
   const fs = require("fs");
 
   let data = fs.readFileSync(filename).toString();

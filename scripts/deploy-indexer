@@ -1,5 +1,6 @@
 export USER=ubuntu
-export SERVER=34.122.152.143
+#export SERVER=34.122.152.143
+export SERVER=34.89.247.51
 
 export CURRENT_DIR=$(pwd)
 export WORKDIR="global/indexer"
@@ -11,6 +12,8 @@ export FNAME=latest-attester-client.tgz
 export MCC_FNAME=mcc.tgz
 export BACKUPDIR="global/.backup"
 export CONFIGDIR="global/.config"
+
+export CHAIN="coston"
 
 export BRANCH=main
 export MCC_BRANCH=main

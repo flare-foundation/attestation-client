@@ -1,9 +1,13 @@
-import { ColorConsole, getGlobalLogger, logException } from "../utils/logger";
+import { getTimeMilli } from "../utils/internetTime";
+import { getGlobalLogger, logException } from "../utils/logger";
+import { ServiceStatus } from "../utils/serviced";
 import { Terminal } from "../utils/terminal";
 import { sleepms } from "../utils/utils";
 
+
 export class MenuItemBase {
     name: string = "";
+    displayName: string = null;
 
     menu: Menu;
 
@@ -16,12 +20,25 @@ export class MenuItemBase {
         this.parent = parent;
     }
 
+    refresh() {
+        if (this.menu.activeItem === this.parent) {
+            this.menu.refresh();
+        }
+    }
+
+
     addSubmenu(name: string): MenuItemBase {
         return this.add(new MenuItemBase(name, this));
     }
 
     addCommand(name: string, command: string): MenuItemBase {
         return this.add(new MenuItemCommand(name, command, this));
+    }
+    addService(name: string, serviceName: string): MenuItemBase {
+        return this.add(new MenuItemService(name, serviceName, this));
+    }
+    getDisplay() {
+        return this.displayName ? this.displayName : this.name;
     }
 
     add(item: MenuItemBase): MenuItemBase {
@@ -31,7 +48,6 @@ export class MenuItemBase {
     }
 
     async onExecute?();
-
     execute() {
         if (this.items != null && this.items.length > 0) {
             this.menu.navigate(this);
@@ -64,19 +80,61 @@ export class MenuItemCommand extends MenuItemBase {
         const { exec } = require("child_process");
         const execObj = exec(this.command);
 
-        execObj.stdout.on('data', function(data) {
-            console.log(data); 
-        });    
+        execObj.stdout.on('data', function (data) {
+            console.log(data);
+        });
 
-        execObj.on('exit', function() {
+        execObj.on('exit', function () {
             done = true;
-          })
+        })
 
-        while( !done ) {
-            await sleepms( 100 );
+        // wait until exec is completed
+        while (!done) {
+            await sleepms(100);
         }
 
         getGlobalLogger().info('exec completed\n');
+    }
+}
+
+type NewType = ServiceStatus;
+
+export class MenuItemService extends MenuItemBase {
+
+    serviceStatus: NewType;
+
+    constructor(name: string, serviceName: string, parent: MenuItemBase) {
+        super(name, parent);
+
+        this.serviceStatus = new ServiceStatus(serviceName);
+
+        this.displayName = `${name} ...`;
+
+        this.serviceStatus.getStatus().then( (status)=>{
+            this.displayName = `${this.name} ${status}`;
+
+            this.refresh();
+        }).catch( (error)=>{
+            this.displayName = `${this.name} ^r${error}^^`;
+
+            this.refresh();
+        })
+        //this.update();
+    }
+
+    async update() {
+        let a = 0;
+        while (1) {
+            this.displayName = `${this.name} ${a}`;
+
+            this.refresh();
+
+            await sleepms(1000);
+            a++;
+        }
+    }
+
+    async onExecute() {
     }
 }
 
@@ -84,6 +142,8 @@ export class Menu {
     root: MenuItemBase;
 
     activeItem: MenuItemBase;
+
+    terminal = new Terminal(process.stderr);
 
     done = false;
 
@@ -119,34 +179,48 @@ export class Menu {
         this.navigate(this.activeItem.parent);
     }
 
+    lastRefresh = 0;
+
+    refresh() {
+
+        //if( this.lastRefresh - getTimeMilli() < 500 ) return;
+
+        this.display();
+    }
+
     display() {
+
+
+        this.lastRefresh = getTimeMilli();
+
+        this.terminal.cursorRestore();
 
         let a = 1;
 
         const logger = getGlobalLogger();
 
         logger.group(` Attestation Suite Admin                                 `);
-        logger.info (`                                                         `);
+        logger.info(`                                                         `);
 
         let path = this.activeItem.name;
 
-        for( var prev = this.activeItem.parent; prev; prev=prev.parent) {
-            if( prev.name!="" ) {
-               path = `${prev.name}/${path}`;
+        for (var prev = this.activeItem.parent; prev; prev = prev.parent) {
+            if (prev.name != "") {
+                path = `${prev.name}/${path}`;
             }
         }
 
         let back = "Back";
-        if( this.root === this.activeItem ) back = "Exit";
+        if (this.root === this.activeItem) back = "Exit";
         logger.info(` ^w^R ${path}  ^^                                `);
         logger.info(` ^w^K 0 ^^^G ${back}                           `);
 
         for (let item of this.activeItem.items) {
             let sub = "";
-            if( item.items.length>0 ) {
-                sub="^w>^^";2
+            if (item.items.length > 0) {
+                sub = "^w>^^"; 2
             }
-            logger.info(` ^w^K ${a} ^^ ${item.name} ${sub}                       `);
+            logger.info(` ^w^K ${a} ^^ ${item.getDisplay()} ${sub}                       `);
             a++;
         }
 
@@ -180,13 +254,9 @@ export class Menu {
 
     async run() {
 
-        const terminal = new Terminal(process.stderr);
-
-        terminal.cursorSave();
+        this.terminal.cursorSave();
 
         while (!this.done) {
-            terminal.cursorRestore();
-
             this.display();
 
             const key = await this.waitForInput();
@@ -197,6 +267,10 @@ export class Menu {
             }
 
             if (action == -1) {
+                if (this.root === this.activeItem) {
+                    return;
+                }
+
                 this.navigateBack();
             }
             else {

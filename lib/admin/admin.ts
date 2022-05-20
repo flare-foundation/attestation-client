@@ -1,6 +1,6 @@
 import { Menu } from "./menu";
 
-function admin() {
+async function admin() {
     const menu = new Menu();
 
     menu.addCommand("Update", "git pull & bash ./scripts/compile.sh");
@@ -42,8 +42,21 @@ function admin() {
             addCommand("Coston Attestation Client", "systemctl --user restart coston-attester-client").parent.
             addCommand("Coston backend", "systemctl --user restart coston-backend").parent.
             addCommand("Songbird Attestation Client", "systemctl --user restart songbird-attester-client").parent.
-            addCommand("Songbird backend", "systemctl --user restart songbird-backend").parent;
-
+            addCommand("Songbird backend", "systemctl --user restart songbird-backend").parent.
+        parent.
+        addSubmenu("Status").
+            addSubmenu("Indexer").
+                addService("ALGO", "indexer-algo").parent.
+                addService("BTC", "indexer-btc").parent.
+                addService("DOGE", "indexer-doge").parent.
+                addService("LTC", "indexer-ltc").parent.
+                addService("XRP", "indexer-xrp").parent.
+            parent.
+            addService("Alerts", "attester-alerts").parent.
+            addService("Coston Attestation Client", "coston-attester-client").parent.
+            addService("Coston backend", "coston-backend").parent.
+            addService("Songbird Attestation Client", "songbird-attester-client").parent.
+            addService("Songbird backend", "songbird-backend").parent;
 
     menu.addSubmenu("Show log").
             addSubmenu("Indexer").
@@ -59,7 +72,16 @@ function admin() {
             addCommand("Songbird Attestation Client", "ctail -f -i ../songbird/attester-client/logs/attester-global.log").parent.
             addCommand("Songbird backend", "ctail -f -i ../songbird/backend/logs/attester-global.log").parent;
 
-    menu.run();
+    await menu.run();
 }
 
-admin();
+async function run() {
+    await admin();
+}
+
+run()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

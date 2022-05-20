@@ -4,7 +4,7 @@ import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
 import { EServiceStatus } from "../utils/serviced";
 import { sleepms } from "../utils/utils";
-import { Menu, MenuItemCommand, MenuItemService } from "./menu";
+import { Menu, MenuItemCommand, MenuItemLog, MenuItemService } from "./menu";
 
 async function admin() {
     const menu = new Menu();
@@ -129,7 +129,7 @@ async function admin() {
         }
         else {
             // wait for execution to stop
-            while (MenuItemCommand.working) {
+            while (MenuItemCommand.working || MenuItemLog.working ) {
                 await sleepms(100);
             }
         }

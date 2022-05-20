@@ -1,4 +1,3 @@
-import { getTimeMilli } from "../utils/internetTime";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { EServiceStatus, ServiceStatus } from "../utils/serviced";
 import { Terminal } from "../utils/terminal";
@@ -101,45 +100,52 @@ export class MenuItemCommand extends MenuItemBase {
 
 type NewType = ServiceStatus;
 
+
 export class MenuItemService extends MenuItemBase {
 
-    serviceStatus : ServiceStatus;
+    serviceStatus: ServiceStatus;
+
+    refreshing = false;
+
+    static servicemMonitors = [];
 
     constructor(name: string, serviceName: string, parent: MenuItemBase) {
         super(name, parent);
 
         this.serviceStatus = new ServiceStatus(serviceName);
 
-        this.displayName = `${name} ...`;
+        MenuItemService.servicemMonitors.push( this.serviceStatus );
 
-        this.serviceStatus.getStatus().then( (status)=>{
-            getGlobalLogger().debug( `MenuItemService status ${status}`)
+        this.updateStatus();
+    }
+
+    updateStatus() {
+        if (this.refreshing) return;
+
+        this.refreshing = true;
+
+        this.displayName = `${this.name} ...`;
+
+        this.serviceStatus.getStatus().then((status) => {
+            //getGlobalLogger().debug( `MenuItemService status ${status}`)
 
             this.displayName = `${this.name} ^w^R${EServiceStatus[status]}^^`;
+            this.refreshing = false;
 
             this.refresh();
-        }).catch( (error)=>{
-            logException( error , `MenuItemService`);
+        }).catch((error) => {
+            //logException( error , `MenuItemService`);
 
             this.displayName = `${this.name} ^r${error}^^`;
+            this.refreshing = false;
 
             this.refresh();
         })
     }
 
-    async update() {
-        let a = 0;
-        while (1) {
-            this.displayName = `${this.name} ${a}`;
-
-            this.refresh();
-
-            await sleepms(1000);
-            a++;
-        }
-    }
-
     async onExecute() {
+        this.updateStatus();
+        this.refresh();
     }
 }
 
@@ -151,6 +157,8 @@ export class Menu {
     terminal = new Terminal(process.stderr);
 
     done = false;
+
+    onDisplay = ()=>{};
 
     constructor() {
         this.root = new MenuItemBase("", null);
@@ -184,16 +192,16 @@ export class Menu {
         this.navigate(this.activeItem.parent);
     }
 
-    refresh(newLocation=false) {
+    refresh(newLocation = false) {
 
         //if( this.lastRefresh - getTimeMilli() < 500 ) return;
 
         this.display(newLocation);
     }
 
-    display(newLocation=false) {
+    display(newLocation = false) {
 
-        if( newLocation ) {
+        if (newLocation) {
             this.terminal.cursorSave();
         }
         else {
@@ -206,6 +214,8 @@ export class Menu {
 
         logger.group(` Attestation Suite Admin                                 `);
         logger.info(`                                                         `);
+
+        this.onDisplay();
 
         let path = this.activeItem.name;
 
@@ -235,6 +245,34 @@ export class Menu {
         }
 
         logger.info(` `);
+        this.terminal.clearLine();
+    }
+
+    keys = [];
+    async startInputRead() {
+        process.stdin.setRawMode(true)
+        process.stdin.on('data', data => {
+            const byteArray = [...data]
+            if (byteArray.length > 0 && byteArray[0] === 3) {
+                console.log('^C')
+                process.exit(1)
+            }
+            this.keys.push(byteArray[0]);
+        });
+    }
+
+    isKey() {
+        return this.keys.length > 0;
+    }
+
+    getKey() {
+        if( !this.isKey() ) return -1;
+
+        return this.keys.shift();
+    }
+
+    async waitForInputTimeout(timeout: number ) {
+        return await Promise.race([this.waitForInput(), sleepms(timeout)]);
     }
 
     async waitForInput(): Promise<number> {
@@ -257,31 +295,42 @@ export class Menu {
         return res as number;
     }
 
+    processInput(key: number): boolean {
+        const action = key - 49;
+
+        if (action < -1) {
+            return false;
+        }
+
+        if (action == -1) {
+            if (this.root === this.activeItem) {
+                this.done = true;
+                return true;
+            }
+
+            this.navigateBack();
+        }
+        else {
+            if (action < this.activeItem?.items.length) {
+                this.activeItem.items[action].execute();
+            }
+        }
+
+        return false;
+    }
+
+
     async run() {
 
-        this.terminal.cursorSave();
+        this.display(true);
 
         while (!this.done) {
             this.display();
 
             const key = await this.waitForInput();
-            const action = key - 49;
 
-            if (action < -1) {
-                continue;
-            }
-
-            if (action == -1) {
-                if (this.root === this.activeItem) {
-                    return;
-                }
-
-                this.navigateBack();
-            }
-            else {
-                if (action < this.activeItem?.items.length) {
-                    this.activeItem.items[action].execute();
-                }
+            if (this.processInput(key)) {
+                return;
             }
         }
     }

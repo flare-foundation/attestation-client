@@ -15,10 +15,19 @@ class AlertBackendConfig {
     restart = "";
 }
 
-class AlertDatabaseConfig {
+class AlertDatabaseConfig implements IReflection<AlertDatabaseConfig> {
     name = "";
     @optional() database = "attester";
     connection = new DatabaseConnectOptions();
+
+    instanciate() {
+        return new AlertDatabaseConfig();
+    }
+
+    getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+        return null;        
+    }
+
 }
 
 

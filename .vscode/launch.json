@@ -15,6 +15,16 @@
                 "dev"
             ]
         },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Admin",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devadmin"
+            ]
+        },
 
         {
             "type": "node",
@@ -46,10 +56,7 @@
             "name": "Launch Alerts",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "devalerts",
-                "logs/attester-globals.log",
-                "-f",
-                "-n","100"
+                "devalerts"
             ]
         },
 

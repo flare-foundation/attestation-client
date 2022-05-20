@@ -117,6 +117,11 @@ export class MenuItemService extends MenuItemBase {
         MenuItemService.servicemMonitors.push( this.serviceStatus );
 
         this.updateStatus();
+
+        this.addCommand( "Enable" , `systemctl --user enable ${name}` );
+        this.addCommand( "Disable" , `systemctl --user disable ${name}` );
+        this.addCommand( "Stop" , `systemctl --user stop ${name}` );
+        this.addCommand( "Restart" , `systemctl --user restart ${name}` );
     }
 
     updateStatus() {

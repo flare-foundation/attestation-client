@@ -23,11 +23,11 @@ async function admin() {
         addCommand("^RRestart all", "bash ./scripts/services-restart-all").parent.
         addCommand("^RStop all", "bash ./scripts/services-stop-all").parent.
         addSubmenu("Indexer").
-        addService("ALGO", "indexer-algo").parent.
-        addService("BTC", "indexer-btc").parent.
-        addService("DOGE", "indexer-doge").parent.
-        addService("LTC", "indexer-ltc").parent.
-        addService("XRP", "indexer-xrp").parent.
+            addService("ALGO", "indexer-algo").parent.
+            addService("BTC", "indexer-btc").parent.
+            addService("DOGE", "indexer-doge").parent.
+            addService("LTC", "indexer-ltc").parent.
+            addService("XRP", "indexer-xrp").parent.
         parent.
         addService("Alerts", "attester-alerts").parent.
         addService("Coston Attestation Client", "coston-attester-client").parent.
@@ -37,17 +37,17 @@ async function admin() {
 
     menu.addSubmenu("Show log").
         addSubmenu("Indexer").
-        addCommand("ALGO", "ctail -f -i ../global/indexer/logs/attester-ALGO.log").parent.
-        addCommand("BTC", "ctail -f -i ../global/indexer/logs/attester-BTC.log").parent.
-        addCommand("DOGE", "ctail -f -i ../global/indexer/logs/attester-DOGE.log").parent.
-        addCommand("LTC", "ctail -f -i ../global/indexer/logs/attester-LTC.log").parent.
-        addCommand("XRP", "ctail -f -i ../global/indexer/logs/attester-XRP.log").parent.
+            addLog("ALGO", "../global/indexer/logs/attester-ALGO.log").parent.
+            addLog("BTC", "../global/indexer/logs/attester-BTC.log").parent.
+            addLog("DOGE", "../global/indexer/logs/attester-DOGE.log").parent.
+            addLog("LTC", "../global/indexer/logs/attester-LTC.log").parent.
+            addLog("XRP", "../global/indexer/logs/attester-XRP.log").parent.
         parent.
-        addCommand("Alerts", "ctail -f -i ../global/alerts/logs/attester-global.log").parent.
-        addCommand("Coston Attestation Client", "ctail -f -i ../coston/attester-client/logs/attester-global.log").parent.
-        addCommand("Coston backend", "ctail -f -i ../coston/backend/logs/attester-global.log").parent.
-        addCommand("Songbird Attestation Client", "ctail -f -i ../songbird/attester-client/logs/attester-global.log").parent.
-        addCommand("Songbird backend", "ctail -f -i ../songbird/backend/logs/attester-global.log").parent;
+        addLog("Alerts", "../global/alerts/logs/attester-global.log").parent.
+        addLog("Coston Attestation Client", "../coston/attester-client/logs/attester-global.log").parent.
+        addLog("Coston backend", "../coston/backend/logs/attester-global.log").parent.
+        addLog("Songbird Attestation Client", "../songbird/attester-client/logs/attester-global.log").parent.
+        addLog("Songbird backend", "../songbird/backend/logs/attester-global.log").parent;
 
     //await menu.run();
 

@@ -59,7 +59,7 @@ export class ServiceStatus {
                     }
 
                     if (response.indexOf("Active: failed") >= 0) {
-                        this.status = EServiceStatus.inactive
+                        this.status = EServiceStatus.failed
                         resolve(this.status);
                         return;
                     }

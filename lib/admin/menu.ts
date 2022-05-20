@@ -1,4 +1,4 @@
-import { getGlobalLogger, logException } from "../utils/logger";
+import { ColorConsole, getGlobalLogger, logException } from "../utils/logger";
 import { EServiceStatus, ServiceStatus } from "../utils/serviced";
 import { Terminal } from "../utils/terminal";
 import { sleepms } from "../utils/utils";
@@ -35,6 +35,9 @@ export class MenuItemBase {
     }
     addService(name: string, serviceName: string): MenuItemBase {
         return this.add(new MenuItemService(name, serviceName, this));
+    }
+    addLog(name: string, filename: string): MenuItemBase {
+        return this.add(new MenuItemLog(name, filename, this));
     }
     getDisplay() {
         return this.displayName ? this.displayName : this.name;
@@ -159,6 +162,78 @@ export class MenuItemService extends MenuItemBase {
         this.refresh();
     }
 }
+
+export class MenuItemLog extends MenuItemBase {
+
+    filename: string ="";
+
+
+    constructor(name: string, filename: string, parent: MenuItemBase) {
+        super(name, parent);
+
+        this.filename=filename;
+    }
+
+    displayLine(colorConsole: ColorConsole, data: string) {
+        //console.log(data);
+    
+        // 123456789 123456789 123456789 123456789 123456789 
+        // 2022-04-04T08:09:02.230Z  - global:[info]: roundManager initialize
+    
+        const pos0 = data.indexOf(' ');
+        const pos1 = data.indexOf('[');
+        const pos2 = data.indexOf(']');
+    
+        if (pos0 === -1 || pos1 === -1 || pos2 === -1) {
+            console.log(data);
+            return;
+        }
+    
+        const info = {
+            level: data.substring(pos1 + 1, pos2),
+            message: data.substring(pos2 + 2),
+            timestamp: data.substring(0, pos0)
+        }
+    
+        //console.log( info );
+    
+        colorConsole.log(info, null);
+    }
+    
+    displayFile(filename: string, lines: number, follow: boolean) {
+        //console.log(filename);
+        //console.log(lines);
+        //console.log(follow);
+    
+        const fs = require('fs');
+    
+        const colorConsole = new ColorConsole();
+    
+        if (lines > 0) {
+            let data = fs.readFileSync(filename).toString('utf-8'); {
+                let textByLine = data.split("\n")
+                for (let i = Math.max(0, textByLine.length - lines); i < textByLine.length; i++) {
+                    this.displayLine(colorConsole, textByLine[i]);
+                }
+            };
+        }
+    
+        if (follow) {
+            const Tail = require('tail').Tail;
+    
+            const tail = new Tail(filename);
+    
+            tail.on("line", function (data) { this.displayLine(colorConsole, data); });
+        }
+    }
+    
+
+    async onExecute() {
+        this.displayFile( this.filename , 100 , true );
+    }
+}
+
+
 
 export class Menu {
     root: MenuItemBase;

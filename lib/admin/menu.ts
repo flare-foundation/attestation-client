@@ -233,7 +233,8 @@ export class MenuItemLog extends MenuItemBase {
                 await sleepms( 100 );
 
                 if( Menu.isKey() ) {
-                    return;
+                    tail.unwatch();
+                    break;
                 }
             }
         }
@@ -253,7 +254,8 @@ export class MenuItemLog extends MenuItemBase {
             logException( error , "" );
         }
 
-        getGlobalLogger().group( `                                                                                      `)
+        getGlobalLogger().group( ` <file end>                                                                                     `)
+        getGlobalLogger().info( `                                                                                         `)
 
         MenuItemLog.working = false;
     }

@@ -51,7 +51,7 @@ async function admin() {
 
     //await menu.run();
 
-    //menu.startInputRead();
+    Menu.startInputRead();
 
     // initialize alerts
     AlertBase.restartEnabled = false;

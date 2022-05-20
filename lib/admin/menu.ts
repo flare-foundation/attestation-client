@@ -200,7 +200,7 @@ export class MenuItemLog extends MenuItemBase {
         colorConsole.log(info, null);
     }
     
-    displayFile(filename: string, lines: number, follow: boolean) {
+    async displayFile(filename: string, lines: number, follow: boolean) {
         //console.log(filename);
         //console.log(lines);
         //console.log(follow);
@@ -223,13 +223,21 @@ export class MenuItemLog extends MenuItemBase {
     
             const tail = new Tail(filename);
     
-            tail.on("line", function (data) { this.displayLine(colorConsole, data); });
+            tail.on("line", function (data) { this.displayLine(colorConsole, data); }).bind(this);
+
+            while(1) {
+                await sleepms( 100 );
+
+                if( Menu.isKey() ) {
+                    return;
+                }
+            }
         }
     }
     
 
     async onExecute() {
-        this.displayFile( this.filename , 100 , true );
+        await this.displayFile( this.filename , 100 , true );
     }
 }
 
@@ -334,8 +342,8 @@ export class Menu {
         this.terminal.clearLine();
     }
 
-    keys = [];
-    async startInputRead() {
+    static keys = [];
+    static async startInputRead() {
         process.stdin.setRawMode(true)
         process.stdin.on('data', data => {
             const byteArray = [...data]
@@ -343,18 +351,18 @@ export class Menu {
                 console.log('^C')
                 process.exit(1)
             }
-            this.keys.push(byteArray[0]);
+            Menu.keys.push(byteArray[0]);
         });
     }
 
-    isKey() {
-        return this.keys.length > 0;
+    static isKey() {
+        return Menu.keys.length > 0;
     }
 
-    getKey() {
-        if( !this.isKey() ) return -1;
+    static getKey() {
+        if( !Menu.isKey() ) return -1;
 
-        return this.keys.shift();
+        return Menu.keys.shift();
     }
 
     async waitForInputTimeout(timeout: number ) {

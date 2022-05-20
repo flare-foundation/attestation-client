@@ -3,7 +3,8 @@ import { AlertsManager } from "../alerts/AlertsManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger } from "../utils/logger";
 import { EServiceStatus } from "../utils/serviced";
-import { Menu, MenuItemService } from "./menu";
+import { sleepms } from "../utils/utils";
+import { Menu, MenuItemCommand, MenuItemService } from "./menu";
 
 async function admin() {
     const menu = new Menu();
@@ -22,11 +23,11 @@ async function admin() {
         addCommand("^RRestart all", "bash ./scripts/services-restart-all").parent.
         addCommand("^RStop all", "bash ./scripts/services-stop-all").parent.
         addSubmenu("Indexer").
-            addService("ALGO", "indexer-algo").parent.
-            addService("BTC", "indexer-btc").parent.
-            addService("DOGE", "indexer-doge").parent.
-            addService("LTC", "indexer-ltc").parent.
-            addService("XRP", "indexer-xrp").parent.
+        addService("ALGO", "indexer-algo").parent.
+        addService("BTC", "indexer-btc").parent.
+        addService("DOGE", "indexer-doge").parent.
+        addService("LTC", "indexer-ltc").parent.
+        addService("XRP", "indexer-xrp").parent.
         parent.
         addService("Alerts", "attester-alerts").parent.
         addService("Coston Attestation Client", "coston-attester-client").parent.
@@ -50,10 +51,10 @@ async function admin() {
 
     //await menu.run();
 
-    menu.startInputRead();
+    //menu.startInputRead();
 
     // initialize alerts
-    AlertBase.restartEnabled=false;
+    AlertBase.restartEnabled = false;
     const alerts = new AlertsManager();
     for (let alert of alerts.alerts) {
         await alert.initialize();
@@ -65,19 +66,19 @@ async function admin() {
     const logger = getGlobalLogger();
 
     menu.onDisplay = () => {
-        logger.info( `^E System Monitor                                    `);
+        logger.info(`^E System Monitor                                    `);
         for (let resAlert of resAlerts) {
             resAlert.displayStatus(logger);
         }
-        logger.info( `                                                  `);
-        logger.info( `^E Performance Monitor                              `);
+        logger.info(`                                                  `);
+        logger.info(`^E Performance Monitor                              `);
         for (let resPerf of resPerfs) {
             resPerf.displayStatus(logger);
         }
 
-        logger.info( `                                                  `);
-        logger.info( `^E Services                                       `);
-        for(let service of MenuItemService.servicemMonitors ) {
+        logger.info(`                                                  `);
+        logger.info(`^E Services                                       `);
+        for (let service of MenuItemService.servicemMonitors) {
 
             let color = "^y^K";
             switch (service.status) {
@@ -85,14 +86,14 @@ async function admin() {
                 case EServiceStatus.failed: color = "^b^W"; break;
                 case EServiceStatus.active: color = "^g^K"; break;
             }
-    
+
             logger.info(`${service.name.padEnd(30)}  ${color} ${EServiceStatus[service.status].padEnd(10)} ^^  ^B${service.comment}                              `);
         }
 
-        logger.info( `                                                  `);
+        logger.info(`                                                  `);
     }
-    
-    menu.display(true);2
+
+    menu.display(true); 2
 
     while (!menu.done) {
 
@@ -112,18 +113,24 @@ async function admin() {
 
             if (!resPerf) continue;
 
-            for(let i of resPerf) {
-               resPerfs.push(i);
+            for (let i of resPerf) {
+                resPerfs.push(i);
             }
         }
 
         // update menu
         menu.display();
 
-        const key = await menu.waitForInputTimeout(1000);
+        const key = await menu.waitForInputTimeout(5000);
 
         if (key) {
             menu.processInput(menu.getKey());
+        }
+        else {
+            // wait for execution to stop
+            while (MenuItemCommand.working) {
+                await sleepms(100);
+            }
         }
     }
 }

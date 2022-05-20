@@ -64,6 +64,8 @@ export class MenuItemCommand extends MenuItemBase {
 
     command: string;
 
+    static working = false;
+
     constructor(name: string, command: string, parent: MenuItemBase) {
         super(name, parent);
         this.command = command;
@@ -73,6 +75,8 @@ export class MenuItemCommand extends MenuItemBase {
     async onExecute() {
 
         getGlobalLogger().info(`execute ^g${this.command}^^`);
+
+        MenuItemCommand.working=true;
 
         let done = false;
 
@@ -91,6 +95,8 @@ export class MenuItemCommand extends MenuItemBase {
         while (!done) {
             await sleepms(100);
         }
+
+        MenuItemCommand.working=false;
 
         getGlobalLogger().info('exec completed\n');
 

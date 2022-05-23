@@ -55,6 +55,7 @@
     "devctail": "CONFIG_PATH=dev NODE_ENV=development yarn ts-node-dev --notify --respawn lib/tools/ctail/ctail.ts",
     "devconfig": "yarn ts-node-dev --notify --respawn lib/attester/configvalidate.ts",
     "devadmin": "DOTENV=DEV CONFIG_PATH=.secure.dev yarn ts-node lib/admin/admin.ts",
+    "devinstall": "DOTENV=DEV CONFIG_PATH=.secure.dev yarn ts-node lib/install/install.ts ../attestation-suite-config/",
     "admin": "CONFIG_PATH=.secure node dist/lib/admin/admin.js"
   },
   "dependencies": {

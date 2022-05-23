@@ -1,266 +1,9 @@
-import { ColorConsole, getGlobalLogger, logException } from "../utils/logger";
-import { EServiceStatus, ServiceStatus } from "../utils/serviced";
+import { getGlobalLogger } from "../utils/logger";
 import { Terminal } from "../utils/terminal";
 import { sleepms } from "../utils/utils";
-
-
-export class MenuItemBase {
-    name: string = "";
-    displayName: string = null;
-
-    menu: Menu;
-
-    items = [];
-    parent: MenuItemBase;
-
-    constructor(name: string, parent: MenuItemBase) {
-        this.name = name;
-        this.menu = parent?.menu;
-        this.parent = parent;
-    }
-
-    refresh(newLocation = false) {
-        if (this.menu.activeItem === this.parent) {
-            this.menu.refresh(newLocation);
-        }
-    }
-
-
-    addSubmenu(name: string): MenuItemBase {
-        return this.add(new MenuItemBase(name, this));
-    }
-
-    addCommand(name: string, command: string): MenuItemBase {
-        return this.add(new MenuItemCommand(name, command, this));
-    }
-    addService(name: string, serviceName: string): MenuItemBase {
-        return this.add(new MenuItemService(name, serviceName, this));
-    }
-    addLog(name: string, filename: string): MenuItemBase {
-        return this.add(new MenuItemLog(name, filename, this));
-    }
-    getDisplay() {
-        return this.displayName ? this.displayName : this.name;
-    }
-
-    add(item: MenuItemBase): MenuItemBase {
-        this.items.push(item);
-
-        return item;
-    }
-
-    async onExecute?();
-    execute() {
-        if (this.items != null && this.items.length > 0) {
-            this.menu.navigate(this);
-            return;
-        }
-
-        try {
-            this.onExecute();
-        }
-        catch (error) { logException(error, "MenuBase::execute") }
-    }
-}
-
-export class MenuItemCommand extends MenuItemBase {
-
-    command: string;
-
-    static working = false;
-
-    constructor(name: string, command: string, parent: MenuItemBase) {
-        super(name, parent);
-        this.command = command;
-    }
-
-
-    async onExecute() {
-
-        getGlobalLogger().info(`execute ^g${this.command}^^`);
-
-        MenuItemCommand.working=true;
-
-        let done = false;
-
-        const { exec } = require("child_process");
-        const execObj = exec(this.command);
-
-        execObj.stdout.on('data', function (data) {
-            console.log(data.replace(/\n$/, ""));
-        });
-
-        execObj.on('exit', function () {
-            done = true;
-        })
-
-        // wait until exec is completed
-        while (!done) {
-            await sleepms(100);
-        }
-
-        MenuItemCommand.working=false;
-
-        getGlobalLogger().info('exec completed\n');
-
-        this.refresh(true);
-    }
-}
-
-type NewType = ServiceStatus;
-
-
-export class MenuItemService extends MenuItemBase {
-
-    serviceStatus: ServiceStatus;
-
-    refreshing = false;
-
-    static servicemMonitors = [];
-
-    constructor(name: string, serviceName: string, parent: MenuItemBase) {
-        super(name, parent);
-
-        this.serviceStatus = new ServiceStatus(serviceName);
-
-        MenuItemService.servicemMonitors.push( this.serviceStatus );
-
-        this.updateStatus();
-
-        this.addCommand( "Enable" , `systemctl --user enable ${name}` );
-        this.addCommand( "Disable" , `systemctl --user disable ${name}` );
-        this.addCommand( "Stop" , `systemctl --user stop ${name}` );
-        this.addCommand( "Restart" , `systemctl --user restart ${name}` );
-    }
-
-    updateStatus() {
-        if (this.refreshing) return;
-
-        this.refreshing = true;
-
-        this.displayName = `${this.name} ...`;
-
-        this.serviceStatus.getStatus().then((status) => {
-            //getGlobalLogger().debug( `MenuItemService status ${status}`)
-
-            this.displayName = `${this.name} ^w^R${EServiceStatus[status]}^^`;
-            this.refreshing = false;
-
-            this.refresh();
-        }).catch((error) => {
-            //logException( error , `MenuItemService`);
-
-            this.displayName = `${this.name} ^r${error}^^`;
-            this.refreshing = false;
-
-            this.refresh();
-        })
-    }
-
-    async onExecute() {
-        this.updateStatus();
-        this.refresh();
-    }
-}
-
-function displayLine(colorConsole: ColorConsole, data: string) {
-    //console.log(data);
-
-    // 123456789 123456789 123456789 123456789 123456789 
-    // 2022-04-04T08:09:02.230Z  - global:[info]: roundManager initialize
-
-    const pos0 = data.indexOf(' ');
-    const pos1 = data.indexOf('[');
-    const pos2 = data.indexOf(']');
-
-    if (pos0 === -1 || pos1 === -1 || pos2 === -1) {
-        console.log(data);
-        return;
-    }
-
-    const info = {
-        level: data.substring(pos1 + 1, pos2),
-        message: data.substring(pos2 + 2),
-        timestamp: data.substring(0, pos0)
-    }
-
-    //console.log( info );
-
-    colorConsole.log(info, null);
-}
-
-
-export class MenuItemLog extends MenuItemBase {
-
-    filename: string ="";
-
-    static working = false;
-
-
-    constructor(name: string, filename: string, parent: MenuItemBase) {
-        super(name, parent);
-
-        this.filename=filename;
-    }
-
-    
-    async displayFile(filename: string, lines: number, follow: boolean) {
-        //console.log(filename);
-        //console.log(lines);
-        //console.log(follow);
-
-        const fs = require('fs');
-    
-        const colorConsole = new ColorConsole();
-    
-        if (lines > 0) {
-            let data = fs.readFileSync(filename).toString('utf-8'); {
-                let textByLine = data.split("\n")
-                for (let i = Math.max(0, textByLine.length - lines); i < textByLine.length; i++) {
-                    displayLine(colorConsole, textByLine[i]);
-                }
-            };
-        }
-    
-        if (follow) {
-            const Tail = require('tail').Tail;
-    
-            const tail = new Tail(filename);
-    
-            tail.on("line", function (data) { displayLine(colorConsole, data); });
-
-            while(1) {
-                await sleepms( 100 );
-
-                if( Menu.isKey() ) {
-                    tail.unwatch();
-                    break;
-                }
-            }
-        }
-    }
-    
-
-    async onExecute() {
-        MenuItemLog.working = true;
-
-        getGlobalLogger().group( `File '${this.filename}'                                                         `)
-
-        try {
-
-            await this.displayFile( this.filename , 100 , true );
-        }
-        catch(error ) {
-            logException( error , "" );
-        }
-
-        getGlobalLogger().group( ` <file end>                                                                                     `)
-        getGlobalLogger().info( `                                                                                         `)
-
-        MenuItemLog.working = false;
-    }
-}
-
+import { MenuItem } from "./menuItem";
+import { MenuItemBase } from "./menuItemBase";
+import { MenuItemCommand } from "./menuItemCommand";
 
 
 export class Menu {
@@ -272,7 +15,7 @@ export class Menu {
 
     done = false;
 
-    onDisplay = ()=>{};
+    onDisplay = () => { };
 
     constructor() {
         this.root = new MenuItemBase("", null);
@@ -282,16 +25,16 @@ export class Menu {
     }
 
 
-    addSubmenu(name: string): MenuItemBase {
+    addSubmenu(name: string): MenuItem {
         return this.add(new MenuItemBase(name, this.root));
     }
-    addCommand(name: string, command: string): MenuItemBase {
+    addCommand(name: string, command: string): MenuItem {
         return this.add(new MenuItemCommand(name, command, this.root));
     }
 
-    add(item: MenuItemBase): MenuItemBase {
+    add(item: MenuItemBase): MenuItem {
         this.root.add(item);
-        return item;
+        return new MenuItem( item );
     }
 
     navigate(item: MenuItemBase) {
@@ -299,11 +42,11 @@ export class Menu {
     }
 
     navigateBack() {
-        if (!this.activeItem.parent) {
+        if (!this.activeItem.itemParent) {
             return;
         }
 
-        this.navigate(this.activeItem.parent);
+        this.navigate(this.activeItem.itemParent);
     }
 
     refresh(newLocation = false) {
@@ -333,7 +76,7 @@ export class Menu {
 
         let path = this.activeItem.name;
 
-        for (var prev = this.activeItem.parent; prev; prev = prev.parent) {
+        for (var prev = this.activeItem.itemParent; prev; prev = prev.itemParent) {
             if (prev.name != "") {
                 path = `${prev.name}/${path}`;
             }
@@ -380,12 +123,12 @@ export class Menu {
     }
 
     static getKey() {
-        if( !Menu.isKey() ) return -1;
+        if (!Menu.isKey()) return -1;
 
         return Menu.keys.shift();
     }
 
-    async waitForInputTimeout(timeout: number ) {
+    async waitForInputTimeout(timeout: number) {
         return await Promise.race([this.waitForInput(), sleepms(timeout)]);
     }
 

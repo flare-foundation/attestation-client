@@ -118,6 +118,10 @@ export class Menu {
         });
     }
 
+    static clearKeys() {
+        Menu.keys=[];
+    }
+
     static isKey() {
         return Menu.keys.length > 0;
     }

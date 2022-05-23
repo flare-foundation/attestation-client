@@ -69,6 +69,8 @@ export class MenuItemLog extends MenuItemBase {
     
             tail.on("line", function (data) { displayLine(colorConsole, data); });
 
+            Menu.clearKeys();
+
             while(1) {
                 await sleepms( 100 );
 

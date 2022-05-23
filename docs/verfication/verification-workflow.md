@@ -35,5 +35,4 @@ At the beginning of the function one should use the inherited function `verifyPa
 
 An example code with calls to the contract [AttestationClientSC.sol](../../contracts/generated/contracts/AttestationClientSC.sol) is available [here](../../test/generated/AttestationClientMock.test.ts)
 
-
-
+[Back to home](../README.md)

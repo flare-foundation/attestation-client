@@ -49,7 +49,7 @@ YARN can be installed only after NODE.
 For YARN installation use the following script:
 
 ``` bash
-sudo apt install npm
+sudo apt install npm -y
 sudo npm install --global yarn -y
 source ~/.profile 
 yarn --version
@@ -100,6 +100,7 @@ CREATE DATABASE attester;
 
 CREATE USER 'attesterWriter'@'localhost' IDENTIFIED BY '.AttesterWriterPassw0rd';
 GRANT ALL PRIVILEGES ON attester.* TO 'attesterWriter'@'localhost';
+GRANT PROCESS ON *.* TO 'attesterWriter'@'localhost';
 
 CREATE USER 'attesterReader'@'%' IDENTIFIED BY '.AttesterReaderPassw0rd';
 GRANT SELECT ON attester.* TO 'attesterReader'@'%';
@@ -141,6 +142,11 @@ Copy the template configuration files and set them up.
 mkdir -p ~/.attestation-suite-config
 cp ~/attestation-suite/attestation-client/configs/prod/* ~/.attestation-suite-config
 
+```
+
+Use next command to copy secure config to the server
+```
+scp secure.zip ubuntu@34.159.20.238:/home/ubuntu/.attestation-suite-config/
 ```
 
 After all prerequisites and configuration files are setup you can install the Attesttaion Suite with the installation script:

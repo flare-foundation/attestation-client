@@ -1,0 +1,156 @@
+{
+    // chains definition
+    "chains": [
+        {
+            // chain name. allowed names are XRP, BTC, LTC, ALGO, DOGE
+            "name": "XRP",
+            // MCC create options
+            "mccCreate" : {
+                "url": "https://xrplcluster.com",
+                "username":"",
+                "password":"",
+            },
+
+            // rate limiting options
+            "rateLimitOptions": {
+                "maxRPS": 20,
+                "timeoutMs": 30000,
+                "retries": 10
+            },
+            "numberOfConfirmations": 1,
+            "syncReadAhead":20,
+            "blockCollecting":"raw",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+        },
+        {
+            "name": "BTC",
+            "mccCreate" : {
+                "url": "https://bitcoin.flare.network/",
+                "username": "flareadmin",
+                "password": "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4="
+            },
+            "rateLimitOptions": {
+                "maxRPS": 20,
+                "timeoutMs": 15000,
+                "retries": 3
+            },
+            "numberOfConfirmations": 6,
+            "syncReadAhead":10,
+            "blockCollecting":"tips",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+
+        },
+        {
+            "name": "LTC",
+            "mccCreate" : {
+                "url": "https://litecoin-cc.flare.rocks/",
+                "username": "admin",
+                "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"
+            },
+            "rateLimitOptions": {
+                "maxRPS": 300,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "numberOfConfirmations": 6,
+            "syncReadAhead":30,
+            "blockCollecting":"tips",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+        },
+        {
+            "name": "ALGO",
+            "mccCreate": {
+                "algod": {
+                  "url": "http://35.205.203.208:8080/",
+                  "token": "61c3160e49501ee4195cb3e8a8af0e903d4551538589a3fbc23c10f24d665476"
+                },
+                "indexer": {
+                  "url": "http://35.205.203.208:8980/",
+                  "token": "61c3160e49501ee4195cb3e8a8af0e903d4551538589a3fbc23c10f24d665476"
+                }
+            },
+            "rateLimitOptions": {
+                "maxRPS": 300,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "numberOfConfirmations": 3,
+            "syncReadAhead":30,
+            "blockCollecting":"rawUnforkable",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100 ,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+        },
+        {
+            "name": "DOGE",
+            "mccCreate" : {
+                "url": "https://dogecoin-cc.flare.rocks",
+                "username": "admin",
+                "password": "flareopsflareopsflareopsflareopsflareopsflareopsflareopsflareops"
+            },
+            "rateLimitOptions": {
+                "maxRPS": 30,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "numberOfConfirmations": 6,
+            "syncReadAhead":10,
+            "blockCollecting":"tips",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+        }
+
+    ]
+}

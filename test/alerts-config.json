@@ -1,0 +1,50 @@
+{
+    // alert update interval
+    "interval":5000,
+    // time in seconds when system status becomes late
+    "timeLate":5,
+    // time in seconds when system status becomes down
+    "timeDown":10,
+    // time in seconds when system is restarted
+    "timeRestart":120,
+    // path where alert status is saved
+    "stateSaveFilename":"../attester-status.json",
+    // indexer alert systems
+    "indexers" : ["ALGO", "BTC", "DOGE", "LTC", "XRP"],
+    // indexer restart command
+    "indexerRestart":"systemctl --user restart indexer-<name>",
+    // attester-client alert systems
+    "attesters" : [
+        {
+            // attester-client name - used for alert display only
+            "name":"Coston",
+            // attester-client configuration path
+            "path":"../../coston/attester-client/configs/prod/",
+            // attester-client restart command
+            "restart":"systemctl --user restart coston-attester-client"
+        },
+        // {
+        //     "name":"Songbird",
+        //     "path":"../../songbird/attester-client/configs/prod/",
+        //     "restart":"systemctl --user restart songbird-attester-clientxxx"
+        // },
+    ],
+    "backends" : [
+        {
+            "name": "Coston",
+            "address":"https://attestation.flare.network/attester-api/status/services",
+            "restart":"systemctl --user restart coston-attester-client"
+        }
+    ],
+    "databases" : [
+        {
+            "name": "global",
+            "database": "attester",
+            "connection": {
+                "database": "$(AttesterDatabase)",
+                "username": "$(AttesterWriterUsername)",
+                "password": "$(AttesterWriterPassword)"
+            }            
+        }
+    ]
+}

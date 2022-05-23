@@ -1,6 +1,6 @@
 # Code generation
 
-To support easier implementation, we provide special code generation support that enables boilerplate code generation given the type definitions.
+To support easier implementation of new attestation types and management of the existing ones, we provide special code generation support that enables boilerplate code generation given the type definitions.
 The type definition files are placed the folder [lib/verification/attestation-types/](../../lib/verification/attestation-types/). Each type definition file has a special name of the form `t-<5-digit-id>-<dashed-name>.ts`. Once a file with such a name is provided, it is used by the code generation system to generate different pieces of code in the following folders:
 - `verification/verifiers`
 - `verification/generated`

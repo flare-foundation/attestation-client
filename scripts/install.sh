@@ -36,12 +36,12 @@ systemctl --user enable attester-alerts
 # dependecies
 #bash ./scripts/install-dependencies.sh
 
-# prepare configurations
-yarn ts-node lib/install/install.ts ../attestation-suite-config/
-
 # compile
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"
 bash ./scripts/compile.sh
+
+# prepare configurations
+yarn ts-node lib/install/install.ts ../attestation-suite-config/
 
 # deploy
 echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"

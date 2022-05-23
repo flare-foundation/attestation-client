@@ -130,11 +130,10 @@ async function admin() {
         if (key) {
             menu.processInput(key);
         }
-        else {
-            // wait for execution to stop
-            while (MenuItemCommand.working || MenuItemLog.working ) {
-                await sleepms(100);
-            }
+
+        // wait for execution to stop
+        while (MenuItemCommand.working || MenuItemLog.working ) {
+            await sleepms(100);
         }
     }
 }

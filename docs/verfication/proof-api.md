@@ -21,4 +21,7 @@ The web service routes are documented using the Swagger interface. They include:
 - `api/status/services` - provides a status of deployed services from attestation suite (indexers, attestation client)
 - `api/status/services-html` - a simple self-refreshing html page showing the 
 
+Next: [Verification workflow](./verification-workflow.md)
+
+[Back to home](../README.md)
 

@@ -33,7 +33,7 @@ systemctl --user enable coston-backend.service
 
 systemctl --user enable attester-alerts
 
-# dependecies
+# dependencies
 #bash ./scripts/install-dependencies.sh
 
 # compile

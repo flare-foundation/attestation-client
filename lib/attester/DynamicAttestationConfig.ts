@@ -1,4 +1,4 @@
-import { ChainType } from "flare-mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";

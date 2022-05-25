@@ -1,9 +1,7 @@
 # Indexer Installation
 
 ## Prerequisites
-
-Indexer module requires:
-
+Indexer module requires next prerequisites:
 - NODE
 - YARN
 - MYSQL

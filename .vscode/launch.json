@@ -15,6 +15,27 @@
                 "dev"
             ]
         },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Admin",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devadmin"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Install",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devinstall"
+            ]
+        },
 
         {
             "type": "node",
@@ -46,10 +67,7 @@
             "name": "Launch Alerts",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "devalerts",
-                "logs/attester-globals.log",
-                "-f",
-                "-n","100"
+                "devalerts"
             ]
         },
 
@@ -302,10 +320,15 @@
             "name": "Coston Verification",
             "runtimeExecutable": "yarn",
             "env": {
-                "SOURCE_ID": "DOGE",
+                "SOURCE_ID": "BTC",
                 "CONFIG_PATH": "dev",
                 "NODE_ENV":"development"
             },
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
             "runtimeArgs": [
                 "hardhat",
                 "test",

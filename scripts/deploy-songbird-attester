@@ -5,17 +5,17 @@ export CHAIN="songbird"
 
 export CURRENT_DIR=$(pwd)
 export WORKDIR="$CHAIN/attester-client"
-export MCC_WORKDIR="$CHAIN/mcc"
+export MCC_WORKDIR="$CHAIN/multi-chain-client"
 export DEPLOY_NAME="attester-client"
 
-export MCC_LOCAL_FOLDER="../mcc"
+export MCC_LOCAL_FOLDER="../multi-chain-client"
 export FNAME=latest-attester-client.tgz
 export MCC_FNAME=mcc.tgz
 export BACKUPDIR="$CHAIN/.backup"
 export CONFIGDIR="$CHAIN/.config"
 
 export BRANCH=main
-export MCC_BRANCH=master
+export MCC_BRANCH=main
 
 export SERVICE1="$CHAIN-attester-client"
 
@@ -24,5 +24,5 @@ bash ./scripts/deploy-copy-internal
 
 # Restart the app as a service.
 echo -e "${GREENBOLD}Build successful.${NC} Restarting $CHAIN attester"
-ssh -n $USER@$SERVER "systemctl --user restart $SERVICE1" || { echo "Restarting $SERVICE1 failed" ; exit 1; }
+bash ./scripts/restart-service.sh $USER@$SERVER $SERVICE1
 echo -e "${GREENBOLD}Done.${NC}"

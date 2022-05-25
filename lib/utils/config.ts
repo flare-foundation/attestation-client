@@ -4,13 +4,12 @@ import { IReflection, isEqualType } from "./typeReflection";
 const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
-function readJSON<T>(filename: string) {
+export function readJSON<T>(filename: string) {
   const fs = require("fs");
 
   let data = fs.readFileSync(filename).toString();
 
   // remove all comments
-  //data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|(?:[^\w\s]|^)\s*\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/(?=[gmiy]{0,4}\s*(?![*\/])(?:\W|$)))|\/\/.*?$|\/\*[\s\S]*?\*\//gm, '$1');
   data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, '$1');
 
   // remove trailing commas
@@ -36,7 +35,7 @@ function readConfigBase<T extends IReflection<T>>(project: string, type: string,
     }
     else if (process.env.CONFIG_PATH) {
       path += `${process.env.CONFIG_PATH}/`;
-      getGlobalLogger().debug2(`configuration using ^w^K${mode}^^`)
+      getGlobalLogger().debug2(`configuration env.CONFIG_PATH using ^w^K${process.env.CONFIG_PATH}^^`)
     }
     else {
       const modePath = process.env.NODE_ENV === "development" ? DEFAULT_DEBUG_CONFIG_PATH : DEFAULT_CONFIG_PATH;

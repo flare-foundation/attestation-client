@@ -1,4 +1,4 @@
-import { MccClient, unPrefix0x } from "flare-mcc";
+import { MccClient, unPrefix0x } from "@flarenetwork/mcc";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
@@ -325,14 +325,21 @@ export class IndexedQueryManager {
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp >= :timestamp", { timestamp: timestamp })
-      .orderBy("block.blockNumber", "ASC")
-      .limit(1);
+      .orderBy("block.timestamp", "ASC")
+      .limit(20); // no chain produces more than 20 blocks per second
 
-    let result = await query.getOne();
-    if (result) {
-      return result as DBBlockBase;
+    let results = await query.getMany() as DBBlockBase[];
+
+    if (results.length === 0) return null;
+
+    let result = results[0];
+    for (let res of results) {
+      if (res.blockNumber < result.blockNumber) {
+        result = res;
+      }
     }
-    return null
+
+    return result;
   }
 
   /**

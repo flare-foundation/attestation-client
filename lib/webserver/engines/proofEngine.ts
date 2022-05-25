@@ -1,6 +1,6 @@
 import { Factory, Inject, Singleton } from "typescript-ioc";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
-import { ServiceStatus } from "../dto/ServiceStatus";
+import { AlertsStatus, PerformanceStatus, ServiceStatus } from "../dto/ServiceStatus";
 import { SystemStatus } from "../dto/SystemStatus";
 import { VotingRoundResult } from "../dto/VotingRoundResult";
 import { ConfigurationService } from "../services/configurationService";
@@ -78,13 +78,20 @@ export class ProofEngine {
       }
    }
 
-   public async serviceStatus(): Promise<ServiceStatus[]> {
+   public async serviceStatus(): Promise<ServiceStatus> {
       let path = this.configService.serverConfig.serviceStatusFilePath;
       if(!path) {
-         return []
+         return {
+            alerts: [],
+            perf: []
+         }
       }
       let statuses = JSON.parse(fs.readFileSync(path).toString());
-      return statuses as any as ServiceStatus[];
+      let perf = (statuses as any).perf;
+      return {
+         alerts: (statuses as any).alerts as AlertsStatus[],
+         perf
+      } 
    }
 
    public async serviceStatusHtml(): Promise<string> {
@@ -93,10 +100,11 @@ export class ProofEngine {
          latestAvailableRoundId
       } = await this.systemStatus();
       let path = this.configService.serverConfig.serviceStatusFilePath;
-      let statuses = JSON.parse(fs.readFileSync(path).toString()) as ServiceStatus[];
+      let statuses = await this.serviceStatus();
+
 
       let stat = fs.statSync(path);
-      let oneService = (status: ServiceStatus) => {
+      let oneService = (status: AlertsStatus) => {
          return `
       <tr>
          <td>${status.name}</td>
@@ -107,7 +115,20 @@ export class ProofEngine {
 `;
       }
 
-      let rows = statuses.map(oneService).join("\n");
+      let onePerformance = (status: PerformanceStatus) => {
+         return `
+      <tr>
+         <td>${status.name}</td>
+         <td style="padding-right: 1rem">${status.valueName}</td>
+         <td class="align-right">${status.value}</td>         
+         <td style="padding-right: 1rem">${status.valueUnit}</td>         
+         <td>${status.comment}</td>
+      </tr>    
+`;
+      }
+
+      let rows = statuses.alerts.map(oneService).join("\n");
+      let performanceRows = statuses.perf.map(onePerformance).join("\n");
 
       return `
 <html>
@@ -166,6 +187,18 @@ body {
    margin-top: 1rem;
 }
 
+.mid-title {
+   margin-left: 0.25rem;
+   margin-top: 1rem;
+   margin-bottom: 1rem;
+   font-size: 1.2rem;   
+   font-weight: 600;
+}
+
+.align-right {
+   text-align: right;
+}
+
 </style>
 
 <meta http-equiv="refresh" content="5">
@@ -174,16 +207,21 @@ body {
 <body>
    <h1>Attestation service status</h1>
    <div class="time"><span class="time-label">Time:</span>${stat.mtime.toLocaleString()}</div>
+
+   <div class="mid-title">Services</div>
+
    <table border="0" cellpadding="0" cellspacing="0">
       <tr class="first-row">
          <th style="width: 10rem">name</th>
          <th style="width: 5rem">status</th>
-         <th style="width: 5rem">state</th>
+         <th style="width: 5rem">action</th>
          <th>comment</th>
       </tr>
 ${rows}      
    </table>
    
+   <div class="mid-title">Rounds</div>
+
    <table border="0" cellpadding="0" cellspacing="0" class="status-block">
       <tr>
         <td>Current buffer number:</td>
@@ -193,6 +231,18 @@ ${rows}
         <td>Latest available round id:</td>
         <td> <a href="../proof/votes-for-round/${latestAvailableRoundId}" target="_blank">${latestAvailableRoundId}</a></td>
       </tr> 
+   </table>
+
+   <div class="mid-title">Performance</div>
+   <table border="0" cellpadding="0" cellspacing="0">
+      <tr class="first-row">
+         <th style="width: 10rem">group</th>
+         <th>name</th>
+         <th>value</th>
+         <th></th>
+         <th>comment</th>
+      </tr>
+${performanceRows}      
    </table>
 </body>
 </html>

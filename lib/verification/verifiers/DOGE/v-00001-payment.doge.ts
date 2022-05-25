@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////
 
 import { ARPayment, Attestation, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
-import { DogeTransaction } from "flare-mcc";
+import { DogeTransaction } from "@flarenetwork/mcc";
 import { verifyPayment } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();

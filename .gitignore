@@ -72,3 +72,7 @@ status.json
 
 # spammer
 db
+
+# user private credentials
+configs/.secure
+configs/.secure.dev

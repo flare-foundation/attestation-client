@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/coston/spammer/dist/lib/spammer/attestation-spammer.js -c XRP
+ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attestation-suite/coston/spammer/dist/lib/spammer/attestation-spammer.js -c XRP
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian
@@ -7,7 +7,7 @@ Restart=always
 # Group=nogroup
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-WorkingDirectory=/home/ubuntu/coston/spammer
+WorkingDirectory=/home/ubuntu/attestation-suite/coston/spammer
 
 [Install]
 WantedBy=multi-user.target

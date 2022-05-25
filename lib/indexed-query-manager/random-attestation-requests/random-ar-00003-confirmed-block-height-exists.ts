@@ -1,4 +1,4 @@
-import { prefix0x, toBN } from "flare-mcc";
+import { prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";

@@ -7,14 +7,12 @@
 // SOURCE_ID=DOGE DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
 // SOURCE_ID=ALGO DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
 
-import { ChainType, MCC, MccClient } from "flare-mcc";
-import * as indexerConfig from "../configs/dev/indexer-config.json";
+import { MccClient } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../lib/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";
 import { RandomDBIterator } from "../lib/indexed-query-manager/indexed-query-manager-utils";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
-import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
+import { prepareGenerator, TxOrBlockGeneratorType } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
 import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
 import { DotEnvExt } from "../lib/utils/DotEnvExt";
 import { getSourceName, SourceId } from "../lib/verification/sources/sources";

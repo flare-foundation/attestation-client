@@ -16,6 +16,7 @@ The Attestation Client package is divided into several standalone modules that c
 - [Alerts](./alerts-installation.md)
 - [Back end](./backend-installation.md)
 
+
 ## Services
 
 All modules are run as services. Check [services](services.md) section for more details.
@@ -31,13 +32,14 @@ Each prerequisite should be installed only once.
 
 ### NODE
 
-For NODE installation use the following script:
+For NODE installation we use NVM to get specific version and allow multiple node version:
 
 ``` bash
 sudo apt-get update
-sudo apt install nodejs
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add –
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt install curl -y
+curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+source ~/.profile 
+nvm install 14.15.4
 ```
 
 ### YARN
@@ -47,26 +49,28 @@ YARN can be installed only after NODE.
 For YARN installation use the following script:
 
 ``` bash
-sudo apt-get install yarn
+sudo apt install npm -y
+sudo npm install --global yarn -y
+source ~/.profile 
+yarn --version
 ```
+
+It might require new login for yarn to work.
 
 ### MYSQL server
 
 #### Installation
-
-``` bash
-sudo apt install mysql-server
+```` bash
+sudo apt install mysql-server -y
 sudo mysql_secure_installation
-```
+````
 
-If you need remote access to the MYSQL, you need to change MYSQL configuration file `/etc/mysql/mysql.conf.d/mysqld.cnf` line with value `bind-address` from `127.0.0.1` to `0.0.0.0`.
-
+If you need remote access to the MYSQL you need to change MYSQL configuration file `/etc/mysql/mysql.conf.d/mysqld.cnf` line with value `bind-address` from `127.0.0.1` to `0.0.0.0`.
 ``` bash
 sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 
-After this change, you must restart the MYSQL server.
-
+After change you must restart MYSQL server.
 ``` bash
 sudo systemctl restart mysql
 ```
@@ -96,6 +100,7 @@ CREATE DATABASE attester;
 
 CREATE USER 'attesterWriter'@'localhost' IDENTIFIED BY '.AttesterWriterPassw0rd';
 GRANT ALL PRIVILEGES ON attester.* TO 'attesterWriter'@'localhost';
+GRANT PROCESS ON *.* TO 'attesterWriter'@'localhost';
 
 CREATE USER 'attesterReader'@'%' IDENTIFIED BY '.AttesterReaderPassw0rd';
 GRANT SELECT ON attester.* TO 'attesterReader'@'%';
@@ -111,6 +116,47 @@ To install ctail use:
 
 ``` bash
 npm i -g ctail
+```
+
+> ctail might require ccze
+``` bash
+sudo apt-get install ccze
+```
+
+
+## Installation
+
+Download Attestation Suite repository
+
+``` bash
+cd ~
+mkdir -p attestation-suite
+cd attestation-suite
+git clone https://github.com/flare-foundation/attestation-client.git
+cd attestation-client
+```
+
+Copy the template configuration files and set them up.
+
+``` bash
+mkdir -p ~/.attestation-suite-config
+cp ~/attestation-suite/attestation-client/configs/prod/* ~/.attestation-suite-config
+
+```
+
+Use next command to copy secure config to the server
+```
+scp secure.zip ubuntu@34.159.20.238:/home/ubuntu/.attestation-suite-config/
+```
+
+After all prerequisites and configuration files are setup you can install the Attesttaion Suite with the installation script:
+
+This script installs all Attestation Suite modules. If you wish to exclude some modules, edit the script `deploy-all.sh`.
+
+``` bash
+cd ~/attestation-suite/attestation-client
+bash ./scripts/install.sh
+
 ```
 
 [Back to Home](./../README.md)

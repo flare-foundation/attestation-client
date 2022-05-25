@@ -74,7 +74,7 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ServiceStatus": {
+    "AlertsStatus": {
         "dataType": "refObject",
         "properties": {
             "status": {"dataType":"string","required":true},
@@ -86,10 +86,31 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ApiResponse_ServiceStatus-Array_": {
+    "PerformanceStatus": {
         "dataType": "refObject",
         "properties": {
-            "data": {"dataType":"array","array":{"dataType":"refObject","ref":"ServiceStatus"}},
+            "valueName": {"dataType":"string","required":true},
+            "valueUnit": {"dataType":"string","required":true},
+            "comment": {"dataType":"string","required":true},
+            "name": {"dataType":"string","required":true},
+            "value": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ServiceStatus": {
+        "dataType": "refObject",
+        "properties": {
+            "alerts": {"dataType":"array","array":{"dataType":"refObject","ref":"AlertsStatus"},"required":true},
+            "perf": {"dataType":"array","array":{"dataType":"refObject","ref":"PerformanceStatus"},"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_ServiceStatus_": {
+        "dataType": "refObject",
+        "properties": {
+            "data": {"ref":"ServiceStatus"},
             "errorDetails": {"dataType":"string"},
             "errorMessage": {"dataType":"string"},
             "status": {"ref":"ApiDefaultResponseStatusEnum","required":true},

@@ -1,1 +1,1 @@
-sed -i 's/\"flare-mcc\"\: \"link\:\.\.\/mcc\",/\"flare-mcc\": \"..\/mcc\",/g' package.json
+sed -i 's/\"flare-mcc\"\: \"link\:\.\.\/multi-chain-client\",/\"flare-mcc\": \"..\/multi-chain-client\",/g' package.json

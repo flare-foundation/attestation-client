@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { ChainType, toBN } from "flare-mcc";
+import { ChainType, toBN } from "@flarenetwork/mcc";
 import { getAttestationTypeAndSource } from "../verification/generated/attestation-request-parse";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { SourceId } from "../verification/sources/sources";

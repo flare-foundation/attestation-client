@@ -1,5 +1,5 @@
-import { ChainType, IBlock, ITransaction, MCC } from "flare-mcc";
-import { LiteBlock } from "flare-mcc/dist/base-objects/blocks/LiteBlock";
+import { ChainType, IBlock, ITransaction, MCC } from "@flarenetwork/mcc";
+import { LiteBlock } from "@flarenetwork/mcc/dist/base-objects/blocks/LiteBlock";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -22,7 +22,7 @@ var yargs = require("yargs");
 
 const args = yargs
   .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -561,6 +561,8 @@ export class Indexer {
 
       const dbStatus = this.getStateEntryString("state", "sync", -1);
       dbStatus.valueNumber = timeLeft;
+
+      retry(`runSyncTips::saveStatus`, async () => this.dbService.manager.save(dbStatus));
 
       const blockLeft = this.T - block.number;
 

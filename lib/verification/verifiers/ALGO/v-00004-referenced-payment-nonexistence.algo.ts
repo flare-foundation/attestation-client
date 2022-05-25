@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////
 
 import { ARReferencedPaymentNonexistence, Attestation, BN, DHReferencedPaymentNonexistence, hashReferencedPaymentNonexistence, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
-import { AlgoTransaction } from "flare-mcc";
+import { AlgoTransaction } from "@flarenetwork/mcc";
 import { verifyReferencedPaymentNonExistence } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();

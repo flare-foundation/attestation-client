@@ -1,4 +1,4 @@
-import { optional } from "flare-mcc";
+import { optional } from "@flarenetwork/mcc";
 import { AdditionalTypeInfo, IReflection, reflection } from "../../utils/typeReflection";
 
 @reflection()

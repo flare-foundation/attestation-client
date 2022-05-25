@@ -30,6 +30,8 @@ export class BackendAlert extends AlertBase {
         })
     }
 
+    async perf() { return null;}
+
     async check(): Promise<AlertStatus> {
 
         const res = new AlertStatus();

@@ -29,6 +29,8 @@ export class IndexerAlert extends AlertBase {
         await IndexerAlert.dbService.waitForDBConnection();
     }
 
+    async perf() { return null;}
+
     async check(): Promise<AlertStatus> {
 
         const res = new AlertStatus();

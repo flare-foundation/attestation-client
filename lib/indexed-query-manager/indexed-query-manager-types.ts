@@ -1,4 +1,4 @@
-import { ChainType } from "flare-mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";

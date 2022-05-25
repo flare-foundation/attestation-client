@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////
 
 import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
-import { LtcTransaction } from "flare-mcc";
+import { LtcTransaction } from "@flarenetwork/mcc";
 import { verifyBalanceDecreasingTransaction } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();

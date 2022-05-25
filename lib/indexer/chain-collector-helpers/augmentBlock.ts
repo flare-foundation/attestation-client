@@ -1,4 +1,4 @@
-import { IBlock } from "flare-mcc";
+import { IBlock } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 
 async function augmentBlockBase(block: IBlock): Promise<DBBlockBase> {

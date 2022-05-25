@@ -2,7 +2,7 @@
 // Run the test
 // SOURCE_ID=ALGO CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/CostonVerification.test.ts --network coston
 
-import { ChainType, MCC, MccClient } from "flare-mcc";
+import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import { AttesterCredentials } from "../lib/attester/AttesterClientConfiguration";
 import { ChainConfiguration, ChainsConfiguration } from "../lib/chain/ChainConfiguration";
 import { IndexedQueryManagerOptions } from "../lib/indexed-query-manager/indexed-query-manager-types";

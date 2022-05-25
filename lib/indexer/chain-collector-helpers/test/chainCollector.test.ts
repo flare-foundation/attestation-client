@@ -1,4 +1,4 @@
-import { ChainType, MCC, UtxoMccCreate } from "flare-mcc";
+import { ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../../caching/CachedMccClient";
 import { DBBlockBase } from "../../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../../entity/indexer/dbTransaction";

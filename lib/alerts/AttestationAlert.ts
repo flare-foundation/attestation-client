@@ -1,4 +1,4 @@
-import { toBN } from "flare-mcc";
+import { toBN } from "@flarenetwork/mcc";
 import { AttesterClientConfiguration, AttesterCredentials } from "../attester/AttesterClientConfiguration";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { readConfig, readCredentials } from "../utils/config";
@@ -26,6 +26,8 @@ export class AttesterAlert extends AlertBase {
         await this.dbService.waitForDBConnection();
     }
 
+    async perf() { return null;}
+    
     async check(): Promise<AlertStatus> {
 
         const res = new AlertStatus();

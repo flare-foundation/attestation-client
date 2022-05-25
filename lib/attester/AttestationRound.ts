@@ -1,5 +1,5 @@
 import assert from "assert";
-import { toBN } from "flare-mcc";
+import { toBN } from "@flarenetwork/mcc";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { getTimeMilli } from "../utils/internetTime";

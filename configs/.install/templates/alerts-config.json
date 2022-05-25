@@ -41,9 +41,9 @@
             "name": "global",
             "database": "attester",
             "connection": {
-                "database": "$(AttesterDatabase)",
-                "username": "$(AttesterWriterUsername)",
-                "password": "$(AttesterWriterPassword)"
+                "database": "$(AttesterDatabase$(Network))",
+                "username": "$(AttesterWriterUsername$(Network))",
+                "password": "$(AttesterWriterPassword$(Network))"
             }            
         }
     ]

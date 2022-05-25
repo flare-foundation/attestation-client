@@ -1,0 +1,1 @@
+sudo mysql < ../attestation-suite-config/prepare/install.sql

@@ -24,8 +24,8 @@ systemctl --user enable indexer-algo.service
 systemctl --user enable indexer-doge.service
 
 # songbird
-#systemctl --user enable songbird-attester-client.service
-#systemctl --user enable songbird-backend.service
+systemctl --user enable songbird-attester-client.service
+systemctl --user enable songbird-backend.service
 
 # coston
 systemctl --user enable coston-attester-client.service
@@ -42,6 +42,8 @@ bash ./scripts/compile.sh
 
 # prepare configurations
 yarn ts-node lib/install/install.ts ../attestation-suite-config/
+
+bash ./scripts/initialize-mysql.sh
 
 # deploy
 echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"

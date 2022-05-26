@@ -11,6 +11,7 @@ Chains configuration file contains all external chain configuration.
 | `rateLimitOptions`            | [Rate Limiting Options](./json/json-RateLimitingOptions.md)             |         |
 | `numberOfConfirmations`       | Number of required block confirmations before block is considered final | 1       |
 | `syncReadAhead`               | How many blocks are synced in parallel                                  | 20      |
+| `syncAverageBlocksPerDayStartRation`| What start block to use (in %) when calculating average blocks per day.| 0.9      |
 | `blockCollecting`             | Block collection mode (`raw`, `rawUnforkable`, `tips`).                 | "raw"   |
 | `minimalStorageHistoryDays`   |                                                                         | 2       |
 | `minimalStorageHistoryBlocks` |                                                                         | 100     |

@@ -18,6 +18,14 @@ import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
 import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { Interlacing } from "./interlacing";
 
+
+// todo:
+// [ ] add first header block timestamp into status DB
+// [ ] force set N
+// [ ] monitor: add status if N falls behind (for any reason)
+// [ ] monitor: add check if enoght blocks are in (time check)
+// [ ] sync by earlist block (ALGO)
+
 var yargs = require("yargs");
 
 const args = yargs
@@ -325,7 +333,7 @@ export class Indexer {
 
   async getAverageBlocksPerDay(): Promise<number> {
     const blockNumber0 = (await this.getBlockHeight(`getAverageBlocksPerDay`)) - this.chainConfig.numberOfConfirmations;
-    const blockNumber1 = Math.ceil(blockNumber0 * 0.9);
+    const blockNumber1 = Math.ceil(blockNumber0 * this.chainConfig.syncAverageBlocksPerDayStartRation );
 
     const time0 = await this.getBlockNumberTimestamp(blockNumber0);
     const time1 = await this.getBlockNumberTimestamp(blockNumber1);

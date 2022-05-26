@@ -12,6 +12,8 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration>{
 
   @optional() public syncReadAhead: number = 30;
 
+  @optional() public syncAverageBlocksPerDayStartRation : number = 0.9
+
   @optional() public blockCollecting: "raw" | "rawUnforkable" | "tips" = "raw";
 
   @optional() public minimalStorageHistoryDays: number = 1;

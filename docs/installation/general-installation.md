@@ -2,129 +2,19 @@
 
 ## Supported systems
 
-The Attestation Client package has been tested on the following platforms:
+The Attestation Suite has been tested on the following platforms:
 
 - UBUNTU 20.04
 - WSL 0.2.1
 
-## Modules
+## Minimal hardware requirements
 
-The Attestation Client package is divided into several standalone modules that can be installed on a single or multiple machines:
+Minimal hardware requirements for running Attester-Suite are:
+- CPU: 4 cores @ 2.2GHz
+- DISK: 500 GB SSD disk
+- MEMORY: 16 GB
 
-- [Indexer](./indexer-installation.md)
-- [Attester Client](./attester-client-installation.md)
-- [Alerts](./alerts-installation.md)
-- [Back end](./backend-installation.md)
-
-
-## Services
-
-All modules are run as services. Check [services](services.md) section for more details.
-
-## General prerequisites
-
-- NODE add version ....
-- YARN
-- MYSQL server
-- ctail
-
-Each prerequisite should be installed only once.
-
-### NODE
-
-For NODE installation we use NVM to get specific version and allow multiple node version:
-
-``` bash
-sudo apt-get update
-sudo apt install curl -y
-curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
-source ~/.profile 
-nvm install 14.15.4
-```
-
-### YARN
-
-YARN can be installed only after NODE.
-
-For YARN installation use the following script:
-
-``` bash
-sudo apt install npm -y
-sudo npm install --global yarn -y
-source ~/.profile 
-yarn --version
-```
-
-It might require new login for yarn to work.
-
-### MYSQL server
-
-#### Installation
-```` bash
-sudo apt install mysql-server -y
-sudo mysql_secure_installation
-````
-
-If you need remote access to the MYSQL you need to change MYSQL configuration file `/etc/mysql/mysql.conf.d/mysqld.cnf` line with value `bind-address` from `127.0.0.1` to `0.0.0.0`.
-``` bash
-sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
-```
-
-After change you must restart MYSQL server.
-``` bash
-sudo systemctl restart mysql
-```
-
-#### Setup Indexer
-
-For security reasons two users are created. User with the write access is linked only to the local machine.
-
-``` sql
-CREATE DATABASE indexer;
-
-CREATE USER 'indexWriter'@'localhost' IDENTIFIED BY '.IndexerWriterPassw0rd';
-GRANT ALL PRIVILEGES ON indexer.* TO 'indexWriter'@'localhost';
-
-CREATE USER 'indexReader'@'%' IDENTIFIED BY '.IndexerReaderPassw0rd';
-GRANT SELECT ON indexer.* TO 'indexReader'@'%';
-
-FLUSH PRIVILEGES;
-```
-
-#### Setup Attester Client
-
-For security reasons two users are created. User with the write access is linked only to the local machine.
-
-``` sql
-CREATE DATABASE attester;
-
-CREATE USER 'attesterWriter'@'localhost' IDENTIFIED BY '.AttesterWriterPassw0rd';
-GRANT ALL PRIVILEGES ON attester.* TO 'attesterWriter'@'localhost';
-GRANT PROCESS ON *.* TO 'attesterWriter'@'localhost';
-
-CREATE USER 'attesterReader'@'%' IDENTIFIED BY '.AttesterReaderPassw0rd';
-GRANT SELECT ON attester.* TO 'attesterReader'@'%';
-
-FLUSH PRIVILEGES;
-```
-
-### ctail
-
-Flare modules use specialized color tagged logs. To display them with colors use ctail.
-
-To install ctail use:
-
-``` bash
-npm i -g ctail
-```
-
-> ctail might require ccze
-``` bash
-sudo apt-get install ccze
-```
-
-
-## Installation
+## Installation with dependencties
 
 Download Attestation Suite repository
 
@@ -132,21 +22,24 @@ Download Attestation Suite repository
 cd ~
 mkdir -p attestation-suite
 cd attestation-suite
+
 git clone https://github.com/flare-foundation/attestation-client.git
 cd attestation-client
+
+./script/install-dependencies.sh
+./script/initialize-config.sh
 ```
 
-Copy the template configuration files and set them up.
+Setup settings in `../attestation-suite-config/*.json` files:
+- chain.credentials.json 
+- database.json
+- network.credential.json
 
-``` bash
-mkdir -p ~/.attestation-suite-config
-cp ~/attestation-suite/attestation-client/configs/prod/* ~/.attestation-suite-config
 
-```
 
 Use next command to copy secure config to the server
 ```
-scp secure.zip ubuntu@34.159.20.238:/home/ubuntu/.attestation-suite-config/
+scp secure.zip ubuntu@<server ip>:/home/ubuntu/attestation-suite/attestation-suite-config/
 ```
 
 After all prerequisites and configuration files are setup you can install the Attesttaion Suite with the installation script:
@@ -158,5 +51,16 @@ cd ~/attestation-suite/attestation-client
 bash ./scripts/install.sh
 
 ```
+
+Details about installation and dependencies are [here](./installation-details.md)
+
+## Update configuration
+Once Attestation Suite is installed you can change settings and run next script.
+
+```
+cd ~/attestation-suite/attestation-client
+./scripts/update-config.sh
+```
+
 
 [Back to Home](./../README.md)

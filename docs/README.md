@@ -19,3 +19,7 @@
   - [Scope of indexing](./indexing/indexer-scope.md)
   - [Synchronized query window](./indexing/synchronized-query-window.md)
   - [Optimizations](./indexing/indexer-optimizations.md)
+- [Verification system](./verfication/verification.md)
+  - [Code generation](./verfication/code-generation.md)
+  - [Proof API](./verfication/proof-api.md)
+  - [Example workflow](./verfication/verification-workflow.md)

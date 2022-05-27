@@ -386,8 +386,8 @@ export class Indexer {
 
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
         const bottomStates = [
-          this.getStateEntry(this.getChainName(`_Nbottom`), bottomBlockNumber),
-          this.getStateEntry(this.getChainName(`_NbottomTime`), this.bottomBlockTime)
+          this.getStateEntry(`Nbottom`, bottomBlockNumber),
+          this.getStateEntry(`NbottomTime`, this.bottomBlockTime)
         ];
         this.dbService.manager.save(bottomStates);
       }

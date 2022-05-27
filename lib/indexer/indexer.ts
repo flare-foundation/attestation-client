@@ -364,7 +364,7 @@ export class Indexer {
 
     const query1 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1], "blocks");
     query1.select(`MIN(blocks.blockNumber)`, "min");
-    const result1 = await query0.getRawOne();
+    const result1 = await query1.getRawOne();
 
     if (!result0.min && !result1.min) {
       return undefined;

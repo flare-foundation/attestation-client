@@ -7,14 +7,14 @@ yarn
 
 # hardhat
 yarn c
-bash ./script/replace-mcc-link.sh
 
 # build MCC
-cd ../multi-chain-client
-yarn
-yarn build
+#bash ./script/replace-mcc-link.sh
+#cd ../multi-chain-client
+#yarn
+#yarn build
 
-yarn link
+#yarn link
 
 cd $CURRENT_DIR
 

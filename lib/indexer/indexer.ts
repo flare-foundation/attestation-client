@@ -20,10 +20,11 @@ import { Interlacing } from "./interlacing";
 
 
 // todo:
-// [ ] add first header block timestamp into status DB
+// [x] add config for avgBlocksPerDay start block
+// [x] add first header block timestamp into status DB
 // [ ] force set N
-// [ ] monitor: add status if N falls behind (for any reason)
-// [ ] monitor: add check if enoght blocks are in (time check)
+// [x] monitor: add status if N falls behind (for any reason)
+// [x] monitor: add check if enough blocks are in (time check)
 // [ ] sync by earlist block (ALGO)
 
 var yargs = require("yargs");
@@ -74,6 +75,9 @@ export class Indexer {
 
   dbTransactionClasses;
   dbBlockClass;
+
+  // bottom block in the transaction tables - used to check if we have enough history
+  bottomBlockTime = undefined;
 
   tableLock = false;
 
@@ -257,6 +261,8 @@ export class Indexer {
         this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`);
 
         this.tableLock = false;
+
+        this.saveBottomState();
       }
 
       //this.prevEpoch = epoch;
@@ -333,7 +339,7 @@ export class Indexer {
 
   async getAverageBlocksPerDay(): Promise<number> {
     const blockNumber0 = (await this.getBlockHeight(`getAverageBlocksPerDay`)) - this.chainConfig.numberOfConfirmations;
-    const blockNumber1 = Math.ceil(blockNumber0 * this.chainConfig.syncAverageBlocksPerDayStartRation );
+    const blockNumber1 = Math.ceil(blockNumber0 * this.chainConfig.syncAverageBlocksPerDayStartRation);
 
     const time0 = await this.getBlockNumberTimestamp(blockNumber0);
     const time1 = await this.getBlockNumberTimestamp(blockNumber1);
@@ -351,7 +357,53 @@ export class Indexer {
     return res.valueNumber;
   }
 
+  async getBottomDBBlockNumber(): Promise<number> {
+    const query0 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0], "blocks");
+    query0.select(`MIN(blocks.blockNumber)`, "min");
+    const result0 = await query0.getRawOne();
+
+    const query1 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1], "blocks");
+    query1.select(`MIN(blocks.blockNumber)`, "min");
+    const result1 = await query0.getRawOne();
+
+    if (!result0.min && !result1.min) {
+      return undefined;
+    }
+    if (!result0.min) return result1.min;
+    if (!result1.min) return result0.min;
+
+    return result0.min < result1.min ? result0.min : result1.min;
+  }
+
+  async saveBottomState() {
+    try {
+      const bottomBlockNumber = await this.getBottomDBBlockNumber();
+      if (bottomBlockNumber) {
+
+        const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { "blockNumber": bottomBlockNumber } });
+
+        this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
+
+        this.logger.debug(`block bottom state ${bottomBlockNumber}`);
+        const bottomStates = [
+          this.getStateEntry(this.getChainName(`_Nbottom`), bottomBlockNumber),
+          this.getStateEntry(this.getChainName(`_NbottomTime`), this.bottomBlockTime)
+        ];
+        this.dbService.manager.save(bottomStates);
+      }
+      else {
+        this.logger.debug(`block bottom state is undefined`);
+      }
+    }
+    catch (error) {
+      logException(error, `saving block bottom state`);
+    }
+
+  }
+
   async getSyncStartBlockNumber(): Promise<number> {
+    this.logger.info(`getSyncStartBlockNumber`);
+
     const latestBlockNumber = (await this.getBlockHeight(`getSyncStartBlockNumber`)) - this.chainConfig.numberOfConfirmations;
 
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
@@ -636,6 +688,9 @@ export class Indexer {
 
     await this.prepareTables();
 
+
+    this.saveBottomState();
+
     const startBlockNumber = (await this.getBlockHeight(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
     // initial N initialization - will be later on assigned to DB or sync N
     this.N = startBlockNumber;
@@ -677,7 +732,19 @@ export class Indexer {
         const isChangedNp1Hash = this.blockNp1hash !== blockNp1.stdBlockHash;
 
         // status
-        const dbStatus = this.getStateEntryString("state", "running", processedBlocks++, `N=${this.N} T=${this.T}` );
+        const NisReady = this.N >= this.T - this.chainConfig.numberOfConfirmations - 2;
+        const syncTimeSec = this.config.syncTimeDays * SECONDS_PER_DAY;
+        const fullHistory = !this.bottomBlockTime ? false : (blockNp1.unixTimestamp - this.bottomBlockTime) > syncTimeSec;
+        let dbStatus;
+        if( !fullHistory ) {
+          dbStatus = this.getStateEntryString("state", "sync", processedBlocks++, `N=${this.N} T=${this.T} (history is not ready: missing ${(syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60 } min)`);
+        }
+        else if( !NisReady ) {
+          dbStatus = this.getStateEntryString("state", "sync", processedBlocks++, `N=${this.N} T=${this.T} (N is late: < T-${this.chainConfig.numberOfConfirmations})`);
+        } 
+        else {
+          dbStatus = this.getStateEntryString("state", "running", processedBlocks++, `N=${this.N} T=${this.T}`);
+        }
 
         retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
 

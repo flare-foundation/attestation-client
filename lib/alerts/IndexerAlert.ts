@@ -82,6 +82,11 @@ export class IndexerAlert extends AlertBase {
             }
         }
 
+        else if (resState.valueString == "running-sync") {
+            res.comment = `processed blocks ${resState.valueNumber} ${resState.comment}`;
+            res.status = "sync";
+        }
+
         if (late > this.restartConfig.time) {
             if( await this.restart() ) {
                 res.comment = "^r^Wrestart^^";

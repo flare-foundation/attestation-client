@@ -1,5 +1,6 @@
 import { ChainType, IBlock, ITransaction, MCC } from "@flarenetwork/mcc";
 import { LiteBlock } from "@flarenetwork/mcc/dist/base-objects/blocks/LiteBlock";
+import { Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -22,15 +23,18 @@ import { Interlacing } from "./interlacing";
 // todo:
 // [x] add config for avgBlocksPerDay start block
 // [x] add first header block timestamp into status DB
-// [ ] force set N
+// [x] force set N
 // [x] monitor: add status if N falls behind (for any reason)
 // [x] monitor: add check if enough blocks are in (time check)
-// [ ] sync by earlist block (ALGO)
+// [x] sync by earlist block (ALGO)
+// [ ] sync period is per chain
+// [ ] (later) on ALGO if N < N_bottom - delete transactions, blocks and restart sync.
 
 var yargs = require("yargs");
 
 const args = yargs
-  .option("drop", { alias: "d", type: "string", description: "Drop databases", default: "", demand: false })
+  .option("reset", { alias: "r", type: "string", description: "Reset commands", default: "", demand: false })
+  .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
   .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 class PreparedBlock {
@@ -300,6 +304,11 @@ export class Indexer {
         });
         return true;
       });
+
+      // if bottom block is undefined then save it (this happens only on clean start or after database reset)
+      if( !this.bottomBlockTime) {
+        this.saveBottomState();
+      }
 
       // increment N if all is ok
       this.N = Np1;
@@ -661,30 +670,80 @@ export class Indexer {
 
   }
 
-  async runIndexer() {
-    // wait for db to connect
-    await this.dbService.waitForDBConnection();
+  async dropAllChainTables(chain: string) {
+
+    chain = chain.toLocaleLowerCase();
+
+    await this.dropTable(`${chain}_block`);
+    await this.dropTable(`${chain}_transactions0`);
+    await this.dropTable(`${chain}_transactions1`);
+  }
+
+  async processCommandLineParameters() {
 
 
-    // check if drop database is requested
-    if (args.drop === "DO_DROP") {
-      this.logger.error2("DROPPING DATABASES");
+    // Force N 
+    if(args.setn !== 0) {
+
+      let n=args.setn;
+
+      if( args.setn<0) {
+        const t= await this.getBlockHeight(`runIndexer2`);
+
+        this.logger.error2(`force set N to T - ${-n}=${t}`);
+
+        n=t+n;
+      }
+      else {
+        this.logger.error2("force set N to ");
+      }
+
+      const stateEntry = this.getStateEntry("N", n);
+
+      await this.dbService.manager.save(stateEntry);
+    }
+
+    // check if reset all databases is requested
+    if (args.reset === "RESET_COMPLETE") {
+      this.logger.error2("command: RESET_COMPLETE");
 
       await this.dropTable(`state`);
 
       for (let i of [`xrp`, `btc`, `ltc`, 'doge', 'algo']) {
-
-        await this.dropTable(`${i}_block`);
-        await this.dropTable(`${i}_transactions0`);
-        await this.dropTable(`${i}_transactions1`);
+        await this.dropAllChainTables(i);
       }
 
       this.logger.info("completed - exiting");
 
-      return;
+      return true;
     }
 
+    // check if reset active database is requested
+    if (args.reset === "RESET_ACTIVE") {
+      this.logger.error2("command: RESET_ACTIVE");
 
+      // reset state for this chain
+      await this.dbService.manager.delete(DBState, { name: Like(`${this.chainConfig.name}_%`) });
+
+      await this.dropAllChainTables(this.chainConfig.name);
+
+      this.logger.info("completed - exiting");
+
+      return true;
+    }
+
+    // continue running
+    return false;
+  }
+
+
+  async runIndexer() {
+    // wait for db to connect
+    await this.dbService.waitForDBConnection();
+
+    if (await this.processCommandLineParameters()) {
+      return;
+    }
 
     await this.prepareTables();
 
@@ -736,12 +795,12 @@ export class Indexer {
         const syncTimeSec = this.config.syncTimeDays * SECONDS_PER_DAY;
         const fullHistory = !this.bottomBlockTime ? false : (blockNp1.unixTimestamp - this.bottomBlockTime) > syncTimeSec;
         let dbStatus;
-        if( !fullHistory ) {
-          dbStatus = this.getStateEntryString("state", "sync", processedBlocks++, `N=${this.N} T=${this.T} (history is not ready: missing ${(syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60 } min)`);
+        if (!fullHistory) {
+          dbStatus = this.getStateEntryString("state", "running-sync", processedBlocks++, `N=${this.N} T=${this.T} (history is not ready: missing ${(syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60} min)`);
         }
-        else if( !NisReady ) {
-          dbStatus = this.getStateEntryString("state", "sync", processedBlocks++, `N=${this.N} T=${this.T} (N is late: < T-${this.chainConfig.numberOfConfirmations})`);
-        } 
+        else if (!NisReady) {
+          dbStatus = this.getStateEntryString("state", "running-sync", processedBlocks++, `N=${this.N} T=${this.T} (N is late: < T-${this.chainConfig.numberOfConfirmations})`);
+        }
         else {
           dbStatus = this.getStateEntryString("state", "running", processedBlocks++, `N=${this.N} T=${this.T}`);
         }
@@ -796,8 +855,6 @@ async function runIndexer() {
 
   const indexer = new Indexer(config, chains, credentials, args["chain"]);
 
-  //displayStats();
-
   return await indexer.runIndexer();
 }
 
@@ -813,7 +870,3 @@ runIndexer()
     logException(error, `runIndexer `);
     process.exit(1);
   });
-function retryMany(arg0: string, test: any[], arg2: number, arg3: number) {
-  throw new Error("Function not implemented.");
-}
-

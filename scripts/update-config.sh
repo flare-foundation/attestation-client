@@ -18,6 +18,10 @@ sudo mysql < ../attestation-suite-config/prepared/coston/update.sql
 
 # copy configs to all modules
 echo -e "${GREENBOLD}Copy configurations...${NC}"
+
+mkdir -p ./configs/.secure/
+cp -a $CONFIGDIR_SECURE/. ./configs/.secure/
+
 cp -a $CONFIGDIR_SECURE/. ../global/indexer/configs/prod/
 cp -a $CONFIGDIR_SECURE/. ../global/alerts/configs/prod/
 

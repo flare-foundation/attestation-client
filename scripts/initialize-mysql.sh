@@ -1,1 +1,1 @@
-sudo mysql < ../attestation-suite-config/prepare/install.sql
+sudo mysql < ../attestation-suite-config/prepared/coston/install.sql

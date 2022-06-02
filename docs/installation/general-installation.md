@@ -7,7 +7,7 @@ The Attestation Suite has been tested on the following platforms:
 - UBUNTU 20.04
 - WSL 0.2.1
 
-## Minimal hardware requirements
+## Recomended hardware requirements
 
 Minimal hardware requirements for running Attester-Suite are:
 - CPU: 4 cores @ 2.2GHz
@@ -26,8 +26,8 @@ cd attestation-suite
 git clone https://github.com/flare-foundation/attestation-client.git
 cd attestation-client
 
-./script/install-dependencies.sh
-./script/initialize-config.sh
+./scripts/install-dependencies.sh
+./scripts/initialize-config.sh
 ```
 
 Setup settings in `../attestation-suite-config/*.json` files:
@@ -61,6 +61,15 @@ Once Attestation Suite is installed you can change settings and run next script.
 cd ~/attestation-suite/attestation-client
 ./scripts/update-config.sh
 ```
+
+## Indexer syncing times
+
+- ADA ~10 min
+- ALGO ~4 h
+- BTC ~20 min
+- DOGE ~10 min
+- XRP ~4 h
+
 
 
 [Back to Home](./../README.md)

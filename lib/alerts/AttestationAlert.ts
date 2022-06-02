@@ -43,6 +43,7 @@ export class AttesterAlert extends AlertBase {
 
         if (dbRes.length === 0) {
             res.state = `unable to get valid result`;
+            return res;
         }
         else
         {

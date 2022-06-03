@@ -39,7 +39,9 @@ export class AlertConfig implements IReflection<AlertConfig> {
     @optional() timeRestart: number = 20;
     stateSaveFilename = "";
     indexerRestart = "";
+
     indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
+    nodes = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
 
     attesters = [];
     backends = [];
@@ -54,6 +56,7 @@ export class AlertConfig implements IReflection<AlertConfig> {
         const res = new AdditionalTypeInfo();
 
         res.arrayMap.set( "indexers" , "string" );
+        res.arrayMap.set( "nodes" , "string" );
         res.arrayMap.set( "attesters" , new AlertAttestationConfig() );
         res.arrayMap.set( "backends" , new AlertBackendConfig() )
         res.arrayMap.set( "database" , new AlertDatabaseConfig() )

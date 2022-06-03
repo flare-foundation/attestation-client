@@ -8,6 +8,7 @@ import { AttesterAlert } from "./AttestationAlert";
 import { BackendAlert } from "./BackendAlert";
 import { IndexerAlert } from "./IndexerAlert";
 import { DatabaseAlert } from "./DatabaseAlert";
+import { NodeAlert } from "./NodeAlert";
 
 export class AlertsManager {
     logger: AttLogger;
@@ -19,6 +20,10 @@ export class AlertsManager {
         this.logger = getGlobalLogger();
 
         this.config = readConfig(new AlertConfig(), "alerts");
+
+        for (let node of this.config.nodes) {
+            this.alerts.push(new NodeAlert(node, this.logger, this.config));
+        }
 
         for (let indexer of this.config.indexers) {
             this.alerts.push(new IndexerAlert(indexer, this.logger, this.config));
@@ -58,13 +63,18 @@ export class AlertsManager {
                 const statusPerfs = [];
 
                 for (let alert of this.alerts) {
-                    const resAlert = await alert.check();
+                    try {
+                        const resAlert = await alert.check();
 
-                    if( !resAlert ) continue;
+                        if( !resAlert ) continue;
 
-                    statusAlerts.push(resAlert);
+                        statusAlerts.push(resAlert);
 
-                    resAlert.displayStatus(this.logger);
+                        resAlert.displayStatus(this.logger);
+                    }
+                    catch( error ) {
+                        logException( error , `alert ${alert.name}` );
+                    }
                 }
 
                 for (let alert of this.alerts) {

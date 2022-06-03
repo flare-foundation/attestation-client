@@ -74,20 +74,20 @@ export class NodeAlert extends AlertBase {
 
         if( !this.cachedClient ) {
             res.status = "down";
-            res.state = "unable to connect";
-            res.comment = `${(this.chainConfig.mccCreate as any).url}`;
+            res.state = "";
+            res.comment = `unable to connect ${(this.chainConfig.mccCreate as any)?.url}`;
             return res;
         }
 
         var status = await this.cachedClient.client.getNodeStatus();
 
-        if (status === undefined) {
-            res.state = "node data not available";
+        if( !status ) {
+            res.comment = "node status not available";
             return res;
         }
 
-        res.state = `${status.state} bottom block ${status.bottomBlock}`;
-        res.comment = `version ${status.version}`;
+        res.state = ``;
+        res.comment = `state ${status?.state}, bottom block ${status?.bottomBlock}, version ${status?.version}`;
 
         if( status.isHealthy && status.isSynced ) {
             res.status = "running";

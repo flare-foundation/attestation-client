@@ -91,7 +91,7 @@ export class CachedMccClient<T, B> {
         return txPromise;
       }
       let newPromise = this.client.getTransaction(txId);
-      this.transactionCache.set(txId, newPromise);
+      this.transactionCache.set(txId, newPromise as Promise<any>); // TODO type check 
       this.checkAndCleanup();
       return newPromise;    
     }
@@ -119,13 +119,13 @@ export class CachedMccClient<T, B> {
     if(typeof blockHashOrNumber === "number") {
       let block = await newPromise;
       if( !block ) return null;
-      let blockHash = block.hash // TODO
-      this.blockCache.set(blockHash, newPromise); 
+      let blockHash = block.blockHash // TODO
+      this.blockCache.set(blockHash, newPromise as Promise<any>); // TODO type
     } else {
-      this.blockCache.set(blockHashOrNumber, newPromise); 
+      this.blockCache.set(blockHashOrNumber, newPromise as Promise<any>); // TODO type
     }    
     this.checkAndCleanup();
-    return newPromise;    
+    return newPromise as Promise<any>;  // TODO type
   }
 
   public get canAccept(): boolean {

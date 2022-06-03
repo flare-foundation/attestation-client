@@ -91,6 +91,7 @@ export class BlockProcessorManager {
 
         //processor.debugOn( block.hash );
         
+        // @ts-ignore
         processor.initializeJobs(block,this.completeCallback);
     }
     

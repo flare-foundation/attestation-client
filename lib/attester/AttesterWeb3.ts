@@ -42,7 +42,8 @@ export class AttesterWeb3 {
     maskedMerkleRoot: string, 
     random: string,
     hashedRandom: string, 
-    revealedRandomPrev: string) {
+    revealedRandomPrev: string,
+    verbose=true) {
 
     this.check(maskedMerkleRoot);
     this.check(hashedRandom);
@@ -50,14 +51,15 @@ export class AttesterWeb3 {
 
     let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
 
-    this.logger.info( `action ................. : ${action}` )
-    this.logger.info( `bufferNumber_n ......... : ${bufferNumber.toString()}` )
-    this.logger.info( `merkleRoot_n ........... : ^e${merkleRoot.toString()}` )
-    this.logger.info( `maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}` )
-    this.logger.info( `random_n ............... : ^e${random.toString()}` )
-    this.logger.info( `hashedRandom_n ......... : ${hashedRandom.toString()}` )
-    this.logger.info( `random_n-1 ............. : ${revealedRandomPrev.toString()}` )
-
+    if( verbose ) {
+      this.logger.info( `action ................. : ${action}` )
+      this.logger.info( `bufferNumber_n ......... : ${bufferNumber.toString()}` )
+      this.logger.info( `merkleRoot_n ........... : ^e${merkleRoot.toString()}` )
+      this.logger.info( `maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}` )
+      this.logger.info( `random_n ............... : ^e${random.toString()}` )
+      this.logger.info( `hashedRandom_n ......... : ${hashedRandom.toString()}` )
+      this.logger.info( `random_n-1 ............. : ${revealedRandomPrev.toString()}` )
+    }
 
     if( process.env.NODE_ENV==="production") {
     //if( true ) {

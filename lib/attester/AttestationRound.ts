@@ -159,22 +159,16 @@ export class AttestationRound {
         this.roundId,
         // commit index (collect+1)
         toBN(this.roundId + 1),
-        //this.roundMerkleRoot,
         toHex(0, 32),
-        //this.roundMaskedMerkleRoot,
         toHex(0, 32),
-        //this.roundRandom,
         toHex(0, 32),
-        //this.roundHashedRandom,
         toHex(0, 32),
-        toHex(0, 32)
+        toHex(0, 32),
+        false
       )
       .then((receipt) => {
         if (receipt) {
           this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId-3}`);
-          //this.attestStatus = AttestationRoundStatus.comitted;
-        } else {
-          //this.attestStatus = AttestationRoundStatus.error;
         }
       });
   }

@@ -16,7 +16,10 @@ Minimal hardware requirements for running Attester-Suite are:
 
 ## Installation with dependencties
 
-Download Attestation Suite repository
+Start on a new clean UBUNTU installation.
+
+---
+### 1) Download Attestation Suite repository and install prerequisites
 
 ``` bash
 cd ~
@@ -30,18 +33,18 @@ cd attestation-client
 ./scripts/initialize-config.sh
 ```
 
-Setup settings in `../attestation-suite-config/*.json` files:
+---
+### 2) Setup configuration files
+
+Setup configuration files in folder `../attestation-suite-config/`:
 - chain.credentials.json 
 - database.json
 - network.credential.json
 
+NOTE: You change configurations later on.
 
-
-Use next command to copy secure config to the server
-```
-scp secure.zip ubuntu@<server ip>:/home/ubuntu/attestation-suite/attestation-suite-config/
-```
-
+---
+### 3) Run main install
 After all prerequisites and configuration files are setup you can install the Attesttaion Suite with the installation script:
 
 This script installs all Attestation Suite modules. If you wish to exclude some modules, edit the script `deploy-all.sh`.
@@ -55,11 +58,25 @@ bash ./scripts/install.sh
 Details about installation and dependencies are [here](./installation-details.md)
 
 ## Update configuration
-Once Attestation Suite is installed you can change settings and run next script.
+Once Attestation Suite is installed you can change configuration files and run next script.
 
 ```
 cd ~/attestation-suite/attestation-client
 ./scripts/update-config.sh
+```
+
+the script will :
+- preprocess configuration files
+- copy configuration files into deployment folders
+- update mysql passwords
+- restart services
+
+## Administration module
+We included a simple WOP administration module that helps monitor and administrate Attestation Suite.
+
+```
+cd ~/attestation-suite/attestation-client
+yarn admin
 ```
 
 ## Indexer syncing times

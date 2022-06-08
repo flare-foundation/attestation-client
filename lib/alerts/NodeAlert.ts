@@ -22,7 +22,7 @@ export class NodeAlert extends AlertBase {
         }
 
         this.chainType = MCC.getChainType(name);
-        this.chainConfig = NodeAlert.chainsConfig.chains[this.chainType];
+        this.chainConfig = NodeAlert.chainsConfig.chains.find((el) => el.name === name)!;
     }
 
     async initialize() {
@@ -87,7 +87,7 @@ export class NodeAlert extends AlertBase {
         }
 
         res.state = ``;
-        res.comment = `state ${status?.state}, bottom block ${status?.bottomBlock}, version ${status?.version}`;
+        res.comment = `state ${status?.state}, version ${status?.version}`;
 
         if( status.isHealthy && status.isSynced ) {
             res.status = "running";

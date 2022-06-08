@@ -63,6 +63,7 @@ export class IndexerAlert extends AlertBase {
                     res.status = "down";
                 }
 
+
             }
             else {
                 res.comment = "invalid response";

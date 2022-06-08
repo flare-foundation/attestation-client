@@ -26,6 +26,7 @@ import { Interlacing } from "./interlacing";
 // [x] force set N
 // [x] monitor: add status if N falls behind (for any reason)
 // [x] monitor: add check if enough blocks are in (time check)
+// [x] monitor: node status
 // [x] sync by earlist block (ALGO)
 // [ ] sync period is per chain
 // [ ] (later) on ALGO if N < N_bottom - delete transactions, blocks and restart sync.
@@ -35,7 +36,7 @@ var yargs = require("yargs");
 const args = yargs
   .option("reset", { alias: "r", type: "string", description: "Reset commands", default: "", demand: false })
   .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -642,12 +643,22 @@ export class Indexer {
     this.isSyncing = false;
   }
 
+  async runSyncLatestBlock() {
+
+    this.N = await this.getBlockHeight(`getLatestBlock`);
+
+    this.logger.debug2( `runSyncLatestBlock latestBlock ${this.N}` );
+
+    await this.runSyncRaw();
+  }
+
 
   async runSync() {
     switch (this.chainConfig.blockCollecting) {
       case "raw":
       case "rawUnforkable": await this.runSyncRaw(); break;
       case "tips": await this.runSyncTips(); break;
+      case "latestBlock": await this.runSyncLatestBlock(); break;
     }
   }
 
@@ -680,8 +691,6 @@ export class Indexer {
   }
 
   async processCommandLineParameters() {
-
-
     // Force N 
     if(args.setn !== 0) {
 

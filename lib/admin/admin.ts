@@ -14,7 +14,7 @@ async function admin() {
 
     menu.addCommand("Update", "git pull & bash ./scripts/compile.sh");
     menu.addSubmenu("Deploy").
-        addCommand("^RAll", "bash ./scripts/deploy-all").parent().
+        addCommand("^RAll", "bash ./scripts/deploy-all.sh").parent().
         addCommand("Indexers", "bash ./scripts/deploy-indexer").parent().
         addCommand("Alerts", "bash ./scripts/deploy-alerts").parent().
         addCommand("Coston Attestation Client", "bash ./scripts/deploy-coston-attester").parent().

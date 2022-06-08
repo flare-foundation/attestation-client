@@ -33,9 +33,6 @@ systemctl --user enable coston-backend.service
 
 systemctl --user enable attester-alerts
 
-# dependencies
-#bash ./scripts/install-dependencies.sh
-
 # compile
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"
 bash ./scripts/compile.sh
@@ -48,3 +45,6 @@ bash ./scripts/initialize-mysql.sh
 # deploy
 echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"
 bash ./scripts/deploy-all.sh
+
+# update config
+bash ./scripts/update-config.sh

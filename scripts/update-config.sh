@@ -21,6 +21,7 @@ echo -e "${GREENBOLD}Copy configurations...${NC}"
 
 mkdir -p ./configs/.secure/
 cp -a $CONFIGDIR_SECURE/. ./configs/.secure/
+sed -i 's+../../+../+g' configs/.secure/alerts-config.json
 
 cp -a $CONFIGDIR_SECURE/. ../global/indexer/configs/prod/
 cp -a $CONFIGDIR_SECURE/. ../global/alerts/configs/prod/
@@ -30,4 +31,6 @@ cp -a $CONFIGDIR_SECURE/. ../coston/backend/configs/prod/
 
 cp -a $CONFIGDIR_SECURE_SGB/. ../songbird/attester-client/configs/prod/
 cp -a $CONFIGDIR_SECURE_SGB/. ../songbird/backend/configs/prod/
+
+sudo ./scripts/services-restart-all.sh
 

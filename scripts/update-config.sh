@@ -32,5 +32,5 @@ cp -a $CONFIGDIR_SECURE/. ../coston/backend/configs/prod/
 cp -a $CONFIGDIR_SECURE_SGB/. ../songbird/attester-client/configs/prod/
 cp -a $CONFIGDIR_SECURE_SGB/. ../songbird/backend/configs/prod/
 
-sudo ./scripts/services-restart-all.sh
+bash ./scripts/services-restart-all.sh
 

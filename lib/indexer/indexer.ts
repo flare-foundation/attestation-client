@@ -416,6 +416,11 @@ export class Indexer {
 
     const latestBlockNumber = (await this.getBlockHeight(`getSyncStartBlockNumber`)) - this.chainConfig.numberOfConfirmations;
 
+    if( this.chainConfig.blockCollecting==="latestBlock" ) {
+      this.logger.debug2(`blockCollecting latestBlock T=${latestBlockNumber}`);
+      return latestBlockNumber;
+    }
+
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
 
     if (averageBlocksPerDay === 0) {

@@ -41,7 +41,7 @@
     "watch-and-run-alerts": "ts-node-dev --trace-warnings --notify --respawn -- lib/alerts/alerts.ts",
     "dev": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn watch-and-run",
     "devprod": "CONFIG_PATH=prod NODE_ENV=production node dist/lib/runAttesterClient.js",
-    "devindexer": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn watch-and-run-indexer",
+    "devindexer": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn ts-node lib/indexer/indexer.ts",
     "devalerts": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn watch-and-run-alerts",
     "test": "mocha -r ts-node/register -t 0 --exit",
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local",

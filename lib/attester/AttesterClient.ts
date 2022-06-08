@@ -84,8 +84,13 @@ export class AttesterClient {
       //this.logger.info(`internet time sync ${sync}ms`);
 
       // validate configuration chains and create nodes
-      this.logger.info(`chains initialize`);
-      await this.initializeChains();
+      try {
+        this.logger.info(`chains initialize`);
+        await this.initializeChains();
+      }
+      catch( error ) {
+        logException(error, `initializeChains`);
+      }
 
       // get block in curent attestation round
       const startRoundTime = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(AttestationRoundManager.activeEpochId) / 1000;

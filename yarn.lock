@@ -846,10 +846,10 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@flarenetwork/mcc@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-1.0.4.tgz#ed07a0817b2e0b98be12c320327322408d63fb5c"
-  integrity sha512-ob843j+zG427Gkmy92X1C/6K+ojXX81AJzxG5sCnxh9uf8zP9o7iD+FLVj5ZYSczJcouT+LwEf734+HWIDobPQ==
+"@flarenetwork/mcc@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-1.0.7.tgz#92532319f0ff71eb47cb31b457d7d2a050913b01"
+  integrity sha512-jRdK4PD52Po0Y0YlUb3zcmPqfI9ZQ/Gm+GvX/8EJNkie7vPLbgLlWcqMgAT+KSAcCQcz+pn4jXJXCrh1QA24Bg==
   dependencies:
     algo-msgpack-with-bigint "^2.1.1"
     algosdk "^1.13.1"

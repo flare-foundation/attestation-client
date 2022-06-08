@@ -217,6 +217,7 @@ export class HeaderCollector {
     async runBlockHeaderCollecting() {
         switch (this.indexer.chainConfig.blockCollecting) {
             case "raw":
+            case "latestBlock":
             case "rawUnforkable": this.runBlockHeaderCollectingRaw(); break;
             case "tips": this.runBlockHeaderCollectingTips(); break;
         }

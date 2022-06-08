@@ -16,7 +16,7 @@ Minimal hardware requirements for running Attester-Suite are:
 
 ## Installation with dependencties
 
-Start on a new clean UBUNTU installation.
+Start on a new clean UBUNTU installation with admin priviledges.
 
 ---
 ### 1) Download Attestation Suite repository and install prerequisites
@@ -41,7 +41,7 @@ Setup configuration files in folder `../attestation-suite-config/`:
 - database.json
 - network.credential.json
 
-NOTE: You change configurations later on.
+NOTE: You can change configurations later on.
 
 ---
 ### 3) Run main install

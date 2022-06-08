@@ -55,8 +55,19 @@
             "request": "launch",
             "name": "Launch Indexer",
             "runtimeExecutable": "yarn",
+            "env": {
+                "CONFIG_PATH":".secure.dev",
+                "DOTENV":"DEV",
+                "NODE_ENV":"development"
+            },
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
             "runtimeArgs": [
-                "devindexer"
+                "devindexer",
+                "-a","ALGO"
             ]
         },
 

@@ -19,10 +19,10 @@ export class MenuItemService extends MenuItemBase {
 
         this.updateStatus();
 
-        this.addCommand( "Enable" , `systemctl --user enable ${name}` );
-        this.addCommand( "Disable" , `systemctl --user disable ${name}` );
-        this.addCommand( "Stop" , `systemctl --user stop ${name}` );
-        this.addCommand( "Restart" , `systemctl --user restart ${name}` );
+        this.addCommand( "Enable" , `systemctl --user enable ${name}.service` );
+        this.addCommand( "Disable" , `systemctl --user disable ${name}.service` );
+        this.addCommand( "Stop" , `systemctl --user stop ${name}.service` );
+        this.addCommand( "Restart" , `systemctl --user restart ${name}.service` );
     }
 
     addCommand(name: string, command: string): MenuItemBase {

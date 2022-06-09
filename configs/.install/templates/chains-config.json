@@ -101,10 +101,11 @@
                   "url": "$(ALGOURLAlgod)",
                   "token": "$(ALGOTokenAlgod)"
                 },
-                "indexer": {
-                  "url": "$(ALGOURLIndexer)",
-                  "token": "$(ALGOTokenIndexer)"
-                }
+                // using algo without indexer
+                //"indexer": {
+                //  "url": "$(ALGOURLIndexer)",
+                //  "token": "$(ALGOTokenIndexer)"
+                //}
             },
             "rateLimitOptions": {
                 "maxRPS": 300,
@@ -113,7 +114,7 @@
             },
             "numberOfConfirmations": 3,
             "syncReadAhead":30,
-            "blockCollecting":"rawUnforkable",
+            "blockCollecting":"latestBlock",
             "minimalStorageHistoryDays":2,
             "minimalStorageHistoryBlocks":100 ,
 

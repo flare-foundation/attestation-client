@@ -12,7 +12,7 @@ import { MenuItemService } from "./menuItemService";
 async function admin() {
     const menu = new Menu();
 
-    menu.addCommand("Update", "git pull & bash ./scripts/compile.sh");
+    menu.addCommand("Update", "bash ./scripts/update.sh");
     menu.addSubmenu("Deploy").
         addCommand("^RAll", "bash ./scripts/deploy-all.sh").parent().
         addCommand("Indexers", "bash ./scripts/deploy-indexer").parent().
@@ -52,6 +52,14 @@ async function admin() {
         addLog("Coston backend", "../coston/backend/logs/attester-global.log").parent().
         addLog("Songbird Attestation Client", "../songbird/attester-client/logs/attester-global.log").parent().
         addLog("Songbird backend", "../songbird/backend/logs/attester-global.log").parent;
+
+    menu.addSubmenu("Reset Database").
+        addCommand("ALGO", "bash ./scripts/indexer-reset-algo.sh").parent().
+        addCommand("BTC" , "bash ./scripts/indexer-reset-btc.sh").parent().
+        addCommand("DOGE", "bash ./scripts/indexer-reset-doge.sh").parent().
+        addCommand("LTC" , "bash ./scripts/indexer-reset-ltc.sh").parent().
+        addCommand("XRP" , "bash ./scripts/indexer-reset-xrp.sh").parent();
+
 
     //await menu.run();
 

@@ -103,6 +103,12 @@ interface IAttestationClient {
 
         // Average block production time based on the data in the query window.
         uint64 averageBlockProductionTimeMs;
+
+        // Lowest query window block number.
+        uint64 lowestQueryWindowBlockNumber;
+
+        // Lowest query window block timestamp.
+        uint64 lowestQueryWindowBlockTimestamp;
     }
 
     struct ReferencedPaymentNonexistence {
@@ -140,6 +146,26 @@ interface IAttestationClient {
         uint64 firstOverflowBlockTimestamp;
     }
 
+    struct TrustlineIssuance {
+        // Round number (epoch id) of the state connector request
+        uint256 stateConnectorRound;
+
+        // Merkle proof needed to verify the existence of transaction with the below fields.
+        bytes32[] merkleProof;
+
+        // 3 letter code or 160-bit hexadecimal string known as [Currency code](https://xrpl.org/currency-formats.html#currency-codes). The first byte indicates whether it is a 3 letter encoded ascii string "0x00..." or 160 bit hex string "0x01...".
+        bytes32 tokenCurrencyCode;
+
+        // Nominator of the token value described as the fraction reduced by the highest exponent of 10.
+        uint256 tokenValueNominator;
+
+        // Denominator of the token value described as the fraction reduced by the highest exponent of 10.
+        uint256 tokenValueDenominator;
+
+        // Ripple account address of token issuer as bytes (right padded address bytes (20 + 12)).
+        bytes32 tokenIssuer;
+    }
+
     // When verifying state connector proofs, the data verified will be
     // `keccak256(abi.encode(attestationType, _chainId, all _data fields except merkleProof, stateConnectorRound))`
     // where `attestationType` (`uint16`) is a different constant for each of the methods below
@@ -158,6 +184,10 @@ interface IAttestationClient {
         returns (bool _proved);
 
     function verifyReferencedPaymentNonexistence(uint32 _chainId, ReferencedPaymentNonexistence calldata _data)
+        external view
+        returns (bool _proved);
+
+    function verifyTrustlineIssuance(uint32 _chainId, TrustlineIssuance calldata _data)
         external view
         returns (bool _proved);
 }

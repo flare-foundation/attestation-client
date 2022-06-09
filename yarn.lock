@@ -846,10 +846,10 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@flarenetwork/mcc@1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-1.0.7.tgz#92532319f0ff71eb47cb31b457d7d2a050913b01"
-  integrity sha512-jRdK4PD52Po0Y0YlUb3zcmPqfI9ZQ/Gm+GvX/8EJNkie7vPLbgLlWcqMgAT+KSAcCQcz+pn4jXJXCrh1QA24Bg==
+"@flarenetwork/mcc@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-1.1.2.tgz#0baac93f5a1ddcd738de4630b260d8e798be17ae"
+  integrity sha512-Vf1hUVAhcBmXJ21+GaK27oSjiCGtcVtgcLnaIUdY4B0PKYVnvBUxcNNWoS9Ssk24NIZrlPbmPE9OnIFQGP/niQ==
   dependencies:
     algo-msgpack-with-bigint "^2.1.1"
     algosdk "^1.13.1"
@@ -858,6 +858,8 @@
     base32.js "^0.1.0"
     bn "^1.0.5"
     camelcase "^6.3.0"
+    js-sha512 "^0.8.0"
+    ripple-address-codec "^4.2.4"
     typescript "^4.5.4"
     web3 "^1.6.1"
     xrpl "^2.1.1"
@@ -8042,6 +8044,14 @@ ripple-address-codec@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/ripple-address-codec/-/ripple-address-codec-4.2.3.tgz#516675715cd43b71d2fd76c59bd92d0f623c152d"
   integrity sha512-9Nd0hQmKoJEhSTzYR9kYjKmSWlH6HaVosNVAM7mIIVlzcNlQCPfKXj7CfvXcRiHl3C6XUZj7RFLqzVaPjq2ufA==
+  dependencies:
+    base-x "3.0.9"
+    create-hash "^1.1.2"
+
+ripple-address-codec@^4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/ripple-address-codec/-/ripple-address-codec-4.2.4.tgz#a56c2168c8bb81269ea4d15ed96d6824c5a866f8"
+  integrity sha512-roAOjKz94+FboTItey1XRh5qynwt4xvfBLvbbcx+FiR94Yw2x3LrKLF2GVCMCSAh5I6PkcpADg6AbYsUbGN3nA==
   dependencies:
     base-x "3.0.9"
     create-hash "^1.1.2"

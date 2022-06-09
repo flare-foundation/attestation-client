@@ -28,7 +28,7 @@ import { Interlacing } from "./interlacing";
 // [x] monitor: add check if enough blocks are in (time check)
 // [x] monitor: node status
 // [x] sync by earlist block (ALGO)
-// [ ] sync period is per chain
+// [x] sync period is per chain
 // [ ] (later) on ALGO if N < N_bottom - delete transactions, blocks and restart sync.
 
 var yargs = require("yargs");
@@ -430,9 +430,9 @@ export class Indexer {
 
     this.logger.debug(`${this.chainConfig.name} avg blk per day ${averageBlocksPerDay}`);
 
-    let startBlockNumber = Math.floor(latestBlockNumber - this.config.syncTimeDays * averageBlocksPerDay);
+    let startBlockNumber = Math.floor(latestBlockNumber - this.syncTimeDays() * averageBlocksPerDay);
 
-    const syncStartTime = getUnixEpochTimestamp() - this.config.syncTimeDays * SECONDS_PER_DAY;
+    const syncStartTime = getUnixEpochTimestamp() - this.syncTimeDays() * SECONDS_PER_DAY;
 
     for (let i = 0; i < 12; i++) {
 
@@ -750,6 +750,13 @@ export class Indexer {
     return false;
   }
 
+  syncTimeDays() : number {
+    // chain syncTimeDays overrides config syncTimeDays
+    if( this.chainConfig.syncTimeDays > 0 ) return this.chainConfig.syncTimeDays;
+
+    return this.config.syncTimeDays;
+  }
+
 
   async runIndexer() {
     // wait for db to connect
@@ -782,7 +789,7 @@ export class Indexer {
 
       this.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);
 
-      this.logger.group("Sync started")
+      this.logger.group(`Sync started (${this.syncTimeDays()} days)`);
 
       await this.runSync();
     }
@@ -806,7 +813,7 @@ export class Indexer {
 
         // status
         const NisReady = this.N >= this.T - this.chainConfig.numberOfConfirmations - 2;
-        const syncTimeSec = this.config.syncTimeDays * SECONDS_PER_DAY;
+        const syncTimeSec = this.syncTimeDays() * SECONDS_PER_DAY;
         const fullHistory = !this.bottomBlockTime ? false : (blockNp1.unixTimestamp - this.bottomBlockTime) > syncTimeSec;
         let dbStatus;
         if (!fullHistory) {

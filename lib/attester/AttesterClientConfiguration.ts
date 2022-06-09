@@ -15,6 +15,9 @@ export class AttesterClientConfiguration implements IReflection<AttesterClientCo
   // in sec
   public commitTime: number = 10;
 
+  // additional empty submit at the beggining of commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds)
+  public submitCommitFinalize : boolean = false;
+
   instanciate() {
     return new AttesterClientConfiguration();
   }

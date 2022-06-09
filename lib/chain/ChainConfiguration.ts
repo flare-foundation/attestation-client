@@ -28,6 +28,9 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration>{
   @optional() public maxFailedRetry: number = 1;
   @optional() public delayBeforeRetry: number = 10;
 
+  @optional() public syncTimeDays: number = 0;
+  
+
   instanciate(): ChainsConfiguration {
     return new ChainsConfiguration();
   }

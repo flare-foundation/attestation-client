@@ -21,6 +21,7 @@ Chains configuration file contains all external chain configuration.
 | `delayBeforeRetry`            |                                                                         | 10      |
 | `maxValidIndexerDelaySec`     |                                                                         | 10      |
 | `reverificationTimeOffset`    |                                                                         | 10      |
+| `syncTimeDays`                | Per chain sync time override. Used if not 0.                            | 0       |
 
 > **NOTE:**
 > Entries with default values are optional.

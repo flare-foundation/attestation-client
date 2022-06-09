@@ -31,12 +31,12 @@ export class AttestationRoundManager {
   static activeEpochId: number;
 
   rounds = new Map<number, AttestationRound>();
-  config: AttesterClientConfiguration;
+  static config: AttesterClientConfiguration;
   static credentials: AttesterCredentials;
   attesterWeb3: AttesterWeb3;
 
   constructor(chainManager: ChainManager, config: AttesterClientConfiguration, credentials: AttesterCredentials, logger: AttLogger, attesterWeb3: AttesterWeb3) {
-    this.config = config;
+    AttestationRoundManager.config = config;
     AttestationRoundManager.credentials = credentials;
     this.logger = logger;
     this.attesterWeb3 = attesterWeb3;
@@ -90,9 +90,9 @@ export class AttestationRoundManager {
     // all times are in milliseconds
     const now = getTimeMilli();
     const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(epochId);
-    const epochCommitTime: number = epochTimeStart + this.config.roundDurationSec * 1000;
-    const epochRevealTime: number = epochCommitTime + this.config.roundDurationSec * 1000;
-    const epochCompleteTime: number = epochRevealTime + this.config.roundDurationSec * 1000;
+    const epochCommitTime: number = epochTimeStart + AttestationRoundManager.config.roundDurationSec * 1000;
+    const epochRevealTime: number = epochCommitTime + AttestationRoundManager.config.roundDurationSec * 1000;
+    const epochCompleteTime: number = epochRevealTime + AttestationRoundManager.config.roundDurationSec * 1000;
 
     let activeRound = this.rounds.get(epochId);
 
@@ -137,12 +137,12 @@ export class AttestationRoundManager {
       // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
       setTimeout(() => {
         safeCatch(`setTimeout:commitLimit`, () => activeRound!.commitLimit());
-      }, epochRevealTime - this.config.commitTime * 1000 - 1000 - now);
+      }, epochRevealTime - AttestationRoundManager.config.commitTime * 1000 - 1000 - now);
 
       // trigger reveal
       setTimeout(() => {
         safeCatch(`setTimeout:reveal`, () => activeRound!.reveal());
-      }, epochCompleteTime - this.config.commitTime * 1000 - now);
+      }, epochCompleteTime - AttestationRoundManager.config.commitTime * 1000 - now);
 
       // trigger end of reveal epoch, cycle is completed at this point
       setTimeout(() => {
@@ -153,7 +153,7 @@ export class AttestationRoundManager {
 
       this.cleanup();
 
-      activeRound.commitEndTime = epochRevealTime - this.config.commitTime * 1000;
+      activeRound.commitEndTime = epochRevealTime - AttestationRoundManager.config.commitTime * 1000;
 
       // link rounds
       const prevRound = this.rounds.get(epochId - 1);
@@ -164,7 +164,7 @@ export class AttestationRoundManager {
         // trigger first commit
         setTimeout(() => {
           safeCatch(`setTimeout:firstCommit`, () => activeRound!.firstCommit());
-        }, epochRevealTime - this.config.commitTime * 1000 - now);
+        }, epochRevealTime - AttestationRoundManager.config.commitTime * 1000 - now);
       }
     }
 

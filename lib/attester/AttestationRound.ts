@@ -60,7 +60,9 @@ export enum AttestationRoundStatus {
 // [x] convert code to read human redable json
 // [x] check if ChainType and SourceId values and names match
 
-// [ ] make nice text base round display (cursor moving)
+// [x] make nice text base round display (cursor moving)
+
+// [x] make submittion of finalize settable in configuration
 
 // [ ] check performance for new nodes
 // [ ] test two node of single type 
@@ -152,25 +154,27 @@ export class AttestationRound {
   }
 
   startCommitSubmit() {
-    let action = `Finalizing ^Y#${this.roundId-3}^^`;
-    this.attesterWeb3
-      .submitAttestation(
-        action,
-        this.roundId,
-        // commit index (collect+1)
-        toBN(this.roundId + 1),
-        toHex(0, 32),
-        toHex(0, 32),
-        toHex(0, 32),
-        toHex(0, 32),
-        toHex(0, 32),
-        false
-      )
-      .then((receipt) => {
-        if (receipt) {
-          this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId-3}`);
-        }
-      });
+    if( AttestationRoundManager.config.submitCommitFinalize ) {
+      let action = `Finalizing ^Y#${this.roundId-3}^^`;
+      this.attesterWeb3
+        .submitAttestation(
+          action,
+          this.roundId,
+          // commit index (collect+1)
+          toBN(this.roundId + 1),
+          toHex(0, 32),
+          toHex(0, 32),
+          toHex(0, 32),
+          toHex(0, 32),
+          toHex(0, 32),
+          false
+        )
+        .then((receipt) => {
+          if (receipt) {
+            this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId-3}`);
+          }
+        });
+    }
   }
 
   startRevealEpoch() {

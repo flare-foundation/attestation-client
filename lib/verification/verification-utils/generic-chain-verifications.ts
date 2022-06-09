@@ -165,12 +165,17 @@ export async function verifyConfirmedBlockHeightExists(
       (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
    ));
 
+   let startTimestamp = this.settings.windowStartTime(roundId);
+   let lowerQueryWindowBlock = await iqm.getFirstConfirmedBlockAfterTime(startTimestamp);
+
    let response = {
       stateConnectorRound: roundId,
       blockNumber: toBN(dbBlock.blockNumber),
       blockTimestamp: toBN(dbBlock.timestamp),
       numberOfConfirmations: toBN(numberOfConfirmations),
-      averageBlockProductionTimeMs
+      averageBlockProductionTimeMs,
+      lowestQueryWindowBlockNumber: toBN(lowerQueryWindowBlock.blockNumber),
+      lowestQueryWindowBlockTimestamp: toBN(lowerQueryWindowBlock.timestamp)
    } as DHConfirmedBlockHeightExists;
 
    return {

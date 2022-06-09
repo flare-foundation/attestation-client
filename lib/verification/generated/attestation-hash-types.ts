@@ -94,6 +94,12 @@ export interface DHConfirmedBlockHeightExists {
 
    // Average block production time based on the data in the query window.
    averageBlockProductionTimeMs: BN;
+
+   // Lowest query window block number.
+   lowestQueryWindowBlockNumber: BN;
+
+   // Lowest query window block timestamp.
+   lowestQueryWindowBlockTimestamp: BN;
 }
 
 export interface DHReferencedPaymentNonexistence {
@@ -128,4 +134,22 @@ export interface DHReferencedPaymentNonexistence {
    // Timestamp of the firstOverflowBlock.
    firstOverflowBlockTimestamp: BN;
 }
-export type DHType = DHPayment | DHBalanceDecreasingTransaction | DHConfirmedBlockHeightExists | DHReferencedPaymentNonexistence;
+
+export interface DHTrustlineIssuance {
+   // Attestation type
+   stateConnectorRound: number;
+   merkleProof?: string[];
+   
+   // 3 letter code or 160-bit hexadecimal string known as [Currency code](https://xrpl.org/currency-formats.html#currency-codes). The first byte indicates whether it is a 3 letter encoded ascii string "0x00..." or 160 bit hex string "0x01...".
+   tokenCurrencyCode: string;
+
+   // Nominator of the token value described as the fraction reduced by the highest exponent of 10.
+   tokenValueNominator: BN;
+
+   // Denominator of the token value described as the fraction reduced by the highest exponent of 10.
+   tokenValueDenominator: BN;
+
+   // Ripple account address of token issuer as bytes (right padded address bytes (20 + 12)).
+   tokenIssuer: string;
+}
+export type DHType = DHPayment | DHBalanceDecreasingTransaction | DHConfirmedBlockHeightExists | DHReferencedPaymentNonexistence | DHTrustlineIssuance;

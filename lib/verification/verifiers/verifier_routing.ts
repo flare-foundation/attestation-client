@@ -28,6 +28,7 @@ import {verifyReferencedPaymentNonexistenceBTC} from "./BTC/v-00004-referenced-p
 import {verifyReferencedPaymentNonexistenceLTC} from "./LTC/v-00004-referenced-payment-nonexistence.ltc"
 import {verifyReferencedPaymentNonexistenceDOGE} from "./DOGE/v-00004-referenced-payment-nonexistence.doge"
 import {verifyReferencedPaymentNonexistenceALGO} from "./ALGO/v-00004-referenced-payment-nonexistence.algo"
+import {verifyTrustlineIssuanceXRP} from "./XRP/v-00005-trustline-issuance.xrp"
 
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager"
 import { Attestation } from "../../attester/Attestation"
@@ -106,6 +107,13 @@ export async function verifyAttestation(client: MccClient, attestation: Attestat
                return verifyReferencedPaymentNonexistenceDOGE(client as MCC.DOGE, attestation, indexer, recheck);
             case SourceId.ALGO:
                return verifyReferencedPaymentNonexistenceALGO(client as MCC.ALGO, attestation, indexer, recheck);
+            default:
+               throw new WrongSourceIdError("Wrong source id");
+      }
+      case AttestationType.TrustlineIssuance:
+         switch(sourceId) {
+            case SourceId.XRP:
+               return verifyTrustlineIssuanceXRP(client as MCC.XRP, attestation, indexer, recheck);
             default:
                throw new WrongSourceIdError("Wrong source id");
       }

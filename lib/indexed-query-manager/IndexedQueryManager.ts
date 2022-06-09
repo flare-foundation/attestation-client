@@ -51,6 +51,14 @@ export class IndexedQueryManager {
     return getSourceName(this.settings.chainType) + "_T";
   }
 
+  getChainNbottom() {
+    return getSourceName(this.settings.chainType) + "_Nbottom";
+  }
+
+  getChainNBottomTime() {
+    return getSourceName(this.settings.chainType) + "_NbottomTime";
+  }
+
   public async getLastConfirmedBlockNumber(): Promise<number> {
     if (this.debugLastConfirmedBlock == null) {
       const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
@@ -232,6 +240,11 @@ export class IndexedQueryManager {
     }
   }
 
+  private async lowerBoundaryCheck(roundId: number): Promise<boolean> {
+    let startTimestamp = this.settings.windowStartTime(roundId);
+    return await this.hasIndexerConfirmedBlockStrictlyBeforeTime(startTimestamp);
+  }
+
   ////////////////////////////////////////////////////////////
   // Confirmed blocks queries
   ////////////////////////////////////////////////////////////
@@ -248,6 +261,13 @@ export class IndexedQueryManager {
       confirmed: true,
       returnQueryBoundaryBlocks: params.returnQueryBoundaryBlocks
     });
+    if (!blockQueryResult) {
+      // check lower bound if block was not found. If block was found lower bound is not so important.
+      let lowerCheck = await this.lowerBoundaryCheck(params.roundId);
+      if (!lowerCheck) {
+        return { status: "SYSTEM_FAILURE" };
+      }
+    }
     return {
       status: blockQueryResult ? "OK" : "NOT_EXIST",
       block: blockQueryResult.result,
@@ -265,6 +285,11 @@ export class IndexedQueryManager {
     if (status != "OK") {
       return { status }
     }
+    let lowerCheck = await this.lowerBoundaryCheck(params.roundId);
+    if (!lowerCheck) {
+      return { status: "SYSTEM_FAILURE" };
+    }
+
     let transactionsQueryResult = await this.queryTransactions({
       roundId: params.roundId,
       endBlock: U,
@@ -272,6 +297,7 @@ export class IndexedQueryManager {
       returnQueryBoundaryBlocks: params.returnQueryBoundaryBlocks
     } as TransactionQueryParams);
     let transactions = transactionsQueryResult.result;
+
     return {
       status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
       transaction: transactions[0],
@@ -291,6 +317,11 @@ export class IndexedQueryManager {
     let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
     if (status != "OK") {
       return { status }
+    }
+
+    let lowerCheck = await this.lowerBoundaryCheck(params.roundId);
+    if (!lowerCheck) {
+      return { status: "SYSTEM_FAILURE" };
     }
 
     let firstOverflowBlock = await this.getFirstConfirmedOverflowBlock(params.deadlineBlockTimestamp, params.deadlineBlockNumber)
@@ -341,6 +372,19 @@ export class IndexedQueryManager {
 
     return result;
   }
+
+  public async hasIndexerConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<boolean> {
+    let query = this.dbService.connection.manager
+      .createQueryBuilder(this.blockTable, "block")
+      .where("block.confirmed = :confirmed", { confirmed: true })
+      .andWhere("block.timestamp < :timestamp", { timestamp: timestamp })
+      .orderBy("block.timestamp", "DESC")
+      .limit(1);
+    let results = await query.getMany() as DBBlockBase[];
+    return results.length === 1;
+  }
+
+
 
   /**
    * Get first confirmed block that is strictly after timestamp and blockNumber provided in parameters

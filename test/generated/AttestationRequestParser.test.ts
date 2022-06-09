@@ -6,7 +6,8 @@ import {
    ARPayment,
    ARBalanceDecreasingTransaction,
    ARConfirmedBlockHeightExists,
-   ARReferencedPaymentNonexistence 
+   ARReferencedPaymentNonexistence,
+   ARTrustlineIssuance 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
 import { SourceId } from "../../lib/verification/sources/sources";
@@ -52,6 +53,16 @@ describe("Attestestation Request Parser", function () {
    it("Should encode and decode for 'ReferencedPaymentNonexistence'", async function () { 
       for(let sourceId of [3,0,1,2,4]) {
          let randomRequest = getRandomRequestForAttestationTypeAndSourceId(4 as AttestationType, sourceId as SourceId) as ARReferencedPaymentNonexistence;
+   
+         let bytes = encodeRequest(randomRequest);
+         let parsedRequest = parseRequest(bytes);
+         assert(equalsRequest(randomRequest, parsedRequest));
+      }
+   });
+   
+   it("Should encode and decode for 'TrustlineIssuance'", async function () { 
+      for(let sourceId of [3]) {
+         let randomRequest = getRandomRequestForAttestationTypeAndSourceId(5 as AttestationType, sourceId as SourceId) as ARTrustlineIssuance;
    
          let bytes = encodeRequest(randomRequest);
          let parsedRequest = parseRequest(bytes);

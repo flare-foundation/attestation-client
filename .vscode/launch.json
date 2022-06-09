@@ -66,8 +66,7 @@
                 "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
             ],
             "runtimeArgs": [
-                "devindexer",
-                "-a","ALGO"
+                "devindexer"
             ]
         },
 

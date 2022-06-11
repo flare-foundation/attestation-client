@@ -107,14 +107,14 @@ export class DatabaseAlert extends AlertBase {
 
         if( this.disks ) {
             for( let disk of this.disks ) {
-                if( disk.filesystem==="none" ) continue;
+                if( disk.mounted!=="/" ) continue;
 
                 let res = new PerformanceInfo();
                 res.name = `system.disk.available`;
-                res.valueName = disk.mounted;
+                res.valueName = disk.filesystem;
                 res.value = round( disk.available / (1024 * 1024 ) , 3 );
                 res.valueUnit = "GB";
-                res.comment = `${round(disk.available*100/(disk.available+disk.used),1)}% of ${round((disk.available+disk.used)/(1024*1024),3)} GB available (${disk.filesystem})`;
+                res.comment = `${round(disk.available*100/(disk.available+disk.used),1)}% of ${round((disk.available+disk.used)/(1024*1024),3)} GB available`;
         
                 resArray.push(res);
             }

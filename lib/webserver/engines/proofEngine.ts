@@ -203,7 +203,7 @@ body {
 
 <!-- <meta http-equiv="refresh" content="5"> -->
 
-<script>
+<script type="text/javascript">
    function autoRefresh() {
       window.location = window.location.href;
    }

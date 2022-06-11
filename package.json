@@ -49,7 +49,7 @@
     "htest": "yarn codegen && yarn c && yarn hardhat test test/HashTest.test.ts",
     "preroutes": "ts-node lib/scripts/create-routes-folder.ts",
     "routes": "yarn tsoa routes && yarn tsoa spec",
-    "devbackend": "CONFIG_PATH=dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/webserver/server.ts",
+    "devbackend": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/webserver/server.ts",
     "devspammer_old": "DOTENV=DEV DOTENV_INCLUDE=\".indexer.remote.dev.read.env\" yarn ts-node-dev --notify --respawn -- lib/spammer/attestation-spammer.ts -- -c XRP -r http://127.0.0.1:9650/ext/bc/C/rpc  -a artifacts/contracts/StateConnector.sol/StateConnector.json -t $(cat .stateconnector-address) -b 1 -o 1 -f 1 -d 1000 -l XRP -k test-1020-accounts.json",
     "devspammer": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/spammer/attestation-spammer.ts -- -c ALGO",
     "devctail": "CONFIG_PATH=dev NODE_ENV=development yarn ts-node-dev --notify --respawn lib/tools/ctail/ctail.ts",

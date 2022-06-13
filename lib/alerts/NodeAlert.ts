@@ -45,25 +45,25 @@ export class NodeAlert extends AlertBase {
         };
 
         try {
-           this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
+            this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
         }
-        catch(error ) {
-            logException( error , `node ${this.chainType}` );
+        catch (error) {
+            logException(error, `node ${this.chainType}`);
         }
     }
 
     mccLogging(message: string) {
         //this.logger.info(`MCC ${message}`);
-      }
-    
-      mccWarning(message: string) {
+    }
+
+    mccWarning(message: string) {
         this.logger.warning(`MCC ${message}`);
-      }
-    
-      mccException(error: any, message: string) {
+    }
+
+    mccException(error: any, message: string) {
         logException(error, message);
-      }
-    
+    }
+
 
     async perf() { return null; }
 
@@ -72,7 +72,7 @@ export class NodeAlert extends AlertBase {
         const res = new AlertStatus();
         res.name = `node ${this.name}`;
 
-        if( !this.cachedClient ) {
+        if (!this.cachedClient) {
             res.status = "down";
             res.state = "";
             res.comment = `unable to connect ${(this.chainConfig.mccCreate as any)?.url}`;
@@ -81,7 +81,7 @@ export class NodeAlert extends AlertBase {
 
         var status = await this.cachedClient.client.getNodeStatus();
 
-        if( !status ) {
+        if (!status) {
             res.comment = "node status not available";
             return res;
         }
@@ -89,13 +89,13 @@ export class NodeAlert extends AlertBase {
         res.state = ``;
         res.comment = `state ${status?.state}, version ${status?.version}`;
 
-        if( status.isHealthy && status.isSynced ) {
+        if (status.isHealthy && status.isSynced) {
             res.status = "running";
         }
-        else if( status.isHealthy && !status.isSynced ) {
+        else if (status.isHealthy && !status.isSynced) {
             res.status = "sync";
         }
-        else if( !status.isHealthy ) {
+        else if (!status.isHealthy) {
             res.status = "down";
         }
 

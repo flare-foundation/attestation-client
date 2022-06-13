@@ -26,11 +26,11 @@ async function admin() {
         addCommand("^RRestart all", "bash ./scripts/services-restart-all").parent().
         addCommand("^RStop all", "bash ./scripts/services-stop-all").parent().
         addSubmenu("Indexer").
-            addService("ALGO", "indexer-algo").parent().
-            addService("BTC", "indexer-btc").parent().
-            addService("DOGE", "indexer-doge").parent().
-            addService("LTC", "indexer-ltc").parent().
-            addService("XRP", "indexer-xrp").parent().
+        addService("ALGO", "indexer-algo").parent().
+        addService("BTC", "indexer-btc").parent().
+        addService("DOGE", "indexer-doge").parent().
+        addService("LTC", "indexer-ltc").parent().
+        addService("XRP", "indexer-xrp").parent().
         parent().
         addService("Alerts", "attester-alerts").parent().
         addService("Coston Attestation Client", "coston-attester-client").parent().
@@ -40,11 +40,11 @@ async function admin() {
 
     menu.addSubmenu("Show log").
         addSubmenu("Indexer").
-            addLog("ALGO", "../global/indexer/logs/attester-ALGO.log").parent().
-            addLog("BTC", "../global/indexer/logs/attester-BTC.log").parent().
-            addLog("DOGE", "../global/indexer/logs/attester-DOGE.log").parent().
-            addLog("LTC", "../global/indexer/logs/attester-LTC.log").parent().
-            addLog("XRP", "../global/indexer/logs/attester-XRP.log").parent().
+        addLog("ALGO", "../global/indexer/logs/attester-ALGO.log").parent().
+        addLog("BTC", "../global/indexer/logs/attester-BTC.log").parent().
+        addLog("DOGE", "../global/indexer/logs/attester-DOGE.log").parent().
+        addLog("LTC", "../global/indexer/logs/attester-LTC.log").parent().
+        addLog("XRP", "../global/indexer/logs/attester-XRP.log").parent().
         parent().
         addLog("app", "logs/attester-global.log").parent().
         addLog("Alerts", "../global/alerts/logs/attester-global.log").parent().
@@ -55,10 +55,10 @@ async function admin() {
 
     menu.addSubmenu("Reset Database").
         addCommand("ALGO", "bash ./scripts/indexer-reset-algo.sh").parent().
-        addCommand("BTC" , "bash ./scripts/indexer-reset-btc.sh").parent().
+        addCommand("BTC", "bash ./scripts/indexer-reset-btc.sh").parent().
         addCommand("DOGE", "bash ./scripts/indexer-reset-doge.sh").parent().
-        addCommand("LTC" , "bash ./scripts/indexer-reset-ltc.sh").parent().
-        addCommand("XRP" , "bash ./scripts/indexer-reset-xrp.sh").parent();
+        addCommand("LTC", "bash ./scripts/indexer-reset-ltc.sh").parent().
+        addCommand("XRP", "bash ./scripts/indexer-reset-xrp.sh").parent();
 
 
     //await menu.run();
@@ -140,7 +140,7 @@ async function admin() {
         }
 
         // wait for execution to stop
-        while (MenuItemCommand.working || MenuItemLog.working ) {
+        while (MenuItemCommand.working || MenuItemLog.working) {
             await sleepms(100);
         }
     }

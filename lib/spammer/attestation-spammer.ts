@@ -1,4 +1,3 @@
-import { logger } from "ethers";
 import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
@@ -273,7 +272,7 @@ async function displayStats() {
 
     try {
 
-      logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
+      this.logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
       AttestationSpammer.sendCount = 0;
 
     }

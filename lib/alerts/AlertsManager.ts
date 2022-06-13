@@ -9,6 +9,7 @@ import { BackendAlert } from "./BackendAlert";
 import { IndexerAlert } from "./IndexerAlert";
 import { DatabaseAlert } from "./DatabaseAlert";
 import { NodeAlert } from "./NodeAlert";
+import { DockerAlert } from "./DockerAlert";
 
 export class AlertsManager {
     logger: AttLogger;
@@ -23,6 +24,10 @@ export class AlertsManager {
 
         for (let node of this.config.nodes) {
             this.alerts.push(new NodeAlert(node, this.logger, this.config));
+        }
+
+        for (let docker of this.config.dockers) {
+            this.alerts.push(new DockerAlert(docker, this.logger, this.config));
         }
 
         for (let indexer of this.config.indexers) {

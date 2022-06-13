@@ -99,8 +99,8 @@ export class DatabaseAlert extends AlertBase {
                 .then(disks => {
                     this.disks = disks;
 
-                    // check once per minute
-                    this.diskCheckTime = now + 60 * 60;
+                    // check once per 10 minutes
+                    this.diskCheckTime = now + 60 * 10 * 1000;
                 })
                 .catch(error => { logException( error , `nodeDiskInfo` );});        
             }

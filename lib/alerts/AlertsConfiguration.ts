@@ -42,6 +42,7 @@ export class AlertConfig implements IReflection<AlertConfig> {
 
     indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
     nodes = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
+    dockers = ["algorand", "bitcoin", "dogecoin", "litecoin", "ripple"];
 
     attesters = [];
     backends = [];
@@ -57,6 +58,7 @@ export class AlertConfig implements IReflection<AlertConfig> {
 
         res.arrayMap.set( "indexers" , "string" );
         res.arrayMap.set( "nodes" , "string" );
+        res.arrayMap.set( "dockers" , "string" );
         res.arrayMap.set( "attesters" , new AlertAttestationConfig() );
         res.arrayMap.set( "backends" , new AlertBackendConfig() )
         res.arrayMap.set( "database" , new AlertDatabaseConfig() )

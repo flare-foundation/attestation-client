@@ -15,8 +15,6 @@ import { AttesterState } from "./AttesterState";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestationConfig";
 
-const cliProgress = require('cli-progress');
-
 export class AttestationRoundManager {
   logger: AttLogger;
   static epochSettings: EpochSettings;

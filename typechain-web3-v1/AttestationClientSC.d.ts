@@ -37,8 +37,6 @@ export interface AttestationClientSC extends BaseContract {
 
     REFERENCED_PAYMENT_NONEXISTENCE(): NonPayableTransactionObject<string>;
 
-    TRUSTLINE_ISSUANCE(): NonPayableTransactionObject<string>;
-
     merkleRootForRound(
       _stateConnectorRound: number | string | BN
     ): NonPayableTransactionObject<string>;
@@ -65,8 +63,6 @@ export interface AttestationClientSC extends BaseContract {
       _data: [
         number | string | BN,
         (string | number[])[],
-        number | string | BN,
-        number | string | BN,
         number | string | BN,
         number | string | BN,
         number | string | BN,
@@ -108,18 +104,6 @@ export interface AttestationClientSC extends BaseContract {
         number | string | BN,
         number | string | BN,
         number | string | BN
-      ]
-    ): NonPayableTransactionObject<boolean>;
-
-    verifyTrustlineIssuance(
-      _chainId: number | string | BN,
-      _data: [
-        number | string | BN,
-        (string | number[])[],
-        string | number[],
-        number | string | BN,
-        number | string | BN,
-        string | number[]
       ]
     ): NonPayableTransactionObject<boolean>;
   };

@@ -1,6 +1,5 @@
-import BN from "bn.js";
-import { ethers } from "ethers";
 import { prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
+import BN from "bn.js";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
@@ -14,10 +13,6 @@ export function arrayRemoveElement(array: Array<any>, element: any) {
     array.splice(index, 1);
   }
 }
-
-// export function getProvider(rpcLink: string): ethers.providers.Provider {
-//   return new ethers.providers.JsonRpcProvider(rpcLink);
-// }
 
 export function getWeb3(rpcLink: string, logger?: any) {
   const web3 = new Web3();
@@ -73,23 +68,9 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
   }
 }
 
-export async function getContract(provider: any, address: string, name: string) {
-  let abiPath = "";
-  try {
-    abiPath = await relativeContractABIPathForContractName(name, "artifacts");
-    return new ethers.Contract(address, getAbi(`artifacts/${abiPath}`), provider);
-  } catch (e: any) {
-    abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
-    return new ethers.Contract(address, getAbi(`data/artifacts/${abiPath}`), provider);
-  }
-}
 
 export function getWeb3Wallet(web3: any, privateKey: string) {
   return web3.eth.accounts.privateKeyToAccount(prefix0x(privateKey));
-}
-
-export function getWallet(privateKey: string, provider: any): ethers.Wallet {
-  return new ethers.Wallet(privateKey, provider);
 }
 
 export function waitFinalize3Factory(web3: any) {
@@ -115,14 +96,6 @@ export function waitFinalize3Factory(web3: any) {
     return res;
   };
 }
-
-// export function bigNumberToMillis(num: number) {
-//   return BigNumber.from(num * 1000);
-// }
-
-// export function priceHash(price: number | BN | BigNumber, random: number | BN | BigNumber, address: string): string {
-//   return ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["uint256", "uint256", "address"], [price.toString(), random.toString(), address]));
-// }
 
 export async function relativeContractABIPathForContractName(name: string, artifactsRoot = "artifacts"): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -160,11 +133,6 @@ export function getSimpleRandom(maxnum: number): number {
   return Math.floor(Math.random() * maxnum);
 }
 
-
-export async function getRandom(minnum: number = 0, maxnum: number = 10 ** 5) {
-  const randomNumber = require("random-number-csprng");
-  return await randomNumber(minnum, maxnum);
-}
 
 export async function getCryptoSafeRandom() {
   return Web3.utils.randomHex(32);

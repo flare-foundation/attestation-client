@@ -45,7 +45,6 @@ nul
 .attestation-client-address
 .env.att-client-deploy
 .DS_Store
-yarn.lock
 
 ## Solidity
 artifacts

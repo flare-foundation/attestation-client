@@ -17,7 +17,9 @@ DotEnvExt();
 
 export const app = express();
 
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false,
+}));
 app.use(compression()); // Compress all routes
 
 app.use(cookieParser());
@@ -54,7 +56,7 @@ app.use(function errorHandler(
         return res.status(400).json(err);
     }
     if (err instanceof ValidateError) {
-        console.warn(`Caught Validation Error for ${ req.path }:`, err.fields);
+        console.warn(`Caught Validation Error for ${req.path}:`, err.fields);
         return res.status(422).json(
             new ApiResponse<any>(undefined, 'VALIDATION_ERROR', undefined, err ? err.fields : null)
         );

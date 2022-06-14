@@ -22,9 +22,17 @@ export class AlertStatus {
 export class PerformanceInfo {    
     name: string;
     valueName: string = "";
-    valueUnit: string = "";
     value: number;
+    valueUnit: string = "";
     comment: string = "";
+
+    constructor(name: string, valueName: string, value: number, valueUnit: string="", comment: string="") {
+        this.name=name;
+        this.valueName=valueName;
+        this.value=value;
+        this.valueUnit=valueUnit;
+        this.comment=comment;
+    }
 
     displayStatus(logger: AttLogger) {
         logger.info(`${this.name.padEnd(20)}  ${this.valueName.padEnd(14)}  ${this.value.toString().padStart(10)} ${this.valueUnit.padEnd(5)} ^B${this.comment}                  `);

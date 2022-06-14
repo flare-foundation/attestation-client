@@ -3,7 +3,7 @@ import { Docker, DockerInfo } from "../utils/Docker";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger } from "../utils/logger";
 import { round } from "../utils/utils";
-import { AlertBase, AlertRestartConfig, AlertStatus } from "./AlertBase";
+import { AlertBase, AlertRestartConfig, AlertStatus, PerformanceInfo } from "./AlertBase";
 import { AlertConfig } from "./AlertsConfiguration";
 
 export class DockerAlert extends AlertBase {
@@ -25,51 +25,40 @@ export class DockerAlert extends AlertBase {
         }
     }
 
-    async perf() { return null; }
-
-    async check(): Promise<AlertStatus> {
-
-
+    async perf(): Promise<PerformanceInfo[]> { 
         const now = getTimeMilli();
         if( now > this.timeCheck ) {
             DockerAlert.dockerInfo = Docker.getDockerInfo();
 
             // check once per 10 minutes
             this.timeCheck = now + 60 * 10 * 1000;
+
         }
 
-        const res = new AlertStatus();
-        res.name = `docker ${this.name}`;
+        if( !DockerAlert.dockerInfo ) return null;
 
         const rep = DockerAlert.dockerInfo.repositoryInfo.find( (x)=>x.repository.indexOf( this.name ) > 0 );
         const con = DockerAlert.dockerInfo.containerInfo.find( (x)=>x.image.indexOf( this.name ) > 0 );
         const vol = DockerAlert.dockerInfo.volumeInfo.find( (x)=>x.volume_name.indexOf( this.name ) > 0 );
 
         if (!rep || !vol || !con ) {
-            res.status = "down";
-            res.state = "";
-            res.comment = `no info`;
-            return res;
+            return null;
         }
 
+        const resList = [];
 
-        res.state = `${con.status}`;
-        res.comment = `volume size ${round( vol.size / (1024*1024*1024.0) , 3 ) }GB (rep size ${round( rep.size / (1024*1024*1024.0) , 3 ) }GB)`;
+        resList.push( new PerformanceInfo(`docker.volume.size`,this.name,round( vol.size / (1024*1024*1024.0) , 3 ), "GB", `rep size ${round( rep.size / (1024*1024*1024.0) , 3 ) }GB)`) );
 
-        if (res.state.indexOf( "Up ")===0) {
-            res.status = "running";
-        }
-        else {
-            res.status = "down";
+        if( con.status.indexOf("Up ")===0) {
+            const status = /(\S+) (\d+) (\S+)/.exec(con.status);
+            resList.push( new PerformanceInfo(`docker.container.up`,this.name, parseInt( status[1] ), status[2]) , con.image );
         }
 
-        // if (late > this.restartConfig.time) {
-        //     if (await this.restart()) {
-        //         res.comment = "^r^Wrestart^^";
-        //     }
-        // }
+        return resList;
+    }
 
-        return res;
+    async check(): Promise<AlertStatus> {
+        return null;
     }
 }
 

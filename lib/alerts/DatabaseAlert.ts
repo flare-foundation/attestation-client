@@ -39,14 +39,7 @@ export class DatabaseAlert extends AlertBase {
 
                 if (user.user === "root" || user.user === "event_scheduler" || user.user === "processReader") continue;
 
-                const res = new PerformanceInfo();
-                res.name = `mysql.${user.user}`;
-                res.valueName = "time";
-                res.valueUnit = "ms";
-                res.value = user.time;
-                res.comment = `${user.conn} connection(s)`;
-
-                resArray.push(res);
+                resArray.push( new PerformanceInfo( `mysql.${user.user}` , "time" , user.time , "ms" ,`${user.conn} connection(s)` ) );
             }
         }
 
@@ -65,32 +58,11 @@ export class DatabaseAlert extends AlertBase {
         const availableMemory = round( Number(/MemAvailable:[ ]+(\d+)/.exec(memInfo)[1]) / 1024 , 1 );
         const freeMemory = round( Number(/MemFree:[ ]+(\d+)/.exec(memInfo)[1]) / 1024 , 1 );
 
-        let resMem = new PerformanceInfo();
-        resMem.name = `system.memory`;
-        resMem.valueName = "total";
-        resMem.value = totalMemory;
-        resMem.valueUnit = "MB";
+        resArray.push( new PerformanceInfo(`system.memory`, "total", totalMemory , "MB" ) );
 
-        resArray.push(resMem);
+        resArray.push( new PerformanceInfo(`system.memory`, "free", freeMemory, "MB" , `${round(freeMemory*100/totalMemory,1)}% free` ) );
 
-        resMem = new PerformanceInfo();
-        resMem.name = `system.memory`;
-        resMem.valueName = "free";
-        resMem.value = freeMemory;
-        resMem.valueUnit = "MB";
-        resMem.comment = `${round(freeMemory*100/totalMemory,1)}% free`;
-
-        resArray.push(resMem);
-
-        resMem = new PerformanceInfo();
-        resMem.name = `system.memory`;
-        resMem.valueName = "available";
-        resMem.value = availableMemory;
-        resMem.valueUnit = "MB";
-        resMem.comment = `${round(availableMemory*100/totalMemory,1)}% available`;
-
-        resArray.push(resMem);
-
+        resArray.push( new PerformanceInfo(`system.memory`, "available", availableMemory, "MB", `${round(availableMemory*100/totalMemory,1)}% available` ) );
 
         const nodeDiskInfo = require('node-disk-info');
         // async way
@@ -109,14 +81,9 @@ export class DatabaseAlert extends AlertBase {
             for( let disk of this.disks ) {
                 if( disk.mounted!=="/" ) continue;
 
-                let res = new PerformanceInfo();
-                res.name = `system.disk.available`;
-                res.valueName = disk.filesystem;
-                res.value = round( disk.available / (1024 * 1024 ) , 3 );
-                res.valueUnit = "GB";
-                res.comment = `${round(disk.available*100/(disk.available+disk.used),1)}% of ${round((disk.available+disk.used)/(1024*1024),3)} GB available`;
-        
-                resArray.push(res);
+                resArray.push( new PerformanceInfo( `system.disk.available`, disk.filesystem, 
+                    round( disk.available / (1024 * 1024 ) , 3 ), "GB" ,
+                    `${round(disk.available*100/(disk.available+disk.used),1)}% of ${round((disk.available+disk.used)/(1024*1024),3)} GB available` ) );
             }
         }
 
@@ -131,23 +98,10 @@ export class DatabaseAlert extends AlertBase {
 
         used /= cpus.length;
 
-        let res = new PerformanceInfo();
-        res.name = `system.cpu`;
-        res.valueName = "count";
-        res.value = cpus.length;
-        res.comment = cpus[0].model;
-
-        resArray.push(res);
-
+        resArray.push( new PerformanceInfo( `system.cpu`, "count" , cpus.length, "" , cpus[0].model ) );
 
         if (this.cpuTime > 0) {
-            let res = new PerformanceInfo();
-            res.name = `system.cpu`;
-            res.valueName = "utilization";
-            res.valueUnit = "%";
-            res.value = round((used - this.cpuUsed) * 100 / (now - this.cpuTime), 1);
-
-            resArray.push(res);
+            resArray.push( new PerformanceInfo( `system.cpu` , "utilization" , round((used - this.cpuUsed) * 100 / (now - this.cpuTime), 1) , "%" ) );
         }
 
         this.cpuTime = now;

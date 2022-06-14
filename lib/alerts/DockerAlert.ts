@@ -20,9 +20,6 @@ export class DockerAlert extends AlertBase {
     }
 
     async initialize() {
-        if (!DockerAlert.dockerInfo) {
-            DockerAlert.dockerInfo = Docker.getDockerInfo();
-        }
     }
 
     async perf(): Promise<PerformanceInfo[]> { 
@@ -47,11 +44,14 @@ export class DockerAlert extends AlertBase {
 
         const resList = [];
 
-        resList.push( new PerformanceInfo(`docker.volume.size`,this.name,round( vol.size / (1024*1024*1024.0) , 3 ), "GB", `rep size ${round( rep.size / (1024*1024*1024.0) , 3 ) }GB)`) );
+        resList.push( new PerformanceInfo(`docker.volume.size`,this.name,round( vol.size / (1024*1024*1024.0) , 3 ), "GB" , vol.volume_name ) );
 
         if( con.status.indexOf("Up ")===0) {
             const status = /(\S+) (\d+) (\S+)/.exec(con.status);
-            resList.push( new PerformanceInfo(`docker.container.up`,this.name, parseInt( status[1] ), status[2]) , con.image );
+            resList.push( new PerformanceInfo(`docker.container`,this.name, parseInt( status[2] ), status[3] , `${con.image} (size ${round( rep.size / (1024*1024*1024.0) , 1 ) }GB)` ) );
+        }
+        else {
+            resList.push( new PerformanceInfo(`docker.container.uptime`,this.name, 0, "" , `${con.image} (size ${round( rep.size / (1024*1024*1024.0) , 1 ) }GB)` ) );
         }
 
         return resList;

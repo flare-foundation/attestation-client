@@ -115,36 +115,36 @@ export class Docker {
             /*
             // Test
             const buffer = 
-    `Images space usage:
-    
-    REPOSITORY                 TAG         IMAGE ID       CREATED        SIZE      SHARED SIZE   UNIQUE SIZE   CONTAINERS
-    flarefoundation/algorand   3.6.2-dev   3305ec93de1c   4 days ago     3.622GB   0B            3.622GB       1
-    flarefoundation/rippled    1.9.0       76cdc0e4dc7d   7 weeks ago    8.336GB   0B            8.336GB       1
-    flarefoundation/dogecoin   1.14.5      01d7c62a7772   2 months ago   1.846GB   72.76MB       1.773GB       1
-    flarefoundation/bitcoin    22.0        bf7c3fa43358   2 months ago   2.853GB   72.76MB       2.78GB        1
-    flarefoundation/litecoin   0.18.1      3fedbbd03519   2 months ago   2.051GB   72.76MB       1.978GB       1
-    
-    Containers space usage:
-    
-    CONTAINER ID   IMAGE                                COMMAND                  LOCAL VOLUMES   SIZE      CREATED       STATUS       NAMES
-    732da6631e58   flarefoundation/algorand:3.6.2-dev   "entrypoint.sh algod"    1               0B        3 days ago    Up 3 days    connected-chains_algorand_1
-    29b10a7d1d7e   flarefoundation/dogecoin:1.14.5      "dogecoind -conf=/op…"   1               0B        12 days ago   Up 12 days   connected-chains_dogecoin_1
-    ee9095587127   flarefoundation/litecoin:0.18.1      "litecoind -conf=/op…"   1               0B        12 days ago   Up 12 days   connected-chains_litecoin_1
-    0e095a5e44c9   flarefoundation/rippled:1.9.0        "rippled --conf=/opt…"   1               58.6MB    12 days ago   Up 12 days   connected-chains_rippled_1
-    2c996a8cf930   flarefoundation/bitcoin:22.0         "bitcoind -conf=/opt…"   1               0B        12 days ago   Up 12 days   connected-chains_bitcoin_1
-    
-    Local Volumes space usage:
-    
-    VOLUME NAME                      LINKS     SIZE
-    connected-chains_bitcoin-data    1         510.6GB
-    connected-chains_litecoin-data   1         91.93GB
-    connected-chains_dogecoin-data   1         62.58GB
-    connected-chains_ripple-data     1         617.3GB
-    connected-chains_algorand-data   1         809GB
-    
-    Build cache usage: 0B
-    
-    CACHE ID   CACHE TYPE   SIZE      CREATED   LAST USED   USAGE     SHARED`; /**/
+`Images space usage:
+
+REPOSITORY                 TAG         IMAGE ID       CREATED        SIZE      SHARED SIZE   UNIQUE SIZE   CONTAINERS
+flarefoundation/algorand   3.6.2-dev   3305ec93de1c   4 days ago     3.622GB   0B            3.622GB       1
+flarefoundation/rippled    1.9.0       76cdc0e4dc7d   7 weeks ago    8.336GB   0B            8.336GB       1
+flarefoundation/dogecoin   1.14.5      01d7c62a7772   2 months ago   1.846GB   72.76MB       1.773GB       1
+flarefoundation/bitcoin    22.0        bf7c3fa43358   2 months ago   2.853GB   72.76MB       2.78GB        1
+flarefoundation/litecoin   0.18.1      3fedbbd03519   2 months ago   2.051GB   72.76MB       1.978GB       1
+
+Containers space usage:
+
+CONTAINER ID   IMAGE                                COMMAND                  LOCAL VOLUMES   SIZE      CREATED       STATUS       NAMES
+732da6631e58   flarefoundation/algorand:3.6.2-dev   "entrypoint.sh algod"    1               0B        3 days ago    Up 3 days    connected-chains_algorand_1
+29b10a7d1d7e   flarefoundation/dogecoin:1.14.5      "dogecoind -conf=/op…"   1               0B        12 days ago   Up 12 days   connected-chains_dogecoin_1
+ee9095587127   flarefoundation/litecoin:0.18.1      "litecoind -conf=/op…"   1               0B        12 days ago   Up 12 days   connected-chains_litecoin_1
+0e095a5e44c9   flarefoundation/rippled:1.9.0        "rippled --conf=/opt…"   1               58.6MB    12 days ago   Up 12 days   connected-chains_rippled_1
+2c996a8cf930   flarefoundation/bitcoin:22.0         "bitcoind -conf=/opt…"   1               0B        12 days ago   Up 12 days   connected-chains_bitcoin_1
+
+Local Volumes space usage:
+
+VOLUME NAME                      LINKS     SIZE
+connected-chains_bitcoin-data    1         510.6GB
+connected-chains_litecoin-data   1         91.93GB
+connected-chains_dogecoin-data   1         62.58GB
+connected-chains_ripple-data     1         617.3GB
+connected-chains_algorand-data   1         809GB
+
+Build cache usage: 0B
+
+CACHE ID   CACHE TYPE   SIZE      CREATED   LAST USED   USAGE     SHARED`; /**/
 
             const lines = buffer.toString().split('\n');
 

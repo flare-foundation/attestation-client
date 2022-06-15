@@ -44,14 +44,16 @@ export class DockerAlert extends AlertBase {
 
         const resList = [];
 
-        resList.push( new PerformanceInfo(`docker.volume.size`,this.name,round( vol.size / (1024*1024*1024.0) , 3 ), "GB" , vol.volume_name ) );
+        resList.push( new PerformanceInfo(`docker.${this.name}.volume`, `size`,round( vol.size / (1024*1024*1024.0) , 3 ), "GB" , vol.volume_name ) );
+
+        resList.push( new PerformanceInfo(`docker.${this.name}.container`, `size`, round( rep.size / (1024*1024*1024.0) , 1 ), "GB" , con.image ) );
 
         if( con.status.indexOf("Up ")===0) {
             const status = /(\S+) (\d+) (\S+)/.exec(con.status);
-            resList.push( new PerformanceInfo(`docker.container`,this.name, parseInt( status[2] ), status[3] , `${con.image} (size ${round( rep.size / (1024*1024*1024.0) , 1 ) }GB)` ) );
+            resList.push( new PerformanceInfo(`docker.${this.name}.container`, `status`, parseInt( status[2] ), status[3] , "up" ) );
         }
         else {
-            resList.push( new PerformanceInfo(`docker.container.uptime`,this.name, 0, "" , `${con.image} (size ${round( rep.size / (1024*1024*1024.0) , 1 ) }GB)` ) );
+            resList.push( new PerformanceInfo(`docker.${this.name}.container`, `status`, 0, "" , "down" ) );
         }
 
         return resList;

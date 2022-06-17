@@ -1,4 +1,4 @@
-import { ChainType, MCC } from "@flarenetwork/mcc";
+import { ChainType, MCC, traceManager } from "@flarenetwork/mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
@@ -13,7 +13,6 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainsConfiguration } from "../chain/ChainConfiguration";
-import { traceManager } from "@flarenetwork/mcc/src/utils/trace";
 
 export class AttesterClient {
   config: AttesterClientConfiguration;

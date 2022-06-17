@@ -1,6 +1,6 @@
+import { Managed } from "@flarenetwork/mcc";
 import { AttLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
-import {Managed} from "@flarenetwork/mcc/src/utils/managed"
 
 export class AlertStatus {
     name: string;

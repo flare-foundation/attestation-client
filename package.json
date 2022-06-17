@@ -33,7 +33,7 @@
     "watch-and-run": "ts-node-dev --notify --respawn -- lib/runAttesterClient.ts",
     "watch-and-run-indexer": "ts-node-dev --trace-warnings --notify --respawn -- lib/indexer/indexer.ts",
     "watch-and-run-alerts": "ts-node-dev --trace-warnings --notify --respawn -- lib/alerts/alerts.ts",
-    "dev": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn watch-and-run",
+    "dev": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node lib/runAttesterClient.ts",
     "devprod": "CONFIG_PATH=prod NODE_ENV=production node dist/lib/runAttesterClient.js",
     "devindexer": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn ts-node lib/indexer/indexer.ts",
     "devalerts": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn watch-and-run-alerts",

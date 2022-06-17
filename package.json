@@ -53,7 +53,7 @@
     "admin": "CONFIG_PATH=.secure node dist/lib/admin/admin.js"
   },
   "dependencies": {
-    "@flarenetwork/mcc": "1.1.4",
+    "@flarenetwork/mcc": "1.1.8",
     "@google-cloud/secret-manager": "4.0.0",
     "@openzeppelin/contracts": "4.5.0",
     "assert": "2.0.0",

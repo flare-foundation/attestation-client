@@ -13,6 +13,7 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { ChainsConfiguration } from "../chain/ChainConfiguration";
+import { traceManager } from "@flarenetwork/mcc/src/utils/trace";
 
 export class AttesterClient {
   config: AttesterClientConfiguration;
@@ -63,6 +64,8 @@ export class AttesterClient {
   async start() {
     try {
       const version = "1002";
+
+      traceManager.displayTrace=true;
 
       this.logger.title(`starting Flare Attester Client v${version}`);
 
@@ -157,13 +160,6 @@ export class AttesterClient {
       const node = new ChainNode(this.chainManager, chain.name, chainType, chain);
 
       this.logger.info(`chain ${chain.name}:#${chainType}`);
-
-      // validate this chain node
-      if (!(await node.isHealthy())) {
-        // this is just a warning since node can be inaccessible at start and will become healthy later on
-        this.logger.error(`chain ${chain.name}:#${chainType} is not healthy`);
-        continue;
-      }
 
       this.chainManager.addNode(chainType as any as SourceId, node);
     }

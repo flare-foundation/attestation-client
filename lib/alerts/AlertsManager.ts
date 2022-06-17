@@ -10,7 +10,9 @@ import { IndexerAlert } from "./IndexerAlert";
 import { DatabaseAlert } from "./DatabaseAlert";
 import { NodeAlert } from "./NodeAlert";
 import { DockerAlert } from "./DockerAlert";
+import { Managed } from "@flarenetwork/mcc/src/utils/managed";
 
+@Managed()
 export class AlertsManager {
     logger: AttLogger;
     config: AlertConfig;

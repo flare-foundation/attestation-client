@@ -51,7 +51,10 @@ Ripple account address as bytes.
          type: "bytes32",
          description: 
 `
-3 letter code or 160-bit hexadecimal string known as [Currency code](https://xrpl.org/currency-formats.html#currency-codes). The first byte indicates whether it is a 3 letter encoded ascii string "0x00..." or 160 bit hex string "0x01...".
+3 letter code or 160-bit hexadecimal string known as 
+[Currency code](https://xrpl.org/currency-formats.html#currency-codes).
+The first byte indicates whether it is a 3 letter encoded ascii string "0x00..."
+or 160 bit hex string "0x01...".
 `
       },
       {

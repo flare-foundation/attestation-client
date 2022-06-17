@@ -1,5 +1,6 @@
 import { AttLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
+import {Managed} from "@flarenetwork/mcc/src/utils/managed"
 
 export class AlertStatus {
     name: string;
@@ -19,6 +20,8 @@ export class AlertStatus {
         logger.info(`${this.name.padEnd(20)}  ${color} ${this.status.padEnd(10)} ^^  ${this.state.padEnd(10)} ^B${this.comment}                  `);
     }
 }
+
+@Managed()
 export class PerformanceInfo {    
     name: string;
     valueName: string = "";
@@ -53,6 +56,7 @@ export class AlertRestartConfig {
 const MIN_RESTART_TIME = 60;
 
 
+@Managed()
 export class AlertBase {
 
     restartConfig: AlertRestartConfig;

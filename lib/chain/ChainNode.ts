@@ -74,12 +74,6 @@ export class ChainNode {
     this.addRequestCount();
   }
 
-  async isHealthy() {
-    const valid = await this.client.isHealthy();
-
-    return true;
-  }
-
   getLoad(): number {
     return this.transactionsQueue.length + this.transactionsProcessing.length + this.transactionsPriorityQueue.length();
   }

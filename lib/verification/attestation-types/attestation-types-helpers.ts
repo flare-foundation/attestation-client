@@ -144,5 +144,3 @@ export function hexlifyBN(obj: any): any {
   }
   return obj
 }
-
-

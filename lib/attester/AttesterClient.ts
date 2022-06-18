@@ -1,19 +1,20 @@
-import { ChainType, MCC, traceManager } from "@flarenetwork/mcc";
+import { ChainType, Managed, MCC, traceManager } from "@flarenetwork/mcc";
+import { ChainsConfiguration } from "../chain/ChainConfiguration";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { setRetryFailureCallback } from "../utils/PromiseTimeout";
-import { secToHHMMSS, sleepms } from "../utils/utils";
+import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { SourceId } from "../verification/sources/sources";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { ChainsConfiguration } from "../chain/ChainConfiguration";
 
+@Managed()
 export class AttesterClient {
   config: AttesterClientConfiguration;
   chainsConfig: ChainsConfiguration;
@@ -64,7 +65,7 @@ export class AttesterClient {
     try {
       const version = "1002";
 
-      traceManager.displayTrace=true;
+      traceManager.displayTrace = true;
 
       this.logger.title(`starting Flare Attester Client v${version}`);
 
@@ -90,7 +91,7 @@ export class AttesterClient {
         this.logger.info(`chains initialize`);
         await this.initializeChains();
       }
-      catch( error ) {
+      catch (error) {
         logException(error, `initializeChains`);
       }
 

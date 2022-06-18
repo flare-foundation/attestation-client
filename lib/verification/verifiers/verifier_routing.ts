@@ -2,7 +2,7 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { MccClient, MCC } from "@flarenetwork/mcc"
+import { MccClient, MCC, traceFunction } from "@flarenetwork/mcc"
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"
 import { SourceId } from "../sources/sources";
@@ -48,6 +48,10 @@ export class WrongSourceIdError extends Error {
 }
 
 export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
+   return traceFunction( _verifyAttestation , client, attestation, indexer, recheck );
+}
+
+export async function _verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
    let {attestationType, sourceId} = getAttestationTypeAndSource(attestation.data.request);
    switch(attestationType) {
       case AttestationType.Payment:

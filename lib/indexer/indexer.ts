@@ -1,5 +1,5 @@
 import { ChainType, IBlock, ITransaction, MCC } from "@flarenetwork/mcc";
-import { LiteBlock } from "@flarenetwork/mcc/dist/base-objects/blocks/LiteBlock";
+import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
 import { Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";

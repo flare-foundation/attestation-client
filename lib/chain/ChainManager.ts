@@ -1,8 +1,10 @@
+import { Managed } from "@flarenetwork/mcc";
 import { Attestation } from "../attester/Attestation";
 import { AttLogger } from "../utils/logger";
 import { SourceId } from "../verification/sources/sources";
 import { ChainNode } from "./ChainNode";
 
+@Managed()
 export class ChainManager {
   nodes = new Map<SourceId, ChainNode>();
 

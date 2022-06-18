@@ -1,5 +1,5 @@
 import assert from "assert";
-import { toBN } from "@flarenetwork/mcc";
+import { Managed, toBN } from "@flarenetwork/mcc";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { getTimeMilli } from "../utils/internetTime";
@@ -72,6 +72,7 @@ export enum AttestationRoundStatus {
 // call/sec
 // call/att
 
+@Managed()
 export class AttestationRound {
   logger: AttLogger;
   status: AttestationRoundEpoch = AttestationRoundEpoch.collect;

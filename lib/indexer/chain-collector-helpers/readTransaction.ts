@@ -1,5 +1,4 @@
-import { IUtxoVinTransaction, UtxoTransaction } from "@flarenetwork/mcc";
-import { IUtxoVinVoutsMapper } from "@flarenetwork/mcc/dist/types/utxoTypes";
+import { IUtxoVinTransaction, IUtxoVinVoutsMapper, UtxoTransaction } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { getGlobalLogger, logException } from "../../utils/logger";

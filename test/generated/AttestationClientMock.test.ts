@@ -152,10 +152,10 @@ describe("Attestestation Client Mock", function () {
      let dummyHash = web3.utils.randomHex(32);
      await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);    
      assert(await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND) === hash);
-     //assert(await attestationClient.verifyTrustlineIssuance(CHAIN_ID, responseHex))
+     assert(await attestationClient.verifyTrustlineIssuance(CHAIN_ID, responseHex))
    
      await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, dummyHash);
-     //assert(await attestationClient.verifyTrustlineIssuance(CHAIN_ID, responseHex) === false);
+     assert(await attestationClient.verifyTrustlineIssuance(CHAIN_ID, responseHex) === false);
    });
 
    it("Merkle tree test", async function () {
@@ -191,7 +191,7 @@ describe("Attestestation Client Mock", function () {
                assert(await attestationClient.verifyReferencedPaymentNonexistence(verification.request.sourceId, responseHex));
                break;
             case AttestationType.TrustlineIssuance:
-               //assert(await attestationClient.verifyTrustlineIssuance(verification.request.sourceId, responseHex));
+               assert(await attestationClient.verifyTrustlineIssuance(verification.request.sourceId, responseHex));
                break;
             default:
                throw new Error("Wrong attestation type");

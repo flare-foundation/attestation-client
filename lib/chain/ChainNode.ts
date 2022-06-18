@@ -1,5 +1,5 @@
 import assert from "assert";
-import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
+import { ChainType, Managed, MCC, MccClient } from "@flarenetwork/mcc";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
@@ -15,6 +15,7 @@ import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from
 import { ChainConfiguration } from "./ChainConfiguration";
 import { ChainManager } from "./ChainManager";
 
+@Managed()
 export class ChainNode {
   chainManager: ChainManager;
 

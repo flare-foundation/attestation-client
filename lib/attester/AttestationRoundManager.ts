@@ -1,4 +1,4 @@
-import { toBN } from "@flarenetwork/mcc";
+import { Managed, toBN } from "@flarenetwork/mcc";
 import { ChainManager } from "../chain/ChainManager";
 import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
@@ -15,6 +15,7 @@ import { AttesterState } from "./AttesterState";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestationConfig";
 
+@Managed()
 export class AttestationRoundManager {
   logger: AttLogger;
   static epochSettings: EpochSettings;

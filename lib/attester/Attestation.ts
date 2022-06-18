@@ -1,3 +1,4 @@
+import { Managed } from "@flarenetwork/mcc";
 import { Verification } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
@@ -22,6 +23,7 @@ export interface EventValidate {
   (): void;
 }
 
+@Managed()
 export class Attestation {
   round: AttestationRound;
 

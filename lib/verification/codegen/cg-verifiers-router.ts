@@ -42,7 +42,7 @@ export function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
    }
 
    let router = `${DEFAULT_GEN_FILE_HEADER}
-import { MccClient, MCC, Managed } from "@flarenetwork/mcc"
+import { MccClient, MCC, traceFunction } from "@flarenetwork/mcc"
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"
 import { SourceId } from "../sources/sources";
@@ -67,6 +67,10 @@ ${tab()}}
 }
 
 export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
+${tab()}return traceFunction( _verifyAttestation , client, attestation, indexer, recheck );
+}
+
+export async function _verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
 ${tab()}let {attestationType, sourceId} = getAttestationTypeAndSource(attestation.data.request);
 ${tab()}switch(attestationType) {
 ${indentText(attestationTypeCases, CODEGEN_TAB*2)}

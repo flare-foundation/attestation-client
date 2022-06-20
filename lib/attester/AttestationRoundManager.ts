@@ -32,13 +32,13 @@ export class AttestationRoundManager {
   rounds = new Map<number, AttestationRound>();
   static config: AttesterClientConfiguration;
   static credentials: AttesterCredentials;
-  attesterWeb3: AttesterWeb3;
+  static attesterWeb3: AttesterWeb3;
 
   constructor(chainManager: ChainManager, config: AttesterClientConfiguration, credentials: AttesterCredentials, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     AttestationRoundManager.config = config;
     AttestationRoundManager.credentials = credentials;
     this.logger = logger;
-    this.attesterWeb3 = attesterWeb3;
+    AttestationRoundManager.attesterWeb3 = attesterWeb3;
 
     AttestationRoundManager.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
     AttestationRoundManager.chainManager = chainManager;
@@ -97,7 +97,7 @@ export class AttestationRoundManager {
 
     // check if attester epoch already exists - if not - create a new one and assign callbacks
     if (activeRound === undefined) {
-      activeRound = new AttestationRound(epochId, this.logger, this.attesterWeb3);
+      activeRound = new AttestationRound(epochId, this.logger, AttestationRoundManager.attesterWeb3);
 
       //let bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
       //bar1.start(this.config.roundDurationSec * 1000, now - epochTimeStart);

@@ -1,7 +1,7 @@
 import Web3 from "web3";
 import { Logger } from "winston";
 import { logException } from "./logger";
-import { getWeb3, getWeb3Contract, sleepms } from "./utils";
+import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract, sleepms } from "./utils";
 
 export class Web3BlockCollector {
   logger: Logger;
@@ -36,7 +36,10 @@ export class Web3BlockCollector {
     const blockHeight = await this.web3.eth.getBlockNumber();
     this.startingBlockNumber = startBlock ? startBlock : blockHeight;
 
-    const stateConnectorContract = await getWeb3Contract(this.web3, contractAddress, contractName);
+    const stateConnectorContract =
+      contractName === "StateConnector"
+        ? await getWeb3StateConnectorContract(this.web3, contractAddress)
+        : await getWeb3Contract(this.web3, contractAddress, contractName);
     let processBlock: number = this.startingBlockNumber;
 
     this.logger.info(`^Rnetwork event processing started ^Y${this.startingBlockNumber} (height ${blockHeight})`);

@@ -1,3 +1,4 @@
+import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection, reflection } from "../utils/typeReflection";
 
@@ -32,6 +33,8 @@ export class AttesterWebOptions {
   public accountPrivateKey: string = "";
   public rpcUrl: string = "";
   public stateConnectorContractAddress: string = "";
+
+  @optional() public useNewStateConnector = false;
 
 }
 

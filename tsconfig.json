@@ -70,6 +70,7 @@
   "include": [
     "lib/**/*", 
     "./typechain-web3-v1",
+    "./typechain-web3-v1-new",
     "./typechain-truffle",
     "./test"
   ],

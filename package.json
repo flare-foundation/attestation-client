@@ -21,6 +21,7 @@
     "lint-check": "yarn prettier -c 'lib/**/*.{ts,tsx}' --config ./package.json",
     "lint2": "tslint -c tslint.json -p tsconfig.json --fix",
     "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
+    "typechain-web3-v1-new": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1-new \"artifacts-new/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
     "compile": "yarn hardhat compile && yarn typechain-truffle-v5 && yarn typechain-web3-v1",
     "c": "yarn compile",
     "typechain-truffle-v5": "yarn typechain --target=truffle-v5 --out-dir typechain-truffle \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",

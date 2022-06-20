@@ -65,7 +65,7 @@ export class AttesterClient {
     try {
       const version = "1002";
 
-      traceManager.displayTrace = true;
+      traceManager.displayRuntimeTrace = true;
 
       this.logger.title(`starting Flare Attester Client v${version}`);
 

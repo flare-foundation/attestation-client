@@ -15,6 +15,7 @@ export class AttesterState {
         dbRound.maskedMerkleRoot = round.roundMaskedMerkleRoot;
         dbRound.random = round.roundRandom;
         dbRound.hashedRandom = round.roundHashedRandom;
+        dbRound.commitHash = round.roundCommitHash;
         dbRound.finalizedTimestamp = getUnixEpochTimestamp();
         dbRound.transactionCount = round.attestations.length;
         dbRound.validTransactionCount = validTransactionCount;

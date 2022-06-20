@@ -11,7 +11,7 @@ import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger, logException } from "../utils/logger";
-import { getWeb3, getWeb3Contract } from "../utils/utils";
+import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
@@ -121,11 +121,11 @@ class AttestationSpammer {
       this.logger = getGlobalLogger(args["loggerLabel"]);
       this.web3 = getWeb3(this.rpcLink) as Web3;
 
-      let stateConnectorAddresss = spammerCredentials.web.stateConnectorContractAddress;
+      let stateConnectorAddress = spammerCredentials.web.stateConnectorContractAddress;
 
       this.logger.info(`RPC: ${this.rpcLink}`)
-      this.logger.info(`Using state connector at: ${stateConnectorAddresss}`)
-      getWeb3Contract(this.web3, stateConnectorAddresss, "StateConnector").then((sc: StateConnector) => {
+      this.logger.info(`Using state connector at: ${stateConnectorAddress}`)
+      getWeb3StateConnectorContract(this.web3, stateConnectorAddress).then((sc: StateConnector) => {
         this.stateConnector = sc;
       });
     }

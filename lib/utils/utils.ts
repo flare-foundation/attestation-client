@@ -3,6 +3,9 @@ import BN from "bn.js";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
+import { StateConnector as StateConnectorNew } from "../../typechain-web3-v1-new/StateConnector";
+import { StateConnector } from "../../typechain-web3-v1/StateConnector";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
@@ -58,13 +61,18 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
     abiPath = await relativeContractABIPathForContractName(name, "artifacts");
     return new web3.eth.Contract(getAbi(`artifacts/${abiPath}`), address);
   } catch (e: any) {
-    try {
-      abiPath = await relativeContractABIPathForContractName(name, "data/artifacts");
-      return new web3.eth.Contract(getAbi(`data/artifacts/${abiPath}`), address);
-    }
-    catch (e2) {
-      console.error(`getWeb3Contract error - ABI not found (run yarn c): ${e2}`);
-    }
+    console.error(`getWeb3Contract error - ABI not found (run yarn c): ${e}`);
+  }
+}
+
+export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector | StateConnectorNew> {
+  let abiPath = "";
+  let artifacts = AttestationRoundManager.credentials.web.useNewStateConnector ? "artifacts-new" : "artifacts";
+  try {
+    abiPath = await relativeContractABIPathForContractName("StateConnector", artifacts);
+    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnector | StateConnectorNew;
+  } catch (e: any) {
+    console.error(`getWeb3Contract error - ABI not found: ${e}`);
   }
 }
 

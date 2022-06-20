@@ -7,11 +7,13 @@ export class DBRoundResult { //extends BaseEntity {
     @Column({nullable:true}) @Index() maskedMerkleRoot: string;
     @Column({nullable:true}) @Index() random: string;
     @Column({nullable:true}) @Index() hashedRandom: string;
+    @Column({nullable:true}) @Index() commitHash: string;
     @Column({nullable:true}) finalizedTimestamp: number;
     
     @Column({nullable:true}) commitTransactionId: string;
     @Column({nullable:true}) commitNounce: number;
     @Column({nullable:true}) commitTimestamp: number;
+    
 
     @Column({nullable:true}) revealTransactionId: string;
     @Column({nullable:true}) revealNounce: number;

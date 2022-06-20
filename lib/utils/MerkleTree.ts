@@ -35,6 +35,10 @@ export function singleHash(val: string) {
   return web3.utils.soliditySha3(val);
 }
 
+export function commitHash(merkleRoot: string, randomNumber: string, address: string): string {
+  return web3.utils.soliditySha3(web3.eth.abi.encodeParameters([ "bytes32", "bytes32", "address" ], [ merkleRoot, randomNumber, address ]));
+}
+
 export function sortedHashPair(x: string, y: string) {
   if (x <= y) {
     return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [x, y]));

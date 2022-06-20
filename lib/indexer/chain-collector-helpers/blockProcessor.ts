@@ -1,4 +1,4 @@
-import { AlgoBlock, AlgoTransaction, ChainType, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
+import { AlgoBlock, AlgoTransaction, ChainType, Managed, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { logException } from "../../utils/logger";
@@ -25,6 +25,7 @@ export function BlockProcessor(chainType: ChainType) {
   }
 }
 
+@Managed()
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
     try {
@@ -77,6 +78,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
   }
 }
 
+@Managed()
 export class DogeBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
     this.registerTopLevelJob();
@@ -112,6 +114,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
   }
 }
 
+@Managed()
 export class AlgoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: AlgoBlock, onSave: onSaveSig) {
     try {
@@ -132,6 +135,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
   }
 }
 
+@Managed()
 export class XrpBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: XrpBlock, onSave: onSaveSig) {
     try {

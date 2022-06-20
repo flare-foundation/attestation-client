@@ -1,4 +1,4 @@
-import { AlgoMccCreate, ChainType, MCC, ReadRpcInterface, RPCInterface, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { AlgoMccCreate, ChainType, Managed, MCC, ReadRpcInterface, RPCInterface, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 
@@ -29,6 +29,7 @@ let defaultCachedMccClientOptions: CachedMccClientOptions = {
 //        (ii) if `false` is returned, sleep for a while and retry `canAccept`. Repeat this until `true` is 
 //             eventually returned and then proceed with (i)
 
+@Managed()
 export class CachedMccClient<T, B> {
   client: ReadRpcInterface;
   chainType: ChainType;

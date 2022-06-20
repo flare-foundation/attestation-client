@@ -1,7 +1,9 @@
+import { Managed } from "@flarenetwork/mcc";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
 import { SECONDS_PER_DAY } from "./indexer-utils";
 
+@Managed()
 export class Interlacing {
     // current active table index
     index: number;

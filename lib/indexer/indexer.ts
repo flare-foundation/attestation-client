@@ -1,4 +1,4 @@
-import { ChainType, IBlock, ITransaction, MCC } from "@flarenetwork/mcc";
+import { ChainType, IBlock, ITransaction, Managed, MCC, traceManager } from "@flarenetwork/mcc";
 import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
 import { Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
@@ -36,7 +36,7 @@ var yargs = require("yargs");
 const args = yargs
   .option("reset", { alias: "r", type: "string", description: "Reset commands", default: "", demand: false })
   .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "ALGO", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -48,6 +48,7 @@ class PreparedBlock {
   }
 }
 
+@Managed()
 export class Indexer {
   config: IndexerConfiguration;
   chainsConfig: ChainsConfiguration;
@@ -866,6 +867,8 @@ function localRetryFailure(label: string) {
 }
 
 async function runIndexer() {
+
+  traceManager.displayTrace=true;
 
   setRetryFailureCallback(localRetryFailure);
 

@@ -308,7 +308,7 @@ export class Indexer {
       });
 
       // if bottom block is undefined then save it (this happens only on clean start or after database reset)
-      if( !this.bottomBlockTime) {
+      if (!this.bottomBlockTime) {
         this.saveBottomState();
       }
 
@@ -417,7 +417,7 @@ export class Indexer {
 
     const latestBlockNumber = (await this.getBlockHeight(`getSyncStartBlockNumber`)) - this.chainConfig.numberOfConfirmations;
 
-    if( this.chainConfig.blockCollecting==="latestBlock" ) {
+    if (this.chainConfig.blockCollecting === "latestBlock") {
       this.logger.debug2(`blockCollecting latestBlock T=${latestBlockNumber}`);
       return latestBlockNumber;
     }
@@ -653,7 +653,7 @@ export class Indexer {
 
     this.N = await this.getBlockHeight(`getLatestBlock`);
 
-    this.logger.debug2( `runSyncLatestBlock latestBlock ${this.N}` );
+    this.logger.debug2(`runSyncLatestBlock latestBlock ${this.N}`);
 
     await this.runSyncRaw();
   }
@@ -698,16 +698,16 @@ export class Indexer {
 
   async processCommandLineParameters() {
     // Force N 
-    if(args.setn !== 0) {
+    if (args.setn !== 0) {
 
-      let n=args.setn;
+      let n = args.setn;
 
-      if( args.setn<0) {
-        const t= await this.getBlockHeight(`runIndexer2`);
+      if (args.setn < 0) {
+        const t = await this.getBlockHeight(`runIndexer2`);
 
         this.logger.error2(`force set N to T - ${-n}=${t}`);
 
-        n=t+n;
+        n = t + n;
       }
       else {
         this.logger.error2("force set N to ");
@@ -751,9 +751,9 @@ export class Indexer {
     return false;
   }
 
-  syncTimeDays() : number {
+  syncTimeDays(): number {
     // chain syncTimeDays overrides config syncTimeDays
-    if( this.chainConfig.syncTimeDays > 0 ) return this.chainConfig.syncTimeDays;
+    if (this.chainConfig.syncTimeDays > 0) return this.chainConfig.syncTimeDays;
 
     return this.config.syncTimeDays;
   }
@@ -868,7 +868,7 @@ function localRetryFailure(label: string) {
 
 async function runIndexer() {
 
-  traceManager.displayTrace=true;
+  traceManager.displayRuntimeTrace = true;
 
   setRetryFailureCallback(localRetryFailure);
 

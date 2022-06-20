@@ -155,15 +155,3 @@ export function isEqualType(A: any, B: any, parent: string = ""): boolean {
 
   return testAB && testBA;
 }
-
-let reflectionMap = new Map<string, Function>();
-
-function instanciate(className: string) {
-  return reflectionMap.get(className).prototype.instanciate();
-}
-
-export function reflection() {
-  return function (constructor: Function) {
-    reflectionMap.set(constructor.name, constructor);
-  }
-}

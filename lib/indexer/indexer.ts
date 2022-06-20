@@ -868,7 +868,7 @@ function localRetryFailure(label: string) {
 
 async function runIndexer() {
 
-  traceManager.displayTrace=true;
+  //traceManager.displayRuntimeTrace=true;
 
   setRetryFailureCallback(localRetryFailure);
 

@@ -1,10 +1,11 @@
-import { IBlock } from "@flarenetwork/mcc";
+import { IBlock, Managed } from "@flarenetwork/mcc";
 import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
 import { AttLogger, logException } from "../utils/logger";
 import { retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 
+@Managed()
 export class HeaderCollector {
 
     private indexer: Indexer;

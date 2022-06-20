@@ -1,4 +1,4 @@
-import { IBlock } from "@flarenetwork/mcc";
+import { IBlock, Managed } from "@flarenetwork/mcc";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
@@ -50,7 +50,8 @@ export class DelayedExecution {
  * 
  * 
  */
-export class LimitingProcessor {
+ @Managed()
+ export class LimitingProcessor {
 
    static defaultLimitingProcessorOptions = {
       sleepDelayMs: 100,

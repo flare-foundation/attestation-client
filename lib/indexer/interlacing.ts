@@ -12,7 +12,6 @@ export class Interlacing {
   
     logger: AttLogger;
   
-    // todo: add settings per source
     timeRange: number = 2 * SECONDS_PER_DAY;
   
     blockRange: number = 100;
@@ -20,7 +19,7 @@ export class Interlacing {
     async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRange: number, blockRange: number) {
       const items = [];
   
-      this.timeRange = timeRange * 24 * 60 * 60;
+      this.timeRange = timeRange * SECONDS_PER_DAY;
       this.blockRange = blockRange;
   
       this.logger = logger;

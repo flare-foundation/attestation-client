@@ -1,4 +1,5 @@
 import { IBlock, Managed } from "@flarenetwork/mcc";
+import { Indexer } from "../indexer/indexer";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
@@ -73,9 +74,12 @@ export class DelayedExecution {
 
    block: IBlock;
 
-   constructor(cachedClient: CachedMccClient<any, any>, options?: LimitingProcessorOptions) {
+   indexer: Indexer;
+
+   constructor(indexer: Indexer, options?: LimitingProcessorOptions) {
+      this.indexer=indexer;
       this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
-      this.client = cachedClient;
+      this.client = indexer.cachedClient;
       this.continue()
    }
 

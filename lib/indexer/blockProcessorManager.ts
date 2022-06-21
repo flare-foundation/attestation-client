@@ -4,9 +4,12 @@ import { LimitingProcessor } from "../caching/LimitingProcessor";
 import { AttLogger } from "../utils/logger";
 import { retry } from "../utils/PromiseTimeout";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
+import { Indexer } from "./indexer";
 
 @Managed()
 export class BlockProcessorManager {
+
+    indexer: Indexer;
 
     logger: AttLogger;
 
@@ -21,7 +24,8 @@ export class BlockProcessorManager {
     blockHashCache = new Map<string,IBlock>();
 
 
-    constructor(logger: AttLogger, client: CachedMccClient<any,any>, completeCallback: any, alreadyCompleteCallback: any) {
+    constructor(indexer: Indexer, logger: AttLogger, client: CachedMccClient<any,any>, completeCallback: any, alreadyCompleteCallback: any) {
+        this.indexer=indexer;
         this.logger=logger;
         this.cachedClient = client;
         this.completeCallback = completeCallback;
@@ -87,7 +91,7 @@ export class BlockProcessorManager {
 
         this.logger.info( `^w^Kprocess block ${block.number}`)
 
-        const processor = new (BlockProcessor( this.cachedClient.chainType ))( this.cachedClient );
+        const processor = new (BlockProcessor( this.cachedClient.chainType ))( this.indexer );
         this.blockProcessors.push(processor);
 
         //processor.debugOn( block.hash );

@@ -1,4 +1,4 @@
-import { ChainType, IBlock, ITransaction, Managed, MCC } from "@flarenetwork/mcc";
+import { ChainType, IBlock, ITransaction, Managed, MCC, TraceManager, traceManager } from "@flarenetwork/mcc";
 import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
 import { Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
@@ -6,16 +6,14 @@ import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfigura
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
-import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
-import { DotEnvExt } from "../utils/DotEnvExt";
 import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger, getGlobalLogger, logException, setGlobalLoggerLabel } from "../utils/logger";
-import { retry, setRetryFailureCallback } from "../utils/PromiseTimeout";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
+import { retry } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, prepareString, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
-import { prepareIndexerTables, SECONDS_PER_DAY, noAwaitAsyncTerminateAppOnException } from "./indexer-utils";
+import { noAwaitAsyncTerminateAppOnException, prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
 import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { Interlacing } from "./interlacing";
 
@@ -543,8 +541,7 @@ export class Indexer {
           dbStatus.valueNumber = timeLeft;
 
           this.logger.debug(
-            `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
-              this.cachedClient.reqsPs
+            `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs
             })`
           );
         } else {
@@ -751,6 +748,12 @@ export class Indexer {
   }
 
   async runIndexer(args: any) {
+
+    // setup tracing
+    //traceManager.displayRuntimeTrace = true;
+    TraceManager.enabled=false;
+    traceManager.displayStateOnException=false;
+
     // wait for db to connect
     await this.dbService.waitForDBConnection();
 

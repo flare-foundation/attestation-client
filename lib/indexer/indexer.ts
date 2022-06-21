@@ -1,4 +1,4 @@
-import { ChainType, IBlock, ITransaction, Managed, MCC, traceManager } from "@flarenetwork/mcc";
+import { ChainType, IBlock, ITransaction, Managed, MCC } from "@flarenetwork/mcc";
 import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
 import { Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
@@ -30,13 +30,6 @@ import { Interlacing } from "./interlacing";
 // [x] sync by earlist block (ALGO)
 // [x] sync period is per chain
 // [ ] (later) on ALGO if N < N_bottom - delete transactions, blocks and restart sync.
-
-var yargs = require("yargs");
-
-const args = yargs
-  .option("reset", { alias: "r", type: "string", description: "Reset commands", default: "", demand: false })
-  .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
 
 class PreparedBlock {
   block: DBBlockBase;
@@ -92,6 +85,8 @@ export class Indexer {
   interlace = new Interlacing();
 
   constructor(config: IndexerConfiguration, chainsConfig: ChainsConfiguration, credentials: IndexerCredentials, chainName: string) {
+    if (!config) return;
+
     this.config = config;
     this.credentials = credentials;
     this.chainType = MCC.getChainType(chainName);
@@ -121,7 +116,7 @@ export class Indexer {
 
     this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
 
-    this.blockProcessorManager = new BlockProcessorManager( this , this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
+    this.blockProcessorManager = new BlockProcessorManager(this, this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
 
     this.headerCollector = new HeaderCollector(this.logger, this);
   }
@@ -696,7 +691,7 @@ export class Indexer {
     await this.dropTable(`${chain}_transactions1`);
   }
 
-  async processCommandLineParameters() {
+  async processCommandLineParameters(args: any) {
     // Force N 
     if (args.setn !== 0) {
 
@@ -759,11 +754,11 @@ export class Indexer {
   }
 
 
-  async runIndexer() {
+  async runIndexer(args: any) {
     // wait for db to connect
     await this.dbService.waitForDBConnection();
 
-    if (await this.processCommandLineParameters()) {
+    if (await this.processCommandLineParameters(args)) {
       return;
     }
 
@@ -860,37 +855,3 @@ export class Indexer {
     }
   }
 }
-
-function localRetryFailure(label: string) {
-  getGlobalLogger().error2(`retry failure: ${label} - application exit`);
-  process.exit(2);
-}
-
-async function runIndexer() {
-
-  //traceManager.displayRuntimeTrace=true;
-
-  setRetryFailureCallback(localRetryFailure);
-
-  // Reading configuration
-  const config = readConfig(new IndexerConfiguration(), "indexer");
-  const chains = readConfig(new ChainsConfiguration(), "chains");
-  const credentials = readCredentials(new IndexerCredentials(), "indexer");
-
-  const indexer = new Indexer(config, chains, credentials, args["chain"]);
-
-  return await indexer.runIndexer();
-}
-
-// set all global loggers to the chain
-setGlobalLoggerLabel(args["chain"]);
-
-// read .env
-DotEnvExt();
-
-runIndexer()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    logException(error, `runIndexer `);
-    process.exit(1);
-  });

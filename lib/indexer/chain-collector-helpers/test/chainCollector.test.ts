@@ -1,7 +1,8 @@
-import { ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
+import { ChainType, IBlock, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../../caching/CachedMccClient";
 import { DBBlockBase } from "../../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../../entity/indexer/dbTransaction";
+import { Indexer } from "../../indexer";
 import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../blockProcessor";
 // import { processBlockTransactionsGeneric } from "../chainCollector";
 
@@ -42,7 +43,12 @@ describe("Test process helpers ", () => {
   let AlgoMccClient: MCC.ALGO;
   let XrpMccClient: MCC.XRP
   let save;
+
+  let indexer : Indexer;
   before(async function () {
+
+    indexer = new Indexer(null,null,null,null);
+
     BtcMccClient = new MCC.BTC(BtcMccConnection);
     AlgoMccClient = new MCC.ALGO(algoCreateConfig);
     XrpMccClient = new MCC.XRP(XRPMccConnection);
@@ -70,12 +76,13 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
+    indexer.cachedClient = cachedClient as CachedMccClient<any,IBlock>;
 
-    let processor = new UtxoBlockProcessor(cachedClient);
+    let processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
 
-    let processor2 = new UtxoBlockProcessor(cachedClient);
+    let processor2 = new UtxoBlockProcessor(indexer);
     processor2.debugOn("SECOND");
     processor2.initializeJobs(block2, save);
 
@@ -124,9 +131,11 @@ describe("Test process helpers ", () => {
       clientConfig: BtcMccConnection,
     };
 
-    const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
 
-    let processor = new UtxoBlockProcessor(cachedClient);
+    const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
+    indexer.cachedClient = cachedClient as CachedMccClient<any,IBlock>;
+
+    let processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });
@@ -146,8 +155,9 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
+    indexer.cachedClient = cachedClient as CachedMccClient<any,IBlock>;
 
-    let processor = new AlgoBlockProcessor(cachedClient);
+    let processor = new AlgoBlockProcessor(indexer);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
   });
@@ -165,8 +175,9 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
+    indexer.cachedClient = cachedClient as CachedMccClient<any,IBlock>;
 
-    let processor = new XrpBlockProcessor(cachedClient);
+    let processor = new XrpBlockProcessor(indexer);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
   });

@@ -121,7 +121,7 @@ export class Indexer {
 
     this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
 
-    this.blockProcessorManager = new BlockProcessorManager(this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
+    this.blockProcessorManager = new BlockProcessorManager( this , this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
 
     this.headerCollector = new HeaderCollector(this.logger, this);
   }

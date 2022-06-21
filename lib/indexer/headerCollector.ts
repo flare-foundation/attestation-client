@@ -31,6 +31,7 @@ export class HeaderCollector {
         this.blockHeaderNumber.add(block.number);
         this.blockNumberHash.set(block.number, block.stdBlockHash);
     }
+
     async getBlock(label: string, blockNumber: number): Promise<IBlock> {
         // todo: implement lite version
         return await retry(`headerCollector.getBlock.${label}`, async () => { return await this.indexer.cachedClient.client.getBlock(blockNumber); });
@@ -47,7 +48,6 @@ export class HeaderCollector {
             logException(error, `saveLiteBlocksHeaders error: }`);
         }
     }
-
 
     async saveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
         try {

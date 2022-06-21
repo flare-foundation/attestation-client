@@ -15,10 +15,9 @@ import { retry, setRetryFailureCallback } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, prepareString, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
-import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
+import { prepareIndexerTables, SECONDS_PER_DAY, noAwaitAsyncTerminateAppOnException } from "./indexer-utils";
 import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { Interlacing } from "./interlacing";
-
 
 // todo:
 // [x] add config for avgBlocksPerDay start block
@@ -110,13 +109,19 @@ export class Indexer {
           loggingCallback: this.mccLogging.bind(this),
           warningCallback: this.mccWarning.bind(this),
           exceptionCallback: this.mccException.bind(this),
-        }
+        },
       },
     };
 
     this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
 
-    this.blockProcessorManager = new BlockProcessorManager(this, this.logger, this.cachedClient, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this),);
+    this.blockProcessorManager = new BlockProcessorManager(
+      this,
+      this.logger,
+      this.cachedClient,
+      this.blockCompleted.bind(this),
+      this.blockAlreadyCompleted.bind(this)
+    );
 
     this.headerCollector = new HeaderCollector(this.logger, this);
   }
@@ -133,14 +138,17 @@ export class Indexer {
     logException(error, message);
   }
 
-
   async getBlock(label: string, blockNumber: number): Promise<IBlock> {
     // todo: implement lite version
-    return await retry(`indexer.getBlock.${label}`, async () => { return await this.cachedClient.client.getBlock(blockNumber); });
+    return await retry(`indexer.getBlock.${label}`, async () => {
+      return await this.cachedClient.client.getBlock(blockNumber);
+    });
   }
 
   async getBlockHeight(label: string): Promise<number> {
-    return await retry(`indexer.getBlockHeight.${label}`, async () => { return this.cachedClient.client.getBlockHeight(); });
+    return await retry(`indexer.getBlockHeight.${label}`, async () => {
+      return this.cachedClient.client.getBlockHeight();
+    });
   }
 
   async blockCompleted(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
@@ -172,7 +180,7 @@ export class Indexer {
     if (!this.isSyncing) {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlock(`blockCompleted`, this.N + 2);
-        this.blockProcessorManager.process(blockNp2);
+        noAwaitAsyncTerminateAppOnException(`blockCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
 
@@ -188,11 +196,10 @@ export class Indexer {
     if (!this.isSyncing) {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlock(`blockAlreadyCompleted`, this.N + 2);
-        this.blockProcessorManager.process(blockNp2);
+        noAwaitAsyncTerminateAppOnException(`blockAlreadyCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
   }
-
 
   getChainName(name: string) {
     return this.chainConfig.name + "_" + name;
@@ -284,13 +291,10 @@ export class Indexer {
       // create transaction and save everything
       const time0 = Date.now();
 
-
       retry(`blockSave N=${Np1}`, async () => {
         await this.dbService.connection.transaction(async (transaction) => {
           // save state N, T and T_CHECK_TIME
-          const stateEntries = [
-            this.getStateEntry("N", Np1),
-            this.getStateEntry("T", this.T)];
+          const stateEntries = [this.getStateEntry("N", Np1), this.getStateEntry("T", this.T)];
 
           // block must be marked as confirmed
           if (transactions.length > 0) {
@@ -313,7 +317,6 @@ export class Indexer {
       this.blockProcessorManager.clear(Np1);
       const time1 = Date.now();
       this.logger.info(`^r^Wsave completed - next N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
-
     } catch (error) {
       logException(error, `saveInterlaced error (N=${Np1}): `);
 
@@ -358,7 +361,7 @@ export class Indexer {
   async getDBStartBlockNumber(): Promise<number> {
     const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
 
-    if (res === undefined) return 0;
+    if (res === undefined || res === null) return 0;
 
     return res.valueNumber;
   }
@@ -385,26 +388,19 @@ export class Indexer {
     try {
       const bottomBlockNumber = await this.getBottomDBBlockNumber();
       if (bottomBlockNumber) {
-
-        const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { "blockNumber": bottomBlockNumber } });
+        const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber } });
 
         this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
 
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
-        const bottomStates = [
-          this.getStateEntry(`Nbottom`, bottomBlockNumber),
-          this.getStateEntry(`NbottomTime`, this.bottomBlockTime)
-        ];
+        const bottomStates = [this.getStateEntry(`Nbottom`, bottomBlockNumber), this.getStateEntry(`NbottomTime`, this.bottomBlockTime)];
         this.dbService.manager.save(bottomStates);
-      }
-      else {
+      } else {
         this.logger.debug(`block bottom state is undefined`);
       }
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `saving block bottom state`);
     }
-
   }
 
   async getSyncStartBlockNumber(): Promise<number> {
@@ -420,7 +416,7 @@ export class Indexer {
     const averageBlocksPerDay = await this.getAverageBlocksPerDay();
 
     if (averageBlocksPerDay === 0) {
-      this.logger.critical(`${this.chainConfig.name} avg blk per day is zero`)
+      this.logger.critical(`${this.chainConfig.name} avg blk per day is zero`);
       return 0;
     }
 
@@ -431,7 +427,6 @@ export class Indexer {
     const syncStartTime = getUnixEpochTimestamp() - this.syncTimeDays() * SECONDS_PER_DAY;
 
     for (let i = 0; i < 12; i++) {
-
       const blockTime = await this.getBlockNumberTimestamp(startBlockNumber);
 
       if (blockTime <= syncStartTime) {
@@ -446,7 +441,6 @@ export class Indexer {
 
     return startBlockNumber;
   }
-
 
   async saveOrWaitNp1Block(): Promise<boolean> {
     const Np1 = this.N + 1;
@@ -487,7 +481,6 @@ export class Indexer {
 
     this.logger.debug(`^Gwaiting for block N=${Np1}`);
 
-
     // todo: [optimization] check how to use signals in TS (instead of loop with sleep)
     let timeStart = Date.now();
 
@@ -503,9 +496,7 @@ export class Indexer {
     return true;
   }
 
-
   async runSyncRaw() {
-
     // for status display
     let statsN = this.N;
     let statsTime = Date.now();
@@ -525,7 +516,7 @@ export class Indexer {
         // get chain top block
         if (now > statsTime + this.config.syncUpdateTimeMs) {
           // stats
-          statsBlocksPerSec = (this.N - statsN) * 1000 / (now - statsTime);
+          statsBlocksPerSec = ((this.N - statsN) * 1000) / (now - statsTime);
           statsN = this.N;
           statsTime = now;
 
@@ -551,9 +542,12 @@ export class Indexer {
 
           dbStatus.valueNumber = timeLeft;
 
-          this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
-        }
-        else {
+          this.logger.debug(
+            `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
+              this.cachedClient.reqsPs
+            })`
+          );
+        } else {
           this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);
         }
 
@@ -561,7 +555,7 @@ export class Indexer {
 
         // check if syncing has ended
         if (this.N >= this.T - this.chainConfig.numberOfConfirmations) {
-          this.logger.group("SyncRaw completed")
+          this.logger.group("SyncRaw completed");
           this.isSyncing = false;
           return;
         }
@@ -569,18 +563,19 @@ export class Indexer {
         for (let i = 0; i < this.chainConfig.syncReadAhead; i++) {
           // do not allow read ahead of T - confirmations
           if (this.N + i > this.T - this.chainConfig.numberOfConfirmations) break;
-
-          this.blockProcessorManager.processSyncBlockNumber(this.N + i);
+          noAwaitAsyncTerminateAppOnException(`runSyncRaw -> blockProcessorManager::processSyncBlockNumber exception `, () =>
+            this.blockProcessorManager.processSyncBlockNumber(this.N + i)
+          );
+          // this.blockProcessorManager.processSyncBlockNumber(this.N + i);
         }
 
         const blocknp1 = await this.cachedClient.getBlock(this.N + 1);
         this.blockNp1hash = blocknp1.stdBlockHash;
 
-        while (!await this.saveOrWaitNp1Block()) {
+        while (!(await this.saveOrWaitNp1Block())) {
           await sleepms(100);
           this.logger.debug(`runSyncRaw wait save N=${this.N} T=${this.T}`);
         }
-
       } catch (error) {
         logException(error, `runSyncRaw exception: `);
 
@@ -598,7 +593,6 @@ export class Indexer {
 
     this.T = await this.getBlockHeight(`runSyncTips1`);
 
-
     this.logger.info(`collecting top blocks...`);
     //const blocks: LiteBlock[] = await this.cachedClient.client.getBlockTips(this.N);
     const blocks: LiteBlock[] = await this.cachedClient.client.getTopLiteBlocks(this.T - this.N);
@@ -609,9 +603,11 @@ export class Indexer {
     const start = Date.now();
 
     for (let i = 1; i < blocks.length - this.chainConfig.numberOfConfirmations; i++) {
-
       for (let j = i; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
-        await this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash);
+        // await this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash);
+        noAwaitAsyncTerminateAppOnException(`runSyncTips -> blockProcessorManager::processSyncBlockHash exception `, () =>
+          this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash)
+        );
       }
 
       const block = blocks[i];
@@ -624,7 +620,7 @@ export class Indexer {
       // stats
       const now = Date.now();
 
-      statsBlocksPerSec = (i + 1) * 1000 / (now - start);
+      statsBlocksPerSec = ((i + 1) * 1000) / (now - start);
       statsN = this.N;
       statsTime = now;
 
@@ -637,15 +633,16 @@ export class Indexer {
 
       const blockLeft = this.T - block.number;
 
-      this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`);
+      this.logger.debug(
+        `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`
+      );
     }
 
-    this.logger.group("Sync completed")
+    this.logger.group("Sync completed");
     this.isSyncing = false;
   }
 
   async runSyncLatestBlock() {
-
     this.N = await this.getBlockHeight(`getLatestBlock`);
 
     this.logger.debug2(`runSyncLatestBlock latestBlock ${this.N}`);
@@ -653,13 +650,18 @@ export class Indexer {
     await this.runSyncRaw();
   }
 
-
   async runSync() {
     switch (this.chainConfig.blockCollecting) {
       case "raw":
-      case "rawUnforkable": await this.runSyncRaw(); break;
-      case "tips": await this.runSyncTips(); break;
-      case "latestBlock": await this.runSyncLatestBlock(); break;
+      case "rawUnforkable":
+        await this.runSyncRaw();
+        break;
+      case "tips":
+        await this.runSyncTips();
+        break;
+      case "latestBlock":
+        await this.runSyncLatestBlock();
+        break;
     }
   }
 
@@ -675,15 +677,12 @@ export class Indexer {
       }
       await queryRunner.dropTable(table);
       await queryRunner.release();
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `dropTable`);
     }
-
   }
 
   async dropAllChainTables(chain: string) {
-
     chain = chain.toLocaleLowerCase();
 
     await this.dropTable(`${chain}_block`);
@@ -692,9 +691,8 @@ export class Indexer {
   }
 
   async processCommandLineParameters(args: any) {
-    // Force N 
+    // Force N
     if (args.setn !== 0) {
-
       let n = args.setn;
 
       if (args.setn < 0) {
@@ -703,8 +701,7 @@ export class Indexer {
         this.logger.error2(`force set N to T - ${-n}=${t}`);
 
         n = t + n;
-      }
-      else {
+      } else {
         this.logger.error2("force set N to ");
       }
 
@@ -719,7 +716,7 @@ export class Indexer {
 
       await this.dropTable(`state`);
 
-      for (let i of [`xrp`, `btc`, `ltc`, 'doge', 'algo']) {
+      for (let i of [`xrp`, `btc`, `ltc`, "doge", "algo"]) {
         await this.dropAllChainTables(i);
       }
 
@@ -753,7 +750,6 @@ export class Indexer {
     return this.config.syncTimeDays;
   }
 
-
   async runIndexer(args: any) {
     // wait for db to connect
     await this.dbService.waitForDBConnection();
@@ -763,7 +759,6 @@ export class Indexer {
     }
 
     await this.prepareTables();
-
 
     this.saveBottomState();
 
@@ -777,7 +772,13 @@ export class Indexer {
       this.N = dbStartBlockNumber;
     }
 
-    await this.interlace.initialize(this.logger, this.dbService, this.dbTransactionClasses, this.chainConfig.minimalStorageHistoryDays, this.chainConfig.minimalStorageHistoryBlocks);
+    await this.interlace.initialize(
+      this.logger,
+      this.dbService,
+      this.dbTransactionClasses,
+      this.chainConfig.minimalStorageHistoryDays,
+      this.chainConfig.minimalStorageHistoryBlocks
+    );
 
     // sync date
     if (this.config.syncEnabled) {
@@ -810,15 +811,23 @@ export class Indexer {
         // status
         const NisReady = this.N >= this.T - this.chainConfig.numberOfConfirmations - 2;
         const syncTimeSec = this.syncTimeDays() * SECONDS_PER_DAY;
-        const fullHistory = !this.bottomBlockTime ? false : (blockNp1.unixTimestamp - this.bottomBlockTime) > syncTimeSec;
+        const fullHistory = !this.bottomBlockTime ? false : blockNp1.unixTimestamp - this.bottomBlockTime > syncTimeSec;
         let dbStatus;
         if (!fullHistory) {
-          dbStatus = this.getStateEntryString("state", "running-sync", processedBlocks++, `N=${this.N} T=${this.T} (history is not ready: missing ${(syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60} min)`);
-        }
-        else if (!NisReady) {
-          dbStatus = this.getStateEntryString("state", "running-sync", processedBlocks++, `N=${this.N} T=${this.T} (N is late: < T-${this.chainConfig.numberOfConfirmations})`);
-        }
-        else {
+          dbStatus = this.getStateEntryString(
+            "state",
+            "running-sync",
+            processedBlocks++,
+            `N=${this.N} T=${this.T} (history is not ready: missing ${(syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60} min)`
+          );
+        } else if (!NisReady) {
+          dbStatus = this.getStateEntryString(
+            "state",
+            "running-sync",
+            processedBlocks++,
+            `N=${this.N} T=${this.T} (N is late: < T-${this.chainConfig.numberOfConfirmations})`
+          );
+        } else {
           dbStatus = this.getStateEntryString("state", "running", processedBlocks++, `N=${this.N} T=${this.T}`);
         }
 
@@ -847,7 +856,7 @@ export class Indexer {
 
         // process new or changed N+1
         this.blockNp1hash = blockNp1.stdBlockHash;
-        this.blockProcessorManager.process(blockNp1);
+        noAwaitAsyncTerminateAppOnException(`runIndexer -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp1));
       } catch (error) {
         logException(error, `runIndexer exception: `);
         await sleepms(100);

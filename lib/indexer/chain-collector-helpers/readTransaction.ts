@@ -1,4 +1,4 @@
-import { IUtxoVinTransaction, IUtxoVinVoutsMapper, UtxoTransaction } from "@flarenetwork/mcc";
+import { IUtxoVinTransaction, IUtxoVinVoutsMapper, MccUtxoClient, UtxoTransaction } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { getGlobalLogger, logException } from "../../utils/logger";
@@ -30,40 +30,51 @@ export async function getFullTransactionUtxo(client: CachedMccClient<any, any>, 
 
       // We need to create IUtxoTransactionAdditionalData
 
-      let txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction) => {
+      // new
+      blockTransaction.synchronizeAdditionalData();
+
+      let txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction, index: number) => {
         if (vin.txid) {
           // the in-transactions are prepended to queue in order to process them earlier
-          return (processor.call(() => client.getTransaction(vin.txid), true)) as Promise<UtxoTransaction>;
+          // old
+          // return (processor.call(() => client.getTransaction(vin.txid), true)) as Promise<UtxoTransaction>;
+          // new
+          return (processor.call(() => blockTransaction.vinVoutAt(index, client.client as MccUtxoClient), true)) as Promise<UtxoTransaction>;
         }
       });
 
       errorPoint=1;
 
-      let vinTransactions = await Promise.all(txPromises as any);
+      // old
+      // let vinTransactions = await Promise.all(txPromises as any);
 
-      const vinInputs: IUtxoVinVoutsMapper[] = [];
+      // const vinInputs: IUtxoVinVoutsMapper[] = [];
 
-      errorPoint=2;
+      // errorPoint=2;
 
-      for (let i = 0; i < blockTransaction.data.vin.length; i++) {
-        const vin = blockTransaction.data.vin[i];
-        const tx = vinTransactions[i] as UtxoTransaction;
+      // for (let i = 0; i < blockTransaction.data.vin.length; i++) {
+      //   const vin = blockTransaction.data.vin[i];
+      //   const tx = vinTransactions[i] as UtxoTransaction;
 
-        errorPoint = i * 100;
+      //   errorPoint = i * 100;
 
-        if (tx) {
-          const inVout = vin.vout!;
-          vinInputs.push({
-            index: i,
-            vinvout: tx.extractVoutAt(inVout)
-          });
-        }
-      }
+      //   if (tx) {
+      //     const inVout = vin.vout!;
+      //     vinInputs.push({
+      //       index: i,
+      //       vinvout: tx.extractVoutAt(inVout)
+      //     });
+      //   }
+      // }
+
+      await Promise.all(txPromises);
 
       errorPoint=3;
-      blockTransaction.additionalData = { vinouts: [], ...blockTransaction.additionalData };
+      // old
+      // blockTransaction.additionalData = { vinouts: [], ...blockTransaction.additionalData };
 
-      blockTransaction.additionalData.vinouts = vinInputs;
+      // blockTransaction.additionalData.vinouts = vinInputs;
+      
       processor.markTopLevelJobDone();
 
       errorPoint=4;

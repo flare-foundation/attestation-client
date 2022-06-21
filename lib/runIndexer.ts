@@ -1,3 +1,4 @@
+import { traceManager } from "@flarenetwork/mcc";
 import { ChainsConfiguration } from "./chain/ChainConfiguration";
 import { Indexer } from "./indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "./indexer/IndexerConfiguration";
@@ -9,9 +10,9 @@ import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 var yargs = require("yargs");
 
 const args = yargs
-    .option("reset", { alias: "r", type: "string", description: "Reset commands", default: "", demand: false })
+    .option("reset", { alias: "r", type: "string", description: "Reset commands", default: true, demand: false })
     .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
-    .option("chain", { alias: "a", type: "string", description: "Chain", default: "XRP", demand: false }).argv;
+    .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 function localRetryFailure(label: string) {
     getGlobalLogger().error2(`retry failure: ${label} - application exit`);
@@ -20,7 +21,8 @@ function localRetryFailure(label: string) {
 
 async function runIndexer() {
 
-    //traceManager.displayRuntimeTrace=true;
+    traceManager.displayRuntimeTrace=false;
+    traceManager.displayStateOnException=true;
 
     setRetryFailureCallback(localRetryFailure);
 

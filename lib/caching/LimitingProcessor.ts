@@ -1,5 +1,7 @@
 import { IBlock, Managed } from "@flarenetwork/mcc";
+import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { Indexer } from "../indexer/indexer";
+import { noAwaitAsyncTerminateAppOnException } from "../indexer/indexer-utils";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
@@ -80,13 +82,13 @@ export class DelayedExecution {
       this.indexer=indexer;
       this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
       this.client = indexer.cachedClient;
-      this.continue()
+      noAwaitAsyncTerminateAppOnException(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `,() => this.continue());
    }
 
    counter = 0;
 
    public async start(debug = false) {
-      this.continue(debug);
+      await this.continue(debug);
    }
 
    public async continue(debug = false) {
@@ -177,6 +179,10 @@ export class DelayedExecution {
          clearInterval(this.debugLogInterval);
       }
       this.debugLogInterval = undefined;
+   }
+
+   async initializeJobs(block: IBlock, onSave: onSaveSig) {
+      throw new Error("Should be shadowed")
    }
 }
 

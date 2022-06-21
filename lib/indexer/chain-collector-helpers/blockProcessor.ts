@@ -1,8 +1,9 @@
-import { AlgoBlock, ChainType, Managed, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
+import { AlgoBlock, ChainType, IBlock, Managed, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { getGlobalLogger, logException } from "../../utils/logger";
 import { retryMany } from "../../utils/PromiseTimeout";
+import { noAwaitAsyncTerminateAppOnException } from "../indexer-utils";
 import { augmentBlock } from "./augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
 import { getFullTransactionUtxo } from "./readTransaction";
@@ -27,9 +28,8 @@ export function BlockProcessor(chainType: ChainType) {
 
 @Managed()
 export class UtxoBlockProcessor extends LimitingProcessor {
-  async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
-    try {
-      this.block = block;
+  async initializeJobs(block: IBlock, onSave: onSaveSig) {
+      this.block = block as UtxoBlock;
 
       let txPromises = block.data.tx.map((txObject) => {
         const getTxObject = {
@@ -55,22 +55,15 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
       this.stop();
 
-      onSave(blockDb, transDb);
-    }
-    catch (error) {
-      logException(error, `UtxoBlockProcessor::initializeJobs`);
-
-      getGlobalLogger().error2(`application exit`);
-      process.exit(2);
-    }
+      noAwaitAsyncTerminateAppOnException(`UtxoBlockProcessor::initializeJobs exception: ` , () => onSave(blockDb, transDb));
   }
 }
 
 @Managed()
 export class DogeBlockProcessor extends LimitingProcessor {
-  async initializeJobs(block: UtxoBlock, onSave: onSaveSig) {
+  async initializeJobs(block: IBlock, onSave: onSaveSig) {
     this.registerTopLevelJob();
-    this.block = block;
+    this.block = block as UtxoBlock;
 
 
     let preprocesedTxPromises = block.stdTransactionIds.map((txid: string) => {
@@ -98,39 +91,30 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     this.stop();
 
-    onSave(blockDb, transDb);
+    noAwaitAsyncTerminateAppOnException(`DogeBlockProcessor::initializeJobs exception: ` , () => onSave(blockDb, transDb));
   }
 }
 
 @Managed()
 export class AlgoBlockProcessor extends LimitingProcessor {
-  async initializeJobs(block: AlgoBlock, onSave: onSaveSig) {
-    try {
-      this.block = block;
-      let txPromises = block.transactions.map((algoTrans) => {
-        return async () => { return await augmentTransactionAlgo(this.indexer, block, algoTrans); };
+  async initializeJobs(block: IBlock, onSave: onSaveSig) {
+      this.block = block as AlgoBlock;
+      let txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
+        return async () => { return await augmentTransactionAlgo(this.indexer, block as AlgoBlock, algoTrans); };
         // return augmentTransactionAlgo(this.client, block, processed);
       });
       const transDb = await retryMany(`AlgoBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry) as DBTransactionBase[];
       this.pause();
       const blockDb = await augmentBlock(block);
 
-      onSave(blockDb, transDb);
-    }
-    catch (error) {
-      logException(error, `AlgoBlockProcessor::initializeJobs`);
-
-      getGlobalLogger().error2(`application exit`);
-      process.exit(2);
-    }
+      noAwaitAsyncTerminateAppOnException(`AlgoBlockProcessor::initializeJobs exception: ` , () => onSave(blockDb, transDb));
   }
 }
 
 @Managed()
 export class XrpBlockProcessor extends LimitingProcessor {
-  async initializeJobs(block: XrpBlock, onSave: onSaveSig) {
-    try {
-      this.block = block;
+  async initializeJobs(block: IBlock, onSave: onSaveSig) {
+      this.block = block as XrpBlock;
       let txPromises = block.data.result.ledger.transactions.map((txObject) => {
         const newObj = {
           result: txObject
@@ -144,13 +128,6 @@ export class XrpBlockProcessor extends LimitingProcessor {
       this.stop();
       const blockDb = await augmentBlock(block);
 
-      onSave(blockDb, transDb);
-    }
-    catch (error) {
-      logException(error, `XrpBlockProcessor::initializeJobs`);
-
-      getGlobalLogger().error2(`application exit`);
-      process.exit(2);
-    }
+      noAwaitAsyncTerminateAppOnException(`XrpBlockProcessor::initializeJobs exception: ` , () => onSave(blockDb, transDb));
   }
 }

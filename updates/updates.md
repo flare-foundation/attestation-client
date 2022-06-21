@@ -10,3 +10,5 @@ lib/indexer/chain-collector-helpers/augmentTransaction.ts
 lib/indexer/headerCollector.ts
 - [ ] isBlockCached we asuume that it is impossible to get block with same hash on different hight, ie assume that the cain uses height as a part of object from which it calculates hash, (not sure if this is a valid assumption)
 - [ ] async saveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number)  unify parameter names (with Inc or without)
+
+- [ ] add @terminateAppOnException() lib/indexer/blockProcessorManager.ts

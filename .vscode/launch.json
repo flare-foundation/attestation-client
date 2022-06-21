@@ -247,6 +247,7 @@
         {
             "type": "node",
             "request": "launch",
+            "console": "integratedTerminal",
             "name": "Test 2",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
@@ -259,6 +260,7 @@
             "request": "launch",
             "name": "Test Quick",
             "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",
                 "${workspaceFolder}/node_modules/flare-mcc/**"
@@ -274,6 +276,7 @@
             "request": "launch",
             "name": "Test Colector",
             "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",
                 "${workspaceFolder}/node_modules/flare-mcc/**"
@@ -288,6 +291,7 @@
             "request": "launch",
             "name": "Test Attestation parser",
             "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",
                 "${workspaceFolder}/node_modules/flare-mcc/**",
@@ -303,8 +307,26 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Test Indexer",
+            "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "test",
+                "test/indexer/chainCollector.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Test Verification BTC",
             "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
             "env": {
                 "SOURCE_ID": "BTC",
                 "CONFIG_PATH": "dev"
@@ -337,6 +359,7 @@
             "type": "node",
             "request": "launch",
             "name": "Coston Verification",
+            "console": "integratedTerminal",
             "runtimeExecutable": "yarn",
             "env": {
                 "SOURCE_ID": "BTC",

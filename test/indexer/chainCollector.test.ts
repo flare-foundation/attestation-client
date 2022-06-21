@@ -1,10 +1,11 @@
-import { ChainType, IBlock, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptions } from "../../../caching/CachedMccClient";
-import { DBBlockBase } from "../../../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../../../entity/indexer/dbTransaction";
-import { Indexer } from "../../indexer";
-import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../blockProcessor";
-// import { processBlockTransactionsGeneric } from "../chainCollector";
+// yarn test test/indexer/chainCollector.test.ts
+
+import { ChainType, IBlock, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
+import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
+import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
+import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
+import { Indexer } from "../../lib/indexer/indexer";
 
 const BtcMccConnection = {
   url: "https://bitcoin.flare.network/",
@@ -48,6 +49,8 @@ describe("Test process helpers ", () => {
   before(async function () {
 
     indexer = new Indexer(null,null,null,null);
+
+    traceManager.displayStateOnException = false;
 
     BtcMccClient = new MCC.BTC(BtcMccConnection);
     AlgoMccClient = new MCC.ALGO(algoCreateConfig);
@@ -119,7 +122,7 @@ describe("Test process helpers ", () => {
     // )
   });
 
-  it.only(`Test btc new block processing `, async function () {
+  it(`Test btc new block processing `, async function () {
 
     const block = await BtcMccClient.getBlock(723746);
 

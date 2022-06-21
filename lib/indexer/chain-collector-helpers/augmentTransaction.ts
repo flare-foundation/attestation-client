@@ -27,12 +27,13 @@ async function augmentTransactionBase(indexer: Indexer, block: IBlock, txData: I
    const res = DBTransaction(indexer.cachedClient.client.chainType, tableIndex );
 
    res.chainType = indexer.cachedClient.client.chainType;
-   res.transactionId = prepareString(txData.txid, 64);
+   res.transactionId = prepareString(txData.stdTxid, 64);
    res.blockNumber = block.number;
    res.timestamp = txData.unixTimestamp;
    res.transactionType = txData.type;
    res.isNativePayment = txData.isNativePayment;
-   res.response = prepareString(JSON.stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
+   res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
+   res.response = prepareString( JSON.stringify({data : txData.data, additionalData: txData.additionalData }) , 16 * 1024 );
 
    return res;
 }
@@ -42,8 +43,8 @@ export async function augmentTransactionAlgo(indexer: Indexer, block: AlgoBlock,
    const res = await augmentTransactionBase(indexer, block, txData)
 
    // Algo specific conversion of transaction hashes to hex 
-   res.transactionId = txIdToHexNo0x(txData.txid);
-   res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
+   // res.transactionId = txIdToHexNo0x(txData.txid);
+   // res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
    return res as DBTransactionBase
 }
 
@@ -53,11 +54,11 @@ export async function augmentTransactionUtxo(indexer: Indexer, block: UtxoBlock,
 
    const res = await augmentTransactionBase(indexer, block, txData);
 
-   if (txData.reference.length === 1) {
-      res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
-   }
-   // we get block number on top level when we add transactions from indexer into processing queue
-   // res.blockNumber = await getRandom();
+   // if (txData.reference.length === 1) {
+   //    res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
+   // }
+   // // we get block number on top level when we add transactions from indexer into processing queue
+   // // res.blockNumber = await getRandom();
 
    return res as DBTransactionBase
 }
@@ -65,11 +66,11 @@ export async function augmentTransactionUtxo(indexer: Indexer, block: UtxoBlock,
 export async function augmentTransactionXrp(indexer: Indexer, block: XrpBlock, txData: XrpTransaction): Promise<DBTransactionBase> {
    const res = await augmentTransactionBase(indexer, block, txData);
 
-   res.timestamp = block.unixTimestamp;
+   // res.timestamp = block.unixTimestamp;
 
-   if (txData.reference.length === 1) {
-      res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
-   }
+   // if (txData.reference.length === 1) {
+   //    res.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference),64);
+   // }
 
    return res as DBTransactionBase
 }

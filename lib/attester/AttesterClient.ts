@@ -49,7 +49,6 @@ export class AttesterClient {
     let blockNumber = await this.attesterWeb3.web3Functions.getBlockNumber();
 
     while (true) {
-
       let block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
 
       if (block.timestamp < time) {
@@ -90,8 +89,7 @@ export class AttesterClient {
       try {
         this.logger.info(`chains initialize`);
         await this.initializeChains();
-      }
-      catch (error) {
+      } catch (error) {
         logException(error, `initializeChains`);
       }
 
@@ -113,8 +111,7 @@ export class AttesterClient {
       );
 
       //this.startDisplay();
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `start error: `);
     }
   }
@@ -180,29 +177,24 @@ export class AttesterClient {
 
     try {
       if (event.event === "RoundFinalised") {
-
         const dbState = await AttestationRoundManager.state.getRound(event.returnValues.bufferNumber - 3);
         const commitedRoot = dbState ? dbState.merkleRoot : undefined;
 
         if (commitedRoot) {
           if (commitedRoot === event.returnValues.merkleHash) {
             this.logger.info(`^e^G^Revent^^^G RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root as commited)`);
-          }
-          else {
+          } else {
             this.logger.error(`^e^Revent^^ RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (commited root ${commitedRoot})`);
           }
-        }
-        else {
+        } else {
           this.logger.error(`^e^Revent^^ RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root not commited)`);
         }
-
       }
     } catch (error) {
       logException(error, `processEvent(RoundFinalised)`);
     }
   }
 }
-
 
 // process.on('SIGINT', () => {
 //   console.log('Received SIGINT. Press Control-D to exit.');

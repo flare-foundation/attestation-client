@@ -4,18 +4,18 @@ Chain indexer for Attester Client.
 
 ## Options
 
-
 ## Compile
+
 ```
 yarn
 yarn build
 ```
+
 ## Database initialize
 
 ### SQLITE
 
 Change in .deploy.env `DB_HOST_TYPE=sqlite`
-
 
 ### MYSQL
 
@@ -56,18 +56,25 @@ GRANT SELECT ON songbird_attester.* TO 'sgbAttesterReader'@'%';
 FLUSH PRIVILEGES;
 
 ```
+
 ### POSTGRES
+
 Change in .deploy.env `DB_HOST_TYPE=postgres`
 
 ## Start
+
 ### Production
+
 Prerequisites: Compile, Database initialize
+
 ```
 node dist/indexer/indexer.js
 ```
 
 ### Developer
+
 Prerequisites: Compile, Database initialize
+
 ```
 yarn devindexer
 ```
@@ -76,12 +83,10 @@ yarn devindexer
 
 Select `Launch indexer`
 
-
-
 ### Services
 
-
 #### Install services
+
 ```
 systemctl --user daemon-reload
 
@@ -111,6 +116,7 @@ systemctl --user enable attester-alerts
 ```
 
 #### Start services
+
 ```
 systemctl --user start indexer-xrp.service
 systemctl --user start indexer-btc.service
@@ -139,6 +145,7 @@ systemctl --user start attester-alerts
 ```
 
 #### Stop services
+
 ```
 systemctl --user stop indexer-xrp.service
 systemctl --user stop indexer-btc.service
@@ -166,6 +173,7 @@ systemctl --user stop attester-alerts
 ```
 
 #### Restart services
+
 ```
 systemctl --user restart indexer-xrp
 systemctl --user restart indexer-btc
@@ -193,6 +201,7 @@ systemctl --user restart attester-alerts
 ```
 
 #### View service log
+
 ```
 journalctl --user -u indexer-xrp -f -n 1000
 journalctl --user -u indexer-btc -f -n 1000
@@ -221,6 +230,7 @@ journalctl --user -u attester-alerts -f -n 1000
 
 Check logs with ctail
 Next scripts must be run from the user home (/home/ubuntu).
+
 ```
 ctail -f -i global/indexer/logs/attester-XRP.log
 ctail -f -i global/indexer/logs/attester-BTC.log
@@ -246,9 +256,8 @@ ctail -f -i songbird/backend/logs/attester-global.log
 ctail -f -i global/alerts/logs/attester-global.log
 ```
 
-
-
 ### Deploy all
+
 ```
 
 ./scripts/deploy-indexer
@@ -263,4 +272,3 @@ ctail -f -i global/alerts/logs/attester-global.log
 ./scripts/deploy-songbird-backend
 
 ```
-

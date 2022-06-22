@@ -1,4 +1,3 @@
-
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
@@ -6,70 +5,65 @@ import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 
 export class AttesterState {
+  saveRound(round: AttestationRound, validTransactionCount: number = 0) {
+    const dbRound = new DBRoundResult();
 
-    saveRound(round: AttestationRound, validTransactionCount: number = 0) {
-        const dbRound = new DBRoundResult();
+    dbRound.roundId = round.roundId;
+    dbRound.merkleRoot = round.roundMerkleRoot;
+    dbRound.maskedMerkleRoot = round.roundMaskedMerkleRoot;
+    dbRound.random = round.roundRandom;
+    dbRound.hashedRandom = round.roundHashedRandom;
+    dbRound.commitHash = round.roundCommitHash;
+    dbRound.finalizedTimestamp = getUnixEpochTimestamp();
+    dbRound.transactionCount = round.attestations.length;
+    dbRound.validTransactionCount = validTransactionCount;
 
-        dbRound.roundId = round.roundId;
-        dbRound.merkleRoot = round.roundMerkleRoot;
-        dbRound.maskedMerkleRoot = round.roundMaskedMerkleRoot;
-        dbRound.random = round.roundRandom;
-        dbRound.hashedRandom = round.roundHashedRandom;
-        dbRound.commitHash = round.roundCommitHash;
-        dbRound.finalizedTimestamp = getUnixEpochTimestamp();
-        dbRound.transactionCount = round.attestations.length;
-        dbRound.validTransactionCount = validTransactionCount;
+    AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+  }
 
-        AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
-    }
+  saveRoundComment(round: AttestationRound, validTransactionCount: number = 0) {
+    const dbRound = new DBRoundResult();
 
-    saveRoundComment(round: AttestationRound, validTransactionCount: number = 0) {
-        const dbRound = new DBRoundResult();
+    dbRound.roundId = round.roundId;
+    dbRound.transactionCount = round.attestations.length;
+    dbRound.validTransactionCount = validTransactionCount;
 
-        dbRound.roundId = round.roundId;
-        dbRound.transactionCount = round.attestations.length;
-        dbRound.validTransactionCount = validTransactionCount;
+    AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+  }
 
-        AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
-    }
+  saveRoundCommited(roundId: number, nounce: number, txid: string) {
+    const dbRound = new DBRoundResult();
 
+    dbRound.roundId = roundId;
 
-    saveRoundCommited(roundId: number, nounce: number, txid: string) {
-        const dbRound = new DBRoundResult();
+    dbRound.commitTimestamp = getUnixEpochTimestamp();
 
-        dbRound.roundId = roundId;
+    dbRound.commitNounce = nounce;
+    dbRound.commitTransactionId = txid;
 
-        dbRound.commitTimestamp = getUnixEpochTimestamp();
+    AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+  }
 
-        dbRound.commitNounce = nounce;
-        dbRound.commitTransactionId = txid;
+  saveRoundRevealed(roundId: number, nounce: number, txid: string) {
+    const dbRound = new DBRoundResult();
 
-        AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
-    }
+    dbRound.roundId = roundId;
 
-    saveRoundRevealed(roundId: number, nounce: number, txid: string) {
-        const dbRound = new DBRoundResult();
+    dbRound.revealTimestamp = getUnixEpochTimestamp();
 
-        dbRound.roundId = roundId;
+    dbRound.revealNounce = nounce;
+    dbRound.revealTransactionId = txid;
 
-        dbRound.revealTimestamp = getUnixEpochTimestamp();
+    AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+  }
 
-        dbRound.revealNounce = nounce;
-        dbRound.revealTransactionId = txid;
+  async getRound(roundId: number): Promise<DBRoundResult> {
+    var dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: roundId } });
 
-        AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
-    }
+    if (dbRound) return dbRound;
 
-    async getRound(roundId: number): Promise<DBRoundResult> {
-        var dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(
-            DBRoundResult,
-            { where: { roundId: roundId } });
+    getGlobalLogger().warning(`state ^R#${roundId}^^ not found`);
 
-        if (dbRound) return dbRound;
-
-        getGlobalLogger().warning(`state ^R#${roundId}^^ not found`);
-
-        return undefined;
-    }
-
+    return undefined;
+  }
 }

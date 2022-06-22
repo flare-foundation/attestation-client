@@ -2,7 +2,7 @@ import { AttesterWebOptions } from "../attester/AttesterClientConfiguration";
 import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
-export class SpammerConfig implements IReflection<SpammerConfig>{
+export class SpammerConfig implements IReflection<SpammerConfig> {
   // start epoch in sec
   public firstEpochStartTime: number = 1636070400;
 
@@ -12,15 +12,13 @@ export class SpammerConfig implements IReflection<SpammerConfig>{
   instanciate(): SpammerConfig {
     return new SpammerConfig();
   }
-  
+
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
 }
 
-
-export class SpammerCredentials implements IReflection<SpammerCredentials>{
+export class SpammerCredentials implements IReflection<SpammerCredentials> {
   web = new AttesterWebOptions();
 
   indexerDatabase = new DatabaseConnectOptions();

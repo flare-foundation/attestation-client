@@ -42,7 +42,7 @@ export class Attestation {
   exception: any;
 
   onProcessed: EventProcessed | undefined = undefined;
-  onValidateAttestation: EventValidateAttestation
+  onValidateAttestation: EventValidateAttestation;
 
   constructor(round: AttestationRound, data: AttestationData, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
@@ -52,7 +52,7 @@ export class Attestation {
 
   public get roundId() {
     if (this._testRoundId == null) {
-      return this.round?.roundId
+      return this.round?.roundId;
     }
     return this._testRoundId;
   }
@@ -71,7 +71,7 @@ export class Attestation {
   ///////////////////////////////////////////////////////
   //// Testing utils - used for testing
   ///////////////////////////////////////////////////////
-  
+
   _testRoundId: number | undefined = undefined;
   _testNumberOfConfirmationBlocks: number | undefined = undefined;
 

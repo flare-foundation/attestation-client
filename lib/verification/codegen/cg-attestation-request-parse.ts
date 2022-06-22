@@ -1,14 +1,20 @@
 import fs from "fs";
 import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
-import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_PARSE_FILE, CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER, REQUEST_PARSE_FUNCTIONS_HEADER, REQUEST_PARSE_PREFIX_FUNCTION } from "./cg-constants";
+import {
+  ATTESTATION_TYPE_PREFIX,
+  ATT_REQUEST_PARSE_FILE,
+  CODEGEN_TAB,
+  DEFAULT_GEN_FILE_HEADER,
+  REQUEST_PARSE_FUNCTIONS_HEADER,
+  REQUEST_PARSE_PREFIX_FUNCTION,
+} from "./cg-constants";
 import { indentText, tab } from "./cg-utils";
-
 
 export function genRequestParseFunctionForDefinition(definition: AttestationTypeScheme) {
   let parseEntryList: string[] = [];
 
   let start = 0;
-  let totalLength = definition.request.map(item => item.size * 2).reduce((a, b) => a + b);
+  let totalLength = definition.request.map((item) => item.size * 2).reduce((a, b) => a + b);
 
   for (let item of definition.request) {
     let end = start + item.size * 2;
@@ -30,7 +36,7 @@ ${tab()}return {
 ${indentText(parseEntries, CODEGEN_TAB * 2)}
 ${tab()}}
 }
-`
+`;
 }
 
 function typeForRequestType(type: SupportedRequestType) {
@@ -39,15 +45,13 @@ function typeForRequestType(type: SupportedRequestType) {
     case "SourceId":
       return type;
     case "NumberLike":
-      return "BN"
+      return "BN";
     case "ByteSequenceLike":
       return "string";
     default:
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
-
-
 
 function fromUnprefixedBytesFunction() {
   return `
@@ -65,17 +69,17 @@ ${tab()}${tab()}default:
 ${tab()}${tab()}${tab()}throw new AttestationRequestParseError("Unsuported attestation request");
 ${tab()}}
 }
-`
+`;
 }
 
 function genParseAttestationTypeCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
-${tab()}return ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(bytes);`
+${tab()}return ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(bytes);`;
 }
 
 export function genRequestParseFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map(definition => genParseAttestationTypeCase(definition)).join("");
+  let attestationTypeCases = definitions.map((definition) => genParseAttestationTypeCase(definition)).join("");
   return `
 export function ${REQUEST_PARSE_PREFIX_FUNCTION}Request(bytes: string): ${ATTESTATION_TYPE_PREFIX}Type {  
 ${tab()}let { attestationType } = getAttestationTypeAndSource(bytes);
@@ -85,7 +89,7 @@ ${tab()}${tab()}default:
 ${tab()}${tab()}${tab()}throw new AttestationRequestParseError("Invalid attestation type");
 ${tab()}}
 }
-`
+`;
 }
 
 function genParseException() {
@@ -96,7 +100,7 @@ ${tab()}${tab()}super(message);
 ${tab()}${tab()}this.name = 'AttestationRequestParseError';
 ${tab()}}
 }
-`
+`;
 }
 
 function genGetAttestationTypeAndSource() {
@@ -116,7 +120,7 @@ ${tab()}${tab()}throw new AttestationRequestParseError(e)
 ${tab()}}
 }
   
-`
+`;
 }
 
 function genHelperFunctions() {
@@ -135,11 +139,11 @@ ${tab()}${tab()}return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
 ${tab()}}
 ${tab()}return Web3.utils.toHex(x);
 }
-`
+`;
 }
 
 export function createAttestationRequestParse(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n")
+  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import Web3 from "web3";
@@ -159,15 +163,15 @@ const web3 = new Web3();
 
   content += genParseException();
 
-  content += genHelperFunctions()
+  content += genHelperFunctions();
 
   content += fromUnprefixedBytesFunction();
 
   content += genGetAttestationTypeAndSource();
 
-  definitions.forEach(definition => {
+  definitions.forEach((definition) => {
     content += genRequestParseFunctionForDefinition(definition);
-  })
+  });
 
   content += genRequestParseFunction(definitions);
 

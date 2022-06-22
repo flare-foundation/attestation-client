@@ -10,7 +10,7 @@ export class AttestationData {
   sourceId!: SourceId;
   timeStamp!: BN;
   request!: string;
-  
+
   // block parameters
   blockNumber!: BN;
   logIndex!: number;
@@ -19,14 +19,13 @@ export class AttestationData {
   // instructions!: BN;  // obsolete
 
   constructor(event?: any) {
-
-    if( !event ) return;
+    if (!event) return;
 
     this.timeStamp = toBN(event.returnValues.timestamp);
     this.request = event.returnValues.data;
-    
-    const {attestationType, sourceId} = getAttestationTypeAndSource(this.request);
-    
+
+    const { attestationType, sourceId } = getAttestationTypeAndSource(this.request);
+
     // If parsing is not successful, null is set for both values
     this.type = attestationType;
     this.sourceId = sourceId;
@@ -35,7 +34,7 @@ export class AttestationData {
     this.blockNumber = toBN(event.blockNumber);
     this.logIndex = event.logIndex;
   }
-  
+
   comparator(obj: AttestationData): number {
     if (this.blockNumber.lt(obj.blockNumber)) return -1;
     if (this.blockNumber.gt(obj.blockNumber)) return 1;
@@ -49,5 +48,4 @@ export class AttestationData {
   getHash(): string {
     return this.request;
   }
-
 }

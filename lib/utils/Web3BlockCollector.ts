@@ -68,8 +68,7 @@ export class Web3BlockCollector {
         }
 
         processBlock++;
-      }
-      catch (error) {
+      } catch (error) {
         logException(error, `Web3BlockCollector::procesEvents`);
       }
     }

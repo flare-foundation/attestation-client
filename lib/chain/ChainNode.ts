@@ -36,7 +36,6 @@ export class ChainNode {
 
   indexedQueryManager: IndexedQueryManager;
 
-
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
@@ -60,12 +59,14 @@ export class ChainNode {
         return AttestationRoundManager.getSourceHandlerConfig(chainConfiguration.name).numberOfConfirmations;
       },
 
-
       windowStartTime: (roundId: number) => {
         let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-        const queryWindowsInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(chainConfiguration.name), roundId).queryWindowInSec;
+        const queryWindowsInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
+          toSourceId(chainConfiguration.name),
+          roundId
+        ).queryWindowInSec;
         return roundStartTime - queryWindowsInSec;
-      }
+      },
     };
 
     this.indexedQueryManager = new IndexedQueryManager(options);
@@ -211,7 +212,10 @@ export class ChainNode {
           attestation.reverification = true;
 
           // actualk time when attesttion will be rechecked
-          const startTimeMs = AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) - AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 - this.chainConfig.reverificationTimeOffset * 1000;
+          const startTimeMs =
+            AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
+            AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
+            this.chainConfig.reverificationTimeOffset * 1000;
 
           this.delayQueue(attestation, startTimeMs);
         } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
@@ -224,7 +228,6 @@ export class ChainNode {
         }
       })
       .catch((error: any) => {
-
         attestation.exception = error;
 
         // Attestation request parsing errors
@@ -340,8 +343,7 @@ export class ChainNode {
 
         this.process(tx!);
       }
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `ChainNode::startNext`);
     }
   }

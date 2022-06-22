@@ -3,19 +3,19 @@ import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { DEFAULT_GEN_FILE_HEADER, HASH_TEST_FILE, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 
 function genTestHashStruct(definition: AttestationTypeScheme) {
-   let structName = `${definition.name}`;
-   let typedParams = definition.dataHashDefinition.map(item => `      ${item.type} ${item.key};`).join("\n")
-   return `
+  let structName = `${definition.name}`;
+  let typedParams = definition.dataHashDefinition.map((item) => `      ${item.type} ${item.key};`).join("\n");
+  return `
    struct ${structName} {
 ${typedParams}
    }
-`
+`;
 }
 
 function genTestHashFunction(definition: AttestationTypeScheme) {
-   let functionName = `hashTest${definition.name}`;
-   let params = definition.dataHashDefinition.map(item => `data.${item.key}`).join(",")
-   return `
+  let functionName = `hashTest${definition.name}`;
+  let params = definition.dataHashDefinition.map((item) => `data.${item.key}`).join(",");
+  return `
    function ${functionName}(
       bytes memory _data,
       bytes32 _hashToProve
@@ -26,15 +26,14 @@ function genTestHashFunction(definition: AttestationTypeScheme) {
       bytes32 hash2 = keccak256(abi.encode(${params}));
       return hash == _hashToProve && hash == hash2;
     }
-`
+`;
 }
 
 function getSolidityHashTest(definitions: AttestationTypeScheme[]) {
-   let structs = definitions.map(definition => genTestHashStruct(definition)).join("");
-   let functions = definitions.map(definition => genTestHashFunction(definition)).join("");
+  let structs = definitions.map((definition) => genTestHashStruct(definition)).join("");
+  let functions = definitions.map((definition) => genTestHashFunction(definition)).join("");
 
-   let content =
-      `${DEFAULT_GEN_FILE_HEADER}
+  let content = `${DEFAULT_GEN_FILE_HEADER}
 // (c) 2021, Flare Networks Limited. All rights reserved.
 // Please see the file LICENSE for licensing terms.
 
@@ -62,18 +61,18 @@ ${functions}
    }
 
 }
-`
-   return content;
+`;
+  return content;
 }
 
 export function createHashTestSolidityFile(definitions: AttestationTypeScheme[]) {
-   // Hash test contract
-   let content = `${DEFAULT_GEN_FILE_HEADER}
+  // Hash test contract
+  let content = `${DEFAULT_GEN_FILE_HEADER}
       ${getSolidityHashTest(definitions)}   
-      `
-   if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {
-      fs.mkdirSync(SOLIDITY_GEN_CONTRACTS_ROOT, { recursive: true });
-   }
+      `;
+  if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {
+    fs.mkdirSync(SOLIDITY_GEN_CONTRACTS_ROOT, { recursive: true });
+  }
 
-   fs.writeFileSync(`${SOLIDITY_GEN_CONTRACTS_ROOT}/${HASH_TEST_FILE}`, content, "utf8");
+  fs.writeFileSync(`${SOLIDITY_GEN_CONTRACTS_ROOT}/${HASH_TEST_FILE}`, content, "utf8");
 }

@@ -40,9 +40,9 @@ export class ColorConsole extends Transport {
   lastLog2: string = "";
   duplicate = 0;
 
-  mode : "" | "sticky" | "forgettable" = "";
+  mode: "" | "sticky" | "forgettable" = "";
 
-  terminal : Terminal;
+  terminal: Terminal;
 
   constructor() {
     super();
@@ -91,45 +91,44 @@ export class ColorConsole extends Transport {
         break;
     }
 
-    const memMb = round( process.memoryUsage().heapUsed / 1024 / 1024 , 1 );
-    const mem = BgBlue + FgBlack + `${memMb.toFixed(1).padStart(6,' ')}` + Reset
+    const memMb = round(process.memoryUsage().heapUsed / 1024 / 1024, 1);
+    const mem = BgBlue + FgBlack + `${memMb.toFixed(1).padStart(6, " ")}` + Reset;
 
     //const mem = "";
 
-    if( !ignore && info.message ) {
-
+    if (!ignore && info.message) {
       let text = info.message.toString();
 
-      if( text[0]==='*' || text[0]==='!' ) {
+      if (text[0] === "*" || text[0] === "!") {
+        text = text.substring(1);
 
-        text = text.substring( 1 );
-
-        if( this.mode ) {
+        if (this.mode) {
           this.terminal.cursorRestore();
           this.terminal.clearLine();
         } else {
           this.terminal.cursorSave();
         }
-        this.mode=text[0]==='*' ? "sticky" : "forgettable";
-      }
-      else {
-        if( this.mode==="forgettable") {
+        this.mode = text[0] === "*" ? "sticky" : "forgettable";
+      } else {
+        if (this.mode === "forgettable") {
           this.terminal.cursorRestore();
           this.terminal.clearLine();
         }
 
-        this.mode="";
+        this.mode = "";
       }
 
-
-      if (this.lastLog === text ) {
+      if (this.lastLog === text) {
         this.duplicate++;
-        process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate} ` + Reset);
-      } else if (this.lastLog2 === text ) {
+        process.stdout.write(
+          "\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate} ` + Reset
+        );
+      } else if (this.lastLog2 === text) {
         this.duplicate++;
-        process.stdout.write("\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate}+ ` + Reset);
-      }
-      else {
+        process.stdout.write(
+          "\r" + BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + BgWhite + FgBlack + ` ${this.duplicate}+ ` + Reset
+        );
+      } else {
         try {
           if (this.duplicate > 0) {
             console.log(``);
@@ -142,26 +141,22 @@ export class ColorConsole extends Transport {
           // "2022-01-10T13:13:07.712Z"
 
           console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + color + processColors(text, color) + Reset);
-        }
-        catch{}
+        } catch {}
       }
     }
 
     if (callback) {
       callback();
     }
-
   };
 }
 
 function replaceAll(text: string, search: string, replaceWith: string): string {
-
   try {
     while (text.indexOf(search) >= 0) {
       text = text.replace(search, replaceWith);
     }
-  }
-  catch{}
+  } catch {}
 
   return text;
 }
@@ -185,16 +180,14 @@ export function processColors(text: string, def: string) {
     text = replaceAll(text, "^c", BgCyan);
     text = replaceAll(text, "^w", BgWhite);
     text = replaceAll(text, "^e", BgGray);
-  }
-  catch{}
+  } catch {}
 
   return text;
 }
 
 const myCustomLevels = {
   levels: {
-
-    debug3: 103,    // not displayed on console but logged
+    debug3: 103, // not displayed on console but logged
     debug2: 102,
     debug1: 101,
     debug: 100, // all above are filtered out when level is set to debug
@@ -213,7 +206,7 @@ const myCustomLevels = {
   },
 };
 
-var globalLogger = new Map<string,AttLogger>();
+var globalLogger = new Map<string, AttLogger>();
 
 var globalLoggerLabel;
 
@@ -265,12 +258,11 @@ export function setGlobalLoggerLabel(label: string) {
 
 // return one instance of logger
 export function getGlobalLogger(label?: string): AttLogger {
-
-  if( !label ) {
+  if (!label) {
     label = globalLoggerLabel;
   }
 
-  if( !label ) {
+  if (!label) {
     label = "global";
   }
 
@@ -278,19 +270,17 @@ export function getGlobalLogger(label?: string): AttLogger {
 
   if (!logger) {
     logger = createLogger(label);
-    globalLogger.set(label,logger)
+    globalLogger.set(label, logger);
   }
 
   return logger;
 }
 
-export function logException(error: any,comment: string) {
-
+export function logException(error: any, comment: string) {
   const logger = getGlobalLogger();
 
   logger.error2(`${comment} ${error}`);
-  if( error.stack ) {
-     logger.error(error.stack);
+  if (error.stack) {
+    logger.error(error.stack);
   }
 }
-

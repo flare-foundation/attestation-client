@@ -17,7 +17,7 @@ import { getGlobalLogger, logException } from "../utils/logger";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 
-export function prepareIndexerTables(type: ChainType): {transactionTable: DBTransactionBase[], blockTable: DBBlockBase} {
+export function prepareIndexerTables(type: ChainType): { transactionTable: DBTransactionBase[]; blockTable: DBBlockBase } {
   let transactionTable = [];
   let blockTable;
   switch (type) {

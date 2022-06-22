@@ -1,12 +1,20 @@
 import fs from "fs";
 import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
-import { ATTESTATION_TYPE_PREFIX, ATT_CLIENT_MOCK_TEST_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, GENERATED_TEST_ROOT, SOLIDITY_VERIFICATION_FUNCTION_PREFIX, WEB3_HASH_PREFIX_FUNCTION } from "./cg-constants";
+import {
+  ATTESTATION_TYPE_PREFIX,
+  ATT_CLIENT_MOCK_TEST_FILE,
+  CODEGEN_TAB,
+  DATA_HASH_TYPE_PREFIX,
+  DEFAULT_GEN_FILE_HEADER,
+  GENERATED_TEST_ROOT,
+  SOLIDITY_VERIFICATION_FUNCTION_PREFIX,
+  WEB3_HASH_PREFIX_FUNCTION,
+} from "./cg-constants";
 import { indentText, tab, trimStartNewline } from "./cg-utils";
 
-
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
-  let res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`
+  let res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;
   return trimStartNewline(res);
 }
 
@@ -15,13 +23,12 @@ export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{
 // funkcija za enkodiranje vsakega od tipov
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  let responseFields = definition.dataHashDefinition.map(item => indentText(randomHashItemValue(item, defaultReadObject), CODEGEN_TAB)).join(",\n");
-  let randomResponse =
-    `
+  let responseFields = definition.dataHashDefinition.map((item) => indentText(randomHashItemValue(item, defaultReadObject), CODEGEN_TAB)).join(",\n");
+  let randomResponse = `
 let response = {
 ${responseFields}      
 } as ${DATA_HASH_TYPE_PREFIX}${definition.name};
-`
+`;
   return randomResponse;
 }
 
@@ -31,7 +38,7 @@ export function randomResponse${definition.name}() {
 ${indentText(genRandomResponseCode(definition), CODEGEN_TAB)}
    return response;
 }
-`
+`;
 }
 
 function genRandomResponseCase(definition: AttestationTypeScheme) {
@@ -42,9 +49,8 @@ case AttestationType.${definition.name}:
   return trimStartNewline(result);
 }
 
-
 export function genRandomResponseForAttestationTypeFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map(definition => indentText(genRandomResponseCase(definition), CODEGEN_TAB * 2)).join("\n")
+  let attestationTypeCases = definitions.map((definition) => indentText(genRandomResponseCase(definition), CODEGEN_TAB * 2)).join("\n");
   return `
 export function getRandomResponseForType(attestationType: AttestationType) {
 ${tab()}switch(attestationType) {
@@ -53,12 +59,12 @@ ${tab()}${tab()}default:
 ${tab()}${tab()}${tab()}throw new Error("Wrong attestation type.")
   }   
 }
-`
+`;
 }
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
-  let types = definition.dataHashDefinition.map(item => `"${item.type}",\t\t// ${item.key}`).join("\n");
-  let values = definition.dataHashDefinition.map(item => `${defaultResponse}.${item.key}`).join(",\n");
+  let types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
+  let values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 let encoded = web3.eth.abi.encodeParameters(
 ${tab()}[
@@ -72,16 +78,18 @@ ${tab()}${tab()}${defaultRequest}.sourceId,
 ${indentText(values, CODEGEN_TAB * 2)}
 ${tab()}]
 );   
-`
+`;
 }
 
 export function genWeb3HashFunction(definition: AttestationTypeScheme) {
   return `
-export function ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}, response: ${DATA_HASH_TYPE_PREFIX}${definition.name}) {
+export function ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}, response: ${DATA_HASH_TYPE_PREFIX}${
+    definition.name
+  }) {
 ${indentText(genHashCode(definition, "request", "response"), CODEGEN_TAB)}
 ${tab()}return web3.utils.soliditySha3(encoded)!;
 }
-`
+`;
 }
 
 function genItForAttestationClientMock(definition: AttestationTypeScheme) {
@@ -106,19 +114,18 @@ it("'${definition.name}' test", async function () {
   await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, dummyHash);
   assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(CHAIN_ID, responseHex) === false);
 });
-`
+`;
 }
 
 function genVerificationCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
 ${tab()}assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(verification.request.sourceId, responseHex));
-${tab()}break;`
+${tab()}break;`;
 }
 
-
 function genItForMerkleTest(definitions: AttestationTypeScheme[]) {
-  let verificationCases = definitions.map(definition => genVerificationCase(definition)).join("");
+  let verificationCases = definitions.map((definition) => genVerificationCase(definition)).join("");
   return `
 it("Merkle tree test", async function () {
 ${tab()}let verifications = [];
@@ -140,21 +147,21 @@ ${tab()}${tab()}let index = tree.sortedHashes.findIndex(hash => hash === verific
 ${tab()}${tab()}verification.response.merkleProof = tree.getProof(index);
 ${tab()}${tab()}let responseHex = hexlifyBN(verification.response);
 ${tab()}${tab()}switch(verification.request.attestationType) {
-${indentText(verificationCases, CODEGEN_TAB*3)}
+${indentText(verificationCases, CODEGEN_TAB * 3)}
 ${tab()}${tab()}${tab()}default:
 ${tab()}${tab()}${tab()}${tab()}throw new Error("Wrong attestation type");
 ${tab()}${tab()}}
   }    
 });
-`
+`;
 }
 
 export function createAttestationClientMockTest(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n")
-  let dhImports = definitions.map(definition => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n")
-  let hashFunctionsImports = definitions.map(definition => `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`).join(",\n")
+  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  let dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
+  let hashFunctionsImports = definitions.map((definition) => `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`).join(",\n");
 
-  let itsForDefinitions = definitions.map(definition => genItForAttestationClientMock(definition)).join("\n");
+  let itsForDefinitions = definitions.map((definition) => genItForAttestationClientMock(definition)).join("\n");
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";

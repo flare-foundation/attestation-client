@@ -22,7 +22,7 @@ import { AttestationClientSCInstance, StateConnectorInstance } from "../typechai
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 
-const axios = require('axios');
+const axios = require("axios");
 
 describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   let currentBufferNumber = 0;
@@ -47,33 +47,34 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     TOTAL_STORED_PROOFS = (await stateConnector.TOTAL_STORED_PROOFS()).toNumber();
     let now = getUnixEpochTimestamp();
     currentBufferNumber = Math.floor((now - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
-    console.log(`Current buffer number ${currentBufferNumber}, mod: ${currentBufferNumber % TOTAL_STORED_PROOFS}`)
+    console.log(`Current buffer number ${currentBufferNumber}, mod: ${currentBufferNumber % TOTAL_STORED_PROOFS}`);
     chainName = SourceId[SOURCE_ID];
     let configIndexer = readConfig(new ChainsConfiguration(), "chains");
-    chainIndexerConfig = configIndexer.chains.find(item => item.name === chainName)
+    chainIndexerConfig = configIndexer.chains.find((item) => item.name === chainName);
     let attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
 
     client = MCC.Client(SOURCE_ID, {
       ...chainIndexerConfig.mccCreate,
-      rateLimitOptions: chainIndexerConfig.rateLimitOptions
+      rateLimitOptions: chainIndexerConfig.rateLimitOptions,
     });
 
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,
-      numberOfConfirmations: () => { return chainIndexerConfig.numberOfConfirmations; },
+      numberOfConfirmations: () => {
+        return chainIndexerConfig.numberOfConfirmations;
+      },
       maxValidIndexerDelaySec: 10,
       dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
       windowStartTime: (roundId: number) => {
         const queryWindowInSec = 86400;
         return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - queryWindowInSec;
-      }
+      },
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
-    await indexedQueryManager.dbService.waitForDBConnection()
+    await indexedQueryManager.dbService.waitForDBConnection();
   });
 
   it("Should verify that merkle roots match.", async () => {
-
     let totalBuffers = (await stateConnector.totalBuffers()).toNumber();
     let N0 = 2;
     let CHECK_COUNT = 1000;
@@ -87,19 +88,20 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
         // return;
         continue;
       }
-      let hashes: string[] = data.map(item => item.hash) as string[]
+      let hashes: string[] = data.map((item) => item.hash) as string[];
       const tree = new MerkleTree(hashes);
 
       let stateConnectorMerkleRoot = await stateConnector.merkleRoots((roundId + 2) % TOTAL_STORED_PROOFS);
 
-      console.log(`${cnt}\t${roundId}\t${data.length}\t${stateConnectorMerkleRoot === tree.root ? "OK" : "MISMATCH"}`)
+      console.log(`${cnt}\t${roundId}\t${data.length}\t${stateConnectorMerkleRoot === tree.root ? "OK" : "MISMATCH"}`);
       cnt++;
     }
   });
 
   // Used for debugging specific requests
   it("Specific request check", async () => {
-    let request = '0x0001000000023d71f97a9ae5679cdd0e6ad4a4693879d01afd641a726d5bafb8af6f6e7447a9684fc55c500f972e6edf5d62fe2a92d7073367899418951e79cc3897b6c6993d0000';
+    let request =
+      "0x0001000000023d71f97a9ae5679cdd0e6ad4a4693879d01afd641a726d5bafb8af6f6e7447a9684fc55c500f972e6edf5d62fe2a92d7073367899418951e79cc3897b6c6993d0000";
     let roundId = 165714;
     let recheck = false;
 
@@ -107,54 +109,53 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     // console.log(parsed)
     // let roundId = currentBufferNumber - 2;
 
-    let att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations)
+    let att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations);
     let result = await verifyAttestation(client, att, indexedQueryManager, recheck);
 
-    console.log(`Status ${result.status}`)
-    console.log(`Block number: ${result.response?.blockNumber?.toString()}`)
+    console.log(`Status ${result.status}`);
+    console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
     let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
     console.log(`Last confirmed block: ${lastConfirmedBlock}`);
-  })
+  });
 
   it("Specific parsed request check", async () => {
     let roundId = 161893;
     let recheck = true;
 
     let parsed = {
-      "attestationType": 1,
-      "sourceId": 2,
-      "upperBoundProof": "0x68c840f6ad2f0531e1ff109a1fc908278e4c7055dd3833b2d07d8aad44551030",
-      "id": "0x851f2660dff77e9e54d220ca6d06071ef951612bfbcacc8a35fe20380bacc384",
-      "inUtxo": "0x0",
-      "utxo": "0x0"
-    }
+      attestationType: 1,
+      sourceId: 2,
+      upperBoundProof: "0x68c840f6ad2f0531e1ff109a1fc908278e4c7055dd3833b2d07d8aad44551030",
+      id: "0x851f2660dff77e9e54d220ca6d06071ef951612bfbcacc8a35fe20380bacc384",
+      inUtxo: "0x0",
+      utxo: "0x0",
+    };
 
-    let att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations)
+    let att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations);
     let result = await verifyAttestation(client, att, indexedQueryManager, recheck);
 
-    console.log(hexlifyBN(result))
-    console.log(`Status ${result.status}`)
-    console.log(`Block number: ${result.response?.blockNumber?.toString()}`)
+    console.log(hexlifyBN(result));
+    console.log(`Status ${result.status}`);
+    console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
     let lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
     console.log(`Last confirmed block: ${lastConfirmedBlock}`);
-  })
-
+  });
 
   it.skip("Test specific round Merkle proofs", async () => {
-    let roundId = 161166
+    let roundId = 161166;
     const resp = await axios.get(`https://attestation.flare.network/attester-api/proof/votes-for-round/${roundId}`);
     let data = resp.data.data;
     if (data.length === 0) {
       console.log(`No attestations in roundId ${roundId}`);
       return;
     }
-    let hashes: string[] = data.map(item => item.hash) as string[]
+    let hashes: string[] = data.map((item) => item.hash) as string[];
     const tree = new MerkleTree(hashes);
 
     for (let i = 0; i < data.length; i++) {
       let chosenRequest = data[i];
       let chosenHash = chosenRequest.hash;
-      let index = tree.sortedHashes.findIndex(hash => hash === chosenHash);
+      let index = tree.sortedHashes.findIndex((hash) => hash === chosenHash);
       let response = chosenRequest.response;
       response.stateConnectorRound = roundId + 2;
       response.merkleProof = tree.getProof(index);
@@ -178,7 +179,5 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       }
       console.log(`${i}/${data.length}\t${result}`);
     }
-
-  })
-
+  });
 });

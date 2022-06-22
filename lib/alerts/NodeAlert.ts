@@ -7,105 +7,100 @@ import { AlertBase, AlertRestartConfig, AlertStatus } from "./AlertBase";
 import { AlertConfig } from "./AlertsConfiguration";
 
 export class NodeAlert extends AlertBase {
-    static chainsConfig: ChainsConfiguration;
-    chainType: ChainType;
+  static chainsConfig: ChainsConfiguration;
+  chainType: ChainType;
 
-    chainConfig: ChainConfiguration;
-    cachedClient: CachedMccClient<any, IBlock>;
+  chainConfig: ChainConfiguration;
+  cachedClient: CachedMccClient<any, IBlock>;
 
+  constructor(name: string, logger: AttLogger, config: AlertConfig) {
+    super(name, logger, new AlertRestartConfig(config.timeRestart, config.indexerRestart.replace("<name>", name).toLowerCase()));
 
-    constructor(name: string, logger: AttLogger, config: AlertConfig) {
-        super(name, logger, new AlertRestartConfig(config.timeRestart, config.indexerRestart.replace("<name>", name).toLowerCase()));
-
-        if (!NodeAlert.chainsConfig) {
-            NodeAlert.chainsConfig = readConfig(new ChainsConfiguration(), "chains");
-        }
-
-        this.chainType = MCC.getChainType(name);
-        this.chainConfig = NodeAlert.chainsConfig.chains.find((el) => el.name === name)!;
+    if (!NodeAlert.chainsConfig) {
+      NodeAlert.chainsConfig = readConfig(new ChainsConfiguration(), "chains");
     }
 
-    async initialize() {
-        // todo: setup options from config
-        let cachedMccClientOptions: CachedMccClientOptions = {
-            transactionCacheSize: 100000,
-            blockCacheSize: 100000,
-            cleanupChunkSize: 100,
-            activeLimit: 70,
-            clientConfig: {
-                ...this.chainConfig.mccCreate,
-                rateLimitOptions: this.chainConfig.rateLimitOptions,
-                loggingOptions: {
-                    mode: "production",
-                    loggingCallback: this.mccLogging.bind(this),
-                    warningCallback: this.mccWarning.bind(this),
-                    exceptionCallback: this.mccException.bind(this),
-                }
-            },
-        };
+    this.chainType = MCC.getChainType(name);
+    this.chainConfig = NodeAlert.chainsConfig.chains.find((el) => el.name === name)!;
+  }
 
-        try {
-            this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
-        }
-        catch (error) {
-            logException(error, `node ${this.chainType}`);
-        }
+  async initialize() {
+    // todo: setup options from config
+    let cachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: {
+        ...this.chainConfig.mccCreate,
+        rateLimitOptions: this.chainConfig.rateLimitOptions,
+        loggingOptions: {
+          mode: "production",
+          loggingCallback: this.mccLogging.bind(this),
+          warningCallback: this.mccWarning.bind(this),
+          exceptionCallback: this.mccException.bind(this),
+        },
+      },
+    };
+
+    try {
+      this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
+    } catch (error) {
+      logException(error, `node ${this.chainType}`);
+    }
+  }
+
+  mccLogging(message: string) {
+    //this.logger.info(`MCC ${message}`);
+  }
+
+  mccWarning(message: string) {
+    this.logger.warning(`MCC ${message}`);
+  }
+
+  mccException(error: any, message: string) {
+    logException(error, message);
+  }
+
+  async perf() {
+    return null;
+  }
+
+  async check(): Promise<AlertStatus> {
+    const res = new AlertStatus();
+    res.name = `node ${this.name}`;
+
+    if (!this.cachedClient) {
+      res.status = "down";
+      res.state = "";
+      res.comment = `unable to connect ${(this.chainConfig.mccCreate as any)?.url}`;
+      return res;
     }
 
-    mccLogging(message: string) {
-        //this.logger.info(`MCC ${message}`);
+    var status = await this.cachedClient.client.getNodeStatus();
+
+    if (!status) {
+      res.comment = "node status not available";
+      return res;
     }
 
-    mccWarning(message: string) {
-        this.logger.warning(`MCC ${message}`);
+    res.state = ``;
+    res.comment = `state ${status?.state}, version ${status?.version}`;
+
+    if (status.isHealthy && status.isSynced) {
+      res.status = "running";
+    } else if (status.isHealthy && !status.isSynced) {
+      res.status = "sync";
+    } else if (!status.isHealthy) {
+      res.status = "down";
     }
 
-    mccException(error: any, message: string) {
-        logException(error, message);
-    }
+    // if (late > this.restartConfig.time) {
+    //     if (await this.restart()) {
+    //         res.comment = "^r^Wrestart^^";
+    //     }
+    // }
 
-
-    async perf() { return null; }
-
-    async check(): Promise<AlertStatus> {
-
-        const res = new AlertStatus();
-        res.name = `node ${this.name}`;
-
-        if (!this.cachedClient) {
-            res.status = "down";
-            res.state = "";
-            res.comment = `unable to connect ${(this.chainConfig.mccCreate as any)?.url}`;
-            return res;
-        }
-
-        var status = await this.cachedClient.client.getNodeStatus();
-
-        if (!status) {
-            res.comment = "node status not available";
-            return res;
-        }
-
-        res.state = ``;
-        res.comment = `state ${status?.state}, version ${status?.version}`;
-
-        if (status.isHealthy && status.isSynced) {
-            res.status = "running";
-        }
-        else if (status.isHealthy && !status.isSynced) {
-            res.status = "sync";
-        }
-        else if (!status.isHealthy) {
-            res.status = "down";
-        }
-
-        // if (late > this.restartConfig.time) {
-        //     if (await this.restart()) {
-        //         res.comment = "^r^Wrestart^^";
-        //     }
-        // }
-
-        return res;
-    }
+    return res;
+  }
 }
-

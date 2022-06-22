@@ -10,10 +10,10 @@ export function readJSON<T>(filename: string) {
   let data = fs.readFileSync(filename).toString();
 
   // remove all comments
-  data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, '$1');
+  data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
 
   // remove trailing commas
-  data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, '');
+  data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
 
   //console.log( data );
 
@@ -23,24 +23,20 @@ export function readJSON<T>(filename: string) {
 }
 
 function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
-
   let path = `./configs/`;
 
   if (userPath && userPath !== "") {
     path = userPath;
-  }
-  else {
+  } else {
     if (mode) {
       path += `${mode}/`;
-    }
-    else if (process.env.CONFIG_PATH) {
+    } else if (process.env.CONFIG_PATH) {
       path += `${process.env.CONFIG_PATH}/`;
-      getGlobalLogger().debug2(`configuration env.CONFIG_PATH using ^w^K${process.env.CONFIG_PATH}^^`)
-    }
-    else {
+      getGlobalLogger().debug2(`configuration env.CONFIG_PATH using ^w^K${process.env.CONFIG_PATH}^^`);
+    } else {
       const modePath = process.env.NODE_ENV === "development" ? DEFAULT_DEBUG_CONFIG_PATH : DEFAULT_CONFIG_PATH;
       path += `${modePath}/`;
-      getGlobalLogger().warning(`configuration path not set. using ^w^K${modePath}^^`)
+      getGlobalLogger().warning(`configuration path not set. using ^w^K${modePath}^^`);
     }
   }
 
@@ -51,17 +47,14 @@ function readConfigBase<T extends IReflection<T>>(project: string, type: string,
 
     const valid = isEqualType(obj.instanciate(), res);
 
-    if( valid ) {
+    if (valid) {
       getGlobalLogger().info(`^g^W ${project} ^^ ^Gconfiguration ^K^w${path}^^ loaded`);
-    }
-    else
-    {
+    } else {
       getGlobalLogger().error2(` ${project}  configuration ^K^w${path}^^ has errors`);
     }
 
     return res;
-  }
-  catch (error) {
+  } catch (error) {
     logException(error, `${type} file ^K^w${path}^^ load error`);
   }
 }

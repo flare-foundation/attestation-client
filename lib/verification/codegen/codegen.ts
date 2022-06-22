@@ -15,28 +15,27 @@ import { createVerifiersImportFiles } from "./cg-verifier-imports";
 import { createVerifiersAndRouter } from "./cg-verifiers-router";
 
 async function generateCodeFiles() {
-   let definitions = await readAttestationTypeSchemes();
+  let definitions = await readAttestationTypeSchemes();
 
-   createAttestationEnumFile(definitions);
-   createAttestationRequestTypesFile(definitions);
-   createAttestationHashTypesFile(definitions);
-   createAttestationRandomUtils(definitions);
-   createAttestationHashUtils(definitions);
-   createAttestationRequestParse(definitions);
-   createAttestationRequestEncode(definitions);
-   createAttestationRequestEquals(definitions);
-   createVerifiersAndRouter(definitions);
-   createSolidityIAttestationClient(definitions);
-   createSolidityAttestationClientBase(definitions);
-   createVerifiersImportFiles(definitions);   
-   createAttestationClientMockTest(definitions);
-   createAttestationParserTest(definitions);
+  createAttestationEnumFile(definitions);
+  createAttestationRequestTypesFile(definitions);
+  createAttestationHashTypesFile(definitions);
+  createAttestationRandomUtils(definitions);
+  createAttestationHashUtils(definitions);
+  createAttestationRequestParse(definitions);
+  createAttestationRequestEncode(definitions);
+  createAttestationRequestEquals(definitions);
+  createVerifiersAndRouter(definitions);
+  createSolidityIAttestationClient(definitions);
+  createSolidityAttestationClientBase(definitions);
+  createVerifiersImportFiles(definitions);
+  createAttestationClientMockTest(definitions);
+  createAttestationParserTest(definitions);
 }
 
 generateCodeFiles()
-   .then(() => process.exit(0))
-   .catch(error => {
-      console.error(error);
-      process.exit(1);
-   });
-
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

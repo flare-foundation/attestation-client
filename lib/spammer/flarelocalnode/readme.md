@@ -1,4 +1,5 @@
 # Spammer local node installation and run
+
 Written on `18/2/2022` by `David` for Flare node version `0.5.3`
 
 To run spammer you need to run local node.
@@ -8,6 +9,7 @@ To run spammer you need to run local node.
 To install local node you need to have `gvm` (go version manager) installed and `go` version `1.17.5`.
 
 ### Install gvm
+
 ```
 bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
 sudo apt -y install gcc g++ curl jq
@@ -17,6 +19,7 @@ sudo npm install gvm
 ```
 
 ### Install go1.17.5
+
 ```
 gvm install go1.17.5
 ```
@@ -43,24 +46,28 @@ chmod +x ./scripts/launch_localnet_scdev.sh
 ```
 
 ## Running local node
+
 Open new terminal and run next commands:
+
 ```
 cd ./.node/flare
 ./scripts/launch_localnet_scdev.sh
 ```
+
 Do not close the teminal.
 
 ### Install State Connector
+
 Run local node and wait until it is healthy `http://127.0.0.1:9650/ext/health`.
 
 Open new terminal window and run state connector deployment:
+
 ```
 yarn stateconnector
 ```
 
-
-
 ## Running Spammer
 
 ```
+
 ```

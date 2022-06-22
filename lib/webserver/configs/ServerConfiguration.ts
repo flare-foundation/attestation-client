@@ -1,8 +1,7 @@
 import { optional } from "@flarenetwork/mcc";
 import { AdditionalTypeInfo, IReflection } from "../../utils/typeReflection";
 
-export class ServerConfiguration implements IReflection<ServerConfiguration>{
-
+export class ServerConfiguration implements IReflection<ServerConfiguration> {
   // start epoch in sec
   public firstEpochStartTime: number = 1636070400;
 
@@ -21,6 +20,4 @@ export class ServerConfiguration implements IReflection<ServerConfiguration>{
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
 }
-

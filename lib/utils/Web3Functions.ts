@@ -59,7 +59,7 @@ export class Web3Functions {
     timeEnd?: number,
     gas: string = DEFAULT_GAS,
     gasPrice: string = DEFAULT_GAS_PRICE,
-    quiet: boolean = false,
+    quiet: boolean = false
   ): Promise<any> {
     try {
       const waitIndex = this.nextIndex;
@@ -73,7 +73,6 @@ export class Web3Functions {
         }
 
         while (waitIndex !== this.currentIndex) {
-
           if (timeEnd) {
             if (getUnixEpochTimestamp() > timeEnd) {
               this.logger.error2(`sign ${label} timeout #${waitIndex}`);
@@ -100,8 +99,7 @@ export class Web3Functions {
       this.currentIndex += 1;
 
       return res;
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `signAndFinalize3`);
     }
   }
@@ -126,20 +124,17 @@ export class Web3Functions {
         if (e.message.indexOf(`Transaction has been reverted by the EVM`) < 0) {
           logException(`${label}, nonce sent: ${nonce}`, e);
         } else {
-
           try {
             const result = await fnToEncode.call({ from: this.account.address });
 
             throw Error("unlikely to happen: " + JSON.stringify(result));
-          }
-          catch (revertReason) {
+          } catch (revertReason) {
             this.logger.error2(`${label}, nonce sent: ${nonce}, revert reason: ${revertReason}`);
           }
         }
         return null;
       }
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `_signAndFinalize3`);
     }
   }

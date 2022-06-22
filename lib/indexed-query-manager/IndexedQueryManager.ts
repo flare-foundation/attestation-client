@@ -12,7 +12,9 @@ import { BlockHeightSample, BlockQueryParams, BlockQueryResult, ConfirmedBlockQu
 
 
 ////////////////////////////////////////////////////////
-/// IndexedQueryManger
+// IndexedQueryManger - a class used to carry out 
+// queries on the indexer database such that the
+// upper and lower bounds are synchronized.
 ////////////////////////////////////////////////////////
 
 export class IndexedQueryManager {
@@ -44,25 +46,17 @@ export class IndexedQueryManager {
   // Last confirmed blocks, tips
   ////////////////////////////////////////////////////////////
   getChainN() {
-    return getSourceName(this.settings.chainType) + "_N";
+    return `${getSourceName(this.settings.chainType)}_N`;
   }
 
   getChainT() {
-    return getSourceName(this.settings.chainType) + "_T";
-  }
-
-  getChainNbottom() {
-    return getSourceName(this.settings.chainType) + "_Nbottom";
-  }
-
-  getChainNBottomTime() {
-    return getSourceName(this.settings.chainType) + "_NbottomTime";
+    return `${getSourceName(this.settings.chainType)}_T`;
   }
 
   public async getLastConfirmedBlockNumber(): Promise<number> {
-    if (this.debugLastConfirmedBlock == null) {
+    if (this.debugLastConfirmedBlock === undefined || this.debugLastConfirmedBlock === null) {
       const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
-      if (res === undefined) {
+      if (res === undefined || res === null) {
         return 0;
       }
       return res.valueNumber;
@@ -70,10 +64,10 @@ export class IndexedQueryManager {
     return this.debugLastConfirmedBlock;
   }
 
-  public async getBlockHeightSample(): Promise<BlockHeightSample | undefined> {
-    if (this.debugLastConfirmedBlock == null) {
+  public async getLatestBlockTimestamp(): Promise<BlockHeightSample | null> {
+    if (this.debugLastConfirmedBlock === undefined || this.debugLastConfirmedBlock === null) {
       const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainT() } });
-      if (res === undefined) {
+      if (res === undefined || res === null) {
         return null;
       }
       return {
@@ -87,15 +81,14 @@ export class IndexedQueryManager {
     }
   }
 
-  public async isIndexerUpToDate() {
-    let res = await this.getBlockHeightSample();
-    let now = await getUnixEpochTimestamp();
-    let delay = now - res.timestamp;
-    if (delay > this.settings.maxValidIndexerDelaySec) {
+  public async isIndexerUpToDate(): Promise<boolean> {
+    let res = await this.getLatestBlockTimestamp();
+    if(res === null) {
       return false;
     }
-    let N = await this.getLastConfirmedBlockNumber();
-    if (res.height - N > this.settings.numberOfConfirmations() + 1) {
+    let now = getUnixEpochTimestamp();
+    let delay = now - res.timestamp;
+    if (delay > this.settings.maxValidIndexerDelaySec) {
       return false;
     }
     return true;
@@ -179,7 +172,7 @@ export class IndexedQueryManager {
     } else if (params.blockNumber) {
       query.andWhere("block.blockNumber = :blockNumber", { blockNumber: params.blockNumber });
     }
-    // console.log(query.getQuery())
+
     let result = await query.getOne();
     let lowerQueryWindowBlock: DBBlockBase;
     let upperQueryWindowBlock: DBBlockBase;
@@ -187,7 +180,7 @@ export class IndexedQueryManager {
     if (params.returnQueryBoundaryBlocks) {
       lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
       let upperBlockResult = await this.queryBlock({
-        endBlock: params.blockNumber,
+        endBlock: params.blockNumber,  
         blockNumber: params.blockNumber,
         roundId: params.roundId,
         confirmed: true
@@ -201,7 +194,7 @@ export class IndexedQueryManager {
     }
   }
 
-  async getBlockByHash(hash: string) {
+  async getBlockByHash(hash: string): Promise<DBBlockBase | null> {
     let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.blockHash = :hash", { hash: hash });
@@ -226,7 +219,7 @@ export class IndexedQueryManager {
     }
 
     let H = confBlock.blockNumber;
-    let U = H - numberOfConfirmations + 1; // TODO !!!
+    let U = H - numberOfConfirmations + 1;
     let N = await this.getLastConfirmedBlockNumber();
     if (N < U) {
       if (!recheck) {

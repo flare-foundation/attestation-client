@@ -9,7 +9,8 @@ import { SourceId } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
-// Specific random attestation generators for attestation types
+// Specific random attestation request generators for 
+// attestation type Payment
 /////////////////////////////////////////////////////////////////
 
 export type RandomPaymentChoiceType = "CORRECT" | "WRONG_DATA_AVAILABILITY_PROOF" | "NON_EXISTENT_TX_ID";

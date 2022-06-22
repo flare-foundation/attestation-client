@@ -7,13 +7,19 @@ import { encodeRequest } from "../../verification/generated/attestation-request-
 import { ARType } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
-import { fetchRandomConfirmedBlocks, fetchRandomTransactions, RandomDBIterator } from "../indexed-query-manager-utils";
+import { fetchRandomConfirmedBlocks, fetchRandomTransactions, RandomDBIterator } from "./random-query";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 import { prepareRandomizedRequestPayment } from "./random-ar-00001-payment";
 import { prepareRandomizedRequestBalanceDecreasingTransaction } from "./random-ar-00002-balance-decreasing-transaction";
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "./random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "./random-ar-00004-referenced-payment-nonexistence";
 
+
+
+/////////////////////////////////////////////////////////////////
+// Helper functions for generating random attestation requests
+// for specific attestation types by using indexer database
+/////////////////////////////////////////////////////////////////
 
 export async function getRandomAttestationRequest(
    randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>,

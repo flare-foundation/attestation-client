@@ -8,6 +8,11 @@ import { AttestationType } from "../../verification/generated/attestation-types-
 import { SourceId } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
+/////////////////////////////////////////////////////////////////
+// Specific random attestation request generators for 
+// attestation type BalanceDecreasingTransaction
+/////////////////////////////////////////////////////////////////
+
 export type RandomBalanceDecreasingTransactionChoiceType = "CORRECT" | "WRONG_DATA_AVAILABILITY_PROOF" | "NON_EXISTENT_TX_ID";
 
 const RANDOM_OPTIONS_BALANCE_DECREASING_TRANSACTION = [

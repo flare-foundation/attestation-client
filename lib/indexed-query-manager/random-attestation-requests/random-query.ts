@@ -1,8 +1,8 @@
-import { DBBlockBase } from "../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
-import { logException } from "../utils/logger";
-import { sleepms } from "../utils/utils";
-import { IndexedQueryManager } from "./IndexedQueryManager";
+import { DBBlockBase } from "../../entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { logException } from "../../utils/logger";
+import { sleepms } from "../../utils/utils";
+import { IndexedQueryManager } from "../IndexedQueryManager";
 
 
 export class RandomDBIterator<T> {
@@ -75,21 +75,6 @@ export class RandomDBIterator<T> {
    }
 }
 
-
-// export async function getRandomTransaction(iqm: IndexedQueryManager): Promise<DBTransactionBase | undefined> {
-//    let result: DBTransactionBase | undefined;
-//    while (!result) {
-//       let tableId = Math.round(Math.random());
-//       let table = iqm.transactionTable[tableId];
-//       const query = iqm.dbService.connection.manager.createQueryBuilder(table, "transaction")
-//          .select(["MIN(transaction.id) AS min", "MAX(transaction.id) as max"])
-//       const { min, max } = await query.getRawOne();
-//       let randN = Math.floor(Math.random() * (max - min + 1)) + min;
-//       result = await iqm.dbService.connection.manager.findOne(table, { where: { id: randN } }) as DBTransactionBase;
-//    }
-//    return result;
-// }
-
 export interface RandomTransactionOptions {
    mustBeNativePayment?: boolean;
    mustNotBeNativePayment?: boolean;
@@ -160,17 +145,5 @@ export async function fetchRandomConfirmedBlocks(iqm: IndexedQueryManager, batch
       .limit(batchSize)
    return await query.getMany() as DBBlockBase[];
 }
-
-////////////////////////////////////////////////////////////
-// Random attestation requests
-////////////////////////////////////////////////////////////
-
-// export async function generateUntilFound<T>(func: () => T | null) {
-//    let result: T | undefined = undefined;
-//    while (!result) {
-//       result = await func();
-//    }
-//    return result;
-// }
 
 

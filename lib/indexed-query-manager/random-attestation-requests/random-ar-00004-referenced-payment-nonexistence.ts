@@ -8,6 +8,11 @@ import { AttestationType } from "../../verification/generated/attestation-types-
 import { SourceId } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
+/////////////////////////////////////////////////////////////////
+// Specific random attestation request generators for 
+// attestation type ReferencedPaymentNonexistence
+/////////////////////////////////////////////////////////////////
+
 export type RandomReferencedPaymentNonexistenceChoiceType = "CORRECT" | "EXISTS" | "WRONG_DATA_AVAILABILITY_PROOF";
 
 const RANDOM_OPTIONS_REFERENCED_PAYMENT_NONEXISTENCE = [

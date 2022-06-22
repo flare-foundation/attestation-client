@@ -11,7 +11,7 @@ import { ChainConfiguration, ChainsConfiguration } from "../../lib/chain/ChainCo
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
-import { RandomDBIterator } from "../../lib/indexed-query-manager/indexed-query-manager-utils";
+import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
 import { prepareRandomizedRequestPayment } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00001-payment";
@@ -201,7 +201,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
    it("Should be IndexedQueryManager in sync", async () => {
       let N = await indexedQueryManager.getLastConfirmedBlockNumber();
-      let res = await indexedQueryManager.getBlockHeightSample();
+      let res = await indexedQueryManager.getLatestBlockTimestamp();
       let now = await getUnixEpochTimestamp();
       let delay = now - res.timestamp;
       assert(delay < indexedQueryManager.settings.maxValidIndexerDelaySec, `Delay too big: ${delay}, N = ${N}, T = ${res.height}, h = ${res.height - N}`);

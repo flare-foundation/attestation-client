@@ -10,7 +10,7 @@
 import { MccClient } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../lib/entity/indexer/dbTransaction";
-import { RandomDBIterator } from "../lib/indexed-query-manager/indexed-query-manager-utils";
+import { RandomDBIterator } from "../lib/indexed-query-manager/random-attestation-requests/random-query";
 import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
 import { prepareGenerator, TxOrBlockGeneratorType } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
 import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";

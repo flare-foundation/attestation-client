@@ -5,7 +5,7 @@ import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { retry } from "../utils/PromiseTimeout";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
 import { Indexer } from "./indexer";
-import { noAwaitAsyncTerminateAppOnException } from "./indexer-utils";
+import { criticalAsync } from "./indexer-utils";
 
 @Managed()
 export class BlockProcessorManager {
@@ -47,7 +47,7 @@ export class BlockProcessorManager {
 
     this.blockCache.set(blockNumber, block);
 
-    noAwaitAsyncTerminateAppOnException(`processSyncBlockNumber -> BlockProcessorManager::process exception: `, () => this.process(block, true));
+    criticalAsync(`processSyncBlockNumber -> BlockProcessorManager::process exception: `, () => this.process(block, true));
   }
 
   // @terminateAppOnException()
@@ -64,7 +64,7 @@ export class BlockProcessorManager {
     if (!block) return;
 
     this.blockHashCache.set(blockHash, block);
-    noAwaitAsyncTerminateAppOnException(`processSyncBlockHash -> BlockProcessorManager::process exception: `, () => this.process(block, true));
+    criticalAsync(`processSyncBlockHash -> BlockProcessorManager::process exception: `, () => this.process(block, true));
   }
 
   // @terminateAppOnException()
@@ -80,7 +80,7 @@ export class BlockProcessorManager {
         if (this.blockProcessors[a].isCompleted) {
           this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
 
-          noAwaitAsyncTerminateAppOnException(`process -> BlockProcessorManager::alreadyCompleteCallback exception:`, () =>
+          criticalAsync(`process -> BlockProcessorManager::alreadyCompleteCallback exception:`, () =>
             this.alreadyCompleteCallback(block)
           );
 
@@ -88,7 +88,7 @@ export class BlockProcessorManager {
         }
 
         this.logger.info(`^w^Kprocess block ${block.number}^^^W (continue)`);
-        noAwaitAsyncTerminateAppOnException(`process -> BlockProcessorManager::blockProcessors.continue exception:`, () => this.blockProcessors[a].continue());
+        criticalAsync(`process -> BlockProcessorManager::blockProcessors.continue exception:`, () => this.blockProcessors[a].continue());
       } else {
         if (!syncMode) {
           this.blockProcessors[a].pause();
@@ -106,7 +106,7 @@ export class BlockProcessorManager {
     //processor.debugOn( block.hash );
 
     // terminate app on exception
-    noAwaitAsyncTerminateAppOnException(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () =>
+    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () =>
       processor.initializeJobs(block, this.completeCallback)
     );
   }

@@ -1,5 +1,4 @@
-import { prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
-import BN from "bn.js";
+import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
@@ -137,11 +136,6 @@ export function prepareString(text: string, maxLength: number, reportOwerflow: s
   return text.substring(0, maxLength);
 }
 
-export function getSimpleRandom(maxnum: number): number {
-  return Math.floor(Math.random() * maxnum);
-}
-
-
 export async function getCryptoSafeRandom() {
   return Web3.utils.randomHex(32);
 };
@@ -167,55 +161,12 @@ export async function sleepms(milliseconds: number) {
   });
 }
 
-export function prettyPrintObject(normalized: any) {
-  let res: any = {};
-  for (let key in normalized) {
-    let obj = (normalized as any)[key];
-    if (typeof obj === "object") {
-      res[key] = (normalized as any)[key]?.toString();
-    } else {
-      res[key] = (normalized as any)[key];
-    }
-  }
-  console.log(JSON.stringify(res, null, 2));
-}
-
 export function round(x: number, decimal: number = 0) {
   if (decimal === 0) return Math.round(x);
 
   const dec10 = 10 ** decimal;
 
   return Math.round(x * dec10) / dec10;
-}
-
-export function extractBNPaymentReference(paymentReference: string | string[] | BN | BN[]): BN {
-  try {
-    let len = (paymentReference as any).length;
-    // handle lists
-    if (len !== undefined) {
-      if (len === 1) {
-        return toBN((paymentReference as any[])[0]);
-      } else {
-        return toBN(0);
-      }
-    }
-    // handle values
-    return toBN(paymentReference as any);
-  } catch (e) {
-    return toBN(0);
-  }
-}
-
-// use in JSON.stringify( x , JSONMapParser ) to save Map
-export function JSONMapStringify(key: any, value: any) {
-  if (value instanceof Map) {
-    return {
-      dataType: "Map",
-      value: Array.from(value.entries()), // or with spread: value: [...value]
-    };
-  } else {
-    return value;
-  }
 }
 
 // use in JSON.parse( x , JSONMapParser ) to load Map saved with above function
@@ -227,7 +178,6 @@ export function JSONMapParser(key: any, value: any) {
   }
   return value;
 }
-
 
 
 export function secToHHMMSS(time: number, secDecimals = 0) {

@@ -54,7 +54,7 @@ export class Indexer {
 
   preparedBlocks = new Map<number, PreparedBlock[]>();
 
-  dbTransactionClasses;
+  dbTransactionClasses: DBTransactionBase[];
   dbBlockClass;
 
   // bottom block in the transaction tables - used to check if we have enough history
@@ -264,7 +264,7 @@ export class Indexer {
     this.dbBlockClass = prepared.blockTable;
   }
 
-  getActiveTransactionWriteTable(): any {
+  getActiveTransactionWriteTable(): DBTransactionBase {
     // we write into table by active index (opposite to drop):
     //  0 - table1
     //  1 - table0
@@ -373,7 +373,7 @@ export class Indexer {
 
     this.blockProcessorManager.clear(Np1);
     const time1 = Date.now();
-    this.logger.info(`^r^Wsave completed - next N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
+    this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
 
     return true;
   }
@@ -414,11 +414,11 @@ export class Indexer {
   }
 
   async getBottomDBBlockNumber(): Promise<number> {
-    const query0 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0], "blocks");
+    const query0 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
     query0.select(`MIN(blocks.blockNumber)`, "min");
     const result0 = await query0.getRawOne();
 
-    const query1 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1], "blocks");
+    const query1 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
     query1.select(`MIN(blocks.blockNumber)`, "min");
     const result1 = await query1.getRawOne();
 

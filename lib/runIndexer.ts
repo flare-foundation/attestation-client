@@ -1,4 +1,4 @@
-import { traceManager } from "@flarenetwork/mcc";
+import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { ChainsConfiguration } from "./chain/ChainConfiguration";
 import { Indexer } from "./indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "./indexer/IndexerConfiguration";
@@ -14,25 +14,27 @@ const args = yargs
     .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
     .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
-function localRetryFailure(label: string) {
+function terminateOnRetryFailure(label: string) {
     getGlobalLogger().error2(`retry failure: ${label} - application exit`);
     process.exit(2);
 }
 
 async function runIndexer() {
-
+    // setup debug trace
+    TraceManager.enabled=false;
     traceManager.displayRuntimeTrace=false;
-    traceManager.displayStateOnException=true;
+    traceManager.displayStateOnException=false;
 
-    setRetryFailureCallback(localRetryFailure);
+    // setup retry terminate callback
+    setRetryFailureCallback(terminateOnRetryFailure);
 
-    // Reading configuration
+    // read configuration
     const config = readConfig(new IndexerConfiguration(), "indexer");
     const chains = readConfig(new ChainsConfiguration(), "chains");
     const credentials = readCredentials(new IndexerCredentials(), "indexer");
 
+    // create and start indexer
     const indexer = new Indexer(config, chains, credentials, args["chain"]);
-
     return await indexer.runIndexer(args);
 }
 
@@ -42,9 +44,10 @@ setGlobalLoggerLabel(args["chain"]);
 // read .env
 DotEnvExt();
 
+// indexer entry point
 runIndexer()
     .then(() => process.exit(0))
     .catch((error) => {
-        logException(error, `runIndexer `);
+        logException(error, `runIndexer`);
         process.exit(1);
     });

@@ -347,7 +347,7 @@ export class Indexer {
     const time0 = Date.now();
 
     // create transaction and save everything with retry (terminate app on failure)
-    retry(`blockSave N=${Np1}`, async () => {
+    await retry(`blockSave N=${Np1}`, async () => {
       await this.dbService.connection.transaction(async (transaction) => {
         // save state N, T and T_CHECK_TIME
         const stateEntries = [this.getStateEntry("N", Np1), this.getStateEntry("T", this.T)];
@@ -365,7 +365,7 @@ export class Indexer {
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
     if (!this.bottomBlockTime) {
-      this.saveBottomState();
+      await this.saveBottomState();
     }
 
     // increment N if all is ok
@@ -520,7 +520,8 @@ export class Indexer {
 
     if (!exists) {
       this.logger.error2(`N+1 (${Np1}) block not in processor`);
-      throw new Error(`N+1 (${Np1}) block not in processor`);
+      //throw new Error(`N+1 (${Np1}) block not in processor`);
+      return false;
     }
 
     // wait until N+1 block is saved (blockCompleted will save it immediatelly)
@@ -600,7 +601,7 @@ export class Indexer {
         this.logger.debug(`sync ${this.N} to ${this.T}, ${blockLeft} blocks (cps: ${this.cachedClient.reqsPs})`);
       }
 
-      retry(`runSyncRaw::saveStatus`, async () => this.dbService.manager.save(dbStatus));
+      await retry(`runSyncRaw::saveStatus`, async () => this.dbService.manager.save(dbStatus));
 
       // check if syncing has ended
       if (this.N >= this.T - this.chainConfig.numberOfConfirmations) {
@@ -609,7 +610,9 @@ export class Indexer {
         return;
       }
 
-      for (let i = 0; i < this.chainConfig.syncReadAhead; i++) {
+      await this.blockProcessorManager.processSyncBlockNumber(this.N + 1);
+
+      for (let i = 2; i < this.chainConfig.syncReadAhead; i++) {
         // do not allow read ahead of T - confirmations
         if (this.N + i > this.T - this.chainConfig.numberOfConfirmations) break;
         criticalAsync(`runSyncRaw -> blockProcessorManager::processSyncBlockNumber exception `, () =>
@@ -645,7 +648,10 @@ export class Indexer {
     const start = Date.now();
 
     for (let i = 1; i < blocks.length - this.chainConfig.numberOfConfirmations; i++) {
-      for (let j = i; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
+
+      await this.blockProcessorManager.processSyncBlockHash(blocks[i].stdBlockHash);
+
+      for (let j = i+1; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
         criticalAsync(`runSyncTips -> blockProcessorManager::processSyncBlockHash exception `, () =>
           this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash)
         );
@@ -670,7 +676,7 @@ export class Indexer {
       const dbStatus = this.getStateEntryString("state", "sync", -1);
       dbStatus.valueNumber = timeLeft;
 
-      retry(`runSyncTips::saveStatus`, async () => this.dbService.manager.save(dbStatus));
+      await retry(`runSyncTips::saveStatus`, async () => this.dbService.manager.save(dbStatus));
 
       const blockLeft = this.T - block.number;
 
@@ -841,7 +847,7 @@ export class Indexer {
       await this.runSync();
     }
 
-    criticalAsync( "runBlockHeaderCollecting" , async ()=>this.headerCollector.runBlockHeaderCollecting() );
+    criticalAsync("runBlockHeaderCollecting", async () => this.headerCollector.runBlockHeaderCollecting());
 
     let processedBlocks = 0;
 
@@ -880,7 +886,7 @@ export class Indexer {
         dbStatus = this.getStateEntryString("state", "running", processedBlocks++, `N=${this.N} T=${this.T}`);
       }
 
-      retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
+      await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
 
       const time1 = getTimeMilli();
 

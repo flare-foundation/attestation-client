@@ -1,2 +1,1 @@
-declare module "@openzeppelin" {
-}
+declare module "@openzeppelin" {}

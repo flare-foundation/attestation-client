@@ -1,6 +1,14 @@
 import fs from "fs";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_ENCODE_FILE, CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER, REQUEST_ENCODE_FUNCTIONS_HEADER, REQUEST_ENCODE_PREFIX_FUNCTION, REQUEST_PARSE_PREFIX_FUNCTION } from "./cg-constants";
+import {
+  ATTESTATION_TYPE_PREFIX,
+  ATT_REQUEST_ENCODE_FILE,
+  CODEGEN_TAB,
+  DEFAULT_GEN_FILE_HEADER,
+  REQUEST_ENCODE_FUNCTIONS_HEADER,
+  REQUEST_ENCODE_PREFIX_FUNCTION,
+  REQUEST_PARSE_PREFIX_FUNCTION,
+} from "./cg-constants";
 import { indentText, tab } from "./cg-utils";
 
 function genEncodeException() {
@@ -11,7 +19,7 @@ ${tab()}${tab()}super(message);
 ${tab()}${tab()}this.name = 'AttestationRequestEncodeError';
 ${tab()}}
 }
-`
+`;
 }
 
 export function genRequestEncodeFunctionForDefinition(definition: AttestationTypeScheme) {
@@ -19,17 +27,16 @@ export function genRequestEncodeFunctionForDefinition(definition: AttestationTyp
   let bytesList = [];
 
   for (let item of definition.request) {
-
     let check = `if(request.${item.key} == null) {
 ${tab()}throw new AttestationRequestEncodeError("Missing '${item.key}'")
-}`
+}`;
     checkList.push(check);
     let bytesPiece = `bytes += toUnprefixedBytes(request.${item.key}, "${item.type}", ${item.size}, "${item.key}");`;
     bytesList.push(bytesPiece);
   }
 
-  let checks = checkList.join("\n")
-  let bytes = bytesList.join("\n")
+  let checks = checkList.join("\n");
+  let bytes = bytesList.join("\n");
 
   return `
 export function ${REQUEST_ENCODE_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}) {
@@ -38,17 +45,17 @@ ${tab()}let bytes = "0x"
 ${indentText(bytes, CODEGEN_TAB)}
 ${tab()}return bytes;
 }
-`
+`;
 }
 
 function genEncodeAttestationTypeCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
-${tab()}return ${REQUEST_ENCODE_PREFIX_FUNCTION}${definition.name}(request as ${ATTESTATION_TYPE_PREFIX}${definition.name});`
+${tab()}return ${REQUEST_ENCODE_PREFIX_FUNCTION}${definition.name}(request as ${ATTESTATION_TYPE_PREFIX}${definition.name});`;
 }
 
 export function genRequestEncodeFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map(definition => genEncodeAttestationTypeCase(definition)).join("");
+  let attestationTypeCases = definitions.map((definition) => genEncodeAttestationTypeCase(definition)).join("");
   return `
 export function ${REQUEST_ENCODE_PREFIX_FUNCTION}Request(request: ${ATTESTATION_TYPE_PREFIX}Type): string  {  
 ${tab()}switch(request.attestationType) {
@@ -57,9 +64,8 @@ ${tab()}${tab()}default:
 ${tab()}${tab()}${tab()}throw new AttestationRequestEncodeError("Invalid attestation type");
 ${tab()}}
 }
-`
+`;
 }
-
 
 function toUnprefixedBytesFunction() {
   return `
@@ -86,12 +92,11 @@ ${tab()}${tab()}throw new AttestationRequestEncodeError("Too long byte string fo
 ${tab()}}
 ${tab()}return bytes; 
 }  
-`
+`;
 }
 
-
 export function createAttestationRequestEncode(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n")
+  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import { 
@@ -109,9 +114,9 @@ import { AttestationType } from "./attestation-types-enum";
 
   content += toUnprefixedBytesFunction();
 
-  definitions.forEach(definition => {
+  definitions.forEach((definition) => {
     content += genRequestEncodeFunctionForDefinition(definition);
-  })
+  });
 
   content += genRequestEncodeFunction(definitions);
 

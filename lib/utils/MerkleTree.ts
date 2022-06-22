@@ -24,7 +24,6 @@ import Web3 from "web3";
  * Importants: all input strings should represent bytes32, hence should be 32-byte padded hex strings.
  */
 
-
 const web3 = new Web3();
 
 function toHex(x: string | number | BN, padToBytes: number) {
@@ -36,7 +35,7 @@ export function singleHash(val: string) {
 }
 
 export function commitHash(merkleRoot: string, randomNumber: string, address: string): string {
-  return web3.utils.soliditySha3(web3.eth.abi.encodeParameters([ "bytes32", "bytes32", "address" ], [ merkleRoot, randomNumber, address ]));
+  return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32", "address"], [merkleRoot, randomNumber, address]));
 }
 
 export function sortedHashPair(x: string, y: string) {
@@ -45,8 +44,6 @@ export function sortedHashPair(x: string, y: string) {
   }
   return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [y, x]));
 }
-
-
 
 export class MerkleTree {
   _tree: string[] = [];
@@ -97,7 +94,7 @@ export class MerkleTree {
       hashes = hashes.map((x) => singleHash(x));
     }
     let n = hashes.length;
-    this._tree = [...new Array(Math.max(n - 1,0)).fill(0), ...hashes];
+    this._tree = [...new Array(Math.max(n - 1, 0)).fill(0), ...hashes];
     for (let i = n - 2; i >= 0; i--) {
       this._tree[i] = sortedHashPair(this._tree[2 * i + 1], this._tree[2 * i + 2])!;
     }

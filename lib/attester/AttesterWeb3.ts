@@ -30,7 +30,7 @@ export class AttesterWeb3 {
   }
 
   check(bnString: string) {
-    if (bnString.length != 64 + 2 || bnString[0] !== '0' || bnString[1] !== 'x') {
+    if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
       this.logger.error(`invalid BN formating ${bnString}`);
     }
   }
@@ -39,7 +39,7 @@ export class AttesterWeb3 {
    * Submits the attestation data in commit-reveal scheme. It supports old and new commit-reveal scheme.
    * The new commit reveal scheme is copy proof.
    * @param action - label for recording action in logs
-   * @param bufferNumber - buffer number in which we are submitting attestation 
+   * @param bufferNumber - buffer number in which we are submitting attestation
    * @param merkleRoot - commit Merkle root - used just for logging
    * @param maskedMerkleRoot - masked Merkle root for commit of roundId (old commit-reveal scheme)
    * @param random - random number - used just for logging
@@ -48,7 +48,7 @@ export class AttesterWeb3 {
    * @param merkleRootPrev - revealed merkle root (new commit-reveal scheme)
    * @param commitHash - commit hash (the new commit-reveal scheme)
    * @param verbose - whether loggin is verbose (default true)
-   * @returns 
+   * @returns
    */
   async submitAttestation(
     action: string,
@@ -60,25 +60,25 @@ export class AttesterWeb3 {
     revealedRandomPrev: string,
     merkleRootPrev: string,
     commitHash: string,
-    verbose = true) {
-
+    verbose = true
+  ) {
     let roundId = bufferNumber.toNumber() - 1;
     this.check(maskedMerkleRoot);
     this.check(hashedRandom);
     this.check(revealedRandomPrev);
 
     let fnToEncode = AttestationRoundManager.credentials.web.useNewStateConnector
-      ? (this.stateConnector as StateConnectorNew).methods.submitAttestation(bufferNumber, commitHash, merkleRootPrev, revealedRandomPrev) 
+      ? (this.stateConnector as StateConnectorNew).methods.submitAttestation(bufferNumber, commitHash, merkleRootPrev, revealedRandomPrev)
       : (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
 
     if (verbose) {
-      this.logger.info(`action ................. : ${action}`)
-      this.logger.info(`bufferNumber_n ......... : ${bufferNumber.toString()}`)
-      this.logger.info(`merkleRoot_n ........... : ^e${merkleRoot.toString()}`)
-      this.logger.info(`maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}`)
-      this.logger.info(`random_n ............... : ^e${random.toString()}`)
-      this.logger.info(`hashedRandom_n ......... : ${hashedRandom.toString()}`)
-      this.logger.info(`random_n-1 ............. : ${revealedRandomPrev.toString()}`)
+      this.logger.info(`action ................. : ${action}`);
+      this.logger.info(`bufferNumber_n ......... : ${bufferNumber.toString()}`);
+      this.logger.info(`merkleRoot_n ........... : ^e${merkleRoot.toString()}`);
+      this.logger.info(`maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}`);
+      this.logger.info(`random_n ............... : ^e${random.toString()}`);
+      this.logger.info(`hashedRandom_n ......... : ${hashedRandom.toString()}`);
+      this.logger.info(`random_n-1 ............. : ${revealedRandomPrev.toString()}`);
     }
 
     if (process.env.NODE_ENV === "production") {
@@ -94,8 +94,7 @@ export class AttesterWeb3 {
       }
 
       return receipt;
-    }
-    else {
+    } else {
       this.logger.warning(`signAndFinalize3 skipped in ^edevelopment mode^^`);
 
       return "devmode";

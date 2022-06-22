@@ -75,7 +75,6 @@ export async function getWeb3StateConnectorContract(web3: any, address: string):
   }
 }
 
-
 export function getWeb3Wallet(web3: any, privateKey: string) {
   return web3.eth.accounts.privateKeyToAccount(prefix0x(privateKey));
 }
@@ -138,7 +137,7 @@ export function prepareString(text: string, maxLength: number, reportOwerflow: s
 
 export async function getCryptoSafeRandom() {
   return Web3.utils.randomHex(32);
-};
+}
 
 export function getTestStateConnectorAddress() {
   return fs.readFileSync(".stateconnector-address").toString();
@@ -179,12 +178,11 @@ export function JSONMapParser(key: any, value: any) {
   return value;
 }
 
-
 export function secToHHMMSS(time: number, secDecimals = 0) {
   const days = Math.floor(time / (3600 * 24));
   let hours = Math.floor(time / 3600);
-  const minutes = Math.floor((time - (hours * 3600)) / 60);
-  const seconds = round(time - (hours * 3600) - (minutes * 60), secDecimals);
+  const minutes = Math.floor((time - hours * 3600) / 60);
+  const seconds = round(time - hours * 3600 - minutes * 60, secDecimals);
 
   hours = hours % 24;
 
@@ -194,11 +192,11 @@ export function secToHHMMSS(time: number, secDecimals = 0) {
     sdays = days.toString() + " ";
   }
 
-  const shours: string = hours.toString().padStart(2, "0")
-  const smin: string = minutes.toString().padStart(2, "0")
-  const ssec: string = seconds.toString().padStart(2, "0")
+  const shours: string = hours.toString().padStart(2, "0");
+  const smin: string = minutes.toString().padStart(2, "0");
+  const ssec: string = seconds.toString().padStart(2, "0");
 
-  return sdays + shours + ':' + smin + ':' + ssec;
+  return sdays + shours + ":" + smin + ":" + ssec;
 }
 
 export function xor32(hex1: string, hex2: string) {
@@ -207,8 +205,8 @@ export function xor32(hex1: string, hex2: string) {
   if (!(/^[a-fA-F0-9]{64}$/.test(h1) && /^[a-fA-F0-9]{64}$/.test(h2))) {
     throw new Error("Incorrectly formatted 32-byte strings");
   }
-  const buf1 = Buffer.from(h1, 'hex');
-  const buf2 = Buffer.from(h2, 'hex');
+  const buf1 = Buffer.from(h1, "hex");
+  const buf2 = Buffer.from(h2, "hex");
   const bufResult = buf1.map((b, i) => b ^ buf2[i]);
-  return prefix0x(Buffer.from(bufResult).toString('hex'));
+  return prefix0x(Buffer.from(bufResult).toString("hex"));
 }

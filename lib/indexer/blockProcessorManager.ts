@@ -80,9 +80,7 @@ export class BlockProcessorManager {
         if (this.blockProcessors[a].isCompleted) {
           this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
 
-          criticalAsync(`process -> BlockProcessorManager::alreadyCompleteCallback exception:`, () =>
-            this.alreadyCompleteCallback(block)
-          );
+          criticalAsync(`process -> BlockProcessorManager::alreadyCompleteCallback exception:`, () => this.alreadyCompleteCallback(block));
 
           return;
         }
@@ -106,9 +104,7 @@ export class BlockProcessorManager {
     //processor.debugOn( block.hash );
 
     // terminate app on exception
-    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () =>
-      processor.initializeJobs(block, this.completeCallback)
-    );
+    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () => processor.initializeJobs(block, this.completeCallback));
   }
 
   clear(fromBlock: number) {

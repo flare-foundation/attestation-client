@@ -1,4 +1,3 @@
-
 let timeSync = 0;
 
 // time in milliseconds
@@ -12,4 +11,3 @@ export function getTimeMilli() {
 export function getTimeSec() {
   return Math.floor(getTimeMilli() / 1000);
 }
-

@@ -25,7 +25,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
       return "string";
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
 
@@ -36,30 +36,30 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
   }
   switch (type) {
     case "uint8":
-      return toBN(web3.utils.randomHex(1))
+      return toBN(web3.utils.randomHex(1));
     case "uint16":
-      return toBN(web3.utils.randomHex(2))
+      return toBN(web3.utils.randomHex(2));
     case "uint32":
-      return toBN(web3.utils.randomHex(4))
+      return toBN(web3.utils.randomHex(4));
     case "uint64":
-      return toBN(web3.utils.randomHex(8))
+      return toBN(web3.utils.randomHex(8));
     case "uint128":
-      return toBN(web3.utils.randomHex(16))
+      return toBN(web3.utils.randomHex(16));
     case "uint256":
-      return toBN(web3.utils.randomHex(32))
+      return toBN(web3.utils.randomHex(32));
     case "int256":
-      return toBN(web3.utils.randomHex(30))  // signed!
+      return toBN(web3.utils.randomHex(30)); // signed!
     case "bool":
       return toBN(web3.utils.randomHex(1)).mod(toBN(2));
     case "string":
-      return web3.utils.randomHex(32)
+      return web3.utils.randomHex(32);
     case "bytes4":
-      return web3.utils.randomHex(4)
+      return web3.utils.randomHex(4);
     case "bytes32":
-      return web3.utils.randomHex(32)
+      return web3.utils.randomHex(32);
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
 
@@ -78,7 +78,7 @@ export function randomListElement<T>(list: T[]) {
 }
 
 export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
-  let weightSum = choices.map(choice => choice.weight).reduce((a, b) => a + b);
+  let weightSum = choices.map((choice) => choice.weight).reduce((a, b) => a + b);
   let randSum = Math.floor(Math.random() * (weightSum + 1));
   let tmpSum = 0;
   for (let choice of choices) {
@@ -88,9 +88,7 @@ export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
   return choices[choices.length - 1].name;
 }
 
-
 export async function getAttTypesDefinitionFiles(): Promise<string[]> {
-
   const pattern = `t-*.${process.env.NODE_ENV === "development" ? "ts" : "js"}`;
 
   return new Promise((resolve, reject) => {
@@ -109,11 +107,11 @@ export async function getAttTypesDefinitionFiles(): Promise<string[]> {
 
 export async function readAttestationTypeSchemes(): Promise<AttestationTypeScheme[]> {
   let names = await getAttTypesDefinitionFiles();
-  return names.map(name => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme)
+  return names.map((name) => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme);
 }
 
 export function toHex(x: string | number | BN, padToBytes?: number) {
-  if (padToBytes as any > 0) {
+  if ((padToBytes as any) > 0) {
     return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
   }
   return Web3.utils.toHex(x);
@@ -124,23 +122,23 @@ export function prefix0x(tx: string) {
 }
 
 export function hexlifyBN(obj: any): any {
-  const isHexReqex = /^[0-9A-Fa-f]+$/
-  if(obj?.mul) {
-     return prefix0x(toHex(obj));
+  const isHexReqex = /^[0-9A-Fa-f]+$/;
+  if (obj?.mul) {
+    return prefix0x(toHex(obj));
   }
-  if(Array.isArray(obj)) {
-     return (obj as any[]).map(item => hexlifyBN(item));
+  if (Array.isArray(obj)) {
+    return (obj as any[]).map((item) => hexlifyBN(item));
   }
-  if(typeof obj === "object") {
-     let res = {} as any;
-     for(let key of Object.keys(obj)) {
-        let value = obj[key];
-        res[key] = hexlifyBN(value);
-     }   
-     return res;      
+  if (typeof obj === "object") {
+    let res = {} as any;
+    for (let key of Object.keys(obj)) {
+      let value = obj[key];
+      res[key] = hexlifyBN(value);
+    }
+    return res;
   }
-  if(typeof obj === "string" && obj.match(isHexReqex)){
+  if (typeof obj === "string" && obj.match(isHexReqex)) {
     return prefix0x(obj);
   }
-  return obj
+  return obj;
 }

@@ -65,7 +65,7 @@ export enum AttestationRoundStatus {
 // [x] make submittion of finalize settable in configuration
 
 // [ ] check performance for new nodes
-// [ ] test two node of single type 
+// [ ] test two node of single type
 
 // terminology
 // att/sec
@@ -97,7 +97,6 @@ export class AttestationRound {
   roundCommitHash: string;
 
   merkleTree!: MerkleTree;
-
 
   sourceHandlers = new Map<number, SourceHandler>();
 
@@ -131,7 +130,9 @@ export class AttestationRound {
     const duplicate = this.attestationsMap.get(attestationHash);
 
     if (duplicate) {
-      this.logger.debug3(`attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`);
+      this.logger.debug3(
+        `attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
+      );
       return;
     }
 
@@ -148,16 +149,17 @@ export class AttestationRound {
 
   startCommitEpoch() {
     this.logger.group(
-      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
+      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
+        (this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
-    this.tryTriggerCommit();   // In case all requests are already processed
+    this.tryTriggerCommit(); // In case all requests are already processed
   }
 
   startCommitSubmit() {
-    if( AttestationRoundManager.config.submitCommitFinalize ) {
-      let action = `Finalizing ^Y#${this.roundId-3}^^`;
+    if (AttestationRoundManager.config.submitCommitFinalize) {
+      let action = `Finalizing ^Y#${this.roundId - 3}^^`;
       this.attesterWeb3
         .submitAttestation(
           action,
@@ -174,7 +176,7 @@ export class AttestationRound {
         )
         .then((receipt) => {
           if (receipt) {
-            this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId-3}`);
+            this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId - 3}`);
           }
         });
     }
@@ -221,12 +223,15 @@ export class AttestationRound {
   }
 
   canCommit(): boolean {
-    this.logger.debug(`canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`)
-    return this.attestationsProcessed === this.attestations.length &&
+    this.logger.debug(
+      `canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`
+    );
+    return (
+      this.attestationsProcessed === this.attestations.length &&
       this.attestStatus === AttestationRoundStatus.commiting &&
-      this.status === AttestationRoundEpoch.commit;
+      this.status === AttestationRoundEpoch.commit
+    );
   }
-
 
   prepareDBAttestationRequest(att: Attestation): DBAttestationRequest {
     const db = new DBAttestationRequest();
@@ -281,8 +286,7 @@ export class AttestationRound {
     // save to DB
     try {
       AttestationRoundManager.dbServiceAttester.manager.save(dbAttesttaionRequests);
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `AttestationRound::commit save DB`);
     }
 
@@ -315,23 +319,14 @@ export class AttestationRound {
 
       dbVoteResult.roundId = this.roundId;
       dbVoteResult.hash = voteHash;
-      dbVoteResult.request = JSON.stringify(
-        valid.verificationData?.request
-          ? hexlifyBN(valid.verificationData.request)
-          : ""
-      );
-      dbVoteResult.response = JSON.stringify(
-        valid.verificationData?.response
-          ? hexlifyBN(valid.verificationData.response)
-          : ""
-      );
+      dbVoteResult.request = JSON.stringify(valid.verificationData?.request ? hexlifyBN(valid.verificationData.request) : "");
+      dbVoteResult.response = JSON.stringify(valid.verificationData?.response ? hexlifyBN(valid.verificationData.response) : "");
     }
 
     // save to DB
     try {
       AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `AttestationRound::commit save DB`);
     }
 
@@ -375,7 +370,9 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1}ms)`
+      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${
+        time2 - time1
+      }ms)`
     );
   }
 
@@ -471,7 +468,6 @@ export class AttestationRound {
       nextRoundRandom = this.nextRound.roundRandom;
       nextRoundHashedRandom = this.nextRound.roundHashedRandom;
       nextRoundCommitHash = this.nextRound.roundCommitHash;
-      
 
       this.nextRound.attestStatus = AttestationRoundStatus.comitted;
     }

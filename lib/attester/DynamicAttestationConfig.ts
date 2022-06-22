@@ -19,7 +19,7 @@ export class SourceHandlerConfig {
 
   numberOfConfirmations: number = 1;
 
-  queryWindowInSec!: number;  
+  queryWindowInSec!: number;
 
   attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
@@ -50,17 +50,17 @@ export class AttestationConfigManager {
       if (typeof ChainType[value] === "number") {
         if (ChainType[value] !== SourceId[value]) {
           logger.error2(
-            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]}=${
-              SourceId[value]
-            }`
+            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
+              SourceId[SourceId[value] as any]
+            }=${SourceId[value]}`
           );
         }
 
         if (ChainType[ChainType[value] as any] !== SourceId[SourceId[value] as any]) {
           logger.error2(
-            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]}=${
-              SourceId[value]
-            }`
+            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
+              SourceId[SourceId[value] as any]
+            }=${SourceId[value]}`
           );
         }
       }
@@ -98,7 +98,7 @@ export class AttestationConfigManager {
         }
       });
     } catch (error) {
-      logException(error,`loadAll `);
+      logException(error, `loadAll `);
     }
   }
 
@@ -117,28 +117,30 @@ export class AttestationConfigManager {
     config.startEpoch = fileConfig.startEpoch;
 
     // parse sources
-    fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; queryWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
-      const sourceHandler = new SourceHandlerConfig();
+    fileConfig.sources.forEach(
+      (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
+        const sourceHandler = new SourceHandlerConfig();
 
-      sourceHandler.source = toSourceId(source.source);
+        sourceHandler.source = toSourceId(source.source);
 
-      sourceHandler.maxTotalRoundWeight = source.maxTotalRoundWeight;
-      sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
-      sourceHandler.queryWindowInSec = source.queryWindowInSec;
+        sourceHandler.maxTotalRoundWeight = source.maxTotalRoundWeight;
+        sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
+        sourceHandler.queryWindowInSec = source.queryWindowInSec;
 
-      config.sourceHandlers.set(sourceHandler.source, sourceHandler);
+        config.sourceHandlers.set(sourceHandler.source, sourceHandler);
 
-      // parse attestationTypes
-      source.attestationTypes.forEach((attestationType) => {
-        const type = (<any>AttestationType)[attestationType.type] as AttestationType;
+        // parse attestationTypes
+        source.attestationTypes.forEach((attestationType) => {
+          const type = (<any>AttestationType)[attestationType.type] as AttestationType;
 
-        const attestationTypeHandler = new SourceHandlerTypeConfig();
+          const attestationTypeHandler = new SourceHandlerTypeConfig();
 
-        attestationTypeHandler.weight = attestationType.weight;
+          attestationTypeHandler.weight = attestationType.weight;
 
-        sourceHandler.attestationTypes.set(type, attestationTypeHandler);
-      });
-    });
+          sourceHandler.attestationTypes.set(type, attestationTypeHandler);
+        });
+      }
+    );
 
     this.attestationConfig.push(config);
 

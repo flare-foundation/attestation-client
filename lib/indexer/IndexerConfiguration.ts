@@ -3,7 +3,6 @@ import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
 export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
-
   @optional() public syncEnabled: boolean = true;
   @optional() public syncTimeDays: number = 2;
   @optional() public blockCollectTimeMs: number = 1000;
@@ -16,8 +15,6 @@ export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
-
 }
 
 export class IndexerCredentials implements IReflection<IndexerCredentials> {
@@ -29,5 +26,4 @@ export class IndexerCredentials implements IReflection<IndexerCredentials> {
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
 }

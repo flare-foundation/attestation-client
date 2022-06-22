@@ -14,8 +14,8 @@ const BtcMccConnection = {
   rateLimitOptions: {
     maxRPS: 70,
     timeoutMs: 3000,
-    retries: 2
-  }
+    retries: 2,
+  },
 } as UtxoMccCreate;
 
 const testNetUrl = "http://testnode3.c.aflabs.net:4001/";
@@ -42,13 +42,12 @@ const XRPMccConnection = {
 describe("Test process helpers ", () => {
   let BtcMccClient: MCC.BTC;
   let AlgoMccClient: MCC.ALGO;
-  let XrpMccClient: MCC.XRP
+  let XrpMccClient: MCC.XRP;
   let save;
 
-  let indexer : Indexer;
+  let indexer: Indexer;
   before(async function () {
-
-    indexer = new Indexer(null,null,null,null);
+    indexer = new Indexer(null, null, null, null);
 
     traceManager.displayStateOnException = false;
 
@@ -63,10 +62,9 @@ describe("Test process helpers ", () => {
   });
 
   it(`Test btc block processing `, async function () {
-
     // const block = await MccClient.getBlock(723581);
     const block = await BtcMccClient.getBlock(723746);
-    const block2 = await BtcMccClient.getBlock(723746);  // simulation of other block
+    const block2 = await BtcMccClient.getBlock(723746); // simulation of other block
 
     // console.log(block)
 
@@ -79,7 +77,7 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient as CachedMccClient<any,IBlock>;
+    indexer.cachedClient = cachedClient as CachedMccClient<any, IBlock>;
 
     let processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");
@@ -91,21 +89,25 @@ describe("Test process helpers ", () => {
 
     // Simulation of switching between the two processors
     let first = false;
-    processor.pause()
+    processor.pause();
 
     function simulate() {
       if (first) {
         console.log("RUNNING 2 ...");
         processor.pause();
-        processor2.continue()
+        processor2.continue();
         first = false;
-        setTimeout(() => {simulate()}, 10000)
+        setTimeout(() => {
+          simulate();
+        }, 10000);
       } else {
         console.log("RUNNING 1 ...");
-        processor2.pause()
+        processor2.pause();
         processor.continue();
         first = true;
-        setTimeout(() => {simulate()}, 20000)
+        setTimeout(() => {
+          simulate();
+        }, 20000);
       }
     }
 
@@ -123,7 +125,6 @@ describe("Test process helpers ", () => {
   });
 
   it(`Test btc new block processing `, async function () {
-
     const block = await BtcMccClient.getBlock(723746);
 
     let defaultCachedMccClientOptions: CachedMccClientOptions = {
@@ -134,9 +135,8 @@ describe("Test process helpers ", () => {
       clientConfig: BtcMccConnection,
     };
 
-
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient as CachedMccClient<any,IBlock>;
+    indexer.cachedClient = cachedClient as CachedMccClient<any, IBlock>;
 
     let processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");
@@ -144,7 +144,6 @@ describe("Test process helpers ", () => {
   });
 
   it(`Test algo block processing `, async function () {
-
     const block = await AlgoMccClient.getBlock(723746);
 
     // console.log(block)
@@ -158,13 +157,12 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient as CachedMccClient<any,IBlock>;
+    indexer.cachedClient = cachedClient as CachedMccClient<any, IBlock>;
 
     let processor = new AlgoBlockProcessor(indexer);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
   });
-
 
   it(`Test xrp block processing `, async function () {
     const block = await XrpMccClient.getBlock(70_015_100);
@@ -178,11 +176,10 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient as CachedMccClient<any,IBlock>;
+    indexer.cachedClient = cachedClient as CachedMccClient<any, IBlock>;
 
     let processor = new XrpBlockProcessor(indexer);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
   });
-
 });

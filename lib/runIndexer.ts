@@ -10,32 +10,32 @@ import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 var yargs = require("yargs");
 
 const args = yargs
-    .option("reset", { alias: "r", type: "string", description: "Reset commands", default: true, demand: false })
-    .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
-    .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
+  .option("reset", { alias: "r", type: "string", description: "Reset commands", default: true, demand: false })
+  .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: "BTC", demand: false }).argv;
 
 function terminateOnRetryFailure(label: string) {
-    getGlobalLogger().error2(`retry failure: ${label} - application exit`);
-    process.exit(2);
+  getGlobalLogger().error2(`retry failure: ${label} - application exit`);
+  process.exit(2);
 }
 
 async function runIndexer() {
-    // setup debug trace
-    TraceManager.enabled=false;
-    traceManager.displayRuntimeTrace=false;
-    traceManager.displayStateOnException=false;
+  // setup debug trace
+  TraceManager.enabled = false;
+  traceManager.displayRuntimeTrace = false;
+  traceManager.displayStateOnException = false;
 
-    // setup retry terminate callback
-    setRetryFailureCallback(terminateOnRetryFailure);
+  // setup retry terminate callback
+  setRetryFailureCallback(terminateOnRetryFailure);
 
-    // read configuration
-    const config = readConfig(new IndexerConfiguration(), "indexer");
-    const chains = readConfig(new ChainsConfiguration(), "chains");
-    const credentials = readCredentials(new IndexerCredentials(), "indexer");
+  // read configuration
+  const config = readConfig(new IndexerConfiguration(), "indexer");
+  const chains = readConfig(new ChainsConfiguration(), "chains");
+  const credentials = readCredentials(new IndexerCredentials(), "indexer");
 
-    // create and start indexer
-    const indexer = new Indexer(config, chains, credentials, args["chain"]);
-    return await indexer.runIndexer(args);
+  // create and start indexer
+  const indexer = new Indexer(config, chains, credentials, args["chain"]);
+  return await indexer.runIndexer(args);
 }
 
 // set all global loggers to the chain
@@ -46,8 +46,8 @@ DotEnvExt();
 
 // indexer entry point
 runIndexer()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        logException(error, `runIndexer`);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    logException(error, `runIndexer`);
+    process.exit(1);
+  });

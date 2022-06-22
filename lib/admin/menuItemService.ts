@@ -3,59 +3,60 @@ import { MenuItemBase } from "./menuItemBase";
 import { MenuItemCommand } from "./menuItemCommand";
 
 export class MenuItemService extends MenuItemBase {
+  serviceStatus: ServiceStatus;
 
-    serviceStatus: ServiceStatus;
+  refreshing = false;
 
-    refreshing = false;
+  static servicemMonitors = [];
 
-    static servicemMonitors = [];
+  constructor(name: string, serviceName: string, parent: MenuItemBase) {
+    super(name, parent);
 
-    constructor(name: string, serviceName: string, parent: MenuItemBase) {
-        super(name, parent);
+    this.serviceStatus = new ServiceStatus(serviceName);
 
-        this.serviceStatus = new ServiceStatus(serviceName);
+    MenuItemService.servicemMonitors.push(this.serviceStatus);
 
-        MenuItemService.servicemMonitors.push( this.serviceStatus );
+    this.updateStatus();
 
-        this.updateStatus();
+    this.addCommand("Enable", `systemctl --user enable ${name}.service`);
+    this.addCommand("Disable", `systemctl --user disable ${name}.service`);
+    this.addCommand("Stop", `systemctl --user stop ${name}.service`);
+    this.addCommand("Restart", `systemctl --user restart ${name}.service`);
+  }
 
-        this.addCommand( "Enable" , `systemctl --user enable ${name}.service` );
-        this.addCommand( "Disable" , `systemctl --user disable ${name}.service` );
-        this.addCommand( "Stop" , `systemctl --user stop ${name}.service` );
-        this.addCommand( "Restart" , `systemctl --user restart ${name}.service` );
-    }
+  addCommand(name: string, command: string): MenuItemBase {
+    return this.add(new MenuItemCommand(name, command, this));
+  }
 
-    addCommand(name: string, command: string): MenuItemBase {
-        return this.add(new MenuItemCommand(name, command, this));
-    }
+  updateStatus() {
+    if (this.refreshing) return;
 
+    this.refreshing = true;
 
-    updateStatus() {
-        if (this.refreshing) return;
+    this.displayName = `${this.name} ...`;
 
-        this.refreshing = true;
+    this.serviceStatus
+      .getStatus()
+      .then((status) => {
+        //getGlobalLogger().debug( `MenuItemService status ${status}`)
 
-        this.displayName = `${this.name} ...`;
+        this.displayName = `${this.name} ^w^R${EServiceStatus[status]}^^`;
+        this.refreshing = false;
 
-        this.serviceStatus.getStatus().then((status) => {
-            //getGlobalLogger().debug( `MenuItemService status ${status}`)
-
-            this.displayName = `${this.name} ^w^R${EServiceStatus[status]}^^`;
-            this.refreshing = false;
-
-            this.refresh();
-        }).catch((error) => {
-            //logException( error , `MenuItemService`);
-
-            this.displayName = `${this.name} ^r${error}^^`;
-            this.refreshing = false;
-
-            this.refresh();
-        })
-    }
-
-    async onExecute() {
-        this.updateStatus();
         this.refresh();
-    }
+      })
+      .catch((error) => {
+        //logException( error , `MenuItemService`);
+
+        this.displayName = `${this.name} ^r${error}^^`;
+        this.refreshing = false;
+
+        this.refresh();
+      });
+  }
+
+  async onExecute() {
+    this.updateStatus();
+    this.refresh();
+  }
 }

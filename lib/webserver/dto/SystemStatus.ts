@@ -1,4 +1,4 @@
 export interface SystemStatus {
-   currentBufferNumber: number;
-   latestAvailableRoundId: number;
+  currentBufferNumber: number;
+  latestAvailableRoundId: number;
 }

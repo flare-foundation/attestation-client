@@ -1,27 +1,23 @@
-
 // //
 // //
 // //  [ ] proof of existance (tx reference, destination address, amount)
-// //  
+// //
 // //  block (from -14d up to -6 blocks)
 // //     - block number
 // //     - block hash
 // //     - block timestamp
 // //     - response
 // //
-// //  transaction 
+// //  transaction
 // //     - payment reference (non unique!!!) hex string 32 chars (hex lower case)
 // //     - transaction id
 // //     - timestamp
 // //     - block number
 // //     - response
-// //     
+// //
 // //  [ ] XRP 1st
 // //  [ ] 100% make sure that block is completely saved until moved to the next block
-// //  [ ] 
-
-
-
+// //  [ ]
 
 // import * as dotenv from "dotenv";
 // import { ChainType, MCC, sleep, toBN } from "flare-mcc";

@@ -6,8 +6,8 @@ export interface CachedMccClientOptions {
   transactionCacheSize: number;
   blockCacheSize: number;
   cleanupChunkSize: number;
-     // maximum number of requests that are either in processing or in queue
-  activeLimit: number; 
+  // maximum number of requests that are either in processing or in queue
+  activeLimit: number;
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
   // onChange?: (inProcessing?: number, inQueue?: number) => void;
 }
@@ -16,17 +16,17 @@ let defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
   cleanupChunkSize: 100,
-  activeLimit: 50, 
-  clientConfig: {} as any
-}
+  activeLimit: 50,
+  clientConfig: {} as any,
+};
 
 // Usage:
 // 1) External service should initialize relevant MCC client through CachedMccClient wrapper class
 // 2) Services should use the following call sequence
 //   (a) try calling `getTransactionFromCache` or `getBlockFromCache`
-//   (b) if response is null, then check `canAccept`. 
+//   (b) if response is null, then check `canAccept`.
 //        (i) If `true` is returned, call `getTransaction` (`getBlock`)
-//        (ii) if `false` is returned, sleep for a while and retry `canAccept`. Repeat this until `true` is 
+//        (ii) if `false` is returned, sleep for a while and retry `canAccept`. Repeat this until `true` is
 //             eventually returned and then proceed with (i)
 
 @Managed()
@@ -65,9 +65,9 @@ export class CachedMccClient<T, B> {
       onResponse: this.onChange.bind(this),
       onPush: this.onChange.bind(this),
       onRpsSample: this.onChange.bind(this),
-    }
+    };
 
-    this.client = MCC.Client(this.chainType, this.settings.clientConfig) as any as RPCInterface // TODO
+    this.client = MCC.Client(this.chainType, this.settings.clientConfig) as any as RPCInterface; // TODO
   }
 
   private onChange(inProcessing?: number, inQueue?: number, reqsPs?: number, retriesPs?: number) {
@@ -88,21 +88,20 @@ export class CachedMccClient<T, B> {
       //   throw Error("Cannot accept transaction requests");
       // }
       let txPromise = this.getTransactionFromCache(txId);
-      if(txPromise) {
+      if (txPromise) {
         return txPromise;
       }
       let newPromise = this.client.getTransaction(txId);
-      this.transactionCache.set(txId, newPromise as Promise<any>); // TODO type check 
+      this.transactionCache.set(txId, newPromise as Promise<any>); // TODO type check
       this.checkAndCleanup();
-      return newPromise;    
-    }
-    catch( error ) {
+      return newPromise;
+    } catch (error) {
       logException(error, `CachedMccClient::getTransaction(${txId})`);
     }
   }
 
   public async getBlockFromCache(blockHash: string) {
-    return this.blockCache.get(blockHash)
+    return this.blockCache.get(blockHash);
   }
 
   // getBlock is caching by hashes only! by blockNumber queries are always executed
@@ -111,22 +110,22 @@ export class CachedMccClient<T, B> {
     //   throw Error("Cannot accept block requests");
     // }
     let blockPromise = this.blockCache.get(blockHashOrNumber);
-    if(blockPromise) {
+    if (blockPromise) {
       return blockPromise;
     }
 
     // MCC client should support hash queries
     let newPromise = this.client.getBlock(blockHashOrNumber);
-    if(typeof blockHashOrNumber === "number") {
+    if (typeof blockHashOrNumber === "number") {
       let block = await newPromise;
-      if( !block ) return null;
-      let blockHash = block.blockHash // TODO
+      if (!block) return null;
+      let blockHash = block.blockHash; // TODO
       this.blockCache.set(blockHash, newPromise as Promise<any>); // TODO type
     } else {
       this.blockCache.set(blockHashOrNumber, newPromise as Promise<any>); // TODO type
-    }    
+    }
     this.checkAndCleanup();
-    return newPromise as Promise<any>;  // TODO type
+    return newPromise as Promise<any>; // TODO type
   }
 
   public get canAccept(): boolean {
@@ -135,23 +134,22 @@ export class CachedMccClient<T, B> {
 
   private checkAndCleanup() {
     this.cleanupCheckCounter++;
-    if(this.cleanupCheckCounter >= this.settings.cleanupChunkSize) {
+    if (this.cleanupCheckCounter >= this.settings.cleanupChunkSize) {
       this.cleanupCheckCounter = 0;
-      setTimeout(() => this.cleanup());   // non-blocking call
+      setTimeout(() => this.cleanup()); // non-blocking call
     }
   }
 
   private cleanup() {
-    if(this.blockCleanupQueue.size >= this.settings.blockCacheSize + this.settings.cleanupChunkSize) {
-      while(this.blockCleanupQueue.size > this.settings.blockCacheSize) {
-        this.blockCache.delete(this.blockCleanupQueue.shift())
-      }  
+    if (this.blockCleanupQueue.size >= this.settings.blockCacheSize + this.settings.cleanupChunkSize) {
+      while (this.blockCleanupQueue.size > this.settings.blockCacheSize) {
+        this.blockCache.delete(this.blockCleanupQueue.shift());
+      }
     }
-    if(this.transactionCleanupQueue.size >= this.settings.transactionCacheSize + this.settings.cleanupChunkSize) {
-      while(this.transactionCleanupQueue.size > this.settings.transactionCacheSize) {
-        this.transactionCache.delete(this.transactionCleanupQueue.shift())
+    if (this.transactionCleanupQueue.size >= this.settings.transactionCacheSize + this.settings.cleanupChunkSize) {
+      while (this.transactionCleanupQueue.size > this.settings.transactionCacheSize) {
+        this.transactionCache.delete(this.transactionCleanupQueue.shift());
       }
     }
   }
-
 }

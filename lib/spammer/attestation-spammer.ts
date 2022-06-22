@@ -31,19 +31,29 @@ DotEnvExt();
 var yargs = require("yargs");
 
 let args = yargs
-  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC", })
-  .option("credentials", { alias: "cred", type: "string", description: "Path to credentials json file", default: "./configs/spammer-credentials.json", demand: false, })
-  .option("rpcLink", { alias: "r", type: "string", description: "RPC to Flare network", default: "http://127.0.0.1:9650/ext/bc/C/rpc", })
-  .option("abiPath", { alias: "a", type: "string", description: "Path to abi JSON file", default: "artifacts/contracts/StateConnector.sol/StateConnector.json", })
+  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
+  .option("credentials", {
+    alias: "cred",
+    type: "string",
+    description: "Path to credentials json file",
+    default: "./configs/spammer-credentials.json",
+    demand: false,
+  })
+  .option("rpcLink", { alias: "r", type: "string", description: "RPC to Flare network", default: "http://127.0.0.1:9650/ext/bc/C/rpc" })
+  .option("abiPath", {
+    alias: "a",
+    type: "string",
+    description: "Path to abi JSON file",
+    default: "artifacts/contracts/StateConnector.sol/StateConnector.json",
+  })
   .option("contractAddress", { alias: "t", type: "string", description: "Address of the deployed contract" })
-  .option("range", { alias: "w", type: "number", description: "Random block range", default: 1000, })
-  .option("nonceResetCount", { alias: "e", type: "number", description: "Reset nonce period", default: 10, })
-  .option("delay", { alias: "d", type: "number", description: "Delay between sending transactions from the same block", default: 500, })
-  .option("accountsFile", { alias: "k", type: "string", description: "Private key accounts file", default: "test-1020-accounts.json", })
-  .option("startAccountId", { alias: "b", type: "number", description: "Start account id", default: 0, })
-  .option("numberOfAccounts", { alias: "o", type: "number", description: "Number of accounts", default: 1, })
-  .option("loggerLabel", { alias: "l", type: "string", description: "Logger label", default: "", })
-  .argv;
+  .option("range", { alias: "w", type: "number", description: "Random block range", default: 1000 })
+  .option("nonceResetCount", { alias: "e", type: "number", description: "Reset nonce period", default: 10 })
+  .option("delay", { alias: "d", type: "number", description: "Delay between sending transactions from the same block", default: 500 })
+  .option("accountsFile", { alias: "k", type: "string", description: "Private key accounts file", default: "test-1020-accounts.json" })
+  .option("startAccountId", { alias: "b", type: "number", description: "Start account id", default: 0 })
+  .option("numberOfAccounts", { alias: "o", type: "number", description: "Number of accounts", default: 1 })
+  .option("loggerLabel", { alias: "l", type: "string", description: "Logger label", default: "" }).argv;
 
 class AttestationSpammer {
   chainType!: ChainType;
@@ -63,13 +73,13 @@ class AttestationSpammer {
 
   get numberOfConfirmations(): number {
     // todo: get from chain confing
-    return 6;//AttestationRoundManager.getSourceHandlerConfig(getSourceName(this.chainType)).numberOfConfirmations;;
+    return 6; //AttestationRoundManager.getSourceHandlerConfig(getSourceName(this.chainType)).numberOfConfirmations;;
   }
 
   spammerConfig: SpammerConfig;
 
   BUFFER_TIMESTAMP_OFFSET: number = 0;
-  BUFFER_WINDOW: number = 1
+  BUFFER_WINDOW: number = 1;
 
   BATCH_SIZE = 10;
   TOP_UP_THRESHOLD = 0.25;
@@ -102,20 +112,21 @@ class AttestationSpammer {
       this.definitions = initFrom.definitions;
       this.BUFFER_TIMESTAMP_OFFSET = initFrom.BUFFER_TIMESTAMP_OFFSET;
       this.BUFFER_WINDOW = initFrom.BUFFER_WINDOW;
-
     } else {
       const options: IndexedQueryManagerOptions = {
         chainType: this.chainType,
-        numberOfConfirmations: () => { return this.numberOfConfirmations; },
+        numberOfConfirmations: () => {
+          return this.numberOfConfirmations;
+        },
         // todo: get from chain confing
-        maxValidIndexerDelaySec: 10,//this.chainAttestationConfig.maxValidIndexerDelaySec,
+        maxValidIndexerDelaySec: 10, //this.chainAttestationConfig.maxValidIndexerDelaySec,
         dbService: new DatabaseService(getGlobalLogger(), spammerCredentials.indexerDatabase, "indexer"),
 
         windowStartTime: (roundId: number) => {
           // todo: read this from DAC
           const queryWindowInSec = 86400;
           return this.spammerConfig.firstEpochStartTime + roundId * this.spammerConfig.roundDurationSec - queryWindowInSec;
-        }
+        },
       } as IndexedQueryManagerOptions;
       this.indexedQueryManager = new IndexedQueryManager(options);
       this.logger = getGlobalLogger(args["loggerLabel"]);
@@ -123,8 +134,8 @@ class AttestationSpammer {
 
       let stateConnectorAddress = spammerCredentials.web.stateConnectorContractAddress;
 
-      this.logger.info(`RPC: ${this.rpcLink}`)
-      this.logger.info(`Using state connector at: ${stateConnectorAddress}`)
+      this.logger.info(`RPC: ${this.rpcLink}`);
+      this.logger.info(`Using state connector at: ${stateConnectorAddress}`);
       getWeb3StateConnectorContract(this.web3, stateConnectorAddress).then((sc: StateConnector) => {
         this.stateConnector = sc;
       });
@@ -138,13 +149,13 @@ class AttestationSpammer {
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
     this.startLogEvents();
     this.definitions = await readAttestationTypeSchemes();
-    this.logger.info(`Running spammer for ${args["chain"]}`)
-    this.logger.info(`Sending from address ${this.web3Functions.account.address}`)
+    this.logger.info(`Running spammer for ${args["chain"]}`);
+    this.logger.info(`Sending from address ${this.web3Functions.account.address}`);
   }
 
   getCurrentRound() {
     let now = Math.floor(Date.now() / 1000);
-    return Math.floor((now - this.BUFFER_TIMESTAMP_OFFSET) / this.BUFFER_WINDOW)
+    return Math.floor((now - this.BUFFER_TIMESTAMP_OFFSET) / this.BUFFER_WINDOW);
   }
 
   static sendId = 0;
@@ -171,7 +182,7 @@ class AttestationSpammer {
     );
     //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     if (receipt) {
-      this.logger.info(`Attestation sent`)
+      this.logger.info(`Attestation sent`);
     }
     return receipt;
   }
@@ -235,7 +246,6 @@ class AttestationSpammer {
     }
   }
 
-
   static sendCount = 0;
 
   async runSpammer() {
@@ -247,14 +257,20 @@ class AttestationSpammer {
 
         let roundId = this.getCurrentRound();
 
-        let attRequest = await getRandomAttestationRequest(this.randomGenerators, this.indexedQueryManager, this.chainType as number as SourceId, roundId, this.numberOfConfirmations);
+        let attRequest = await getRandomAttestationRequest(
+          this.randomGenerators,
+          this.indexedQueryManager,
+          this.chainType as number as SourceId,
+          roundId,
+          this.numberOfConfirmations
+        );
 
         if (attRequest) {
-          this.sendAttestationRequest(this.stateConnector, attRequest).catch(e => {
+          this.sendAttestationRequest(this.stateConnector, attRequest).catch((e) => {
             logException("runSpammer::sendAttestationRequest", e);
-          })
+          });
         } else {
-          this.logger.info("NO random attestation request")
+          this.logger.info("NO random attestation request");
         }
       } catch (e) {
         logException("runSpammer", e);
@@ -271,12 +287,9 @@ async function displayStats() {
     await sleepMs(period);
 
     try {
-
       this.logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
       AttestationSpammer.sendCount = 0;
-
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `displayStats`);
     }
   }
@@ -293,10 +306,9 @@ async function runAllAttestationSpammers() {
 
   let promises = [
     first.runSpammer(),
-    ...(privateKeys.slice(1).map((key, number) => new AttestationSpammer(key, first, "L_" + (number + 1), false).runSpammer()))
+    ...privateKeys.slice(1).map((key, number) => new AttestationSpammer(key, first, "L_" + (number + 1), false).runSpammer()),
   ];
-  return Promise.all(promises)
-
+  return Promise.all(promises);
 }
 
 // (new AttestationSpammer()).runSpammer()

@@ -4,26 +4,24 @@ import { ATTESTATION_CLIENT_BASE, DEFAULT_GEN_FILE_HEADER, SOLIDITY_CODEGEN_TAB,
 import { constantize, indentText } from "./cg-utils";
 
 function genConstant(definition: AttestationTypeScheme) {
-   return (
-      `
+  return `
 uint${ATT_BYTES * 8} public constant ${constantize(definition.name)} = ${definition.id};
-`.trim()
-   )
+`.trim();
 }
 
 function genProofFunctions(definition: AttestationTypeScheme): any {
-   return `
-function prove${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
+  return `
+function prove${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definition.name} calldata _data) 
     external
 {
     _proofs[_hash${definition.name}(_chainId, _data)] = true;
 }
-`.trim()
+`.trim();
 }
 
 // function genVerifyFunctions(definition: AttestationTypeScheme): any {
 //    return `
-// function verify${definition.name}(uint${CHAIN_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
+// function verify${definition.name}(uint${CHAIN_ID_BYTES*8} _chainId, ${definition.name} calldata _data)
 //     external view override
 //     returns (bool _proved)
 // {
@@ -33,8 +31,8 @@ function prove${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition
 // }
 
 function genVerifyFunctions(definition: AttestationTypeScheme): any {
-   return `
-function verify${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
+  return `
+function verify${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definition.name} calldata _data) 
     external view override
     returns (bool _proved)
 {
@@ -47,31 +45,26 @@ function verify${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definitio
 `.trim();
 }
 
-
 function genHashFunctions(definition: AttestationTypeScheme): any {
-   let paramsArr = [
-      constantize(definition.name),
-      '_chainId',
-      ...definition.dataHashDefinition.map(item => `_data.${item.key}`),
-   ];
-   let encodedParams: string;
-   if (paramsArr.length <= 10) {
-      const paramsText = indentText(paramsArr.join(",\n"), SOLIDITY_CODEGEN_TAB * 2);
-      encodedParams = `abi.encode(\n${paramsText}\n    )`;
-   } else {
-      // to avoid horrible "stack too deep" solidity errors, split abi.encode and then combine with bytes.concat
-      const chunk = 8;
-      const parts: string[] = [];
-      const comment = indentText(`// split into parts of length ${chunk} to avoid 'stack too deep' errors`, SOLIDITY_CODEGEN_TAB * 2);
-      for (let start = 0; start < paramsArr.length; start += chunk) {
-         const partArr = paramsArr.slice(start, Math.min(start + chunk, paramsArr.length));
-         const partText = indentText(partArr.join(",\n"), SOLIDITY_CODEGEN_TAB);
-         parts.push(indentText(`abi.encode(\n${partText}\n)`, SOLIDITY_CODEGEN_TAB * 2));
-      }
-      encodedParams = `bytes.concat(\n${comment}\n${parts.join(",\n")}\n    )`;
-   }
-   return `
-function _hash${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition.name} calldata _data) 
+  let paramsArr = [constantize(definition.name), "_chainId", ...definition.dataHashDefinition.map((item) => `_data.${item.key}`)];
+  let encodedParams: string;
+  if (paramsArr.length <= 10) {
+    const paramsText = indentText(paramsArr.join(",\n"), SOLIDITY_CODEGEN_TAB * 2);
+    encodedParams = `abi.encode(\n${paramsText}\n    )`;
+  } else {
+    // to avoid horrible "stack too deep" solidity errors, split abi.encode and then combine with bytes.concat
+    const chunk = 8;
+    const parts: string[] = [];
+    const comment = indentText(`// split into parts of length ${chunk} to avoid 'stack too deep' errors`, SOLIDITY_CODEGEN_TAB * 2);
+    for (let start = 0; start < paramsArr.length; start += chunk) {
+      const partArr = paramsArr.slice(start, Math.min(start + chunk, paramsArr.length));
+      const partText = indentText(partArr.join(",\n"), SOLIDITY_CODEGEN_TAB);
+      parts.push(indentText(`abi.encode(\n${partText}\n)`, SOLIDITY_CODEGEN_TAB * 2));
+    }
+    encodedParams = `bytes.concat(\n${comment}\n${parts.join(",\n")}\n    )`;
+  }
+  return `
+function _hash${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definition.name} calldata _data) 
     private pure
     returns (bytes32)
 {
@@ -81,14 +74,13 @@ function _hash${definition.name}(uint${SOURCE_ID_BYTES*8} _chainId, ${definition
 }
 
 function getSolidityAttestationClientBase(definitions: AttestationTypeScheme[]) {
-   let constants = definitions.map(definitions => genConstant(definitions)).join("\n")
-//    let proofFunctions = definitions.map(definition => genProofFunctions(definition)).join("\n\n");
-   let verifyFunctions = definitions.map(definition => genVerifyFunctions(definition)).join("\n\n");
-//    let verifyFunctionsForRound = definitions.map(definition => genVerifyFunctionsForRound(definition)).join("\n\n");
-   let hashFunctions = definitions.map(definition => genHashFunctions(definition)).join("\n\n");
-   
-   return (
-      `// SPDX-License-Identifier: MIT
+  let constants = definitions.map((definitions) => genConstant(definitions)).join("\n");
+  //    let proofFunctions = definitions.map(definition => genProofFunctions(definition)).join("\n\n");
+  let verifyFunctions = definitions.map((definition) => genVerifyFunctions(definition)).join("\n\n");
+  //    let verifyFunctionsForRound = definitions.map(definition => genVerifyFunctionsForRound(definition)).join("\n\n");
+  let hashFunctions = definitions.map((definition) => genHashFunctions(definition)).join("\n\n");
+
+  return `// SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
 import "../interface/IAttestationClient.sol";
@@ -115,16 +107,15 @@ ${indentText(hashFunctions, SOLIDITY_CODEGEN_TAB)}
     }
 
 }
-`
-   )
+`;
 }
 
 export function createSolidityAttestationClientBase(definitions: AttestationTypeScheme[]) {
-   let content = `${DEFAULT_GEN_FILE_HEADER}
-${getSolidityAttestationClientBase(definitions)}`
-   if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {
-      fs.mkdirSync(SOLIDITY_GEN_CONTRACTS_ROOT, { recursive: true });
-   }
+  let content = `${DEFAULT_GEN_FILE_HEADER}
+${getSolidityAttestationClientBase(definitions)}`;
+  if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {
+    fs.mkdirSync(SOLIDITY_GEN_CONTRACTS_ROOT, { recursive: true });
+  }
 
-   fs.writeFileSync(`${SOLIDITY_GEN_CONTRACTS_ROOT}/${ATTESTATION_CLIENT_BASE}`, content, "utf8");
+  fs.writeFileSync(`${SOLIDITY_GEN_CONTRACTS_ROOT}/${ATTESTATION_CLIENT_BASE}`, content, "utf8");
 }

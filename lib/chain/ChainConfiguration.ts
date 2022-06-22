@@ -1,8 +1,7 @@
 import { AlgoMccCreate, MccCreate, optional, RateLimitOptions, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
-export class ChainConfiguration implements IReflection<ChainsConfiguration>{
-
+export class ChainConfiguration implements IReflection<ChainsConfiguration> {
   public name: string = "";
 
   public mccCreate: MccCreate;
@@ -12,7 +11,7 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration>{
 
   @optional() public syncReadAhead: number = 30;
 
-  @optional() public syncAverageBlocksPerDayStartRation : number = 0.9
+  @optional() public syncAverageBlocksPerDayStartRation: number = 0.9;
 
   @optional() public blockCollecting: "raw" | "rawUnforkable" | "tips" | "latestBlock" = "raw";
 
@@ -29,7 +28,6 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration>{
   @optional() public delayBeforeRetry: number = 10;
 
   @optional() public syncTimeDays: number = 0;
-  
 
   instanciate(): ChainsConfiguration {
     return new ChainsConfiguration();
@@ -51,7 +49,6 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration>{
 
     return info;
   }
-
 }
 
 export class ChainsConfiguration implements IReflection<ChainsConfiguration> {
@@ -61,11 +58,9 @@ export class ChainsConfiguration implements IReflection<ChainsConfiguration> {
     return new ChainsConfiguration();
   }
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
-
     const info = new AdditionalTypeInfo();
     info.arrayMap.set("chains", new ChainConfiguration());
 
     return info;
   }
-
 }

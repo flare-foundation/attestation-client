@@ -1,5 +1,3 @@
 export interface ApiBase {
-
-    id: number;
-
+  id: number;
 }

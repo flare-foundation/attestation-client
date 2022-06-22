@@ -7,34 +7,29 @@ import { EpochSettings } from "../../utils/EpochSettings";
 import { AdditionalTypeInfo, IReflection } from "../../utils/typeReflection";
 import { ServerConfiguration } from "../configs/ServerConfiguration";
 
-
 export class ServerCredentials implements IReflection<ServerCredentials> {
-   port: number = 9500;
-   web = new AttesterWebOptions();
-   attesterDatabase = new DatabaseConnectOptions();
+  port: number = 9500;
+  web = new AttesterWebOptions();
+  attesterDatabase = new DatabaseConnectOptions();
 
-   instanciate(): ServerCredentials {
-      return new ServerCredentials();
-   }
-   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
-      return null;
-   }
-
-};
-
+  instanciate(): ServerCredentials {
+    return new ServerCredentials();
+  }
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+    return null;
+  }
+}
 
 @Singleton
 @Factory(() => new ConfigurationService())
 export class ConfigurationService {
+  serverCredentials: ServerCredentials;
+  serverConfig: ServerConfiguration;
+  epochSettings: EpochSettings;
 
-   serverCredentials: ServerCredentials;
-   serverConfig: ServerConfiguration;
-   epochSettings: EpochSettings;
-
-   constructor() {
-      this.serverCredentials = readCredentials(new ServerCredentials(), "backend");
-      this.serverConfig = readConfig(new ServerConfiguration(), "backend");
-      this.epochSettings = new EpochSettings(toBN(this.serverConfig.firstEpochStartTime), toBN(this.serverConfig.roundDurationSec));
-   }
-
+  constructor() {
+    this.serverCredentials = readCredentials(new ServerCredentials(), "backend");
+    this.serverConfig = readConfig(new ServerConfiguration(), "backend");
+    this.epochSettings = new EpochSettings(toBN(this.serverConfig.firstEpochStartTime), toBN(this.serverConfig.roundDurationSec));
+  }
 }

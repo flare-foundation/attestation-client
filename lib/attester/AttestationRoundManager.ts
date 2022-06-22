@@ -34,7 +34,13 @@ export class AttestationRoundManager {
   static credentials: AttesterCredentials;
   static attesterWeb3: AttesterWeb3;
 
-  constructor(chainManager: ChainManager, config: AttesterClientConfiguration, credentials: AttesterCredentials, logger: AttLogger, attesterWeb3: AttesterWeb3) {
+  constructor(
+    chainManager: ChainManager,
+    config: AttesterClientConfiguration,
+    credentials: AttesterCredentials,
+    logger: AttLogger,
+    attesterWeb3: AttesterWeb3
+  ) {
     AttestationRoundManager.config = config;
     AttestationRoundManager.credentials = credentials;
     this.logger = logger;
@@ -72,8 +78,7 @@ export class AttestationRoundManager {
         const activeRound = this.getRound(epochId);
 
         AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
-      }
-      catch (error) {
+      } catch (error) {
         logException(error, `startRoundUpdate`);
       }
 
@@ -110,10 +115,13 @@ export class AttestationRoundManager {
         //bar1.update(now - epochTimeStart);
         const eta = 90 - (now - epochTimeStart) / 1000;
         if (eta >= 0) {
-          getGlobalLogger().debug(`!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.attestationsProcessed}/${activeRound.attestations.length}  `);
+          getGlobalLogger().debug(
+            `!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.attestationsProcessed}/${
+              activeRound.attestations.length
+            }  `
+          );
         }
-      }, 5000)
-
+      }, 5000);
 
       // setup commit, reveal and completed callbacks
       this.logger.info(`^w^Rcollect epoch started^^ round ^Y#${epochId}^^`);
@@ -126,7 +134,7 @@ export class AttestationRoundManager {
       // trigger start commit epoch submit
       setTimeout(() => {
         safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitSubmit());
-      }, epochCommitTime - now +  1000 );
+      }, epochCommitTime - now + 1000);
 
       // trigger start reveal epoch
       setTimeout(() => {

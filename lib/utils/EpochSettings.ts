@@ -27,7 +27,6 @@ export class EpochSettings {
     return this.getEpochIdForTime(toBN(getTimeSec() * 1000));
   }
 
-
   // // in seconds
   // getEpochTimeStart(): BN {
   //   const id: BN = this.getCurrentEpochId().add(toBN(1)).add(this._firstEpochId);

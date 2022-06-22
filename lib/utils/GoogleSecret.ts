@@ -16,7 +16,7 @@ export async function fetchSecret(name: string) {
 
     return payload;
   } catch (error) {
-    logException( error , `      *** ERROR: failed to fetch secret "${name}"`);
+    logException(error, `      *** ERROR: failed to fetch secret "${name}"`);
   }
 
   return undefined;

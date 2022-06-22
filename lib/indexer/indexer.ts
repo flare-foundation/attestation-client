@@ -219,7 +219,7 @@ export class Indexer {
       }
     }
 
-    // queue completed block 
+    // queue completed block
     let processors = this.preparedBlocks.get(block.blockNumber);
     if (!processors) {
       processors = [];
@@ -594,7 +594,8 @@ export class Indexer {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs
+          `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
+            this.cachedClient.reqsPs
           })`
         );
       } else {
@@ -648,10 +649,9 @@ export class Indexer {
     const start = Date.now();
 
     for (let i = 1; i < blocks.length - this.chainConfig.numberOfConfirmations; i++) {
-
       await this.blockProcessorManager.processSyncBlockHash(blocks[i].stdBlockHash);
 
-      for (let j = i+1; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
+      for (let j = i + 1; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
         criticalAsync(`runSyncTips -> blockProcessorManager::processSyncBlockHash exception `, () =>
           this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash)
         );
@@ -801,7 +801,6 @@ export class Indexer {
   /////////////////////////////////////////////////////////////
 
   async runIndexer(args: any) {
-
     // setup tracing
     //traceManager.displayRuntimeTrace = true;
     //TraceManager.enabled = false;

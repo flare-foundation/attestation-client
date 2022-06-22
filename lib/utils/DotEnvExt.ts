@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 import { getGlobalLogger } from "./logger";
 
 function dotenvInclude(include: string) {
-
   if (include === null || include === undefined) return;
 
   for (const inc of include.split(";")) {

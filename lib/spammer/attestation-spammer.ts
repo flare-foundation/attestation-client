@@ -4,7 +4,7 @@ import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
-import { RandomDBIterator } from "../indexed-query-manager/indexed-query-manager-utils";
+import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { readConfig, readCredentials } from "../utils/config";

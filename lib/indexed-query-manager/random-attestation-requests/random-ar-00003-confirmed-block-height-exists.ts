@@ -8,6 +8,11 @@ import { AttestationType } from "../../verification/generated/attestation-types-
 import { SourceId } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
+/////////////////////////////////////////////////////////////////
+// Specific random attestation request generators for 
+// attestation type ConfirmedBlockHeightExists
+/////////////////////////////////////////////////////////////////
+
 export type RandomConfirmedBlockHeightExistsChoiceType = "CORRECT" | "WRONG_DATA_AVAILABILITY_PROOF";
 
 const RANDOM_OPTIONS_CONFIRMED_BLOCK_HEIGHT_EXISTS = [

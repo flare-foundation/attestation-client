@@ -4,7 +4,7 @@ import { prepareString } from "../../utils/utils";
 import { Indexer } from "../indexer";
 
 async function augmentTransactionBase(indexer: Indexer, block: IBlock, txData: ITransaction): Promise<DBTransactionBase> {
-   const table = indexer.getActiveTransactionWriteTable();
+   const table = new (indexer.getActiveTransactionWriteTable() as any);
 
    table.chainType = indexer.cachedClient.client.chainType;
    table.transactionId = prepareString(txData.stdTxid, 64);

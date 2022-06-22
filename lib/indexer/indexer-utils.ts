@@ -1,8 +1,9 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { DBBlockALGO, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
+import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
 import {
   DBTransactionALGO0,
   DBTransactionALGO1,
+  DBTransactionBase,
   DBTransactionBTC0,
   DBTransactionBTC1,
   DBTransactionDOGE0,
@@ -16,7 +17,7 @@ import { getGlobalLogger, logException } from "../utils/logger";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 
-export function prepareIndexerTables(type: ChainType) {
+export function prepareIndexerTables(type: ChainType): {transactionTable: DBTransactionBase[], blockTable: DBBlockBase} {
   let transactionTable = [];
   let blockTable;
   switch (type) {

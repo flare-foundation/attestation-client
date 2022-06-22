@@ -57,13 +57,22 @@ export function prepareIndexerTables(type: ChainType) {
   };
 }
 
-export async function noAwaitAsyncTerminateAppOnException(label: string, fun: (...args: any[]) => Promise<any>) {
+// this function will terminate app on exception
+export async function criticalAsync(label: string, funct: (...args: any[]) => Promise<any>) {
   try {
-    await fun();
+    await funct();
   } catch (error) {
     logException(error, label);
 
     getGlobalLogger().error2(`application exit`);
     process.exit(2);
+  }
+}
+
+export async function nonCriticalAsync(label: string, funct: (...args: any[]) => Promise<any>) {
+  try {
+    await funct();
+  } catch (error) {
+    logException(error, label);
   }
 }

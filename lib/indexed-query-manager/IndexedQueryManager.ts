@@ -24,22 +24,35 @@ import {
   UpperBoundaryCheck,
 } from "./indexed-query-manager-types";
 
+// no supported chain produces more than 20 blocks per second 
+const MAX_BLOCKCHAIN_PRODUCTION = 20;
+
 ////////////////////////////////////////////////////////
 // IndexedQueryManger - a class used to carry out
 // queries on the indexer database such that the
 // upper and lower bounds are synchronized.
 ////////////////////////////////////////////////////////
 
+
+/**
+ * A class used to carry out queries on the indexer database such that the upper and lower bounds are synchronized.
+ */
 export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
   dbService: DatabaseService;
   client: MccClient;
+  
+  // debug helper
   debugLastConfirmedBlock: number | undefined = undefined;
 
+  //Two transaction table entities `transaction0` and `transaction1`
   transactionTable = [undefined, undefined];
+
+  // Block table entity
   blockTable;
 
   constructor(options: IndexedQueryManagerOptions) {
+    // The database service can be passed through options or generated in place
     if (options.dbService) {
       this.dbService = options.dbService;
     } else {
@@ -49,6 +62,9 @@ export class IndexedQueryManager {
     this.prepareTables();
   }
 
+  /**
+   * Prepares the table variables containing transaction and block entities
+   */
   prepareTables() {
     let prepared = prepareIndexerTables(this.settings.chainType);
     this.transactionTable = prepared.transactionTable;
@@ -58,14 +74,27 @@ export class IndexedQueryManager {
   ////////////////////////////////////////////////////////////
   // Last confirmed blocks, tips
   ////////////////////////////////////////////////////////////
+
+  /**
+   * Identifier name for the last confirmed block (`N`) in the database State table
+   * @returns identifier name for value `N`
+   */
   getChainN() {
     return `${getSourceName(this.settings.chainType)}_N`;
   }
 
+  /**
+   * Identifier name for the block height (`T`) in the database State table
+   * @returns identifier name for value `T`
+   */
   getChainT() {
     return `${getSourceName(this.settings.chainType)}_T`;
   }
 
+  /**
+   * Returns the last confirmed block height (`N`) for which all transactions are in database
+   * @returns 
+   */
   public async getLastConfirmedBlockNumber(): Promise<number> {
     if (this.debugLastConfirmedBlock === undefined || this.debugLastConfirmedBlock === null) {
       const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
@@ -77,6 +106,10 @@ export class IndexedQueryManager {
     return this.debugLastConfirmedBlock;
   }
 
+  /**
+   * Returns last block height (`T`) and the timestamp of the last sampling by indexer
+   * @returns 
+   */
   public async getLatestBlockTimestamp(): Promise<BlockHeightSample | null> {
     if (this.debugLastConfirmedBlock === undefined || this.debugLastConfirmedBlock === null) {
       const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainT() } });
@@ -94,6 +127,11 @@ export class IndexedQueryManager {
     };
   }
 
+  /**
+   * Checks whether the sampling of the block height of the indexer is up to date.
+   * The last sample must be within `maxValidIndexerDelaySec` value (in options)
+   * @returns `true` if the indexer is up to date, `false` otherwise
+   */
   public async isIndexerUpToDate(): Promise<boolean> {
     let res = await this.getLatestBlockTimestamp();
     if (res === null) {
@@ -107,7 +145,12 @@ export class IndexedQueryManager {
     return true;
   }
 
-  // Allows for artificial setup of the last known confirmed block
+  
+  /**
+   * Allows for artificial setup of the last known confirmed block. For debuging use.
+   * @param blockNumber 
+   * @returns 
+   */
   public async setDebugLastConfirmedBlock(blockNumber: number | undefined): Promise<number | undefined> {
     if (blockNumber == null) {
       this.debugLastConfirmedBlock = undefined;
@@ -125,6 +168,12 @@ export class IndexedQueryManager {
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////
 
+  /**
+   * Carries out a transaction search with boundary synchronization, subject to query parameters
+   * @param params query parameters
+   * @returns an object with the list of transactions found and (optional) lowest and highest blocks of search
+   * boundary range.
+   */
   async queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult> {
     let results = [];
 
@@ -166,6 +215,12 @@ export class IndexedQueryManager {
     };
   }
 
+  /**
+   * Carries out a block search with boundary synchronization, subject to query parameters
+   * @param params query parameters
+   * @returns an object with the block found and (optional) lowest and highest blocks of search
+   * boundary range.
+   */
   async queryBlock(params: BlockQueryParams): Promise<BlockQueryResult> {
     if (!params.blockNumber && !params.hash) {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
@@ -207,6 +262,11 @@ export class IndexedQueryManager {
     };
   }
 
+  /**
+   * Gets a block for a given hash
+   * @param hash 
+   * @returns the block with given hash, if exists, `null` otherwise
+   */
   async getBlockByHash(hash: string): Promise<DBBlockBase | null> {
     let query = this.dbService.connection.manager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
     let result = await query.getOne();
@@ -216,6 +276,14 @@ export class IndexedQueryManager {
     return null;
   }
 
+  /**
+   * Checks for existence of the block with hash `upperBoundProof`.
+   * @param upperBoundProof hash of the upper bound block
+   * @param numberOfConfirmations number of confirmations to consider
+   * @param recheck phase of query (first query or recheck)
+   * @returns search status, and if the upper bound proof block is found it returns the hight (`U`)
+   * that is confirmed by the block, subject to `numberOfConfirmations`
+   */
   private async upperBoundaryCheck(upperBoundProof: string, numberOfConfirmations: number, recheck: boolean): Promise<UpperBoundaryCheck> {
     let confBlock = await this.getBlockByHash(unPrefix0x(upperBoundProof));
     if (!confBlock) {
@@ -244,15 +312,29 @@ export class IndexedQueryManager {
     };
   }
 
+  /**
+   * Checks whether lower boundary of query range within confirmed transactions is met.
+   * For that at least one confirmed block with lower timestamp that lower boundary timestamp 
+   * must exist in the database.
+   * @param roundId 
+   * @returns 
+   */
   private async lowerBoundaryCheck(roundId: number): Promise<boolean> {
+    // lower boundary timestamp
     let startTimestamp = this.settings.windowStartTime(roundId);
     return await this.hasIndexerConfirmedBlockStrictlyBeforeTime(startTimestamp);
   }
 
   ////////////////////////////////////////////////////////////
-  // Confirmed blocks queries
+  // Confirmed blocks query
   ////////////////////////////////////////////////////////////
 
+  /**
+   * Carries the boundary synchronized query and tries to obtain a required confirmed block from the indexer database.
+   * @param params query parameters
+   * @returns search status, required confirmed block, if found, and lower and upper boundary blocks, if required by
+   * query parameters.
+   */
   public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
     let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
     if (status != "OK") {
@@ -281,9 +363,15 @@ export class IndexedQueryManager {
   }
 
   ////////////////////////////////////////////////////////////
-  // Confirmed transaction queries
+  // Confirmed transaction query
   ////////////////////////////////////////////////////////////
 
+  /**
+   * Carries the boundary synchronized query and tries to obtain transaction meeting the query criteria from the indexer database.
+   * @param params 
+   * @returns search status, required transaction block, if found, and lower and upper boundary blocks, if required by
+   * query parameters.
+   */
   public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
     let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
     if (status != "OK") {
@@ -311,9 +399,15 @@ export class IndexedQueryManager {
   }
 
   ////////////////////////////////////////////////////////////
-  // Referenced transactions queries
+  // Referenced transactions query
   ////////////////////////////////////////////////////////////
 
+  /**
+   * Carries the boundary synchronized query and tries to obtain transactions meeting the query criteria from the indexer database.
+   * @param params 
+   * @returns search status, list of transactions meeting query criteria, and lower and upper boundary blocks, if required by
+   * query parameters.
+   */
   public async getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse> {
     let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
     if (status != "OK") {
@@ -352,13 +446,19 @@ export class IndexedQueryManager {
   // Special block queries
   ////////////////////////////////////////////////////////////
 
+  /**
+   * Gets the first confirmed block with the timestamp greater or equal to the given
+   * timestamp
+   * @param timestamp 
+   * @returns the block, if exists, otherwise `null`
+   */
   public async getFirstConfirmedBlockAfterTime(timestamp: number): Promise<DBBlockBase | null> {
     let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp >= :timestamp", { timestamp: timestamp })
       .orderBy("block.timestamp", "ASC")
-      .limit(20); // no chain produces more than 20 blocks per second
+      .limit(MAX_BLOCKCHAIN_PRODUCTION); 
 
     let results = (await query.getMany()) as DBBlockBase[];
 
@@ -374,6 +474,12 @@ export class IndexedQueryManager {
     return result;
   }
 
+  /**
+   * Checks whether there is a confirmed block with timestamp strictly before given timestamp in the 
+   * indexer database
+   * @param timestamp 
+   * @returns `true` if the block exists, `false` otherwise
+   */
   public async hasIndexerConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<boolean> {
     let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
@@ -386,9 +492,10 @@ export class IndexedQueryManager {
   }
 
   /**
-   * Get first confirmed block that is strictly after timestamp and blockNumber provided in parameters
+   * Gets the first confirmed block that is strictly after timestamp and blockNumber provided in parameters
    * @param timestamp
    * @param blockNumber
+   * @returns the block, if it exists, `null` otherwise
    */
   public async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | null> {
     let query = this.dbService.connection.manager

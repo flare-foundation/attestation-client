@@ -228,6 +228,8 @@ export class ChainNode {
         }
       })
       .catch((error: any) => {
+        logException( error , "verifyAttestation" );
+
         attestation.exception = error;
 
         // Attestation request parsing errors

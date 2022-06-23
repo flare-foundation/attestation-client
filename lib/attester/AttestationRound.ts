@@ -33,40 +33,6 @@ export enum AttestationRoundStatus {
   processingTimeout,
 }
 
-// todo: priority attestation
-// [x] make attestation queue per chain
-// [x] make per chain attestation limit
-// [x] remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
-// [x] optimize remove duplicates (sorted set)
-// [/] cache chain results (non persistent in memory caching)
-// [/] priority event attestations: allow addidional amount of them
-
-// [x] multiple nodes per chain
-// [x] node load limiting
-
-// [x] rename Epoch into Round
-// [x] Attester -> AttetstationRoundManager
-// [x] AttesterEpoch -> AttestationRound
-// [x] check for in-code variable names and rename them
-
-// [x] epoch settings manager 'on-the-fly' settings (SourceHandler) `Dynamic Attestation Config`
-// [x] - for each combination source (validate transaction, BTC, ...)
-// [x] - "requiredBlocks" to 'on-the-fly' settings from static config.json
-// [x] - 1000 normal + 50 priority
-// [x] - 'on-the-fly' (from epoch)
-// [x] watch folder for changes and load then dynamically
-// [x] DAC cleanup (remove all that are older than active epoch - but one)
-// [x] make json human readable
-// [x] convert code to read human redable json
-// [x] check if ChainType and SourceId values and names match
-
-// [x] make nice text base round display (cursor moving)
-
-// [x] make submittion of finalize settable in configuration
-
-// [ ] check performance for new nodes
-// [ ] test two node of single type
-
 // terminology
 // att/sec
 // call/sec
@@ -125,7 +91,6 @@ export class AttestationRound {
   addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
     // todo: check how fast is hash
-
     const attestationHash = attestation.data.getHash();
     const duplicate = this.attestationsMap.get(attestationHash);
 
@@ -255,7 +220,6 @@ export class AttestationRound {
   }
 
   async commit() {
-    //console.log("COMMIT")
     if (this.status !== AttestationRoundEpoch.commit) {
       this.logger.error(`round #${this.roundId} cannot commit (wrong epoch status ${this.status})`);
       return;
@@ -267,17 +231,15 @@ export class AttestationRound {
 
     this.attestStatus = AttestationRoundStatus.commiting;
 
-    // collect validat attestations
+    // collect valid attestations
     const dbAttesttaionRequests = [];
     const validated = new Array<Attestation>();
     for (const tx of this.attestations.values()) {
       if (tx.status === AttestationStatus.valid) {
         validated.push(tx);
-      } else {
-        //console.log("INVALID:", tx.data.request)
       }
 
-      // prepare the attestation r
+      // prepare the attestation request
       const dbAttestationRequest = new DBAttestationRequest();
 
       dbAttesttaionRequests.push(this.prepareDBAttestationRequest(tx));
@@ -285,7 +247,7 @@ export class AttestationRound {
 
     // save to DB
     try {
-      AttestationRoundManager.dbServiceAttester.manager.save(dbAttesttaionRequests);
+      await AttestationRoundManager.dbServiceAttester.manager.save(dbAttesttaionRequests);
     } catch (error) {
       logException(error, `AttestationRound::commit save DB`);
     }
@@ -299,17 +261,12 @@ export class AttestationRound {
 
     this.logger.info(`round #${this.roundId} comitting (${validated.length}/${this.attestations.length} attestation(s))`);
 
-    // sort valid attestations (blockNumber, transactionIndex, signature)
-    // external sorting is not needed anymore
-    //validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));
-
     const time0 = getTimeMilli();
 
     // collect sorted valid attestation hashes
     const validatedHashes: string[] = new Array<string>();
     const dbVoteResults = [];
     for (const valid of validated) {
-      // let hash = valid.verificationData ? valid.verificationData.hash : valid.data.getHash();
       let voteHash = valid.verificationData.hash!;
       validatedHashes.push(voteHash);
 
@@ -337,12 +294,6 @@ export class AttestationRound {
 
     this.roundMerkleRoot = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
-
-    //const hash = toBN(this.roundHash);
-    //const random = toBN(this.roundRandom);
-    //const maskedHash = hash.xor(random);
-    //this.maskedMerkleRoot = this.BNtoString(maskedHash);
-
     this.roundMaskedMerkleRoot = xor32(this.roundMerkleRoot, this.roundRandom);
     this.roundHashedRandom = singleHash(this.roundRandom);
     this.roundCommitHash = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
@@ -355,7 +306,7 @@ export class AttestationRound {
     }
 
     // after commit state has been calculated add it in state
-    AttestationRoundManager.state.saveRound(this, validated.length);
+    await AttestationRoundManager.state.saveRound(this, validated.length);
 
     const time2 = getTimeMilli();
 
@@ -387,7 +338,7 @@ export class AttestationRound {
     this.roundCommitHash = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
-    AttestationRoundManager.state.saveRound(this);
+    await AttestationRoundManager.state.saveRound(this);
   }
 
   async firstCommit() {
@@ -415,7 +366,6 @@ export class AttestationRound {
       .then((receipt) => {
         if (receipt) {
           this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
-          //console.log( receipt );
           this.attestStatus = AttestationRoundStatus.comitted;
         } else {
           this.attestStatus = AttestationRoundStatus.error;

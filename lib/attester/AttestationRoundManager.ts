@@ -70,14 +70,16 @@ export class AttestationRoundManager {
   }
 
   async startRoundUpdate() {
+
+    // additional mechanism to update round manager when there are no requests
     while (true) {
       try {
         const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
         AttestationRoundManager.activeEpochId = epochId;
 
-        const activeRound = this.getRound(epochId);
+        const activeRound = this.getRoundOrCreateIt(epochId);
 
-        AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
+        await AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
       } catch (error) {
         logException(error, `startRoundUpdate`);
       }
@@ -90,7 +92,7 @@ export class AttestationRoundManager {
     return AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), AttestationRoundManager.activeEpochId);
   }
 
-  getRound(epochId: number) {
+  getRoundOrCreateIt(epochId: number) {
     // all times are in milliseconds
     const now = getTimeMilli();
     const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(epochId);
@@ -104,15 +106,11 @@ export class AttestationRoundManager {
     if (activeRound === undefined) {
       activeRound = new AttestationRound(epochId, this.logger, AttestationRoundManager.attesterWeb3);
 
-      //let bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-      //bar1.start(this.config.roundDurationSec * 1000, now - epochTimeStart);
       let intervalId = setInterval(() => {
         const now = getTimeMilli();
         if (now > epochCommitTime) {
           clearInterval(intervalId);
-          //bar1.stop()
         }
-        //bar1.update(now - epochTimeStart);
         const eta = 90 - (now - epochTimeStart) / 1000;
         if (eta >= 0) {
           getGlobalLogger().debug(
@@ -188,7 +186,7 @@ export class AttestationRoundManager {
       return;
     }
 
-    let activeRound = this.getRound(epochId);
+    let activeRound = this.getRoundOrCreateIt(epochId);
 
     // create, check and add attestation
     const attestation = await this.createAttestation(activeRound, tx);
@@ -199,7 +197,7 @@ export class AttestationRoundManager {
 
     activeRound.addAttestation(attestation);
 
-    AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
+    await AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
   }
 
   cleanup() {

@@ -1,6 +1,7 @@
 import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
+import { logException } from "../../utils/logger";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
@@ -8,14 +9,14 @@ import {
   ARBalanceDecreasingTransaction,
   ARConfirmedBlockHeightExists,
   ARPayment,
-  ARReferencedPaymentNonexistence,
+  ARReferencedPaymentNonexistence
 } from "../generated/attestation-request-types";
 import {
   MccTransactionType,
   VerificationResponse,
   verifyWorkflowForBlock,
   verifyWorkflowForReferencedTransactions,
-  verifyWorkflowForTransaction,
+  verifyWorkflowForTransaction
 } from "./verification-utils";
 
 //////////////////////////////////////////////////
@@ -56,7 +57,16 @@ export async function verifyPayment(
   }
 
   const dbTransaction = confirmedTransactionResult.transaction;
-  const parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
+
+  let parsedData : any;
+  try {
+    parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
+  }
+  catch (error) {
+    logException(error, `verifyPayment '${request.id}' JSON parse '${confirmedTransactionResult.transaction.response}'`);
+    throw error;
+  }
+
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
   let inUtxoNumber = toBN(request.inUtxo).toNumber();
@@ -196,11 +206,11 @@ export async function verifyConfirmedBlockHeightExists(
   let averageBlockProductionTimeMs = toBN(
     Math.floor(
       ((confirmedBlockQueryResult.upperBoundaryBlock.timestamp - confirmedBlockQueryResult.lowerBoundaryBlock.timestamp) * 1000) /
-        (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
+      (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
     )
   );
 
-  let startTimestamp = this.settings.windowStartTime(roundId);
+  let startTimestamp = iqm.settings.windowStartTime(roundId);
   let lowerQueryWindowBlock = await iqm.getFirstConfirmedBlockAfterTime(startTimestamp);
 
   let response = {

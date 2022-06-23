@@ -89,8 +89,8 @@ export class AttesterWeb3 {
       const { receipt, nonce } = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
 
       if (receipt) {
-        AttestationRoundManager.state.saveRoundCommited(roundId, nonce, receipt.transactionHash);
-        AttestationRoundManager.state.saveRoundRevealed(roundId - 1, nonce, receipt.transactionHash);
+        await AttestationRoundManager.state.saveRoundCommited(roundId, nonce, receipt.transactionHash);
+        await AttestationRoundManager.state.saveRoundRevealed(roundId - 1, nonce, receipt.transactionHash);
       }
 
       return receipt;

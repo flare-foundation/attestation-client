@@ -1,11 +1,10 @@
-import { ChainType, Managed, MCC, traceManager } from "@flarenetwork/mcc";
+import { ChainType, Managed, MCC } from "@flarenetwork/mcc";
 import { ChainsConfiguration } from "../chain/ChainConfiguration";
 import { ChainManager } from "../chain/ChainManager";
 import { ChainNode } from "../chain/ChainNode";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
-import { setRetryFailureCallback } from "../utils/PromiseTimeout";
 import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { SourceId } from "../verification/sources/sources";
@@ -40,10 +39,9 @@ export class AttesterClient {
     this.roundMng = new AttestationRoundManager(this.chainManager, this.config, this.credentials, this.logger, this.attesterWeb3);
   }
 
-  localRetryFailure(label: string) {
-    getGlobalLogger().error2(`retry failure: ${label} - application exit`);
-    process.exit(2);
-  }
+  /////////////////////////////////////////////////////////////
+  // misc
+  /////////////////////////////////////////////////////////////
 
   async getBlockForTime(time: number) {
     let blockNumber = await this.attesterWeb3.web3Functions.getBlockNumber();
@@ -60,61 +58,9 @@ export class AttesterClient {
     }
   }
 
-  async start() {
-    try {
-      const version = "1002";
-
-      //traceManager.displayRuntimeTrace = true;
-
-      this.logger.title(`starting Flare Attester Client v${version}`);
-
-      setRetryFailureCallback(this.localRetryFailure);
-
-      // create state connector
-      this.logger.info(`attesterWeb3 initialize`);
-      await this.attesterWeb3.initialize();
-
-      // process configuration
-      this.logger.info(`configuration initialize`);
-      await this.initializeConfiguration();
-
-      this.logger.info(`roundManager initialize`);
-      await this.roundMng.initialize();
-
-      // initialize time and local time difference
-      //const sync = await getInternetTime();
-      //this.logger.info(`internet time sync ${sync}ms`);
-
-      // validate configuration chains and create nodes
-      try {
-        this.logger.info(`chains initialize`);
-        await this.initializeChains();
-      } catch (error) {
-        logException(error, `initializeChains`);
-      }
-
-      // get block in curent attestation round
-      const startRoundTime = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(AttestationRoundManager.activeEpochId) / 1000;
-      this.logger.debug(`start round ^Y#${AttestationRoundManager.activeEpochId}^^ time ${secToHHMMSS(startRoundTime)}`);
-      const startBlock = await this.getBlockForTime(startRoundTime);
-
-      // connect to network block callback
-      this.blockCollector = new Web3BlockCollector(
-        this.logger,
-        this.credentials.web.rpcUrl,
-        this.credentials.web.stateConnectorContractAddress,
-        "StateConnector",
-        startBlock,
-        (event: any) => {
-          this.processEvent(event);
-        }
-      );
-
-      //this.startDisplay();
-    } catch (error) {
-      logException(error, `start error: `);
-    }
-  }
+  /////////////////////////////////////////////////////////////
+  // initialization functions
+  /////////////////////////////////////////////////////////////
 
   async initializeConfiguration() {
     // read .env
@@ -162,20 +108,27 @@ export class AttesterClient {
     }
   }
 
-  onlyOnce = false;
+  /////////////////////////////////////////////////////////////
+  // process network events - this function is triggering updates
+  /////////////////////////////////////////////////////////////
 
   async processEvent(event: any) {
     try {
+      // handle Attestation Request
+
       if (event.event === "AttestationRequest") {
         const attestation = new AttestationData(event);
 
         this.roundMng.attestate(attestation);
       }
+      
     } catch (error) {
       logException(error, `processEvent(AttestationRequest)`);
     }
 
     try {
+      // handle Round Finalization
+
       if (event.event === "RoundFinalised") {
         const dbState = await AttestationRoundManager.state.getRound(event.returnValues.bufferNumber - 3);
         const commitedRoot = dbState ? dbState.merkleRoot : undefined;
@@ -190,20 +143,57 @@ export class AttesterClient {
           this.logger.error(`^e^Revent^^ RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root not commited)`);
         }
       }
+
     } catch (error) {
       logException(error, `processEvent(RoundFinalised)`);
     }
   }
+
+  /////////////////////////////////////////////////////////////
+  // main AC entry function
+  /////////////////////////////////////////////////////////////
+
+  async runAttesterClient() {
+    const version = "1003";
+
+    this.logger.title(`starting Flare Attestation Client v${version}`);
+
+    // create state connector
+    this.logger.info(`attesterWeb3 initialize`);
+    await this.attesterWeb3.initialize();
+
+    // process configuration
+    this.logger.info(`configuration initialize`);
+    await this.initializeConfiguration();
+
+    this.logger.info(`roundManager initialize`);
+    await this.roundMng.initialize();
+
+    // validate configuration chains and create nodes
+    try {
+      this.logger.info(`chains initialize`);
+      await this.initializeChains();
+    } catch (error) {
+      logException(error, `initializeChains`);
+    }
+
+    // get block current attestation round
+    const startRoundTime = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(AttestationRoundManager.activeEpochId) / 1000;
+    this.logger.debug(`start round ^Y#${AttestationRoundManager.activeEpochId}^^ time ${secToHHMMSS(startRoundTime)}`);
+    const startBlock = await this.getBlockForTime(startRoundTime);
+
+    // connect to network block callback
+    this.blockCollector = new Web3BlockCollector(
+      this.logger,
+      this.credentials.web.rpcUrl,
+      this.credentials.web.stateConnectorContractAddress,
+      "StateConnector",
+      startBlock,
+      (event: any) => {
+        this.processEvent(event);
+      }
+    );
+
+    await this.blockCollector.run();
+  }
 }
-
-// process.on('SIGINT', () => {
-//   console.log('Received SIGINT. Press Control-D to exit.');
-// });
-
-// // Using a single function to handle multiple signals
-// function handle(signal) {
-//   console.log(`Received ${signal}`);
-// }
-
-// process.on('SIGINT', handle);
-// process.on('SIGTERM', handle);

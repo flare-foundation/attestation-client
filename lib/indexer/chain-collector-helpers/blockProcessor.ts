@@ -132,6 +132,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
       const newObj = {
         result: txObject,
       };
+      newObj.result.date = block.unixTimestamp;
       // @ts-ignore
       let processed = new XrpTransaction(newObj);
 

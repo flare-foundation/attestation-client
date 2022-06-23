@@ -9,6 +9,11 @@ import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
 
+/**
+ * Removes an element from an array.
+ * @param array 
+ * @param element 
+ */
 export function arrayRemoveElement(array: Array<any>, element: any) {
   const index = array.indexOf(element, 0);
   if (index > -1) {
@@ -16,6 +21,12 @@ export function arrayRemoveElement(array: Array<any>, element: any) {
   }
 }
 
+/**
+ * Constructs a web3 instance connected to the RPC
+ * @param rpcLink RPC link in form of http(s) or ws(s)
+ * @param logger logger object (optional)
+ * @returns 
+ */
 export function getWeb3(rpcLink: string, logger?: any) {
   const web3 = new Web3();
   if (rpcLink.startsWith("http")) {
@@ -41,11 +52,14 @@ export function getWeb3(rpcLink: string, logger?: any) {
     web3.setProvider(provider);
   }
   web3.eth.handleRevert = true;
-  // web3.eth.defaultCommon = { customChain: { name: 'coston', chainId: 20210413, networkId: 20210413 }, baseChain: 'ropsten', hardfork: 'petersburg' };
-  //    }
   return web3;
 }
 
+/**
+ * Reads the artifact file produced by hardhat on path and extracts ABI of a smart contract.
+ * @param abiPath path to the contract's JSON file, usually within `artifacts` folder
+ * @returns ABI of the contract
+ */
 export function getAbi(abiPath: string) {
   let abi = JSON.parse(fs.readFileSync(abiPath).toString());
   if (abi.abi) {
@@ -54,6 +68,13 @@ export function getAbi(abiPath: string) {
   return abi;
 }
 
+/**
+ * Constructs a Web3 contract object. It tries to find the ABI from the `artifacts` folder.
+ * @param web3 Web3 object with the configured connection to the desired network
+ * @param address Address of the contract
+ * @param name Contract's name (as it appears in file name `ContractName.sol`)
+ * @returns Web3 contract object
+ */
 export async function getWeb3Contract(web3: any, address: string, name: string) {
   let abiPath = "";
   try {
@@ -64,6 +85,12 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
   }
 }
 
+/**
+ * Constructs correct `StateConnector` object, depending on the version which is old or new.
+ * @param web3 Web3 object with the configured connection to the desired network
+ * @param address Address of the contract
+ * @returns StateConnector contract object
+ */
 export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector | StateConnectorNew> {
   let abiPath = "";
   let artifacts = AttestationRoundManager.credentials.web.useNewStateConnector ? "artifacts-new" : "artifacts";
@@ -75,10 +102,22 @@ export async function getWeb3StateConnectorContract(web3: any, address: string):
   }
 }
 
+/**
+ * Constructs a Web3 wallet object
+ * @param web3 Web3 object with the configured connection to the desired network
+ * @param privateKey private key of the wallet
+ * @returns wallet object
+ */
 export function getWeb3Wallet(web3: any, privateKey: string) {
   return web3.eth.accounts.privateKeyToAccount(prefix0x(privateKey));
 }
 
+/**
+ * Factory for a finalization wrapper of transactions adapted to Flare networks. It waits for finalization by
+ * polling the increase of nonce with exponential backoff. 
+ * @param web3 Web3 object with the configured connection to the desired network
+ * @returns 
+ */
 export function waitFinalize3Factory(web3: any) {
   return async (address: string, func: () => any, delay: number = 1000) => {
     const nonce = await web3.eth.getTransactionCount(address);
@@ -103,6 +142,12 @@ export function waitFinalize3Factory(web3: any) {
   };
 }
 
+/**
+ * Helper function for locating the contract ABI in `artifacts` folder, given the contract name
+ * @param name contract name
+ * @param artifactsRoot artifacts folder to search in, usually `artifacts`
+ * @returns path to the compilation result file for the contract (containing ABI)
+ */
 export async function relativeContractABIPathForContractName(name: string, artifactsRoot = "artifacts"): Promise<string> {
   return new Promise((resolve, reject) => {
     glob(`contracts/**/${name}.sol/${name}.json`, { cwd: artifactsRoot }, (er: any, files: string[] | null) => {
@@ -119,7 +164,14 @@ export async function relativeContractABIPathForContractName(name: string, artif
   });
 }
 
-export function prepareString(text: string, maxLength: number, reportOwerflow: string = null): string {
+/**
+ * Limiter of a string length. Used for capping strings when writting to the database. Equipped with global logger.
+ * @param text the input string
+ * @param maxLength length limitation
+ * @param reportOverflow logs limitation if true
+ * @returns capped string
+ */
+export function prepareString(text: string, maxLength: number, reportOverflow: string = null): string {
   if (!text) return "";
   if (text.length < maxLength) return text;
 
@@ -128,30 +180,51 @@ export function prepareString(text: string, maxLength: number, reportOwerflow: s
     return text;
   }
 
-  if (reportOwerflow) {
-    getGlobalLogger().warning(`prepareString warning: ${reportOwerflow} overflow ${maxLength} (length=${text.length})`);
+  if (reportOverflow) {
+    getGlobalLogger().warning(`prepareString warning: ${reportOverflow} overflow ${maxLength} (length=${text.length})`);
   }
 
   return text.substring(0, maxLength);
 }
 
+/**
+ * Returns crypto safe 32-byte random hex string using web3.js generator
+ * @returns Random 32-byte string
+ */
 export async function getCryptoSafeRandom() {
   return Web3.utils.randomHex(32);
 }
 
+/**
+ * Reads the address from a temporary file. Used in some testings
+ * @returns the address
+ */
 export function getTestStateConnectorAddress() {
   return fs.readFileSync(".stateconnector-address").toString();
 }
 
+/**
+ * Helper function to provide wei value for given eth value
+ * @param web3 Web3 object
+ * @param eth 
+ * @returns 
+ */
 export function etherToValue(web3: Web3, eth: number) {
   return web3.utils.toWei(web3.utils.toBN(eth), "ether");
 }
 
-// time
+/**
+ * Current unix epoch (in seconds)
+ * @returns unix epoch of now
+ */
 export function getUnixEpochTimestamp() {
   return Math.floor(Date.now() / 1000);
 }
 
+/**
+ * Sleep function
+ * @param milliseconds time to sleep
+ */
 export async function sleepms(milliseconds: number) {
   await new Promise((resolve: any) => {
     setTimeout(() => {
@@ -160,6 +233,12 @@ export async function sleepms(milliseconds: number) {
   });
 }
 
+/**
+ * Rounds a number to a given number of decimals
+ * @param x given number
+ * @param decimal decimals to round
+ * @returns 
+ */
 export function round(x: number, decimal: number = 0) {
   if (decimal === 0) return Math.round(x);
 
@@ -168,7 +247,14 @@ export function round(x: number, decimal: number = 0) {
   return Math.round(x * dec10) / dec10;
 }
 
-// use in JSON.parse( x , JSONMapParser ) to load Map saved with above function
+// 
+/**
+ * Helper for parsing Maps.
+ * Use in JSON.parse( x , JSONMapParser ) to load Map saved with above function
+ * @param key not used, just for compatibility 
+ * @param value the map to be parsed
+ * @returns the Map parsed from JSON.
+ */
 export function JSONMapParser(key: any, value: any) {
   if (typeof value === "object" && value !== null) {
     if (value.dataType === "Map") {
@@ -178,6 +264,12 @@ export function JSONMapParser(key: any, value: any) {
   return value;
 }
 
+/**
+ * Time formatter
+ * @param time given time as a number (unix epoch in seconds)
+ * @param secDecimals decimals to round seconds
+ * @returns 
+ */
 export function secToHHMMSS(time: number, secDecimals = 0) {
   const days = Math.floor(time / (3600 * 24));
   let hours = Math.floor(time / 3600);
@@ -199,6 +291,12 @@ export function secToHHMMSS(time: number, secDecimals = 0) {
   return sdays + shours + ":" + smin + ":" + ssec;
 }
 
+/**
+ * XOR function on two 32-byte hex strings
+ * @param hex1 
+ * @param hex2 
+ * @returns the XOR of the two values
+ */
 export function xor32(hex1: string, hex2: string) {
   let h1 = unPrefix0x(hex1);
   let h2 = unPrefix0x(hex2);

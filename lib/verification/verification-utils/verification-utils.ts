@@ -14,7 +14,8 @@ export interface VerificationResponse<T> {
 
 //////////////////////////////////////////////////
 // Implementations of generic functions for error
-// handling
+// handling. Used in verification functions in
+// `generic-chain-verification.ts`
 //////////////////////////////////////////////////
 
 export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryResponse) {

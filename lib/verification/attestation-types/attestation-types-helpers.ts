@@ -7,6 +7,12 @@ const toBN = Web3.utils.toBN;
 
 export const ATT_TYPE_DEFINITIONS_ROOT = "lib/verification/attestation-types";
 
+/**
+ * Type mapper from (a subset of) Solidity types to Javascript/Typescript types, specific for
+ * use with attestation type definitions.
+ * @param type 
+ * @returns 
+ */
 export function tsTypeForSolidityType(type: SupportedSolidityType) {
   switch (type) {
     case "uint8":
@@ -29,6 +35,14 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
   }
 }
 
+/**
+ * Helper random value generator for Solidity type values used in in randomized attestaion requests or responses.
+ * Primarily used for testing
+ * @param request attestation request or response object
+ * @param key key of the object to randomize
+ * @param type type definition object used for mapping the key
+ * @returns 
+ */
 export function randSol(request: any, key: string, type: SupportedSolidityType) {
   let web3 = new Web3();
   if (request[key]) {
@@ -63,6 +77,11 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
   }
 }
 
+/**
+ * Helper function to convert `NumberLike` type to number, if possible
+ * @param n number to convert
+ * @returns the number value
+ */
 export function numberLikeToNumber(n: NumberLike): number | undefined {
   if (typeof n === "string") {
     return parseInt(n, 10);
@@ -72,11 +91,21 @@ export function numberLikeToNumber(n: NumberLike): number | undefined {
   return n as number;
 }
 
+/**
+ * Returns the random element of the list
+ * @param list 
+ * @returns the random element
+ */
 export function randomListElement<T>(list: T[]) {
   let randN = Math.floor(Math.random() * list.length);
   return list[randN];
 }
 
+/**
+ * Returns the random element of the list of weighted choices
+ * @param choices list of weighted choices
+ * @returns random value (name) of the selected weighted choice
+ */
 export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
   let weightSum = choices.map((choice) => choice.weight).reduce((a, b) => a + b);
   let randSum = Math.floor(Math.random() * (weightSum + 1));
@@ -88,6 +117,10 @@ export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
   return choices[choices.length - 1].name;
 }
 
+/**
+ * Lister of the attestation type definitions form file system
+ * @returns the list of the names of the files matching the attestation type definition naming convention.
+ */
 export async function getAttTypesDefinitionFiles(): Promise<string[]> {
   const pattern = `t-*.${process.env.NODE_ENV === "development" ? "ts" : "js"}`;
 
@@ -105,11 +138,21 @@ export async function getAttTypesDefinitionFiles(): Promise<string[]> {
   });
 }
 
+/**
+ * Loader of the attestation type definition schemes
+ * @returns list of attestation type definition schemes
+ */
 export async function readAttestationTypeSchemes(): Promise<AttestationTypeScheme[]> {
   let names = await getAttTypesDefinitionFiles();
   return names.map((name) => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme);
 }
 
+/**
+ * Converts objects to Hex value (optionally left padded)
+ * @param x input object
+ * @param padToBytes places to (left) pad to (optional)
+ * @returns (padded) hex valu
+ */
 export function toHex(x: string | number | BN, padToBytes?: number) {
   if ((padToBytes as any) > 0) {
     return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
@@ -117,10 +160,21 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
   return Web3.utils.toHex(x);
 }
 
+/**
+ * Prefixes hex string with `0x` if the string is not yet prefixed
+ * @param tx input hex string with or without `0x` prefi
+ * @returns `0x` prefixed hex string.
+ */
 export function prefix0x(tx: string) {
   return tx.startsWith("0x") ? tx : "0x" + tx;
 }
 
+/**
+ * Converts fields of an object to Hex values
+ * @param obj input object
+ * @returns object with matching fields to input object but instead having various number types (number, BN)
+ * converted to hex values ('0x'-prefixed)
+ */
 export function hexlifyBN(obj: any): any {
   const isHexReqex = /^[0-9A-Fa-f]+$/;
   if (obj?.mul) {

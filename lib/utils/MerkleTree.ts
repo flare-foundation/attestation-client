@@ -26,18 +26,43 @@ import Web3 from "web3";
 
 const web3 = new Web3();
 
+/**
+ * Conversion function to Hex value with left padding
+ * @param x input value
+ * @param padToBytes size to pad to
+ * @returns padded hex value
+ */
 function toHex(x: string | number | BN, padToBytes: number) {
   return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
 }
 
+/**
+ * Single value hash function. Uses keccak function compatible with the one used in Solidity
+ * It is supposed to be used with `0x`-prefixed 32-byte strings as hex values
+ * @param val input hash in form of the string `0x` prefixed.
+ * @returns hash of the input value
+ */
 export function singleHash(val: string) {
   return web3.utils.soliditySha3(val);
 }
 
+/**
+ * Helper function for constructing the commit hash used with StateConnector.sol contract
+ * @param merkleRoot merkle root (`0x`-prefixed 32-byte hex string)
+ * @param randomNumber secure random number (`0x`-prefixed 32-byte hex string)
+ * @param address addres (`0x`-prefixed 20-byte hex string)
+ * @returns `0x`-prefixed 32-byte hex string (hash)
+ */
 export function commitHash(merkleRoot: string, randomNumber: string, address: string): string {
   return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32", "address"], [merkleRoot, randomNumber, address]));
 }
 
+/**
+ * A sorted hash of two 32-byte strings
+ * @param x first `0x`-prefixed 32-byte hex string
+ * @param y second `0x`-prefixed 32-byte hex string
+ * @returns the sorted hash
+ */
 export function sortedHashPair(x: string, y: string) {
   if (x <= y) {
     return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [x, y]));
@@ -45,6 +70,9 @@ export function sortedHashPair(x: string, y: string) {
   return web3.utils.soliditySha3(web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [y, x]));
 }
 
+/**
+ * Merkle tree implementation with all the helper function for constructing the tree and extracting the root and proofs for every leaf.
+ */
 export class MerkleTree {
   _tree: string[] = [];
   initialHash = false;
@@ -54,32 +82,56 @@ export class MerkleTree {
     this.build(values);
   }
 
+  /**
+   * Merkle root
+   */
   get root() {
     return this._tree.length === 0 ? null : this._tree[0];
   }
 
+  /**
+   * Merkle root as a BN (big number from BN.js)
+   */
   get rootBN() {
     let rt = this.root;
     return rt ? web3.utils.toBN(rt) : web3.utils.toBN(0);
   }
-
+  
+  /**
+   * The array representing full tree (length is `2*hashCount - 1`)
+   */
   get tree(): string[] {
     return [...this._tree];
   }
 
+  /**
+   * Number of leaves in the Merkle tree
+   */
   get hashCount() {
     return this._tree.length ? (this._tree.length + 1) / 2 : 0;
   }
 
+  /**
+   * Returns leaves in array of the length `hashCount` sorted as `0x`-prefixed 32-byte hex strings.
+   */
   get sortedHashes() {
     let n = this.hashCount;
     return this._tree.slice(this.hashCount - 1);
   }
 
+  /**
+   * Parent index of the node at index `i` in array
+   * @param i index of a node in the Merkle tree
+   * @returns parent index
+   */
   parent(i: number) {
     return Math.floor((i - 1) / 2);
   }
 
+  /**
+   * Given an array of leave hashes (`0x`-prefixed 32-byte hex strings) it builds the Merkle tree.
+   * @param values 
+   */
   build(values: string[]) {
     let sorted = values.map((x) => toHex(x, 32));
     sorted.sort();
@@ -100,6 +152,11 @@ export class MerkleTree {
     }
   }
 
+  /**
+   * Returns the hash of the `i`-th leaf (index determined by sorting and positioning in the build)
+   * @param i 
+   * @returns 
+   */
   getHash(i: number) {
     if (this.hashCount === 0 || i < 0 || i >= this.hashCount) {
       return null;
@@ -108,6 +165,11 @@ export class MerkleTree {
     return this._tree[pos];
   }
 
+  /**
+   * Extracts the Merkle proof for the `i`-th leaf
+   * @param i index of the leaf
+   * @returns the Merkle proof - a list of `0x`-prefixed 32-byte hex strings
+   */
   getProof(i: number): string[] | null {
     if (this.hashCount === 0 || i < 0 || i >= this.hashCount) {
       return null;
@@ -123,6 +185,12 @@ export class MerkleTree {
     return proof;
   }
 
+  /**
+   * Verifies a Merkle proof for a given leaf
+   * @param leaf leaf as `0x`-prefixed 32-byte hex string
+   * @param proof Merkle proof (a list of `0x`-prefixed 32-byte hex strings)
+   * @returns `true` if the proof is valid, `false` otherwise 
+   */
   verify(leaf: string, proof: string[]) {
     if (!leaf || !proof || !this.root) return false;
     let hash = leaf;

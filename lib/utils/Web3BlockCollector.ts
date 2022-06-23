@@ -11,13 +11,26 @@ export class Web3BlockCollector {
   startingBlockNumber: number | undefined;
   currentBlockNumber: number = 0;
 
+  contractAddress: string;
+  contractName: string;
+  startBlock: number | undefined;
+  action: any;
+
   constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
     this.logger = logger;
 
     this.web3 = getWeb3(url, this.logger);
 
-    this.processEvents(contractAddress, contractName, startBlock, action);
+    this.contractAddress = contractAddress;
+    this.contractName = contractName;
+    this.startBlock = startBlock;
+    this.action = action;
   }
+
+  async run() {
+    await this.processEvents(this.contractAddress, this.contractName, this.startBlock, this.action);
+  }
+
 
   // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
   eventComparator(a: any, b: any): number {

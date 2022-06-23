@@ -1,14 +1,41 @@
+import { traceManager, TraceManager } from "@flarenetwork/mcc";
 import { AttesterClient } from "./attester/AttesterClient";
 import { AttesterClientConfiguration, AttesterCredentials } from "./attester/AttesterClientConfiguration";
 import { ChainsConfiguration } from "./chain/ChainConfiguration";
 import { readConfig, readCredentials } from "./utils/config";
+import { getGlobalLogger, logException } from "./utils/logger";
+import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 
-// Reading configuration
-const chains = readConfig(new ChainsConfiguration(), "chains");
-const config = readConfig(new AttesterClientConfiguration(), "attester");
-const credentials = readCredentials(new AttesterCredentials(), "attester");
+// setup retry terminate callback
+function terminateOnRetryFailure(label: string) {
+    getGlobalLogger().error2(`retry failure: ${label} - application exit`);
+    process.exit(2);
+}
 
-// Create and start Attester Client
-const attesterClient = new AttesterClient(config, credentials, chains);
+async function runAttester() {
+    // setup debug trace
+    TraceManager.enabled = false;
+    traceManager.displayRuntimeTrace = false;
+    traceManager.displayStateOnException = false;
 
-attesterClient.start();
+    // setup retry terminate callback
+    setRetryFailureCallback(terminateOnRetryFailure);
+
+    // Reading configuration
+    const chains = readConfig(new ChainsConfiguration(), "chains");
+    const config = readConfig(new AttesterClientConfiguration(), "attester");
+    const credentials = readCredentials(new AttesterCredentials(), "attester");
+
+
+    // Create and start Attester Client
+    const attesterClient = new AttesterClient(config, credentials, chains);
+    return await attesterClient.runAttesterClient();
+}
+
+// indexer entry point
+runAttester()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        logException(error, `runIndexer`);
+        process.exit(1);
+    });

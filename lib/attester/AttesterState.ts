@@ -5,7 +5,7 @@ import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 
 export class AttesterState {
-  saveRound(round: AttestationRound, validTransactionCount: number = 0) {
+  async saveRound(round: AttestationRound, validTransactionCount: number = 0) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = round.roundId;
@@ -18,20 +18,20 @@ export class AttesterState {
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
 
-    AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
-  saveRoundComment(round: AttestationRound, validTransactionCount: number = 0) {
+  async saveRoundComment(round: AttestationRound, validTransactionCount: number = 0) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = round.roundId;
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
 
-    AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
-  saveRoundCommited(roundId: number, nounce: number, txid: string) {
+  async saveRoundCommited(roundId: number, nounce: number, txid: string) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = roundId;
@@ -41,10 +41,10 @@ export class AttesterState {
     dbRound.commitNounce = nounce;
     dbRound.commitTransactionId = txid;
 
-    AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
-  saveRoundRevealed(roundId: number, nounce: number, txid: string) {
+  async saveRoundRevealed(roundId: number, nounce: number, txid: string) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = roundId;
@@ -54,7 +54,7 @@ export class AttesterState {
     dbRound.revealNounce = nounce;
     dbRound.revealTransactionId = txid;
 
-    AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
   async getRound(roundId: number): Promise<DBRoundResult> {

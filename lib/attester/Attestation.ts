@@ -2,7 +2,7 @@ import { Managed } from "@flarenetwork/mcc";
 import { Verification } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
-import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
+import { EventValidateAttestation } from "./SourceHandler";
 
 export enum AttestationStatus {
   queued,
@@ -17,10 +17,6 @@ export enum AttestationStatus {
 
 export interface EventProcessed {
   (tx: Attestation): void;
-}
-
-export interface EventValidate {
-  (): void;
 }
 
 @Managed()
@@ -69,7 +65,7 @@ export class Attestation {
   }
 
   ///////////////////////////////////////////////////////
-  //// Testing utils - used for testing
+  // Testing utils - used for testing
   ///////////////////////////////////////////////////////
 
   _testRoundId: number | undefined = undefined;

@@ -22,6 +22,17 @@ import {
 // Verification functions
 /////////////////////////////////////////////////
 
+/**
+ * `Payment` attestation type verification function performing synchronized indexer queries
+ * @param TransactionClass 
+ * @param request attestation request
+ * @param roundId voting round id
+ * @param numberOfConfirmations required number of confirmation
+ * @param recheck first query if `false` and second (final) query if `true`
+ * @param iqm IndexedQuery object for the relevant blockchain indexer
+ * @param client MCC client for the relevant blockchain
+ * @returns Verification response, status and attestation response
+ */
 export async function verifyPayment(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARPayment,
@@ -85,6 +96,17 @@ export async function verifyPayment(
   };
 }
 
+/**
+ * `BalanceDecreasingTransaction` attestation type verification function performing synchronized indexer queries
+ * @param TransactionClass 
+ * @param request attestation request
+ * @param roundId voting round id
+ * @param numberOfConfirmations required number of confirmation
+ * @param recheck first query if `false` and second (final) query if `true`
+ * @param iqm IndexedQuery object for the relevant blockchain indexer
+ * @param client MCC client for the relevant blockchain
+ * @returns Verification response, status and attestation response
+ */
 export async function verifyBalanceDecreasingTransaction(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARBalanceDecreasingTransaction,
@@ -138,6 +160,17 @@ export async function verifyBalanceDecreasingTransaction(
   };
 }
 
+/**
+ * `ConfirmedBlockHeightExists` attestation type verification function performing synchronized indexer queries
+ * @param TransactionClass 
+ * @param request attestation request
+ * @param roundId voting round id
+ * @param numberOfConfirmations required number of confirmation
+ * @param recheck first query if `false` and second (final) query if `true`
+ * @param iqm IndexedQuery object for the relevant blockchain indexer
+ * @param client MCC client for the relevant blockchain
+ * @returns Verification response, status and attestation response
+ */
 export async function verifyConfirmedBlockHeightExists(
   request: ARConfirmedBlockHeightExists,
   roundId: number,
@@ -186,6 +219,17 @@ export async function verifyConfirmedBlockHeightExists(
   };
 }
 
+/**
+ * `ReferencedPaymentNonExistence` attestation type verification function performing synchronized indexer queries
+ * @param TransactionClass 
+ * @param request attestation request
+ * @param roundId voting round id
+ * @param numberOfConfirmations required number of confirmation
+ * @param recheck first query if `false` and second (final) query if `true`
+ * @param iqm IndexedQuery object for the relevant blockchain indexer
+ * @param client MCC client for the relevant blockchain
+ * @returns Verification response, status and attestation response
+ */
 export async function verifyReferencedPaymentNonExistence(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARReferencedPaymentNonexistence,

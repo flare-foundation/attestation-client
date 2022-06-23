@@ -1,6 +1,6 @@
 import { IBlock, Managed } from "@flarenetwork/mcc";
 import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
-import { AttLogger, logException } from "../utils/logger";
+import { AttLogger } from "../utils/logger";
 import { retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
@@ -39,11 +39,7 @@ export class HeaderCollector {
   /////////////////////////////////////////////////////////////
 
   async saveLiteBlocksHeaders(blocks: LiteBlock[]) {
-    try {
-      await this.saveBlocksHeadersArray(blocks);
-    } catch (error) {
-      logException(error, `saveLiteBlocksHeaders error: }`);
-    }
+    await this.saveBlocksHeadersArray(blocks);
   }
 
   async saveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
@@ -108,7 +104,7 @@ export class HeaderCollector {
 
     this.logger.debug(`write block headers ${blocksText}]`);
 
-    retry(`saveBlocksHeadersArray`, async () => await this.indexer.dbService.manager.save(dbBlocks));
+    await retry(`saveBlocksHeadersArray`, async () => await this.indexer.dbService.manager.save(dbBlocks));
   }
 
   /////////////////////////////////////////////////////////////
@@ -119,7 +115,7 @@ export class HeaderCollector {
     // every update save last T
     const stateTcheckTime = this.indexer.getStateEntry("T", T);
 
-    retry(`writeT`, async () => await this.indexer.dbService.manager.save(stateTcheckTime));
+    await retry(`writeT`, async () => await this.indexer.dbService.manager.save(stateTcheckTime));
   }
 
   /////////////////////////////////////////////////////////////

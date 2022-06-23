@@ -227,6 +227,7 @@ export class Indexer {
     }
     processors.push(new PreparedBlock(block, transactions));
 
+    // todo: this causes asycn growing - this should be queued and run from main async
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     if (!this.isSyncing) {
       if (isBlockNp1) {
@@ -241,6 +242,7 @@ export class Indexer {
   async blockAlreadyCompleted(block: IBlock) {
     this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.N}`);
 
+    // todo: this causes asycn growing - this should be queued and run from main async
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     const isBlockNp1 = block.number == this.N + 1 && block.stdBlockHash == this.blockNp1hash;
 
@@ -594,8 +596,7 @@ export class Indexer {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
-            this.cachedClient.reqsPs
+          `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs
           })`
         );
       } else {
@@ -619,7 +620,6 @@ export class Indexer {
         criticalAsync(`runSyncRaw -> blockProcessorManager::processSyncBlockNumber exception `, () =>
           this.blockProcessorManager.processSyncBlockNumber(this.N + i)
         );
-        // this.blockProcessorManager.processSyncBlockNumber(this.N + i);
       }
 
       const blocknp1 = await this.cachedClient.getBlock(this.N + 1);

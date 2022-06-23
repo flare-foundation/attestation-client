@@ -1,4 +1,4 @@
-import { AlgoBlock, ChainType, IBlock, Managed, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
+import { AlgoBlock, ChainType, IBlock, Managed, traceFunction, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { retryMany } from "../../utils/PromiseTimeout";
@@ -38,7 +38,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
         ...txObject,
       };
       let processed = new UtxoTransaction(getTxObject);
-      return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>;
+      return this.call(() => traceFunction( ()=>getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction> );
     });
 
     const transDbPromisses = txPromises.map((processed) => async () => {

@@ -9,27 +9,6 @@ uint${ATT_BYTES * 8} public constant ${constantize(definition.name)} = ${definit
 `.trim();
 }
 
-function genProofFunctions(definition: AttestationTypeScheme): any {
-  return `
-function prove${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definition.name} calldata _data) 
-    external
-{
-    _proofs[_hash${definition.name}(_chainId, _data)] = true;
-}
-`.trim();
-}
-
-// function genVerifyFunctions(definition: AttestationTypeScheme): any {
-//    return `
-// function verify${definition.name}(uint${CHAIN_ID_BYTES*8} _chainId, ${definition.name} calldata _data)
-//     external view override
-//     returns (bool _proved)
-// {
-//     return _proofs[_hash${definition.name}(_chainId, _data)];
-// }
-// `.trim();
-// }
-
 function genVerifyFunctions(definition: AttestationTypeScheme): any {
   return `
 function verify${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definition.name} calldata _data) 

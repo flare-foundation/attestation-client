@@ -18,10 +18,6 @@ export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{
   return trimStartNewline(res);
 }
 
-// Todo utils knjižnica, ki ima za vsak tip random response
-// Hexlify za vsak tip
-// funkcija za enkodiranje vsakega od tipov
-
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
   let responseFields = definition.dataHashDefinition.map((item) => indentText(randomHashItemValue(item, defaultReadObject), CODEGEN_TAB)).join(",\n");
   let randomResponse = `

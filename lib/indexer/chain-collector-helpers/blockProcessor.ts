@@ -1,4 +1,4 @@
-import { AlgoBlock, ChainType, IBlock, Managed, traceFunction, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
+import { AlgoBlock, ChainType, IBlock, Managed, traceFunction, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction, XRP_UTD } from "@flarenetwork/mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { retryMany } from "../../utils/PromiseTimeout";
@@ -132,7 +132,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
       const newObj = {
         result: txObject,
       };
-      newObj.result.date = block.unixTimestamp;
+      newObj.result.date = block.unixTimestamp - XRP_UTD;
       // @ts-ignore
       let processed = new XrpTransaction(newObj);
 

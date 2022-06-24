@@ -157,21 +157,29 @@ async function admin() {
     // update alerts
     resAlerts = [];
     for (let alert of alerts.alerts) {
-      const resAlert = await alert.check();
+      try {
+        const resAlert = await alert.check();
 
-      if (!resAlert) continue;
+        if (!resAlert) continue;
 
-      resAlerts.push(resAlert);
+        resAlerts.push(resAlert);
+      }
+      catch (error) {
+      }
     }
 
     resPerfs = [];
     for (let alert of alerts.alerts) {
-      const resPerf = await alert.perf();
+      try {
+        const resPerf = await alert.perf();
 
-      if (!resPerf) continue;
+        if (!resPerf) continue;
 
-      for (let i of resPerf) {
-        resPerfs.push(i);
+        for (let i of resPerf) {
+          resPerfs.push(i);
+        }
+      }
+      catch (error) {
       }
     }
 

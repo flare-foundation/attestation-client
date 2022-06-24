@@ -151,7 +151,6 @@ async function admin() {
   };
 
   menu.display(true);
-  2;
 
   while (!menu.done) {
     // update alerts

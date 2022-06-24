@@ -88,13 +88,17 @@ export class AlertsManager {
         }
 
         for (let alert of this.alerts) {
-          const resPerfs = await alert.perf();
+          try {
+            const resPerfs = await alert.perf();
 
-          if (!resPerfs) continue;
+            if (!resPerfs) continue;
 
-          for (let perf of resPerfs) {
-            statusPerfs.push(perf);
-            perf.displayStatus(this.logger);
+            for (let perf of resPerfs) {
+              statusPerfs.push(perf);
+              perf.displayStatus(this.logger);
+            }
+          } catch (error) {
+            logException(error, `perf ${alert.name}`);
           }
         }
 

@@ -1,3 +1,4 @@
+import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { AlertBase } from "../alerts/AlertBase";
 import { AlertsManager } from "../alerts/AlertsManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
@@ -10,6 +11,10 @@ import { MenuItemLog } from "./menuItemLog";
 import { MenuItemService } from "./menuItemService";
 
 async function admin() {
+  traceManager.displayStateOnException = false;
+  traceManager.displayRuntimeTrace = false;
+  TraceManager.enabled = false;
+
   const menu = new Menu();
 
   menu.addCommand("Update", "bash ./scripts/update.sh");

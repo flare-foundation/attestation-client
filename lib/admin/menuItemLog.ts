@@ -72,7 +72,7 @@ export class MenuItemLog extends MenuItemBase {
             s.pause();
             textLines.push(line);
             if (textLines.length > lines) {
-              textLines.pop();
+              textLines.shift();
             }
             s.resume();
           })

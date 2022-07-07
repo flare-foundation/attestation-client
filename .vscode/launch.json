@@ -192,6 +192,29 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "Attester spammer BTC",
+            "env": {
+                "DOTENV": "DEV",
+                "NODE_ENV": "development",
+                "CONFIG_PATH": ".secure.dev"
+            },
+            "envFile": "${workspaceFolder}/.deploy.env",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "ts-node",
+                "lib/spammer/attestation-spammer.ts",
+                "-c","BTC",
+                "-l","BTC"             
+            ]
+        },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Attester collector XRP",
             "runtimeExecutable": "yarn",
             "outFiles": [

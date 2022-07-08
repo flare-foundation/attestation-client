@@ -5,24 +5,29 @@ const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
 export function readJSON<T>(filename: string) {
-  const fs = require("fs");
+  try {
+    const fs = require("fs");
 
-  let data = fs.readFileSync(filename).toString();
+    let data = fs.readFileSync(filename).toString();
 
-  // remove all comments
-  data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
+    // remove all comments
+    data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
 
-  // remove trailing commas
-  data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
+    // remove trailing commas
+    data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
 
-  //console.log( data );
+    //console.log( data );
 
-  const res = JSON.parse(data) as T;
+    const res = JSON.parse(data) as T;
 
-  return res;
+    return res;
+  }
+  catch( error ) {
+    getGlobalLogger().error( `error reading JSON '${filename}'` );
+  }
 }
 
-function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
+export function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
   let path = `./configs/`;
 
   if (userPath && userPath !== "") {

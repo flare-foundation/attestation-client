@@ -3,8 +3,10 @@ import { createServer, Server } from 'https';
 import { WebSocketServer } from 'ws';
 import { AttLogger, getGlobalLogger } from '../utils/logger';
 import { sleepms } from '../utils/utils';
-import { globalSettings, VPWSConfig, VPWSCredentials } from './vpwsConfiguration';
-import { WSClient } from './wsClient';
+import { VPWSConfig, VPWSCredentials } from './vpwsConfiguration';
+import { globalSettings } from './vpwsSettings';
+import { ConnectionClient } from './connectionClient';
+import { CommandProcessor } from './commandProcessor';
 
 export class VerificationProviderWebServer {
 
@@ -15,8 +17,10 @@ export class VerificationProviderWebServer {
     config: VPWSConfig;
     credentials: VPWSCredentials;
 
-    clients = new Array<WSClient>();
+    clients = new Array<ConnectionClient>();
     nextClientId = 1000;
+
+    commandProcessor = new CommandProcessor();
 
     logger: AttLogger;
 
@@ -25,8 +29,6 @@ export class VerificationProviderWebServer {
 
         this.config = config;
         this.credentials = credentials;
-
-        //this.clients = [];
 
         this.logger = getGlobalLogger();
 
@@ -40,7 +42,7 @@ export class VerificationProviderWebServer {
         this.wss = new WebSocketServer({ noServer: true });
         this.wss.on('connection', function connection(ws) {
             const id = me.nextClientId++;
-            me.clients.push(new WSClient(me, id, ws));
+            me.clients.push(new ConnectionClient(me, id, ws));
         });
 
         this.server.on('upgrade', function upgrade(request, socket, head) {
@@ -81,8 +83,8 @@ export class VerificationProviderWebServer {
 
         const auth = urlArgs.get("auth");
 
-        const serverClient = globalSettings.findClientByAuth(auth, client.localAddress);
-        if (!serverClient) {
+        const serverUser = globalSettings.findUser(auth, client.localAddress);
+        if (!serverUser) {
             this.logger.error2(`unauthorized '${client.localAddress}'`);
 
             socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
@@ -92,14 +94,15 @@ export class VerificationProviderWebServer {
         else {
             this.logger.info(`accept connection '${client.localAddress}'`);
             this.wss.handleUpgrade(request, socket, head, function done(ws) {
-                ws.serverClient = serverClient;
+                ws.serverUser = serverUser;
                 ws.client = client;
+
                 me.wss.emit('connection', ws, request, client);
             });
         }
     }
 
-    closeClient(client: WSClient) {
+    closeClient(client: ConnectionClient) {
         for (let a = 0; a < this.clients.length; a++) {
             if (this.clients[a].id === client.id) {
                 this.clients.splice(a, 1);
@@ -121,6 +124,8 @@ export class VerificationProviderWebServer {
 
     async runServer() {
         this.startServer();
+
+        globalSettings.initializeProviders();
 
         while (true) {
             await sleepms(1000);

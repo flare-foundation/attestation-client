@@ -9,6 +9,8 @@ export class VerificationClient {
 
   connected = false;
 
+  nextId = 1000;
+
   connect(address: string, key: string, port: number = 8088) {
     this.ws = new WebSocket(`wss://${address}:${port}/api/v1/verification/connect?auth=${key}`, {
       protocolVersion: 8,
@@ -30,10 +32,12 @@ export class VerificationClient {
    
   }
 
-  verify(request: string) {
+  verify(roundId: number, request: string) : number {
+    const id = this.nextId++;
+    console.log(`verify id=${id} : ${roundId} , '${request}'`);
+    this.ws.send(`verify:${id}:${roundId}:${request}`);
 
-    console.log(`verify '${request}'`);
-    this.ws.send(`verify:${request}`);
+    return id;
   }
 
   disconnect() {
@@ -58,7 +62,7 @@ async function testClient() {
     await sleepms( 1000 );
   }
 
-  client.verify("123");
+  client.verify(165714, "0x000100000000000000000000000000053c5f1f62d0dacfb3f9ad23643393c79902fbabb199723ac95296f1b06377294d9bca53316d19931bcd26b6efb2837321abc64f0fa8050000");
 
   //client.disconnect();
 }

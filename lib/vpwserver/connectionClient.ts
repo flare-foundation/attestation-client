@@ -1,12 +1,12 @@
 import { AttLogger, getGlobalLogger } from "../utils/logger";
-import { ServerClient } from "./serverClient";
-import { VerificationProviderWebServer } from "./verificationProviderWebServer";
+import { ServerUser } from "./serverUser";
+import { VerificationProviderWebServer } from "./vpwsServer";
 
-export class WSClient {
+export class ConnectionClient {
 
     server: VerificationProviderWebServer;
 
-    client: ServerClient;
+    user: ServerUser;
 
     ws: any;
 
@@ -18,11 +18,11 @@ export class WSClient {
         this.server = server;
         this.id = id;
         this.ws = ws;
-        this.client = ws.serverClient;
+        this.user = ws.serverUser;
 
         this.logger = getGlobalLogger();
 
-        this.logger.debug(`wsc[${id}]: connected '${this.client.name}' from ip ${this.ws.client.localAddress}`);
+        this.logger.debug(`wsc[${id}]: connected '${this.user.name}' from ip ${ws.client.localAddress}`);
 
         const me = this;
         ws.on('message', function message(data) { me.handleMessage(data); });
@@ -37,6 +37,8 @@ export class WSClient {
 
     handleMessage(data: string) {
         this.logger.debug(`wsc[${this.id}]: request(${data})`);
+
+        this.server.commandProcessor.process(this, data);
     }
 
     ping() {

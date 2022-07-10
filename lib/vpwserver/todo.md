@@ -2,7 +2,7 @@
 
     [ ] Server
         [x] WS
-            [x] Secure server (WSS)
+            [x] Secure web socket server (WSS)
             [X] Detect unconected (ping)
             [x] Authentication
         [ ] Configuration
@@ -10,19 +10,36 @@
             [x] Credentials
             [x] Clients
                 [x] Client management
-                [x] Settings (name, auth, ip)
+                [x] User (name, auth, ip)
                     [x] IP linking
-                    [ ] Setup verification
                     [ ] Max connections                
-                [ ] Dynamic loading
-                    [ ] Stop deleted
+                [ ] Dynamic Users loading
+                    [ ] Stop deleted client
+            [x] Providers
+                [x] cache VerificationType to verification provider
         [ ] Verification Provider
-            [ ] Basic definition
-            [ ] ...
+            [x] Basic definition
+            [x] Load and initialize from config
+            [ ] VP class factory
+        [ ] API
+            [ ] command processor
+                [ ] get supported types
+                [x] verify
+                    [x] cache verify request result
+        [ ] Verification Provider
+            [x] NodeIndexer VP
+                [ ] Initialize settings
+                [ ] Create and load config
+                [ ] Recheck logic (send event that recheck was made...)
+
+        [ ] ...
             
             
     [ ] Client
         [x] Basic client
         [x] Secure connection
-        [ ] Detect unconnected
+        [ ] Detect connection dropped
+            [ ] Auto reconnect
+        [ ] get supported source/type information 
+        [x] verify with id
         [ ] ...

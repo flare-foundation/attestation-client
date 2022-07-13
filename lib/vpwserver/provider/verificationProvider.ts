@@ -1,3 +1,5 @@
+import { IInstanciate } from "../../utils/instanciate";
+
 
 export class VerificationType {
     sourceId: number;
@@ -13,9 +15,13 @@ export class VerificationType {
     }
 }
 
-export class IVerificationProvider {
+export class IVerificationProvider<T> implements IInstanciate<T> {
 
     initializeSettings: string;
+
+    instanciate(): T {
+        return null;
+    }
 
     async initialize?() : Promise<boolean>;
 
@@ -23,7 +29,7 @@ export class IVerificationProvider {
 
     getSupportedVerificationTypes?() : (VerificationType)[];
 
-    async verifyRequest?(type: VerificationType, roundId: number, request: string) : Promise<boolean>;
+    async verifyRequest?(verificationId: number, type: VerificationType, roundId: number, request: string) : Promise<boolean>;
 
     isSupported(att: VerificationType) : boolean {
         for(let pair of this.getSupportedVerificationTypes() ) {

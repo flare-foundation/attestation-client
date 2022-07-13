@@ -1,7 +1,6 @@
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger, logException } from "../utils/logger";
 import { SourceId } from "../verification/sources/sources";
-import { NodeIndexerVP } from "./provider/nodeIndexerVP";
-import { TestVP } from "./provider/testVP";
+import { FactoryConstructor } from "./provider/classFactory";
 import { IVerificationProvider, VerificationType } from "./provider/verificationProvider";
 import { ServerUser } from "./serverUser";
 import { VPWSUsers, VPWSProtocols } from "./vpwsConfiguration";
@@ -12,9 +11,9 @@ export class VPWSSettings {
 
   protected serverUsers = new Array<ServerUser>();
 
-  protected verificationProviders = new Array<IVerificationProvider>();
+  protected verificationProviders = new Array<IVerificationProvider<any>>();
 
-  protected verificationProvidersMap = new Map<string, IVerificationProvider>();
+  protected verificationProvidersMap = new Map<string, IVerificationProvider<any>>();
 
   createUsers(config: VPWSUsers) {
     this.logger.info( `creating users...` );
@@ -40,27 +39,43 @@ export class VPWSSettings {
     return client;
   }
 
-  createProviders(config: VPWSProtocols) {
+  async dynamicallyLoadVP()
+  {
+    this.logger.info( `loading verification providers factory files` );
+
+    // dynamically load all factory files
+    const fs = require('fs');
+    const path = require('path');
+    const files =  fs.readdirSync(`./lib/vpwserver/provider/factory/`, { withFileTypes: false });    
+
+    for(let file of files ) {
+      try {
+        const filename = path.parse(file).name;
+        this.logger.debug( `loading ${filename}` );
+        await import( `./provider/factory/${filename}` );
+      }
+      catch( error ) {
+        logException( error , `factory loading` );
+      }
+    }
+  }
+
+  async createProviders(config: VPWSProtocols) {
+    await this.dynamicallyLoadVP();
+
     this.logger.info( `creating verification providers...` );
     
     this.verificationProviders = [];
 
     for (let vpConfig of config.verificationProviders) {
-
-      let vp: IVerificationProvider = null;
-
-      // todo: implement VP factory
-      switch (vpConfig.name) {
-        case "TestVP": vp = new TestVP(); break;
-        case "NodeIndexerVP": vp = new NodeIndexerVP(); break;
-      }
+      let vp = FactoryConstructor( "VerificationProvider" , vpConfig.name );
 
       if (!vp) {
         this.logger.error(`unable to create verification provider ${vpConfig.name}'`);
         continue;
       }
 
-      this.logger.info( `provider: ${vp.getName()}(${vpConfig.settings})`);
+      this.logger.info( `provider: ^w${vp.getName()}^^ (${vpConfig.settings})`);
 
       vp.initializeSettings = vpConfig.settings;
 
@@ -70,7 +85,7 @@ export class VPWSSettings {
     this.logger.debug( `${this.verificationProviders.length} verification providers` );
   }
 
-  findVerificationProvider(type: VerificationType): IVerificationProvider {
+  findVerificationProvider(type: VerificationType): IVerificationProvider<any> {
     return this.verificationProvidersMap.get(type.toString());
   }
 

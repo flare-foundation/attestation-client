@@ -1,5 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
-import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 import { ServerUser } from "./serverUser";
 
 export class VPWSConfig implements IReflection<VPWSConfig> {

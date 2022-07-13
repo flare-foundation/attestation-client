@@ -27,7 +27,7 @@ async function runVPWS() {
 
   // read protocols
   const providers = readConfigBase("vpws", "providers", undefined, undefined, new VPWSProviders());
-  globalSettings.createProviders(providers);
+  await globalSettings.createProviders(providers);
 
   // create and start indexer
   const vpws = new VerificationProviderWebServer(config, credentials);

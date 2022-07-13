@@ -17,20 +17,20 @@
                     [ ] Stop deleted client
             [x] Providers
                 [x] cache VerificationType to verification provider
-        [ ] Verification Provider
+        [x] Verification Provider
             [x] Basic definition
             [x] Load and initialize from config
-            [ ] VP class factory
+            [x] VP class factory
         [ ] API
-            [ ] command processor
+            [x] command processor
                 [ ] get supported types
                 [x] verify
                     [x] cache verify request result
         [ ] Verification Provider
             [x] NodeIndexer VP
                 [ ] Initialize settings
-                [ ] Create and load config
-                [ ] Recheck logic (send event that recheck was made...)
+                [x] Create and load config
+                [x] Recheck logic (send event that recheck was made...)
 
         [ ] ...
             

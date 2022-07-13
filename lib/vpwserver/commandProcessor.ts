@@ -66,13 +66,15 @@ export class CommandProcessor {
         }
 
         client.ws.send(`verificationResult:${id}:${result}:${error}:${cached}`);
+
+        this.logger.info( `wsc[${id}]: response(${result},${VerificationCacheResultType[error]})` );
     }
 
-    protected async verify(client: ConnectionClient, id: number, roundId: number, request: string) {
+    protected async verify(client: ConnectionClient, verificationId: number, roundId: number, request: string) {
         // check if cached
         var cached = this.verificationCache.get(request);
         if (cached) {
-            this.verifyResponse(client, id, request, cached.result, cached.error, true);
+            this.verifyResponse(client, verificationId, request, cached.result, cached.error, true);
             return;
         }
 
@@ -84,19 +86,19 @@ export class CommandProcessor {
             verificationType = new VerificationType(attestationType, sourceId);
         }
         catch (error) {
-            this.verifyResponse(client, id, request, false, VerificationCacheResultType.invalidRequest);
+            this.verifyResponse(client, verificationId, request, false, VerificationCacheResultType.invalidRequest);
             return;
         }
 
         const vp = globalSettings.findVerificationProvider(verificationType);
 
         if (!vp) {
-            this.verifyResponse(client, id, request, false, VerificationCacheResultType.providerNotFound);
+            this.verifyResponse(client, verificationId, request, false, VerificationCacheResultType.providerNotFound);
             return;
         }
 
         // verify
-        const verificationRes = await vp.verifyRequest(verificationType, roundId, request);
-        this.verifyResponse(client, id, request, verificationRes);
+        const verificationRes = await vp.verifyRequest(verificationId, verificationType, roundId, request);
+        this.verifyResponse(client, verificationId, request, verificationRes);
     }
 }

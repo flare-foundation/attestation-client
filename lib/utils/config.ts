@@ -1,5 +1,6 @@
 import { getGlobalLogger, logException } from "./logger";
-import { IReflection, isEqualType } from "./typeReflection";
+import { IReflection } from "./reflection";
+import { isEqualType } from "./typeReflection";
 
 const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";

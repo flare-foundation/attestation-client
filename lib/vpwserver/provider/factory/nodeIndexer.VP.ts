@@ -1,21 +1,23 @@
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
-import { AttesterCredentials } from "../../attester/AttesterClientConfiguration";
-import { ChainConfiguration, ChainsConfiguration } from "../../chain/ChainConfiguration";
-import { IndexedQueryManagerOptions } from "../../indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
-import { createTestAttestationFromRequest } from "../../indexed-query-manager/random-attestation-requests/random-ar";
-import { readConfig, readCredentials } from "../../utils/config";
-import { DatabaseService } from "../../utils/databaseService";
-import { getGlobalLogger } from "../../utils/logger";
-import { getUnixEpochTimestamp, getWeb3, getWeb3Contract } from "../../utils/utils";
-import { VerificationStatus } from "../../verification/attestation-types/attestation-types";
-import { parseRequest } from "../../verification/generated/attestation-request-parse";
-import { AttestationType } from "../../verification/generated/attestation-types-enum";
-import { SourceId } from "../../verification/sources/sources";
-import { verifyAttestation } from "../../verification/verifiers/verifier_routing";
-import { IVerificationProvider, VerificationType } from "./verificationProvider";
+import { AttesterCredentials } from "../../../attester/AttesterClientConfiguration";
+import { ChainConfiguration, ChainsConfiguration } from "../../../chain/ChainConfiguration";
+import { IndexedQueryManagerOptions } from "../../../indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
+import { createTestAttestationFromRequest } from "../../../indexed-query-manager/random-attestation-requests/random-ar";
+import { readConfig, readCredentials } from "../../../utils/config";
+import { DatabaseService } from "../../../utils/databaseService";
+import { getGlobalLogger } from "../../../utils/logger";
+import { getUnixEpochTimestamp, getWeb3, getWeb3Contract } from "../../../utils/utils";
+import { VerificationStatus } from "../../../verification/attestation-types/attestation-types";
+import { parseRequest } from "../../../verification/generated/attestation-request-parse";
+import { AttestationType } from "../../../verification/generated/attestation-types-enum";
+import { SourceId } from "../../../verification/sources/sources";
+import { verifyAttestation } from "../../../verification/verifiers/verifier_routing";
+import { Factory } from "../classFactory";
+import { IVerificationProvider, VerificationType } from "../verificationProvider";
 
-export class NodeIndexerVP extends IVerificationProvider {
+@Factory("VerificationProvider")
+export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
 
     private logger = getGlobalLogger();
 
@@ -27,6 +29,11 @@ export class NodeIndexerVP extends IVerificationProvider {
 
     private currentBufferNumber = 0;
     private client: MccClient;
+
+    instanciate(): NodeIndexerVP {
+        return new NodeIndexerVP();
+    }
+
 
     public async initialize(): Promise<boolean> {
         // todo: get sourceId from settings
@@ -86,20 +93,32 @@ export class NodeIndexerVP extends IVerificationProvider {
         ];
     }
 
-    public async verifyRequest(type: VerificationType, roundId: number, request: string): Promise<boolean> {
-        let recheck = false;
-
+    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string): Promise<boolean> {
         let parsed = parseRequest(request);
 
         let att = createTestAttestationFromRequest(parsed, roundId, this.chainIndexerConfig.numberOfConfirmations);
-        let result = await verifyAttestation(this.client, att, this.indexedQueryManager, recheck);
+        let result = await verifyAttestation(this.client, att, this.indexedQueryManager, false);
 
-        console.log(`Status ${result.status}`);
-        console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
         let lastConfirmedBlock = await this.indexedQueryManager.getLastConfirmedBlockNumber();
-        console.log(`Last confirmed block: ${lastConfirmedBlock}`);
+        this.logger.debug2(`ver[${verificationId}] status ${VerificationStatus[result.status]} block number: ${result.response?.blockNumber?.toString()} last confirmed block: ${lastConfirmedBlock}`);
 
-        return result.status === VerificationStatus.OK;
+        if (result.status === VerificationStatus.OK) {
+            return true;
+        }
+
+        if (result.status === VerificationStatus.RECHECK_LATER) {
+            let att = createTestAttestationFromRequest(parsed, roundId, this.chainIndexerConfig.numberOfConfirmations);
+            result = await verifyAttestation(this.client, att, this.indexedQueryManager, true);
+
+            let lastConfirmedBlock = await this.indexedQueryManager.getLastConfirmedBlockNumber();
+            this.logger.debug2(`recheck[${verificationId}] status ${VerificationStatus[result.status]} block number: ${result.response?.blockNumber?.toString()} last confirmed block: ${lastConfirmedBlock}`);
+
+            if (result.status === VerificationStatus.OK) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

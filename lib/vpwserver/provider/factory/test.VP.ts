@@ -1,6 +1,7 @@
 import { sleepms } from "../../../utils/utils";
+import { VerificationStatus } from "../../../verification/attestation-types/attestation-types";
 import { Factory } from "../classFactory";
-import { IVerificationProvider, VerificationType } from "../verificationProvider";
+import { IVerificationProvider, VerificationResult, VerificationType } from "../verificationProvider";
 
 @Factory("VerificationProvider")
 export class TestVP extends IVerificationProvider<TestVP> {
@@ -22,9 +23,9 @@ export class TestVP extends IVerificationProvider<TestVP> {
         return [new VerificationType(0, 0)];
     }
 
-    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string): Promise<boolean> {
+    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string): Promise<VerificationResult> {
         await sleepms(1000);
-        return true;
+        return new VerificationResult(VerificationStatus.OK,"test response");
     }
 
 }

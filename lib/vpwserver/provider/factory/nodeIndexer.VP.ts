@@ -14,7 +14,7 @@ import { AttestationType } from "../../../verification/generated/attestation-typ
 import { SourceId } from "../../../verification/sources/sources";
 import { verifyAttestation } from "../../../verification/verifiers/verifier_routing";
 import { Factory } from "../classFactory";
-import { IVerificationProvider, VerificationType } from "../verificationProvider";
+import { IVerificationProvider, VerificationResult, VerificationType } from "../verificationProvider";
 
 @Factory("VerificationProvider")
 export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
@@ -93,7 +93,7 @@ export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
         ];
     }
 
-    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string): Promise<boolean> {
+    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string): Promise<VerificationResult> {
         let parsed = parseRequest(request);
 
         let att = createTestAttestationFromRequest(parsed, roundId, this.chainIndexerConfig.numberOfConfirmations);
@@ -103,7 +103,7 @@ export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
         this.logger.debug2(`ver[${verificationId}] status ${VerificationStatus[result.status]} block number: ${result.response?.blockNumber?.toString()} last confirmed block: ${lastConfirmedBlock}`);
 
         if (result.status === VerificationStatus.OK) {
-            return true;
+            return new VerificationResult(result.status, result.response);
         }
 
         if (result.status === VerificationStatus.RECHECK_LATER) {
@@ -114,11 +114,11 @@ export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
             this.logger.debug2(`recheck[${verificationId}] status ${VerificationStatus[result.status]} block number: ${result.response?.blockNumber?.toString()} last confirmed block: ${lastConfirmedBlock}`);
 
             if (result.status === VerificationStatus.OK) {
-                return true;
+                return new VerificationResult(result.status, result.response);
             }
         }
 
-        return false;
+        return new VerificationResult(result.status, result.response);
     }
 
 }

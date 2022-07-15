@@ -14,6 +14,7 @@ import { toSourceId } from "../verification/sources/sources";
 import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainConfiguration } from "./ChainConfiguration";
 import { ChainManager } from "./ChainManager";
+import { ATTESTATION_CLIENT_BASE } from "../verification/codegen/cg-constants";
 
 @Managed()
 export class ChainNode {
@@ -201,61 +202,64 @@ export class ChainNode {
       testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
+
+    this.chainManager.verificationClient.verify(attestation.round.roundId, attestation.data.request);
+
     // TODO - failure simulation
-    verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification)
-      .then((verification: Verification<any, any>) => {
-        attestation.processEndTime = getTimeMilli();
+    //verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification)
+    //   .then((verification: Verification<any, any>) => {
+    //     attestation.processEndTime = getTimeMilli();
 
-        if (verification.status === VerificationStatus.RECHECK_LATER) {
-          this.chainManager.logger.warning(`reverification ${attestation.data.request}`);
+    //     if (verification.status === VerificationStatus.RECHECK_LATER) {
+    //       this.chainManager.logger.warning(`reverification ${attestation.data.request}`);
 
-          attestation.reverification = true;
+    //       attestation.reverification = true;
 
-          // actualk time when attesttion will be rechecked
-          const startTimeMs =
-            AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
-            AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
-            this.chainConfig.reverificationTimeOffset * 1000;
+    //       // actualk time when attesttion will be rechecked
+    //       const startTimeMs =
+    //         AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
+    //         AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
+    //         this.chainConfig.reverificationTimeOffset * 1000;
 
-          this.delayQueue(attestation, startTimeMs);
-        } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
-          // TODO: handle this case and do not commit
-          // TODO: message other clients or what? do not submit? do not submit that source???
-          this.chainManager.logger.error2(`SYSTEM_FAILURE ${attestation.data.request}`);
-          this.processed(attestation, AttestationStatus.invalid, verification);
-        } else {
-          this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
-        }
-      })
-      .catch((error: any) => {
-        logException( error , "verifyAttestation" );
+    //       this.delayQueue(attestation, startTimeMs);
+    //     } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
+    //       // TODO: handle this case and do not commit
+    //       // TODO: message other clients or what? do not submit? do not submit that source???
+    //       this.chainManager.logger.error2(`SYSTEM_FAILURE ${attestation.data.request}`);
+    //       this.processed(attestation, AttestationStatus.invalid, verification);
+    //     } else {
+    //       this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
+    //     }
+    //   })
+    //   .catch((error: any) => {
+    //     logException( error , "verifyAttestation" );
 
-        attestation.exception = error;
+    //     attestation.exception = error;
 
-        // Attestation request parsing errors
-        if (error instanceof WrongSourceIdError) {
-          this.processed(attestation, AttestationStatus.invalid);
-        }
-        if (error instanceof WrongAttestationTypeError) {
-          this.processed(attestation, AttestationStatus.invalid);
-        }
-        if (error instanceof AttestationRequestParseError) {
-          this.processed(attestation, AttestationStatus.invalid);
-        }
+    //     // Attestation request parsing errors
+    //     if (error instanceof WrongSourceIdError) {
+    //       this.processed(attestation, AttestationStatus.invalid);
+    //     }
+    //     if (error instanceof WrongAttestationTypeError) {
+    //       this.processed(attestation, AttestationStatus.invalid);
+    //     }
+    //     if (error instanceof AttestationRequestParseError) {
+    //       this.processed(attestation, AttestationStatus.invalid);
+    //     }
 
-        // Retries
-        attestation.processEndTime = getTimeMilli();
-        if (attestation.retry < this.chainConfig.maxFailedRetry) {
-          this.chainManager.logger.warning(`transaction verification error (retry ${attestation.retry})`);
+    //     // Retries
+    //     attestation.processEndTime = getTimeMilli();
+    //     if (attestation.retry < this.chainConfig.maxFailedRetry) {
+    //       this.chainManager.logger.warning(`transaction verification error (retry ${attestation.retry})`);
 
-          attestation.retry++;
+    //       attestation.retry++;
 
-          this.delayQueue(attestation, getTimeMilli() + this.chainConfig.delayBeforeRetry * 1000);
-        } else {
-          this.chainManager.logger.error2(`transaction verification error ${attestation.data.request}`);
-          this.processed(attestation, AttestationStatus.invalid);
-        }
-      });
+    //       this.delayQueue(attestation, getTimeMilli() + this.chainConfig.delayBeforeRetry * 1000);
+    //     } else {
+    //       this.chainManager.logger.error2(`transaction verification error ${attestation.data.request}`);
+    //       this.processed(attestation, AttestationStatus.invalid);
+    //     }
+    //   });
   }
 
   ////////////////////////////////////////////

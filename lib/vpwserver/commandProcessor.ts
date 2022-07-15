@@ -1,7 +1,8 @@
 import { getGlobalLogger } from "../utils/logger";
+import { VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { getAttestationTypeAndSource } from "../verification/generated/attestation-request-parse";
 import { ConnectionClient } from "./connectionClient";
-import { VerificationType } from "./provider/verificationProvider";
+import { VerificationResult, VerificationType } from "./provider/verificationProvider";
 import { globalSettings } from "./vpwsSettings";
 
 export enum VerificationCacheResultType {
@@ -13,7 +14,7 @@ export enum VerificationCacheResultType {
 
 export class VerificationCacheResult {
     error: VerificationCacheResultType = VerificationCacheResultType.invalid;
-    result: boolean = false;
+    result: VerificationResult = null;
 }
 
 export class CommandProcessor {
@@ -51,7 +52,7 @@ export class CommandProcessor {
         client.ws.send(`supported...`);
     }
 
-    protected verifyResponse(client: ConnectionClient, id: number, request: string, result: boolean, error: VerificationCacheResultType = VerificationCacheResultType.sucessfull, cached: boolean = false) {
+    protected verifyResponse(client: ConnectionClient, id: number, request: string, result: VerificationResult, error: VerificationCacheResultType = VerificationCacheResultType.sucessfull, cached: boolean = false) {
         if (!cached) {
             const cache = new VerificationCacheResult();
 
@@ -65,7 +66,7 @@ export class CommandProcessor {
             this.logger.error(`verification error ${VerificationCacheResultType[error]}`);
         }
 
-        client.ws.send(`verificationResult:${id}:${result}:${error}:${cached}`);
+        client.ws.send(`verificationResult:${id}:${result.status}:${result.response?result.response:""}:${error}:${cached}`);
 
         this.logger.info( `wsc[${id}]: response(${result},${VerificationCacheResultType[error]})` );
     }
@@ -86,14 +87,14 @@ export class CommandProcessor {
             verificationType = new VerificationType(attestationType, sourceId);
         }
         catch (error) {
-            this.verifyResponse(client, verificationId, request, false, VerificationCacheResultType.invalidRequest);
+            this.verifyResponse(client, verificationId, request, new VerificationResult( VerificationStatus.EXCEPTION , error ), VerificationCacheResultType.invalidRequest);
             return;
         }
 
         const vp = globalSettings.findVerificationProvider(verificationType);
 
         if (!vp) {
-            this.verifyResponse(client, verificationId, request, false, VerificationCacheResultType.providerNotFound);
+            this.verifyResponse(client, verificationId, request, new VerificationResult( VerificationStatus.GENERIC_ERROR , `verification provider ${verificationType} not found` ), VerificationCacheResultType.providerNotFound);
             return;
         }
 

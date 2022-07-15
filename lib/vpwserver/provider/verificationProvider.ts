@@ -1,4 +1,5 @@
 import { IInstanciate } from "../../utils/instanciate";
+import { VerificationStatus } from "../../verification/attestation-types/attestation-types";
 
 
 export class VerificationType {
@@ -12,6 +13,16 @@ export class VerificationType {
 
     toString() : string {
        return `${this.attestationType}:${this.sourceId}`; 
+    }
+}
+
+export class VerificationResult {
+    status: VerificationStatus;
+    response: string;
+
+    constructor(status: VerificationStatus, response: string = "") {
+        this.status = status;
+        this.response = response;
     }
 }
 
@@ -29,7 +40,7 @@ export class IVerificationProvider<T> implements IInstanciate<T> {
 
     getSupportedVerificationTypes?() : (VerificationType)[];
 
-    async verifyRequest?(verificationId: number, type: VerificationType, roundId: number, request: string) : Promise<boolean>;
+    async verifyRequest?(verificationId: number, type: VerificationType, roundId: number, request: string) : Promise<VerificationResult>;
 
     isSupported(att: VerificationType) : boolean {
         for(let pair of this.getSupportedVerificationTypes() ) {

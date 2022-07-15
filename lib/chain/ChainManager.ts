@@ -2,16 +2,22 @@ import { Managed } from "@flarenetwork/mcc";
 import { Attestation } from "../attester/Attestation";
 import { AttLogger } from "../utils/logger";
 import { SourceId } from "../verification/sources/sources";
+import { VerificationClient } from "../vpwserver/client/verificationProviderClient";
 import { ChainNode } from "./ChainNode";
 
 @Managed()
 export class ChainManager {
+
+  verificationClient = new VerificationClient();
+
   nodes = new Map<SourceId, ChainNode>();
 
   logger: AttLogger;
 
   constructor(logger: AttLogger) {
     this.logger = logger;
+
+    this.verificationClient.connect(`localhost`, `123456`);
   }
 
   addNode(sourceId: SourceId, node: ChainNode) {

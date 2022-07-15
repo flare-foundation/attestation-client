@@ -66,7 +66,7 @@ export class CommandProcessor {
             this.logger.error(`verification error ${VerificationCacheResultType[error]}`);
         }
 
-        client.ws.send(`verificationResult:${id}:${result.status}:${result.response?result.response:""}:${error}:${cached}`);
+        client.ws.send(`verificationResult\t${id}\t${result.status}\t${result.response?result.response:""}\t${error}\t${cached}`);
 
         this.logger.info( `wsc[${id}]: response(${result},${VerificationCacheResultType[error]})` );
     }

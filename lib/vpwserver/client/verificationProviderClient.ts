@@ -1,8 +1,9 @@
 import { optional } from '@flarenetwork/mcc';
+import { any } from 'hardhat/internal/core/params/argumentTypes';
 import WebSocket from 'ws';
 import { AttLogger, getGlobalLogger } from '../../utils/logger';
 import { sleepms } from '../../utils/utils';
-import { VerificationStatus } from '../../verification/attestation-types/attestation-types';
+import { Verification, VerificationStatus } from '../../verification/attestation-types/attestation-types';
 import { VerificationResult } from '../provider/verificationProvider';
 
 
@@ -26,7 +27,8 @@ export class VerificationClient {
 
   clientOptions: VerificationClientOptions;
 
-  verificationResult = new Map<number, VerificationResult>();
+  //verificationResult = new Map<number, VerificationResult>();
+  verificationResult = new Map<number, Verification<any,any>>();
 
   async connect(address: string, key: string, clientOptions: VerificationClientOptions = null) {
 
@@ -67,7 +69,7 @@ export class VerificationClient {
 
   processMessage(data0: any): boolean {
     const data = `${data0}`;
-    const args = data.split(':');
+    const args = data.split('\t');
 
     if (args[0] === `connected`) {
       if (args.length != 2) { this.logger.error(`processMessage: invalid argument count '${data}'`); return false; }
@@ -79,7 +81,13 @@ export class VerificationClient {
     if (args[0] === `verificationResult`) {
       if (args.length != 6) { this.logger.error(`processMessage: invalid argument count '${data}'`); return false; }
 
-      this.verificationResult.set(parseInt( args[1] ) , new VerificationResult( VerificationStatus[args[2]], args[3]));
+      //this.verificationResult.set(parseInt( args[1] ) , new VerificationResult( VerificationStatus[args[2]], args[3]));
+
+
+      //const res = (Verification<any,any>)JSON.parse( args[3] );
+      const res = JSON.parse( args[3] );
+
+      this.verificationResult.set(parseInt( args[1] ) , res );
 
       return true;
     }
@@ -90,7 +98,7 @@ export class VerificationClient {
 
   }
 
-  async verify(roundId: number, request: string): Promise<VerificationResult> {
+  async verify(roundId: number, request: string): Promise<Verification<any,any>> {
     const id = this.nextId++;
 
     this.logger.debug2(`verify id=${id} roundId=${roundId} request='${request}'`);

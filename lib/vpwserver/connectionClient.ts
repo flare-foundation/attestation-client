@@ -27,7 +27,7 @@ export class ConnectionClient {
         const me = this;
         ws.on('message', function message(data) { me.handleMessage(data); });
 
-        ws.send(`connected:${id}`);
+        ws.send(`connected\t${id}`);
 
         // detect broken link from server side
         ws.isAlive = true;

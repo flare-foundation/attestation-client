@@ -103,7 +103,7 @@ export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
         this.logger.debug2(`ver[${verificationId}] status ${VerificationStatus[result.status]} block number: ${result.response?.blockNumber?.toString()} last confirmed block: ${lastConfirmedBlock}`);
 
         if (result.status === VerificationStatus.OK) {
-            return new VerificationResult(result.status, result.response);
+            return new VerificationResult(result.status, JSON.stringify( result ) );
         }
 
         if (result.status === VerificationStatus.RECHECK_LATER) {

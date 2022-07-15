@@ -13,7 +13,7 @@ async function testClient() {
 
 
   logger.info( `sending verification request` );
-  const res = await client.verify(165714, "0x000100000000000000000000000000053c5f1f62d0dacfb3f9ad23643393c79902fbabb199723ac95296f1b06377294d9bca53316d19931bcd26b6efb2837321abc64f0fa8050000");
+  const res = await client.verify(242237 ,"0x000300000000000000000000000000066260a797063291d8c476187d0cf1a6e5e0a2a0973b24");
   logger.info( `processed ${res.status}` );
 
   client.disconnect();

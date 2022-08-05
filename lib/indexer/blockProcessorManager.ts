@@ -1,4 +1,4 @@
-import { IBlock, Managed } from "@flarenetwork/mcc";
+import { IBlock, Managed, sleepMs } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
@@ -95,6 +95,25 @@ export class BlockProcessorManager {
     }
 
     if (started) return;
+
+    if( this.indexer.chainConfig.validateBlockBeforeProcess )
+    {
+      let checkCount = 0;
+      while( !block.isValid )
+      {
+        if( checkCount++ == 0 )
+        {
+          this.logger.debug2(`waiting on block ${block.number} to be valid`);
+        }
+        await sleepMs( this.indexer.chainConfig.validateBlockWaitMs );
+      }
+
+      if( checkCount>0 )
+      {
+        this.logger.debug(`block ${block.number} is now valid`);
+      }
+
+    }
 
     this.logger.info(`^w^Kprocess block ${block.number}`);
 

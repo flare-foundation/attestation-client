@@ -29,9 +29,15 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration> {
 
   @optional() public syncTimeDays: number = 0;
 
+  @optional() public validateBlockBeforeProcess: boolean = false;
+  @optional() public validateBlockWaitMs = 500;
+  
+  @optional() public recheckBlockBeforeSave: boolean = false;
+  
   instanciate(): ChainsConfiguration {
     return new ChainsConfiguration();
   }
+  
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     const info = new AdditionalTypeInfo();
     //info.additionalKeys.set( "mccCreate" , new MccCreateDummy() );

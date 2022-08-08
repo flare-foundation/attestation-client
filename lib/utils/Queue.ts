@@ -27,6 +27,10 @@ export class Queue<T> {
     return this.tail - this.head;
   }
 
+  public get first(): T {
+    return this.data[this.head];
+  }
+
   public destroy() {
     delete this.data;
     this.data = {};

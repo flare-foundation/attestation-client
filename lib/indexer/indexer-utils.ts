@@ -59,9 +59,9 @@ export function prepareIndexerTables(type: ChainType): { transactionTable: DBTra
 }
 
 // this function will terminate app on exception
-export async function criticalAsync(label: string, funct: (...args: any[]) => Promise<any>) {
+export async function criticalAsync(label: string, funct: (...args: any[]) => Promise<any>): Promise<any> {
   try {
-    await funct();
+    return await funct();
   } catch (error) {
     logException(error, label);
 

@@ -3,7 +3,7 @@ import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 
 export async function getFullTransactionUtxo(
-  client: CachedMccClient<any, any>,
+  client: CachedMccClient,
   blockTransaction: UtxoTransaction,
   processor: LimitingProcessor
 ): Promise<UtxoTransaction> {

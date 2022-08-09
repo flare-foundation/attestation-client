@@ -7,6 +7,8 @@ import { ConfigurationService } from "../services/configurationService";
 import { WebDatabaseService } from "../services/webDBService";
 
 import fs from "fs";
+import { VotingRoundRequest } from "../dto/VotingRoundRequest";
+import { DBAttestationRequest } from "../../entity/attester/dbAttestationRequest";
 @Singleton
 @Factory(() => new ProofEngine())
 export class ProofEngine {
@@ -19,6 +21,7 @@ export class ProofEngine {
   // never expiring cache. Once round data are finalized, they do not change.
   // cache expires only on process restart.
   private cache = {};
+  private requestCache = {};
 
   public async getProofForRound(roundId: number) {
     if (this.cache[roundId]) {
@@ -45,6 +48,36 @@ export class ProofEngine {
       let maxRound = await this.maxRoundId();
       if (maxRound > roundId) {
         this.cache[roundId] = [];
+      }
+    }
+    return finalResult;
+  }
+
+  public async getRequestsForRound(roundId: number) {
+    if (this.requestCache[roundId]) {
+      return this.requestCache[roundId];
+    }
+    await this.dbService.waitForDBConnection();
+    if (!this.canReveal(roundId)) {
+      return null;
+      //throw new Error("Voting round results cannot be revealed yet.");
+    }
+    let query = this.dbService.connection.manager
+      .createQueryBuilder(DBAttestationRequest, "attestation_request")
+      .andWhere("attestation_request.roundId = :roundId", { roundId })
+      .select("attestation_request.requestBytes", "requestBytes")
+      .addSelect("attestation_request.verificationStatus", "verificationStatus")
+      .addSelect("attestation_request.exceptionError", "exceptionError")
+
+    let result = await query.getRawMany();
+    let finalResult = result as any as VotingRoundRequest[];
+    // cache once finalized
+    if (finalResult.length > 0) {
+      this.requestCache[roundId] = finalResult;
+    } else {
+      let maxRound = await this.maxRoundId();
+      if (maxRound > roundId) {
+        this.requestCache[roundId] = [];
       }
     }
     return finalResult;

@@ -1,9 +1,10 @@
-import { ChainType, traceManager } from "@flarenetwork/mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { expect } from "chai";
 import { CachedMccClient } from "../../lib/caching/CachedMccClient";
 import { MockMccClient } from "../../lib/caching/test-utils/MockMccClient";
 import { sleepms } from "../../lib/utils/utils";
 import { SourceId } from "../../lib/verification/sources/sources";
+import { TERMINATION_TOKEN, testWithoutLoggingTracingAndApplicationTermination } from "../test-utils/test-utils";
 
 const CHAIN_ID = SourceId.BTC;
 
@@ -37,7 +38,7 @@ describe("Cached MCC Client test", function () {
    });
 
    it("Transaction is cached", async function () {
-      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, undefined, mockMccClient);
+      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
       let randomTxId = mockMccClient.randomHash32(true);
       let result = await cachedMccClient.getTransaction(randomTxId);
       expect(cachedMccClient.transactionCache.get(randomTxId)).not.to.be.undefined;
@@ -46,7 +47,7 @@ describe("Cached MCC Client test", function () {
    });
 
    it("Transaction not recorded twice", async function () {
-      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, undefined, mockMccClient);
+      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
       let randomTxId = mockMccClient.randomHash32(true);
       await cachedMccClient.getTransaction(randomTxId);
       await cachedMccClient.getTransaction(randomTxId);
@@ -62,8 +63,9 @@ describe("Cached MCC Client test", function () {
          cleanupChunkSize: BATCH_SIZE,
          activeLimit: 50,
          clientConfig: {} as any,
+         forcedClient: mockMccClient
       };
-      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, cachedMccClientOptions, mockMccClient);
+      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, cachedMccClientOptions);
 
       for (let i = 0; i < LIMIT; i++) {
          let randomTxId = mockMccClient.randomHash32(true);
@@ -86,7 +88,7 @@ describe("Cached MCC Client test", function () {
    });
 
    it("Block is cached", async function () {
-      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, undefined, mockMccClient);
+      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
       let randomBlockHash = mockMccClient.randomHash32(true);
       await cachedMccClient.getBlock(randomBlockHash);
       expect(cachedMccClient.blockCache.get(randomBlockHash)).not.to.be.undefined;
@@ -96,7 +98,7 @@ describe("Cached MCC Client test", function () {
    });
 
    it("Block not recorded twice", async function () {
-      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, undefined, mockMccClient);
+      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
       let randomBlockHash = mockMccClient.randomHash32(true);
       await cachedMccClient.getBlock(randomBlockHash);
       await cachedMccClient.getBlock(randomBlockHash);
@@ -112,8 +114,9 @@ describe("Cached MCC Client test", function () {
          cleanupChunkSize: BATCH_SIZE,
          activeLimit: 50,
          clientConfig: {} as any,
+         forcedClient: mockMccClient
       };
-      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, cachedMccClientOptions, mockMccClient);
+      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, cachedMccClientOptions);
 
       for (let i = 0; i < LIMIT; i++) {
          let randomBlockHash = mockMccClient.randomHash32(true);
@@ -135,14 +138,16 @@ describe("Cached MCC Client test", function () {
    });
 
    // Exits application, so it is hard to test
-   it.skip("Get null on wrong transaction id", async function () {
-      traceManager.displayStateOnException = false;
-      let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, undefined, mockMccClient);
-      try {
-         await cachedMccClient.getTransaction("");
-      } catch(e: any) {
-         console.log("aaaaaa", e)
-      }
+   it("Should terminate application after several retries", async function () {
+      await testWithoutLoggingTracingAndApplicationTermination(async () => {
+         let cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
+         try {
+            await cachedMccClient.getTransaction("");
+            expect(1, "Did not terminate").to.equal(2);
+         } catch (e: any) {
+            expect(e.innerError.message).to.equal(TERMINATION_TOKEN);
+         }
+      })
    });
 
 

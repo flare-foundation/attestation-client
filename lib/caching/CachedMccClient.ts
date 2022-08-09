@@ -1,16 +1,23 @@
-import { AlgoMccCreate, ChainType, IBlock, ITransaction, Managed, MCC, ReadRpcInterface, retry, RPCInterface, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { AlgoMccCreate, ChainType, IBlock, ITransaction, Managed, MCC, ReadRpcInterface, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { criticalAsync } from "../indexer/indexer-utils";
-import { logException } from "../utils/logger";
+import { retry } from "../utils/PromiseTimeout";
 import { Queue } from "../utils/Queue";
 
-export interface CachedMccClientOptions {
+interface CachedMccClientOptionsFull {
   transactionCacheSize: number;
   blockCacheSize: number;
   cleanupChunkSize: number;
   // maximum number of requests that are either in processing or in queue
   activeLimit: number;
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
+  forcedClient?: ReadRpcInterface;
 }
+
+interface CachedMccClientOptionsTest {
+  forcedClient: ReadRpcInterface
+}
+
+export type CachedMccClientOptions = CachedMccClientOptionsFull | CachedMccClientOptionsTest;
 
 let defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
@@ -50,7 +57,7 @@ export class CachedMccClient {
 
   cleanupCheckCounter = 0;
 
-  constructor(chainType: ChainType, options?: CachedMccClientOptions, forcedClient?: ReadRpcInterface) {
+  constructor(chainType: ChainType, options?: CachedMccClientOptions) {
     this.chainType = chainType;
     this.transactionCache = new Map<string, Promise<ITransaction>>();
     this.transactionCleanupQueue = new Queue<string>();
@@ -60,18 +67,21 @@ export class CachedMccClient {
     this.settings = options || defaultCachedMccClientOptions;
 
     // Override onSend
-    this.settings.clientConfig.rateLimitOptions = {
-      ...this.settings.clientConfig.rateLimitOptions,
-      onSend: this.onChange.bind(this),
-      onResponse: this.onChange.bind(this),
-      onPush: this.onChange.bind(this),
-      onRpsSample: this.onChange.bind(this),
-    };
+    let fullSettings = this.settings as CachedMccClientOptionsFull;
+    if (fullSettings.clientConfig) {
+      fullSettings.clientConfig.rateLimitOptions = {
+        ...fullSettings.clientConfig.rateLimitOptions,
+        onSend: this.onChange.bind(this),
+        onResponse: this.onChange.bind(this),
+        onPush: this.onChange.bind(this),
+        onRpsSample: this.onChange.bind(this),
+      };
+    }
 
-    if (forcedClient) {
-      this.client = forcedClient;
+    if (options?.forcedClient) {
+      this.client = options.forcedClient;
     } else {
-      this.client = MCC.Client(this.chainType, this.settings.clientConfig) as any as ReadRpcInterface;
+      this.client = MCC.Client(this.chainType, fullSettings.clientConfig) as any as ReadRpcInterface;
     }
   }
 
@@ -82,13 +92,8 @@ export class CachedMccClient {
     this.retriesPs = retriesPs;
   }
 
-  // Returns transaction from cache
-  public getTransactionFromCache(txId: string): Promise<ITransaction> | undefined {
-    return this.transactionCache.get(txId);
-  }
-
   public async getTransaction(txId: string) {
-    let txPromise = this.getTransactionFromCache(txId);
+    let txPromise = this.transactionCache.get(txId)
     if (txPromise) {
       return txPromise;
     }
@@ -139,25 +144,34 @@ export class CachedMccClient {
   }
 
   public get canAccept(): boolean {
-    return !this.settings.activeLimit || this.inProcessing + this.inQueue <= this.settings.activeLimit;
+    let fullSettings = this.settings as CachedMccClientOptionsFull;
+    return !fullSettings.activeLimit || this.inProcessing + this.inQueue <= fullSettings.activeLimit;
   }
 
   private checkAndCleanup() {
+    let fullSettings = this.settings as CachedMccClientOptionsFull;
+    if(!fullSettings.cleanupChunkSize) {
+      return;
+    }
     this.cleanupCheckCounter++;
-    if (this.cleanupCheckCounter >= this.settings.cleanupChunkSize) {
+    if (this.cleanupCheckCounter >= fullSettings.cleanupChunkSize) {
       this.cleanupCheckCounter = 0;
       setTimeout(() => this.cleanup()); // non-blocking call
     }
   }
 
   private cleanup() {
-    if (this.blockCleanupQueue.size >= this.settings.blockCacheSize + this.settings.cleanupChunkSize) {
-      while (this.blockCleanupQueue.size > this.settings.blockCacheSize) {
+    let fullSettings = this.settings as CachedMccClientOptionsFull;
+    if(!fullSettings.blockCacheSize) {
+      return;
+    }
+    if (this.blockCleanupQueue.size >= fullSettings.blockCacheSize + fullSettings.cleanupChunkSize) {
+      while (this.blockCleanupQueue.size > fullSettings.blockCacheSize) {
         this.blockCache.delete(this.blockCleanupQueue.shift());
       }
     }
-    if (this.transactionCleanupQueue.size >= this.settings.transactionCacheSize + this.settings.cleanupChunkSize) {
-      while (this.transactionCleanupQueue.size > this.settings.transactionCacheSize) {
+    if (this.transactionCleanupQueue.size >= fullSettings.transactionCacheSize + fullSettings.cleanupChunkSize) {
+      while (this.transactionCleanupQueue.size > fullSettings.transactionCacheSize) {
         this.transactionCache.delete(this.transactionCleanupQueue.shift());
       }
     }

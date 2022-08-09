@@ -1,6 +1,6 @@
-import { MerkleTree } from "../lib/utils/MerkleTree";
-import { toHex } from "../lib/verification/attestation-types/attestation-types-helpers";
-import { MerkleInstance } from "../typechain-truffle";
+import { MerkleTree } from "../../lib/utils/MerkleTree";
+import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { MerkleInstance } from "../../typechain-truffle";
 
 const N = 20;
 

@@ -35,7 +35,6 @@ export class MockMccClient implements ReadRpcInterface {
    }
    async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<ITransaction> {
       if(txId === "") {
-         console.log("Throwing")
          throw MccError("XXX error"); // for testing purposes
       }
       let respData = { ...xrpTxResponse.data };

@@ -5,9 +5,13 @@ let DEFAULT_TIMEOUT = 60000;
 let DEFAULT_RETRY = 10;
 let DEFAULT_BACK_OFF_TIME = 1000;
 
-let onRetryFailure: (label: string) => void = (label) => {};
+let onRetryFailure: (label: string) => void = (label) => { };
 export function setRetryFailureCallback(failure: (label: string) => void) {
   onRetryFailure = failure;
+}
+
+export function getRetryFailureCallback() {
+  return onRetryFailure;
 }
 
 export async function retry<T>(

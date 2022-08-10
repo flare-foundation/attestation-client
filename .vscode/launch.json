@@ -318,7 +318,7 @@
             ],
             "runtimeArgs": [
                 "test",
-                "test/indexer/chainCollector.test.ts"
+                "test/indexer/act-2.test.ts"
             ]
         },
         {

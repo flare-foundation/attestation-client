@@ -1,6 +1,7 @@
 import * as winston from "winston";
 import Transport from "winston-transport";
 import { Terminal } from "./terminal";
+import { TestLogger } from "./testLogger";
 import { round } from "./utils";
 
 const level = process.env.LOG_LEVEL || "info";
@@ -224,7 +225,7 @@ export interface AttLogger extends winston.Logger {
   debug3: (message: string) => null;
 }
 
-export function createLogger(label?: string): AttLogger {
+export function createLogger(label?: string, test=false): AttLogger {
   return winston.createLogger({
     level: "debug3",
     levels: myCustomLevels.levels,
@@ -243,7 +244,7 @@ export function createLogger(label?: string): AttLogger {
       })
     ),
     transports: [
-      new ColorConsole(),
+      test ? new TestLogger() : new ColorConsole(),
       new winston.transports.File({
         level: "debug2",
         filename: `./logs/attester-${label}.log`,
@@ -257,7 +258,8 @@ export function setGlobalLoggerLabel(label: string) {
 }
 
 // return one instance of logger
-export function getGlobalLogger(label?: string): AttLogger {
+
+export function getGlobalLogger(label?: string, testLogger = false): AttLogger {
   if (!label) {
     label = globalLoggerLabel;
   }
@@ -269,7 +271,7 @@ export function getGlobalLogger(label?: string): AttLogger {
   let logger = globalLogger.get(label);
 
   if (!logger) {
-    logger = createLogger(label);
+    logger = createLogger(label, testLogger);
     globalLogger.set(label, logger);
   }
 

@@ -99,13 +99,17 @@ export class BlockProcessorManager {
     if( this.indexer.chainConfig.validateBlockBeforeProcess )
     {
       let checkCount = 0;
-      while( !block.isValid )
+      let block0 = block;
+      while( !block0.isValid )
       {
         if( checkCount++ == 0 )
         {
           this.logger.debug2(`waiting on block ${block.number} to be valid`);
         }
         await sleepMs( this.indexer.chainConfig.validateBlockWaitMs );
+
+        // get block again
+        block0 = await this.indexer.cachedClient.client.getBlock( block.number );
       }
 
       if( checkCount>0 )

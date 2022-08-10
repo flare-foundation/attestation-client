@@ -57,9 +57,11 @@ const models: TsoaRoute.Models = {
     "VotingRoundRequest": {
         "dataType": "refObject",
         "properties": {
+            "roundId": {"dataType":"double","required":true},
             "requestBytes": {"dataType":"string","required":true},
             "verificationStatus": {"dataType":"string","required":true},
-            "exceptionError": {"dataType":"string","required":true},
+            "attestationStatus": {"dataType":"string"},
+            "exceptionError": {"dataType":"string"},
         },
         "additionalProperties": false,
     },

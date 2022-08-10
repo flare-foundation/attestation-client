@@ -23,14 +23,13 @@ export class ProofEngine {
   private cache = {};
   private requestCache = {};
 
-  public async getProofForRound(roundId: number) {
+  public async getProofForRound(roundId: number): Promise<VotingRoundResult[] | null> {
     if (this.cache[roundId]) {
       return this.cache[roundId];
     }
     await this.dbService.waitForDBConnection();
     if (!this.canReveal(roundId)) {
       return null;
-      //throw new Error("Voting round results cannot be revealed yet.");
     }
     let query = this.dbService.connection.manager
       .createQueryBuilder(DBVotingRoundResult, "voting_round_result")
@@ -53,23 +52,36 @@ export class ProofEngine {
     return finalResult;
   }
 
-  public async getRequestsForRound(roundId: number) {
+  public async getRequestsForRound(roundId: number): Promise<VotingRoundRequest[] | null> {
     if (this.requestCache[roundId]) {
       return this.requestCache[roundId];
     }
     await this.dbService.waitForDBConnection();
     if (!this.canReveal(roundId)) {
       return null;
-      //throw new Error("Voting round results cannot be revealed yet.");
     }
     let query = this.dbService.connection.manager
       .createQueryBuilder(DBAttestationRequest, "attestation_request")
       .andWhere("attestation_request.roundId = :roundId", { roundId })
       .select("attestation_request.requestBytes", "requestBytes")
       .addSelect("attestation_request.verificationStatus", "verificationStatus")
+      .addSelect("attestation_request.attestationStatus", "attestationStatus")
       .addSelect("attestation_request.exceptionError", "exceptionError")
 
+      
+
     let result = await query.getRawMany();
+
+    result.forEach((item) => {
+      item.roundId = roundId; 
+      if (item.exceptionError === "") {
+        item.exceptionError = undefined;
+      }
+      if(!item.attestationStatus) {
+        item.attestationStatus = undefined;
+      }
+    });
+
     let finalResult = result as any as VotingRoundRequest[];
     // cache once finalized
     if (finalResult.length > 0) {

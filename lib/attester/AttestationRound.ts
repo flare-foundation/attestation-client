@@ -206,6 +206,7 @@ export class AttestationRound {
     db.logIndex = att.data.logIndex;
 
     db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
+    db.attestationStatus = AttestationStatus[att.status];
 
     db.request = prepareString(JSON.stringify(att.verificationData?.request ? att.verificationData.request : ""), 4 * 1024);
     db.response = prepareString(JSON.stringify(att.verificationData?.response ? att.verificationData.response : ""), 4 * 1024);
@@ -232,22 +233,19 @@ export class AttestationRound {
     this.attestStatus = AttestationRoundStatus.commiting;
 
     // collect valid attestations
-    const dbAttesttaionRequests = [];
+    const dbAttestationRequests = [];
     const validated = new Array<Attestation>();
     for (const tx of this.attestations.values()) {
       if (tx.status === AttestationStatus.valid) {
         validated.push(tx);
       }
 
-      // prepare the attestation request
-      const dbAttestationRequest = new DBAttestationRequest();
-
-      dbAttesttaionRequests.push(this.prepareDBAttestationRequest(tx));
+      dbAttestationRequests.push(this.prepareDBAttestationRequest(tx));
     }
 
     // save to DB
     try {
-      await AttestationRoundManager.dbServiceAttester.manager.save(dbAttesttaionRequests);
+      await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests);
     } catch (error) {
       logException(error, `AttestationRound::commit save DB`);
     }

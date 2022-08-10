@@ -92,10 +92,17 @@
 			},
 			"VotingRoundRequest": {
 				"properties": {
+					"roundId": {
+						"type": "number",
+						"format": "double"
+					},
 					"requestBytes": {
 						"type": "string"
 					},
 					"verificationStatus": {
+						"type": "string"
+					},
+					"attestationStatus": {
 						"type": "string"
 					},
 					"exceptionError": {
@@ -103,9 +110,9 @@
 					}
 				},
 				"required": [
+					"roundId",
 					"requestBytes",
-					"verificationStatus",
-					"exceptionError"
+					"verificationStatus"
 				],
 				"type": "object",
 				"additionalProperties": false

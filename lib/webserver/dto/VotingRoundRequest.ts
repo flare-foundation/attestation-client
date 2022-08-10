@@ -1,5 +1,7 @@
 export interface VotingRoundRequest {
+  roundId: number;
   requestBytes: string;
   verificationStatus: string;
-  exceptionError: string;
+  attestationStatus?: string;
+  exceptionError?: string;
 }

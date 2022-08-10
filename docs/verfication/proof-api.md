@@ -17,6 +17,7 @@ The corresponding config files `backend-config.json` and `backend-credentials.js
 The web service routes are documented using the Swagger interface. They include:
 
 - `api/proof/votes-for-round/{roundId}` - given a `roundId` it returns a JSON response containing the list of attestation objects. Each attestation object contains attestation round, attestation hash, attestation request and attestation response. The data can be used for creating the attestation proofs.
+- `api/proof/requests-for-round/{roundId}` - given a `roundId` it returns a JSON response containing the list of objects describing attestation requests. Each such object contains attestation round, request bytes, verification status, attestation status and exception error (if relevant). The data can be used for investigating the status of all attestation requests in the round.
 - `api/proof/status` - returns an object that includes current buffer number and the latest available round id, for which the attestation responses are available. 
 - `api/status/services` - provides a status of deployed services from attestation suite (indexers, attestation client)
 - `api/status/services-html` - a simple self-refreshing html page showing the 

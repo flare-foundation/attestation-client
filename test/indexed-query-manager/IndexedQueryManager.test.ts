@@ -8,14 +8,14 @@
 // SOURCE_ID=ALGO DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
 
 import { MccClient } from "@flarenetwork/mcc";
-import { DBBlockBase } from "../lib/entity/indexer/dbBlock";
-import { DBTransactionBase } from "../lib/entity/indexer/dbTransaction";
-import { RandomDBIterator } from "../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { IndexedQueryManager } from "../lib/indexed-query-manager/IndexedQueryManager";
-import { prepareGenerator, TxOrBlockGeneratorType } from "../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { IndexerConfiguration } from "../lib/indexer/IndexerConfiguration";
-import { DotEnvExt } from "../lib/utils/DotEnvExt";
-import { getSourceName, SourceId } from "../lib/verification/sources/sources";
+import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
+import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
+import { prepareGenerator, TxOrBlockGeneratorType } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
+import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
+import { DotEnvExt } from "../../lib/utils/DotEnvExt";
+import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
+import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const MINUTES = 60;

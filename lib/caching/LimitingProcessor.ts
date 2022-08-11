@@ -96,7 +96,7 @@ export class LimitingProcessor {
   };
 
   queue = new Queue<DelayedExecution>();
-  client: CachedMccClient<any, any>;
+  client: CachedMccClient;
   isActive = false;
   isCompleted = false;
   settings: LimitingProcessorOptions;

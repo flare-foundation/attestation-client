@@ -11,7 +11,7 @@ export class NodeAlert extends AlertBase {
   chainType: ChainType;
 
   chainConfig: ChainConfiguration;
-  cachedClient: CachedMccClient<any, IBlock>;
+  cachedClient: CachedMccClient;
 
   constructor(name: string, logger: AttLogger, config: AlertConfig) {
     super(name, logger, new AlertRestartConfig(config.timeRestart, config.indexerRestart.replace("<name>", name).toLowerCase()));
@@ -44,7 +44,7 @@ export class NodeAlert extends AlertBase {
     };
 
     try {
-      this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
+      this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
     } catch (error) {
       logException(error, `node ${this.chainType}`);
     }

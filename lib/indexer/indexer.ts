@@ -36,7 +36,7 @@ export class Indexer {
   chainConfig: ChainConfiguration;
   credentials: IndexerCredentials;
   chainType: ChainType;
-  cachedClient: CachedMccClient<any, IBlock>;
+  cachedClient: CachedMccClient;
   logger!: AttLogger;
   dbService: DatabaseService;
   blockProcessorManager: BlockProcessorManager;
@@ -95,7 +95,7 @@ export class Indexer {
       },
     };
 
-    this.cachedClient = new CachedMccClient<ITransaction, IBlock>(this.chainType, cachedMccClientOptions);
+    this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
 
     this.blockProcessorManager = new BlockProcessorManager(
       this,

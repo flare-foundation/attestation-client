@@ -25,6 +25,10 @@ export function setRetryFailureCallback(failure: (label: string) => void) {
   onRetryFailure = failure;
 }
 
+export function getRetryFailureCallback() {
+  return onRetryFailure;
+}
+
 export async function retry<T>(
   label: string,
   funct: (...args: any) => T,

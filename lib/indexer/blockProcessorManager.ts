@@ -15,7 +15,7 @@ export class BlockProcessorManager {
 
   blockProcessors: LimitingProcessor[] = [];
 
-  cachedClient: CachedMccClient<any, any>;
+  cachedClient: CachedMccClient;
 
   completeCallback: any;
   alreadyCompleteCallback: any;
@@ -23,7 +23,7 @@ export class BlockProcessorManager {
   blockCache = new Map<number, IBlock>();
   blockHashCache = new Map<string, IBlock>();
 
-  constructor(indexer: Indexer, logger: AttLogger, client: CachedMccClient<any, any>, completeCallback: any, alreadyCompleteCallback: any) {
+  constructor(indexer: Indexer, logger: AttLogger, client: CachedMccClient, completeCallback: any, alreadyCompleteCallback: any) {
     this.indexer = indexer;
     this.logger = logger;
     this.cachedClient = client;

@@ -31,8 +31,7 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration> {
 
   @optional() public validateBlockBeforeProcess: boolean = false;
   @optional() public validateBlockWaitMs = 500;
-  
-  @optional() public recheckBlockBeforeSave: boolean = false;
+  @optional() public validateBlockMaxRetry = 10;
   
   instanciate(): ChainsConfiguration {
     return new ChainsConfiguration();

@@ -6,14 +6,20 @@ export class TestLogger extends Transport {
     }
 
     static logs = [];
+
+    static displayLog = 0;
+
+    static setDisplay(display = 0) {
+        TestLogger.displayLog = display;
+    }
+
     static clear() {
         TestLogger.logs = [];
     }
-    static exists(text: string) : boolean {
-
-        for( let logText of TestLogger.logs )
-        {
-            if( logText===text ) return true;
+    static exists(text: string): boolean {
+        // optimize search if it becomes too slow
+        for (let logText of TestLogger.logs) {
+            if (logText === text) return true;
         }
 
         return false;
@@ -28,7 +34,12 @@ export class TestLogger extends Transport {
 
             TestLogger.logs.push(text);
 
-            //console.log( text );
+            switch (TestLogger.displayLog) {
+                // raw console output
+                case 1: console.log(text); break;
+                // todo: color output
+                case 2: console.log(text); break;
+            }
         }
 
         if (callback) {

@@ -22,9 +22,9 @@ Chains configuration file contains all external chain configuration.
 | `maxValidIndexerDelaySec`     |                                                                         | 10      |
 | `reverificationTimeOffset`    |                                                                         | 10      |
 | `syncTimeDays`                | Per chain sync time override. Used if not 0.                            | 0       |
-| `validateBlockBeforeProcess`  | Validate block before processing it (used for XRP) [ATC-2].             | false   |
+| `validateBlockBeforeProcess`  | Validate block before processing it (used for XRP).                     | false   |
 | `validateBlockWaitMs`         | Wait time in ms before re-validating block.                             | 500     |
-| `recheckBlockBeforeSave`      | Recheck transactions before saving them (used for UTXO chains) [ATC-5]  | false   |
+| `validateBlockMaxRetry`       | Number of retries for block to become valid before app restart.         | 10      |
 
 > **NOTE:**
 > Entries with default values are optional.

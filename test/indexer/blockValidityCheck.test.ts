@@ -1,13 +1,15 @@
 // yarn test test/indexer/act-2.test.ts
 
-import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager, XrpMccCreate } from "@flarenetwork/mcc";
+import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
 import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
 import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
 import { Indexer } from "../../lib/indexer/indexer";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
+import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
 const chai = require('chai')
 const expect = chai.expect
@@ -80,6 +82,8 @@ describe("Block validity check before processing", () => {
     before(async function () {
         initializeTestGlobalLogger();
 
+        setRetryFailureCallback((label: string) => { throw new Error(TERMINATION_TOKEN) });
+
         traceManager.displayStateOnException = false;
     });
 
@@ -99,8 +103,6 @@ describe("Block validity check before processing", () => {
         };
 
         const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
-
-        cachedClient.client = new MockXRPImplementation(defaultCachedMccClientOptions.clientConfig as XrpMccCreate);
 
         indexer.logger = getGlobalLogger();
         indexer.cachedClient = cachedClient as any;
@@ -156,21 +158,25 @@ describe("Block validity check before processing", () => {
         expect(TestLogger.exists("waiting on block 70015100 to be valid"), "invalid block should not be detected").to.eq(false);
     });
 
-    it.only(`Block processor manager for always in-valid XRP block`, async function () {
+    it(`Block processor manager for always in-valid XRP block`, async function () {
         let XrpMccClient = new MockXRPImplementation(XRPMccConnection);
+
+        indexer.logger = getGlobalLogger();
+        indexer.cachedClient.client = XrpMccClient;
 
         const block = await XrpMccClient.getBlock(70_015_100);
 
         let invalidBlock = new MockXrpBlock(block);
 
         indexer.chainConfig.validateBlockBeforeProcess = true;
+        indexer.chainConfig.validateBlockWaitMs = 1;
 
-        TestLogger.setDisplay(1);
-
-        await indexer.blockProcessorManager.process(invalidBlock);
-
-        expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be invalid at start").to.eq(true);
-        expect(TestLogger.exists("block 70015100 is now valid"), "block should become valid").to.eq(true);
+        try {
+            await indexer.blockProcessorManager.process(invalidBlock);
+            expect(1, "Did not terminate").to.equal(2);
+        } catch (e: any) {
+            expect(e.innerError.message).to.equal(TERMINATION_TOKEN);
+        }
     });
 
 

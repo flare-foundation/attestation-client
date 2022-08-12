@@ -1,8 +1,8 @@
 import { IBlock, Managed, sleepMs } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
-import { retry } from "../utils/PromiseTimeout";
+import { AttLogger } from "../utils/logger";
+import { failureCallback, retry } from "../utils/PromiseTimeout";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
 import { Indexer } from "./indexer";
 import { criticalAsync } from "./indexer-utils";
@@ -96,24 +96,25 @@ export class BlockProcessorManager {
 
     if (started) return;
 
-    if( this.indexer.chainConfig.validateBlockBeforeProcess )
-    {
+    if (this.indexer.chainConfig.validateBlockBeforeProcess) {
       let checkCount = 0;
       let block0 = block;
-      while( !block0.isValid )
-      {
-        if( checkCount++ == 0 )
-        {
+      while (!block0.isValid) {
+        if (checkCount++ == 0) {
           this.logger.debug2(`waiting on block ${block.number} to be valid`);
         }
-        await sleepMs( this.indexer.chainConfig.validateBlockWaitMs );
+
+        if (checkCount > this.indexer.chainConfig.validateBlockMaxRetry) {
+          failureCallback(`invalid block: block ${block.number} did not become valid in ${checkCount} retires`);
+        }
+
+        await sleepMs(this.indexer.chainConfig.validateBlockWaitMs);
 
         // get block again
-        block0 = await this.indexer.cachedClient.client.getBlock( block.number );
+        block0 = await this.indexer.cachedClient.client.getBlock(block.number);
       }
 
-      if( checkCount>0 )
-      {
+      if (checkCount > 0) {
         this.logger.debug(`block ${block.number} is now valid`);
       }
 

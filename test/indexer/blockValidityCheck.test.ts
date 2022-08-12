@@ -1,11 +1,12 @@
 // yarn test test/indexer/act-2.test.ts
 
-import { ChainType, MCC, traceManager } from "@flarenetwork/mcc";
+import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager, XrpMccCreate } from "@flarenetwork/mcc";
+import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
 import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
 import { Indexer } from "../../lib/indexer/indexer";
-import { getGlobalLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { TestLogger } from "../../lib/utils/testLogger";
 
 const chai = require('chai')
@@ -15,12 +16,70 @@ const XRPMccConnection = {
     url: "https://xrplcluster.com",
 };
 
-describe("ACT-2", () => {
+
+
+class MockXRPImplementation extends XRPImplementation {
+
+    async getBlock(blockNumberOrHash: number | string): Promise<MockXrpBlock> {
+        let block = await super.getBlock(blockNumberOrHash);
+
+        return new MockXrpBlock(block);
+    }
+
+}
+
+class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
+
+    private block: IBlock;
+
+    public constructor(block: IBlock) {
+        super(block.data);
+        this.block = block;
+    }
+
+
+    public get number(): number {
+        return this.block.number;
+    }
+
+    public get blockHash(): string {
+        return this.block.blockHash;
+    }
+
+    public get stdBlockHash(): string {
+        return this.block.stdBlockHash;
+    }
+
+    public get unixTimestamp(): number {
+        return this.block.unixTimestamp;
+    }
+
+    public get transactionIds(): string[] {
+        return this.block.transactionIds;
+    }
+
+    public get stdTransactionIds(): string[] {
+        return this.block.stdTransactionIds;
+    }
+
+    public get transactionCount(): number {
+        return this.block.transactionCount;
+    }
+
+    public get isValid(): boolean {
+        return false;
+    }
+}
+
+
+
+describe("Block validity check before processing", () => {
     let XrpMccClient: MCC.XRP;
     let indexer: Indexer;
 
     before(async function () {
-        getGlobalLogger(null, true);
+        initializeTestGlobalLogger();
+
         traceManager.displayStateOnException = false;
     });
 
@@ -40,6 +99,9 @@ describe("ACT-2", () => {
         };
 
         const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
+
+        cachedClient.client = new MockXRPImplementation(defaultCachedMccClientOptions.clientConfig as XrpMccCreate);
+
         indexer.logger = getGlobalLogger();
         indexer.cachedClient = cachedClient as any;
         indexer.chainConfig = new ChainConfiguration();
@@ -93,5 +155,23 @@ describe("ACT-2", () => {
 
         expect(TestLogger.exists("waiting on block 70015100 to be valid"), "invalid block should not be detected").to.eq(false);
     });
+
+    it.only(`Block processor manager for always in-valid XRP block`, async function () {
+        let XrpMccClient = new MockXRPImplementation(XRPMccConnection);
+
+        const block = await XrpMccClient.getBlock(70_015_100);
+
+        let invalidBlock = new MockXrpBlock(block);
+
+        indexer.chainConfig.validateBlockBeforeProcess = true;
+
+        TestLogger.setDisplay(1);
+
+        await indexer.blockProcessorManager.process(invalidBlock);
+
+        expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be invalid at start").to.eq(true);
+        expect(TestLogger.exists("block 70015100 is now valid"), "block should become valid").to.eq(true);
+    });
+
 
 });

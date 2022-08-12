@@ -142,7 +142,7 @@ export class ColorConsole extends Transport {
           // "2022-01-10T13:13:07.712Z"
 
           console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + color + processColors(text, color) + Reset);
-        } catch {}
+        } catch { }
       }
     }
 
@@ -157,7 +157,7 @@ function replaceAll(text: string, search: string, replaceWith: string): string {
     while (text.indexOf(search) >= 0) {
       text = text.replace(search, replaceWith);
     }
-  } catch {}
+  } catch { }
 
   return text;
 }
@@ -181,7 +181,7 @@ export function processColors(text: string, def: string) {
     text = replaceAll(text, "^c", BgCyan);
     text = replaceAll(text, "^w", BgWhite);
     text = replaceAll(text, "^e", BgGray);
-  } catch {}
+  } catch { }
 
   return text;
 }
@@ -207,9 +207,11 @@ const myCustomLevels = {
   },
 };
 
-var globalLogger = new Map<string, AttLogger>();
+let globalLogger = new Map<string, AttLogger>();
 
-var globalLoggerLabel;
+let globalTestLogger: AttLogger = null;
+
+let globalLoggerLabel;
 
 export interface AttLogger extends winston.Logger {
   title: (message: string) => null;
@@ -225,7 +227,7 @@ export interface AttLogger extends winston.Logger {
   debug3: (message: string) => null;
 }
 
-export function createLogger(label?: string, test=false): AttLogger {
+function createLogger(label?: string, test = false): AttLogger {
   return winston.createLogger({
     level: "debug3",
     levels: myCustomLevels.levels,
@@ -257,9 +259,21 @@ export function setGlobalLoggerLabel(label: string) {
   globalLoggerLabel = label;
 }
 
-// return one instance of logger
+export function initializeTestGlobalLogger() {
+  if (globalLogger.size || globalTestLogger) {
+    console.error("initializeTestGlobalLogger must be called before any logger is created");
+    process.exit(3);
+  }
 
-export function getGlobalLogger(label?: string, testLogger = false): AttLogger {
+  globalTestLogger = createLogger("@test", true);
+
+  return globalTestLogger;
+}
+
+// return one instance of logger
+export function getGlobalLogger(label?: string): AttLogger {
+  if (globalTestLogger) return globalTestLogger;
+
   if (!label) {
     label = globalLoggerLabel;
   }
@@ -271,7 +285,7 @@ export function getGlobalLogger(label?: string, testLogger = false): AttLogger {
   let logger = globalLogger.get(label);
 
   if (!logger) {
-    logger = createLogger(label, testLogger);
+    logger = createLogger(label);
     globalLogger.set(label, logger);
   }
 

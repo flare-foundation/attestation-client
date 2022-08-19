@@ -2,7 +2,7 @@ import { ChainType } from "@flarenetwork/mcc";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
-import { getSourceName, SourceId, toSourceId } from "../verification/sources/sources";
+import { SourceId, toSourceId } from "../verification/sources/sources";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 
@@ -20,6 +20,8 @@ export class SourceHandlerConfig {
   numberOfConfirmations: number = 1;
 
   queryWindowInSec!: number;
+
+  UBPUnconfirmedWindowInSec!: number;
 
   attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
@@ -50,16 +52,14 @@ export class AttestationConfigManager {
       if (typeof ChainType[value] === "number") {
         if (ChainType[value] !== SourceId[value]) {
           logger.error2(
-            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
-              SourceId[SourceId[value] as any]
+            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]
             }=${SourceId[value]}`
           );
         }
 
         if (ChainType[ChainType[value] as any] !== SourceId[SourceId[value] as any]) {
           logger.error2(
-            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
-              SourceId[SourceId[value] as any]
+            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]
             }=${SourceId[value]}`
           );
         }

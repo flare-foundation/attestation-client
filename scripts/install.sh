@@ -7,6 +7,9 @@ export NCNORMAL="${NC}$(tput sgr0)"
 
 export CURRENT_DIR=$(pwd)
 
+source ~/.profile 
+source ~/.nvm/nvm.sh
+
 # copy services
 echo -e "${REDBOLD}[1] ${GREENBOLD}Copying services...${NC}"
 mkdir -p ~/.config/systemd/user
@@ -40,7 +43,7 @@ bash ./scripts/compile.sh
 # prepare configurations
 yarn ts-node lib/install/install.ts ../attestation-suite-config/
 
-bash ./scripts/initialize-mysql.sh
+#bash ./scripts/initialize-mysql.sh
 
 # deploy
 echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"

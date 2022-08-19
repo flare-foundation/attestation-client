@@ -37,9 +37,18 @@ cd attestation-client
 ### 2) Setup configuration files
 
 Setup configuration files in folder `../attestation-suite-config/`:
-- chain.credentials.json 
+- chains.credentials.json 
+```
+nano ~/attestation-suite/attestation-suite-config/chains.credentials.json
+```
 - database.json
-- network.credential.json
+```
+nano ~/attestation-suite/attestation-suite-config/database.credentials.json
+```
+- networks.credential.json
+```
+nano ~/attestation-suite/attestation-suite-config/networks.credentials.json
+```
 
 NOTE: You can change configurations later on.
 

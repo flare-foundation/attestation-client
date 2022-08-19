@@ -12,18 +12,21 @@ source ~/.profile
 echo -e "${GREENBOLD}Installing Attestation Suite remote MySQL${NC}"
 
 # check if MySQL setup file exists 
-if [ -d "$CONFIG_DIR" ] 
+if [ -f "install.sql" ] 
 then
     # mysql
     echo -e "${REDBOLD}[1] ${GREENBOLD}Installing ${REDBOLD}mysql${NC}"
     sudo apt install mysql-server -y
 
     echo -e "${REDBOLD}[2] ${GREENBOLD}Change MySQL bind addres to allow remote access${NC}"
-    sudo sed -i 's+bind-address            = 127.0.0.1+bind-address            = 0.0.0.0+g' /etc/mysql/mysql.conf.d/mysqld.cnf
+    sudo sed -i 's/^\s*bind-address\s*=\s*127.0.0.1/bind-address            = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
 
 
     echo -e "${REDBOLD}[3] ${GREENBOLD}Initialize MySQL (install.sql)${NC}"
     sudo mysql < install.sql
+
+    echo -e "${REDBOLD}[4] ${GREENBOLD}Restarting MySQL service${NC}"
+    sudo service mysql restart
 
 else
     # display error and help

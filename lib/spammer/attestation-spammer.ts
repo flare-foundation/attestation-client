@@ -127,6 +127,12 @@ class AttestationSpammer {
           const queryWindowInSec = 86400;
           return this.spammerConfig.firstEpochStartTime + roundId * this.spammerConfig.roundDurationSec - queryWindowInSec;
         },
+        UBPCutoffTime: (roundId: number) => {
+          // todo: read this from DAC
+          const UBPCutTime = 60*30;
+          return this.spammerConfig.firstEpochStartTime + roundId * this.spammerConfig.roundDurationSec - UBPCutTime;
+        },
+
       } as IndexedQueryManagerOptions;
       this.indexedQueryManager = new IndexedQueryManager(options);
       this.logger = getGlobalLogger(args["loggerLabel"]);

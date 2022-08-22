@@ -41,7 +41,7 @@ export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
   dbService: DatabaseService;
   client: MccClient;
-  
+
   // debug helper
   debugLastConfirmedBlock: number | undefined = undefined;
 
@@ -145,7 +145,7 @@ export class IndexedQueryManager {
     return true;
   }
 
-  
+
   /**
    * Allows for artificial setup of the last known confirmed block. For debuging use.
    * @param blockNumber 
@@ -284,12 +284,22 @@ export class IndexedQueryManager {
    * @returns search status, and if the upper bound proof block is found it returns the hight (`U`)
    * that is confirmed by the block, subject to `numberOfConfirmations`
    */
-  private async upperBoundaryCheck(upperBoundProof: string, numberOfConfirmations: number, recheck: boolean): Promise<UpperBoundaryCheck> {
+  private async upperBoundaryCheck(upperBoundProof: string, numberOfConfirmations: number, roundId: number, recheck: boolean): Promise<UpperBoundaryCheck> {
     let confBlock = await this.getBlockByHash(unPrefix0x(upperBoundProof));
     if (!confBlock) {
       if (!recheck) {
         return { status: "RECHECK" };
       }
+      let upToDate = await this.isIndexerUpToDate();
+      if (!upToDate) {
+        return { status: "SYSTEM_FAILURE" };
+      }
+      return { status: "NO_BOUNDARY" };
+    }
+
+    // UBP block exists
+    let valid = await this.validateForCutoffTime(confBlock, roundId);
+    if (!valid) {
       let upToDate = await this.isIndexerUpToDate();
       if (!upToDate) {
         return { status: "SYSTEM_FAILURE" };
@@ -336,7 +346,7 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }
@@ -373,7 +383,7 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }
@@ -409,7 +419,7 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse> {
-    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.type === "RECHECK");
+    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }
@@ -458,7 +468,7 @@ export class IndexedQueryManager {
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp >= :timestamp", { timestamp: timestamp })
       .orderBy("block.timestamp", "ASC")
-      .limit(MAX_BLOCKCHAIN_PRODUCTION); 
+      .limit(MAX_BLOCKCHAIN_PRODUCTION);
 
     let results = (await query.getMany()) as DBBlockBase[];
 
@@ -511,5 +521,39 @@ export class IndexedQueryManager {
       return result as DBBlockBase;
     }
     return null;
+  }
+
+  /**
+   * Validates upper bound proof candidate `confBlock`. We assume confBlock is defined (not null).
+   * If `confBlock.timestamp` is greater or equal then cut-off time for the round `roundId` then
+   * it is always accepted. Otherwise `confBlock` has to be on one of the longest forks.
+   * @param confBlock upper bound proof block to be validated
+   * @param roundId round id for which validation is carried out
+   * @returns true, if validation is successful
+   */
+  public async validateForCutoffTime(confBlock: DBBlockBase, roundId: number) {
+    let cutoffTime = this.settings.UBPCutoffTime(roundId);
+    if (confBlock.timestamp >= cutoffTime) {
+      return true;
+    }
+    // if the block happens to be confirmed, we assume that it is on the longest/main fork.
+    if (confBlock.confirmed) {
+      return true;
+    }
+    // upper bound proof has to be on one of the longest chains (viewed locally)
+    let query = this.dbService.connection.manager
+      .createQueryBuilder(this.blockTable, "block")
+      .where("block.blockNumber = :blockNumber", { blockNumber: confBlock.blockNumber })
+    let result = await query.getMany() as DBBlockBase[];
+
+    for (let entity of result) {
+      if (entity.confirmed) {
+        return false;
+      }
+      if (entity.numberOfConfirmations > confBlock.numberOfConfirmations) {
+        return false;
+      }
+    }
+    return true;
   }
 }

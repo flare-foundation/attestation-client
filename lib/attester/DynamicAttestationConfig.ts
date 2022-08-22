@@ -20,6 +20,7 @@ export class SourceHandlerConfig {
   numberOfConfirmations: number = 1;
 
   queryWindowInSec!: number;
+  UBPUnconfirmedWindowInSec!: number;
 
   attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
@@ -118,7 +119,7 @@ export class AttestationConfigManager {
 
     // parse sources
     fileConfig.sources.forEach(
-      (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
+      (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; UBPUnconfirmedWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
         const sourceHandler = new SourceHandlerConfig();
 
         sourceHandler.source = toSourceId(source.source);
@@ -126,6 +127,7 @@ export class AttestationConfigManager {
         sourceHandler.maxTotalRoundWeight = source.maxTotalRoundWeight;
         sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
         sourceHandler.queryWindowInSec = source.queryWindowInSec;
+        sourceHandler.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
 
         config.sourceHandlers.set(sourceHandler.source, sourceHandler);
 

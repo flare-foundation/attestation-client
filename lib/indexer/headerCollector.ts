@@ -4,7 +4,7 @@ import { AttLogger } from "../utils/logger";
 import { retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
-
+import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 @Managed()
 export class HeaderCollector {
   private indexer: Indexer;
@@ -64,7 +64,11 @@ export class HeaderCollector {
   async saveBlocksHeadersArray(blocks: IBlock[]) {
     let blocksText = "[";
 
-    const dbBlocks = [];
+    // const dbBlocks = [];
+
+    let unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexer.dbService, this.indexer.dbBlockClass, this.indexer.N);
+
+    await unconfirmedBlockManager.initialize();
 
     for (const block of blocks) {
       if (!block || !block.stdBlockHash) continue;
@@ -88,9 +92,14 @@ export class HeaderCollector {
       dbBlock.blockNumber = blockNumber;
       dbBlock.blockHash = block.stdBlockHash;
       dbBlock.timestamp = block.unixTimestamp;
+      dbBlock.numberOfConfirmations = 1;
+      dbBlock.previousBlockHash = block.previousBlockHash;
 
-      dbBlocks.push(dbBlock);
+      // dbBlocks.push(dbBlock);
+      unconfirmedBlockManager.addNewBlock(dbBlock);
     }
+
+    const dbBlocks = unconfirmedBlockManager.getChangedBlocks();
 
     // remove all blockNumbers <= N+1
     while (dbBlocks.length > 0 && dbBlocks[0].blockNumber <= this.indexer.N + 1) {

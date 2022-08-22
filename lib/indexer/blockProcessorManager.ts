@@ -1,7 +1,7 @@
 import { IBlock, Managed, sleepMs } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
+import { AttLogger } from "../utils/logger";
 import { retry } from "../utils/PromiseTimeout";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
 import { Indexer } from "./indexer";

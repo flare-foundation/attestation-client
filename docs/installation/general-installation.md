@@ -7,6 +7,11 @@ The Attestation Suite has been tested on the following platforms:
 - UBUNTU 20.04
 - WSL 0.2.1
 
+Attestation Suite is recommended to install on two separate servers:
+- Attestation Suite
+- MySql database
+
+
 ## Recomended hardware requirements
 
 Minimal hardware requirements for running Attester-Suite are:
@@ -14,7 +19,7 @@ Minimal hardware requirements for running Attester-Suite are:
 - DISK: 500 GB SSD disk
 - MEMORY: 16 GB
 
-## Installation with dependencties
+## Attestation Suite Installation with dependencties (without database)
 
 Start on a new clean UBUNTU installation with admin priviledges.
 

@@ -7,6 +7,11 @@ The Attestation Suite has been tested on the following platforms:
 - UBUNTU 20.04
 - WSL 0.2.1
 
+Attestation Suite is recommended to install on two separate servers:
+- Attestation Suite
+- MySql database
+
+
 ## Recomended hardware requirements
 
 Minimal hardware requirements for running Attester-Suite are:
@@ -14,7 +19,7 @@ Minimal hardware requirements for running Attester-Suite are:
 - DISK: 500 GB SSD disk
 - MEMORY: 16 GB
 
-## Installation with dependencties
+## Attestation Suite Installation with dependencties (without database)
 
 Start on a new clean UBUNTU installation with admin priviledges.
 
@@ -79,6 +84,34 @@ the script will :
 - copy configuration files into deployment folders
 - update mysql passwords
 - restart services
+
+
+## Attestation Suite database installation
+
+Start on a new clean UBUNTU installation with admin priviledges.
+
+### 1) Copy database installation script
+Login on Attestation Suite server and copy `install.sql` to database server.
+
+``` bash
+scp ~/attestation-suite/attestation-suite-config/prepared/coston/install.sql ubuntu@<database server ip>
+```
+
+### 2) Download Attestation Suite repository and install mysql
+
+``` bash
+cd ~
+mkdir -p attestation-suite
+cd attestation-suite
+
+git clone https://github.com/flare-foundation/attestation-client.git
+cd attestation-client
+
+cp ~/install.sql .
+
+./scripts/install-mysql.sh
+```
+
 
 ## Administration module
 We included a simple WOP administration module that helps monitor and administrate Attestation Suite.

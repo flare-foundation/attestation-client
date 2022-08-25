@@ -272,6 +272,7 @@ export class Indexer {
     //  1 - table0
 
     const index = this.interlace.getActiveIndex();
+    
     return this.dbTransactionClasses[index === 0 ? 1 : 0];
   }
 

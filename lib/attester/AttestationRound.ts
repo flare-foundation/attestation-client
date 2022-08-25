@@ -220,9 +220,6 @@ export class AttestationRound {
     return db;
   }
 
-  async saveCommitEpochRequests(epochId: number, dbAttestationRequests: []) {
-  }
-
   async commit() {
     // collect valid attestations and prepare to save all requests
     const dbAttestationRequests = [];
@@ -240,12 +237,6 @@ export class AttestationRound {
 
     if (!alreadySavedRound) {
       criticalAsync("commit", async () => { await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests); });
-    }
-
-    try {
-      await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests);
-    } catch (error) {
-      logException(error, `AttestationRound::commit save DB`);
     }
 
     // check if commit can be performed

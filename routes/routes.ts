@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from '@tsoa/runtime';
+import { Controller, ValidationService, FieldErrors, ValidateError, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse, fetchMiddlewares } from '@tsoa/runtime';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { ProofController } from './../lib/webserver/controllers/proofController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -11,6 +11,7 @@ import { expressAuthentication } from './../lib/webserver/authentication';
 const promiseAny = require('promise.any');
 import { iocContainer } from './../lib/webserver/ioc';
 import { IocContainer, IocContainerFactory } from '@tsoa/runtime';
+import type { RequestHandler } from 'express';
 import * as express from 'express';
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -45,6 +46,30 @@ const models: TsoaRoute.Models = {
         "dataType": "refObject",
         "properties": {
             "data": {"dataType":"array","array":{"dataType":"refObject","ref":"VotingRoundResult"}},
+            "errorDetails": {"dataType":"string"},
+            "errorMessage": {"dataType":"string"},
+            "status": {"ref":"ApiDefaultResponseStatusEnum","required":true},
+            "validationErrorDetails": {"ref":"ApiValidationErrorDetails"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "VotingRoundRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "roundId": {"dataType":"double","required":true},
+            "requestBytes": {"dataType":"string","required":true},
+            "verificationStatus": {"dataType":"string","required":true},
+            "attestationStatus": {"dataType":"string"},
+            "exceptionError": {"dataType":"string"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_VotingRoundRequest-Array_": {
+        "dataType": "refObject",
+        "properties": {
+            "data": {"dataType":"array","array":{"dataType":"refObject","ref":"VotingRoundRequest"}},
             "errorDetails": {"dataType":"string"},
             "errorMessage": {"dataType":"string"},
             "status": {"ref":"ApiDefaultResponseStatusEnum","required":true},
@@ -130,8 +155,10 @@ export function RegisterRoutes(app: express.Router) {
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
         app.get('/api/proof/votes-for-round/:roundId',
+            ...(fetchMiddlewares<RequestHandler>(ProofController)),
+            ...(fetchMiddlewares<RequestHandler>(ProofController.prototype.votesForRound)),
 
-            async function ProofController_lastReveals(request: any, response: any, next: any) {
+            async function ProofController_votesForRound(request: any, response: any, next: any) {
             const args = {
                     roundId: {"in":"path","name":"roundId","required":true,"dataType":"double"},
             };
@@ -150,7 +177,37 @@ export function RegisterRoutes(app: express.Router) {
                 }
 
 
-              const promise = controller.lastReveals.apply(controller, validatedArgs as any);
+              const promise = controller.votesForRound.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.get('/api/proof/requests-for-round/:roundId',
+            ...(fetchMiddlewares<RequestHandler>(ProofController)),
+            ...(fetchMiddlewares<RequestHandler>(ProofController.prototype.requestsForRound)),
+
+            async function ProofController_requestsForRound(request: any, response: any, next: any) {
+            const args = {
+                    roundId: {"in":"path","name":"roundId","required":true,"dataType":"double"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+                const controller: any = await container.get<ProofController>(ProofController);
+                if (typeof controller['setStatus'] === 'function') {
+                controller.setStatus(undefined);
+                }
+
+
+              const promise = controller.requestsForRound.apply(controller, validatedArgs as any);
               promiseHandler(controller, promise, response, undefined, next);
             } catch (err) {
                 return next(err);
@@ -158,6 +215,8 @@ export function RegisterRoutes(app: express.Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.get('/api/proof/status',
+            ...(fetchMiddlewares<RequestHandler>(ProofController)),
+            ...(fetchMiddlewares<RequestHandler>(ProofController.prototype.systemStatus)),
 
             async function ProofController_systemStatus(request: any, response: any, next: any) {
             const args = {
@@ -185,6 +244,8 @@ export function RegisterRoutes(app: express.Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.get('/api/status/services',
+            ...(fetchMiddlewares<RequestHandler>(StatusController)),
+            ...(fetchMiddlewares<RequestHandler>(StatusController.prototype.serviceStatus)),
 
             async function StatusController_serviceStatus(request: any, response: any, next: any) {
             const args = {
@@ -212,6 +273,8 @@ export function RegisterRoutes(app: express.Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.get('/api/status/services-html',
+            ...(fetchMiddlewares<RequestHandler>(StatusController)),
+            ...(fetchMiddlewares<RequestHandler>(StatusController.prototype.serviceStatusHtml)),
 
             async function StatusController_serviceStatusHtml(request: any, response: any, next: any) {
             const args = {

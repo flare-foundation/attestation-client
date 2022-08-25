@@ -5,7 +5,22 @@ let DEFAULT_TIMEOUT = 60000;
 let DEFAULT_RETRY = 10;
 let DEFAULT_BACK_OFF_TIME = 1000;
 
-let onRetryFailure: (label: string) => void = (label) => { };
+let onRetryFailure: (label: string) => void = (label) => { 
+  getGlobalLogger().error(`failure callback not set (label '${label}')`);
+  throw new Error("FailureCallbackNotSet");
+};
+
+export function failureCallback(label: string) {
+
+  if (!onRetryFailure) {
+    getGlobalLogger().error(`failure callback not set (label '${label}')`);
+    throw new Error("FailureCallbackNotSet");
+    }
+  else {
+    onRetryFailure(label);
+  }
+}
+
 export function setRetryFailureCallback(failure: (label: string) => void) {
   onRetryFailure = failure;
 }

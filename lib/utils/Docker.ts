@@ -62,6 +62,11 @@ export class DockerInfo {
 
 export class Docker {
   public static getSize(size: string): number {
+    if (size.indexOf("TB") > 0) {
+      size = size.replace(/TB/, "");
+      return parseFloat(size) * (1024 * 1024 * 1024 * 1024);
+    }
+
     if (size.indexOf("GB") > 0) {
       size = size.replace(/GB/, "");
       return parseFloat(size) * (1024 * 1024 * 1024);

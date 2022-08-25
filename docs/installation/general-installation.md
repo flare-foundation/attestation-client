@@ -71,6 +71,34 @@ the script will :
 - update mysql passwords
 - restart services
 
+
+## Attestation Suite database installation
+
+Start on a new clean UBUNTU installation with admin priviledges.
+
+### 1) Copy database installation script
+Login on Attestation Suite server and copy `install.sql` to database server.
+
+``` bash
+scp ~/attestation-suite/attestation-suite-config/prepared/coston/install.sql ubuntu@<database server ip>
+```
+
+### 2) Download Attestation Suite repository and install mysql
+
+``` bash
+cd ~
+mkdir -p attestation-suite
+cd attestation-suite
+
+git clone https://github.com/flare-foundation/attestation-client.git
+cd attestation-client
+
+cp ~/install.sql .
+
+./scripts/install-mysql.sh
+```
+
+
 ## Administration module
 We included a simple WOP administration module that helps monitor and administrate Attestation Suite.
 

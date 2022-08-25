@@ -7,6 +7,7 @@
 // SOURCE_ID=DOGE DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
 // SOURCE_ID=ALGO DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
 
+import { assert } from "chai";
 import { MccClient } from "@flarenetwork/mcc";
 import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";

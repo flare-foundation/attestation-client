@@ -262,7 +262,7 @@ export function setGlobalLoggerLabel(label: string) {
 export function initializeTestGlobalLogger() {
   if (globalLogger.size || globalTestLogger) {
     console.error("initializeTestGlobalLogger must be called before any logger is created");
-    process.exit(3);
+    // process.exit(3);
   }
 
   globalTestLogger = createLogger("@test", true);

@@ -1,4 +1,4 @@
-// yarn test test/indexer/act-2.test.ts
+// yarn test test/indexer/blockValidityCheck.test.ts
 
 import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
 import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
@@ -31,6 +31,13 @@ class MockXRPImplementation extends XRPImplementation {
 }
 
 class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
+    
+    get previousBlockHash(): string {
+        throw new Error("Method not implemented.");
+    }
+    get stdPreviousBlockHash(): string {
+        throw new Error("Method not implemented.");
+    }
 
     private block: IBlock;
 

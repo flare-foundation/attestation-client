@@ -1,3 +1,4 @@
+import { Managed, traceManager } from "@flarenetwork/mcc";
 import { readConfig } from "../utils/config";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { Terminal } from "../utils/terminal";
@@ -6,11 +7,10 @@ import { AlertBase, AlertRestartConfig } from "./AlertBase";
 import { AlertConfig } from "./AlertsConfiguration";
 import { AttesterAlert } from "./AttestationAlert";
 import { BackendAlert } from "./BackendAlert";
-import { IndexerAlert } from "./IndexerAlert";
 import { DatabaseAlert } from "./DatabaseAlert";
-import { NodeAlert } from "./NodeAlert";
 import { DockerAlert } from "./DockerAlert";
-import { Managed } from "@flarenetwork/mcc";
+import { IndexerAlert } from "./IndexerAlert";
+import { NodeAlert } from "./NodeAlert";
 
 @Managed()
 export class AlertsManager {
@@ -52,6 +52,9 @@ export class AlertsManager {
   }
 
   async runAlerts() {
+    traceManager.displayStateOnException = false;
+    traceManager.displayRuntimeTrace = false;
+
     for (let alert of this.alerts) {
       await alert.initialize();
     }
@@ -85,13 +88,17 @@ export class AlertsManager {
         }
 
         for (let alert of this.alerts) {
-          const resPerfs = await alert.perf();
+          try {
+            const resPerfs = await alert.perf();
 
-          if (!resPerfs) continue;
+            if (!resPerfs) continue;
 
-          for (let perf of resPerfs) {
-            statusPerfs.push(perf);
-            perf.displayStatus(this.logger);
+            for (let perf of resPerfs) {
+              statusPerfs.push(perf);
+              perf.displayStatus(this.logger);
+            }
+          } catch (error) {
+            logException(error, `perf ${alert.name}`);
           }
         }
 

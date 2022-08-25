@@ -46,16 +46,49 @@ export class MenuItemLog extends MenuItemBase {
     //console.log(follow);
 
     const fs = require("fs");
+    const es = require('event-stream');
 
     const colorConsole = new ColorConsole();
 
+    // if (lines > 0) {
+    //   let data = fs.readFileSync(filename).toString("utf-8");
+    //   {
+    //     let textByLine = data.split("\n");
+    //     for (let i = Math.max(0, textByLine.length - lines); i < textByLine.length; i++) {
+    //       displayLine(colorConsole, textByLine[i]);
+    //     }
+    //   }
+    // }
+
+
     if (lines > 0) {
-      let data = fs.readFileSync(filename).toString("utf-8");
-      {
-        let textByLine = data.split("\n");
-        for (let i = Math.max(0, textByLine.length - lines); i < textByLine.length; i++) {
-          displayLine(colorConsole, textByLine[i]);
-        }
+      let textLines = [];
+
+      const read = await new Promise((resolve, reject) => {
+
+        const s = fs.createReadStream(filename)
+          .pipe(es.split())
+          .pipe(es.mapSync(function (line) {
+            s.pause();
+            textLines.push(line);
+            if (textLines.length > lines) {
+              textLines.shift();
+            }
+            s.resume();
+          })
+            .on('error', function (err) {
+              console.log('Error while reading file.', err);
+              reject();
+            })
+            .on('end', function () {
+              console.log('Read entire file.')
+              resolve(null);
+            })
+          );
+      } );
+
+      for (let i = 0; i < textLines.length; i++) {
+        displayLine(colorConsole, textLines[i]);
       }
     }
 

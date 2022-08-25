@@ -20,6 +20,8 @@ import { parseRequest } from "../verification/generated/attestation-request-pars
 import { ARType } from "../verification/generated/attestation-request-types";
 import { getSourceName, SourceId } from "../verification/sources/sources";
 import { SpammerConfig, SpammerCredentials } from "./SpammerConfiguration";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
+import { AttesterCredentials } from "../attester/AttesterClientConfiguration";
 
 let fs = require("fs");
 
@@ -98,6 +100,9 @@ class AttestationSpammer {
     // Reading configuration
     this.spammerConfig = readConfig(new SpammerConfig(), "spammer");
     const spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
+
+    AttestationRoundManager.credentials = new AttesterCredentials();
+    AttestationRoundManager.credentials.web = spammerCredentials.web;
 
     this.rpcLink = spammerCredentials.web.rpcUrl;
     this.privateKey = spammerCredentials.web.accountPrivateKey;
@@ -283,11 +288,14 @@ class AttestationSpammer {
 
 async function displayStats() {
   const period = 5000;
+
+  const logger = getGlobalLogger();
+
   while (true) {
     await sleepMs(period);
 
     try {
-      this.logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
+      logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
       AttestationSpammer.sendCount = 0;
     } catch (error) {
       logException(error, `displayStats`);

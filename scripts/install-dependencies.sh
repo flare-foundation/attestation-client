@@ -12,8 +12,12 @@ echo -e "${REDBOLD}[1] ${GREENBOLD}Installing ${REDBOLD}nvm${NC}"
 sudo apt-get update
 sudo apt install curl -y
 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+
 source ~/.profile 
+source ~/.nvm/nvm.sh
 nvm install 14.15.4
+nvm alias default 14.15.4
+nvm use 14.15.4
 
 # yarn
 echo -e "${REDBOLD}[2] ${GREENBOLD}Installing ${REDBOLD}yarn${NC}"

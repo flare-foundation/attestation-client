@@ -24,9 +24,5 @@ echo -e "${REDBOLD}[2] ${GREENBOLD}Installing ${REDBOLD}yarn${NC}"
 sudo apt install npm -y
 sudo npm install --global yarn -y
 
-# mysql
-echo -e "${REDBOLD}[3] ${GREENBOLD}Installing ${REDBOLD}mysql${NC}"
-sudo apt install mysql-server -y
-
 source ~/.profile 
 

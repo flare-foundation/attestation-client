@@ -272,3 +272,32 @@ ctail -f -i global/alerts/logs/attester-global.log
 ./scripts/deploy-songbird-backend
 
 ```
+
+
+# multipass setup (windows)
+```bash
+multipass launch --name p1 --disk 100G --cpus 4 --mem 8G
+multipass launch --name p2 --disk 100G --cpus 4 --mem 8G
+
+multipass shell p1
+multipass shell p2
+```
+
+# SSH setup 
+P1
+```bash
+mkdir -p $HOME/.ssh
+chmod 0700 $HOME/.ssh
+ssh-keygen
+cat .ssh/id_rsa.pub
+```
+
+P2
+```bash
+mkdir -p $HOME/.ssh
+chmod 0700 $HOME/.ssh
+ssh-keygen
+nano .ssh/authorized_keys
+
+hostname -I
+```

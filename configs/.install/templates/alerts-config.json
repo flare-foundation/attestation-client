@@ -41,6 +41,8 @@
             "name": "global",
             "database": "attester",
             "connection": {
+                "host": "$(AttesterDatabaseHost)",
+                "port": "$(AttesterDatabasePort)",
                 "database": "$(AttesterDatabase$(Network))",
                 "username": "$(AttesterWriterUsername$(Network))",
                 "password": "$(AttesterWriterPassword$(Network))"

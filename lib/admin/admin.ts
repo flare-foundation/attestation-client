@@ -1,3 +1,4 @@
+import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { AlertBase } from "../alerts/AlertBase";
 import { AlertsManager } from "../alerts/AlertsManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
@@ -10,6 +11,10 @@ import { MenuItemLog } from "./menuItemLog";
 import { MenuItemService } from "./menuItemService";
 
 async function admin() {
+  traceManager.displayStateOnException = false;
+  traceManager.displayRuntimeTrace = false;
+  TraceManager.enabled = false;
+
   const menu = new Menu();
 
   menu.addCommand("Update", "bash ./scripts/update.sh");
@@ -146,27 +151,34 @@ async function admin() {
   };
 
   menu.display(true);
-  2;
 
   while (!menu.done) {
     // update alerts
     resAlerts = [];
     for (let alert of alerts.alerts) {
-      const resAlert = await alert.check();
+      try {
+        const resAlert = await alert.check();
 
-      if (!resAlert) continue;
+        if (!resAlert) continue;
 
-      resAlerts.push(resAlert);
+        resAlerts.push(resAlert);
+      }
+      catch (error) {
+      }
     }
 
     resPerfs = [];
     for (let alert of alerts.alerts) {
-      const resPerf = await alert.perf();
+      try {
+        const resPerf = await alert.perf();
 
-      if (!resPerf) continue;
+        if (!resPerf) continue;
 
-      for (let i of resPerf) {
-        resPerfs.push(i);
+        for (let i of resPerf) {
+          resPerfs.push(i);
+        }
+      }
+      catch (error) {
       }
     }
 

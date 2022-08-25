@@ -38,13 +38,13 @@ export class AlertConfig implements IReflection<AlertConfig> {
   stateSaveFilename = "";
   indexerRestart = "";
 
-  indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
-  nodes = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
-  dockers = ["algorand", "bitcoin", "dogecoin", "litecoin", "ripple"];
+  @optional() indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
+  @optional() nodes = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
+  @optional() dockers = ["algorand", "bitcoin", "dogecoin", "litecoin", "ripple"];
 
-  attesters = [];
-  backends = [];
-  databases = [];
+  @optional() attesters = [];
+  @optional() backends = [];
+  @optional() databases = [];
 
   instanciate() {
     return new AlertConfig();
@@ -56,9 +56,10 @@ export class AlertConfig implements IReflection<AlertConfig> {
     res.arrayMap.set("indexers", "string");
     res.arrayMap.set("nodes", "string");
     res.arrayMap.set("dockers", "string");
+
     res.arrayMap.set("attesters", new AlertAttestationConfig());
     res.arrayMap.set("backends", new AlertBackendConfig());
-    res.arrayMap.set("database", new AlertDatabaseConfig());
+    res.arrayMap.set("databases", new AlertDatabaseConfig());
 
     return res;
   }

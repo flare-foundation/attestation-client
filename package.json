@@ -55,7 +55,7 @@
     "admin": "CONFIG_PATH=.secure node dist/lib/admin/admin.js"
   },
   "dependencies": {
-    "@flarenetwork/mcc": "1.2.0",
+    "@flarenetwork/mcc": "1.2.1",
     "@google-cloud/secret-manager": "4.0.0",
     "@openzeppelin/contracts": "4.5.0",
     "assert": "2.0.0",
@@ -63,6 +63,7 @@
     "compression": "1.7.4",
     "cookie-parser": "1.4.6",
     "dotenv": "16.0.1",
+    "event-stream": "4.0.1",
     "express": "4.18.1",
     "glob": "8.0.3",
     "helmet": "5.1.0",

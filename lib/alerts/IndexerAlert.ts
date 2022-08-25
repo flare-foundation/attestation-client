@@ -38,7 +38,7 @@ export class IndexerAlert extends AlertBase {
 
     const resState = await IndexerAlert.dbService.manager.findOne(DBState, { where: { name: `${this.name}_state` } });
 
-    if (resState === undefined) {
+    if (!resState || !resState.valueString) {
       res.state = "state data not available";
       return res;
     }

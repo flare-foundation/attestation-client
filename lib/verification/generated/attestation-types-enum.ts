@@ -3,9 +3,9 @@
 //////////////////////////////////////////////////////////////
 
 export enum AttestationType {
-  Payment = 1,
-  BalanceDecreasingTransaction = 2,
-  ConfirmedBlockHeightExists = 3,
-  ReferencedPaymentNonexistence = 4,
-  TrustlineIssuance = 5,
+   Payment = 1,
+   BalanceDecreasingTransaction = 2,
+   ConfirmedBlockHeightExists = 3,
+   ReferencedPaymentNonexistence = 4,
+   TrustlineIssuance = 5
 }

@@ -52,6 +52,8 @@ export interface IAttestationClient extends BaseContract {
         number | string | BN,
         number | string | BN,
         number | string | BN,
+        number | string | BN,
+        number | string | BN,
         number | string | BN
       ]
     ): NonPayableTransactionObject<boolean>;
@@ -90,6 +92,18 @@ export interface IAttestationClient extends BaseContract {
         number | string | BN,
         number | string | BN,
         number | string | BN
+      ]
+    ): NonPayableTransactionObject<boolean>;
+
+    verifyTrustlineIssuance(
+      _chainId: number | string | BN,
+      _data: [
+        number | string | BN,
+        (string | number[])[],
+        string | number[],
+        number | string | BN,
+        number | string | BN,
+        string | number[]
       ]
     ): NonPayableTransactionObject<boolean>;
   };

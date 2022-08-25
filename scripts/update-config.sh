@@ -13,8 +13,8 @@ export CONFIGDIR_SECURE_SGB=../attestation-suite-config/prepared/songbird
 yarn ts-node lib/install/install.ts ../attestation-suite-config/
 
 # update MYSQL passwords
-echo -e "${GREENBOLD}Update mysql...${NC}"
-sudo mysql < ../attestation-suite-config/prepared/coston/update.sql
+#echo -e "${GREENBOLD}Update mysql...${NC}"
+#sudo mysql < ../attestation-suite-config/prepared/coston/update.sql
 
 # copy configs to all modules
 echo -e "${GREENBOLD}Copy configurations...${NC}"

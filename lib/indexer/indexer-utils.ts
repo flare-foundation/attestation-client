@@ -11,9 +11,10 @@ import {
   DBTransactionLTC0,
   DBTransactionLTC1,
   DBTransactionXRP0,
-  DBTransactionXRP1,
+  DBTransactionXRP1
 } from "../entity/indexer/dbTransaction";
 import { getGlobalLogger, logException } from "../utils/logger";
+import { getRetryFailureCallback } from "../utils/PromiseTimeout";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 
@@ -50,7 +51,7 @@ export function prepareIndexerTables(type: ChainType): { transactionTable: DBTra
       throw new Error("Invalid chain type");
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      ((_: never): void => { })(type);
   }
   return {
     transactionTable,
@@ -59,14 +60,20 @@ export function prepareIndexerTables(type: ChainType): { transactionTable: DBTra
 }
 
 // this function will terminate app on exception
-export async function criticalAsync(label: string, funct: (...args: any[]) => Promise<any>) {
+export async function criticalAsync(label: string, funct: (...args: any[]) => Promise<any>): Promise<any> {
   try {
-    await funct();
+    return await funct();
   } catch (error) {
     logException(error, label);
 
-    getGlobalLogger().error2(`application exit`);
-    process.exit(2);
+    let onFailure = getRetryFailureCallback();
+    if (!onFailure) {
+      getGlobalLogger().error2(`application exit`);
+      process.exit(2);
+    } else {
+      onFailure(label)
+    }
+
   }
 }
 

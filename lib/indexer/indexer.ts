@@ -1,4 +1,4 @@
-import { ChainType, IBlock, ITransaction, Managed, MCC } from "@flarenetwork/mcc";
+import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
 import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
 import { Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
@@ -9,7 +9,7 @@ import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
-import { retry } from "../utils/PromiseTimeout";
+import { failureCallback, retry } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, prepareString, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
@@ -59,8 +59,6 @@ export class Indexer {
 
   // bottom block in the transaction tables - used to check if we have enough history
   bottomBlockTime = undefined;
-
-  tableLock = false;
 
   isSyncing = false;
 
@@ -140,6 +138,12 @@ export class Indexer {
   async getBlockHeight(label: string): Promise<number> {
     return await retry(`indexer.getBlockHeight.${label}`, async () => {
       return this.cachedClient.client.getBlockHeight();
+    });
+  }
+
+  async getBottomBlockHeight(label: string): Promise<number> {
+    return await retry(`indexer.getBottomBlockHeight.${label}`, async () => {
+      return this.cachedClient.client.getBottomBlockHeight();
     });
   }
 
@@ -272,18 +276,8 @@ export class Indexer {
     //  1 - table0
 
     const index = this.interlace.getActiveIndex();
-    
+
     return this.dbTransactionClasses[index === 0 ? 1 : 0];
-  }
-
-  getTransactionDropTableName(): any {
-    // we drop table by active index (opposite to write):
-    //  0 - table0
-    //  1 - table1
-
-    const index = this.interlace.getActiveIndex();
-
-    return `${this.chainConfig.name.toLowerCase()}_transactions${index}`;
   }
 
   /////////////////////////////////////////////////////////////
@@ -301,40 +295,6 @@ export class Indexer {
     }
 
     this.logger.debug(`start save block N+1=${Np1}`);
-
-    // table interlacing
-    const change = this.interlace.update(block.timestamp, block.blockNumber);
-    let tableIndex = this.interlace.getActiveIndex();
-
-    // in case table drop was requested in another async we need to wait until drop is completed
-    while (this.tableLock) {
-      await sleepms(1);
-    }
-
-    // check if tables need to be dropped and new created
-    if (change) {
-      this.tableLock = true;
-
-      // drop inactive table and create new one
-      const time0 = Date.now();
-      const queryRunner = this.dbService.connection.createQueryRunner();
-      const tableName = this.getTransactionDropTableName();
-      const table = await queryRunner.getTable(tableName);
-      await queryRunner.dropTable(table);
-      await queryRunner.createTable(table);
-      await queryRunner.release();
-      const time1 = Date.now();
-
-      this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`);
-
-      this.tableLock = false;
-
-      // bottom state was changed because one table was dropped - we need to save new value
-      this.saveBottomState();
-
-      // table index was change so we need to get new value
-      tableIndex = this.interlace.getActiveIndex();
-    }
 
     // make block copy
     // Todo: do that in augmentBlock
@@ -377,6 +337,12 @@ export class Indexer {
     this.blockProcessorManager.clear(Np1);
     const time1 = Date.now();
     this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (time=${round(time1 - time0, 2)}ms)`);
+
+    // table interlacing
+    if (this.interlace.update(block.timestamp, block.blockNumber)) {
+      // bottom state was changed because one table was dropped - we need to save new value
+      this.saveBottomState();
+    }
 
     return true;
   }
@@ -435,19 +401,28 @@ export class Indexer {
   }
 
   /////////////////////////////////////////////////////////////
-  // Get sync start block
+  // Syncing start block
   /////////////////////////////////////////////////////////////
 
+  /**
+   * Returns estimated blocks per day.
+   * It is taken into account that we might be using limited history nodes.
+   */
   async getAverageBlocksPerDay(): Promise<number> {
-    const blockNumber0 = (await this.getBlockHeight(`getAverageBlocksPerDay`)) - this.chainConfig.numberOfConfirmations;
-    const blockNumber1 = Math.ceil(blockNumber0 * this.chainConfig.syncAverageBlocksPerDayStartRation);
+    const blockNumberBoundsTop = (await this.getBlockHeight(`getAverageBlocksPerDay`)) - this.chainConfig.numberOfConfirmations;
+    let blockNumberBoundsBottom = Math.ceil(blockNumberBoundsTop * this.chainConfig.syncAverageBlocksPerDayStartRatio);
 
-    const time0 = await this.getBlockNumberTimestamp(blockNumber0);
-    const time1 = await this.getBlockNumberTimestamp(blockNumber1);
+    const bottomBlockNumber = await this.getBottomBlockHeight(`getAverageBlocksPerDay`);
 
-    const time = (time0 - time1) / SECONDS_PER_DAY;
+    // on not full history nodes the lower bounds can be above
+    blockNumberBoundsBottom = Math.max(blockNumberBoundsBottom, bottomBlockNumber);
 
-    return Math.ceil((blockNumber0 - blockNumber1) / time);
+    const timeTop = await this.getBlockNumberTimestamp(blockNumberBoundsTop);
+    const timeBottom = await this.getBlockNumberTimestamp(blockNumberBoundsBottom);
+
+    const days = (timeTop - timeBottom) / SECONDS_PER_DAY;
+
+    return Math.ceil((blockNumberBoundsTop - blockNumberBoundsBottom) / days);
   }
 
   async getSyncStartBlockNumber(): Promise<number> {
@@ -460,28 +435,26 @@ export class Indexer {
       return latestBlockNumber;
     }
 
-    const averageBlocksPerDay = await this.getAverageBlocksPerDay();
-
-    if (averageBlocksPerDay === 0) {
-      this.logger.critical(`${this.chainConfig.name} avg blk per day is zero`);
-      return 0;
-    }
-
-    this.logger.debug(`${this.chainConfig.name} avg blk per day ${averageBlocksPerDay}`);
-
-    let startBlockNumber = Math.floor(latestBlockNumber - this.syncTimeDays() * averageBlocksPerDay);
-
     const syncStartTime = getUnixEpochTimestamp() - this.syncTimeDays() * SECONDS_PER_DAY;
 
-    for (let i = 0; i < 12; i++) {
-      const blockTime = await this.getBlockNumberTimestamp(startBlockNumber);
+    const bottomBlockHeight = await this.getBottomBlockHeight('getSyncStartBlockNumber');
 
-      if (blockTime <= syncStartTime) {
-        return startBlockNumber;
-      }
+    const bottomBlockTime = await this.getBlockNumberTimestamp(bottomBlockHeight);
 
-      // if time is still in the sync period then add one more hour
-      startBlockNumber = Math.floor(startBlockNumber - averageBlocksPerDay / 24);
+    if(bottomBlockTime > syncStartTime) {
+      this.logger.warn(`${this.chainConfig.name} start sync block is set to node bottom block height ${bottomBlockHeight}`);
+
+      return bottomBlockHeight;
+    }
+
+    let blockNumberTop = latestBlockNumber;
+    let blockNumberBottom = bottomBlockHeight;
+
+    while( true  ) {
+      const blockNumberMid = Math.ceil( ( blockNumberTop + blockNumberBottom ) / 2 );
+
+      const blockTimeMid = await this.getBlockNumberTimestamp(blockNumberMid);
+
     }
 
     this.logger.critical(`${this.chainConfig.name} unable to find sync start date`);
@@ -833,7 +806,8 @@ export class Indexer {
       this.dbService,
       this.dbTransactionClasses,
       this.chainConfig.minimalStorageHistoryDays,
-      this.chainConfig.minimalStorageHistoryBlocks
+      this.chainConfig.minimalStorageHistoryBlocks,
+      this.chainConfig.name
     );
 
     // sync date

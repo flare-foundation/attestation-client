@@ -20,8 +20,6 @@
             "numberOfConfirmations": 1,
 
             "syncReadAhead":20,
-            // since XRP nodes may not be full nodes we can limit avarege block start search range
-            "syncAverageBlocksPerDayStartRatio":0.999,
 
             "blockCollecting":"raw",
             "minimalStorageHistoryDays":2,

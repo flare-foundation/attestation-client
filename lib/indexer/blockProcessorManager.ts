@@ -50,7 +50,6 @@ export class BlockProcessorManager {
     criticalAsync(`processSyncBlockNumber -> BlockProcessorManager::process exception: `, () => this.process(block, true));
   }
 
-  // @terminateAppOnException()
   // always run with noAwaitAsyncTerminateAppOnException(`WhereFrom -> blockProcessorManager::processSyncBlockHash exception ` , () => this.blockProcessorManager.processSyncBlockHash(block))
   async processSyncBlockHash(blockHash: string) {
     const cachedBlock = await this.blockHashCache.get(blockHash);
@@ -67,7 +66,6 @@ export class BlockProcessorManager {
     criticalAsync(`processSyncBlockHash -> BlockProcessorManager::process exception: `, () => this.process(block, true));
   }
 
-  // @terminateAppOnException()
   // always call with noAwaitAsyncTerminateAppOnException(`WhereFrom -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(block, syncMode));
   async process(block: IBlock, syncMode = false) {
     let started = false;

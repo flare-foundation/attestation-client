@@ -21,7 +21,7 @@
 
             "syncReadAhead":20,
             // since XRP nodes may not be full nodes we can limit avarege block start search range
-            "syncAverageBlocksPerDayStartRation":0.999,
+            "syncAverageBlocksPerDayStartRatio":0.999,
 
             "blockCollecting":"raw",
             "minimalStorageHistoryDays":2,

@@ -120,7 +120,7 @@ export class HeaderCollector {
     // remove all blockNumbers <= N
     // DANGER: 
 
-    dbBlocks = dbBlocks.filter(dbBlock => dbBlock.blockNumber > this.indexer.lockedUpToN);
+    dbBlocks = dbBlocks.filter(dbBlock => dbBlock.blockNumber > this.indexer.N);
 
     if (dbBlocks.length === 0) {
       //this.logger.debug(`write block headers (no new blocks)`);

@@ -638,8 +638,10 @@ export class Indexer {
     const blocks: LiteBlock[] = await this.cachedClient.client.getTopLiteBlocks(this.T - this.N);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
-    // Save all block headers from tips
-    await this.headerCollector.saveLiteBlocksHeaders(blocks);
+    // Save all block headers from tips above N
+    // Note - N may be very low compared to T, since we are 
+    // before sync.
+    await this.headerCollector.saveBlocksOrHeadersOnNewTips(blocks);
 
     // Sync and save all confirmed blocks from main fork
     await this.runSyncRaw();

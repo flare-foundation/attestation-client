@@ -29,7 +29,16 @@ class PreparedBlock {
     this.transactions = transactions;
   }
 }
-
+/**
+ * Indexer class for a blockchain. It connects to a blockchain node through a cachedClient.
+ * Indexing means the following:
+ * * agressive reading blocks (headers) from all tips 
+ * * managing which blocks are confirmed and storing confirmed transactions from those blocks to
+ *   the database, as soon as they are confirmed.
+ * * front running reading transactions in candidate confirmed blocks using block processor 
+ *   (which helps prioritizing which block is read)
+ * * manages interlaced tables for confirmed transactions (clears old transactions from the database)
+ */
 @Managed()
 export class Indexer {
   config: IndexerConfiguration;
@@ -49,18 +58,27 @@ export class Indexer {
   // T - chain height
   T = 0;
 
+  // candidate block N + 1 hash (usually on main fork)
   blockNp1hash = "";
+  // indicates we are waiting for block N + 1 in processing
   waitNp1 = false;
 
   preparedBlocks = new Map<number, PreparedBlock[]>();
 
+  // two interlacing table entity classes for confirmed transaction storage
   dbTransactionClasses: DBTransactionBase[];
+  // entity class for the block table 
   dbBlockClass;
 
   // bottom block in the transaction tables - used to check if we have enough history
   bottomBlockTime = undefined;
 
+  // indicator for sync mode
   isSyncing = false;
+
+  // lockingVariables
+  lockedUpToN: number = -1;
+  lockN: boolean;
 
   interlace = new Interlacing();
 
@@ -104,6 +122,37 @@ export class Indexer {
     );
 
     this.headerCollector = new HeaderCollector(this.logger, this);
+  }
+
+  /////////////////////////////////////////////////////////////
+  // Locking functions for syncing headers
+  /////////////////////////////////////////////////////////////
+
+  public async lockForN() {
+    while(true) {
+      if(!this.lockN) {
+        this.lockN = true;
+        break;
+      }
+      await sleepms(10);
+    }
+  }
+
+  public unlockForN(){
+    this.lockN = false;
+  }
+
+  public async increaseLockNThreshold(n: number) {
+    if(n <= this.lockedUpToN) {
+      return;
+    }
+    while(true) {
+      if(!this.lockN) {
+        break;
+      }
+      await sleepms(10);
+    }
+    this.lockedUpToN = n;
   }
 
   /////////////////////////////////////////////////////////////
@@ -591,8 +640,7 @@ export class Indexer {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
-            this.cachedClient.reqsPs
+          `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs
           })`
         );
       } else {
@@ -871,7 +919,7 @@ export class Indexer {
       const time0 = getTimeMilli();
       // get chain top block
       this.T = await this.getBlockHeight(`runIndexer2`);
-
+      
       // change getBlock to getBlockHeader
       let blockNp1 = await this.getBlock(`runIndexer2`, this.N + 1);
 

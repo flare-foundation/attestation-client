@@ -75,11 +75,6 @@ export class Indexer {
 
   // indicator for sync mode
   isSyncing = false;
-
-  // lockingVariables
-  lockedUpToN: number = -1;
-  lockN: boolean;
-
   interlace = new Interlacing();
 
   constructor(config: IndexerConfiguration, chainsConfig: ChainsConfiguration, credentials: IndexerCredentials, chainName: string) {
@@ -122,37 +117,6 @@ export class Indexer {
     );
 
     this.headerCollector = new HeaderCollector(this.logger, this);
-  }
-
-  /////////////////////////////////////////////////////////////
-  // Locking functions for syncing headers
-  /////////////////////////////////////////////////////////////
-
-  public async lockForN() {
-    while(true) {
-      if(!this.lockN) {
-        this.lockN = true;
-        break;
-      }
-      await sleepms(10);
-    }
-  }
-
-  public unlockForN(){
-    this.lockN = false;
-  }
-
-  public async increaseLockNThreshold(n: number) {
-    if(n <= this.lockedUpToN) {
-      return;
-    }
-    while(true) {
-      if(!this.lockN) {
-        break;
-      }
-      await sleepms(10);
-    }
-    this.lockedUpToN = n;
   }
 
   /////////////////////////////////////////////////////////////

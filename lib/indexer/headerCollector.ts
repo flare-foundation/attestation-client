@@ -120,9 +120,6 @@ export class HeaderCollector {
     // remove all blockNumbers <= N
     // DANGER: 
 
-    // 
-    await this.indexer.lockForN();
-    
     dbBlocks = dbBlocks.filter(dbBlock => dbBlock.blockNumber > this.indexer.lockedUpToN);
 
     if (dbBlocks.length === 0) {
@@ -133,8 +130,6 @@ export class HeaderCollector {
     this.logger.debug(`write block headers ${blocksText}]`);
 
     await retry(`saveBlocksHeadersArray`, async () => await this.indexer.dbService.manager.save(dbBlocks));
-
-    this.indexer.unlockForN();
   }
 
   /////////////////////////////////////////////////////////////

@@ -1,10 +1,13 @@
 import { IBlock, Managed } from "@flarenetwork/mcc";
 import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
 import { AttLogger } from "../utils/logger";
-import { retry, retryMany } from "../utils/PromiseTimeout";
+import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 
+/**
+ * Manages the block header collection on a blockchain.
+ */
 @Managed()
 export class HeaderCollector {
   private indexer: Indexer;
@@ -38,11 +41,19 @@ export class HeaderCollector {
   // saving blocks
   /////////////////////////////////////////////////////////////
 
-  async saveLiteBlocksHeaders(blocks: LiteBlock[]) {
-    await this.saveBlocksHeadersArray(blocks);
-  }
-
-  async saveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
+  /**
+   * Saves block headers in the range of block numbers. It is used on chains without
+   * forks.
+   * @param fromBlockNumber starting block number (included, should be greater than N on indexer)
+   * @param toBlockNumberInc ending block number (included)
+   */
+  public async readAndSaveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
+    // assert - this should never happen
+    if(fromBlockNumber <= this.indexer.N) {
+      let onFailure = getRetryFailureCallback();
+      onFailure("saveBlocksHeaders: fromBlock too low");
+      // this should exit the program
+    }
     const blockPromisses = [];
 
     for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++) {
@@ -58,10 +69,19 @@ export class HeaderCollector {
 
     const blocks = (await retryMany(`saveBlocksHeaders`, blockPromisses, 5000, 5)) as IBlock[];
 
-    await this.saveBlocksHeadersArray(blocks);
+    await this.saveBlocksOrHeadersOnNewTips(blocks);
   }
 
-  async saveBlocksHeadersArray(blocks: IBlock[]) {
+  /**
+   * Saves blocks or headers in the array, if block.number > N.
+   * Block numbers <= N are ignored.
+   * Note that for case of non-forkable chains it caches mapping 
+   * from block number to block (header). This mapping (`blockNumberHash`)
+   * should not be used with forkable chains.
+   * @param blocks array of headers
+   * @returns 
+   */
+  public async saveBlocksOrHeadersOnNewTips(blocks: IBlock[]) {
     let blocksText = "[";
 
     const dbBlocks = [];
@@ -81,6 +101,7 @@ export class HeaderCollector {
         blocksText += blockNumber.toString() + ",";
       }
 
+      // TODO: The cache is irrelevant, if not on the main fork
       this.cacheBlock(block);
 
       const dbBlock = new this.indexer.dbBlockClass();
@@ -110,8 +131,11 @@ export class HeaderCollector {
   /////////////////////////////////////////////////////////////
   // save state
   /////////////////////////////////////////////////////////////
-
-  async writeT(T: number) {
+  /**
+   * Saves the last top height into the database state
+   * @param T top height
+   */
+  private async writeT(T: number) {
     // every update save last T
     const stateTcheckTime = this.indexer.getStateEntry("T", T);
 
@@ -122,6 +146,9 @@ export class HeaderCollector {
   // header collectors
   /////////////////////////////////////////////////////////////
 
+  /**
+   * Collects blocks (headers) on non-forkable chains
+   */
   async runBlockHeaderCollectingRaw() {
     let localN = this.indexer.N;
     let localBlockNp1hash = "";
@@ -146,8 +173,10 @@ export class HeaderCollector {
         continue;
       }
 
-      // save block headers N+1 ... T
-      await this.saveBlocksHeaders(localN + 1, localT);
+      // reads and saves block headers N+1 ... T
+      // caches read blocks
+      // TODO: we read the block N + 1 again - optimize
+      await this.readAndSaveBlocksHeaders(localN + 1, localT);
 
       while (localN < localT - this.indexer.chainConfig.numberOfConfirmations) {
         if (this.blockHeaderNumber.has(localN)) {
@@ -166,10 +195,10 @@ export class HeaderCollector {
     }
   }
 
+  /**
+   * Collects block headers on forkable (PoW/UTXO) chains and saves them into the database
+   */
   async runBlockHeaderCollectingTips() {
-    let localN = this.indexer.N;
-    let localBlockNp1hash = "";
-
     while (true) {
       // get chain top block
       const localT = await this.indexer.getBlockHeight(`runBlockHeaderCollectingRaw`);
@@ -178,7 +207,7 @@ export class HeaderCollector {
 
       const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
 
-      await this.saveLiteBlocksHeaders(blocks);
+      await this.saveBlocksOrHeadersOnNewTips(blocks);
 
       await sleepms(100);
     }

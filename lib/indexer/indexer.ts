@@ -405,67 +405,81 @@ export class Indexer {
   /////////////////////////////////////////////////////////////
 
   /**
-   * Returns estimated blocks per day.
-   * It is taken into account that we might be using limited history nodes.
+   * Calculate the starting block number for sync
+   * @returns block number from where to start the sync
    */
-  async getAverageBlocksPerDay(): Promise<number> {
-    const blockNumberBoundsTop = (await this.getBlockHeight(`getAverageBlocksPerDay`)) - this.chainConfig.numberOfConfirmations;
-    let blockNumberBoundsBottom = Math.ceil(blockNumberBoundsTop * this.chainConfig.syncAverageBlocksPerDayStartRatio);
-
-    const bottomBlockNumber = await this.getBottomBlockHeight(`getAverageBlocksPerDay`);
-
-    // on not full history nodes the lower bounds can be above
-    blockNumberBoundsBottom = Math.max(blockNumberBoundsBottom, bottomBlockNumber);
-
-    const timeTop = await this.getBlockNumberTimestamp(blockNumberBoundsTop);
-    const timeBottom = await this.getBlockNumberTimestamp(blockNumberBoundsBottom);
-
-    const days = (timeTop - timeBottom) / SECONDS_PER_DAY;
-
-    return Math.ceil((blockNumberBoundsTop - blockNumberBoundsBottom) / days);
-  }
-
   async getSyncStartBlockNumber(): Promise<number> {
     this.logger.info(`getSyncStartBlockNumber`);
 
     const latestBlockNumber = (await this.getBlockHeight(`getSyncStartBlockNumber`)) - this.chainConfig.numberOfConfirmations;
 
     if (this.chainConfig.blockCollecting === "latestBlock") {
+      // We start collecting with the latest observed block (as setup in config)
       this.logger.debug2(`blockCollecting latestBlock T=${latestBlockNumber}`);
       return latestBlockNumber;
     }
 
     const syncStartTime = getUnixEpochTimestamp() - this.syncTimeDays() * SECONDS_PER_DAY;
+    const latestBlockTime = await this.getBlockNumberTimestamp(latestBlockNumber);
 
-    const bottomBlockHeight = await this.getBottomBlockHeight('getSyncStartBlockNumber');
+    if (latestBlockTime <= syncStartTime) {
+      // This is the case where on blockchain there were no blocks after the sync time
+      // Start syncing with the latest observed block
+      this.logger.debug2(`latest block time before wanted syncStartTime T=${latestBlockNumber}`);
+      return latestBlockNumber;
+    }
 
+    const bottomBlockHeight = await this.getBottomBlockHeight("getSyncStartBlockNumber");
     const bottomBlockTime = await this.getBlockNumberTimestamp(bottomBlockHeight);
 
-    if(bottomBlockTime > syncStartTime) {
+    if (bottomBlockTime >= syncStartTime) {
       this.logger.warn(`${this.chainConfig.name} start sync block is set to node bottom block height ${bottomBlockHeight}`);
-
       return bottomBlockHeight;
     }
 
+    // We ensured that blockNumberBottom.timestamp < syncStartTime < blockNumberTop.timestamp
     let blockNumberTop = latestBlockNumber;
     let blockNumberBottom = bottomBlockHeight;
-
-    while( true  ) {
-      const blockNumberMid = Math.ceil( ( blockNumberTop + blockNumberBottom ) / 2 );
-
+    if (blockNumberBottom > blockNumberTop) {
+      // This should never happen if nodes and mcc work as expected
+      failureCallback(`Bottom block is larger than top block, bottom: ${blockNumberBottom}, top: ${blockNumberTop}`);
+    }
+    while (blockNumberTop > blockNumberBottom) {
+      const blockNumberMid = Math.floor((blockNumberTop + blockNumberBottom) / 2);
+      // We have 3 cases for sync start time
+      //        1     2     3
+      //        |     |     |
+      //  o-----------O-----------o
+      // Bot         Mid         Top
       const blockTimeMid = await this.getBlockNumberTimestamp(blockNumberMid);
 
+      if (blockTimeMid < syncStartTime) {
+        // Case 3
+        blockNumberBottom = blockNumberMid;
+      } else {
+        // Case 1: We are looking for block before the current mid block
+        // Case 2: We are looking for potential blocks that had the same timestamp as this block but happened before
+        blockNumberTop = blockNumberMid;
+      }
     }
 
-    this.logger.critical(`${this.chainConfig.name} unable to find sync start date`);
-
-    return startBlockNumber;
+    return blockNumberTop;
   }
 
   /////////////////////////////////////////////////////////////
   //
   /////////////////////////////////////////////////////////////
 
+  /**
+   * This method either
+   *  * saves the next confirmed block (N+1) and returns true
+   *  * indicates that no candidate block N+1 is in processing and returns false
+   *  * waits for the unique N+1 block is processed and saved and returns true
+   *
+   * Assumptions
+   *  * Block N+1 is confirmed.
+   * @returns true: block was successfully saved, false: no block on height N+1 is processed or in processing
+   */
   async saveOrWaitNp1Block(): Promise<boolean> {
     const Np1 = this.N + 1;
 
@@ -475,9 +489,10 @@ export class Indexer {
       // check if N+1 with blockNp1hash is already prepared (otherwise wait for it)
       for (let preparedBlock of preparedBlocks) {
         if (preparedBlock.block.blockHash === this.blockNp1hash) {
-          // save prepared N+1 block with active hash
+          // save prepared N+1 block with active hash and increment this.N
           await this.blockSave(preparedBlock.block, preparedBlock.transactions);
 
+          // The assumption is that other blocks are invalid (orphaned) blocks
           this.preparedBlocks.delete(Np1);
 
           return true;
@@ -496,11 +511,11 @@ export class Indexer {
 
     if (!exists) {
       this.logger.error2(`N+1 (${Np1}) block not in processor`);
-      //throw new Error(`N+1 (${Np1}) block not in processor`);
+      // False is returned to indicate that further waiting needs to be done, recheck this at later time
       return false;
     }
 
-    // wait until N+1 block is saved (blockCompleted will save it immediatelly)
+    // wait until N+1 block is saved (blockCompleted will save it immediately)
     this.waitNp1 = true;
 
     this.logger.debug(`^Gwaiting for block N=${Np1}`);
@@ -511,6 +526,7 @@ export class Indexer {
     while (this.waitNp1) {
       await sleepms(100);
 
+      // If block processing takes more than 5 seconds we start to log warnings every 5 seconds
       if (Date.now() - timeStart > 5000) {
         this.logger.warning(`saveOrWaitNp1Block timeout`);
         timeStart = Date.now();
@@ -524,6 +540,10 @@ export class Indexer {
   // Sync functions
   /////////////////////////////////////////////////////////////
 
+  /**
+   *
+   * @returns
+   */
   async runSyncRaw() {
     // for status display
     let statsN = this.N;
@@ -570,7 +590,8 @@ export class Indexer {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs
+          `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
+            this.cachedClient.reqsPs
           })`
         );
       } else {
@@ -583,6 +604,7 @@ export class Indexer {
       if (this.N >= this.T - this.chainConfig.numberOfConfirmations) {
         this.logger.group("SyncRaw completed");
         this.isSyncing = false;
+        // To break the sync while(true) loop
         return;
       }
 
@@ -596,9 +618,10 @@ export class Indexer {
         );
       }
 
-      const blocknp1 = await this.cachedClient.getBlock(this.N + 1);
-      this.blockNp1hash = blocknp1.stdBlockHash;
+      const blockNp1 = await this.cachedClient.getBlock(this.N + 1);
+      this.blockNp1hash = blockNp1.stdBlockHash;
 
+      // We wait until block N+1 is either saved or indicated that there is no such block
       while (!(await this.saveOrWaitNp1Block())) {
         await sleepms(100);
         this.logger.debug(`runSyncRaw wait save N=${this.N} T=${this.T}`);
@@ -606,62 +629,80 @@ export class Indexer {
     }
   }
 
+  /**
+   *
+   */
   async runSyncTips() {
-    // for status display
-    let statsN = this.N;
-    let statsTime = Date.now();
-    let statsBlocksPerSec = 0;
-
-    this.T = await this.getBlockHeight(`runSyncTips1`);
-
+    // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
     const blocks: LiteBlock[] = await this.cachedClient.client.getTopLiteBlocks(this.T - this.N);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
-    this.isSyncing = true;
+    // Save all block headers from tips above N
+    // Note - N may be very low compared to T, since we are 
+    // before sync.
+    await this.headerCollector.saveBlocksOrHeadersOnNewTips(blocks);
 
-    const start = Date.now();
-
-    for (let i = 1; i < blocks.length - this.chainConfig.numberOfConfirmations; i++) {
-      await this.blockProcessorManager.processSyncBlockHash(blocks[i].stdBlockHash);
-
-      for (let j = i + 1; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
-        criticalAsync(`runSyncTips -> blockProcessorManager::processSyncBlockHash exception `, () =>
-          this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash)
-        );
-      }
-
-      const block = blocks[i];
-
-      this.N = block.number - 1;
-      this.blockNp1hash = block.stdBlockHash;
-
-      await this.saveOrWaitNp1Block();
-
-      // stats
-      const now = Date.now();
-
-      statsBlocksPerSec = ((i + 1) * 1000) / (now - start);
-      statsN = this.N;
-      statsTime = now;
-
-      const timeLeft = (this.T - this.N) / statsBlocksPerSec;
-
-      const dbStatus = this.getStateEntryString("state", "sync", -1);
-      dbStatus.valueNumber = timeLeft;
-
-      await retry(`runSyncTips::saveStatus`, async () => this.dbService.manager.save(dbStatus));
-
-      const blockLeft = this.T - block.number;
-
-      this.logger.debug(
-        `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`
-      );
-    }
-
-    this.logger.group("Sync completed");
-    this.isSyncing = false;
+    // Sync and save all confirmed blocks from main fork
+    await this.runSyncRaw();
   }
+
+  // async runSyncTipsOld() {
+  //   // for status display
+  //   let statsN = this.N;
+  //   let statsTime = Date.now();
+  //   let statsBlocksPerSec = 0;
+
+  //   this.T = await this.getBlockHeight(`runSyncTips1`);
+
+  //   this.logger.info(`collecting top blocks...`);
+  //   const blocks: LiteBlock[] = await this.cachedClient.client.getTopLiteBlocks(this.T - this.N);
+  //   this.logger.debug(`${blocks.length} block(s) collected`);
+
+  //   this.isSyncing = true;
+
+  //   const start = Date.now();
+
+  //   for (let i = 1; i < blocks.length - this.chainConfig.numberOfConfirmations; i++) {
+  //     await this.blockProcessorManager.processSyncBlockHash(blocks[i].stdBlockHash);
+
+  //     for (let j = i + 1; j < i + this.chainConfig.syncReadAhead && j < blocks.length; j++) {
+  //       criticalAsync(`runSyncTips -> blockProcessorManager::processSyncBlockHash exception `, () =>
+  //         this.blockProcessorManager.processSyncBlockHash(blocks[j].stdBlockHash)
+  //       );
+  //     }
+
+  //     const block = blocks[i];
+
+  //     this.N = block.number - 1;
+  //     this.blockNp1hash = block.stdBlockHash;
+
+  //     await this.saveOrWaitNp1Block();
+
+  //     // stats
+  //     const now = Date.now();
+
+  //     statsBlocksPerSec = ((i + 1) * 1000) / (now - start);
+  //     statsN = this.N;
+  //     statsTime = now;
+
+  //     const timeLeft = (this.T - this.N) / statsBlocksPerSec;
+
+  //     const dbStatus = this.getStateEntryString("state", "sync", -1);
+  //     dbStatus.valueNumber = timeLeft;
+
+  //     await retry(`runSyncTips::saveStatus`, async () => this.dbService.manager.save(dbStatus));
+
+  //     const blockLeft = this.T - block.number;
+
+  //     this.logger.debug(
+  //       `sync ${this.N} to ${this.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.cachedClient.reqsPs})`
+  //     );
+  //   }
+
+  //   this.logger.group("Sync completed");
+  //   this.isSyncing = false;
+  // }
 
   async runSyncLatestBlock() {
     this.N = await this.getBlockHeight(`getLatestBlock`);

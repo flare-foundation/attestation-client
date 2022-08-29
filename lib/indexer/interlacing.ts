@@ -10,9 +10,11 @@ import { SECONDS_PER_DAY } from "./indexer-utils";
  * 
  * We have two tables that we use to optimize how to control number if items in the tables.
  * 
- * We first fill one table when we reach table limits we continue on another and once this one is filled, we drop the 1st and recreate new and continue on it.
+ * We first fill one table when we reach table limits we continue with another and once this one is filled as well, 
+ * we drop the first one and recreate a new one and continue on it. 
  * 
- * When one table has more than endBlock blocks and last block timestamp is above endTime we drop the last table and create a new one.
+ * When one table has more than `endBlock` blocks and last block timestamp is above `endTime` we drop 
+ * the last table and create a new one.
  */
 @Managed()
 export class Interlacing {
@@ -39,18 +41,18 @@ export class Interlacing {
    * @param logger 
    * @param dbService 
    * @param dbClasses 
-   * @param timeRange 
+   * @param timeRangeSec 
    * @param blockRange 
    * @param chainName 
    * @returns 
    */
-  public async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRange: number, blockRange: number, chainName: string) {
+  public async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRangeSec: number, blockRange: number, chainName: string) {
     const items = [];
 
     this.logger = logger;
     this.dbService = dbService;
 
-    this.timeRange = timeRange * SECONDS_PER_DAY;
+    this.timeRange = timeRangeSec * SECONDS_PER_DAY;
     this.blockRange = blockRange;
 
     this.chainName = chainName;
@@ -100,7 +102,7 @@ export class Interlacing {
   }
 
   /**
-   * Given new block data checks the conditions and performs table swap if necessary.
+   * Given a new block data checks the conditions and performs table change if necessary.
    * 
    * @param blockTime 
    * @param blockNumber 

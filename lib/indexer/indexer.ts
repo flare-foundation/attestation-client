@@ -444,7 +444,8 @@ export class Indexer {
       // This should never happen if nodes and mcc work as expected
       failureCallback(`Bottom block is larger than top block, bottom: ${blockNumberBottom}, top: ${blockNumberTop}`);
     }
-    while (blockNumberTop > blockNumberBottom) {
+    // Returns exact block or 1 block earlier than sync start time
+    while (blockNumberTop > blockNumberBottom + 1) {
       const blockNumberMid = Math.floor((blockNumberTop + blockNumberBottom) / 2);
       // We have 3 cases for sync start time
       //        1     2     3
@@ -463,7 +464,7 @@ export class Indexer {
       }
     }
 
-    return blockNumberTop;
+    return blockNumberBottom;
   }
 
   /////////////////////////////////////////////////////////////

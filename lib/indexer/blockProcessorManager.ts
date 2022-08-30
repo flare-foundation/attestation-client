@@ -17,7 +17,9 @@ export class BlockProcessorManager {
 
   cachedClient: CachedMccClient;
 
+  // Called on block processing completion
   completeCallback: any;
+  // Called if before actual block processing we find out that the block processing is already completed.
   alreadyCompleteCallback: any;
 
   blockCache = new Map<number, IBlock>();

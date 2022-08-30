@@ -17,6 +17,7 @@ import { getGlobalLogger, logException } from "../utils/logger";
 import { getRetryFailureCallback } from "../utils/PromiseTimeout";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
+export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
 
 /**
  * Returns a pair of entity tables for transactions used in interlacing tables.

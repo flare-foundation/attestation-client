@@ -51,7 +51,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
       return;
     }
 
-    const blockDb = await augmentBlock(block);
+    const blockDb = await augmentBlock(this.indexer, block);
 
     this.stop();
 
@@ -98,7 +98,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     this.markTopLevelJobDone();
 
-    const blockDb = await augmentBlock(block);
+    const blockDb = await augmentBlock(this.indexer, block);
 
     this.stop();
 
@@ -118,7 +118,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
     });
     const transDb = (await retryMany(`AlgoBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry)) as DBTransactionBase[];
     this.pause();
-    const blockDb = await augmentBlock(block);
+    const blockDb = await augmentBlock(this.indexer, block);
 
     criticalAsync(`AlgoBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
@@ -142,7 +142,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
     });
     const transDb = (await retryMany(`XrpBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry)) as DBTransactionBase[];
     this.stop();
-    const blockDb = await augmentBlock(block);
+    const blockDb = await augmentBlock(this.indexer, block);
 
     criticalAsync(`XrpBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }

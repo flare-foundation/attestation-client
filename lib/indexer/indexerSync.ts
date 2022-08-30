@@ -7,14 +7,9 @@ import { Indexer } from "./indexer";
 import { criticalAsync, SECONDS_PER_DAY } from "./indexer-utils";
 
 /**
- * Indexer class for a blockchain. It connects to a blockchain node through a cachedClient.
- * Indexing means the following:
- * * agressive reading blocks (headers) from all tips 
- * * managing which blocks are confirmed and storing confirmed transactions from those blocks to
- *   the database, as soon as they are confirmed.
- * * front running reading transactions in candidate confirmed blocks using block processor 
- *   (which helps prioritizing which block is read)
- * * manages interlaced tables for confirmed transactions (clears old transactions from the database)
+ * Takes care of indexing confirmed blocks in the past (performs syncing to up-to-date).
+ * In brings the indexer database to up-to date state where only real-time blocks are 
+ * processed.
  */
 @Managed()
 export class IndexerSync {
@@ -36,13 +31,13 @@ export class IndexerSync {
   /////////////////////////////////////////////////////////////
 
   /**
-   * Calculate the starting block number for sync
+   * Calculates the starting block number for sync
    * @returns block number from where to start the sync
    */
-  async getSyncStartBlockNumber(): Promise<number> {
+  public async getSyncStartBlockNumber(): Promise<number> {
     this.logger.info(`getSyncStartBlockNumber`);
 
-    const latestBlockNumber = (await this.indexer.getBlockHeight(`getSyncStartBlockNumber`)) - this.indexer.chainConfig.numberOfConfirmations;
+    const latestBlockNumber = (await this.indexer.getBlockHeightFromClient(`getSyncStartBlockNumber`)) - this.indexer.chainConfig.numberOfConfirmations;
 
     if (this.indexer.chainConfig.blockCollecting === "latestBlock") {
       // We start collecting with the latest observed block (as setup in config)
@@ -51,7 +46,7 @@ export class IndexerSync {
     }
 
     const syncStartTime = getUnixEpochTimestamp() - this.indexer.syncTimeDays() * SECONDS_PER_DAY;
-    const latestBlockTime = await this.indexer.getBlockNumberTimestamp(latestBlockNumber);
+    const latestBlockTime = await this.indexer.getBlockNumberTimestampFromClient(latestBlockNumber);
 
     if (latestBlockTime <= syncStartTime) {
       // This is the case where on blockchain there were no blocks after the sync time
@@ -60,8 +55,8 @@ export class IndexerSync {
       return latestBlockNumber;
     }
 
-    const bottomBlockHeight = await this.indexer.getBottomBlockHeight("getSyncStartBlockNumber");
-    const bottomBlockTime = await this.indexer.getBlockNumberTimestamp(bottomBlockHeight);
+    const bottomBlockHeight = await this.indexer.getBottomBlockHeightFromClient("getSyncStartBlockNumber");
+    const bottomBlockTime = await this.indexer.getBlockNumberTimestampFromClient(bottomBlockHeight);
 
     if (bottomBlockTime >= syncStartTime) {
       this.logger.warn(`${this.indexer.chainConfig.name} start sync block is set to node bottom block height ${bottomBlockHeight}`);
@@ -85,7 +80,7 @@ export class IndexerSync {
       //        |     |     |
       //  o-----------O-----------o
       // Bot         Mid         Top
-      const blockTimeMid = await this.indexer.getBlockNumberTimestamp(blockNumberMid);
+      const blockTimeMid = await this.indexer.getBlockNumberTimestampFromClient(blockNumberMid);
       blockRead++;
 
       if (blockTimeMid < syncStartTime) {
@@ -98,27 +93,22 @@ export class IndexerSync {
       }
     }
 
-    const blockNumberBottomTime = await this.indexer.getBlockNumberTimestamp(blockNumberBottom);
+    const blockNumberBottomTime = await this.indexer.getBlockNumberTimestampFromClient(blockNumberBottom);
     this.logger.debug2(`getSyncStartBlockNumber info: block number ${blockNumberBottom} block time ${blockNumberBottomTime} start time ${syncStartTime} (block read ${blockRead})`);
 
     return blockNumberBottom;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Sync functions
-  /////////////////////////////////////////////////////////////
-
   /**
-   *
-   * @returns
+   * Performs syncing. When syncing to the latest block is done, the function exits.
    */
-  async runSyncRaw() {
+  private async runSyncRaw() {
     // for status display
     let statsN = this.indexer.N;
     let statsTime = Date.now();
     let statsBlocksPerSec = 0;
 
-    this.indexer.T = await this.indexer.getBlockHeight(`runSyncRaw1`);
+    this.indexer.T = await this.indexer.getBlockHeightFromClient(`runSyncRaw1`);
 
     this.isSyncing = true;
 
@@ -136,7 +126,7 @@ export class IndexerSync {
         statsTime = now;
 
         // take actual top
-        this.indexer.T = await this.indexer.getBlockHeight(`runSyncRaw2`);
+        this.indexer.T = await this.indexer.getBlockHeightFromClient(`runSyncRaw2`);
       }
 
       // wait until we save N+1 block
@@ -189,7 +179,7 @@ export class IndexerSync {
       this.indexer.blockNp1hash = blockNp1.stdBlockHash;
 
       // We wait until block N+1 is either saved or indicated that there is no such block
-      while (!(await this.indexer.saveOrWaitNp1Block())) {
+      while (!(await this.indexer.trySaveNp1Block())) {
         await sleepms(100);
         this.logger.debug(`runSyncRaw wait save N=${this.indexer.N} T=${this.indexer.T}`);
       }
@@ -197,10 +187,11 @@ export class IndexerSync {
   }
 
   /**
-   *
+   * Carries out special type of syncing for forkable blockchains.
+   * Headers of blocks in forks are collected in addition to indexing the main fork.
    */
-  async runSyncTips() {
-    this.indexer.T = await this.indexer.getBlockHeight(`runSyncTips`);
+  private async runSyncTips() {
+    this.indexer.T = await this.indexer.getBlockHeightFromClient(`runSyncTips`);
 
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
@@ -216,15 +207,30 @@ export class IndexerSync {
     await this.runSyncRaw();
   }
 
-  async runSyncLatestBlock() {
-    this.indexer.N = await this.indexer.getBlockHeight(`getLatestBlock`);
+  /**
+   * Carries out syncing from the latest block. Used for testing purposes only.
+   */
+  private async runSyncLatestBlock() {
+    this.indexer.N = await this.indexer.getBlockHeightFromClient(`getLatestBlock`);
 
     this.logger.debug2(`runSyncLatestBlock latestBlock ${this.indexer.N}`);
 
     await this.runSyncRaw();
   }
 
-  async runSync() {
+  /**
+   * Syncs blocks depending on mode set in configuration.
+   */
+  public async runSync() {
+    if (!this.indexer.config.syncEnabled) {
+      return;
+    }
+    const syncStartBlockNumber = await this.getSyncStartBlockNumber();
+
+    this.indexer.N = Math.max(this.indexer.N, syncStartBlockNumber);
+
+    this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);
+
     switch (this.indexer.chainConfig.blockCollecting) {
       case "raw":
       case "rawUnforkable":

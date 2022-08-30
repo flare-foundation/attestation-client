@@ -64,7 +64,7 @@ export class HeaderCollector {
       //     continue;
       //   }
       // }
-      blockPromisses.push(async () => this.indexer.getBlock(`saveBlocksHeaders`, blockNumber));
+      blockPromisses.push(async () => this.indexer.getBlockFromClient(`saveBlocksHeaders`, blockNumber));
     }
 
     let blocks = (await retryMany(`saveBlocksHeaders`, blockPromisses, 5000, 5)) as IBlock[];
@@ -78,6 +78,10 @@ export class HeaderCollector {
    * Note that for case of non-forkable chains it caches mapping 
    * from block number to block (header). This mapping (`blockNumberHash`)
    * should not be used with forkable chains.
+   * 
+   * NOTE: the function is not subject to race conditions with processing of 
+   * confirmed blocks since only blockNumber, blockHash and timestamp are updated
+   * in the block table if an entry in dbBlock table already exists.
    * @param blocks array of headers
    * @returns 
    */
@@ -118,8 +122,6 @@ export class HeaderCollector {
     }
 
     // remove all blockNumbers <= N
-    // DANGER: 
-
     dbBlocks = dbBlocks.filter(dbBlock => dbBlock.blockNumber > this.indexer.N);
 
     if (dbBlocks.length === 0) {
@@ -157,7 +159,7 @@ export class HeaderCollector {
     let T = -1;
     while (true) {
       // get chain top block
-      const newT = await this.indexer.getBlockHeight(`runBlockHeaderCollectingRaw`);
+      const newT = await this.indexer.getBlockHeightFromClient(`runBlockHeaderCollectingRaw`);
       if(T != newT) {
         await this.writeT(newT);
         T = newT;
@@ -166,54 +168,6 @@ export class HeaderCollector {
     }
   }
 
-  // async runBlockHeaderCollectingRaw() {
-  //   let localN = this.indexer.N;
-  //   let localBlockNp1hash = "";
-
-  //   // add initial number !!! TODO
-  //   this.blockHeaderNumber.add(localN);
-
-  //   while (true) {
-  //     // get chain top block
-  //     // TODO: names of functions are ambiguous
-  //     const localT = await this.indexer.getBlockHeight(`runBlockHeaderCollectingRaw`);
-  //     const blockNp1 = (await this.indexer.getBlock(`runBlockHeaderCollectingRaw1`, localN + 1)) as IBlock;
-
-  //     // has N+1 confirmation block
-  //     const isNp1Confirmed = localN < localT - this.indexer.chainConfig.numberOfConfirmations;
-  //     const isChangedNp1Hash = localBlockNp1hash !== blockNp1.stdBlockHash;
-
-  //     await this.writeT(localT);
-
-  //     // check if N + 1 hash is the same
-  //     if (!isNp1Confirmed && !isChangedNp1Hash) {
-  //       await sleepms(this.indexer.config.blockCollectTimeMs);
-  //       continue;
-  //     }
-
-  //     // reads and saves block headers N+1 ... T
-  //     // caches read blocks
-  //     // TODO: we read the block N + 1 again - optimize
-  //     await this.readAndSaveBlocksHeaders(localN + 1, localT);
-
-  //     // jump over confirmed blocks
-  //     // while (localN < localT - this.indexer.chainConfig.numberOfConfirmations) {
-  //     //   if (this.blockHeaderNumber.has(localN)) {
-  //     //     this.logger.debug2(`runBlockCollector N=${localN}++`);
-
-  //     //     localN++;
-  //     //     await sleepms(100);
-  //     //     continue;
-  //     //   }
-  //     //   break;
-  //     // }
-  //     localN = this.indexer.N;
-  //     this.logger.debug1(`runBlockCollector final N=${localN}`);
-
-  //     localBlockNp1hash = this.blockNumberHash.get(localN + 1); 
-  //   }
-  // }
-
   /**
    * Collects block headers on forkable (PoW/UTXO) chains and saves them into the database
    */
@@ -221,7 +175,7 @@ export class HeaderCollector {
     let T = -1;
     while (true) {
       // get chain top block
-      const newT = await this.indexer.getBlockHeight(`runBlockHeaderCollectingTips`);
+      const newT = await this.indexer.getBlockHeightFromClient(`runBlockHeaderCollectingTips`);
       if(T != newT) {
         await this.writeT(newT);
         T = newT;

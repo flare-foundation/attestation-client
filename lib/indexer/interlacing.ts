@@ -68,23 +68,23 @@ export class Interlacing {
       return;
     }
 
-    let itemIndex = 0;
+    this.index = 0;
 
     if (items[0].length && items[1].length) {
       // if both exists take the last one
       if (items[0][0].timestamp < items[1][0].timestamp) {
-        itemIndex = 1;
+        this.index = 1;
       }
     } else {
       // if one is missing take the one that exists
       if (items[1].length) {
-        itemIndex = 1;
+        this.index = 1;
       }
     }
 
     // setup last active index end values
-    this.endBlockTime = items[itemIndex][0].timestamp + this.timeRange;
-    this.endBlockNumber = items[itemIndex][0].blockNumber + this.blockRange;
+    this.endBlockTime = items[this.index][0].timestamp + this.timeRange;
+    this.endBlockNumber = items[this.index][0].blockNumber + this.blockRange;
   }
 
   public getActiveIndex() {

@@ -1,0 +1,242 @@
+import { Managed } from "@flarenetwork/mcc";
+import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
+import { AttLogger } from "../utils/logger";
+import { failureCallback, retry } from "../utils/PromiseTimeout";
+import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
+import { Indexer } from "./indexer";
+import { criticalAsync, SECONDS_PER_DAY } from "./indexer-utils";
+
+/**
+ * Indexer class for a blockchain. It connects to a blockchain node through a cachedClient.
+ * Indexing means the following:
+ * * agressive reading blocks (headers) from all tips 
+ * * managing which blocks are confirmed and storing confirmed transactions from those blocks to
+ *   the database, as soon as they are confirmed.
+ * * front running reading transactions in candidate confirmed blocks using block processor 
+ *   (which helps prioritizing which block is read)
+ * * manages interlaced tables for confirmed transactions (clears old transactions from the database)
+ */
+@Managed()
+export class IndexerSync {
+  indexer: Indexer;
+
+  logger: AttLogger;
+
+  // indicator for sync mode
+  isSyncing = false;
+
+  constructor(indexer: Indexer) {
+    this.indexer = indexer;
+
+    this.logger = indexer.logger;
+  }
+
+  /////////////////////////////////////////////////////////////
+  // Syncing start block
+  /////////////////////////////////////////////////////////////
+
+  /**
+   * Calculate the starting block number for sync
+   * @returns block number from where to start the sync
+   */
+  async getSyncStartBlockNumber(): Promise<number> {
+    this.logger.info(`getSyncStartBlockNumber`);
+
+    const latestBlockNumber = (await this.indexer.getBlockHeight(`getSyncStartBlockNumber`)) - this.indexer.chainConfig.numberOfConfirmations;
+
+    if (this.indexer.chainConfig.blockCollecting === "latestBlock") {
+      // We start collecting with the latest observed block (as setup in config)
+      this.logger.debug2(`blockCollecting latestBlock T=${latestBlockNumber}`);
+      return latestBlockNumber;
+    }
+
+    const syncStartTime = getUnixEpochTimestamp() - this.indexer.syncTimeDays() * SECONDS_PER_DAY;
+    const latestBlockTime = await this.indexer.getBlockNumberTimestamp(latestBlockNumber);
+
+    if (latestBlockTime <= syncStartTime) {
+      // This is the case where on blockchain there were no blocks after the sync time
+      // Start syncing with the latest observed block
+      this.logger.debug2(`latest block time before wanted syncStartTime T=${latestBlockNumber}`);
+      return latestBlockNumber;
+    }
+
+    const bottomBlockHeight = await this.indexer.getBottomBlockHeight("getSyncStartBlockNumber");
+    const bottomBlockTime = await this.indexer.getBlockNumberTimestamp(bottomBlockHeight);
+
+    if (bottomBlockTime >= syncStartTime) {
+      this.logger.warn(`${this.indexer.chainConfig.name} start sync block is set to node bottom block height ${bottomBlockHeight}`);
+      return bottomBlockHeight;
+    }
+
+    // We ensured that blockNumberBottom.timestamp < syncStartTime < blockNumberTop.timestamp
+    let blockNumberTop = latestBlockNumber;
+    let blockNumberBottom = bottomBlockHeight;
+    if (blockNumberBottom > blockNumberTop) {
+      // This should never happen if nodes and mcc work as expected
+      failureCallback(`Bottom block is larger than top block, bottom: ${blockNumberBottom}, top: ${blockNumberTop}`);
+    }
+
+    // Returns exact block or 1 block earlier than sync start time
+    let blockRead = 2;
+    while (blockNumberTop > blockNumberBottom + 1) {
+      const blockNumberMid = Math.floor((blockNumberTop + blockNumberBottom) / 2);
+      // We have 3 cases for sync start time
+      //        1     2     3
+      //        |     |     |
+      //  o-----------O-----------o
+      // Bot         Mid         Top
+      const blockTimeMid = await this.indexer.getBlockNumberTimestamp(blockNumberMid);
+      blockRead++;
+
+      if (blockTimeMid < syncStartTime) {
+        // Case 3
+        blockNumberBottom = blockNumberMid;
+      } else {
+        // Case 1: We are looking for block before the current mid block
+        // Case 2: We are looking for potential blocks that had the same timestamp as this block but happened before
+        blockNumberTop = blockNumberMid;
+      }
+    }
+
+    const blockNumberBottomTime = await this.indexer.getBlockNumberTimestamp(blockNumberBottom);
+    this.logger.debug2(`getSyncStartBlockNumber info: block number ${blockNumberBottom} block time ${blockNumberBottomTime} start time ${syncStartTime} (block read ${blockRead})`);
+
+    return blockNumberBottom;
+  }
+
+  /////////////////////////////////////////////////////////////
+  // Sync functions
+  /////////////////////////////////////////////////////////////
+
+  /**
+   *
+   * @returns
+   */
+  async runSyncRaw() {
+    // for status display
+    let statsN = this.indexer.N;
+    let statsTime = Date.now();
+    let statsBlocksPerSec = 0;
+
+    this.indexer.T = await this.indexer.getBlockHeight(`runSyncRaw1`);
+
+    this.isSyncing = true;
+
+    let lastN = -1;
+
+    while (true) {
+      this.logger.debug1(`runSyncRaw loop N=${this.indexer.N} T=${this.indexer.T}`);
+      const now = Date.now();
+
+      // get chain top block
+      if (now > statsTime + this.indexer.config.syncUpdateTimeMs) {
+        // stats
+        statsBlocksPerSec = ((this.indexer.N - statsN) * 1000) / (now - statsTime);
+        statsN = this.indexer.N;
+        statsTime = now;
+
+        // take actual top
+        this.indexer.T = await this.indexer.getBlockHeight(`runSyncRaw2`);
+      }
+
+      // wait until we save N+1 block
+      if (lastN === this.indexer.N) {
+        this.logger.debug(`runSyncRaw wait block N=${this.indexer.N} T=${this.indexer.T}`);
+        await sleepms(100);
+        continue;
+      }
+      lastN = this.indexer.N;
+
+      // status
+      const dbStatus = this.indexer.getStateEntryString("state", "sync", -1);
+
+      const blockLeft = this.indexer.T - this.indexer.N;
+
+      if (statsBlocksPerSec > 0) {
+        const timeLeft = (this.indexer.T - this.indexer.N) / statsBlocksPerSec;
+
+        dbStatus.valueNumber = timeLeft;
+
+        this.logger.debug(
+          `sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.indexer.cachedClient.reqsPs
+          })`
+        );
+      } else {
+        this.logger.debug(`sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (cps: ${this.indexer.cachedClient.reqsPs})`);
+      }
+
+      await retry(`runSyncRaw::saveStatus`, async () => this.indexer.dbService.manager.save(dbStatus));
+
+      // check if syncing has ended
+      if (this.indexer.N >= this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) {
+        this.logger.group("SyncRaw completed");
+        this.isSyncing = false;
+        // To break the sync while(true) loop
+        return;
+      }
+
+      await this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.N + 1);
+
+      for (let i = 2; i < this.indexer.chainConfig.syncReadAhead; i++) {
+        // do not allow read ahead of T - confirmations
+        if (this.indexer.N + i > this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) break;
+        criticalAsync(`runSyncRaw -> blockProcessorManager::processSyncBlockNumber exception `, () =>
+          this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.N + i)
+        );
+      }
+
+      const blockNp1 = await this.indexer.cachedClient.getBlock(this.indexer.N + 1);
+      this.indexer.blockNp1hash = blockNp1.stdBlockHash;
+
+      // We wait until block N+1 is either saved or indicated that there is no such block
+      while (!(await this.indexer.saveOrWaitNp1Block())) {
+        await sleepms(100);
+        this.logger.debug(`runSyncRaw wait save N=${this.indexer.N} T=${this.indexer.T}`);
+      }
+    }
+  }
+
+  /**
+   *
+   */
+  async runSyncTips() {
+    this.indexer.T = await this.indexer.getBlockHeight(`runSyncTips`);
+
+    // Collect all alternative tips
+    this.logger.info(`collecting top blocks...`);
+    const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - this.indexer.N);
+    this.logger.debug(`${blocks.length} block(s) collected`);
+
+    // Save all block headers from tips above N
+    // Note - N may be very low compared to T, since we are 
+    // before sync.
+    await this.indexer.headerCollector.saveBlocksOrHeadersOnNewTips(blocks);
+
+    // Sync and save all confirmed blocks from main fork
+    await this.runSyncRaw();
+  }
+
+  async runSyncLatestBlock() {
+    this.indexer.N = await this.indexer.getBlockHeight(`getLatestBlock`);
+
+    this.logger.debug2(`runSyncLatestBlock latestBlock ${this.indexer.N}`);
+
+    await this.runSyncRaw();
+  }
+
+  async runSync() {
+    switch (this.indexer.chainConfig.blockCollecting) {
+      case "raw":
+      case "rawUnforkable":
+        await this.runSyncRaw();
+        break;
+      case "tips":
+        await this.runSyncTips();
+        break;
+      case "latestBlock":
+        await this.runSyncLatestBlock();
+        break;
+    }
+  }
+
+}

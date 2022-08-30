@@ -72,7 +72,7 @@
                 "password": "$(LTCPassword)"
             },
             "rateLimitOptions": {
-                "maxRPS": 300,
+                "maxRPS": 20,
                 "timeoutMs": 5000,
                 "retries": 3
             },

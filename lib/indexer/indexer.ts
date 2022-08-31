@@ -101,8 +101,6 @@ export class Indexer {
 
     this.blockProcessorManager = new BlockProcessorManager(
       this,
-      this.logger,
-      this.cachedClient,
       this.blockCompleted.bind(this),
       this.blockAlreadyCompleted.bind(this)
     );
@@ -135,9 +133,13 @@ export class Indexer {
 
   public async getBlockFromClient(label: string, blockNumber: number): Promise<IBlock> {
     // todo: implement MCC lite version of getBlock
-    return await retry(`indexer.getBlockFromClient.${label}`, async () => {
+    const result = await retry(`indexer.getBlockFromClient.${label}`, async () => {
       return await this.cachedClient.client.getBlock(blockNumber);
     });
+    if(!result) {
+      failureCallback(`indexer.getBlockFromClient.${label} - null block returned`)
+    }
+    return result;
   }
 
   public async getBlockHeightFromClient(label: string): Promise<number> {
@@ -155,12 +157,7 @@ export class Indexer {
   public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
     // todo: get `getBlockLite` FAST version of block read since we only need timestamp
     const block = (await this.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
-
-    if (!block) {
-      this.logger.error2(`getBlockNumberTimestampFromClient(${blockNumber}) invalid block ${block}`);
-      return 0;
-    }
-
+    // block cannot be undefined as the above call will fatally fail and terminate app
     return block.unixTimestamp;
   }
 
@@ -379,7 +376,7 @@ export class Indexer {
       await this.saveBottomState();
     }
 
-    this.blockProcessorManager.clear(Np1);
+    this.blockProcessorManager.clearProcessorsUpToBlockNumber(Np1);
     const time1 = Date.now();
     this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms)`);
 

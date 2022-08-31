@@ -161,12 +161,15 @@ export class IndexerSync {
       if (this.indexer.N >= this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) {
         this.logger.group("SyncRaw completed");
         this.isSyncing = false;
+        this.indexer.blockProcessorManager.onSyncCompleted();
         // To break the sync while(true) loop
         return;
       }
 
+      // ensure that block processor N + 1 is created
       await this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.N + 1);
 
+      // triggering processors for few read ahead blocks
       for (let i = 2; i < this.indexer.chainConfig.syncReadAhead; i++) {
         // do not allow read ahead of T - confirmations
         if (this.indexer.N + i > this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) break;
@@ -175,10 +178,12 @@ export class IndexerSync {
         );
       }
 
+      // Get the latest hash of the N + 1 block
       const blockNp1 = await this.indexer.cachedClient.getBlock(this.indexer.N + 1);
       this.indexer.blockNp1hash = blockNp1.stdBlockHash;
 
       // We wait until block N+1 is either saved or indicated that there is no such block
+      // This is the only point in the loop that increments N
       while (!(await this.indexer.trySaveNp1Block())) {
         await sleepms(100);
         this.logger.debug(`runSyncRaw wait save N=${this.indexer.N} T=${this.indexer.T}`);

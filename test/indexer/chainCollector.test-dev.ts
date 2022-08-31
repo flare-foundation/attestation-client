@@ -95,7 +95,7 @@ describe("Test process helpers ", () => {
       if (first) {
         console.log("RUNNING 2 ...");
         processor.pause();
-        processor2.continue();
+        processor2.resume();
         first = false;
         setTimeout(() => {
           simulate();
@@ -103,7 +103,7 @@ describe("Test process helpers ", () => {
       } else {
         console.log("RUNNING 1 ...");
         processor2.pause();
-        processor.continue();
+        processor.resume();
         first = true;
         setTimeout(() => {
           simulate();

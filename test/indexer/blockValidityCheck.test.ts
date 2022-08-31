@@ -121,8 +121,6 @@ describe("Block validity check before processing", () => {
 
         indexer.blockProcessorManager = new BlockProcessorManager(
             indexer,
-            indexer.logger,
-            indexer.cachedClient,
             indexer.blockCompleted.bind(indexer),
             indexer.blockAlreadyCompleted.bind(indexer)
         );

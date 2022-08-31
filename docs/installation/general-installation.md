@@ -123,12 +123,12 @@ yarn admin
 
 ## Indexer syncing times
 
-- ADA ~10 min
-- ALGO ~4 h
+For 2days:
+
+- ALGO running sync (2 days)
 - BTC ~20 min
-- DOGE ~10 min
-- XRP ~4 h
-
-
+- DOGE ~45 min
+- LTC ~10 min
+- XRP ~2 h
 
 [Back to Home](./../README.md)

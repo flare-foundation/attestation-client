@@ -220,14 +220,16 @@ export class IndexerSync {
 
   /**
    * Syncs blocks depending on mode set in configuration.
+   * @param dbStartBlockNumber 
+   * @returns 
    */
-  public async runSync() {
+  public async runSync(dbStartBlockNumber: number) {
     if (!this.indexer.config.syncEnabled) {
       return;
     }
     const syncStartBlockNumber = await this.getSyncStartBlockNumber();
 
-    this.indexer.N = Math.max(this.indexer.N, syncStartBlockNumber);
+    this.indexer.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);
 
     this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);
 

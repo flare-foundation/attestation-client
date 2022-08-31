@@ -698,7 +698,7 @@ export class Indexer {
     );
 
     // ------- 1. sync blocks from the past -------------------
-    await this.indexerSync.runSync();
+    await this.indexerSync.runSync(dbStartBlockNumber);
 
     // ------- 2. Run  header collection ----------------------
     criticalAsync("runBlockHeaderCollecting", async () => this.headerCollector.runBlockHeaderCollecting());

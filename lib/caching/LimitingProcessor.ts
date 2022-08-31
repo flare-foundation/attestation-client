@@ -114,7 +114,7 @@ export class LimitingProcessor {
     this.indexer = indexer;
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = indexer.cachedClient;
-    criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.continue());
+    criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }
 
   counter = 0;
@@ -124,7 +124,7 @@ export class LimitingProcessor {
    * @param debug enables debug mode
    */
   public async start(debug = false) {
-    await this.continue(debug);
+    await this.resume(debug);
   }
 
   /**
@@ -132,7 +132,7 @@ export class LimitingProcessor {
    * @param debug enables debug mode
    * @returns 
    */
-  public async continue(debug = false) {
+  public async resume(debug = false) {
     if (this.isActive || this.isCompleted) {
       return;
     }

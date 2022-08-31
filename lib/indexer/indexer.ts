@@ -136,7 +136,7 @@ export class Indexer {
     const result = await retry(`indexer.getBlockFromClient.${label}`, async () => {
       return await this.cachedClient.client.getBlock(blockNumber);
     });
-    if(!result) {
+    if (!result) {
       failureCallback(`indexer.getBlockFromClient.${label} - null block returned`)
     }
     return result;
@@ -312,13 +312,13 @@ export class Indexer {
    * @returns 
    */
   public getActiveTransactionWriteTable(): DBTransactionBase {
-    // we write into table by active index (opposite to drop):
-    //  0 - table1
-    //  1 - table0
+    // we write into table by active index:
+    //  0 - table0
+    //  1 - table1
 
     const index = this.interlace.getActiveIndex();
 
-    return this.dbTransactionClasses[index === 0 ? 1 : 0];
+    return this.dbTransactionClasses[index];
   }
 
   /////////////////////////////////////////////////////////////

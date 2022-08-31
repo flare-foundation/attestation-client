@@ -92,7 +92,7 @@ export class Interlacing {
   }
 
   private getTransactionDropTableName(): any {
-    // we drop table by active index (opposite to write):
+    // we drop table by active index:
     //  0 - table0
     //  1 - table1
 
@@ -127,11 +127,11 @@ export class Interlacing {
     // check if tables need to be dropped and new created
     this.tableLock = true;
 
-    // change interlacing index
-    this.index ^= 1;
-
     this.endBlockTime = blockTime + this.timeRange;
     this.endBlockNumber = blockNumber + this.blockRange;
+
+    // change interlacing index
+    this.index ^= 1;
 
     this.logger.debug(`interlace ${this.index}`);
 

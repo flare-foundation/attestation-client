@@ -59,7 +59,7 @@ export class IndexerSync {
     const bottomBlockTime = await this.indexer.getBlockNumberTimestampFromClient(bottomBlockHeight);
 
     if (bottomBlockTime >= syncStartTime) {
-      this.logger.warn(`${this.indexer.chainConfig.name} start sync block is set to node bottom block height ${bottomBlockHeight}`);
+      this.logger.warning(`${this.indexer.chainConfig.name} start sync block is set to node bottom block height ${bottomBlockHeight}`);
       return bottomBlockHeight;
     }
 

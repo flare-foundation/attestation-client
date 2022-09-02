@@ -142,6 +142,17 @@ export class Indexer {
     return result;
   }
 
+  public async getBlockFromClientByHash(label: string, blockHash: string): Promise<IBlock> {
+    // todo: implement MCC lite version of getBlock
+    const result = await retry(`indexer.getBlockFromClientByHash.${label}`, async () => {
+      return await this.cachedClient.client.getBlock(blockHash);
+    });
+    if (!result) {
+      failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`)
+    }
+    return result;
+  }
+
   public async getBlockHeightFromClient(label: string): Promise<number> {
     return await retry(`indexer.getBlockHeightFromClient.${label}`, async () => {
       return this.cachedClient.client.getBlockHeight();

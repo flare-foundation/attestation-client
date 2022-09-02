@@ -34,7 +34,7 @@ import { CachedMccClient } from "./CachedMccClient";
  * 
  * Such a functionality is important in managing the priority of block processing on chains that 
  * have several forks. The priority is always the main fork, but as it switches on a node, 
- * we pause limiting block processor and resume/initialize a limiting processr on the block 
+ * we pause limiting block processor and resume/initialize a limiting processor on the block 
  * of the same height on the other fork that became main now. 
  * This happens for every switch. Since transaction calls are cached by 
  * caching client and since the blocks on the same height are likely to contain a large number of 

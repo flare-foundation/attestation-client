@@ -8,6 +8,11 @@ import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp }
 import { getFullTransactionUtxo } from "./readTransaction";
 import { onSaveSig } from "./types";
 
+/**
+ * Selector for the class of specialized block processor for each chain.
+ * @param chainType chain type
+ * @returns relevant class for given `chainType`
+ */
 export function BlockProcessor(chainType: ChainType) {
   switch (chainType) {
     case ChainType.XRP:
@@ -24,28 +29,33 @@ export function BlockProcessor(chainType: ChainType) {
   }
 }
 
+/**
+ * Block processor for UTXO chains. It is used for LTC and Bitcon. 
+ * It is a specialized implementation of `LimitingProcessor`.
+ * The block class (IBlock) is expected to have all transactions in 
+ * `tx` field.
+ */
 @Managed()
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: IBlock, onSave: onSaveSig) {
     this.block = block as UtxoBlock;
-
     let txPromises = block.data.tx.map((txObject) => {
       const getTxObject = {
         blockhash: block.stdBlockHash,
         time: block.unixTimestamp,
-        confirmations: 1, // This is the block
+        confirmations: 1, // This is the block itself as confirmation
         blocktime: block.unixTimestamp,
         ...txObject,
       };
       let processed = new UtxoTransaction(getTxObject);
-      return this.call(() => traceFunction( ()=>getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction> );
+      return this.call(() => traceFunction(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>);
     });
 
-    const transDbPromisses = txPromises.map((processed) => async () => {
+    const transDbPromises = txPromises.map((processed) => async () => {
       return await augmentTransactionUtxo(this.indexer, block, processed);
     });
 
-    const transDb = (await retryMany(`UtxoBlockProcessor::initializeJobs`, transDbPromisses)) as DBTransactionBase[];
+    const transDb = (await retryMany(`UtxoBlockProcessor::initializeJobs`, transDbPromises)) as DBTransactionBase[];
 
     if (!transDb) {
       return;
@@ -58,13 +68,19 @@ export class UtxoBlockProcessor extends LimitingProcessor {
     criticalAsync(`UtxoBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }
-
+/**
+ * Block processor for DOGE chain.
+ * It is a specialized implementation of `LimitingProcessor`.
+ * DOGE API does not contain all transactions in `tx` field so 
+ * additional reading of transactions from block is needed.
+ */
 @Managed()
 export class DogeBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: IBlock, onSave: onSaveSig) {
     this.registerTopLevelJob();
     this.block = block as UtxoBlock;
 
+    // DOGE API does not support returning the list of transactions with block request
     let preprocesedTxPromises = block.stdTransactionIds.map((txid: string) => {
       // the in-transactions are prepended to queue in order to process them earlier
       return () => this.call(() => this.client.getTransaction(txid), true) as Promise<UtxoTransaction>;
@@ -105,7 +121,10 @@ export class DogeBlockProcessor extends LimitingProcessor {
     criticalAsync(`DogeBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }
-
+/**
+ * Block processor for ALGO chain.
+ * It is a specialized implementation of `LimitingProcessor`.
+ */
 @Managed()
 export class AlgoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: IBlock, onSave: onSaveSig) {
@@ -114,7 +133,6 @@ export class AlgoBlockProcessor extends LimitingProcessor {
       return async () => {
         return await augmentTransactionAlgo(this.indexer, block as AlgoBlock, algoTrans);
       };
-      // return augmentTransactionAlgo(this.client, block, processed);
     });
     const transDb = (await retryMany(`AlgoBlockProcessor::initializeJobs`, txPromises, this.settings.timeout, this.settings.retry)) as DBTransactionBase[];
     this.pause();
@@ -124,6 +142,10 @@ export class AlgoBlockProcessor extends LimitingProcessor {
   }
 }
 
+/**
+ * Block processor for XRP chain.
+ * It is a specialized implementation of `LimitingProcessor`.
+ */
 @Managed()
 export class XrpBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: IBlock, onSave: onSaveSig) {

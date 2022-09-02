@@ -11,8 +11,8 @@ export enum SourceId {
 
 /**
  * Returns source name for `sourceId`
- * @param sourceId 
- * @returns 
+ * @param sourceId
+ * @returns
  */
 export function getSourceName(sourceId: number) {
   if (sourceId == null || SourceId[sourceId] === null) {
@@ -25,8 +25,8 @@ export function getSourceName(sourceId: number) {
  * Returnes sourceId enum given either name or enum number.
  * Note: that function does not do any additional validity checks so it must be
  * called by user with correct (sensible) id number.
- * @param id 
- * @returns 
+ * @param id
+ * @returns
  */
 export function toSourceId(id: any): SourceId {
   if (typeof id === "number") return id as SourceId;

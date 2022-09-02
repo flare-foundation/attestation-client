@@ -111,13 +111,15 @@ export class HeaderCollector {
 
       this.cacheBlock(block);
 
+      const actualBlock = await this.indexer.getBlockFromClientByHash("saveBlocksOrHeadersOnNewTips", block.blockHash);
+
       const dbBlock = new this.indexer.dbBlockClass();
 
       dbBlock.blockNumber = blockNumber;
       dbBlock.blockHash = block.stdBlockHash;
-      dbBlock.timestamp = block.unixTimestamp;
+      dbBlock.timestamp = actualBlock.unixTimestamp;
       dbBlock.numberOfConfirmations = 1;
-      dbBlock.previousBlockHash = block.previousBlockHash;
+      dbBlock.previousBlockHash = actualBlock.previousBlockHash;
 
       // dbBlocks.push(dbBlock);
       unconfirmedBlockManager.addNewBlock(dbBlock);

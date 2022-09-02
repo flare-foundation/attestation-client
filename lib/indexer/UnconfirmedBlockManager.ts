@@ -18,6 +18,7 @@ export class UnconfirmedBlockManager {
   constructor(dbService: DatabaseService, blockTable: any, indexerN: number) {
     this.dbService = dbService;
     this.indexerN = indexerN;
+    this.blockTable = blockTable;
     this.changed = new Set<string>();
     this.blockHashToEntity = new Map<string, DBBlockBase>();
   }

@@ -10,6 +10,7 @@ export interface IndexedQueryManagerOptions {
   maxValidIndexerDelaySec: number;
   // return windows start time from current epochId
   windowStartTime: (roundId: number) => number;
+  UBPCutoffTime: (roundId: number) => number;
 }
 
 export interface BlockHeightSample {

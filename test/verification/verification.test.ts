@@ -55,6 +55,8 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let chainsConfiguration: ChainsConfiguration;
   let chainName: string;
   let startTime = 0;
+  let cutoffTime = 0; // TODO - set properly
+
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
@@ -85,6 +87,10 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       // todo: return epochStartTime - query window length, add query window length into DAC
       windowStartTime: (roundId: number) => {
         return startTime;
+      },
+      UBPCutoffTime: (roundId: number) => {
+        // todo: Set when needed for tests
+        return cutoffTime;
       },
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);

@@ -9,14 +9,14 @@ import {
   ARBalanceDecreasingTransaction,
   ARConfirmedBlockHeightExists,
   ARPayment,
-  ARReferencedPaymentNonexistence
+  ARReferencedPaymentNonexistence,
 } from "../generated/attestation-request-types";
 import {
   MccTransactionType,
   VerificationResponse,
   verifyWorkflowForBlock,
   verifyWorkflowForReferencedTransactions,
-  verifyWorkflowForTransaction
+  verifyWorkflowForTransaction,
 } from "./verification-utils";
 
 //////////////////////////////////////////////////
@@ -25,7 +25,7 @@ import {
 
 /**
  * `Payment` attestation type verification function performing synchronized indexer queries
- * @param TransactionClass 
+ * @param TransactionClass
  * @param request attestation request
  * @param roundId voting round id
  * @param numberOfConfirmations required number of confirmation
@@ -58,11 +58,10 @@ export async function verifyPayment(
 
   const dbTransaction = confirmedTransactionResult.transaction;
 
-  let parsedData : any;
+  let parsedData: any;
   try {
     parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
-  }
-  catch (error) {
+  } catch (error) {
     logException(error, `verifyPayment '${request.id}' JSON parse '${confirmedTransactionResult.transaction.response}'`);
     throw error;
   }
@@ -108,7 +107,7 @@ export async function verifyPayment(
 
 /**
  * `BalanceDecreasingTransaction` attestation type verification function performing synchronized indexer queries
- * @param TransactionClass 
+ * @param TransactionClass
  * @param request attestation request
  * @param roundId voting round id
  * @param numberOfConfirmations required number of confirmation
@@ -172,7 +171,7 @@ export async function verifyBalanceDecreasingTransaction(
 
 /**
  * `ConfirmedBlockHeightExists` attestation type verification function performing synchronized indexer queries
- * @param TransactionClass 
+ * @param TransactionClass
  * @param request attestation request
  * @param roundId voting round id
  * @param numberOfConfirmations required number of confirmation
@@ -206,7 +205,7 @@ export async function verifyConfirmedBlockHeightExists(
   let averageBlockProductionTimeMs = toBN(
     Math.floor(
       ((confirmedBlockQueryResult.upperBoundaryBlock.timestamp - confirmedBlockQueryResult.lowerBoundaryBlock.timestamp) * 1000) /
-      (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
+        (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
     )
   );
 
@@ -231,7 +230,7 @@ export async function verifyConfirmedBlockHeightExists(
 
 /**
  * `ReferencedPaymentNonExistence` attestation type verification function performing synchronized indexer queries
- * @param TransactionClass 
+ * @param TransactionClass
  * @param request attestation request
  * @param roundId voting round id
  * @param numberOfConfirmations required number of confirmation

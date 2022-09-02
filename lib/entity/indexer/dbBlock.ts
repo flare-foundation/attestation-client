@@ -19,6 +19,16 @@ export class DBBlockBase {
   @Column({ nullable: true })
   @Index()
   confirmed: boolean;
+
+  // relevant only if confirmed not true
+  @Column({ nullable: true })
+  @Index()
+  numberOfConfirmations: number;
+
+  @Column({ nullable: true })
+  @Index()
+  previousBlockHash: string;
+
 }
 
 @Entity({ name: "btc_block" })

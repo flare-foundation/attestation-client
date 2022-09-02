@@ -1,28 +1,62 @@
 import { Managed } from "@flarenetwork/mcc";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
+import { sleepms } from "../utils/utils";
 import { SECONDS_PER_DAY } from "./indexer-utils";
 
+
+/**
+ * Manages table double buffering for transactions (DBTransactionBase)
+ * 
+ * We have two tables that we use to optimize how to control number if items in the tables.
+ * 
+ * We first fill one table when we reach table limits we continue with another and once this one is filled as well, 
+ * we drop the first one and recreate a new one and continue on it. 
+ * 
+ * When one table has more than `endBlock` blocks and last block timestamp is above `endTime` we drop 
+ * the last table and create a new one.
+ */
 @Managed()
 export class Interlacing {
   // current active table index
-  index: number;
-  endTime: number = -1;
-  endBlock: number = -1;
+  private index: number;
+  private endBlockTime: number = -1;
+  private endBlockNumber: number = -1;
 
-  logger: AttLogger;
+  private logger: AttLogger;
 
-  timeRange: number = 2 * SECONDS_PER_DAY;
+  private timeRange: number = 2 * SECONDS_PER_DAY;
 
-  blockRange: number = 100;
+  private blockRange: number = 100;
 
-  async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRange: number, blockRange: number) {
+  private tableLock: boolean = false;
+
+  private dbService: DatabaseService;
+
+  private chainName: string;
+
+  /**
+   * Sets the initial limits for the interlacing.
+   * 
+   * @param logger 
+   * @param dbService 
+   * @param dbClasses 
+   * @param timeRangeSec 
+   * @param blockRange 
+   * @param chainName 
+   * @returns 
+   */
+  public async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRangeSec: number, blockRange: number, chainName: string) {
     const items = [];
 
-    this.timeRange = timeRange * SECONDS_PER_DAY;
+    this.logger = logger;
+    this.dbService = dbService;
+
+    this.timeRange = timeRangeSec * SECONDS_PER_DAY;
     this.blockRange = blockRange;
 
-    this.logger = logger;
+    this.chainName = chainName;
+
 
     // get first block from both transaction tables
     items.push(await dbService.connection.getRepository(dbClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
@@ -34,44 +68,86 @@ export class Interlacing {
       return;
     }
 
-    let itemIndex = 0;
+    this.index = 0;
 
     if (items[0].length && items[1].length) {
+      // if both exists take the last one
       if (items[0][0].timestamp < items[1][0].timestamp) {
-        itemIndex = 1;
+        this.index = 1;
       }
     } else {
+      // if one is missing take the one that exists
       if (items[1].length) {
-        itemIndex = 1;
+        this.index = 1;
       }
     }
 
     // setup last active index end values
-    this.endTime = items[itemIndex][0].timestamp + this.timeRange;
-    this.endBlock = items[itemIndex][0].blockNumber + this.blockRange;
+    this.endBlockTime = items[this.index][0].timestamp + this.timeRange;
+    this.endBlockNumber = items[this.index][0].blockNumber + this.blockRange;
   }
 
-  getActiveIndex() {
+  public getActiveIndex() {
     return this.index;
   }
 
-  update(time: number, block: number): boolean {
-    if (this.endTime === -1) {
+  private getTransactionDropTableName(): any {
+    // we drop table by active index:
+    //  0 - table0
+    //  1 - table1
+
+    const index = this.getActiveIndex();
+
+    return `${this.chainName.toLowerCase()}_transactions${index}`;
+  }
+
+  /**
+   * Given a new block data checks the conditions and performs table change if necessary.
+   * 
+   * @param blockTime 
+   * @param blockNumber 
+   * @returns 
+   */
+  public async update(blockTime: number, blockNumber: number): Promise<boolean> {
+
+    // in case table drop was requested in another async we need to wait until drop is completed
+    while (this.tableLock) {
+      await sleepms(1);
+    }
+
+    if (this.endBlockTime === -1) {
       // initialize
-      this.endTime = time + this.timeRange;
-      this.endBlock = block + this.blockRange;
+      this.endBlockTime = blockTime + this.timeRange;
+      this.endBlockNumber = blockNumber + this.blockRange;
       return false;
     }
 
-    if (time < this.endTime || block < this.endBlock) return false;
+    if (blockTime < this.endBlockTime || blockNumber < this.endBlockNumber) return false;
+
+    // check if tables need to be dropped and new created
+    this.tableLock = true;
+
+    this.endBlockTime = blockTime + this.timeRange;
+    this.endBlockNumber = blockNumber + this.blockRange;
 
     // change interlacing index
     this.index ^= 1;
 
-    this.endTime = time + this.timeRange;
-    this.endBlock = block + this.blockRange;
-
     this.logger.debug(`interlace ${this.index}`);
+
+    // drop inactive table and create new one
+    const time0 = Date.now();
+    const queryRunner = this.dbService.connection.createQueryRunner();
+    const tableName = this.getTransactionDropTableName();
+    const table = await queryRunner.getTable(tableName);
+    await queryRunner.dropTable(table);
+    await queryRunner.createTable(table);
+    await queryRunner.release();
+    const time1 = Date.now();
+
+    this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`);
+
+    this.tableLock = false;
 
     return true;
   }

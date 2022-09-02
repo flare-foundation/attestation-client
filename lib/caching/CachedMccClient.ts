@@ -115,7 +115,11 @@ export class CachedMccClient {
     return this.blockCache.get(blockHash);
   }
 
-  // getBlock is caching by hashes only! by blockNumber queries are always executed
+  /**
+   * @dev getBlock is caching by hashes only! by blockNumber queries are always executed
+   * @param blockHashOrNumber block hash or block number
+   * @returns 
+   */
   public async getBlock(blockHashOrNumber: string | number): Promise<IBlock | null> {
     let blockPromise = this.blockCache.get(blockHashOrNumber);
     if (blockPromise) {

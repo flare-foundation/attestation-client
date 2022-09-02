@@ -34,7 +34,7 @@ import { CachedMccClient } from "./CachedMccClient";
  * 
  * Such a functionality is important in managing the priority of block processing on chains that 
  * have several forks. The priority is always the main fork, but as it switches on a node, 
- * we pause limiting block processor and resume/initialize a limiting processr on the block 
+ * we pause limiting block processor and resume/initialize a limiting processor on the block 
  * of the same height on the other fork that became main now. 
  * This happens for every switch. Since transaction calls are cached by 
  * caching client and since the blocks on the same height are likely to contain a large number of 
@@ -114,7 +114,7 @@ export class LimitingProcessor {
     this.indexer = indexer;
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = indexer.cachedClient;
-    criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.continue());
+    criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }
 
   counter = 0;
@@ -124,7 +124,7 @@ export class LimitingProcessor {
    * @param debug enables debug mode
    */
   public async start(debug = false) {
-    await this.continue(debug);
+    await this.resume(debug);
   }
 
   /**
@@ -132,7 +132,7 @@ export class LimitingProcessor {
    * @param debug enables debug mode
    * @returns 
    */
-  public async continue(debug = false) {
+  public async resume(debug = false) {
     if (this.isActive || this.isCompleted) {
       return;
     }

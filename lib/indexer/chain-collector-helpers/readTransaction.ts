@@ -2,13 +2,24 @@ import { IUtxoVinTransaction, MccUtxoClient, UtxoTransaction } from "@flarenetwo
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 
+/**
+ * Given a UTXO transaction it does additional processing on UTXO inputs.
+ * The processing is done only if the transaction contains some kind of a payment reference (OP_RETURN).
+ * Inputs of other transactions are not processed.
+ * Processing inputs means that all transactions that appear on vin (inputs) are read and their respective
+ * outputs are stored into additional field of the transaction record.
+ * @param client chain client
+ * @param blockTransaction specific transaction from the block to be processed with block processor
+ * @param processor block processor
+ * @returns processed transaction
+ */
 export async function getFullTransactionUtxo(
   client: CachedMccClient,
   blockTransaction: UtxoTransaction,
   processor: LimitingProcessor
 ): Promise<UtxoTransaction> {
   processor.registerTopLevelJob();
-  // here we could check if reference starts with 0x46425052 ()
+  // only for transactions with reference all input transactions are processed
   if (blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase") {
     blockTransaction.synchronizeAdditionalData();
 

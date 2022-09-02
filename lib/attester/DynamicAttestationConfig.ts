@@ -1,4 +1,5 @@
 import { ChainType } from "@flarenetwork/mcc";
+import { readJSON } from "../utils/config";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
@@ -73,15 +74,20 @@ export class AttestationConfigManager {
   }
 
   dynamicLoadInitialize() {
-    fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
-      if (filename && event === "rename") {
-        // todo: check why on the fly report JSON error
-        this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
-        if (this.load(this.config.dynamicAttestationConfigurationFolder + filename)) {
-          this.orderConfigurations();
+    try {
+      fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
+        if (filename && event === "rename") {
+          // todo: check why on the fly report JSON error
+          this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
+          if (this.load(this.config.dynamicAttestationConfigurationFolder + filename)) {
+            this.orderConfigurations();
+          }
         }
-      }
-    });
+      });
+    }
+    catch( error ) {
+      this.logger.exception( error );
+    }
   }
 
   async loadAll() {
@@ -104,7 +110,7 @@ export class AttestationConfigManager {
   load(filename: string, disregardObsolete: boolean = false): boolean {
     this.logger.info(`^GDAC load '${filename}'`);
 
-    const fileConfig = JSON.parse(fs.readFileSync(filename), JSONMapParser);
+    const fileConfig = readJSON<any>(filename, JSONMapParser);
 
     // check if loading current epoch (or next one)
     if (fileConfig.startEpoch == AttestationRoundManager.activeEpochId || fileConfig.startEpoch == AttestationRoundManager.activeEpochId + 1) {

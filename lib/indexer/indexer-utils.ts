@@ -17,7 +17,13 @@ import { getGlobalLogger, logException } from "../utils/logger";
 import { getRetryFailureCallback } from "../utils/PromiseTimeout";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
+export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
 
+/**
+ * Returns a pair of entity tables for transactions used in interlacing tables.
+ * Tables match the entities specific for the given chain type.
+ * @param type - chain type
+ */
 export function prepareIndexerTables(type: ChainType): { transactionTable: DBTransactionBase[]; blockTable: DBBlockBase } {
   let transactionTable = [];
   let blockTable;
@@ -60,6 +66,17 @@ export function prepareIndexerTables(type: ChainType): { transactionTable: DBTra
 }
 
 // this function will terminate app on exception
+/**
+ * Async function wrapper that kills the application in case of exception.
+ * It is typically used as a safeguard for non-awaited async calls that 
+ * should have their own error handling, but in case it fails, some 
+ * critical situation has happened and the application should be terminated.
+ * Note that on error, this wrapper calls global retryFailureCallback
+ * which can be in case of testing sent differently.
+ * @param label logging label
+ * @param funct async function to be called
+ * @returns 
+ */
 export async function criticalAsync(label: string, funct: (...args: any[]) => Promise<any>): Promise<any> {
   try {
     return await funct();
@@ -73,14 +90,5 @@ export async function criticalAsync(label: string, funct: (...args: any[]) => Pr
     } else {
       onFailure(label)
     }
-
-  }
-}
-
-export async function nonCriticalAsync(label: string, funct: (...args: any[]) => Promise<any>) {
-  try {
-    await funct();
-  } catch (error) {
-    logException(error, label);
   }
 }

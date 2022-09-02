@@ -69,6 +69,12 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
         const queryWindowInSec = 86400;
         return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - queryWindowInSec;
       },
+      UBPCutoffTime: (roundId: number) => {
+        // todo: read this from DAC
+        const UBPCutTime = 60*30;
+        return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - UBPCutTime;
+      },
+
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
     await indexedQueryManager.dbService.waitForDBConnection();

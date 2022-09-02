@@ -4,6 +4,7 @@ import { AttLogger } from "../utils/logger";
 import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
+import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 
 /**
  * Manages the block header collection on a blockchain.
@@ -88,11 +89,14 @@ export class HeaderCollector {
   public async saveBlocksOrHeadersOnNewTips(blocks: IBlock[]) {
     let blocksText = "[";
 
-    let dbBlocks = [];
+    let unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexer.dbService, this.indexer.dbBlockClass, this.indexer.N);
+    await unconfirmedBlockManager.initialize();
 
     for (const block of blocks) {
-      if (!block || !block.stdBlockHash) continue;
-
+      // due to the above async call N could increase
+      if (!block || !block.stdBlockHash || block.number <= this.indexer.N) {
+        continue;
+      }
       const blockNumber = block.number;
 
       // check cache
@@ -112,16 +116,17 @@ export class HeaderCollector {
       dbBlock.blockNumber = blockNumber;
       dbBlock.blockHash = block.stdBlockHash;
       dbBlock.timestamp = block.unixTimestamp;
+      dbBlock.numberOfConfirmations = 1;
+      dbBlock.previousBlockHash = block.previousBlockHash;
 
-      dbBlocks.push(dbBlock);
+      // dbBlocks.push(dbBlock);
+      unconfirmedBlockManager.addNewBlock(dbBlock);
     }
 
-    if (dbBlocks.length === 0) {
-      //this.logger.debug(`write block headers (no new blocks)`);
-      return;
-    }
+    let dbBlocks = unconfirmedBlockManager.getChangedBlocks();
 
-    // remove all blockNumbers <= N
+    // remove all blockNumbers <= N. Note that N might have changed after the above 
+    // async query
     dbBlocks = dbBlocks.filter(dbBlock => dbBlock.blockNumber > this.indexer.N);
 
     if (dbBlocks.length === 0) {
@@ -160,7 +165,7 @@ export class HeaderCollector {
     while (true) {
       // get chain top block
       const newT = await this.indexer.getBlockHeightFromClient(`runBlockHeaderCollectingRaw`);
-      if(T != newT) {
+      if (T != newT) {
         await this.writeT(newT);
         T = newT;
       }
@@ -176,7 +181,7 @@ export class HeaderCollector {
     while (true) {
       // get chain top block
       const newT = await this.indexer.getBlockHeightFromClient(`runBlockHeaderCollectingTips`);
-      if(T != newT) {
+      if (T != newT) {
         await this.writeT(newT);
         T = newT;
       }

@@ -1,6 +1,6 @@
 // Make a tunnel to database
 // Run the test
-// DOTENV=DEV SOURCE_ID=BTC CONFIG_PATH=.secure.dev NODE_ENV=development yarn hardhat test test/CostonVerification.test.ts --network coston
+// DOTENV=DEV SOURCE_ID=BTC CONFIG_PATH=.secure.dev NODE_ENV=development yarn hardhat test test/verification/CostonVerification.test-dev.ts --network coston
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import { AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
@@ -105,11 +105,10 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   });
 
   // Used for debugging specific requests
-  it("Specific request check", async () => {
-    let request =
-      "0x000100000000000000000000000000053c5f1f62d0dacfb3f9ad23643393c79902fbabb199723ac95296f1b06377294d9bca53316d19931bcd26b6efb2837321abc64f0fa8050000";
-    let roundId = 165714;
-    let recheck = false;
+  it.only("Specific request check", async () => {
+    let request = "0x00010000000000000000000000000003ee5e67eb232d8f13ef527a949daac0ab9975999da5b776dbc79972945efe9cc3b28035f2f84b01ccdcb8141d05a726aa82bd619dd3160000";
+    let roundId = 289768;
+    let recheck = true;
 
     let parsed = parseRequest(request);
     // console.log(parsed)

@@ -93,6 +93,11 @@ export class IndexerSync {
       }
     }
 
+    // check if we can return previous block so that sync will also collect that block (it starts on start_block + 1)
+    if (blockNumberBottom > bottomBlockHeight) {
+      blockNumberBottom--;
+    }
+
     const blockNumberBottomTime = await this.indexer.getBlockNumberTimestampFromClient(blockNumberBottom);
     this.logger.debug2(`getSyncStartBlockNumber info: block number ${blockNumberBottom} block time ${blockNumberBottomTime} start time ${syncStartTime} (block read ${blockRead})`);
 
@@ -232,6 +237,7 @@ export class IndexerSync {
     if (!this.indexer.config.syncEnabled) {
       return;
     }
+
     const syncStartBlockNumber = await this.getSyncStartBlockNumber();
 
     this.indexer.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);

@@ -548,8 +548,14 @@ export class IndexedQueryManager {
 
     for (let entity of result) {
       if (entity.confirmed) {
+        // we are handling the case where block was confirmed while we were waiting for the query above
+        if(entity.blockHash === confBlock.blockHash) {
+          return true;
+        }
+        // some other block was confirmed on that height and data upperBoundProof is invalid
         return false;
       }
+      // some other block on this height has more confirmations os the upperBoundProof is invalid.
       if (entity.numberOfConfirmations > confBlock.numberOfConfirmations) {
         return false;
       }

@@ -1,29 +1,41 @@
 //////////////////////////////////////////////////////////////
-// This file is auto generated. You may edit it only in the 
+// This file is auto generated. You may edit it only in the
 // marked section between //-$$$<start> and //-$$$<end>.
 // You may also import custom imports needed for the code
-// in the custom section, which should be placed immediately 
+// in the custom section, which should be placed immediately
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARBalanceDecreasingTransaction, Attestation, BN, DHBalanceDecreasingTransaction, hashBalanceDecreasingTransaction, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import {
+  ARBalanceDecreasingTransaction,
+  Attestation,
+  BN,
+  DHBalanceDecreasingTransaction,
+  hashBalanceDecreasingTransaction,
+  IndexedQueryManager,
+  MCC,
+  parseRequest,
+  randSol,
+  Verification,
+  VerificationStatus,
+  Web3,
+} from "./0imports";
 import { DogeTransaction } from "@flarenetwork/mcc";
 import { verifyBalanceDecreasingTransaction } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();
 
 export async function verifyBalanceDecreasingTransactionDOGE(
-   client: MCC.DOGE, 
-   attestation: Attestation, 
-   indexer: IndexedQueryManager, 
-   recheck = false
-): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>>
-{
-   let request = parseRequest(attestation.data.request) as ARBalanceDecreasingTransaction;
-   let roundId = attestation.roundId;
-   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  client: MCC.DOGE,
+  attestation: Attestation,
+  indexer: IndexedQueryManager,
+  recheck = false
+): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
+  let request = parseRequest(attestation.data.request) as ARBalanceDecreasingTransaction;
+  let roundId = attestation.roundId;
+  let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
-   //-$$$<start> of the custom code section. Do not change this comment. XXX
+  //-$$$<start> of the custom code section. Do not change this comment. XXX
 
   let result = await verifyBalanceDecreasingTransaction(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
   if (result.status != VerificationStatus.OK) {
@@ -32,16 +44,14 @@ export async function verifyBalanceDecreasingTransactionDOGE(
 
   let response = result.response;
 
-   //-$$$<end> of the custom section. Do not change this comment.
+  //-$$$<end> of the custom section. Do not change this comment.
 
+  let hash = hashBalanceDecreasingTransaction(request, response);
 
-
-   let hash = hashBalanceDecreasingTransaction(request, response);
-
-   return {
-      hash,
-      request,
-      response,
-      status: VerificationStatus.OK
-   }
-}   
+  return {
+    hash,
+    request,
+    response,
+    status: VerificationStatus.OK,
+  };
+}

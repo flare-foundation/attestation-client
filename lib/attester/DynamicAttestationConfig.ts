@@ -22,8 +22,6 @@ export class SourceHandlerConfig {
   queryWindowInSec!: number;
   UBPUnconfirmedWindowInSec!: number;
 
-  UBPUnconfirmedWindowInSec!: number;
-
   attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
 

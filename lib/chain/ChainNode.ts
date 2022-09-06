@@ -69,6 +69,16 @@ export class ChainNode {
         ).queryWindowInSec;
         return roundStartTime - queryWindowsInSec;
       },
+
+      UBPCutoffTime: (roundId: number) => {
+        let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
+        const UBPUnconfirmedWindowInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
+          toSourceId(chainConfiguration.name),
+          roundId
+        ).UBPUnconfirmedWindowInSec;
+        return roundStartTime - UBPUnconfirmedWindowInSec;
+      }
+
     };
 
     this.indexedQueryManager = new IndexedQueryManager(options);

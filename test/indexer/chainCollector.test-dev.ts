@@ -77,7 +77,7 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient as CachedMccClient<any, IBlock>;
+    indexer.cachedClient = cachedClient;
 
     let processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");
@@ -95,7 +95,7 @@ describe("Test process helpers ", () => {
       if (first) {
         console.log("RUNNING 2 ...");
         processor.pause();
-        processor2.continue();
+        processor2.resume();
         first = false;
         setTimeout(() => {
           simulate();
@@ -103,7 +103,7 @@ describe("Test process helpers ", () => {
       } else {
         console.log("RUNNING 1 ...");
         processor2.pause();
-        processor.continue();
+        processor.resume();
         first = true;
         setTimeout(() => {
           simulate();
@@ -136,7 +136,7 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient as CachedMccClient<any, IBlock>;
+    indexer.cachedClient = cachedClient;
 
     let processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");
@@ -157,7 +157,7 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient as CachedMccClient<any, IBlock>;
+    indexer.cachedClient = cachedClient;
 
     let processor = new AlgoBlockProcessor(indexer);
     processor.debugOn("FIRST");
@@ -176,7 +176,7 @@ describe("Test process helpers ", () => {
     };
 
     const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient as CachedMccClient<any, IBlock>;
+    indexer.cachedClient = cachedClient;
 
     let processor = new XrpBlockProcessor(indexer);
     processor.debugOn("FIRST");

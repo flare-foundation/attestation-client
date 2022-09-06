@@ -10,8 +10,8 @@ export const ATT_TYPE_DEFINITIONS_ROOT = "lib/verification/attestation-types";
 /**
  * Type mapper from (a subset of) Solidity types to Javascript/Typescript types, specific for
  * use with attestation type definitions.
- * @param type 
- * @returns 
+ * @param type
+ * @returns
  */
 export function tsTypeForSolidityType(type: SupportedSolidityType) {
   switch (type) {
@@ -41,7 +41,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
  * @param request attestation request or response object
  * @param key key of the object to randomize
  * @param type type definition object used for mapping the key
- * @returns 
+ * @returns
  */
 export function randSol(request: any, key: string, type: SupportedSolidityType) {
   let web3 = new Web3();
@@ -93,7 +93,7 @@ export function numberLikeToNumber(n: NumberLike): number | undefined {
 
 /**
  * Returns the random element of the list
- * @param list 
+ * @param list
  * @returns the random element
  */
 export function randomListElement<T>(list: T[]) {

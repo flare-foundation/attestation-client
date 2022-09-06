@@ -11,8 +11,6 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration> {
 
   @optional() public syncReadAhead: number = 30;
 
-  @optional() public syncAverageBlocksPerDayStartRation: number = 0.9;
-
   @optional() public blockCollecting: "raw" | "rawUnforkable" | "tips" | "latestBlock" = "raw";
 
   @optional() public minimalStorageHistoryDays: number = 1;
@@ -29,9 +27,14 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration> {
 
   @optional() public syncTimeDays: number = 0;
 
+  @optional() public validateBlockBeforeProcess: boolean = false;
+  @optional() public validateBlockWaitMs = 500;
+  @optional() public validateBlockMaxRetry = 10;
+  
   instanciate(): ChainsConfiguration {
     return new ChainsConfiguration();
   }
+  
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     const info = new AdditionalTypeInfo();
     //info.additionalKeys.set( "mccCreate" , new MccCreateDummy() );

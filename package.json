@@ -35,6 +35,8 @@
     "watch-and-run-indexer": "ts-node-dev --trace-warnings --notify --respawn -- lib/runIndexer.ts",
     "watch-and-run-alerts": "ts-node-dev --trace-warnings --notify --respawn -- lib/alerts/alerts.ts",
     "dev": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node lib/runAttesterClient.ts",
+    "devvpws": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node lib/vpwserver/runVPWS.ts",
+    "devvpwclient": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node lib/vpwserver/client/testClient.ts",
     "devprod": "CONFIG_PATH=prod NODE_ENV=production node dist/lib/runAttesterClient.js",
     "devindexer": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn ts-node lib/runIndexer.ts",
     "devalerts": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn watch-and-run-alerts",
@@ -81,6 +83,7 @@
     "web3": "1.7.3",
     "web3-utils": "1.7.3",
     "winston": "3.7.2",
+    "ws": "^8.8.0",
     "yargs": "17.5.1"
   },
   "devDependencies": {

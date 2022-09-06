@@ -14,6 +14,8 @@ import { toSourceId } from "../verification/sources/sources";
 import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainConfiguration } from "./ChainConfiguration";
 import { ChainManager } from "./ChainManager";
+import { ATTESTATION_CLIENT_BASE } from "../verification/codegen/cg-constants";
+import { VerificationResult } from "../vpwserver/provider/verificationProvider";
 
 @Managed()
 export class ChainNode {
@@ -211,8 +213,10 @@ export class ChainNode {
       testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
-    // TODO - failure simulation
-    verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification)
+
+    //verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification)
+    this.chainManager.verificationClient.verify(attestation.round.roundId, attestation.data.request)
+
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
 

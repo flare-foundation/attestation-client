@@ -1,20 +1,6 @@
 import { getOptionalKeys } from "@flarenetwork/mcc";
 import { getGlobalLogger } from "./logger";
 
-export class AdditionalTypeInfo {
-  arrayMap = new Map<string, any>();
-  additionalKeys = new Map<string, any>();
-
-  getArrayType(name: string) {
-    return this.arrayMap.get(name);
-  }
-}
-
-export interface IReflection<T> {
-  instanciate(): T;
-  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo;
-}
-
 function getType(object: any) {
   let type = typeof object;
 
@@ -122,7 +108,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
         const isOptional = optionalA.find((x) => x == keyA);
 
         if (isOptional) {
-          getGlobalLogger().info(`${optionalNotFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
+          //getGlobalLogger().info(`${optionalNotFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
         } else {
           valid = false;
           getGlobalLogger().error2(`${notFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);

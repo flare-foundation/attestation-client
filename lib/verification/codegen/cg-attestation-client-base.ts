@@ -4,9 +4,9 @@ import { ATTESTATION_CLIENT_BASE, DEFAULT_GEN_FILE_HEADER, SOLIDITY_CODEGEN_TAB,
 import { constantize, indentText } from "./cg-utils";
 
 /**
- * 
- * @param definition 
- * @returns 
+ * Generate constants used in Solidity code
+ * @param definition attestation type defined in t-<number>-<attestation_type_name>.ts file 
+ * @returns generated constants part of solidity code
  */
 function genConstant(definition: AttestationTypeScheme): string {
   return `
@@ -14,6 +14,11 @@ uint${ATT_BYTES * 8} public constant ${constantize(definition.name)} = ${definit
 `.trim();
 }
 
+/**
+ * Generates methods to verify each specific attestation type
+ * @param definition attestation type defined in t-<number>-<attestation_type_name>.ts file 
+ * @returns generated attestation type verifiers
+ */
 function genVerifyFunctions(definition: AttestationTypeScheme): string {
   return `
 function verify${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definition.name} calldata _data) 
@@ -29,6 +34,11 @@ function verify${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definit
 `.trim();
 }
 
+/**
+ * Generate methods used to encode parameters for attestation types to data object that can be read by attestation clients
+ * @param definition attestation type defined in t-<number>-<attestation_type_name>.ts file 
+ * @returns generated attestation type hash method
+ */
 function genHashFunctions(definition: AttestationTypeScheme): string {
   let paramsArr = [constantize(definition.name), "_chainId", ...definition.dataHashDefinition.map((item) => `_data.${item.key}`)];
   let encodedParams: string;
@@ -57,6 +67,11 @@ function _hash${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definiti
 `.trim();
 }
 
+/**
+ * Generates the solidity code for file for contracts/generated/contracts/AttestationClientBase.sol
+ * @param definitions array of all attestation type definitions to generate methods for (defined in t-<number>-<attestation_type_name>.ts files) 
+ * @returns string representing solidity code for AttestationClientBase.sol
+ */
 function getSolidityAttestationClientBase(definitions: AttestationTypeScheme[]): string {
   let constants = definitions.map((definitions) => genConstant(definitions)).join("\n");
   //    let proofFunctions = definitions.map(definition => genProofFunctions(definition)).join("\n\n");
@@ -94,6 +109,10 @@ ${indentText(hashFunctions, SOLIDITY_CODEGEN_TAB)}
 `;
 }
 
+/**
+ * Creates contracts/generated/contracts/AttestationClientBase.sol solidity file
+ * @param definitions array of all attestation type definitions to generate methods for (defined in t-<number>-<attestation_type_name>.ts files) 
+ */
 export function createSolidityAttestationClientBase(definitions: AttestationTypeScheme[]): void {
   let content = `${DEFAULT_GEN_FILE_HEADER}
 ${getSolidityAttestationClientBase(definitions)}`;

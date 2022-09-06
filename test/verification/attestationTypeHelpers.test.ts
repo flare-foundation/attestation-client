@@ -8,6 +8,7 @@ describe(`Attestation Helpers Tests`, function () {
       const convertedNumber = numberLikeToNumber(num);
 
       expect(convertedNumber).to.eq(Number.MAX_SAFE_INTEGER);
+      expect(Number.isSafeInteger(convertedNumber)).to.eq(true);
     });
 
     it("string to number", function () {
@@ -16,6 +17,7 @@ describe(`Attestation Helpers Tests`, function () {
 
       expect(convertedNumber).to.eq(Number.MAX_SAFE_INTEGER + 1);
       expect(convertedNumber).to.not.eq(Number.MAX_SAFE_INTEGER);
+      expect(Number.isSafeInteger(convertedNumber)).to.eq(false);
     });
   });
 });

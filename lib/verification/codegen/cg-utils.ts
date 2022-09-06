@@ -18,8 +18,13 @@ export function dashCapitalized(name: string, glue = "-") {
   return name.replace(/([a-z])([A-Z])/g, `$1${glue}$2`).toLowerCase();
 }
 
+/**
+ * transform constant name to capitalized string reallyCoolConstant -> REALLY_COOL_CONSTANT
+ * @param name parameter to be formatted as constant
+ * @returns Formatted constant name 
+ */
 export function constantize(name: string) {
-  return name.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase();
+  return name.replace(/([a-zA-Z])([A-Z])/g, "$1_$2").toUpperCase();
 }
 
 export function definitionFile(definition: AttestationTypeScheme, folder?: string, addTs = true) {

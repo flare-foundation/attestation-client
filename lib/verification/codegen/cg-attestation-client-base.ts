@@ -3,13 +3,18 @@ import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES } from "../attestatio
 import { ATTESTATION_CLIENT_BASE, DEFAULT_GEN_FILE_HEADER, SOLIDITY_CODEGEN_TAB, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 import { constantize, indentText } from "./cg-utils";
 
-function genConstant(definition: AttestationTypeScheme) {
+/**
+ * 
+ * @param definition 
+ * @returns 
+ */
+function genConstant(definition: AttestationTypeScheme): string {
   return `
 uint${ATT_BYTES * 8} public constant ${constantize(definition.name)} = ${definition.id};
 `.trim();
 }
 
-function genVerifyFunctions(definition: AttestationTypeScheme): any {
+function genVerifyFunctions(definition: AttestationTypeScheme): string {
   return `
 function verify${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definition.name} calldata _data) 
     external view override
@@ -24,7 +29,7 @@ function verify${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definit
 `.trim();
 }
 
-function genHashFunctions(definition: AttestationTypeScheme): any {
+function genHashFunctions(definition: AttestationTypeScheme): string {
   let paramsArr = [constantize(definition.name), "_chainId", ...definition.dataHashDefinition.map((item) => `_data.${item.key}`)];
   let encodedParams: string;
   if (paramsArr.length <= 10) {
@@ -52,7 +57,7 @@ function _hash${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definiti
 `.trim();
 }
 
-function getSolidityAttestationClientBase(definitions: AttestationTypeScheme[]) {
+function getSolidityAttestationClientBase(definitions: AttestationTypeScheme[]): string {
   let constants = definitions.map((definitions) => genConstant(definitions)).join("\n");
   //    let proofFunctions = definitions.map(definition => genProofFunctions(definition)).join("\n\n");
   let verifyFunctions = definitions.map((definition) => genVerifyFunctions(definition)).join("\n\n");
@@ -89,7 +94,7 @@ ${indentText(hashFunctions, SOLIDITY_CODEGEN_TAB)}
 `;
 }
 
-export function createSolidityAttestationClientBase(definitions: AttestationTypeScheme[]) {
+export function createSolidityAttestationClientBase(definitions: AttestationTypeScheme[]): void {
   let content = `${DEFAULT_GEN_FILE_HEADER}
 ${getSolidityAttestationClientBase(definitions)}`;
   if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {

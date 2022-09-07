@@ -11,7 +11,7 @@ import {
   VERIFIERS_ROOT,
   WEB3_HASH_PREFIX_FUNCTION
 } from "./cg-constants";
-import { dashCapitalized, definitionFile, indentText } from "./cg-utils";
+import { dashCapitalized, definitionFile,  } from "./cg-utils";
 import { verifierFolder } from "./cg-verifiers";
 
 export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], chainType: SourceId) {
@@ -49,13 +49,13 @@ export { Verification, VerificationStatus } from "../../attestation-types/attest
 export { randSol } from "../../attestation-types/attestation-types-helpers";
 export { parseRequest } from "../../generated/attestation-request-parse";
 export { 
-${indentText(dhTypes, CODEGEN_TAB)} 
+${dhTypes} 
 } from "../../generated/attestation-hash-types";
 export { 
-${indentText(arTypes, CODEGEN_TAB)} 
+${arTypes} 
 } from "../../generated/attestation-request-types";
 export { 
-${indentText(hashFunctions, CODEGEN_TAB)} 
+${hashFunctions} 
 } from "../../generated/attestation-hash-utils";
 export { BN };
 export { Web3 };

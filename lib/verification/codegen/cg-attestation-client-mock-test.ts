@@ -1,19 +1,17 @@
 import fs from "fs";
-import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
-import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import prettier from 'prettier';
+import { AttestationTypeScheme, ATT_BYTES, DataHashScheme, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
+import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import {
   ATTESTATION_TYPE_PREFIX,
-  ATT_CLIENT_MOCK_TEST_FILE,
-  CODEGEN_TAB,
-  DATA_HASH_TYPE_PREFIX,
+  ATT_CLIENT_MOCK_TEST_FILE, DATA_HASH_TYPE_PREFIX,
   DEFAULT_GEN_FILE_HEADER,
   GENERATED_TEST_ROOT,
   PRETTIER_SETTINGS,
   SOLIDITY_VERIFICATION_FUNCTION_PREFIX,
-  WEB3_HASH_PREFIX_FUNCTION,
+  WEB3_HASH_PREFIX_FUNCTION
 } from "./cg-constants";
-import { indentText, tab, trimStartNewline } from "./cg-utils";
+import { trimStartNewline } from "./cg-utils";
 
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
   let res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;

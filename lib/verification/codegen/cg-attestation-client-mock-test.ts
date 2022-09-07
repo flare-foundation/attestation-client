@@ -1,6 +1,7 @@
 import fs from "fs";
 import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
+import prettier from 'prettier';
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_CLIENT_MOCK_TEST_FILE,
@@ -8,6 +9,7 @@ import {
   DATA_HASH_TYPE_PREFIX,
   DEFAULT_GEN_FILE_HEADER,
   GENERATED_TEST_ROOT,
+  PRETTIER_SETTINGS,
   SOLIDITY_VERIFICATION_FUNCTION_PREFIX,
   WEB3_HASH_PREFIX_FUNCTION,
 } from "./cg-constants";
@@ -19,7 +21,7 @@ export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{
 }
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  let responseFields = definition.dataHashDefinition.map((item) => indentText(randomHashItemValue(item, defaultReadObject), CODEGEN_TAB)).join(",\n");
+  let responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
   let randomResponse = `
 let response = {
 ${responseFields}      
@@ -31,7 +33,7 @@ ${responseFields}
 export function genRandomResponseFunction(definition: AttestationTypeScheme) {
   return `
 export function randomResponse${definition.name}() {
-${indentText(genRandomResponseCode(definition), CODEGEN_TAB)}
+${genRandomResponseCode(definition)}
    return response;
 }
 `;
@@ -46,13 +48,13 @@ case AttestationType.${definition.name}:
 }
 
 export function genRandomResponseForAttestationTypeFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map((definition) => indentText(genRandomResponseCase(definition), CODEGEN_TAB * 2)).join("\n");
+  let attestationTypeCases = definitions.map((definition) => genRandomResponseCase(definition)).join("\n");
   return `
 export function getRandomResponseForType(attestationType: AttestationType) {
-${tab()}switch(attestationType) {
+	switch(attestationType) {
 ${attestationTypeCases}
-${tab()}${tab()}default:
-${tab()}${tab()}${tab()}throw new Error("Wrong attestation type.")
+		default:
+			throw new Error("Wrong attestation type.")
   }   
 }
 `;
@@ -63,16 +65,16 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
   let values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 let encoded = web3.eth.abi.encodeParameters(
-${tab()}[
-${tab()}${tab()}"uint${ATT_BYTES * 8}",\t\t// attestationType
-${tab()}${tab()}"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
-${indentText(types, CODEGEN_TAB * 2)}
-${tab()}],
-${tab()}[
-${tab()}${tab()}${defaultRequest}.attestationType,
-${tab()}${tab()}${defaultRequest}.sourceId,
-${indentText(values, CODEGEN_TAB * 2)}
-${tab()}]
+	[
+		"uint${ATT_BYTES * 8}",\t\t// attestationType
+		"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
+${types}
+	],
+	[
+		${defaultRequest}.attestationType,
+		${defaultRequest}.sourceId,
+${values}
+	]
 );   
 `;
 }
@@ -82,8 +84,8 @@ export function genWeb3HashFunction(definition: AttestationTypeScheme) {
 export function ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}, response: ${DATA_HASH_TYPE_PREFIX}${
     definition.name
   }) {
-${indentText(genHashCode(definition, "request", "response"), CODEGEN_TAB)}
-${tab()}return web3.utils.soliditySha3(encoded)!;
+${genHashCode(definition, "request", "response")}
+	return web3.utils.soliditySha3(encoded)!;
 }
 `;
 }
@@ -116,37 +118,37 @@ it("'${definition.name}' test", async function () {
 function genVerificationCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
-${tab()}assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(verification.request.sourceId, responseHex));
-${tab()}break;`;
+	assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(verification.request.sourceId, responseHex));
+	break;`;
 }
 
 function genItForMerkleTest(definitions: AttestationTypeScheme[]) {
   let verificationCases = definitions.map((definition) => genVerificationCase(definition)).join("");
   return `
 it("Merkle tree test", async function () {
-${tab()}let verifications = [];
-${tab()}for(let i = 0; i < NUM_OF_HASHES; i++) {
-${tab()}${tab()}let request = getRandomRequest();
-${tab()}${tab()}let response = getRandomResponseForType(request.attestationType);
-${tab()}${tab()}verifications.push({
-${tab()}${tab()}${tab()}request,
-${tab()}${tab()}${tab()}response,
-${tab()}${tab()}${tab()}hash: dataHash(request, response)
-${tab()}${tab()}})
-${tab()}};
-${tab()}let hashes = verifications.map(verification => verification.hash);
-${tab()}const tree = new MerkleTree(hashes);
-${tab()}await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, tree.root);
-${tab()}for(let verification of verifications) {
-${tab()}${tab()}verification.response.stateConnectorRound = STATECONNECTOR_ROUND;
-${tab()}${tab()}let index = tree.sortedHashes.findIndex(hash => hash === verification.hash);
-${tab()}${tab()}verification.response.merkleProof = tree.getProof(index);
-${tab()}${tab()}let responseHex = hexlifyBN(verification.response);
-${tab()}${tab()}switch(verification.request.attestationType) {
-${indentText(verificationCases, CODEGEN_TAB * 3)}
-${tab()}${tab()}${tab()}default:
-${tab()}${tab()}${tab()}${tab()}throw new Error("Wrong attestation type");
-${tab()}${tab()}}
+	let verifications = [];
+	for(let i = 0; i < NUM_OF_HASHES; i++) {
+		let request = getRandomRequest();
+		let response = getRandomResponseForType(request.attestationType);
+		verifications.push({
+			request,
+			response,
+			hash: dataHash(request, response)
+		})
+	};
+	let hashes = verifications.map(verification => verification.hash);
+	const tree = new MerkleTree(hashes);
+	await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, tree.root);
+	for(let verification of verifications) {
+		verification.response.stateConnectorRound = STATECONNECTOR_ROUND;
+		let index = tree.sortedHashes.findIndex(hash => hash === verification.hash);
+		verification.response.merkleProof = tree.getProof(index);
+		let responseHex = hexlifyBN(verification.response);
+		switch(verification.request.attestationType) {
+${verificationCases}
+			default:
+				throw new Error("Wrong attestation type");
+		}
   }    
 });
 `;
@@ -162,20 +164,20 @@ export function createAttestationClientMockTest(definitions: AttestationTypeSche
 import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";
 import { 
-${indentText(dhImports, CODEGEN_TAB)} 
+${dhImports} 
 } from "../../lib/verification/generated/attestation-hash-types";
 import { 
-${indentText(arImports, CODEGEN_TAB)} 
+${arImports} 
 } from "../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
 import { SourceId } from "../../lib/verification/sources/sources";
 import { 
-${tab()}getRandomResponseForType, 
-${tab()}getRandomRequest,
+	getRandomResponseForType, 
+	getRandomRequest,
 } from "../../lib/verification/generated/attestation-random-utils";
 import { 
-${indentText(hashFunctionsImports, CODEGEN_TAB)},
-${tab()}dataHash
+${hashFunctionsImports},
+	dataHash
 } from "../../lib/verification/generated/attestation-hash-utils";
   
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
@@ -194,14 +196,16 @@ describe("Attestestation Client Mock", function () {
     attestationClient = await AttestationClientSC.new(stateConnectorMock.address);
   });
 
-${indentText(itsForDefinitions, CODEGEN_TAB)}
+${itsForDefinitions}
 
-${indentText(genItForMerkleTest(definitions), CODEGEN_TAB)}    
+${genItForMerkleTest(definitions)}    
 });  
 `;
 
   if (!fs.existsSync(GENERATED_TEST_ROOT)) {
     fs.mkdirSync(GENERATED_TEST_ROOT, { recursive: true });
   }
-  fs.writeFileSync(`${GENERATED_TEST_ROOT}/${ATT_CLIENT_MOCK_TEST_FILE}`, content, "utf8");
+
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS)
+  fs.writeFileSync(`${GENERATED_TEST_ROOT}/${ATT_CLIENT_MOCK_TEST_FILE}`, prettyContent, "utf8");
 }

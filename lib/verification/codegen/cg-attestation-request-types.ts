@@ -1,11 +1,11 @@
 import fs from "fs";
 import prettier from 'prettier';
 import { AttestationRequestScheme, AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
-import { indentText } from "./cg-utils";
+import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
+import { commentText } from "./cg-utils";
 
 function genDefReqItem(item: AttestationRequestScheme) {
-  return `${indentText(item.description, CODEGEN_TAB, "//")}
+  return `${commentText(item.description)}
    ${item.key}: ${item.type};`;
 }
 

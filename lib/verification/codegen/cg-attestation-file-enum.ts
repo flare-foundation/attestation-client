@@ -1,8 +1,7 @@
 import fs from "fs";
 import prettier from 'prettier';
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { ATTESTATION_TYPES_ENUM_FILE, CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
-import { indentText } from "./cg-utils";
+import { ATTESTATION_TYPES_ENUM_FILE, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
 
 function genAttestationTypeEnum(definitions: AttestationTypeScheme[]): string {
   let values = definitions.map((definition) => `${definition.name} = ${definition.id}`).join(",\n");

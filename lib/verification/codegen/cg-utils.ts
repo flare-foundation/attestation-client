@@ -5,15 +5,6 @@ export function trimStartNewline(text: string) {
   return text[0] === "\n" ? text.slice(1) : text;
 }
 
-export function indentText(text: string, padding: number, prefix = "") {
-  if (prefix !== "") prefix += " "; // add separator
-  return text
-    .trim()
-    .split("\n")
-    .map((line) => `${"".padEnd(padding)}${prefix}${line}`)
-    .join("\n");
-}
-
 export function commentText(text: string, prefix = "//") {
   if (prefix !== "") prefix += " "; // add separator
   return text
@@ -42,6 +33,3 @@ export function definitionFile(definition: AttestationTypeScheme, folder?: strin
   return `${root}t-${("" + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}${suffix}`;
 }
 
-export function tab(size = CODEGEN_TAB) {
-  return "".padStart(size, " ");
-}

@@ -1,4 +1,5 @@
 import fs from "fs";
+import prettier from 'prettier';
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { SourceId } from "../sources/sources";
 import {
@@ -6,8 +7,9 @@ import {
   CODEGEN_TAB,
   DATA_HASH_TYPE_PREFIX,
   DEFAULT_GEN_FILE_HEADER,
+  PRETTIER_SETTINGS,
   VERIFIERS_ROOT,
-  WEB3_HASH_PREFIX_FUNCTION,
+  WEB3_HASH_PREFIX_FUNCTION
 } from "./cg-constants";
 import { dashCapitalized, definitionFile, indentText } from "./cg-utils";
 import { verifierFolder } from "./cg-verifiers";
@@ -59,7 +61,8 @@ export { BN };
 export { Web3 };
 ${tdefExports}
 `;
-  fs.writeFileSync(`${verifierFolder(chainType, VERIFIERS_ROOT)}/0imports.ts`, content, "utf8");
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS)
+  fs.writeFileSync(`${verifierFolder(chainType, VERIFIERS_ROOT)}/0imports.ts`, prettyContent, "utf8");
 }
 
 export function createVerifiersImportFiles(definitions: AttestationTypeScheme[]) {

@@ -14,6 +14,15 @@ export function indentText(text: string, padding: number, prefix = "") {
     .join("\n");
 }
 
+export function commentText(text: string, prefix = "//") {
+  if (prefix !== "") prefix += " "; // add separator
+  return text
+    .trim()
+    .split("\n")
+    .map((line) => `${prefix}${line}`)
+    .join("\n");
+}
+
 export function dashCapitalized(name: string, glue = "-") {
   return name.replace(/([a-z])([A-Z])/g, `$1${glue}$2`).toLowerCase();
 }

@@ -8,7 +8,7 @@ import {
   DATA_HASH_TYPE_PREFIX,
   SEMI_EDITABLE_GEN_FILE_HEADER,
   VERIFIER_FUNCTION_PREFIX,
-  WEB3_HASH_PREFIX_FUNCTION,
+  WEB3_HASH_PREFIX_FUNCTION
 } from "./cg-constants";
 import { dashCapitalized, indentText, tab } from "./cg-utils";
 

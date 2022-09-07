@@ -1,10 +1,12 @@
 import fs from "fs";
+import prettier from 'prettier';
 import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_REQUEST_PARSE_FILE,
   CODEGEN_TAB,
   DEFAULT_GEN_FILE_HEADER,
+  PRETTIER_SETTINGS,
   REQUEST_PARSE_FUNCTIONS_HEADER,
   REQUEST_PARSE_PREFIX_FUNCTION,
 } from "./cg-constants";
@@ -24,17 +26,17 @@ export function genRequestParseFunctionForDefinition(definition: AttestationType
   let parseEntries = parseEntryList.join(",\n");
   return `
 export function ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(bytes: string): ${ATTESTATION_TYPE_PREFIX}${definition.name} {
-${tab()}if(!bytes) {
-${tab()}${tab()}throw new AttestationRequestParseError("Empty attestation request")
-${tab()}}
-${tab()}let input = unPrefix0x(bytes);  
-${tab()}if(input.length != ${totalLength}) {
-${tab()}${tab()}throw new AttestationRequestParseError("Incorrectly formatted attestation request")
-${tab()}}
+	if(!bytes) {
+		throw new AttestationRequestParseError("Empty attestation request")
+	}
+	let input = unPrefix0x(bytes);  
+	if(input.length != ${totalLength}) {
+		throw new AttestationRequestParseError("Incorrectly formatted attestation request")
+	}
   
-${tab()}return {
-${indentText(parseEntries, CODEGEN_TAB * 2)}
-${tab()}}
+	return {
+${parseEntries}
+	}
 }
 `;
 }
@@ -56,18 +58,18 @@ function typeForRequestType(type: SupportedRequestType) {
 function fromUnprefixedBytesFunction() {
   return `
 function fromUnprefixedBytes(bytes: string, type: string, size: number) {
-${tab()}switch (type) {
-${tab()}${tab()}case "AttestationType":
-${tab()}${tab()}${tab()}return toBN(prefix0x(bytes)).toNumber() as AttestationType;
-${tab()}${tab()}case "NumberLike":
-${tab()}${tab()}${tab()}return toBN(prefix0x(bytes));
-${tab()}${tab()}case "SourceId":
-${tab()}${tab()}${tab()}return toBN(prefix0x(bytes)).toNumber() as SourceId;
-${tab()}${tab()}case "ByteSequenceLike":
-${tab()}${tab()}${tab()}return toHex(prefix0x(bytes), size);
-${tab()}${tab()}default:
-${tab()}${tab()}${tab()}throw new AttestationRequestParseError("Unsuported attestation request");
-${tab()}}
+	switch (type) {
+		case "AttestationType":
+			return toBN(prefix0x(bytes)).toNumber() as AttestationType;
+		case "NumberLike":
+			return toBN(prefix0x(bytes));
+		case "SourceId":
+			return toBN(prefix0x(bytes)).toNumber() as SourceId;
+		case "ByteSequenceLike":
+			return toHex(prefix0x(bytes), size);
+		default:
+			throw new AttestationRequestParseError("Unsuported attestation request");
+	}
 }
 `;
 }
@@ -75,19 +77,19 @@ ${tab()}}
 function genParseAttestationTypeCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
-${tab()}return ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(bytes);`;
+	return ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(bytes);`;
 }
 
 export function genRequestParseFunction(definitions: AttestationTypeScheme[]) {
   let attestationTypeCases = definitions.map((definition) => genParseAttestationTypeCase(definition)).join("");
   return `
 export function ${REQUEST_PARSE_PREFIX_FUNCTION}Request(bytes: string): ${ATTESTATION_TYPE_PREFIX}Type {  
-${tab()}let { attestationType } = getAttestationTypeAndSource(bytes);
-${tab()}switch(attestationType) {
-${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
-${tab()}${tab()}default:
-${tab()}${tab()}${tab()}throw new AttestationRequestParseError("Invalid attestation type");
-${tab()}}
+	let { attestationType } = getAttestationTypeAndSource(bytes);
+	switch(attestationType) {
+${attestationTypeCases}
+		default:
+			throw new AttestationRequestParseError("Invalid attestation type");
+	}
 }
 `;
 }
@@ -95,10 +97,10 @@ ${tab()}}
 function genParseException() {
   return `
 export class AttestationRequestParseError extends Error {
-${tab()}constructor(message: any) {
-${tab()}${tab()}super(message);
-${tab()}${tab()}this.name = 'AttestationRequestParseError';
-${tab()}}
+	constructor(message: any) {
+		super(message);
+		this.name = 'AttestationRequestParseError';
+	}
 }
 `;
 }
@@ -106,18 +108,18 @@ ${tab()}}
 function genGetAttestationTypeAndSource() {
   return `
 export function getAttestationTypeAndSource(bytes: string) {
-${tab()}try {
-${tab()}${tab()}let input = unPrefix0x(bytes);
-${tab()}${tab()}if (!bytes || bytes.length < ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}) {
-${tab()}${tab()}${tab()}throw new AttestationRequestParseError("Cannot read attestation type and source id")
-${tab()}${tab()}}
-${tab()}${tab()}return {
-${tab()}${tab()}${tab()}attestationType: toBN(prefix0x(input.slice(0, ${ATT_BYTES * 2}))).toNumber() as AttestationType,
-${tab()}${tab()}${tab()}sourceId: toBN(prefix0x(input.slice(${ATT_BYTES * 2}, ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}))).toNumber() as SourceId
-${tab()}${tab()}}
-${tab()}} catch(e) {
-${tab()}${tab()}throw new AttestationRequestParseError(e)
-${tab()}}
+	try {
+		let input = unPrefix0x(bytes);
+		if (!bytes || bytes.length < ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}) {
+			throw new AttestationRequestParseError("Cannot read attestation type and source id")
+		}
+		return {
+			attestationType: toBN(prefix0x(input.slice(0, ${ATT_BYTES * 2}))).toNumber() as AttestationType,
+			sourceId: toBN(prefix0x(input.slice(${ATT_BYTES * 2}, ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}))).toNumber() as SourceId
+		}
+	} catch(e) {
+		throw new AttestationRequestParseError(e)
+	}
 }
   
 `;
@@ -126,18 +128,18 @@ ${tab()}}
 function genHelperFunctions() {
   return `
 export function unPrefix0x(tx: string) {
-${tab()}return tx.startsWith("0x") ? tx.slice(2) : tx;
+	return tx.startsWith("0x") ? tx.slice(2) : tx;
 }
 
 export function prefix0x(tx: string) {
-${tab()}return tx.startsWith("0x") ? tx : "0x" + tx;
+	return tx.startsWith("0x") ? tx : "0x" + tx;
 }
 
 export function toHex(x: string | number | BN, padToBytes?: number) {
-${tab()}if (padToBytes as any > 0) {
-${tab()}${tab()}return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
-${tab()}}
-${tab()}return Web3.utils.toHex(x);
+	if (padToBytes as any > 0) {
+		return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
+	}
+	return Web3.utils.toHex(x);
 }
 `;
 }
@@ -149,8 +151,8 @@ export function createAttestationRequestParse(definitions: AttestationTypeScheme
 import Web3 from "web3";
 import BN from "bn.js";
 import { 
-${indentText(arImports, CODEGEN_TAB)},
-${tab()}${ATTESTATION_TYPE_PREFIX}Type 
+${arImports},
+	${ATTESTATION_TYPE_PREFIX}Type 
 } from "./attestation-request-types";
 import { AttestationType } from "./attestation-types-enum";
 import { SourceId } from "../sources/sources";
@@ -175,5 +177,6 @@ const web3 = new Web3();
 
   content += genRequestParseFunction(definitions);
 
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
   fs.writeFileSync(ATT_REQUEST_PARSE_FILE, content, "utf8");
 }

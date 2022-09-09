@@ -32,12 +32,12 @@
     "backends" : [
         {
             "name": "Coston",
-            "address":"localhost:$(CostonBackendPort)/api/status/services",
+            "address":"http://localhost:$(CostonBackendPort)/api/status/services",
             "restart":"systemctl --user restart coston-attester-client"
         },
         // {
         //     "name": "Songbird",
-        //     "address":"localhost:$(SongbirdBackendPort)/api/status/services",
+        //     "address":"http://localhost:$(SongbirdBackendPort)/api/status/services",
         //     "restart":"systemctl --user restart songbird-attester-client"
         // }
     ],

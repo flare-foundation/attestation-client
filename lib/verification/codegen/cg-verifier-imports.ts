@@ -14,7 +14,7 @@ import {
 import { dashCapitalized, definitionFile,  } from "./cg-utils";
 import { verifierFolder } from "./cg-verifiers";
 
-export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], chainType: SourceId) {
+export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], sourceId: SourceId) {
   let tdefImports = "";
   let tdefExports = "";
   let dhTypeList = [];
@@ -22,7 +22,7 @@ export function createVerifiersImportFileForSource(definitions: AttestationTypeS
   let hashFunctionList = [];
 
   for (let definition of definitions) {
-    if (definition.supportedSources.indexOf(chainType) >= 0) {
+    if (definition.supportedSources.indexOf(sourceId) >= 0) {
       tdefImports += `import {TDEF as TDEF_${dashCapitalized(definition.name, "_")} } from "../../attestation-types/${definitionFile(
         definition,
         undefined,
@@ -62,7 +62,7 @@ export { Web3 };
 ${tdefExports}
 `;
   const prettyContent = prettier.format(content, PRETTIER_SETTINGS)
-  fs.writeFileSync(`${verifierFolder(chainType, VERIFIERS_ROOT)}/0imports.ts`, prettyContent, "utf8");
+  fs.writeFileSync(`${verifierFolder(sourceId, VERIFIERS_ROOT)}/0imports.ts`, prettyContent, "utf8");
 }
 
 export function createVerifiersImportFiles(definitions: AttestationTypeScheme[]) {

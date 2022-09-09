@@ -1,5 +1,5 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationRequestScheme, AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
 import { commentText } from "./cg-utils";
@@ -9,7 +9,7 @@ function genDefReqItem(item: AttestationRequestScheme) {
    ${item.key}: ${item.type};`;
 }
 
-function genAttestationRequestType(definition: AttestationTypeScheme) {
+function genAttestationRequestType(definition: AttestationTypeScheme): string {
   definition.dataHashDefinition;
   let values = definition.request.map((item) => genDefReqItem(item)).join("\n\n");
   return `

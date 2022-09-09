@@ -14,7 +14,7 @@ export class BackendAlert extends AlertBase {
   async initialize() {}
 
   async checkWebsite(url) {
-    var http = require("https");
+    var http = require("http");
 
     return new Promise((resolve, reject) => {
       http

@@ -1,6 +1,7 @@
 import * as winston from "winston";
 import Transport from "winston-transport";
 import { Terminal } from "./terminal";
+import { TestLogger } from "./testLogger";
 import { round } from "./utils";
 
 const level = process.env.LOG_LEVEL || "info";
@@ -141,7 +142,7 @@ export class ColorConsole extends Transport {
           // "2022-01-10T13:13:07.712Z"
 
           console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + color + processColors(text, color) + Reset);
-        } catch {}
+        } catch { }
       }
     }
 
@@ -156,7 +157,7 @@ function replaceAll(text: string, search: string, replaceWith: string): string {
     while (text.indexOf(search) >= 0) {
       text = text.replace(search, replaceWith);
     }
-  } catch {}
+  } catch { }
 
   return text;
 }
@@ -180,7 +181,7 @@ export function processColors(text: string, def: string) {
     text = replaceAll(text, "^c", BgCyan);
     text = replaceAll(text, "^w", BgWhite);
     text = replaceAll(text, "^e", BgGray);
-  } catch {}
+  } catch { }
 
   return text;
 }
@@ -206,9 +207,11 @@ const myCustomLevels = {
   },
 };
 
-var globalLogger = new Map<string, AttLogger>();
+let globalLogger = new Map<string, AttLogger>();
 
-var globalLoggerLabel;
+let globalTestLogger: AttLogger = null;
+
+let globalLoggerLabel;
 
 export interface AttLogger extends winston.Logger {
   title: (message: string) => null;
@@ -224,7 +227,7 @@ export interface AttLogger extends winston.Logger {
   debug3: (message: string) => null;
 }
 
-export function createLogger(label?: string): AttLogger {
+function createLogger(label?: string, test = false): AttLogger {
   return winston.createLogger({
     level: "debug3",
     levels: myCustomLevels.levels,
@@ -243,7 +246,7 @@ export function createLogger(label?: string): AttLogger {
       })
     ),
     transports: [
-      new ColorConsole(),
+      test ? new TestLogger() : new ColorConsole(),
       new winston.transports.File({
         level: "debug2",
         filename: `./logs/attester-${label}.log`,
@@ -256,8 +259,21 @@ export function setGlobalLoggerLabel(label: string) {
   globalLoggerLabel = label;
 }
 
+export function initializeTestGlobalLogger() {
+  if (globalLogger.size || globalTestLogger) {
+    console.error("initializeTestGlobalLogger must be called before any logger is created");
+    // process.exit(3);
+  }
+
+  globalTestLogger = createLogger("@test", true);
+
+  return globalTestLogger;
+}
+
 // return one instance of logger
 export function getGlobalLogger(label?: string): AttLogger {
+  if (globalTestLogger) return globalTestLogger;
+
   if (!label) {
     label = globalLoggerLabel;
   }

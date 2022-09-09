@@ -1,7 +1,8 @@
-import assert from "assert";
 import { Managed, toBN } from "@flarenetwork/mcc";
+import assert from "assert";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
+import { criticalAsync } from "../indexer/indexer-utils";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, logException } from "../utils/logger";
 import { commitHash, MerkleTree, singleHash } from "../utils/MerkleTree";
@@ -114,8 +115,7 @@ export class AttestationRound {
 
   startCommitEpoch() {
     this.logger.group(
-      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
+      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
@@ -206,6 +206,7 @@ export class AttestationRound {
     db.logIndex = att.data.logIndex;
 
     db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
+    db.attestationStatus = AttestationStatus[att.status];
 
     db.request = prepareString(JSON.stringify(att.verificationData?.request ? att.verificationData.request : ""), 4 * 1024);
     db.response = prepareString(JSON.stringify(att.verificationData?.response ? att.verificationData.response : ""), 4 * 1024);
@@ -220,6 +221,25 @@ export class AttestationRound {
   }
 
   async commit() {
+    // collect valid attestations and prepare to save all requests
+    const dbAttestationRequests = [];
+    const validated = new Array<Attestation>();
+    for (const tx of this.attestations.values()) {
+      if (tx.status === AttestationStatus.valid) {
+        validated.push(tx);
+      }
+
+      dbAttestationRequests.push(this.prepareDBAttestationRequest(tx));
+    }
+
+    // save to DB only if epoch does not exists in the DB yet - save async
+    const alreadySavedRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBAttestationRequest, { where: { roundId: this.roundId } });
+
+    if (!alreadySavedRound) {
+      criticalAsync("commit", async () => { await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests); });
+    }
+
+    // check if commit can be performed
     if (this.status !== AttestationRoundEpoch.commit) {
       this.logger.error(`round #${this.roundId} cannot commit (wrong epoch status ${this.status})`);
       return;
@@ -230,27 +250,6 @@ export class AttestationRound {
     }
 
     this.attestStatus = AttestationRoundStatus.commiting;
-
-    // collect valid attestations
-    const dbAttesttaionRequests = [];
-    const validated = new Array<Attestation>();
-    for (const tx of this.attestations.values()) {
-      if (tx.status === AttestationStatus.valid) {
-        validated.push(tx);
-      }
-
-      // prepare the attestation request
-      const dbAttestationRequest = new DBAttestationRequest();
-
-      dbAttesttaionRequests.push(this.prepareDBAttestationRequest(tx));
-    }
-
-    // save to DB
-    try {
-      await AttestationRoundManager.dbServiceAttester.manager.save(dbAttesttaionRequests);
-    } catch (error) {
-      logException(error, `AttestationRound::commit save DB`);
-    }
 
     // check if there is any valid attestation
     if (validated.length === 0) {
@@ -321,8 +320,7 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${
-        time2 - time1
+      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1
       }ms)`
     );
   }

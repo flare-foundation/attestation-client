@@ -1,4 +1,5 @@
 import { ChainType } from "@flarenetwork/mcc";
+import { readJSON } from "../utils/config";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
@@ -20,9 +21,8 @@ export class SourceHandlerConfig {
   numberOfConfirmations: number = 1;
 
   queryWindowInSec!: number;
-
   UBPUnconfirmedWindowInSec!: number;
-
+  
   attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
 
@@ -74,15 +74,20 @@ export class AttestationConfigManager {
   }
 
   dynamicLoadInitialize() {
-    fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
-      if (filename && event === "rename") {
-        // todo: check why on the fly report JSON error
-        this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
-        if (this.load(this.config.dynamicAttestationConfigurationFolder + filename)) {
-          this.orderConfigurations();
+    try {
+      fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
+        if (filename && event === "rename") {
+          // todo: check why on the fly report JSON error
+          this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
+          if (this.load(this.config.dynamicAttestationConfigurationFolder + filename)) {
+            this.orderConfigurations();
+          }
         }
-      }
-    });
+      });
+    }
+    catch( error ) {
+      this.logger.exception( error );
+    }
   }
 
   async loadAll() {
@@ -105,7 +110,7 @@ export class AttestationConfigManager {
   load(filename: string, disregardObsolete: boolean = false): boolean {
     this.logger.info(`^GDAC load '${filename}'`);
 
-    const fileConfig = JSON.parse(fs.readFileSync(filename), JSONMapParser);
+    const fileConfig = readJSON<any>(filename, JSONMapParser);
 
     // check if loading current epoch (or next one)
     if (fileConfig.startEpoch == AttestationRoundManager.activeEpochId || fileConfig.startEpoch == AttestationRoundManager.activeEpochId + 1) {
@@ -118,7 +123,7 @@ export class AttestationConfigManager {
 
     // parse sources
     fileConfig.sources.forEach(
-      (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
+      (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; UBPUnconfirmedWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
         const sourceHandler = new SourceHandlerConfig();
 
         sourceHandler.source = toSourceId(source.source);
@@ -126,6 +131,7 @@ export class AttestationConfigManager {
         sourceHandler.maxTotalRoundWeight = source.maxTotalRoundWeight;
         sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
         sourceHandler.queryWindowInSec = source.queryWindowInSec;
+        sourceHandler.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
 
         config.sourceHandlers.set(sourceHandler.source, sourceHandler);
 

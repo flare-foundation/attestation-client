@@ -11,7 +11,6 @@ Chains configuration file contains all external chain configuration.
 | `rateLimitOptions`            | [Rate Limiting Options](./json/json-RateLimitingOptions.md)             |         |
 | `numberOfConfirmations`       | Number of required block confirmations before block is considered final | 1       |
 | `syncReadAhead`               | How many blocks are synced in parallel                                  | 20      |
-| `syncAverageBlocksPerDayStartRation`| What start block to use (in %) when calculating average blocks per day.| 0.9      |
 | `blockCollecting`             | Block collection mode (`raw`, `rawUnforkable`, `tips`).                 | "raw"   |
 | `minimalStorageHistoryDays`   |                                                                         | 2       |
 | `minimalStorageHistoryBlocks` |                                                                         | 100     |
@@ -22,6 +21,9 @@ Chains configuration file contains all external chain configuration.
 | `maxValidIndexerDelaySec`     |                                                                         | 10      |
 | `reverificationTimeOffset`    |                                                                         | 10      |
 | `syncTimeDays`                | Per chain sync time override. Used if not 0.                            | 0       |
+| `validateBlockBeforeProcess`  | Validate block before processing it (used for XRP).                     | false   |
+| `validateBlockWaitMs`         | Wait time in ms before re-validating block.                             | 500     |
+| `validateBlockMaxRetry`       | Number of retries for block to become valid before app restart.         | 10      |
 
 > **NOTE:**
 > Entries with default values are optional.

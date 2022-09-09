@@ -128,7 +128,10 @@
       "lib/**/!(*.test.*).[tj]s?(x)"
     ],
     "exclude": [
-      "src/_tests_/**/*.*"
+      "src/_tests_/**/*.*",
+
+      "lib/vpwserver/runVPWS.ts",
+      "lib/vpwserver/client/testClient.ts"
     ],
     "reporter": [
       "html",

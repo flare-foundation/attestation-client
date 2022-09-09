@@ -153,15 +153,20 @@ export class VerificationProviderWebServer {
     /**
      * Stop server
      */
-    public stopServer() {
+    public async stopServer() {
         this.logger.info(`stop server `);
 
         this.stop = true;
 
         this.running = false;
 
-        //todo: stop listener;
-        this.server.close();
+        // close all clients
+        for( let client of this.clients) {
+            client.close();
+        }
+
+        // close server
+        await this.server.close();
         this.server = null;
     }
 

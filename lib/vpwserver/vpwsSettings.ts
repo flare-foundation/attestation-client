@@ -15,6 +15,8 @@ export class VPWSSettings {
 
   protected verificationProvidersMap = new Map<string, IVerificationProvider<any>>();
 
+  protected supportedVerifications = new Array<VerificationType>();
+
   /**
    * Create user from config
    * @param config 
@@ -25,6 +27,10 @@ export class VPWSSettings {
     this.serverUsers = config.serverUsers;
 
     this.logger.debug(`${this.serverUsers.length} users`);
+  }
+
+  public getSupportedVerifications(): VerificationType[] {
+    return this.supportedVerifications;
   }
 
   /**
@@ -97,6 +103,11 @@ export class VPWSSettings {
       this.logger.info(`provider: ^w${vp.getName()}^^ (${vpConfig.settings})`);
 
       vp.initializeSettings = vpConfig.settings;
+
+      const supported = vp.getSupportedVerificationTypes();
+      for (let i of supported) {
+        this.supportedVerifications.push(i);
+      }
 
       this.verificationProviders.push(vp);
     }

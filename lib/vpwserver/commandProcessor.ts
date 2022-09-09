@@ -1,5 +1,4 @@
 import { getGlobalLogger, logException } from "../utils/logger";
-import { VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { getAttestationTypeAndSource } from "../verification/generated/attestation-request-parse";
 import { ConnectionClient } from "./connectionClient";
 import { VerificationResult, VerificationType } from "./provider/verificationProvider";
@@ -80,7 +79,7 @@ export class CommandProcessor {
             const parameters = parametersString.split('\t');
 
             if (parameters.length < 2) {
-                this.reportError( client, commandId, commandName, CommandProcessorError.invalidParameterCount, `at least 2 command parameters are expected`);
+                this.reportError(client, commandId, commandName, CommandProcessorError.invalidParameterCount, `at least 2 command parameters are expected`);
                 return false;
             }
 
@@ -93,26 +92,26 @@ export class CommandProcessor {
                     if (!this.checkParameterCount(client, commandId, commandName, 2 + 0, parameters.length)) {
                         return false;
                     };
-                    this.getSupported(client);
+                    this.getSupported(client, commandId);
                     return true;
                 }
                 case "verify": {
                     if (!this.checkParameterCount(client, commandId, commandName, 2 + 3, parameters.length)) {
                         return false;
                     };
-                    this.verify(client, commandId, parseInt(parameters[2]), parameters[3], parameters[4] === "true"); return true;
+                    this.verify(client, commandId, parseInt(parameters[2]), parameters[3], parameters[4] === "true");
                     return true;
                 }
             }
 
-            this.reportError( client, commandId, commandName, CommandProcessorError.invalidCommand, `unknown command '${commandName}'`);
-    
+            this.reportError(client, commandId, commandName, CommandProcessorError.invalidCommand, `unknown command '${commandName}'`);
+
             return false;
-            }
+        }
         catch (error) {
             logException(error, `CommandProcessor`);
 
-            this.reportError( client, commandId, commandName , CommandProcessorError.errorProcessingCommand, error.message );
+            this.reportError(client, commandId, commandName, CommandProcessorError.errorProcessingCommand, error.message);
         }
     }
 
@@ -121,9 +120,9 @@ export class CommandProcessor {
      * Returns supported attestation types
      * @param client
      */
-    protected getSupported(client: ConnectionClient) {
-        // todo: send correct verification message
-        client.ws.send(`supported...`);
+    protected getSupported(client: ConnectionClient, id: number) {
+        const supported = globalSettings.getSupportedVerifications();
+        client.ws.send(`getSupportedResult\t${id}\t${JSON.stringify(supported)}`);
     }
 
     /**
@@ -179,14 +178,14 @@ export class CommandProcessor {
             verificationType = new VerificationType(attestationType, sourceId);
         }
         catch (error) {
-            this.reportError(client, verificationId, "verificationResult", CommandProcessorError.errorProcessingCommand, error.message );
+            this.reportError(client, verificationId, "verificationResult", CommandProcessorError.errorProcessingCommand, error.message);
             return;
         }
 
         const vp = globalSettings.findVerificationProvider(verificationType);
 
         if (!vp) {
-            this.reportError(client, verificationId, "verificationResult", CommandProcessorError.invalidVerificationProvider, verificationType );
+            this.reportError(client, verificationId, "verificationResult", CommandProcessorError.invalidVerificationProvider, verificationType);
             return;
         }
 

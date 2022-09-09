@@ -4,6 +4,8 @@ import { parseJSON } from '../../utils/config';
 import { AttLogger, getGlobalLogger, logException } from '../../utils/logger';
 import { sleepms } from '../../utils/utils';
 import { Verification } from '../../verification/attestation-types/attestation-types';
+import { AttestationType } from '../../verification/generated/attestation-types-enum';
+import { VerificationType } from '../provider/verificationProvider';
 
 export class VerificationClientOptions {
   @optional() port: number = 8088;
@@ -30,6 +32,8 @@ export class VerificationClient {
   pingUpdate = null;
 
   verificationResult = new Map<number, Verification<any, any>>();
+  getSupportedResult = new Map<number, VerificationType[]>();
+
   errorResult = new Map<number, string>();
 
   /**
@@ -148,6 +152,15 @@ export class VerificationClient {
         return false;
       }
 
+      if (name === `getSupportedResult`) {
+        if (parameters.length != 3) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
+
+        const res = parameters[3] !== "" ? parseJSON<VerificationType[]>(parameters[2]) : undefined;
+
+        this.getSupportedResult.set(id, res);
+        return false;
+      }
+
     }
     catch (error) {
       logException(error, `processMessage ${data}`);
@@ -212,6 +225,53 @@ export class VerificationClient {
       }
     });
   }
+
+  /**
+   * Get Supported attestations
+   * @param roundId 
+   * @param request 
+   * @param recheck 
+   * @returns 
+   */
+   public async getSupported(): Promise<VerificationType[]> {
+    const id = this.getNextId();
+
+    this.logger.debug2(`client[${this.id}]: getSupported id=${id}'`);
+
+    this.ws.send(`getSupported\t${id}`);
+
+    return new Promise(async (resolve, reject) => {
+
+      let timeout = 0;
+      while (true) {
+
+        // check if we got result
+        if (this.getSupportedResult.has(id)) {
+          const res = this.getSupportedResult.get(id);
+          resolve(res);
+          return;
+        }
+
+        // check if we got error
+        let errorRes = this.errorResult.get(id);
+
+        if (errorRes) {
+          reject(errorRes);
+          return;
+        }
+
+        await sleepms(100);
+
+        if (++timeout * 100 > this.clientOptions.connectionTimeoutMS) {
+          this.logger.error2(`client[${this.id}]: getSupported timeout`);
+          reject("timeout");
+          return;
+        }
+      }
+    });
+  }
+
+
 
   /**
    * Disconnect client

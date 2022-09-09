@@ -1,7 +1,7 @@
 import { optional } from '@flarenetwork/mcc';
 import WebSocket from 'ws';
 import { parseJSON } from '../../utils/config';
-import { AttLogger, getGlobalLogger } from '../../utils/logger';
+import { AttLogger, getGlobalLogger, logException } from '../../utils/logger';
 import { sleepms } from '../../utils/utils';
 import { Verification } from '../../verification/attestation-types/attestation-types';
 
@@ -39,7 +39,7 @@ export class VerificationClient {
    * @param clientOptions 
    * @returns 
    */
-  public async connect(address: string, key: string, clientOptions: VerificationClientOptions = null) {
+  public async connect(address: string, key: string, clientOptions: VerificationClientOptions = null): Promise<boolean> {
 
     this.clientOptions = clientOptions ? clientOptions : new VerificationClientOptions();
 
@@ -111,39 +111,47 @@ export class VerificationClient {
     const parameters = data.split('\t');
 
     const name = parameters[0];
+    const id = parameters.length > 0 ? parseInt(parameters[1]) : -1;
 
-    if (name === "error") {
-      if (parameters.length != 4) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
+    try {
 
-      const id = parameters[1];
-      const error = parameters[2];
-      const comment = parameters[3];
 
-      this.errorResult.set(parseInt(id), `${error}:${comment}`);
+      if (name === "error") {
+        if (parameters.length != 4) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
 
-      this.logger.error(`client[${this.id}] response error #${id} error ${error} comment ${comment}`)
+        const error = parameters[2];
+        const comment = parameters[3];
 
-      return false;
+        this.errorResult.set(id, `${error}:${comment}`);
+
+        this.logger.error(`client[${this.id}] response error #${id} error ${error} comment ${comment}`)
+
+        return false;
+      }
+
+      if (name === `connected`) {
+        if (parameters.length != 2) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
+
+        this.id = parameters[1];
+
+        this.logger.info(`client[${this.id}] connected`);
+
+        return true;
+      }
+
+      if (name === `verificationResult`) {
+        if (parameters.length != 6) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
+
+        const res = parameters[3] !== "" ? parseJSON<Verification<any, any>>(parameters[3]) : undefined;
+
+        this.verificationResult.set(id, res);
+        return false;
+      }
+
     }
-
-    if (name === `connected`) {
-      if (parameters.length != 2) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
-
-      this.id = parameters[1];
-
-      this.logger.info(`client[${this.id}] connected`);
-
-      return true;
-    }
-
-    if (name === `verificationResult`) {
-      if (parameters.length != 6) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
-
-      const res = parameters[3] !== "" ? parseJSON<Verification<any, any>>(parameters[3]) : undefined;
-
-      this.verificationResult.set(parseInt(parameters[1]), res);
-
-      return true;
+    catch (error) {
+      logException(error, `processMessage ${data}`);
+      this.errorResult.set(id, error.message);
     }
 
     this.logger.error(`processMessage: unknown message '${data}'`);

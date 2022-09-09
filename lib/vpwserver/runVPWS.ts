@@ -1,7 +1,7 @@
 import { traceManager, TraceManager } from "@flarenetwork/mcc";
 import { readConfig, readConfigBase, readCredentials } from "../utils/config";
 import { logException } from "../utils/logger";
-import { VPWSConfig, VPWSCredentials, VPWSProtocols as VPWSProviders, VPWSUsers } from "./vpwsConfiguration";
+import { VPWSConfig, VPWSCredentials, VPWSProviders, VPWSUsers } from "./vpwsConfiguration";
 import { VerificationProviderWebServer } from "./vpwsServer";
 import { globalSettings } from "./vpwsSettings";
 

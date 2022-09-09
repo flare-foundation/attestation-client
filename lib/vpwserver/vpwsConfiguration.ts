@@ -52,12 +52,12 @@ export class VPWSUsers implements IReflection<VPWSUsers> {
 
 }
 
-export class VPWSProtocols implements IReflection<VPWSProtocols> {
+export class VPWSProviders implements IReflection<VPWSProviders> {
 
   verificationProviders = new Array<VerificationProviderConfig>();
 
-  instanciate(): VPWSProtocols {
-    return new VPWSProtocols();
+  instanciate(): VPWSProviders {
+    return new VPWSProviders();
   }
 
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {

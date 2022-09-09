@@ -20,6 +20,10 @@ export class VerificationProviderWebServer {
     clients = new Array<ConnectionClient>();
     nextClientId = 1000;
 
+    running = false;
+
+    stop = false;
+
     commandProcessor = new CommandProcessor();
 
     logger: AttLogger;
@@ -137,20 +141,41 @@ export class VerificationProviderWebServer {
      * Starts server
      */
     public async startServer() {
+
+        this.stop = false;
+        this.running = true;
+
         this.logger.info(`starting server on port ${this.config.serverPort}`);
 
         this.server.listen(this.config.serverPort);
     }
 
     /**
+     * Stop server
+     */
+    public stopServer() {
+        this.logger.info(`stop server `);
+
+        this.stop = true;
+
+        this.running = false;
+
+        //todo: stop listener;
+        this.server.close();
+        this.server = null;
+    }
+
+    /**
      * Run server
      */
-    public async runServer() {
-        this.startServer();
+    public async runServer(waitUntilStop = true) {
+        await this.startServer();
 
-        globalSettings.initializeProviders();
+        await globalSettings.initializeProviders();
 
-        while (true) {
+        if (!waitUntilStop) return;
+
+        while (!this.stop) {
             await sleepms(1000);
         }
     }

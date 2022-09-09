@@ -3,7 +3,7 @@ import { SourceId } from "../verification/sources/sources";
 import { FactoryConstructor } from "./provider/classFactory";
 import { IVerificationProvider, VerificationType } from "./provider/verificationProvider";
 import { ServerUser } from "./serverUser";
-import { VPWSProtocols, VPWSUsers } from "./vpwsConfiguration";
+import { VPWSProviders, VPWSUsers } from "./vpwsConfiguration";
 
 export class VPWSSettings {
 
@@ -79,7 +79,7 @@ export class VPWSSettings {
    * Create Verification Providers from factory.
    * @param config 
    */
-  public async createProviders(config: VPWSProtocols) {
+  public async createProviders(config: VPWSProviders) {
     await this.dynamicallyLoadClassesFromFolder();
 
     this.logger.info(`creating verification providers...`);
@@ -117,7 +117,7 @@ export class VPWSSettings {
    * Initialize Verification Providers
    * This function maps all registered verification providers types and checks for duplicates.
    */
-  public initializeProviders() {
+  public async initializeProviders() {
 
     this.logger.info(`initializing verification providers...`);
 
@@ -125,7 +125,7 @@ export class VPWSSettings {
 
     // cache VP types
     for (let vp of this.verificationProviders) {
-      if (!vp.initialize()) {
+      if (!await vp.initialize()) {
         this.logger.error(`unable to initialize VP '${vp.getName()}'`);
         continue;
       }

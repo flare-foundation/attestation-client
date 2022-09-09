@@ -335,7 +335,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Test Colector",
+            "name": "Test Collector",
             "runtimeExecutable": "yarn",
             "console": "integratedTerminal",
             "outFiles": [
@@ -438,6 +438,28 @@
                 "test/CostonVerification.test.ts",
                 "--network",
                 "coston"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test VPWS",
+            "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
+            "env": {
+                "CONFIG_PATH": ".secure.dev",
+                "NODE_ENV":"development"
+            },
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/vpws/connection.test.ts"
             ]
         },
 

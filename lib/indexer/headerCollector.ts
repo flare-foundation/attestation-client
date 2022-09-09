@@ -69,22 +69,22 @@ export class HeaderCollector {
     }
 
     let blocks = (await retryMany(`saveBlocksHeaders`, blockPromisses, 5000, 5)) as IBlock[];
-    blocks = blocks.filter(block => !this.isBlockCached(block));
+    blocks = blocks.filter((block) => !this.isBlockCached(block));
     await this.saveBlocksOrHeadersOnNewTips(blocks);
   }
 
   /**
    * Saves blocks or headers in the array, if block.number > N.
    * Block numbers <= N are ignored.
-   * Note that for case of non-forkable chains it caches mapping 
+   * Note that for case of non-forkable chains it caches mapping
    * from block number to block (header). This mapping (`blockNumberHash`)
    * should not be used with forkable chains.
-   * 
-   * NOTE: the function is not subject to race conditions with processing of 
+   *
+   * NOTE: the function is not subject to race conditions with processing of
    * confirmed blocks since only blockNumber, blockHash and timestamp are updated
    * in the block table if an entry in dbBlock table already exists.
    * @param blocks array of headers
-   * @returns 
+   * @returns
    */
   public async saveBlocksOrHeadersOnNewTips(blocks: IBlock[]) {
     let blocksText = "[";
@@ -127,9 +127,9 @@ export class HeaderCollector {
 
     let dbBlocks = unconfirmedBlockManager.getChangedBlocks();
 
-    // remove all blockNumbers <= N. Note that N might have changed after the above 
+    // remove all blockNumbers <= N. Note that N might have changed after the above
     // async query
-    dbBlocks = dbBlocks.filter(dbBlock => dbBlock.blockNumber > this.indexer.N);
+    dbBlocks = dbBlocks.filter((dbBlock) => dbBlock.blockNumber > this.indexer.N);
 
     if (dbBlocks.length === 0) {
       //this.logger.debug(`write block headers (no new blocks)`);

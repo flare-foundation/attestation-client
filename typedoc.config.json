@@ -1,0 +1,9 @@
+{
+  "excludeExternals": true,
+  "entryPoints": ["./lib"],
+  "categorizeByGroup": true,
+  "categoryOrder": ["BaseMethod", "AdvancedMethod", "Indexer", "Verifiers", "*"],
+  "mergeModulesMergeMode": "project",
+  "entryPointStrategy": "expand",
+  "out": "genDocs"
+}

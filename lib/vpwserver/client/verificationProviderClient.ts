@@ -1,36 +1,45 @@
 import { optional } from '@flarenetwork/mcc';
-import { any } from 'hardhat/internal/core/params/argumentTypes';
 import WebSocket from 'ws';
+import { parseJSON } from '../../utils/config';
 import { AttLogger, getGlobalLogger } from '../../utils/logger';
 import { sleepms } from '../../utils/utils';
-import { Verification, VerificationStatus } from '../../verification/attestation-types/attestation-types';
-import { VerificationResult } from '../provider/verificationProvider';
-
+import { Verification } from '../../verification/attestation-types/attestation-types';
 
 export class VerificationClientOptions {
   @optional() port: number = 8088;
   @optional() connectionTimeoutMS = 5000;
   @optional() verificationTimeoutMS = 5000;
-
+  @optional() checkAliveIntervalMs = 5000;
 }
-
 
 export class VerificationClient {
 
   logger: AttLogger = getGlobalLogger();
 
+  id: string = "";
+
   ws: WebSocket = null;
 
   connected = false;
+  authorizationFailed = false;
 
   nextId = 1000;
 
   clientOptions: VerificationClientOptions;
 
-  //verificationResult = new Map<number, VerificationResult>();
-  verificationResult = new Map<number, Verification<any,any>>();
+  pingUpdate = null;
 
-  async connect(address: string, key: string, clientOptions: VerificationClientOptions = null) {
+  verificationResult = new Map<number, Verification<any, any>>();
+  errorResult = new Map<number, string>();
+
+  /**
+   * Connect to VerificationProvider server
+   * @param address 
+   * @param key 
+   * @param clientOptions 
+   * @returns 
+   */
+  public async connect(address: string, key: string, clientOptions: VerificationClientOptions = null) {
 
     this.clientOptions = clientOptions ? clientOptions : new VerificationClientOptions();
 
@@ -41,8 +50,17 @@ export class VerificationClient {
 
     const me = this;
 
+    this.authorizationFailed = false;
+
+    this.ws.on('error', function error(error) {
+      if (error.message === "Unexpected server response: 401") {
+        me.authorizationFailed = true;
+        me.logger.debug2(`authorization failed`);
+        me.closeConnection();
+      }
+    });
     this.ws.on('open', function open() {
-      me.logger.debug2( `verification client connected`);
+      me.logger.debug2(`verification client connected`);
       me.connected = true;
     });
 
@@ -50,11 +68,27 @@ export class VerificationClient {
       me.processMessage(data);
     });
 
+
+    // detect broken link from server side
+    this.ws.isAlive = true;
+    this.ws.on('pong', function () { this.isAlive = true; });
+
+    // check if connections are alive
+    this.pingUpdate = setInterval(function ping() {
+      me.checkPing();
+    }, this.clientOptions.checkAliveIntervalMs);
+
+
     return new Promise(async (resolve, reject) => {
 
       let timeout = 0;
       while (!this.connected) {
         await sleepms(100);
+
+        if (this.authorizationFailed) {
+          reject("authorizationFailed");
+          return;
+        }
 
         if (++timeout * 100 > this.clientOptions.connectionTimeoutMS) {
           this.logger.error2(`connection timeout`);
@@ -67,27 +101,47 @@ export class VerificationClient {
     });
   }
 
-  processMessage(data0: any): boolean {
+  /**
+   * Process messages from server
+   * @param data0 
+   * @returns 
+   */
+  private processMessage(data0: any): boolean {
     const data = `${data0}`;
-    const args = data.split('\t');
+    const parameters = data.split('\t');
 
-    if (args[0] === `connected`) {
-      if (args.length != 2) { this.logger.error(`processMessage: invalid argument count '${data}'`); return false; }
+    const name = parameters[0];
 
+    if (name === "error") {
+      if (parameters.length != 4) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
+
+      const id = parameters[1];
+      const error = parameters[2];
+      const comment = parameters[3];
+
+      this.errorResult.set(parseInt(id), `${error}:${comment}`);
+
+      this.logger.error(`client[${this.id}] response error #${id} error ${error} comment ${comment}`)
+
+      return false;
+    }
+
+    if (name === `connected`) {
+      if (parameters.length != 2) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
+
+      this.id = parameters[1];
+
+      this.logger.info(`client[${this.id}] connected`);
 
       return true;
     }
 
-    if (args[0] === `verificationResult`) {
-      if (args.length != 6) { this.logger.error(`processMessage: invalid argument count '${data}'`); return false; }
+    if (name === `verificationResult`) {
+      if (parameters.length != 6) { this.logger.error(`processMessage: invalid argument count ${name} '${data}'`); return false; }
 
-      //this.verificationResult.set(parseInt( args[1] ) , new VerificationResult( VerificationStatus[args[2]], args[3]));
+      const res = parameters[3] !== "" ? parseJSON<Verification<any, any>>(parameters[3]) : undefined;
 
-
-      //const res = (Verification<any,any>)JSON.parse( args[3] );
-      const res = JSON.parse( args[3] );
-
-      this.verificationResult.set(parseInt( args[1] ) , res );
+      this.verificationResult.set(parseInt(parameters[1]), res);
 
       return true;
     }
@@ -98,29 +152,52 @@ export class VerificationClient {
 
   }
 
-  async verify(roundId: number, request: string): Promise<Verification<any,any>> {
-    const id = this.nextId++;
+  /**
+   * Returns next command id and increments the counter.
+   * @returns
+   */
+  private getNextId(): number {
+    return this.nextId++;
+  }
 
-    this.logger.debug2(`verify id=${id} roundId=${roundId} request='${request}'`);
+  /**
+   * Verify attestation
+   * @param roundId 
+   * @param request 
+   * @param recheck 
+   * @returns 
+   */
+  public async verify(roundId: number, request: string, recheck: boolean): Promise<Verification<any, any>> {
+    const id = this.getNextId();
 
-    this.ws.send(`verify:${id}:${roundId}:${request}`);
+    this.logger.debug2(`client[${this.id}]: verify id=${id} roundId=${roundId} request='${request} recheck=${recheck}'`);
+
+    this.ws.send(`verify\t${id}\t${roundId}\t${request}\t${recheck}`);
 
     return new Promise(async (resolve, reject) => {
 
       let timeout = 0;
-      while ( true ) {
+      while (true) {
 
-        let res = this.verificationResult.get( id );
-
-        if( res ) {
+        // check if we got result
+        if (this.verificationResult.has(id)) {
+          const res = this.verificationResult.get(id);
           resolve(res);
+          return;
+        }
+
+        // check if we got error
+        let errorRes = this.errorResult.get(id);
+
+        if (errorRes) {
+          reject(errorRes);
           return;
         }
 
         await sleepms(100);
 
-        if( ++timeout * 100 > this.clientOptions.connectionTimeoutMS ) {
-          this.logger.error2(`verify timeout`);
+        if (++timeout * 100 > this.clientOptions.connectionTimeoutMS) {
+          this.logger.error2(`client[${this.id}]: verify timeout`);
           reject("timeout");
           return;
         }
@@ -128,11 +205,52 @@ export class VerificationClient {
     });
   }
 
-  disconnect() {
+  /**
+   * Disconnect client
+   * @returns 
+   */
+  public disconnect() {
     if (!this.ws) return;
 
     this.ws.close();
-    this.ws = null;
+
+    this.closeConnection();
+
+    this.logger.debug(`client[${this.id}]: disconnected`);
+  }
+
+  /**
+   * Close WS connection.
+   */
+  private closeConnection() {
+    if (this.ws) {
+      this.ws.terminate();
+      this.ws = null;
+    }
+
+    if (this.pingUpdate) {
+      clearInterval(this.pingUpdate);
+      this.pingUpdate = null;
+    }
+
+    this.connected = false;
+
+    this.logger.debug(`client[${this.id}]: close`);
+  }
+
+  /**
+   * Check if ping was responded and send a new one.
+   * @returns 
+   */
+  private checkPing() {
+    if (this.ws.isAlive === false) {
+      this.closeConnection();
+      return;
+    }
+
+    this.logger.debug(`client[${this.id}]: ping`);
+    this.ws.isAlive = false;
+    this.ws.ping();
   }
 
 }

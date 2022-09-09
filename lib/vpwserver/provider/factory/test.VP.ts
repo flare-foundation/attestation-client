@@ -3,6 +3,9 @@ import { VerificationStatus } from "../../../verification/attestation-types/atte
 import { Factory } from "../classFactory";
 import { IVerificationProvider, VerificationResult, VerificationType } from "../verificationProvider";
 
+/**
+ * Verification Provider Factory test
+ */
 @Factory("VerificationProvider")
 export class TestVP extends IVerificationProvider<TestVP> {
 
@@ -23,7 +26,7 @@ export class TestVP extends IVerificationProvider<TestVP> {
         return [new VerificationType(0, 0)];
     }
 
-    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string): Promise<VerificationResult> {
+    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string, recheck: boolean): Promise<VerificationResult> {
         await sleepms(1000);
         return new VerificationResult(VerificationStatus.OK,"test response");
     }

@@ -1,14 +1,20 @@
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger, logException } from "../utils/logger";
 import { VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { getAttestationTypeAndSource } from "../verification/generated/attestation-request-parse";
 import { ConnectionClient } from "./connectionClient";
 import { VerificationResult, VerificationType } from "./provider/verificationProvider";
 import { globalSettings } from "./vpwsSettings";
 
+export enum CommandProcessorError {
+    invalidCommand,
+    invalidParameterCount,
+    invalidVerificationProvider,
+    errorProcessingCommand,
+}
+
 export enum VerificationCacheResultType {
     invalid,
     sucessfull,
-    providerNotFound,
     invalidRequest,
 }
 
@@ -23,36 +29,113 @@ export class CommandProcessor {
 
     private verificationCache = new Map<string, VerificationCacheResult>();
 
-    public process(client: ConnectionClient, commandByte: string): boolean {
-        const command = commandByte.toString();
-        const coms = command.split(':');
 
-        if (coms.length === 0) {
-            this.logger.error(`no processor command '${command}' from user '${client.user.name}'`);
-            client.ws.send(`error: no command`);
-            return;
-        }
+    /**
+     * Report error back to the client
+     * @param client 
+     * @param id 
+     * @param name 
+     * @param error 
+     * @param comment 
+     */
+    private reportError(client: ConnectionClient, id: number, name: string, error: CommandProcessorError, comment: string) {
+        this.logger.error(`CommandProcessor:${name} invalid number of arguments. ${comment})`);
 
-        const name = coms[0];
+        client.ws.send(`error\t${id}\t${CommandProcessorError[CommandProcessorError.invalidParameterCount]}\t${comment}`);
+    }
 
-        switch (name) {
-            case "getSupported": this.getSupported(client); return true;
-            case "verify": this.verify(client, parseInt(coms[1]), parseInt(coms[2]), coms[3]); return true;
-        }
 
-        this.logger.error(`unknown processor command '${name}' from user '${client.user.name}'`);
+    /**
+     * 
+     * @param client Check if correct parameter count, if not report error back to client
+     * @param id 
+     * @param name 
+     * @param expectedCount 
+     * @param actualCount 
+     * @returns 
+     */
+    private checkParameterCount(client: ConnectionClient, id: number, name: string, expectedCount: number, actualCount: number) {
+        if (actualCount == expectedCount) return true;
 
-        client.ws.send(`error: unknown command`);
+        this.reportError(client, id, name, CommandProcessorError.invalidParameterCount, `${expectedCount} parameters expected`);
 
         return false;
     }
 
+    /**
+     * Process client request.
+     * Request string is separated by tab character \t
+     * First two parameters are command name and command id.
+     * 
+     * @param client
+     * @param commandByte 
+     * @returns 
+     */
+    public process(client: ConnectionClient, commandByte: string): boolean {
+        let commandName = "";
+        let commandId = -1;
+
+        try {
+            const parametersString = commandByte.toString();
+            const parameters = parametersString.split('\t');
+
+            if (parameters.length < 2) {
+                this.reportError( client, commandId, commandName, CommandProcessorError.invalidParameterCount, `at least 2 command parameters are expected`);
+                return false;
+            }
+
+            // get main parameters
+            commandName = parameters[0];
+            commandId = parseInt(parameters[1]);
+
+            switch (commandName) {
+                case "getSupported": {
+                    if (!this.checkParameterCount(client, commandId, commandName, 2 + 0, parameters.length)) {
+                        return false;
+                    };
+                    this.getSupported(client);
+                    return true;
+                }
+                case "verify": {
+                    if (!this.checkParameterCount(client, commandId, commandName, 2 + 3, parameters.length)) {
+                        return false;
+                    };
+                    this.verify(client, commandId, parseInt(parameters[2]), parameters[3], parameters[4] === "true"); return true;
+                    return true;
+                }
+            }
+
+            this.reportError( client, commandId, commandName, CommandProcessorError.invalidCommand, `unknown command '${commandName}'`);
+    
+            return false;
+            }
+        catch (error) {
+            logException(error, `CommandProcessor`);
+
+            this.reportError( client, commandId, commandName , CommandProcessorError.errorProcessingCommand, error.message );
+        }
+    }
+
+
+    /**
+     * Returns supported attestation types
+     * @param client
+     */
     protected getSupported(client: ConnectionClient) {
         // todo: send correct verification message
         client.ws.send(`supported...`);
     }
 
-    protected verifyResponse(client: ConnectionClient, id: number, request: string, result: VerificationResult, error: VerificationCacheResultType = VerificationCacheResultType.sucessfull, cached: boolean = false) {
+    /**
+     * Send verify request response and add result into cache.
+     * @param client 
+     * @param id 
+     * @param request 
+     * @param result 
+     * @param error 
+     * @param cached 
+     */
+    protected sendVerifyResponse(client: ConnectionClient, id: number, request: string, result: VerificationResult, error: VerificationCacheResultType = VerificationCacheResultType.sucessfull, cached: boolean = false) {
         if (!cached) {
             const cache = new VerificationCacheResult();
 
@@ -66,16 +149,25 @@ export class CommandProcessor {
             this.logger.error(`verification error ${VerificationCacheResultType[error]}`);
         }
 
-        client.ws.send(`verificationResult\t${id}\t${result.status}\t${result.response?result.response:""}\t${error}\t${cached}`);
+        client.ws.send(`verificationResult\t${id}\t${result.status}\t${result.response ? result.response : ""}\t${error}\t${cached}`);
 
-        this.logger.info( `wsc[${id}]: response(${result},${VerificationCacheResultType[error]})` );
+        this.logger.info(`wsc[${id}]: response(${result},${VerificationCacheResultType[error]})`);
     }
 
-    protected async verify(client: ConnectionClient, verificationId: number, roundId: number, request: string) {
+    /**
+     * Verify request.
+     * @param client 
+     * @param verificationId 
+     * @param roundId 
+     * @param request 
+     * @param recheck 
+     * @returns 
+     */
+    protected async verify(client: ConnectionClient, verificationId: number, roundId: number, request: string, recheck: boolean) {
         // check if cached
         var cached = this.verificationCache.get(request);
         if (cached) {
-            this.verifyResponse(client, verificationId, request, cached.result, cached.error, true);
+            this.sendVerifyResponse(client, verificationId, request, cached.result, cached.error, true);
             return;
         }
 
@@ -87,19 +179,19 @@ export class CommandProcessor {
             verificationType = new VerificationType(attestationType, sourceId);
         }
         catch (error) {
-            this.verifyResponse(client, verificationId, request, new VerificationResult( VerificationStatus.EXCEPTION , error ), VerificationCacheResultType.invalidRequest);
+            this.reportError(client, verificationId, "verificationResult", CommandProcessorError.errorProcessingCommand, error.message );
             return;
         }
 
         const vp = globalSettings.findVerificationProvider(verificationType);
 
         if (!vp) {
-            this.verifyResponse(client, verificationId, request, new VerificationResult( VerificationStatus.GENERIC_ERROR , `verification provider ${verificationType} not found` ), VerificationCacheResultType.providerNotFound);
+            this.reportError(client, verificationId, "verificationResult", CommandProcessorError.invalidVerificationProvider, verificationType );
             return;
         }
 
         // verify
-        const verificationRes = await vp.verifyRequest(verificationId, verificationType, roundId, request);
-        this.verifyResponse(client, verificationId, request, verificationRes);
+        const verificationRes = await vp.verifyRequest(verificationId, verificationType, roundId, request, recheck);
+        this.sendVerifyResponse(client, verificationId, request, verificationRes);
     }
 }

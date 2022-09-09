@@ -2,6 +2,9 @@ import { AttLogger, getGlobalLogger } from "../utils/logger";
 import { ServerUser } from "./serverUser";
 import { VerificationProviderWebServer } from "./vpwsServer";
 
+/**
+ * Class handling server client connection
+ */
 export class ConnectionClient {
 
     server: VerificationProviderWebServer;
@@ -14,6 +17,12 @@ export class ConnectionClient {
 
     logger: AttLogger;
 
+    /**
+     * Create new server client connection
+     * @param server 
+     * @param id 
+     * @param ws 
+     */
     constructor(server: VerificationProviderWebServer, id: number, ws: any) {
         this.server = server;
         this.id = id;
@@ -25,7 +34,9 @@ export class ConnectionClient {
         this.logger.debug(`wsc[${id}]: connected '${this.user.name}' from ip ${ws.client.localAddress}`);
 
         const me = this;
-        ws.on('message', function message(data) { me.handleMessage(data); });
+        ws.on('message', function message(data) {
+            me.processClientMessage(data);
+        });
 
         ws.send(`connected\t${id}`);
 
@@ -34,13 +45,20 @@ export class ConnectionClient {
         ws.on('pong', function () { this.isAlive = true; });
     }
 
-    handleMessage(data: string) {
+    /**
+     * Process Client message
+     * @param data 
+     */
+    public processClientMessage(data: string) {
         this.logger.debug(`wsc[${this.id}]: request(${data})`);
 
         this.server.commandProcessor.process(this, data);
     }
 
-    ping() {
+    /**
+     * Process Ping that keeps connection live
+     */
+    public ping() {
         if (this.ws.isAlive === false) {
             this.close();
             return;
@@ -51,10 +69,16 @@ export class ConnectionClient {
         this.ws.ping();
     }
 
+    /**
+     * Close connection
+     */
     close() {
         this.server.closeClient(this);
     }
 
+    /**
+     * Internal close connection
+     */
     _close() {
         this.ws.terminate();
 

@@ -6,13 +6,13 @@ export class VerificationType {
     sourceId: number;
     attestationType: number;
 
-    constructor(attestationType: number=0, sourceId: number=0) {
-        this.sourceId=sourceId;
-        this.attestationType=attestationType;
+    constructor(attestationType: number = 0, sourceId: number = 0) {
+        this.sourceId = sourceId;
+        this.attestationType = attestationType;
     }
 
-    toString() : string {
-       return `${this.attestationType}:${this.sourceId}`; 
+    toString(): string {
+        return `${this.attestationType}:${this.sourceId}`;
     }
 }
 
@@ -30,23 +30,49 @@ export class IVerificationProvider<T> implements IInstanciate<T> {
 
     initializeSettings: string;
 
-    instanciate(): T {
+    /**
+     * Instanciate factory class
+     * @returns 
+     */
+    public instanciate(): T {
         return null;
     }
 
-    async initialize?() : Promise<boolean>;
+    /**
+     * Initialize Verification Provider
+     */
+    public async initialize?(): Promise<boolean>;
 
-    getName?() : string;
+    /**
+     * Get name
+     */
+    public getName?(): string;
 
-    getSupportedVerificationTypes?() : (VerificationType)[];
+    /**
+     * Returns supported Verification types.
+     */
+    public getSupportedVerificationTypes?(): (VerificationType)[];
 
-    async verifyRequest?(verificationId: number, type: VerificationType, roundId: number, request: string) : Promise<VerificationResult>;
+    /**
+     * Verify Verification Request.
+     * @param verificationId 
+     * @param type 
+     * @param roundId 
+     * @param request 
+     * @param recheck 
+     */
+    public async verifyRequest?(verificationId: number, type: VerificationType, roundId: number, request: string, recheck: boolean): Promise<VerificationResult>;
 
-    isSupported(att: VerificationType) : boolean {
-        for(let pair of this.getSupportedVerificationTypes() ) {
-            if( pair.sourceId===att.sourceId && pair.attestationType===att.attestationType) {
+    /**
+     * Check if verification type is supported.
+     * @param att 
+     * @returns 
+     */
+    public isSupported(att: VerificationType): boolean {
+        for (let pair of this.getSupportedVerificationTypes()) {
+            if (pair.sourceId === att.sourceId && pair.attestationType === att.attestationType) {
                 return true;
-            }            
+            }
         }
 
         return false;

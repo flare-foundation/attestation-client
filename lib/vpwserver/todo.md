@@ -28,18 +28,14 @@
                     [x] cache verify request result
         [ ] Verification Provider
             [x] NodeIndexer VP
-                [ ] Initialize settings
                 [x] Create and load config
-                [x] Recheck logic (send event that recheck was made...)
-
-        [ ] ...
+                [x] Recheck as parameter
             
             
     [ ] Client
         [x] Basic client
         [x] Secure connection
-        [ ] Detect connection dropped
+        [x] Detect connection dropped
             [ ] Auto reconnect
         [ ] get supported source/type information 
         [x] verify with id
-        [ ] ...

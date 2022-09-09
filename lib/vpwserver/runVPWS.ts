@@ -1,9 +1,15 @@
 import { traceManager, TraceManager } from "@flarenetwork/mcc";
 import { readConfig, readConfigBase, readCredentials } from "../utils/config";
 import { logException } from "../utils/logger";
-import { VPWSUsers, VPWSConfig, VPWSCredentials, VPWSProtocols as VPWSProviders } from "./vpwsConfiguration";
+import { VPWSConfig, VPWSCredentials, VPWSProtocols as VPWSProviders, VPWSUsers } from "./vpwsConfiguration";
 import { VerificationProviderWebServer } from "./vpwsServer";
 import { globalSettings } from "./vpwsSettings";
+
+
+/**
+ * Run VP WebServer
+ * @returns 
+ */
 
 async function runVPWS() {
   // setup debug trace
@@ -35,7 +41,9 @@ async function runVPWS() {
   return await vpws.runServer();
 }
 
-// VPWS entry point
+/**
+ * VPWS entry point
+ */
 runVPWS()
   .then(() => process.exit(0))
   .catch((error) => {

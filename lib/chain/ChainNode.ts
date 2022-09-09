@@ -1,5 +1,5 @@
-import assert from "assert";
 import { ChainType, Managed, MCC, MccClient } from "@flarenetwork/mcc";
+import assert from "assert";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
@@ -11,11 +11,9 @@ import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
 import { toSourceId } from "../verification/sources/sources";
-import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
+import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainConfiguration } from "./ChainConfiguration";
 import { ChainManager } from "./ChainManager";
-import { ATTESTATION_CLIENT_BASE } from "../verification/codegen/cg-constants";
-import { VerificationResult } from "../vpwserver/provider/verificationProvider";
 
 @Managed()
 export class ChainNode {
@@ -203,9 +201,8 @@ export class ChainNode {
       testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
-
     //verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification)
-    this.chainManager.verificationClient.verify(attestation.round.roundId, attestation.data.request)
+    this.chainManager.verificationClient.verify(attestation.round.roundId, attestation.data.request, attestation.reverification)
 
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
@@ -215,7 +212,7 @@ export class ChainNode {
 
           attestation.reverification = true;
 
-          // actualk time when attesttion will be rechecked
+          // actual time when attesttion will be rechecked
           const startTimeMs =
             AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
             AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
@@ -232,7 +229,7 @@ export class ChainNode {
         }
       })
       .catch((error: any) => {
-        logException( error , "verifyAttestation" );
+        logException(error, "verifyAttestation");
 
         attestation.exception = error;
 

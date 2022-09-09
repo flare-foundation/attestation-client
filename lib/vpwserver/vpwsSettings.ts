@@ -3,7 +3,7 @@ import { SourceId } from "../verification/sources/sources";
 import { FactoryConstructor } from "./provider/classFactory";
 import { IVerificationProvider, VerificationType } from "./provider/verificationProvider";
 import { ServerUser } from "./serverUser";
-import { VPWSUsers, VPWSProtocols } from "./vpwsConfiguration";
+import { VPWSProtocols, VPWSUsers } from "./vpwsConfiguration";
 
 export class VPWSSettings {
 
@@ -15,15 +15,26 @@ export class VPWSSettings {
 
   protected verificationProvidersMap = new Map<string, IVerificationProvider<any>>();
 
-  createUsers(config: VPWSUsers) {
-    this.logger.info( `creating users...` );
-    
+  /**
+   * Create user from config
+   * @param config 
+   */
+  public createUsers(config: VPWSUsers) {
+    this.logger.info(`creating users...`);
+
     this.serverUsers = config.serverUsers;
 
-    this.logger.debug( `${this.serverUsers.length} users` );
+    this.logger.debug(`${this.serverUsers.length} users`);
   }
 
-  findUser(auth: string, ip: string): ServerUser {
+  /**
+   * Find user by authentication.
+   * It can be linked to specific IP.
+   * @param auth 
+   * @param ip 
+   * @returns 
+   */
+  public findUserByAuthentication(auth: string, ip: string): ServerUser {
     const client = this.serverUsers.find(x => x.auth === auth);
 
     if (!client) {
@@ -39,61 +50,76 @@ export class VPWSSettings {
     return client;
   }
 
-  async dynamicallyLoadVP()
-  {
-    this.logger.info( `loading verification providers factory files` );
+  /**
+   * Load Verification Providers classes from file in RealTime
+   * This way new classes can simply be added into folder and app restarted (no need to recompile - yarn)
+   */
+  protected async dynamicallyLoadClassesFromFolder() {
+    this.logger.info(`loading verification providers factory files`);
 
     // dynamically load all factory files
     const fs = require('fs');
     const path = require('path');
-    const files =  fs.readdirSync(`./lib/vpwserver/provider/factory/`, { withFileTypes: false });    
+    const files = fs.readdirSync(`./lib/vpwserver/provider/factory/`, { withFileTypes: false });
 
-    for(let file of files ) {
+    for (let file of files) {
       try {
         const filename = path.parse(file).name;
-        this.logger.debug( `loading ${filename}` );
-        await import( `./provider/factory/${filename}` );
+        this.logger.debug(`loading ${filename}`);
+        await import(`./provider/factory/${filename}`);
       }
-      catch( error ) {
-        logException( error , `factory loading` );
+      catch (error) {
+        logException(error, `factory loading`);
       }
     }
   }
 
-  async createProviders(config: VPWSProtocols) {
-    await this.dynamicallyLoadVP();
 
-    this.logger.info( `creating verification providers...` );
-    
+  /**
+   * Create Verification Providers from factory.
+   * @param config 
+   */
+  public async createProviders(config: VPWSProtocols) {
+    await this.dynamicallyLoadClassesFromFolder();
+
+    this.logger.info(`creating verification providers...`);
+
     this.verificationProviders = [];
 
     for (let vpConfig of config.verificationProviders) {
-      let vp = FactoryConstructor( "VerificationProvider" , vpConfig.name );
+      let vp = FactoryConstructor("VerificationProvider", vpConfig.name);
 
       if (!vp) {
         this.logger.error(`unable to create verification provider ${vpConfig.name}'`);
         continue;
       }
 
-      this.logger.info( `provider: ^w${vp.getName()}^^ (${vpConfig.settings})`);
+      this.logger.info(`provider: ^w${vp.getName()}^^ (${vpConfig.settings})`);
 
       vp.initializeSettings = vpConfig.settings;
 
       this.verificationProviders.push(vp);
     }
 
-    this.logger.debug( `${this.verificationProviders.length} verification providers` );
+    this.logger.debug(`${this.verificationProviders.length} verification providers`);
   }
 
-  findVerificationProvider(type: VerificationType): IVerificationProvider<any> {
+  /**
+   * Return Verification Provider of specific type
+   * @param type 
+   * @returns 
+   */
+  public findVerificationProvider(type: VerificationType): IVerificationProvider<any> {
     return this.verificationProvidersMap.get(type.toString());
   }
 
+  /**
+   * Initialize Verification Providers
+   * This function maps all registered verification providers types and checks for duplicates.
+   */
+  public initializeProviders() {
 
-  
-  initializeProviders() {
-
-    this.logger.info( `initializing verification providers...` );
+    this.logger.info(`initializing verification providers...`);
 
     this.verificationProvidersMap.clear();
 
@@ -116,13 +142,13 @@ export class VPWSSettings {
           continue;
         }
 
-        this.logger.debug( `${VerificationType[type.attestationType]} ${SourceId[type.sourceId]} -> ${vp.getName()}` );
-        
+        this.logger.debug(`${VerificationType[type.attestationType]} ${SourceId[type.sourceId]} -> ${vp.getName()}`);
+
         this.verificationProvidersMap.set(typeKey, vp);
       }
     }
 
-    this.logger.debug( `${this.verificationProvidersMap.size} verification providers types initialized` );
+    this.logger.debug(`${this.verificationProvidersMap.size} verification providers types initialized`);
   }
 
 }

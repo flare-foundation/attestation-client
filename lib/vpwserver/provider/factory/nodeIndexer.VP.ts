@@ -16,6 +16,15 @@ import { verifyAttestation } from "../../../verification/verifiers/verifier_rout
 import { Factory } from "../classFactory";
 import { IVerificationProvider, VerificationResult, VerificationType } from "../verificationProvider";
 
+/**
+ * NodeIndexer Verification Provider
+ * Supports: 
+ *    AttestationType.Payment
+ *    AttestationType.BalanceDecreasingTransaction
+ *    AttestationType.ConfirmedBlockHeightExists
+ *    AttestationType.ReferencedPaymentNonexistence
+ *    AttestationType.TrustlineIssuance
+ */
 @Factory("VerificationProvider")
 export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
 
@@ -35,6 +44,10 @@ export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
     }
 
 
+    /**
+     * Initialize VP
+     * @returns 
+     */
     public async initialize(): Promise<boolean> {
         // todo: get sourceId from settings
         this.chainName = SourceId[this.sourceId];
@@ -79,10 +92,18 @@ export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
         return true;
     }
 
+    /**
+     * Return VP name
+     * @returns 
+     */
     public getName(): string {
         return "Node Indexer VP";
     }
 
+    /**
+     * Return supported verification types
+     * @returns 
+     */
     public getSupportedVerificationTypes(): (VerificationType)[] {
         return [
             new VerificationType(AttestationType.Payment, this.sourceId),
@@ -93,32 +114,25 @@ export class NodeIndexerVP extends IVerificationProvider<NodeIndexerVP> {
         ];
     }
 
-    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string): Promise<VerificationResult> {
+    /**
+     * Verify request
+     * @param verificationId 
+     * @param type 
+     * @param roundId 
+     * @param request 
+     * @param recheck 
+     * @returns 
+     */
+    public async verifyRequest(verificationId: number, type: VerificationType, roundId: number, request: string, recheck: boolean): Promise<VerificationResult> {
         let parsed = parseRequest(request);
 
         let att = createTestAttestationFromRequest(parsed, roundId, this.chainIndexerConfig.numberOfConfirmations);
-        let result = await verifyAttestation(this.client, att, this.indexedQueryManager, false);
+        let result = await verifyAttestation(this.client, att, this.indexedQueryManager, recheck);
 
         let lastConfirmedBlock = await this.indexedQueryManager.getLastConfirmedBlockNumber();
         this.logger.debug2(`ver[${verificationId}] status ${VerificationStatus[result.status]} block number: ${result.response?.blockNumber?.toString()} last confirmed block: ${lastConfirmedBlock}`);
 
-        if (result.status === VerificationStatus.OK) {
-            return new VerificationResult(result.status, JSON.stringify( result ) );
-        }
-
-        if (result.status === VerificationStatus.RECHECK_LATER) {
-            let att = createTestAttestationFromRequest(parsed, roundId, this.chainIndexerConfig.numberOfConfirmations);
-            result = await verifyAttestation(this.client, att, this.indexedQueryManager, true);
-
-            let lastConfirmedBlock = await this.indexedQueryManager.getLastConfirmedBlockNumber();
-            this.logger.debug2(`recheck[${verificationId}] status ${VerificationStatus[result.status]} block number: ${result.response?.blockNumber?.toString()} last confirmed block: ${lastConfirmedBlock}`);
-
-            if (result.status === VerificationStatus.OK) {
-                return new VerificationResult(result.status, result.response);
-            }
-        }
-
-        return new VerificationResult(result.status, result.response);
+        return new VerificationResult(result.status, JSON.stringify( result ) );
     }
 
 }

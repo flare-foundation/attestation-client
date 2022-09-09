@@ -5,12 +5,8 @@ import { isEqualType } from "./typeReflection";
 const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
-export function readJSON<T>(filename: string) {
+export function parseJSON<T>(data: string, reviver: any = null) {
   try {
-    const fs = require("fs");
-
-    let data = fs.readFileSync(filename).toString();
-
     // remove all comments
     data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
 
@@ -19,12 +15,25 @@ export function readJSON<T>(filename: string) {
 
     //console.log( data );
 
-    const res = JSON.parse(data) as T;
+    const res = JSON.parse(data, reviver) as T;
 
     return res;
   }
-  catch( error ) {
-    getGlobalLogger().error( `error reading JSON '${filename}'` );
+  catch (error) {
+    getGlobalLogger().error(`error parsing JSON`);
+  }
+}
+
+export function readJSON<T>(filename: string, reviver: any = null) {
+  try {
+    const fs = require("fs");
+
+    let data = fs.readFileSync(filename).toString();
+
+    return parseJSON<T>(data, reviver)
+  }
+  catch (error) {
+    getGlobalLogger().error(`error reading JSON '${filename}'`);
   }
 }
 

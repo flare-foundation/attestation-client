@@ -13,4 +13,4 @@ echo -e "${GREENBOLD}Update configurations templates...${NC}"
 
 cp -v -a -u $CONFIGDIR_TEMPLATES_SRC/. $CONFIGDIR_TEMPLATES_DEST/.
 
-bash ./script/update-config.sh
+bash ./scripts/update-config.sh

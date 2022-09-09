@@ -9,6 +9,7 @@ import { criticalAsync } from "./indexer-utils";
  * Manages a list of block processors, each processing a block (reading block metadata and transaction data).
  * Management includes starting, pausing, resuming, processing data on completion and switching processing of 
  * active block according to priority.
+ * @category Indexer
  */
 @Managed()
 export class BlockProcessorManager {

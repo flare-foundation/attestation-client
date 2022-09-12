@@ -303,7 +303,7 @@
 		"securitySchemes": {}
 	},
 	"info": {
-		"title": "flare-price-provider",
+		"title": "Attestation-Suite",
 		"version": "1.0.0",
 		"license": {
 			"name": "MIT"

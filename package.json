@@ -87,6 +87,7 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
+    "@knodes/typedoc-plugin-pages": "^0.23.1",
     "@nomiclabs/hardhat-truffle5": "2.0.6",
     "@nomiclabs/hardhat-web3": "2.0.0",
     "@openzeppelin/test-helpers": "0.5.15",

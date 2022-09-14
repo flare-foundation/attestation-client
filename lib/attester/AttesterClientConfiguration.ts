@@ -32,6 +32,7 @@ export class AttesterWebOptions {
   public stateConnectorContractAddress: string = "";
 
   @optional() public useNewStateConnector = false;
+  @optional() public refreshEventsMs = 100;
 }
 
 export class AttesterCredentials implements IReflection<AttesterCredentials> {

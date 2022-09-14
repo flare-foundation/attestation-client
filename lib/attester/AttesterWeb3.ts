@@ -67,7 +67,8 @@ export class AttesterWeb3 {
     this.check(hashedRandom);
     this.check(revealedRandomPrev);
 
-    let fnToEncode = AttestationRoundManager.credentials.web.useNewStateConnector
+    const useNewStateConnector = AttestationRoundManager.credentials.web.useNewStateConnector;
+    let fnToEncode = useNewStateConnector
       ? (this.stateConnector as StateConnectorNew).methods.submitAttestation(bufferNumber, commitHash, merkleRootPrev, revealedRandomPrev)
       : (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
 
@@ -75,10 +76,14 @@ export class AttesterWeb3 {
       this.logger.info(`action ................. : ${action}`);
       this.logger.info(`bufferNumber_n ......... : ${bufferNumber.toString()}`);
       this.logger.info(`merkleRoot_n ........... : ^e${merkleRoot.toString()}`);
-      this.logger.info(`maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}`);
       this.logger.info(`random_n ............... : ^e${random.toString()}`);
-      this.logger.info(`hashedRandom_n ......... : ${hashedRandom.toString()}`);
       this.logger.info(`random_n-1 ............. : ${revealedRandomPrev.toString()}`);
+      if(useNewStateConnector) {
+        this.logger.info(`commitHash_n ........... : ${commitHash.toString()}`);
+      } else {
+        this.logger.info(`maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}`);
+        this.logger.info(`hashedRandom_n ......... : ${hashedRandom.toString()}`);
+      }            
     }
 
     if (process.env.NODE_ENV === "production") {

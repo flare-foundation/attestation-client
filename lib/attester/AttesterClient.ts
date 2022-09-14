@@ -191,7 +191,8 @@ export class AttesterClient {
       startBlock,
       (event: any) => {
         this.processEvent(event);
-      }
+      },
+      this.credentials.web.refreshEventsMs
     );
 
     await this.blockCollector.run();

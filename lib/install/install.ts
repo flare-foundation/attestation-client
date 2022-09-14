@@ -55,8 +55,10 @@ async function prepareInstall(name: string, chain: string) {
 }
 
 async function run() {
+  await prepareInstall("Flare", "flare");
   await prepareInstall("Songbird", "songbird");
-  await prepareInstall("Coston", "coston");
+  await prepareInstall("Coston", "coston");  
+  await prepareInstall("Coston2", "coston2");
 }
 
 DotEnvExt();

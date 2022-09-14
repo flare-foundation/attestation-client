@@ -1,40 +1,36 @@
-export RED='\033[0;31m'
-export GREEN='\033[0;32m'
-export NC='\033[0m' # No Color
-export REDBOLD="${RED}$(tput bold)"
-export GREENBOLD="${GREEN}$(tput bold)"
-export NCNORMAL="${NC}$(tput sgr0)"
+bash ./scripts/install-config.sh
 
 export CURRENT_DIR=$(pwd)
+
+if $ENABLE_INDEXER; then
+   echo "Install Indexer"
+fi
+
+if $ENABLE_MONITOR; then
+   echo "Install Monitor"
+fi
+
+if $ENABLE_FLARE; then
+   echo "Install FLARE"
+fi
+
+if $ENABLE_SONGBIRD; then
+   echo "Install SONGBIRD"
+fi
+
+if $ENABLE_COSTON; then
+   echo "Install COSTON"
+fi
+
+if $ENABLE_COSTON2; then
+   echo "Install COSTON2"
+fi
 
 source ~/.profile 
 source ~/.nvm/nvm.sh
 
-# copy services
-echo -e "${REDBOLD}[1] ${GREENBOLD}Copying services...${NC}"
-mkdir -p ~/.config/systemd/user
-cp ./scripts/templates/*.service ~/.config/systemd/user
-
-# enable services
-echo -e "${REDBOLD}[2] ${GREENBOLD}Installing services...${NC}"
-
-systemctl --user daemon-reload
-
-systemctl --user enable indexer-xrp.service
-systemctl --user enable indexer-btc.service
-systemctl --user enable indexer-ltc.service
-systemctl --user enable indexer-algo.service
-systemctl --user enable indexer-doge.service
-
-# songbird
-systemctl --user enable songbird-attester-client.service
-systemctl --user enable songbird-backend.service
-
-# coston
-systemctl --user enable coston-attester-client.service
-systemctl --user enable coston-backend.service
-
-systemctl --user enable attester-alerts
+# install services
+bash ./scripts/install-services.sh
 
 # compile
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"
@@ -43,7 +39,10 @@ bash ./scripts/compile.sh
 # prepare configurations
 yarn ts-node lib/install/install.ts ../attestation-suite-config/
 
-#bash ./scripts/initialize-mysql.sh
+# enable local mysql
+if $ENABLE_LOCAL_MYSQL; then
+    bash ./scripts/initialize-local-mysql.sh
+fi
 
 # deploy
 echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"

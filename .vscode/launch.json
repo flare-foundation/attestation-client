@@ -173,7 +173,8 @@
             "name": "Attester spammer XRP",
             "env": {
                 "DOTENV": "DEV",
-                "NODE_ENV": "development"
+                "NODE_ENV": "development",
+                "CONFIG_PATH": ".secure.dev",
             },
             "envFile": "${workspaceFolder}/.deploy.env",
             "runtimeExecutable": "yarn",

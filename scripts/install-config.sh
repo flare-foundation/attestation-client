@@ -11,12 +11,12 @@ export NCNORMAL="${NC}$(tput sgr0)"
 export ENABLE_INDEXER=true
 export ENABLE_MONITOR=true
 
-export ENABLE_FLARE=false
-export ENABLE_SONGBIRD=false
-export ENABLE_COSTON=false
+export ENABLE_FLARE=true
+export ENABLE_SONGBIRD=true
+export ENABLE_COSTON=true
 export ENABLE_COSTON2=true
 
-export ENABLE_LOCAL_MYSQL=false
+export ENABLE_LOCAL_MYSQL=true
 
 
 # use this template for checking what modules are enabled

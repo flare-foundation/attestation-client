@@ -41,7 +41,7 @@ yarn ts-node lib/install/install.ts ../attestation-suite-config/
 
 # enable local mysql
 if $ENABLE_LOCAL_MYSQL; then
-    bash ./scripts/initialize-local-mysql.sh
+    bash ./scripts/install-local-mysql.sh
 fi
 
 # deploy

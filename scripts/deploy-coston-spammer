@@ -1,1 +1,1 @@
-bash ./scripts/deploy-base coston2 spammer
+bash ./scripts/deploy-base coston spammer

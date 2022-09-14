@@ -74,6 +74,11 @@ If you need remote access to the MYSQL you need to change MYSQL configuration fi
 sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 
+Autoreplace 
+```bash
+sudo sed -i 's/^\s*bind-address\s*=\s*127.0.0.1/bind-address            = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
+```
+
 After change you must restart MYSQL server.
 ``` bash
 sudo systemctl restart mysql

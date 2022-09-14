@@ -1,0 +1,13 @@
+[Service]
+ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attestation-suite/coston2/attester-client/dist/lib/runAttesterClient.js
+Restart=always
+# User=ubuntu
+# Use 'nogroup' group for Ubuntu/Debian
+# use 'nobody' group for Fedora
+# Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+WorkingDirectory=/home/ubuntu/attestation-suite/coston2/attester-client
+
+[Install]
+WantedBy=multi-user.target

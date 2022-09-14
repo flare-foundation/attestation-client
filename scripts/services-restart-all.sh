@@ -1,21 +1,40 @@
-systemctl --user restart indexer-xrp
-systemctl --user restart indexer-btc
-systemctl --user restart indexer-ltc
-systemctl --user restart indexer-algo
-systemctl --user restart indexer-doge
+bash ./scripts/install-config.sh
 
-systemctl --user restart coston-attester-client
+if $ENABLE_INDEXER; then
+    systemctl --user restart indexer-xrp
+    systemctl --user restart indexer-btc
+    systemctl --user restart indexer-ltc
+    systemctl --user restart indexer-algo
+    systemctl --user restart indexer-doge
+fi
 
-systemctl --user restart coston-spammer-btc.service
-systemctl --user restart coston-spammer-ltc.service
-systemctl --user restart coston-spammer-xrp.service
-systemctl --user restart coston-spammer-algo.service
-systemctl --user restart coston-spammer-doge.service
+if $ENABLE_MONITOR; then
+    systemctl --user restart attester-alerts
+fi
 
-systemctl --user restart coston-backend
+if $ENABLE_FLARE; then
+    systemctl --user restart flare-attester-client
+    systemctl --user restart flare-backend
+fi
 
-systemctl --user restart songbird-attester-client
-systemctl --user restart songbird-spammer
-systemctl --user restart songbird-backend
+if $ENABLE_SONGBIRD; then
+    systemctl --user restart songbird-attester-client
+    systemctl --user restart songbird-backend
+fi
 
-systemctl --user restart attester-alerts
+if $ENABLE_COSTON; then
+    systemctl --user restart coston-attester-client
+    systemctl --user restart coston-backend
+fi
+
+if $ENABLE_COSTON2; then
+    systemctl --user restart coston2-attester-client
+    systemctl --user restart coston2-backend
+fi
+
+# systemctl --user restart coston-spammer-btc.service
+# systemctl --user restart coston-spammer-ltc.service
+# systemctl --user restart coston-spammer-xrp.service
+# systemctl --user restart coston-spammer-algo.service
+# systemctl --user restart coston-spammer-doge.service
+

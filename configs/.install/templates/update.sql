@@ -10,4 +10,12 @@ ALTER USER '$(AttesterWriterUsernameSongbird)'@'$(DatabaseWriteAccessSource)' ID
 
 ALTER USER '$(AttesterReaderUsernameSongbird)'@'%' IDENTIFIED BY '$(AttesterReaderPasswordSongbird)';
 
+ALTER USER '$(AttesterWriterUsernameCoston2)'@'$(DatabaseWriteAccessSource)' IDENTIFIED BY '$(AttesterWriterPasswordCoston2)';
+
+ALTER USER '$(AttesterReaderUsernameCoston2)'@'%' IDENTIFIED BY '$(AttesterReaderPasswordCoston2)';
+
+ALTER USER '$(AttesterWriterUsernameFlare)'@'$(DatabaseWriteAccessSource)' IDENTIFIED BY '$(AttesterWriterPasswordFlare)';
+
+ALTER USER '$(AttesterReaderUsernameFlare)'@'%' IDENTIFIED BY '$(AttesterReaderPasswordFlare)';
+
 FLUSH PRIVILEGES;

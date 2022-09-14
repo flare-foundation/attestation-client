@@ -1,25 +1,44 @@
-export RED='\033[0;31m'
-export GREEN='\033[0;32m'
-export NC='\033[0m' # No Color
-export REDBOLD="${RED}$(tput bold)"
-export GREENBOLD="${GREEN}$(tput bold)"
-export NCNORMAL="${NC}$(tput sgr0)"
+bash ./scripts/install-config.sh
 
 # install services
-echo -e "${REDBOLD}[4.1] ${GREENBOLD}Installing Indexer...${NC}"
-bash ./scripts/deploy-indexer
+if $ENABLE_INDEXER; then
+    echo -e "${REDBOLD}[4.1] ${GREENBOLD}Installing Indexer...${NC}"
+    bash ./scripts/deploy-indexer
+fi
 
-echo -e "${REDBOLD}[4.2] ${GREENBOLD}Installing Alerts...${NC}"
-bash ./scripts/deploy-alerts
+if $ENABLE_MONITOR; then
+    echo -e "${REDBOLD}[4.2] ${GREENBOLD}Installing Alerts...${NC}"
+    bash ./scripts/deploy-alerts
+fi
 
-#echo -e "${REDBOLD}[4.3] ${GREENBOLD}Installing Songbird Attester Client...${NC}"
-#bash ./scripts/deploy-songbird-attester
+if $ENABLE_FLARE; then
+    echo -e "${REDBOLD}[4.3] ${GREENBOLD}Installing Flare Attester Client...${NC}"
+    bash ./scripts/deploy-flare-attester
 
-#echo -e "${REDBOLD}[4.4] ${GREENBOLD}Installing Songbird Backend...${NC}"
-#bash ./scripts/deploy-songbird-backend
+    echo -e "${REDBOLD}[4.4] ${GREENBOLD}Installing Flare Backend...${NC}"
+    bash ./scripts/deploy-flare-backend
+fi
 
-echo -e "${REDBOLD}[4.3] ${GREENBOLD}Installing Coston Attester Client...${NC}"
-bash ./scripts/deploy-coston-attester
+if $ENABLE_SONGBIRD; then
+    echo -e "${REDBOLD}[4.5] ${GREENBOLD}Installing Songbird Attester Client...${NC}"
+    bash ./scripts/deploy-songbird-attester
 
-echo -e "${REDBOLD}[4.4] ${GREENBOLD}Installing Coston Backend...${NC}"
-bash ./scripts/deploy-coston-backend
+    echo -e "${REDBOLD}[4.6] ${GREENBOLD}Installing Songbird Backend...${NC}"
+    bash ./scripts/deploy-songbird-backend
+fi
+
+if $ENABLE_COSTON; then
+    echo -e "${REDBOLD}[4.7] ${GREENBOLD}Installing Coston Attester Client...${NC}"
+    bash ./scripts/deploy-coston-attester
+
+    echo -e "${REDBOLD}[4.8] ${GREENBOLD}Installing Coston Backend...${NC}"
+    bash ./scripts/deploy-coston-backend
+fi
+
+if $ENABLE_COSTON2; then
+    echo -e "${REDBOLD}[4.9] ${GREENBOLD}Installing Coston2 Attester Client...${NC}"
+    bash ./scripts/deploy-coston2-attester
+
+    echo -e "${REDBOLD}[4.10] ${GREENBOLD}Installing Coston2 Backend...${NC}"
+    bash ./scripts/deploy-coston2-backend
+fi

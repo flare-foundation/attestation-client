@@ -191,6 +191,8 @@ systemctl --user restart indexer-ltc
 systemctl --user restart indexer-algo
 systemctl --user restart indexer-doge
 
+systemctl --user restart coston2-attester-client
+
 systemctl --user restart coston-attester-client
 systemctl --user restart coston-attester-client-c2
 systemctl --user restart coston-attester-client-c3
@@ -222,6 +224,9 @@ journalctl --user -u indexer-btc -f -n 1000
 journalctl --user -u indexer-ltc -f -n 1000
 journalctl --user -u indexer-algo -f -n 1000
 journalctl --user -u indexer-doge -f -n 1000
+
+journalctl --user -u coston2-attester-client -f -n 1000
+
 
 journalctl --user -u coston-attester-client -f -n 1000
 journalctl --user -u coston-attester-client-c2 -f -n 1000

@@ -2374,6 +2374,11 @@ cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
 
+clarinet@^0.12.5:
+  version "0.12.5"
+  resolved "https://registry.yarnpkg.com/clarinet/-/clarinet-0.12.5.tgz#7ee9c3984620592e370063022d3d2982fc527228"
+  integrity sha512-4833ySquSUW91fnPaYI94LX3OdnyfwD8/NrMi6a4Kt6EmOsphLWmEzx9bZPqO9+DtQzSv2s3WSYNLsrXt59FKg==
+
 class-is@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/class-is/-/class-is-1.1.0.tgz#9d3c0fba0440d211d843cec3dedfa48055005825"

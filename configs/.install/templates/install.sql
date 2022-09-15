@@ -29,11 +29,11 @@ GRANT SELECT ON $(AttesterDatabaseSongbird).* TO '$(AttesterReaderUsernameSongbi
 CREATE DATABASE $(AttesterDatabaseCoston2);
 
 CREATE USER '$(AttesterWriterUsernameCoston2)'@'$(DatabaseWriteAccessSource)' IDENTIFIED BY '$(AttesterWriterPasswordCoston)';
-GRANT ALL PRIVILEGES ON $(AttesterDatabaseCoston).* TO '$(AttesterWriterUsernameCoston2)'@'$(DatabaseWriteAccessSource)';
+GRANT ALL PRIVILEGES ON $(AttesterDatabaseCoston2).* TO '$(AttesterWriterUsernameCoston2)'@'$(DatabaseWriteAccessSource)';
 GRANT PROCESS ON *.* TO '$(AttesterWriterUsernameCoston2)'@'$(DatabaseWriteAccessSource)';
 
 CREATE USER '$(AttesterReaderUsernameCoston2)'@'%' IDENTIFIED BY '$(AttesterReaderPasswordCoston)';
-GRANT SELECT ON $(AttesterDatabaseCoston).* TO '$(AttesterReaderUsernameCoston2)'@'%';
+GRANT SELECT ON $(AttesterDatabaseCoston2).* TO '$(AttesterReaderUsernameCoston2)'@'%';
 
 
 CREATE DATABASE $(AttesterDatabaseFlare);

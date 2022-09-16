@@ -32,9 +32,14 @@
     "backends" : [
         {
             "name": "Coston",
-            "address":"https://attestation.flare.network/attester-api/status/services",
+            "address":"http://localhost:$(CostonBackendPort)/api/status/services",
             "restart":"systemctl --user restart coston-attester-client"
-        }
+        },
+        // {
+        //     "name": "Songbird",
+        //     "address":"http://localhost:$(SongbirdBackendPort)/api/status/services",
+        //     "restart":"systemctl --user restart songbird-attester-client"
+        // }
     ],
     "databases" : [
         {

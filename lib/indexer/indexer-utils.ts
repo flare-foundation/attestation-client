@@ -11,7 +11,7 @@ import {
   DBTransactionLTC0,
   DBTransactionLTC1,
   DBTransactionXRP0,
-  DBTransactionXRP1
+  DBTransactionXRP1,
 } from "../entity/indexer/dbTransaction";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { getRetryFailureCallback } from "../utils/PromiseTimeout";
@@ -23,6 +23,7 @@ export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
  * Returns a pair of entity tables for transactions used in interlacing tables.
  * Tables match the entities specific for the given chain type.
  * @param type - chain type
+ * @category Indexer
  */
 export function prepareIndexerTables(type: ChainType): { transactionTable: DBTransactionBase[]; blockTable: DBBlockBase } {
   let transactionTable = [];
@@ -57,7 +58,7 @@ export function prepareIndexerTables(type: ChainType): { transactionTable: DBTra
       throw new Error("Invalid chain type");
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
   return {
     transactionTable,
@@ -68,14 +69,15 @@ export function prepareIndexerTables(type: ChainType): { transactionTable: DBTra
 // this function will terminate app on exception
 /**
  * Async function wrapper that kills the application in case of exception.
- * It is typically used as a safeguard for non-awaited async calls that 
- * should have their own error handling, but in case it fails, some 
+ * It is typically used as a safeguard for non-awaited async calls that
+ * should have their own error handling, but in case it fails, some
  * critical situation has happened and the application should be terminated.
  * Note that on error, this wrapper calls global retryFailureCallback
  * which can be in case of testing sent differently.
  * @param label logging label
  * @param funct async function to be called
- * @returns 
+ * @returns
+ * @category Indexer
  */
 export async function criticalAsync(label: string, funct: (...args: any[]) => Promise<any>): Promise<any> {
   try {
@@ -88,7 +90,7 @@ export async function criticalAsync(label: string, funct: (...args: any[]) => Pr
       getGlobalLogger().error2(`application exit`);
       process.exit(2);
     } else {
-      onFailure(label)
+      onFailure(label);
     }
   }
 }

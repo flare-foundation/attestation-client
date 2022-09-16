@@ -35,7 +35,7 @@ export async function verifyPaymentDOGE(
   let roundId = attestation.roundId;
   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
-  //-$$$<start> of the custom code section. Do not change this comment. XXX
+  //-$$$<start> of the custom code section. Do not change this comment.
 
   let result = await verifyPayment(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
   if (result.status != VerificationStatus.OK) {

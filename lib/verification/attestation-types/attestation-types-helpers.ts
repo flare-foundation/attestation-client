@@ -80,7 +80,7 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
 /**
  * Helper function to convert `NumberLike` type to number, if possible
  * @param n number to convert
- * @returns the number value
+ * @returns the number value, may be unsafe integer (if more than 2 ** 53 - 1)
  */
 export function numberLikeToNumber(n: NumberLike): number | undefined {
   if (typeof n === "string") {
@@ -96,7 +96,7 @@ export function numberLikeToNumber(n: NumberLike): number | undefined {
  * @param list
  * @returns the random element
  */
-export function randomListElement<T>(list: T[]) {
+export function randomListElement<T>(list: T[]) : T | undefined {
   let randN = Math.floor(Math.random() * list.length);
   return list[randN];
 }

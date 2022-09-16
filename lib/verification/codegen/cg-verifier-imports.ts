@@ -1,4 +1,5 @@
 import fs from "fs";
+import prettier from 'prettier';
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { SourceId } from "../sources/sources";
 import {
@@ -6,13 +7,14 @@ import {
   CODEGEN_TAB,
   DATA_HASH_TYPE_PREFIX,
   DEFAULT_GEN_FILE_HEADER,
+  PRETTIER_SETTINGS,
   VERIFIERS_ROOT,
-  WEB3_HASH_PREFIX_FUNCTION,
+  WEB3_HASH_PREFIX_FUNCTION
 } from "./cg-constants";
-import { dashCapitalized, definitionFile, indentText } from "./cg-utils";
+import { dashCapitalized, definitionFile,  } from "./cg-utils";
 import { verifierFolder } from "./cg-verifiers";
 
-export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], chainType: SourceId) {
+export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], sourceId: SourceId) {
   let tdefImports = "";
   let tdefExports = "";
   let dhTypeList = [];
@@ -20,7 +22,7 @@ export function createVerifiersImportFileForSource(definitions: AttestationTypeS
   let hashFunctionList = [];
 
   for (let definition of definitions) {
-    if (definition.supportedSources.indexOf(chainType) >= 0) {
+    if (definition.supportedSources.indexOf(sourceId) >= 0) {
       tdefImports += `import {TDEF as TDEF_${dashCapitalized(definition.name, "_")} } from "../../attestation-types/${definitionFile(
         definition,
         undefined,
@@ -47,19 +49,20 @@ export { Verification, VerificationStatus } from "../../attestation-types/attest
 export { randSol } from "../../attestation-types/attestation-types-helpers";
 export { parseRequest } from "../../generated/attestation-request-parse";
 export { 
-${indentText(dhTypes, CODEGEN_TAB)} 
+${dhTypes} 
 } from "../../generated/attestation-hash-types";
 export { 
-${indentText(arTypes, CODEGEN_TAB)} 
+${arTypes} 
 } from "../../generated/attestation-request-types";
 export { 
-${indentText(hashFunctions, CODEGEN_TAB)} 
+${hashFunctions} 
 } from "../../generated/attestation-hash-utils";
 export { BN };
 export { Web3 };
 ${tdefExports}
 `;
-  fs.writeFileSync(`${verifierFolder(chainType, VERIFIERS_ROOT)}/0imports.ts`, content, "utf8");
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS)
+  fs.writeFileSync(`${verifierFolder(sourceId, VERIFIERS_ROOT)}/0imports.ts`, prettyContent, "utf8");
 }
 
 export function createVerifiersImportFiles(definitions: AttestationTypeScheme[]) {

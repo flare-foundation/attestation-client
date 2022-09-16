@@ -379,8 +379,9 @@ export class IndexedQueryManager {
   /**
    * Carries the boundary synchronized query and tries to obtain transaction meeting the query criteria from the indexer database.
    * @param params 
-   * @returns search status, required transaction block, if found, and lower and upper boundary blocks, if required by
-   * query parameters.
+   * @returns search status, required
+   * transaction block, if found,
+   * lower and upper boundary blocks, if required by query parameters.
    */
   public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
     let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");

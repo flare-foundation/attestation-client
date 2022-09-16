@@ -20,6 +20,7 @@ accounts.json
 build/
 bin/
 tmp_data/
+tmp/
 
 ## Node packages etc
 node_modules/

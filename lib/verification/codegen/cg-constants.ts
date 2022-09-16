@@ -1,5 +1,4 @@
 import { Options } from "prettier";
-import { parsers } from "prettier-plugin-solidity";
 
 export const GENERATED_ROOT = "lib/verification/generated";
 export const GENERATED_TEST_ROOT = "test/generated";
@@ -77,6 +76,11 @@ export const REQUEST_EQUALS_FUNCTIONS_HEADER = `////////////////////////////////
 // Prettier settings
 export const PRETTIER_SETTINGS: Options = { trailingComma: "es5", tabWidth: 2, printWidth: 160, semi: true, singleQuote: false, parser: "typescript" };
 export const PRETTIER_SETTINGS_SOL: Options = {
-  plugins: [parsers['solidity-parse']],
+  // plugins: [parsers['solidity-parse']],
   parser: "solidity-parse",
+  trailingComma: "es5",
+  tabWidth: 4,
+  printWidth: 160,
+  semi: true,
+  singleQuote: false
 };

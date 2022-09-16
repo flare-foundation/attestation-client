@@ -378,8 +378,8 @@ export class IndexedQueryManager {
 
   /**
    * Carries the boundary synchronized query and tries to obtain transaction meeting the query criteria from the indexer database.
-   * @param {ConfirmedTransactionQueryRequest} params 
-   * @returns {Promise<ConfirmedTransactionQueryResponse>} search status, required
+   * @param params 
+   * @returns search status, required
    * transaction block, if found,
    * lower and upper boundary blocks, if required by query parameters.
    */

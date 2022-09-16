@@ -25,14 +25,14 @@ import {
 
 /**
  * `Payment` attestation type verification function performing synchronized indexer queries
- * @param {MccTransactionType} TransactionClass
- * @param {ARPayment} request attestation request
- * @param {number} roundId voting round id
- * @param {number} numberOfConfirmations required number of confirmation
- * @param {boolean} recheck first query if `false` and second (final) query if `true`
- * @param {IndexedQueryManager} iqm IndexedQuery object for the relevant blockchain indexer
- * @param {MccClient=} client MCC client for the relevant blockchain
- * @returns {Promise<VerificationResponse<DHPayment>>} Verification response: object containing status and attestation response
+ * @param TransactionClass
+ * @param request attestation request
+ * @param roundId voting round id
+ * @param numberOfConfirmations required number of confirmation
+ * @param recheck first query if `false` and second (final) query if `true`
+ * @param iqm IndexedQuery object for the relevant blockchain indexer
+ * @param client MCC client for the relevant blockchain
+ * @returns Verification response: object containing status and attestation response
  * @category Verifiers
  */
 export async function verifyPayment(

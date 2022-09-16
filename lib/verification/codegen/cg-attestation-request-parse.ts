@@ -175,5 +175,5 @@ const web3 = new Web3();
   content += genRequestParseFunction(definitions);
 
   const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
-  fs.writeFileSync(ATT_REQUEST_PARSE_FILE, content, "utf8");
+  fs.writeFileSync(ATT_REQUEST_PARSE_FILE, prettyContent, "utf8");
 }

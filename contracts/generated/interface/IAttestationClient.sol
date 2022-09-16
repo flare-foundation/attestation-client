@@ -145,28 +145,13 @@ interface IAttestationClient {
     // where `attestationType` (`uint16`) is a different constant for each of the methods below
     // (possible values are defined in attestation specs).
 
-    function verifyPayment(uint32 _chainId, Payment calldata _data)
-        external
-        view
-        returns (bool _proved);
+    function verifyPayment(uint32 _chainId, Payment calldata _data) external view returns (bool _proved);
 
-    function verifyBalanceDecreasingTransaction(
-        uint32 _chainId,
-        BalanceDecreasingTransaction calldata _data
-    ) external view returns (bool _proved);
+    function verifyBalanceDecreasingTransaction(uint32 _chainId, BalanceDecreasingTransaction calldata _data) external view returns (bool _proved);
 
-    function verifyConfirmedBlockHeightExists(
-        uint32 _chainId,
-        ConfirmedBlockHeightExists calldata _data
-    ) external view returns (bool _proved);
+    function verifyConfirmedBlockHeightExists(uint32 _chainId, ConfirmedBlockHeightExists calldata _data) external view returns (bool _proved);
 
-    function verifyReferencedPaymentNonexistence(
-        uint32 _chainId,
-        ReferencedPaymentNonexistence calldata _data
-    ) external view returns (bool _proved);
+    function verifyReferencedPaymentNonexistence(uint32 _chainId, ReferencedPaymentNonexistence calldata _data) external view returns (bool _proved);
 
-    function verifyTrustlineIssuance(
-        uint32 _chainId,
-        TrustlineIssuance calldata _data
-    ) external view returns (bool _proved);
+    function verifyTrustlineIssuance(uint32 _chainId, TrustlineIssuance calldata _data) external view returns (bool _proved);
 }

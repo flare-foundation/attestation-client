@@ -17,6 +17,7 @@
     ]
   },
   "scripts": {
+    "prebuild": "yarn routes",
     "build": "yarn tsc",
 
     "-------LINT------": "",
@@ -27,7 +28,7 @@
     "-------DOCKER------": "",
     "docker-build": "bash scripts/docker-build.sh",
     "docker-deploy": "bash scripts/docker-deploy.sh",
-    
+
     "-------SOLIDITY------": "",
     "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
     "typechain-web3-v1-new": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1-new \"artifacts-new/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
@@ -42,11 +43,10 @@
 
     
     "-------DEV-RUNNERS------": "",
+    "dev": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node lib/runAttesterClient.ts",
     "prewatch-and-run": "npm-run-all typechain-web3-v1",
     "watch-and-run": "ts-node-dev --notify --respawn -- lib/runAttesterClient.ts",
-    "watch-and-run-indexer": "ts-node-dev --trace-warnings --notify --respawn -- lib/runIndexer.ts",
     "watch-and-run-alerts": "ts-node-dev --trace-warnings --notify --respawn -- lib/alerts/alerts.ts",
-    "dev": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node lib/runAttesterClient.ts",
     "devprod": "CONFIG_PATH=prod NODE_ENV=production node dist/lib/runAttesterClient.js",
     "devindexer": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn ts-node lib/runIndexer.ts",
     "devalerts": "CONFIG_PATH=.secure.dev DOTENV=DEV yarn watch-and-run-alerts",
@@ -73,6 +73,7 @@
     "-------BACKEND-------": "",
     "preroutes": "ts-node lib/scripts/create-routes-folder.ts",
     "routes": "yarn tsoa routes && yarn tsoa spec",
+    "predevbackend": "yarn routes",
     "devbackend": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/webserver/server.ts",
 
     "-------DOCS_GEN------": "",

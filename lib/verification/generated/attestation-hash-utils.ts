@@ -62,6 +62,7 @@ export function hashPayment(request: ARPayment, response: DHPayment) {
       response.status,
     ]
   );
+
   return web3.utils.soliditySha3(encoded)!;
 }
 
@@ -90,6 +91,7 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
       response.paymentReference,
     ]
   );
+
   return web3.utils.soliditySha3(encoded)!;
 }
 
@@ -116,6 +118,7 @@ export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightEx
       response.lowestQueryWindowBlockTimestamp,
     ]
   );
+
   return web3.utils.soliditySha3(encoded)!;
 }
 
@@ -148,6 +151,7 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
       response.firstOverflowBlockTimestamp,
     ]
   );
+
   return web3.utils.soliditySha3(encoded)!;
 }
 
@@ -163,6 +167,7 @@ export function hashTrustlineIssuance(request: ARTrustlineIssuance, response: DH
     ],
     [request.attestationType, request.sourceId, response.tokenCurrencyCode, response.tokenValueNominator, response.tokenValueDenominator, response.tokenIssuer]
   );
+
   return web3.utils.soliditySha3(encoded)!;
 }
 

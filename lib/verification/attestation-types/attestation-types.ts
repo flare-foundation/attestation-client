@@ -36,6 +36,7 @@ export enum VerificationStatus {
 
   PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR",
 }
+
 export interface Verification<R, T> {
   hash?: string;
   request?: R;

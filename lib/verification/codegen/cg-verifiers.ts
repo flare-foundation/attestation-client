@@ -3,14 +3,12 @@ import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { getSourceName } from "../sources/sources";
 import { genRandomResponseCode } from "./cg-attestation-random-utils";
 import {
-  ATTESTATION_TYPE_PREFIX,
-  CODEGEN_TAB,
-  DATA_HASH_TYPE_PREFIX,
+  ATTESTATION_TYPE_PREFIX, DATA_HASH_TYPE_PREFIX,
   SEMI_EDITABLE_GEN_FILE_HEADER,
   VERIFIER_FUNCTION_PREFIX,
-  WEB3_HASH_PREFIX_FUNCTION,
+  WEB3_HASH_PREFIX_FUNCTION
 } from "./cg-constants";
-import { dashCapitalized, indentText, tab } from "./cg-utils";
+import { dashCapitalized } from "./cg-utils";
 
 export function verifierFolder(sourceId: number, rootFolder?: string) {
   let root = rootFolder ? `${rootFolder}/` : "";
@@ -91,32 +89,32 @@ ${imports}
 const web3 = new Web3();
 
 export async function ${functionName}(
-${tab()}client: ${mccInterface}, 
-${tab()}attestation: Attestation, 
-${tab()}indexer: IndexedQueryManager, 
-${tab()}recheck = false
+	client: ${mccInterface}, 
+	attestation: Attestation, 
+	indexer: IndexedQueryManager, 
+	recheck = false
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
 {
-${tab()}let request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
-${tab()}let roundId = attestation.roundId;
-${tab()}let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+	let request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+	let roundId = attestation.roundId;
+	let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
-${tab()}//-$$$<start> of the custom code section. Do not change this comment. XXX
+	//-$$$<start> of the custom code section. Do not change this comment.
 
 ${code}
 
-${tab()}//-$$$<end> of the custom section. Do not change this comment.
+	//-$$$<end> of the custom section. Do not change this comment.
 
-${hasResponseDefined ? "" : indentText(randomResponse, CODEGEN_TAB)}
+${hasResponseDefined ? "" : randomResponse}
 
-${tab()}let hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
+	let hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
 
-${tab()}return {
-${tab()}${tab()}hash,
-${tab()}${tab()}request,
-${tab()}${tab()}response,
-${tab()}${tab()}status: VerificationStatus.OK
-${tab()}}
+	return {
+		hash,
+		request,
+		response,
+		status: VerificationStatus.OK
+	}
 }   
 `;
 }

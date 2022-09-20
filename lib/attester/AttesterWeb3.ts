@@ -78,18 +78,18 @@ export class AttesterWeb3 {
       this.logger.info(`merkleRoot_n ........... : ^e${merkleRoot.toString()}`);
       this.logger.info(`random_n ............... : ^e${random.toString()}`);
       this.logger.info(`random_n-1 ............. : ${revealedRandomPrev.toString()}`);
-      if(useNewStateConnector) {
+      if (useNewStateConnector) {
         this.logger.info(`commitHash_n ........... : ${commitHash.toString()}`);
       } else {
         this.logger.info(`maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}`);
         this.logger.info(`hashedRandom_n ......... : ${hashedRandom.toString()}`);
-      }            
+      }
     }
 
     if (process.env.NODE_ENV === "production") {
       //if( true ) {
 
-      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000;
+      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5000;
 
       const { receipt, nonce } = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
 

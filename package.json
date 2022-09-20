@@ -77,7 +77,9 @@
     "devbackend": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/webserver/server.ts",
 
     "-------DOCS_GEN------": "",
-    "generateDocs": "yarn typedoc --options typedoc.config.json"
+    "pregenerateDocs": "yarn routes",
+    "generateDocs": "yarn typedoc --options typedoc.config.json",
+    "genDocsDev": "cd genDocs && python3 -m http.server 8765"
   },
   "dependencies": {
     "@flarenetwork/mcc": "1.3.1",

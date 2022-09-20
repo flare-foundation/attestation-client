@@ -1,16 +1,40 @@
 {
   "excludeExternals": true,
   "entryPoints": ["./lib"],
+  "readme": "typedocReadme.md",
   "categorizeByGroup": true,
-  "categoryOrder": ["BaseMethod", "AdvancedMethod", "Indexer", "Verifiers", "*"],
+  "categoryOrder": ["Indexer", "Verifiers", "Config", "Install", "SmartContract", "AttesterClient", "ApiServer", "Test", "*"],
   "mergeModulesMergeMode": "project",
   "entryPointStrategy": "expand",
   "out": "genDocs",
   "pluginPages": {
     "output": "",
+    "source": "docs",
     "pages": [
-       { "title": "Documentation Home", "source": "./docs/README.md" },
-       { "title": "Using connected Testnets", "source": "./docs/testnets/README.md" }
+      { "title": "Documentation Home", "source": "./docs/README.md" },
+      { "title": "Using connected Testnets", "source": "./docs/testnets/README.md" },
+      {
+        "title": "Config",
+        "source": "./docs/config.md",
+        "children": [
+           { "title": "Config Alerts", "source": "config-alerts.md" }
+        ]
+     },
+     {
+      "title": "Installation",
+      "source": "./docs/installation.md",
+      "children": [
+         { "title": "General installation", "source": "general-installation.md" },
+         { "title": "Alerts installation", "source": "alerts-installation.md" },
+         { "title": "Attester Client installation", "source": "attester-client-installation.md" },
+         { "title": "Backend installation", "source": "backend-installation.md" },
+         { "title": "Indexer installation", "source": "indexer-installation.md" },
+         { "title": "Installation details ", "source": "installation-details.md" },
+         { "title": "Services helpers", "source": "service-helpers.md" },
+         { "title": "Services", "source": "services.md" }
+      ]
+   }
     ]
+    
   }
 }

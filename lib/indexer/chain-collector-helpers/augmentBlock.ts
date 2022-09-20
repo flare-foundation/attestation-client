@@ -5,9 +5,10 @@ import { Indexer } from "../indexer";
 
 /**
  * Creates database entity for a confirmed block while indexing.
- * @param indexer indexer
+ * @param indexer indexer object
  * @param block block as returned by MCC
- * @returns 
+ * @returns Block Database entity
+ * @category
  */
 export async function augmentBlock(indexer: Indexer, block: IBlock): Promise<DBBlockBase> {
   const entity = new indexer.dbBlockClass() as DBBlockBase;

@@ -17,7 +17,7 @@ export INSTALL_NODES_TESTNET=true
 export INSTALL_NODES_MAINNET=false
 
 # attestation client 
-export INSTALL_FLARE=true
-export INSTALL_SONGBIRD=true
-export INSTALL_COSTON=true
+export INSTALL_FLARE=false
+export INSTALL_SONGBIRD=false
+export INSTALL_COSTON=false
 export INSTALL_COSTON2=true

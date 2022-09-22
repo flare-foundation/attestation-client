@@ -5,6 +5,7 @@ source ./scripts/install-config.sh
 source .config.secret.sh2
 
 echo -e "${GREENBOLD}Installing testnet nodes${NC}"
+pwd
 
 export LOCAL_DIR=$CURRENT_DIR
 
@@ -20,4 +21,8 @@ sudo docker-compose -f docker-compose-testnet.yml up -d
 
 sudo ./algorand-catchup.sh
 
+echo -e "${GREENBOLD}testnet nodes installed${NC}"
+pwd 
+
 cd $LOCAL_DIR
+pwd 

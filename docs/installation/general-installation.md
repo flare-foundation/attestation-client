@@ -28,8 +28,24 @@ Minimal hardware requirements for complete `mainnet` configuration are:
 
 Start on a new clean ubuntu installation with admin priviledges.
 
+This script will:
+- install Attestation Suite
+    - indexer
+    - monitor
+    - attestation client
+    - front end
+- mysql database
+- nodes (testnet)
+    - algo
+    - btc
+    - doge
+    - ltc
+    - xrp
+- nginX (used by frontend)
+- certman (used by nginX for ssl certificate)
+
 ---
-### 1) Download Attestation Suite repository and install prerequisites
+### 1) Download Attestation Suite repository
 
 ``` bash
 cd ~
@@ -42,6 +58,9 @@ cd attestation-client
 git checkout commit-reveal-fixes-c2
 
 ```
+
+---
+### 2) Configurate
 
 Edit what modules you want to be installed.
 
@@ -58,16 +77,23 @@ Important: also select network host name. Network host name cannot be changed la
 nano .config.secret.sh
 ```
 
+---
+### 3) Install
 After the configuration is setup run the main installer
 ```
 ./scripts/install.sh
 ```
 
 ---
-Details about installation and dependencies are [here](./installation-details.md)
+Detailed information about installation and dependencies are [here](./installation-details.md)
 
 ## Update configuration
 Once Attestation Suite is installed you can change configuration files and run next script.
+
+Settings that cannot be changed are:
+- hostname
+- node password
+
 
 Setup configuration files are in folder `../attestation-suite-config/`:
 - chains.credentials.json 
@@ -97,7 +123,7 @@ the script will :
 
 
 ## Administration module
-We included a simple WOP administration module that helps monitor and administrate Attestation Suite.
+We included a simple administration module that helps monitor and administrate Attestation Suite.
 
 ```
 cd ~/attestation-suite/attestation-client

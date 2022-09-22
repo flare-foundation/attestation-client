@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # set secret or private key (NO SPACES before and after = sign!)
-export SECRET_FLARE=""
-export SECRET_SONGBIRD=""
-export SECRET_COSTON=""
-export SECRET_COSTON2=""
+export SECRET_FLARE="TEST"
+export SECRET_SONGBIRD="TEST"
+export SECRET_COSTON="TEST"
+export SECRET_COSTON2="TEST"
 
 # set your hostname or ip
 export HOSTNAME=www.yourhostname.com

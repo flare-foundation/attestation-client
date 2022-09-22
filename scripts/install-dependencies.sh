@@ -14,6 +14,12 @@ nvm install 14.15.4
 nvm alias default 14.15.4
 nvm use 14.15.4
 
+# set sudo node to the same version
+n=$(which node); \
+n=${n%/bin/node}; \
+chmod -R 755 $n/bin/*; \
+sudo cp -r $n/{bin,lib,share} /usr/local
+
 # yarn
 echo -e "${REDBOLD}[2] ${GREENBOLD}Installing ${REDBOLD}yarn${NC}"
 sudo apt install npm -y

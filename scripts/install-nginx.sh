@@ -6,7 +6,7 @@ source .config.secret.sh2
 
 echo -e "${GREENBOLD}Installing nginX${NC}"
 
-sudo apt install nginx
+sudo apt install nginx -y
 
 sudo yarn ts-node lib/install/install-file.ts -i ./scripts/files/nginx.default -o /etc/nginx/sites-available/default
 

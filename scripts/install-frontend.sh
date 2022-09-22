@@ -3,18 +3,22 @@ source ./scripts/install-config.sh
 
 export LOCAL_DIR=$CURRENT_DIR
 
+export FRONTEND_NAME=atestation-fe-public
+
 echo -e "${GREENBOLD}Installing frontend${NC}"
 
 cd ..
 
-git clone https://git.aflabs.org/Avbreht/atestation-fe-public.git
+rm -rf $FRONTEND_NAME
+
+git clone https://git.aflabs.org/Avbreht/$FRONTEND_NAME.git
 
 
 cd $LOCAL_DIR
 
-yarn ts-node lib/install/install-file.ts -i ./scripts/files/frontend.env -o ../attestation_front_end/.env
+yarn ts-node lib/install/install-file.ts -i ./scripts/files/frontend.env -o ../$FRONTEND_NAME/.env
 
-cd ../attestation_front_end
+cd ../$FRONTEND_NAME
 
 # todo create .env
 

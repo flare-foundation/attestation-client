@@ -79,9 +79,9 @@ export class Web3Functions {
 
               // must return 2 values as _signAndFinalize3
               // for some reason the return {null,null}; does not compile 
-              const res0=null;
-              const res1=null;
-              return {res0,res1};
+              const res0 = null;
+              const res1 = null;
+              return { res0, res1 };
             }
           }
 
@@ -107,7 +107,7 @@ export class Web3Functions {
     }
     finally {
       // current index MUST be increased or evenrything stalls
-      this.currentIndex ++;
+      this.currentIndex++;
     }
   }
 

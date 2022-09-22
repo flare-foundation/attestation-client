@@ -1,9 +1,5 @@
-export RED='\033[0;31m'
-export GREEN='\033[0;32m'
-export NC='\033[0m' # No Color
-export REDBOLD="${RED}$(tput bold)"
-export GREENBOLD="${GREEN}$(tput bold)"
-export NCNORMAL="${NC}$(tput sgr0)"
+#!/bin/bash
+source ./scripts/install-config.sh
 
 export CONFIG_DIR=../attestation-suite-config
 
@@ -34,3 +30,13 @@ echo -e "${GREEN}Installing configurations${NC}"
 
 mkdir -p $CONFIG_DIR
 cp -a configs/.install/. $CONFIG_DIR
+
+
+
+# initial main config update
+source .config.secret.sh2
+
+yarn ts-node lib/install/install-file.ts -i ./configs/.install/chains.credentials.json -o ../attestation-suite-config/chains.credentials.json
+yarn ts-node lib/install/install-file.ts -i ./configs/.install/database.credentials.json -o ../attestation-suite-config/database.credentials.json
+yarn ts-node lib/install/install-file.ts -i ./configs/.install/networks.credentials.json -o ../attestation-suite-config/networks.credentials.json
+

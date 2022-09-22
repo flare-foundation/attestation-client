@@ -120,8 +120,21 @@ server {
         ssl_certificate          /etc/letsencrypt/live/flare4.oracle-daemon.com/fullchain.pem;
         ssl_certificate_key      /etc/letsencrypt/live/flare4.oracle-daemon.com/privkey.pem;
         ssl_trusted_certificate  /etc/letsencrypt/live/flare4.oracle-daemon.com/chain.pem;
+        location /flare/api {
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_cache_bypass $http_upgrade;
 
-        location /api {
+           add_header  Access-Control-Allow-Origin *;
+
+           rewrite /flare/(.*) /$1  break;
+           proxy_pass         http://localhost:9510;
+         }
+
+         location /songbird/api {
 
            proxy_http_version 1.1;
            proxy_set_header Upgrade $http_upgrade;
@@ -132,8 +145,40 @@ server {
 
            add_header  Access-Control-Allow-Origin *;
 
-           proxy_pass         http://localhost:9510;
-        }
+           rewrite /songbird/(.*) /$1  break;
+           proxy_pass         http://localhost:9511;
+         }
+
+         location /coston/api {
+
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_cache_bypass $http_upgrade;
+
+           add_header  Access-Control-Allow-Origin *;
+
+           rewrite /coston/(.*) /$1  break;
+           proxy_pass         http://localhost:9512;
+         }
+
+         location /coston2/api {
+
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_cache_bypass $http_upgrade;
+
+           add_header  Access-Control-Allow-Origin *;
+
+           rewrite /coston2/(.*) /$1  break;
+           proxy_pass         http://localhost:9513;
+         }
+
 
         location / {
            proxy_pass         http://localhost:3200;

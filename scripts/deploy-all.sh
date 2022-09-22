@@ -11,7 +11,7 @@ if $ENABLE_MONITOR; then
     bash ./scripts/deploy-alerts
 fi
 
-if $ENABLE_FLARE; then
+if $INSTALL_FLARE; then
     echo -e "${REDBOLD}[4.3] ${GREENBOLD}Installing Flare Attester Client...${NC}"
     bash ./scripts/deploy-flare-attester
 
@@ -19,7 +19,7 @@ if $ENABLE_FLARE; then
     bash ./scripts/deploy-flare-backend
 fi
 
-if $ENABLE_SONGBIRD; then
+if $INSTALL_SONGBIRD; then
     echo -e "${REDBOLD}[4.5] ${GREENBOLD}Installing Songbird Attester Client...${NC}"
     bash ./scripts/deploy-songbird-attester
 
@@ -27,7 +27,7 @@ if $ENABLE_SONGBIRD; then
     bash ./scripts/deploy-songbird-backend
 fi
 
-if $ENABLE_COSTON; then
+if $INSTALL_COSTON; then
     echo -e "${REDBOLD}[4.7] ${GREENBOLD}Installing Coston Attester Client...${NC}"
     bash ./scripts/deploy-coston-attester
 
@@ -35,7 +35,7 @@ if $ENABLE_COSTON; then
     bash ./scripts/deploy-coston-backend
 fi
 
-if $ENABLE_COSTON2; then
+if $INSTALL_COSTON2; then
     echo -e "${REDBOLD}[4.9] ${GREENBOLD}Installing Coston2 Attester Client...${NC}"
     bash ./scripts/deploy-coston2-attester
 

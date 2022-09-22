@@ -1,4 +1,4 @@
-bash ./scripts/install-config.sh
+source ./scripts/install-config.sh
 
 source ~/.profile
 

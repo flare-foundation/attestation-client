@@ -1,7 +1,7 @@
 #!/bin/bash
 source ./scripts/install-config.sh
 
-export LOCAL_DIR=$CURRENT_DIR
+export LOCAL_DIR=$(pwd)
 
 export FRONTEND_NAME=atestation-fe-public
 

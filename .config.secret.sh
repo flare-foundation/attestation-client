@@ -1,15 +1,20 @@
 #!/bin/bash
 
-# set secret or private key (NO SPACES before and after = sign!)
-export SECRET_FLARE=""
-export SECRET_SONGBIRD=""
-export SECRET_COSTON=""
-export SECRET_COSTON2=""
+# Important: no spaces before and after = sign!
 
-# set your hostname or ip
+# Set your hostname
+# This cannot be changed later.
 export HOSTNAME=www.yourhostname.com
 
-# change this if you want to have specific password
-# it must be 64 characters long because it is also used for ALGO token
+# Set secret or private key
+# This can be changed later with command `nano ~/attestation-suite/attestation-suite-config/networks.credentials.json` and update config afterwards
+export SECRET_FLARE="0x0000000000000000000000000000000000000001"
+export SECRET_SONGBIRD="0x0000000000000000000000000000000000000001"
+export SECRET_COSTON="0x0000000000000000000000000000000000000001"
+export SECRET_COSTON2="0x0000000000000000000000000000000000000001"
+
+# Change this if you want to have specific password. If left like this it will be auto generated.
+# It must be 64 characters long because it is also used for ALGO token
+# This cannot be changed later.
 export SECRET_NODES_TESTNET="$(GENERATE_RANDOM_PASSWORD_64)"
 export SECRET_NODES_MAINNET="$(GENERATE_RANDOM_PASSWORD_64)"

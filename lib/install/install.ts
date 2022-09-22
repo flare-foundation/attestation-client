@@ -93,12 +93,16 @@ async function prepareInstall(name: string, chain: string, first = false) {
     }
   }
 
+  // add missing settings
   if (missing > 0) {
     if (first) {
       getGlobalLogger().warning(`      using ${missing} keys from templates`);
     }
     configs.push(fromTemplates);
   }
+
+  // add special env settings
+  configs.push(fromEnv);
 
   const files = fs.readdirSync(sourceDir);
 
@@ -135,7 +139,23 @@ async function prepareInstall(name: string, chain: string, first = false) {
   }
 }
 
+let fromEnv = [];
+function addEnv(name: string) {
+  if( !process.env[name] ) return;
+
+  fromEnv[name] = process.env[name];
+}
+
 async function run() {
+
+  addEnv("HOSTNAME");
+  addEnv("SECRET_FLARE");
+  addEnv("SECRET_SONGBIRD");
+  addEnv("SECRET_COSTON");
+  addEnv("SECRET_COSTON2");
+  addEnv("SECRET_NODES_TESTNET");
+  addEnv("SECRET_NODES_MAINNET");
+
   await prepareInstall("Flare", "flare", true);
   await prepareInstall("Songbird", "songbird");
   await prepareInstall("Coston", "coston");

@@ -14,7 +14,7 @@ Attestation Suite is recommended to install on two separate servers:
 
 ## Recomended hardware requirements
 
-Minimal hardware requirements for running Attester-Suite are:
+Minimal hardware requirements for running Attestation-Suite are:
 - CPU: 4 cores @ 2.2GHz
 - DISK: 500 GB SSD disk
 - MEMORY: 16 GB

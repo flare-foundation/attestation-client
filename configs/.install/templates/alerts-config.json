@@ -17,9 +17,9 @@
     "attesters" : [
         {
             // attester-client name - used for alert display only
-            "name":"Coston",
+            "name":"Coston2",
             // attester-client configuration path
-            "path":"../../coston/attester-client/configs/prod/",
+            "path":"../../coston2/attester-client/configs/prod/",
             // attester-client restart command
             "restart":"systemctl --user restart coston-attester-client"
         },
@@ -31,9 +31,9 @@
     ],
     "backends" : [
         {
-            "name": "Coston",
-            "address":"http://localhost:$(CostonBackendPort)/api/status/services",
-            "restart":"systemctl --user restart coston-attester-client"
+            "name": "Coston2",
+            "address":"http://localhost:$(Coston2BackendPort)/api/status/services",
+            "restart":"systemctl --user restart coston2-attester-client"
         },
         // {
         //     "name": "Songbird",

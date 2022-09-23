@@ -76,7 +76,12 @@ export class Web3Functions {
           if (timeEnd) {
             if (getUnixEpochTimestamp() > timeEnd) {
               this.logger.error2(`sign ${label} timeout #${waitIndex}`);
-              return null;
+
+              // must return 2 values as _signAndFinalize3
+              // for some reason the return {null,null}; does not compile 
+              const res0 = null;
+              const res1 = null;
+              return { res0, res1 };
             }
           }
 
@@ -93,14 +98,16 @@ export class Web3Functions {
       const time1 = getTimeMilli();
 
       if (!quiet) {
-        this.logger.debug2(`sign ${label} done #${waitIndex} (time ${time1 - time0}s)`);
+        this.logger.debug2(`sign ${label} done #${waitIndex} (time ${time1 - time0}ms)`);
       }
-
-      this.currentIndex += 1;
 
       return res;
     } catch (error) {
       logException(error, `signAndFinalize3`);
+    }
+    finally {
+      // current index MUST be increased or evenrything stalls
+      this.currentIndex++;
     }
   }
 

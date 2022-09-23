@@ -191,8 +191,8 @@ export function prepareString(text: string, maxLength: number, reportOverflow: s
  * Returns crypto safe 32-byte random hex string using web3.js generator
  * @returns Random 32-byte string
  */
-export async function getCryptoSafeRandom() {
-  return Web3.utils.randomHex(32);
+export async function getCryptoSafeRandom(length=32) {
+  return Web3.utils.randomHex(length);
 }
 
 /**

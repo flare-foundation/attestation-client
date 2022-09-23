@@ -1,0 +1,75 @@
+server {
+
+        listen 443 ssl;
+        listen [::]:443 ssl;
+        server_name $(HOSTNAME);
+
+        #Size archive        client_max_body_size 50M;
+
+        ssl_certificate          /etc/letsencrypt/live/$(HOSTNAME)/fullchain.pem;
+        ssl_certificate_key      /etc/letsencrypt/live/$(HOSTNAME)/privkey.pem;
+        ssl_trusted_certificate  /etc/letsencrypt/live/$(HOSTNAME)/chain.pem;
+        location /flare/api {
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_cache_bypass $http_upgrade;
+
+           add_header  Access-Control-Allow-Origin *;
+
+           rewrite /flare/(.*) /$1  break;
+           proxy_pass         http://localhost:$(FlareBackendPort);
+         }
+
+         location /songbird/api {
+
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_cache_bypass $http_upgrade;
+
+           add_header  Access-Control-Allow-Origin *;
+
+           rewrite /songbird/(.*) /$1  break;
+           proxy_pass         http://localhost:$(SongbirdBackendPort);
+         }
+
+         location /coston/api {
+
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_cache_bypass $http_upgrade;
+
+           add_header  Access-Control-Allow-Origin *;
+
+           rewrite /coston/(.*) /$1  break;
+           proxy_pass         http://localhost:$(CostonBackendPort);
+         }
+
+         location /coston2/api {
+
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_cache_bypass $http_upgrade;
+
+           add_header  Access-Control-Allow-Origin *;
+
+           rewrite /coston2/(.*) /$1  break;
+           proxy_pass         http://localhost:$(Coston2BackendPort);
+         }
+
+
+        location / {
+           proxy_pass         http://localhost:$(FrontEndPort);
+        }
+}

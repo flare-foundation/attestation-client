@@ -14,6 +14,9 @@ import { createSolidityIAttestationClient } from "./cg-iattestation-client";
 import { createVerifiersImportFiles } from "./cg-verifier-imports";
 import { createVerifiersAndRouter } from "./cg-verifiers-router";
 
+/**
+ * Generates all auto generated files
+ */
 async function generateCodeFiles() {
   let definitions = await readAttestationTypeSchemes();
 

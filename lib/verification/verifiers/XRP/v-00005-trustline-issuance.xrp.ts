@@ -33,7 +33,7 @@ export async function verifyTrustlineIssuanceXRP(
   let roundId = attestation.roundId;
   let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
-  //-$$$<start> of the custom code section. Do not change this comment. XXX
+  //-$$$<start> of the custom code section. Do not change this comment.
 
   // TYPE THE CODE HERE
 

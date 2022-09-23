@@ -40,6 +40,7 @@ export function randomResponsePayment() {
     oneToOne: randSol({}, "oneToOne", "bool") as boolean,
     status: randSol({}, "status", "uint8") as BN,
   } as DHPayment;
+
   return response;
 }
 
@@ -53,6 +54,7 @@ export function randomResponseBalanceDecreasingTransaction() {
     spentAmount: randSol({}, "spentAmount", "int256") as BN,
     paymentReference: randSol({}, "paymentReference", "bytes32") as string,
   } as DHBalanceDecreasingTransaction;
+
   return response;
 }
 
@@ -65,6 +67,7 @@ export function randomResponseConfirmedBlockHeightExists() {
     lowestQueryWindowBlockNumber: randSol({}, "lowestQueryWindowBlockNumber", "uint64") as BN,
     lowestQueryWindowBlockTimestamp: randSol({}, "lowestQueryWindowBlockTimestamp", "uint64") as BN,
   } as DHConfirmedBlockHeightExists;
+
   return response;
 }
 
@@ -80,6 +83,7 @@ export function randomResponseReferencedPaymentNonexistence() {
     firstOverflowBlockNumber: randSol({}, "firstOverflowBlockNumber", "uint64") as BN,
     firstOverflowBlockTimestamp: randSol({}, "firstOverflowBlockTimestamp", "uint64") as BN,
   } as DHReferencedPaymentNonexistence;
+
   return response;
 }
 
@@ -90,6 +94,7 @@ export function randomResponseTrustlineIssuance() {
     tokenValueDenominator: randSol({}, "tokenValueDenominator", "uint256") as BN,
     tokenIssuer: randSol({}, "tokenIssuer", "bytes32") as string,
   } as DHTrustlineIssuance;
+
   return response;
 }
 //////////////////////////////////////////////////////////////
@@ -100,14 +105,19 @@ export function getRandomResponseForType(attestationType: AttestationType) {
   switch (attestationType) {
     case AttestationType.Payment:
       return randomResponsePayment();
+
     case AttestationType.BalanceDecreasingTransaction:
       return randomResponseBalanceDecreasingTransaction();
+
     case AttestationType.ConfirmedBlockHeightExists:
       return randomResponseConfirmedBlockHeightExists();
+
     case AttestationType.ReferencedPaymentNonexistence:
       return randomResponseReferencedPaymentNonexistence();
+
     case AttestationType.TrustlineIssuance:
       return randomResponseTrustlineIssuance();
+
     default:
       throw new Error("Wrong attestation type.");
   }

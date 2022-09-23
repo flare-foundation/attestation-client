@@ -3,7 +3,7 @@ import { criticalAsync } from "../indexer/indexer-utils";
 import { retry } from "../utils/PromiseTimeout";
 import { Queue } from "../utils/Queue";
 
-interface CachedMccClientOptionsFull {
+export interface CachedMccClientOptionsFull {
   transactionCacheSize: number;
   blockCacheSize: number;
   cleanupChunkSize: number;
@@ -13,7 +13,7 @@ interface CachedMccClientOptionsFull {
   forcedClient?: ReadRpcInterface;
 }
 
-interface CachedMccClientOptionsTest {
+export interface CachedMccClientOptionsTest {
   forcedClient: ReadRpcInterface
 }
 

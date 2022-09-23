@@ -1,11 +1,12 @@
 import fs from "fs";
+import prettier from 'prettier';
 import { AttestationTypeScheme, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
-import { ATT_HASH_TYPES_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER } from "./cg-constants";
-import { indentText } from "./cg-utils";
+import { ATT_HASH_TYPES_FILE, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
+import { commentText } from "./cg-utils";
 
 function genDefHashItem(item: DataHashScheme) {
-  return `${indentText(item.description, CODEGEN_TAB, "//")}
+  return `${commentText(item.description)}
    ${item.key}: ${tsTypeForSolidityType(item.type)};`;
 }
 
@@ -38,5 +39,6 @@ import BN from "bn.js";
     content += genAttestationDataHashType(definition);
   });
   content += dhType(definitions);
-  fs.writeFileSync(ATT_HASH_TYPES_FILE, content, "utf8");
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
+  fs.writeFileSync(ATT_HASH_TYPES_FILE, prettyContent, "utf8");
 }

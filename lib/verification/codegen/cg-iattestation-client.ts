@@ -1,13 +1,12 @@
 import fs from "fs";
+import prettier from 'prettier';
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import {
   DEFAULT_GEN_FILE_HEADER,
-  I_ATTESTATION_CLIENT_FILE,
-  SOLIDITY_CODEGEN_TAB,
-  SOLIDITY_GEN_INTERFACES_ROOT,
-  SOLIDITY_VERIFICATION_FUNCTION_PREFIX,
+  I_ATTESTATION_CLIENT_FILE, PRETTIER_SETTINGS_SOL, SOLIDITY_GEN_INTERFACES_ROOT,
+  SOLIDITY_VERIFICATION_FUNCTION_PREFIX
 } from "./cg-constants";
-import { indentText } from "./cg-utils";
+import { commentText } from "./cg-utils";
 
 function genProofStructs(definition: AttestationTypeScheme): any {
   let structName = `${definition.name}`;
@@ -15,7 +14,7 @@ function genProofStructs(definition: AttestationTypeScheme): any {
     .map(
       (item) =>
         `
-${indentText(item.description, 2 * SOLIDITY_CODEGEN_TAB, "//")}
+${commentText(item.description)}
         ${item.type} ${item.key};`
     )
     .join("\n");
@@ -42,7 +41,7 @@ function genProofVerificationFunctionSignatures(definition: AttestationTypeSchem
 function getSolidityIAttestationClient(definitions: AttestationTypeScheme[]) {
   let structs = definitions.map((definition) => genProofStructs(definition)).join("");
   let verifyProofFunctionSignatures = definitions
-    .map((definition) => indentText(genProofVerificationFunctionSignatures(definition), SOLIDITY_CODEGEN_TAB))
+    .map((definition) => genProofVerificationFunctionSignatures(definition))
     .join("\n\n");
   let proofVerificationComment = `
 When verifying state connector proofs, the data verified will be
@@ -57,7 +56,7 @@ pragma solidity >=0.7.6 <0.9;
 
 interface IAttestationClient {
 ${structs}
-${indentText(proofVerificationComment, SOLIDITY_CODEGEN_TAB, "//")}
+${commentText(proofVerificationComment)}
 
 ${verifyProofFunctionSignatures}
 }
@@ -71,5 +70,6 @@ ${getSolidityIAttestationClient(definitions)}`;
     fs.mkdirSync(SOLIDITY_GEN_INTERFACES_ROOT, { recursive: true });
   }
 
-  fs.writeFileSync(`${SOLIDITY_GEN_INTERFACES_ROOT}/${I_ATTESTATION_CLIENT_FILE}`, content, "utf8");
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS_SOL)
+  fs.writeFileSync(`${SOLIDITY_GEN_INTERFACES_ROOT}/${I_ATTESTATION_CLIENT_FILE}`, prettyContent, "utf8");
 }

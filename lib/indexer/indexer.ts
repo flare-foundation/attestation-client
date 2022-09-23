@@ -20,12 +20,13 @@ import { PreparedBlock } from "./preparedBlock";
 /**
  * Indexer class for a blockchain. It connects to a blockchain node through a cachedClient.
  * Indexing means the following:
- * * agressive reading blocks (headers) from all tips 
+ * * agressive reading blocks (headers) from all tips
  * * managing which blocks are confirmed and storing confirmed transactions from those blocks to
  *   the database, as soon as they are confirmed.
- * * front running reading transactions in candidate confirmed blocks using block processor 
+ * * front running reading transactions in candidate confirmed blocks using block processor
  *   (which helps prioritizing which block is read)
  * * managing interlaced tables for confirmed transactions (clears old transactions from the database)
+ * @category Indexer
  */
 @Managed()
 export class Indexer {
@@ -60,7 +61,7 @@ export class Indexer {
 
   // two interlacing table entity classes for confirmed transaction storage
   dbTransactionClasses: DBTransactionBase[];
-  // entity class for the block table 
+  // entity class for the block table
   dbBlockClass;
 
   // bottom block in the transaction tables - used to check if we have enough history
@@ -99,11 +100,7 @@ export class Indexer {
 
     this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
 
-    this.blockProcessorManager = new BlockProcessorManager(
-      this,
-      this.blockCompleted.bind(this),
-      this.blockAlreadyCompleted.bind(this)
-    );
+    this.blockProcessorManager = new BlockProcessorManager(this, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this));
 
     this.headerCollector = new HeaderCollector(this.logger, this);
 
@@ -131,24 +128,38 @@ export class Indexer {
   // Safeguarded client functions
   /////////////////////////////////////////////////////////////
 
+  /**
+   *
+   * @param label
+   * @param blockNumber
+   * @returns
+   * @category BaseMethod
+   */
   public async getBlockFromClient(label: string, blockNumber: number): Promise<IBlock> {
     // todo: implement MCC lite version of getBlock
     const result = await retry(`indexer.getBlockFromClient.${label}`, async () => {
       return await this.cachedClient.client.getBlock(blockNumber);
     });
     if (!result) {
-      failureCallback(`indexer.getBlockFromClient.${label} - null block returned`)
+      failureCallback(`indexer.getBlockFromClient.${label} - null block returned`);
     }
     return result;
   }
 
+  /**
+   *
+   * @param label
+   * @param blockHash
+   * @returns
+   * @category BaseMethod
+   */
   public async getBlockFromClientByHash(label: string, blockHash: string): Promise<IBlock> {
     // todo: implement MCC lite version of getBlock
     const result = await retry(`indexer.getBlockFromClientByHash.${label}`, async () => {
       return await this.cachedClient.client.getBlock(blockHash);
     });
     if (!result) {
-      failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`)
+      failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`);
     }
     return result;
   }
@@ -165,6 +176,12 @@ export class Indexer {
     });
   }
 
+  /**
+   *
+   * @param blockNumber
+   * @returns
+   * @category AdvancedMethod
+   */
   public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
     // todo: get `getBlockLite` FAST version of block read since we only need timestamp
     const block = (await this.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
@@ -179,7 +196,7 @@ export class Indexer {
   /**
    * Prefixes chain name and undercore to the given name
    * @param name chain name
-   * @returns 
+   * @returns
    */
   private prefixChainNameTo(name: string) {
     return this.chainConfig.name + "_" + name;
@@ -187,7 +204,7 @@ export class Indexer {
 
   /**
    * Returns entry key for N in the database.
-   * @returns 
+   * @returns
    */
   private getChainN() {
     return this.prefixChainNameTo("N");
@@ -195,7 +212,7 @@ export class Indexer {
 
   /**
    * Returns number of days for syncing from configurations
-   * @returns 
+   * @returns
    */
   public syncTimeDays(): number {
     // chain syncTimeDays overrides config syncTimeDays
@@ -211,7 +228,7 @@ export class Indexer {
    * Constructs dbState entity for key-value pair
    * @param name name associated to key
    * @param value value (number)
-   * @returns 
+   * @returns
    */
   public getStateEntry(name: string, value: number): DBState {
     const state = new DBState();
@@ -225,11 +242,11 @@ export class Indexer {
 
   /**
    * Construct dbState entity for key-values entry, that contains string, number and comment values.
-   * @param name 
-   * @param valueString 
-   * @param valueNum 
-   * @param comment 
-   * @returns 
+   * @param name
+   * @param valueString
+   * @param valueNum
+   * @param comment
+   * @returns
    */
   public getStateEntryString(name: string, valueString: string, valueNum: number, comment: string = ""): DBState {
     const state = new DBState();
@@ -251,7 +268,7 @@ export class Indexer {
    * Async callback from BlockProcessor on completion of block processing.
    * @param block - processed block entity
    * @param transactions - processed block transaction entities
-   * @returns 
+   * @returns
    */
   public async blockCompleted(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
     this.logger.info(`^Gcompleted ${block.blockNumber}:N+${block.blockNumber - this.N} (${transactions.length} transaction(s))`);
@@ -320,7 +337,7 @@ export class Indexer {
 
   /**
    * Returns current active transaction table managed by interlacing
-   * @returns 
+   * @returns
    */
   public getActiveTransactionWriteTable(): DBTransactionBase {
     // we write into table by active index:
@@ -339,18 +356,18 @@ export class Indexer {
   /////////////////////////////////////////////////////////////
 
   /**
-   * Saves block and related transaction entities into the database in 
+   * Saves block and related transaction entities into the database in
    * database transaction safe way with retries.
    * After saving it triggers transaction table interlacing update.
    * @param block block entity to be saved
    * @param transactions block transaction entities to be saved
-   * @returns 
+   * @returns
    */
   public async blockSave(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
     const Np1 = this.N + 1;
 
     if (block.blockNumber !== Np1) {
-      failureCallback(`unexpected block number: expected to save blockNumber ${Np1} (but got ${block.blockNumber})`)
+      failureCallback(`unexpected block number: expected to save blockNumber ${Np1} (but got ${block.blockNumber})`);
       // function exits
       return false;
     }
@@ -445,7 +462,7 @@ export class Indexer {
 
   /**
    * Finds minimal block number that appears in interlacing transaction tables
-   * @returns 
+   * @returns
    * NOTE: we assume there is no gaps
    */
   public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
@@ -471,14 +488,14 @@ export class Indexer {
   /////////////////////////////////////////////////////////////
 
   /**
-   * Tries to save block N + 1 with latest hash `blockNp1hash` 
+   * Tries to save block N + 1 with latest hash `blockNp1hash`
    * - If the block is already processed it is saved immediately.
    * - If the block is in processor it waits for completion
    * - Otherwise, it exits and returns false.
    * Assumptions
    * - Block N+1 is confirmed.
    * @returns true: block was successfully saved, false otherwise.
-   * NOTE: in real time processing the last option would happen in case 
+   * NOTE: in real time processing the last option would happen in case
    * of reorg on N + 1, which should be unlikely
    */
   public async trySaveNp1Block(): Promise<boolean> {
@@ -601,7 +618,7 @@ export class Indexer {
   /**
    * Securely drops the table given the name
    * @param name name of the table to be dropped
-   * @returns 
+   * @returns
    */
   async dropTable(name: string) {
     try {
@@ -661,7 +678,6 @@ export class Indexer {
     this.processedBlocks++;
     await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
   }
-
 
   /////////////////////////////////////////////////////////////
   // main indexer entry function
@@ -751,9 +767,8 @@ export class Indexer {
         this.blockNp1hash = blockNp1.stdBlockHash;
       }
 
-      // start async processing of block N + 1 (if not already started) 
+      // start async processing of block N + 1 (if not already started)
       criticalAsync(`runIndexer -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp1));
     }
   }
-
 }

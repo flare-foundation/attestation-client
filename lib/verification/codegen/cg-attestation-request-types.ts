@@ -1,14 +1,15 @@
-import { AttestationRequestScheme, AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, CODEGEN_TAB, DEFAULT_GEN_FILE_HEADER } from "./cg-constants";
-import { indentText } from "./cg-utils";
 import fs from "fs";
+import prettier from "prettier";
+import { AttestationRequestScheme, AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
+import { commentText } from "./cg-utils";
 
 function genDefReqItem(item: AttestationRequestScheme) {
-  return `${indentText(item.description, CODEGEN_TAB, "//")}
+  return `${commentText(item.description)}
    ${item.key}: ${item.type};`;
 }
 
-function genAttestationRequestType(definition: AttestationTypeScheme) {
+function genAttestationRequestType(definition: AttestationTypeScheme): string {
   definition.dataHashDefinition;
   let values = definition.request.map((item) => genDefReqItem(item)).join("\n\n");
   return `
@@ -35,5 +36,7 @@ import { SourceId } from "../sources/sources";
     content += genAttestationRequestType(definition);
   });
   content += arType(definitions);
-  fs.writeFileSync(ATT_REQUEST_TYPES_FILE, content, "utf8");
+
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
+  fs.writeFileSync(ATT_REQUEST_TYPES_FILE, prettyContent, "utf8");
 }

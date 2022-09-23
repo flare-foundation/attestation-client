@@ -6,6 +6,10 @@
 # This cannot be changed later.
 export HOSTNAME=www.yourhostname.com
 
+# Set your email for certificate
+# This cannot be changed later.
+export CERT_EMAIL=spam@google.com
+
 # Set secret or private key
 # This can be changed later with command `nano ~/attestation-suite/attestation-suite-config/networks.credentials.json` and update config afterwards
 export SECRET_FLARE="0x0000000000000000000000000000000000000001"

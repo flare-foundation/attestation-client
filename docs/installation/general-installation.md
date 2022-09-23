@@ -5,7 +5,6 @@
 The Attestation Suite has been tested on the following platforms:
 
 - UBUNTU 20.04
-- WSL 0.2.1
 
 ## Recomended hardware requirements
 
@@ -27,6 +26,8 @@ Minimal hardware requirements for complete `mainnet` configuration are:
 ## Complete Attestation Suite `coston2` `testnet` Installation
 
 Start on a new clean ubuntu installation with admin priviledges.
+
+User must ATM be `ubuntu`.
 
 This script will:
 - install Attestation Suite
@@ -83,9 +84,6 @@ After the configuration is setup run the main installer
 ```
 ./scripts/install.sh
 ```
-
----
-Detailed information about installation and dependencies are [here](./installation-details.md)
 
 ## Update configuration
 Once Attestation Suite is installed you can change configuration files and run next script.

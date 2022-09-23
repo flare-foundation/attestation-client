@@ -8,4 +8,4 @@ echo -e "${GREENBOLD}Installing CertBot${NC}"
 
 sudo ln -s /snap/bin/certbot /usr/bin/certbot
 sudo snap install --classic certbot
-sudo certbot certonly –standalone -d $HOSTNAME
+sudo certbot certonly --standalone -d $HOSTNAME -m $CERT_EMAIL --agree-tos

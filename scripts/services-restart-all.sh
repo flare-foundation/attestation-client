@@ -12,22 +12,22 @@ if $ENABLE_MONITOR; then
     systemctl --user restart attester-alerts
 fi
 
-if $ENABLE_FLARE; then
+if $INSTALL_FLARE; then
     systemctl --user restart flare-attester-client
     systemctl --user restart flare-backend
 fi
 
-if $ENABLE_SONGBIRD; then
+if $INSTALL_SONGBIRD; then
     systemctl --user restart songbird-attester-client
     systemctl --user restart songbird-backend
 fi
 
-if $ENABLE_COSTON; then
+if $INSTALL_COSTON; then
     systemctl --user restart coston-attester-client
     systemctl --user restart coston-backend
 fi
 
-if $ENABLE_COSTON2; then
+if $INSTALL_COSTON2; then
     systemctl --user restart coston2-attester-client
     systemctl --user restart coston2-backend
 fi

@@ -1,47 +1,45 @@
-bash ./scripts/install-config.sh
+#!/bin/bash
+source ./scripts/install-config.sh
 
-export CURRENT_DIR=$(pwd)
-
-if $ENABLE_INDEXER; then
-   echo "Install Indexer"
-fi
-
-if $ENABLE_MONITOR; then
-   echo "Install Monitor"
-fi
-
-if $ENABLE_FLARE; then
-   echo "Install FLARE"
-fi
-
-if $ENABLE_SONGBIRD; then
-   echo "Install SONGBIRD"
-fi
-
-if $ENABLE_COSTON; then
-   echo "Install COSTON"
-fi
-
-if $ENABLE_COSTON2; then
-   echo "Install COSTON2"
-fi
+# install dependencies and compile 1st (needed to crate initial credentials)
+source ./scripts/install-dependencies.sh
 
 source ~/.profile 
 source ~/.nvm/nvm.sh
-
-# install services
-bash ./scripts/install-services.sh
 
 # compile
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"
 bash ./scripts/compile.sh
 
+
+# prepare initial credentials
+yarn ts-node lib/install/install-file.ts -i .config.secret.sh -o .config.secret.sh2 -p false
+
+source ./scripts/install-check.sh
+
+
+# install services
+bash ./scripts/install-services.sh
+
 # prepare configurations
+source ./scripts/initialize-config.sh
 yarn ts-node lib/install/install.ts ../attestation-suite-config/
 
+# install testnet nodes
+if $INSTALL_NODES_TESTNET; then
+   source ./scripts/install-nodes-testnet.sh
+fi
+
 # enable local mysql
-if $ENABLE_LOCAL_MYSQL; then
-    bash ./scripts/install-local-mysql.sh
+if $INSTALL_MYSQL; then
+    source ./scripts/install-local-mysql.sh
+fi
+
+# install frontend
+if $INSTALL_FRONTEND; then
+    source ./scripts/install-certbot.sh
+    source ./scripts/install-nginx.sh
+    source ./scripts/install-frontend.sh
 fi
 
 # deploy

@@ -25,22 +25,22 @@ if $ENABLE_MONITOR; then
     cp -a $CONFIGDIR_SECURE_C1/. ../global/alerts/configs/prod/
 fi
 
-if $ENABLE_FLARE; then
+if $INSTALL_FLARE; then
     cp -a $CONFIGDIR_SECURE_FLARE/. ../flare/attester-client/configs/prod/
     cp -a $CONFIGDIR_SECURE_FLARE/. ../flare/backend/configs/prod/
 fi
 
-if $ENABLE_SONGBIRD; then
+if $INSTALL_SONGBIRD; then
     cp -a $CONFIGDIR_SECURE_SGB/. ../songbird/attester-client/configs/prod/
     cp -a $CONFIGDIR_SECURE_SGB/. ../songbird/backend/configs/prod/
 fi
 
-if $ENABLE_COSTON; then
+if $INSTALL_COSTON; then
     cp -a $CONFIGDIR_SECURE_C1/. ../coston/attester-client/configs/prod/
     cp -a $CONFIGDIR_SECURE_C1/. ../coston/backend/configs/prod/
 fi
 
-if $ENABLE_COSTON2; then
+if $INSTALL_COSTON2; then
     cp -a $CONFIGDIR_SECURE_C2/. ../coston2/attester-client/configs/prod/
     cp -a $CONFIGDIR_SECURE_C2/. ../coston2/backend/configs/prod/
 fi

@@ -125,6 +125,7 @@ async function run() {
 
   // add environment replaces
   addEnv("HOSTNAME");
+  addEnv("CERT_EMAIL");
   addEnv("SECRET_FLARE");
   addEnv("SECRET_SONGBIRD");
   addEnv("SECRET_COSTON");

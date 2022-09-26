@@ -43,7 +43,7 @@ async function generatePasswords(source: string, length = 32) {
   }
 
   while (1) {
-    const password = (await getCryptoSafeRandom(length)).substring(2);
+    const password = (await getCryptoSafeRandom(length)).substring(2,length);
 
     const newSource = source.replace(search, password);
     if (newSource === source) return source;
@@ -124,6 +124,7 @@ async function run() {
   }
 
   // add environment replaces
+  addEnv("USER");
   addEnv("HOSTNAME");
   addEnv("CERT_EMAIL");
   addEnv("SECRET_FLARE");

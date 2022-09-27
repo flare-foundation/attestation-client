@@ -679,6 +679,37 @@ export class Indexer {
     await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
   }
 
+  /**
+   * Wait for node to be synced.
+   * @returns true is function was waiting.
+   */
+  async waitForNodeSynced() {
+
+    let waiting = false;
+
+    while (true) {
+      const status = await this.cachedClient.client.getNodeStatus();
+
+      if (status.isSynced) {
+        if (waiting) {
+          this.logger.info(`node is now synced`);
+        }
+        return waiting;
+      }
+
+      if (!waiting) {
+        // update state
+        const dbStatus = this.getStateEntryString(
+          "state", "waiting", 0, "waiting for node to be synced");
+        await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
+      }
+
+      waiting = true;
+
+      this.logger.info(`waiting for node to be synced...`);
+    }
+  }
+
   /////////////////////////////////////////////////////////////
   // main indexer entry function
   /////////////////////////////////////////////////////////////
@@ -697,6 +728,8 @@ export class Indexer {
       // some parameter settings do not require running indexer
       return;
     }
+
+    await this.waitForNodeSynced();
 
     await this.prepareTables();
 

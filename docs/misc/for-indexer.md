@@ -323,6 +323,14 @@ multipass shell p1
 multipass shell p2
 ```
 
+
+```
+multipass delete p1
+multipass purge
+multipass launch --name p4 --cpus 8 --mem 8GB --disk 80GB
+multipass shell p4
+```
+
 # SSH setup 
 P1
 ```bash
@@ -341,3 +349,7 @@ nano .ssh/authorized_keys
 
 hostname -I
 ```
+
+
+
+

@@ -45,6 +45,8 @@ This script will:
 - nginX (used by frontend)
 - certman (used by nginX for ssl certificate)
 
+Estimated installation required: `10min`
+
 ---
 ### 1) Download Attestation Suite repository
 

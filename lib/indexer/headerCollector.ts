@@ -111,15 +111,25 @@ export class HeaderCollector {
 
       this.cacheBlock(block);
 
-      const actualBlock = await this.indexer.getBlockFromClientByHash("saveBlocksOrHeadersOnNewTips", block.blockHash);
-
       const dbBlock = new this.indexer.dbBlockClass();
 
       dbBlock.blockNumber = blockNumber;
       dbBlock.blockHash = block.stdBlockHash;
-      dbBlock.timestamp = actualBlock.unixTimestamp;
       dbBlock.numberOfConfirmations = 1;
-      dbBlock.previousBlockHash = actualBlock.previousBlockHash;
+
+      let validBlock = true;
+
+      if (block instanceof LiteBlock) {
+        validBlock = (<LiteBlock>block).chainTipStatus !== 'headers-only';
+      }
+
+      // if block is not on disk (headers-only) we have to skip reading it
+      if (validBlock) {
+        const actualBlock = await this.indexer.getBlockFromClientByHash("saveBlocksOrHeadersOnNewTips", block.blockHash);
+
+        dbBlock.timestamp = actualBlock.unixTimestamp;
+        dbBlock.previousBlockHash = actualBlock.previousBlockHash;
+      }
 
       // dbBlocks.push(dbBlock);
       unconfirmedBlockManager.addNewBlock(dbBlock);

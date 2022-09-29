@@ -699,8 +699,7 @@ export class Indexer {
 
       if (!waiting) {
         // update state
-        const dbStatus = this.getStateEntryString(
-          "state", "waiting", 0, "waiting for node to be synced");
+        const dbStatus = this.getStateEntryString( "state", "waiting", 0, "waiting for node to be synced");
         await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
       }
 

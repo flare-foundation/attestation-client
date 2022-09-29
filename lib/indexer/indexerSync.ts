@@ -203,6 +203,10 @@ export class IndexerSync {
   private async runSyncTips() {
     this.indexer.T = await this.indexer.getBlockHeightFromClient(`runSyncTips`);
 
+    // update state
+    const dbStatus = this.indexer.getStateEntryString("state", "waiting", 0, "collecting tips");
+    await retry(`runIndexer::saveStatus`, async () => await this.indexer.dbService.manager.save(dbStatus));
+
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
     const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - this.indexer.N);

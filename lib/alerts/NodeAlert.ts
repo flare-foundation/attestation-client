@@ -68,7 +68,8 @@ export class NodeAlert extends AlertBase {
 
   async check(): Promise<AlertStatus> {
     const res = new AlertStatus();
-    res.name = `node ${this.name}`;
+    res.type = `node`;
+    res.name = this.name;
 
     if (!this.cachedClient) {
       res.status = "down";

@@ -34,7 +34,8 @@ export class BackendAlert extends AlertBase {
 
   async check(): Promise<AlertStatus> {
     const res = new AlertStatus();
-    res.name = `backend ${this.name}`;
+    res.type = `backend`;
+    res.name = this.name;
 
     // check if address exists
     let resExists = await this.checkWebsite(this.address);

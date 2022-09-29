@@ -62,7 +62,7 @@ export class AlertsManager {
     const terminal = new Terminal(process.stderr);
     //terminal.cursor(false);
 
-    this.logger.info(`^e^K${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                        `);
+    this.logger.info(`^e^K${"type".padEnd(20)}  ${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                        `);
 
     terminal.cursorSave();
 

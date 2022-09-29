@@ -144,7 +144,7 @@ async function admin() {
           break;
       }
 
-      logger.info(`${service.name.padEnd(30)}  ${color} ${EServiceStatus[service.status].padEnd(10)} ^^  ^B${service.comment}                              `);
+      logger.info(`${service.type.padEnd(30)}  ${service.name.padEnd(30)}  ${color} ${EServiceStatus[service.status].padEnd(10)} ^^  ^B${service.comment}                              `);
     }
 
     logger.info(`                                                  `);

@@ -7,8 +7,8 @@ import { ConfigurationService } from "../services/configurationService";
 import { WebDatabaseService } from "../services/webDBService";
 
 import fs from "fs";
-import { VotingRoundRequest } from "../dto/VotingRoundRequest";
 import { DBAttestationRequest } from "../../entity/attester/dbAttestationRequest";
+import { VotingRoundRequest } from "../dto/VotingRoundRequest";
 @Singleton
 @Factory(() => new ProofEngine())
 export class ProofEngine {
@@ -68,16 +68,16 @@ export class ProofEngine {
       .addSelect("attestation_request.attestationStatus", "attestationStatus")
       .addSelect("attestation_request.exceptionError", "exceptionError")
 
-      
+
 
     let result = await query.getRawMany();
 
     result.forEach((item) => {
-      item.roundId = roundId; 
+      item.roundId = roundId;
       if (item.exceptionError === "") {
         item.exceptionError = undefined;
       }
-      if(!item.attestationStatus) {
+      if (!item.attestationStatus) {
         item.attestationStatus = undefined;
       }
     });
@@ -147,6 +147,7 @@ export class ProofEngine {
     let oneService = (status: AlertsStatus) => {
       return `
       <tr>
+         <td>${status.type}</td>
          <td>${status.name}</td>
          <td class="${status.status}">${status.status}</td>
          <td>${status.state}</td>
@@ -259,6 +260,7 @@ body {
 
    <table border="0" cellpadding="0" cellspacing="0">
       <tr class="first-row">
+         <th style="width: 10rem">type</th>
          <th style="width: 10rem">name</th>
          <th style="width: 5rem">status</th>
          <th style="width: 5rem">action</th>

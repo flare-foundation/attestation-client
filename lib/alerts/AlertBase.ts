@@ -3,8 +3,9 @@ import { AttLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 
 export class AlertStatus {
+  type: string;
   name: string;
-  status: "down" | "late" | "sync" | "running" = "down";
+  status: "down" | "late" | "sync" | "running" | "waiting" = "down";
   state: string = "";
   comment: string = "";
   timeLate: number;
@@ -24,7 +25,7 @@ export class AlertStatus {
         color = "^g^K";
         break;
     }
-    logger.info(`${this.name.padEnd(20)}  ${color} ${this.status.padEnd(10)} ^^  ${this.state.padEnd(10)} ^B${this.comment}                  `);
+    logger.info(`${this.type.padEnd(20)}  ${this.name.padEnd(20)}  ${color} ${this.status.padEnd(10)} ^^  ${this.state.padEnd(10)} ^B${this.comment}                  `);
   }
 }
 

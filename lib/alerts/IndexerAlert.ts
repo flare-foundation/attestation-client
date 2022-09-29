@@ -34,7 +34,8 @@ export class IndexerAlert extends AlertBase {
 
   async check(): Promise<AlertStatus> {
     const res = new AlertStatus();
-    res.name = `indexer ${this.name}`;
+    res.type = "indexer";
+    res.name = this.name;
 
     const resState = await IndexerAlert.dbService.manager.findOne(DBState, { where: { name: `${this.name}_state` } });
 
@@ -49,6 +50,7 @@ export class IndexerAlert extends AlertBase {
     const late = now - resState.timestamp;
 
     res.timeLate = late;
+    res.comment = resState.comment;
 
     if (resState.valueString == "sync") {
       if (resState.valueNumber > 0) {

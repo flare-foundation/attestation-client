@@ -4,6 +4,7 @@ export interface ServiceStatus {
 }
 
 export interface AlertsStatus {
+  type: string;
   status: string;
   state: string;
   comment: string;

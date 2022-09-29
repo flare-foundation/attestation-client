@@ -1,6 +1,6 @@
 import { Factory, Inject, Singleton } from "typescript-ioc";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
-import { AlertsStatus, PerformanceStatus, ServiceStatus } from "../dto/ServiceStatus";
+import { ServiceStatus } from "../dto/ServiceStatus";
 import { SystemStatus } from "../dto/SystemStatus";
 import { VotingRoundResult } from "../dto/VotingRoundResult";
 import { ConfigurationService } from "../services/configurationService";
@@ -9,6 +9,7 @@ import { WebDatabaseService } from "../services/webDBService";
 import fs from "fs";
 import { DBAttestationRequest } from "../../entity/attester/dbAttestationRequest";
 import { VotingRoundRequest } from "../dto/VotingRoundRequest";
+import { AlertStatus, PerformanceInfo } from "../../alerts/AlertBase";
 @Singleton
 @Factory(() => new ProofEngine())
 export class ProofEngine {
@@ -133,7 +134,7 @@ export class ProofEngine {
     let statuses = JSON.parse(fs.readFileSync(path).toString());
     let perf = (statuses as any).perf;
     return {
-      alerts: (statuses as any).alerts as AlertsStatus[],
+      alerts: (statuses as any).alerts as AlertStatus[],
       perf,
     };
   }
@@ -144,7 +145,7 @@ export class ProofEngine {
     let statuses = await this.serviceStatus();
 
     let stat = fs.statSync(path);
-    let oneService = (status: AlertsStatus) => {
+    let oneService = (status: AlertStatus) => {
       return `
       <tr>
          <td>${status.type}</td>
@@ -156,7 +157,7 @@ export class ProofEngine {
 `;
     };
 
-    let onePerformance = (status: PerformanceStatus) => {
+    let onePerformance = (status: PerformanceInfo) => {
       return `
       <tr>
          <td>${status.name}</td>

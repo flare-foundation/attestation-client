@@ -706,12 +706,12 @@
     "@ethersproject/properties" "^5.6.0"
     "@ethersproject/strings" "^5.6.1"
 
-"@flarenetwork/mcc@1.3.2":
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-1.3.2.tgz#b0d0569effe37d30118e559563e5aa8ccfc09e0d"
-  integrity sha512-PRy6tBu2joJ0ZBrgoz8FPgvj+pccn1b59S8uNbjLOFbTSY510HZ8AONuRCKnzVwpdaNg6r/+GX5EI8//LCkhjg==
+"@flarenetwork/mcc@1.3.3":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-1.3.3.tgz#7b99fc1e921228115e72c00ef91cc79ee1d822a5"
+  integrity sha512-i7XiX3JlMMaLyYyawQrdzpRAoWMmfPZ2XCi5nAC1CXUkUKbdZZD1lgOHDAbiL7btt6/Hd5JBum1d8i+1CwD39Q==
   dependencies:
-    "@msgpack/msgpack" "2.8.0"
+    "@msgpack/msgpack" "^2.8.0"
     algo-msgpack-with-bigint "2.1.1"
     algosdk "1.17.0"
     axios "0.27.2"
@@ -720,7 +720,7 @@
     camelcase "6.3.0"
     fast-safe-stringify "2.1.1"
     js-sha512 "0.8.0"
-    msgpack-lite "0.1.26"
+    msgpack-lite "^0.1.26"
     ripple-address-codec "4.2.4"
     typescript "4.7.3"
     web3 "1.7.3"

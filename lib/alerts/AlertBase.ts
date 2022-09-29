@@ -3,8 +3,8 @@ import { AttLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 
 export class AlertStatus {
-  type: string;
-  name: string;
+  type: string = "unknown";
+  name: string = "";
   status: "down" | "late" | "sync" | "running" | "waiting" = "down";
   state: string = "";
   comment: string = "";

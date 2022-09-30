@@ -42,3 +42,6 @@ if $INSTALL_COSTON2; then
     echo -e "${REDBOLD}[4.10] ${GREENBOLD}Installing Coston2 Backend...${NC}"
     bash ./scripts/deploy-coston2-backend
 fi
+
+# restart all services
+bash ./scripts/services-restart-all.sh

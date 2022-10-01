@@ -1,5 +1,4 @@
-import { IBlock, Managed } from "@flarenetwork/mcc";
-import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
+import { IBlock, IBlockTip, Managed, UtxoBlockTip } from "@flarenetwork/mcc";
 import { AttLogger } from "../utils/logger";
 import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
@@ -29,11 +28,11 @@ export class HeaderCollector {
   // caching
   /////////////////////////////////////////////////////////////
 
-  private isBlockCached(block: IBlock) {
+  private isBlockCached(block: IBlock | IBlockTip) {
     return this.blockHeaderHash.has(block.stdBlockHash) && this.blockHeaderNumber.has(block.number);
   }
 
-  private cacheBlock(block: IBlock) {
+  private cacheBlock(block: IBlock | IBlockTip) {
     this.blockHeaderHash.add(block.stdBlockHash);
     this.blockHeaderNumber.add(block.number);
     this.blockNumberHash.set(block.number, block.stdBlockHash);
@@ -119,13 +118,84 @@ export class HeaderCollector {
 
       let validBlock = true;
 
-      if (block instanceof LiteBlock) {
-        validBlock = (<LiteBlock>block).chainTipStatus !== 'headers-only';
+      if (block instanceof UtxoBlockTip) {
+        validBlock = (<UtxoBlockTip>block).chainTipStatus !== "headers-only";
       }
 
       // if block is not on disk (headers-only) we have to skip reading it
       if (validBlock) {
         const actualBlock = await this.indexer.getBlockFromClientByHash("saveBlocksOrHeadersOnNewTips", block.blockHash);
+
+        dbBlock.timestamp = actualBlock.unixTimestamp;
+        dbBlock.previousBlockHash = actualBlock.previousBlockHash;
+      }
+
+      // dbBlocks.push(dbBlock);
+      unconfirmedBlockManager.addNewBlock(dbBlock);
+    }
+
+    let dbBlocks = unconfirmedBlockManager.getChangedBlocks();
+
+    // remove all blockNumbers <= N. Note that N might have changed after the above
+    // async query
+    dbBlocks = dbBlocks.filter((dbBlock) => dbBlock.blockNumber > this.indexer.N);
+
+    if (dbBlocks.length === 0) {
+      //this.logger.debug(`write block headers (no new blocks)`);
+      return;
+    }
+
+    this.logger.debug(`write block headers ${blocksText}]`);
+
+    await retry(`saveBlocksHeadersArray`, async () => await this.indexer.dbService.manager.save(dbBlocks));
+  }
+
+  /**
+   * Saves headers in the array, if header.number > N.
+   * Headers numbers <= N are ignored.
+   * @param blocks array of headers
+   * @returns
+   */
+  public async saveHeadersOnNewTips(blockTips: IBlockTip[]) {
+    let blocksText = "[";
+
+    let unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexer.dbService, this.indexer.dbBlockClass, this.indexer.N);
+    await unconfirmedBlockManager.initialize();
+
+    for (const blockTip of blockTips) {
+      // due to the above async call N could increase
+      if (!blockTip || !blockTip.stdBlockHash || blockTip.number <= this.indexer.N) {
+        continue;
+      }
+      const blockNumber = blockTip.number;
+
+      // check cache
+      if (this.isBlockCached(blockTip)) {
+        // cached
+        blocksText += "^G" + blockNumber.toString() + "^^,";
+        continue;
+      } else {
+        // new
+        blocksText += blockNumber.toString() + ",";
+      }
+
+      this.cacheBlock(blockTip);
+
+      const dbBlock = new this.indexer.dbBlockClass();
+
+      dbBlock.blockNumber = blockNumber;
+      dbBlock.blockHash = blockTip.stdBlockHash;
+      dbBlock.numberOfConfirmations = 1;
+
+      let validBlock = true;
+
+      if (blockTip instanceof UtxoBlockTip) {
+        validBlock = (<UtxoBlockTip>blockTip).chainTipStatus === "active";
+      }
+
+      // if block is not on disk (headers-only) we have to skip reading it
+      if (validBlock) {
+        const actualBlock = await this.indexer.getBlockFromClientByHash("saveBlocksOrHeadersOnNewTips", blockTip.blockHash);
 
         dbBlock.timestamp = actualBlock.unixTimestamp;
         dbBlock.previousBlockHash = actualBlock.previousBlockHash;
@@ -198,9 +268,9 @@ export class HeaderCollector {
         T = newT;
       }
 
-      const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
+      const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
 
-      await this.saveBlocksOrHeadersOnNewTips(blocks);
+      await this.saveHeadersOnNewTips(blocks);
 
       await sleepms(this.indexer.config.blockCollectTimeMs);
     }

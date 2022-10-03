@@ -69,7 +69,7 @@ export class HeaderCollector {
 
     let blocks = (await retryMany(`saveBlocksHeaders`, blockPromisses, 5000, 5)) as IBlock[];
     blocks = blocks.filter((block) => !this.isBlockCached(block));
-    await this.saveBlocksOrHeadersOnNewTips(blocks);
+    await this.saveHeadersOnNewTips(blocks);
   }
 
   /**
@@ -82,77 +82,6 @@ export class HeaderCollector {
    * NOTE: the function is not subject to race conditions with processing of
    * confirmed blocks since only blockNumber, blockHash and timestamp are updated
    * in the block table if an entry in dbBlock table already exists.
-   * @param blocks array of headers
-   * @returns
-   */
-  public async saveBlocksOrHeadersOnNewTips(blocks: IBlock[]) {
-    let blocksText = "[";
-
-    let unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexer.dbService, this.indexer.dbBlockClass, this.indexer.N);
-    await unconfirmedBlockManager.initialize();
-
-    for (const block of blocks) {
-      // due to the above async call N could increase
-      if (!block || !block.stdBlockHash || block.number <= this.indexer.N) {
-        continue;
-      }
-      const blockNumber = block.number;
-
-      // check cache
-      if (this.isBlockCached(block)) {
-        // cached
-        blocksText += "^G" + blockNumber.toString() + "^^,";
-        continue;
-      } else {
-        // new
-        blocksText += blockNumber.toString() + ",";
-      }
-
-      this.cacheBlock(block);
-
-      const dbBlock = new this.indexer.dbBlockClass();
-
-      dbBlock.blockNumber = blockNumber;
-      dbBlock.blockHash = block.stdBlockHash;
-      dbBlock.numberOfConfirmations = 1;
-
-      let validBlock = true;
-
-      if (block instanceof UtxoBlockTip) {
-        validBlock = (<UtxoBlockTip>block).chainTipStatus !== "headers-only";
-      }
-
-      // if block is not on disk (headers-only) we have to skip reading it
-      if (validBlock) {
-        const actualBlock = await this.indexer.getBlockFromClientByHash("saveBlocksOrHeadersOnNewTips", block.blockHash);
-
-        dbBlock.timestamp = actualBlock.unixTimestamp;
-        dbBlock.previousBlockHash = actualBlock.previousBlockHash;
-      }
-
-      // dbBlocks.push(dbBlock);
-      unconfirmedBlockManager.addNewBlock(dbBlock);
-    }
-
-    let dbBlocks = unconfirmedBlockManager.getChangedBlocks();
-
-    // remove all blockNumbers <= N. Note that N might have changed after the above
-    // async query
-    dbBlocks = dbBlocks.filter((dbBlock) => dbBlock.blockNumber > this.indexer.N);
-
-    if (dbBlocks.length === 0) {
-      //this.logger.debug(`write block headers (no new blocks)`);
-      return;
-    }
-
-    this.logger.debug(`write block headers ${blocksText}]`);
-
-    await retry(`saveBlocksHeadersArray`, async () => await this.indexer.dbService.manager.save(dbBlocks));
-  }
-
-  /**
-   * Saves headers in the array, if header.number > N.
-   * Headers numbers <= N are ignored.
    * @param blocks array of headers
    * @returns
    */
@@ -186,16 +115,13 @@ export class HeaderCollector {
       dbBlock.blockNumber = blockNumber;
       dbBlock.blockHash = blockTip.stdBlockHash;
       dbBlock.numberOfConfirmations = 1;
-
-      let validBlock = true;
-
-      if (blockTip instanceof UtxoBlockTip) {
-        validBlock = (<UtxoBlockTip>blockTip).chainTipStatus === "active";
-      }
+ 
+      // On UTXO chains this means block is on main branch (some blocks may only have headers and not be in node's database)
+      const activeBlock = blockTip.chainTipStatus === "active";
 
       // if block is not on disk (headers-only) we have to skip reading it
-      if (validBlock) {
-        const actualBlock = await this.indexer.getBlockFromClientByHash("saveBlocksOrHeadersOnNewTips", blockTip.blockHash);
+      if (activeBlock) {
+        const actualBlock = await this.indexer.getBlockHeaderFromClientByHash("saveHeadersOnNewTips", blockTip.blockHash);
 
         dbBlock.timestamp = actualBlock.unixTimestamp;
         dbBlock.previousBlockHash = actualBlock.previousBlockHash;

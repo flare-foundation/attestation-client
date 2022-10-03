@@ -10,9 +10,9 @@ curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 
 source ~/.profile 
 source ~/.nvm/nvm.sh
-nvm install 14.15.4
-nvm alias default 14.15.4
-nvm use 14.15.4
+nvm install 16.17.1
+nvm alias default 16.17.1
+nvm use 16.17.1
 
 # yarn
 echo -e "${REDBOLD}[2] ${GREENBOLD}Installing ${REDBOLD}yarn${NC}"

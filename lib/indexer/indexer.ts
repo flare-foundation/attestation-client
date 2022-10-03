@@ -1,4 +1,4 @@
-import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
+import { ChainType, IBlock, IBlockHeader, Managed, MCC } from "@flarenetwork/mcc";
 import { Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
@@ -160,6 +160,24 @@ export class Indexer {
     });
     if (!result) {
       failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`);
+    }
+    return result;
+  }
+
+  /**
+   *
+   * @param label
+   * @param blockHash
+   * @returns
+   * @category BaseMethod
+   */
+  public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<IBlockHeader> {
+    // todo: implement MCC lite version of getBlock
+    const result = await retry(`indexer.getBlockHeaderFromClientByHash.${label}`, async () => {
+      return await this.cachedClient.client.getBlockHeader(blockHash);
+    });
+    if (!result) {
+      failureCallback(`indexer.getBlockHeaderFromClientByHash.${label} - null block returned`);
     }
     return result;
   }
@@ -684,7 +702,6 @@ export class Indexer {
    * @returns true is function was waiting.
    */
   async waitForNodeSynced() {
-
     let waiting = false;
 
     while (true) {
@@ -699,7 +716,7 @@ export class Indexer {
 
       if (!waiting) {
         // update state
-        const dbStatus = this.getStateEntryString( "state", "waiting", 0, "waiting for node to be synced");
+        const dbStatus = this.getStateEntryString("state", "waiting", 0, "waiting for node to be synced");
         await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
       }
 

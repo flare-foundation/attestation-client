@@ -1,4 +1,4 @@
-import { IBlock, IBlockTip, Managed, UtxoBlockTip } from "@flarenetwork/mcc";
+import { IBlock, IBlockTip, Managed } from "@flarenetwork/mcc";
 import { AttLogger } from "../utils/logger";
 import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
@@ -115,7 +115,7 @@ export class HeaderCollector {
       dbBlock.blockNumber = blockNumber;
       dbBlock.blockHash = blockTip.stdBlockHash;
       dbBlock.numberOfConfirmations = 1;
- 
+
       // On UTXO chains this means block is on main branch (some blocks may only have headers and not be in node's database)
       const activeBlock = blockTip.chainTipStatus === "active";
 

@@ -28,11 +28,11 @@ export class HeaderCollector {
   // caching
   /////////////////////////////////////////////////////////////
 
-  private isBlockCached(block: IBlock | IBlockTip) {
+  private isBlockCached(block: IBlockTip) {
     return this.blockHeaderHash.has(block.stdBlockHash) && this.blockHeaderNumber.has(block.number);
   }
 
-  private cacheBlock(block: IBlock | IBlockTip) {
+  private cacheBlock(block: IBlockTip) {
     this.blockHeaderHash.add(block.stdBlockHash);
     this.blockHeaderNumber.add(block.number);
     this.blockNumberHash.set(block.number, block.stdBlockHash);

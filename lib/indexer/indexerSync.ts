@@ -1,5 +1,4 @@
-import { Managed } from "@flarenetwork/mcc";
-import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
+import { IBlockTip, Managed } from "@flarenetwork/mcc";
 import { AttLogger } from "../utils/logger";
 import { failureCallback, retry } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
@@ -209,13 +208,13 @@ export class IndexerSync {
 
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
-    const blocks: LiteBlock[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - this.indexer.N);
+    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - this.indexer.N);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N
     // Note - N may be very low compared to T, since we are 
     // before sync.
-    await this.indexer.headerCollector.saveBlocksOrHeadersOnNewTips(blocks);
+    await this.indexer.headerCollector.saveHeadersOnNewTips(blocks);
 
     // Sync and save all confirmed blocks from main fork
     await this.runSyncRaw();

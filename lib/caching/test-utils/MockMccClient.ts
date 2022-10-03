@@ -1,11 +1,9 @@
-import { ChainType, getTransactionOptions, IBlock, INodeStatus, ITransaction, MccError, ReadRpcInterface, unPrefix0x, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
-import { LiteBlock } from "@flarenetwork/mcc/dist/src/base-objects/blocks/LiteBlock";
+import { ChainType, getTransactionOptions, IBlock, IBlockHeader, IBlockTip, INodeStatus, ITransaction, MccError, ReadRpcInterface, unPrefix0x, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import * as xrpTxResponse from "./xrp-tx-response.json";
 import * as xrpBlockResponse from "./xrp-block-response.json";
 
 export class MockMccClient implements ReadRpcInterface {
-
    web3 = new Web3();
    getNodeStatus(): Promise<INodeStatus> {
       throw new Error("Method not implemented.");
@@ -27,10 +25,13 @@ export class MockMccClient implements ReadRpcInterface {
    getBlockHeight(): Promise<number> {
       throw new Error("Method not implemented.");
    }
-   getBlockTips?(height_gte: number): Promise<LiteBlock[]> {
+   getBlockTips?(height_gte: number): Promise<IBlockTip[]> {
       throw new Error("Method not implemented.");
    }
-   getTopLiteBlocks?(branch_len: number): Promise<LiteBlock[]> {
+   getTopLiteBlocks?(branch_len: number): Promise<IBlockTip[]> {
+      throw new Error("Method not implemented.");
+   }
+   getBlockHeader(blockNumberOrHash: any): Promise<IBlockHeader> {
       throw new Error("Method not implemented.");
    }
    async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<ITransaction> {

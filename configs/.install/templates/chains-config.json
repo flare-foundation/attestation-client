@@ -98,12 +98,7 @@
                 "algod": {
                   "url": "$(ALGOURLAlgod)",
                   "token": "$(ALGOTokenAlgod)"
-                },
-                // using algo without indexer
-                //"indexer": {
-                //  "url": "$(ALGOURLIndexer)",
-                //  "token": "$(ALGOTokenIndexer)"
-                //}
+                }
             },
             "rateLimitOptions": {
                 "maxRPS": 300,

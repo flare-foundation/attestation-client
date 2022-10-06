@@ -18,7 +18,9 @@ export enum AttestationStatus {
 export interface EventProcessed {
   (tx: Attestation): void;
 }
-
+/**
+ * Attestation class for Attestation providers to attest validity or a request
+ */
 @Managed()
 export class Attestation {
   round: AttestationRound;
@@ -46,6 +48,9 @@ export class Attestation {
     this.onValidateAttestation = onValidateAttestation;
   }
 
+  /**
+   *  Round in which attestation in considered
+   */
   public get roundId() {
     if (this._testRoundId == null) {
       return this.round?.roundId;

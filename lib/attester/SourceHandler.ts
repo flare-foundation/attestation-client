@@ -4,6 +4,7 @@ import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { SourceHandlerConfig } from "./DynamicAttestationConfig";
 
+//How is it provided?
 export interface EventValidateAttestation {
   (attestation: Attestation): void;
 }

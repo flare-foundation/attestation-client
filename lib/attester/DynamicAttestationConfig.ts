@@ -8,10 +8,18 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 
 const fs = require("fs");
+
+// Unnecessary complications??
+/**
+ * Weight presents the difficulty of validating the attestation depands on the attestation type and source
+ */
 export class SourceHandlerTypeConfig {
   weight!: number;
 }
 
+// Why are these belowe classes??
+
+//What is the purpose of this?
 export class SourceHandlerConfig {
   attestationType!: AttestationType;
   source!: SourceId;
@@ -23,13 +31,13 @@ export class SourceHandlerConfig {
   queryWindowInSec!: number;
   UBPUnconfirmedWindowInSec!: number;
 
-  attestationTypes = new Map<number, SourceHandlerTypeConfig>();
+  attestationTypes = new Map<number, SourceHandlerTypeConfig>(); //What is number representing?
 }
 
 export class AttestationConfig {
-  startEpoch!: number;
+  startEpoch!: number; // start epoch of what? Epoche when this config starts being used??
 
-  sourceHandlers = new Map<number, SourceHandlerConfig>();
+  sourceHandlers = new Map<number, SourceHandlerConfig>(); //What is number representing?
 }
 
 export class AttestationConfigManager {
@@ -52,14 +60,16 @@ export class AttestationConfigManager {
       if (typeof ChainType[value] === "number") {
         if (ChainType[value] !== SourceId[value]) {
           logger.error2(
-            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]
+            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
+              SourceId[SourceId[value] as any]
             }=${SourceId[value]}`
           );
         }
 
         if (ChainType[ChainType[value] as any] !== SourceId[SourceId[value] as any]) {
           logger.error2(
-            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]
+            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
+              SourceId[SourceId[value] as any]
             }=${SourceId[value]}`
           );
         }
@@ -84,9 +94,8 @@ export class AttestationConfigManager {
           }
         }
       });
-    }
-    catch( error ) {
-      this.logger.exception( error );
+    } catch (error) {
+      this.logger.exception(error);
     }
   }
 
@@ -123,7 +132,14 @@ export class AttestationConfigManager {
 
     // parse sources
     fileConfig.sources.forEach(
-      (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; UBPUnconfirmedWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
+      (source: {
+        attestationTypes: any[];
+        source: number;
+        queryWindowInSec: number;
+        UBPUnconfirmedWindowInSec: number;
+        numberOfConfirmations: number;
+        maxTotalRoundWeight: number;
+      }) => {
         const sourceHandler = new SourceHandlerConfig();
 
         sourceHandler.source = toSourceId(source.source);

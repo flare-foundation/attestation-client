@@ -75,8 +75,7 @@ export class ChainNode {
           roundId
         ).UBPUnconfirmedWindowInSec;
         return roundStartTime - UBPUnconfirmedWindowInSec;
-      }
-
+      },
     };
 
     this.indexedQueryManager = new IndexedQueryManager(options);
@@ -113,25 +112,23 @@ export class ChainNode {
     return this.canAddRequests() && this.transactionsProcessing.length < this.chainConfig.maxProcessingTransactions;
   }
 
-  ////////////////////////////////////////////
-  // queue
-  // put transaction into queue
-  ////////////////////////////////////////////
+  /**
+   * Adds the attestation into processing queue waiting for validation
+   * @param tx
+   */
   queue(tx: Attestation) {
     //this.chainManager.logger.info(`chain ${this.chainName} queue ${tx.data.id}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`);
     tx.status = AttestationStatus.queued;
     this.transactionsQueue.push(tx);
   }
 
-  ////////////////////////////////////////////
-  // delayQueue
-  // put transaction from processing queue into into delay queue - queue that can be processed in second part of commit epoch
-  //
-  // startTime is delay time in sec
-  //
-  // what this function does is to make sure there is a mechanism that will run startNext if nothing is in process
-  //
-  ////////////////////////////////////////////
+  /**
+   * puts attestation from processing queue into into delay queue - queue that can be processed in second part of commit epoch
+   *
+   * startTime is delay time in sec
+   *
+   * what this function does is to make sure there is a mechanism that will run startNext if nothing is in process
+   */
   delayQueue(tx: Attestation, startTime: number) {
     switch (tx.status) {
       case AttestationStatus.queued:
@@ -142,7 +139,7 @@ export class ChainNode {
         break;
     }
 
-    this.transactionsPriorityQueue.push(tx, startTime);
+    this.transactionsPriorityQueue.push(tx, startTime); //Priority or Delay ?
 
     this.updateDelayQueueTimer();
   }
@@ -178,11 +175,11 @@ export class ChainNode {
     }
   }
 
-  ////////////////////////////////////////////
-  // process
-  //
-  // process transaction
-  ////////////////////////////////////////////
+  /**
+   * Starts the validation process for the attestation
+   * @param attestation
+   * @returns
+   */
   async process(attestation: Attestation) {
     //this.chainManager.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
 
@@ -238,7 +235,7 @@ export class ChainNode {
         }
       })
       .catch((error: any) => {
-        logException( error , "verifyAttestation" );
+        logException(error, "verifyAttestation");
 
         attestation.exception = error;
 
@@ -268,45 +265,41 @@ export class ChainNode {
       });
   }
 
-  ////////////////////////////////////////////
-  // processed
-  //
-  // transaction was processed
-  // move it to transactionsDone
-  ////////////////////////////////////////////
-  processed(tx: Attestation, status: AttestationStatus, verificationData?: Verification<any, any>) {
+  /**
+   * Sets the Attestation status, adds varification data to the attestation
+   * @param attestation
+   * @param status
+   * @param verificationData
+   */
+  processed(attestation: Attestation, status: AttestationStatus, verificationData?: Verification<any, any>) {
     assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid vefificationData`);
 
     // set status
-    tx.status = status;
+    attestation.status = status;
 
-    tx.verificationData = verificationData!;
+    attestation.verificationData = verificationData!;
 
-    //this.chainManager.logger.info(`chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
+    //this.chainManager.logger.info(`chain ${this.chainName} processed ${attestation.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
 
     // move into processed
-    arrayRemoveElement(this.transactionsProcessing, tx);
+    arrayRemoveElement(this.transactionsProcessing, attestation);
 
     // todo: save transaction data
 
-    if (tx.onProcessed !== undefined) {
-      tx.onProcessed(tx);
+    if (attestation.onProcessed !== undefined) {
+      attestation.onProcessed(attestation);
     }
 
-    if (tx.status !== AttestationStatus.tooLate) {
+    if (attestation.status !== AttestationStatus.tooLate) {
       // start next transaction
       this.startNext();
     }
   }
 
-  ////////////////////////////////////////////
-  // validate
-  //
-  // transaction into validation
-  // (1) process
-  // (2) queue - if processing is full
-  ////////////////////////////////////////////
-
+  /**
+   *Check if the attestation can be processed, otherwise adds it to the queue
+   * @param transaction
+   */
   validate(transaction: Attestation) {
     //this.chainManager.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
@@ -318,10 +311,10 @@ export class ChainNode {
     }
   }
 
-  ////////////////////////////////////////////
-  // startNext
-  // start next queued transaction
-  ////////////////////////////////////////////
+  /**
+   * Processes the next attestation in the queue
+   * @returns
+   */
   startNext() {
     try {
       if (!this.canProcess()) {
@@ -343,17 +336,17 @@ export class ChainNode {
         if (getTimeMilli() < startTime) break;
 
         // take top and process it then start new top timer
-        const tx = this.transactionsPriorityQueue.pop();
+        const attestation = this.transactionsPriorityQueue.pop();
         this.updateDelayQueueTimer();
 
-        this.process(tx!);
+        this.process(attestation!);
       }
 
       // check if there is any queued transaction to be processed
       while (this.transactionsQueue.length && this.canProcess()) {
-        const tx = this.transactionsQueue.shift();
+        const attestation = this.transactionsQueue.shift();
 
-        this.process(tx!);
+        this.process(attestation!);
       }
     } catch (error) {
       logException(error, `ChainNode::startNext`);

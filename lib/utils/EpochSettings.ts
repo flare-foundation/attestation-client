@@ -2,12 +2,9 @@ import BN from "bn.js";
 import { toBN } from "@flarenetwork/mcc";
 import { getTimeSec } from "./internetTime";
 
-// The word epoche in never mentioned in https://docs.flare.network/tech/state-connector/#procedure-overview
-// Each round consists of three phases: Request, Commit, Reveal. The phases run in consecutive epoches.
-// In each epoch with id n run a Request phase of round n, Commit phase of the round n-1 and Reveal phase of the round n-2
-
 /**
  * Class for storing the settings of epochs
+ * For the connection between rounds and epochse see Attestation-protocol.md
  */
 export class EpochSettings {
   private _firstEpochStartTime: BN; // in seconds

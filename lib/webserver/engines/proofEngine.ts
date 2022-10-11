@@ -278,8 +278,12 @@ ${rows}
         <td> ${currentBufferNumber}</td>
       </tr> 
       <tr>
-        <td>Latest available round id:</td>
+        <td>Votes for latest commited round id:</td>
         <td> <a href="../proof/votes-for-round/${latestAvailableRoundId}" target="_blank">${latestAvailableRoundId}</a></td>
+      </tr> 
+      <tr>
+        <td>Requests for latest commited round id:</td>
+        <td> <a href="../proof/requests-for-round/${latestAvailableRoundId}" target="_blank">${latestAvailableRoundId}</a></td>
       </tr> 
    </table>
 

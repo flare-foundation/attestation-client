@@ -20,6 +20,7 @@ export class SpammerConfig implements IReflection<SpammerConfig> {
 
 export class SpammerCredentials implements IReflection<SpammerCredentials> {
   web = new AttesterWebOptions();
+  web2 = new AttesterWebOptions();
 
   indexerDatabase = new DatabaseConnectOptions();
 

@@ -2,9 +2,7 @@ import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
-import { StateConnector as StateConnectorNew } from "../../typechain-web3-v1-new/StateConnector";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
@@ -91,12 +89,12 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
  * @param address Address of the contract
  * @returns StateConnector contract object
  */
-export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector | StateConnectorNew> {
+export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector> {
   let abiPath = "";
-  let artifacts = AttestationRoundManager.credentials.web.useNewStateConnector ? "artifacts-new" : "artifacts";
+  let artifacts = "artifacts";
   try {
     abiPath = await relativeContractABIPathForContractName("StateConnector", artifacts);
-    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnector | StateConnectorNew;
+    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnector;
   } catch (e: any) {
     console.error(`getWeb3Contract error - ABI not found: ${e}`);
   }
@@ -191,7 +189,7 @@ export function prepareString(text: string, maxLength: number, reportOverflow: s
  * Returns crypto safe 32-byte random hex string using web3.js generator
  * @returns Random 32-byte string
  */
-export async function getCryptoSafeRandom(length=32) {
+export async function getCryptoSafeRandom(length = 32) {
   return Web3.utils.randomHex(length);
 }
 

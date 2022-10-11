@@ -98,6 +98,11 @@ systemctl --user enable indexer-doge.service
 
 systemctl --user enable coston-attester-client.service
 
+systemctl --user enable coston2-attester-client-c2.service
+systemctl --user enable coston2-attester-client-c3.service
+systemctl --user enable coston2-attester-client-c4.service
+systemctl --user enable coston2-attester-client-c5.service
+
 systemctl --user enable coston-attester-client-c2.service
 systemctl --user enable coston-attester-client-c3.service
 systemctl --user enable coston-attester-client-c4.service
@@ -159,11 +164,18 @@ systemctl --user stop indexer-ltc.service
 systemctl --user stop indexer-algo.service
 systemctl --user stop indexer-doge.service
 
+systemctl --user stop coston2-attester-client.service
+systemctl --user stop coston2-attester-client-c2.service
+systemctl --user stop coston2-attester-client-c3.service
+systemctl --user stop coston2-attester-client-c4.service
+systemctl --user stop coston2-attester-client-c5.service
+
 systemctl --user stop coston-attester-client.service
 systemctl --user stop coston-attester-client-c2.service
 systemctl --user stop coston-attester-client-c3.service
 systemctl --user stop coston-attester-client-c4.service
 systemctl --user stop coston-attester-client-c5.service
+
 
 systemctl --user stop coston-spammer-btc.service
 systemctl --user stop coston-spammer-ltc.service
@@ -194,10 +206,16 @@ systemctl --user restart indexer-doge
 systemctl --user restart coston2-attester-client
 
 systemctl --user restart coston2-attester-client
-systemctl --user restart coston-attester-client-c2
-systemctl --user restart coston-attester-client-c3
-systemctl --user restart coston-attester-client-c4
-systemctl --user restart coston-attester-client-c5
+systemctl --user restart coston2-attester-client-c2.service
+systemctl --user restart coston2-attester-client-c3.service
+systemctl --user restart coston2-attester-client-c4.service
+systemctl --user restart coston2-attester-client-c5.service
+
+systemctl --user restart coston-attester-client.service
+systemctl --user restart coston-attester-client-c2.service
+systemctl --user restart coston-attester-client-c3.service
+systemctl --user restart coston-attester-client-c4.service
+systemctl --user restart coston-attester-client-c5.service
 
 
 systemctl --user enable coston2-spammer-btc

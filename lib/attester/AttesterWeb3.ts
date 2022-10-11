@@ -1,6 +1,5 @@
 import BN from "bn.js";
 import Web3 from "web3";
-import { StateConnector as StateConnectorNew } from "../../typechain-web3-v1-new/StateConnector";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttLogger } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
@@ -14,12 +13,15 @@ export class AttesterWeb3 {
   logger: AttLogger;
 
   web3!: Web3;
-  stateConnector!: StateConnector | StateConnectorNew;
+  stateConnector!: StateConnector;
   web3Functions!: Web3Functions;
 
   constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
     this.logger = logger;
     this.config = configuration;
+    if (!credentials) {
+      return;
+    }
     this.credentials = credentials;
     this.web3 = getWeb3(credentials.web.rpcUrl) as Web3;
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.credentials.web.accountPrivateKey);
@@ -67,10 +69,7 @@ export class AttesterWeb3 {
     this.check(hashedRandom);
     this.check(revealedRandomPrev);
 
-    const useNewStateConnector = AttestationRoundManager.credentials.web.useNewStateConnector;
-    let fnToEncode = useNewStateConnector
-      ? (this.stateConnector as StateConnectorNew).methods.submitAttestation(bufferNumber, commitHash, merkleRootPrev, revealedRandomPrev)
-      : (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
+    let fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
 
     if (verbose) {
       this.logger.info(`action ................. : ${action}`);
@@ -78,12 +77,7 @@ export class AttesterWeb3 {
       this.logger.info(`merkleRoot_n ........... : ^e${merkleRoot.toString()}`);
       this.logger.info(`random_n ............... : ^e${random.toString()}`);
       this.logger.info(`random_n-1 ............. : ${revealedRandomPrev.toString()}`);
-      if (useNewStateConnector) {
-        this.logger.info(`commitHash_n ........... : ${commitHash.toString()}`);
-      } else {
-        this.logger.info(`maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}`);
-        this.logger.info(`hashedRandom_n ......... : ${hashedRandom.toString()}`);
-      }
+      this.logger.info(`commitHash_n ........... : ${commitHash.toString()}`);
     }
 
     if (process.env.NODE_ENV === "production") {

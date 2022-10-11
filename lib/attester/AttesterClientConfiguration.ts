@@ -31,7 +31,6 @@ export class AttesterWebOptions {
   public rpcUrl: string = "";
   public stateConnectorContractAddress: string = "";
 
-  @optional() public useNewStateConnector = false;
   @optional() public refreshEventsMs = 100;
 }
 

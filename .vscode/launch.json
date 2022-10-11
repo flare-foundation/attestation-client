@@ -359,6 +359,23 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Test Attestation Client",
+            "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "test",
+                "test/attestationCient/attestationClient.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Test Verification BTC",
             "runtimeExecutable": "yarn",
             "console": "integratedTerminal",

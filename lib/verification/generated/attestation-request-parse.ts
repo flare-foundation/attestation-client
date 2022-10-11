@@ -57,7 +57,11 @@ function fromUnprefixedBytes(bytes: string, type: string, size: number) {
       throw new AttestationRequestParseError("Unsuported attestation request");
   }
 }
-
+/**
+ * Provides attestation type and id of the source chain for an attestation request.
+ * @param bytes
+ * @returns
+ */
 export function getAttestationTypeAndSource(bytes: string) {
   try {
     let input = unPrefix0x(bytes);

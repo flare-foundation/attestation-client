@@ -4,6 +4,9 @@ import { AttLogger } from "../utils/logger";
 import { SourceId } from "../verification/sources/sources";
 import { ChainNode } from "./ChainNode";
 
+/**
+ * Class that stores the assignation of a ChainNode to each chain type
+ */
 @Managed()
 export class ChainManager {
   nodes = new Map<SourceId, ChainNode>();
@@ -14,11 +17,20 @@ export class ChainManager {
     this.logger = logger;
   }
 
+  /**
+   * Assign @param node to @param sourceId
+   */
   addNode(sourceId: SourceId, node: ChainNode) {
     this.nodes.set(sourceId, node);
   }
 
-  validateTransaction(sourceId: SourceId, transaction: Attestation) {
+  /**
+   * ??Initalizes?? the validation of the attestation
+   * @param sourceId
+   * @param attestation
+   * @returns
+   */
+  validateTransaction(sourceId: SourceId, attestation: Attestation): void | undefined {
     const node = this.nodes.get(sourceId);
 
     if (!node) {
@@ -26,7 +38,7 @@ export class ChainManager {
       //
       return undefined;
     }
-
-    return node.validate(transaction);
+    node.validate(attestation);
+    // return node.validate(attestation); //This returns void!!!!!
   }
 }

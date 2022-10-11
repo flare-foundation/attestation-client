@@ -37,6 +37,10 @@ export enum VerificationStatus {
   PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR",
 }
 
+/**
+ * Interface for a verification of a request of type R with response of typo T.
+ * The validity of the request stored in status.
+ */
 export interface Verification<R, T> {
   hash?: string;
   request?: R;

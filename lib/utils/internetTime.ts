@@ -1,13 +1,20 @@
 let timeSync = 0;
-
-// time in milliseconds
-export function getTimeMilli() {
+// For what is timeSync used?
+// Which timezone??
+/**
+ * Returns time passed from 1 January 1970 in milliseconds
+ * @returns
+ */
+export function getTimeMilli(): number {
   const now = new Date().getTime();
 
   return Math.round(now + timeSync);
 }
 
-// time in sec
-export function getTimeSec() {
+/**
+ * Returns time passed from 1 January 1970 in seconds
+ * @returns
+ */
+export function getTimeSec(): number {
   return Math.floor(getTimeMilli() / 1000);
 }

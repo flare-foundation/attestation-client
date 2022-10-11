@@ -117,6 +117,9 @@ export class AttestationRound {
     attestation.sourceHandler.validate(attestation);
   }
 
+  /**
+   * Anounces the start of the commit phase and tries to commit the
+   */
   startCommitEpoch() {
     this.logger.group(
       `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
@@ -151,24 +154,32 @@ export class AttestationRound {
         });
     }
   }
-
-  startRevealEpoch() {
+  /**
+   * Anounces the start of the reveal phase and sets the Round status to reveal
+   */
+  startRevealEpoch(): void {
     this.logger.group(`round #${this.roundId} reveal epoch started [2]`);
     this.status = AttestationRoundPhase.reveal;
   }
 
-  completed() {
+  /**
+   * Anounces the the end of round phase and sets the round status to completed
+   */
+  completed(): void {
     this.logger.group(`round #${this.roundId} completed`);
     this.status = AttestationRoundPhase.completed;
   }
 
-  processed(tx: Attestation) {
+  processed(tx: Attestation): void {
     this.attestationsProcessed++;
     assert(this.attestationsProcessed <= this.attestations.length);
     this.tryTriggerCommit();
   }
 
-  async tryTriggerCommit() {
+  /**
+   *
+   */
+  async tryTriggerCommit(): Promise<void> {
     if (this.attestationsProcessed === this.attestations.length) {
       if (this.status === AttestationRoundPhase.commit) {
         // all transactions were processed and we are in commit epoch
@@ -183,7 +194,7 @@ export class AttestationRound {
       //this.logger.info(`round #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
     }
   }
-  async commitLimit() {
+  async commitLimit(): Promise<void> {
     if (this.attestStatus === AttestationRoundStatus.collecting) {
       this.logger.error2(`Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
 
@@ -192,6 +203,10 @@ export class AttestationRound {
     }
   }
 
+  /**
+   * Checks if all attestations are processed and if round is in the commit phase
+   * @returns
+   */
   canCommit(): boolean {
     this.logger.debug(
       `canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`
@@ -225,6 +240,10 @@ export class AttestationRound {
     return db;
   }
 
+  /**
+   * Commits the hash of a Merkle root of valid attestations
+   * @returns
+   */
   async commit() {
     // collect valid attestations and prepare to save all requests
     const dbAttestationRequests = [];
@@ -347,6 +366,9 @@ export class AttestationRound {
     await AttestationRoundManager.state.saveRound(this);
   }
 
+  /**
+   *
+   */
   async firstCommit() {
     if (!this.canCommit()) {
       await this.createEmptyState();
@@ -379,6 +401,9 @@ export class AttestationRound {
       });
   }
 
+  /**
+   * Reveals the Merkle root of valid attestations that should match the has commited in the commit phase
+   */
   async reveal() {
     if (this.status !== AttestationRoundPhase.reveal) {
       this.logger.error(`round #${this.roundId} cannot reveal (not in reveal epoch status ${this.status})`);

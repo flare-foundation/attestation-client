@@ -28,7 +28,7 @@ export class SourceHandlerConfig {
 
   numberOfConfirmations: number = 1;
 
-  queryWindowInSec!: number;
+  queryWindowInSec!: number; // To query what? Also not specified in doc
   UBPUnconfirmedWindowInSec!: number;
 
   attestationTypes = new Map<number, SourceHandlerTypeConfig>(); //What is number representing?
@@ -52,8 +52,10 @@ export class AttestationConfigManager {
 
     this.validateEnumNames();
   }
-
-  validateEnumNames() {
+  /**
+   * Checks that globaly set enumerations of chains in Multi Chain Client and Attestation client match
+   */
+  validateEnumNames(): void {
     const logger = getGlobalLogger();
 
     for (let value in ChainType) {
@@ -83,7 +85,7 @@ export class AttestationConfigManager {
     this.dynamicLoadInitialize();
   }
 
-  dynamicLoadInitialize() {
+  dynamicLoadInitialize(): void {
     try {
       fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
         if (filename && event === "rename") {
@@ -99,7 +101,7 @@ export class AttestationConfigManager {
     }
   }
 
-  async loadAll() {
+  async loadAll(): Promise<void> {
     try {
       await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err: number, files: string[]) => {
         if (files) {

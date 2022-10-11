@@ -4,11 +4,14 @@ import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { SourceHandlerConfig } from "./DynamicAttestationConfig";
 
-//How is it provided?
+/**
+ * ??A protocol for providing verificationData to an attestation??
+ */
 export interface EventValidateAttestation {
   (attestation: Attestation): void;
 }
 
+// ??Is this ever used??
 export class SourceHandler {
   config: SourceHandlerConfig;
 

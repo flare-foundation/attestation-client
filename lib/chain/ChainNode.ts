@@ -20,11 +20,11 @@ export class ChainNode {
   chainManager: ChainManager;
 
   chainName: string;
-  chainType: ChainType;
+  chainType: ChainType; //index of chain supported by Flare. Should match chainName
   client: MccClient;
 
   // node rate limiting control
-  requestTime: number = 0;
+  requestTime: number = 0; //How is this used?
   requestsPerSecond: number = 0;
 
   chainConfig: ChainConfiguration;
@@ -89,7 +89,8 @@ export class ChainNode {
     return this.transactionsQueue.length + this.transactionsProcessing.length + this.transactionsPriorityQueue.length();
   }
 
-  canAddRequests() {
+  // ?????
+  canAddRequests(): boolean {
     const time = getTimeSec();
 
     if (this.requestTime !== time) return true;
@@ -108,18 +109,22 @@ export class ChainNode {
     }
   }
 
-  canProcess() {
+  /**
+   *
+   * @returns
+   */
+  canProcess(): boolean {
     return this.canAddRequests() && this.transactionsProcessing.length < this.chainConfig.maxProcessingTransactions;
   }
 
   /**
    * Adds the attestation into processing queue waiting for validation
-   * @param tx
+   * @param attestation
    */
-  queue(tx: Attestation) {
-    //this.chainManager.logger.info(`chain ${this.chainName} queue ${tx.data.id}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`);
-    tx.status = AttestationStatus.queued;
-    this.transactionsQueue.push(tx);
+  queue(attestation: Attestation): void {
+    //this.chainManager.logger.info(`chain ${this.chainName} queue ${attestation.data.id}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`);
+    attestation.status = AttestationStatus.queued;
+    this.transactionsQueue.push(attestation);
   }
 
   /**
@@ -129,22 +134,22 @@ export class ChainNode {
    *
    * what this function does is to make sure there is a mechanism that will run startNext if nothing is in process
    */
-  delayQueue(tx: Attestation, startTime: number) {
-    switch (tx.status) {
+  delayQueue(attestation: Attestation, startTime: number): void {
+    switch (attestation.status) {
       case AttestationStatus.queued:
-        arrayRemoveElement(this.transactionsQueue, tx);
+        arrayRemoveElement(this.transactionsQueue, attestation);
         break;
       case AttestationStatus.processing:
-        arrayRemoveElement(this.transactionsProcessing, tx);
+        arrayRemoveElement(this.transactionsProcessing, attestation);
         break;
     }
 
-    this.transactionsPriorityQueue.push(tx, startTime); //Priority or Delay ?
+    this.transactionsPriorityQueue.push(attestation, startTime); //Priority or Delay ?
 
     this.updateDelayQueueTimer();
   }
 
-  updateDelayQueueTimer() {
+  updateDelayQueueTimer(): void {
     if (this.transactionsPriorityQueue.length() == 0) return;
 
     // set time to first time in queue
@@ -266,7 +271,7 @@ export class ChainNode {
   }
 
   /**
-   * Sets the Attestation status, adds varification data to the attestation
+   * Sets the Attestation status and adds varificationData to the attestation
    * @param attestation
    * @param status
    * @param verificationData
@@ -297,17 +302,17 @@ export class ChainNode {
   }
 
   /**
-   *Check if the attestation can be processed, otherwise adds it to the queue
-   * @param transaction
+   *Check if possible the attestation is processed, otherwise it is added  the queue
+   * @param attestation
    */
-  validate(transaction: Attestation) {
-    //this.chainManager.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
+  validate(attestation: Attestation): void {
+    //this.chainManager.logger.info(`chain ${this.chainName} validate ${attestation.data.getHash()}`);
 
-    // check if transaction can be added into processing
+    // check if attestation can be added into processing
     if (this.canProcess()) {
-      this.process(transaction);
+      this.process(attestation);
     } else {
-      this.queue(transaction);
+      this.queue(attestation);
     }
   }
 
@@ -315,7 +320,7 @@ export class ChainNode {
    * Processes the next attestation in the queue
    * @returns
    */
-  startNext() {
+  startNext(): void {
     try {
       if (!this.canProcess()) {
         if (this.transactionsProcessing.length === 0) {

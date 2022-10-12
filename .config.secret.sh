@@ -4,6 +4,7 @@
 
 # Set your hostname
 # This cannot be changed later.
+# Do not use backslash at end !!!
 export HOSTNAME=www.yourhostname.com
 
 # Set your email for certificate

@@ -572,6 +572,11 @@ export class Indexer {
   // Auxillary functions
   /////////////////////////////////////////////////////////////
 
+  async dropAllStateInfo() {
+    this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
+    await this.dbService.manager.delete(DBState, { name: Like(`${this.chainConfig.name}_%`) });
+  }
+
   /**
    * Processes command line parameters when supplied.
    * If true is returned, utility functionalities are performed.
@@ -619,7 +624,7 @@ export class Indexer {
       this.logger.error2("command: RESET_ACTIVE");
 
       // reset state for this chain
-      await this.dbService.manager.delete(DBState, { name: Like(`${this.chainConfig.name}_%`) });
+      await this.dropAllStateInfo();
 
       await this.dropAllChainTables(this.chainConfig.name);
 
@@ -762,7 +767,7 @@ export class Indexer {
     }
 
     await this.interlace.initialize(
-      this.logger,
+      this,
       this.dbService,
       this.dbTransactionClasses,
       this.chainConfig.minimalStorageHistoryDays,

@@ -79,6 +79,12 @@ export class AttestationRound {
     this.attesterWeb3 = attesterWeb3;
   }
 
+  /**
+   * returns the existing source Handler for the source chain of an attestation or creates a new sourceHandler
+   * @param data
+   * @param onValidateAttestation
+   * @returns
+   */
   getSourceHandler(data: AttestationData, onValidateAttestation: EventValidateAttestation): SourceHandler {
     let sourceHandler = this.sourceHandlers.get(data.sourceId);
 
@@ -93,6 +99,10 @@ export class AttestationRound {
     return sourceHandler;
   }
 
+  /**
+   * Adds the @param attestation to the list of attestations for this round
+   * @returns
+   */
   addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
     // todo: check how fast is hash
@@ -163,7 +173,7 @@ export class AttestationRound {
   }
 
   /**
-   * Anounces the the end of round phase and sets the round status to completed
+   * Anounces the the end of the round and sets the round status to completed
    */
   completed(): void {
     this.logger.group(`round #${this.roundId} completed`);
@@ -177,7 +187,7 @@ export class AttestationRound {
   }
 
   /**
-   *
+   * Commits if all attestations are procesed and if commit epoch has started
    */
   async tryTriggerCommit(): Promise<void> {
     if (this.attestationsProcessed === this.attestations.length) {
@@ -241,19 +251,19 @@ export class AttestationRound {
   }
 
   /**
-   * Commits the hash of a Merkle root of valid attestations
+   *Builds and commits the hash of a Merkle root of valid attestations
    * @returns
    */
-  async commit() {
+  async commit(): Promise<void> {
     // collect valid attestations and prepare to save all requests
     const dbAttestationRequests = [];
     const validated = new Array<Attestation>();
-    for (const tx of this.attestations.values()) {
-      if (tx.status === AttestationStatus.valid) {
-        validated.push(tx);
+    for (const attestation of this.attestations.values()) {
+      if (attestation.status === AttestationStatus.valid) {
+        validated.push(attestation);
       }
 
-      dbAttestationRequests.push(this.prepareDBAttestationRequest(tx));
+      dbAttestationRequests.push(this.prepareDBAttestationRequest(attestation));
     }
 
     // save to DB only if epoch does not exists in the DB yet - save async
@@ -366,10 +376,11 @@ export class AttestationRound {
     await AttestationRoundManager.state.saveRound(this);
   }
 
+  // NOT OK?
   /**
-   *
+   * First commit after the attestation client starts running. Does not send reveal data for the previous round?
    */
-  async firstCommit() {
+  async firstCommit(): Promise<void> {
     if (!this.canCommit()) {
       await this.createEmptyState();
     }
@@ -402,9 +413,9 @@ export class AttestationRound {
   }
 
   /**
-   * Reveals the Merkle root of valid attestations that should match the has commited in the commit phase
+   * Sends reveal data for this round and commit data for next round
    */
-  async reveal() {
+  async reveal(): Promise<void> {
     if (this.status !== AttestationRoundPhase.reveal) {
       this.logger.error(`round #${this.roundId} cannot reveal (not in reveal epoch status ${this.status})`);
       return;

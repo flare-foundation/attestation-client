@@ -1,5 +1,5 @@
 let timeSync = 0;
-// For what is timeSync used?
+// What is timeSync used for?
 // Which timezone??
 /**
  * Returns time passed from 1 January 1970 in milliseconds

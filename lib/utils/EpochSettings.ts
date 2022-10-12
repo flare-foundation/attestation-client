@@ -3,8 +3,8 @@ import { toBN } from "@flarenetwork/mcc";
 import { getTimeSec } from "./internetTime";
 
 /**
- * Class for storing the settings of epochs
- * For the connection between rounds and epochse see Attestation-protocol.md
+ * Class for storing the settings of epochs. Current length of an epoch is 90 seconds.
+ * For the connection between rounds and epoches see Attestation-protocol.md
  */
 export class EpochSettings {
   private _firstEpochStartTime: BN; // in seconds

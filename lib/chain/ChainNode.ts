@@ -29,10 +29,10 @@ export class ChainNode {
 
   chainConfig: ChainConfiguration;
 
-  transactionsQueue = new Array<Attestation>();
-  transactionsPriorityQueue = new PriorityQueue<Attestation>();
+  attestationQueue = new Array<Attestation>();
+  attestationPriorityQueue = new PriorityQueue<Attestation>();
 
-  transactionsProcessing = new Array<Attestation>();
+  attestationProcessing = new Array<Attestation>();
 
   indexedQueryManager: IndexedQueryManager;
 
@@ -81,12 +81,16 @@ export class ChainNode {
     this.indexedQueryManager = new IndexedQueryManager(options);
   }
 
+  //Is this ever used?
   onSend(inProcessing?: number, inQueue?: number) {
     this.addRequestCount();
   }
 
+  /**
+   * the number of attestation in process or to be processed
+   */
   getLoad(): number {
-    return this.transactionsQueue.length + this.transactionsProcessing.length + this.transactionsPriorityQueue.length();
+    return this.attestationQueue.length + this.attestationProcessing.length + this.attestationPriorityQueue.length();
   }
 
   // ?????
@@ -110,11 +114,11 @@ export class ChainNode {
   }
 
   /**
-   *
+   *Checks if more attestations can be put in process??
    * @returns
    */
   canProcess(): boolean {
-    return this.canAddRequests() && this.transactionsProcessing.length < this.chainConfig.maxProcessingTransactions;
+    return this.canAddRequests() && this.attestationProcessing.length < this.chainConfig.maxProcessingTransactions;
   }
 
   /**
@@ -122,9 +126,9 @@ export class ChainNode {
    * @param attestation
    */
   queue(attestation: Attestation): void {
-    //this.chainManager.logger.info(`chain ${this.chainName} queue ${attestation.data.id}  (${this.transactionsQueue.length}++,${this.transactionsProcessing.length},${this.transactionsDone.length})`);
+    //this.chainManager.logger.info(`chain ${this.chainName} queue ${attestation.data.id}  (${this.attestationQueue.length}++,${this.attestationProcessing.length},${this.transactionsDone.length})`);
     attestation.status = AttestationStatus.queued;
-    this.transactionsQueue.push(attestation);
+    this.attestationQueue.push(attestation);
   }
 
   /**
@@ -137,23 +141,23 @@ export class ChainNode {
   delayQueue(attestation: Attestation, startTime: number): void {
     switch (attestation.status) {
       case AttestationStatus.queued:
-        arrayRemoveElement(this.transactionsQueue, attestation);
+        arrayRemoveElement(this.attestationQueue, attestation);
         break;
       case AttestationStatus.processing:
-        arrayRemoveElement(this.transactionsProcessing, attestation);
+        arrayRemoveElement(this.attestationProcessing, attestation);
         break;
     }
 
-    this.transactionsPriorityQueue.push(attestation, startTime); //Priority or Delay ?
+    this.attestationPriorityQueue.push(attestation, startTime); //Priority or Delay ?
 
     this.updateDelayQueueTimer();
   }
 
   updateDelayQueueTimer(): void {
-    if (this.transactionsPriorityQueue.length() == 0) return;
+    if (this.attestationPriorityQueue.length() == 0) return;
 
     // set time to first time in queue
-    const firstStartTime = this.transactionsPriorityQueue.peekKey()!;
+    const firstStartTime = this.attestationPriorityQueue.peekKey()!;
 
     // if start time has passed then just call startNext (no timeout is needed)
     if (firstStartTime < getTimeMilli()) {
@@ -186,7 +190,7 @@ export class ChainNode {
    * @returns
    */
   async process(attestation: Attestation) {
-    //this.chainManager.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
+    //this.chainManager.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.attestationQueue.length},${this.attestationProcessing.length}++,${this.transactionsDone.length})`);
 
     const now = getTimeMilli();
 
@@ -202,7 +206,7 @@ export class ChainNode {
     }
 
     //this.addRequestCount();
-    this.transactionsProcessing.push(attestation);
+    this.attestationProcessing.push(attestation);
 
     attestation.status = AttestationStatus.processing;
     attestation.processStartTime = now;
@@ -223,7 +227,7 @@ export class ChainNode {
 
           attestation.reverification = true;
 
-          // actualk time when attesttion will be rechecked
+          // actual time when attesttion will be rechecked
           const startTimeMs =
             AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
             AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
@@ -284,10 +288,10 @@ export class ChainNode {
 
     attestation.verificationData = verificationData!;
 
-    //this.chainManager.logger.info(`chain ${this.chainName} processed ${attestation.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
+    //this.chainManager.logger.info(`chain ${this.chainName} processed ${attestation.data.id} status=${status}  (${this.attestationQueue.length},${this.attestationProcessing.length},${this.transactionsDone.length}++)`);
 
     // move into processed
-    arrayRemoveElement(this.transactionsProcessing, attestation);
+    arrayRemoveElement(this.attestationProcessing, attestation);
 
     // todo: save transaction data
 
@@ -302,7 +306,7 @@ export class ChainNode {
   }
 
   /**
-   *Check if possible the attestation is processed, otherwise it is added  the queue
+   *If possible the attestation is processed, otherwise it is added  the queue
    * @param attestation
    */
   validate(attestation: Attestation): void {
@@ -317,13 +321,13 @@ export class ChainNode {
   }
 
   /**
-   * Processes the next attestation in the queue
+   * Processes the next attestation in the priority queue if expected startTime of is reached otherwise the next attestation in the queue
    * @returns
    */
   startNext(): void {
     try {
       if (!this.canProcess()) {
-        if (this.transactionsProcessing.length === 0) {
+        if (this.attestationProcessing.length === 0) {
           this.chainManager.logger.debug(` # startNext heartbeat`);
           setTimeout(() => {
             this.startNext();
@@ -335,21 +339,21 @@ export class ChainNode {
       }
 
       // check if there is queued priority transaction to be processed
-      while (this.transactionsPriorityQueue.length() && this.canProcess()) {
+      while (this.attestationPriorityQueue.length() && this.canProcess()) {
         // check if queue start time is reached
-        const startTime = this.transactionsPriorityQueue.peekKey()!;
+        const startTime = this.attestationPriorityQueue.peekKey()!;
         if (getTimeMilli() < startTime) break;
 
         // take top and process it then start new top timer
-        const attestation = this.transactionsPriorityQueue.pop();
+        const attestation = this.attestationPriorityQueue.pop();
         this.updateDelayQueueTimer();
 
         this.process(attestation!);
       }
 
       // check if there is any queued transaction to be processed
-      while (this.transactionsQueue.length && this.canProcess()) {
-        const attestation = this.transactionsQueue.shift();
+      while (this.attestationQueue.length && this.canProcess()) {
+        const attestation = this.attestationQueue.shift();
 
         this.process(attestation!);
       }

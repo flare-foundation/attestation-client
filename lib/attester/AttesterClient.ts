@@ -112,6 +112,10 @@ export class AttesterClient {
   // process network events - this function is triggering updates
   /////////////////////////////////////////////////////////////
 
+  /**
+   * Processes events emitted by state connector, either attestationRequest or signal for the end of the round
+   * @param event
+   */
   async processEvent(event: any) {
     try {
       // handle Attestation Request
@@ -121,7 +125,6 @@ export class AttesterClient {
 
         this.roundMng.attestate(attestation);
       }
-      
     } catch (error) {
       logException(error, `processEvent(AttestationRequest)`);
     }
@@ -143,7 +146,6 @@ export class AttesterClient {
           this.logger.error(`^e^Revent^^ RoundFinalised ${event.returnValues.bufferNumber} ${event.returnValues.merkleHash} (root not commited)`);
         }
       }
-
     } catch (error) {
       logException(error, `processEvent(RoundFinalised)`);
     }

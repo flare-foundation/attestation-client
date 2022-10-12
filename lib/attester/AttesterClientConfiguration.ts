@@ -2,6 +2,9 @@ import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
+/**
+ * Class that stores configuration of an attestation client
+ */
 export class AttesterClientConfiguration implements IReflection<AttesterClientConfiguration> {
   // start epoch in sec
   public firstEpochStartTime: number = 1636070400;
@@ -9,7 +12,7 @@ export class AttesterClientConfiguration implements IReflection<AttesterClientCo
   // voting round duration in sec
   public roundDurationSec: number = 90;
 
-  public dynamicAttestationConfigurationFolder: string = "./configs/prod/dac/";
+  public dynamicAttestationConfigurationFolder: string = "./configs/prod/dac/"; //This is not a in current directory ??
 
   // in sec
   public commitTime: number = 10;

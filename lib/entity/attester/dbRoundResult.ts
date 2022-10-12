@@ -1,6 +1,8 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
-// How is this related to the commited data?
+/**
+ * Format for storing the data from a resolved attestation round
+ */
 @Entity({ name: "round_result" })
 export class DBRoundResult {
   //extends BaseEntity {

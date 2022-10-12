@@ -58,7 +58,6 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
-  // This does not return DBRoundResult!?
   async getRound(roundId: number): Promise<DBRoundResult> {
     var dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: roundId } });
 

@@ -16,7 +16,7 @@ cd connected-chains-docker/
 git config --global --add safe.directory /opt/connected-chains-docker
 #sudo git checkout testnets
 
-sudo ./install.sh $SECRET_NODES_TESTNET testnet
+sudo ./install.sh testnet $SECRET_NODES_TESTNET
 sudo docker-compose -f docker-compose-testnet.yml up -d
 
 sudo ./algorand-catchup.sh

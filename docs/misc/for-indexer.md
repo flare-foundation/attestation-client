@@ -109,11 +109,13 @@ systemctl --user enable coston-attester-client-c4.service
 systemctl --user enable coston-attester-client-c5.service
 
 
-systemctl --user enable coston-spammer-btc.service
-systemctl --user enable coston-spammer-ltc.service
-systemctl --user enable coston-spammer-xrp.service
-systemctl --user enable coston-spammer-algo.service
-systemctl --user enable coston-spammer-doge.service
+
+
+systemctl --user enable coston2-spammer-btc.service
+systemctl --user enable coston2-spammer-ltc.service
+systemctl --user enable coston2-spammer-xrp.service
+systemctl --user enable coston2-spammer-algo.service
+systemctl --user enable coston2-spammer-doge.service
 
 systemctl --user enable coston-backend.service
 
@@ -137,11 +139,11 @@ systemctl --user start indexer-doge.service
 
 systemctl --user start coston-attester-client.service
 
-systemctl --user start coston-spammer-btc.service
-systemctl --user start coston-spammer-ltc.service
-systemctl --user start coston-spammer-xrp.service
-systemctl --user start coston-spammer-algo.service
-systemctl --user start coston-spammer-doge.service
+systemctl --user start coston2-spammer-btc.service
+systemctl --user start coston2-spammer-ltc.service
+systemctl --user start coston2-spammer-xrp.service
+systemctl --user start coston2-spammer-algo.service
+systemctl --user start coston2-spammer-doge.service
 
 systemctl --user start coston-backend.service
 

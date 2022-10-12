@@ -241,9 +241,22 @@ export class IndexerSync {
       return;
     }
 
-    const syncStartBlockNumber = await this.getSyncStartBlockNumber();
+    const syncStartBlockNumber = await this.getSyncStartBlockNumber();  // N ... start reading N+1
 
-    this.indexer.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);
+    // check if syncN is bigger than DB-N.
+    if (dbStartBlockNumber > 0 && dbStartBlockNumber < syncStartBlockNumber) {
+      // note that this drops the table when dbStartBlockNumber + 1 = syncStartBlockNumber which would be valid from continuity stand point 
+      // but in case that sync N was node bottom block we would not be able to read block number sync N.
+      // here we are a bit more defensive since it is a very low probability of this actually happening.
+
+      // drop both tables
+      this.indexer.interlace.resetAll();
+
+      this.indexer.N = syncStartBlockNumber;
+    }
+    else {
+      this.indexer.N = dbStartBlockNumber;
+    }
 
     this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);
 

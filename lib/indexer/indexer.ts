@@ -731,6 +731,38 @@ export class Indexer {
     }
   }
 
+  /**
+   * check if indexer database is continous
+   */
+  async checkDatabaseContinuous() {
+
+    const name = this.chainConfig.name.toLowerCase();
+
+    if( name.length > 4 ) {
+      //return;
+    }
+
+    const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
+
+    const res = await this.dbService.manager.query(sqlQuery);
+
+    if (res.length === 1) {
+      if (res[0].missed != 0) {
+        this.logger.error(`${name} discontinuity detected (missed ${res[0].missed} blocks)`);
+
+        this.interlace.resetAll();
+      }
+      else {
+        this.logger.debug(`${name} continuity ok`);
+      }
+    }
+
+    // Andreja Starman
+    // 03 8995 202
+
+  }
+
+
   /////////////////////////////////////////////////////////////
   // main indexer entry function
   /////////////////////////////////////////////////////////////
@@ -749,6 +781,9 @@ export class Indexer {
       // some parameter settings do not require running indexer
       return;
     }
+
+    // check if indexer database is continous
+    await this.checkDatabaseContinuous();
 
     await this.waitForNodeSynced();
 

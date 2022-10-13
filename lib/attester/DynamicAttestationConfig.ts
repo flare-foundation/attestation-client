@@ -9,9 +9,9 @@ import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 
 const fs = require("fs");
 
-// Unnecessary complications??
+// This whole script needs clarification??
 /**
- * Weight presents the difficulty of validating the attestation depands on the attestation type and source
+ * Weight presents the difficulty of validating the attestation depanding on the attestation type and source
  */
 export class SourceHandlerTypeConfig {
   weight!: number;
@@ -24,7 +24,7 @@ export class SourceHandlerConfig {
   attestationType!: AttestationType;
   source!: SourceId;
 
-  maxTotalRoundWeight!: number;
+  maxTotalRoundWeight!: number; //limits the the weighted amount of attestation per round
 
   numberOfConfirmations: number = 1;
 
@@ -53,7 +53,7 @@ export class AttestationConfigManager {
     this.validateEnumNames();
   }
   /**
-   * Checks that globaly set enumerations of chains in Multi Chain Client and Attestation client match
+   * Checks that globaly set enumerations of chains in Multi Chain Client and Attestation Client match
    */
   validateEnumNames(): void {
     const logger = getGlobalLogger();
@@ -119,7 +119,8 @@ export class AttestationConfigManager {
   }
 
   /**
-   *Loads  @param filename
+   *Loads sourceHandlerConfigs from @param filename and matches them to the sourceHandlers to the right source.
+   *
    * @param disregardObsolete
    * @returns
    */
@@ -147,16 +148,16 @@ export class AttestationConfigManager {
         numberOfConfirmations: number;
         maxTotalRoundWeight: number;
       }) => {
-        const sourceHandler = new SourceHandlerConfig();
+        const sourceHandlerConfig = new SourceHandlerConfig();  //sourceHandler is not equal to SourceHandlerConfig
 
-        sourceHandler.source = toSourceId(source.source);
+        sourceHandlerConfig.source = toSourceId(source.source);
 
-        sourceHandler.maxTotalRoundWeight = source.maxTotalRoundWeight;
-        sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
-        sourceHandler.queryWindowInSec = source.queryWindowInSec;
-        sourceHandler.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
+        sourceHandlerConfig.maxTotalRoundWeight = source.maxTotalRoundWeight;
+        sourceHandlerConfig.numberOfConfirmations = source.numberOfConfirmations;
+        sourceHandlerConfig.queryWindowInSec = source.queryWindowInSec;
+        sourceHandlerConfig.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
 
-        config.sourceHandlers.set(sourceHandler.source, sourceHandler);
+        config.sourceHandlers.set(sourceHandlerConfig.source, sourceHandlerConfig);
 
         // parse attestationTypes
         source.attestationTypes.forEach((attestationType) => {
@@ -166,7 +167,7 @@ export class AttestationConfigManager {
 
           attestationTypeHandler.weight = attestationType.weight;
 
-          sourceHandler.attestationTypes.set(type, attestationTypeHandler);
+          sourceHandlerConfig.attestationTypes.set(type, attestationTypeHandler);
         });
       }
     );

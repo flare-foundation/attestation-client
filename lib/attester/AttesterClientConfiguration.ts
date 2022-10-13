@@ -10,12 +10,12 @@ export class AttesterClientConfiguration implements IReflection<AttesterClientCo
   public firstEpochStartTime: number = 1636070400;
 
   // voting round duration in sec
-  public roundDurationSec: number = 90;
+  public roundDurationSec: number = 90; //This is stored multiple times (EpocheSettings). Why????
 
   public dynamicAttestationConfigurationFolder: string = "./configs/prod/dac/"; //This is not a in current directory ??
 
   // in sec
-  public commitTime: number = 10;
+  public commitTime: number = 10; //When in the epoch should the commi-reveal data be send
 
   // additional empty submit at the beggining of commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds)
   public submitCommitFinalize: boolean = false;

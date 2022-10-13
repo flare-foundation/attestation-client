@@ -69,7 +69,7 @@ export class AttestationRound {
 
   merkleTree!: MerkleTree;
 
-  sourceHandlers = new Map<SourceId, SourceHandler>(); // Assigns a SourceHandler for each chain
+  sourceHandlers = new Map<SourceId, SourceHandler>(); // Assigns a SourceHandler for each chain???
 
   constructor(epochId: number, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.roundId = epochId;
@@ -128,7 +128,7 @@ export class AttestationRound {
   }
 
   /**
-   * Anounces the start of the commit phase and tries to commit the
+   * Anounces the start of the commit phase and tries to commit
    */
   startCommitEpoch() {
     this.logger.group(
@@ -140,6 +140,10 @@ export class AttestationRound {
     this.tryTriggerCommit(); // In case all requests are already processed
   }
 
+  /**
+   * Empty commit.
+   * Used in the first round after joining the attestation scheme to commit empty data for commit and reveal of two previous rounds???
+   */
   startCommitSubmit() {
     if (AttestationRoundManager.config.submitCommitFinalize) {
       let action = `Finalizing ^Y#${this.roundId - 3}^^`;
@@ -228,6 +232,11 @@ export class AttestationRound {
     );
   }
 
+  /**
+   * Formats an attestation to be stored in database
+   * @param att
+   * @returns
+   */
   prepareDBAttestationRequest(att: Attestation): DBAttestationRequest {
     const db = new DBAttestationRequest();
 
@@ -251,8 +260,7 @@ export class AttestationRound {
   }
 
   /**
-   *Builds and commits the hash of a Merkle root of valid attestations
-   * @returns
+   *Starts the commit-reveal scheme and saves the attestation data to database.
    */
   async commit(): Promise<void> {
     // collect valid attestations and prepare to save all requests
@@ -376,9 +384,8 @@ export class AttestationRound {
     await AttestationRoundManager.state.saveRound(this);
   }
 
-  // NOT OK?
   /**
-   * First commit after the attestation client starts running. Does not send reveal data for the previous round?
+   * First nonempty commit after the attestation client starts running. Does not send reveal data for the previous round?
    */
   async firstCommit(): Promise<void> {
     if (!this.canCommit()) {
@@ -387,7 +394,7 @@ export class AttestationRound {
 
     let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
-    const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
+    const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1); //Should this be previous
 
     this.attesterWeb3
       .submitAttestation(

@@ -1,6 +1,6 @@
 /**
  * Interface for elements of queue
- * key represents priority that is used as a criterion for sorting, represents time when value should be procesed
+ * key represents time when the value (attestation) should be procesed and is used as a criterion for sorting,
  */
 export interface QueueNode<T> {
   key: number;

@@ -3,6 +3,9 @@ import { Connection, createConnection } from "typeorm";
 import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";
 
+/**
+ *
+ */
 export class DatabaseConnectOptions {
   @optional() type: string = "mysql";
   @optional() host: string = "localhost";
@@ -12,6 +15,9 @@ export class DatabaseConnectOptions {
   password: string = "password";
 }
 
+/**
+ * DatabaseService for storing the attestation data
+ */
 export class DatabaseService {
   private logger!: AttLogger;
 
@@ -33,6 +39,9 @@ export class DatabaseService {
     this.connect();
   }
 
+  /**
+   * Connects to the data base prescribed in DataConnectOptions
+   */
   private async connect() {
     // Typeorm/ES6/Typescript issue with importing modules
     let path = this.databaseName;

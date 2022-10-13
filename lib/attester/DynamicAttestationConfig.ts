@@ -17,7 +17,7 @@ export class SourceHandlerTypeConfig {
   weight!: number;
 }
 
-// Why are these belowe classes??
+// Why are these below classes??
 
 //What is the purpose of this?
 export class SourceHandlerConfig {
@@ -31,20 +31,20 @@ export class SourceHandlerConfig {
   queryWindowInSec!: number; // To query what? Also not specified in doc
   UBPUnconfirmedWindowInSec!: number;
 
-  attestationTypes = new Map<number, SourceHandlerTypeConfig>(); //What is number representing?
+  attestationTypes = new Map<number, SourceHandlerTypeConfig>(); //What is number representing? (number=AttestationType)???
 }
 
 export class AttestationConfig {
-  startEpoch!: number; // start epoch of what? Epoche when this config starts being used??
+  startEpoch!: number; // start epoch of what? Epoch when this config starts being used??
 
-  sourceHandlers = new Map<number, SourceHandlerConfig>(); //What is number representing?
+  sourceHandlers = new Map<number, SourceHandlerConfig>(); //What is number representing? (number=SourceID)???
 }
 
 export class AttestationConfigManager {
   config: AttesterClientConfiguration;
   logger: AttLogger;
 
-  attestationConfig = new Array<AttestationConfig>();
+  attestationConfig = new Array<AttestationConfig>(); //?????
 
   constructor(config: AttesterClientConfiguration, logger: AttLogger) {
     this.config = config;
@@ -118,6 +118,11 @@ export class AttestationConfigManager {
     }
   }
 
+  /**
+   *Loads  @param filename
+   * @param disregardObsolete
+   * @returns
+   */
   load(filename: string, disregardObsolete: boolean = false): boolean {
     this.logger.info(`^GDAC load '${filename}'`);
 

@@ -5,17 +5,18 @@ import { getTimeSec } from "./internetTime";
 /**
  * Class for storing the settings of epochs. Current length of an epoch is 90 seconds.
  * For the connection between rounds and epoches see Attestation-protocol.md
+ * Values for construction must be given in seconds.
  */
 export class EpochSettings {
-  private _firstEpochStartTime: BN; // in seconds
-  private _epochPeriod: BN; // in seconds
+  private _firstEpochStartTime: BN; // in milliseconds (previously in sec)????
+  private _epochPeriod: BN; // in milliseconds (previously in sec)????
 
   private _firstEpochId: BN = toBN(0);
 
   // all values are in seconds
-  constructor(_firstEpochStartTime: BN, _epochPeriod: BN) {
-    this._firstEpochStartTime = _firstEpochStartTime.mul(toBN(1000));
-    this._epochPeriod = _epochPeriod.mul(toBN(1000));
+  constructor(_firstEpochStartTimeSec: BN, _epochPeriodSec: BN) {
+    this._firstEpochStartTime = _firstEpochStartTimeSec.mul(toBN(1000));
+    this._epochPeriod = _epochPeriodSec.mul(toBN(1000));
   }
 
   getEpochLengthMs(): BN {

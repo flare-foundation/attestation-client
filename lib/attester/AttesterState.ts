@@ -4,7 +4,9 @@ import { getUnixEpochTimestamp } from "../utils/utils";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 
-//This class does not hold any data?
+/**
+ * Class for storing and fatchig data to and from database???
+ */
 export class AttesterState {
   async saveRound(round: AttestationRound, validTransactionCount: number = 0) {
     const dbRound = new DBRoundResult();

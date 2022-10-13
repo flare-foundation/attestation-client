@@ -19,7 +19,8 @@ export interface EventProcessed {
   (tx: Attestation): void;
 }
 /**
- * Attestation class for Attestation providers to attest validity or a request. Validity of the attestation is given by verificationData that is provided using {@link ChainNode}
+ * Attestation class for Attestation providers to attest validity or a request.
+ * Validity of the attestation is given by verificationData that is provided using {@link ChainNode}
  */
 @Managed()
 export class Attestation {

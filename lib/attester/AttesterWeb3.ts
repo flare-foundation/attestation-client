@@ -8,6 +8,9 @@ import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 
+/**
+ * Class that handles submitions to StateConnector
+ */
 export class AttesterWeb3 {
   config: AttesterClientConfiguration;
   credentials: AttesterCredentials;

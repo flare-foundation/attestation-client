@@ -70,7 +70,6 @@ export class AttestationRoundManager {
   }
 
   async startRoundUpdate() {
-
     // additional mechanism to update round manager when there are no requests
     while (true) {
       try {
@@ -176,8 +175,8 @@ export class AttestationRoundManager {
     return activeRound;
   }
 
-  async attestate(tx: AttestationData) {
-    const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(tx.timeStamp.mul(toBN(1000))).toNumber();
+  async attestate(attestationData: AttestationData) {
+    const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
 
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
@@ -189,7 +188,7 @@ export class AttestationRoundManager {
     let activeRound = this.getRoundOrCreateIt(epochId);
 
     // create, check and add attestation
-    const attestation = await this.createAttestation(activeRound, tx);
+    const attestation = await this.createAttestation(activeRound, attestationData);
 
     if (attestation === undefined) {
       return;

@@ -11,8 +11,8 @@ export const DECIMALS = 5;
 
 /**
  * Removes an element from an array.
- * @param array 
- * @param element 
+ * @param array
+ * @param element
  */
 export function arrayRemoveElement(array: Array<any>, element: any) {
   const index = array.indexOf(element, 0);
@@ -25,9 +25,9 @@ export function arrayRemoveElement(array: Array<any>, element: any) {
  * Constructs a web3 instance connected to the RPC
  * @param rpcLink RPC link in form of http(s) or ws(s)
  * @param logger logger object (optional)
- * @returns 
+ * @returns
  */
-export function getWeb3(rpcLink: string, logger?: any) {
+export function getWeb3(rpcLink: string, logger?: any): Web3 {
   const web3 = new Web3();
   if (rpcLink.startsWith("http")) {
     web3.setProvider(new Web3.providers.HttpProvider(rpcLink));
@@ -114,9 +114,9 @@ export function getWeb3Wallet(web3: any, privateKey: string) {
 
 /**
  * Factory for a finalization wrapper of transactions adapted to Flare networks. It waits for finalization by
- * polling the increase of nonce with exponential backoff. 
+ * polling the increase of nonce with exponential backoff.
  * @param web3 Web3 object with the configured connection to the desired network
- * @returns 
+ * @returns
  */
 export function waitFinalize3Factory(web3: any) {
   return async (address: string, func: () => any, delay: number = 1000) => {
@@ -206,8 +206,8 @@ export function getTestStateConnectorAddress() {
 /**
  * Helper function to provide wei value for given eth value
  * @param web3 Web3 object
- * @param eth 
- * @returns 
+ * @param eth
+ * @returns
  */
 export function etherToValue(web3: Web3, eth: number) {
   return web3.utils.toWei(web3.utils.toBN(eth), "ether");
@@ -237,7 +237,7 @@ export async function sleepms(milliseconds: number) {
  * Rounds a number to a given number of decimals
  * @param x given number
  * @param decimal decimals to round
- * @returns 
+ * @returns
  */
 export function round(x: number, decimal: number = 0) {
   if (decimal === 0) return Math.round(x);
@@ -247,11 +247,11 @@ export function round(x: number, decimal: number = 0) {
   return Math.round(x * dec10) / dec10;
 }
 
-// 
+//
 /**
  * Helper for parsing Maps.
  * Use in JSON.parse( x , JSONMapParser ) to load Map saved with above function
- * @param key not used, just for compatibility 
+ * @param key not used, just for compatibility
  * @param value the map to be parsed
  * @returns the Map parsed from JSON.
  */
@@ -268,7 +268,7 @@ export function JSONMapParser(key: any, value: any) {
  * Time formatter
  * @param time given time as a number (unix epoch in seconds)
  * @param secDecimals decimals to round seconds
- * @returns 
+ * @returns
  */
 export function secToHHMMSS(time: number, secDecimals = 0) {
   const days = Math.floor(time / (3600 * 24));
@@ -293,8 +293,8 @@ export function secToHHMMSS(time: number, secDecimals = 0) {
 
 /**
  * XOR function on two 32-byte hex strings
- * @param hex1 
- * @param hex2 
+ * @param hex1
+ * @param hex2
  * @returns the XOR of the two values
  */
 export function xor32(hex1: string, hex2: string) {

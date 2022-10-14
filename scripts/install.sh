@@ -44,7 +44,7 @@ fi
 
 # deploy
 echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"
-bash ./scripts/deploy-all.sh
+source ./scripts/deploy-all.sh
 
 # update config
-bash ./scripts/update-config.sh
+source ./scripts/update-config.sh

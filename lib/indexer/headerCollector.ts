@@ -1,4 +1,4 @@
-import { IBlock, IBlockTip, Managed } from "@flarenetwork/mcc";
+import { BlockHeaderBase, IBlock, IBlockHeader, IBlockTip, Managed } from "@flarenetwork/mcc";
 import { AttLogger } from "../utils/logger";
 import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
@@ -85,7 +85,7 @@ export class HeaderCollector {
    * @param blocks array of headers
    * @returns
    */
-  public async saveHeadersOnNewTips(blockTips: IBlockTip[]) {
+  public async saveHeadersOnNewTips(blockTips: IBlockTip[] | IBlockHeader[]) {
     let blocksText = "[";
 
     let unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexer.dbService, this.indexer.dbBlockClass, this.indexer.N);
@@ -117,15 +117,24 @@ export class HeaderCollector {
       dbBlock.numberOfConfirmations = 1;
       dbBlock.timestamp = 0;
 
-      // On UTXO chains this means block is on main branch (some blocks may only have headers and not be in node's database)
-      const activeBlock = blockTip.chainTipStatus === "active";
+      if (blockTip instanceof BlockHeaderBase) {
+        // if we got IBlockHeader we already have all the info required
+        const header = blockTip as IBlockHeader;
 
-      // if block is not on disk (headers-only) we have to skip reading it
-      if (activeBlock) {
-        const actualBlock = await this.indexer.getBlockHeaderFromClientByHash("saveHeadersOnNewTips", blockTip.blockHash);
+        dbBlock.timestamp = header.unixTimestamp;
+        dbBlock.previousBlockHash = header.previousBlockHash;
+      }
+      else {
+        // On UTXO chains this means block is on main branch (some blocks may only have headers and not be in node's database)
+        const activeBlock = blockTip.chainTipStatus === "active";
 
-        dbBlock.timestamp = actualBlock.unixTimestamp;
-        dbBlock.previousBlockHash = actualBlock.previousBlockHash;
+        // if block is not on disk (headers-only) we have to skip reading it
+        if (activeBlock) {
+          const actualBlock = await this.indexer.getBlockHeaderFromClientByHash("saveHeadersOnNewTips", blockTip.blockHash);
+
+          dbBlock.timestamp = actualBlock.unixTimestamp;
+          dbBlock.previousBlockHash = actualBlock.previousBlockHash;
+        }
       }
 
       // dbBlocks.push(dbBlock);

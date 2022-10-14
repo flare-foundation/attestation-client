@@ -1,4 +1,5 @@
 import { ChainType, IBlock, IBlockHeader, Managed, MCC } from "@flarenetwork/mcc";
+import { exit } from "process";
 import { Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
@@ -739,7 +740,9 @@ export class Indexer {
     const name = this.chainConfig.name.toLowerCase();
 
     if( name.length > 4 ) {
-      //return;
+      this.logger.error(`${name} too long name`);
+      this.logger.debug(`restarting`);
+      exit(2);
     }
 
     const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
@@ -750,7 +753,10 @@ export class Indexer {
       if (res[0].missed != 0) {
         this.logger.error(`${name} discontinuity detected (missed ${res[0].missed} blocks)`);
 
-        this.interlace.resetAll();
+        await this.interlace.resetAll();
+
+        this.logger.debug(`restarting`);
+        exit(3);
       }
       else {
         this.logger.debug(`${name} continuity ok`);

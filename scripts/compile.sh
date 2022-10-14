@@ -1,6 +1,6 @@
 export CURRENT_DIR=$(pwd)
 
-yarn
+yarn install --frozen-lockfile
 
 # hardhat
 yarn c

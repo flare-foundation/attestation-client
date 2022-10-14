@@ -1,6 +1,6 @@
 import { ChainType, IBlock, IBlockHeader, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
-import { Like } from "typeorm";
+import { EntityTarget, Like } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -735,23 +735,40 @@ export class Indexer {
   /**
    * check if indexer database is continous
    */
-  async checkDatabaseContinuous() {
+   async checkDatabaseContinuous() {
 
     const name = this.chainConfig.name.toLowerCase();
 
-    if( name.length > 4 ) {
-      this.logger.error(`${name} too long name`);
-      this.logger.debug(`restarting`);
-      exit(2);
-    }
+    // reference sql query
+    //const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
 
-    const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
+    // get DB N_bottom 
+    const queryNbottom = this.dbService.manager.createQueryBuilder()
+      .select("valueNumber")
+      .addSelect("name")
+      .from(DBState, "s")
+      .where("s.name = :name", { name: `${name.toUpperCase()}_Nbottom` });
 
-    const res = await this.dbService.manager.query(sqlQuery);
+    //this.queryPrint(queryNbottom);
 
-    if (res.length === 1) {
-      if (res[0].missed != 0) {
-        this.logger.error(`${name} discontinuity detected (missed ${res[0].missed} blocks)`);
+    const Nbottom = await queryNbottom.getRawOne();
+
+    const queryTable0 = this.dbService.manager.createQueryBuilder()
+      .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
+      .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx ")
+      .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
+
+    const queryTable1 = this.dbService.manager.createQueryBuilder()
+      .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
+      .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx ")
+      .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
+
+    const table0missing = await queryTable0.getRawOne();
+    const table1missing = await queryTable1.getRawOne();
+
+    if (table0missing && table0missing.missing) {
+      if (table0missing.missing != 0) {
+        this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0]`);
 
         await this.interlace.resetAll();
 
@@ -759,11 +776,24 @@ export class Indexer {
         exit(3);
       }
       else {
-        this.logger.debug(`${name} continuity ok`);
+        this.logger.debug(`${name} continuity ok on [0]`);
+      }
+    }
+
+    if (table1missing && table1missing.missing) {
+      if (table1missing.missing != 0) {
+        this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
+
+        await this.interlace.resetAll();
+
+        this.logger.debug(`restarting`);
+        exit(3);
+      }
+      else {
+        this.logger.debug(`${name} continuity ok on [1]`);
       }
     }
   }
-
 
   /////////////////////////////////////////////////////////////
   // main indexer entry function

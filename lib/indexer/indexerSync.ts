@@ -1,4 +1,5 @@
 import { IBlockTip, Managed } from "@flarenetwork/mcc";
+import { exit } from "process";
 import { AttLogger } from "../utils/logger";
 import { failureCallback, retry } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
@@ -202,22 +203,23 @@ export class IndexerSync {
   private async runSyncTips() {
     this.indexer.T = await this.indexer.getBlockHeightFromClient(`runSyncTips`);
 
+    const startN = this.indexer.N;
+
+    await this.runSyncRaw();
+
     // update state
     const dbStatus = this.indexer.getStateEntryString("state", "waiting", 0, "collecting tips");
     await retry(`runIndexer::saveStatus`, async () => await this.indexer.dbService.manager.save(dbStatus));
 
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
-    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - this.indexer.N);
+    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N
     // Note - N may be very low compared to T, since we are 
     // before sync.
     await this.indexer.headerCollector.saveHeadersOnNewTips(blocks);
-
-    // Sync and save all confirmed blocks from main fork
-    await this.runSyncRaw();
   }
 
   /**
@@ -252,11 +254,10 @@ export class IndexerSync {
       // drop both tables
       this.indexer.interlace.resetAll();
 
-      this.indexer.N = syncStartBlockNumber;
+      exit(4);
     }
-    else {
-      this.indexer.N = syncStartBlockNumber;
-    }
+
+    this.indexer.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);
 
     this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);
 

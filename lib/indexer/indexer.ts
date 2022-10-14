@@ -735,7 +735,7 @@ export class Indexer {
   /**
    * check if indexer database is continous
    */
-   async checkDatabaseContinuous() {
+  async checkDatabaseContinuous() {
 
     const name = this.chainConfig.name.toLowerCase();
 
@@ -752,6 +752,11 @@ export class Indexer {
     //this.queryPrint(queryNbottom);
 
     const Nbottom = await queryNbottom.getRawOne();
+
+    if (!Nbottom || !Nbottom.valueNumber) {
+      this.logger.error(`${name} discontinuity test failed (unable to get state:${name.toUpperCase()}_Nbottom)`);
+      return;
+    }
 
     const queryTable0 = this.dbService.manager.createQueryBuilder()
       .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")

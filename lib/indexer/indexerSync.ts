@@ -255,7 +255,7 @@ export class IndexerSync {
       this.indexer.N = syncStartBlockNumber;
     }
     else {
-      this.indexer.N = dbStartBlockNumber;
+      this.indexer.N = syncStartBlockNumber;
     }
 
     this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);

@@ -1,4 +1,5 @@
-bash ./scripts/install-config.sh
+#!/bin/bash
+source ./scripts/install-config.sh
 
 # install services
 if $ENABLE_INDEXER; then
@@ -44,4 +45,4 @@ if $INSTALL_COSTON2; then
 fi
 
 # restart all services
-bash ./scripts/services-restart-all.sh
+source ./scripts/services-restart-all.sh

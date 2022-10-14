@@ -53,5 +53,5 @@ if $ENABLE_LOCAL_MYSQL; then
 fi
 
 # restart all services
-bash ./scripts/services-restart-all.sh
+source ./scripts/services-restart-all.sh
 

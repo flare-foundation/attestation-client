@@ -306,3 +306,33 @@ export function xor32(hex1: string, hex2: string) {
   const bufResult = buf1.map((b, i) => b ^ buf2[i]);
   return prefix0x(Buffer.from(bufResult).toString("hex"));
 }
+
+
+/**
+ * print out typeorm query with parameters
+ * @param query 
+ */
+export function queryPrint(query: any) {
+  let [sql, params] = query.getQueryAndParameters();
+  params.forEach((value) => {
+    if (typeof value === 'string') {
+      sql = sql.replace('?', `"${value}"`);
+    }
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        sql = sql.replace(
+          '?',
+          value.map((element) => (typeof element === 'string' ? `"${element}"` : element)).join(','),
+        );
+      } else {
+        sql = sql.replace('?', value);
+      }
+    }
+    if (['number', 'boolean'].includes(typeof value)) {
+      sql = sql.replace('?', value.toString());
+    }
+  });
+
+  console.log(sql);
+}
+

@@ -28,7 +28,7 @@ export class MockMccClient implements ReadRpcInterface {
    getBlockTips?(height_gte: number): Promise<IBlockTip[]> {
       throw new Error("Method not implemented.");
    }
-   getTopLiteBlocks?(branch_len: number): Promise<IBlockTip[]> {
+   getTopLiteBlocks(branch_len: number, read_main?: boolean): Promise<IBlockTip[]> {
       throw new Error("Method not implemented.");
    }
    getBlockHeader(blockNumberOrHash: any): Promise<IBlockHeader> {

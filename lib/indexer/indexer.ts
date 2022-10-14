@@ -826,6 +826,9 @@ export class Indexer {
     await this.saveBottomState();
 
     const startBlockNumber = (await this.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
+
+    this.logger.warning( `${this.chainConfig.name} T=${startBlockNumber}` );
+    
     // initial N initialization - will be later on assigned to DB or sync N
     this.N = startBlockNumber;
 

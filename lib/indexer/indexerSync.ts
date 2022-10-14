@@ -213,7 +213,7 @@ export class IndexerSync {
 
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
-    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN);
+    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN, false);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N

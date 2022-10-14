@@ -15,7 +15,7 @@ export class AttesterClientConfiguration implements IReflection<AttesterClientCo
   public dynamicAttestationConfigurationFolder: string = "./configs/prod/dac/"; //This is not a in current directory ??
 
   // in sec
-  public commitTime: number = 10; //When in the epoch should the commi-reveal data be send
+  public commitTime: number = 10; //How long from the end of the epoch shoud commit-reveal data be sent
 
   // additional empty submit at the beggining of commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds)
   public submitCommitFinalize: boolean = false;

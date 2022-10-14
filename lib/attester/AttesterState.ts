@@ -8,6 +8,11 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
  * Class for storing and fatchig data to and from database???
  */
 export class AttesterState {
+  /**
+   * Save full round data to database
+   * @param round
+   * @param validTransactionCount
+   */
   async saveRound(round: AttestationRound, validTransactionCount: number = 0) {
     const dbRound = new DBRoundResult();
 
@@ -24,6 +29,12 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
+  // Why are there different params for the following methods?
+
+  /**
+   * Save the comment of @param round to database
+   * @param validTransactionCount
+   */
   async saveRoundComment(round: AttestationRound, validTransactionCount: number = 0) {
     const dbRound = new DBRoundResult();
 
@@ -34,6 +45,11 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
+  /**
+   * Save commit data from  @param roundId to database
+   * @param nounce
+   * @param txid
+   */
   async saveRoundCommited(roundId: number, nounce: number, txid: string) {
     const dbRound = new DBRoundResult();
 
@@ -47,6 +63,11 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
+  /**
+   * Save reveal data from @param roundId to database
+   * @param nounce
+   * @param txid
+   */
   async saveRoundRevealed(roundId: number, nounce: number, txid: string) {
     const dbRound = new DBRoundResult();
 
@@ -60,6 +81,9 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
+  /**
+   * Gets the data for @param roundId from database
+   */
   async getRound(roundId: number): Promise<DBRoundResult> {
     var dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: roundId } });
 

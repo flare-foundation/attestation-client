@@ -385,7 +385,8 @@ export class AttestationRound {
   }
 
   /**
-   * First nonempty commit after the attestation client starts running. Does not send reveal data for the previous round?
+   * First nonempty commit after the attestation client starts running. Tries to get reveal data from database otherwise
+   * it does not send reveal data for the previous round?
    */
   async firstCommit(): Promise<void> {
     if (!this.canCommit()) {
@@ -394,7 +395,7 @@ export class AttestationRound {
 
     let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
-    const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1); //Should this be previous
+    const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1); //Should this be previous?
 
     this.attesterWeb3
       .submitAttestation(

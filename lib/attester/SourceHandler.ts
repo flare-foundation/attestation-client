@@ -27,7 +27,7 @@ export class SourceHandler {
     this.onValidateAttestation = onValidateAttestation;
   }
 
-  // How does this relate to validate from ChainNode
+  // How does this relate to validate from ChainNode??
   validate(attestation: Attestation) {
     if (this.attestationCalls >= this.config.maxTotalRoundWeight) {
       attestation.status = AttestationStatus.overLimit;

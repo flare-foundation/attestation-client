@@ -4,7 +4,7 @@ import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";
 
 /**
- *
+ *Class describing with data to establish connection to database
  */
 export class DatabaseConnectOptions {
   @optional() type: string = "mysql";

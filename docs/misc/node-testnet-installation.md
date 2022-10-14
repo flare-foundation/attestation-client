@@ -14,7 +14,6 @@ git config --global --add safe.directory /opt/flare-connected-chains-docker
 sudo git checkout testnets
 
 sudo ./install.sh <password> testnet
-sudo docker-compose -f docker-compose-testnet.yml up -d
 
 sudo ./algorand-catchup.sh
 ```
@@ -24,7 +23,7 @@ Check testnet nodes status
 ```bash
 sudo ./hc-testnet.sh <password>
 ```
-
+rm
 Get all dockers status
 ```bash 
 sudo docker system df --verbose
@@ -51,11 +50,22 @@ Used for `chains.credentials.json`
 "DOGEURL":"http://localhost:44555",
 ```
 
+
+ec78f34baf7e8b3eb7216d6617bb17dc8215997a677dbbe15c6804a4a75b4678
+
 ### Drop and delete testnet nodes and containers
 
 ```bash
 sudo docker-compose -f docker-compose-testnet.yml down
+sudo docker-compose -f docker-compose-testnet.yml up -d
+
+
+
+
+sudo docker system df --verbose
+
 sudo docker volume rm $(sudo docker volume ls -q)
+sudo docker image rm $(sudo docker image ls -q)
 sudo docker volume prune
 sudo docker image prune
 ```

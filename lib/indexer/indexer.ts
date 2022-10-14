@@ -756,10 +756,6 @@ export class Indexer {
         this.logger.debug(`${name} continuity ok`);
       }
     }
-
-    // Andreja Starman
-    // 03 8995 202
-
   }
 
 
@@ -781,9 +777,6 @@ export class Indexer {
       // some parameter settings do not require running indexer
       return;
     }
-
-    // check if indexer database is continous
-    await this.checkDatabaseContinuous();
 
     await this.waitForNodeSynced();
 
@@ -809,6 +802,9 @@ export class Indexer {
       this.chainConfig.minimalStorageHistoryBlocks,
       this.chainConfig.name
     );
+
+    // check if indexer database is continous
+    await this.checkDatabaseContinuous();
 
     // ------- 1. sync blocks from the past -------------------
     await this.indexerSync.runSync(dbStartBlockNumber);

@@ -1,0 +1,47 @@
+{
+  "monorepo": true,
+  "root": "lib/servers/ws-server",
+  "sourceRoot": "lib/servers/ws-server/src",
+  "compilerOptions": {
+    "webpack": true,
+    "tsConfigPath": "lib/servers/ws-server/tsconfig.app.json"
+  },
+  "projects": {
+    "ws-server": {
+      "type": "application",
+      "root": "lib/servers/ws-server",
+      "entryFile": "main",
+      "sourceRoot": "lib/servers/ws-server/src",
+      "compilerOptions": {
+        "tsConfigPath": "lib/servers/ws-server/tsconfig.app.json"
+      }
+    },
+    "web-server": {
+      "type": "application",
+      "root": "lib/servers/web-server",
+      "entryFile": "main",
+      "sourceRoot": "lib/servers/web-server/src",
+      "compilerOptions": {
+        "tsConfigPath": "lib/servers/web-server/tsconfig.app.json",
+        "plugins": [
+          {
+            "name": "@nestjs/swagger",
+            "options": {
+              "classValidatorShim": false,
+              "introspectComments": true
+            }
+          }
+        ]        
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "lib/servers/common",
+      "entryFile": "index",
+      "sourceRoot": "lib/servers/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "lib/servers/common/tsconfig.lib.json"
+      }
+    }
+  }
+}

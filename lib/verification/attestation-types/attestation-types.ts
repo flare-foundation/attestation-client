@@ -5,6 +5,9 @@ import { SourceId } from "../sources/sources";
 // Verification status
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Enumerated verification status of attestation
+ */
 export enum VerificationStatus {
   // Successful verification
   OK = "OK",

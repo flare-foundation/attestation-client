@@ -96,7 +96,7 @@ export function numberLikeToNumber(n: NumberLike): number | undefined {
  * @param list
  * @returns the random element
  */
-export function randomListElement<T>(list: T[]) : T | undefined {
+export function randomListElement<T>(list: T[]): T | undefined {
   let randN = Math.floor(Math.random() * list.length);
   return list[randN];
 }
@@ -162,7 +162,7 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
 
 /**
  * Prefixes hex string with `0x` if the string is not yet prefixed
- * @param tx input hex string with or without `0x` prefi
+ * @param tx input hex string with or without `0x` prefix
  * @returns `0x` prefixed hex string.
  */
 export function prefix0x(tx: string) {

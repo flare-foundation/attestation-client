@@ -47,7 +47,7 @@ export function handleApiResponse<T>(action: Promise<T>): Promise<ApiResponse<T>
   return action.then(
     (resp: T) => new ApiResponse<T>(resp),
     (reason: any) => {
-      throw new ApiResponse<T>(undefined as any, "ERROR", "" + reason, reason);
+      return new ApiResponse<T>(undefined as any, "ERROR", "" + reason, reason);
     }
   );
 }

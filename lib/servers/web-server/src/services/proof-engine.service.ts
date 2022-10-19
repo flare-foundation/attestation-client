@@ -1,6 +1,6 @@
 import { ServerConfigurationService } from '@atc/common';
 import { Injectable } from '@nestjs/common';
-import { InjectConnection, InjectEntityManager } from '@nestjs/typeorm';
+import { InjectEntityManager } from '@nestjs/typeorm';
 import fs from "fs";
 import { EntityManager } from 'typeorm';
 import { AlertStatus, PerformanceInfo } from '../../../../alerts/AlertBase';
@@ -13,12 +13,11 @@ import { VotingRoundResult } from '../dtos/VotingRoundResult.dto';
 
 @Injectable()
 export class ProofEngineService {
-
   constructor(
     private configService: ServerConfigurationService,
-    @InjectEntityManager()
-    private manager: EntityManager
-    ) { }
+    @InjectEntityManager("attesterDatabase") private manager: EntityManager
+  ) {}
+
   // never expiring cache. Once round data are finalized, they do not change.
   // cache expires only on process restart.
   private cache = {};

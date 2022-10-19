@@ -1,18 +1,12 @@
+import { ServerCredentials } from "@atc/common";
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { readCredentials } from "../../../../utils/config";
 import { getGlobalLogger } from "../../../../utils/logger";
-import { ServerCredentials } from "@atc/common";
-import { DBAttestationRequest } from "../../../../entity/attester/dbAttestationRequest";
-import { DBRoundResult } from "../../../../entity/attester/dbRoundResult";
-import { DBVotingRoundResult } from "../../../../entity/attester/dbVotingRoundResult";
 
-export async function createTypeOrmOptions(databaseName: string, loggerLabel: string): Promise<TypeOrmModuleOptions> {
-   const credentials = readCredentials(new ServerCredentials(), "backend").attesterDatabase;
-
+export async function createTypeOrmOptions(configKey: string, loggerLabel: string, entities: any[]): Promise<TypeOrmModuleOptions> {
+   const credentials = readCredentials(new ServerCredentials(), "backend")[configKey];
+   let databaseName = credentials.database;
    let logger = getGlobalLogger(loggerLabel);
-
-   const entities = [DBAttestationRequest, DBRoundResult, DBVotingRoundResult]
-
    logger.info(
       `^Yconnecting to database ^g^K${databaseName}^^ at ${credentials.host} on port ${credentials.port} as ${credentials.username} (^W${process.env.NODE_ENV}^^)`
    );

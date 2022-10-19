@@ -6,6 +6,7 @@ export class ServerCredentials implements IReflection<ServerCredentials> {
    port: number = 9500;
    web = new AttesterWebOptions();
    attesterDatabase = new DatabaseConnectOptions();
+   indexerDatabase = new DatabaseConnectOptions();
  
    instanciate(): ServerCredentials {
      return new ServerCredentials();

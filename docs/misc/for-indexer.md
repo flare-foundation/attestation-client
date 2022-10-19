@@ -139,11 +139,11 @@ systemctl --user start indexer-doge.service
 
 systemctl --user start coston-attester-client.service
 
-systemctl --user start coston2-spammer-btc.service
-systemctl --user start coston2-spammer-ltc.service
-systemctl --user start coston2-spammer-xrp.service
-systemctl --user start coston2-spammer-algo.service
-systemctl --user start coston2-spammer-doge.service
+systemctl --user restart coston2-spammer-btc.service
+systemctl --user restart coston2-spammer-ltc.service
+systemctl --user restart coston2-spammer-xrp.service
+systemctl --user restart coston2-spammer-algo.service
+systemctl --user restart coston2-spammer-doge.service
 
 systemctl --user start coston-backend.service
 

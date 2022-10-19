@@ -1,6 +1,6 @@
 import { ChainType, IBlock, IBlockHeader, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
-import { EntityTarget, Like } from "typeorm";
+import { EntityTarget } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -575,7 +575,12 @@ export class Indexer {
 
   async dropAllStateInfo() {
     this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
-    await this.dbService.manager.delete(DBState, { name: Like(`${this.chainConfig.name}_%`) });
+    
+    await this.dbService.manager.createQueryBuilder()
+      .delete()
+      .from(DBState)
+      .where( "`name` like :name" , {name:`%${this.chainConfig.name}_%`})
+      .execute();
   }
 
   /**
@@ -683,11 +688,18 @@ export class Indexer {
     const fullHistory = !this.bottomBlockTime ? false : blockNp1.unixTimestamp - this.bottomBlockTime > syncTimeSec;
     let dbStatus;
     if (!fullHistory) {
+      let min = Math.ceil( (syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60 );
+      let hr = 0;
+      if( min > 90 ) {
+        hr = Math.floor( min / 60 );
+        min -= hr * 60;
+      }
+
       dbStatus = this.getStateEntryString(
         "state",
         "running-sync",
         this.processedBlocks,
-        `N=${this.N} T=${this.T} (history is not ready: missing ${(syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60} min)`
+        `N=${this.N} T=${this.T} (missing ${( hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, '0')}` ) })`
       );
     } else if (!NisReady) {
       dbStatus = this.getStateEntryString(
@@ -698,7 +710,7 @@ export class Indexer {
       );
     } else {
       dbStatus = this.getStateEntryString("state", "running", this.processedBlocks, `N=${this.N} T=${this.T}`);
-    }
+    }    
     this.processedBlocks++;
     await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
   }

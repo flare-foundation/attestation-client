@@ -1,6 +1,6 @@
 import { AttesterWebOptions } from "../../../../attester/AttesterClientConfiguration";
 import { DatabaseConnectOptions } from "../../../../utils/databaseService";
-import { AdditionalTypeInfo, IReflection } from "../../../../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
 
 export class ServerCredentials implements IReflection<ServerCredentials> {
    port: number = 9500;

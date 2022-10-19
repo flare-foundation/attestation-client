@@ -1,90 +1,43 @@
 import { getGlobalLogger, logException } from "./logger";
-import { IReflection, isEqualType } from "./typeReflection";
+import { IReflection } from "./reflection";
+import { isEqualType } from "./typeReflection";
 
 const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
-
-
-var clarinet = require('clarinet');
-
-
-/**
-   * Extract a detailed JSON parse error 
-   * using https://github.com/dscape/clarinet
-   * 
-   * @param {string} json
-   * @returns {{snippet:string, message:string, line:number, column:number, position:number}} or undefined if no error
-   */
-function getJSONParseError(json) {
-  var parser = clarinet.parser(),
-    firstError = undefined;
-
-  // generate a detailed error using the parser's state
-  function makeError(e) {
-    var currentNL = 0, nextNL = json.indexOf('\n'), line = 1;
-    while (line < parser.line) {
-      currentNL = nextNL;
-      nextNL = json.indexOf('\n', currentNL + 1);
-      ++line;
-    }
-    return {
-      snippet: json.substr(currentNL + 1, nextNL - currentNL - 1),
-      message: (e.message || '').split('\n', 1)[0],
-      line: parser.line,
-      column: parser.column
-    }
-  }
-
-  // trigger the parse error
-  parser.onerror = function (e) {
-    firstError = makeError(e);
-    parser.close();
-  };
+export function parseJSON<T>(data: string, reviver: any = null) {
   try {
-    parser.write(json).close();
-  } catch (e) {
-    if (firstError === undefined) {
-      return makeError(e);
-    } else {
-      return firstError;
-    }
-  }
+    // remove all comments
+    data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
 
-  return firstError;
+    // remove trailing commas
+    data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
+
+    //console.log( data );
+
+    const res = JSON.parse(data, reviver) as T;
+
+    return res;
+  }
+  catch (error) {
+    getGlobalLogger().error(`error parsing JSON`);
+  }
 }
 
+export function readJSON<T>(filename: string, reviver: any = null) {
+  try {
+    const fs = require("fs");
 
+    let data = fs.readFileSync(filename).toString();
 
-export function readJSON<T>(filename: string, parser: any = null, validate = false) {
-  const fs = require("fs");
-
-  let data = fs.readFileSync(filename).toString();
-
-  // remove all comments
-  data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
-
-  // remove trailing commas
-  data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
-
-  //console.log( data );
-
-  if (validate) {
-    var validateRes = getJSONParseError(data);
-
-    if (validateRes) {
-      getGlobalLogger().error(`readJSON error ^r^W${validateRes.message}^^ file ^e${filename}^w@${validateRes.line}^^ (snippet ^w^K${validateRes.snippet}^^)`);
-      throw new Error( `error parsing json file ${filename}@${validateRes.line}: ${validateRes.message}`);
-      return null;
-    }
+    return parseJSON<T>(data, reviver)
   }
-
-  const res = JSON.parse(data, parser) as T;
-
-  return res;
+  catch (error) {
+    getGlobalLogger().error(`error reading JSON '${filename}'`);
+  }
 }
 
-function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
+export function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
   let path = `./configs/`;
 
   if (userPath && userPath !== "") {

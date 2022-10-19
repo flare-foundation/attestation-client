@@ -1,26 +1,29 @@
-export CHAIN=$1
-export TYPE=$2
+echo -e "SKIP"
 
-export CURRENT_DIR=$(pwd)
-export WORKDIR="$CHAIN/$TYPE"
-export MCC_WORKDIR="$CHAIN/multi-chain-client"
-export DEPLOY_NAME="$TYPE"
 
-export MCC_LOCAL_FOLDER="../multi-chain-client"
-export FNAME=latest-spammer.tgz
-export MCC_FNAME=mcc.tgz
-export BACKUPDIR="$CHAIN/.backup"
-export CONFIGDIR="$CHAIN/.config"
+# export CHAIN=$1
+# export TYPE=$2
 
-export BRANCH=main
-export MCC_BRANCH=main
+# export CURRENT_DIR=$(pwd)
+# export WORKDIR="$CHAIN/$TYPE"
+# export MCC_WORKDIR="$CHAIN/multi-chain-client"
+# export DEPLOY_NAME="$TYPE"
 
-export SERVICE_NAME="$CHAIN-$TYPE"
+# export MCC_LOCAL_FOLDER="../multi-chain-client"
+# export FNAME=latest-spammer.tgz
+# export MCC_FNAME=mcc.tgz
+# export BACKUPDIR="$CHAIN/.backup"
+# export CONFIGDIR="$CHAIN/.config"
 
-# main script
-bash ./scripts/deploy-copy-internal
+# export BRANCH=main
+# export MCC_BRANCH=main
 
-# Restart the app as a service.
-echo -e "${GREENBOLD}Restarting $CHAIN service $SERVICE_NAME"
-bash ./scripts/restart-service.sh  $SERVICE_NAME
-echo -e "${GREENBOLD}Done.${NC}"
+# export SERVICE_NAME="$CHAIN-$TYPE"
+
+# # main script
+# bash ./scripts/deploy-copy-internal
+
+# # Restart the app as a service.
+# echo -e "${GREENBOLD}Restarting $CHAIN service $SERVICE_NAME"
+# bash ./scripts/restart-service.sh  $SERVICE_NAME
+# echo -e "${GREENBOLD}Done.${NC}"

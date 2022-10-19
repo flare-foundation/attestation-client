@@ -32,9 +32,9 @@ async function prepareInstall(name: string, chain: string, first = false) {
   let configs = [];
   try {
     configs = [
-      readJSON<any>(`${credentialsDir}/chains.credentials.json`, null, true),
-      readJSON<any>(`${credentialsDir}/database.credentials.json`, null, true),
-      readJSON<any>(`${credentialsDir}/networks.credentials.json`, null, true),
+      readJSON<any>(`${credentialsDir}/chains.credentials.json`, null),
+      readJSON<any>(`${credentialsDir}/database.credentials.json`, null),
+      readJSON<any>(`${credentialsDir}/networks.credentials.json`, null),
     ];
   }
   catch (error) {
@@ -46,9 +46,9 @@ async function prepareInstall(name: string, chain: string, first = false) {
   let templates = [];
   try {
     templates = [
-      readJSON<any>(`${templateDir}/chains.credentials.json`, null, true),
-      readJSON<any>(`${templateDir}/database.credentials.json`, null, true),
-      readJSON<any>(`${templateDir}/networks.credentials.json`, null, true),
+      readJSON<any>(`${templateDir}/chains.credentials.json`, null),
+      readJSON<any>(`${templateDir}/database.credentials.json`, null),
+      readJSON<any>(`${templateDir}/networks.credentials.json`, null),
     ];
   }
   catch (error) {

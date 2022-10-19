@@ -55,7 +55,7 @@ const fs = require("fs");
 
 let configs = [];
 function readConfig(filename: string) {
-  var config = readJSON<any>(filename, null, true);
+  var config = readJSON<any>(filename, null);
 
   for (let key of Object.keys(config)) {
 

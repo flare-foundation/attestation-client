@@ -1,5 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
-import { AdditionalTypeInfo, IReflection } from "../../../../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
 
 export class ServerConfiguration implements IReflection<ServerConfiguration> {
   // start epoch in sec

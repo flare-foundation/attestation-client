@@ -1,4 +1,5 @@
 import BN from "bn.js";
+import { AttestationType } from "../generated/attestation-types-enum";
 import { SourceId } from "../sources/sources";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +36,9 @@ export enum VerificationStatus {
   NON_EXISTENT_OUTPUT_UTXO_ADDRESS = "NON_EXISTENT_OUTPUT_UTXO_ADDRESS",
 
   PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR",
+
+  GENERIC_ERROR = "GENERIC_ERROR",
+  EXCEPTION = "EXCEPTION",
 }
 
 export interface Verification<R, T> {

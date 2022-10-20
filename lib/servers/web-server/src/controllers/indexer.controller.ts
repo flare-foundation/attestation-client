@@ -71,5 +71,13 @@ export class IndexerController {
   ): Promise<ApiResponse<DBBlockBase>> {
     return handleApiResponse(this.indexerEngine.getTransactionBlock(chain, txHash));
   }
+
+  @Get("chain/:chain/transactions/payment-reference:reference")
+  public async transactionsWithPaymentReference(
+    @Param('chain') chain: string,
+    @Param('reference') reference: string
+  ): Promise<ApiResponse<DBTransactionBase[]>> {
+    return handleApiResponse(this.indexerEngine.getTransactionsWithPaymentReference(chain, reference));
+  }
   
 }

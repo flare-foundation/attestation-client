@@ -152,4 +152,25 @@ export class IndexerEngineService {
       return null;
     }
 
+    public async getTransactionsWithPaymentReference(chain: string, reference: string): Promise<DBTransactionBase[]> {
+      let chainType = MCC.getChainType(chain);
+      if (chainType === ChainType.invalid) {
+        throw new Error(`Unsupported chain '${chain}'`);
+      }
+      let results: any[] = [];
+      let { transactionTable } = prepareIndexerTables(chainType);
+      for (let table of transactionTable) {
+        let query = this.manager
+          .createQueryBuilder(table as any, "transaction")
+          .andWhere("transaction.paymentReference = :reference", { reference });
+        results = results.concat(await query.getMany());
+      }
+      return results.map(res => {
+        if (res.response) {
+          res.response = JSON.parse(res.response);
+        }
+        return res;
+      }) as DBTransactionBase[];
+    }
+
   }

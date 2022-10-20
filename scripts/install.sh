@@ -17,7 +17,6 @@ yarn ts-node lib/install/install-file.ts -i .config.secret.sh -o .config.secret.
 
 source ./scripts/install-check.sh
 
-
 # install services
 bash ./scripts/install-services.sh
 
@@ -41,10 +40,6 @@ if $INSTALL_FRONTEND; then
     source ./scripts/install-nginx.sh
     source ./scripts/install-frontend.sh
 fi
-
-# deploy
-echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"
-source ./scripts/deploy-all.sh
 
 # update config
 source ./scripts/update-config.sh

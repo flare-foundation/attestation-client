@@ -42,7 +42,7 @@ export class DatabaseService {
     const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
 
     this.logger.info(
-      `^Yconnecting to database ^g^K${this.databaseName}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
+      `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
     );
     this.logger.debug2(`entity: ${entities}`);
 

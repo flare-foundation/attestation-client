@@ -1,6 +1,7 @@
 import { ApiResponse, handleApiResponse } from '@atc/common';
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { DBBlockBase } from '../../../../entity/indexer/dbBlock';
 import { DBState } from '../../../../entity/indexer/dbState';
 import { DBTransactionBase } from '../../../../entity/indexer/dbTransaction';
 import { BlockRange } from '../dtos/BlockRange.dto';
@@ -32,4 +33,43 @@ export class IndexerController {
     return handleApiResponse(this.indexerEngine.getBlockTransactions(chain, blockNumber));
   }
 
+  @Get("chain/:chain/transaction/:txHash")
+  public async transaction(
+    @Param('chain') chain: string,
+    @Param('txHash') txHash: string
+  ): Promise<ApiResponse<DBTransactionBase>> {
+    return handleApiResponse(this.indexerEngine.getTransaction(chain, txHash));
+  }
+
+  @Get("chain/:chain/block/:blockHash")
+  public async block(
+    @Param('chain') chain: string,
+    @Param('blockHash') blockHash: string
+  ): Promise<ApiResponse<DBBlockBase>> {
+    return handleApiResponse(this.indexerEngine.getBlock(chain, blockHash));
+  }
+
+  @Get("chain/:chain/block/:blockNumber")
+  public async blockAt(
+    @Param('chain') chain: string,
+    @Param('blockNumber', new ParseIntPipe()) blockNumber: number
+  ): Promise<ApiResponse<DBBlockBase>> {
+    return handleApiResponse(this.indexerEngine.getBlockAt(chain, blockNumber));
+  }
+
+  @Get("chain/:chain/blockHeight")
+  public async blockHeight(
+    @Param('chain') chain: string,
+  ): Promise<ApiResponse<number>> {
+    return handleApiResponse(this.indexerEngine.getBlockHeight(chain));
+  }
+
+  @Get("chain/:chain/transactionBlock/:txHash")
+  public async transactionBlock(
+    @Param('chain') chain: string,
+    @Param('txHash') txHash: string
+  ): Promise<ApiResponse<DBBlockBase>> {
+    return handleApiResponse(this.indexerEngine.getTransactionBlock(chain, txHash));
+  }
+  
 }

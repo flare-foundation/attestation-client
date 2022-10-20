@@ -49,7 +49,7 @@ export class IndexerController {
     return handleApiResponse(this.indexerEngine.getBlock(chain, blockHash));
   }
 
-  @Get("chain/:chain/block/:blockNumber")
+  @Get("chain/:chain/block-at/:blockNumber")
   public async blockAt(
     @Param('chain') chain: string,
     @Param('blockNumber', new ParseIntPipe()) blockNumber: number
@@ -57,14 +57,14 @@ export class IndexerController {
     return handleApiResponse(this.indexerEngine.getBlockAt(chain, blockNumber));
   }
 
-  @Get("chain/:chain/blockHeight")
+  @Get("chain/:chain/block-height")
   public async blockHeight(
     @Param('chain') chain: string,
   ): Promise<ApiResponse<number>> {
     return handleApiResponse(this.indexerEngine.getBlockHeight(chain));
   }
 
-  @Get("chain/:chain/transactionBlock/:txHash")
+  @Get("chain/:chain/transaction-block/:txHash")
   public async transactionBlock(
     @Param('chain') chain: string,
     @Param('txHash') txHash: string

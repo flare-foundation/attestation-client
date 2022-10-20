@@ -1,5 +1,5 @@
 import { ServerConfigurationService } from '@atc/common';
-import { ChainType, MCC } from '@flarenetwork/mcc';
+import { ChainType, MCC, toCamelCase } from '@flarenetwork/mcc';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
@@ -85,8 +85,13 @@ export class IndexerEngineService {
         .andWhere("transaction.transactionId = :txHash", { txHash });
       results = results.concat(await query.getOne());
     }
-    if (results.length > 0) {
-      return results[0] as DBTransactionBase;
+    for (let res of results) {
+      if (res) {
+        if (res.response) {
+          res.response = JSON.parse(res.response);
+        }
+        return res as DBTransactionBase;
+      }
     }
     return null;
   }
@@ -117,7 +122,7 @@ export class IndexerEngineService {
     return result;
   }
 
-  public async getBlockHeight(chain: string): Promise<number> | null{
+  public async getBlockHeight(chain: string): Promise<number> | null {
     let chainType = MCC.getChainType(chain);
     if (chainType === ChainType.invalid) {
       throw new Error(`Unsupported chain '${chain}'`);
@@ -139,20 +144,12 @@ export class IndexerEngineService {
     if (chainType === ChainType.invalid) {
       throw new Error(`Unsupported chain '${chain}'`)
     }
-    let results: any[] = [];
-    let { transactionTable } = prepareIndexerTables(chainType);
-    for (let table of transactionTable) {
-      let query = this.manager
-        .createQueryBuilder(table as any, "transaction")
-        .andWhere("transaction.transactionId = :txHash", { txHash });
-      results = results.concat(await query.getMany());
+    const tx = await this.getTransaction(chain, txHash);
+    if (tx) {
+        const block = await this.getBlockAt(chain, tx.blockNumber);
+        return block;
+      }
+      return null;
     }
-    if (results.length > 0) {
-      const tx = results[0] as DBTransactionBase;
-      const block = await this.getBlockAt(chain, tx.blockNumber);
-      return block;
-    }
-    return null;
-  }
 
-}
+  }

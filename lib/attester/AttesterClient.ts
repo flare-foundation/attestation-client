@@ -121,9 +121,9 @@ export class AttesterClient {
       // handle Attestation Request
 
       if (event.event === "AttestationRequest") {
-        const attestation = new AttestationData(event);
+        const attestationData = new AttestationData(event);
 
-        this.roundMng.attestate(attestation);
+        this.roundMng.attestate(attestationData);
       }
     } catch (error) {
       logException(error, `processEvent(AttestationRequest)`);

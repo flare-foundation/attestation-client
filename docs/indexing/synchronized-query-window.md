@@ -41,9 +41,9 @@ On the indexer side we can take care of the following things:
 
 On the querying side we take the following approach. A _confirmation block_ is a block that confirms certain past block. For example, if `numberOfConfirmations` for Bitcoin is 6, this means there must exist 5 more blocks and a block on height `blockNumber + 5` (in general `blockNumber + numberOfConfirmation - 1`) is called a _confirmation block_ for height `blockNumber`.
 
-> Not consistant with the above
+> Not consistant with the above!!!
 
-When querying, the mandatory input into the query (???query or request???) is the hash of the confirmation block for the query window upper boundary block. We indicate the hash as the `upperBoundProof`. Given the `upperBoundProof`, a block with this hash is first determined from the block table in the database. Let `H` be the height of this block, then the upper query boundary is defined by `H - numberOfConfirmations + 1`. Surely, blocks up to such height are confirmed.
+When querying, the mandatory input into the query is the hash of the confirmation block for the query window upper boundary block. We indicate the hash as the `upperBoundProof`. ??An upperBoundProof is provided in the Attestation request? Where is it read??. Given the upperBoundProof, a block with this hash is first determined from the block table in the database. Let `H` be the height of this block, then the upper query boundary is defined by `H - numberOfConfirmations + 1`. Surely, blocks up to such height are confirmed.
 
 Following the discussion above, two things that prevent us from getting the synchronized upper window query boundary can happen while querying an indexer:
 

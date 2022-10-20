@@ -9,3 +9,5 @@
 - dbVotingRoundResult.ts the name does not match the actual purpose?
 
 - to many functions contain "validate" in their name!!!
+
+- how is UBProof provided?

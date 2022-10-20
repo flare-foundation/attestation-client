@@ -408,6 +408,18 @@ export class Indexer {
         if (transactions.length > 0) {
           await transaction.save(transactions);
         }
+        else {
+          // save dummy transaction to keep transaction table block continuity
+          this.logger.debug(`block ${block.blockNumber} no transactions`);
+
+          const table = new (this.getActiveTransactionWriteTable() as any)();
+
+          table.chainType = this.cachedClient.client.chainType;
+          table.blockNumber = block.blockNumber;
+          table.transactionType = "EMPTY_BLOCK_INDICATOR";
+
+          await transaction.save( table );
+        }
 
         await transaction.save(block);
         await transaction.save(stateEntries);
@@ -772,12 +784,12 @@ export class Indexer {
 
     const queryTable0 = this.dbService.manager.createQueryBuilder()
       .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
-      .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx ")
+      .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx")
       .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
 
     const queryTable1 = this.dbService.manager.createQueryBuilder()
       .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
-      .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx ")
+      .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx")
       .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
 
     const table0missing = await queryTable0.getRawOne();
@@ -785,7 +797,7 @@ export class Indexer {
 
     if (table0missing && table0missing.missing) {
       if (table0missing.missing != 0) {
-        this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0]`);
+        this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
 
         await this.interlace.resetAll();
 

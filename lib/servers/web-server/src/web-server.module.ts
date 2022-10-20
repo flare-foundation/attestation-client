@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DBAttestationRequest } from '../../../entity/attester/dbAttestationRequest';
 import { DBRoundResult } from '../../../entity/attester/dbRoundResult';
 import { DBVotingRoundResult } from '../../../entity/attester/dbVotingRoundResult';
-import { DBBlockBase } from '../../../entity/indexer/dbBlock';
+import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from '../../../entity/indexer/dbBlock';
 import { DBState } from '../../../entity/indexer/dbState';
 import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from '../../../entity/indexer/dbTransaction';
 import { IndexerController } from './controllers/indexer.controller';
@@ -31,7 +31,9 @@ import { createTypeOrmOptions } from './utils/db-config';
         DBTransactionBTC0, DBTransactionBTC1,
         DBTransactionDOGE0, DBTransactionDOGE1,
         DBTransactionLTC0, DBTransactionLTC1,
-        DBTransactionXRP0, DBTransactionXRP1 
+        DBTransactionXRP0, DBTransactionXRP1,
+        DBBlockALGO, DBBlockBTC, DBBlockDOGE,
+        DBBlockLTC, DBBlockXRP
       ]),
     }),
   ],

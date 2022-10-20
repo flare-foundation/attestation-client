@@ -306,7 +306,7 @@ export class ChainNode {
   }
 
   /**
-   *If possible the attestation is processed, otherwise it is added  the queue
+   *If possible the attestation is processed, otherwise it is added the queue
    * @param attestation
    */
   validate(attestation: Attestation): void {

@@ -175,6 +175,9 @@ export class AttestationRoundManager {
     return activeRound;
   }
 
+  /**
+   * Creates an attestation from attestation data and adds it to the active round
+   */
   async attestate(attestationData: AttestationData) {
     const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
 

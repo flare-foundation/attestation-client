@@ -100,8 +100,7 @@ export class AttestationRound {
   }
 
   /**
-   * Adds the @param attestation to the list of attestations for this round
-   * @returns
+   * Adds the @param attestation to the list of attestations for this round and starts the validation process
    */
   addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
@@ -191,7 +190,7 @@ export class AttestationRound {
   }
 
   /**
-   * Commits if all attestations are procesed and if commit epoch has started
+   * Commits if all attestations are procesed and commit epoch has started
    */
   async tryTriggerCommit(): Promise<void> {
     if (this.attestationsProcessed === this.attestations.length) {

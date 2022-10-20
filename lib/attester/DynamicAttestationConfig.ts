@@ -19,32 +19,40 @@ export class SourceHandlerTypeConfig {
 
 // Why are these below classes??
 
-//What is the purpose of this?
+/**
+ * Class providing parameters for handling the limitations (maxTotalRoundWeight, quieryWindowInSec...) of a attestation round for a source
+ */
 export class SourceHandlerConfig {
-  attestationType!: AttestationType;
+  attestationType!: AttestationType; //Not needed?
   source!: SourceId;
 
-  maxTotalRoundWeight!: number; //limits the the weighted amount of attestation per round
+  maxTotalRoundWeight!: number; //limits the the weighted amount of attestation for a given source per round
 
   numberOfConfirmations: number = 1;
 
   queryWindowInSec!: number; // To query what? Also not specified in doc
   UBPUnconfirmedWindowInSec!: number;
 
-  attestationTypes = new Map<number, SourceHandlerTypeConfig>(); //What is number representing? (number=AttestationType)???
+  attestationTypes = new Map<AttestationType, SourceHandlerTypeConfig>(); //What is number representing? (number=AttestationType)???
 }
 
+/**
+ * Class providing SourceHandlerConfig for each source from the startEpoche on??
+ */
 export class AttestationConfig {
   startEpoch!: number; // start epoch of what? Epoch when this config starts being used??
 
-  sourceHandlers = new Map<number, SourceHandlerConfig>(); //What is number representing? (number=SourceID)???
+  sourceHandlersConfig = new Map<SourceId, SourceHandlerConfig>(); //What is number representing? (number=SourceID)???
 }
 
+/**
+ * Class for managing AttestationConfigs
+ */
 export class AttestationConfigManager {
   config: AttesterClientConfiguration;
   logger: AttLogger;
 
-  attestationConfig = new Array<AttestationConfig>(); //?????
+  attestationConfigs = new Array<AttestationConfig>(); //?????
 
   constructor(config: AttesterClientConfiguration, logger: AttLogger) {
     this.config = config;
@@ -85,6 +93,9 @@ export class AttestationConfigManager {
     this.dynamicLoadInitialize();
   }
 
+  /**
+   * Check for changes in dynamicAttestationConfigurationFolder and loads new files
+   */
   dynamicLoadInitialize(): void {
     try {
       fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
@@ -101,6 +112,9 @@ export class AttestationConfigManager {
     }
   }
 
+  /**
+   * Loads all AttestationConfig that are stored in dynamicAttestationConfigurationFolder
+   */
   async loadAll(): Promise<void> {
     try {
       await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err: number, files: string[]) => {
@@ -119,10 +133,7 @@ export class AttestationConfigManager {
   }
 
   /**
-   *Loads sourceHandlerConfigs from @param filename and matches them to the sourceHandlers to the right source.
-   *
-   * @param disregardObsolete
-   * @returns
+   * Loads AttestationConfig from @param filename
    */
   load(filename: string, disregardObsolete: boolean = false): boolean {
     this.logger.info(`^GDAC load '${filename}'`);
@@ -148,7 +159,7 @@ export class AttestationConfigManager {
         numberOfConfirmations: number;
         maxTotalRoundWeight: number;
       }) => {
-        const sourceHandlerConfig = new SourceHandlerConfig();  //sourceHandler is not equal to SourceHandlerConfig
+        const sourceHandlerConfig = new SourceHandlerConfig(); //sourceHandler is not equal to SourceHandlerConfig
 
         sourceHandlerConfig.source = toSourceId(source.source);
 
@@ -157,7 +168,7 @@ export class AttestationConfigManager {
         sourceHandlerConfig.queryWindowInSec = source.queryWindowInSec;
         sourceHandlerConfig.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
 
-        config.sourceHandlers.set(sourceHandlerConfig.source, sourceHandlerConfig);
+        config.sourceHandlersConfig.set(sourceHandlerConfig.source, sourceHandlerConfig);
 
         // parse attestationTypes
         source.attestationTypes.forEach((attestationType) => {
@@ -172,33 +183,40 @@ export class AttestationConfigManager {
       }
     );
 
-    this.attestationConfig.push(config);
+    this.attestationConfigs.push(config);
 
     return true;
   }
 
+  /**
+   * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epoches
+   */
   orderConfigurations() {
-    this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {
+    this.attestationConfigs.sort((a: AttestationConfig, b: AttestationConfig) => {
       if (a.startEpoch < b.startEpoch) return 1;
       if (a.startEpoch > b.startEpoch) return -1;
       return 0;
     });
 
     // cleanup
-    for (let a = 1; a < this.attestationConfig.length; a++) {
-      if (this.attestationConfig[a].startEpoch < AttestationRoundManager.activeEpochId) {
-        this.logger.debug(`DAC cleanup #${a} (epoch ${this.attestationConfig[a].startEpoch})`);
-        this.attestationConfig.slice(a);
+    for (let a = 1; a < this.attestationConfigs.length; a++) {
+      if (this.attestationConfigs[a].startEpoch < AttestationRoundManager.activeEpochId) {
+        this.logger.debug(`DAC cleanup #${a} (epoch ${this.attestationConfigs[a].startEpoch})`);
+        this.attestationConfigs.slice(a);
         return;
       }
     }
   }
 
+  /**
+   * @returns SourceHandlerConfig for a given @param source that is valid for in @param epoch
+   * ??? If there is none it returnes a default SourceHandlerConfig???
+   */
   getSourceHandlerConfig(source: number, epoch: number): SourceHandlerConfig {
     // configs must be ordered by decreasing epoch number
-    for (let a = 0; a < this.attestationConfig.length; a++) {
-      if (this.attestationConfig[a].startEpoch < epoch) {
-        return this.attestationConfig[a].sourceHandlers.get(source)!;
+    for (let a = 0; a < this.attestationConfigs.length; a++) {
+      if (this.attestationConfigs[a].startEpoch < epoch) {
+        return this.attestationConfigs[a].sourceHandlersConfig.get(source)!;
       }
     }
 

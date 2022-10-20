@@ -11,6 +11,9 @@ export interface EventValidateAttestation {
   (attestation: Attestation): void;
 }
 
+/**
+ * A Class
+ */
 export class SourceHandler {
   config: SourceHandlerConfig;
 
@@ -18,7 +21,7 @@ export class SourceHandler {
 
   onValidateAttestation: EventValidateAttestation;
 
-  attestationCalls = 0;
+  currentRoundWeight = 0;
 
   constructor(round: AttestationRound, sourceId: SourceId, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
@@ -27,9 +30,11 @@ export class SourceHandler {
     this.onValidateAttestation = onValidateAttestation;
   }
 
-  // How does this relate to validate from ChainNode??
+  /**
+   * If the maxTotalRoundWeight is not reached, adds the weight of the attestation to the currentRoundWeight and puts the attestation to be validated.
+   */
   validate(attestation: Attestation) {
-    if (this.attestationCalls >= this.config.maxTotalRoundWeight) {
+    if (this.currentRoundWeight >= this.config.maxTotalRoundWeight) {
       attestation.status = AttestationStatus.overLimit;
       attestation.onProcessed!(attestation);
       return;
@@ -45,8 +50,8 @@ export class SourceHandler {
       return;
     }
 
-    this.attestationCalls += typeConfig!.weight;
+    this.currentRoundWeight += typeConfig!.weight;
 
-    this.onValidateAttestation!(attestation);
+    this.onValidateAttestation!(attestation); //Hard to find where this is set!!! This is set in createAttestation from AttestationRoundManager
   }
 }

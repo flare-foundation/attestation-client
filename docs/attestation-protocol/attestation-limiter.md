@@ -10,7 +10,7 @@ Therefore, it suffices to set up a limiting mechanism for each data source indep
 
 - We assign to each attestation type a weight. If the attestation request uses just a few queries in the indexer database the weight is 1. Otherwise, it is higher.
 - We assign to the source (say Bitcoin related requests) the total round weight.
-- As events for attestation requests are being read by the attestation client, only a number of the unique attestations that come in for a specific source is considered. Duplicated requests are skipped. If the total round weight is exceeded, the last request considered is the one that by adding its weight we reach or exceed the total weight limit. All later requests are automatically rejected. They can be resubmitted into the next rounds.
+- As events for attestation requests are being read by the attestation client, duplicated requests are skipped, thus, each attestation that comes in for a specific source is considered only once. If the total round weight is exceeded, the last request considered is the one that by adding its weight we reach or exceed the total weight limit. All later requests are automatically rejected. They can be resubmitted into the next rounds.
 - This mechanism introduces a "natural" competition on the Flare network. If a requester wants to submit earlier in the collect phase, it should use a higher gas price to get into block earlier.
 
 In the future we plan to introduce sender-based priority passes or whitelists, if the issue with competition becomes severe. In such a case attestation providers would consider requests sent by specific senders as higher priority.

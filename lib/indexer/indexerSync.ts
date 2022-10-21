@@ -254,7 +254,7 @@ export class IndexerSync {
       this.logger.error(`runSync possible gap detected DB_N=${dbStartBlockNumber} Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`);
 
       // drop both tables
-      await this.indexer.interlace.resetAll();
+      //await this.indexer.interlace.resetAll();
 
       exit(4);
     }

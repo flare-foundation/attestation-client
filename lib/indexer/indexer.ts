@@ -799,7 +799,7 @@ export class Indexer {
       if (table0missing.missing != 0) {
         this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
 
-        await this.interlace.resetAll();
+        //await this.interlace.resetAll();
 
         this.logger.debug(`restarting`);
         exit(3);

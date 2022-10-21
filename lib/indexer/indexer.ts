@@ -440,7 +440,7 @@ export class Indexer {
     this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms)`);
 
     // table interlacing
-    if (this.interlace.update(block.timestamp, block.blockNumber)) {
+    if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
       await this.saveBottomState();
     }

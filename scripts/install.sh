@@ -18,6 +18,7 @@ yarn ts-node lib/install/install-file.ts -i .config.secret.sh -o .config.secret.
 source ./scripts/install-check.sh
 
 # install services
+sudo loginctl enable-linger ubuntu
 bash ./scripts/install-services.sh
 
 # prepare configurations

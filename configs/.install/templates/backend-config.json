@@ -1,6 +1,6 @@
 {
     "firstEpochStartTime":1636070400,
     "roundDurationSec": 90,
-    "serviceStatusFilePath": "../../global/attester-status.json",
+    "serviceStatusFilePath": "../attester-status.json",
     "deploymentName": "Coston"
 }

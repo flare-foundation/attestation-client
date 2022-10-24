@@ -28,14 +28,17 @@ export class Queue<T> {
   }
 
   public get first(): T {
-    if(this.size > 0) {
+    if (this.size > 0) {
       return this.data[this.head];
     }
     throw Error("Empty queue");
   }
 
+  //Is this the desired outcome???
   public destroy() {
     delete this.data;
     this.data = {};
+    this.tail = 0;
+    this.head = 0;
   }
 }

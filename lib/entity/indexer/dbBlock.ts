@@ -1,5 +1,8 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
+/**
+ * Format for storing block data in indexer database
+ */
 // @Entity({name:"block"})
 export class DBBlockBase {
   @PrimaryColumn({ type: "varchar" })
@@ -28,7 +31,6 @@ export class DBBlockBase {
   @Column({ nullable: true })
   @Index()
   previousBlockHash: string;
-
 }
 
 @Entity({ name: "btc_block" })

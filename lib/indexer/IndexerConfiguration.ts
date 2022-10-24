@@ -4,7 +4,7 @@ import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
 export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
   @optional() public syncEnabled: boolean = true;
-  @optional() public syncTimeDays: number = 2;
+  @optional() public syncTimeDays: number = 2; //  Default setting for how many days in the past we store data??
   @optional() public blockCollectTimeMs: number = 1000;
 
   @optional() public syncUpdateTimeMs: number = 10000;
@@ -17,6 +17,7 @@ export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
   }
 }
 
+// Self implementing????
 export class IndexerCredentials implements IReflection<IndexerCredentials> {
   indexerDatabase = new DatabaseConnectOptions();
 

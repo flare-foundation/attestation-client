@@ -16,7 +16,7 @@ export class DatabaseConnectOptions {
 }
 
 /**
- * DatabaseService for storing the attestation data
+ * DatabaseService for storing the attestation data and indexer data
  */
 export class DatabaseService {
   private logger!: AttLogger;

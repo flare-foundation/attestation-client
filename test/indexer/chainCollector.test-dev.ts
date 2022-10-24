@@ -1,4 +1,4 @@
-// yarn test test/indexer/chainCollector.test.ts
+// yarn test test/indexer/chainCollector.test-dev.ts
 
 import { ChainType, IBlock, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
@@ -164,7 +164,7 @@ describe("Test process helpers ", () => {
     processor.initializeJobs(block, save);
   });
 
-  it(`Test xrp block processing `, async function () {
+  it.only(`Test xrp block processing `, async function () {
     const block = await XrpMccClient.getBlock(70_015_100);
 
     let defaultCachedMccClientOptions: CachedMccClientOptions = {

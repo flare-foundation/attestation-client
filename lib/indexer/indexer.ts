@@ -406,6 +406,13 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
+
+          for (let i = 0; i < transactions.length; i++) {
+            if( transactions[i].blockNumber!=block.blockNumber ) {
+              this.logger.error2(`transaction ${transactions[i].transactionId} is in invalid block ${transactions[i].blockNumber} (correct block is ${block.blockNumber})`);
+            }
+          }
+
           await transaction.save(transactions);
         }
         else {
@@ -418,7 +425,7 @@ export class Indexer {
           table.blockNumber = block.blockNumber;
           table.transactionType = "EMPTY_BLOCK_INDICATOR";
 
-          await transaction.save( table );
+          await transaction.save(table);
         }
 
         await transaction.save(block);
@@ -587,11 +594,11 @@ export class Indexer {
 
   async dropAllStateInfo() {
     this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
-    
+
     await this.dbService.manager.createQueryBuilder()
       .delete()
       .from(DBState)
-      .where( "`name` like :name" , {name:`%${this.chainConfig.name}_%`})
+      .where("`name` like :name", { name: `%${this.chainConfig.name}_%` })
       .execute();
   }
 
@@ -700,10 +707,10 @@ export class Indexer {
     const fullHistory = !this.bottomBlockTime ? false : blockNp1.unixTimestamp - this.bottomBlockTime > syncTimeSec;
     let dbStatus;
     if (!fullHistory) {
-      let min = Math.ceil( (syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60 );
+      let min = Math.ceil((syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60);
       let hr = 0;
-      if( min > 90 ) {
-        hr = Math.floor( min / 60 );
+      if (min > 90) {
+        hr = Math.floor(min / 60);
         min -= hr * 60;
       }
 
@@ -711,7 +718,7 @@ export class Indexer {
         "state",
         "running-sync",
         this.processedBlocks,
-        `N=${this.N} T=${this.T} (missing ${( hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, '0')}` ) })`
+        `N=${this.N} T=${this.T} (missing ${(hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, '0')}`)})`
       );
     } else if (!NisReady) {
       dbStatus = this.getStateEntryString(
@@ -722,7 +729,7 @@ export class Indexer {
       );
     } else {
       dbStatus = this.getStateEntryString("state", "running", this.processedBlocks, `N=${this.N} T=${this.T}`);
-    }    
+    }
     this.processedBlocks++;
     await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
   }
@@ -851,8 +858,8 @@ export class Indexer {
 
     const startBlockNumber = (await this.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
 
-    this.logger.warning( `${this.chainConfig.name} T=${startBlockNumber}` );
-    
+    this.logger.warning(`${this.chainConfig.name} T=${startBlockNumber}`);
+
     // initial N initialization - will be later on assigned to DB or sync N
     this.N = startBlockNumber;
 

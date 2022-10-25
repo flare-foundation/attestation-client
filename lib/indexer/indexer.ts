@@ -1,6 +1,6 @@
 import { ChainType, IBlock, IBlockHeader, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
-import { EntityTarget, Like } from "typeorm";
+import { EntityTarget } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -406,7 +406,26 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
+
+          for (let i = 0; i < transactions.length; i++) {
+            if( transactions[i].blockNumber!=block.blockNumber ) {
+              this.logger.error2(`transaction ${transactions[i].transactionId} is in invalid block ${transactions[i].blockNumber} (correct block is ${block.blockNumber})`);
+            }
+          }
+
           await transaction.save(transactions);
+        }
+        else {
+          // save dummy transaction to keep transaction table block continuity
+          this.logger.debug(`block ${block.blockNumber} no transactions`);
+
+          const table = new (this.getActiveTransactionWriteTable() as any)();
+
+          table.chainType = this.cachedClient.client.chainType;
+          table.blockNumber = block.blockNumber;
+          table.transactionType = "EMPTY_BLOCK_INDICATOR";
+
+          await transaction.save(table);
         }
 
         await transaction.save(block);
@@ -428,7 +447,7 @@ export class Indexer {
     this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms)`);
 
     // table interlacing
-    if (this.interlace.update(block.timestamp, block.blockNumber)) {
+    if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
       await this.saveBottomState();
     }
@@ -575,7 +594,12 @@ export class Indexer {
 
   async dropAllStateInfo() {
     this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
-    await this.dbService.manager.delete(DBState, { name: Like(`${this.chainConfig.name}_%`) });
+
+    await this.dbService.manager.createQueryBuilder()
+      .delete()
+      .from(DBState)
+      .where("`name` like :name", { name: `%${this.chainConfig.name}_%` })
+      .execute();
   }
 
   /**
@@ -683,11 +707,18 @@ export class Indexer {
     const fullHistory = !this.bottomBlockTime ? false : blockNp1.unixTimestamp - this.bottomBlockTime > syncTimeSec;
     let dbStatus;
     if (!fullHistory) {
+      let min = Math.ceil((syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60);
+      let hr = 0;
+      if (min > 90) {
+        hr = Math.floor(min / 60);
+        min -= hr * 60;
+      }
+
       dbStatus = this.getStateEntryString(
         "state",
         "running-sync",
         this.processedBlocks,
-        `N=${this.N} T=${this.T} (history is not ready: missing ${(syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60} min)`
+        `N=${this.N} T=${this.T} (missing ${(hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, '0')}`)})`
       );
     } else if (!NisReady) {
       dbStatus = this.getStateEntryString(
@@ -760,12 +791,12 @@ export class Indexer {
 
     const queryTable0 = this.dbService.manager.createQueryBuilder()
       .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
-      .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx ")
+      .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx")
       .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
 
     const queryTable1 = this.dbService.manager.createQueryBuilder()
       .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
-      .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx ")
+      .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx")
       .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
 
     const table0missing = await queryTable0.getRawOne();
@@ -773,9 +804,9 @@ export class Indexer {
 
     if (table0missing && table0missing.missing) {
       if (table0missing.missing != 0) {
-        this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0]`);
+        this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
 
-        await this.interlace.resetAll();
+        //await this.interlace.resetAll();
 
         this.logger.debug(`restarting`);
         exit(3);
@@ -827,8 +858,8 @@ export class Indexer {
 
     const startBlockNumber = (await this.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
 
-    this.logger.warning( `${this.chainConfig.name} T=${startBlockNumber}` );
-    
+    this.logger.warning(`${this.chainConfig.name} T=${startBlockNumber}`);
+
     // initial N initialization - will be later on assigned to DB or sync N
     this.N = startBlockNumber;
 

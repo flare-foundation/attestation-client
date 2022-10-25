@@ -251,8 +251,10 @@ export class IndexerSync {
       // but in case that sync N was node bottom block we would not be able to read block number sync N.
       // here we are a bit more defensive since it is a very low probability of this actually happening.
 
+      this.logger.error(`runSync possible gap detected DB_N=${dbStartBlockNumber} Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`);
+
       // drop both tables
-      this.indexer.interlace.resetAll();
+      //await this.indexer.interlace.resetAll();
 
       exit(4);
     }

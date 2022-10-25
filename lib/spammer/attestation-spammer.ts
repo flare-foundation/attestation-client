@@ -12,6 +12,7 @@ import { RandomDBIterator } from "../indexed-query-manager/random-attestation-re
 import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
+import { getTimeMilli } from "../utils/internetTime";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
@@ -20,7 +21,7 @@ import { readAttestationTypeSchemes } from "../verification/attestation-types/at
 import { encodeRequest } from "../verification/generated/attestation-request-encode";
 import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";
-import { getSourceName, SourceId } from "../verification/sources/sources";
+import { SourceId } from "../verification/sources/sources";
 import { SpammerConfig, SpammerCredentials } from "./SpammerConfiguration";
 
 let fs = require("fs");
@@ -185,10 +186,10 @@ class AttestationSpammer {
       `request attestation #${AttestationSpammer.sendCount}`,
       this.stateConnector.options.address,
       fnToEncode,
-      undefined,
+      getTimeMilli() + 5000,
       DEFAULT_GAS,
       DEFAULT_GAS_PRICE,
-      true
+      false
     );
     //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     if (receipt) {
@@ -200,10 +201,10 @@ class AttestationSpammer {
         `request attestation 2 #${AttestationSpammer.sendCount}`,
         this.stateConnector_2.options.address,
         fnToEncode,
-        undefined,
+        getTimeMilli() + 5000,
         DEFAULT_GAS,
         DEFAULT_GAS_PRICE,
-        true
+        false
       );
       //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
       if (receipt2) {

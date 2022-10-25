@@ -27,11 +27,11 @@ export class UnconfirmedBlockManager {
    * Reads all unconfirmed blocks above the confirmation height and initializes the manager.
    */
   async initialize() {
-    let query = this.dbService.connection.manager
+    const query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.blockNumber > :N", { N: this.indexerN });
-    let result = await query.getMany() as DBBlockBase[];
-    for (let entity of result) {
+    const result = await query.getMany() as DBBlockBase[];
+    for (const entity of result) {
       this.blockHashToEntity.set(entity.blockHash, entity);
     }
   }

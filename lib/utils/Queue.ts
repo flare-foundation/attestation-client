@@ -17,7 +17,7 @@ export class Queue<T> {
 
   // Can be called only if head < tail
   public shift(): T {
-    let item = this.data[this.head];
+    const item = this.data[this.head];
     delete this.data[this.head];
     this.head++;
     return item;

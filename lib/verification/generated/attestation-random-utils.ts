@@ -26,7 +26,7 @@ const toBN = Web3.utils.toBN;
 const web3 = new Web3();
 
 export function randomResponsePayment() {
-  let response = {
+  const response = {
     blockNumber: randSol({}, "blockNumber", "uint64") as BN,
     blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN,
     transactionHash: randSol({}, "transactionHash", "bytes32") as string,
@@ -45,7 +45,7 @@ export function randomResponsePayment() {
 }
 
 export function randomResponseBalanceDecreasingTransaction() {
-  let response = {
+  const response = {
     blockNumber: randSol({}, "blockNumber", "uint64") as BN,
     blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN,
     transactionHash: randSol({}, "transactionHash", "bytes32") as string,
@@ -59,7 +59,7 @@ export function randomResponseBalanceDecreasingTransaction() {
 }
 
 export function randomResponseConfirmedBlockHeightExists() {
-  let response = {
+  const response = {
     blockNumber: randSol({}, "blockNumber", "uint64") as BN,
     blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN,
     numberOfConfirmations: randSol({}, "numberOfConfirmations", "uint8") as BN,
@@ -72,7 +72,7 @@ export function randomResponseConfirmedBlockHeightExists() {
 }
 
 export function randomResponseReferencedPaymentNonexistence() {
-  let response = {
+  const response = {
     deadlineBlockNumber: randSol({}, "deadlineBlockNumber", "uint64") as BN,
     deadlineTimestamp: randSol({}, "deadlineTimestamp", "uint64") as BN,
     destinationAddressHash: randSol({}, "destinationAddressHash", "bytes32") as string,
@@ -88,7 +88,7 @@ export function randomResponseReferencedPaymentNonexistence() {
 }
 
 export function randomResponseTrustlineIssuance() {
-  let response = {
+  const response = {
     tokenCurrencyCode: randSol({}, "tokenCurrencyCode", "bytes32") as string,
     tokenValueNominator: randSol({}, "tokenValueNominator", "uint256") as BN,
     tokenValueDenominator: randSol({}, "tokenValueDenominator", "uint256") as BN,
@@ -124,8 +124,8 @@ export function getRandomResponseForType(attestationType: AttestationType) {
 }
 
 export function getRandomRequest() {
-  let ids = [1, 2, 3, 4, 5];
-  let randomAttestationType: AttestationType = ids[Math.floor(Math.random() * 5)];
+  const ids = [1, 2, 3, 4, 5];
+  const randomAttestationType: AttestationType = ids[Math.floor(Math.random() * 5)];
   let sourceId: SourceId = -1;
   let sourceIds: SourceId[] = [];
   switch (randomAttestationType) {

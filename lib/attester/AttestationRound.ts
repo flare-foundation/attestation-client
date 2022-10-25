@@ -54,7 +54,7 @@ export class AttestationRound {
   // processing
   attestations = new Array<Attestation>();
   attestationsMap = new Map<string, Attestation>();
-  attestationsProcessed: number = 0;
+  attestationsProcessed = 0;
 
   // save submitted values for reveal
   roundMerkleRoot!: string;
@@ -124,7 +124,7 @@ export class AttestationRound {
 
   startCommitSubmit() {
     if (AttestationRoundManager.config.submitCommitFinalize) {
-      let action = `Finalizing ^Y#${this.roundId - 3}^^`;
+      const action = `Finalizing ^Y#${this.roundId - 3}^^`;
       this.attesterWeb3
         .submitAttestation(
           action,
@@ -266,7 +266,7 @@ export class AttestationRound {
     const validatedHashes: string[] = new Array<string>();
     const dbVoteResults = [];
     for (const valid of validated) {
-      let voteHash = valid.verificationData.hash!;
+      const voteHash = valid.verificationData.hash!;
       validatedHashes.push(voteHash);
 
       // save to DB
@@ -344,7 +344,7 @@ export class AttestationRound {
       await this.createEmptyState();
     }
 
-    let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
+    const action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
     const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
 
@@ -404,7 +404,7 @@ export class AttestationRound {
     let nextRoundHashedRandom = toHex(toBN(0), 32);
     let nextRoundCommitHash = toHex(toBN(0), 32);
 
-    let action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
+    const action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
     if (this.nextRound) {
       if (!this.nextRound.canCommit()) {

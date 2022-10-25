@@ -2,7 +2,7 @@ import { logException } from "../utils/logger";
 import { Menu } from "./menu";
 
 export class MenuItemBase {
-  name: string = "";
+  name = "";
   displayName: string = null;
 
   menu: Menu;

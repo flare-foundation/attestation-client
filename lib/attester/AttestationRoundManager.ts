@@ -106,7 +106,7 @@ export class AttestationRoundManager {
     if (activeRound === undefined) {
       activeRound = new AttestationRound(epochId, this.logger, AttestationRoundManager.attesterWeb3);
 
-      let intervalId = setInterval(() => {
+      const intervalId = setInterval(() => {
         const now = getTimeMilli();
         if (now > epochCommitTime) {
           clearInterval(intervalId);
@@ -186,7 +186,7 @@ export class AttestationRoundManager {
       return;
     }
 
-    let activeRound = this.getRoundOrCreateIt(epochId);
+    const activeRound = this.getRoundOrCreateIt(epochId);
 
     // create, check and add attestation
     const attestation = await this.createAttestation(activeRound, tx);

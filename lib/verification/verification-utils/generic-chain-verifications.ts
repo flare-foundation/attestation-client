@@ -44,7 +44,7 @@ export async function verifyPayment(
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<DHPayment>> {
-  let confirmedTransactionResult = await iqm.getConfirmedTransaction({
+  const confirmedTransactionResult = await iqm.getConfirmedTransaction({
     txId: unPrefix0x(request.id),
     numberOfConfirmations,
     upperBoundProof: request.upperBoundProof,
@@ -52,7 +52,7 @@ export async function verifyPayment(
     type: recheck ? "RECHECK" : "FIRST_CHECK",
   });
 
-  let status = verifyWorkflowForTransaction(confirmedTransactionResult);
+  const status = verifyWorkflowForTransaction(confirmedTransactionResult);
   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
@@ -69,8 +69,8 @@ export async function verifyPayment(
 
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
-  let inUtxoNumber = toBN(request.inUtxo).toNumber();
-  let utxoNumber = toBN(request.utxo).toNumber();
+  const inUtxoNumber = toBN(request.inUtxo).toNumber();
+  const utxoNumber = toBN(request.utxo).toNumber();
 
   let paymentSummary: PaymentSummary;
   try {
@@ -84,7 +84,7 @@ export async function verifyPayment(
     return { status: VerificationStatus.NOT_PAYMENT };
   }
 
-  let response = {
+  const response = {
     stateConnectorRound: roundId,
     blockNumber: toBN(dbTransaction.blockNumber),
     blockTimestamp: toBN(dbTransaction.timestamp),
@@ -127,7 +127,7 @@ export async function verifyBalanceDecreasingTransaction(
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
-  let confirmedTransactionResult = await iqm.getConfirmedTransaction({
+  const confirmedTransactionResult = await iqm.getConfirmedTransaction({
     txId: unPrefix0x(request.id),
     numberOfConfirmations,
     upperBoundProof: request.upperBoundProof,
@@ -135,7 +135,7 @@ export async function verifyBalanceDecreasingTransaction(
     type: recheck ? "RECHECK" : "FIRST_CHECK",
   });
 
-  let status = verifyWorkflowForTransaction(confirmedTransactionResult);
+  const status = verifyWorkflowForTransaction(confirmedTransactionResult);
   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
@@ -144,7 +144,7 @@ export async function verifyBalanceDecreasingTransaction(
   const parsedData = JSON.parse(confirmedTransactionResult.transaction.response);
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
-  let inUtxoNumber = toBN(request.inUtxo).toNumber();
+  const inUtxoNumber = toBN(request.inUtxo).toNumber();
 
   let paymentSummary: PaymentSummary;
   try {
@@ -154,7 +154,7 @@ export async function verifyBalanceDecreasingTransaction(
     return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR };
   }
 
-  let response = {
+  const response = {
     stateConnectorRound: roundId,
     blockNumber: toBN(dbTransaction.blockNumber),
     blockTimestamp: toBN(dbTransaction.timestamp),
@@ -195,24 +195,24 @@ export async function verifyConfirmedBlockHeightExists(
     returnQueryBoundaryBlocks: true,
   });
 
-  let status = verifyWorkflowForBlock(confirmedBlockQueryResult);
+  const status = verifyWorkflowForBlock(confirmedBlockQueryResult);
   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
 
   const dbBlock = confirmedBlockQueryResult.block;
 
-  let averageBlockProductionTimeMs = toBN(
+  const averageBlockProductionTimeMs = toBN(
     Math.floor(
       ((confirmedBlockQueryResult.upperBoundaryBlock.timestamp - confirmedBlockQueryResult.lowerBoundaryBlock.timestamp) * 1000) /
         (confirmedBlockQueryResult.upperBoundaryBlock.blockNumber - confirmedBlockQueryResult.lowerBoundaryBlock.blockNumber)
     )
   );
 
-  let startTimestamp = iqm.settings.windowStartTime(roundId);
-  let lowerQueryWindowBlock = await iqm.getFirstConfirmedBlockAfterTime(startTimestamp);
+  const startTimestamp = iqm.settings.windowStartTime(roundId);
+  const lowerQueryWindowBlock = await iqm.getFirstConfirmedBlockAfterTime(startTimestamp);
 
-  let response = {
+  const response = {
     stateConnectorRound: roundId,
     blockNumber: toBN(dbBlock.blockNumber),
     blockTimestamp: toBN(dbBlock.timestamp),
@@ -258,28 +258,28 @@ export async function verifyReferencedPaymentNonExistence(
     type: recheck ? "RECHECK" : "FIRST_CHECK",
   });
 
-  let status = verifyWorkflowForReferencedTransactions(referencedTransactionsResponse);
+  const status = verifyWorkflowForReferencedTransactions(referencedTransactionsResponse);
   if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
 
   // From here on these exist, dbTransactions can be an empty list.
-  let dbTransactions = referencedTransactionsResponse.transactions;
-  let firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
-  let lowerBoundaryBlock = referencedTransactionsResponse.lowerBoundaryBlock;
+  const dbTransactions = referencedTransactionsResponse.transactions;
+  const firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
+  const lowerBoundaryBlock = referencedTransactionsResponse.lowerBoundaryBlock;
 
   // Check transactions for a matching
-  for (let dbTransaction of dbTransactions) {
+  for (const dbTransaction of dbTransactions) {
     const parsedData = JSON.parse(dbTransaction.response);
     const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
     // In account based case this loop goes through only once.
     for (let outUtxo = 0; outUtxo < fullTxData.receivingAddresses.length; outUtxo++) {
-      let address = fullTxData.receivingAddresses[outUtxo];
+      const address = fullTxData.receivingAddresses[outUtxo];
       const destinationAddressHash = Web3.utils.soliditySha3(address);
       if (destinationAddressHash === request.destinationAddressHash) {
         try {
-          let paymentSummary = await fullTxData.paymentSummary(undefined, undefined, outUtxo);
+          const paymentSummary = await fullTxData.paymentSummary(undefined, undefined, outUtxo);
 
           if (paymentSummary.receivedAmount.eq(toBN(request.amount))) {
             return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS };
@@ -293,7 +293,7 @@ export async function verifyReferencedPaymentNonExistence(
     }
   }
 
-  let response = {
+  const response = {
     stateConnectorRound: roundId,
     deadlineBlockNumber: request.deadlineBlockNumber,
     deadlineTimestamp: request.deadlineTimestamp,

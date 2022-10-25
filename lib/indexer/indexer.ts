@@ -82,7 +82,7 @@ export class Indexer {
 
     this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
 
-    let cachedMccClientOptions: CachedMccClientOptions = {
+    const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
@@ -267,7 +267,7 @@ export class Indexer {
    * @param comment
    * @returns
    */
-  public getStateEntryString(name: string, valueString: string, valueNum: number, comment: string = ""): DBState {
+  public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
     const state = new DBState();
 
     state.name = this.prefixChainNameTo(name);
@@ -347,8 +347,8 @@ export class Indexer {
    * Prepares table entities for transactions (interlaced) and block
    */
   public prepareTables() {
-    let chainType = MCC.getChainType(this.chainConfig.name);
-    let prepared = prepareIndexerTables(chainType);
+    const chainType = MCC.getChainType(this.chainConfig.name);
+    const prepared = prepareIndexerTables(chainType);
 
     this.dbTransactionClasses = prepared.transactionTable;
     this.dbBlockClass = prepared.blockTable;
@@ -535,7 +535,7 @@ export class Indexer {
     // check if N+1 with blockNp1hash is already prepared (otherwise wait for it)
     const preparedBlocks = this.preparedBlocks.get(Np1);
     if (preparedBlocks) {
-      for (let preparedBlock of preparedBlocks) {
+      for (const preparedBlock of preparedBlocks) {
         if (preparedBlock.block.blockHash === this.blockNp1hash) {
           // save prepared N+1 block with active hash and increment this.N
           await this.blockSave(preparedBlock.block, preparedBlock.transactions);
@@ -550,7 +550,7 @@ export class Indexer {
 
     // check if the block with number N + 1, `Np1`, with hash `Np1Hash` is in preparation
     let exists = false;
-    for (let processor of this.blockProcessorManager.blockProcessors) {
+    for (const processor of this.blockProcessorManager.blockProcessors) {
       if (processor.block.number == Np1 && processor.block.stdBlockHash == this.blockNp1hash) {
         exists = true;
         break;
@@ -627,7 +627,7 @@ export class Indexer {
       await this.dropTable(`state`);
 
       // Be careful when adding chains
-      for (let chainName of SUPPORTED_CHAINS) {
+      for (const chainName of SUPPORTED_CHAINS) {
         await this.dropAllChainTables(chainName);
       }
 

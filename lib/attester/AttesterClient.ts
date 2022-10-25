@@ -47,7 +47,7 @@ export class AttesterClient {
     let blockNumber = await this.attesterWeb3.web3Functions.getBlockNumber();
 
     while (true) {
-      let block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
+      const block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
 
       if (block.timestamp < time) {
         this.logger.debug2(`start block number ${blockNumber} time ${secToHHMMSS(block.timestamp)}`);
@@ -66,8 +66,8 @@ export class AttesterClient {
     // read .env
     DotEnvExt();
 
-    const configData: string = "";
-    let accountPrivateKey: string = "";
+    const configData = "";
+    let accountPrivateKey = "";
 
     this.logger.info(`configuration`);
 

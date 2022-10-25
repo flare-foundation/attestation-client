@@ -51,7 +51,7 @@ export class HeaderCollector {
   public async readAndSaveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
     // assert - this should never happen
     if (fromBlockNumber <= this.indexer.N) {
-      let onFailure = getRetryFailureCallback();
+      const onFailure = getRetryFailureCallback();
       onFailure("saveBlocksHeaders: fromBlock too low");
       // this should exit the program
     }
@@ -88,7 +88,7 @@ export class HeaderCollector {
   public async saveHeadersOnNewTips(blockTips: IBlockTip[] | IBlockHeader[]) {
     let blocksText = "[";
 
-    let unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexer.dbService, this.indexer.dbBlockClass, this.indexer.N);
+    const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexer.dbService, this.indexer.dbBlockClass, this.indexer.N);
     await unconfirmedBlockManager.initialize();
 
     for (const blockTip of blockTips) {

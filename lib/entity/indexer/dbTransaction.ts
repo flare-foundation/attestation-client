@@ -2,21 +2,21 @@ import { Column, Entity, Index } from "typeorm";
 import { BaseEntity } from "../base/BaseEntity";
 
 export class DBTransactionBase extends BaseEntity {
-  @Column() @Index() chainType: number = 0;
+  @Column() @Index() chainType = 0;
 
-  @Column({ type: "varchar", length: 64 }) @Index() transactionId: string = "";
+  @Column({ type: "varchar", length: 64 }) @Index() transactionId = "";
 
-  @Column() @Index() blockNumber: number = 0;
+  @Column() @Index() blockNumber = 0;
 
-  @Column() @Index() timestamp: number = 0;
+  @Column() @Index() timestamp = 0;
 
-  @Column({ type: "varchar", length: 64 }) @Index() paymentReference: string = "";
+  @Column({ type: "varchar", length: 64 }) @Index() paymentReference = "";
 
-  @Column({ type: "text" }) response: string = "";
+  @Column({ type: "text" }) response = "";
 
-  @Column() @Index() isNativePayment: boolean = false;
+  @Column() @Index() isNativePayment = false;
 
-  @Column({ type: "varchar", length: 64 }) @Index() transactionType: string = "";
+  @Column({ type: "varchar", length: 64 }) @Index() transactionType = "";
 }
 
 @Entity({ name: "xrp_transactions0" })

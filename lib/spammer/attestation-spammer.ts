@@ -24,14 +24,14 @@ import { ARType } from "../verification/generated/attestation-request-types";
 import { SourceId } from "../verification/sources/sources";
 import { SpammerConfig, SpammerCredentials } from "./SpammerConfiguration";
 
-let fs = require("fs");
+const fs = require("fs");
 
 //dotenv.config();
 DotEnvExt();
 
-var yargs = require("yargs");
+const yargs = require("yargs");
 
-let args = yargs
+const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
   .option("credentials", {
     alias: "cred",
@@ -65,7 +65,7 @@ class AttestationSpammer {
   stateConnector_2!: StateConnector;
 
   delay: number = args["delay"];
-  lastBlockNumber: number = -1;
+  lastBlockNumber = -1;
   web3Functions!: Web3Functions;
   web3Functions_2!: Web3Functions;
   logEvents: boolean;
@@ -80,8 +80,8 @@ class AttestationSpammer {
 
   spammerConfig: SpammerConfig;
 
-  BUFFER_TIMESTAMP_OFFSET: number = 0;
-  BUFFER_WINDOW: number = 1;
+  BUFFER_TIMESTAMP_OFFSET = 0;
+  BUFFER_WINDOW = 1;
 
   BATCH_SIZE = 10;
   TOP_UP_THRESHOLD = 0.25;
@@ -165,7 +165,7 @@ class AttestationSpammer {
   }
 
   getCurrentRound() {
-    let now = Math.floor(Date.now() / 1000);
+    const now = Math.floor(Date.now() / 1000);
     return Math.floor((now - this.BUFFER_TIMESTAMP_OFFSET) / this.BUFFER_WINDOW);
   }
 
@@ -174,12 +174,12 @@ class AttestationSpammer {
     // let scheme = this.definitions.find(definition => definition.id === request.attestationType);
     // let requestBytes = encodeRequestBytes(request, scheme);
 
-    let requestBytes = encodeRequest(request);
+    const requestBytes = encodeRequest(request);
     // // DEBUG CODE
     //console.log("SENDING:\n", requestBytes, "\n", request);
     // console.log("SENDING:\n", requestBytes, "\n");
 
-    let fnToEncode = stateConnector.methods.requestAttestations(requestBytes);
+    const fnToEncode = stateConnector.methods.requestAttestations(requestBytes);
     AttestationSpammer.sendId++;
     //console.time(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
     const receipt = await this.web3Functions.signAndFinalize3(
@@ -228,7 +228,7 @@ class AttestationSpammer {
   async syncBlocks() {
     while (true) {
       try {
-        let last = this.lastBlockNumber;
+        const last = this.lastBlockNumber;
         this.lastBlockNumber = await this.web3.eth.getBlockNumber();
         // if(this.lastBlockNumber > last) {
         //   this.logger.info(`Last block: ${this.lastBlockNumber}`)
@@ -247,21 +247,21 @@ class AttestationSpammer {
     while (true) {
       await sleepMs(200);
       try {
-        let last = Math.min(firstUnprocessedBlockNumber + maxBlockFetch, this.lastBlockNumber);
+        const last = Math.min(firstUnprocessedBlockNumber + maxBlockFetch, this.lastBlockNumber);
         if (firstUnprocessedBlockNumber > last) {
           continue;
         }
-        let events = await this.stateConnector.getPastEvents("AttestationRequest", {
+        const events = await this.stateConnector.getPastEvents("AttestationRequest", {
           fromBlock: firstUnprocessedBlockNumber,
           toBlock: last,
         });
         // DEBUG CODE
         if (events.length) {
-          for (let event of events) {
+          for (const event of events) {
             if (event.event === "AttestationRequest") {
-              let timestamp = event.returnValues.timestamp;
-              let data = event.returnValues.data;
-              let parsedRequest = parseRequest(data);
+              const timestamp = event.returnValues.timestamp;
+              const data = event.returnValues.data;
+              const parsedRequest = parseRequest(data);
               //
               //console.log("RECEIVED:\n", data, "\n", parsedRequest);
               // console.log("RECEIVED:\n", data);
@@ -285,9 +285,9 @@ class AttestationSpammer {
         AttestationSpammer.sendCount++;
         // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
 
-        let roundId = this.getCurrentRound();
+        const roundId = this.getCurrentRound();
 
-        let attRequest = await getRandomAttestationRequest(
+        const attRequest = await getRandomAttestationRequest(
           this.randomGenerators,
           this.indexedQueryManager,
           this.chainType as number as SourceId,
@@ -331,7 +331,7 @@ async function displayStats() {
 async function runAllAttestationSpammers() {
   displayStats();
 
-  let spammer = new AttestationSpammer();
+  const spammer = new AttestationSpammer();
   await spammer.init();
 
   await spammer.runSpammer();

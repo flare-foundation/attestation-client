@@ -21,7 +21,7 @@ export class ProofController extends Controller {
   @Get("votes-for-round/{roundId}")
   public async votesForRound(@Path() roundId: number): Promise<ApiResponse<VotingRoundResult[]>> {
     try {
-      let result = await this.proofEngine.getProofForRound(roundId);
+      const result = await this.proofEngine.getProofForRound(roundId);
       if (result) {
         return new ApiResponse<VotingRoundResult[]>(result);
       }
@@ -34,7 +34,7 @@ export class ProofController extends Controller {
   @Get("requests-for-round/{roundId}")
   public async requestsForRound(@Path() roundId: number): Promise<ApiResponse<VotingRoundRequest[]>> {
     try {
-      let result = await this.proofEngine.getRequestsForRound(roundId);
+      const result = await this.proofEngine.getRequestsForRound(roundId);
       if (result) {
         return new ApiResponse<VotingRoundRequest[]>(result);
       }

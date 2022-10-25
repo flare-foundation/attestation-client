@@ -80,7 +80,7 @@ describe("Test process helpers ", () => {
 
     // console.log(block)
 
-    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+    const defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
@@ -91,11 +91,11 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    let processor = new UtxoBlockProcessor(indexer);
+    const processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
 
-    let processor2 = new UtxoBlockProcessor(indexer);
+    const processor2 = new UtxoBlockProcessor(indexer);
     processor2.debugOn("SECOND");
     processor2.initializeJobs(block2, save);
 
@@ -139,7 +139,7 @@ describe("Test process helpers ", () => {
   it(`Test btc new block processing `, async function () {
     const block = await BtcMccClient.getBlock(723746);
 
-    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+    const defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
@@ -150,7 +150,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    let processor = new UtxoBlockProcessor(indexer);
+    const processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");    
     await processor.initializeJobs(block, save);
   });
@@ -160,7 +160,7 @@ describe("Test process helpers ", () => {
 
     // console.log(block)
 
-    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+    const defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
@@ -171,7 +171,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    let processor = new AlgoBlockProcessor(indexer);
+    const processor = new AlgoBlockProcessor(indexer);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save);
   });
@@ -179,7 +179,7 @@ describe("Test process helpers ", () => {
   it.only(`Test xrp block processing `, async function () {
     const block = await XrpMccClient.getBlock("FDD11CCFB38765C2DA0B3E6D4E3EF7DFDD4EE1DBBA4F319493EB6E1376814EC2");
 
-    let defaultCachedMccClientOptions: CachedMccClientOptions = {
+    const defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
@@ -196,7 +196,7 @@ describe("Test process helpers ", () => {
     indexer.prepareTables();
 
 
-    let processor = new XrpBlockProcessor(indexer);
+    const processor = new XrpBlockProcessor(indexer);
     processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });

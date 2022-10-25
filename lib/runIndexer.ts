@@ -7,7 +7,7 @@ import { DotEnvExt } from "./utils/DotEnvExt";
 import { getGlobalLogger, logException, setGlobalLoggerLabel } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 
-var yargs = require("yargs");
+const yargs = require("yargs");
 
 const args = yargs
   .option("reset", { alias: "r", type: "string", description: "Reset commands", default: true, demand: false })

@@ -4,8 +4,8 @@ import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { DEFAULT_GEN_FILE_HEADER, HASH_TEST_FILE, PRETTIER_SETTINGS, PRETTIER_SETTINGS_SOL, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 
 function genTestHashStruct(definition: AttestationTypeScheme) {
-  let structName = `${definition.name}`;
-  let typedParams = definition.dataHashDefinition.map((item) => `      ${item.type} ${item.key};`).join("\n");
+  const structName = `${definition.name}`;
+  const typedParams = definition.dataHashDefinition.map((item) => `      ${item.type} ${item.key};`).join("\n");
   return `
    struct ${structName} {
 ${typedParams}
@@ -14,8 +14,8 @@ ${typedParams}
 }
 
 function genTestHashFunction(definition: AttestationTypeScheme) {
-  let functionName = `hashTest${definition.name}`;
-  let params = definition.dataHashDefinition.map((item) => `data.${item.key}`).join(",");
+  const functionName = `hashTest${definition.name}`;
+  const params = definition.dataHashDefinition.map((item) => `data.${item.key}`).join(",");
   return `
    function ${functionName}(
       bytes memory _data,
@@ -31,10 +31,10 @@ function genTestHashFunction(definition: AttestationTypeScheme) {
 }
 
 function getSolidityHashTest(definitions: AttestationTypeScheme[]) {
-  let structs = definitions.map((definition) => genTestHashStruct(definition)).join("");
-  let functions = definitions.map((definition) => genTestHashFunction(definition)).join("");
+  const structs = definitions.map((definition) => genTestHashStruct(definition)).join("");
+  const functions = definitions.map((definition) => genTestHashFunction(definition)).join("");
 
-  let content = `${DEFAULT_GEN_FILE_HEADER}
+  const content = `${DEFAULT_GEN_FILE_HEADER}
 // (c) 2021, Flare Networks Limited. All rights reserved.
 // Please see the file LICENSE for licensing terms.
 
@@ -68,7 +68,7 @@ ${functions}
 
 export function createHashTestSolidityFile(definitions: AttestationTypeScheme[]) {
   // Hash test contract
-  let content = `${DEFAULT_GEN_FILE_HEADER}
+  const content = `${DEFAULT_GEN_FILE_HEADER}
       ${getSolidityHashTest(definitions)}   
       `;
   if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {

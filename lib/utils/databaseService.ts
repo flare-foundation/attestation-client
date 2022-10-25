@@ -4,12 +4,12 @@ import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";
 
 export class DatabaseConnectOptions {
-  @optional() type: string = "mysql";
-  @optional() host: string = "localhost";
-  @optional() port: number = 3306;
-  database: string = "database";
-  username: string = "username";
-  password: string = "password";
+  @optional() type = "mysql";
+  @optional() host = "localhost";
+  @optional() port = 3306;
+  database = "database";
+  username = "username";
+  password = "password";
 }
 
 export class DatabaseService {
@@ -22,7 +22,7 @@ export class DatabaseService {
 
   private options: DatabaseConnectOptions;
 
-  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName: string = "", connectionName: string = "") {
+  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "") {
     this.logger = logger;
 
     this.databaseName = databaseName;

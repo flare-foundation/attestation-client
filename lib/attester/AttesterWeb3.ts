@@ -64,12 +64,12 @@ export class AttesterWeb3 {
     commitHash: string,
     verbose = true
   ) {
-    let roundId = bufferNumber.toNumber() - 1;
+    const roundId = bufferNumber.toNumber() - 1;
     this.check(maskedMerkleRoot);
     this.check(hashedRandom);
     this.check(revealedRandomPrev);
 
-    let fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
+    const fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
 
     if (verbose) {
       this.logger.info(`action ................. : ${action}`);

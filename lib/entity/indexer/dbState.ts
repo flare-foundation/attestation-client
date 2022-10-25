@@ -7,14 +7,14 @@ export class DBState {
   name!: string;
 
   @Column()
-  valueString: string = "";
+  valueString = "";
 
   @Column()
-  valueNumber: number = 0;
+  valueNumber = 0;
 
   @Column()
-  timestamp: number = 0;
+  timestamp = 0;
 
   @Column({ nullable: true })
-  comment: string = "";
+  comment = "";
 }

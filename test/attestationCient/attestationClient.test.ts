@@ -53,7 +53,7 @@ class MockAttesterWeb3 extends AttesterWeb3 {
         commitHash: string,
         verbose = true
     ) {
-        let roundId = bufferNumber.toNumber() - 1;
+        const roundId = bufferNumber.toNumber() - 1;
         this.check(maskedMerkleRoot);
         this.check(hashedRandom);
         this.check(revealedRandomPrev);
@@ -75,15 +75,15 @@ describe("Attestation Client", () => {
     beforeEach(async function () {
         TestLogger.clear();
 
-        let logger = getGlobalLogger();
+        const logger = getGlobalLogger();
 
         // Reading configuration
         const chains = new ChainsConfiguration();
         const config = new AttesterClientConfiguration();
         const credentials = new AttesterCredentials();
 
-        let chainManager = new MockChainManager(this.logger);
-        let attesterWeb3 = new MockAttesterWeb3(this.logger, this.config, this.credentials);
+        const chainManager = new MockChainManager(this.logger);
+        const attesterWeb3 = new MockAttesterWeb3(this.logger, this.config, this.credentials);
         attestationRoundManager = new AttestationRoundManager(chainManager, config, credentials, logger, attesterWeb3);
     });
 
@@ -92,7 +92,7 @@ describe("Attestation Client", () => {
     ////////////////////////////////
     it.only(`Create attestation sourceId and type from event`, async function () {
 
-        let mockEvent = {
+        const mockEvent = {
             blockNumber: 1,
             logIndex: 2,
             returnValues : { 
@@ -115,7 +115,7 @@ describe("Attestation Client", () => {
     ////////////////////////////////
     it(`Attestate Valid Request`, async function () {
 
-        let mockEvent = {
+        const mockEvent = {
             blockNumber: 10,
             logIndex: 1,
             returnValues : { 

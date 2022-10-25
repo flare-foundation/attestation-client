@@ -59,7 +59,7 @@ export class Web3Functions {
     timeEnd?: number,
     gas: string = DEFAULT_GAS,
     gasPrice: string = DEFAULT_GAS_PRICE,
-    quiet: boolean = false
+    quiet = false
   ): Promise<any> {
     try {
       const waitIndex = this.nextIndex;

@@ -62,7 +62,7 @@ export class Indexer {
   // two interlacing table entity classes for confirmed transaction storage
   dbTransactionClasses: DBTransactionBase[];
   // entity class for the block table
-  dbBlockClass;
+  dbBlockClass; //!!!!!Something fishy!!!!!
 
   // bottom block in the transaction tables - used to check if we have enough history
   bottomBlockTime = undefined;

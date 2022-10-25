@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import { boolean, number, string } from 'yargs';
 import { parseJSON } from '../../utils/config';
 import { AttLogger, getGlobalLogger, logException } from '../../utils/logger';
 import { sleepms } from '../../utils/utils';
@@ -21,6 +22,12 @@ export class VerificationType {
   }
 }
 
+
+export interface AttestationRequestMessage {
+  request: string;
+  roundId: number;
+  recheck: boolean;
+}
 export class VerificationClient {
 
   logger: AttLogger = getGlobalLogger();
@@ -38,7 +45,8 @@ export class VerificationClient {
 
   pingUpdate = null;
 
-  verificationResult = new Map<number, Verification<any, any>>();
+  verificationResult = new Map<number, Promise<Verification<any, any>>>();
+
   getSupportedResult = new Map<number, VerificationType[]>();
 
   errorResult = new Map<number, string>();
@@ -52,11 +60,11 @@ export class VerificationClient {
    * @param clientOptions 
    * @returns 
    */
-  public async connect(address: string, key: string, clientOptions: VerificationClientOptions = null): Promise<boolean> {
+  public async connect(address: string, clientOptions: VerificationClientOptions = null): Promise<boolean> {
 
     this.clientOptions = clientOptions ? clientOptions : new VerificationClientOptions();
 
-    this.ws = new WebSocket(`wss://${address}:${this.clientOptions.port}/api/v1/verification/connect?auth=${key}`, {
+    this.ws = new WebSocket(address, {
       protocolVersion: 8,
       rejectUnauthorized: false
     });
@@ -65,19 +73,19 @@ export class VerificationClient {
 
     this.authorizationFailed = false;
 
-    this.ws.on('error', function error(error) {
+    this.ws.on('error', (error) => {
       if (error.message === "Unexpected server response: 401") {
         me.authorizationFailed = true;
         me.logger.debug2(`authorization failed`);
         me.closeConnection();
       }
     });
-    this.ws.on('open', function open() {
+    this.ws.on('open', () => {
       me.logger.debug2(`verification client connected`);
       me.connected = true;
     });
 
-    this.ws.on('message', function message(data) {
+    this.ws.on('message', (data) => {
       me.processMessage(data);
     });
 
@@ -88,7 +96,7 @@ export class VerificationClient {
     this.ws.on('pong', () => { this.isAlive = true; });
 
     // check if connections are alive
-    this.pingUpdate = setInterval(function ping() {
+    this.pingUpdate = setInterval(() => {
       me.checkPing();
     }, this.clientOptions.checkAliveIntervalMs);
 
@@ -158,7 +166,7 @@ export class VerificationClient {
 
         const res = parameters[3] !== "" ? parseJSON<Verification<any, any>>(parameters[3]) : undefined;
 
-        this.verificationResult.set(id, res);
+        // this.verificationResult.set(id, res); // TODO
         return false;
       }
 
@@ -199,11 +207,16 @@ export class VerificationClient {
    * @returns 
    */
   public async verify(roundId: number, request: string, recheck: boolean): Promise<Verification<any, any>> {
+    
     const id = this.getNextId();
 
     this.logger.debug2(`client[${this.id}]: verify id=${id} roundId=${roundId} request='${request} recheck=${recheck}'`);
 
-    this.ws.send(`verify\t${id}\t${roundId}\t${request}\t${recheck}`);
+    // this.ws.send(`verify\t${id}\t${roundId}\t${request}\t${recheck}`);
+    this.ws.send(JSON.stringify({
+      event: 'verify',
+      data: {roundId, request, recheck}
+    }))
 
     return new Promise(async (resolve, reject) => {
 

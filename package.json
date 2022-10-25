@@ -16,19 +16,19 @@
       "lint-check"
     ]
   },
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "scripts": {
     "prebuild": "yarn routes",
     "build": "yarn tsc",
-
     "-------LINT------": "",
     "lint": "yarn prettier -w 'lib/**/*.{ts,tsx}' --config ./package.json",
     "lint-check": "yarn prettier -c 'lib/**/*.{ts,tsx}' --config ./package.json",
     "lint2": "tslint -c tslint.json -p tsconfig.json --fix",
-    
     "-------DOCKER------": "",
     "docker-build": "bash scripts/docker-build.sh",
     "docker-deploy": "bash scripts/docker-deploy.sh",
-
     "-------SOLIDITY------": "",
     "typechain-web3-v1": "yarn typechain --target=web3-v1 --out-dir typechain-web3-v1 \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
     "compile": "yarn hardhat compile && yarn typechain-truffle-v5 && yarn typechain-web3-v1",
@@ -36,7 +36,6 @@
     "typechain-truffle-v5": "yarn typechain --target=truffle-v5 --out-dir typechain-truffle \"artifacts/!(build-info)/**/+([a-zA-Z0-9_]).json\" 1> nul",
     "deploy": "yarn hardhat run scripts/deploy.ts --network local",
     "stateconnector": "yarn hardhat run scripts/deploy.ts --network scdev",
-
     "-------CODE-GEN------": "",
     "codegen": "env NODE_ENV=development yarn ts-node lib/verification/codegen/codegen.ts",
 
@@ -127,6 +126,10 @@
     "@types/web3": "1.2.2",
     "@types/yargs": "17.0.10",
     "axios": "0.27.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint": "^8.26.0",
+    "@typescript-eslint/eslint-plugin": "^5.41.0",
+    "@typescript-eslint/parser": "^5.41.0",
     "fs-extra": "10.1.0",
     "hardhat": "2.9.9",
     "npm-run-all": "4.1.5",

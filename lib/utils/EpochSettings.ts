@@ -14,6 +14,7 @@ export class EpochSettings {
     this._epochPeriod = _epochPeriod.mul(toBN(1000));
   }
 
+  //Why is  this not getter??
   getEpochLengthMs(): BN {
     return this._epochPeriod;
   }

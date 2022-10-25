@@ -89,3 +89,4 @@ routes
 
 # temp
 temp
+.env

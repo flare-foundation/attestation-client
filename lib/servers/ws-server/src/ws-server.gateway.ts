@@ -5,13 +5,17 @@ import {
    OnGatewayDisconnect, OnGatewayInit, SubscribeMessage,
    WebSocketGateway, WebSocketServer
 } from "@nestjs/websockets";
-import { Request } from "express";
+import { IncomingMessage } from "http";
+import * as url from "url";
 import WebSocket, { Server } from 'ws';
 import { AttLogger, getGlobalLogger } from "../../../utils/logger";
 import { AuthGuard } from "./guards/auth.guard";
-import * as url from "url";
-import { IncomingMessage } from "http";
 
+interface ClientRecord {
+   id: number;
+   name: string;
+   ip?: string;
+}
 @WebSocketGateway(
    // {
    //    transports: ['websocket'],
@@ -31,55 +35,54 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
    @WebSocketServer() server: Server;
 
-   clients: any[] = [];
+   // clients: any[] = [];
+   clientId = 0;
+   connections = new Map<WebSocket, ClientRecord>();
 
    constructor(private config: WSServerConfigurationService) { 
    }
 
-   handleConnection(client: WebSocket, ...args: any[]) {
-      
+   handleConnection(client: WebSocket, ...args: any[]) {      
       let request: IncomingMessage = args[0];
-      let apiKey = url.parse(request.url, true).query.api;
-      if(!this.config.wsServerCredentials.apiKey || apiKey === this.config.wsServerCredentials.apiKey) {
-         this.clients.push(client);
-         console.log("Client connected:", this.clients.length);
-         if (this.clients.length == 2) {
-            console.log(this.clients[0] == this.clients[0], this.clients[0] == this.clients[1])
-         }
+      let apiKey = url.parse(request.url, true).query.apiKey;
+      let authenticated = this.config.wsServerCredentials.apiKeys.find(x => x.apiKey === apiKey);
+      if(authenticated) {
+         this.connections.set(client, {
+            id: this.clientId,
+            name: authenticated.name,
+            ip: authenticated.ip
+         });
+         this.logger.info(`Client '${authenticated.name}' connected: '${this.clientId}'`);
+         this.clientId++;
          return;
       }
       client.terminate();
    }
 
    handleDisconnect(client: WebSocket) {
-      for (let i = 0; i < this.clients.length; i++) {
-         if (this.clients[i] == client) {
-            this.clients.splice(i, 1);
-            client.close();
-            return true;
-         }
-      }
-      return false;
+      client.close();
+      this.logger.info(`Client `)
+      this.connections.delete(client);
    }
 
    private logger: AttLogger = getGlobalLogger("ws");
 
    afterInit(server: Server) {
-
       // throw new Error('Method not implemented.'); - comment this
-      this.logger.info("Initialized");
+      this.logger.info("Websocket server initialized");
       // check if connections are alive
       const interval = setInterval(() => {
-         this.clients.forEach(x => x.ping());
+         [...this.connections.keys()].forEach(x => x.ping());
       }, this.config.wsServerConfiguration.checkAliveIntervalMs);
    }
-   // export class AppGateway {
+
    @SubscribeMessage("message")
    handleMessage(
       @MessageBody() data: string,
       @ConnectedSocket() client: WebSocket,
    ): string {
-      console.log("Message from client: ", this.clients.findIndex(c => c == client) + 1)
+      let rec = this.connections.get(client);
+      this.logger.info(`Message from client: '${rec.id}', user '${rec.name}'`)
       return JSON.stringify({
          client,
          data
@@ -87,7 +90,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
    }
 }
 
-// var ws = new WebSocket("ws://localhost:9500")
+// var ws = new WebSocket("ws://localhost:9500?apiKey=7890"); ws.onmessage = (event) => console.log(JSON.parse(event.data)); ws.onerror = (event) => console.log(event); var data = { a: 1, b: "two" };
 // ws.onmessage = (event) => console.log(JSON.parse(event.data));
 // ws.onerror = (event) => console.log(event);
 // var data = { a: 1, b: "two" };

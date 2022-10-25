@@ -20,7 +20,7 @@ import { SECONDS_PER_DAY } from "./indexer-utils";
 @Managed()
 export class Interlacing {
   // current active table index
-  private index: number;
+  private index: number = 0;
   private endBlockTime: number = -1;
   private endBlockNumber: number = -1;
 

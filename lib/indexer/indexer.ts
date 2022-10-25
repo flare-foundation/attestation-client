@@ -406,26 +406,19 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
-
-          for (let i = 0; i < transactions.length; i++) {
-            if( transactions[i].blockNumber!=block.blockNumber ) {
-              this.logger.error2(`transaction ${transactions[i].transactionId} is in invalid block ${transactions[i].blockNumber} (correct block is ${block.blockNumber})`);
-            }
-          }
-
           await transaction.save(transactions);
         }
         else {
           // save dummy transaction to keep transaction table block continuity
           this.logger.debug(`block ${block.blockNumber} no transactions`);
 
-          const table = new (this.getActiveTransactionWriteTable() as any)();
+          const dummyTx = new (this.getActiveTransactionWriteTable() as any)();
 
-          table.chainType = this.cachedClient.client.chainType;
-          table.blockNumber = block.blockNumber;
-          table.transactionType = "EMPTY_BLOCK_INDICATOR";
+          dummyTx.chainType = this.cachedClient.client.chainType;
+          dummyTx.blockNumber = block.blockNumber;
+          dummyTx.transactionType = "EMPTY_BLOCK_INDICATOR";
 
-          await transaction.save(table);
+          await transaction.save(dummyTx);
         }
 
         await transaction.save(block);

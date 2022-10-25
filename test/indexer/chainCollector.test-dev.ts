@@ -1,7 +1,8 @@
-// yarn test test/indexer/chainCollector.test.ts
+// yarn test test/indexer/chainCollector.test-dev.ts
 
-import { ChainType, IBlock, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
+import { ChainType, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
+import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
@@ -36,7 +37,11 @@ const algoCreateConfig = {
 };
 
 const XRPMccConnection = {
-  url: "https://xrplcluster.com",
+  // mainnet
+  //url: "https://xrplcluster.com",
+
+  // testnet
+  url: "https://s.altnet.rippletest.net:51234",
 };
 
 describe("Test process helpers ", () => {
@@ -55,8 +60,15 @@ describe("Test process helpers ", () => {
     AlgoMccClient = new MCC.ALGO(algoCreateConfig);
     XrpMccClient = new MCC.XRP(XRPMccConnection);
     save = async (block: DBBlockBase, transactions: DBTransactionBase[]) => {
-      // console.log(transactions);
+
+      console.log("***************** BLOCK SAVE ************************");
+
+      console.log(block);
+
       console.log(transactions.length);
+
+      console.log(transactions);
+
       return true;
     };
   });
@@ -139,7 +151,7 @@ describe("Test process helpers ", () => {
     indexer.cachedClient = cachedClient;
 
     let processor = new UtxoBlockProcessor(indexer);
-    processor.debugOn("FIRST");
+    processor.debugOn("FIRST");    
     await processor.initializeJobs(block, save);
   });
 
@@ -164,8 +176,8 @@ describe("Test process helpers ", () => {
     processor.initializeJobs(block, save);
   });
 
-  it(`Test xrp block processing `, async function () {
-    const block = await XrpMccClient.getBlock(70_015_100);
+  it.only(`Test xrp block processing `, async function () {
+    const block = await XrpMccClient.getBlock("FDD11CCFB38765C2DA0B3E6D4E3EF7DFDD4EE1DBBA4F319493EB6E1376814EC2");
 
     let defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
@@ -178,8 +190,14 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
+
+    indexer.chainConfig = new ChainConfiguration();
+    indexer.chainConfig.name = "XRP";
+    indexer.prepareTables();
+
+
     let processor = new XrpBlockProcessor(indexer);
     processor.debugOn("FIRST");
-    processor.initializeJobs(block, save);
+    await processor.initializeJobs(block, save);
   });
 });

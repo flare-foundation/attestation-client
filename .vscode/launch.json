@@ -398,6 +398,29 @@
 
         {
             "type": "node",
+            "request": "launch",
+            "name": "Test Block Download XRP",
+            "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
+            "env": {
+                "SOURCE_ID": "BTC",
+                "CONFIG_PATH": "dev"
+            },
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/indexer/chainCollector.test-dev.ts"
+            ]
+        },
+
+        {
+            "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
             "name": "Launch backend",

@@ -3,7 +3,7 @@ import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 @Entity({ name: "round_result" })
 export class DBRoundResult {
   //extends BaseEntity {
-  @PrimaryColumn() roundId = 0;
+  @PrimaryColumn() roundId: number = 0;
   @Column({ nullable: true }) @Index() merkleRoot: string;
   @Column({ nullable: true }) @Index() maskedMerkleRoot: string;
   @Column({ nullable: true }) @Index() random: string;

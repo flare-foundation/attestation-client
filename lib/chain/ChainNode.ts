@@ -312,6 +312,7 @@ export class ChainNode {
 
     // check if transaction can be added into processing
     if (this.canProcess()) {
+      // eslint-disable-next-line
       this.process(transaction);
     } else {
       this.queue(transaction);
@@ -346,6 +347,7 @@ export class ChainNode {
         const tx = this.transactionsPriorityQueue.pop();
         this.updateDelayQueueTimer();
 
+        // eslint-disable-next-line
         this.process(tx!);
       }
 
@@ -353,6 +355,7 @@ export class ChainNode {
       while (this.transactionsQueue.length && this.canProcess()) {
         const tx = this.transactionsQueue.shift();
 
+        // eslint-disable-next-line
         this.process(tx!);
       }
     } catch (error) {

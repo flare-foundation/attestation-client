@@ -37,6 +37,7 @@ export class RandomDBIterator<T> {
     }
     await sleepms(100);
     if (this.size / this.batchSize < this.topUpThreshold) {
+      // eslint-disable-next-line
       this.refresh(); // async call
     }
     const tmp = this.cache.get(this.startIndex);

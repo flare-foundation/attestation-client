@@ -66,6 +66,7 @@ export class AttestationRoundManager {
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
     AttestationRoundManager.startEpochId = AttestationRoundManager.activeEpochId;
 
+    // eslint-disable-next-line    
     this.startRoundUpdate();
   }
 

@@ -119,12 +119,15 @@ export class AttestationRound {
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
+
     this.tryTriggerCommit(); // In case all requests are already processed
   }
 
   startCommitSubmit() {
     if (AttestationRoundManager.config.submitCommitFinalize) {
       const action = `Finalizing ^Y#${this.roundId - 3}^^`;
+
+      // eslint-disable-next-line
       this.attesterWeb3
         .submitAttestation(
           action,
@@ -178,6 +181,7 @@ export class AttestationRound {
       //this.logger.info(`round #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
     }
   }
+
   async commitLimit() {
     if (this.attestStatus === AttestationRoundStatus.collecting) {
       this.logger.error2(`Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
@@ -236,6 +240,7 @@ export class AttestationRound {
     const alreadySavedRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBAttestationRequest, { where: { roundId: this.roundId } });
 
     if (!alreadySavedRound) {
+      // eslint-disable-next-line
       criticalAsync("commit", async () => { await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests); });
     }
 
@@ -281,7 +286,7 @@ export class AttestationRound {
 
     // save to DB
     try {
-      AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
+      await AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
     } catch (error) {
       logException(error, `AttestationRound::commit save DB`);
     }
@@ -348,6 +353,7 @@ export class AttestationRound {
 
     const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
 
+    // eslint-disable-next-line
     this.attesterWeb3
       .submitAttestation(
         action,
@@ -420,6 +426,7 @@ export class AttestationRound {
       this.nextRound.attestStatus = AttestationRoundStatus.comitted;
     }
 
+    // eslint-disable-next-line
     this.attesterWeb3
       .submitAttestation(
         action,

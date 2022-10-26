@@ -30,6 +30,7 @@ export class DatabaseService {
 
     this.options = options;
 
+    // eslint-disable-next-line
     this.connect();
   }
 
@@ -112,13 +113,15 @@ export class DatabaseService {
     createConnection(options)
       .then(async (conn) => {
         this.logger.info(`^Gconnected to database ^g^K${this.databaseName}^^`);
-        this._connection = await conn;
+        this._connection = conn;
         return;
       })
       .catch(async (e) => {
         logException(e, `connect`);
 
         await sleepms(3000);
+        
+        // eslint-disable-next-line
         this.connect();
       });
   }

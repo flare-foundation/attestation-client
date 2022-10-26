@@ -103,6 +103,7 @@ async function admin() {
 
   //await menu.run();
 
+  // eslint-disable-next-line
   Menu.startInputRead();
 
   // initialize alerts

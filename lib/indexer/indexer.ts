@@ -313,6 +313,7 @@ export class Indexer {
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlockFromClient(`blockCompleted`, this.N + 2);
+        // eslint-disable-next-line
         criticalAsync(`blockCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
@@ -334,6 +335,7 @@ export class Indexer {
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
+        // eslint-disable-next-line
         criticalAsync(`blockAlreadyCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
@@ -467,7 +469,7 @@ export class Indexer {
 
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
         const bottomStates = [this.getStateEntry(`Nbottom`, bottomBlockNumber), this.getStateEntry(`NbottomTime`, this.bottomBlockTime)];
-        this.dbService.manager.save(bottomStates);
+        await this.dbService.manager.save(bottomStates);
       } else {
         this.logger.debug(`block bottom state is undefined`);
       }
@@ -497,11 +499,11 @@ export class Indexer {
    * NOTE: we assume there is no gaps
    */
   public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
-    const query0 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
+    const query0 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
     query0.select(`MIN(blocks.blockNumber)`, "min");
     const result0 = await query0.getRawOne();
 
-    const query1 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
+    const query1 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
     query1.select(`MIN(blocks.blockNumber)`, "min");
     const result1 = await query1.getRawOne();
 
@@ -845,7 +847,7 @@ export class Indexer {
 
     await this.waitForNodeSynced();
 
-    await this.prepareTables();
+    this.prepareTables();
 
     await this.saveBottomState();
 
@@ -878,6 +880,7 @@ export class Indexer {
     await this.indexerSync.runSync(dbStartBlockNumber);
 
     // ------- 2. Run  header collection ----------------------
+    // eslint-disable-next-line
     criticalAsync("runBlockHeaderCollecting", async () => this.headerCollector.runBlockHeaderCollecting());
 
     // ------- 3. Process real time blocks N + 1 --------------
@@ -921,6 +924,7 @@ export class Indexer {
       }
 
       // start async processing of block N + 1 (if not already started)
+      // eslint-disable-next-line
       criticalAsync(`runIndexer -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp1));
     }
   }

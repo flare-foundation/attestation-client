@@ -178,6 +178,8 @@ export class IndexerSync {
       for (let i = 2; i < this.indexer.chainConfig.syncReadAhead; i++) {
         // do not allow read ahead of T - confirmations
         if (this.indexer.N + i > this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) break;
+        
+        // eslint-disable-next-line
         criticalAsync(`runSyncRaw -> blockProcessorManager::processSyncBlockNumber exception `, () =>
           this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.N + i)
         );

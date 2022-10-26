@@ -65,6 +65,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
     this.stop();
 
+    // eslint-disable-next-line
     criticalAsync(`UtxoBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }
@@ -118,6 +119,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     this.stop();
 
+    // eslint-disable-next-line
     criticalAsync(`DogeBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }
@@ -138,6 +140,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
     this.pause();
     const blockDb = await augmentBlock(this.indexer, block);
 
+    // eslint-disable-next-line
     criticalAsync(`AlgoBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }
@@ -166,6 +169,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
     this.stop();
     const blockDb = await augmentBlock(this.indexer, block);
 
+    // eslint-disable-next-line
     criticalAsync(`XrpBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }

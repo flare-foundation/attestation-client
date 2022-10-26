@@ -119,7 +119,8 @@ export class AttesterClient {
       if (event.event === "AttestationRequest") {
         const attestation = new AttestationData(event);
 
-        this.roundMng.attestate(attestation);
+        // eslint-disable-next-line
+        this.roundMng.attestate(attestation); // non awaited promise
       }
       
     } catch (error) {
@@ -190,7 +191,8 @@ export class AttesterClient {
       "StateConnector",
       startBlock,
       (event: any) => {
-        this.processEvent(event);
+        // eslint-disable-next-line
+        this.processEvent(event); // non awaited promise
       },
       this.credentials.web.refreshEventsMs
     );

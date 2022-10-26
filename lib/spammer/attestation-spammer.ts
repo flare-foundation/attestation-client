@@ -131,6 +131,8 @@ class AttestationSpammer {
 
     this.logger.info(`RPC: ${spammerCredentials.web.rpcUrl}`);
     this.logger.info(`Using state connector at: ${spammerCredentials.web.stateConnectorContractAddress}`);
+
+    // eslint-disable-next-line
     getWeb3StateConnectorContract(this.web3, spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnector) => {
       this.stateConnector = sc;
     });
@@ -142,6 +144,7 @@ class AttestationSpammer {
 
       this.logger.info(`RPC2: ${spammerCredentials.web2.rpcUrl}`);
       this.logger.info(`Using state connector 2 at: ${spammerCredentials.web2.stateConnectorContractAddress}`);
+      // eslint-disable-next-line
       getWeb3StateConnectorContract(this.web3, spammerCredentials.web2.stateConnectorContractAddress).then((sc: StateConnector) => {
         this.stateConnector_2 = sc;
       });
@@ -154,6 +157,8 @@ class AttestationSpammer {
     await this.initializeStateConnector();
     await this.indexedQueryManager.dbService.waitForDBConnection();
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
+
+    // eslint-disable-next-line
     this.startLogEvents();
     this.definitions = await readAttestationTypeSchemes();
     this.logger.info(`Running spammer for ${args["chain"]}`);
@@ -243,7 +248,10 @@ class AttestationSpammer {
   async startLogEvents(maxBlockFetch = 30) {
     this.lastBlockNumber = await this.web3.eth.getBlockNumber();
     let firstUnprocessedBlockNumber = this.lastBlockNumber;
+
+    // eslint-disable-next-line
     this.syncBlocks();
+
     while (true) {
       await sleepMs(200);
       try {
@@ -329,6 +337,8 @@ async function displayStats() {
 }
 
 async function runAllAttestationSpammers() {
+  
+  // eslint-disable-next-line
   displayStats();
 
   const spammer = new AttestationSpammer();

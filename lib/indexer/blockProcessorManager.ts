@@ -70,6 +70,7 @@ export class BlockProcessorManager {
     // check if processor for this block is already completed
     if (this.blockProcessors.find(processor => processor.block.stdBlockHash === block.stdBlockHash && processor.isCompleted)) {
       this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
+      // eslint-disable-next-line
       criticalAsync(`process -> BlockProcessorManager::alreadyCompleteCallback exception:`, () => this.alreadyCompleteCallback(block));
       return;
     }
@@ -81,6 +82,7 @@ export class BlockProcessorManager {
       if (this.blockProcessors[i].block.stdBlockHash === block.stdBlockHash) {
         processorExists = true;
         this.logger.info(`^w^Kprocess block ${block.number}^^^W (continue)`);
+        // eslint-disable-next-line
         criticalAsync(`process -> BlockProcessorManager::blockProcessors.continue exception:`, () => this.blockProcessors[i].resume());
       } else {
         this.blockProcessors[i].pause();
@@ -102,6 +104,7 @@ export class BlockProcessorManager {
     this.blockProcessors.push(processor);
 
     // terminate app on exception
+    // eslint-disable-next-line
     criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
   }
 
@@ -123,6 +126,7 @@ export class BlockProcessorManager {
     this.blockProcessors.push(processor);
 
     // terminate app on exception
+    // eslint-disable-next-line
     criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
   }
 

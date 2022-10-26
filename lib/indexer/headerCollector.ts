@@ -217,10 +217,10 @@ export class HeaderCollector {
       case "raw":
       case "latestBlock":
       case "rawUnforkable":
-        this.runBlockHeaderCollectingRaw();
+        await this.runBlockHeaderCollectingRaw();
         break;
       case "tips":
-        this.runBlockHeaderCollectingTips();
+        await this.runBlockHeaderCollectingTips();
         break;
     }
   }

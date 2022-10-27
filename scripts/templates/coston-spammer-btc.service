@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attestation-suite/coston/spammer/dist/lib/spammer/attestation-spammer.js -c BTC
+ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/coston/spammer/dist/lib/spammer/attestation-spammer.js -c BTC
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian

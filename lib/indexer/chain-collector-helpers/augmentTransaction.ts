@@ -16,7 +16,7 @@ async function augmentTransactionBase(indexer: Indexer, block: IBlock, txData: I
   table.chainType = indexer.cachedClient.client.chainType;
   table.transactionId = prepareString(txData.stdTxid, 64);
   table.blockNumber = block.number;
-  table.timestamp = txData.unixTimestamp;
+  table.timestamp = block.unixTimestamp;
   table.transactionType = txData.type;
   table.isNativePayment = txData.isNativePayment;
   table.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);

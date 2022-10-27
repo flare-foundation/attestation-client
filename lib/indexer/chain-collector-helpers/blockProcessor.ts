@@ -39,7 +39,7 @@ export function BlockProcessor(chainType: ChainType) {
 export class UtxoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: IBlock, onSave: onSaveSig) {
     this.block = block as UtxoBlock;
-    let txPromises = block.data.tx.map((txObject) => {
+    const txPromises = block.data.tx.map((txObject) => {
       const getTxObject = {
         blockhash: block.stdBlockHash,
         time: block.unixTimestamp,
@@ -47,7 +47,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
         blocktime: block.unixTimestamp,
         ...txObject,
       };
-      let processed = new UtxoTransaction(getTxObject);
+      const processed = new UtxoTransaction(getTxObject);
       return this.call(() => traceFunction(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>);
     });
 
@@ -65,6 +65,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 
     this.stop();
 
+    // eslint-disable-next-line
     criticalAsync(`UtxoBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }
@@ -81,7 +82,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
     this.block = block as UtxoBlock;
 
     // DOGE API does not support returning the list of transactions with block request
-    let preprocesedTxPromises = block.stdTransactionIds.map((txid: string) => {
+    const preprocesedTxPromises = block.stdTransactionIds.map((txid: string) => {
       // the in-transactions are prepended to queue in order to process them earlier
       return () => this.call(() => this.client.getTransaction(txid), true) as Promise<UtxoTransaction>;
     });
@@ -93,7 +94,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
       this.settings.retry
     )) as UtxoTransaction[];
 
-    let txPromises = awaitedTxIds.map((processed) => {
+    const txPromises = awaitedTxIds.map((processed) => {
       return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>;
     });
 
@@ -118,6 +119,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     this.stop();
 
+    // eslint-disable-next-line
     criticalAsync(`DogeBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }
@@ -129,7 +131,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 export class AlgoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: IBlock, onSave: onSaveSig) {
     this.block = block as AlgoBlock;
-    let txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
+    const txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
       return async () => {
         return await augmentTransactionAlgo(this.indexer, block as AlgoBlock, algoTrans);
       };
@@ -138,6 +140,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
     this.pause();
     const blockDb = await augmentBlock(this.indexer, block);
 
+    // eslint-disable-next-line
     criticalAsync(`AlgoBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }
@@ -150,13 +153,13 @@ export class AlgoBlockProcessor extends LimitingProcessor {
 export class XrpBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: IBlock, onSave: onSaveSig) {
     this.block = block as XrpBlock;
-    let txPromises = block.data.result.ledger.transactions.map((txObject) => {
+    const txPromises = block.data.result.ledger.transactions.map((txObject) => {
       const newObj = {
         result: txObject,
       };
       newObj.result.date = block.unixTimestamp - XRP_UTD;
       // @ts-ignore
-      let processed = new XrpTransaction(newObj);
+      const processed = new XrpTransaction(newObj);
 
       return async () => {
         return await augmentTransactionXrp(this.indexer, block, processed);
@@ -166,6 +169,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
     this.stop();
     const blockDb = await augmentBlock(this.indexer, block);
 
+    // eslint-disable-next-line
     criticalAsync(`XrpBlockProcessor::initializeJobs exception: `, () => onSave(blockDb, transDb));
   }
 }

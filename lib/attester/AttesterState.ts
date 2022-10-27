@@ -5,7 +5,7 @@ import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 
 export class AttesterState {
-  async saveRound(round: AttestationRound, validTransactionCount: number = 0) {
+  async saveRound(round: AttestationRound, validTransactionCount = 0) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = round.roundId;
@@ -21,7 +21,7 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
-  async saveRoundComment(round: AttestationRound, validTransactionCount: number = 0) {
+  async saveRoundComment(round: AttestationRound, validTransactionCount = 0) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = round.roundId;
@@ -58,7 +58,7 @@ export class AttesterState {
   }
 
   async getRound(roundId: number): Promise<DBRoundResult> {
-    var dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: roundId } });
+    const dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: roundId } });
 
     if (dbRound) return dbRound;
 

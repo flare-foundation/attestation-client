@@ -60,20 +60,18 @@
 //   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
 //   before(async () => {
-//     indexerConfiguration = readConfig(new IndexerConfiguration(), "indexer");
-//     chainsConfiguration = readConfig(new ChainsConfiguration(), "chains");
-//     attesterClientConfiguration = readConfig(new AttesterClientConfiguration(), "attester");
-//     const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
+// //     chainsConfiguration = readConfig(new ChainsConfiguration(), "chains");
+// //     const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
 
 //     chainName = getSourceName(SOURCE_ID);
-//     let indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
+//     const indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
 //     client = MCC.Client(SOURCE_ID, {
 //       ...indexerChainConfiguration.mccCreate,
 //       rateLimitOptions: indexerChainConfiguration.rateLimitOptions,
 //     });
 //     //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
-//     let attesterClientChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
+//     const attesterClientChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
 
 //     //NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
 
@@ -99,12 +97,12 @@
 //   });
 
 //   it("Should verify legit Payment", async () => {
-//     let randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxNativePayment).next();
+//     const randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxNativePayment).next();
 //     if (!randomTransaction) {
 //       return;
 //     }
 
-//     let request = await prepareRandomizedRequestPayment(
+//     const request = await prepareRandomizedRequestPayment(
 //       indexedQueryManager,
 //       randomTransaction as DBTransactionBase,
 //       SOURCE_ID,
@@ -113,19 +111,19 @@
 //       "CORRECT"
 //     );
 
-//     let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+//     const attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-//     let res = await verifyAttestation(client, attestation, indexedQueryManager);
+//     const res = await verifyAttestation(client, attestation, indexedQueryManager);
 //     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
 //   });
 
 //   it("Should verify legit BalanceDecreasingTransaction", async () => {
-//     let randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxGeneral).next();
+//     const randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxGeneral).next();
 //     if (!randomTransaction) {
 //       return;
 //     }
 
-//     let request = await prepareRandomizedRequestBalanceDecreasingTransaction(
+//     const request = await prepareRandomizedRequestBalanceDecreasingTransaction(
 //       indexedQueryManager,
 //       randomTransaction as DBTransactionBase,
 //       SOURCE_ID,
@@ -134,23 +132,23 @@
 //       "CORRECT"
 //     );
 
-//     let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+//     const attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-//     let res = await verifyAttestation(client, attestation, indexedQueryManager);
+//     const res = await verifyAttestation(client, attestation, indexedQueryManager);
 
 //     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
 //   });
 
 //   it("Should verify legit ConfirmedBlockHeightExists", async () => {
-//     let lastBlockNumber = await indexedQueryManager.getLastConfirmedBlockNumber();
+//     const lastBlockNumber = await indexedQueryManager.getLastConfirmedBlockNumber();
 
-//     let blockQueryRequest = await indexedQueryManager.queryBlock({
+//     const blockQueryRequest = await indexedQueryManager.queryBlock({
 //       blockNumber: lastBlockNumber - 2,
 //       roundId: ROUND_ID,
 //       confirmed: true,
 //     });
 
-//     let request = await prepareRandomizedRequestConfirmedBlockHeightExists(
+//     const request = await prepareRandomizedRequestConfirmedBlockHeightExists(
 //       indexedQueryManager,
 //       blockQueryRequest.result,
 //       SOURCE_ID,
@@ -162,18 +160,17 @@
 //     if (!request) {
 //       console.log("NO REQUEST - Repeat the test", request);
 //     }
-//     let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+//     const attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-//     let res = await verifyAttestation(client, attestation, indexedQueryManager);
+//     const res = await verifyAttestation(client, attestation, indexedQueryManager);
 //     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
 //   });
 
 //   it("Should verify legit ReferencedPaymentNonexistence", async () => {
-//     let N = await indexedQueryManager.getLastConfirmedBlockNumber();
-//     let maxReps = 10;
+// //     let maxReps = 10;
 //     while (maxReps > 0) {
 //       maxReps--;
-//       let randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxNativeReferencedPayment).next();
+//       const randomTransaction = await randomGenerators.get(TxOrBlockGeneratorType.TxNativeReferencedPayment).next();
 
 //       if (!randomTransaction) {
 //         if (maxReps > 0) {
@@ -183,7 +180,7 @@
 //         return;
 //       }
 
-//       let request = await prepareRandomizedRequestReferencedPaymentNonexistence(
+//       const request = await prepareRandomizedRequestReferencedPaymentNonexistence(
 //         indexedQueryManager,
 //         randomTransaction as DBTransactionBase,
 //         SOURCE_ID,
@@ -200,9 +197,9 @@
 //         return;
 //       }
 
-//       let attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+//       const attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
 
-//       let res = await verifyAttestation(client, attestation, indexedQueryManager);
+//       const res = await verifyAttestation(client, attestation, indexedQueryManager);
 //       assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
 //       // break;
 //     }
@@ -210,10 +207,10 @@
 //   });
 
 //   it("Should be IndexedQueryManager in sync", async () => {
-//     let N = await indexedQueryManager.getLastConfirmedBlockNumber();
-//     let res = await indexedQueryManager.getLatestBlockTimestamp();
-//     let now = await getUnixEpochTimestamp();
-//     let delay = now - res.timestamp;
+//     const N = await indexedQueryManager.getLastConfirmedBlockNumber();
+//     const res = await indexedQueryManager.getLatestBlockTimestamp();
+//     const now = await getUnixEpochTimestamp();
+//     const delay = now - res.timestamp;
 //     assert(delay < indexedQueryManager.settings.maxValidIndexerDelaySec, `Delay too big: ${delay}, N = ${N}, T = ${res.height}, h = ${res.height - N}`);
 //   });
 // });

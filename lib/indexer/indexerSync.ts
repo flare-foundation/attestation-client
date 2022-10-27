@@ -1,4 +1,5 @@
 import { IBlockTip, Managed } from "@flarenetwork/mcc";
+import { exit } from "process";
 import { AttLogger } from "../utils/logger";
 import { failureCallback, retry } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
@@ -177,6 +178,8 @@ export class IndexerSync {
       for (let i = 2; i < this.indexer.chainConfig.syncReadAhead; i++) {
         // do not allow read ahead of T - confirmations
         if (this.indexer.N + i > this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) break;
+        
+        // eslint-disable-next-line
         criticalAsync(`runSyncRaw -> blockProcessorManager::processSyncBlockNumber exception `, () =>
           this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.N + i)
         );
@@ -202,22 +205,23 @@ export class IndexerSync {
   private async runSyncTips() {
     this.indexer.T = await this.indexer.getBlockHeightFromClient(`runSyncTips`);
 
+    const startN = this.indexer.N;
+
+    await this.runSyncRaw();
+
     // update state
     const dbStatus = this.indexer.getStateEntryString("state", "waiting", 0, "collecting tips");
     await retry(`runIndexer::saveStatus`, async () => await this.indexer.dbService.manager.save(dbStatus));
 
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
-    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - this.indexer.N);
+    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN, false);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N
     // Note - N may be very low compared to T, since we are 
     // before sync.
     await this.indexer.headerCollector.saveHeadersOnNewTips(blocks);
-
-    // Sync and save all confirmed blocks from main fork
-    await this.runSyncRaw();
   }
 
   /**
@@ -241,7 +245,21 @@ export class IndexerSync {
       return;
     }
 
-    const syncStartBlockNumber = await this.getSyncStartBlockNumber();
+    const syncStartBlockNumber = await this.getSyncStartBlockNumber();  // N ... start reading N+1
+
+    // check if syncN is bigger than DB-N.
+    if (dbStartBlockNumber > 0 && dbStartBlockNumber < syncStartBlockNumber) {
+      // note that this drops the table when dbStartBlockNumber + 1 = syncStartBlockNumber which would be valid from continuity stand point 
+      // but in case that sync N was node bottom block we would not be able to read block number sync N.
+      // here we are a bit more defensive since it is a very low probability of this actually happening.
+
+      this.logger.error(`runSync possible gap detected DB_N=${dbStartBlockNumber} Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`);
+
+      // drop both tables
+      //await this.indexer.interlace.resetAll();
+
+      exit(4);
+    }
 
     this.indexer.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);
 

@@ -11,7 +11,7 @@ function genDefHashItem(item: DataHashScheme) {
 }
 
 function genAttestationDataHashType(definition: AttestationTypeScheme) {
-  let values = definition.dataHashDefinition.map((item) => genDefHashItem(item)).join("\n\n");
+  const values = definition.dataHashDefinition.map((item) => genDefHashItem(item)).join("\n\n");
   return `
 export interface ${DATA_HASH_TYPE_PREFIX}${definition.name} {
    // Attestation type
@@ -24,7 +24,7 @@ ${values}
 }
 
 function dhType(definitions: AttestationTypeScheme[]) {
-  let dhTypes = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(" | ");
+  const dhTypes = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(" | ");
   return `export type ${DATA_HASH_TYPE_PREFIX}Type = ${dhTypes};`;
 }
 

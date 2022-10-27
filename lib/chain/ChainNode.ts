@@ -24,8 +24,8 @@ export class ChainNode {
   client: MccClient;
 
   // node rate limiting control
-  requestTime: number = 0;
-  requestsPerSecond: number = 0;
+  requestTime = 0;
+  requestsPerSecond = 0;
 
   chainConfig: ChainConfiguration;
 
@@ -50,7 +50,7 @@ export class ChainNode {
 
     //const confirmations = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig( )
 
-    let options: IndexedQueryManagerOptions = {
+    const options: IndexedQueryManagerOptions = {
       chainType: chainType,
       dbService: AttestationRoundManager.dbServiceIndexer,
       maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec,
@@ -60,7 +60,7 @@ export class ChainNode {
       },
 
       windowStartTime: (roundId: number) => {
-        let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
+        const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
         const queryWindowsInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
           toSourceId(chainConfiguration.name),
           roundId
@@ -69,7 +69,7 @@ export class ChainNode {
       },
 
       UBPCutoffTime: (roundId: number) => {
-        let roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
+        const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
         const UBPUnconfirmedWindowInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
           toSourceId(chainConfiguration.name),
           roundId
@@ -312,6 +312,7 @@ export class ChainNode {
 
     // check if transaction can be added into processing
     if (this.canProcess()) {
+      // eslint-disable-next-line
       this.process(transaction);
     } else {
       this.queue(transaction);
@@ -346,6 +347,7 @@ export class ChainNode {
         const tx = this.transactionsPriorityQueue.pop();
         this.updateDelayQueueTimer();
 
+        // eslint-disable-next-line
         this.process(tx!);
       }
 
@@ -353,6 +355,7 @@ export class ChainNode {
       while (this.transactionsQueue.length && this.canProcess()) {
         const tx = this.transactionsQueue.shift();
 
+        // eslint-disable-next-line
         this.process(tx!);
       }
     } catch (error) {

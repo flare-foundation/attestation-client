@@ -17,8 +17,8 @@ yarn ts-node lib/install/install-file.ts -i .config.secret.sh -o .config.secret.
 
 source ./scripts/install-check.sh
 
-
 # install services
+sudo loginctl enable-linger ubuntu
 bash ./scripts/install-services.sh
 
 # prepare configurations
@@ -42,9 +42,5 @@ if $INSTALL_FRONTEND; then
     source ./scripts/install-frontend.sh
 fi
 
-# deploy
-echo -e "${REDBOLD}[4] ${GREENBOLD}Deploy all started${NC}"
-bash ./scripts/deploy-all.sh
-
 # update config
-bash ./scripts/update-config.sh
+source ./scripts/update-config.sh

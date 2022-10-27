@@ -30,11 +30,11 @@ class AlertDatabaseConfig implements IReflection<AlertDatabaseConfig> {
 }
 
 export class AlertConfig implements IReflection<AlertConfig> {
-  @optional() interval: number = 5000;
+  @optional() interval = 5000;
 
-  @optional() timeLate: number = 5;
-  @optional() timeDown: number = 10;
-  @optional() timeRestart: number = 20;
+  @optional() timeLate = 5;
+  @optional() timeDown = 10;
+  @optional() timeRestart = 20;
   stateSaveFilename = "";
   indexerRestart = "";
 

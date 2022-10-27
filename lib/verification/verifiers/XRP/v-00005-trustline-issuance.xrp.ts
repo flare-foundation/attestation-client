@@ -29,9 +29,9 @@ export async function verifyTrustlineIssuanceXRP(
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARTrustlineIssuance, DHTrustlineIssuance>> {
-  let request = parseRequest(attestation.data.request) as ARTrustlineIssuance;
-  let roundId = attestation.roundId;
-  let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestation.data.request) as ARTrustlineIssuance;
+  const roundId = attestation.roundId;
+  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
@@ -39,14 +39,14 @@ export async function verifyTrustlineIssuanceXRP(
 
   //-$$$<end> of the custom section. Do not change this comment.
 
-  let response = {
+  const response = {
     tokenCurrencyCode: randSol(request, "tokenCurrencyCode", "bytes32") as string,
     tokenValueNominator: randSol(request, "tokenValueNominator", "uint256") as BN,
     tokenValueDenominator: randSol(request, "tokenValueDenominator", "uint256") as BN,
     tokenIssuer: randSol(request, "tokenIssuer", "bytes32") as string,
   } as DHTrustlineIssuance;
 
-  let hash = hashTrustlineIssuance(request, response);
+  const hash = hashTrustlineIssuance(request, response);
 
   return {
     hash,

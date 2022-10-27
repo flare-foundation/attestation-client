@@ -22,14 +22,16 @@ interface EventOptions {
 }
 
 export type AttestationRequest = ContractEventLog<{
+  sender: string;
   timestamp: string;
   data: string;
   0: string;
   1: string;
+  2: string;
 }>;
 export type RoundFinalised = ContractEventLog<{
-  bufferNumber: string;
-  merkleHash: string;
+  roundId: string;
+  merkleRoot: string;
   0: string;
   1: string;
 }>;
@@ -52,15 +54,23 @@ export interface StateConnector extends BaseContract {
 
     TOTAL_STORED_PROOFS(): NonPayableTransactionObject<string>;
 
+    attestorAddressMapping(arg0: string): NonPayableTransactionObject<string>;
+
     buffers(arg0: string): NonPayableTransactionObject<string>;
 
     finaliseRound(
-      bufferNumber: number | string | BN,
-      merkleHash: string | number[]
+      _bufferNumber: number | string | BN,
+      _merkleRoot: string | number[]
     ): NonPayableTransactionObject<void>;
 
     getAttestation(
-      bufferNumber: number | string | BN
+      _bufferNumber: number | string | BN
+    ): NonPayableTransactionObject<string>;
+
+    lastFinalizedRoundId(): NonPayableTransactionObject<string>;
+
+    merkleRoot(
+      _roundId: number | string | BN
     ): NonPayableTransactionObject<string>;
 
     merkleRoots(
@@ -68,17 +78,21 @@ export interface StateConnector extends BaseContract {
     ): NonPayableTransactionObject<string>;
 
     requestAttestations(
-      data: string | number[]
+      _data: string | number[]
     ): NonPayableTransactionObject<void>;
 
     submitAttestation(
-      bufferNumber: number | string | BN,
-      maskedMerkleHash: string | number[],
-      committedRandom: string | number[],
-      revealedRandom: string | number[]
+      _bufferNumber: number | string | BN,
+      _commitHash: string | number[],
+      _merkleRoot: string | number[],
+      _randomNumber: string | number[]
     ): NonPayableTransactionObject<boolean>;
 
     totalBuffers(): NonPayableTransactionObject<string>;
+
+    updateAttestorAddressMapping(
+      _updatedAddress: string
+    ): NonPayableTransactionObject<void>;
   };
   events: {
     AttestationRequest(cb?: Callback<AttestationRequest>): EventEmitter;

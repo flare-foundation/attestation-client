@@ -27,7 +27,7 @@ export class StatusController extends Controller {
 
   @Get("services-html")
   public async serviceStatusHtml(@Request() request: express.Request): Promise<string> {
-    let result = await this.proofEngine.serviceStatusHtml();
+    const result = await this.proofEngine.serviceStatusHtml();
     const response = (<any>request).res as express.Response;
     this.setStatus(200);
     response.contentType("text/html");

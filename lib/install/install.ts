@@ -2,7 +2,7 @@ import { readJSON } from "../utils/config";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger, logException } from "../utils/logger";
 
-let logger = getGlobalLogger();
+const logger = getGlobalLogger();
 
 let path = "configs/.install/";
 
@@ -59,16 +59,16 @@ async function prepareInstall(name: string, chain: string, first = false) {
 
   // check if all templates are in configs
 
-  let fromTemplates = [];
+  const fromTemplates = [];
   let missing = 0;
 
-  for (let temp of templates) {
-    for (let tempKey of Object.keys(temp)) {
+  for (const temp of templates) {
+    for (const tempKey of Object.keys(temp)) {
 
       let found = 0;
 
-      for (let config of configs) {
-        for (let configKey of Object.keys(config)) {
+      for (const config of configs) {
+        for (const configKey of Object.keys(config)) {
 
           if (tempKey === configKey) {
             found++;
@@ -117,8 +117,8 @@ async function prepareInstall(name: string, chain: string, first = false) {
 
     data = replaceAll(data, `Network`, name);
 
-    for (let config of configs) {
-      for (let key of Object.keys(config)) {
+    for (const config of configs) {
+      for (const key of Object.keys(config)) {
         data = replaceAll(data, key, config[key]);
       }
     }
@@ -129,7 +129,7 @@ async function prepareInstall(name: string, chain: string, first = false) {
     if (leftVariables) {
       const leftVariablesNoDup = leftVariables.filter((item, index) => leftVariables.indexOf(item) === index);
 
-      for (let left of leftVariablesNoDup) {
+      for (const left of leftVariablesNoDup) {
         getGlobalLogger().error(`      file ^w${file}^^ (chain ^E${chain}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
         errorResult = 2;
       }
@@ -139,7 +139,7 @@ async function prepareInstall(name: string, chain: string, first = false) {
   }
 }
 
-let fromEnv = [];
+const fromEnv = [];
 function addEnv(name: string) {
   if( !process.env[name] ) return;
 

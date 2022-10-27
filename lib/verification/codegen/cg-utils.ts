@@ -28,8 +28,8 @@ export function constantize(name: string) {
 }
 
 export function definitionFile(definition: AttestationTypeScheme, folder?: string, addTs = true) {
-  let root = folder ? `${folder}/` : "";
-  let suffix = addTs ? ".ts" : "";
+  const root = folder ? `${folder}/` : "";
+  const suffix = addTs ? ".ts" : "";
   return `${root}t-${("" + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}${suffix}`;
 }
 

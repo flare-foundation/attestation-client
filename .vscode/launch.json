@@ -359,6 +359,23 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Test Attestation Client",
+            "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "test",
+                "test/attestationCient/attestationClient.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Test Verification BTC",
             "runtimeExecutable": "yarn",
             "console": "integratedTerminal",
@@ -376,6 +393,29 @@
                 "hardhat",
                 "test",
                 "test/verification/verification.test.ts"
+            ]
+        },
+
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Block Download XRP",
+            "runtimeExecutable": "yarn",
+            "console": "integratedTerminal",
+            "env": {
+                "SOURCE_ID": "BTC",
+                "CONFIG_PATH": "dev"
+            },
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**",
+                "${workspaceFolder}/../mcc/**/*.js",
+                "${workspaceFolder}/../mcc/src/**"
+            ],
+            "runtimeArgs": [
+                "hardhat",
+                "test",
+                "test/indexer/chainCollector.test-dev.ts"
             ]
         },
 

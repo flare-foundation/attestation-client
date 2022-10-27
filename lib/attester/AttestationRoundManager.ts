@@ -127,7 +127,7 @@ export class AttestationRoundManager {
 
       // trigger start commit epoch
       setTimeout(() => {
-        safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitEpoch());
+        safeCatch(`setTimeout:startCommitEpoch`, async () => await activeRound!.startCommitEpoch());
       }, epochCommitTime - now);
 
       // trigger start commit epoch submit

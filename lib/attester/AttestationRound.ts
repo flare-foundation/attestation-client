@@ -113,14 +113,15 @@ export class AttestationRound {
     attestation.sourceHandler.validate(attestation);
   }
 
-  startCommitEpoch() {
+  async startCommitEpoch() {
     this.logger.group(
       `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
 
-    this.tryTriggerCommit(); // In case all requests are already processed
+    // 
+    await this.tryTriggerCommit(); // In case all requests are already processed
   }
 
   startCommitSubmit() {
@@ -128,8 +129,8 @@ export class AttestationRound {
       const action = `Finalizing ^Y#${this.roundId - 3}^^`;
 
       // eslint-disable-next-line
-      this.attesterWeb3
-        .submitAttestation(
+      criticalAsync("", async () => {
+        const receipt = await this.attesterWeb3.submitAttestation(
           action,
           // commit index (collect+1)
           toBN(this.roundId + 1),
@@ -141,12 +142,12 @@ export class AttestationRound {
           toHex(0, 32),
           toHex(0, 32),
           false
-        )
-        .then((receipt) => {
-          if (receipt) {
-            this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId - 3}`);
-          }
-        });
+        );
+        if (receipt) {
+          this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId - 3}`);
+        }
+
+      });
     }
   }
 
@@ -163,7 +164,9 @@ export class AttestationRound {
   processed(tx: Attestation) {
     this.attestationsProcessed++;
     assert(this.attestationsProcessed <= this.attestations.length);
-    this.tryTriggerCommit();
+
+    // eslint-disable-next-line
+    criticalAsync("processed", async () => { await this.tryTriggerCommit(); });
   }
 
   async tryTriggerCommit() {
@@ -171,7 +174,7 @@ export class AttestationRound {
       if (this.status === AttestationRoundEpoch.commit) {
         // all transactions were processed and we are in commit epoch
         this.logger.info(`round #${this.roundId} all transactions processed ${this.attestations.length} commiting...`);
-        this.commit();
+        await this.commit();
       } else {
         // all transactions were processed but we are NOT in commit epoch yet
         //this.logger.info(`round #${this.epochId} all transactions processed ${this.attestations.length} waiting for commit epoch`);
@@ -354,8 +357,8 @@ export class AttestationRound {
     const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
 
     // eslint-disable-next-line
-    this.attesterWeb3
-      .submitAttestation(
+    criticalAsync("firstCommit", async () => {
+      const receipt = await this.attesterWeb3.submitAttestation(
         action,
         // commit index (collect+1)
         toBN(this.roundId + 1),
@@ -366,15 +369,15 @@ export class AttestationRound {
         nextState && nextState.random ? nextState.random : toHex(0, 32),
         nextState && nextState.merkleRoot ? nextState.merkleRoot : toHex(0, 32),
         this.roundCommitHash
-      )
-      .then((receipt) => {
-        if (receipt) {
-          this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
-          this.attestStatus = AttestationRoundStatus.comitted;
-        } else {
-          this.attestStatus = AttestationRoundStatus.error;
-        }
-      });
+      );
+
+      if (receipt) {
+        this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
+        this.attestStatus = AttestationRoundStatus.comitted;
+      } else {
+        this.attestStatus = AttestationRoundStatus.error;
+      }
+    });
   }
 
   async reveal() {
@@ -427,8 +430,8 @@ export class AttestationRound {
     }
 
     // eslint-disable-next-line
-    this.attesterWeb3
-      .submitAttestation(
+    criticalAsync("", async () => {
+      const receipt = await this.attesterWeb3.submitAttestation(
         action,
         // commit index (collect+2)
         toBN(this.roundId + 2),
@@ -439,15 +442,15 @@ export class AttestationRound {
         this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32),
         this.attestStatus === AttestationRoundStatus.comitted ? this.roundMerkleRoot : toHex(0, 32),
         nextRoundCommitHash
-      )
-      .then((receit) => {
-        if (receit) {
-          this.logger.info(`^Cround ^Y#${this.roundId}^C submit completed (buffernumber ${this.roundId + 2})`);
-          this.attestStatus = AttestationRoundStatus.revealed;
-        } else {
-          this.logger.info(`^Rround ^Y#${this.roundId}^R submit error (buffernumber ${this.roundId + 2}) - no receipt`);
-          this.attestStatus = AttestationRoundStatus.error;
-        }
-      });
+      );
+
+      if (receipt) {
+        this.logger.info(`^Cround ^Y#${this.roundId}^C submit completed (buffernumber ${this.roundId + 2})`);
+        this.attestStatus = AttestationRoundStatus.revealed;
+      } else {
+        this.logger.info(`^Rround ^Y#${this.roundId}^R submit error (buffernumber ${this.roundId + 2}) - no receipt`);
+        this.attestStatus = AttestationRoundStatus.error;
+      }
+    });
   }
 }

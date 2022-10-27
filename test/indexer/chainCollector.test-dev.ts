@@ -63,6 +63,11 @@ describe("Test process helpers ", () => {
 
       console.log("***************** BLOCK SAVE ************************");
 
+      const newDb = new (indexer.dbTransactionClasses[1] as any)();
+
+      //Object.setPrototypeOf( transactions[0] , Object.getPrototypeOf( indexer.dbTransactionClasses[1] ) )
+      Object.setPrototypeOf( transactions[0] , Object.getPrototypeOf( newDb ) )
+
       console.log(block);
 
       console.log(transactions.length);

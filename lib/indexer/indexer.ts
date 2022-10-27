@@ -408,6 +408,14 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
+
+          // fix transactions class to active interlace tranascation class
+          const transactionClass = this.getActiveTransactionWriteTable();
+          const dummy = new (transactionClass as any)();
+          for (const transaction in transactions) {
+            Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
+          }
+
           await transaction.save(transactions);
         }
         else {

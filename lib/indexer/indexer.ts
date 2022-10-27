@@ -1,5 +1,6 @@
 import { ChainType, IBlock, IBlockHeader, Managed, MCC } from "@flarenetwork/mcc";
-import { Like } from "typeorm";
+import { exit } from "process";
+import { EntityTarget } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -81,7 +82,7 @@ export class Indexer {
 
     this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
 
-    let cachedMccClientOptions: CachedMccClientOptions = {
+    const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
@@ -266,7 +267,7 @@ export class Indexer {
    * @param comment
    * @returns
    */
-  public getStateEntryString(name: string, valueString: string, valueNum: number, comment: string = ""): DBState {
+  public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
     const state = new DBState();
 
     state.name = this.prefixChainNameTo(name);
@@ -312,6 +313,7 @@ export class Indexer {
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlockFromClient(`blockCompleted`, this.N + 2);
+        // eslint-disable-next-line
         criticalAsync(`blockCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
@@ -333,6 +335,7 @@ export class Indexer {
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
+        // eslint-disable-next-line
         criticalAsync(`blockAlreadyCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
@@ -346,8 +349,8 @@ export class Indexer {
    * Prepares table entities for transactions (interlaced) and block
    */
   public prepareTables() {
-    let chainType = MCC.getChainType(this.chainConfig.name);
-    let prepared = prepareIndexerTables(chainType);
+    const chainType = MCC.getChainType(this.chainConfig.name);
+    const prepared = prepareIndexerTables(chainType);
 
     this.dbTransactionClasses = prepared.transactionTable;
     this.dbBlockClass = prepared.blockTable;
@@ -405,7 +408,27 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
+
+          // fix transactions class to active interlace tranascation class
+          const transactionClass = this.getActiveTransactionWriteTable();
+          const dummy = new (transactionClass as any)();
+          for (const transaction in transactions) {
+            Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
+          }
+
           await transaction.save(transactions);
+        }
+        else {
+          // save dummy transaction to keep transaction table block continuity
+          this.logger.debug(`block ${block.blockNumber} no transactions`);
+
+          const dummyTx = new (this.getActiveTransactionWriteTable() as any)();
+
+          dummyTx.chainType = this.cachedClient.client.chainType;
+          dummyTx.blockNumber = block.blockNumber;
+          dummyTx.transactionType = "EMPTY_BLOCK_INDICATOR";
+
+          await transaction.save(dummyTx);
         }
 
         await transaction.save(block);
@@ -427,7 +450,7 @@ export class Indexer {
     this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms)`);
 
     // table interlacing
-    if (this.interlace.update(block.timestamp, block.blockNumber)) {
+    if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
       await this.saveBottomState();
     }
@@ -454,7 +477,7 @@ export class Indexer {
 
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
         const bottomStates = [this.getStateEntry(`Nbottom`, bottomBlockNumber), this.getStateEntry(`NbottomTime`, this.bottomBlockTime)];
-        this.dbService.manager.save(bottomStates);
+        await this.dbService.manager.save(bottomStates);
       } else {
         this.logger.debug(`block bottom state is undefined`);
       }
@@ -484,11 +507,11 @@ export class Indexer {
    * NOTE: we assume there is no gaps
    */
   public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
-    const query0 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
+    const query0 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
     query0.select(`MIN(blocks.blockNumber)`, "min");
     const result0 = await query0.getRawOne();
 
-    const query1 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
+    const query1 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
     query1.select(`MIN(blocks.blockNumber)`, "min");
     const result1 = await query1.getRawOne();
 
@@ -522,7 +545,7 @@ export class Indexer {
     // check if N+1 with blockNp1hash is already prepared (otherwise wait for it)
     const preparedBlocks = this.preparedBlocks.get(Np1);
     if (preparedBlocks) {
-      for (let preparedBlock of preparedBlocks) {
+      for (const preparedBlock of preparedBlocks) {
         if (preparedBlock.block.blockHash === this.blockNp1hash) {
           // save prepared N+1 block with active hash and increment this.N
           await this.blockSave(preparedBlock.block, preparedBlock.transactions);
@@ -537,7 +560,7 @@ export class Indexer {
 
     // check if the block with number N + 1, `Np1`, with hash `Np1Hash` is in preparation
     let exists = false;
-    for (let processor of this.blockProcessorManager.blockProcessors) {
+    for (const processor of this.blockProcessorManager.blockProcessors) {
       if (processor.block.number == Np1 && processor.block.stdBlockHash == this.blockNp1hash) {
         exists = true;
         break;
@@ -572,6 +595,16 @@ export class Indexer {
   // Auxillary functions
   /////////////////////////////////////////////////////////////
 
+  async dropAllStateInfo() {
+    this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
+
+    await this.dbService.manager.createQueryBuilder()
+      .delete()
+      .from(DBState)
+      .where("`name` like :name", { name: `%${this.chainConfig.name}_%` })
+      .execute();
+  }
+
   /**
    * Processes command line parameters when supplied.
    * If true is returned, utility functionalities are performed.
@@ -604,7 +637,7 @@ export class Indexer {
       await this.dropTable(`state`);
 
       // Be careful when adding chains
-      for (let chainName of SUPPORTED_CHAINS) {
+      for (const chainName of SUPPORTED_CHAINS) {
         await this.dropAllChainTables(chainName);
       }
 
@@ -619,7 +652,7 @@ export class Indexer {
       this.logger.error2("command: RESET_ACTIVE");
 
       // reset state for this chain
-      await this.dbService.manager.delete(DBState, { name: Like(`${this.chainConfig.name}_%`) });
+      await this.dropAllStateInfo();
 
       await this.dropAllChainTables(this.chainConfig.name);
 
@@ -677,11 +710,18 @@ export class Indexer {
     const fullHistory = !this.bottomBlockTime ? false : blockNp1.unixTimestamp - this.bottomBlockTime > syncTimeSec;
     let dbStatus;
     if (!fullHistory) {
+      let min = Math.ceil((syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60);
+      let hr = 0;
+      if (min > 90) {
+        hr = Math.floor(min / 60);
+        min -= hr * 60;
+      }
+
       dbStatus = this.getStateEntryString(
         "state",
         "running-sync",
         this.processedBlocks,
-        `N=${this.N} T=${this.T} (history is not ready: missing ${(syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60} min)`
+        `N=${this.N} T=${this.T} (missing ${(hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, '0')}`)})`
       );
     } else if (!NisReady) {
       dbStatus = this.getStateEntryString(
@@ -726,6 +766,74 @@ export class Indexer {
     }
   }
 
+  /**
+   * check if indexer database is continous
+   */
+  async checkDatabaseContinuous() {
+
+    const name = this.chainConfig.name.toLowerCase();
+
+    // reference sql query
+    //const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
+
+    // get DB N_bottom 
+    const queryNbottom = this.dbService.manager.createQueryBuilder()
+      .select("valueNumber")
+      .addSelect("name")
+      .from(DBState, "s")
+      .where("s.name = :name", { name: `${name.toUpperCase()}_Nbottom` });
+
+    //this.queryPrint(queryNbottom);
+
+    const Nbottom = await queryNbottom.getRawOne();
+
+    if (!Nbottom || !Nbottom.valueNumber) {
+      this.logger.error(`${name} discontinuity test failed (unable to get state:${name.toUpperCase()}_Nbottom)`);
+      return;
+    }
+
+    const queryTable0 = this.dbService.manager.createQueryBuilder()
+      .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
+      .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx")
+      .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
+
+    const queryTable1 = this.dbService.manager.createQueryBuilder()
+      .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
+      .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx")
+      .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
+
+    const table0missing = await queryTable0.getRawOne();
+    const table1missing = await queryTable1.getRawOne();
+
+    if (table0missing && table0missing.missing) {
+      if (table0missing.missing != 0) {
+        this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
+
+        //await this.interlace.resetAll();
+
+        this.logger.debug(`restarting`);
+        exit(3);
+      }
+      else {
+        this.logger.debug(`${name} continuity ok on [0]`);
+      }
+    }
+
+    if (table1missing && table1missing.missing) {
+      if (table1missing.missing != 0) {
+        this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
+
+        await this.interlace.resetAll();
+
+        this.logger.debug(`restarting`);
+        exit(3);
+      }
+      else {
+        this.logger.debug(`${name} continuity ok on [1]`);
+      }
+    }
+  }
+
   /////////////////////////////////////////////////////////////
   // main indexer entry function
   /////////////////////////////////////////////////////////////
@@ -747,11 +855,14 @@ export class Indexer {
 
     await this.waitForNodeSynced();
 
-    await this.prepareTables();
+    this.prepareTables();
 
     await this.saveBottomState();
 
     const startBlockNumber = (await this.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
+
+    this.logger.warning(`${this.chainConfig.name} T=${startBlockNumber}`);
+
     // initial N initialization - will be later on assigned to DB or sync N
     this.N = startBlockNumber;
 
@@ -762,7 +873,7 @@ export class Indexer {
     }
 
     await this.interlace.initialize(
-      this.logger,
+      this,
       this.dbService,
       this.dbTransactionClasses,
       this.chainConfig.minimalStorageHistoryDays,
@@ -770,10 +881,14 @@ export class Indexer {
       this.chainConfig.name
     );
 
+    // check if indexer database is continous
+    await this.checkDatabaseContinuous();
+
     // ------- 1. sync blocks from the past -------------------
     await this.indexerSync.runSync(dbStartBlockNumber);
 
     // ------- 2. Run  header collection ----------------------
+    // eslint-disable-next-line
     criticalAsync("runBlockHeaderCollecting", async () => this.headerCollector.runBlockHeaderCollecting());
 
     // ------- 3. Process real time blocks N + 1 --------------
@@ -817,6 +932,7 @@ export class Indexer {
       }
 
       // start async processing of block N + 1 (if not already started)
+      // eslint-disable-next-line
       criticalAsync(`runIndexer -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp1));
     }
   }

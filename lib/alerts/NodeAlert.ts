@@ -26,7 +26,7 @@ export class NodeAlert extends AlertBase {
 
   async initialize() {
     // todo: setup options from config
-    let cachedMccClientOptions: CachedMccClientOptions = {
+    const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
@@ -78,7 +78,7 @@ export class NodeAlert extends AlertBase {
       return res;
     }
 
-    var status = await this.cachedClient.client.getNodeStatus();
+    const status = await this.cachedClient.client.getNodeStatus();
 
     if (!status) {
       res.comment = "node status not available";

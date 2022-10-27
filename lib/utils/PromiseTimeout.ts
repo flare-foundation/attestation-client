@@ -1,9 +1,9 @@
 import { retry as mccRetry } from "@flarenetwork/mcc";
 import { getGlobalLogger, logException } from "./logger";
 
-let DEFAULT_TIMEOUT = 60000;
-let DEFAULT_RETRY = 10;
-let DEFAULT_BACK_OFF_TIME = 1000;
+const DEFAULT_TIMEOUT = 60000;
+const DEFAULT_RETRY = 10;
+const DEFAULT_BACK_OFF_TIME = 1000;
 
 /**
  * Global setting of failure callback

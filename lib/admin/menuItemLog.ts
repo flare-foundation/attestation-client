@@ -30,7 +30,7 @@ function displayLine(colorConsole: ColorConsole, data: string) {
 }
 
 export class MenuItemLog extends MenuItemBase {
-  filename: string = "";
+  filename = "";
 
   static working = false;
 
@@ -62,7 +62,7 @@ export class MenuItemLog extends MenuItemBase {
 
 
     if (lines > 0) {
-      let textLines = [];
+      const textLines = [];
 
       const read = await new Promise((resolve, reject) => {
 

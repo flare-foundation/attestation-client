@@ -1,4 +1,4 @@
-let timeSync = 0;
+const timeSync = 0;
 
 // time in milliseconds
 export function getTimeMilli() {

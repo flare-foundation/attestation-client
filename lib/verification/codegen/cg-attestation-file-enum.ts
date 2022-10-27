@@ -4,7 +4,7 @@ import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { ATTESTATION_TYPES_ENUM_FILE, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
 
 function genAttestationTypeEnum(definitions: AttestationTypeScheme[]): string {
-  let values = definitions.map((definition) => `${definition.name} = ${definition.id}`).join(",\n");
+  const values = definitions.map((definition) => `${definition.name} = ${definition.id}`).join(",\n");
   return `
 export enum AttestationType {
 ${values}

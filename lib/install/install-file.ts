@@ -2,7 +2,7 @@ import { readJSON } from "../utils/config";
 import { getGlobalLogger } from "../utils/logger";
 import { getCryptoSafeRandom } from "../utils/utils";
 
-var yargs = require("yargs");
+const yargs = require("yargs");
 
 // command line 
 // -j filename : json config file
@@ -22,7 +22,7 @@ const args = yargs
   .argv;
 
 
-let logger = getGlobalLogger();
+const logger = getGlobalLogger();
 
 let errorResult = 0;
 
@@ -53,11 +53,11 @@ async function generatePasswords(source: string, length = 32) {
 
 const fs = require("fs");
 
-let configs = [];
+const configs = [];
 function readConfig(filename: string) {
-  var config = readJSON<any>(filename, null, true);
+  const config = readJSON<any>(filename, null, true);
 
-  for (let key of Object.keys(config)) {
+  for (const key of Object.keys(config)) {
 
     configs.push([key, config[key]]);
   }
@@ -80,7 +80,7 @@ async function processFile(inputFilename: string, outputFilename: string, chain:
 
   data = replaceAll(data, `Network`, chain);
 
-  for (let config of configs) {
+  for (const config of configs) {
     data = replaceAll(data, config[0], config[1]);
   }
 
@@ -94,7 +94,7 @@ async function processFile(inputFilename: string, outputFilename: string, chain:
   if (leftVariables) {
     const leftVariablesNoDup = leftVariables.filter((item, index) => leftVariables.indexOf(item) === index);
 
-    for (let left of leftVariablesNoDup) {
+    for (const left of leftVariablesNoDup) {
       getGlobalLogger().error(`      file ^w${inputFilename}^^ (chain ^E${chain}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
       errorResult = 2;
     }
@@ -139,7 +139,7 @@ async function run() {
   const withthis = args["withConfig"];
 
   let i = 0;
-  for (let key of replace) {
+  for (const key of replace) {
     configs.push([key, withthis[i++]]);
   }
 

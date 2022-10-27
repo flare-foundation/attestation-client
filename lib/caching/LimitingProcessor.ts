@@ -72,7 +72,7 @@ export class DelayedExecution {
    */
   async run() {
     try {
-      let res = await this.func();
+      const res = await this.func();
       this.resolve(res);
     } catch (e) {
       logException(e, `DelayedExecution::run exception`);
@@ -114,6 +114,7 @@ export class LimitingProcessor {
     this.indexer = indexer;
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = indexer.cachedClient;
+    // eslint-disable-next-line
     criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }
 
@@ -147,8 +148,9 @@ export class LimitingProcessor {
         await sleepms(100);
         continue;
       }
-      let de = this.queue.shift();
+      const de = this.queue.shift();
       if (de) {
+        // eslint-disable-next-line
         criticalAsync(`LimitingProcessor::continue -> DelayedExecution::run `, () => de.run());
       } else {
         getGlobalLogger().error2(`LimitingProcessor::continue error: de is undefined`);
@@ -205,7 +207,7 @@ export class LimitingProcessor {
    * @param prepend whether the job should be prepended or appended to the queue
    */
   private delayExecuteCallback(func: any, resolve: any, reject: any, prepend = false) {
-    let de = new DelayedExecution(this, func, resolve, reject);
+    const de = new DelayedExecution(this, func, resolve, reject);
     if (prepend) {
       this.queue.prepend(de);
     } else {

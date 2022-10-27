@@ -10,7 +10,7 @@ describe("Merkle Tree", () => {
 
   describe("General functionalities", () => {
     it("Should be able to create empty tree form empty array", () => {
-      let tree = new MerkleTree([]);
+      const tree = new MerkleTree([]);
       assert(tree.hashCount === 0);
       assert(tree.root === null);
       assert(tree.rootBN.eqn(0));
@@ -22,7 +22,7 @@ describe("Merkle Tree", () => {
 
     it("Should tree for n hashes have 2*n - 1 nodes", () => {
       for (let i = 1; i < 10; i++) {
-        let hashes = makeHashes(i);
+        const hashes = makeHashes(i);
         const tree = new MerkleTree(hashes);
         assert(tree.tree.length === 2 * i - 1);
         assert(tree.hashCount === i);
@@ -34,9 +34,9 @@ describe("Merkle Tree", () => {
       for (let i = 1; i < 10; i++) {
         let hashes = makeHashes(i);
         const tree = new MerkleTree(hashes);
-        let sortedHashes = tree.sortedHashes;
+        const sortedHashes = tree.sortedHashes;
         for (let j = 0; j < i; j++) {
-          assert(sortedHashes.indexOf(hashes[j]) >= 0);
+          assert(sortedHashes.indexOf(singleHash(hashes[j])) >= 0);
         }
       }
     });
@@ -59,12 +59,12 @@ describe("Merkle Tree", () => {
 
     it("Should merkle proof work for up to 10 hashes", () => {
       for (let i = 1; i < 100; i++) {
-        let hashes = makeHashes(i);
+        const hashes = makeHashes(i);
         const tree = new MerkleTree(hashes);
         for (let j = 0; j < tree.hashCount; j++) {
-          let leaf = tree.getHash(j);
-          let proof = tree.getProof(j);
-          let ver = tree.verify(leaf!, proof!);
+          const leaf = tree.getHash(j);
+          const proof = tree.getProof(j);
+          const ver = tree.verify(leaf!, proof!);
           assert(ver);
         }
       }

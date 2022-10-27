@@ -11,22 +11,22 @@ describe("Merkle Tree", () => {
     let merkle: MerkleInstance;
 
     beforeEach(async () => {
-      let Merkle = artifacts.require("Merkle");
+      const Merkle = artifacts.require("Merkle");
       merkle = await Merkle.new();
     });
 
     it(`Should proof verification for up to ${N} hashes work on contract`, async () => {
       for (let i = 10; i <= N; i++) {
-        let hashes = makeHashes(i);
+        const hashes = makeHashes(i);
 
         const tree = new MerkleTree(hashes);
         // console.log(i, tree.hashCount)
         for (let j = 0; j < tree.hashCount; j++) {
-          let proof = tree.getProof(j);
-          let leaf = tree.getHash(j);
-          let ver0 = tree.verify(leaf!, proof!);
+          const proof = tree.getProof(j);
+          const leaf = tree.getHash(j);
+          const ver0 = tree.verify(leaf!, proof!);
           assert(ver0, "Not verified TS");
-          let ver = await merkle.verifyMerkleProof(proof!, tree.root!, leaf!);
+          const ver = await merkle.verifyMerkleProof(proof!, tree.root!, leaf!);
           assert(ver, "Not verified SC");
         }
       }

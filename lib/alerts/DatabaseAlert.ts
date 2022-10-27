@@ -36,15 +36,15 @@ export class DatabaseAlert extends AlertBase {
 
     if (dbRes.length === 0) {
     } else {
-      for (var user of dbRes) {
+      for (const user of dbRes) {
         if (user.user === "root" || user.user === "event_scheduler" || user.user === "processReader") continue;
 
         resArray.push(new PerformanceInfo(`mysql.${user.user}`, "time", user.time, "ms", `${user.conn} connection(s)`));
       }
     }
 
-    var os = require("os");
-    var fs = require("fs");
+    const os = require("os");
+    const fs = require("fs");
 
     const now = getTimeMilli();
     const cpus = os.cpus();
@@ -82,7 +82,7 @@ export class DatabaseAlert extends AlertBase {
     }
 
     if (this.disks) {
-      for (let disk of this.disks) {
+      for (const disk of this.disks) {
         if (disk.mounted !== "/") continue;
 
         const total = disk.available + disk.used;

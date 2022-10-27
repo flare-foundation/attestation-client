@@ -1,4 +1,5 @@
-bash ./scripts/install-config.sh
+#!/bin/bash
+source ./scripts/install-config.sh
 
 export CONFIGDIR_TEMPLATES_SRC=./configs/.install/templates
 export CONFIGDIR_TEMPLATES_DEST=../attestation-suite-config/templates

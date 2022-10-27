@@ -1,4 +1,5 @@
-bash ./scripts/install-config.sh
+#!/bin/bash
+source ./scripts/install-config.sh
 
 export CONFIGDIR_SECURE_FLARE=../attestation-suite-config/prepared/flare
 export CONFIGDIR_SECURE_SGB=../attestation-suite-config/prepared/songbird

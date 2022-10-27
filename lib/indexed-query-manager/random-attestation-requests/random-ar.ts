@@ -26,12 +26,12 @@ export async function getRandomAttestationRequest(
   roundId: number,
   numberOfConfirmations: number
 ) {
-  let { attestationType, generator } = randomGeneratorChoiceWithAttestationType(randomGenerators);
+  const { attestationType, generator } = randomGeneratorChoiceWithAttestationType(randomGenerators);
   if (generator.size <= 0) {
     console.log(`Empty generator ${generator.label}`);
     return null;
   }
-  let txOrBlock = await generator.next();
+  const txOrBlock = await generator.next();
 
   switch (attestationType) {
     case AttestationType.Payment:
@@ -60,11 +60,11 @@ export async function getRandomAttestationRequest(
 }
 
 export function createTestAttestationFromRequest(request: ARType, roundId: number, numberOfConfirmations: number): Attestation {
-  let data = new AttestationData();
+  const data = new AttestationData();
   data.type = request.attestationType;
   data.sourceId = request.sourceId;
   data.request = encodeRequest(request);
-  let attestation = new Attestation(undefined, data, undefined);
+  const attestation = new Attestation(undefined, data, undefined);
   attestation.setTestNumberOfConfirmationBlocks(numberOfConfirmations);
   attestation.setTestRoundId(roundId);
   return attestation;
@@ -84,7 +84,7 @@ export function prepareGenerator(
   batchSize = 100,
   topUpThreshold = 0.25
 ): RandomDBIterator<DBTransactionBase | DBBlockBase> {
-  let startTime = getUnixEpochTimestamp() - 5 * 60 * 60;
+  const startTime = getUnixEpochTimestamp() - 5 * 60 * 60;
   switch (type) {
     case TxOrBlockGeneratorType.TxNativePayment:
       return new RandomDBIterator<DBTransactionBase>(
@@ -133,16 +133,16 @@ export function prepareGenerator(
 }
 
 export async function prepareRandomGenerators(iqm: IndexedQueryManager, batchSize = 100, topUpThreshold = 0.25) {
-  let mp = new Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>();
-  let generators = Object.keys(TxOrBlockGeneratorType)
+  const mp = new Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>();
+  const generators = Object.keys(TxOrBlockGeneratorType)
     .filter((x) => isNaN(x as any))
     .map((type) => {
-      let generator = prepareGenerator(TxOrBlockGeneratorType[type], iqm, batchSize, topUpThreshold);
+      const generator = prepareGenerator(TxOrBlockGeneratorType[type], iqm, batchSize, topUpThreshold);
       mp.set(TxOrBlockGeneratorType[type], generator);
       return generator;
     });
 
-  let promises = generators.map((generator) => generator.initialize());
+  const promises = generators.map((generator) => generator.initialize());
   console.time("Generator promises");
   await Promise.all(promises);
   console.timeEnd("Generator promises");
@@ -173,15 +173,15 @@ export function randomGeneratorTypeForAttestationType(
   attestationType: AttestationType,
   mp: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>
 ) {
-  let genTypes = GENERATORS_FOR_ATTESTATION_TYPES.find((type) => type.type === attestationType).generatorTypes;
-  let genType = genTypes[Math.floor(Math.random() * genTypes.length)];
+  const genTypes = GENERATORS_FOR_ATTESTATION_TYPES.find((type) => type.type === attestationType).generatorTypes;
+  const genType = genTypes[Math.floor(Math.random() * genTypes.length)];
   return mp.get(genType);
 }
 
 export function randomGeneratorChoiceWithAttestationType(mp: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>) {
-  let selection = GENERATORS_FOR_ATTESTATION_TYPES[Math.floor(Math.random() * GENERATORS_FOR_ATTESTATION_TYPES.length)];
-  let attestationType = selection.type;
-  let generatorType = selection.generatorTypes[Math.floor(Math.random() * selection.generatorTypes.length)];
+  const selection = GENERATORS_FOR_ATTESTATION_TYPES[Math.floor(Math.random() * GENERATORS_FOR_ATTESTATION_TYPES.length)];
+  const attestationType = selection.type;
+  const generatorType = selection.generatorTypes[Math.floor(Math.random() * selection.generatorTypes.length)];
   return {
     attestationType,
     generator: mp.get(generatorType),

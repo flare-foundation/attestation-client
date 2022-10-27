@@ -19,27 +19,17 @@
             // attester-client name - used for alert display only
             "name":"Coston2",
             // attester-client configuration path
-            "path":"../../coston2/attester-client/configs/prod/",
+            "path":"../attestation-suite-config/prepared/coston2/",
             // attester-client restart command
-            "restart":"systemctl --user restart coston-attester-client"
+            "restart":"systemctl --user restart coston2-attester-client"
         },
-        // {
-        //     "name":"Songbird",
-        //     "path":"../../songbird/attester-client/configs/prod/",
-        //     "restart":"systemctl --user restart songbird-attester-clientxxx"
-        // },
     ],
     "backends" : [
         {
             "name": "Coston2",
             "address":"http://localhost:$(Coston2BackendPort)/api/status/services",
-            "restart":"systemctl --user restart coston2-attester-client"
+            "restart":"systemctl --user restart coston2-backend"
         },
-        // {
-        //     "name": "Songbird",
-        //     "address":"http://localhost:$(SongbirdBackendPort)/api/status/services",
-        //     "restart":"systemctl --user restart songbird-attester-client"
-        // }
     ],
     "databases" : [
         {

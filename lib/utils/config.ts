@@ -6,7 +6,7 @@ const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
 
 
-var clarinet = require('clarinet');
+const clarinet = require('clarinet');
 
 
 /**
@@ -17,12 +17,12 @@ var clarinet = require('clarinet');
    * @returns {{snippet:string, message:string, line:number, column:number, position:number}} or undefined if no error
    */
 function getJSONParseError(json) {
-  var parser = clarinet.parser(),
+  let parser = clarinet.parser(),
     firstError = undefined;
 
   // generate a detailed error using the parser's state
   function makeError(e) {
-    var currentNL = 0, nextNL = json.indexOf('\n'), line = 1;
+    let currentNL = 0, nextNL = json.indexOf('\n'), line = 1;
     while (line < parser.line) {
       currentNL = nextNL;
       nextNL = json.indexOf('\n', currentNL + 1);
@@ -70,7 +70,7 @@ export function readJSON<T>(filename: string, parser: any = null, validate = fal
   //console.log( data );
 
   if (validate) {
-    var validateRes = getJSONParseError(data);
+    const validateRes = getJSONParseError(data);
 
     if (validateRes) {
       getGlobalLogger().error(`readJSON error ^r^W${validateRes.message}^^ file ^e${filename}^w@${validateRes.line}^^ (snippet ^w^K${validateRes.snippet}^^)`);

@@ -12,7 +12,7 @@ export enum EServiceStatus {
 export class ServiceStatus {
   name: string;
 
-  comment: string = "";
+  comment = "";
 
   status: EServiceStatus = EServiceStatus.unknown;
 

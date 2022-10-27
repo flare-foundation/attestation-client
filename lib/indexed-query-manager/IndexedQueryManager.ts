@@ -66,7 +66,7 @@ export class IndexedQueryManager {
    * Prepares the table variables containing transaction and block entities
    */
   prepareTables() {
-    let prepared = prepareIndexerTables(this.settings.chainType);
+    const prepared = prepareIndexerTables(this.settings.chainType);
     this.transactionTable = prepared.transactionTable;
     this.blockTable = prepared.blockTable;
   }
@@ -133,12 +133,12 @@ export class IndexedQueryManager {
    * @returns `true` if the indexer is up to date, `false` otherwise
    */
   public async isIndexerUpToDate(): Promise<boolean> {
-    let res = await this.getLatestBlockTimestamp();
+    const res = await this.getLatestBlockTimestamp();
     if (res === null) {
       return false;
     }
-    let now = getUnixEpochTimestamp();
-    let delay = now - res.timestamp;
+    const now = getUnixEpochTimestamp();
+    const delay = now - res.timestamp;
     if (delay > this.settings.maxValidIndexerDelaySec) {
       return false;
     }
@@ -158,7 +158,7 @@ export class IndexedQueryManager {
       this.debugLastConfirmedBlock = blockNumber;
     } else {
       this.debugLastConfirmedBlock = undefined;
-      let lastBlockNumber = await this.getLastConfirmedBlockNumber();
+      const lastBlockNumber = await this.getLastConfirmedBlockNumber();
       this.debugLastConfirmedBlock = lastBlockNumber - blockNumber;
     }
     return this.debugLastConfirmedBlock;
@@ -177,9 +177,9 @@ export class IndexedQueryManager {
   async queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult> {
     let results = [];
 
-    let startTimestamp = this.settings.windowStartTime(params.roundId);
+    const startTimestamp = this.settings.windowStartTime(params.roundId);
 
-    for (let table of this.transactionTable) {
+    for (const table of this.transactionTable) {
       let query = this.dbService.connection.manager
         .createQueryBuilder(table, "transaction")
         .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp }) // always query in the window.
@@ -199,7 +199,7 @@ export class IndexedQueryManager {
 
     if (params.returnQueryBoundaryBlocks) {
       lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
-      let upperBlockResult = await this.queryBlock({
+      const upperBlockResult = await this.queryBlock({
         endBlock: params.endBlock,
         blockNumber: params.endBlock,
         roundId: params.roundId,
@@ -225,7 +225,7 @@ export class IndexedQueryManager {
     if (!params.blockNumber && !params.hash) {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
     }
-    let startTimestamp = this.settings.windowStartTime(params.roundId);
+    const startTimestamp = this.settings.windowStartTime(params.roundId);
     let query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.timestamp >= :timestamp", { timestamp: startTimestamp });
@@ -241,13 +241,13 @@ export class IndexedQueryManager {
       query.andWhere("block.blockNumber = :blockNumber", { blockNumber: params.blockNumber });
     }
 
-    let result = await query.getOne();
+    const result = await query.getOne();
     let lowerQueryWindowBlock: DBBlockBase;
     let upperQueryWindowBlock: DBBlockBase;
 
     if (params.returnQueryBoundaryBlocks) {
       lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
-      let upperBlockResult = await this.queryBlock({
+      const upperBlockResult = await this.queryBlock({
         endBlock: params.blockNumber,
         blockNumber: params.blockNumber,
         roundId: params.roundId,
@@ -268,8 +268,8 @@ export class IndexedQueryManager {
    * @returns the block with given hash, if exists, `null` otherwise
    */
   async getBlockByHash(hash: string): Promise<DBBlockBase | null> {
-    let query = this.dbService.connection.manager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
-    let result = await query.getOne();
+    const query = this.dbService.connection.manager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
+    const result = await query.getOne();
     if (result) {
       return result as DBBlockBase;
     }
@@ -285,12 +285,12 @@ export class IndexedQueryManager {
    * that is confirmed by the block, subject to `numberOfConfirmations`
    */
   private async upperBoundaryCheck(upperBoundProof: string, numberOfConfirmations: number, roundId: number, recheck: boolean): Promise<UpperBoundaryCheck> {
-    let confBlock = await this.getBlockByHash(unPrefix0x(upperBoundProof));
+    const confBlock = await this.getBlockByHash(unPrefix0x(upperBoundProof));
     if (!confBlock) {
       if (!recheck) {
         return { status: "RECHECK" };
       }
-      let upToDate = await this.isIndexerUpToDate();
+      const upToDate = await this.isIndexerUpToDate();
       if (!upToDate) {
         return { status: "SYSTEM_FAILURE" };
       }
@@ -298,18 +298,18 @@ export class IndexedQueryManager {
     }
 
     // UBP block exists
-    let valid = await this.validateForCutoffTime(confBlock, roundId);
+    const valid = await this.validateForCutoffTime(confBlock, roundId);
     if (!valid) {
-      let upToDate = await this.isIndexerUpToDate();
+      const upToDate = await this.isIndexerUpToDate();
       if (!upToDate) {
         return { status: "SYSTEM_FAILURE" };
       }
       return { status: "NO_BOUNDARY" };
     }
 
-    let H = confBlock.blockNumber;
-    let U = H - numberOfConfirmations + 1;
-    let N = await this.getLastConfirmedBlockNumber();
+    const H = confBlock.blockNumber;
+    const U = H - numberOfConfirmations + 1;
+    const N = await this.getLastConfirmedBlockNumber();
     if (N < U) {
       if (!recheck) {
         return { status: "RECHECK" };
@@ -331,7 +331,7 @@ export class IndexedQueryManager {
    */
   private async lowerBoundaryCheck(roundId: number): Promise<boolean> {
     // lower boundary timestamp
-    let startTimestamp = this.settings.windowStartTime(roundId);
+    const startTimestamp = this.settings.windowStartTime(roundId);
     return await this.hasIndexerConfirmedBlockStrictlyBeforeTime(startTimestamp);
   }
 
@@ -346,11 +346,11 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
+    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }
-    let blockQueryResult = await this.queryBlock({
+    const blockQueryResult = await this.queryBlock({
       endBlock: U,
       blockNumber: params.blockNumber ? params.blockNumber : U,
       roundId: params.roundId,
@@ -359,7 +359,7 @@ export class IndexedQueryManager {
     });
     if (!blockQueryResult) {
       // check lower bound if block was not found. If block was found lower bound is not so important.
-      let lowerCheck = await this.lowerBoundaryCheck(params.roundId);
+      const lowerCheck = await this.lowerBoundaryCheck(params.roundId);
       if (!lowerCheck) {
         return { status: "SYSTEM_FAILURE" };
       }
@@ -384,22 +384,22 @@ export class IndexedQueryManager {
    * lower and upper boundary blocks, if required by query parameters.
    */
   public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
+    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }
-    let lowerCheck = await this.lowerBoundaryCheck(params.roundId);
+    const lowerCheck = await this.lowerBoundaryCheck(params.roundId);
     if (!lowerCheck) {
       return { status: "SYSTEM_FAILURE" };
     }
 
-    let transactionsQueryResult = await this.queryTransactions({
+    const transactionsQueryResult = await this.queryTransactions({
       roundId: params.roundId,
       endBlock: U,
       transactionId: params.txId,
       returnQueryBoundaryBlocks: params.returnQueryBoundaryBlocks,
     } as TransactionQueryParams);
-    let transactions = transactionsQueryResult.result;
+    const transactions = transactionsQueryResult.result;
 
     return {
       status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
@@ -420,31 +420,31 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse> {
-    let { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
+    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }
 
-    let lowerCheck = await this.lowerBoundaryCheck(params.roundId);
+    const lowerCheck = await this.lowerBoundaryCheck(params.roundId);
     if (!lowerCheck) {
       return { status: "SYSTEM_FAILURE" };
     }
 
-    let firstOverflowBlock = await this.getFirstConfirmedOverflowBlock(params.deadlineBlockTimestamp, params.deadlineBlockNumber);
+    const firstOverflowBlock = await this.getFirstConfirmedOverflowBlock(params.deadlineBlockTimestamp, params.deadlineBlockNumber);
     if (!firstOverflowBlock || firstOverflowBlock.blockNumber > U) {
       return {
         status: "NO_OVERFLOW_BLOCK",
       };
     }
 
-    let transactionsQueryResult = await this.queryTransactions({
+    const transactionsQueryResult = await this.queryTransactions({
       roundId: params.roundId,
       endBlock: firstOverflowBlock.blockNumber - 1,
       paymentReference: params.paymentReference,
       returnQueryBoundaryBlocks: true,
     } as TransactionQueryParams);
 
-    let transactions = transactionsQueryResult.result;
+    const transactions = transactionsQueryResult.result;
     return {
       status: "OK",
       transactions,
@@ -464,19 +464,19 @@ export class IndexedQueryManager {
    * @returns the block, if exists, otherwise `null`
    */
   public async getFirstConfirmedBlockAfterTime(timestamp: number): Promise<DBBlockBase | null> {
-    let query = this.dbService.connection.manager
+    const query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp >= :timestamp", { timestamp: timestamp })
       .orderBy("block.timestamp", "ASC")
       .limit(MAX_BLOCKCHAIN_PRODUCTION);
 
-    let results = (await query.getMany()) as DBBlockBase[];
+    const results = (await query.getMany()) as DBBlockBase[];
 
     if (results.length === 0) return null;
 
     let result = results[0];
-    for (let res of results) {
+    for (const res of results) {
       if (res.blockNumber < result.blockNumber) {
         result = res;
       }
@@ -492,13 +492,13 @@ export class IndexedQueryManager {
    * @returns `true` if the block exists, `false` otherwise
    */
   public async hasIndexerConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<boolean> {
-    let query = this.dbService.connection.manager
+    const query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp < :timestamp", { timestamp: timestamp })
       .orderBy("block.timestamp", "DESC")
       .limit(1);
-    let results = (await query.getMany()) as DBBlockBase[];
+    const results = (await query.getMany()) as DBBlockBase[];
     return results.length === 1;
   }
 
@@ -509,7 +509,7 @@ export class IndexedQueryManager {
    * @returns the block, if it exists, `null` otherwise
    */
   public async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | null> {
-    let query = this.dbService.connection.manager
+    const query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp > :timestamp", { timestamp: timestamp })
@@ -517,7 +517,7 @@ export class IndexedQueryManager {
       .orderBy("block.blockNumber", "ASC")
       .limit(1);
 
-    let result = await query.getOne();
+    const result = await query.getOne();
     if (result) {
       return result as DBBlockBase;
     }
@@ -533,7 +533,7 @@ export class IndexedQueryManager {
    * @returns true, if validation is successful
    */
   public async validateForCutoffTime(confBlock: DBBlockBase, roundId: number) {
-    let cutoffTime = this.settings.UBPCutoffTime(roundId);
+    const cutoffTime = this.settings.UBPCutoffTime(roundId);
     if (confBlock.timestamp >= cutoffTime) {
       return true;
     }
@@ -542,12 +542,12 @@ export class IndexedQueryManager {
       return true;
     }
     // upper bound proof has to be on one of the longest chains (viewed locally)
-    let query = this.dbService.connection.manager
+    const query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.blockNumber = :blockNumber", { blockNumber: confBlock.blockNumber })
-    let result = await query.getMany() as DBBlockBase[];
+    const result = await query.getMany() as DBBlockBase[];
 
-    for (let entity of result) {
+    for (const entity of result) {
       if (entity.confirmed) {
         // we are handling the case where block was confirmed while we were waiting for the query above
         if(entity.blockHash === confBlock.blockHash) {

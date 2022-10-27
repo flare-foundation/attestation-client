@@ -31,7 +31,7 @@ export async function prepareRandomizedRequestPayment(
   if (!randomTransaction) {
     return null;
   }
-  let confirmationBlockQueryResponse = await indexedQueryManager.queryBlock({
+  const confirmationBlockQueryResponse = await indexedQueryManager.queryBlock({
     blockNumber: randomTransaction.blockNumber + numberOfConfirmations,
     roundId,
   });
@@ -39,13 +39,13 @@ export async function prepareRandomizedRequestPayment(
     return null;
   }
 
-  let choice = enforcedChoice ? RANDOM_OPTIONS_PAYMENT.find((x) => x.name === enforcedChoice) : randomWeightedChoice(RANDOM_OPTIONS_PAYMENT);
+  const choice = enforcedChoice ? RANDOM_OPTIONS_PAYMENT.find((x) => x.name === enforcedChoice) : randomWeightedChoice(RANDOM_OPTIONS_PAYMENT);
 
   if (!choice) {
     return null;
   }
-  let id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
-  let upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResponse.result.blockHash);
+  const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
+  const upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResponse.result.blockHash);
   return {
     attestationType: AttestationType.Payment,
     sourceId: sourceId,

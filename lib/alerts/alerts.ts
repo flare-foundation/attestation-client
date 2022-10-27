@@ -10,4 +10,5 @@ TraceManager.enabled = false;
 
 const alertsManager = new AlertsManager();
 
+// eslint-disable-next-line
 alertsManager.runAlerts();

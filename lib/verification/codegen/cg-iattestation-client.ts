@@ -9,8 +9,8 @@ import {
 import { commentText } from "./cg-utils";
 
 function genProofStructs(definition: AttestationTypeScheme): any {
-  let structName = `${definition.name}`;
-  let typedParams = definition.dataHashDefinition
+  const structName = `${definition.name}`;
+  const typedParams = definition.dataHashDefinition
     .map(
       (item) =>
         `
@@ -31,7 +31,7 @@ ${typedParams}
 }
 
 function genProofVerificationFunctionSignatures(definition: AttestationTypeScheme): any {
-  let functionName = `${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}`;
+  const functionName = `${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}`;
   return `function ${functionName}(uint32 _chainId, ${definition.name} calldata _data)
     external view
     returns (bool _proved);
@@ -39,11 +39,11 @@ function genProofVerificationFunctionSignatures(definition: AttestationTypeSchem
 }
 
 function getSolidityIAttestationClient(definitions: AttestationTypeScheme[]) {
-  let structs = definitions.map((definition) => genProofStructs(definition)).join("");
-  let verifyProofFunctionSignatures = definitions
+  const structs = definitions.map((definition) => genProofStructs(definition)).join("");
+  const verifyProofFunctionSignatures = definitions
     .map((definition) => genProofVerificationFunctionSignatures(definition))
     .join("\n\n");
-  let proofVerificationComment = `
+  const proofVerificationComment = `
 When verifying state connector proofs, the data verified will be
 \`keccak256(abi.encode(attestationType, _chainId, all _data fields except merkleProof, stateConnectorRound))\`
 where \`attestationType\` (\`uint16\`) is a different constant for each of the methods below
@@ -64,7 +64,7 @@ ${verifyProofFunctionSignatures}
 }
 
 export function createSolidityIAttestationClient(definitions: AttestationTypeScheme[]) {
-  let content = `${DEFAULT_GEN_FILE_HEADER}
+  const content = `${DEFAULT_GEN_FILE_HEADER}
 ${getSolidityIAttestationClient(definitions)}`;
   if (!fs.existsSync(SOLIDITY_GEN_INTERFACES_ROOT)) {
     fs.mkdirSync(SOLIDITY_GEN_INTERFACES_ROOT, { recursive: true });

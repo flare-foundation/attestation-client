@@ -11,7 +11,7 @@ import {
 } from "./cg-constants";
 
 function genItForAttestationParser(definition: AttestationTypeScheme) {
-  let sourceIds = definition.supportedSources;
+  const sourceIds = definition.supportedSources;
   return `
 it("Should encode and decode for '${definition.name}'", async function () { 
 	for(let sourceId of [${sourceIds}]) {
@@ -27,12 +27,12 @@ it("Should encode and decode for '${definition.name}'", async function () {
 }
 
 export function createAttestationParserTest(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
-  let dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
-  let hashFunctionsImports = definitions.map((definition) => `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`).join(",\n");
+  const arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const hashFunctionsImports = definitions.map((definition) => `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`).join(",\n");
 
-  let itsForDefinitions = definitions.map((definition) => genItForAttestationParser(definition)).join("\n");
-  let content = `${DEFAULT_GEN_FILE_HEADER}
+  const itsForDefinitions = definitions.map((definition) => genItForAttestationParser(definition)).join("\n");
+  const content = `${DEFAULT_GEN_FILE_HEADER}
 import { 
 ${arImports} 
 } from "../../lib/verification/generated/attestation-request-types";

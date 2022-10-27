@@ -3,12 +3,12 @@ import * as dotenv from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 
 
-let fs = require('fs');
+const fs = require('fs');
 
 dotenv.config();
 
 
-let accounts = [
+const accounts = [
   // In Truffle, default account is always the first one.
   ...(process.env.DEPLOYER_PRIVATE_KEY ? [{ privateKey: process.env.DEPLOYER_PRIVATE_KEY, balance: "100000000000000000000000000000000" }] : []),
   // First 20 accounts with 10^14 NAT each 

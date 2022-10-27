@@ -12,14 +12,14 @@ export class MockMccClient implements ReadRpcInterface {
       throw new Error("Method not implemented.");
    }
    async getBlock(blockNumberOrHash: any): Promise<IBlock> {
-      let respData = { ...xrpBlockResponse.data };
+      const respData = { ...xrpBlockResponse.data };
       if (typeof blockNumberOrHash === "string") {
-         let number = this.randomBlockNumber();
+         const number = this.randomBlockNumber();
          respData.result = { ...respData.result, ledger_index: number, ledger_hash: blockNumberOrHash }
       } else {
          respData.result = { ...respData.result, ledger_index: blockNumberOrHash, ledger_hash: this.randomHash32(true) }
       }
-      let txTemplate = new XrpBlock(respData as any);
+      const txTemplate = new XrpBlock(respData as any);
       return txTemplate;
    }
    getBlockHeight(): Promise<number> {
@@ -28,7 +28,7 @@ export class MockMccClient implements ReadRpcInterface {
    getBlockTips?(height_gte: number): Promise<IBlockTip[]> {
       throw new Error("Method not implemented.");
    }
-   getTopLiteBlocks?(branch_len: number): Promise<IBlockTip[]> {
+   getTopLiteBlocks(branch_len: number, read_main?: boolean): Promise<IBlockTip[]> {
       throw new Error("Method not implemented.");
    }
    getBlockHeader(blockNumberOrHash: any): Promise<IBlockHeader> {
@@ -38,9 +38,9 @@ export class MockMccClient implements ReadRpcInterface {
       if(txId === "") {
          throw MccError("XXX error"); // for testing purposes
       }
-      let respData = { ...xrpTxResponse.data };
+      const respData = { ...xrpTxResponse.data };
       respData.result = { ...respData.result, hash: unPrefix0x(txId).toUpperCase() }
-      let txTemplate = new XrpTransaction(respData as any);
+      const txTemplate = new XrpTransaction(respData as any);
       return txTemplate;
    }
 
@@ -50,7 +50,7 @@ export class MockMccClient implements ReadRpcInterface {
    chainType: ChainType;
 
    public randomHash32(unprefixAndUppercase = false) {
-      let res = this.web3.utils.randomHex(32);
+      const res = this.web3.utils.randomHex(32);
       if (!unprefixAndUppercase) {
          return res;
       }

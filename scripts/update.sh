@@ -1,4 +1,4 @@
-rm -f yarn.lock
+#rm -f yarn.lock
 git pull
 bash ./scripts/compile.sh
-bash ./scripts/deploy-all.sh
+bash ./scripts/services-restart-all.sh

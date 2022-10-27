@@ -37,8 +37,8 @@ const BgGray = "\x1b[100m";
 export class ColorConsole extends Transport {
   instance = 0;
 
-  lastLog: string = "";
-  lastLog2: string = "";
+  lastLog = "";
+  lastLog2 = "";
   duplicate = 0;
 
   mode: "" | "sticky" | "forgettable" = "";
@@ -207,7 +207,7 @@ const myCustomLevels = {
   },
 };
 
-let globalLogger = new Map<string, AttLogger>();
+const globalLogger = new Map<string, AttLogger>();
 
 let globalTestLogger: AttLogger = null;
 

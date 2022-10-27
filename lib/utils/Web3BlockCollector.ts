@@ -9,7 +9,7 @@ export class Web3BlockCollector {
   web3: Web3;
 
   startingBlockNumber: number | undefined;
-  currentBlockNumber: number = 0;
+  currentBlockNumber = 0;
 
   contractAddress: string;
   contractName: string;
@@ -17,7 +17,7 @@ export class Web3BlockCollector {
   action: any;
   refreshEventsMs: number;
 
-  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any, refreshEventsMs: number = 100) {
+  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any, refreshEventsMs = 100) {
     this.logger = logger;
 
     this.web3 = getWeb3(url, this.logger);

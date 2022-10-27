@@ -23,7 +23,7 @@ const XRPMccConnection = {
 class MockXRPImplementation extends XRPImplementation {
 
     async getBlock(blockNumberOrHash: number | string): Promise<MockXrpBlock> {
-        let block = await super.getBlock(blockNumberOrHash);
+        const block = await super.getBlock(blockNumberOrHash);
 
         return new MockXrpBlock(block);
     }
@@ -101,7 +101,7 @@ describe("Block validity check before processing", () => {
 
         XrpMccClient = new MCC.XRP(XRPMccConnection);
 
-        let defaultCachedMccClientOptions: CachedMccClientOptions = {
+        const defaultCachedMccClientOptions: CachedMccClientOptions = {
             transactionCacheSize: 100000,
             blockCacheSize: 100000,
             cleanupChunkSize: 100,
@@ -164,14 +164,14 @@ describe("Block validity check before processing", () => {
     });
 
     it(`Block processor manager for always in-valid XRP block`, async function () {
-        let XrpMccClient = new MockXRPImplementation(XRPMccConnection);
+        const XrpMccClient = new MockXRPImplementation(XRPMccConnection);
 
         indexer.logger = getGlobalLogger();
         indexer.cachedClient.client = XrpMccClient;
 
         const block = await XrpMccClient.getBlock(70_015_100);
 
-        let invalidBlock = new MockXrpBlock(block);
+        const invalidBlock = new MockXrpBlock(block);
 
         indexer.chainConfig.validateBlockBeforeProcess = true;
         indexer.chainConfig.validateBlockWaitMs = 1;

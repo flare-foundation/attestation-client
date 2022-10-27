@@ -31,9 +31,9 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
 ): Promise<ARReferencedPaymentNonexistence | null> {
   const OVERFLOW_BLOCK_OFFSET = 10;
 
-  let overflowBlockNum = randomTransaction.blockNumber + OVERFLOW_BLOCK_OFFSET;
+  const overflowBlockNum = randomTransaction.blockNumber + OVERFLOW_BLOCK_OFFSET;
 
-  let blockOverflowQueryResult = await indexedQueryManager.queryBlock({
+  const blockOverflowQueryResult = await indexedQueryManager.queryBlock({
     blockNumber: overflowBlockNum,
     confirmed: true,
     roundId,
@@ -43,7 +43,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
     return null;
   }
 
-  let choice = enforcedChoice
+  const choice = enforcedChoice
     ? RANDOM_OPTIONS_REFERENCED_PAYMENT_NONEXISTENCE.find((x) => x.name === enforcedChoice)
     : randomWeightedChoice(RANDOM_OPTIONS_REFERENCED_PAYMENT_NONEXISTENCE);
 
@@ -67,7 +67,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
     });
   }
 
-  let confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
+  const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
     blockNumber: overflowBlockNum + numberOfConfirmations,
     roundId,
   });
@@ -77,11 +77,11 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
     return null;
   }
 
-  let deadlineBlockNumber = toBN(prevBlockQueryResult.result.blockNumber);
-  let deadlineTimestamp = toBN(prevBlockQueryResult.result.timestamp);
-  let overflowBlock = overflowBlockNum;
-  let upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
-  let paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.paymentReference);
+  const deadlineBlockNumber = toBN(prevBlockQueryResult.result.blockNumber);
+  const deadlineTimestamp = toBN(prevBlockQueryResult.result.timestamp);
+  const overflowBlock = overflowBlockNum;
+  const upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
+  const paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.paymentReference);
   // TODO
   // let destinationAmounts = randomTransaction.
   return {

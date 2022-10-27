@@ -36,7 +36,7 @@ describe("Merkle Tree", () => {
         const tree = new MerkleTree(hashes);
         const sortedHashes = tree.sortedHashes;
         for (let j = 0; j < i; j++) {
-          assert(sortedHashes.indexOf(singleHash(hashes[j])) >= 0);
+          assert(sortedHashes.indexOf(hashes[j]) >= 0);
         }
       }
     });

@@ -13,7 +13,7 @@ import { readConfig, readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getTimeMilli } from "../utils/internetTime";
-import { getGlobalLogger, logException } from "../utils/logger";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
 import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
@@ -346,6 +346,9 @@ async function runAllAttestationSpammers() {
 
   await spammer.runSpammer();
 }
+
+setLoggerName( "spammer" );
+setGlobalLoggerLabel(args.chain)
 
 // (new AttestationSpammer()).runSpammer()
 runAllAttestationSpammers()

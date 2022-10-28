@@ -4,7 +4,7 @@ import { Indexer } from "./indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "./indexer/IndexerConfiguration";
 import { readConfig, readCredentials } from "./utils/config";
 import { DotEnvExt } from "./utils/DotEnvExt";
-import { getGlobalLogger, logException, setGlobalLoggerLabel } from "./utils/logger";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 
 const yargs = require("yargs");
@@ -43,6 +43,7 @@ async function runIndexer() {
 }
 
 // set all global loggers to the chain
+setLoggerName("indexer");
 setGlobalLoggerLabel(args["chain"]);
 
 // read .env

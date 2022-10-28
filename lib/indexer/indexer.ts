@@ -410,9 +410,28 @@ export class Indexer {
         // block must be marked as confirmed
         if (transactions.length > 0) {
 
+          // let newTransactions = [];
+
+          // for( const tx of transactions ) {
+          //   const newTx = new transactionClass();
+
+          //   newTx.chainType=tx.chainType;
+          //   newTx.transactionId=tx.transactionId;
+          //   newTx.blockNumber=tx.blockNumber;
+          //   newTx.timestamp=tx.timestamp;
+          //   newTx.paymentReference=tx.paymentReference;
+          //   newTx.response=tx.response;
+          //   newTx.isNativePayment=tx.isNativePayment;
+          //   newTx.transactionType=tx.transactionType;
+
+          //   newTransactions.push( newTx );
+          // }
+
+          // await transaction.save(newTransactions);
+
           // fix transactions class to active interlace tranascation class
           const dummy = new transactionClass();
-          for (const transaction in transactions) {
+          for (let transaction of transactions) {
             Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
           }
 

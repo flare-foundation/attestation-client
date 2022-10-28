@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
 import { getGlobalLogger, setLoggerName } from "../utils/logger";
+
+setLoggerName( "backend" );
+
 import { app } from "./app";
 
 import { iocContainer } from "./ioc";
 import { ConfigurationService } from "./services/configurationService";
 
 const configurationService = iocContainer(null).get(ConfigurationService);
-
-setLoggerName( "backend" );
 
 const logger = getGlobalLogger("web");
 

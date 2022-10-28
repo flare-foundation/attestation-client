@@ -3,7 +3,7 @@ import { AttesterClient } from "./attester/AttesterClient";
 import { AttesterClientConfiguration, AttesterCredentials } from "./attester/AttesterClientConfiguration";
 import { ChainsConfiguration } from "./chain/ChainConfiguration";
 import { readConfig, readCredentials } from "./utils/config";
-import { getGlobalLogger, logException } from "./utils/logger";
+import { getGlobalLogger, logException, setLoggerName } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 
 // setup retry terminate callback
@@ -31,6 +31,8 @@ async function runAttester() {
     const attesterClient = new AttesterClient(config, credentials, chains);
     return await attesterClient.runAttesterClient();
 }
+
+setLoggerName("attestation-client");
 
 // indexer entry point
 runAttester()

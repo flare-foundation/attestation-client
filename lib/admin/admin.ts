@@ -2,7 +2,7 @@ import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { AlertBase } from "../alerts/AlertBase";
 import { AlertsManager } from "../alerts/AlertsManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger, setLoggerName } from "../utils/logger";
 import { EServiceStatus } from "../utils/serviced";
 import { sleepms } from "../utils/utils";
 import { Menu } from "./menu";
@@ -204,6 +204,8 @@ async function run() {
 }
 
 DotEnvExt();
+
+setLoggerName( "admin" );
 
 run()
   .then(() => process.exit(0))

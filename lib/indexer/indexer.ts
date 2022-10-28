@@ -393,7 +393,8 @@ export class Indexer {
       return false;
     }
 
-    this.logger.debug(`start save block N+1=${Np1}`);
+    this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.getActiveIndex()})`);
+    const transactionClass = this.getActiveTransactionWriteTable() as any;
 
     // fix data
     block.transactions = transactions.length;
@@ -410,8 +411,7 @@ export class Indexer {
         if (transactions.length > 0) {
 
           // fix transactions class to active interlace tranascation class
-          const transactionClass = this.getActiveTransactionWriteTable();
-          const dummy = new (transactionClass as any)();
+          const dummy = new transactionClass();
           for (const transaction in transactions) {
             Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
           }
@@ -420,9 +420,9 @@ export class Indexer {
         }
         else {
           // save dummy transaction to keep transaction table block continuity
-          this.logger.debug(`block ${block.blockNumber} no transactions`);
+          this.logger.debug(`block ${block.blockNumber} no transactions (dummy tx added)`);
 
-          const dummyTx = new (this.getActiveTransactionWriteTable() as any)();
+          const dummyTx = new transactionClass();
 
           dummyTx.chainType = this.cachedClient.client.chainType;
           dummyTx.blockNumber = block.blockNumber;

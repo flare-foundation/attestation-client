@@ -1,5 +1,5 @@
 {
-  "name": "Attestation Suite",
+  "name": "Attestation-Suite",
   "version": "1.0.0",
   "repository": "https://github.com/flare-foundation/attestation-client.git",
   "author": "flare",
@@ -38,7 +38,6 @@
     "stateconnector": "yarn hardhat run scripts/deploy.ts --network scdev",
     "-------CODE-GEN------": "",
     "codegen": "env NODE_ENV=development yarn ts-node lib/verification/codegen/codegen.ts",
-
     "-------DEV-RUNNERS------": "",
     "dev": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node lib/runAttesterClient.ts",
     "prewatch-and-run": "npm-run-all typechain-web3-v1",
@@ -54,11 +53,8 @@
     "devadmin": "DOTENV=DEV CONFIG_PATH=.secure.dev yarn ts-node lib/admin/admin.ts",
     "devinstall": "DOTENV=DEV CONFIG_PATH=.secure.dev yarn ts-node lib/install/install.ts ../attestation-suite-config/",
     "devinstallfile": "JSON_CONFIG_PATH=../attestation-suite-config/  yarn ts-node lib/install/install-file.ts -i ./scripts/files/frontend.env -o ./scripts/files/frontend.env.out   -r HOSTNAME -w www.something.com -c Coston",
-
-
     "-------MONITORING---------": "",
     "admin": "CONFIG_PATH=.secure node dist/lib/admin/admin.js",
-    
     "-------TESTS---------": "",
     "htest": "yarn codegen && yarn c && yarn hardhat test test/HashTest.test.ts",
     "test": "mocha -r ts-node/register -t 0 --exit",
@@ -67,13 +63,11 @@
     "test-all": "npm-run-all test-all-contracts test-all-other",
     "test:coverage": "nyc yarn test-all",
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local",
-
     "-------BACKEND-------": "",
     "preroutes": "ts-node lib/scripts/create-routes-folder.ts",
     "routes": "yarn tsoa routes && yarn tsoa spec",
     "predevbackend": "yarn routes",
     "devbackend": "CONFIG_PATH=.secure.dev NODE_ENV=development yarn ts-node-dev --notify --respawn -- lib/webserver/server.ts",
-
     "-------DOCS_GEN------": "",
     "generateDocs": "yarn typedoc --options typedoc.config.json"
   },

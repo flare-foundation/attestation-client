@@ -2,14 +2,14 @@ import { AlgoBlock, AlgoTransaction, IBlock, ITransaction, unPrefix0x, UtxoBlock
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";
 import { Indexer } from "../indexer";
-import { stringify } from 'safe-stable-stringify'
+import { stringify } from "safe-stable-stringify";
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
  * @param indexer the indexer
  * @param block block of the transaction (IBlock)
  * @param txData transaction data obtained from MCC (ITransaction)
- * @returns 
+ * @returns
  */
 async function augmentTransactionBase(indexer: Indexer, block: IBlock, txData: ITransaction): Promise<DBTransactionBase> {
   const table = new (indexer.getActiveTransactionWriteTable() as any)();
@@ -32,7 +32,7 @@ async function augmentTransactionBase(indexer: Indexer, block: IBlock, txData: I
  * @param indexer the indexer
  * @param block block of the transaction (IBlock)
  * @param txData transaction data obtained from MCC (ITransaction)
- * @returns 
+ * @returns
  */
 export async function augmentTransactionAlgo(indexer: Indexer, block: AlgoBlock, txData: AlgoTransaction): Promise<DBTransactionBase> {
   const res = await augmentTransactionBase(indexer, block, txData);
@@ -47,7 +47,7 @@ export async function augmentTransactionAlgo(indexer: Indexer, block: AlgoBlock,
  * @param indexer the indexer
  * @param block block of the transaction (IBlock)
  * @param txDataPromise promise of transaction data obtained from MCC (ITransaction)
- * @returns 
+ * @returns
  */
 export async function augmentTransactionUtxo(indexer: Indexer, block: UtxoBlock, txDataPromise: Promise<UtxoTransaction>): Promise<DBTransactionBase> {
   const txData = await txDataPromise;
@@ -62,7 +62,7 @@ export async function augmentTransactionUtxo(indexer: Indexer, block: UtxoBlock,
  * @param indexer the indexer
  * @param block block of the transaction (IBlock)
  * @param txData transaction data obtained from MCC (ITransaction)
- * @returns 
+ * @returns
  */
 export async function augmentTransactionXrp(indexer: Indexer, block: XrpBlock, txData: XrpTransaction): Promise<DBTransactionBase> {
   const res = await augmentTransactionBase(indexer, block, txData);

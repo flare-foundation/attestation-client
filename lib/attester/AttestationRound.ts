@@ -13,6 +13,7 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
+import { stringify } from "safe-stable-stringify";
 
 //const BN = require("bn");
 
@@ -115,12 +116,13 @@ export class AttestationRound {
 
   async startCommitEpoch() {
     this.logger.group(
-      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
+      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
+        (this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
 
-    // 
+    //
     await this.tryTriggerCommit(); // In case all requests are already processed
   }
 
@@ -146,7 +148,6 @@ export class AttestationRound {
         if (receipt) {
           this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId - 3}`);
         }
-
       });
     }
   }
@@ -166,7 +167,9 @@ export class AttestationRound {
     assert(this.attestationsProcessed <= this.attestations.length);
 
     // eslint-disable-next-line
-    criticalAsync("processed", async () => { await this.tryTriggerCommit(); });
+    criticalAsync("processed", async () => {
+      await this.tryTriggerCommit();
+    });
   }
 
   async tryTriggerCommit() {
@@ -215,8 +218,8 @@ export class AttestationRound {
     db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
     db.attestationStatus = AttestationStatus[att.status];
 
-    db.request = prepareString(JSON.stringify(att.verificationData?.request ? att.verificationData.request : ""), 4 * 1024);
-    db.response = prepareString(JSON.stringify(att.verificationData?.response ? att.verificationData.response : ""), 4 * 1024);
+    db.request = prepareString(stringify(att.verificationData?.request ? att.verificationData.request : ""), 4 * 1024);
+    db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 4 * 1024);
 
     db.exceptionError = prepareString(att.exception?.toString(), 128);
 
@@ -244,7 +247,9 @@ export class AttestationRound {
 
     if (!alreadySavedRound) {
       // eslint-disable-next-line
-      criticalAsync("commit", async () => { await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests); });
+      criticalAsync("commit", async () => {
+        await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests);
+      });
     }
 
     // check if commit can be performed
@@ -283,8 +288,8 @@ export class AttestationRound {
 
       dbVoteResult.roundId = this.roundId;
       dbVoteResult.hash = voteHash;
-      dbVoteResult.request = JSON.stringify(valid.verificationData?.request ? hexlifyBN(valid.verificationData.request) : "");
-      dbVoteResult.response = JSON.stringify(valid.verificationData?.response ? hexlifyBN(valid.verificationData.response) : "");
+      dbVoteResult.request = stringify(valid.verificationData?.request ? hexlifyBN(valid.verificationData.request) : "");
+      dbVoteResult.response = stringify(valid.verificationData?.response ? hexlifyBN(valid.verificationData.response) : "");
     }
 
     // save to DB
@@ -328,7 +333,8 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1
+      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${
+        time2 - time1
       }ms)`
     );
   }

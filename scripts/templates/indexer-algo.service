@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v14.15.4/bin/node /home/ubuntu/attestation-suite/global/indexer/dist/lib/runIndexer.js -a ALGO
+ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/lib/runIndexer.js -a ALGO
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian
@@ -7,7 +7,10 @@ Restart=always
 # Group=nogroup
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-WorkingDirectory=/home/ubuntu/attestation-suite/global/indexer
+Environment=CONFIG_PATH=../../attestation-suite-config/prepared/coston
+Environment=LOG_PATH=./logs/global
+
+WorkingDirectory=/home/ubuntu/attestation-suite/attestation-client
 
 [Install]
 WantedBy=multi-user.target

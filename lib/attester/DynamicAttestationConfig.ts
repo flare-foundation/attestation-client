@@ -18,7 +18,7 @@ export class SourceHandlerConfig {
 
   maxTotalRoundWeight!: number;
 
-  numberOfConfirmations: number = 1;
+  numberOfConfirmations = 1;
 
   queryWindowInSec!: number;
   UBPUnconfirmedWindowInSec!: number;
@@ -48,7 +48,7 @@ export class AttestationConfigManager {
   validateEnumNames() {
     const logger = getGlobalLogger();
 
-    for (let value in ChainType) {
+    for (const value in ChainType) {
       if (typeof ChainType[value] === "number") {
         if (ChainType[value] !== SourceId[value]) {
           logger.error2(
@@ -107,7 +107,7 @@ export class AttestationConfigManager {
     }
   }
 
-  load(filename: string, disregardObsolete: boolean = false): boolean {
+  load(filename: string, disregardObsolete = false): boolean {
     this.logger.info(`^GDAC load '${filename}'`);
 
     const fileConfig = readJSON<any>(filename, JSONMapParser);

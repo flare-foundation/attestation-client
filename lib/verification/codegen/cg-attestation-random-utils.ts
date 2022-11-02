@@ -13,12 +13,12 @@ import {
 import { trimStartNewline } from "./cg-utils";
 
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
-  let res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;
+  const res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;
   return trimStartNewline(res);
 }
 
 export function randReqItemCode(type: SupportedRequestType, size: number) {
-  let rand = Web3.utils.randomHex(size);
+  const rand = Web3.utils.randomHex(size);
   switch (type) {
     case "AttestationType":
       throw new Error("This should not be used");
@@ -39,8 +39,8 @@ export function randReqItemCode(type: SupportedRequestType, size: number) {
 // funkcija za enkodiranje vsakega od tipov
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  let responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
-  let randomResponse = `
+  const responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
+  const randomResponse = `
 let response = {
 ${responseFields}      
 } as ${DATA_HASH_TYPE_PREFIX}${definition.name};
@@ -58,7 +58,7 @@ ${genRandomResponseCode(definition)}
 }
 
 function genRandomResponseCase(definition: AttestationTypeScheme) {
-  let result = `
+  const result = `
 case AttestationType.${definition.name}:
    return randomResponse${definition.name}();
 `;
@@ -66,7 +66,7 @@ case AttestationType.${definition.name}:
 }
 
 export function genRandomResponseForAttestationTypeFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map((definition) => genRandomResponseCase(definition)).join("\n");
+  const attestationTypeCases = definitions.map((definition) => genRandomResponseCase(definition)).join("\n");
   return `
 export function getRandomResponseForType(attestationType: AttestationType) {
 	switch(attestationType) {
@@ -79,8 +79,8 @@ ${attestationTypeCases}
 }
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
-  let types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
-  let values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
+  const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
+  const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 let encoded = web3.eth.abi.encodeParameters(
 	[
@@ -98,7 +98,7 @@ ${values}
 }
 
 function genRandomAttestationCase(definition: AttestationTypeScheme) {
-  let sourceIds = definition.supportedSources;
+  const sourceIds = definition.supportedSources;
   return `
 case AttestationType.${definition.name}:
 	sourceIds = [${sourceIds}];
@@ -107,8 +107,8 @@ case AttestationType.${definition.name}:
 }
 
 export function randomRequest(definitions: AttestationTypeScheme[]) {
-  let ids = definitions.map((definition) => definition.id).join(", ");
-  let attestationTypeCases = definitions.map((definition) => genRandomAttestationCase(definition)).join("");
+  const ids = definitions.map((definition) => definition.id).join(", ");
+  const attestationTypeCases = definitions.map((definition) => genRandomAttestationCase(definition)).join("");
   return `
 export function getRandomRequest() {  
 	let ids = [${ids}];
@@ -125,7 +125,7 @@ ${attestationTypeCases}
 }
 
 function genRandomAttestationCaseForRandomRequest(definition: AttestationTypeScheme) {
-  let randomValuesForRequestItems = definition.request
+  const randomValuesForRequestItems = definition.request
     .filter((item) => item.key != "attestationType" && item.key != "sourceId")
     .map((item) => `${item.key}: ${randReqItemCode(item.type, item.size)}`)
     .join(",\n");
@@ -139,8 +139,8 @@ ${randomValuesForRequestItems}
 }
 
 export function randomRequestForAttestationTypeAndSourceId(definitions: AttestationTypeScheme[]) {
-  let ids = definitions.map((definition) => definition.id).join(", ");
-  let attestationTypeCases = definitions.map((definition) => genRandomAttestationCaseForRandomRequest(definition)).join("");
+  const ids = definitions.map((definition) => definition.id).join(", ");
+  const attestationTypeCases = definitions.map((definition) => genRandomAttestationCaseForRandomRequest(definition)).join("");
   return `
 export function getRandomRequestForAttestationTypeAndSourceId (
 	attestationType: AttestationType,
@@ -156,8 +156,8 @@ ${attestationTypeCases}
 }
 
 export function createAttestationRandomUtils(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
-  let dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import BN from "bn.js";

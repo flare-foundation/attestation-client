@@ -31,22 +31,22 @@ export async function verifyBalanceDecreasingTransactionBTC(
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
-  let request = parseRequest(attestation.data.request) as ARBalanceDecreasingTransaction;
-  let roundId = attestation.roundId;
-  let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestation.data.request) as ARBalanceDecreasingTransaction;
+  const roundId = attestation.roundId;
+  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  let result = await verifyBalanceDecreasingTransaction(BtcTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+  const result = await verifyBalanceDecreasingTransaction(BtcTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }
 
-  let response = result.response;
+  const response = result.response;
 
   //-$$$<end> of the custom section. Do not change this comment.
 
-  let hash = hashBalanceDecreasingTransaction(request, response);
+  const hash = hashBalanceDecreasingTransaction(request, response);
 
   return {
     hash,

@@ -54,7 +54,7 @@ export class AttestationRound {
   // processing
   attestations = new Array<Attestation>();
   attestationsMap = new Map<string, Attestation>();
-  attestationsProcessed: number = 0;
+  attestationsProcessed = 0;
 
   // save submitted values for reveal
   roundMerkleRoot!: string;
@@ -113,20 +113,24 @@ export class AttestationRound {
     attestation.sourceHandler.validate(attestation);
   }
 
-  startCommitEpoch() {
+  async startCommitEpoch() {
     this.logger.group(
       `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.status = AttestationRoundEpoch.commit;
-    this.tryTriggerCommit(); // In case all requests are already processed
+
+    // 
+    await this.tryTriggerCommit(); // In case all requests are already processed
   }
 
   startCommitSubmit() {
     if (AttestationRoundManager.config.submitCommitFinalize) {
-      let action = `Finalizing ^Y#${this.roundId - 3}^^`;
-      this.attesterWeb3
-        .submitAttestation(
+      const action = `Finalizing ^Y#${this.roundId - 3}^^`;
+
+      // eslint-disable-next-line
+      criticalAsync("", async () => {
+        const receipt = await this.attesterWeb3.submitAttestation(
           action,
           // commit index (collect+1)
           toBN(this.roundId + 1),
@@ -138,12 +142,12 @@ export class AttestationRound {
           toHex(0, 32),
           toHex(0, 32),
           false
-        )
-        .then((receipt) => {
-          if (receipt) {
-            this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId - 3}`);
-          }
-        });
+        );
+        if (receipt) {
+          this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId - 3}`);
+        }
+
+      });
     }
   }
 
@@ -160,7 +164,9 @@ export class AttestationRound {
   processed(tx: Attestation) {
     this.attestationsProcessed++;
     assert(this.attestationsProcessed <= this.attestations.length);
-    this.tryTriggerCommit();
+
+    // eslint-disable-next-line
+    criticalAsync("processed", async () => { await this.tryTriggerCommit(); });
   }
 
   async tryTriggerCommit() {
@@ -168,7 +174,7 @@ export class AttestationRound {
       if (this.status === AttestationRoundEpoch.commit) {
         // all transactions were processed and we are in commit epoch
         this.logger.info(`round #${this.roundId} all transactions processed ${this.attestations.length} commiting...`);
-        this.commit();
+        await this.commit();
       } else {
         // all transactions were processed but we are NOT in commit epoch yet
         //this.logger.info(`round #${this.epochId} all transactions processed ${this.attestations.length} waiting for commit epoch`);
@@ -178,6 +184,7 @@ export class AttestationRound {
       //this.logger.info(`round #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
     }
   }
+
   async commitLimit() {
     if (this.attestStatus === AttestationRoundStatus.collecting) {
       this.logger.error2(`Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
@@ -236,6 +243,7 @@ export class AttestationRound {
     const alreadySavedRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBAttestationRequest, { where: { roundId: this.roundId } });
 
     if (!alreadySavedRound) {
+      // eslint-disable-next-line
       criticalAsync("commit", async () => { await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests); });
     }
 
@@ -266,7 +274,7 @@ export class AttestationRound {
     const validatedHashes: string[] = new Array<string>();
     const dbVoteResults = [];
     for (const valid of validated) {
-      let voteHash = valid.verificationData.hash!;
+      const voteHash = valid.verificationData.hash!;
       validatedHashes.push(voteHash);
 
       // save to DB
@@ -281,7 +289,7 @@ export class AttestationRound {
 
     // save to DB
     try {
-      AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
+      await AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
     } catch (error) {
       logException(error, `AttestationRound::commit save DB`);
     }
@@ -344,12 +352,13 @@ export class AttestationRound {
       await this.createEmptyState();
     }
 
-    let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
+    const action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
     const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
 
-    this.attesterWeb3
-      .submitAttestation(
+    // eslint-disable-next-line
+    criticalAsync("firstCommit", async () => {
+      const receipt = await this.attesterWeb3.submitAttestation(
         action,
         // commit index (collect+1)
         toBN(this.roundId + 1),
@@ -360,15 +369,15 @@ export class AttestationRound {
         nextState && nextState.random ? nextState.random : toHex(0, 32),
         nextState && nextState.merkleRoot ? nextState.merkleRoot : toHex(0, 32),
         this.roundCommitHash
-      )
-      .then((receipt) => {
-        if (receipt) {
-          this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
-          this.attestStatus = AttestationRoundStatus.comitted;
-        } else {
-          this.attestStatus = AttestationRoundStatus.error;
-        }
-      });
+      );
+
+      if (receipt) {
+        this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
+        this.attestStatus = AttestationRoundStatus.comitted;
+      } else {
+        this.attestStatus = AttestationRoundStatus.error;
+      }
+    });
   }
 
   async reveal() {
@@ -404,7 +413,7 @@ export class AttestationRound {
     let nextRoundHashedRandom = toHex(toBN(0), 32);
     let nextRoundCommitHash = toHex(toBN(0), 32);
 
-    let action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
+    const action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
     if (this.nextRound) {
       if (!this.nextRound.canCommit()) {
@@ -420,8 +429,9 @@ export class AttestationRound {
       this.nextRound.attestStatus = AttestationRoundStatus.comitted;
     }
 
-    this.attesterWeb3
-      .submitAttestation(
+    // eslint-disable-next-line
+    criticalAsync("", async () => {
+      const receipt = await this.attesterWeb3.submitAttestation(
         action,
         // commit index (collect+2)
         toBN(this.roundId + 2),
@@ -432,15 +442,15 @@ export class AttestationRound {
         this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32),
         this.attestStatus === AttestationRoundStatus.comitted ? this.roundMerkleRoot : toHex(0, 32),
         nextRoundCommitHash
-      )
-      .then((receit) => {
-        if (receit) {
-          this.logger.info(`^Cround ^Y#${this.roundId}^C submit completed (buffernumber ${this.roundId + 2})`);
-          this.attestStatus = AttestationRoundStatus.revealed;
-        } else {
-          this.logger.info(`^Rround ^Y#${this.roundId}^R submit error (buffernumber ${this.roundId + 2}) - no receipt`);
-          this.attestStatus = AttestationRoundStatus.error;
-        }
-      });
+      );
+
+      if (receipt) {
+        this.logger.info(`^Cround ^Y#${this.roundId}^C submit completed (buffernumber ${this.roundId + 2})`);
+        this.attestStatus = AttestationRoundStatus.revealed;
+      } else {
+        this.logger.info(`^Rround ^Y#${this.roundId}^R submit error (buffernumber ${this.roundId + 2}) - no receipt`);
+        this.attestStatus = AttestationRoundStatus.error;
+      }
+    });
   }
 }

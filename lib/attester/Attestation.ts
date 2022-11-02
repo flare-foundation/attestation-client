@@ -25,16 +25,16 @@ export class Attestation {
 
   status: AttestationStatus = AttestationStatus.invalid;
 
-  processStartTime: number = 0;
-  processEndTime: number = 0;
+  processStartTime = 0;
+  processEndTime = 0;
 
   data: AttestationData;
 
   verificationData!: Verification<any, any>;
 
   // how many time was attestation retried
-  retry: number = 0;
-  reverification: boolean = false;
+  retry = 0;
+  reverification = false;
   exception: any;
 
   onProcessed: EventProcessed | undefined = undefined;

@@ -2,6 +2,7 @@ import { AlgoBlock, AlgoTransaction, IBlock, ITransaction, unPrefix0x, UtxoBlock
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";
 import { Indexer } from "../indexer";
+import { stringify } from 'safe-stable-stringify'
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
@@ -20,7 +21,7 @@ async function augmentTransactionBase(indexer: Indexer, block: IBlock, txData: I
   table.transactionType = txData.type;
   table.isNativePayment = txData.isNativePayment;
   table.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
-  table.response = prepareString(JSON.stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
+  table.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
 
   return table;
 }

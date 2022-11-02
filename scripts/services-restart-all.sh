@@ -1,4 +1,5 @@
-bash ./scripts/install-config.sh
+#!/bin/bash
+source ./scripts/install-config.sh
 
 if $ENABLE_INDEXER; then
     systemctl --user restart indexer-xrp

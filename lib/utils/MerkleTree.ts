@@ -93,7 +93,7 @@ export class MerkleTree {
    * Merkle root as a BN (big number from BN.js)
    */
   get rootBN() {
-    let rt = this.root;
+    const rt = this.root;
     return rt ? web3.utils.toBN(rt) : web3.utils.toBN(0);
   }
   
@@ -115,7 +115,7 @@ export class MerkleTree {
    * Returns leaves in array of the length `hashCount` sorted as `0x`-prefixed 32-byte hex strings.
    */
   get sortedHashes() {
-    let n = this.hashCount;
+    const n = this.hashCount;
     return this._tree.slice(this.hashCount - 1);
   }
 
@@ -133,7 +133,7 @@ export class MerkleTree {
    * @param values 
    */
   build(values: string[]) {
-    let sorted = values.map((x) => toHex(x, 32));
+    const sorted = values.map((x) => toHex(x, 32));
     sorted.sort();
 
     let hashes = [];
@@ -145,7 +145,7 @@ export class MerkleTree {
     if (this.initialHash) {
       hashes = hashes.map((x) => singleHash(x));
     }
-    let n = hashes.length;
+    const n = hashes.length;
     this._tree = [...new Array(Math.max(n - 1, 0)).fill(0), ...hashes];
     for (let i = n - 2; i >= 0; i--) {
       this._tree[i] = sortedHashPair(this._tree[2 * i + 1], this._tree[2 * i + 2])!;
@@ -161,7 +161,7 @@ export class MerkleTree {
     if (this.hashCount === 0 || i < 0 || i >= this.hashCount) {
       return null;
     }
-    let pos = this._tree.length - this.hashCount + i;
+    const pos = this._tree.length - this.hashCount + i;
     return this._tree[pos];
   }
 
@@ -174,7 +174,7 @@ export class MerkleTree {
     if (this.hashCount === 0 || i < 0 || i >= this.hashCount) {
       return null;
     }
-    let proof: string[] = [];
+    const proof: string[] = [];
     let pos = this._tree.length - this.hashCount + i;
     while (pos > 0) {
       proof.push(
@@ -194,7 +194,7 @@ export class MerkleTree {
   verify(leaf: string, proof: string[]) {
     if (!leaf || !proof || !this.root) return false;
     let hash = leaf;
-    for (let pair of proof) {
+    for (const pair of proof) {
       hash = sortedHashPair(pair, hash)!;
     }
     return hash === this.root;

@@ -5,7 +5,6 @@
 | `accountPrivateKey`             | Network account private key.<br> **IMPORTANT** for Attester this account must be funded |         |
 | `rpcUrl`                        | Network RPC URL                                                                         |         |
 | `stateConnectorContractAddress` | State connector address                                                                 |         |
-| `useNewStateConnector`          | If `true` new version of StateConnector smart contract is used (Coston2, Flare)         |  false  |     
 | `refreshEventsMs`               | Event collecting polling sleep delay                                                    |   100   |   
 
 

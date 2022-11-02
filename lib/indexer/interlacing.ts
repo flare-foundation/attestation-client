@@ -2,6 +2,7 @@ import { Managed } from "@flarenetwork/mcc";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
 import { sleepms } from "../utils/utils";
+import { Indexer } from "./indexer";
 import { SECONDS_PER_DAY } from "./indexer-utils";
 
 
@@ -19,21 +20,24 @@ import { SECONDS_PER_DAY } from "./indexer-utils";
 @Managed()
 export class Interlacing {
   // current active table index
-  private index: number;
-  private endBlockTime: number = -1;
-  private endBlockNumber: number = -1;
+  private index = 0;
+  private endBlockTime = -1;
+  private endBlockNumber = -1;
 
   private logger: AttLogger;
 
   private timeRange: number = 2 * SECONDS_PER_DAY;
 
-  private blockRange: number = 100;
+  private blockRange = 100;
 
-  private tableLock: boolean = false;
+  private tableLock = false;
 
   private dbService: DatabaseService;
 
   private chainName: string;
+
+  private indexer: Indexer;
+  chainConfig: any;
 
   /**
    * Sets the initial limits for the interlacing.
@@ -46,10 +50,11 @@ export class Interlacing {
    * @param chainName 
    * @returns 
    */
-  public async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRangeSec: number, blockRange: number, chainName: string) {
+  public async initialize(indexer: Indexer, dbService: DatabaseService, dbClasses: any[], timeRangeSec: number, blockRange: number, chainName: string) {
     const items = [];
 
-    this.logger = logger;
+    this.indexer = indexer;
+    this.logger = indexer.logger;
     this.dbService = dbService;
 
     this.timeRange = timeRangeSec * SECONDS_PER_DAY;
@@ -96,8 +101,10 @@ export class Interlacing {
     //  0 - table0
     //  1 - table1
 
-    const index = this.getActiveIndex();
+    return this.getTransactionTableNameForIndex(this.getActiveIndex());
+  }
 
+  private getTransactionTableNameForIndex(index: number): any {
     return `${this.chainName.toLowerCase()}_transactions${index}`;
   }
 
@@ -151,4 +158,41 @@ export class Interlacing {
 
     return true;
   }
+
+  /***
+   * reset all - drop both tables
+   */
+  public async resetAll() {
+
+    // in case table drop was requested in another async we need to wait until drop is completed
+    while (this.tableLock) {
+      await sleepms(1);
+    }
+
+    this.endBlockTime = -1;
+    this.endBlockNumber = -1;
+
+    this.tableLock = true;
+
+    // change interlacing index
+    this.index = 0;
+
+    this.logger.debug(`interlace reset all`);
+
+    // drop inactive table and create new one
+    for (let i = 0; i < 2; i++) {
+      const queryRunner = this.dbService.connection.createQueryRunner();
+      const tableName = this.getTransactionTableNameForIndex(i);
+      const table = await queryRunner.getTable(tableName);
+      await queryRunner.dropTable(table);
+      await queryRunner.createTable(table);
+      await queryRunner.release();
+    }
+
+    // drop all state info
+    await this.indexer.dropAllStateInfo();
+
+    this.tableLock = false;
+  }
+
 }

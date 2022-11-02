@@ -1,4 +1,5 @@
-bash ./scripts/install-config.sh
+#!/bin/bash
+source ./scripts/install-config.sh
 
 # copy services
 echo -e "${REDBOLD}[1] ${GREENBOLD}Copying services...${NC}"

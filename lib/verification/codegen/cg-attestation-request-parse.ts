@@ -10,17 +10,17 @@ import {
 } from "./cg-constants";
 
 export function genRequestParseFunctionForDefinition(definition: AttestationTypeScheme) {
-  let parseEntryList: string[] = [];
+  const parseEntryList: string[] = [];
 
   let start = 0;
-  let totalLength = definition.request.map((item) => item.size * 2).reduce((a, b) => a + b);
+  const totalLength = definition.request.map((item) => item.size * 2).reduce((a, b) => a + b);
 
-  for (let item of definition.request) {
-    let end = start + item.size * 2;
+  for (const item of definition.request) {
+    const end = start + item.size * 2;
     parseEntryList.push(`${item.key}: fromUnprefixedBytes(input.slice(${start}, ${end}), "${item.type}", ${item.size}) as ${typeForRequestType(item.type)}`);
     start = end;
   }
-  let parseEntries = parseEntryList.join(",\n");
+  const parseEntries = parseEntryList.join(",\n");
   return `
 export function ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(bytes: string): ${ATTESTATION_TYPE_PREFIX}${definition.name} {
 	if(!bytes) {
@@ -78,7 +78,7 @@ case AttestationType.${definition.name}:
 }
 
 export function genRequestParseFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map((definition) => genParseAttestationTypeCase(definition)).join("");
+  const attestationTypeCases = definitions.map((definition) => genParseAttestationTypeCase(definition)).join("");
   return `
 export function ${REQUEST_PARSE_PREFIX_FUNCTION}Request(bytes: string): ${ATTESTATION_TYPE_PREFIX}Type {  
 	let { attestationType } = getAttestationTypeAndSource(bytes);
@@ -142,7 +142,7 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
 }
 
 export function createAttestationRequestParse(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import Web3 from "web3";

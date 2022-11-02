@@ -18,7 +18,7 @@ export class TestLogger extends Transport {
     }
     static exists(text: string): boolean {
         // optimize search if it becomes too slow
-        for (let logText of TestLogger.logs) {
+        for (const logText of TestLogger.logs) {
             if (logText === text) return true;
         }
 
@@ -30,7 +30,7 @@ export class TestLogger extends Transport {
         setImmediate(() => this.emit("logged", info));
 
         if (info.message) {
-            let text = info.message.toString();
+            const text = info.message.toString();
 
             TestLogger.logs.push(text);
 

@@ -120,6 +120,7 @@
     "@types/web3": "1.2.2",
     "@types/yargs": "17.0.10",
     "axios": "0.27.2",
+    "chai-as-promised": "^7.1.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint": "^8.26.0",
     "@typescript-eslint/eslint-plugin": "^5.41.0",

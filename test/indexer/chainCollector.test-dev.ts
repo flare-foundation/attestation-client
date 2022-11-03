@@ -27,12 +27,8 @@ const token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddd"
 
 const algoCreateConfig = {
   algod: {
-    url: testNetUrl,
-    token: algodToken,
-  },
-  indexer: {
-    url: testNetUrlIndexer,
-    token: token,
+    url: "https://node.testnet.algoexplorerapi.io", // process.env.ALGO_ALGOD_URL_TESTNET || "",
+    token: process.env.ALGO_ALGOD_TOKEN_TESTNET || "",
   },
 };
 
@@ -60,13 +56,12 @@ describe("Test process helpers ", () => {
     AlgoMccClient = new MCC.ALGO(algoCreateConfig);
     XrpMccClient = new MCC.XRP(XRPMccConnection);
     save = async (block: DBBlockBase, transactions: DBTransactionBase[]) => {
-
       console.log("***************** BLOCK SAVE ************************");
 
       const newDb = new (indexer.dbTransactionClasses[1] as any)();
 
       //Object.setPrototypeOf( transactions[0] , Object.getPrototypeOf( indexer.dbTransactionClasses[1] ) )
-      Object.setPrototypeOf( transactions[0] , Object.getPrototypeOf( newDb ) )
+      Object.setPrototypeOf(transactions[0], Object.getPrototypeOf(newDb));
 
       console.log(block);
 
@@ -98,11 +93,11 @@ describe("Test process helpers ", () => {
 
     const processor = new UtxoBlockProcessor(indexer);
     processor.debugOn("FIRST");
-    processor.initializeJobs(block, save);
+    let procA = processor.initializeJobs(block, save);
 
     const processor2 = new UtxoBlockProcessor(indexer);
     processor2.debugOn("SECOND");
-    processor2.initializeJobs(block2, save);
+    let procB = processor2.initializeJobs(block2, save);
 
     // Simulation of switching between the two processors
     let first = false;
@@ -112,7 +107,7 @@ describe("Test process helpers ", () => {
       if (first) {
         console.log("RUNNING 2 ...");
         processor.pause();
-        processor2.resume();
+        procB = processor2.resume();
         first = false;
         setTimeout(() => {
           simulate();
@@ -120,7 +115,7 @@ describe("Test process helpers ", () => {
       } else {
         console.log("RUNNING 1 ...");
         processor2.pause();
-        processor.resume();
+        procA = processor.resume();
         first = true;
         setTimeout(() => {
           simulate();
@@ -156,7 +151,7 @@ describe("Test process helpers ", () => {
     indexer.cachedClient = cachedClient;
 
     const processor = new UtxoBlockProcessor(indexer);
-    processor.debugOn("FIRST");    
+    processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });
 
@@ -178,10 +173,10 @@ describe("Test process helpers ", () => {
 
     const processor = new AlgoBlockProcessor(indexer);
     processor.debugOn("FIRST");
-    processor.initializeJobs(block, save);
+    await processor.initializeJobs(block, save);
   });
 
-  it.only(`Test xrp block processing `, async function () {
+  it(`Test xrp block processing `, async function () {
     const block = await XrpMccClient.getBlock("FDD11CCFB38765C2DA0B3E6D4E3EF7DFDD4EE1DBBA4F319493EB6E1376814EC2");
 
     const defaultCachedMccClientOptions: CachedMccClientOptions = {
@@ -195,13 +190,34 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-
     indexer.chainConfig = new ChainConfiguration();
     indexer.chainConfig.name = "XRP";
     indexer.prepareTables();
 
-
     const processor = new XrpBlockProcessor(indexer);
+    processor.debugOn("FIRST");
+    await processor.initializeJobs(block, save);
+  });
+
+  it.only(`Test ALGO block processing `, async function () {
+    const block = await AlgoMccClient.getBlock(25254303);
+
+    const defaultCachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: algoCreateConfig,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
+    indexer.cachedClient = cachedClient;
+
+    indexer.chainConfig = new ChainConfiguration();
+    indexer.chainConfig.name = "ALGO";
+    indexer.prepareTables();
+
+    const processor = new AlgoBlockProcessor(indexer);
     processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });

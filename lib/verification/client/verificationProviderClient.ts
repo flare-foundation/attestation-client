@@ -1,5 +1,4 @@
 import WebSocket from 'ws';
-import { boolean, number, string } from 'yargs';
 import { parseJSON } from '../../utils/config';
 import { AttLogger, getGlobalLogger, logException } from '../../utils/logger';
 import { sleepms } from '../../utils/utils';

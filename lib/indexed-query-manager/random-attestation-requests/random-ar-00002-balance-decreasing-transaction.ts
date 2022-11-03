@@ -32,17 +32,17 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   if (!randomTransaction) {
     return null;
   }
-  let confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
+  const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
     blockNumber: randomTransaction.blockNumber + numberOfConfirmations,
     roundId,
   });
   if (!confirmationBlockQueryResult?.result) {
-    let N = await indexedQueryManager.getLastConfirmedBlockNumber();
+    const N = await indexedQueryManager.getLastConfirmedBlockNumber();
     console.log("No confirmation block", randomTransaction.blockNumber, N, numberOfConfirmations, roundId);
     return null;
   }
 
-  let choice = enforcedChoice
+  const choice = enforcedChoice
     ? RANDOM_OPTIONS_BALANCE_DECREASING_TRANSACTION.find((x) => x.name === enforcedChoice)
     : randomWeightedChoice(RANDOM_OPTIONS_BALANCE_DECREASING_TRANSACTION);
 
@@ -50,8 +50,8 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
     return null;
   }
 
-  let id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
-  let upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
+  const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
+  const upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
 
   return {
     attestationType: AttestationType.BalanceDecreasingTransaction,

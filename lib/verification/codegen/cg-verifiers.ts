@@ -11,13 +11,13 @@ import {
 import { dashCapitalized } from "./cg-utils";
 
 export function verifierFolder(sourceId: number, rootFolder?: string) {
-  let root = rootFolder ? `${rootFolder}/` : "";
+  const root = rootFolder ? `${rootFolder}/` : "";
   return `${root}${getSourceName(sourceId)}`;
 }
 export function verifierFile(definition: AttestationTypeScheme, sourceId: number, folder?: string, addTs = true) {
-  let root = folder ? `${folder}/` : "";
-  let suffix = addTs ? ".ts" : "";
-  let name = getSourceName(sourceId).toLowerCase();
+  const root = folder ? `${folder}/` : "";
+  const suffix = addTs ? ".ts" : "";
+  const name = getSourceName(sourceId).toLowerCase();
   return `${root}v-${("" + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}.${name}${suffix}`;
 }
 
@@ -26,35 +26,35 @@ export function verifierFunctionName(definition: AttestationTypeScheme, sourceId
 }
 
 function isResponseDefined(fileContent: string) {
-  let res = /\n[^\n\/]*response\s*\=/g.test("\n" + fileContent);
+  const res = /\n[^\n\/]*response\s*\=/g.test("\n" + fileContent);
   return res;
 }
 
 function extractImports(fileContent: string): string {
-  let importRegex = /import [^\'\"]+['\"][^\'\"]+['\"]\;?/g;
-  let defaultImportRegex = /import [^\'\"]+\".\/0imports\";/;
-  let imports = fileContent.match(importRegex).filter((item) => !defaultImportRegex.test(item));
+  const importRegex = /import [^\'\"]+['\"][^\'\"]+['\"]\;?/g;
+  const defaultImportRegex = /import [^\'\"]+\".\/0imports\";/;
+  const imports = fileContent.match(importRegex).filter((item) => !defaultImportRegex.test(item));
   return imports.join("\n");
 }
 
 function extractCode(fileContent: string): string {
-  let codeRegex = /\n[^\n]*\/\/\-\$\$\$\<start\>[^\n]+\n([\s\S]*)\n[^\n]*\/\/\-\$\$\$\<end\>/;
-  let matches = fileContent.match(codeRegex);
+  const codeRegex = /\n[^\n]*\/\/\-\$\$\$\<start\>[^\n]+\n([\s\S]*)\n[^\n]*\/\/\-\$\$\$\<end\>/;
+  const matches = fileContent.match(codeRegex);
   // console.log(`"${matches[1]}"`)
   return matches[1].replace(/^\n+|\n+$/g, "");
 }
 
 function removeToFirstImport(content: string) {
-  let index = content.indexOf("\nimport");
+  const index = content.indexOf("\nimport");
   return content.slice(index + 1);
 }
 
 export function genVerifier(definition: AttestationTypeScheme, sourceId: number, folder: string) {
-  let functionName = verifierFunctionName(definition, sourceId);
-  let mccInterface = `MCC.${getSourceName(sourceId)}`;
+  const functionName = verifierFunctionName(definition, sourceId);
+  const mccInterface = `MCC.${getSourceName(sourceId)}`;
   let hasResponseDefined = false;
-  let fname = verifierFile(definition, sourceId, folder);
-  let fileContent: string = "";
+  const fname = verifierFile(definition, sourceId, folder);
+  let fileContent = "";
   let imports = "";
   let code = "// TYPE THE CODE HERE";
   if (fs.existsSync(fname)) {
@@ -65,8 +65,8 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
     hasResponseDefined = isResponseDefined(code);
   }
 
-  let randomResponse = genRandomResponseCode(definition, "request");
-  let importedSymbols = [
+  const randomResponse = genRandomResponseCode(definition, "request");
+  const importedSymbols = [
     `${ATTESTATION_TYPE_PREFIX}${definition.name}`,
     `Attestation`,
     `BN`,
@@ -95,9 +95,9 @@ export async function ${functionName}(
 	recheck = false
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
 {
-	let request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
-	let roundId = attestation.roundId;
-	let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+	const request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+	const roundId = attestation.roundId;
+	const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
 	//-$$$<start> of the custom code section. Do not change this comment.
 
@@ -107,7 +107,7 @@ ${code}
 
 ${hasResponseDefined ? "" : randomResponse}
 
-	let hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
+	const hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
 
 	return {
 		hash,

@@ -23,7 +23,7 @@ export async function getFullTransactionUtxo(
   if (blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase") {
     blockTransaction.synchronizeAdditionalData();
 
-    let txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction, index: number) => {
+    const txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction, index: number) => {
       if (vin.txid) {
         // the in-transactions are prepended to queue in order to process them earlier
         return processor.call(() => blockTransaction.vinVoutAt(index, client.client as MccUtxoClient), true) as Promise<UtxoTransaction>;

@@ -7,8 +7,8 @@ import { trimStartNewline } from "./cg-utils";
 import { genVerifier, verifierFile, verifierFolder, verifierFunctionName } from "./cg-verifiers";
 
 function genDefinitionCases(definition: AttestationTypeScheme) {
-  let sourceCases = definition.supportedSources.map((sourceId) => genSourceCase(definition, sourceId)).join("\n");
-  let result = `
+  const sourceCases = definition.supportedSources.map((sourceId) => genSourceCase(definition, sourceId)).join("\n");
+  const result = `
 case AttestationType.${definition.name}:
 	switch(sourceId) {
 ${sourceCases}
@@ -19,7 +19,7 @@ ${sourceCases}
 }
 
 function genSourceCase(definition: AttestationTypeScheme, sourceId: number) {
-  let result = `
+  const result = `
 case SourceId.${getSourceName(sourceId)}:
 	return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestation, indexer, recheck);`;
   return trimStartNewline(result);
@@ -27,23 +27,23 @@ case SourceId.${getSourceName(sourceId)}:
 
 export function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
   let routerImports = "";
-  let attestationTypeCases = definitions.map((definition) => genDefinitionCases(definition)).join("\n");
+  const attestationTypeCases = definitions.map((definition) => genDefinitionCases(definition)).join("\n");
 
-  for (let definition of definitions) {
-    for (let sourceId of definition.supportedSources) {
-      let relFolder = verifierFolder(sourceId, ".");
-      let folder = verifierFolder(sourceId, VERIFIERS_ROOT);
+  for (const definition of definitions) {
+    for (const sourceId of definition.supportedSources) {
+      const relFolder = verifierFolder(sourceId, ".");
+      const folder = verifierFolder(sourceId, VERIFIERS_ROOT);
       if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder, { recursive: true });
       }
-      let verifierContent = genVerifier(definition, sourceId, folder);
+      const verifierContent = genVerifier(definition, sourceId, folder);
       const prettyContent = prettier.format(verifierContent, PRETTIER_SETTINGS)
       fs.writeFileSync(`${verifierFile(definition, sourceId, folder)}`, prettyContent, "utf8");
       routerImports += `import {${verifierFunctionName(definition, sourceId)}} from "${verifierFile(definition, sourceId, relFolder, false)}"\n`;
     }
   }
 
-  let router = `${DEFAULT_GEN_FILE_HEADER}
+  const router = `${DEFAULT_GEN_FILE_HEADER}
 import { MccClient, MCC, traceFunction } from "@flarenetwork/mcc"
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"

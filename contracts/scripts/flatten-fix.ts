@@ -19,11 +19,11 @@
 function fixFlatten() {
   const fs = require('fs');
   console.log(process.argv[2])
-  let data = String(fs.readFileSync(process.argv[2]))
-  let ind = data.indexOf("SPDX-License-Identifier: MIT", 0);
-  let beg = data.slice(0, ind + 5);
-  let end = data.slice(ind + 5, data.length).replace(/SPDX-License-Identifier: MIT/g, "");
-  let outData = beg + end;
+  const data = String(fs.readFileSync(process.argv[2]))
+  const ind = data.indexOf("SPDX-License-Identifier: MIT", 0);
+  const beg = data.slice(0, ind + 5);
+  const end = data.slice(ind + 5, data.length).replace(/SPDX-License-Identifier: MIT/g, "");
+  const outData = beg + end;
   let j = outData.length + 1;
   let ncnt = 0;
   while(ncnt < 2) {

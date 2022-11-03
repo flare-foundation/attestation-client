@@ -91,7 +91,7 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
  */
 export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector> {
   let abiPath = "";
-  let artifacts = "artifacts";
+  const artifacts = "artifacts";
   try {
     abiPath = await relativeContractABIPathForContractName("StateConnector", artifacts);
     return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnector;
@@ -117,7 +117,7 @@ export function getWeb3Wallet(web3: any, privateKey: string) {
  * @returns 
  */
 export function waitFinalize3Factory(web3: any) {
-  return async (address: string, func: () => any, delay: number = 1000) => {
+  return async (address: string, func: () => any, delay = 1000) => {
     const nonce = await web3.eth.getTransactionCount(address);
     const res = await func();
     const backoff = 1.5;
@@ -237,7 +237,7 @@ export async function sleepms(milliseconds: number) {
  * @param decimal decimals to round
  * @returns 
  */
-export function round(x: number, decimal: number = 0) {
+export function round(x: number, decimal = 0) {
   if (decimal === 0) return Math.round(x);
 
   const dec10 = 10 ** decimal;
@@ -296,8 +296,8 @@ export function secToHHMMSS(time: number, secDecimals = 0) {
  * @returns the XOR of the two values
  */
 export function xor32(hex1: string, hex2: string) {
-  let h1 = unPrefix0x(hex1);
-  let h2 = unPrefix0x(hex2);
+  const h1 = unPrefix0x(hex1);
+  const h2 = unPrefix0x(hex2);
   if (!(/^[a-fA-F0-9]{64}$/.test(h1) && /^[a-fA-F0-9]{64}$/.test(h2))) {
     throw new Error("Incorrectly formatted 32-byte strings");
   }

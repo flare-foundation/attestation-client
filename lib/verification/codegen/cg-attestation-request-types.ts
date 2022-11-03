@@ -11,7 +11,7 @@ function genDefReqItem(item: AttestationRequestScheme) {
 
 function genAttestationRequestType(definition: AttestationTypeScheme): string {
   definition.dataHashDefinition;
-  let values = definition.request.map((item) => genDefReqItem(item)).join("\n\n");
+  const values = definition.request.map((item) => genDefReqItem(item)).join("\n\n");
   return `
 export interface ${ATTESTATION_TYPE_PREFIX}${definition.name} {
 ${values}
@@ -20,7 +20,7 @@ ${values}
 }
 
 function arType(definitions: AttestationTypeScheme[]) {
-  let arTypes = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(" | ");
+  const arTypes = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(" | ");
   return `export type ${ATTESTATION_TYPE_PREFIX}Type = ${arTypes};`;
 }
 

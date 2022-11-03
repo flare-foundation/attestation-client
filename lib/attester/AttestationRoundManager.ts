@@ -66,6 +66,7 @@ export class AttestationRoundManager {
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
     AttestationRoundManager.startEpochId = AttestationRoundManager.activeEpochId;
 
+    // eslint-disable-next-line    
     this.startRoundUpdate();
   }
 
@@ -106,7 +107,7 @@ export class AttestationRoundManager {
     if (activeRound === undefined) {
       activeRound = new AttestationRound(epochId, this.logger, AttestationRoundManager.attesterWeb3);
 
-      let intervalId = setInterval(() => {
+      const intervalId = setInterval(() => {
         const now = getTimeMilli();
         if (now > epochCommitTime) {
           clearInterval(intervalId);
@@ -126,7 +127,7 @@ export class AttestationRoundManager {
 
       // trigger start commit epoch
       setTimeout(() => {
-        safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitEpoch());
+        safeCatch(`setTimeout:startCommitEpoch`, async () => await activeRound!.startCommitEpoch());
       }, epochCommitTime - now);
 
       // trigger start commit epoch submit
@@ -186,7 +187,7 @@ export class AttestationRoundManager {
       return;
     }
 
-    let activeRound = this.getRoundOrCreateIt(epochId);
+    const activeRound = this.getRoundOrCreateIt(epochId);
 
     // create, check and add attestation
     const attestation = await this.createAttestation(activeRound, tx);

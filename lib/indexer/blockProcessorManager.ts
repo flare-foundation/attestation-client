@@ -71,7 +71,7 @@ export class BlockProcessorManager {
     if (this.blockProcessors.find(processor => processor.block.stdBlockHash === block.stdBlockHash && processor.isCompleted)) {
       this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
       // eslint-disable-next-line
-      criticalAsync(`process -> BlockProcessorManager::alreadyCompleteCallback exception:`, () => this.alreadyCompleteCallback(block));
+      criticalAsync(`process -> BlockProcessorManager(${block.number})::alreadyCompleteCallback exception:`, () => this.alreadyCompleteCallback(block));
       return;
     }
 
@@ -83,7 +83,7 @@ export class BlockProcessorManager {
         processorExists = true;
         this.logger.info(`^w^Kprocess block ${block.number}^^^W (continue)`);
         // eslint-disable-next-line
-        criticalAsync(`process -> BlockProcessorManager::blockProcessors.continue exception:`, () => this.blockProcessors[i].resume());
+        criticalAsync(`process -> BlockProcessorManager(${block.number})::blockProcessors.continue exception:`, () => this.blockProcessors[i].resume());
       } else {
         this.blockProcessors[i].pause();
       }
@@ -105,7 +105,7 @@ export class BlockProcessorManager {
 
     // terminate app on exception
     // eslint-disable-next-line
-    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
+    criticalAsync(`process -> BlockProcessorManager(${block.number})::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
   }
 
   /**
@@ -127,7 +127,7 @@ export class BlockProcessorManager {
 
     // terminate app on exception
     // eslint-disable-next-line
-    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
+    criticalAsync(`process -> BlockProcessorManager(${block.number})::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
   }
 
   /**

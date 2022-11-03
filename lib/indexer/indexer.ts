@@ -314,7 +314,7 @@ export class Indexer {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlockFromClient(`blockCompleted`, this.N + 2);
         // eslint-disable-next-line
-        criticalAsync(`blockCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
+        criticalAsync(`blockCompleted(${block.blockNumber}) -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
 
@@ -336,7 +336,7 @@ export class Indexer {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
         // eslint-disable-next-line
-        criticalAsync(`blockAlreadyCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
+        criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
   }

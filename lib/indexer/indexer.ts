@@ -345,11 +345,12 @@ export class Indexer {
   // table interlacing prepare and management
   /////////////////////////////////////////////////////////////
 
+  //???Put this into constructor????
   /**
    * Prepares table entities for transactions (interlaced) and block
    */
   public prepareTables() {
-    const chainType = MCC.getChainType(this.chainConfig.name);
+    const chainType = MCC.getChainType(this.chainConfig.name); //Why not use indexer.chainType
     const prepared = prepareIndexerTables(chainType);
 
     this.dbTransactionClasses = prepared.transactionTable;
@@ -409,7 +410,6 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
-
           // let newTransactions = [];
 
           // for( const tx of transactions ) {
@@ -436,8 +436,7 @@ export class Indexer {
           }
 
           await transaction.save(transactions);
-        }
-        else {
+        } else {
           // save dummy transaction to keep transaction table block continuity
           this.logger.debug(`block ${block.blockNumber} no transactions (dummy tx added)`);
 
@@ -617,7 +616,8 @@ export class Indexer {
   async dropAllStateInfo() {
     this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
 
-    await this.dbService.manager.createQueryBuilder()
+    await this.dbService.manager
+      .createQueryBuilder()
       .delete()
       .from(DBState)
       .where("`name` like :name", { name: `%${this.chainConfig.name}_%` })
@@ -740,7 +740,7 @@ export class Indexer {
         "state",
         "running-sync",
         this.processedBlocks,
-        `N=${this.N} T=${this.T} (missing ${(hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, '0')}`)})`
+        `N=${this.N} T=${this.T} (missing ${hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, "0")}`})`
       );
     } else if (!NisReady) {
       dbStatus = this.getStateEntryString(
@@ -789,14 +789,14 @@ export class Indexer {
    * check if indexer database is continous
    */
   async checkDatabaseContinuous() {
-
     const name = this.chainConfig.name.toLowerCase();
 
     // reference sql query
     //const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
 
-    // get DB N_bottom 
-    const queryNbottom = this.dbService.manager.createQueryBuilder()
+    // get DB N_bottom
+    const queryNbottom = this.dbService.manager
+      .createQueryBuilder()
       .select("valueNumber")
       .addSelect("name")
       .from(DBState, "s")
@@ -811,12 +811,14 @@ export class Indexer {
       return;
     }
 
-    const queryTable0 = this.dbService.manager.createQueryBuilder()
+    const queryTable0 = this.dbService.manager
+      .createQueryBuilder()
       .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
       .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx")
       .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
 
-    const queryTable1 = this.dbService.manager.createQueryBuilder()
+    const queryTable1 = this.dbService.manager
+      .createQueryBuilder()
       .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
       .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx")
       .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
@@ -832,8 +834,7 @@ export class Indexer {
 
         this.logger.debug(`restarting`);
         exit(3);
-      }
-      else {
+      } else {
         this.logger.debug(`${name} continuity ok on [0]`);
       }
     }
@@ -846,8 +847,7 @@ export class Indexer {
 
         this.logger.debug(`restarting`);
         exit(3);
-      }
-      else {
+      } else {
         this.logger.debug(`${name} continuity ok on [1]`);
       }
     }

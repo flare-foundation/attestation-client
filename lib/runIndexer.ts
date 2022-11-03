@@ -1,4 +1,5 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
+import { exit } from "process";
 import { ChainsConfiguration } from "./chain/ChainConfiguration";
 import { Indexer } from "./indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "./indexer/IndexerConfiguration";
@@ -24,7 +25,7 @@ async function runIndexer() {
   TraceManager.enabled = false;
   traceManager.displayRuntimeTrace = false;
   traceManager.displayStateOnException = false;
-  
+
   //TraceManager.enabled = true;
   //traceManager.displayRuntimeTrace = true;
   //traceManager.displayStateOnException = true;
@@ -49,10 +50,28 @@ setGlobalLoggerLabel(args["chain"]);
 // read .env
 DotEnvExt();
 
-// indexer entry point
-runIndexer()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    logException(error, `runIndexer`);
-    process.exit(1);
-  });
+// allow only one instance of the application
+var instanceName = `indexer-${args["chain"]}`;
+
+var SingleInstance = require('single-instance');
+var locker = new SingleInstance(instanceName);
+
+locker.lock()
+  .then(function () {
+
+    // indexer entry point
+    runIndexer()
+      .then(() => process.exit(0))
+      .catch((error) => {
+        logException(error, `runIndexer`);
+        process.exit(1);
+      });
+  })
+  .catch(function (err) {
+    getGlobalLogger().error( `unable to start application. ^w${instanceName}^^ is locked` );
+
+    // Quit the application
+    exit(5);
+  })
+
+

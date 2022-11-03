@@ -30,11 +30,11 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration> {
   @optional() public validateBlockBeforeProcess = false;
   @optional() public validateBlockWaitMs = 500;
   @optional() public validateBlockMaxRetry = 10;
-  
+
   instanciate(): ChainsConfiguration {
     return new ChainsConfiguration();
   }
-  
+
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     const info = new AdditionalTypeInfo();
     //info.additionalKeys.set( "mccCreate" , new MccCreateDummy() );
@@ -53,7 +53,7 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration> {
     return info;
   }
 }
-
+//Self-defining???
 export class ChainsConfiguration implements IReflection<ChainsConfiguration> {
   public chains: ChainConfiguration[] = [];
 

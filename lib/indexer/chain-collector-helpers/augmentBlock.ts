@@ -12,8 +12,7 @@ import { Indexer } from "../indexer";
  * @returns
  */
 export async function augmentBlock(indexer: Indexer, block: IBlock): Promise<DBBlockBase> {
-  const entity = new DBBlockBase();
-  // const entity = new indexer.dbBlockClass() as DBBlockBase;
+  const entity = new indexer.dbBlockClass() as DBBlockBase;
   entity.blockNumber = block.number;
   entity.blockHash = prepareString(block.stdBlockHash, 128);
   entity.timestamp = block.unixTimestamp;

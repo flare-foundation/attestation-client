@@ -61,9 +61,9 @@ export class Indexer {
   preparedBlocks = new Map<number, PreparedBlock[]>();
 
   // two interlacing table entity classes for confirmed transaction storage
-  dbTransactionClasses: DBTransactionBase[];
+  dbTransactionClasses: DBTransactionBase[]; //set by prepareTables()
   // entity class for the block table
-  dbBlockClass; //!!!!!Something fishy!!!!!
+  dbBlockClass; //set by prepareTables()
 
   // bottom block in the transaction tables - used to check if we have enough history
   bottomBlockTime = undefined;

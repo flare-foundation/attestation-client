@@ -2,6 +2,7 @@ import Web3 from "web3";
 import { getTimeMilli } from "./internetTime";
 import { AttLogger, logException } from "./logger";
 import { getUnixEpochTimestamp, getWeb3Wallet, sleepms, waitFinalize3Factory } from "./utils";
+import { stringify } from "safe-stable-stringify";
 
 export const DEFAULT_GAS = "2500000";
 export const DEFAULT_GAS_PRICE = "300000000000";
@@ -78,7 +79,7 @@ export class Web3Functions {
               this.logger.error2(`sign ${label} timeout #${waitIndex}`);
 
               // must return 2 values as _signAndFinalize3
-              // for some reason the return {null,null}; does not compile 
+              // for some reason the return {null,null}; does not compile
               const res0 = null;
               const res1 = null;
               return { res0, res1 };
@@ -104,8 +105,7 @@ export class Web3Functions {
       return res;
     } catch (error) {
       logException(error, `signAndFinalize3`);
-    }
-    finally {
+    } finally {
       // current index MUST be increased or everything stalls
       this.currentIndex++;
       this.logger.debug(`sign ${label} index inc (#${this.currentIndex})`);
@@ -135,7 +135,7 @@ export class Web3Functions {
           try {
             const result = await fnToEncode.call({ from: this.account.address });
 
-            throw Error("unlikely to happen: " + JSON.stringify(result));
+            throw Error("unlikely to happen: " + stringify(result));
           } catch (revertReason) {
             this.logger.error2(`${label}, nonce sent: ${nonce}, revert reason: ${revertReason}`);
           }

@@ -393,7 +393,8 @@ export class Indexer {
       return false;
     }
 
-    this.logger.debug(`start save block N+1=${Np1}`);
+    this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.getActiveIndex()})`);
+    const transactionClass = this.getActiveTransactionWriteTable() as any;
 
     // fix data
     block.transactions = transactions.length;
@@ -409,10 +410,28 @@ export class Indexer {
         // block must be marked as confirmed
         if (transactions.length > 0) {
 
+          // let newTransactions = [];
+
+          // for( const tx of transactions ) {
+          //   const newTx = new transactionClass();
+
+          //   newTx.chainType=tx.chainType;
+          //   newTx.transactionId=tx.transactionId;
+          //   newTx.blockNumber=tx.blockNumber;
+          //   newTx.timestamp=tx.timestamp;
+          //   newTx.paymentReference=tx.paymentReference;
+          //   newTx.response=tx.response;
+          //   newTx.isNativePayment=tx.isNativePayment;
+          //   newTx.transactionType=tx.transactionType;
+
+          //   newTransactions.push( newTx );
+          // }
+
+          // await transaction.save(newTransactions);
+
           // fix transactions class to active interlace tranascation class
-          const transactionClass = this.getActiveTransactionWriteTable();
-          const dummy = new (transactionClass as any)();
-          for (const transaction in transactions) {
+          const dummy = new transactionClass();
+          for (let transaction of transactions) {
             Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
           }
 
@@ -420,9 +439,9 @@ export class Indexer {
         }
         else {
           // save dummy transaction to keep transaction table block continuity
-          this.logger.debug(`block ${block.blockNumber} no transactions`);
+          this.logger.debug(`block ${block.blockNumber} no transactions (dummy tx added)`);
 
-          const dummyTx = new (this.getActiveTransactionWriteTable() as any)();
+          const dummyTx = new transactionClass();
 
           dummyTx.chainType = this.cachedClient.client.chainType;
           dummyTx.blockNumber = block.blockNumber;

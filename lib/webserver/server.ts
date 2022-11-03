@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger, setLoggerName } from "../utils/logger";
+
+setLoggerName( "backend" );
+
 import { app } from "./app";
 
 import { iocContainer } from "./ioc";

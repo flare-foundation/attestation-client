@@ -71,7 +71,7 @@ export class Menu {
 
     let path = this.activeItem.name;
 
-    for (var prev = this.activeItem.itemParent; prev; prev = prev.itemParent) {
+    for (let prev = this.activeItem.itemParent; prev; prev = prev.itemParent) {
       if (prev.name != "") {
         path = `${prev.name}/${path}`;
       }
@@ -82,7 +82,7 @@ export class Menu {
     logger.info(` ^w^R ${path}  ^^                                `);
     logger.info(` ^w^K 0 ^^^G ${back}                           `);
 
-    for (let item of this.activeItem.items) {
+    for (const item of this.activeItem.items) {
       let sub = "";
       if (item.items.length > 0) {
         sub = "^w>^^";

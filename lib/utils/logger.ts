@@ -37,8 +37,8 @@ const BgGray = "\x1b[100m";
 export class ColorConsole extends Transport {
   instance = 0;
 
-  lastLog: string = "";
-  lastLog2: string = "";
+  lastLog = "";
+  lastLog2 = "";
   duplicate = 0;
 
   mode: "" | "sticky" | "forgettable" = "";
@@ -207,11 +207,12 @@ const myCustomLevels = {
   },
 };
 
-let globalLogger = new Map<string, AttLogger>();
+const globalLogger = new Map<string, AttLogger>();
 
 let globalTestLogger: AttLogger = null;
 
 let globalLoggerLabel;
+let loggerName = "log";
 
 export interface AttLogger extends winston.Logger {
   title: (message: string) => null;
@@ -228,6 +229,15 @@ export interface AttLogger extends winston.Logger {
 }
 
 function createLogger(label?: string, test = false): AttLogger {
+
+  var logPath = "./logs/";
+
+  if (process.env.LOG_PATH) {
+    logPath = `${process.env.LOG_PATH}/`;
+  }
+
+  const logFilename = `${logPath}${loggerName}-${label}.log`;
+
   return winston.createLogger({
     level: "debug3",
     levels: myCustomLevels.levels,
@@ -249,10 +259,14 @@ function createLogger(label?: string, test = false): AttLogger {
       test ? new TestLogger() : new ColorConsole(),
       new winston.transports.File({
         level: "debug2",
-        filename: `./logs/attester-${label}.log`,
+        filename: logFilename,
       }),
     ],
   }) as AttLogger;
+}
+
+export function setLoggerName(name: string) {
+  loggerName = name;
 }
 
 export function setGlobalLoggerLabel(label: string) {

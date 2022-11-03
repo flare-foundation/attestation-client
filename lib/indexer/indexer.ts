@@ -82,7 +82,7 @@ export class Indexer {
 
     this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
 
-    let cachedMccClientOptions: CachedMccClientOptions = {
+    const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
@@ -267,7 +267,7 @@ export class Indexer {
    * @param comment
    * @returns
    */
-  public getStateEntryString(name: string, valueString: string, valueNum: number, comment: string = ""): DBState {
+  public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
     const state = new DBState();
 
     state.name = this.prefixChainNameTo(name);
@@ -313,6 +313,7 @@ export class Indexer {
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlockFromClient(`blockCompleted`, this.N + 2);
+        // eslint-disable-next-line
         criticalAsync(`blockCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
@@ -334,6 +335,7 @@ export class Indexer {
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
         const blockNp2 = await this.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
+        // eslint-disable-next-line
         criticalAsync(`blockAlreadyCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
@@ -347,8 +349,8 @@ export class Indexer {
    * Prepares table entities for transactions (interlaced) and block
    */
   public prepareTables() {
-    let chainType = MCC.getChainType(this.chainConfig.name);
-    let prepared = prepareIndexerTables(chainType);
+    const chainType = MCC.getChainType(this.chainConfig.name);
+    const prepared = prepareIndexerTables(chainType);
 
     this.dbTransactionClasses = prepared.transactionTable;
     this.dbBlockClass = prepared.blockTable;
@@ -391,7 +393,8 @@ export class Indexer {
       return false;
     }
 
-    this.logger.debug(`start save block N+1=${Np1}`);
+    this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.getActiveIndex()})`);
+    const transactionClass = this.getActiveTransactionWriteTable() as any;
 
     // fix data
     block.transactions = transactions.length;
@@ -407,25 +410,44 @@ export class Indexer {
         // block must be marked as confirmed
         if (transactions.length > 0) {
 
-          for (let i = 0; i < transactions.length; i++) {
-            if( transactions[i].blockNumber!=block.blockNumber ) {
-              this.logger.error2(`transaction ${transactions[i].transactionId} is in invalid block ${transactions[i].blockNumber} (correct block is ${block.blockNumber})`);
-            }
+          // let newTransactions = [];
+
+          // for( const tx of transactions ) {
+          //   const newTx = new transactionClass();
+
+          //   newTx.chainType=tx.chainType;
+          //   newTx.transactionId=tx.transactionId;
+          //   newTx.blockNumber=tx.blockNumber;
+          //   newTx.timestamp=tx.timestamp;
+          //   newTx.paymentReference=tx.paymentReference;
+          //   newTx.response=tx.response;
+          //   newTx.isNativePayment=tx.isNativePayment;
+          //   newTx.transactionType=tx.transactionType;
+
+          //   newTransactions.push( newTx );
+          // }
+
+          // await transaction.save(newTransactions);
+
+          // fix transactions class to active interlace tranascation class
+          const dummy = new transactionClass();
+          for (let transaction of transactions) {
+            Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
           }
 
           await transaction.save(transactions);
         }
         else {
           // save dummy transaction to keep transaction table block continuity
-          this.logger.debug(`block ${block.blockNumber} no transactions`);
+          this.logger.debug(`block ${block.blockNumber} no transactions (dummy tx added)`);
 
-          const table = new (this.getActiveTransactionWriteTable() as any)();
+          const dummyTx = new transactionClass();
 
-          table.chainType = this.cachedClient.client.chainType;
-          table.blockNumber = block.blockNumber;
-          table.transactionType = "EMPTY_BLOCK_INDICATOR";
+          dummyTx.chainType = this.cachedClient.client.chainType;
+          dummyTx.blockNumber = block.blockNumber;
+          dummyTx.transactionType = "EMPTY_BLOCK_INDICATOR";
 
-          await transaction.save(table);
+          await transaction.save(dummyTx);
         }
 
         await transaction.save(block);
@@ -474,7 +496,7 @@ export class Indexer {
 
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
         const bottomStates = [this.getStateEntry(`Nbottom`, bottomBlockNumber), this.getStateEntry(`NbottomTime`, this.bottomBlockTime)];
-        this.dbService.manager.save(bottomStates);
+        await this.dbService.manager.save(bottomStates);
       } else {
         this.logger.debug(`block bottom state is undefined`);
       }
@@ -504,11 +526,11 @@ export class Indexer {
    * NOTE: we assume there is no gaps
    */
   public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
-    const query0 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
+    const query0 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
     query0.select(`MIN(blocks.blockNumber)`, "min");
     const result0 = await query0.getRawOne();
 
-    const query1 = await this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
+    const query1 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
     query1.select(`MIN(blocks.blockNumber)`, "min");
     const result1 = await query1.getRawOne();
 
@@ -542,7 +564,7 @@ export class Indexer {
     // check if N+1 with blockNp1hash is already prepared (otherwise wait for it)
     const preparedBlocks = this.preparedBlocks.get(Np1);
     if (preparedBlocks) {
-      for (let preparedBlock of preparedBlocks) {
+      for (const preparedBlock of preparedBlocks) {
         if (preparedBlock.block.blockHash === this.blockNp1hash) {
           // save prepared N+1 block with active hash and increment this.N
           await this.blockSave(preparedBlock.block, preparedBlock.transactions);
@@ -557,7 +579,7 @@ export class Indexer {
 
     // check if the block with number N + 1, `Np1`, with hash `Np1Hash` is in preparation
     let exists = false;
-    for (let processor of this.blockProcessorManager.blockProcessors) {
+    for (const processor of this.blockProcessorManager.blockProcessors) {
       if (processor.block.number == Np1 && processor.block.stdBlockHash == this.blockNp1hash) {
         exists = true;
         break;
@@ -634,7 +656,7 @@ export class Indexer {
       await this.dropTable(`state`);
 
       // Be careful when adding chains
-      for (let chainName of SUPPORTED_CHAINS) {
+      for (const chainName of SUPPORTED_CHAINS) {
         await this.dropAllChainTables(chainName);
       }
 
@@ -852,7 +874,7 @@ export class Indexer {
 
     await this.waitForNodeSynced();
 
-    await this.prepareTables();
+    this.prepareTables();
 
     await this.saveBottomState();
 
@@ -885,6 +907,7 @@ export class Indexer {
     await this.indexerSync.runSync(dbStartBlockNumber);
 
     // ------- 2. Run  header collection ----------------------
+    // eslint-disable-next-line
     criticalAsync("runBlockHeaderCollecting", async () => this.headerCollector.runBlockHeaderCollecting());
 
     // ------- 3. Process real time blocks N + 1 --------------
@@ -928,6 +951,7 @@ export class Indexer {
       }
 
       // start async processing of block N + 1 (if not already started)
+      // eslint-disable-next-line
       criticalAsync(`runIndexer -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp1));
     }
   }

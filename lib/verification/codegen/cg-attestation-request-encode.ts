@@ -21,20 +21,20 @@ export class AttestationRequestEncodeError extends Error {
 }
 
 export function genRequestEncodeFunctionForDefinition(definition: AttestationTypeScheme) {
-  let checkList = [];
-  let bytesList = [];
+  const checkList = [];
+  const bytesList = [];
 
-  for (let item of definition.request) {
-    let check = `if(request.${item.key} == null) {
+  for (const item of definition.request) {
+    const check = `if(request.${item.key} == null) {
 	throw new AttestationRequestEncodeError("Missing '${item.key}'")
 }`;
     checkList.push(check);
-    let bytesPiece = `bytes += toUnprefixedBytes(request.${item.key}, "${item.type}", ${item.size}, "${item.key}");`;
+    const bytesPiece = `bytes += toUnprefixedBytes(request.${item.key}, "${item.type}", ${item.size}, "${item.key}");`;
     bytesList.push(bytesPiece);
   }
 
-  let checks = checkList.join("\n");
-  let bytes = bytesList.join("\n");
+  const checks = checkList.join("\n");
+  const bytes = bytesList.join("\n");
 
   return `
 export function ${REQUEST_ENCODE_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}) {
@@ -53,7 +53,7 @@ case AttestationType.${definition.name}:
 }
 
 export function genRequestEncodeFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map((definition) => genEncodeAttestationTypeCase(definition)).join("");
+  const attestationTypeCases = definitions.map((definition) => genEncodeAttestationTypeCase(definition)).join("");
   return `
 export function ${REQUEST_ENCODE_PREFIX_FUNCTION}Request(request: ${ATTESTATION_TYPE_PREFIX}Type): string  {  
 	switch(request.attestationType) {
@@ -94,7 +94,7 @@ function toUnprefixedBytes(value: any, type: string, size: number, key: string) 
 }
 
 export function createAttestationRequestEncode(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import { 

@@ -47,7 +47,7 @@ export class AttesterClient {
     let blockNumber = await this.attesterWeb3.web3Functions.getBlockNumber();
 
     while (true) {
-      let block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
+      const block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
 
       if (block.timestamp < time) {
         this.logger.debug2(`start block number ${blockNumber} time ${secToHHMMSS(block.timestamp)}`);
@@ -66,8 +66,8 @@ export class AttesterClient {
     // read .env
     DotEnvExt();
 
-    const configData: string = "";
-    let accountPrivateKey: string = "";
+    const configData = "";
+    let accountPrivateKey = "";
 
     this.logger.info(`configuration`);
 
@@ -119,7 +119,8 @@ export class AttesterClient {
       if (event.event === "AttestationRequest") {
         const attestation = new AttestationData(event);
 
-        this.roundMng.attestate(attestation);
+        // eslint-disable-next-line
+        this.roundMng.attestate(attestation); // non awaited promise
       }
       
     } catch (error) {
@@ -190,7 +191,8 @@ export class AttesterClient {
       "StateConnector",
       startBlock,
       (event: any) => {
-        this.processEvent(event);
+        // eslint-disable-next-line
+        this.processEvent(event); // non awaited promise
       },
       this.credentials.web.refreshEventsMs
     );

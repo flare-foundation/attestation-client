@@ -4,10 +4,10 @@ import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 
 export class SpammerConfig implements IReflection<SpammerConfig> {
   // start epoch in sec
-  public firstEpochStartTime: number = 1636070400;
+  public firstEpochStartTime = 1636070400;
 
   // voting round duration in sec
-  public roundDurationSec: number = 90;
+  public roundDurationSec = 90;
 
   instanciate(): SpammerConfig {
     return new SpammerConfig();

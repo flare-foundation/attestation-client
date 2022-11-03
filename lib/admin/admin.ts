@@ -2,7 +2,7 @@ import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { AlertBase } from "../alerts/AlertBase";
 import { AlertsManager } from "../alerts/AlertsManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger, setLoggerName } from "../utils/logger";
 import { EServiceStatus } from "../utils/serviced";
 import { sleepms } from "../utils/utils";
 import { Menu } from "./menu";
@@ -103,12 +103,13 @@ async function admin() {
 
   //await menu.run();
 
+  // eslint-disable-next-line
   Menu.startInputRead();
 
   // initialize alerts
   AlertBase.restartEnabled = false;
   const alerts = new AlertsManager();
-  for (let alert of alerts.alerts) {
+  for (const alert of alerts.alerts) {
     await alert.initialize();
   }
 
@@ -119,18 +120,18 @@ async function admin() {
 
   menu.onDisplay = () => {
     logger.info(`^E System Monitor                                    `);
-    for (let resAlert of resAlerts) {
+    for (const resAlert of resAlerts) {
       resAlert.displayStatus(logger);
     }
     logger.info(`                                                  `);
     logger.info(`^E Performance Monitor                              `);
-    for (let resPerf of resPerfs) {
+    for (const resPerf of resPerfs) {
       resPerf.displayStatus(logger);
     }
 
     logger.info(`                                                  `);
     logger.info(`^E Services                                       `);
-    for (let service of MenuItemService.servicemMonitors) {
+    for (const service of MenuItemService.servicemMonitors) {
       let color = "^y^K";
       switch (service.status) {
         case EServiceStatus.inactive:
@@ -155,7 +156,7 @@ async function admin() {
   while (!menu.done) {
     // update alerts
     resAlerts = [];
-    for (let alert of alerts.alerts) {
+    for (const alert of alerts.alerts) {
       try {
         const resAlert = await alert.check();
 
@@ -168,13 +169,13 @@ async function admin() {
     }
 
     resPerfs = [];
-    for (let alert of alerts.alerts) {
+    for (const alert of alerts.alerts) {
       try {
         const resPerf = await alert.perf();
 
         if (!resPerf) continue;
 
-        for (let i of resPerf) {
+        for (const i of resPerf) {
           resPerfs.push(i);
         }
       }
@@ -203,6 +204,8 @@ async function run() {
 }
 
 DotEnvExt();
+
+setLoggerName( "admin" );
 
 run()
   .then(() => process.exit(0))

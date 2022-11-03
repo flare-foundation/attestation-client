@@ -11,6 +11,7 @@ import { DatabaseAlert } from "./DatabaseAlert";
 import { DockerAlert } from "./DockerAlert";
 import { IndexerAlert } from "./IndexerAlert";
 import { NodeAlert } from "./NodeAlert";
+import { stringify } from "safe-stable-stringify";
 
 @Managed()
 export class AlertsManager {
@@ -24,29 +25,29 @@ export class AlertsManager {
 
     this.config = readConfig(new AlertConfig(), "alerts");
 
-    for (let node of this.config.nodes) {
+    for (const node of this.config.nodes) {
       this.alerts.push(new NodeAlert(node, this.logger, this.config));
     }
 
-    for (let docker of this.config.dockers) {
+    for (const docker of this.config.dockers) {
       this.alerts.push(new DockerAlert(docker, this.logger, this.config));
     }
 
-    for (let indexer of this.config.indexers) {
+    for (const indexer of this.config.indexers) {
       this.alerts.push(new IndexerAlert(indexer, this.logger, this.config));
     }
 
-    for (let attester of this.config.attesters) {
+    for (const attester of this.config.attesters) {
       this.alerts.push(
         new AttesterAlert(attester.name, this.logger, attester.mode, attester.path, new AlertRestartConfig(this.config.timeRestart, attester.restart))
       );
     }
 
-    for (let backend of this.config.backends) {
+    for (const backend of this.config.backends) {
       this.alerts.push(new BackendAlert(backend.name, this.logger, new AlertRestartConfig(this.config.timeRestart, backend.restart), backend.address));
     }
 
-    for (let database of this.config.databases) {
+    for (const database of this.config.databases) {
       this.alerts.push(new DatabaseAlert(database.name, this.logger, database.database, database.connection));
     }
   }
@@ -55,7 +56,7 @@ export class AlertsManager {
     traceManager.displayStateOnException = false;
     traceManager.displayRuntimeTrace = false;
 
-    for (let alert of this.alerts) {
+    for (const alert of this.alerts) {
       await alert.initialize();
     }
 
@@ -73,7 +74,7 @@ export class AlertsManager {
         const statusAlerts = [];
         const statusPerfs = [];
 
-        for (let alert of this.alerts) {
+        for (const alert of this.alerts) {
           try {
             const resAlert = await alert.check();
 
@@ -87,13 +88,13 @@ export class AlertsManager {
           }
         }
 
-        for (let alert of this.alerts) {
+        for (const alert of this.alerts) {
           try {
             const resPerfs = await alert.perf();
 
             if (!resPerfs) continue;
 
-            for (let perf of resPerfs) {
+            for (const perf of resPerfs) {
               statusPerfs.push(perf);
               perf.displayStatus(this.logger);
             }
@@ -104,8 +105,8 @@ export class AlertsManager {
 
         if (this.config.stateSaveFilename) {
           try {
-            var fs = require("fs");
-            fs.writeFile(this.config.stateSaveFilename, JSON.stringify({ alerts: statusAlerts, perf: statusPerfs }), function (err) {
+            const fs = require("fs");
+            fs.writeFile(this.config.stateSaveFilename, stringify({ alerts: statusAlerts, perf: statusPerfs }), function (err) {
               if (err) {
                 this.logger.error(err);
               }

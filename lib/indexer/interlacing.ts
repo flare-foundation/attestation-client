@@ -20,17 +20,17 @@ import { SECONDS_PER_DAY } from "./indexer-utils";
 @Managed()
 export class Interlacing {
   // current active table index
-  private index: number;
-  private endBlockTime: number = -1;
-  private endBlockNumber: number = -1;
+  private index = 0;
+  private endBlockTime = -1;
+  private endBlockNumber = -1;
 
   private logger: AttLogger;
 
   private timeRange: number = 2 * SECONDS_PER_DAY;
 
-  private blockRange: number = 100;
+  private blockRange = 100;
 
-  private tableLock: boolean = false;
+  private tableLock = false;
 
   private dbService: DatabaseService;
 

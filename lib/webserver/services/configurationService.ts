@@ -8,7 +8,7 @@ import { AdditionalTypeInfo, IReflection } from "../../utils/reflection";
 import { ServerConfiguration } from "../configs/ServerConfiguration";
 
 export class ServerCredentials implements IReflection<ServerCredentials> {
-  port: number = 9500;
+  port = 9500;
   web = new AttesterWebOptions();
   attesterDatabase = new DatabaseConnectOptions();
 

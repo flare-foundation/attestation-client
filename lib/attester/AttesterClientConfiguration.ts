@@ -4,18 +4,18 @@ import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 
 export class AttesterClientConfiguration implements IReflection<AttesterClientConfiguration> {
   // start epoch in sec
-  public firstEpochStartTime: number = 1636070400;
+  public firstEpochStartTime = 1636070400;
 
   // voting round duration in sec
-  public roundDurationSec: number = 90;
+  public roundDurationSec = 90;
 
-  public dynamicAttestationConfigurationFolder: string = "./configs/prod/dac/";
+  public dynamicAttestationConfigurationFolder = "./configs/prod/dac/";
 
   // in sec
-  public commitTime: number = 10;
+  public commitTime = 10;
 
   // additional empty submit at the beggining of commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds)
-  public submitCommitFinalize: boolean = false;
+  public submitCommitFinalize = false;
 
   instanciate() {
     return new AttesterClientConfiguration();
@@ -27,9 +27,9 @@ export class AttesterClientConfiguration implements IReflection<AttesterClientCo
 }
 
 export class AttesterWebOptions {
-  public accountPrivateKey: string = "";
-  public rpcUrl: string = "";
-  public stateConnectorContractAddress: string = "";
+  public accountPrivateKey = "";
+  public rpcUrl = "";
+  public stateConnectorContractAddress = "";
 
   @optional() public refreshEventsMs = 100;
 }

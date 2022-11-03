@@ -29,7 +29,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
   const optionalAkeys = getOptionalKeys(A);
   const optionalA = optionalAkeys ? Object.keys(optionalAkeys) : [];
 
-  for (let keyA of keysA) {
+  for (const keyA of keysA) {
     let found = false;
 
     let typeA = typeof A[keyA];
@@ -52,7 +52,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
       keysB.push(key);
     });
 
-    for (let keyB of keysB) {
+    for (const keyB of keysB) {
       if (keyA === keyB) {
         found = true;
 
@@ -126,7 +126,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
   return valid;
 }
 
-export function isEqualType(A: any, B: any, parent: string = ""): boolean {
+export function isEqualType(A: any, B: any, parent = ""): boolean {
   const testAB = isEqualTypeUni(parent, A, B, "missing propery", "property using default value", true);
   const testBA = isEqualTypeUni(parent, B, A, "unknown propery", "", false);
 

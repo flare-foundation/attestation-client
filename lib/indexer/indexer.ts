@@ -472,7 +472,16 @@ export class Indexer {
     if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
       await this.saveBottomState();
+
+      await this.checkDatabaseContinuous()
     }
+    else {
+      // check for database discontinuity every 100 blocks
+      if (Np1 % 100 == 0) {
+        await this.checkDatabaseContinuous()
+      }
+    }
+
 
     return true;
   }
@@ -788,6 +797,16 @@ export class Indexer {
   /**
    * check if indexer database is continous
    */
+
+  async waitForever() {
+    this.logger.error2("waiting forever");
+    while (true) {
+      await sleepms(60000);
+
+      this.logger.debug("waiting forever")
+    }
+  }
+
   async checkDatabaseContinuous() {
 
     const name = this.chainConfig.name.toLowerCase();
@@ -831,6 +850,7 @@ export class Indexer {
         //await this.interlace.resetAll();
 
         this.logger.debug(`restarting`);
+        await this.waitForever();
         exit(3);
       }
       else {
@@ -845,6 +865,7 @@ export class Indexer {
         await this.interlace.resetAll();
 
         this.logger.debug(`restarting`);
+        await this.waitForever();
         exit(3);
       }
       else {

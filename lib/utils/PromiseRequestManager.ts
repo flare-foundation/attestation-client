@@ -1,4 +1,6 @@
 import { AttLogger } from "./logger";
+import { stringify } from "safe-stable-stringify";
+import { randomUUID } from "crypto";
 
 export enum PromiseRequestStatus {
    initialized,
@@ -8,9 +10,13 @@ export enum PromiseRequestStatus {
 }
 
 export interface IIdentifiable {
-   id?: number;
+   id?: string;
 }
 
+/**
+ * A wrapper class for timeouted request like promise used in websocket communication.
+ * It is used within PromiseRequestManager.
+ */
 export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifiable> {
    _promise: Promise<S>;
    _resolve: (res: S) => void;
@@ -25,6 +31,12 @@ export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifi
       this._timeout = timeout;
    }
 
+   /**
+    * Calls the sending call `onSend` and creates the packed promise, which should be resolved externally
+    * by the call on `resolve()` method.
+    * @param onSend  
+    * @returns 
+    */
    public async send(onSend: (req: R) => Promise<void>): Promise<S> {
       if (this._status === PromiseRequestStatus.pending) {
          throw new Error(`Pending promise, cannot send request ${this.printoutRequest()}`);
@@ -35,21 +47,30 @@ export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifi
       if (this._status === PromiseRequestStatus.rejected) {
          throw new Error(`Rejected promise, cannot send request ${this.printoutRequest()}`);
       }
-      // this one can throw, and the exception bubbles up
+
       this._status = PromiseRequestStatus.pending;
+      // this one can throw, and the exception bubbles up
       this._promise = new Promise((resolve: (res: S) => void, reject: (reason: any) => void) => {
          this._resolve = resolve;
          this._reject = reject;
       })
+      // timeouting the promise
       if (this._timeout) {
          this._timer = setTimeout(() => {
             this.reject(new Error(`Request timeout after ${this._timeout}ms: \n${this.printoutRequest()}`))
          }, this._timeout);
-      }
-      onSend(this._request).catch(e => this.reject(e));  // do not await
+      };
+
+      // this resolution of this promise should not be relevant. Should not be awaited
+      onSend(this._request).then(res => { }).catch(e => this.reject(e));
+
       return this._promise;
    }
 
+   /**
+    * Resolves the packed promise with `value`
+    * @param value 
+    */
    public resolve(value: S): void {
       if (this._status === PromiseRequestStatus.pending) {
          clearTimeout(this._timer);
@@ -58,6 +79,10 @@ export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifi
       }
    }
 
+   /**
+    * Rejects the packed promise with `reason`
+    * @param reason 
+    */
    public reject(reason: any): void {
       if (this._status === PromiseRequestStatus.pending) {
          clearTimeout(this._timer);
@@ -66,27 +91,50 @@ export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifi
       }
    }
 
+   /**
+    * Prints out the request data
+    * @returns 
+    */
    private printoutRequest(): string {
-      return JSON.stringify(this._request, null, 2);
+      return stringify(this._request, null, 2);
    }
 }
 
+/**
+ * A manager class for managing websocket like communication. Here and IIdentifiable request is made 
+ * and sent using `sendRequest` method which creates a promise. When an external entity triggers
+ * `onResponse` method the matching response resolves the above created promise. Matching is 
+ * done through id.
+ */
 export class PromiseRequestManager<R extends IIdentifiable, S extends IIdentifiable> {
-   openRequests: Map<number, PromiseRequestsHandler<R, S>>;
+   openRequests: Map<string, PromiseRequestsHandler<R, S>>;
    _nextId = 0; // TODO: if you restart and promises are late, what to do. Maybe random ID is better.
    _timeout = 5000;
+   _test = false;
+   _testCounter = 0;
    logger: AttLogger;
 
-   constructor(timeout = 5000, logger: AttLogger) {
+   constructor(timeout = 5000, logger: AttLogger, test = false) {
       this._timeout = timeout;
       this.logger = logger;
-      this.openRequests = new Map<number, PromiseRequestsHandler<R, S>>();
+      this._test = test;
+      this.openRequests = new Map<string, PromiseRequestsHandler<R, S>>();
    }
 
-   private get nextId(): number {
-      return this._nextId++;
+   /**
+    * Returns next random id
+    */
+   private get nextId(): string {
+      if(this._test) {
+         return `test_${this._testCounter++}`;
+      }
+      return randomUUID();
    }
 
+   /**
+    * Resolves specific promise matching the `id` from the `response`
+    * @param response 
+    */
    public onResponse(response: S): void {
       let promiseHandler = this.openRequests.get(response.id);
       if (promiseHandler) {
@@ -95,6 +143,13 @@ export class PromiseRequestManager<R extends IIdentifiable, S extends IIdentifia
       }
    }
 
+   /**
+    * Creates a promise for a identifiable call for `request`. The promise either timeouts 
+    * or returns matching response (the response with the matching `id`).
+    * @param request 
+    * @param senderCall 
+    * @returns 
+    */
    public async sendRequest(request: R, senderCall: (req: R) => Promise<void>): Promise<S> {
       let promiseHandler = new PromiseRequestsHandler<R, S>(request, this._timeout);
       request.id = this.nextId;
@@ -102,6 +157,9 @@ export class PromiseRequestManager<R extends IIdentifiable, S extends IIdentifia
       return promiseHandler.send(senderCall)
    }
 
+   /**
+    * Returns the number of current open requests
+    */
    public get activeRequests(): number {
       return this.openRequests.size;
    }

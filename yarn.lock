@@ -701,10 +701,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@flarenetwork/mcc@2.0.5":
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-2.0.5.tgz#dd46196ecdb6639af569eb5a2a0c28a95c7a62a4"
-  integrity sha512-w/MSBQvt2RJetbpc+vLdTOl1zcKBMPyx7OW0UCWmRs/NQ5UINjotNwV5/r6a9PB/QaN/m+hN0AAdibK7fZCDzA==
+"@flarenetwork/mcc@2.0.6":
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-2.0.6.tgz#fd8dd6abdbeacadbf4b260f555e6c695994f1432"
+  integrity sha512-sBb8mpJ5vZpGNnpEBoFWKaZZ8ba54U8fGzvgiBa7fZwD0sNCnZkCfNkJOIVXQVzR+Qbb8CbpTXGRlVK3rYFlaw==
   dependencies:
     "@msgpack/msgpack" "^2.8.0"
     algo-msgpack-with-bigint "2.1.1"
@@ -7760,7 +7760,7 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
-single-instance@^0.0.1:
+single-instance@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/single-instance/-/single-instance-0.0.1.tgz#ef0f0673fe9800b6753445d97058d253f5d4b8ed"
   integrity sha512-NzMhoiPIi4BVTx+zDRzfscLm9xF+cGQnUJDzPhRpy0CTLR6roriv0+YYm1XH+PLQrcWUnxsQlYKiv2nRjkUV9Q==

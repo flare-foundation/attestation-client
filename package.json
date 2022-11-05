@@ -77,7 +77,7 @@
     "devwsserver": "env CONFIG_PATH=.secure.dev NODE_ENV=development yarn nest start ws-server --debug --watch"
   },
   "dependencies": {
-    "@flarenetwork/mcc": "2.0.5",
+    "@flarenetwork/mcc": "2.0.6",
     "@google-cloud/secret-manager": "4.0.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
@@ -103,6 +103,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "safe-stable-stringify": "2.4.1",
+    "single-instance": "0.0.1",
     "swagger-ui-express": "4.4.0",
     "tail": "2.2.4",
     "tsoa": "4.1.0",

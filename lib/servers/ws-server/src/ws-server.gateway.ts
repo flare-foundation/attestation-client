@@ -1,4 +1,4 @@
-import { WSServerConfigurationService } from "@atc/common";
+// import { WSServerConfigurationService } from "@atc/common";
 import { UseGuards } from "@nestjs/common";
 import {
    ConnectedSocket, MessageBody, OnGatewayConnection,
@@ -9,6 +9,7 @@ import { IncomingMessage } from "http";
 import * as url from "url";
 import WebSocket, { Server } from 'ws';
 import { AttLogger, getGlobalLogger } from "../../../utils/logger";
+import { WSServerConfigurationService } from "../../common/src";
 import { AuthGuard } from "./guards/auth.guard";
 
 interface ClientRecord {
@@ -39,14 +40,14 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
    clientId = 0;
    connections = new Map<WebSocket, ClientRecord>();
 
-   constructor(private config: WSServerConfigurationService) { 
+   constructor(private config: WSServerConfigurationService) {
    }
 
-   handleConnection(client: WebSocket, ...args: any[]) {      
+   handleConnection(client: WebSocket, ...args: any[]) {
       let request: IncomingMessage = args[0];
       let apiKey = url.parse(request.url, true).query.apiKey;
       let authenticated = this.config.wsServerCredentials.apiKeys.find(x => x.apiKey === apiKey);
-      if(authenticated) {
+      if (authenticated) {
          this.connections.set(client, {
             id: this.clientId,
             name: authenticated.name,
@@ -56,7 +57,8 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
          this.clientId++;
          return;
       }
-      client.terminate();
+      // Client closed with custom code 4401
+      client.close(4401, "Unauthorized")
    }
 
    handleDisconnect(client: WebSocket) {
@@ -88,9 +90,22 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
          data
       })
    }
+
+   @SubscribeMessage("mirror")
+   handleMirrorMessage(
+      @MessageBody() data: any,
+      @ConnectedSocket() client: WebSocket,
+   ) {
+      let response = {
+         status: "OK",
+         data
+      };
+      return response;
+   }
+
 }
 
-// var ws = new WebSocket("ws://localhost:9500?apiKey=7890"); ws.onmessage = (event) => console.log(JSON.parse(event.data)); ws.onerror = (event) => console.log(event); var data = { a: 1, b: "two" };
+// var ws = new WebSocket("ws://localhost:9500"); ws.onmessage = (event) => console.log(JSON.parse(event.data)); ws.onerror = (event) => console.log(event); var data = { a: 1, b: "two" };
 // ws.onmessage = (event) => console.log(JSON.parse(event.data));
 // ws.onerror = (event) => console.log(event);
 // var data = { a: 1, b: "two" };

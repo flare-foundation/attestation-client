@@ -107,7 +107,7 @@
             },
             "numberOfConfirmations": 3,
             "syncReadAhead":30,
-            "blockCollecting":"latestBlock",
+            "blockCollecting":"raw",
             "minimalStorageHistoryDays":2,
             "minimalStorageHistoryBlocks":100 ,
 

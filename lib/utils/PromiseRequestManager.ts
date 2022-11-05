@@ -13,6 +13,14 @@ export interface IIdentifiable {
    id?: string;
 }
 
+export type WsResponseStatus = "OK" | "ERROR";
+
+export interface IIdentifiableResponse<S extends IIdentifiable> {
+   data: S
+   status: WsResponseStatus;
+   errorMessage?: string; 
+}
+
 /**
  * A wrapper class for timeouted request like promise used in websocket communication.
  * It is used within PromiseRequestManager.
@@ -24,11 +32,11 @@ export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifi
    _timer: NodeJS.Timeout;
    _status: PromiseRequestStatus;
    _request: R;
-   _timeout: number;
+   _manager: PromiseRequestManager<R, S>;
 
-   constructor(request: R, timeout: number) {
+   constructor(request: R, manager: PromiseRequestManager<R, S>) {
       this._request = request;
-      this._timeout = timeout;
+      this._manager = manager;
    }
 
    /**
@@ -55,14 +63,14 @@ export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifi
          this._reject = reject;
       })
       // timeouting the promise
-      if (this._timeout) {
+      if (this._manager.timeout) {
          this._timer = setTimeout(() => {
-            this.reject(new Error(`Request timeout after ${this._timeout}ms: \n${this.printoutRequest()}`))
-         }, this._timeout);
+            this.reject(new Error(`Request timeout after ${this._manager.timeout}ms: \n${this.printoutRequest()}`), this._request.id);
+         }, this._manager.timeout);
       };
 
       // this resolution of this promise should not be relevant. Should not be awaited
-      onSend(this._request).then(res => { }).catch(e => this.reject(e));
+      onSend(this._request).then(res => { }).catch(e => this.reject(e, this._request.id));
 
       return this._promise;
    }
@@ -75,6 +83,7 @@ export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifi
       if (this._status === PromiseRequestStatus.pending) {
          clearTimeout(this._timer);
          this._status = PromiseRequestStatus.resolved;
+         this._manager.clearId(value.id);
          this._resolve(value);
       }
    }
@@ -83,10 +92,11 @@ export class PromiseRequestsHandler<R extends IIdentifiable, S extends IIdentifi
     * Rejects the packed promise with `reason`
     * @param reason 
     */
-   public reject(reason: any): void {
+   public reject(reason: any, id: string): void {
       if (this._status === PromiseRequestStatus.pending) {
          clearTimeout(this._timer);
          this._status = PromiseRequestStatus.rejected;
+         this._manager.clearId(id);
          this._reject(reason)
       }
    }
@@ -121,6 +131,10 @@ export class PromiseRequestManager<R extends IIdentifiable, S extends IIdentifia
       this.openRequests = new Map<string, PromiseRequestsHandler<R, S>>();
    }
 
+   get timeout(): number {
+      return this._timeout;
+   }
+
    /**
     * Returns next random id
     */
@@ -135,12 +149,23 @@ export class PromiseRequestManager<R extends IIdentifiable, S extends IIdentifia
     * Resolves specific promise matching the `id` from the `response`
     * @param response 
     */
-   public onResponse(response: S): void {
-      let promiseHandler = this.openRequests.get(response.id);
+   public onResponse(response: IIdentifiableResponse<S>): void {
+      let promiseHandler = this.openRequests.get(response.data.id);
       if (promiseHandler) {
-         promiseHandler.resolve(response);
-         this.openRequests.delete(response.id)
+         if(response.status === 'OK') {
+            promiseHandler.resolve(response.data);
+            return;
+         }
+         promiseHandler.reject(response, response.data.id);         
       }
+   }
+
+   /**
+    * Clears the promise matching to `id` from the internal mapping of active promises.
+    * @param id 
+    */
+   public clearId(id: string) {
+      this.openRequests.delete(id);
    }
 
    /**
@@ -151,7 +176,7 @@ export class PromiseRequestManager<R extends IIdentifiable, S extends IIdentifia
     * @returns 
     */
    public async sendRequest(request: R, senderCall: (req: R) => Promise<void>): Promise<S> {
-      let promiseHandler = new PromiseRequestsHandler<R, S>(request, this._timeout);
+      let promiseHandler = new PromiseRequestsHandler<R, S>(request, this);
       request.id = this.nextId;
       this.openRequests.set(request.id, promiseHandler)
       return promiseHandler.send(senderCall)

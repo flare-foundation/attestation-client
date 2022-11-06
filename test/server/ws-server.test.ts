@@ -1,19 +1,26 @@
+import { sleepMs } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
+import chai, { assert, expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { WSServerConfigurationService } from "../../lib/servers/common/src";
-// import { CommonModule } from "@atc/common";
 import { WsServerModule } from "../../lib/servers/ws-server/src/ws-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
 import { WsClient } from "../../lib/verification/client/WsClient";
-import { assert } from "chai";
 import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
-import { sleepMs } from "@flarenetwork/mcc";
 
-const API_KEY = "123456"
+chai.use(chaiAsPromised);
 const WS_URL = `ws://localhost:9500?apiKey=7890`;
 
 const defaultWsClientOptions: WsClientOptions = new WsClientOptions();
+defaultWsClientOptions.url = WS_URL;
+
+interface TestData extends IIdentifiable {
+  a: number;
+  b: string;
+}
 
 describe("Test websocket verifier server ", () => {
 
@@ -47,25 +54,82 @@ describe("Test websocket verifier server ", () => {
   });
 
   it(`Should connect `, async () => {
-    const client = new WsClient<any, any>(defaultWsClientOptions);
-    await client.connect(WS_URL);
+    const client = new WsClient<TestData, TestData>(defaultWsClientOptions);
+    await client.connect();
     assert(client.connected, `Client should be connected`);
     client.disconnect();
   });
 
   it(`Should disconnect`, async function () {
-    const client = new WsClient<any, any>(defaultWsClientOptions);
-    await client.connect(WS_URL);
+    const client = new WsClient<TestData, TestData>(defaultWsClientOptions);
+    await client.connect();
     client.disconnect();
     assert(!client.connected, `Client should be connected`);
   });
 
   it(`Should send and receive a message `, async function () {
-    const client = new WsClient<any, any>(defaultWsClientOptions, true);
-    await client.connect(WS_URL);
+    const client = new WsClient<TestData, TestData>(defaultWsClientOptions, true);
+    await client.connect();
     const data = { a: 1, b: "two" };
     let res = await client.send(data, "mirror");
     assert(res.id === "test_0", "Wrong id");
+    client.disconnect();
+  });
+
+  it(`Should send and receive many messages `, async function () {
+    const client = new WsClient<TestData, TestData>(defaultWsClientOptions, true);
+    await client.connect();
+    const N = 200;
+    let promises = [];
+    for (let i = 0; i < N; i++) {
+      const data = { a: i, b: "two" };
+      promises.push(client.send(data, "mirror"));
+    }
+    let responses = await Promise.all(promises);
+    for (let i = 0; i < N; i++) {
+      let res = responses[i];
+      assert(res.id === `test_${i}`, "Wrong id");
+      assert(res.a === i, "Wrong data");
+    }
+    client.disconnect();
+  });
+
+  it(`Should fail to authenticate`, async function () {
+    const client = new WsClient<TestData, TestData>({
+      ...defaultWsClientOptions,
+      url: WS_URL + 'x'  // wrong API key
+    }, true);
+    await expect(client.connect()).to.eventually.be.rejectedWith("authorizationFailed").and.be.an.instanceOf(Error);
+    client.disconnect();
+  });
+
+  it(`Should obtain a ping-pong record`, async function () {
+    const checkAliveIntervalMs = 100;
+    const client = new WsClient<TestData, TestData>({
+      ...defaultWsClientOptions,
+      checkAliveIntervalMs
+    }, true);
+    await client.connect();
+    let rec1 = await client.getNextPingPongTimes();
+    assert(rec1[0] && rec1[1] && rec1[0] <= rec1[1], "Ping pong record does not exist");
+    assert(client.pingPongRecords.size === 0, "Ping pong records not cleared")
+    client.disconnect();
+  });
+
+  it(`Should obtain two sequential ping-pong records`, async function () {
+    const checkAliveIntervalMs = 100;
+    const client = new WsClient<TestData, TestData>({
+      ...defaultWsClientOptions,
+      checkAliveIntervalMs
+    }, true);
+    await client.connect();
+    let rec1 = await client.getNextPingPongTimes();
+    assert(rec1[0] && rec1[1] && rec1[0] <= rec1[1], "Ping pong record does not exist");
+    await sleepMs(50);
+    let rec2 = await client.getNextPingPongTimes();
+    assert(rec2[0] && rec2[1] && rec2[0] <= rec2[1], "Ping pong record does not exist");
+    assert(rec2[0].getTime() - rec1[0].getTime() >= checkAliveIntervalMs - 2, "Two pings are not separated enough");
+    assert(client.pingPongRecords.size === 0, "Ping pong records not cleared")
     client.disconnect();
   });
 

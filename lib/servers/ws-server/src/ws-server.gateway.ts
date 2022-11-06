@@ -45,7 +45,8 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
    handleConnection(client: WebSocket, ...args: any[]) {
       let request: IncomingMessage = args[0];
-      let apiKey = url.parse(request.url, true).query.apiKey;
+      const parsedUrl = url.parse(request.url, true)
+      const apiKey = parsedUrl?.query?.apiKey;
       let authenticated = this.config.wsServerCredentials.apiKeys.find(x => x.apiKey === apiKey);
       if (authenticated) {
          this.connections.set(client, {

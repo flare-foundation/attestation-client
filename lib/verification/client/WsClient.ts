@@ -1,17 +1,11 @@
 import stringify from 'safe-stable-stringify';
-import WebSocket, { CloseEvent, Event } from 'ws';
+import WebSocket, { Event } from 'ws';
 import { AttLogger, getGlobalLogger } from '../../utils/logger';
-import { IIdentifiable, IIdentifiableResponse, PromiseRequestManager } from '../../utils/PromiseRequestManager';
+import { IIdentifiable, PromiseRequestManager } from '../../utils/PromiseRequestManager';
 import { sleepms } from '../../utils/utils';
 import { WsClientOptions } from './WsClientOptions';
 
 const WS_POLLING_INTERVAL = 100; // ms
-
-export interface AttestationRequestMessage {
-  request: string;
-  roundId: number;
-  recheck: boolean;
-}
 
 export interface IIdentifiableWsMessage<T> extends IIdentifiable {
   event: string;
@@ -37,21 +31,21 @@ export class WsClient<R extends IIdentifiable, S extends IIdentifiable> {
 
   promiseRequestManager: PromiseRequestManager<R, S>;
 
+  pingPongRecordCount = 0;
+  pingPongRecords = new Map<number, PingPongRecord>();
+
   constructor(options: WsClientOptions, test = false) {
+    this.clientOptions = options;
     this.promiseRequestManager = new PromiseRequestManager<R, S>(options.verificationTimeoutMS, this.logger, test);
   }
   /**
    * Connect to VerificationProvider server
-   * @param address 
    * @param key 
    * @param clientOptions 
    * @returns 
    */
-  public async connect(address: string, clientOptions: WsClientOptions = null): Promise<boolean> {
-
-    this.clientOptions = clientOptions ? clientOptions : new WsClientOptions();
-
-    this.socket = new WebSocket(address, {
+  public async connect(): Promise<boolean> {
+    this.socket = new WebSocket(this.clientOptions.url, {
       protocolVersion: 8,
       rejectUnauthorized: false
     });
@@ -62,10 +56,10 @@ export class WsClient<R extends IIdentifiable, S extends IIdentifiable> {
       this.logger.debug2(`Websocket error received: ${error}`);
     });
 
-    this.socket.on('close', (event: CloseEvent) => {
-      if (event.code === 4401) {
+    this.socket.on('close', (event: number) => {
+      if (event === 4401) {
         this.authorizationFailed = true;
-        this.logger.debug2(`authorization failed`);        
+        this.logger.debug2(`authorization failed`);
       }
       this.closeConnection();
     });
@@ -76,7 +70,7 @@ export class WsClient<R extends IIdentifiable, S extends IIdentifiable> {
     });
 
     this.socket.on('message', (data: string) => {
-      let parsedData = JSON.parse(data);   
+      let parsedData = JSON.parse(data);
       if (parsedData?.data?.id && typeof parsedData.data.id === "string") {
         this.promiseRequestManager.onResponse(parsedData)
       } else {
@@ -85,7 +79,12 @@ export class WsClient<R extends IIdentifiable, S extends IIdentifiable> {
     });
 
     this.isAlive = true;
-    this.socket.on('pong', () => { this.isAlive = true; });
+    this.socket.on('pong', () => {
+      this.isAlive = true;
+      for (let rec of this.pingPongRecords.values()) {
+        rec.resolvePong();
+      }  
+    });
 
     // check if connections are alive
     this.pingUpdate = setInterval(() => {
@@ -98,12 +97,12 @@ export class WsClient<R extends IIdentifiable, S extends IIdentifiable> {
       while (!this.connected) {
         await sleepms(WS_POLLING_INTERVAL);
         if (this.authorizationFailed) {
-          reject("authorizationFailed");
+          reject(new Error("authorizationFailed"));
           return;
         }
         if (++timeout * WS_POLLING_INTERVAL > this.clientOptions.connectionTimeoutMS) {
           this.logger.error2(`connection timeout`);
-          reject("timeout");
+          reject(new Error("timeout"));
           return;
         }
       }
@@ -153,17 +152,75 @@ export class WsClient<R extends IIdentifiable, S extends IIdentifiable> {
     this.logger.debug(`client[${this.id}]: ping`);
     this.isAlive = false;
     this.socket.ping();
+    for (let rec of this.pingPongRecords.values()) {
+      rec.resolvePing();
+    }
   }
 
+  /**
+   * Sends a request data to a websocket marked with event name.
+   * @param request 
+   * @param event 
+   * @returns the promise for matching response to the given request
+   */
   public async send(request: R, event: string): Promise<S> {
     return this.promiseRequestManager.sendRequest(request, async (req: R) => {
       const toSend = {
         event,
         data: req
       } as IIdentifiableWsMessage<R>
-      // console.log("To send:", stringify(toSend))
       this.socket.send(stringify(toSend));
     })
+  }
+
+  /**
+   * Waits for the next ping and pong and obtains their times.
+   * @returns 
+   */
+  public async getNextPingPongTimes(): Promise<Date[]> {
+    let rec = new PingPongRecord()
+    return rec.record(this);
+  }
+}
+
+/**
+ * Auxilliary class for ping pong promise testing.
+ */
+export class PingPongRecord {
+  _id: number;
+  _client: WsClient<any, any>;
+  _resolvePing: any;
+  _resolvePong: any;
+  _status: 'waitPing' | 'waitPong' | 'resolved' = 'waitPing'
+
+  public async record(client: WsClient<any, any>) {
+    this._status = 'waitPing';
+    this._id = client.pingPongRecordCount++;
+    this._client = client;
+    client.pingPongRecords.set(this._id, this);
+    let promises = [];
+    promises.push(new Promise((resolve) => {
+      this._resolvePing = resolve;
+    }));
+    promises.push(new Promise((resolve) => {
+      this._resolvePong = resolve;
+    }))
+    return Promise.all(promises);
+  }
+
+  resolvePing() {
+    if (this._status === 'waitPing') {
+      this._status = 'waitPong';
+      this._resolvePing(new Date())
+    }
+  }
+
+  resolvePong() {
+    if (this._status === 'waitPong') {
+      this._status = 'resolved';
+      this._client.pingPongRecords.delete(this._id);
+      this._resolvePong(new Date());
+    }
   }
 
 }

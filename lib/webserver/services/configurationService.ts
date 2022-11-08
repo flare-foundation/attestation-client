@@ -4,7 +4,7 @@ import { AttesterWebOptions } from "../../attester/AttesterClientConfiguration";
 import { readConfig, readCredentials } from "../../utils/config";
 import { DatabaseConnectOptions } from "../../utils/databaseService";
 import { EpochSettings } from "../../utils/EpochSettings";
-import { AdditionalTypeInfo, IReflection } from "../../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../../utils/reflection";
 import { ServerConfiguration } from "../configs/ServerConfiguration";
 
 export class ServerCredentials implements IReflection<ServerCredentials> {

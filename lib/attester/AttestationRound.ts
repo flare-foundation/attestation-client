@@ -1,5 +1,6 @@
 import { Managed, toBN } from "@flarenetwork/mcc";
 import assert from "assert";
+import { stringify } from "safe-stable-stringify";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { criticalAsync } from "../indexer/indexer-utils";
@@ -13,11 +14,8 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
-import { stringify } from "safe-stable-stringify";
 
-//const BN = require("bn");
-
-export enum AttestationRoundEpoch {
+export enum AttestationRoundPhase {
   collect,
   commit,
   reveal,
@@ -40,10 +38,13 @@ export enum AttestationRoundStatus {
 // call/sec
 // call/att
 
+/**
+ * Manages a specific attestation round, specifically the data in the commit-reveal scheme.
+ */
 @Managed()
 export class AttestationRound {
   logger: AttLogger;
-  status: AttestationRoundEpoch = AttestationRoundEpoch.collect;
+  status: AttestationRoundPhase = AttestationRoundPhase.collect;
   attestStatus: AttestationRoundStatus;
   attesterWeb3: AttesterWeb3;
   roundId: number;
@@ -71,11 +72,17 @@ export class AttestationRound {
   constructor(epochId: number, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.roundId = epochId;
     this.logger = logger;
-    this.status = AttestationRoundEpoch.collect;
+    this.status = AttestationRoundPhase.collect;
     this.attestStatus = AttestationRoundStatus.collecting;
     this.attesterWeb3 = attesterWeb3;
   }
 
+  /**
+   * Returns the existing source Handler for the source chain of an attestation or creates a new sourceHandler
+   * @param data 
+   * @param onValidateAttestation 
+   * @returns 
+   */
   getSourceHandler(data: AttestationData, onValidateAttestation: EventValidateAttestation): SourceHandler {
     let sourceHandler = this.sourceHandlers.get(data.sourceId);
 
@@ -90,6 +97,9 @@ export class AttestationRound {
     return sourceHandler;
   }
 
+  /**
+   * Adds the @param attestation to the list of attestations for this round and starts the validation process
+   */
   addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
     // todo: check how fast is hash
@@ -114,18 +124,24 @@ export class AttestationRound {
     attestation.sourceHandler.validate(attestation);
   }
 
+  /**
+   * Announces the start of the commit phase and tries to commit
+   */
   async startCommitEpoch() {
     this.logger.group(
-      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
+      `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
-    this.status = AttestationRoundEpoch.commit;
+    this.status = AttestationRoundPhase.commit;
 
     //
     await this.tryTriggerCommit(); // In case all requests are already processed
   }
 
+  /**
+   * Empty commit.
+   * Used in the first round after joining the attestation scheme to commit empty data for commit and reveal of two previous rounds???
+   */
   startCommitSubmit() {
     if (AttestationRoundManager.config.submitCommitFinalize) {
       const action = `Finalizing ^Y#${this.roundId - 3}^^`;
@@ -152,17 +168,23 @@ export class AttestationRound {
     }
   }
 
+  /**
+   * Announces the start of the reveal phase and sets the Round status to reveal
+   */
   startRevealEpoch() {
     this.logger.group(`round #${this.roundId} reveal epoch started [2]`);
-    this.status = AttestationRoundEpoch.reveal;
+    this.status = AttestationRoundPhase.reveal;
   }
 
+  /**
+   * Announces the the end of the round and sets the round status to completed
+   */  
   completed() {
     this.logger.group(`round #${this.roundId} completed`);
-    this.status = AttestationRoundEpoch.completed;
+    this.status = AttestationRoundPhase.completed;
   }
 
-  processed(tx: Attestation) {
+  processed(tx: Attestation): void {
     this.attestationsProcessed++;
     assert(this.attestationsProcessed <= this.attestations.length);
 
@@ -172,9 +194,12 @@ export class AttestationRound {
     });
   }
 
-  async tryTriggerCommit() {
+  /**
+   * Commits if all attestations are processed and commit epoch has started
+   */  
+  async tryTriggerCommit(): Promise<void> {
     if (this.attestationsProcessed === this.attestations.length) {
-      if (this.status === AttestationRoundEpoch.commit) {
+      if (this.status === AttestationRoundPhase.commit) {
         // all transactions were processed and we are in commit epoch
         this.logger.info(`round #${this.roundId} all transactions processed ${this.attestations.length} commiting...`);
         await this.commit();
@@ -188,7 +213,7 @@ export class AttestationRound {
     }
   }
 
-  async commitLimit() {
+  async commitLimit(): Promise<void> {
     if (this.attestStatus === AttestationRoundStatus.collecting) {
       this.logger.error2(`Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
 
@@ -197,6 +222,10 @@ export class AttestationRound {
     }
   }
 
+  /**
+   * Checks if all attestations are processed and if round is in the commit phase
+   * @returns
+   */  
   canCommit(): boolean {
     this.logger.debug(
       `canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`
@@ -204,10 +233,15 @@ export class AttestationRound {
     return (
       this.attestationsProcessed === this.attestations.length &&
       this.attestStatus === AttestationRoundStatus.commiting &&
-      this.status === AttestationRoundEpoch.commit
+      this.status === AttestationRoundPhase.commit
     );
   }
 
+  /**
+   * Formats an attestation to be stored in database
+   * @param att
+   * @returns
+   */  
   prepareDBAttestationRequest(att: Attestation): DBAttestationRequest {
     const db = new DBAttestationRequest();
 
@@ -230,16 +264,19 @@ export class AttestationRound {
     return db;
   }
 
+  /**
+   *Starts the commit-reveal scheme and saves the attestation data to database.
+   */  
   async commit() {
     // collect valid attestations and prepare to save all requests
     const dbAttestationRequests = [];
     const validated = new Array<Attestation>();
-    for (const tx of this.attestations.values()) {
-      if (tx.status === AttestationStatus.valid) {
-        validated.push(tx);
+    for (const attestation of this.attestations.values()) {
+      if (attestation.status === AttestationStatus.valid) {
+        validated.push(attestation);
       }
 
-      dbAttestationRequests.push(this.prepareDBAttestationRequest(tx));
+      dbAttestationRequests.push(this.prepareDBAttestationRequest(attestation));
     }
 
     // save to DB only if epoch does not exists in the DB yet - save async
@@ -253,7 +290,7 @@ export class AttestationRound {
     }
 
     // check if commit can be performed
-    if (this.status !== AttestationRoundEpoch.commit) {
+    if (this.status !== AttestationRoundPhase.commit) {
       this.logger.error(`round #${this.roundId} cannot commit (wrong epoch status ${this.status})`);
       return;
     }
@@ -333,8 +370,7 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${
-        time2 - time1
+      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1
       }ms)`
     );
   }
@@ -353,6 +389,10 @@ export class AttestationRound {
     await AttestationRoundManager.state.saveRound(this);
   }
 
+  /**
+   * First nonempty commit after the attestation client starts running. Tries to get reveal data from database otherwise
+   * it does not send reveal data for the previous round?
+   */  
   async firstCommit() {
     if (!this.canCommit()) {
       await this.createEmptyState();
@@ -386,8 +426,11 @@ export class AttestationRound {
     });
   }
 
+  /**
+   * Sends reveal data for this round and commit data for next round
+   */  
   async reveal() {
-    if (this.status !== AttestationRoundEpoch.reveal) {
+    if (this.status !== AttestationRoundPhase.reveal) {
       this.logger.error(`round #${this.roundId} cannot reveal (not in reveal epoch status ${this.status})`);
       return;
     }

@@ -5,6 +5,9 @@ import { SourceId } from "../sources/sources";
 // Verification status
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Enumerated verification status of attestation
+ */
 export enum VerificationStatus {
   // Successful verification
   OK = "OK",
@@ -35,8 +38,15 @@ export enum VerificationStatus {
   NON_EXISTENT_OUTPUT_UTXO_ADDRESS = "NON_EXISTENT_OUTPUT_UTXO_ADDRESS",
 
   PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR",
+
+  GENERIC_ERROR = "GENERIC_ERROR",
+  EXCEPTION = "EXCEPTION",
 }
 
+/**
+ * Interface for a verification of a request of type R with response of typo T.
+ * The validity of the request is stored in status.
+ */
 export interface Verification<R, T> {
   hash?: string;
   request?: R;

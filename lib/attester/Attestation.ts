@@ -19,6 +19,10 @@ export interface EventProcessed {
   (tx: Attestation): void;
 }
 
+/**
+ * Attestation class for Attestation providers to attest validity or a request.
+ * Validity of the attestation is given by verificationData that is provided using {@link ChainNode}
+ */
 @Managed()
 export class Attestation {
   round: AttestationRound;
@@ -46,6 +50,9 @@ export class Attestation {
     this.onValidateAttestation = onValidateAttestation;
   }
 
+  /**
+   *  Round in which attestation in considered
+   */
   public get roundId() {
     if (this._testRoundId == null) {
       return this.round?.roundId;

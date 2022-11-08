@@ -40,7 +40,7 @@ export class Attestation {
   reverification: boolean = false;
   exception: any;
 
-  onProcessed: EventProcessed | undefined = undefined; //What is this?
+  onProcessed: EventProcessed | undefined = undefined;
   onValidateAttestation: EventValidateAttestation;
 
   constructor(round: AttestationRound, data: AttestationData, onValidateAttestation: EventValidateAttestation) {

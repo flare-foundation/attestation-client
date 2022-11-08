@@ -1,8 +1,8 @@
 # State connector contract
 
-The `StateConnector` smart contract is used to manage the attestation protocol. There is one StateConnector contract for each chain type supported by Flare (BTC, LTC, DOGE, XRP, ALGO). The StateConnector is basically the voting contract, which does the following:
+The `StateConnector` smart contract is used to manage the attestation protocol. It is basically a voting contract, which does the following:
 
-- Accepts attestation requests all the time and emits the events that contain the attestation requests and timestamps. Note that the contract does not keep track of any data related to attestation requests. Matching attestation requests to the `collect` phases of the correct voting rounds is done by attestation providers according to the timestamp of the emitted event.
+- Accepts attestation requests all the time and emits events that contain the attestation requests and timestamps. Note that the contract does not keep track of any data related to attestation requests. Matching attestation requests to the `collect` phases of the correct voting rounds is done by attestation providers according to the timestamp of the emitted event.
 - Accepts commit and reveal submissions by attestation providers, mapping them to the correct voting rounds, consequently mapping them to the correct `commit` and `reveal` phases of the voting rounds.
 - Counts the votes (attestations) and declares the winning attestation hash (confirmed Merkle root) for every voting round (in the `count` phase).
 

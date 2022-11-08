@@ -80,7 +80,7 @@ export class AttestationRound {
   }
 
   /**
-   * returns the existing source Handler for the source chain of an attestation or creates a new sourceHandler
+   * Returns the existing sourceHandler for the source chain of an attestation or creates a new sourceHandler
    * @param data
    * @param onValidateAttestation
    * @returns

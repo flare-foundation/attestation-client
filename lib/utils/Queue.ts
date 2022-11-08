@@ -37,7 +37,6 @@ export class Queue<T> {
     return this.tail - this.head;
   }
 
-  // Do we really want this to throw an error?
   /**
    * Return the first element in the queue
    */
@@ -48,6 +47,7 @@ export class Queue<T> {
     throw Error("Empty queue");
   }
 
+  //???Should the head and tail be reset???
   /**
    * Throw everything out of the queue
    */

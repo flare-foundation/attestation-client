@@ -1,11 +1,13 @@
 import BN from "bn.js";
-import { AttestationType } from "../generated/attestation-types-enum";
 import { SourceId } from "../sources/sources";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Verification status
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Enumerated verification status of attestation
+ */
 export enum VerificationStatus {
   // Successful verification
   OK = "OK",
@@ -41,6 +43,10 @@ export enum VerificationStatus {
   EXCEPTION = "EXCEPTION",
 }
 
+/**
+ * Interface for a verification of a request of type R with response of typo T.
+ * The validity of the request is stored in status.
+ */
 export interface Verification<R, T> {
   hash?: string;
   request?: R;

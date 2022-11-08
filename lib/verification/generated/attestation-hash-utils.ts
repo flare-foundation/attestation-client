@@ -28,7 +28,7 @@ const web3 = new Web3();
 //////////////////////////////////////////////////////////////
 
 export function hashPayment(request: ARPayment, response: DHPayment) {
-  let encoded = web3.eth.abi.encodeParameters(
+  const encoded = web3.eth.abi.encodeParameters(
     [
       "uint16", // attestationType
       "uint32", // sourceId
@@ -67,7 +67,7 @@ export function hashPayment(request: ARPayment, response: DHPayment) {
 }
 
 export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTransaction, response: DHBalanceDecreasingTransaction) {
-  let encoded = web3.eth.abi.encodeParameters(
+  const encoded = web3.eth.abi.encodeParameters(
     [
       "uint16", // attestationType
       "uint32", // sourceId
@@ -96,7 +96,7 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
 }
 
 export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightExists, response: DHConfirmedBlockHeightExists) {
-  let encoded = web3.eth.abi.encodeParameters(
+  const encoded = web3.eth.abi.encodeParameters(
     [
       "uint16", // attestationType
       "uint32", // sourceId
@@ -123,7 +123,7 @@ export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightEx
 }
 
 export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNonexistence, response: DHReferencedPaymentNonexistence) {
-  let encoded = web3.eth.abi.encodeParameters(
+  const encoded = web3.eth.abi.encodeParameters(
     [
       "uint16", // attestationType
       "uint32", // sourceId
@@ -156,7 +156,7 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
 }
 
 export function hashTrustlineIssuance(request: ARTrustlineIssuance, response: DHTrustlineIssuance) {
-  let encoded = web3.eth.abi.encodeParameters(
+  const encoded = web3.eth.abi.encodeParameters(
     [
       "uint16", // attestationType
       "uint32", // sourceId

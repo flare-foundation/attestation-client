@@ -1,6 +1,5 @@
 import BN from "bn.js";
 import Web3 from "web3";
-import { StateConnector as StateConnectorNew } from "../../typechain-web3-v1-new/StateConnector";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttLogger } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
@@ -8,18 +7,24 @@ import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 
+/**
+ * Handles submitions to StateConnector
+ */
 export class AttesterWeb3 {
   config: AttesterClientConfiguration;
   credentials: AttesterCredentials;
   logger: AttLogger;
 
   web3!: Web3;
-  stateConnector!: StateConnector | StateConnectorNew;
+  stateConnector!: StateConnector;
   web3Functions!: Web3Functions;
 
   constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
     this.logger = logger;
     this.config = configuration;
+    if (!credentials) {
+      return;
+    }
     this.credentials = credentials;
     this.web3 = getWeb3(credentials.web.rpcUrl) as Web3;
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.credentials.web.accountPrivateKey);
@@ -62,29 +67,26 @@ export class AttesterWeb3 {
     commitHash: string,
     verbose = true
   ) {
-    let roundId = bufferNumber.toNumber() - 1;
+    const roundId = bufferNumber.toNumber() - 1;
     this.check(maskedMerkleRoot);
     this.check(hashedRandom);
     this.check(revealedRandomPrev);
 
-    let fnToEncode = AttestationRoundManager.credentials.web.useNewStateConnector
-      ? (this.stateConnector as StateConnectorNew).methods.submitAttestation(bufferNumber, commitHash, merkleRootPrev, revealedRandomPrev)
-      : (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
+    const fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
 
     if (verbose) {
       this.logger.info(`action ................. : ${action}`);
       this.logger.info(`bufferNumber_n ......... : ${bufferNumber.toString()}`);
       this.logger.info(`merkleRoot_n ........... : ^e${merkleRoot.toString()}`);
-      this.logger.info(`maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}`);
       this.logger.info(`random_n ............... : ^e${random.toString()}`);
-      this.logger.info(`hashedRandom_n ......... : ${hashedRandom.toString()}`);
       this.logger.info(`random_n-1 ............. : ${revealedRandomPrev.toString()}`);
+      this.logger.info(`commitHash_n ........... : ${commitHash.toString()}`);
     }
 
     if (process.env.NODE_ENV === "production") {
       //if( true ) {
 
-      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000;
+      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
       const { receipt, nonce } = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
 

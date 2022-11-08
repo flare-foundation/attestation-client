@@ -19,7 +19,7 @@ export interface CachedMccClientOptionsTest {
 
 export type CachedMccClientOptions = CachedMccClientOptionsFull | CachedMccClientOptionsTest;
 
-let defaultCachedMccClientOptions: CachedMccClientOptions = {
+const defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
   cleanupChunkSize: 100,
@@ -67,7 +67,7 @@ export class CachedMccClient {
     this.settings = options || defaultCachedMccClientOptions;
 
     // Override onSend
-    let fullSettings = this.settings as CachedMccClientOptionsFull;
+    const fullSettings = this.settings as CachedMccClientOptionsFull;
     if (fullSettings.clientConfig) {
       fullSettings.clientConfig.rateLimitOptions = {
         ...fullSettings.clientConfig.rateLimitOptions,
@@ -93,13 +93,14 @@ export class CachedMccClient {
   }
 
   public async getTransaction(txId: string) {
-    let txPromise = this.transactionCache.get(txId)
+    const txPromise = this.transactionCache.get(txId)
     if (txPromise) {
       return txPromise;
     }
 
     // if client.getTransaction after retrying fails, the application is terminated (critical error)
-    const newPromise = criticalAsync(`CachedMccClient::getTransaction exception: `, () =>
+    // eslint-disable-next-line
+    const newPromise = criticalAsync(`CachedMccClient::getTransaction(${txId}) exception: `, () =>
       retry(`CachedMccClient.getTransaction`, async () => {
         return await this.client.getTransaction(txId);
       })
@@ -121,22 +122,23 @@ export class CachedMccClient {
    * @returns 
    */
   public async getBlock(blockHashOrNumber: string | number): Promise<IBlock | null> {
-    let blockPromise = this.blockCache.get(blockHashOrNumber);
+    const blockPromise = this.blockCache.get(blockHashOrNumber);
     if (blockPromise) {
       return blockPromise;
     }
 
     // if client.getBlock after retrying fails, the application is terminated (critical error)
-    const newPromise = criticalAsync(`CachedMccClient::getBlock exception: `, () =>
+    // eslint-disable-next-line
+    const newPromise = criticalAsync(`CachedMccClient::getBlock(${blockHashOrNumber}) exception: `, () =>
       retry(`CachedMccClient.getBlock`, async () => {
         return await this.client.getBlock(blockHashOrNumber);
       })
     )
 
     if (typeof blockHashOrNumber === "number") {
-      let block = await newPromise;
+      const block = await newPromise;
       if (!block) return null;
-      let blockHash = block.blockHash; // TODO
+      const blockHash = block.blockHash; // TODO
       this.blockCache.set(blockHash, newPromise as Promise<IBlock>);
       this.blockCleanupQueue.push(blockHash);
     } else {
@@ -148,12 +150,12 @@ export class CachedMccClient {
   }
 
   public get canAccept(): boolean {
-    let fullSettings = this.settings as CachedMccClientOptionsFull;
+    const fullSettings = this.settings as CachedMccClientOptionsFull;
     return !fullSettings.activeLimit || this.inProcessing + this.inQueue <= fullSettings.activeLimit;
   }
 
   private checkAndCleanup() {
-    let fullSettings = this.settings as CachedMccClientOptionsFull;
+    const fullSettings = this.settings as CachedMccClientOptionsFull;
     if(!fullSettings.cleanupChunkSize) {
       return;
     }
@@ -165,7 +167,7 @@ export class CachedMccClient {
   }
 
   private cleanup() {
-    let fullSettings = this.settings as CachedMccClientOptionsFull;
+    const fullSettings = this.settings as CachedMccClientOptionsFull;
     if(!fullSettings.blockCacheSize) {
       return;
     }

@@ -44,7 +44,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
  * @returns
  */
 export function randSol(request: any, key: string, type: SupportedSolidityType) {
-  let web3 = new Web3();
+  const web3 = new Web3();
   if (request[key]) {
     return request[key];
   }
@@ -96,8 +96,8 @@ export function numberLikeToNumber(n: NumberLike): number | undefined {
  * @param list
  * @returns the random element
  */
-export function randomListElement<T>(list: T[]) : T | undefined {
-  let randN = Math.floor(Math.random() * list.length);
+export function randomListElement<T>(list: T[]): T | undefined {
+  const randN = Math.floor(Math.random() * list.length);
   return list[randN];
 }
 
@@ -107,10 +107,10 @@ export function randomListElement<T>(list: T[]) : T | undefined {
  * @returns random value (name) of the selected weighted choice
  */
 export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
-  let weightSum = choices.map((choice) => choice.weight).reduce((a, b) => a + b);
-  let randSum = Math.floor(Math.random() * (weightSum + 1));
+  const weightSum = choices.map((choice) => choice.weight).reduce((a, b) => a + b);
+  const randSum = Math.floor(Math.random() * (weightSum + 1));
   let tmpSum = 0;
-  for (let choice of choices) {
+  for (const choice of choices) {
     tmpSum += choice.weight;
     if (tmpSum >= randSum) return choice.name;
   }
@@ -143,7 +143,7 @@ export async function getAttTypesDefinitionFiles(): Promise<string[]> {
  * @returns list of attestation type definition schemes
  */
 export async function readAttestationTypeSchemes(): Promise<AttestationTypeScheme[]> {
-  let names = await getAttTypesDefinitionFiles();
+  const names = await getAttTypesDefinitionFiles();
   return names.map((name) => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme);
 }
 
@@ -162,7 +162,7 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
 
 /**
  * Prefixes hex string with `0x` if the string is not yet prefixed
- * @param tx input hex string with or without `0x` prefi
+ * @param tx input hex string with or without `0x` prefix
  * @returns `0x` prefixed hex string.
  */
 export function prefix0x(tx: string) {
@@ -184,9 +184,9 @@ export function hexlifyBN(obj: any): any {
     return (obj as any[]).map((item) => hexlifyBN(item));
   }
   if (typeof obj === "object") {
-    let res = {} as any;
-    for (let key of Object.keys(obj)) {
-      let value = obj[key];
+    const res = {} as any;
+    for (const key of Object.keys(obj)) {
+      const value = obj[key];
       res[key] = hexlifyBN(value);
     }
     return res;

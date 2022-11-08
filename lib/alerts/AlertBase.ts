@@ -3,10 +3,11 @@ import { AttLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 
 export class AlertStatus {
-  name: string;
-  status: "down" | "late" | "sync" | "running" = "down";
-  state: string = "";
-  comment: string = "";
+  type = "unknown";
+  name = "";
+  status: "down" | "late" | "sync" | "running" | "waiting" = "down";
+  state = "";
+  comment = "";
   timeLate: number;
   displayStatus(logger: AttLogger) {
     let color = "";
@@ -24,19 +25,19 @@ export class AlertStatus {
         color = "^g^K";
         break;
     }
-    logger.info(`${this.name.padEnd(20)}  ${color} ${this.status.padEnd(10)} ^^  ${this.state.padEnd(10)} ^B${this.comment}                  `);
+    logger.info(`${this.type.padEnd(20)}  ${this.name.padEnd(20)}  ${color} ${this.status.padEnd(10)} ^^  ${this.state.padEnd(10)} ^B${this.comment}                  `);
   }
 }
 
 @Managed()
 export class PerformanceInfo {
   name: string;
-  valueName: string = "";
+  valueName = "";
   value: number;
-  valueUnit: string = "";
-  comment: string = "";
+  valueUnit = "";
+  comment = "";
 
-  constructor(name: string, valueName: string, value: number, valueUnit: string = "", comment: string = "") {
+  constructor(name: string, valueName: string, value: number, valueUnit = "", comment = "") {
     this.name = name;
     this.valueName = valueName;
     this.value = value;
@@ -54,8 +55,8 @@ export class PerformanceInfo {
 }
 
 export class AlertRestartConfig {
-  time: number = 0;
-  command: string = "";
+  time = 0;
+  command = "";
 
   constructor(time: number, command: string) {
     this.time = time;
@@ -72,7 +73,7 @@ export class AlertBase {
   logger: AttLogger;
 
   name: string;
-  timeLastRestart: number = 0;
+  timeLastRestart = 0;
 
   static restartEnabled = true;
 

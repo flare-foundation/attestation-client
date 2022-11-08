@@ -41,7 +41,7 @@ function verify${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definit
  * @returns generated attestation type hash method
  */
 function genHashFunctions(definition: AttestationTypeScheme): string {
-  let paramsArr = [constantize(definition.name), "_chainId", ...definition.dataHashDefinition.map((item) => `_data.${item.key}`)];
+  const paramsArr = [constantize(definition.name), "_chainId", ...definition.dataHashDefinition.map((item) => `_data.${item.key}`)];
   let encodedParams: string;
   if (paramsArr.length <= 10) {
     const paramsText = paramsArr.join(",\n");
@@ -74,11 +74,11 @@ function _hash${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definiti
  * @returns string representing solidity code for AttestationClientBase.sol
  */
 function getSolidityAttestationClientBase(definitions: AttestationTypeScheme[]): string {
-  let constants = definitions.map((definitions) => genConstant(definitions)).join("\n");
+  const constants = definitions.map((definitions) => genConstant(definitions)).join("\n");
   //    let proofFunctions = definitions.map(definition => genProofFunctions(definition)).join("\n\n");
-  let verifyFunctions = definitions.map((definition) => genVerifyFunctions(definition)).join("\n\n");
+  const verifyFunctions = definitions.map((definition) => genVerifyFunctions(definition)).join("\n\n");
   //    let verifyFunctionsForRound = definitions.map(definition => genVerifyFunctionsForRound(definition)).join("\n\n");
-  let hashFunctions = definitions.map((definition) => genHashFunctions(definition)).join("\n\n");
+  const hashFunctions = definitions.map((definition) => genHashFunctions(definition)).join("\n\n");
 
   return `// SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
@@ -115,7 +115,7 @@ ${hashFunctions}
  * @param definitions array of all attestation type definitions to generate methods for (defined in t-<number>-<attestation_type_name>.ts files)
  */
 export function createSolidityAttestationClientBase(definitions: AttestationTypeScheme[]): void {
-  let content = `${DEFAULT_GEN_FILE_HEADER}
+  const content = `${DEFAULT_GEN_FILE_HEADER}
 ${getSolidityAttestationClientBase(definitions)}`;
   if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {
     fs.mkdirSync(SOLIDITY_GEN_CONTRACTS_ROOT, { recursive: true });

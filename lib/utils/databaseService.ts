@@ -3,15 +3,21 @@ import { Connection, createConnection } from "typeorm";
 import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";
 
+/**
+ *Class describing with data to establish connection to database
+ */
 export class DatabaseConnectOptions {
-  @optional() type: string = "mysql";
-  @optional() host: string = "localhost";
-  @optional() port: number = 3306;
-  database: string = "database";
-  username: string = "username";
-  password: string = "password";
+  @optional() type = "mysql";
+  @optional() host = "localhost";
+  @optional() port = 3306;
+  database = "database";
+  username = "username";
+  password = "password";
 }
 
+/**
+ * DatabaseService for storing the attestation data and indexer data
+ */
 export class DatabaseService {
   private logger!: AttLogger;
 
@@ -22,7 +28,7 @@ export class DatabaseService {
 
   private options: DatabaseConnectOptions;
 
-  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName: string = "", connectionName: string = "") {
+  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "") {
     this.logger = logger;
 
     this.databaseName = databaseName;
@@ -30,9 +36,13 @@ export class DatabaseService {
 
     this.options = options;
 
+    // eslint-disable-next-line
     this.connect();
   }
 
+  /**
+   * Connects to the data base prescribed in DataConnectOptions
+   */
   private async connect() {
     // Typeorm/ES6/Typescript issue with importing modules
     let path = this.databaseName;
@@ -42,7 +52,7 @@ export class DatabaseService {
     const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
 
     this.logger.info(
-      `^Yconnecting to database ^g^K${this.databaseName}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
+      `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
     );
     this.logger.debug2(`entity: ${entities}`);
 
@@ -112,13 +122,15 @@ export class DatabaseService {
     createConnection(options)
       .then(async (conn) => {
         this.logger.info(`^Gconnected to database ^g^K${this.databaseName}^^`);
-        this._connection = await conn;
+        this._connection = conn;
         return;
       })
       .catch(async (e) => {
         logException(e, `connect`);
 
         await sleepms(3000);
+
+        // eslint-disable-next-line
         this.connect();
       });
   }

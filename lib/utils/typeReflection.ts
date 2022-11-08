@@ -1,20 +1,6 @@
 import { getOptionalKeys } from "@flarenetwork/mcc";
 import { getGlobalLogger } from "./logger";
 
-export class AdditionalTypeInfo {
-  arrayMap = new Map<string, any>();
-  additionalKeys = new Map<string, any>();
-
-  getArrayType(name: string) {
-    return this.arrayMap.get(name);
-  }
-}
-
-export interface IReflection<T> {
-  instanciate(): T;
-  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo;
-}
-
 function getType(object: any) {
   let type = typeof object;
 
@@ -43,7 +29,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
   const optionalAkeys = getOptionalKeys(A);
   const optionalA = optionalAkeys ? Object.keys(optionalAkeys) : [];
 
-  for (let keyA of keysA) {
+  for (const keyA of keysA) {
     let found = false;
 
     let typeA = typeof A[keyA];
@@ -66,7 +52,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
       keysB.push(key);
     });
 
-    for (let keyB of keysB) {
+    for (const keyB of keysB) {
       if (keyA === keyB) {
         found = true;
 
@@ -140,7 +126,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
   return valid;
 }
 
-export function isEqualType(A: any, B: any, parent: string = ""): boolean {
+export function isEqualType(A: any, B: any, parent = ""): boolean {
   const testAB = isEqualTypeUni(parent, A, B, "missing propery", "property using default value", true);
   const testBA = isEqualTypeUni(parent, B, A, "unknown propery", "", false);
 

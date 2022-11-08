@@ -13,6 +13,9 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 
+/**
+ * Implementation of the attestation client.
+ */
 @Managed()
 export class AttesterClient {
   config: AttesterClientConfiguration;
@@ -39,15 +42,17 @@ export class AttesterClient {
     this.roundMng = new AttestationRoundManager(this.chainManager, this.config, this.credentials, this.logger, this.attesterWeb3);
   }
 
-  /////////////////////////////////////////////////////////////
-  // misc
-  /////////////////////////////////////////////////////////////
-
-  async getBlockForTime(time: number) {
+  /**
+   * Returns a block number of a block, which is surely below time.
+   * Note that function assumes that the block is not far behind as it is used in a specific context
+   * @param time 
+   * @returns 
+   */
+  private async getBlockBeforeTime(time: number) {
     let blockNumber = await this.attesterWeb3.web3Functions.getBlockNumber();
 
     while (true) {
-      let block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
+      const block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
 
       if (block.timestamp < time) {
         this.logger.debug2(`start block number ${blockNumber} time ${secToHHMMSS(block.timestamp)}`);
@@ -58,16 +63,15 @@ export class AttesterClient {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // initialization functions
-  /////////////////////////////////////////////////////////////
-
-  async initializeConfiguration() {
+  /**
+   * Initializes configuration for attestation client
+   */
+  private async initializeConfiguration() {
     // read .env
     DotEnvExt();
 
-    const configData: string = "";
-    let accountPrivateKey: string = "";
+    const configData = "";
+    let accountPrivateKey = "";
 
     this.logger.info(`configuration`);
 
@@ -89,7 +93,7 @@ export class AttesterClient {
     }
   }
 
-  async initializeChains() {
+  private async initializeChains() {
     this.logger.info("initializing chains");
 
     for (const chain of this.chainsConfig.chains) {
@@ -101,25 +105,24 @@ export class AttesterClient {
       }
 
       const node = new ChainNode(this.chainManager, chain.name, chainType, chain);
-
       this.logger.info(`chain ${chain.name}:#${chainType}`);
-
       this.chainManager.addNode(chainType as any as SourceId, node);
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // process network events - this function is triggering updates
-  /////////////////////////////////////////////////////////////
-
-  async processEvent(event: any) {
+  /**
+   * Process network events - this function is triggering updates.
+   * @param event 
+   */
+  private async processEvent(event: any) {
     try {
       // handle Attestation Request
 
       if (event.event === "AttestationRequest") {
         const attestation = new AttestationData(event);
 
-        this.roundMng.attestate(attestation);
+        // eslint-disable-next-line
+        this.roundMng.attestate(attestation); // non awaited promise
       }
       
     } catch (error) {
@@ -153,6 +156,9 @@ export class AttesterClient {
   // main AC entry function
   /////////////////////////////////////////////////////////////
 
+  /**
+   * Main entry function
+   */
   async runAttesterClient() {
     const version = "1003";
 
@@ -180,7 +186,7 @@ export class AttesterClient {
     // get block current attestation round
     const startRoundTime = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(AttestationRoundManager.activeEpochId) / 1000;
     this.logger.debug(`start round ^Y#${AttestationRoundManager.activeEpochId}^^ time ${secToHHMMSS(startRoundTime)}`);
-    const startBlock = await this.getBlockForTime(startRoundTime);
+    const startBlock = await this.getBlockBeforeTime(startRoundTime);
 
     // connect to network block callback
     this.blockCollector = new Web3BlockCollector(
@@ -190,8 +196,10 @@ export class AttesterClient {
       "StateConnector",
       startBlock,
       (event: any) => {
-        this.processEvent(event);
-      }
+        // eslint-disable-next-line
+        this.processEvent(event); // non awaited promise
+      },
+      this.credentials.web.refreshEventsMs
     );
 
     await this.blockCollector.run();

@@ -26,7 +26,7 @@ export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
  * @category Indexer
  */
 export function prepareIndexerTables(type: ChainType): { transactionTable: DBTransactionBase[]; blockTable: DBBlockBase } {
-  let transactionTable = [];
+  const transactionTable = [];
   let blockTable;
   switch (type) {
     case ChainType.BTC:
@@ -85,7 +85,7 @@ export async function criticalAsync(label: string, funct: (...args: any[]) => Pr
   } catch (error) {
     logException(error, label);
 
-    let onFailure = getRetryFailureCallback();
+    const onFailure = getRetryFailureCallback();
     if (!onFailure) {
       getGlobalLogger().error2(`application exit`);
       process.exit(2);

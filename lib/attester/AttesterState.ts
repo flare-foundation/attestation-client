@@ -3,9 +3,18 @@ import { getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-
+/**
+ * Manages storing the attestation client results/state into the database
+ * in regard to specific round.
+ */
 export class AttesterState {
-  async saveRound(round: AttestationRound, validTransactionCount: number = 0) {
+
+  /**
+   * Stores all attestation round state data.
+   * @param round 
+   * @param validTransactionCount 
+   */
+  async saveRound(round: AttestationRound, validTransactionCount = 0) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = round.roundId;
@@ -21,7 +30,12 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
-  async saveRoundComment(round: AttestationRound, validTransactionCount: number = 0) {
+  /**
+   * Stores partial attestation round data (comment)
+   * @param round 
+   * @param validTransactionCount 
+   */
+  async saveRoundComment(round: AttestationRound, validTransactionCount = 0) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = round.roundId;
@@ -31,6 +45,12 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
+  /**
+   * Stores partial attestation round data (on commit)
+   * @param roundId 
+   * @param nounce 
+   * @param txid 
+   */
   async saveRoundCommited(roundId: number, nounce: number, txid: string) {
     const dbRound = new DBRoundResult();
 
@@ -44,6 +64,12 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
+  /**
+   *  Stores partial attestation round data (on reveal)
+   * @param roundId 
+   * @param nounce 
+   * @param txid 
+   */
   async saveRoundRevealed(roundId: number, nounce: number, txid: string) {
     const dbRound = new DBRoundResult();
 
@@ -57,8 +83,13 @@ export class AttesterState {
     await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
   }
 
+  /**
+   * Reads round result data for a given @param roundId
+   * @param roundId 
+   * @returns 
+   */
   async getRound(roundId: number): Promise<DBRoundResult> {
-    var dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: roundId } });
+    const dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: roundId } });
 
     if (dbRound) return dbRound;
 

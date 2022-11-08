@@ -1,6 +1,9 @@
 import { Column, Entity, Index } from "typeorm";
 import { BaseEntity } from "../base/BaseEntity";
 
+/**
+ * Format for storing the data from a resolved attestation round
+ */
 @Entity({ name: "attestation_request" })
 export class DBAttestationRequest extends BaseEntity {
   @Column() @Index() roundId: number = 0;

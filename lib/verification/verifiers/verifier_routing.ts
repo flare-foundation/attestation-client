@@ -62,7 +62,7 @@ export async function _verifyAttestation(
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<any, any>> {
-  let { attestationType, sourceId } = getAttestationTypeAndSource(attestation.data.request);
+  const { attestationType, sourceId } = getAttestationTypeAndSource(attestation.data.request);
   switch (attestationType) {
     case AttestationType.Payment:
       switch (sourceId) {

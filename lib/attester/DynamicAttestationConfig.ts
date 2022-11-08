@@ -9,16 +9,20 @@ import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 
 const fs = require("fs");
 export class SourceHandlerTypeConfig {
+  // Weight presents the difficulty of validating the attestation depending on the attestation type and source
   weight!: number;
 }
 
+/**
+ * Class providing parameters for handling the limitations (maxTotalRoundWeight, quieryWindowInSec...) of a attestation round for a source
+ */
 export class SourceHandlerConfig {
   attestationType!: AttestationType;
   source!: SourceId;
 
   maxTotalRoundWeight!: number;
 
-  numberOfConfirmations: number = 1;
+  numberOfConfirmations = 1;
 
   queryWindowInSec!: number;
   UBPUnconfirmedWindowInSec!: number;
@@ -26,12 +30,18 @@ export class SourceHandlerConfig {
   attestationTypes = new Map<number, SourceHandlerTypeConfig>();
 }
 
+/**
+ * Class providing SourceHandlerConfig for each source from the startEpoche on??
+ */
 export class AttestationConfig {
   startEpoch!: number;
 
   sourceHandlers = new Map<number, SourceHandlerConfig>();
 }
 
+/**
+ * Class for managing attestation configurations
+ */
 export class AttestationConfigManager {
   config: AttesterClientConfiguration;
   logger: AttLogger;
@@ -45,10 +55,13 @@ export class AttestationConfigManager {
     this.validateEnumNames();
   }
 
+  /**
+   * Checks that globally set enumerations of chains in Multi Chain Client and Attestation Client match
+   */  
   validateEnumNames() {
     const logger = getGlobalLogger();
 
-    for (let value in ChainType) {
+    for (const value in ChainType) {
       if (typeof ChainType[value] === "number") {
         if (ChainType[value] !== SourceId[value]) {
           logger.error2(
@@ -73,6 +86,9 @@ export class AttestationConfigManager {
     this.dynamicLoadInitialize();
   }
 
+  /**
+   * Check for changes in dynamicAttestationConfigurationFolder and loads new files
+   */  
   dynamicLoadInitialize() {
     try {
       fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
@@ -90,6 +106,9 @@ export class AttestationConfigManager {
     }
   }
 
+  /**
+   * Loads all AttestationConfig that are stored in dynamicAttestationConfigurationFolder
+   */  
   async loadAll() {
     try {
       await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err: number, files: string[]) => {
@@ -107,7 +126,7 @@ export class AttestationConfigManager {
     }
   }
 
-  load(filename: string, disregardObsolete: boolean = false): boolean {
+  load(filename: string, disregardObsolete = false): boolean {
     this.logger.info(`^GDAC load '${filename}'`);
 
     const fileConfig = readJSON<any>(filename, JSONMapParser);
@@ -153,6 +172,9 @@ export class AttestationConfigManager {
     return true;
   }
 
+  /**
+   * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epoches
+   */  
   orderConfigurations() {
     this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {
       if (a.startEpoch < b.startEpoch) return 1;
@@ -170,6 +192,9 @@ export class AttestationConfigManager {
     }
   }
 
+  /**
+   * @returns SourceHandlerConfig for a given @param source that is valid for in @param epoch
+   */  
   getSourceHandlerConfig(source: number, epoch: number): SourceHandlerConfig {
     // configs must be ordered by decreasing epoch number
     for (let a = 0; a < this.attestationConfig.length; a++) {

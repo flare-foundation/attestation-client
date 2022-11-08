@@ -14,7 +14,7 @@ export class BackendAlert extends AlertBase {
   async initialize() {}
 
   async checkWebsite(url) {
-    var http = require("http");
+    const http = require("http");
 
     return new Promise((resolve, reject) => {
       http
@@ -34,10 +34,11 @@ export class BackendAlert extends AlertBase {
 
   async check(): Promise<AlertStatus> {
     const res = new AlertStatus();
-    res.name = `backend ${this.name}`;
+    res.type = `backend`;
+    res.name = this.name;
 
     // check if address exists
-    let resExists = await this.checkWebsite(this.address);
+    const resExists = await this.checkWebsite(this.address);
 
     const now = getUnixEpochTimestamp();
 

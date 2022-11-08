@@ -72,7 +72,7 @@ export class IndexerController {
     return handleApiResponse(this.indexerEngine.getTransactionBlock(chain, txHash));
   }
 
-  @Get("chain/:chain/transactions/payment-reference:reference")
+  @Get("chain/:chain/transactions/payment-reference/:reference")
   public async transactionsWithPaymentReference(
     @Param('chain') chain: string,
     @Param('reference') reference: string
@@ -80,4 +80,21 @@ export class IndexerController {
     return handleApiResponse(this.indexerEngine.getTransactionsWithPaymentReference(chain, reference));
   }
   
+  @Get("chain/:chain/transactions/from/:from/to/:to")
+  public async transactionsWithinTimestampRange(
+    @Param('chain') chain: string,
+    @Param('from') from: number,
+    @Param('to') to: number
+  ): Promise<ApiResponse<DBTransactionBase[]>> {
+    return handleApiResponse(this.indexerEngine.transactionsWithinTimestampRange(chain, from, to));
+  }
+
+  @Get("chain/:chain/blocks/from/:from/to/:to")
+  public async blocksWithinTimestampRange(
+    @Param('chain') chain: string,
+    @Param('from') from: number,
+    @Param('to') to: number
+  ): Promise<ApiResponse<DBBlockBase[]>> {
+    return handleApiResponse(this.indexerEngine.blocksWithinTimestampRange(chain, from, to));
+  }
 }

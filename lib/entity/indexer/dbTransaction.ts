@@ -1,6 +1,9 @@
 import { Column, Entity, Index } from "typeorm";
 import { BaseEntity } from "../base/BaseEntity";
 
+/**
+ * Format for storing transaction data in indexer database
+ */
 export class DBTransactionBase extends BaseEntity {
   @Column() @Index() chainType: number = 0;
 

@@ -20,7 +20,7 @@ const expect = chai.expect
 
 class MockChainManager extends ChainManager {
 
-    validateTransaction(sourceId: SourceId, transaction: Attestation) {
+    validateAttestation(sourceId: SourceId, transaction: Attestation) {
     }
 
 }

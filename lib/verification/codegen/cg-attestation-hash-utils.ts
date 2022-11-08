@@ -11,8 +11,8 @@ import {
 } from "./cg-constants";
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
-  let types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
-  let values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
+  const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
+  const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 let encoded = web3.eth.abi.encodeParameters(
 	[
@@ -49,7 +49,7 @@ case AttestationType.${definition.name}:
 }
 
 export function genDataHashFunction(definitions: AttestationTypeScheme[]) {
-  let datahashCases = definitions.map((definition) => genDatahashCase(definition)).join("");
+  const datahashCases = definitions.map((definition) => genDatahashCase(definition)).join("");
   return `
 export function dataHash(request: ${ATTESTATION_TYPE_PREFIX}Type, response: ${DATA_HASH_TYPE_PREFIX}Type) {  
 	switch(request.attestationType) {
@@ -62,8 +62,8 @@ ${datahashCases}
 }
 
 export function createAttestationHashUtils(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
-  let dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import Web3 from "web3";

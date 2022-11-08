@@ -43,7 +43,7 @@ sudo apt-get update
 sudo apt install curl -y
 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 source ~/.profile 
-nvm install 14.15.4
+nvm install 16.17.1
 ```
 
 ### YARN
@@ -72,6 +72,11 @@ sudo mysql_secure_installation
 If you need remote access to the MYSQL you need to change MYSQL configuration file `/etc/mysql/mysql.conf.d/mysqld.cnf` line with value `bind-address` from `127.0.0.1` to `0.0.0.0`.
 ``` bash
 sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+```
+
+Autoreplace 
+```bash
+sudo sed -i 's/^\s*bind-address\s*=\s*127.0.0.1/bind-address            = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 
 After change you must restart MYSQL server.

@@ -26,5 +26,24 @@ GRANT PROCESS ON *.* TO '$(AttesterWriterUsernameSongbird)'@'$(DatabaseWriteAcce
 CREATE USER '$(AttesterReaderUsernameSongbird)'@'%' IDENTIFIED BY '$(AttesterReaderPasswordSongbird)';
 GRANT SELECT ON $(AttesterDatabaseSongbird).* TO '$(AttesterReaderUsernameSongbird)'@'%';
 
+CREATE DATABASE $(AttesterDatabaseCoston2);
+
+CREATE USER '$(AttesterWriterUsernameCoston2)'@'$(DatabaseWriteAccessSource)' IDENTIFIED BY '$(AttesterWriterPasswordCoston2)';
+GRANT ALL PRIVILEGES ON $(AttesterDatabaseCoston2).* TO '$(AttesterWriterUsernameCoston2)'@'$(DatabaseWriteAccessSource)';
+GRANT PROCESS ON *.* TO '$(AttesterWriterUsernameCoston2)'@'$(DatabaseWriteAccessSource)';
+
+CREATE USER '$(AttesterReaderUsernameCoston2)'@'%' IDENTIFIED BY '$(AttesterReaderPasswordCoston)';
+GRANT SELECT ON $(AttesterDatabaseCoston2).* TO '$(AttesterReaderUsernameCoston2)'@'%';
+
+
+CREATE DATABASE $(AttesterDatabaseFlare);
+
+CREATE USER '$(AttesterWriterUsernameFlare)'@'$(DatabaseWriteAccessSource)' IDENTIFIED BY '$(AttesterWriterPasswordFlare)';
+GRANT ALL PRIVILEGES ON $(AttesterDatabaseSongbird).* TO '$(AttesterWriterUsernameFlare)'@'$(DatabaseWriteAccessSource)';
+GRANT PROCESS ON *.* TO '$(AttesterWriterUsernameFlare)'@'$(DatabaseWriteAccessSource)';
+
+CREATE USER '$(AttesterReaderUsernameFlare)'@'%' IDENTIFIED BY '$(AttesterReaderPasswordFlare)';
+GRANT SELECT ON $(AttesterDatabaseSongbird).* TO '$(AttesterReaderUsernameFlare)'@'%';
+
 
 FLUSH PRIVILEGES;

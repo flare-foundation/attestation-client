@@ -12,13 +12,13 @@ import {
 import { trimStartNewline } from "./cg-utils";
 
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
-  let res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;
+  const res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;
   return trimStartNewline(res);
 }
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  let responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
-  let randomResponse = `
+  const responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
+  const randomResponse = `
 let response = {
 ${responseFields}      
 } as ${DATA_HASH_TYPE_PREFIX}${definition.name};
@@ -36,7 +36,7 @@ ${genRandomResponseCode(definition)}
 }
 
 function genRandomResponseCase(definition: AttestationTypeScheme) {
-  let result = `
+  const result = `
 case AttestationType.${definition.name}:
    return randomResponse${definition.name}();
 `;
@@ -44,7 +44,7 @@ case AttestationType.${definition.name}:
 }
 
 export function genRandomResponseForAttestationTypeFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map((definition) => genRandomResponseCase(definition)).join("\n");
+  const attestationTypeCases = definitions.map((definition) => genRandomResponseCase(definition)).join("\n");
   return `
 export function getRandomResponseForType(attestationType: AttestationType) {
 	switch(attestationType) {
@@ -57,8 +57,8 @@ ${attestationTypeCases}
 }
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
-  let types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
-  let values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
+  const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
+  const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 let encoded = web3.eth.abi.encodeParameters(
 	[
@@ -119,7 +119,7 @@ case AttestationType.${definition.name}:
 }
 
 function genItForMerkleTest(definitions: AttestationTypeScheme[]) {
-  let verificationCases = definitions.map((definition) => genVerificationCase(definition)).join("");
+  const verificationCases = definitions.map((definition) => genVerificationCase(definition)).join("");
   return `
 it("Merkle tree test", async function () {
 	let verifications = [];
@@ -151,12 +151,12 @@ ${verificationCases}
 }
 
 export function createAttestationClientMockTest(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
-  let dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
-  let hashFunctionsImports = definitions.map((definition) => `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`).join(",\n");
+  const arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const hashFunctionsImports = definitions.map((definition) => `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`).join(",\n");
 
-  let itsForDefinitions = definitions.map((definition) => genItForAttestationClientMock(definition)).join("\n");
-  let content = `${DEFAULT_GEN_FILE_HEADER}
+  const itsForDefinitions = definitions.map((definition) => genItForAttestationClientMock(definition)).join("\n");
+  const content = `${DEFAULT_GEN_FILE_HEADER}
 import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";
 import { 

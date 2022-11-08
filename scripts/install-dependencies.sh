@@ -1,9 +1,4 @@
-export RED='\033[0;31m'
-export GREEN='\033[0;32m'
-export NC='\033[0m' # No Color
-export REDBOLD="${RED}$(tput bold)"
-export GREENBOLD="${GREEN}$(tput bold)"
-export NCNORMAL="${NC}$(tput sgr0)"
+bash ./scripts/install-config.sh
 
 echo -e "${GREENBOLD}Installing Attestation Suite dependencies${NC}"
 
@@ -15,9 +10,9 @@ curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 
 source ~/.profile 
 source ~/.nvm/nvm.sh
-nvm install 14.15.4
-nvm alias default 14.15.4
-nvm use 14.15.4
+nvm install 16.17.1
+nvm alias default 16.17.1
+nvm use 16.17.1
 
 # yarn
 echo -e "${REDBOLD}[2] ${GREENBOLD}Installing ${REDBOLD}yarn${NC}"

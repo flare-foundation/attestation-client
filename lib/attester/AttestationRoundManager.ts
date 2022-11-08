@@ -14,7 +14,9 @@ import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClie
 import { AttesterState } from "./AttesterState";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestationConfig";
-
+/**
+ * Manages a specific attestation round
+ */
 @Managed()
 export class AttestationRoundManager {
   logger: AttLogger;
@@ -53,7 +55,10 @@ export class AttestationRoundManager {
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
   }
 
-  async initialize() {
+  /**
+   * Initializes attestation round manager
+   */
+  async initialize(): Promise<void> {
     await AttestationRoundManager.attestationConfigManager.initialize();
 
     AttestationRoundManager.dbServiceIndexer = new DatabaseService(this.logger, AttestationRoundManager.credentials.indexerDatabase, "indexer");
@@ -66,12 +71,14 @@ export class AttestationRoundManager {
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
     AttestationRoundManager.startEpochId = AttestationRoundManager.activeEpochId;
 
+    // eslint-disable-next-line    
     this.startRoundUpdate();
   }
 
-  async startRoundUpdate() {
-
-    // additional mechanism to update round manager when there are no requests
+  /**
+   * Additional mechanism to update round manager when there are no requests
+   */
+  async startRoundUpdate(): Promise<void> {
     while (true) {
       try {
         const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
@@ -88,11 +95,22 @@ export class AttestationRoundManager {
     }
   }
 
+  /**
+   * Gets the source handler configuration for a given @param name
+   * @param name 
+   * @returns 
+   */
   static getSourceHandlerConfig(name: string): SourceHandlerConfig {
     return AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), AttestationRoundManager.activeEpochId);
   }
 
-  getRoundOrCreateIt(epochId: number) {
+  /**
+   * Gets the attestation round for a given @param epochId.
+   * If the attestation round does not exist, it gets created, initialized and registered.
+   * @param epochId 
+   * @returns attestation round for given @param epochId
+   */
+  getRoundOrCreateIt(epochId: number): AttestationRound {
     // all times are in milliseconds
     const now = getTimeMilli();
     const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(epochId);
@@ -106,7 +124,7 @@ export class AttestationRoundManager {
     if (activeRound === undefined) {
       activeRound = new AttestationRound(epochId, this.logger, AttestationRoundManager.attesterWeb3);
 
-      let intervalId = setInterval(() => {
+      const intervalId = setInterval(() => {
         const now = getTimeMilli();
         if (now > epochCommitTime) {
           clearInterval(intervalId);
@@ -114,8 +132,7 @@ export class AttestationRoundManager {
         const eta = 90 - (now - epochTimeStart) / 1000;
         if (eta >= 0) {
           getGlobalLogger().debug(
-            `!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.attestationsProcessed}/${
-              activeRound.attestations.length
+            `!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.attestationsProcessed}/${activeRound.attestations.length
             }  `
           );
         }
@@ -126,7 +143,7 @@ export class AttestationRoundManager {
 
       // trigger start commit epoch
       setTimeout(() => {
-        safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitEpoch());
+        safeCatch(`setTimeout:startCommitEpoch`, async () => await activeRound!.startCommitEpoch());
       }, epochCommitTime - now);
 
       // trigger start commit epoch submit
@@ -176,8 +193,13 @@ export class AttestationRoundManager {
     return activeRound;
   }
 
-  async attestate(tx: AttestationData) {
-    const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(tx.timeStamp.mul(toBN(1000))).toNumber();
+  /**
+   * Creates an attestation from attestation data and adds it to the active round
+   * @param attestationData 
+   * @returns 
+   */
+  public async attestate(attestationData: AttestationData) {
+    const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
 
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
@@ -186,10 +208,10 @@ export class AttestationRoundManager {
       return;
     }
 
-    let activeRound = this.getRoundOrCreateIt(epochId);
+    const activeRound = this.getRoundOrCreateIt(epochId);
 
     // create, check and add attestation
-    const attestation = await this.createAttestation(activeRound, tx);
+    const attestation = await this.createAttestation(activeRound, attestationData);
 
     if (attestation === undefined) {
       return;
@@ -213,7 +235,7 @@ export class AttestationRoundManager {
     // create attestation depending on attestation type
     return new Attestation(round, data, (attestation: Attestation) => {
       // chain node validation
-      AttestationRoundManager.chainManager.validateTransaction(data.sourceId, attestation);
+      AttestationRoundManager.chainManager.validateAttestation(data.sourceId, attestation);
     });
   }
 }

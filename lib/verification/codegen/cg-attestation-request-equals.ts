@@ -21,15 +21,15 @@ export class AttestationRequestEqualsError extends Error {
 }
 
 export function genRequestEqualsFunctionForDefinition(definition: AttestationTypeScheme) {
-  let checkList = [];
+  const checkList = [];
 
-  for (let item of definition.request) {
-    let check = `if(!assertEqualsByScheme(request1.${item.key}, request2.${item.key}, "${item.type}")) {
+  for (const item of definition.request) {
+    const check = `if(!assertEqualsByScheme(request1.${item.key}, request2.${item.key}, "${item.type}")) {
 	return false;
 }`;
     checkList.push(check);
   }
-  let checks = checkList.join("\n");
+  const checks = checkList.join("\n");
 
   return `
 export function ${REQUEST_EQUALS_PREFIX_FUNCTION}${definition.name}(request1: ${ATTESTATION_TYPE_PREFIX}${
@@ -50,7 +50,7 @@ case AttestationType.${definition.name}:
 }
 
 export function genRequestEqualsFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map((definition) => genEqualsAttestationTypeCase(definition)).join("");
+  const attestationTypeCases = definitions.map((definition) => genEqualsAttestationTypeCase(definition)).join("");
   return `
 export function ${REQUEST_EQUALS_PREFIX_FUNCTION}Request(request1: ${ATTESTATION_TYPE_PREFIX}Type, request2: ${ATTESTATION_TYPE_PREFIX}Type): boolean  {  
 	if(request1.attestationType != request2.attestationType) {
@@ -85,7 +85,7 @@ export function assertEqualsByScheme(a: any, b: any, type: string) {
 }
 
 export function createAttestationRequestEquals(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import Web3 from "web3";  

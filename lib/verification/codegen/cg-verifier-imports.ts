@@ -17,11 +17,11 @@ import { verifierFolder } from "./cg-verifiers";
 export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], sourceId: SourceId) {
   let tdefImports = "";
   let tdefExports = "";
-  let dhTypeList = [];
-  let arTypeList = [];
-  let hashFunctionList = [];
+  const dhTypeList = [];
+  const arTypeList = [];
+  const hashFunctionList = [];
 
-  for (let definition of definitions) {
+  for (const definition of definitions) {
     if (definition.supportedSources.indexOf(sourceId) >= 0) {
       tdefImports += `import {TDEF as TDEF_${dashCapitalized(definition.name, "_")} } from "../../attestation-types/${definitionFile(
         definition,
@@ -34,11 +34,11 @@ export function createVerifiersImportFileForSource(definitions: AttestationTypeS
     arTypeList.push(`${ATTESTATION_TYPE_PREFIX}${definition.name}`);
     hashFunctionList.push(`${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`);
   }
-  let dhTypes = dhTypeList.join(",\n");
-  let arTypes = arTypeList.join(",\n");
-  let hashFunctions = hashFunctionList.join(",\n");
+  const dhTypes = dhTypeList.join(",\n");
+  const arTypes = arTypeList.join(",\n");
+  const hashFunctions = hashFunctionList.join(",\n");
 
-  let content = `${DEFAULT_GEN_FILE_HEADER}
+  const content = `${DEFAULT_GEN_FILE_HEADER}
 import BN from "bn.js";
 import Web3 from "web3";
 export { Attestation } from "../../../attester/Attestation";
@@ -66,13 +66,13 @@ ${tdefExports}
 }
 
 export function createVerifiersImportFiles(definitions: AttestationTypeScheme[]) {
-  let sourceIds = new Set<SourceId>();
-  for (let definition of definitions) {
-    for (let cType of definition.supportedSources) {
+  const sourceIds = new Set<SourceId>();
+  for (const definition of definitions) {
+    for (const cType of definition.supportedSources) {
       sourceIds.add(cType);
     }
   }
-  for (let cType of sourceIds) {
+  for (const cType of sourceIds) {
     createVerifiersImportFileForSource(definitions, cType);
   }
 }

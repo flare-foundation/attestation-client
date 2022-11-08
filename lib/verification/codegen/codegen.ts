@@ -18,7 +18,7 @@ import { createVerifiersAndRouter } from "./cg-verifiers-router";
  * Generates all auto generated files
  */
 async function generateCodeFiles() {
-  let definitions = await readAttestationTypeSchemes();
+  const definitions = await readAttestationTypeSchemes();
 
   createAttestationEnumFile(definitions);
   createAttestationRequestTypesFile(definitions);

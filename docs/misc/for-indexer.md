@@ -98,11 +98,24 @@ systemctl --user enable indexer-doge.service
 
 systemctl --user enable coston-attester-client.service
 
-systemctl --user enable coston-spammer-btc.service
-systemctl --user enable coston-spammer-ltc.service
-systemctl --user enable coston-spammer-xrp.service
-systemctl --user enable coston-spammer-algo.service
-systemctl --user enable coston-spammer-doge.service
+systemctl --user enable coston2-attester-client-c2.service
+systemctl --user enable coston2-attester-client-c3.service
+systemctl --user enable coston2-attester-client-c4.service
+systemctl --user enable coston2-attester-client-c5.service
+
+systemctl --user enable coston-attester-client-c2.service
+systemctl --user enable coston-attester-client-c3.service
+systemctl --user enable coston-attester-client-c4.service
+systemctl --user enable coston-attester-client-c5.service
+
+
+
+
+systemctl --user enable coston2-spammer-btc.service
+systemctl --user enable coston2-spammer-ltc.service
+systemctl --user enable coston2-spammer-xrp.service
+systemctl --user enable coston2-spammer-algo.service
+systemctl --user enable coston2-spammer-doge.service
 
 systemctl --user enable coston-backend.service
 
@@ -126,11 +139,11 @@ systemctl --user start indexer-doge.service
 
 systemctl --user start coston-attester-client.service
 
-systemctl --user start coston-spammer-btc.service
-systemctl --user start coston-spammer-ltc.service
-systemctl --user start coston-spammer-xrp.service
-systemctl --user start coston-spammer-algo.service
-systemctl --user start coston-spammer-doge.service
+systemctl --user restart coston2-spammer-btc.service
+systemctl --user restart coston2-spammer-ltc.service
+systemctl --user restart coston2-spammer-xrp.service
+systemctl --user restart coston2-spammer-algo.service
+systemctl --user restart coston2-spammer-doge.service
 
 systemctl --user start coston-backend.service
 
@@ -153,7 +166,18 @@ systemctl --user stop indexer-ltc.service
 systemctl --user stop indexer-algo.service
 systemctl --user stop indexer-doge.service
 
+systemctl --user stop coston2-attester-client.service
+systemctl --user stop coston2-attester-client-c2.service
+systemctl --user stop coston2-attester-client-c3.service
+systemctl --user stop coston2-attester-client-c4.service
+systemctl --user stop coston2-attester-client-c5.service
+
 systemctl --user stop coston-attester-client.service
+systemctl --user stop coston-attester-client-c2.service
+systemctl --user stop coston-attester-client-c3.service
+systemctl --user stop coston-attester-client-c4.service
+systemctl --user stop coston-attester-client-c5.service
+
 
 systemctl --user stop coston-spammer-btc.service
 systemctl --user stop coston-spammer-ltc.service
@@ -181,7 +205,36 @@ systemctl --user restart indexer-ltc
 systemctl --user restart indexer-algo
 systemctl --user restart indexer-doge
 
-systemctl --user restart coston-attester-client
+systemctl --user restart coston2-attester-client
+
+systemctl --user restart coston2-attester-client
+systemctl --user restart coston2-attester-client-c2.service
+systemctl --user restart coston2-attester-client-c3.service
+systemctl --user restart coston2-attester-client-c4.service
+systemctl --user restart coston2-attester-client-c5.service
+
+systemctl --user restart coston-attester-client.service
+systemctl --user restart coston-attester-client-c2.service
+systemctl --user restart coston-attester-client-c3.service
+systemctl --user restart coston-attester-client-c4.service
+systemctl --user restart coston-attester-client-c5.service
+
+
+systemctl --user enable coston2-spammer-btc
+systemctl --user enable coston2-spammer-xrp
+systemctl --user enable coston2-spammer-ltc
+systemctl --user enable coston2-spammer-doge
+
+systemctl --user restart coston2-spammer-btc
+systemctl --user restart coston2-spammer-xrp
+systemctl --user restart coston2-spammer-ltc
+systemctl --user restart coston2-spammer-doge
+
+journalctl --user -u coston2-spammer-btc -f -n 1000
+
+
+
+
 
 systemctl --user restart coston-spammer-btc.service
 systemctl --user restart coston-spammer-ltc.service
@@ -209,7 +262,14 @@ journalctl --user -u indexer-ltc -f -n 1000
 journalctl --user -u indexer-algo -f -n 1000
 journalctl --user -u indexer-doge -f -n 1000
 
+journalctl --user -u coston2-attester-client -f -n 1000
+
+
 journalctl --user -u coston-attester-client -f -n 1000
+journalctl --user -u coston-attester-client-c2 -f -n 1000
+journalctl --user -u coston-attester-client-c3 -f -n 1000
+journalctl --user -u coston-attester-client-c4 -f -n 1000
+journalctl --user -u coston-attester-client-c5 -f -n 1000
 
 journalctl --user -u coston-spammer-btc -f -n 1000
 journalctl --user -u coston-spammer-ltc -f -n 1000
@@ -283,6 +343,14 @@ multipass shell p1
 multipass shell p2
 ```
 
+
+```
+multipass delete p1
+multipass purge
+multipass launch --name p4 --cpus 8 --mem 8GB --disk 80GB
+multipass shell p4
+```
+
 # SSH setup 
 P1
 ```bash
@@ -301,3 +369,7 @@ nano .ssh/authorized_keys
 
 hostname -I
 ```
+
+
+
+

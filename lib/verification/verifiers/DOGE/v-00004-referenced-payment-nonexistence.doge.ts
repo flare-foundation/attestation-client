@@ -31,22 +31,22 @@ export async function verifyReferencedPaymentNonexistenceDOGE(
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>> {
-  let request = parseRequest(attestation.data.request) as ARReferencedPaymentNonexistence;
-  let roundId = attestation.roundId;
-  let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestation.data.request) as ARReferencedPaymentNonexistence;
+  const roundId = attestation.roundId;
+  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  let result = await verifyReferencedPaymentNonExistence(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+  const result = await verifyReferencedPaymentNonExistence(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }
 
-  let response = result.response;
+  const response = result.response;
 
   //-$$$<end> of the custom section. Do not change this comment.
 
-  let hash = hashReferencedPaymentNonexistence(request, response);
+  const hash = hashReferencedPaymentNonexistence(request, response);
 
   return {
     hash,

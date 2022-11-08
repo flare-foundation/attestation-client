@@ -1,14 +1,15 @@
 import { Factory, Inject, Singleton } from "typescript-ioc";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
-import { AlertsStatus, PerformanceStatus, ServiceStatus } from "../dto/ServiceStatus";
+import { ServiceStatus } from "../dto/ServiceStatus";
 import { SystemStatus } from "../dto/SystemStatus";
 import { VotingRoundResult } from "../dto/VotingRoundResult";
 import { ConfigurationService } from "../services/configurationService";
 import { WebDatabaseService } from "../services/webDBService";
 
 import fs from "fs";
-import { VotingRoundRequest } from "../dto/VotingRoundRequest";
 import { DBAttestationRequest } from "../../entity/attester/dbAttestationRequest";
+import { VotingRoundRequest } from "../dto/VotingRoundRequest";
+import { AlertStatus, PerformanceInfo } from "../../alerts/AlertBase";
 @Singleton
 @Factory(() => new ProofEngine())
 export class ProofEngine {
@@ -31,20 +32,20 @@ export class ProofEngine {
     if (!this.canReveal(roundId)) {
       return null;
     }
-    let query = this.dbService.connection.manager
+    const query = this.dbService.connection.manager
       .createQueryBuilder(DBVotingRoundResult, "voting_round_result")
       .andWhere("voting_round_result.roundId = :roundId", { roundId });
-    let result = await query.getMany();
+    const result = await query.getMany();
     result.forEach((item) => {
       item.request = JSON.parse(item.request);
       item.response = JSON.parse(item.response);
     });
-    let finalResult = result as any as VotingRoundResult[];
+    const finalResult = result as any as VotingRoundResult[];
     // cache once finalized
     if (finalResult.length > 0) {
       this.cache[roundId] = finalResult;
     } else {
-      let maxRound = await this.maxRoundId();
+      const maxRound = await this.maxRoundId();
       if (maxRound > roundId) {
         this.cache[roundId] = [];
       }
@@ -60,7 +61,7 @@ export class ProofEngine {
     if (!this.canReveal(roundId)) {
       return null;
     }
-    let query = this.dbService.connection.manager
+    const query = this.dbService.connection.manager
       .createQueryBuilder(DBAttestationRequest, "attestation_request")
       .andWhere("attestation_request.roundId = :roundId", { roundId })
       .select("attestation_request.requestBytes", "requestBytes")
@@ -68,26 +69,26 @@ export class ProofEngine {
       .addSelect("attestation_request.attestationStatus", "attestationStatus")
       .addSelect("attestation_request.exceptionError", "exceptionError")
 
-      
 
-    let result = await query.getRawMany();
+
+    const result = await query.getRawMany();
 
     result.forEach((item) => {
-      item.roundId = roundId; 
+      item.roundId = roundId;
       if (item.exceptionError === "") {
         item.exceptionError = undefined;
       }
-      if(!item.attestationStatus) {
+      if (!item.attestationStatus) {
         item.attestationStatus = undefined;
       }
     });
 
-    let finalResult = result as any as VotingRoundRequest[];
+    const finalResult = result as any as VotingRoundRequest[];
     // cache once finalized
     if (finalResult.length > 0) {
       this.requestCache[roundId] = finalResult;
     } else {
-      let maxRound = await this.maxRoundId();
+      const maxRound = await this.maxRoundId();
       if (maxRound > roundId) {
         this.requestCache[roundId] = [];
       }
@@ -96,21 +97,21 @@ export class ProofEngine {
   }
 
   private canReveal(roundId: number) {
-    let current = this.configService.epochSettings.getCurrentEpochId().toNumber();
+    const current = this.configService.epochSettings.getCurrentEpochId().toNumber();
     return current >= roundId + 2; // we must be in the reveal phase or later for a given roundId
   }
 
   private async maxRoundId() {
-    let maxQuery = this.dbService.connection.manager
+    const maxQuery = this.dbService.connection.manager
       .createQueryBuilder(DBVotingRoundResult, "voting_round_result")
       .select("MAX(voting_round_result.roundId)", "max");
-    let res = await maxQuery.getRawOne();
+    const res = await maxQuery.getRawOne();
     return res?.max;
   }
 
   public async systemStatus(): Promise<SystemStatus> {
     await this.dbService.waitForDBConnection();
-    let currentBufferNumber = this.configService.epochSettings.getCurrentEpochId().toNumber();
+    const currentBufferNumber = this.configService.epochSettings.getCurrentEpochId().toNumber();
     let latestAvailableRoundId = await this.maxRoundId();
     // Do not disclose the latest available round, if it is too early
     if (latestAvailableRoundId + 1 === currentBufferNumber) {
@@ -123,30 +124,31 @@ export class ProofEngine {
   }
 
   public async serviceStatus(): Promise<ServiceStatus> {
-    let path = this.configService.serverConfig.serviceStatusFilePath;
+    const path = this.configService.serverConfig.serviceStatusFilePath;
     if (!path) {
       return {
         alerts: [],
         perf: [],
       };
     }
-    let statuses = JSON.parse(fs.readFileSync(path).toString());
-    let perf = (statuses as any).perf;
+    const statuses = JSON.parse(fs.readFileSync(path).toString());
+    const perf = (statuses as any).perf;
     return {
-      alerts: (statuses as any).alerts as AlertsStatus[],
+      alerts: (statuses as any).alerts as AlertStatus[],
       perf,
     };
   }
 
   public async serviceStatusHtml(): Promise<string> {
-    let { currentBufferNumber, latestAvailableRoundId } = await this.systemStatus();
-    let path = this.configService.serverConfig.serviceStatusFilePath;
-    let statuses = await this.serviceStatus();
+    const { currentBufferNumber, latestAvailableRoundId } = await this.systemStatus();
+    const path = this.configService.serverConfig.serviceStatusFilePath;
+    const statuses = await this.serviceStatus();
 
-    let stat = fs.statSync(path);
-    let oneService = (status: AlertsStatus) => {
+    const stat = fs.statSync(path);
+    const oneService = (status: AlertStatus) => {
       return `
       <tr>
+         <td>${status.type}</td>
          <td>${status.name}</td>
          <td class="${status.status}">${status.status}</td>
          <td>${status.state}</td>
@@ -155,7 +157,7 @@ export class ProofEngine {
 `;
     };
 
-    let onePerformance = (status: PerformanceStatus) => {
+    const onePerformance = (status: PerformanceInfo) => {
       return `
       <tr>
          <td>${status.name}</td>
@@ -167,8 +169,8 @@ export class ProofEngine {
 `;
     };
 
-    let rows = statuses.alerts.map(oneService).join("\n");
-    let performanceRows = statuses.perf.map(onePerformance).join("\n");
+    const rows = statuses.alerts.map(oneService).join("\n");
+    const performanceRows = statuses.perf.map(onePerformance).join("\n");
 
     return `
 <html>
@@ -259,6 +261,7 @@ body {
 
    <table border="0" cellpadding="0" cellspacing="0">
       <tr class="first-row">
+         <th style="width: 10rem">type</th>
          <th style="width: 10rem">name</th>
          <th style="width: 5rem">status</th>
          <th style="width: 5rem">action</th>
@@ -275,8 +278,12 @@ ${rows}
         <td> ${currentBufferNumber}</td>
       </tr> 
       <tr>
-        <td>Latest available round id:</td>
+        <td>Votes for latest commited round id:</td>
         <td> <a href="../proof/votes-for-round/${latestAvailableRoundId}" target="_blank">${latestAvailableRoundId}</a></td>
+      </tr> 
+      <tr>
+        <td>Requests for latest commited round id:</td>
+        <td> <a href="../proof/requests-for-round/${latestAvailableRoundId}" target="_blank">${latestAvailableRoundId}</a></td>
       </tr> 
    </table>
 

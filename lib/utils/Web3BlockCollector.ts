@@ -9,14 +9,15 @@ export class Web3BlockCollector {
   web3: Web3;
 
   startingBlockNumber: number | undefined;
-  currentBlockNumber: number = 0;
+  currentBlockNumber = 0;
 
   contractAddress: string;
   contractName: string;
   startBlock: number | undefined;
   action: any;
+  refreshEventsMs: number;
 
-  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
+  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any, refreshEventsMs = 100) {
     this.logger = logger;
 
     this.web3 = getWeb3(url, this.logger);
@@ -25,6 +26,7 @@ export class Web3BlockCollector {
     this.contractName = contractName;
     this.startBlock = startBlock;
     this.action = action;
+    this.refreshEventsMs = refreshEventsMs;
   }
 
   async run() {
@@ -62,7 +64,7 @@ export class Web3BlockCollector {
         this.currentBlockNumber = await this.web3.eth.getBlockNumber();
         // wait for new block
         if (processBlock >= this.currentBlockNumber + 1) {
-          await sleepms(100);
+          await sleepms(this.refreshEventsMs);
           continue;
         }
 

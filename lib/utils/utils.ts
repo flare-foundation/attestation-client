@@ -2,9 +2,7 @@ import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
-import { StateConnector as StateConnectorNew } from "../../typechain-web3-v1-new/StateConnector";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
@@ -27,7 +25,7 @@ export function arrayRemoveElement(array: Array<any>, element: any) {
  * @param logger logger object (optional)
  * @returns 
  */
-export function getWeb3(rpcLink: string, logger?: any) {
+export function getWeb3(rpcLink: string, logger?: any): Web3 {
   const web3 = new Web3();
   if (rpcLink.startsWith("http")) {
     web3.setProvider(new Web3.providers.HttpProvider(rpcLink));
@@ -91,12 +89,12 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
  * @param address Address of the contract
  * @returns StateConnector contract object
  */
-export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector | StateConnectorNew> {
+export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector> {
   let abiPath = "";
-  let artifacts = AttestationRoundManager.credentials.web.useNewStateConnector ? "artifacts-new" : "artifacts";
+  const artifacts = "artifacts";
   try {
     abiPath = await relativeContractABIPathForContractName("StateConnector", artifacts);
-    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnector | StateConnectorNew;
+    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnector;
   } catch (e: any) {
     console.error(`getWeb3Contract error - ABI not found: ${e}`);
   }
@@ -119,7 +117,7 @@ export function getWeb3Wallet(web3: any, privateKey: string) {
  * @returns 
  */
 export function waitFinalize3Factory(web3: any) {
-  return async (address: string, func: () => any, delay: number = 1000) => {
+  return async (address: string, func: () => any, delay = 1000) => {
     const nonce = await web3.eth.getTransactionCount(address);
     const res = await func();
     const backoff = 1.5;
@@ -191,8 +189,8 @@ export function prepareString(text: string, maxLength: number, reportOverflow: s
  * Returns crypto safe 32-byte random hex string using web3.js generator
  * @returns Random 32-byte string
  */
-export async function getCryptoSafeRandom() {
-  return Web3.utils.randomHex(32);
+export async function getCryptoSafeRandom(length = 32) {
+  return Web3.utils.randomHex(length);
 }
 
 /**
@@ -239,7 +237,7 @@ export async function sleepms(milliseconds: number) {
  * @param decimal decimals to round
  * @returns 
  */
-export function round(x: number, decimal: number = 0) {
+export function round(x: number, decimal = 0) {
   if (decimal === 0) return Math.round(x);
 
   const dec10 = 10 ** decimal;
@@ -298,8 +296,8 @@ export function secToHHMMSS(time: number, secDecimals = 0) {
  * @returns the XOR of the two values
  */
 export function xor32(hex1: string, hex2: string) {
-  let h1 = unPrefix0x(hex1);
-  let h2 = unPrefix0x(hex2);
+  const h1 = unPrefix0x(hex1);
+  const h2 = unPrefix0x(hex2);
   if (!(/^[a-fA-F0-9]{64}$/.test(h1) && /^[a-fA-F0-9]{64}$/.test(h2))) {
     throw new Error("Incorrectly formatted 32-byte strings");
   }
@@ -308,3 +306,33 @@ export function xor32(hex1: string, hex2: string) {
   const bufResult = buf1.map((b, i) => b ^ buf2[i]);
   return prefix0x(Buffer.from(bufResult).toString("hex"));
 }
+
+
+/**
+ * print out typeorm query with parameters
+ * @param query 
+ */
+export function queryPrint(query: any) {
+  let [sql, params] = query.getQueryAndParameters();
+  params.forEach((value) => {
+    if (typeof value === 'string') {
+      sql = sql.replace('?', `"${value}"`);
+    }
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        sql = sql.replace(
+          '?',
+          value.map((element) => (typeof element === 'string' ? `"${element}"` : element)).join(','),
+        );
+      } else {
+        sql = sql.replace('?', value);
+      }
+    }
+    if (['number', 'boolean'].includes(typeof value)) {
+      sql = sql.replace('?', value.toString());
+    }
+  });
+
+  console.log(sql);
+}
+

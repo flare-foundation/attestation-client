@@ -33,7 +33,8 @@ export class AttesterAlert extends AlertBase {
   async check(): Promise<AlertStatus> {
     const res = new AlertStatus();
 
-    res.name = `attester ${this.name}`;
+    res.type = `attestation client`;
+    res.name = this.name;
 
     //const dbRes = await this.dbService.connection.getRepository(DBVotingRoundResult).find({ order: { roundId: 'DESC' }, take: 1 });
     const dbRes = await this.dbService.connection.getRepository(DBRoundResult).find({ order: { roundId: "DESC" }, take: 1 });

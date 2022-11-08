@@ -19,22 +19,26 @@ export interface EventProcessed {
   (tx: Attestation): void;
 }
 
+/**
+ * Attestation class for Attestation providers to attest validity or a request.
+ * Validity of the attestation is given by verificationData that is provided using {@link ChainNode}
+ */
 @Managed()
 export class Attestation {
   round: AttestationRound;
 
   status: AttestationStatus = AttestationStatus.invalid;
 
-  processStartTime: number = 0;
-  processEndTime: number = 0;
+  processStartTime = 0;
+  processEndTime = 0;
 
   data: AttestationData;
 
   verificationData!: Verification<any, any>;
 
   // how many time was attestation retried
-  retry: number = 0;
-  reverification: boolean = false;
+  retry = 0;
+  reverification = false;
   exception: any;
 
   onProcessed: EventProcessed | undefined = undefined;
@@ -46,6 +50,9 @@ export class Attestation {
     this.onValidateAttestation = onValidateAttestation;
   }
 
+  /**
+   *  Round in which attestation in considered
+   */
   public get roundId() {
     if (this._testRoundId == null) {
       return this.round?.roundId;

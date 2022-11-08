@@ -1,6 +1,6 @@
 import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../utils/databaseService";
-import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 
 export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
   @optional() public syncEnabled = true;

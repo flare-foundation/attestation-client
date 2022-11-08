@@ -173,4 +173,41 @@ export class IndexerEngineService {
       }) as DBTransactionBase[];
     }
 
+
+    public async transactionsWithinTimestampRange(chain: string, from: number, to: number): Promise<DBTransactionBase[]> {
+      let chainType = MCC.getChainType(chain);
+      if (chainType === ChainType.invalid) {
+        throw new Error(`Unsupported chain '${chain}'`);
+      }
+      let results: any[] = [];
+      let { transactionTable } = prepareIndexerTables(chainType);
+      for (let table of transactionTable) {
+        let query = this.manager
+          .createQueryBuilder(table as any, "transaction")
+          .andWhere("transaction.timestamp >= :from", { from })
+          .andWhere("transaction.timestamp < :to", { to });
+        results = results.concat(await query.getMany());
+      }
+      return results.map(res => {
+        if (res.response) {
+          res.response = JSON.parse(res.response);
+        }
+        return res;
+      }) as DBTransactionBase[];
+    }
+
+    public async blocksWithinTimestampRange(chain: string, from: number, to: number): Promise<DBBlockBase[]> {
+      let chainType = MCC.getChainType(chain);
+      if (chainType === ChainType.invalid) {
+        throw new Error(`Unsupported chain '${chain}'`);
+      }
+      let { blockTable } = prepareIndexerTables(chainType);
+      let query = this.manager
+        .createQueryBuilder(blockTable as any, "block")
+        .andWhere("block.timestamp >= :from", { from })
+        .andWhere("block.timestamp < :to", { to });
+      let result = await query.getMany() as DBBlockBase[];
+      return result;
+    }
+    
   }

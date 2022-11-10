@@ -184,20 +184,20 @@ export class MerkleTree {
     }
     return proof;
   }
-
-  // To be excluded out of the class of merkleTree
-  /**
-   * Verifies a Merkle proof for a given leaf
-   * @param leaf leaf as `0x`-prefixed 32-byte hex string
-   * @param proof Merkle proof (a list of `0x`-prefixed 32-byte hex strings)
-   * @returns `true` if the proof is valid, `false` otherwise
-   */
-  verify(leaf: string, proof: string[]) {
-    if (!leaf || !proof || !this.root) return false;
-    let hash = leaf;
-    for (const pair of proof) {
-      hash = sortedHashPair(pair, hash)!;
-    }
-    return hash === this.root;
+}
+// To be excluded out of the class of merkleTree
+/**
+ * Verifies a Merkle proof for a given leaf
+ * @param leaf leaf as (`0x`-prefixed 32-byte hex string)
+ * @param proof Merkle proof (a list of `0x`-prefixed 32-byte hex strings)
+ * @param root Merkle root (`0x`-prefixed 32-byte hex string)
+ * @returns `true` if the proof is valid, `false` otherwise
+ */
+export function verifyWithMerkleProof(leaf: string, proof: string[], root: string) {
+  if (!leaf || !proof || !root) return false;
+  let hash = leaf;
+  for (const pair of proof) {
+    hash = sortedHashPair(pair, hash)!;
   }
+  return hash == root;
 }

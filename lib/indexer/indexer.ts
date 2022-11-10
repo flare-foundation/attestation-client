@@ -844,6 +844,7 @@ export class Indexer {
         this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
 
         await this.interlace.resetAll();
+        await this.dropAllStateInfo();
 
         this.logger.debug(`restarting`);
         exit(3);
@@ -892,7 +893,7 @@ export class Indexer {
     }
 
     await this.interlace.initialize(
-      this,
+      this.logger,
       this.dbService,
       this.dbTransactionClasses,
       this.chainConfig.minimalStorageHistoryDays,

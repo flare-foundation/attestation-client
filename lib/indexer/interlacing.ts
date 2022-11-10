@@ -5,16 +5,15 @@ import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 import { SECONDS_PER_DAY } from "./indexer-utils";
 
-
 /**
  * Manages table double buffering for transactions (DBTransactionBase)
- * 
+ *
  * We have two tables that we use to optimize how to control number if items in the tables.
- * 
- * We first fill one table when we reach table limits we continue with another and once this one is filled as well, 
- * we drop the first one and recreate a new one and continue on it. 
- * 
- * When one table has more than `endBlock` blocks and last block timestamp is above `endTime` we drop 
+ *
+ * We first fill one table when we reach table limits we continue with another and once this one is filled as well,
+ * we drop the first one and recreate a new one and continue on it.
+ *
+ * When one table has more than `endBlock` blocks and last block timestamp is above `endTime` we drop
  * the last table and create a new one.
  */
 @Managed()
@@ -36,32 +35,31 @@ export class Interlacing {
 
   private chainName: string;
 
-  private indexer: Indexer;
+  // private indexer: Indexer;
   chainConfig: any;
 
   /**
    * Sets the initial limits for the interlacing.
-   * 
-   * @param logger 
-   * @param dbService 
-   * @param dbClasses 
-   * @param timeRangeSec 
-   * @param blockRange 
-   * @param chainName 
-   * @returns 
+   *
+   * @param logger
+   * @param dbService
+   * @param dbClasses
+   * @param timeRangeSec
+   * @param blockRange
+   * @param chainName
+   * @returns
    */
-  public async initialize(indexer: Indexer, dbService: DatabaseService, dbClasses: any[], timeRangeSec: number, blockRange: number, chainName: string) {
+  public async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRangeSec: number, blockRange: number, chainName: string) {
     const items = [];
 
-    this.indexer = indexer;
-    this.logger = indexer.logger;
+    // this.indexer = indexer;
+    this.logger = logger;
     this.dbService = dbService;
 
     this.timeRange = timeRangeSec * SECONDS_PER_DAY;
     this.blockRange = blockRange;
 
     this.chainName = chainName;
-
 
     // get first block from both transaction tables
     items.push(await dbService.connection.getRepository(dbClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
@@ -110,13 +108,12 @@ export class Interlacing {
 
   /**
    * Given a new block data checks the conditions and performs table change if necessary.
-   * 
-   * @param blockTime 
-   * @param blockNumber 
-   * @returns 
+   *
+   * @param blockTime
+   * @param blockNumber
+   * @returns
    */
   public async update(blockTime: number, blockNumber: number): Promise<boolean> {
-
     // in case table drop was requested in another async we need to wait until drop is completed
     while (this.tableLock) {
       await sleepms(1);
@@ -163,7 +160,6 @@ export class Interlacing {
    * reset all - drop both tables
    */
   public async resetAll() {
-
     // in case table drop was requested in another async we need to wait until drop is completed
     while (this.tableLock) {
       await sleepms(1);
@@ -190,9 +186,8 @@ export class Interlacing {
     }
 
     // drop all state info
-    await this.indexer.dropAllStateInfo();
+    // await this.indexer.dropAllStateInfo();
 
     this.tableLock = false;
   }
-
 }

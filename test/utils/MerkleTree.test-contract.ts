@@ -1,4 +1,4 @@
-import { MerkleTree } from "../../lib/utils/MerkleTree";
+import { MerkleTree, verifyWithMerkleProof } from "../../lib/utils/MerkleTree";
 import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
 import { MerkleInstance } from "../../typechain-truffle";
 
@@ -24,7 +24,8 @@ describe("Merkle Tree", () => {
         for (let j = 0; j < tree.hashCount; j++) {
           const proof = tree.getProof(j);
           const leaf = tree.getHash(j);
-          const ver0 = tree.verify(leaf!, proof!);
+          const root = tree.root;
+          const ver0 = verifyWithMerkleProof(leaf!, proof!, root);
           assert(ver0, "Not verified TS");
           const ver = await merkle.verifyMerkleProof(proof!, tree.root!, leaf!);
           assert(ver, "Not verified SC");

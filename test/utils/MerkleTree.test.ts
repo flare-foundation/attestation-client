@@ -1,7 +1,6 @@
-import { commitHash, MerkleTree, singleHash } from "../../lib/utils/MerkleTree";
+import { commitHash, MerkleTree, singleHash, sortedHashPair, verifyWithMerkleProof } from "../../lib/utils/MerkleTree";
 import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
-import { assert } from "chai";
-import { verify } from "crypto";
+import { assert, expect } from "chai";
 
 const N = 20;
 
@@ -58,24 +57,40 @@ describe("Merkle Tree", () => {
     });
 
     it("Should merkle proof work for up to 10 hashes", () => {
-      for (let i = 1; i < 100; i++) {
+      for (let i = 2; i < 100; i++) {
         const hashes = makeHashes(i);
         const tree = new MerkleTree(hashes);
+        // console.log(tree);
         for (let j = 0; j < tree.hashCount; j++) {
           const leaf = tree.getHash(j);
           const proof = tree.getProof(j);
-          const ver = tree.verify(leaf!, proof!);
-          assert(ver);
+          const ver = verifyWithMerkleProof(leaf, proof, tree.root);
+          expect(ver).to.be.eq(true);
         }
       }
     });
 
-    it("Should verify reject insufficient data", () => {
+    it("Should reject insufficient data", () => {
       for (let i = 1; i < 100; i++) {
         let hashes = makeHashes(i);
         const tree = new MerkleTree(hashes);
-        assert(!tree.verify(tree.getHash(i), []));
-        assert(!tree.verify("", tree.getProof(i)));
+        assert(!verifyWithMerkleProof(tree.getHash(i), [], tree.root));
+        assert(!verifyWithMerkleProof("", tree.getProof(i), tree.root));
+        assert(!verifyWithMerkleProof(tree.getHash(i), tree.getProof(i), ""));
+      }
+    });
+
+    it("Should reject false proof", () => {
+      for (let i = 2; i < 100; i++) {
+        let hashes1 = makeHashes(i);
+        let hashes2 = makeHashes(i);
+        const tree1 = new MerkleTree(hashes1);
+        const tree2 = new MerkleTree(hashes2);
+        for (let j = 0; j < i; j++) {
+          expect(verifyWithMerkleProof(tree1.getHash(j), tree1.getProof(j), tree1.root)).to.be.true;
+          expect(verifyWithMerkleProof(tree1.getHash(j), tree2.getProof(j), tree1.root)).to.be.false;
+          assert(!verifyWithMerkleProof(tree1.getHash(j), tree1.getProof(j), tree2.root));
+        }
       }
     });
 

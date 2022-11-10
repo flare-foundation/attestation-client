@@ -30,9 +30,9 @@ export function BlockProcessor(chainType: ChainType) {
 }
 
 /**
- * Block processor for UTXO chains. It is used for LTC and Bitcon. 
+ * Block processor for UTXO chains. It is used for LTC and Bitcon.
  * It is a specialized implementation of `LimitingProcessor`.
- * The block class (IBlock) is expected to have all transactions in 
+ * The block class (IBlock) is expected to have all transactions in
  * `tx` field.
  */
 @Managed()
@@ -52,7 +52,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
     });
 
     const transDbPromises = txPromises.map((processed) => async () => {
-      return await augmentTransactionUtxo(this.indexer, block, processed);
+      return await augmentTransactionUtxo(this.indexer.getActiveTransactionWriteTable(), this.indexer.chainType, block, processed);
     });
 
     const transDb = (await retryMany(`UtxoBlockProcessor::initializeJobs(${block.number})`, transDbPromises)) as DBTransactionBase[];
@@ -61,7 +61,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
       return;
     }
 
-    const blockDb = await augmentBlock(this.indexer, block);
+    const blockDb = augmentBlock(this.indexer, block);
 
     this.stop();
 
@@ -72,7 +72,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
 /**
  * Block processor for DOGE chain.
  * It is a specialized implementation of `LimitingProcessor`.
- * DOGE API does not contain all transactions in `tx` field so 
+ * DOGE API does not contain all transactions in `tx` field so
  * additional reading of transactions from block is needed.
  */
 @Managed()
@@ -99,7 +99,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
     });
 
     const transDbPromisses = txPromises.map((processed) => async () => {
-      return await augmentTransactionUtxo(this.indexer, block, processed);
+      return await augmentTransactionUtxo(this.indexer.getActiveTransactionWriteTable(), this.indexer.chainType, block, processed);
     });
 
     const transDb = (await retryMany(
@@ -115,7 +115,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     this.markTopLevelJobDone();
 
-    const blockDb = await augmentBlock(this.indexer, block);
+    const blockDb = augmentBlock(this.indexer.dbBlockClass, block);
 
     this.stop();
 
@@ -132,13 +132,18 @@ export class AlgoBlockProcessor extends LimitingProcessor {
   async initializeJobs(block: IBlock, onSave: onSaveSig) {
     this.block = block as AlgoBlock;
     const txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
-      return async () => {
-        return await augmentTransactionAlgo(this.indexer, block as AlgoBlock, algoTrans);
+      return () => {
+        return augmentTransactionAlgo(this.indexer.getActiveTransactionWriteTable(), block as AlgoBlock, algoTrans);
       };
     });
-    const transDb = (await retryMany(`AlgoBlockProcessor::initializeJobs(${block.number})`, txPromises, this.settings.timeout, this.settings.retry)) as DBTransactionBase[];
+    const transDb = (await retryMany(
+      `AlgoBlockProcessor::initializeJobs(${block.number})`,
+      txPromises,
+      this.settings.timeout,
+      this.settings.retry
+    )) as DBTransactionBase[];
     this.pause();
-    const blockDb = await augmentBlock(this.indexer, block);
+    const blockDb = augmentBlock(this.indexer.dbBlockClass, block);
 
     // eslint-disable-next-line
     criticalAsync(`AlgoBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));
@@ -161,13 +166,18 @@ export class XrpBlockProcessor extends LimitingProcessor {
       // @ts-ignore
       const processed = new XrpTransaction(newObj);
 
-      return async () => {
-        return await augmentTransactionXrp(this.indexer, block, processed);
+      return () => {
+        return augmentTransactionXrp(this.indexer.getActiveTransactionWriteTable(), block, processed);
       };
     });
-    const transDb = (await retryMany(`XrpBlockProcessor::initializeJobs(${block.number})`, txPromises, this.settings.timeout, this.settings.retry)) as DBTransactionBase[];
+    const transDb = (await retryMany(
+      `XrpBlockProcessor::initializeJobs(${block.number})`,
+      txPromises,
+      this.settings.timeout,
+      this.settings.retry
+    )) as DBTransactionBase[];
     this.stop();
-    const blockDb = await augmentBlock(this.indexer, block);
+    const blockDb = augmentBlock(this.indexer.dbBlockClass, block);
 
     // eslint-disable-next-line
     criticalAsync(`XrpBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));

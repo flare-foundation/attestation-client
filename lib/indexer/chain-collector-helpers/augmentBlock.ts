@@ -11,8 +11,8 @@ import { Indexer } from "../indexer";
  * @param block block as returned by MCC
  * @returns
  */
-export async function augmentBlock(indexer: Indexer, block: IBlock): Promise<DBBlockBase> {
-  const entity = new indexer.dbBlockClass() as DBBlockBase;
+export function augmentBlock(dbBlockClass: any, block: IBlock): DBBlockBase {
+  const entity = new dbBlockClass() as DBBlockBase;
   entity.blockNumber = block.number;
   entity.blockHash = prepareString(block.stdBlockHash, 128);
   entity.timestamp = block.unixTimestamp;

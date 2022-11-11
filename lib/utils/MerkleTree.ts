@@ -185,7 +185,6 @@ export class MerkleTree {
     return proof;
   }
 
-  //!!!This should be independent of the merkle tree!!!!
   /**
    * Verifies a Merkle proof for a given leaf
    * @param leaf leaf as `0x`-prefixed 32-byte hex string

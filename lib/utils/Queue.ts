@@ -47,7 +47,6 @@ export class Queue<T> {
     throw Error("Empty queue");
   }
 
-  //???Should the head and tail be reset???
   /**
    * Throw everything out of the queue
    */

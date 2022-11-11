@@ -52,7 +52,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
     });
 
     const transDbPromises = txPromises.map((processed) => async () => {
-      return await augmentTransactionUtxo(this.indexer.getActiveTransactionWriteTable(), this.indexer.chainType, block, processed);
+      return await augmentTransactionUtxo(this.interlacing.getActiveTransactionWriteTable(), this.interlacing.chainType, block, processed);
     });
 
     const transDb = (await retryMany(`UtxoBlockProcessor::initializeJobs(${block.number})`, transDbPromises)) as DBTransactionBase[];
@@ -61,7 +61,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
       return;
     }
 
-    const blockDb = augmentBlock(this.indexer, block);
+    const blockDb = augmentBlock(this.interlacing.dbBlockClass, block);
 
     this.stop();
 
@@ -99,7 +99,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
     });
 
     const transDbPromisses = txPromises.map((processed) => async () => {
-      return await augmentTransactionUtxo(this.indexer.getActiveTransactionWriteTable(), this.indexer.chainType, block, processed);
+      return await augmentTransactionUtxo(this.interlacing.getActiveTransactionWriteTable(), this.interlacing.chainType, block, processed);
     });
 
     const transDb = (await retryMany(
@@ -115,7 +115,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     this.markTopLevelJobDone();
 
-    const blockDb = augmentBlock(this.indexer.dbBlockClass, block);
+    const blockDb = augmentBlock(this.interlacing.dbBlockClass, block);
 
     this.stop();
 
@@ -133,7 +133,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
     this.block = block as AlgoBlock;
     const txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
       return () => {
-        return augmentTransactionAlgo(this.indexer.getActiveTransactionWriteTable(), block as AlgoBlock, algoTrans);
+        return augmentTransactionAlgo(this.interlacing.getActiveTransactionWriteTable(), block as AlgoBlock, algoTrans);
       };
     });
     const transDb = (await retryMany(
@@ -143,7 +143,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
       this.settings.retry
     )) as DBTransactionBase[];
     this.pause();
-    const blockDb = augmentBlock(this.indexer.dbBlockClass, block);
+    const blockDb = augmentBlock(this.interlacing.dbBlockClass, block);
 
     // eslint-disable-next-line
     criticalAsync(`AlgoBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));
@@ -167,7 +167,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
       const processed = new XrpTransaction(newObj);
 
       return () => {
-        return augmentTransactionXrp(this.indexer.getActiveTransactionWriteTable(), block, processed);
+        return augmentTransactionXrp(this.interlacing.getActiveTransactionWriteTable(), block, processed);
       };
     });
     const transDb = (await retryMany(
@@ -177,7 +177,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
       this.settings.retry
     )) as DBTransactionBase[];
     this.stop();
-    const blockDb = augmentBlock(this.indexer.dbBlockClass, block);
+    const blockDb = augmentBlock(this.interlacing.dbBlockClass, block);
 
     // eslint-disable-next-line
     criticalAsync(`XrpBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));

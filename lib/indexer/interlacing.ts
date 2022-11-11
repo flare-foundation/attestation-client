@@ -1,10 +1,11 @@
-import { Managed } from "@flarenetwork/mcc";
+import { ChainType, Managed } from "@flarenetwork/mcc";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
 import { sleepms } from "../utils/utils";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { Indexer } from "./indexer";
-import { SECONDS_PER_DAY } from "./indexer-utils";
+import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
+import { IDBBlockBase } from "../entity/indexer/dbBlock";
 
 /**
  * Manages table double buffering for transactions (DBTransactionBase)
@@ -34,8 +35,10 @@ export class Interlacing {
 
   private dbService: DatabaseService;
 
-  // private dbTransactionClasses: IDBTransactionBase[];
+  private dbTransactionClasses: IDBTransactionBase[];
+  public dbBlockClass: IDBBlockBase;
 
+  chainType: ChainType;
   private chainName: string;
 
   // private indexer: Indexer;
@@ -49,16 +52,16 @@ export class Interlacing {
    * @param dbTransactionClasses
    * @param timeRangeSec
    * @param blockRange
-   * @param chainName
+   * @param chainType
    * @returns
    */
   public async initialize(
     logger: AttLogger,
     dbService: DatabaseService,
-    dbTransactionClasses: IDBTransactionBase[],
+    // dbTransactionClasses: IDBTransactionBase[],
     timeRangeSec: number,
     blockRange: number,
-    chainName: string
+    chainType: ChainType
   ) {
     const items = [];
 
@@ -68,12 +71,15 @@ export class Interlacing {
 
     this.timeRange = timeRangeSec * SECONDS_PER_DAY;
     this.blockRange = blockRange;
-
-    this.chainName = chainName;
+    const prepared = prepareIndexerTables(chainType);
+    this.dbBlockClass = prepared.blockTable; // quick fix, to be stored somewhere else
+    this.dbTransactionClasses = prepared.transactionTable;
+    this.chainType = chainType;
+    this.chainName = ChainType[chainType];
 
     // get first block from both transaction tables
-    items.push(await dbService.connection.getRepository(dbTransactionClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
-    items.push(await dbService.connection.getRepository(dbTransactionClasses[1]).find({ order: { blockNumber: "ASC" }, take: 1 }));
+    items.push(await dbService.connection.getRepository(this.dbTransactionClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
+    items.push(await dbService.connection.getRepository(this.dbTransactionClasses[1]).find({ order: { blockNumber: "ASC" }, take: 1 }));
 
     if (items[0].length === 0 && items[1].length === 0) {
       // if both tables are empty we start with 0 and leave timeRange at -1, this indicates that it will be set on 1st update
@@ -100,18 +106,18 @@ export class Interlacing {
     this.endBlockNumber = items[this.index][0].blockNumber + this.blockRange;
   }
 
-  public get activeIndex() {
+  public get activeIndex(): number {
     return this.index;
   }
 
-  // public getActiveTransactionWriteTable(): IDBTransactionBase {
-  //   // we write into table by active index:
-  //   //  0 - table0
-  //   //  1 - table1
-  //   return this.dbTransactionClasses[this.index];
-  // }
+  public getActiveTransactionWriteTable(): IDBTransactionBase {
+    // we write into table by active index:
+    //  0 - table0
+    //  1 - table1
+    return this.dbTransactionClasses[this.index];
+  }
 
-  private getTransactionDropTableName(): any {
+  private getTransactionDropTableName(): string {
     // we drop table by active index:
     //  0 - table0
     //  1 - table1
@@ -119,7 +125,7 @@ export class Interlacing {
     return this.getTransactionTableNameForIndex(this.activeIndex);
   }
 
-  private getTransactionTableNameForIndex(index: number): any {
+  private getTransactionTableNameForIndex(index: number): string {
     return `${this.chainName.toLowerCase()}_transactions${index}`;
   }
 

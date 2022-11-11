@@ -2,44 +2,44 @@ import { IBlock, Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { Indexer } from "../indexer/indexer";
 import { criticalAsync } from "../indexer/indexer-utils";
+import { Interlacing } from "../indexer/interlacing";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
 import { CachedMccClient } from "./CachedMccClient";
 
-
 /**
  * Limiting processor is a pauseable scheduler of async function calls. It is mainly
- * used for processing transactions in a block. For example, given a block, 
- * one may need to asynchronous process all the transactions in a block, where processing each 
- * transaction may require making additional async calls. For example for an UTXO transaction, 
+ * used for processing transactions in a block. For example, given a block,
+ * one may need to asynchronous process all the transactions in a block, where processing each
+ * transaction may require making additional async calls. For example for an UTXO transaction,
  * we may want to read all the input transactions. A limiting processor instance is used to process
  * a single block. This triggers processing of the block transactions in the sequence, which are considered
  * as the top level jobs. Each transaction processing triggers further processing of the input transactions
- * as sub-jobs. While top level jobs (block transactions) are processed in the sequence (using queue),  
+ * as sub-jobs. While top level jobs (block transactions) are processed in the sequence (using queue),
  * second level jobs (input transactions) are injected to the beginning of the queue thus implying that
- * start of processing of the next top level job has lower priority then the start of sub-jobs of 
+ * start of processing of the next top level job has lower priority then the start of sub-jobs of
  * previous top level jobs.
- * 
- * Such a processing can be paused at any time. Note that limiting processor is supposed to work with 
- * cached client, which actually fetches and caches responses for the transaction data from API nodes. 
- * In addition the cached client maintains a queue of scheduled calls, which are in processing or are to 
- * be processed. Since the client is rate-limited, limiting processor pushes the jobs (API calls) to the client 
- * in a controlled manner, taking care that there are not too many jobs in that queue, roughly just for 
- * the next 1 second. In such a way, when the limiting processor is paused, the jobs that are still 
- * in processing clear out in about 1 second. By pausing a limiting processor, we essentially 
- * temporarily stop processing a blok on a certain transaction. Processing can be resumed later at 
+ *
+ * Such a processing can be paused at any time. Note that limiting processor is supposed to work with
+ * cached client, which actually fetches and caches responses for the transaction data from API nodes.
+ * In addition the cached client maintains a queue of scheduled calls, which are in processing or are to
+ * be processed. Since the client is rate-limited, limiting processor pushes the jobs (API calls) to the client
+ * in a controlled manner, taking care that there are not too many jobs in that queue, roughly just for
+ * the next 1 second. In such a way, when the limiting processor is paused, the jobs that are still
+ * in processing clear out in about 1 second. By pausing a limiting processor, we essentially
+ * temporarily stop processing a blok on a certain transaction. Processing can be resumed later at
  * the point of stopping. Once all the transactions (top-level) jobs are completed, the processing of
  * the limiting processor class is done and results can be extracted and used elsewhere.
- * 
- * Such a functionality is important in managing the priority of block processing on chains that 
- * have several forks. The priority is always the main fork, but as it switches on a node, 
- * we pause limiting block processor and resume/initialize a limiting processor on the block 
- * of the same height on the other fork that became main now. 
- * This happens for every switch. Since transaction calls are cached by 
- * caching client and since the blocks on the same height are likely to contain a large number of 
+ *
+ * Such a functionality is important in managing the priority of block processing on chains that
+ * have several forks. The priority is always the main fork, but as it switches on a node,
+ * we pause limiting block processor and resume/initialize a limiting processor on the block
+ * of the same height on the other fork that became main now.
+ * This happens for every switch. Since transaction calls are cached by
+ * caching client and since the blocks on the same height are likely to contain a large number of
  * same transactions, caching helps in preventing unnecessary API calls.
- * 
+ *
  *
  */
 export interface LimitingProcessorOptions {
@@ -108,12 +108,13 @@ export class LimitingProcessor {
 
   block: IBlock;
 
-  indexer: Indexer;
+  // indexer: Indexer; //only needed in block processor
+  interlacing: Interlacing;
 
-  constructor(indexer: Indexer, options?: LimitingProcessorOptions) {
-    this.indexer = indexer;
+  constructor(interlacing: Interlacing, client: CachedMccClient, options?: LimitingProcessorOptions) {
+    this.interlacing = interlacing;
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
-    this.client = indexer.cachedClient;
+    this.client = client;
     // eslint-disable-next-line
     criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }
@@ -131,7 +132,7 @@ export class LimitingProcessor {
   /**
    * Resumes the limiting processor
    * @param debug enables debug mode
-   * @returns 
+   * @returns
    */
   public async resume(debug = false) {
     if (this.isActive || this.isCompleted) {
@@ -216,10 +217,10 @@ export class LimitingProcessor {
   }
 
   /**
-   * Call wrapper that packs the job of executing an async function to a promise 
+   * Call wrapper that packs the job of executing an async function to a promise
    * @param func async function to be called on job start
    * @param prepend whether the job should be prepended or appended to the queue
-   * @returns 
+   * @returns
    */
   public call(func: any, prepend = false) {
     return new Promise((resolve, reject) => {

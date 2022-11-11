@@ -1,6 +1,7 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
+import { DBBlockALGO, DBBlockBase, IDBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
 import {
+  IDBTransactionBase,
   DBTransactionALGO0,
   DBTransactionALGO1,
   DBTransactionBase,
@@ -25,7 +26,7 @@ export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
  * @param type - chain type
  * @category Indexer
  */
-export function prepareIndexerTables(type: ChainType): { transactionTable: DBTransactionBase[]; blockTable: DBBlockBase } {
+export function prepareIndexerTables(type: ChainType): { transactionTable: IDBTransactionBase[]; blockTable: IDBBlockBase } {
   const transactionTable = [];
   let blockTable;
   switch (type) {

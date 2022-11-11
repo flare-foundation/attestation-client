@@ -32,7 +32,6 @@ describe("augmentBlock", () => {
 describe("augmentTransaction", () => {
   it("Should create entity from a transaction for BTC", async () => {
     const block = new UtxoBlock(resBTCBlock);
-
     const tx = new UtxoTransaction(resBTCTx);
     const waitTx = async () => {
       return tx;

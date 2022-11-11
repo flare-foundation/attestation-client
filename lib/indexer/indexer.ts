@@ -3,9 +3,9 @@ import { exit } from "process";
 import { EntityTarget } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
-import { DBBlockBase } from "../entity/indexer/dbBlock";
+import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { failureCallback, retry } from "../utils/PromiseTimeout";
@@ -61,9 +61,9 @@ export class Indexer {
   preparedBlocks = new Map<number, PreparedBlock[]>();
 
   // two interlacing table entity classes for confirmed transaction storage
-  dbTransactionClasses: DBTransactionBase[]; //set by prepareTables()
+  dbTransactionClasses: IDBTransactionBase[]; //set by prepareTables()
   // entity class for the block table
-  dbBlockClass; //set by prepareTables()
+  dbBlockClass: IDBBlockBase; //set by prepareTables()
 
   // bottom block in the transaction tables - used to check if we have enough history
   bottomBlockTime = undefined;
@@ -357,16 +357,17 @@ export class Indexer {
     this.dbBlockClass = prepared.blockTable;
   }
 
+  //put this into interlacing
   /**
    * Returns current active transaction table managed by interlacing
    * @returns
    */
-  public getActiveTransactionWriteTable(): DBTransactionBase {
+  public getActiveTransactionWriteTable(): IDBTransactionBase {
     // we write into table by active index:
     //  0 - table0
     //  1 - table1
 
-    const index = this.interlace.getActiveIndex();
+    const index = this.interlace.activeIndex;
 
     return this.dbTransactionClasses[index];
   }
@@ -394,7 +395,7 @@ export class Indexer {
       return false;
     }
 
-    this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.getActiveIndex()})`);
+    this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.activeIndex})`);
     const transactionClass = this.getActiveTransactionWriteTable() as any;
 
     // fix data

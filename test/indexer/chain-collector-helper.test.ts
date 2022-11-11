@@ -10,20 +10,16 @@ import {
   XrpTransaction,
   xrp_ensure_data,
 } from "@flarenetwork/mcc";
-import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
+import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
-import { Indexer } from "../../lib/indexer/indexer";
 import { ChainType } from "@flarenetwork/mcc";
-import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
-import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
 import { expect } from "chai";
-import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
+import { augmentTransactionUtxo, augmentTransactionXrp } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
 import { DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
 import * as resXRPBlock from "../mockData/XRPBlock.json";
 import * as resXRPTx from "../mockData/XRPTx.json";
-const fs = require("fs");
 
 describe("augmentBlock", () => {
   it("Should create entity for a block", async () => {

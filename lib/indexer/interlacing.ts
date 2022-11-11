@@ -2,6 +2,7 @@ import { Managed } from "@flarenetwork/mcc";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
 import { sleepms } from "../utils/utils";
+import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { Indexer } from "./indexer";
 import { SECONDS_PER_DAY } from "./indexer-utils";
 
@@ -33,6 +34,8 @@ export class Interlacing {
 
   private dbService: DatabaseService;
 
+  // private dbTransactionClasses: IDBTransactionBase[];
+
   private chainName: string;
 
   // private indexer: Indexer;
@@ -43,13 +46,20 @@ export class Interlacing {
    *
    * @param logger
    * @param dbService
-   * @param dbClasses
+   * @param dbTransactionClasses
    * @param timeRangeSec
    * @param blockRange
    * @param chainName
    * @returns
    */
-  public async initialize(logger: AttLogger, dbService: DatabaseService, dbClasses: any[], timeRangeSec: number, blockRange: number, chainName: string) {
+  public async initialize(
+    logger: AttLogger,
+    dbService: DatabaseService,
+    dbTransactionClasses: IDBTransactionBase[],
+    timeRangeSec: number,
+    blockRange: number,
+    chainName: string
+  ) {
     const items = [];
 
     // this.indexer = indexer;
@@ -62,8 +72,8 @@ export class Interlacing {
     this.chainName = chainName;
 
     // get first block from both transaction tables
-    items.push(await dbService.connection.getRepository(dbClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
-    items.push(await dbService.connection.getRepository(dbClasses[1]).find({ order: { blockNumber: "ASC" }, take: 1 }));
+    items.push(await dbService.connection.getRepository(dbTransactionClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
+    items.push(await dbService.connection.getRepository(dbTransactionClasses[1]).find({ order: { blockNumber: "ASC" }, take: 1 }));
 
     if (items[0].length === 0 && items[1].length === 0) {
       // if both tables are empty we start with 0 and leave timeRange at -1, this indicates that it will be set on 1st update
@@ -90,16 +100,23 @@ export class Interlacing {
     this.endBlockNumber = items[this.index][0].blockNumber + this.blockRange;
   }
 
-  public getActiveIndex() {
+  public get activeIndex() {
     return this.index;
   }
+
+  // public getActiveTransactionWriteTable(): IDBTransactionBase {
+  //   // we write into table by active index:
+  //   //  0 - table0
+  //   //  1 - table1
+  //   return this.dbTransactionClasses[this.index];
+  // }
 
   private getTransactionDropTableName(): any {
     // we drop table by active index:
     //  0 - table0
     //  1 - table1
 
-    return this.getTransactionTableNameForIndex(this.getActiveIndex());
+    return this.getTransactionTableNameForIndex(this.activeIndex);
   }
 
   private getTransactionTableNameForIndex(index: number): any {

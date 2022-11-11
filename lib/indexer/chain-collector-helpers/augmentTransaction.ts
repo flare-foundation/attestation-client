@@ -10,7 +10,7 @@ import {
   XrpBlock,
   XrpTransaction,
 } from "@flarenetwork/mcc";
-import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { DBTransactionBase, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";
 import { Indexer } from "../indexer";
 
@@ -39,8 +39,8 @@ import { Indexer } from "../indexer";
 // }
 
 //Do we want the whole block just for two lines???
-function augmentTransactionBase(dbTransaction: any, chainType: ChainType, block: IBlock, txData: ITransaction): DBTransactionBase {
-  const txEntity = new dbTransaction() as DBTransactionBase;
+function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: ChainType, block: IBlock, txData: ITransaction): DBTransactionBase {
+  const txEntity = new dbTransaction();
 
   txEntity.chainType = chainType;
   txEntity.transactionId = prepareString(txData.stdTxid, 64);

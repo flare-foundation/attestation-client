@@ -1,5 +1,5 @@
 import { IBlock } from "@flarenetwork/mcc";
-import { DBBlockBase } from "../../entity/indexer/dbBlock";
+import { DBBlockBase, IDBBlockBase } from "../../entity/indexer/dbBlock";
 import { prepareString } from "../../utils/utils";
 import { Indexer } from "../indexer";
 
@@ -11,8 +11,8 @@ import { Indexer } from "../indexer";
  * @param block block as returned by MCC
  * @returns
  */
-export function augmentBlock(dbBlockClass: any, block: IBlock): DBBlockBase {
-  const entity = new dbBlockClass() as DBBlockBase;
+export function augmentBlock(dbBlockClass: IDBBlockBase, block: IBlock): DBBlockBase {
+  const entity = new dbBlockClass();
   entity.blockNumber = block.number;
   entity.blockHash = prepareString(block.stdBlockHash, 128);
   entity.timestamp = block.unixTimestamp;

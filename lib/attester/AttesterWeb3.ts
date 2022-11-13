@@ -88,14 +88,14 @@ export class AttesterWeb3 {
 
       const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-      const { receipt, nonce } = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
+      const extReceipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
 
-      if (receipt) {
-        await AttestationRoundManager.state.saveRoundCommited(roundId, nonce, receipt.transactionHash);
-        await AttestationRoundManager.state.saveRoundRevealed(roundId - 1, nonce, receipt.transactionHash);
+      if (extReceipt.receipt) {
+        await AttestationRoundManager.state.saveRoundCommited(roundId, extReceipt.nonce, extReceipt.receipt.transactionHash);
+        await AttestationRoundManager.state.saveRoundRevealed(roundId - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
       }
 
-      return receipt;
+      return extReceipt.receipt;
     } else {
       this.logger.warning(`signAndFinalize3 skipped in ^edevelopment mode^^`);
 

@@ -72,7 +72,7 @@ export class AttesterWeb3 {
     this.check(hashedRandom);
     this.check(revealedRandomPrev);
 
-    const fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
+    const fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, maskedMerkleRoot, merkleRootPrev, revealedRandomPrev);
 
     if (verbose) {
       this.logger.info(`action ................. : ${action}`);

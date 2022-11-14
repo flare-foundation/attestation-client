@@ -51,7 +51,6 @@ export class AttesterWeb3 {
    * @param hashedRandom - hashed random (old commit-reveal scheme)
    * @param revealedRandomPrev - revealed random (new and old commit-reveal scheme)
    * @param merkleRootPrev - revealed merkle root (new commit-reveal scheme)
-   * @param commitHash - commit hash (the new commit-reveal scheme)
    * @param verbose - whether loggin is verbose (default true)
    * @returns
    */
@@ -64,7 +63,6 @@ export class AttesterWeb3 {
     hashedRandom: string,
     revealedRandomPrev: string,
     merkleRootPrev: string,
-    commitHash: string,
     verbose = true
   ) {
     const roundId = bufferNumber.toNumber() - 1;
@@ -80,7 +78,6 @@ export class AttesterWeb3 {
       this.logger.info(`merkleRoot_n ........... : ^e${merkleRoot.toString()}`);
       this.logger.info(`random_n ............... : ^e${random.toString()}`);
       this.logger.info(`random_n-1 ............. : ${revealedRandomPrev.toString()}`);
-      this.logger.info(`commitHash_n ........... : ${commitHash.toString()}`);
     }
 
     if (process.env.NODE_ENV === "production") {

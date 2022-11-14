@@ -50,7 +50,6 @@ class MockAttesterWeb3 extends AttesterWeb3 {
         hashedRandom: string,
         revealedRandomPrev: string,
         merkleRootPrev: string,
-        commitHash: string,
         verbose = true
     ) {
         const roundId = bufferNumber.toNumber() - 1;

@@ -343,16 +343,8 @@ export class AttestationRound {
 
     this.roundMerkleRoot = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
-    this.roundMaskedMerkleRoot = xor32(this.roundMerkleRoot, this.roundRandom);
     this.roundHashedRandom = singleHash(this.roundRandom);
-    this.roundCommitHash = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
-
-    // validate
-    const hashTest = xor32(this.roundMaskedMerkleRoot, this.roundRandom);
-
-    if (hashTest !== this.roundMerkleRoot) {
-      this.logger.error2(`maskedHash calculated incorrectly !!!`);
-    }
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
     await AttestationRoundManager.state.saveRound(this, validated.length);

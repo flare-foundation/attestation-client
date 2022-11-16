@@ -1,15 +1,4 @@
-import {
-  IBlock,
-  IXrpGetBlockRes,
-  IXrpGetTransactionRes,
-  MCC,
-  UtxoBlock,
-  UtxoMccCreate,
-  UtxoTransaction,
-  XrpBlock,
-  XrpTransaction,
-  xrp_ensure_data,
-} from "@flarenetwork/mcc";
+import { IXrpGetBlockRes, IXrpGetTransactionRes, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction, xrp_ensure_data } from "@flarenetwork/mcc";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
 import { ChainType } from "@flarenetwork/mcc";
@@ -24,7 +13,7 @@ import * as resXRPTx from "../mockData/XRPTx.json";
 describe("augmentBlock", () => {
   it("Should create entity for a block", async () => {
     const block = new UtxoBlock(resBTCBlock);
-    const augBlock = await augmentBlock(DBBlockBTC, block);
+    const augBlock = augmentBlock(DBBlockBTC, block);
     expect(augBlock.blockNumber).to.equal(729_410);
   });
 });

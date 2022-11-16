@@ -36,7 +36,7 @@ export class Interlacing {
   private dbService: DatabaseService;
 
   private dbTransactionClasses: IDBTransactionBase[];
-  public dbBlockClass: IDBBlockBase;
+  public dbBlockClass: IDBBlockBase; // quick fix, to be stored somewhere else
 
   chainType: ChainType;
   private chainName: string;
@@ -58,10 +58,10 @@ export class Interlacing {
   public async initialize(
     logger: AttLogger,
     dbService: DatabaseService,
+    chainType: ChainType,
     // dbTransactionClasses: IDBTransactionBase[],
     timeRangeSec: number,
-    blockRange: number,
-    chainType: ChainType
+    blockRange: number
   ) {
     const items = [];
 
@@ -117,11 +117,10 @@ export class Interlacing {
     return this.dbTransactionClasses[this.index];
   }
 
-  private getTransactionDropTableName(): string {
+  public getTransactionDropTableName(): string {
     // we drop table by active index:
     //  0 - table0
     //  1 - table1
-
     return this.getTransactionTableNameForIndex(this.activeIndex);
   }
 
@@ -140,6 +139,7 @@ export class Interlacing {
     // in case table drop was requested in another async we need to wait until drop is completed
     while (this.tableLock) {
       await sleepms(1);
+      console.log("cakamo");
     }
 
     if (this.endBlockTime === -1) {
@@ -160,7 +160,7 @@ export class Interlacing {
     // change interlacing index
     this.index ^= 1;
 
-    this.logger.debug(`interlace ${this.index}`);
+    if (this.logger) this.logger.debug(`interlace ${this.index}`);
 
     // drop inactive table and create new one
     const time0 = Date.now();
@@ -172,7 +172,7 @@ export class Interlacing {
     await queryRunner.release();
     const time1 = Date.now();
 
-    this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`);
+    if (this.logger) this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`);
 
     this.tableLock = false;
 
@@ -196,19 +196,20 @@ export class Interlacing {
     // change interlacing index
     this.index = 0;
 
-    this.logger.debug(`interlace reset all`);
+    if (this.logger) this.logger.debug(`interlace reset all`);
 
     // drop inactive table and create new one
     for (let i = 0; i < 2; i++) {
       const queryRunner = this.dbService.connection.createQueryRunner();
       const tableName = this.getTransactionTableNameForIndex(i);
+      await queryRunner.connect();
       const table = await queryRunner.getTable(tableName);
       await queryRunner.dropTable(table);
       await queryRunner.createTable(table);
       await queryRunner.release();
     }
 
-    // drop all state info
+    // drop all state info (moved to indexer)
     // await this.indexer.dropAllStateInfo();
 
     this.tableLock = false;

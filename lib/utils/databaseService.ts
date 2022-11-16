@@ -1,7 +1,10 @@
 import { optional } from "@flarenetwork/mcc";
-import { Connection, createConnection } from "typeorm";
+import { Connection, createConnection, DataSource } from "typeorm";
+import { MysqlConnectionOptions } from "typeorm/driver/mysql/MysqlConnectionOptions";
 import { AttLogger, logException } from "./logger";
 import { sleepms } from "./utils";
+
+// temporary fix???
 
 export class DatabaseConnectOptions {
   @optional() type = "mysql";
@@ -12,126 +15,166 @@ export class DatabaseConnectOptions {
   password = "password";
 }
 
+export class DatabaseSourceOptions {
+  type = "mysql";
+  host = "localhost";
+  port = 3306;
+  database = "database";
+  username = "username";
+  password = "password";
+  synchronize = true;
+  logging = false;
+  entities = [`lib/entity/**/*.ts`];
+  migrations = [];
+  subscribers = [];
+}
+
 export class DatabaseService {
   private logger!: AttLogger;
 
-  _connection!: Connection;
+  // _connection!: Connection;
 
   private databaseName: string;
   private connectionName: string;
+  public dataSource: DataSource;
 
-  private options: DatabaseConnectOptions;
+  private options: DatabaseSourceOptions;
 
-  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "") {
+  public constructor(logger: AttLogger, options: DatabaseSourceOptions, databaseName = "", connectionName = "") {
     this.logger = logger;
 
     this.databaseName = databaseName;
     this.connectionName = connectionName == "" ? databaseName : connectionName;
 
-    this.options = options;
+    let connectoptions = {
+      type: options.type,
+      host: options.host,
+      port: options.port,
+      username: options.username,
+      password: options.password,
+      database: options.database,
+      entities: options.entities,
+      synchronize: options.synchronize,
+      logging: options.logging,
+    } as MysqlConnectionOptions;
+
+    this.dataSource = new DataSource(connectoptions);
+
+    // this.dataSource
+    //   .initialize()
+    //   .then((nekej) => {
+    //     console.log(nekej);
+    //   })
+    //   .catch((error) => console.log(error));
 
     // eslint-disable-next-line
-    this.connect();
   }
 
-  private async connect() {
-    // Typeorm/ES6/Typescript issue with importing modules
-    let path = this.databaseName;
-    if (path !== "") path += "/";
-    const entities = process.env.NODE_ENV === "development" ? `lib/entity/${path}**/*.ts` : `dist/lib/entity/${path}**/*.js`;
-
-    const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
-
-    this.logger.info(
-      `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
-    );
-    this.logger.debug2(`entity: ${entities}`);
-
-    let type:
-      | "mysql"
-      | "mariadb"
-      | "postgres"
-      | "cockroachdb"
-      | "sqlite"
-      | "mssql"
-      | "sap"
-      | "oracle"
-      | "cordova"
-      | "nativescript"
-      | "react-native"
-      | "sqljs"
-      | "mongodb"
-      | "aurora-data-api"
-      | "aurora-data-api-pg"
-      | "expo"
-      | "better-sqlite3"
-      | "capacitor";
-
-    type = "mysql";
-
-    switch (this.options.type) {
-      case "mysql":
-        type = "mysql";
-        break;
-      case "postgres":
-        type = "postgres";
-        break;
-      case "sqlite":
-        type = "sqlite";
-        break;
+  public async init() {
+    if (!this.dataSource.isInitialized) {
+      await this.dataSource.initialize();
     }
-
-    let options;
-
-    if (type === "sqlite") {
-      options = {
-        name: this.connectionName,
-        type: type,
-        database: this.options.database!,
-        entities: [entities],
-        migrations: [migrations],
-        synchronize: true,
-        logging: false,
-      };
-    } else {
-      options = {
-        name: this.connectionName,
-        type: type,
-        host: this.options.host,
-        port: this.options.port,
-        username: this.options.username,
-        password: this.options.password,
-        database: this.options.database,
-        entities: [entities],
-        migrations: [migrations],
-        synchronize: true,
-        migrationsRun: false,
-        logging: false,
-      };
-    }
-
-    createConnection(options)
-      .then(async (conn) => {
-        this.logger.info(`^Gconnected to database ^g^K${this.databaseName}^^`);
-        this._connection = conn;
-        return;
-      })
-      .catch(async (e) => {
-        logException(e, `connect`);
-
-        await sleepms(3000);
-        
-        // eslint-disable-next-line
-        this.connect();
-      });
   }
+
+  // private async connect() {
+  //   // Typeorm/ES6/Typescript issue with importing modules
+  //   // let path = this.databaseName;
+  //   const entities = `lib/entity/**/*.ts`;
+  //   // if (path !== "") path += "/";
+  //   // const entities = process.env.NODE_ENV === "development" ? `lib/entity/${path}**/*.ts` : `dist/lib/entity/${path}**/*.js`;
+
+  //   // const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
+
+  //   this.logger.info(
+  //     `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
+  //   );
+  //   this.logger.debug2(`entity: ${entities}`);
+
+  //   let type:
+  //     | "mysql"
+  //     | "mariadb"
+  //     | "postgres"
+  //     | "cockroachdb"
+  //     | "sqlite"
+  //     | "mssql"
+  //     | "sap"
+  //     | "oracle"
+  //     | "cordova"
+  //     | "nativescript"
+  //     | "react-native"
+  //     | "sqljs"
+  //     | "mongodb"
+  //     | "aurora-data-api"
+  //     | "aurora-data-api-pg"
+  //     | "expo"
+  //     | "better-sqlite3"
+  //     | "capacitor";
+
+  //   type = "mysql";
+
+  //   switch (this.options.type) {
+  //     case "mysql":
+  //       type = "mysql";
+  //       break;
+  //     case "postgres":
+  //       type = "postgres";
+  //       break;
+  //     case "sqlite":
+  //       type = "sqlite";
+  //       break;
+  //   }
+
+  //   let options;
+
+  //   if (type === "sqlite") {
+  //     options = {
+  //       name: this.connectionName,
+  //       type: type,
+  //       database: this.options.database!,
+  //       entities: [entities],
+  //       migrations: [],
+  //       synchronize: true,
+  //       logging: false,
+  //     };
+  //   } else {
+  //     options = {
+  //       name: this.connectionName,
+  //       type: type,
+  //       host: this.options.host,
+  //       port: this.options.port,
+  //       username: this.options.username,
+  //       password: this.options.password,
+  //       database: this.options.database,
+  //       entities: [entities],
+  //       migrations: [],
+  //       synchronize: true,
+  //       migrationsRun: false,
+  //       logging: false,
+  //     };
+  //   }
+
+  //   createConnection(options)
+  //     .then(async (conn) => {
+  //       this.logger.info(`^Gconnected to database ^g^K${this.databaseName}^^`);
+  //       this._connection = conn;
+  //       return;
+  //     })
+  //     .catch(async (e) => {
+  //       logException(e, `connect`);
+
+  //       await sleepms(3000);
+
+  //       // eslint-disable-next-line
+  //       this.connect();
+  //     });
+  // }
 
   public get connection() {
-    return this._connection;
+    return this.dataSource;
   }
 
   public get manager() {
-    if (this._connection) return this._connection.manager;
+    if (this.dataSource.manager) return this.dataSource.manager;
     throw Error(`no database connection ${this.databaseName}`);
   }
 

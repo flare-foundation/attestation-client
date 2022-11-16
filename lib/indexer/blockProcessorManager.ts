@@ -7,7 +7,7 @@ import { Indexer } from "./indexer";
 import { criticalAsync } from "./indexer-utils";
 /**
  * Manages a list of block processors, each processing a block (reading block metadata and transaction data).
- * Management includes starting, pausing, resuming, processing data on completion and switching processing of 
+ * Management includes starting, pausing, resuming, processing data on completion and switching processing of
  * active block according to priority.
  * @category Indexer
  */
@@ -25,7 +25,7 @@ export class BlockProcessorManager {
   // Called if before actual block processing we find out that the block processing is already completed.
   alreadyCompleteCallback: any;
 
-  // maps block number to block. 
+  // maps block number to block.
   // If block is hashed this indicates that the block is being processed or is in processing
   blockNumbersInProcessing = new Set<number>();
 
@@ -39,8 +39,8 @@ export class BlockProcessorManager {
   /**
    * Triggers processing of block with given block number. Used while syncing.
    * Several block processors will run in parallel while syncing.
-   * @param blockNumber 
-   * @returns 
+   * @param blockNumber
+   * @returns
    * Assumptions:
    * - blockNumber is valid
    */
@@ -55,20 +55,19 @@ export class BlockProcessorManager {
 
   /**
    * Triggers block processing for the block (if not started yet) while real time processing (after syncing).
-   * The function manages that only one block processor can be active in order to effectively manage 
-   * rate limited request queue on the client. All others are paused. 
+   * The function manages that only one block processor can be active in order to effectively manage
+   * rate limited request queue on the client. All others are paused.
    * This enable fast switching between processors according to priorities.
    * Each time the function is called the block processor for the `block` becomes active.
    * If the processor is completed, the function just calls back and exits.
    * @param block the block for which processor should be activated
-   * @returns 
+   * @returns
    * Assumptions:
    * - block is on height > N
    */
   async process(block: IBlock) {
-
     // check if processor for this block is already completed
-    if (this.blockProcessors.find(processor => processor.block.stdBlockHash === block.stdBlockHash && processor.isCompleted)) {
+    if (this.blockProcessors.find((processor) => processor.block.stdBlockHash === block.stdBlockHash && processor.isCompleted)) {
       this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
       // eslint-disable-next-line
       criticalAsync(`process -> BlockProcessorManager::alreadyCompleteCallback exception:`, () => this.alreadyCompleteCallback(block));
@@ -100,21 +99,23 @@ export class BlockProcessorManager {
     this.logger.info(`^w^Kprocess block ${validatedBlock.number}`);
 
     // newly created block processor starts automatically
-    const processor = new (BlockProcessor(this.indexer.cachedClient.chainType))(this.indexer);
+    const processor = new (BlockProcessor(this.indexer.cachedClient.chainType))(this.indexer.interlace, this.indexer.cachedClient);
     this.blockProcessors.push(processor);
 
     // terminate app on exception
     // eslint-disable-next-line
-    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
+    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () =>
+      processor.initializeJobs(validatedBlock, this.completeCallback)
+    );
   }
 
   /**
    * Triggers block processing for the block (if not started yet) while syncing.
    * @param block block to process
-   * @returns 
+   * @returns
    */
   async processSync(block: IBlock) {
-    if (this.blockProcessors.find(processor => processor.block.stdBlockHash === block.stdBlockHash)) {
+    if (this.blockProcessors.find((processor) => processor.block.stdBlockHash === block.stdBlockHash)) {
       return;
     }
 
@@ -122,19 +123,21 @@ export class BlockProcessorManager {
 
     this.logger.info(`^w^Ksync process block ${validatedBlock.number}`);
 
-    const processor = new (BlockProcessor(this.indexer.cachedClient.chainType))(this.indexer);
+    const processor = new (BlockProcessor(this.indexer.cachedClient.chainType))(this.indexer.interlace, this.indexer.cachedClient);
     this.blockProcessors.push(processor);
 
     // terminate app on exception
     // eslint-disable-next-line
-    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
+    criticalAsync(`process -> BlockProcessorManager::processor.initializeJobs exception:`, () =>
+      processor.initializeJobs(validatedBlock, this.completeCallback)
+    );
   }
 
   /**
-   * Waits until the block is valid. While waiting block can change. The valid confirmed 
-   * block on the same height is returned. 
+   * Waits until the block is valid. While waiting block can change. The valid confirmed
+   * block on the same height is returned.
    * NOTE: at the moment it is used with XRP only.
-   * @param block 
+   * @param block
    * @returns valid (confirmed) block on the same height as `block`
    */
   private async waitUntilBlockIsValid(block: IBlock): Promise<IBlock> {

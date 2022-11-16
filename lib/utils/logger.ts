@@ -142,7 +142,7 @@ export class ColorConsole extends Transport {
           // "2022-01-10T13:13:07.712Z"
 
           console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + color + processColors(text, color) + Reset);
-        } catch { }
+        } catch {}
       }
     }
 
@@ -157,7 +157,7 @@ function replaceAll(text: string, search: string, replaceWith: string): string {
     while (text.indexOf(search) >= 0) {
       text = text.replace(search, replaceWith);
     }
-  } catch { }
+  } catch {}
 
   return text;
 }
@@ -181,7 +181,7 @@ export function processColors(text: string, def: string) {
     text = replaceAll(text, "^c", BgCyan);
     text = replaceAll(text, "^w", BgWhite);
     text = replaceAll(text, "^e", BgGray);
-  } catch { }
+  } catch {}
 
   return text;
 }
@@ -209,7 +209,7 @@ const myCustomLevels = {
 
 const globalLogger = new Map<string, AttLogger>();
 
-let globalTestLogger: AttLogger = null;
+export let globalTestLogger: AttLogger = null;
 
 let globalLoggerLabel;
 let loggerName = "log";
@@ -229,7 +229,6 @@ export interface AttLogger extends winston.Logger {
 }
 
 function createLogger(label?: string, test = false): AttLogger {
-
   var logPath = "./logs/";
 
   if (process.env.LOG_PATH) {

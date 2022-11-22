@@ -49,10 +49,9 @@ export class Interlacing {
    *
    * @param logger
    * @param dbService
-   * @param dbTransactionClasses
+   * @param chainType
    * @param timeRangeSec
    * @param blockRange
-   * @param chainType
    * @returns
    */
   public async initialize(
@@ -68,6 +67,7 @@ export class Interlacing {
     // this.indexer = indexer;
     this.logger = logger;
     this.dbService = dbService;
+    await this.dbService.init(); //creates connection to database if there is none
 
     this.timeRange = timeRangeSec * SECONDS_PER_DAY;
     this.blockRange = blockRange;
@@ -139,7 +139,6 @@ export class Interlacing {
     // in case table drop was requested in another async we need to wait until drop is completed
     while (this.tableLock) {
       await sleepms(1);
-      console.log("cakamo");
     }
 
     if (this.endBlockTime === -1) {

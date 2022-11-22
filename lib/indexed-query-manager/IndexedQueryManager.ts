@@ -1,8 +1,8 @@
 import { MccClient, unPrefix0x } from "@flarenetwork/mcc";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { DBBlockBase } from "../entity/indexer/dbBlock";
+import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
 import { getGlobalLogger } from "../utils/logger";
@@ -24,7 +24,7 @@ import {
   UpperBoundaryCheck,
 } from "./indexed-query-manager-types";
 
-// no supported chain produces more than 20 blocks per second 
+// no supported chain produces more than 20 blocks per second
 const MAX_BLOCKCHAIN_PRODUCTION = 20;
 
 ////////////////////////////////////////////////////////
@@ -32,7 +32,6 @@ const MAX_BLOCKCHAIN_PRODUCTION = 20;
 // queries on the indexer database such that the
 // upper and lower bounds are synchronized.
 ////////////////////////////////////////////////////////
-
 
 /**
  * A class used to carry out queries on the indexer database such that the upper and lower bounds are synchronized.
@@ -46,10 +45,10 @@ export class IndexedQueryManager {
   debugLastConfirmedBlock: number | undefined = undefined;
 
   //Two transaction table entities `transaction0` and `transaction1`
-  transactionTable = [undefined, undefined];
+  transactionTable: IDBTransactionBase[];
 
   // Block table entity
-  blockTable;
+  blockTable: IDBBlockBase;
 
   constructor(options: IndexedQueryManagerOptions) {
     // The database service can be passed through options or generated in place
@@ -93,7 +92,7 @@ export class IndexedQueryManager {
 
   /**
    * Returns the last confirmed block height (`N`) for which all transactions are in database
-   * @returns 
+   * @returns
    */
   public async getLastConfirmedBlockNumber(): Promise<number> {
     if (this.debugLastConfirmedBlock === undefined || this.debugLastConfirmedBlock === null) {
@@ -108,7 +107,7 @@ export class IndexedQueryManager {
 
   /**
    * Returns last block height (`T`) and the timestamp of the last sampling by indexer
-   * @returns 
+   * @returns
    */
   public async getLatestBlockTimestamp(): Promise<BlockHeightSample | null> {
     if (this.debugLastConfirmedBlock === undefined || this.debugLastConfirmedBlock === null) {
@@ -145,11 +144,10 @@ export class IndexedQueryManager {
     return true;
   }
 
-
   /**
    * Allows for artificial setup of the last known confirmed block. For debuging use.
-   * @param blockNumber 
-   * @returns 
+   * @param blockNumber
+   * @returns
    */
   public async setDebugLastConfirmedBlock(blockNumber: number | undefined): Promise<number | undefined> {
     if (blockNumber == null) {
@@ -264,7 +262,7 @@ export class IndexedQueryManager {
 
   /**
    * Gets a block for a given hash
-   * @param hash 
+   * @param hash
    * @returns the block with given hash, if exists, `null` otherwise
    */
   async getBlockByHash(hash: string): Promise<DBBlockBase | null> {
@@ -324,10 +322,10 @@ export class IndexedQueryManager {
 
   /**
    * Checks whether lower boundary of query range within confirmed transactions is met.
-   * For that at least one confirmed block with lower timestamp that lower boundary timestamp 
+   * For that at least one confirmed block with lower timestamp that lower boundary timestamp
    * must exist in the database.
-   * @param roundId 
-   * @returns 
+   * @param roundId
+   * @returns
    */
   private async lowerBoundaryCheck(roundId: number): Promise<boolean> {
     // lower boundary timestamp
@@ -378,7 +376,7 @@ export class IndexedQueryManager {
 
   /**
    * Carries the boundary synchronized query and tries to obtain transaction meeting the query criteria from the indexer database.
-   * @param params 
+   * @param params
    * @returns search status, required
    * transaction block, if found,
    * lower and upper boundary blocks, if required by query parameters.
@@ -415,7 +413,7 @@ export class IndexedQueryManager {
 
   /**
    * Carries the boundary synchronized query and tries to obtain transactions meeting the query criteria from the indexer database.
-   * @param params 
+   * @param params
    * @returns search status, list of transactions meeting query criteria, and lower and upper boundary blocks, if required by
    * query parameters.
    */
@@ -460,7 +458,7 @@ export class IndexedQueryManager {
   /**
    * Gets the first confirmed block with the timestamp greater or equal to the given
    * timestamp
-   * @param timestamp 
+   * @param timestamp
    * @returns the block, if exists, otherwise `null`
    */
   public async getFirstConfirmedBlockAfterTime(timestamp: number): Promise<DBBlockBase | null> {
@@ -486,9 +484,9 @@ export class IndexedQueryManager {
   }
 
   /**
-   * Checks whether there is a confirmed block with timestamp strictly before given timestamp in the 
+   * Checks whether there is a confirmed block with timestamp strictly before given timestamp in the
    * indexer database
-   * @param timestamp 
+   * @param timestamp
    * @returns `true` if the block exists, `false` otherwise
    */
   public async hasIndexerConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<boolean> {
@@ -544,13 +542,13 @@ export class IndexedQueryManager {
     // upper bound proof has to be on one of the longest chains (viewed locally)
     const query = this.dbService.connection.manager
       .createQueryBuilder(this.blockTable, "block")
-      .where("block.blockNumber = :blockNumber", { blockNumber: confBlock.blockNumber })
-    const result = await query.getMany() as DBBlockBase[];
+      .where("block.blockNumber = :blockNumber", { blockNumber: confBlock.blockNumber });
+    const result = (await query.getMany()) as DBBlockBase[];
 
     for (const entity of result) {
       if (entity.confirmed) {
         // we are handling the case where block was confirmed while we were waiting for the query above
-        if(entity.blockHash === confBlock.blockHash) {
+        if (entity.blockHash === confBlock.blockHash) {
           return true;
         }
         // some other block was confirmed on that height and data upperBoundProof is invalid

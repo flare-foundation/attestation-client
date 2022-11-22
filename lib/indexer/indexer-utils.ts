@@ -87,8 +87,10 @@ export async function criticalAsync(label: string, funct: (...args: any[]) => Pr
     logException(error, label);
 
     const onFailure = getRetryFailureCallback();
+    console.log(onFailure);
     if (!onFailure) {
-      getGlobalLogger().error2(`application exit`);
+      const logger = getGlobalLogger();
+      if (logger) logger.error2(`application exit`);
       process.exit(2);
     } else {
       onFailure(label);

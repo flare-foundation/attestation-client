@@ -896,9 +896,9 @@ export class Indexer {
     await this.interlace.initialize(
       this.logger,
       this.dbService,
+      this.chainType,
       this.chainConfig.minimalStorageHistoryDays,
-      this.chainConfig.minimalStorageHistoryBlocks,
-      this.chainType
+      this.chainConfig.minimalStorageHistoryBlocks
     );
 
     // check if indexer database is continous

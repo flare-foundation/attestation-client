@@ -17,5 +17,8 @@ export function augmentBlock(dbBlockClass: IDBBlockBase, block: IBlock): DBBlock
   entity.blockHash = prepareString(block.stdBlockHash, 128);
   entity.timestamp = block.unixTimestamp;
   entity.confirmed = true;
+  entity.transactions = block.transactionCount;
+  entity.previousBlockHash = block.previousBlockHash;
+
   return entity;
 }

@@ -58,10 +58,10 @@ export class DelayedExecution {
   func: any;
   resolve: any;
   reject: any;
-  tpp: LimitingProcessor;
+  // tpp: LimitingProcessor;
 
-  constructor(limitingProcessor: LimitingProcessor, func: any, resolve: any, reject: any) {
-    this.tpp = limitingProcessor;
+  constructor(func: any, resolve: any, reject: any) {
+    // this.tpp = limitingProcessor;
     this.func = func;
     this.resolve = resolve;
     this.reject = reject;
@@ -115,6 +115,7 @@ export class LimitingProcessor {
     this.interlacing = interlacing;
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = client;
+    //????calling async in constructor????
     // eslint-disable-next-line
     criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }
@@ -208,7 +209,7 @@ export class LimitingProcessor {
    * @param prepend whether the job should be prepended or appended to the queue
    */
   private delayExecuteCallback(func: any, resolve: any, reject: any, prepend = false) {
-    const de = new DelayedExecution(this, func, resolve, reject);
+    const de = new DelayedExecution(func, resolve, reject);
     if (prepend) {
       this.queue.prepend(de);
     } else {

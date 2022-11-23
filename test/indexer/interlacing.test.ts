@@ -1,7 +1,7 @@
 import { ChainType, IUtxoGetBlockRes, UtxoBlock, UtxoTransaction } from "@flarenetwork/mcc";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
-import { globalTestLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, globalTestLogger } from "../../lib/utils/logger";
 import { expect } from "chai";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
@@ -10,6 +10,8 @@ import * as resBTCTxAlt from "../mockData/BTCTxAlt.json";
 import { augmentTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { afterEach } from "mocha";
+const utils = require("../../lib/utils/utils");
+import sinon from "sinon";
 
 describe("interlacing", () => {
   const databaseConnectOptions = new DatabaseSourceOptions();
@@ -71,38 +73,64 @@ describe("interlacing", () => {
   });
 
   it("should reset all", async () => {
-    await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(0);
   });
 
-  it("should get index from later database", async () => {
+  it("should get index from later database #1", async () => {
     await dataService.dataSource.manager.save(augTx0);
     await dataService.dataSource.manager.save(augTxAlt1);
-    await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(1);
   });
 
+  it("should get index from later database #2", async () => {
+    await dataService.dataSource.manager.save(augTx1);
+    await dataService.dataSource.manager.save(augTxAlt0);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+    expect(interlacing.activeIndex).to.be.equal(0);
+  });
+
   it("should update initial", async () => {
-    await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     let res = await interlacing.update(1668574798, 763380);
     expect(res).to.be.false;
   });
 
   it("should update", async () => {
     await dataService.dataSource.manager.save(augTx0);
-    await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     let res = await interlacing.update(16685747980, 7633800);
     expect(res).to.be.true;
     expect(interlacing.activeIndex).to.be.equal(1);
   });
 
+  it("Should wait for table to unlock update", async function () {
+    await dataService.dataSource.manager.save(augTx0);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+
+    interlacing.update(16685757980, 7643800);
+    const spy = sinon.spy(utils, "sleepms");
+    await interlacing.update(16685747980, 7633800);
+    expect(spy.calledWith(1)).to.be.true;
+    sinon.restore();
+  });
+
+  it("Should wait for table to unlock resetAll", async function () {
+    await dataService.dataSource.manager.save(augTx0);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+    interlacing.resetAll();
+    const spy = sinon.spy(utils, "sleepms");
+    expect(spy.calledWith(1)).to.be.false;
+    await interlacing.resetAll();
+    expect(spy.calledWith(1)).to.be.true;
+  });
+
   it("should not update", async () => {
     await dataService.dataSource.manager.save(augTx0);
-    await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     let res = await interlacing.update(10, 10);
     expect(res).to.be.false;
     // expect(interlacing.activeIndex).to.be.equal(0);
   });
-
-  // it("should wait if tables are locked", async () => {} });
 });

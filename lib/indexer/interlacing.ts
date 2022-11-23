@@ -159,7 +159,7 @@ export class Interlacing {
     // change interlacing index
     this.index ^= 1;
 
-    if (this.logger) this.logger.debug(`interlace ${this.index}`);
+    this.logger.debug(`interlace ${this.index}`);
 
     // drop inactive table and create new one
     const time0 = Date.now();
@@ -171,7 +171,7 @@ export class Interlacing {
     await queryRunner.release();
     const time1 = Date.now();
 
-    if (this.logger) this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`);
+    this.logger.info(`drop table '${tableName}' (time ${time1 - time0}ms)`);
 
     this.tableLock = false;
 
@@ -195,7 +195,7 @@ export class Interlacing {
     // change interlacing index
     this.index = 0;
 
-    if (this.logger) this.logger.debug(`interlace reset all`);
+    this.logger.debug(`interlace reset all`);
 
     // drop inactive table and create new one
     for (let i = 0; i < 2; i++) {

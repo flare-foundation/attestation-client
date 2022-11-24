@@ -12,9 +12,9 @@ import sinon from "sinon";
 
 describe("indexedQueryManager", () => {
   const databaseConnectOptions = new DatabaseSourceOptions();
-  databaseConnectOptions.database = "AttDBtest";
-  databaseConnectOptions.username = "root";
-  databaseConnectOptions.password = "praporscak";
+  databaseConnectOptions.database = process.env.DATABASE_NAME2;
+  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
+  databaseConnectOptions.password = process.env.DATBASE_PASS;
   const dataService = new DatabaseService(globalTestLogger, databaseConnectOptions);
 
   const options: IndexedQueryManagerOptions = {

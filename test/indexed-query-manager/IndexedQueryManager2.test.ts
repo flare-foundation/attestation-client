@@ -1,14 +1,18 @@
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { BlockQueryParams, IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
+import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { ChainType, round, UtxoBlock } from "@flarenetwork/mcc";
 import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
 import { globalTestLogger } from "../../lib/utils/logger";
 import { expect } from "chai";
 import { DBState } from "../../lib/entity/indexer/dbState";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
+import * as resBTCTx from "../mockData/BTCTx.json";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import sinon from "sinon";
+import { exec } from "child_process";
+import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
+import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 
 describe("indexedQueryManager", () => {
   const databaseConnectOptions = new DatabaseSourceOptions();
@@ -28,8 +32,17 @@ describe("indexedQueryManager", () => {
 
   const indexedQueryManager = new IndexedQueryManager(options);
 
+  let augTx0: DBTransactionBase;
+  let augTxAlt0: DBTransactionBase;
+  let augTx1: DBTransactionBase;
+  let augTxAlt1: DBTransactionBase;
+
   before(async () => {
     await dataService.init();
+    augTx0 = await promAugTxBTC0;
+    augTxAlt0 = await promAugTxBTCALt0;
+    augTx1 = await promAugTxBTC1;
+    augTxAlt1 = await promAugTxBTCAlt1;
   });
 
   it("Should get chain N ", () => {
@@ -92,102 +105,144 @@ describe("indexedQueryManager", () => {
     sinon.restore();
   });
 
-  it("Should query block by hash", async () => {
-    const params: BlockQueryParams = {
-      hash: resBTCBlock.hash,
-      roundId: 10,
-    };
+  describe("block query", function () {
+    it("Should query block by hash", async () => {
+      const params: BlockQueryParams = {
+        hash: resBTCBlock.hash,
+        roundId: 10,
+      };
 
-    const block = new UtxoBlock(resBTCBlock);
-    const augBlock = augmentBlock(DBBlockBTC, block);
-    await dataService.manager.save(augBlock);
+      const block = new UtxoBlock(resBTCBlock);
+      const augBlock = augmentBlock(DBBlockBTC, block);
+      await dataService.manager.save(augBlock);
 
-    const blockQueried = await indexedQueryManager.queryBlock(params);
-    expect(blockQueried.result.blockNumber).to.be.eq(729410);
+      const blockQueried = await indexedQueryManager.queryBlock(params);
+      expect(blockQueried.result.blockNumber).to.be.eq(729410);
+    });
+
+    it("Should query block by id", async () => {
+      const params: BlockQueryParams = {
+        blockNumber: resBTCBlock.height,
+        roundId: 10,
+        confirmed: true,
+      };
+
+      // const block = new UtxoBlock(resBTCBlock);
+      // const augBlock = augmentBlock(DBBlockBTC, block);
+      // await dataService.manager.save(augBlock);
+
+      const blockQueried = await indexedQueryManager.queryBlock(params);
+      expect(blockQueried.result.blockHash).to.be.eq(resBTCBlock.hash);
+    });
+
+    it("Should getBlockByHash", async () => {
+      const blockQueried = await indexedQueryManager.getBlockByHash(resBTCBlock.hash);
+      expect(blockQueried.blockNumber).to.be.eq(resBTCBlock.height);
+    });
+    it("Should not getBlockByHash", async () => {
+      const blockQueried = await indexedQueryManager.getBlockByHash("");
+      expect(blockQueried).to.be.null;
+    });
+
+    it("Should setDebugLastConfirmedBlock", async () => {
+      await indexedQueryManager.setDebugLastConfirmedBlock(15);
+      expect(indexedQueryManager.debugLastConfirmedBlock).to.be.equal(15);
+      expect(await indexedQueryManager.getLastConfirmedBlockNumber()).to.be.eq(15);
+      expect((await indexedQueryManager.getLatestBlockTimestamp()).height).to.be.eq(20);
+    });
+
+    it("Should setDebugLastConfirmedBlock for negatives", async () => {
+      await indexedQueryManager.setDebugLastConfirmedBlock(-2);
+      expect(indexedQueryManager.debugLastConfirmedBlock).to.be.eq(14);
+    });
+
+    it("Should un setDebugLastConfirmedBlock", async () => {
+      await indexedQueryManager.setDebugLastConfirmedBlock(null);
+      expect(indexedQueryManager.debugLastConfirmedBlock).to.be.eq(undefined);
+    });
+
+    it("Should getFirstConfirmedBlockAfterTime", async () => {
+      const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(0);
+      expect(firstBlock.blockNumber).to.be.eq(729410);
+    });
+
+    it("Should not getFirstConfirmedBlockAfterTime", async () => {
+      const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(1648480396);
+      expect(firstBlock).to.be.null;
+    });
+
+    it("Should confirm hasIndexerConfirmedBlockStrictlyBeforeTime", async () => {
+      const firstBlock = await indexedQueryManager.hasIndexerConfirmedBlockStrictlyBeforeTime(1648480396);
+      expect(firstBlock).to.be.true;
+    });
+
+    it("Should not confirm hasIndexerConfirmedBlockStrictlyBeforeTime", async () => {
+      const firstBlock = await indexedQueryManager.hasIndexerConfirmedBlockStrictlyBeforeTime(5);
+      expect(firstBlock).to.be.false;
+    });
+
+    it("Should get getFirstConfirmedOverflowBlock", async function () {
+      let check = await indexedQueryManager.getFirstConfirmedOverflowBlock(5, 5);
+      expect(check.blockNumber).to.be.eq(729410);
+    });
+
+    it("Should not get getFirstConfirmedOverflowBlock", async function () {
+      let check = await indexedQueryManager.getFirstConfirmedOverflowBlock(5, 729412);
+      expect(check).to.be.eq(null);
+    });
+
+    it("Should validateForCutoffTime #1", async function () {
+      const block = new UtxoBlock(resBTCBlock);
+      const augBlock = augmentBlock(DBBlockBTC, block);
+      let validation = await indexedQueryManager.validateForCutoffTime(augBlock, 15);
+      expect(validation).to.be.true;
+    });
+
+    it("Should validateForCutoffTime #2", async function () {
+      const block = new UtxoBlock(resBTCBlock);
+      const augBlock = augmentBlock(DBBlockBTC, block);
+      let validation = await indexedQueryManager.validateForCutoffTime(augBlock, 1648480395 / 5 + 10);
+      expect(validation).to.be.true;
+    });
   });
 
-  it("Should query block by id", async () => {
-    const params: BlockQueryParams = {
-      blockNumber: resBTCBlock.height,
-      roundId: 10,
-      confirmed: true,
-    };
+  describe("Query transactions", function () {
+    before(async function () {
+      await dataService.manager.save(augTx0);
+      await dataService.manager.save(augTxAlt1);
+    });
 
-    // const block = new UtxoBlock(resBTCBlock);
-    // const augBlock = augmentBlock(DBBlockBTC, block);
-    // await dataService.manager.save(augBlock);
+    it("should query transaction", async function () {
+      let transactionQueryParams: TransactionQueryParams = {
+        roundId: 5,
+        endBlock: 763380,
+      };
 
-    const blockQueried = await indexedQueryManager.queryBlock(params);
-    expect(blockQueried.result.blockHash).to.be.eq(resBTCBlock.hash);
-  });
+      let res = await indexedQueryManager.queryTransactions(transactionQueryParams);
+      expect(res.result.length).to.be.eq(2);
+    });
 
-  it("Should getBlockByHash", async () => {
-    const blockQueried = await indexedQueryManager.getBlockByHash(resBTCBlock.hash);
-    expect(blockQueried.blockNumber).to.be.eq(resBTCBlock.height);
-  });
-  it("Should not getBlockByHash", async () => {
-    const blockQueried = await indexedQueryManager.getBlockByHash("");
-    expect(blockQueried).to.be.null;
-  });
+    it("should query transaction with txId", async function () {
+      let transactionQueryParams: TransactionQueryParams = {
+        roundId: 5,
+        endBlock: 763380,
 
-  it("Should setDebugLastConfirmedBlock", async () => {
-    await indexedQueryManager.setDebugLastConfirmedBlock(15);
-    expect(indexedQueryManager.debugLastConfirmedBlock).to.be.equal(15);
-    expect(await indexedQueryManager.getLastConfirmedBlockNumber()).to.be.eq(15);
-    expect((await indexedQueryManager.getLatestBlockTimestamp()).height).to.be.eq(20);
-  });
+        transactionId: "b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225",
+      };
 
-  it("Should setDebugLastConfirmedBlock for negatives", async () => {
-    await indexedQueryManager.setDebugLastConfirmedBlock(-2);
-    expect(indexedQueryManager.debugLastConfirmedBlock).to.be.eq(14);
-  });
+      let res = await indexedQueryManager.queryTransactions(transactionQueryParams);
+      expect(res.result.length).to.be.eq(1);
+    });
 
-  it("Should un setDebugLastConfirmedBlock", async () => {
-    await indexedQueryManager.setDebugLastConfirmedBlock(null);
-    expect(indexedQueryManager.debugLastConfirmedBlock).to.be.eq(undefined);
-  });
+    it("query should not return anything", async function () {
+      let transactionQueryParams: TransactionQueryParams = {
+        roundId: 5,
+        endBlock: 763380,
+        paymentReference: "b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225",
+      };
 
-  it("Should getFirstConfirmedBlockAfterTime", async () => {
-    const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(0);
-    expect(firstBlock.blockNumber).to.be.eq(729410);
-  });
-
-  it("Should not getFirstConfirmedBlockAfterTime", async () => {
-    const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(1648480396);
-    expect(firstBlock).to.be.null;
-  });
-
-  it("Should confirm  hasIndexerConfirmedBlockStrictlyBeforeTime", async () => {
-    const firstBlock = await indexedQueryManager.hasIndexerConfirmedBlockStrictlyBeforeTime(1648480396);
-    expect(firstBlock).to.be.true;
-  });
-
-  it("Should not confirm  hasIndexerConfirmedBlockStrictlyBeforeTime", async () => {
-    const firstBlock = await indexedQueryManager.hasIndexerConfirmedBlockStrictlyBeforeTime(5);
-    expect(firstBlock).to.be.false;
-  });
-
-  it("Should get getFirstConfirmedOverflowBlock", async function () {
-    let check = await indexedQueryManager.getFirstConfirmedOverflowBlock(5, 5);
-    expect(check.blockNumber).to.be.eq(729410);
-  });
-
-  it("Should not get getFirstConfirmedOverflowBlock", async function () {
-    let check = await indexedQueryManager.getFirstConfirmedOverflowBlock(5, 729412);
-    expect(check).to.be.eq(null);
-  });
-
-  it("Should validateForCutoffTime #1", async function () {
-    const block = new UtxoBlock(resBTCBlock);
-    const augBlock = augmentBlock(DBBlockBTC, block);
-    let validation = await indexedQueryManager.validateForCutoffTime(augBlock, 15);
-    expect(validation).to.be.true;
-  });
-
-  it("Should validateForCutoffTime #2", async function () {
-    const block = new UtxoBlock(resBTCBlock);
-    const augBlock = augmentBlock(DBBlockBTC, block);
-    let validation = await indexedQueryManager.validateForCutoffTime(augBlock, 1648480395 / 5 + 10);
-    expect(validation).to.be.true;
+      let res = await indexedQueryManager.queryTransactions(transactionQueryParams);
+      expect(res.result.length).to.be.eq(0);
+    });
   });
 });

@@ -410,25 +410,6 @@ export class Indexer {
         // block must be marked as confirmed
         if (transactions.length > 0) {
 
-          // let newTransactions = [];
-
-          // for( const tx of transactions ) {
-          //   const newTx = new transactionClass();
-
-          //   newTx.chainType=tx.chainType;
-          //   newTx.transactionId=tx.transactionId;
-          //   newTx.blockNumber=tx.blockNumber;
-          //   newTx.timestamp=tx.timestamp;
-          //   newTx.paymentReference=tx.paymentReference;
-          //   newTx.response=tx.response;
-          //   newTx.isNativePayment=tx.isNativePayment;
-          //   newTx.transactionType=tx.transactionType;
-
-          //   newTransactions.push( newTx );
-          // }
-
-          // await transaction.save(newTransactions);
-
           // fix transactions class to active interlace tranascation class
           const dummy = new transactionClass();
           for (let transaction of transactions) {
@@ -495,6 +476,8 @@ export class Indexer {
         const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber, confirmed: true } });
 
         this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
+
+        // @Luka: I get this null on LTC !!!
 
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
         const bottomStates = [this.getStateEntry(`Nbottom`, bottomBlockNumber), this.getStateEntry(`NbottomTime`, this.bottomBlockTime)];

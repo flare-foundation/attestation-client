@@ -217,7 +217,7 @@ export class ChainNode {
         attestation.processEndTime = getTimeMilli();
 
         if (verification.status === VerificationStatus.RECHECK_LATER) {
-          this.chainManager.logger.warning(`reverification ${attestation.data.request}`);
+          //this.chainManager.logger.warning(`reverification ${attestation.data.request}`);
 
           attestation.reverification = true;
 

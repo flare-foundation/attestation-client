@@ -5,9 +5,9 @@ import { expect } from "chai";
 
 //To be put into env. Why does it not work????
 const BtcMccConnection = {
-  url: "https://bitcoin-api.flare.network",
-  username: "public",
-  password: "d681co1pe2l3wcj9adrm2orlk0j5r5gr3wghgxt58tvge594co0k1ciljxq9glei",
+  url: process.env.BTC_URL,
+  username: process.env.BTC_USERNAME,
+  password: process.env.BTC_PASSWORD,
 } as UtxoMccCreate;
 
 let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {

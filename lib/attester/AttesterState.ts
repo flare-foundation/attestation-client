@@ -1,5 +1,7 @@
+import { round } from "@flarenetwork/mcc";
+import { SubjectRemovedAndUpdatedError } from "typeorm";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -8,6 +10,28 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
  * in regard to specific round.
  */
 export class AttesterState {
+
+  private async saveOrUpdateRound(dbRound: DBRoundResult){
+
+      const round = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: dbRound.roundId } });
+
+      if( round ) {
+        try {
+          await AttestationRoundManager.dbServiceAttester.manager.update( DBRoundResult, round, dbRound );
+        }
+        catch( error ) {
+          logException( error , `saveOrUpdateRound.update(${dbRound.roundId})` );
+        }
+      }
+      else {
+        try {
+          await AttestationRoundManager.dbServiceAttester.manager.insert( DBRoundResult, dbRound );
+        }
+        catch( error ) {
+          logException( error , `saveOrUpdateRound.insert(${dbRound.roundId})` );
+        }
+    }
+  }
 
   /**
    * Stores all attestation round state data.
@@ -26,7 +50,8 @@ export class AttesterState {
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
 
-    await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    //await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    await this.saveOrUpdateRound( dbRound );
   }
 
   /**
@@ -41,7 +66,8 @@ export class AttesterState {
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
 
-    await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    //await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    await this.saveOrUpdateRound( dbRound );
   }
 
   /**
@@ -60,7 +86,8 @@ export class AttesterState {
     dbRound.commitNounce = nounce;
     dbRound.commitTransactionId = txid;
 
-    await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    //await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    await this.saveOrUpdateRound( dbRound );
   }
 
   /**
@@ -79,7 +106,8 @@ export class AttesterState {
     dbRound.revealNounce = nounce;
     dbRound.revealTransactionId = txid;
 
-    await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    //await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
+    await this.saveOrUpdateRound( dbRound );
   }
 
   /**

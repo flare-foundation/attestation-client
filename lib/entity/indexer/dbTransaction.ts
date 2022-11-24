@@ -1,10 +1,12 @@
-import { Column, Entity, Index } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 import { BaseEntity } from "../base/BaseEntity";
 
-export class DBTransactionBase extends BaseEntity {
+//Why not use transactionId as a primaryColumn
+// export class DBTransactionBase extends BaseEntity {
+export class DBTransactionBase {
   @Column() @Index() chainType: number = 0;
 
-  @Column({ type: "varchar", length: 64 }) @Index() transactionId: string = "";
+  @PrimaryColumn({ type: "varchar", length: 64 }) @Index() transactionId: string = "";
 
   @Column() @Index() blockNumber: number = 0;
 

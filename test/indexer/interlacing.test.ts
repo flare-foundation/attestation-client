@@ -1,17 +1,13 @@
-import { ChainType, IUtxoGetBlockRes, UtxoBlock, UtxoTransaction } from "@flarenetwork/mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, globalTestLogger } from "../../lib/utils/logger";
 import { expect } from "chai";
-import * as resBTCBlock from "../mockData/BTCBlock.json";
-import * as resBTCTx from "../mockData/BTCTx.json";
-import * as resBTCBlockAlt from "../mockData/BTCBlockAlt.json";
-import * as resBTCTxAlt from "../mockData/BTCTxAlt.json";
-import { augmentTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { afterEach } from "mocha";
 const utils = require("../../lib/utils/utils");
 import sinon from "sinon";
+import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 
 describe("interlacing", () => {
   const databaseConnectOptions = new DatabaseSourceOptions();
@@ -28,18 +24,24 @@ describe("interlacing", () => {
   let augTxAlt1: DBTransactionBase;
 
   before(async () => {
-    const block = new UtxoBlock(resBTCBlock);
-    const tx = new UtxoTransaction(resBTCTx);
-    const blockAlt = new UtxoBlock(resBTCBlockAlt as unknown as IUtxoGetBlockRes);
-    const txAlt = new UtxoTransaction(resBTCTxAlt);
+    augTx0 = await promAugTxBTC0;
+    augTxAlt0 = await promAugTxBTCALt0;
+    augTx1 = await promAugTxBTC1;
+    augTxAlt1 = await promAugTxBTCAlt1;
 
-    const waitTx = async (tx) => {
-      return tx;
-    };
-    augTx0 = await augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, block, waitTx(tx));
-    augTxAlt0 = await augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, blockAlt, waitTx(txAlt));
-    augTx1 = await augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, block, waitTx(tx));
-    augTxAlt1 = await augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, blockAlt, waitTx(txAlt));
+    if (!dataService.dataSource.isInitialized) {
+      await dataService.init();
+    }
+
+    //start with empty tables
+    for (let i = 0; i < 2; i++) {
+      console.log(i);
+      const queryRunner = dataService.connection.createQueryRunner();
+      const tableName = `btc_transactions${i}`;
+      const table = await queryRunner.getTable(tableName);
+      await queryRunner.dropTable(table);
+      await queryRunner.release();
+    }
   });
 
   beforeEach(async () => {
@@ -62,13 +64,13 @@ describe("interlacing", () => {
   // after(async ())
 
   it("should get active index for empty tables", async () => {
-    await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(0);
   });
 
   it("should get active index for non-empty table", async () => {
     await dataService.dataSource.manager.save(augTx1);
-    await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(1);
   });
 

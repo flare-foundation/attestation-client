@@ -9,8 +9,9 @@ describe("PromiseTimeout", function () {
     sinon.restore();
   });
 
-  it("should execute default failureCallback", function () {
+  it("should execute on null failureCallback", function () {
     const spy = sinon.spy(loggers, "getGlobalLogger");
+    PromiseTimeout.setRetryFailureCallback(null);
 
     expect(() => PromiseTimeout.failureCallback("something")).to.throw("FailureCallbackNotSet");
     // assert(spy.called);

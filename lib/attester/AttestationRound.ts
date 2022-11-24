@@ -303,6 +303,7 @@ export class AttestationRound {
     if (validated.length === 0) {
       this.logger.error(`round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
       this.attestStatus = AttestationRoundStatus.nothingToCommit;
+      await this.nextRound.createEmptyState();      
       return;
     }
 
@@ -422,15 +423,12 @@ export class AttestationRound {
       this.logger.error(`round #${this.roundId} cannot reveal (not in reveal epoch status ${this.status})`);
       return;
     }
-    if (this.attestStatus !== AttestationRoundStatus.comitted) {
+    if( this.attestStatus === AttestationRoundStatus.nothingToCommit ) {
+      this.logger.warning(`round #${this.roundId} nothing to commit`);
+    } else if (this.attestStatus !== AttestationRoundStatus.comitted ) {
       switch (this.attestStatus) {
-        case AttestationRoundStatus.nothingToCommit:
-          this.logger.warning(`round #${this.roundId} nothing to reveal`);
-          break;
         case AttestationRoundStatus.collecting:
-          this.logger.error(
-            `  ! AttestEpoch #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`
-          );
+          this.logger.error(`round #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`);
           break;
         case AttestationRoundStatus.commiting:
           this.logger.error(`round #${this.roundId} cannot reveal (still comitting)`);
@@ -439,8 +437,11 @@ export class AttestationRound {
           this.logger.error(`round #${this.roundId} cannot reveal (not commited ${this.attestStatus})`);
           break;
       }
-      return;
+
+      // we should still commit next round
+      //return;
     }
+
 
     // this.logger.info(`^Cround #${this.roundId} reveal`);
 
@@ -448,7 +449,6 @@ export class AttestationRound {
     let nextRoundMaskedMerkleRoot = toHex(toBN(0), 32);
     let nextRoundRandom = toHex(toBN(0), 32);
     let nextRoundHashedRandom = toHex(toBN(0), 32);
-    let nextRoundCommitHash = toHex(toBN(0), 32);
 
     const action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 

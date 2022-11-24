@@ -84,7 +84,8 @@ export class Web3BlockCollector {
 
         processBlock++;
       } catch (error) {
-        logException(error, `Web3BlockCollector::procesEvents`);
+        // not for reporting 
+        //logException(error, `Web3BlockCollector::procesEvents`);
       }
     }
   }

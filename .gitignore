@@ -90,3 +90,6 @@ routes
 # temp
 temp
 .env
+.env
+test/mockData/writeMock.ts
+test/mockData/trySinon.ts

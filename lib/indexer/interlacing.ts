@@ -39,7 +39,7 @@ export class Interlacing {
   public dbBlockClass: IDBBlockBase; // quick fix, to be stored somewhere else
 
   chainType: ChainType;
-  private chainName: string;
+  public chainName: string;
 
   // private indexer: Indexer;
   chainConfig: any;
@@ -108,6 +108,14 @@ export class Interlacing {
 
   public get activeIndex(): number {
     return this.index;
+  }
+
+  public get DBBlockClass(): IDBBlockBase {
+    return this.dbBlockClass;
+  }
+
+  public get DBTransactionClasses(): IDBTransactionBase[] {
+    return this.dbTransactionClasses;
   }
 
   public getActiveTransactionWriteTable(): IDBTransactionBase {

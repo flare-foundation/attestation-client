@@ -8,6 +8,7 @@ import { afterEach } from "mocha";
 const utils = require("../../lib/utils/utils");
 import sinon from "sinon";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
+import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 
 describe("interlacing", () => {
   const databaseConnectOptions = new DatabaseSourceOptions();
@@ -35,7 +36,6 @@ describe("interlacing", () => {
 
     //start with empty tables
     for (let i = 0; i < 2; i++) {
-      console.log(i);
       const queryRunner = dataService.connection.createQueryRunner();
       const tableName = `btc_transactions${i}`;
       const table = await queryRunner.getTable(tableName);
@@ -97,6 +97,18 @@ describe("interlacing", () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     let res = await interlacing.update(1668574798, 763380);
     expect(res).to.be.false;
+  });
+
+  it("should get indexer transaction classes", async () => {
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+    let res = interlacing.DBTransactionClasses[0];
+    expect(res).to.be.eq(DBTransactionBTC0);
+  });
+
+  it("should get block indexer tables", async () => {
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+    let res = interlacing.DBBlockClass;
+    expect(res).to.be.eq(DBBlockBTC);
   });
 
   it("should update", async () => {

@@ -62,7 +62,6 @@ export class AttestationRound {
   roundMerkleRoot!: string;
   roundRandom!: string;
   roundMaskedMerkleRoot: string;
-  roundHashedRandom: string;
 
   merkleTree!: MerkleTree;
 
@@ -151,7 +150,6 @@ export class AttestationRound {
           action,
           // commit index (collect+1)
           toBN(this.roundId + 1),
-          toHex(0, 32),
           toHex(0, 32),
           toHex(0, 32),
           toHex(0, 32),
@@ -303,7 +301,7 @@ export class AttestationRound {
     if (validated.length === 0) {
       this.logger.error(`round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
       this.attestStatus = AttestationRoundStatus.nothingToCommit;
-      await this.nextRound.createEmptyState();      
+      await this.createEmptyState();      
       return;
     }
 
@@ -342,7 +340,6 @@ export class AttestationRound {
 
     this.roundMerkleRoot = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
-    this.roundHashedRandom = singleHash(this.roundRandom);
     this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
@@ -372,7 +369,6 @@ export class AttestationRound {
     this.roundMerkleRoot = "0x0000000000000000000000000000000000000000000000000000000000000000";
     this.roundRandom = await getCryptoSafeRandom();
 
-    this.roundHashedRandom = singleHash(this.roundRandom);
     this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
@@ -390,7 +386,7 @@ export class AttestationRound {
 
     const action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
-    const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
+    const prevRound = await AttestationRoundManager.state.getRound(this.roundId - 1);
 
     // eslint-disable-next-line
     criticalAsync("firstCommit", async () => {
@@ -398,12 +394,13 @@ export class AttestationRound {
         action,
         // commit index (collect+1)
         toBN(this.roundId + 1),
+        // commit
         this.roundMerkleRoot,
         this.roundMaskedMerkleRoot,
         this.roundRandom,
-        this.roundHashedRandom,
-        nextState && nextState.random ? nextState.random : toHex(0, 32),
-        nextState && nextState.merkleRoot ? nextState.merkleRoot : toHex(0, 32),
+        // reveal
+        prevRound && prevRound.merkleRoot ? prevRound.merkleRoot : toHex(0, 32),
+        prevRound && prevRound.random ? prevRound.random : toHex(0, 32),
       );
 
       if (receipt) {
@@ -448,7 +445,6 @@ export class AttestationRound {
     let nextRoundMerkleRoot = toHex(toBN(0), 32);
     let nextRoundMaskedMerkleRoot = toHex(toBN(0), 32);
     let nextRoundRandom = toHex(toBN(0), 32);
-    let nextRoundHashedRandom = toHex(toBN(0), 32);
 
     const action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
@@ -460,7 +456,6 @@ export class AttestationRound {
       nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;
       nextRoundMaskedMerkleRoot = this.nextRound.roundMaskedMerkleRoot;
       nextRoundRandom = this.nextRound.roundRandom;
-      nextRoundHashedRandom = this.nextRound.roundHashedRandom;
 
       this.nextRound.attestStatus = AttestationRoundStatus.comitted;
     }
@@ -471,12 +466,13 @@ export class AttestationRound {
         action,
         // commit index (collect+2)
         toBN(this.roundId + 2),
+        // commit
         nextRoundMerkleRoot,
         nextRoundMaskedMerkleRoot,
         nextRoundRandom,
-        nextRoundHashedRandom,
-        this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32),
+        // reveal
         this.attestStatus === AttestationRoundStatus.comitted ? this.roundMerkleRoot : toHex(0, 32),
+        this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32),
       );
 
       if (receipt) {

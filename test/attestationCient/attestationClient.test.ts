@@ -47,14 +47,12 @@ class MockAttesterWeb3 extends AttesterWeb3 {
         merkleRoot: string,
         maskedMerkleRoot: string,
         random: string,
-        hashedRandom: string,
-        revealedRandomPrev: string,
         merkleRootPrev: string,
+        revealedRandomPrev: string,
         verbose = true
     ) {
         const roundId = bufferNumber.toNumber() - 1;
         this.check(maskedMerkleRoot);
-        this.check(hashedRandom);
         this.check(revealedRandomPrev);
     }
 

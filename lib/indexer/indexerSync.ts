@@ -4,11 +4,11 @@ import { AttLogger } from "../utils/logger";
 import { failureCallback, retry } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
-import { criticalAsync, SECONDS_PER_DAY } from "./indexer-utils";
+import { criticalAsync, getStateEntryString, SECONDS_PER_DAY } from "./indexer-utils";
 
 /**
  * Takes care of indexing confirmed blocks in the past (performs syncing to up-to-date).
- * In brings the indexer database to up-to date state where only real-time blocks are 
+ * In brings the indexer database to up-to date state where only real-time blocks are
  * processed.
  */
 @Managed()
@@ -99,7 +99,9 @@ export class IndexerSync {
     }
 
     const blockNumberBottomTime = await this.indexer.getBlockNumberTimestampFromClient(blockNumberBottom);
-    this.logger.debug2(`getSyncStartBlockNumber info: block number ${blockNumberBottom} block time ${blockNumberBottomTime} start time ${syncStartTime} (block read ${blockRead})`);
+    this.logger.debug2(
+      `getSyncStartBlockNumber info: block number ${blockNumberBottom} block time ${blockNumberBottomTime} start time ${syncStartTime} (block read ${blockRead})`
+    );
 
     return blockNumberBottom;
   }
@@ -143,7 +145,7 @@ export class IndexerSync {
       lastN = this.indexer.N;
 
       // status
-      const dbStatus = this.indexer.getStateEntryString("state", "sync", -1);
+      const dbStatus = getStateEntryString("state", this.indexer.chainConfig.name, "sync", -1);
 
       const blockLeft = this.indexer.T - this.indexer.N;
 
@@ -153,7 +155,8 @@ export class IndexerSync {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.indexer.cachedClient.reqsPs
+          `sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
+            this.indexer.cachedClient.reqsPs
           })`
         );
       } else {
@@ -178,7 +181,7 @@ export class IndexerSync {
       for (let i = 2; i < this.indexer.chainConfig.syncReadAhead; i++) {
         // do not allow read ahead of T - confirmations
         if (this.indexer.N + i > this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) break;
-        
+
         // eslint-disable-next-line
         criticalAsync(`runSyncRaw -> blockProcessorManager::processSyncBlockNumber exception `, () =>
           this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.N + i)
@@ -210,7 +213,7 @@ export class IndexerSync {
     await this.runSyncRaw();
 
     // update state
-    const dbStatus = this.indexer.getStateEntryString("state", "waiting", 0, "collecting tips");
+    const dbStatus = getStateEntryString("state", this.indexer.chainConfig.name, "waiting", 0, "collecting tips");
     await retry(`runIndexer::saveStatus`, async () => await this.indexer.dbService.manager.save(dbStatus));
 
     // Collect all alternative tips
@@ -219,7 +222,7 @@ export class IndexerSync {
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N
-    // Note - N may be very low compared to T, since we are 
+    // Note - N may be very low compared to T, since we are
     // before sync.
     await this.indexer.headerCollector.saveHeadersOnNewTips(blocks);
   }
@@ -237,23 +240,25 @@ export class IndexerSync {
 
   /**
    * Syncs blocks depending on mode set in configuration.
-   * @param dbStartBlockNumber 
-   * @returns 
+   * @param dbStartBlockNumber
+   * @returns
    */
   public async runSync(dbStartBlockNumber: number) {
     if (!this.indexer.config.syncEnabled) {
       return;
     }
 
-    const syncStartBlockNumber = await this.getSyncStartBlockNumber();  // N ... start reading N+1
+    const syncStartBlockNumber = await this.getSyncStartBlockNumber(); // N ... start reading N+1
 
     // check if syncN is bigger than DB-N.
     if (dbStartBlockNumber > 0 && dbStartBlockNumber < syncStartBlockNumber) {
-      // note that this drops the table when dbStartBlockNumber + 1 = syncStartBlockNumber which would be valid from continuity stand point 
+      // note that this drops the table when dbStartBlockNumber + 1 = syncStartBlockNumber which would be valid from continuity stand point
       // but in case that sync N was node bottom block we would not be able to read block number sync N.
       // here we are a bit more defensive since it is a very low probability of this actually happening.
 
-      this.logger.error(`runSync possible gap detected DB_N=${dbStartBlockNumber} Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`);
+      this.logger.error(
+        `runSync possible gap detected DB_N=${dbStartBlockNumber} Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`
+      );
 
       // drop both tables
       //await this.indexer.interlace.resetAll();
@@ -278,5 +283,4 @@ export class IndexerSync {
         break;
     }
   }
-
 }

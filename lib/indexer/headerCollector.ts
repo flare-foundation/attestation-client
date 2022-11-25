@@ -3,6 +3,7 @@ import { AttLogger } from "../utils/logger";
 import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
+import { getStateEntry } from "./indexer-utils";
 import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 
 /**
@@ -123,8 +124,7 @@ export class HeaderCollector {
 
         dbBlock.timestamp = header.unixTimestamp;
         dbBlock.previousBlockHash = header.previousBlockHash;
-      }
-      else {
+      } else {
         // On UTXO chains this means block is on main branch (some blocks may only have headers and not be in node's database)
         const activeBlock = blockTip.chainTipStatus === "active";
 
@@ -166,7 +166,7 @@ export class HeaderCollector {
    */
   private async writeT(T: number) {
     // every update save last T
-    const stateTcheckTime = this.indexer.getStateEntry("T", T);
+    const stateTcheckTime = getStateEntry("T", this.indexer.chainConfig.name, T);
 
     await retry(`writeT`, async () => await this.indexer.dbService.manager.save(stateTcheckTime));
   }

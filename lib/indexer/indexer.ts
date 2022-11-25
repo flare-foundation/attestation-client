@@ -12,7 +12,7 @@ import { failureCallback, retry } from "../utils/PromiseTimeout";
 import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
-import { criticalAsync, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
+import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
 import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { IndexerSync } from "./indexerSync";
 import { Interlacing } from "./interlacing";
@@ -212,22 +212,24 @@ export class Indexer {
   // misc
   /////////////////////////////////////////////////////////////
 
-  /**
-   * Prefixes chain name and undercore to the given name
-   * @param name chain name
-   * @returns
-   */
-  private prefixChainNameTo(name: string) {
-    return this.chainConfig.name + "_" + name;
-  }
+  // Moved to indexer-utils
+  // /**
+  //  * Prefixes chain name and undercore to the given name
+  //  * @param name chain name
+  //  * @returns
+  //  */
+  // private prefixChainNameTo(name: string) {
+  //   return this.chainConfig.name + "_" + name;
+  // }
 
-  /**
-   * Returns entry key for N in the database.
-   * @returns
-   */
-  private getChainN() {
-    return this.prefixChainNameTo("N");
-  }
+  // Moved to indexer-utils
+  // /**
+  //  * Returns entry key for N in the database.
+  //  * @returns
+  //  */
+  // private getChainN() {
+  //   return this.prefixChainNameTo("N");
+  // }
 
   /**
    * Returns number of days for syncing from configurations
@@ -243,41 +245,43 @@ export class Indexer {
   // state recording functions
   /////////////////////////////////////////////////////////////
 
-  /**
-   * Constructs dbState entity for key-value pair
-   * @param name name associated to key
-   * @param value value (number)
-   * @returns
-   */
-  public getStateEntry(name: string, value: number): DBState {
-    const state = new DBState();
+  // Moved to indexer-ui
+  // /**
+  //  * Constructs dbState entity for key-value pair
+  //  * @param name name associated to key
+  //  * @param value value (number)
+  //  * @returns
+  // //  */
+  // public getStateEntry(name: string, value: number): DBState {
+  //   const state = new DBState();
 
-    state.name = this.prefixChainNameTo(name);
-    state.valueNumber = value;
-    state.timestamp = getUnixEpochTimestamp();
+  //   state.name = this.prefixChainNameTo(name);
+  //   state.valueNumber = value;
+  //   state.timestamp = getUnixEpochTimestamp();
 
-    return state;
-  }
+  //   return state;
+  // }
 
-  /**
-   * Construct dbState entity for key-values entry, that contains string, number and comment values.
-   * @param name
-   * @param valueString
-   * @param valueNum
-   * @param comment
-   * @returns
-   */
-  public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
-    const state = new DBState();
+  // Moved to indexer utils
+  // /**
+  //  * Construct dbState entity for key-values entry, that contains string, number and comment values.
+  //  * @param name
+  //  * @param valueString
+  //  * @param valueNum
+  //  * @param comment
+  //  * @returns
+  //  */
+  // public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
+  //   const state = new DBState();
 
-    state.name = this.prefixChainNameTo(name);
-    state.valueString = valueString;
-    state.valueNumber = valueNum;
-    state.timestamp = getUnixEpochTimestamp();
-    state.comment = comment;
+  //   state.name = this.prefixChainNameTo(name);
+  //   state.valueString = valueString;
+  //   state.valueNumber = valueNum;
+  //   state.timestamp = getUnixEpochTimestamp();
+  //   state.comment = comment;
 
-    return state;
-  }
+  //   return state;
+  // }
 
   /////////////////////////////////////////////////////////////
   // block processor callbacks
@@ -350,27 +354,26 @@ export class Indexer {
    * Prepares table entities for transactions (interlaced) and block
    */
   public prepareTables() {
-    const chainType = MCC.getChainType(this.chainConfig.name); //Why not use indexer.chainType
-    const prepared = prepareIndexerTables(chainType);
+    // const chainType = MCC.getChainType(this.chainConfig.name); //Why not use indexer.chainType
+    const prepared = prepareIndexerTables(this.chainType);
 
     this.dbTransactionClasses = prepared.transactionTable;
     this.dbBlockClass = prepared.blockTable;
   }
 
-  //put this into interlacing
-  /**
-   * Returns current active transaction table managed by interlacing
-   * @returns
-   */
-  public getActiveTransactionWriteTable(): IDBTransactionBase {
-    // we write into table by active index:
-    //  0 - table0
-    //  1 - table1
+  // In interlacing
+  // /**
+  //  * Returns current active transaction table managed by interlacing
+  //  * @returns
+  //  */
+  // public getActiveTransactionWriteTable(): IDBTransactionBase {
+  //   // we write into table by active index:
+  //   //  0 - table0
+  //   //  1 - table1
 
-    const index = this.interlace.activeIndex;
-
-    return this.dbTransactionClasses[index];
-  }
+  //   const index = this.interlace.activeIndex;
+  //   return this.dbTransactionClasses[index];
+  // }
 
   /////////////////////////////////////////////////////////////
   // block save
@@ -396,7 +399,7 @@ export class Indexer {
     }
 
     this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.activeIndex})`);
-    const transactionClass = this.getActiveTransactionWriteTable() as any;
+    const transactionClass = this.interlace.getActiveTransactionWriteTable();
 
     // fix data
     block.transactions = transactions.length;
@@ -407,7 +410,7 @@ export class Indexer {
     await retry(`blockSave N=${Np1}`, async () => {
       await this.dbService.connection.transaction(async (transaction) => {
         // save state N, T and T_CHECK_TIME
-        const stateEntries = [this.getStateEntry("N", Np1), this.getStateEntry("T", this.T)];
+        const stateEntries = [getStateEntry("N", this.chainConfig.name, Np1), getStateEntry("T", this.chainConfig.name, this.T)];
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
@@ -495,7 +498,10 @@ export class Indexer {
         this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
 
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
-        const bottomStates = [this.getStateEntry(`Nbottom`, bottomBlockNumber), this.getStateEntry(`NbottomTime`, this.bottomBlockTime)];
+        const bottomStates = [
+          getStateEntry(`Nbottom`, this.chainConfig.name, bottomBlockNumber),
+          getStateEntry(`NbottomTime`, this.chainConfig.name, this.bottomBlockTime),
+        ];
         await this.dbService.manager.save(bottomStates);
       } else {
         this.logger.debug(`block bottom state is undefined`);
@@ -513,7 +519,7 @@ export class Indexer {
    * @returns Returns last N saved into the database
    */
   private async getNfromDB(): Promise<number> {
-    const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+    const res = await this.dbService.manager.findOne(DBState, { where: { name: getChainN(this.chainConfig.name) } });
 
     if (res === undefined || res === null) return 0;
 
@@ -645,7 +651,7 @@ export class Indexer {
         this.logger.error2("force set N to ");
       }
 
-      const stateEntry = this.getStateEntry("N", n);
+      const stateEntry = getStateEntry("N", this.chainConfig.name, n);
 
       await this.dbService.manager.save(stateEntry);
     }
@@ -737,21 +743,23 @@ export class Indexer {
         min -= hr * 60;
       }
 
-      dbStatus = this.getStateEntryString(
+      dbStatus = getStateEntryString(
         "state",
+        this.chainConfig.name,
         "running-sync",
         this.processedBlocks,
         `N=${this.N} T=${this.T} (missing ${hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, "0")}`})`
       );
     } else if (!NisReady) {
-      dbStatus = this.getStateEntryString(
+      dbStatus = getStateEntryString(
         "state",
+        this.chainConfig.name,
         "running-sync",
         this.processedBlocks,
         `N=${this.N} T=${this.T} (N is late: < T-${this.chainConfig.numberOfConfirmations})`
       );
     } else {
-      dbStatus = this.getStateEntryString("state", "running", this.processedBlocks, `N=${this.N} T=${this.T}`);
+      dbStatus = getStateEntryString("state", this.chainConfig.name, "running", this.processedBlocks, `N=${this.N} T=${this.T}`);
     }
     this.processedBlocks++;
     await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
@@ -776,7 +784,7 @@ export class Indexer {
 
       if (!waiting) {
         // update state
-        const dbStatus = this.getStateEntryString("state", "waiting", 0, "waiting for node to be synced");
+        const dbStatus = getStateEntryString("state", this.chainConfig.name, "waiting", 0, "waiting for node to be synced");
         await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
       }
 
@@ -876,7 +884,7 @@ export class Indexer {
 
     await this.waitForNodeSynced();
 
-    this.prepareTables();
+    // this.prepareTables();
 
     await this.saveBottomState();
 
@@ -900,6 +908,8 @@ export class Indexer {
       this.chainConfig.minimalStorageHistoryDays,
       this.chainConfig.minimalStorageHistoryBlocks
     );
+    this.dbBlockClass = this.interlace.DBBlockClass;
+    this.dbTransactionClasses = this.interlace.DBTransactionClasses;
 
     // check if indexer database is continous
     await this.checkDatabaseContinuous();

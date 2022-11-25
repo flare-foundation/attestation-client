@@ -1,5 +1,6 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockALGO, DBBlockBase, IDBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
+import { DBState } from "../entity/indexer/dbState";
 import {
   IDBTransactionBase,
   DBTransactionALGO0,
@@ -16,6 +17,7 @@ import {
 } from "../entity/indexer/dbTransaction";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { getRetryFailureCallback } from "../utils/PromiseTimeout";
+import { getUnixEpochTimestamp } from "../utils/utils";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
@@ -96,4 +98,61 @@ export async function criticalAsync(label: string, funct: (...args: any[]) => Pr
       onFailure(label);
     }
   }
+}
+
+/**
+ * Constructs dbState entity for key-value pair
+ * @param name name associated to key
+ * @param chainName
+ * @param value value (number)
+ * @returns
+ */
+export function getStateEntry(name: string, chainName: string, value: number): DBState {
+  const state = new DBState();
+
+  state.name = prefixChainNameTo(name, chainName);
+  state.valueNumber = value;
+  state.timestamp = getUnixEpochTimestamp();
+
+  return state;
+}
+
+/**
+ * Prefixes chain name and undercore to the given name
+ * @param name  name
+ * @param chainName
+ * @returns
+ */
+function prefixChainNameTo(name: string, chainName: string) {
+  return chainName + "_" + name;
+}
+
+/**
+ * Returns entry key for N in the database.
+ * @param chainName
+ * @returns
+ */
+export function getChainN(chainName: string) {
+  return prefixChainNameTo("N", chainName);
+}
+
+/**
+ * Construct dbState entity for key-values entry, that contains string, number and comment values.
+ * @param name
+ * @param chainName
+ * @param valueString
+ * @param valueNum
+ * @param comment
+ * @returns
+ */
+export function getStateEntryString(name: string, chainName: string, valueString: string, valueNum: number, comment = ""): DBState {
+  const state = new DBState();
+
+  state.name = prefixChainNameTo(name, chainName);
+  state.valueString = valueString;
+  state.valueNumber = valueNum;
+  state.timestamp = getUnixEpochTimestamp();
+  state.comment = comment;
+
+  return state;
 }

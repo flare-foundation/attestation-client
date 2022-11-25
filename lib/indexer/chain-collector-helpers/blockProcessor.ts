@@ -61,7 +61,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
       return;
     }
 
-    const blockDb = augmentBlock(this.interlacing.dbBlockClass, block);
+    const blockDb = augmentBlock(this.interlacing.DBBlockClass, block);
 
     this.stop();
 
@@ -115,7 +115,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
 
     this.markTopLevelJobDone();
 
-    const blockDb = augmentBlock(this.interlacing.dbBlockClass, block);
+    const blockDb = augmentBlock(this.interlacing.DBBlockClass, block);
 
     this.stop();
 
@@ -143,7 +143,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
       this.settings.retry
     )) as DBTransactionBase[];
     this.pause();
-    const blockDb = augmentBlock(this.interlacing.dbBlockClass, block);
+    const blockDb = augmentBlock(this.interlacing.DBBlockClass, block);
 
     // eslint-disable-next-line
     criticalAsync(`AlgoBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));
@@ -177,7 +177,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
       this.settings.retry
     )) as DBTransactionBase[];
     this.stop();
-    const blockDb = augmentBlock(this.interlacing.dbBlockClass, block);
+    const blockDb = augmentBlock(this.interlacing.DBBlockClass, block);
 
     // eslint-disable-next-line
     criticalAsync(`XrpBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));

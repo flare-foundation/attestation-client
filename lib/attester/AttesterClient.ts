@@ -133,26 +133,24 @@ export class AttesterClient {
       // handle Round Finalization
 
       if (event.event === "RoundFinalised") {
+        const roundId = event.returnValues.roundId;
+        const merkleRoot = event.returnValues.merkleRoot;
 
-        //const bufferNumber = event.returnValues.bufferNumber;
-        const bufferNumber = event.returnValues[0];
-        const merkleHash = event.returnValues[1];
-
-        if( !bufferNumber || Number.isNaN( bufferNumber ) ) {
+        if( !roundId || Number.isNaN( roundId ) ) {
           this.logger.error( `invalid RoundFinalized buffer number` );
         }
         else {
-          const dbState = await AttestationRoundManager.state.getRound(bufferNumber - 3);
+          const dbState = await AttestationRoundManager.state.getRound(roundId);
           const commitedRoot = dbState ? dbState.merkleRoot : undefined;
 
           if (commitedRoot) {
-            if (commitedRoot === merkleHash) {
-              this.logger.info(`^e^G^Revent^^^G RoundFinalised ${bufferNumber} ${merkleHash} (root as commited)`);
+            if (commitedRoot === merkleRoot) {
+              this.logger.info(`^e^G^Revent^^^G RoundFinalised ${roundId} ${merkleRoot} (root as commited)`);
             } else {
-              this.logger.error(`^e^Revent^^ RoundFinalised ${bufferNumber} ${merkleHash} (commited root ${commitedRoot})`);
+              this.logger.error(`^e^Revent^^ RoundFinalised ${roundId} ${merkleRoot} (commited root ${commitedRoot})`);
             }
           } else {
-            this.logger.error(`^e^Revent^^ RoundFinalised ${bufferNumber} ${merkleHash} (root not commited)`);
+            this.logger.error(`^e^Revent^^ RoundFinalised ${roundId} ${merkleRoot} (root not commited)`);
           }
         }
       }

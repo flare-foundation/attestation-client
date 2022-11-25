@@ -1,10 +1,35 @@
-import { round } from "@flarenetwork/mcc";
-import { SubjectRemovedAndUpdatedError } from "typeorm";
+import { retry } from "@flarenetwork/mcc";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationRoundManager } from "./AttestationRoundManager";
+
+import _ from 'lodash'
+
+async function Upsert<T>(
+  obj: T,
+  primary_key: string,
+  opts?: {
+      key_naming_transform: (k: string) => string,
+      do_not_upsert: string[],
+  }
+)
+{
+  const keys: string[] = _.difference(_.keys(obj), opts ? opts.do_not_upsert : [])
+  const setter_string = keys.map(k => `${opts ? opts.key_naming_transform(k) : k} = :${k}`)
+
+  await AttestationRoundManager.dbServiceAttester.manager.createQueryBuilder()
+      .insert()
+      .into(DBRoundResult)
+      .values(obj)
+      .orUpdate( {
+        conflict_target: [primary_key],  
+        overwrite: keys
+      } )    
+      .execute();
+}
+
 /**
  * Manages storing the attestation client results/state into the database
  * in regard to specific round.
@@ -13,24 +38,47 @@ export class AttesterState {
 
   private async saveOrUpdateRound(dbRound: DBRoundResult){
 
-      const round = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: dbRound.roundId } });
+    await retry(`saveOrUpdateRound #${dbRound.roundId}`, async () => {
 
-      if( round ) {
-        try {
-          await AttestationRoundManager.dbServiceAttester.manager.update( DBRoundResult, round, dbRound );
-        }
-        catch( error ) {
-          logException( error , `saveOrUpdateRound.update(${dbRound.roundId})` );
-        }
-      }
-      else {
-        try {
-          await AttestationRoundManager.dbServiceAttester.manager.insert( DBRoundResult, dbRound );
-        }
-        catch( error ) {
-          logException( error , `saveOrUpdateRound.insert(${dbRound.roundId})` );
-        }
-    }
+          try {
+            await Upsert( dbRound , "roundId" );
+            //await transaction.save( DBRoundResult, dbRound );
+          }
+          catch( error ) {
+            logException( error , `saveOrUpdateRound.save(${dbRound.roundId})` );
+          }
+
+
+
+      // await AttestationRoundManager.dbServiceAttester.connection.transaction(async (transaction) => {
+      //     try {
+      //       await transaction.save( DBRoundResult, dbRound );
+      //     }
+      //     catch( error ) {
+      //       logException( error , `saveOrUpdateRound.save(${dbRound.roundId})` );
+      //     }
+
+
+      //   const round = await transaction.findOne(DBRoundResult, { where: { roundId: dbRound.roundId } });
+
+      //   if( round ) {
+      //     try {
+      //       await transaction.update( DBRoundResult, round, dbRound );
+      //     }
+      //     catch( error ) {
+      //       logException( error , `saveOrUpdateRound.update(${dbRound.roundId})` );
+      //     }
+      //   }
+      //   else {
+      //     try {
+      //       await transaction.insert( DBRoundResult, dbRound );
+      //     }
+      //     catch( error ) {
+      //       logException( error , `saveOrUpdateRound.insert(${dbRound.roundId})` );
+      //     }
+      // }
+    //}) 
+  });
   }
 
   /**
@@ -45,7 +93,6 @@ export class AttesterState {
     dbRound.merkleRoot = round.roundMerkleRoot;
     dbRound.maskedMerkleRoot = round.roundMaskedMerkleRoot;
     dbRound.random = round.roundRandom;
-    dbRound.hashedRandom = round.roundHashedRandom;
     dbRound.finalizedTimestamp = getUnixEpochTimestamp();
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
@@ -125,3 +172,4 @@ export class AttesterState {
     return undefined;
   }
 }
+

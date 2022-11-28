@@ -1,10 +1,13 @@
 import { IBlock, Managed, sleepMs } from "@flarenetwork/mcc";
+import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
 import { AttLogger } from "../utils/logger";
 import { failureCallback } from "../utils/PromiseTimeout";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
 import { Indexer } from "./indexer";
 import { criticalAsync } from "./indexer-utils";
+import { IndexerToClient } from "./indexerToClient";
+import { Interlacing } from "./interlacing";
 /**
  * Manages a list of block processors, each processing a block (reading block metadata and transaction data).
  * Management includes starting, pausing, resuming, processing data on completion and switching processing of
@@ -14,6 +17,9 @@ import { criticalAsync } from "./indexer-utils";
 @Managed()
 export class BlockProcessorManager {
   indexer: Indexer;
+  indexerToClient: IndexerToClient;
+  interlace: Interlacing;
+  cachedClient: CachedMccClient;
 
   logger: AttLogger;
 
@@ -32,6 +38,9 @@ export class BlockProcessorManager {
   constructor(indexer: Indexer, completeCallback: any, alreadyCompleteCallback: any) {
     this.indexer = indexer;
     this.logger = indexer.logger;
+    this.indexerToClient = indexer.indexerToClient;
+    this.cachedClient = indexer.cachedClient;
+    this.interlace = indexer.interlace;
     this.completeCallback = completeCallback;
     this.alreadyCompleteCallback = alreadyCompleteCallback;
   }
@@ -48,7 +57,7 @@ export class BlockProcessorManager {
     if (this.blockNumbersInProcessing.has(blockNumber)) {
       return;
     }
-    const block = await this.indexer.getBlockFromClient("BlockProcessorManager.processSyncBlockNumber", blockNumber);
+    const block = await this.indexerToClient.getBlockFromClient("BlockProcessorManager.processSyncBlockNumber", blockNumber);
     this.blockNumbersInProcessing.add(blockNumber);
     await this.processSync(block);
   }
@@ -99,7 +108,7 @@ export class BlockProcessorManager {
     this.logger.info(`^w^Kprocess block ${validatedBlock.number}`);
 
     // newly created block processor starts automatically
-    const processor = new (BlockProcessor(this.indexer.cachedClient.chainType))(this.indexer.interlace, this.indexer.cachedClient);
+    const processor = new (BlockProcessor(this.cachedClient.chainType))(this.interlace, this.cachedClient);
     this.blockProcessors.push(processor);
 
     // terminate app on exception
@@ -123,7 +132,7 @@ export class BlockProcessorManager {
 
     this.logger.info(`^w^Ksync process block ${validatedBlock.number}`);
 
-    const processor = new (BlockProcessor(this.indexer.cachedClient.chainType))(this.indexer.interlace, this.indexer.cachedClient);
+    const processor = new (BlockProcessor(this.cachedClient.chainType))(this.interlace, this.cachedClient);
     this.blockProcessors.push(processor);
 
     // terminate app on exception
@@ -159,7 +168,7 @@ export class BlockProcessorManager {
       await sleepMs(this.indexer.chainConfig.validateBlockWaitMs);
 
       // get block again (NOTE: on reading by block.number blocks are not cached)
-      currentBlock = await this.indexer.cachedClient.client.getBlock(block.number);
+      currentBlock = await this.cachedClient.client.getBlock(block.number);
     }
 
     if (retryCount > 0) {

@@ -15,6 +15,7 @@ import { HeaderCollector } from "./headerCollector";
 import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
 import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { IndexerSync } from "./indexerSync";
+import { IndexerToClient } from "./indexerToClient";
 import { Interlacing } from "./interlacing";
 import { PreparedBlock } from "./preparedBlock";
 
@@ -39,6 +40,8 @@ export class Indexer {
   logger!: AttLogger;
   dbService: DatabaseService;
   blockProcessorManager: BlockProcessorManager;
+
+  indexerToClient: IndexerToClient;
 
   headerCollector: HeaderCollector;
 
@@ -100,6 +103,7 @@ export class Indexer {
     };
 
     this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
+    this.indexerToClient = new IndexerToClient(this.cachedClient.client);
 
     this.blockProcessorManager = new BlockProcessorManager(this, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this));
 
@@ -129,84 +133,84 @@ export class Indexer {
   // Safeguarded client functions
   /////////////////////////////////////////////////////////////
 
-  /**
-   *
-   * @param label
-   * @param blockNumber
-   * @returns
-   * @category BaseMethod
-   */
-  public async getBlockFromClient(label: string, blockNumber: number): Promise<IBlock> {
-    // todo: implement MCC lite version of getBlock
-    const result = await retry(`indexer.getBlockFromClient.${label}`, async () => {
-      return await this.cachedClient.client.getBlock(blockNumber);
-    });
-    if (!result) {
-      failureCallback(`indexer.getBlockFromClient.${label} - null block returned`);
-    }
-    return result;
-  }
+  // /**
+  //  *
+  //  * @param label
+  //  * @param blockNumber
+  //  * @returns
+  //  * @category BaseMethod
+  //  */
+  // public async getBlockFromClient(label: string, blockNumber: number): Promise<IBlock> {
+  //   // todo: implement MCC lite version of getBlock
+  //   const result = await retry(`indexer.getBlockFromClient.${label}`, async () => {
+  //     return await this.cachedClient.client.getBlock(blockNumber);
+  //   });
+  //   if (!result) {
+  //     failureCallback(`indexer.getBlockFromClient.${label} - null block returned`);
+  //   }
+  //   return result;
+  // }
 
-  /**
-   *
-   * @param label
-   * @param blockHash
-   * @returns
-   * @category BaseMethod
-   */
-  public async getBlockFromClientByHash(label: string, blockHash: string): Promise<IBlock> {
-    // todo: implement MCC lite version of getBlock
-    const result = await retry(`indexer.getBlockFromClientByHash.${label}`, async () => {
-      return await this.cachedClient.client.getBlock(blockHash);
-    });
-    if (!result) {
-      failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`);
-    }
-    return result;
-  }
+  // /**
+  //  *
+  //  * @param label
+  //  * @param blockHash
+  //  * @returns
+  //  * @category BaseMethod
+  //  */
+  // public async getBlockFromClientByHash(label: string, blockHash: string): Promise<IBlock> {
+  //   // todo: implement MCC lite version of getBlock
+  //   const result = await retry(`indexer.getBlockFromClientByHash.${label}`, async () => {
+  //     return await this.cachedClient.client.getBlock(blockHash);
+  //   });
+  //   if (!result) {
+  //     failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`);
+  //   }
+  //   return result;
+  // }
 
-  /**
-   *
-   * @param label
-   * @param blockHash
-   * @returns
-   * @category BaseMethod
-   */
-  public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<IBlockHeader> {
-    // todo: implement MCC lite version of getBlock
-    const result = await retry(`indexer.getBlockHeaderFromClientByHash.${label}`, async () => {
-      return await this.cachedClient.client.getBlockHeader(blockHash);
-    });
-    if (!result) {
-      failureCallback(`indexer.getBlockHeaderFromClientByHash.${label} - null block returned`);
-    }
-    return result;
-  }
+  // /**
+  //  *
+  //  * @param label
+  //  * @param blockHash
+  //  * @returns
+  //  * @category BaseMethod
+  //  */
+  // public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<IBlockHeader> {
+  //   // todo: implement MCC lite version of getBlock
+  //   const result = await retry(`indexer.getBlockHeaderFromClientByHash.${label}`, async () => {
+  //     return await this.cachedClient.client.getBlockHeader(blockHash);
+  //   });
+  //   if (!result) {
+  //     failureCallback(`indexer.getBlockHeaderFromClientByHash.${label} - null block returned`);
+  //   }
+  //   return result;
+  // }
 
-  public async getBlockHeightFromClient(label: string): Promise<number> {
-    return await retry(`indexer.getBlockHeightFromClient.${label}`, async () => {
-      return this.cachedClient.client.getBlockHeight();
-    });
-  }
+  // public async getBlockHeightFromClient(label: string): Promise<number> {
+  //   return await retry(`indexer.getBlockHeightFromClient.${label}`, async () => {
+  //     return this.cachedClient.client.getBlockHeight();
+  //   });
+  // }
 
-  public async getBottomBlockHeightFromClient(label: string): Promise<number> {
-    return await retry(`indexer.getBottomBlockHeightFromClient.${label}`, async () => {
-      return this.cachedClient.client.getBottomBlockHeight();
-    });
-  }
+  // public async getBottomBlockHeightFromClient(label: string): Promise<number> {
+  //   return await retry(`indexer.getBottomBlockHeightFromClient.${label}`, async () => {
+  //     return this.cachedClient.client.getBottomBlockHeight();
+  //   });
+  // }
 
-  /**
-   *
-   * @param blockNumber
-   * @returns
-   * @category AdvancedMethod
-   */
-  public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
-    // todo: get `getBlockLite` FAST version of block read since we only need timestamp
-    const block = (await this.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
-    // block cannot be undefined as the above call will fatally fail and terminate app
-    return block.unixTimestamp;
-  }
+  // /**
+  //  *
+  //  * @param blockNumber
+  //  * @returns
+  //  * @category AdvancedMethod
+  //  */
+  // public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
+  //   // todo: get `getBlockLite` FAST version of block read since we only need timestamp
+  //   const block = (await this.indexerToClient.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
+  //   // block cannot be undefined as the above call will fatally fail and terminate app
+  //   return block.unixTimestamp;
+  // }
 
   /////////////////////////////////////////////////////////////
   // misc
@@ -316,7 +320,7 @@ export class Indexer {
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
-        const blockNp2 = await this.getBlockFromClient(`blockCompleted`, this.N + 2);
+        const blockNp2 = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.N + 2);
         // eslint-disable-next-line
         criticalAsync(`blockCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
@@ -338,7 +342,7 @@ export class Indexer {
 
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
-        const blockNp2 = await this.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
+        const blockNp2 = await this.indexerToClient.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
         // eslint-disable-next-line
         criticalAsync(`blockAlreadyCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
@@ -642,7 +646,7 @@ export class Indexer {
       let n = args.setn;
 
       if (args.setn < 0) {
-        const t = await this.getBlockHeightFromClient(`runIndexer2`);
+        const t = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
 
         this.logger.error2(`force set N to T - ${-n}=${t}`);
 
@@ -888,7 +892,7 @@ export class Indexer {
 
     await this.saveBottomState();
 
-    const startBlockNumber = (await this.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
+    const startBlockNumber = (await this.indexerToClient.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
 
     this.logger.warning(`${this.chainConfig.name} T=${startBlockNumber}`);
 
@@ -925,10 +929,10 @@ export class Indexer {
 
     while (true) {
       // get chain top block
-      this.T = await this.getBlockHeightFromClient(`runIndexer2`);
+      this.T = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
 
       // change getBlock to getBlockHeader
-      let blockNp1 = await this.getBlockFromClient(`runIndexer2`, this.N + 1);
+      let blockNp1 = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.N + 1);
 
       // has N+1 confirmation block
       const isNp1Confirmed = this.N < this.T - this.chainConfig.numberOfConfirmations;
@@ -956,7 +960,7 @@ export class Indexer {
         await this.trySaveNp1Block();
 
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
-        blockNp1 = await this.getBlockFromClient(`runIndexer3`, this.N + 1);
+        blockNp1 = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.N + 1);
         // process new or changed N+1
         this.blockNp1hash = blockNp1.stdBlockHash;
       }

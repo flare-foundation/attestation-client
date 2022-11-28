@@ -68,7 +68,7 @@ export async function retry<T>(
   numRetries: number = DEFAULT_RETRY,
   backOffTime = DEFAULT_BACK_OFF_TIME
 ): Promise<T> {
-  return await mccRetry(label, funct, timeoutTime, numRetries, backOffTime, getGlobalLogger().warning, getGlobalLogger().debug, onRetryFailure);
+  return await mccRetry(label, funct, timeoutTime, numRetries, backOffTime, getGlobalLogger().warning, getGlobalLogger().debug, failureCallback);
 }
 
 /**

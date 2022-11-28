@@ -4,6 +4,7 @@ import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeo
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 import { getStateEntry } from "./indexer-utils";
+import { IndexerToClient } from "./indexerToClient";
 import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 
 /**
@@ -12,6 +13,7 @@ import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 @Managed()
 export class HeaderCollector {
   private indexer: Indexer;
+  private indexerToClient: IndexerToClient;
 
   private logger: AttLogger;
 
@@ -23,6 +25,7 @@ export class HeaderCollector {
   constructor(logger: AttLogger, indexer: Indexer) {
     this.logger = logger;
     this.indexer = indexer;
+    this.indexerToClient = indexer.indexerToClient;
   }
 
   /////////////////////////////////////////////////////////////
@@ -65,7 +68,7 @@ export class HeaderCollector {
       //     continue;
       //   }
       // }
-      blockPromisses.push(async () => this.indexer.getBlockFromClient(`saveBlocksHeaders`, blockNumber));
+      blockPromisses.push(async () => this.indexerToClient.getBlockFromClient(`saveBlocksHeaders`, blockNumber));
     }
 
     let blocks = (await retryMany(`saveBlocksHeaders`, blockPromisses, 5000, 5)) as IBlock[];
@@ -130,7 +133,7 @@ export class HeaderCollector {
 
         // if block is not on disk (headers-only) we have to skip reading it
         if (activeBlock) {
-          const actualBlock = await this.indexer.getBlockHeaderFromClientByHash("saveHeadersOnNewTips", blockTip.blockHash);
+          const actualBlock = await this.indexerToClient.getBlockHeaderFromClientByHash("saveHeadersOnNewTips", blockTip.blockHash);
 
           dbBlock.timestamp = actualBlock.unixTimestamp;
           dbBlock.previousBlockHash = actualBlock.previousBlockHash;
@@ -182,7 +185,7 @@ export class HeaderCollector {
     let T = -1;
     while (true) {
       // get chain top block
-      const newT = await this.indexer.getBlockHeightFromClient(`runBlockHeaderCollectingRaw`);
+      const newT = await this.indexerToClient.getBlockHeightFromClient(`runBlockHeaderCollectingRaw`);
       if (T != newT) {
         await this.writeT(newT);
         T = newT;
@@ -198,7 +201,7 @@ export class HeaderCollector {
     let T = -1;
     while (true) {
       // get chain top block
-      const newT = await this.indexer.getBlockHeightFromClient(`runBlockHeaderCollectingTips`);
+      const newT = await this.indexerToClient.getBlockHeightFromClient(`runBlockHeaderCollectingTips`);
       if (T != newT) {
         await this.writeT(newT);
         T = newT;

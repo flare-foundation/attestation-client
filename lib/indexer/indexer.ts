@@ -16,6 +16,7 @@ import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIn
 import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { IndexerSync } from "./indexerSync";
 import { IndexerToClient } from "./indexerToClient";
+import { IndexerToDB } from "./indexerToDB";
 import { Interlacing } from "./interlacing";
 import { PreparedBlock } from "./preparedBlock";
 
@@ -42,6 +43,8 @@ export class Indexer {
   blockProcessorManager: BlockProcessorManager;
 
   indexerToClient: IndexerToClient;
+
+  indexerToDB: IndexerToDB;
 
   headerCollector: HeaderCollector;
 
@@ -104,6 +107,7 @@ export class Indexer {
 
     this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
     this.indexerToClient = new IndexerToClient(this.cachedClient.client);
+    this.indexerToDB = new IndexerToDB(this.logger, this.interlace, this.dbService, this.chainType);
 
     this.blockProcessorManager = new BlockProcessorManager(this, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this));
 
@@ -495,7 +499,7 @@ export class Indexer {
    */
   async saveBottomState() {
     try {
-      const bottomBlockNumber = await this.getBottomDBBlockNumberFromStoredTransactions();
+      const bottomBlockNumber = await this.indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
       if (bottomBlockNumber) {
         const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber, confirmed: true } });
 
@@ -519,39 +523,39 @@ export class Indexer {
   // get respective DB block number
   /////////////////////////////////////////////////////////////
 
-  /**
-   * @returns Returns last N saved into the database
-   */
-  private async getNfromDB(): Promise<number> {
-    const res = await this.dbService.manager.findOne(DBState, { where: { name: getChainN(this.chainConfig.name) } });
+  // /**
+  //  * @returns Returns last N saved into the database
+  //  */
+  // private async getNfromDB(): Promise<number> {
+  //   const res = await this.dbService.manager.findOne(DBState, { where: { name: getChainN(this.chainConfig.name) } });
 
-    if (res === undefined || res === null) return 0;
+  //   if (res === undefined || res === null) return 0;
 
-    return res.valueNumber;
-  }
+  //   return res.valueNumber;
+  // }
 
-  /**
-   * Finds minimal block number that appears in interlacing transaction tables
-   * @returns
-   * NOTE: we assume there is no gaps
-   */
-  public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
-    const query0 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
-    query0.select(`MIN(blocks.blockNumber)`, "min");
-    const result0 = await query0.getRawOne();
+  // /**
+  //  * Finds minimal block number that appears in interlacing transaction tables
+  //  * @returns
+  //  * NOTE: we assume there is no gaps
+  //  */
+  // public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
+  //   const query0 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
+  //   query0.select(`MIN(blocks.blockNumber)`, "min");
+  //   const result0 = await query0.getRawOne();
 
-    const query1 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
-    query1.select(`MIN(blocks.blockNumber)`, "min");
-    const result1 = await query1.getRawOne();
+  //   const query1 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
+  //   query1.select(`MIN(blocks.blockNumber)`, "min");
+  //   const result1 = await query1.getRawOne();
 
-    if (!result0.min && !result1.min) {
-      return undefined;
-    }
-    if (!result0.min) return result1.min;
-    if (!result1.min) return result0.min;
+  //   if (!result0.min && !result1.min) {
+  //     return undefined;
+  //   }
+  //   if (!result0.min) return result1.min;
+  //   if (!result1.min) return result0.min;
 
-    return result0.min < result1.min ? result0.min : result1.min;
-  }
+  //   return result0.min < result1.min ? result0.min : result1.min;
+  // }
 
   /////////////////////////////////////////////////////////////
   // Block saving management
@@ -624,16 +628,16 @@ export class Indexer {
   // Auxillary functions
   /////////////////////////////////////////////////////////////
 
-  async dropAllStateInfo() {
-    this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
+  // async dropAllStateInfo() {
+  //   this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
 
-    await this.dbService.manager
-      .createQueryBuilder()
-      .delete()
-      .from(DBState)
-      .where("`name` like :name", { name: `%${this.chainConfig.name}_%` })
-      .execute();
-  }
+  //   await this.dbService.manager
+  //     .createQueryBuilder()
+  //     .delete()
+  //     .from(DBState)
+  //     .where("`name` like :name", { name: `%${this.chainConfig.name}_%` })
+  //     .execute();
+  // }
 
   /**
    * Processes command line parameters when supplied.
@@ -664,11 +668,11 @@ export class Indexer {
     if (args.reset === "RESET_COMPLETE") {
       this.logger.error2("command: RESET_COMPLETE");
 
-      await this.dropTable(`state`);
+      await this.indexerToDB.dropTable(`state`);
 
       // Be careful when adding chains
       for (const chainName of SUPPORTED_CHAINS) {
-        await this.dropAllChainTables(chainName);
+        await this.indexerToDB.dropAllChainTables(chainName);
       }
 
       this.logger.info("completed - exiting");
@@ -682,9 +686,9 @@ export class Indexer {
       this.logger.error2("command: RESET_ACTIVE");
 
       // reset state for this chain
-      await this.dropAllStateInfo();
+      await this.indexerToDB.dropAllStateInfo();
 
-      await this.dropAllChainTables(this.chainConfig.name);
+      await this.indexerToDB.dropAllChainTables(this.chainConfig.name);
 
       this.logger.info("completed - exiting");
 
@@ -696,39 +700,39 @@ export class Indexer {
     return false;
   }
 
-  /**
-   * Securely drops the table given the name
-   * @param name name of the table to be dropped
-   * @returns
-   */
-  async dropTable(name: string) {
-    try {
-      this.logger.info(`dropping table ${name}`);
+  // /**
+  //  * Securely drops the table given the name
+  //  * @param name name of the table to be dropped
+  //  * @returns
+  //  */
+  // async dropTable(name: string) {
+  //   try {
+  //     this.logger.info(`dropping table ${name}`);
 
-      const queryRunner = this.dbService.connection.createQueryRunner();
-      const table = await queryRunner.getTable(name);
-      if (!table) {
-        this.logger.error(`unable to find table ${name}`);
-        return;
-      }
-      await queryRunner.dropTable(table);
-      await queryRunner.release();
-    } catch (error) {
-      logException(error, `dropTable`);
-    }
-  }
+  //     const queryRunner = this.dbService.connection.createQueryRunner();
+  //     const table = await queryRunner.getTable(name);
+  //     if (!table) {
+  //       this.logger.error(`unable to find table ${name}`);
+  //       return;
+  //     }
+  //     await queryRunner.dropTable(table);
+  //     await queryRunner.release();
+  //   } catch (error) {
+  //     logException(error, `dropTable`);
+  //   }
+  // }
 
-  /**
-   * Drops all block and transactions tables for the specified chain
-   * @param chain chain name (XRP, LTC, BTC, DOGE, ALGO)
-   */
-  private async dropAllChainTables(chain: string) {
-    chain = chain.toLocaleLowerCase();
+  // /**
+  //  * Drops all block and transactions tables for the specified chain
+  //  * @param chain chain name (XRP, LTC, BTC, DOGE, ALGO)
+  //  */
+  // private async dropAllChainTables(chain: string) {
+  //   chain = chain.toLocaleLowerCase();
 
-    await this.dropTable(`${chain}_block`);
-    await this.dropTable(`${chain}_transactions0`);
-    await this.dropTable(`${chain}_transactions1`);
-  }
+  //   await this.indexerToDB.dropTable(`${chain}_block`);
+  //   await this.indexerToDB.dropTable(`${chain}_transactions0`);
+  //   await this.indexerToDB.dropTable(`${chain}_transactions1`);
+  // }
 
   /**
    * Updates the status for monitoring
@@ -857,7 +861,7 @@ export class Indexer {
         this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
 
         await this.interlace.resetAll();
-        await this.dropAllStateInfo();
+        await this.indexerToDB.dropAllStateInfo();
 
         this.logger.debug(`restarting`);
         exit(3);
@@ -900,7 +904,7 @@ export class Indexer {
     this.N = startBlockNumber;
 
     // N is last completed block - confirmed and stored in DB
-    const dbStartBlockNumber = await this.getNfromDB();
+    const dbStartBlockNumber = await this.indexerToDB.getNfromDB();
     if (dbStartBlockNumber > 0) {
       this.N = dbStartBlockNumber;
     }

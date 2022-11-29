@@ -16,9 +16,9 @@ contract StateConnector {
     // Signalling block.coinbase value
     address public constant SIGNAL_COINBASE = address(0x00000000000000000000000000000000000DEaD1);
     // November 5th, 2021
-    uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1636070400 seconds;
+    uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1669849200 seconds;
     // Amount of time a buffer is active before cycling to the next one
-    uint256 public constant BUFFER_WINDOW = 90 seconds;
+    uint256 public constant BUFFER_WINDOW = 60 seconds;
     // {Requests, Votes, Reveals}
     uint256 public constant TOTAL_STORED_BUFFERS = 3;
     // Store a proof for one week

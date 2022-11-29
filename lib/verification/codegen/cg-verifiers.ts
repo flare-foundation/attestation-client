@@ -90,14 +90,14 @@ const web3 = new Web3();
 
 export async function ${functionName}(
 	client: ${mccInterface}, 
-	attestation: Attestation, 
+  attestationRequest: string,
+  roundId: number,
+  numberOfConfirmations,
 	indexer: IndexedQueryManager, 
 	recheck = false
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
 {
-	const request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
-	const roundId = attestation.roundId;
-	const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
 	//-$$$<start> of the custom code section. Do not change this comment.
 

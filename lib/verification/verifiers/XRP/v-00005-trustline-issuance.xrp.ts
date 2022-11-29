@@ -25,13 +25,13 @@ const web3 = new Web3();
 
 export async function verifyTrustlineIssuanceXRP(
   client: MCC.XRP,
-  attestation: Attestation,
+  attestationRequest: string,
+  roundId: number,
+  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARTrustlineIssuance, DHTrustlineIssuance>> {
-  const request = parseRequest(attestation.data.request) as ARTrustlineIssuance;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARTrustlineIssuance;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 

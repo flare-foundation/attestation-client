@@ -27,13 +27,13 @@ const web3 = new Web3();
 
 export async function verifyBalanceDecreasingTransactionLTC(
   client: MCC.LTC,
-  attestation: Attestation,
+  attestationRequest: string,
+  roundId: number,
+  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
-  const request = parseRequest(attestation.data.request) as ARBalanceDecreasingTransaction;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARBalanceDecreasingTransaction;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 

@@ -15,6 +15,8 @@ async function bootstrap() {
   await app.listen(port, undefined, () =>
     // tslint:disable-next-line:no-console
     // console.log(`Server started listening at http://localhost:${ port }`)
-    logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`));
+    logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`));
+
+    logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`);
 }
 bootstrap();

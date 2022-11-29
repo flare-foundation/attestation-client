@@ -8,7 +8,6 @@
 
 import {
   ARConfirmedBlockHeightExists,
-  Attestation,
   BN,
   DHConfirmedBlockHeightExists,
   hashConfirmedBlockHeightExists,
@@ -28,7 +27,6 @@ export async function verifyConfirmedBlockHeightExistsBTC(
   client: MCC.BTC,
   attestationRequest: string,
   roundId: number,
-  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>> {
@@ -36,7 +34,7 @@ export async function verifyConfirmedBlockHeightExistsBTC(
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyConfirmedBlockHeightExists(request, roundId, numberOfConfirmations, recheck, indexer);
+  const result = await verifyConfirmedBlockHeightExists(request, roundId, recheck, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

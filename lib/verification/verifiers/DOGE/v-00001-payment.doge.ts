@@ -6,20 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import {
-  ARPayment,
-  Attestation,
-  BN,
-  DHPayment,
-  hashPayment,
-  IndexedQueryManager,
-  MCC,
-  parseRequest,
-  randSol,
-  Verification,
-  VerificationStatus,
-  Web3,
-} from "./0imports";
+import { ARPayment, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { DogeTransaction } from "@flarenetwork/mcc";
 import { verifyPayment } from "../../verification-utils/generic-chain-verifications";
 
@@ -29,7 +16,6 @@ export async function verifyPaymentDOGE(
   client: MCC.DOGE,
   attestationRequest: string,
   roundId: number,
-  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARPayment, DHPayment>> {
@@ -37,7 +23,7 @@ export async function verifyPaymentDOGE(
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyPayment(DogeTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+  const result = await verifyPayment(DogeTransaction, request, roundId, recheck, indexer, client);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

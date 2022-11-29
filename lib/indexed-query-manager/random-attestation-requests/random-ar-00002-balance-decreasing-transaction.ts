@@ -26,19 +26,18 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
   roundId: number,
-  numberOfConfirmations: number,
   enforcedChoice?: RandomBalanceDecreasingTransactionChoiceType
 ): Promise<ARBalanceDecreasingTransaction | null> {
   if (!randomTransaction) {
     return null;
   }
   const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
-    blockNumber: randomTransaction.blockNumber + numberOfConfirmations,
+    blockNumber: randomTransaction.blockNumber + this.indexedQueryManager.settings.numberOfConfirmations(),
     roundId,
   });
   if (!confirmationBlockQueryResult?.result) {
     const N = await indexedQueryManager.getLastConfirmedBlockNumber();
-    console.log("No confirmation block", randomTransaction.blockNumber, N, numberOfConfirmations, roundId);
+    console.log("No confirmation block", randomTransaction.blockNumber, N, indexedQueryManager.settings.numberOfConfirmations(), roundId);
     return null;
   }
 

@@ -68,7 +68,6 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
   const randomResponse = genRandomResponseCode(definition, "request");
   const importedSymbols = [
     `${ATTESTATION_TYPE_PREFIX}${definition.name}`,
-    `Attestation`,
     `BN`,
     `${DATA_HASH_TYPE_PREFIX}${definition.name}`,
     `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`,
@@ -92,7 +91,6 @@ export async function ${functionName}(
 	client: ${mccInterface}, 
   attestationRequest: string,
   roundId: number,
-  numberOfConfirmations,
 	indexer: IndexedQueryManager, 
 	recheck = false
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>

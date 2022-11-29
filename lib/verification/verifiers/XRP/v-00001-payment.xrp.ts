@@ -6,20 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import {
-  ARPayment,
-  Attestation,
-  BN,
-  DHPayment,
-  hashPayment,
-  IndexedQueryManager,
-  MCC,
-  parseRequest,
-  randSol,
-  Verification,
-  VerificationStatus,
-  Web3,
-} from "./0imports";
+import { ARPayment, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { XrpTransaction } from "@flarenetwork/mcc";
 import { verifyPayment } from "../../verification-utils/generic-chain-verifications";
 
@@ -29,7 +16,6 @@ export async function verifyPaymentXRP(
   client: MCC.XRP,
   attestationRequest: string,
   roundId: number,
-  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARPayment, DHPayment>> {
@@ -37,7 +23,7 @@ export async function verifyPaymentXRP(
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyPayment(XrpTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+  const result = await verifyPayment(XrpTransaction, request, roundId, recheck, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

@@ -8,7 +8,6 @@
 
 import {
   ARTrustlineIssuance,
-  Attestation,
   BN,
   DHTrustlineIssuance,
   hashTrustlineIssuance,
@@ -27,7 +26,6 @@ export async function verifyTrustlineIssuanceXRP(
   client: MCC.XRP,
   attestationRequest: string,
   roundId: number,
-  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARTrustlineIssuance, DHTrustlineIssuance>> {

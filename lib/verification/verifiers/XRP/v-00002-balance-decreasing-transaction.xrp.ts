@@ -8,7 +8,6 @@
 
 import {
   ARBalanceDecreasingTransaction,
-  Attestation,
   BN,
   DHBalanceDecreasingTransaction,
   hashBalanceDecreasingTransaction,
@@ -29,7 +28,6 @@ export async function verifyBalanceDecreasingTransactionXRP(
   client: MCC.XRP,
   attestationRequest: string,
   roundId: number,
-  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
@@ -37,7 +35,7 @@ export async function verifyBalanceDecreasingTransactionXRP(
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyBalanceDecreasingTransaction(XrpTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+  const result = await verifyBalanceDecreasingTransaction(XrpTransaction, request, roundId, recheck, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

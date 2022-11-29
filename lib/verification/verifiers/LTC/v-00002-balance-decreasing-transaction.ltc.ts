@@ -8,7 +8,6 @@
 
 import {
   ARBalanceDecreasingTransaction,
-  Attestation,
   BN,
   DHBalanceDecreasingTransaction,
   hashBalanceDecreasingTransaction,
@@ -29,7 +28,6 @@ export async function verifyBalanceDecreasingTransactionLTC(
   client: MCC.LTC,
   attestationRequest: string,
   roundId: number,
-  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
@@ -37,7 +35,7 @@ export async function verifyBalanceDecreasingTransactionLTC(
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyBalanceDecreasingTransaction(LtcTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+  const result = await verifyBalanceDecreasingTransaction(LtcTransaction, request, roundId, recheck, indexer, client);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

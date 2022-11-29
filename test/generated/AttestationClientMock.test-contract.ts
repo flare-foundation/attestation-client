@@ -47,18 +47,18 @@ describe("Attestestation Client Mock", function () {
   });
 
   it("'Payment' test", async function () {
-    const attestationType = AttestationType.Payment;
-    const request = { attestationType, sourceId: CHAIN_ID } as ARPayment;
+    let attestationType = AttestationType.Payment;
+    let request = { attestationType, sourceId: CHAIN_ID } as ARPayment;
 
-    const response = getRandomResponseForType(attestationType) as DHPayment;
+    let response = getRandomResponseForType(attestationType) as DHPayment;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
-    const responseHex = hexlifyBN(response);
+    let responseHex = hexlifyBN(response);
 
-    const hash = hashPayment(request, response);
+    let hash = hashPayment(request, response);
 
-    const dummyHash = web3.utils.randomHex(32);
+    let dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
     assert((await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND)) === hash);
     assert(await attestationClient.verifyPayment(CHAIN_ID, responseHex));
@@ -68,18 +68,18 @@ describe("Attestestation Client Mock", function () {
   });
 
   it("'BalanceDecreasingTransaction' test", async function () {
-    const attestationType = AttestationType.BalanceDecreasingTransaction;
-    const request = { attestationType, sourceId: CHAIN_ID } as ARBalanceDecreasingTransaction;
+    let attestationType = AttestationType.BalanceDecreasingTransaction;
+    let request = { attestationType, sourceId: CHAIN_ID } as ARBalanceDecreasingTransaction;
 
-    const response = getRandomResponseForType(attestationType) as DHBalanceDecreasingTransaction;
+    let response = getRandomResponseForType(attestationType) as DHBalanceDecreasingTransaction;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
-    const responseHex = hexlifyBN(response);
+    let responseHex = hexlifyBN(response);
 
-    const hash = hashBalanceDecreasingTransaction(request, response);
+    let hash = hashBalanceDecreasingTransaction(request, response);
 
-    const dummyHash = web3.utils.randomHex(32);
+    let dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
     assert((await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND)) === hash);
     assert(await attestationClient.verifyBalanceDecreasingTransaction(CHAIN_ID, responseHex));
@@ -89,18 +89,18 @@ describe("Attestestation Client Mock", function () {
   });
 
   it("'ConfirmedBlockHeightExists' test", async function () {
-    const attestationType = AttestationType.ConfirmedBlockHeightExists;
-    const request = { attestationType, sourceId: CHAIN_ID } as ARConfirmedBlockHeightExists;
+    let attestationType = AttestationType.ConfirmedBlockHeightExists;
+    let request = { attestationType, sourceId: CHAIN_ID } as ARConfirmedBlockHeightExists;
 
-    const response = getRandomResponseForType(attestationType) as DHConfirmedBlockHeightExists;
+    let response = getRandomResponseForType(attestationType) as DHConfirmedBlockHeightExists;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
-    const responseHex = hexlifyBN(response);
+    let responseHex = hexlifyBN(response);
 
-    const hash = hashConfirmedBlockHeightExists(request, response);
+    let hash = hashConfirmedBlockHeightExists(request, response);
 
-    const dummyHash = web3.utils.randomHex(32);
+    let dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
     assert((await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND)) === hash);
     assert(await attestationClient.verifyConfirmedBlockHeightExists(CHAIN_ID, responseHex));
@@ -110,18 +110,18 @@ describe("Attestestation Client Mock", function () {
   });
 
   it("'ReferencedPaymentNonexistence' test", async function () {
-    const attestationType = AttestationType.ReferencedPaymentNonexistence;
-    const request = { attestationType, sourceId: CHAIN_ID } as ARReferencedPaymentNonexistence;
+    let attestationType = AttestationType.ReferencedPaymentNonexistence;
+    let request = { attestationType, sourceId: CHAIN_ID } as ARReferencedPaymentNonexistence;
 
-    const response = getRandomResponseForType(attestationType) as DHReferencedPaymentNonexistence;
+    let response = getRandomResponseForType(attestationType) as DHReferencedPaymentNonexistence;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
-    const responseHex = hexlifyBN(response);
+    let responseHex = hexlifyBN(response);
 
-    const hash = hashReferencedPaymentNonexistence(request, response);
+    let hash = hashReferencedPaymentNonexistence(request, response);
 
-    const dummyHash = web3.utils.randomHex(32);
+    let dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
     assert((await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND)) === hash);
     assert(await attestationClient.verifyReferencedPaymentNonexistence(CHAIN_ID, responseHex));
@@ -131,18 +131,18 @@ describe("Attestestation Client Mock", function () {
   });
 
   it("'TrustlineIssuance' test", async function () {
-    const attestationType = AttestationType.TrustlineIssuance;
-    const request = { attestationType, sourceId: CHAIN_ID } as ARTrustlineIssuance;
+    let attestationType = AttestationType.TrustlineIssuance;
+    let request = { attestationType, sourceId: CHAIN_ID } as ARTrustlineIssuance;
 
-    const response = getRandomResponseForType(attestationType) as DHTrustlineIssuance;
+    let response = getRandomResponseForType(attestationType) as DHTrustlineIssuance;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
-    const responseHex = hexlifyBN(response);
+    let responseHex = hexlifyBN(response);
 
-    const hash = hashTrustlineIssuance(request, response);
+    let hash = hashTrustlineIssuance(request, response);
 
-    const dummyHash = web3.utils.randomHex(32);
+    let dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
     assert((await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND)) === hash);
     assert(await attestationClient.verifyTrustlineIssuance(CHAIN_ID, responseHex));
@@ -152,7 +152,7 @@ describe("Attestestation Client Mock", function () {
   });
 
   it("Merkle tree test", async function () {
-    const verifications = [];
+    let verifications = [];
     for (let i = 0; i < NUM_OF_HASHES; i++) {
       const request = getRandomRequest();
       const response = getRandomResponseForType(request.attestationType);
@@ -162,14 +162,14 @@ describe("Attestestation Client Mock", function () {
         hash: dataHash(request, response),
       });
     }
-    const hashes = verifications.map((verification) => verification.hash);
+    let hashes = verifications.map((verification) => verification.hash);
     const tree = new MerkleTree(hashes);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, tree.root);
-    for (const verification of verifications) {
+    for (let verification of verifications) {
       verification.response.stateConnectorRound = STATECONNECTOR_ROUND;
-      const index = tree.sortedHashes.findIndex((hash) => hash === verification.hash);
+      let index = tree.sortedHashes.findIndex((hash) => hash === verification.hash);
       verification.response.merkleProof = tree.getProof(index);
-      const responseHex = hexlifyBN(verification.response);
+      let responseHex = hexlifyBN(verification.response);
       switch (verification.request.attestationType) {
         case AttestationType.Payment:
           assert(await attestationClient.verifyPayment(verification.request.sourceId, responseHex));

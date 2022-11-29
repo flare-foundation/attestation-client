@@ -14,7 +14,7 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
   const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
   const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
-let encoded = web3.eth.abi.encodeParameters(
+const encoded = web3.eth.abi.encodeParameters(
 	[
 		"uint${ATT_BYTES * 8}",\t\t// attestationType
 		"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId

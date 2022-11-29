@@ -32,6 +32,7 @@ export class Attestation {
   processStartTime = 0;
   processEndTime = 0;
 
+  // Data about event of attestation request
   data: AttestationData;
 
   verificationData!: Verification<any, any>;

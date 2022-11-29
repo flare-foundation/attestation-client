@@ -27,13 +27,13 @@ const web3 = new Web3();
 
 export async function verifyReferencedPaymentNonexistenceDOGE(
   client: MCC.DOGE,
-  attestation: Attestation,
+  attestationRequest: string,
+  roundId: number,
+  numberOfConfirmations,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>> {
-  const request = parseRequest(attestation.data.request) as ARReferencedPaymentNonexistence;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARReferencedPaymentNonexistence;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 

@@ -19,7 +19,7 @@ export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
   const responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
   const randomResponse = `
-let response = {
+const response = {
 ${responseFields}      
 } as ${DATA_HASH_TYPE_PREFIX}${definition.name};
 `;
@@ -60,7 +60,7 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
   const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
   const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
-let encoded = web3.eth.abi.encodeParameters(
+const encoded = web3.eth.abi.encodeParameters(
 	[
 		"uint${ATT_BYTES * 8}",\t\t// attestationType
 		"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
@@ -124,8 +124,8 @@ function genItForMerkleTest(definitions: AttestationTypeScheme[]) {
 it("Merkle tree test", async function () {
 	let verifications = [];
 	for(let i = 0; i < NUM_OF_HASHES; i++) {
-		let request = getRandomRequest();
-		let response = getRandomResponseForType(request.attestationType);
+		const request = getRandomRequest();
+		const response = getRandomResponseForType(request.attestationType);
 		verifications.push({
 			request,
 			response,

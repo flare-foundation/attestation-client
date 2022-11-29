@@ -26,6 +26,9 @@ contract StateConnector {
     // Cold wallet address => Hot wallet address
     mapping(address => address) public attestorAddressMapping;
 
+    // filed used to specify the address that can finalize the rounds
+    address public FINALIZING_ADDRESS;
+
     //=======================
     // VOTING DATA STRUCTURES
     //=======================
@@ -85,7 +88,8 @@ contract StateConnector {
 // Constructor
 //====================================================================
 
-    constructor() {
+    constructor(address finalizingBot) {
+        FINALIZING_ADDRESS = finalizingBot;
         /* empty block */
     }
 
@@ -147,7 +151,7 @@ contract StateConnector {
         require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
         require(_bufferNumber > totalBuffers);
         // The following region can only be called from the golang code
-        if (msg.sender == block.coinbase && block.coinbase == SIGNAL_COINBASE) {
+        if (msg.sender == FINALIZING_ADDRESS) {
             totalBuffers = _bufferNumber;
             merkleRoots[(_bufferNumber - 3) % TOTAL_STORED_PROOFS] = _merkleRoot;
             emit RoundFinalised(_bufferNumber - 3, _merkleRoot);

@@ -62,8 +62,6 @@ export class AttestationRound {
   roundMerkleRoot!: string;
   roundRandom!: string;
   roundMaskedMerkleRoot: string;
-  roundHashedRandom: string;
-  roundCommitHash: string;
 
   merkleTree!: MerkleTree;
 
@@ -152,8 +150,6 @@ export class AttestationRound {
           action,
           // commit index (collect+1)
           toBN(this.roundId + 1),
-          toHex(0, 32),
-          toHex(0, 32),
           toHex(0, 32),
           toHex(0, 32),
           toHex(0, 32),
@@ -305,6 +301,7 @@ export class AttestationRound {
     if (validated.length === 0) {
       this.logger.error(`round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
       this.attestStatus = AttestationRoundStatus.nothingToCommit;
+      await this.createEmptyState();      
       return;
     }
 
@@ -343,16 +340,7 @@ export class AttestationRound {
 
     this.roundMerkleRoot = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
-    this.roundMaskedMerkleRoot = xor32(this.roundMerkleRoot, this.roundRandom);
-    this.roundHashedRandom = singleHash(this.roundRandom);
-    this.roundCommitHash = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
-
-    // validate
-    const hashTest = xor32(this.roundMaskedMerkleRoot, this.roundRandom);
-
-    if (hashTest !== this.roundMerkleRoot) {
-      this.logger.error2(`maskedHash calculated incorrectly !!!`);
-    }
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
     await AttestationRoundManager.state.saveRound(this, validated.length);
@@ -381,9 +369,7 @@ export class AttestationRound {
     this.roundMerkleRoot = "0x0000000000000000000000000000000000000000000000000000000000000000";
     this.roundRandom = await getCryptoSafeRandom();
 
-    this.roundMaskedMerkleRoot = xor32(this.roundMerkleRoot, this.roundRandom);
-    this.roundHashedRandom = singleHash(this.roundRandom);
-    this.roundCommitHash = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
     await AttestationRoundManager.state.saveRound(this);
@@ -400,7 +386,7 @@ export class AttestationRound {
 
     const action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
-    const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
+    const prevRound = await AttestationRoundManager.state.getRound(this.roundId - 1);
 
     // eslint-disable-next-line
     criticalAsync("firstCommit", async () => {
@@ -408,13 +394,13 @@ export class AttestationRound {
         action,
         // commit index (collect+1)
         toBN(this.roundId + 1),
+        // commit
         this.roundMerkleRoot,
         this.roundMaskedMerkleRoot,
         this.roundRandom,
-        this.roundHashedRandom,
-        nextState && nextState.random ? nextState.random : toHex(0, 32),
-        nextState && nextState.merkleRoot ? nextState.merkleRoot : toHex(0, 32),
-        this.roundCommitHash
+        // reveal
+        prevRound && prevRound.merkleRoot ? prevRound.merkleRoot : toHex(0, 32),
+        prevRound && prevRound.random ? prevRound.random : toHex(0, 32),
       );
 
       if (receipt) {
@@ -434,15 +420,12 @@ export class AttestationRound {
       this.logger.error(`round #${this.roundId} cannot reveal (not in reveal epoch status ${this.status})`);
       return;
     }
-    if (this.attestStatus !== AttestationRoundStatus.comitted) {
+    if( this.attestStatus === AttestationRoundStatus.nothingToCommit ) {
+      this.logger.warning(`round #${this.roundId} nothing to commit`);
+    } else if (this.attestStatus !== AttestationRoundStatus.comitted ) {
       switch (this.attestStatus) {
-        case AttestationRoundStatus.nothingToCommit:
-          this.logger.warning(`round #${this.roundId} nothing to reveal`);
-          break;
         case AttestationRoundStatus.collecting:
-          this.logger.error(
-            `  ! AttestEpoch #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`
-          );
+          this.logger.error(`round #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`);
           break;
         case AttestationRoundStatus.commiting:
           this.logger.error(`round #${this.roundId} cannot reveal (still comitting)`);
@@ -451,16 +434,17 @@ export class AttestationRound {
           this.logger.error(`round #${this.roundId} cannot reveal (not commited ${this.attestStatus})`);
           break;
       }
-      return;
+
+      // we should still commit next round
+      //return;
     }
+
 
     // this.logger.info(`^Cround #${this.roundId} reveal`);
 
     let nextRoundMerkleRoot = toHex(toBN(0), 32);
     let nextRoundMaskedMerkleRoot = toHex(toBN(0), 32);
     let nextRoundRandom = toHex(toBN(0), 32);
-    let nextRoundHashedRandom = toHex(toBN(0), 32);
-    let nextRoundCommitHash = toHex(toBN(0), 32);
 
     const action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
@@ -472,8 +456,6 @@ export class AttestationRound {
       nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;
       nextRoundMaskedMerkleRoot = this.nextRound.roundMaskedMerkleRoot;
       nextRoundRandom = this.nextRound.roundRandom;
-      nextRoundHashedRandom = this.nextRound.roundHashedRandom;
-      nextRoundCommitHash = this.nextRound.roundCommitHash;
 
       this.nextRound.attestStatus = AttestationRoundStatus.comitted;
     }
@@ -484,13 +466,13 @@ export class AttestationRound {
         action,
         // commit index (collect+2)
         toBN(this.roundId + 2),
+        // commit
         nextRoundMerkleRoot,
         nextRoundMaskedMerkleRoot,
         nextRoundRandom,
-        nextRoundHashedRandom,
-        this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32),
+        // reveal
         this.attestStatus === AttestationRoundStatus.comitted ? this.roundMerkleRoot : toHex(0, 32),
-        nextRoundCommitHash
+        this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32),
       );
 
       if (receipt) {

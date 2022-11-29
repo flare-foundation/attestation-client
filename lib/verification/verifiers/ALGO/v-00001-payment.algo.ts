@@ -37,7 +37,7 @@ export async function verifyPaymentALGO(
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyPayment(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+  const result = await verifyPayment(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

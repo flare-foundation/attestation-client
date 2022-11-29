@@ -7,6 +7,11 @@ import { stringify } from "safe-stable-stringify";
 export const DEFAULT_GAS = "2500000";
 export const DEFAULT_GAS_PRICE = "300000000000";
 
+export interface ExtendedReceipt {
+  receipt?: any;
+  nonce?: number;
+}
+
 export class Web3Functions {
   logger: AttLogger;
 
@@ -61,7 +66,7 @@ export class Web3Functions {
     gas: string = DEFAULT_GAS,
     gasPrice: string = DEFAULT_GAS_PRICE,
     quiet = false
-  ): Promise<any> {
+  ): Promise<ExtendedReceipt> {
     try {
       const waitIndex = this.nextIndex;
       this.nextIndex += 1;
@@ -78,11 +83,7 @@ export class Web3Functions {
             if (getUnixEpochTimestamp() > timeEnd) {
               this.logger.error2(`sign ${label} timeout #${waitIndex}`);
 
-              // must return 2 values as _signAndFinalize3
-              // for some reason the return {null,null}; does not compile
-              const res0 = null;
-              const res1 = null;
-              return { res0, res1 };
+              return {};
             }
           }
 
@@ -114,7 +115,7 @@ export class Web3Functions {
 
   async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE): Promise<any> {
     try {
-      const nonce = await this.getNonce();
+      const nonce = parseInt(await this.getNonce());
       const tx = {
         from: this.account.address,
         to: toAddress,
@@ -140,7 +141,7 @@ export class Web3Functions {
             this.logger.error2(`${label}, nonce sent: ${nonce}, revert reason: ${revertReason}`);
           }
         }
-        return null;
+        return {};
       }
     } catch (error) {
       logException(error, `_signAndFinalize3`);

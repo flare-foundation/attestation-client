@@ -1,6 +1,6 @@
 // Make a tunnel to database
 // Run the test
-// DOTENV=DEV SOURCE_ID=BTC CONFIG_PATH=.secure.dev NODE_ENV=development yarn hardhat test test/verification/CostonVerification.test-dev.ts --network coston
+// DOTENV=DEV SOURCE_ID=ALGO CONFIG_PATH=.secure.dev NODE_ENV=development yarn hardhat test test/verification/CostonVerification.test-dev.ts --network coston
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import { AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
@@ -40,8 +40,8 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   const AttestationClientSC = artifacts.require("AttestationClientSC");
 
   before(async () => {
-    stateConnector = await StateConnector.at("0x947c76694491d3fD67a73688003c4d36C8780A97");
-    attestationClient = await AttestationClientSC.at("0xFdd0daaC0dc2eb8bD35eBdD8611d5322281fC527");
+    stateConnector = await StateConnector.at("0x1000000000000000000000000000000000000001");
+    attestationClient = await AttestationClientSC.at("0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf");
     BUFFER_TIMESTAMP_OFFSET = (await stateConnector.BUFFER_TIMESTAMP_OFFSET()).toNumber();
     BUFFER_WINDOW = (await stateConnector.BUFFER_WINDOW()).toNumber();
     TOTAL_STORED_PROOFS = (await stateConnector.TOTAL_STORED_PROOFS()).toNumber();
@@ -52,6 +52,10 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     const configIndexer = readConfig(new ChainsConfiguration(), "chains");
     chainIndexerConfig = configIndexer.chains.find((item) => item.name === chainName);
     const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
+
+    
+    console.log( "***1");    
+
 
     client = MCC.Client(SOURCE_ID, {
       ...chainIndexerConfig.mccCreate,
@@ -106,13 +110,15 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
   // Used for debugging specific requests
   it.only("Specific request check", async () => {
-    const request = "0x00010000000000000000000000000003ee5e67eb232d8f13ef527a949daac0ab9975999da5b776dbc79972945efe9cc3b28035f2f84b01ccdcb8141d05a726aa82bd619dd3160000";
-    const roundId = 289768;
+    const request = "0x000100000004d35d367c3abd09d92c956c9e73d73fd9e7da10ba209b807829b7093a9a55f62f145848860e2f9e81c6c21eaeaa0fcbfe2d4876b872c09ea2294e19a965b92c420000";
+    const roundId = 366582;
     const recheck = true;
 
     const parsed = parseRequest(request);
     // console.log(parsed)
     // let roundId = currentBufferNumber - 2;
+
+    console.log( "***1");    
 
     const att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations);
     const result = await verifyAttestation(client, att, indexedQueryManager, recheck);
@@ -154,6 +160,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       console.log(`No attestations in roundId ${roundId}`);
       return;
     }
+
     const hashes: string[] = data.map((item) => item.hash) as string[];
     const tree = new MerkleTree(hashes);
 

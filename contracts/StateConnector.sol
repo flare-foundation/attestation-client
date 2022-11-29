@@ -70,6 +70,12 @@ contract StateConnector {
         bytes data
     );
 
+    event AttestationChooseBytes(
+        address sender,
+        uint256 indexed roundId,
+        bytes data
+    );
+
     event RoundFinalised(
         uint256 indexed roundId,
         bytes32 merkleRoot
@@ -99,13 +105,15 @@ contract StateConnector {
         uint256 _bufferNumber,
         bytes32 _commitHash,
         bytes32 _merkleRoot,
-        bytes32 _randomNumber
+        bytes32 _randomNumber,
+        bytes _chooseBytes,
     ) 
         external returns (
             bool _isInitialBufferSlot
         )
     {
         require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW, "wrong bufferNumber");
+        emit AttestationChooseBytes(msg.sender,_bufferNumber,_chooseBytes)
         buffers[msg.sender].latestVote = _bufferNumber;
         buffers[msg.sender].votes[_bufferNumber % TOTAL_STORED_BUFFERS] = Vote(
             _commitHash,

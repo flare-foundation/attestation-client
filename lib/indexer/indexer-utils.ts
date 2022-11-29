@@ -124,7 +124,7 @@ export function getStateEntry(name: string, chainName: string, value: number): D
  * @returns
  */
 function prefixChainNameTo(name: string, chainName: string) {
-  return chainName + "_" + name;
+  return chainName.toLowerCase() + "_" + name;
 }
 
 /**

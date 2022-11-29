@@ -78,7 +78,6 @@ export class IndexerToDB {
       const bottomBlockNumber = await this.getBottomDBBlockNumberFromStoredTransactions();
       if (bottomBlockNumber) {
         const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber, confirmed: true } });
-
         this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
 
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
@@ -202,6 +201,7 @@ export class IndexerToDB {
       .execute();
   }
 
+  //do we want to drop or truncate???
   /**
    * Securely drops the table given the name
    * @param name name of the table to be dropped

@@ -3,7 +3,6 @@ import { AttLogger } from "../utils/logger";
 import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
-import { getStateEntry } from "./indexer-utils";
 import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
 import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
@@ -94,7 +93,7 @@ export class HeaderCollector {
   public async saveHeadersOnNewTips(blockTips: IBlockTip[] | IBlockHeader[]) {
     let blocksText = "[";
 
-    const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexer.dbService, this.indexer.dbBlockClass, this.indexer.N);
+    const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexerToDB.dbService, this.indexer.dbBlockClass, this.indexer.N);
     await unconfirmedBlockManager.initialize();
 
     for (const blockTip of blockTips) {
@@ -116,7 +115,7 @@ export class HeaderCollector {
 
       this.cacheBlock(blockTip);
 
-      const dbBlock = new this.indexer.dbBlockClass();
+      const dbBlock = new this.indexerToDB.dbBlockClass();
 
       dbBlock.blockNumber = blockNumber;
       dbBlock.blockHash = blockTip.stdBlockHash;
@@ -159,7 +158,7 @@ export class HeaderCollector {
 
     this.logger.debug(`write block headers ${blocksText}]`);
 
-    await retry(`saveBlocksHeadersArray`, async () => await this.indexer.dbService.manager.save(dbBlocks));
+    await retry(`saveBlocksHeadersArray`, async () => await this.indexerToDB.dbService.manager.save(dbBlocks));
   }
 
   /////////////////////////////////////////////////////////////
@@ -211,7 +210,7 @@ export class HeaderCollector {
         T = newT;
       }
 
-      const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
+      const blocks: IBlockTip[] = await this.indexerToClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
 
       await this.saveHeadersOnNewTips(blocks);
 

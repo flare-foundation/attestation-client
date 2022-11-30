@@ -1,6 +1,5 @@
 import { IBlock, Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
-import { Indexer } from "../indexer/indexer";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Interlacing } from "../indexer/interlacing";
 import { getGlobalLogger, logException } from "../utils/logger";

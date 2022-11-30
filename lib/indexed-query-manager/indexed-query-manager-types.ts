@@ -67,7 +67,6 @@ export interface UpperBoundaryCheck {
 export interface ConfirmedBlockQueryRequest {
   blockNumber?: number;
   roundId: number;
-  numberOfConfirmations: number;
   upperBoundProof: string; // hash of confirmation block(used for syncing of edge - cases)
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
   returnQueryBoundaryBlocks?: boolean;
@@ -84,7 +83,6 @@ export interface ConfirmedTransactionQueryRequest {
   // blockNumber: number; // block number for the transaction with `txId
   upperBoundProof: string; // hash of confirmation block(used for syncing of edge - cases)
   roundId: number; // voting round id for check
-  numberOfConfirmations: number;
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
   returnQueryBoundaryBlocks?: boolean;
 }
@@ -99,7 +97,6 @@ export interface ConfirmedTransactionQueryResponse {
 export interface ReferencedTransactionsQueryRequest {
   deadlineBlockNumber: number;
   deadlineBlockTimestamp: number;
-  numberOfConfirmations: number;
   paymentReference: string; // payment reference
   // Used to determine overflow block - the first block with blockNumber > endBlock and timestamp > endTime
   // overflowBlockNumber: number;

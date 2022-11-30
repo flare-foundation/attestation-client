@@ -35,7 +35,6 @@ const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;
 const BATCH_SIZE = 100;
 const TOP_UP_THRESHOLD = 0.25;
-const NUMBER_OF_CONFIRMATIONS = 6;
 
 console.warn(`This test should run while ${getSourceName(SOURCE_ID)} indexer is running`);
 // Overriding .env variables for this particular test only
@@ -102,11 +101,10 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       randomTransaction as DBTransactionBase,
       SOURCE_ID,
       ROUND_ID,
-      NUMBER_OF_CONFIRMATIONS,
       "CORRECT"
     );
 
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+    const attestation = createTestAttestationFromRequest(request, ROUND_ID, indexedQueryManager.settings.numberOfConfirmations());
 
     const res = await verifyAttestation(client, attestation, indexedQueryManager);
     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
@@ -123,11 +121,10 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       randomTransaction as DBTransactionBase,
       SOURCE_ID,
       ROUND_ID,
-      NUMBER_OF_CONFIRMATIONS,
       "CORRECT"
     );
 
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+    const attestation = createTestAttestationFromRequest(request, ROUND_ID, indexedQueryManager.settings.numberOfConfirmations());
 
     const res = await verifyAttestation(client, attestation, indexedQueryManager);
 
@@ -148,14 +145,13 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       blockQueryRequest.result,
       SOURCE_ID,
       ROUND_ID,
-      NUMBER_OF_CONFIRMATIONS,
       "CORRECT"
     );
 
     if (!request) {
       console.log("NO REQUEST - Repeat the test", request);
     }
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+    const attestation = createTestAttestationFromRequest(request, ROUND_ID, indexedQueryManager.settings.numberOfConfirmations());
 
     const res = await verifyAttestation(client, attestation, indexedQueryManager);
     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
@@ -180,7 +176,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
         randomTransaction as DBTransactionBase,
         SOURCE_ID,
         ROUND_ID,
-        NUMBER_OF_CONFIRMATIONS,
         "CORRECT"
       );
 
@@ -192,7 +187,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
         return;
       }
 
-      const attestation = createTestAttestationFromRequest(request, ROUND_ID, NUMBER_OF_CONFIRMATIONS);
+      const attestation = createTestAttestationFromRequest(request, ROUND_ID, indexedQueryManager.settings.numberOfConfirmations());
 
       const res = await verifyAttestation(client, attestation, indexedQueryManager);
       assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);

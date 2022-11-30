@@ -41,7 +41,7 @@ export function randReqItemCode(type: SupportedRequestType, size: number) {
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
   const responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
   const randomResponse = `
-let response = {
+const response = {
 ${responseFields}      
 } as ${DATA_HASH_TYPE_PREFIX}${definition.name};
 `;
@@ -82,7 +82,7 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
   const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
   const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
-let encoded = web3.eth.abi.encodeParameters(
+const encoded = web3.eth.abi.encodeParameters(
 	[
 		"uint${ATT_BYTES * 8}",\t\t// attestationType
 		"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
@@ -111,8 +111,8 @@ export function randomRequest(definitions: AttestationTypeScheme[]) {
   const attestationTypeCases = definitions.map((definition) => genRandomAttestationCase(definition)).join("");
   return `
 export function getRandomRequest() {  
-	let ids = [${ids}];
-	let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*${definitions.length})];
+	const ids = [${ids}];
+	const randomAttestationType: AttestationType = ids[Math.floor(Math.random()*${definitions.length})];
 	let sourceId: SourceId = -1;
 	let sourceIds: SourceId[] = [];
 	switch(randomAttestationType) {

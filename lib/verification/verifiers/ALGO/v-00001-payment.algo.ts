@@ -6,20 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import {
-  ARPayment,
-  Attestation,
-  BN,
-  DHPayment,
-  hashPayment,
-  IndexedQueryManager,
-  MCC,
-  parseRequest,
-  randSol,
-  Verification,
-  VerificationStatus,
-  Web3,
-} from "./0imports";
+import { ARPayment, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { AlgoTransaction } from "@flarenetwork/mcc";
 import { verifyPayment } from "../../verification-utils/generic-chain-verifications";
 
@@ -27,17 +14,16 @@ const web3 = new Web3();
 
 export async function verifyPaymentALGO(
   client: MCC.ALGO,
-  attestation: Attestation,
+  attestationRequest: string,
+  roundId: number,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARPayment, DHPayment>> {
-  const request = parseRequest(attestation.data.request) as ARPayment;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARPayment;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyPayment(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+  const result = await verifyPayment(AlgoTransaction, request, roundId, recheck, indexer, client);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

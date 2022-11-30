@@ -5,6 +5,7 @@ import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 import { getStateEntry } from "./indexer-utils";
 import { IndexerToClient } from "./indexerToClient";
+import { IndexerToDB } from "./indexerToDB";
 import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 
 /**
@@ -14,6 +15,7 @@ import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 export class HeaderCollector {
   private indexer: Indexer;
   private indexerToClient: IndexerToClient;
+  private indexerToDB: IndexerToDB;
 
   private logger: AttLogger;
 
@@ -163,16 +165,18 @@ export class HeaderCollector {
   /////////////////////////////////////////////////////////////
   // save state
   /////////////////////////////////////////////////////////////
-  /**
-   * Saves the last top height into the database state
-   * @param T top height
-   */
-  private async writeT(T: number) {
-    // every update save last T
-    const stateTcheckTime = getStateEntry("T", this.indexer.chainConfig.name, T);
 
-    await retry(`writeT`, async () => await this.indexer.dbService.manager.save(stateTcheckTime));
-  }
+  //Moved to indexerToDB
+  // /**
+  //  * Saves the last top height into the database state
+  //  * @param T top height
+  //  */
+  // private async writeT(T: number) {
+  //   // every update save last T
+  //   const stateTcheckTime = getStateEntry("T", this.indexer.chainConfig.name, T);
+
+  //   await retry(`writeT`, async () => await this.indexer.dbService.manager.save(stateTcheckTime));
+  // }
 
   /////////////////////////////////////////////////////////////
   // header collectors
@@ -187,7 +191,7 @@ export class HeaderCollector {
       // get chain top block
       const newT = await this.indexerToClient.getBlockHeightFromClient(`runBlockHeaderCollectingRaw`);
       if (T != newT) {
-        await this.writeT(newT);
+        await this.indexerToDB.writeT(newT);
         T = newT;
       }
       await sleepms(this.indexer.config.blockCollectTimeMs);
@@ -203,7 +207,7 @@ export class HeaderCollector {
       // get chain top block
       const newT = await this.indexerToClient.getBlockHeightFromClient(`runBlockHeaderCollectingTips`);
       if (T != newT) {
-        await this.writeT(newT);
+        await this.indexerToDB.writeT(newT);
         T = newT;
       }
 

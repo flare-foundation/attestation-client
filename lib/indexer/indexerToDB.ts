@@ -211,14 +211,15 @@ export class IndexerToDB {
     try {
       this.logger.info(`dropping table ${name}`);
 
-      const queryRunner = this.dbService.connection.createQueryRunner();
-      const table = await queryRunner.getTable(name);
-      if (!table) {
-        this.logger.error(`unable to find table ${name}`);
-        return;
-      }
-      await queryRunner.dropTable(table);
-      await queryRunner.release();
+      await this.dbService.connection.query(`TRUNCATE ${name};`);
+      // const queryRunner = this.dbService.connection.createQueryRunner();
+      // const table = await queryRunner.getTable(name);
+      // if (!table) {
+      //   this.logger.error(`unable to find table ${name}`);
+      //   return;
+      // }
+      // await queryRunner.dropTable(table);
+      // await queryRunner.release();
     } catch (error) {
       logException(error, `dropTable`);
     }
@@ -234,5 +235,16 @@ export class IndexerToDB {
     await this.dropTable(`${chain}_block`);
     await this.dropTable(`${chain}_transactions0`);
     await this.dropTable(`${chain}_transactions1`);
+  }
+
+  /**
+   * Saves the last top height into the database state
+   * @param T top height
+   */
+  public async writeT(T: number) {
+    // every update save last T
+    const stateTcheckTime = getStateEntry("T", this.chainName, T);
+
+    await retry(`writeT`, async () => await this.dbService.manager.save(stateTcheckTime));
   }
 }

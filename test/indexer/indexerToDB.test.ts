@@ -1,7 +1,8 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { afterEach } from "mocha";
+import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { DBState } from "../../lib/entity/indexer/dbState";
-import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
+import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { getStateEntry } from "../../lib/indexer/indexer-utils";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { Interlacing } from "../../lib/indexer/interlacing";
@@ -168,5 +169,39 @@ describe("IndexerToBD", function () {
     const res2 = await dataService.manager.find(DBState);
 
     expect(res2.length).to.be.eq(0);
+  });
+
+  it("should not drop non existing table", async function () {
+    const spy2 = sinon.spy(loggers, "logException");
+    await indexerToDB.dropTable("MissingTable");
+    expect(spy2.callCount).to.eq(1);
+  });
+
+  it("should drop a table", async function () {
+    await dataService.manager.save(augTx0);
+    await indexerToDB.dropTable("btc_transactions0");
+    const res = await dataService.manager.find(DBTransactionBTC0);
+    expect(res.length).to.be.eq(0);
+  });
+
+  it("should drop all dropAllChainTables", async function () {
+    await dataService.manager.save(augTx0);
+    await dataService.manager.save(augTxAlt1);
+    await dataService.manager.save(AugTestBlockBTC);
+
+    await indexerToDB.dropAllChainTables("btc");
+
+    const res1 = await dataService.manager.find(DBTransactionBTC0);
+    const res2 = await dataService.manager.find(DBTransactionBTC1);
+    const res3 = await dataService.manager.find(DBBlockBTC);
+    expect(res1.length).to.be.eq(0);
+    expect(res2.length).to.be.eq(0);
+    expect(res3.length).to.be.eq(0);
+  });
+
+  it("should writeT", async function () {
+    await indexerToDB.writeT(118);
+    const res = await dataService.manager.findOne(DBState, { where: { name: "btc_T" } });
+    expect(res.valueNumber).to.eq(118);
   });
 });

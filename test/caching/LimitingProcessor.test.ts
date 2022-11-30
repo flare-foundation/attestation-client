@@ -1,12 +1,17 @@
 import { DelayedExecution, LimitingProcessor } from "../../lib/caching/LimitingProcessor";
 import { sleepms } from "../../lib/utils/utils";
-import { expect, assert, should } from "chai";
 import { DatabaseConnectOptions, DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
 import { globalTestLogger } from "../../lib/utils/logger";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import sinon from "sinon";
+
+const chai = require("chai");
+const chaiaspromised = require("chai-as-promised");
+chai.use(chaiaspromised);
+const expect = chai.expect;
+const assert = chai.assert;
 
 describe("Delayed execution", () => {
   async function testFunc() {
@@ -103,6 +108,16 @@ describe("Limiting Processor", () => {
     expect(limitingProcessor.isActive).to.be.false;
   });
 
+  it("Should registerTopLevelJob", () => {
+    limitingProcessor.registerTopLevelJob();
+    expect(limitingProcessor.topLevelJobsCounter).to.be.eq(1);
+  });
+
+  it("Should markTopLevelJobDone", () => {
+    limitingProcessor.markTopLevelJobDone();
+    expect(limitingProcessor.topLevelJobsDoneCounter).to.be.eq(1);
+  });
+
   //Put tasks in queue then run processor and expect it to run tasks
   it.skip("Should call function and put it into the queue and call it after resume", function (done) {
     const preFake1 = sinon.fake();
@@ -126,10 +141,10 @@ describe("Limiting Processor", () => {
       .catch((err) => done(err));
   });
 
-  it("Should call and process while running", function () {
+  it("Should call and process while running with debug on", function () {
     expect(limitingProcessor.isCompleted).to.be.false;
 
-    limitingProcessor.resume();
+    limitingProcessor.resume(true);
 
     expect(limitingProcessor.isActive).to.be.true;
     const firstFake = sinon.fake();
@@ -137,13 +152,24 @@ describe("Limiting Processor", () => {
     const thirdFake = sinon.fake();
 
     expect(limitingProcessor.isActive).to.be.true;
+    limitingProcessor.debugOn();
     return limitingProcessor
       .call(firstFake)
       .then(() => limitingProcessor.call(secondFake))
       .then(() => limitingProcessor.call(thirdFake, true))
+      .then(() => sleepms(1000))
       .then(() => expect(secondFake.callCount).to.be.equal(1))
       .then(() => expect(firstFake.callCount).to.be.equal(1))
       .then(() => expect(secondFake.calledAfter(thirdFake)).to.be.false);
+  });
+
+  it.skip("should ignore undefined tasks", function () {
+    const testTask = null;
+    // const spy = sinon.spy(testTask);
+
+    return limitingProcessor.call(testTask).then(() => {
+      console.log(12);
+    });
   });
 
   it("Should destroy queue", async () => {
@@ -162,6 +188,28 @@ describe("Limiting Processor", () => {
     limitingProcessor.stop();
     expect(limitingProcessor.isActive).to.be.false;
     expect(limitingProcessor.isCompleted).to.be.true;
+  });
+
+  it("should initializeJobs throw an error", async function () {
+    await expect(limitingProcessor.initializeJobs(null, null)).to.be.rejected;
+  });
+
+  describe("debug", function () {
+    it("should show debug info", function () {
+      limitingProcessor.debugInfo();
+    });
+
+    it("should turn debug off", function () {
+      limitingProcessor.debugOff();
+    });
+
+    it("should turn debug on", function () {
+      limitingProcessor.debugOn();
+    });
+
+    it("should turn debug off", function () {
+      limitingProcessor.debugOff();
+    });
   });
 });
 

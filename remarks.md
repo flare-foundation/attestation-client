@@ -3,3 +3,7 @@ BaseEntity.ts, dbTransaction.ts : Why we do not use transactionId as the primary
 MerkleTree.ts : verify has to be independent of merkle tree
 
 indexerToDB.ts : do we want to drop tables truncate them?
+
+indexerToClient : we do not use cached client at all!!!
+
+ChainConfiguration.ts, IndexerConfiguration.ts : is it static? if not how are changes provided?

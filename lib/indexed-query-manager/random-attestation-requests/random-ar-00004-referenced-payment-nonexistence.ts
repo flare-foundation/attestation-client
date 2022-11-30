@@ -26,7 +26,6 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
   roundId: number,
-  numberOfConfirmations: number,
   enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType
 ): Promise<ARReferencedPaymentNonexistence | null> {
   const OVERFLOW_BLOCK_OFFSET = 10;
@@ -68,7 +67,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   }
 
   const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
-    blockNumber: overflowBlockNum + numberOfConfirmations,
+    blockNumber: overflowBlockNum + indexedQueryManager.settings.numberOfConfirmations(),
     roundId,
   });
 

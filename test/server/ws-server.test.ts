@@ -22,9 +22,12 @@ interface TestData extends IIdentifiable {
   b: string;
 }
 
+const axios = require("axios");
+
 describe("Test websocket verifier server ", () => {
 
   let app: INestApplication;
+  let configurationService: WSServerConfigurationService;
 
   before(async () => {
     initializeTestGlobalLogger();
@@ -42,14 +45,13 @@ describe("Test websocket verifier server ", () => {
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    const configurationService = app.get(WSServerConfigurationService);
+    configurationService = app.get(WSServerConfigurationService);
 
     let port = configurationService.wsServerConfiguration.port;
-    await app.listen(port, undefined, () =>
-      // tslint:disable-next-line:no-console
-      // console.log(`Server started listening at http://localhost:${ port }`)
-      logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`));
-
+    await app.listen(port, undefined, () => {
+      logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`);
+      logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`)
+    })
     await app.init();
   });
 
@@ -131,6 +133,14 @@ describe("Test websocket verifier server ", () => {
     assert(rec2[0].getTime() - rec1[0].getTime() >= checkAliveIntervalMs - 2, "Two pings are not separated enough");
     assert(client.pingPongRecords.size === 0, "Ping pong records not cleared")
     client.disconnect();
+  });
+
+  it.only(`Should respond as a web server`, async function () {
+    const resp = await axios.post(
+      `http://localhost:${configurationService.wsServerConfiguration.port}/query`,
+      {data: "XXXYYY"}
+    );
+    console.log(resp.data)
   });
 
   after(async () => {

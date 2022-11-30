@@ -8,7 +8,6 @@
 
 import {
   ARConfirmedBlockHeightExists,
-  Attestation,
   BN,
   DHConfirmedBlockHeightExists,
   hashConfirmedBlockHeightExists,
@@ -26,17 +25,16 @@ const web3 = new Web3();
 
 export async function verifyConfirmedBlockHeightExistsDOGE(
   client: MCC.DOGE,
-  attestation: Attestation,
+  attestationRequest: string,
+  roundId: number,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>> {
-  const request = parseRequest(attestation.data.request) as ARConfirmedBlockHeightExists;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARConfirmedBlockHeightExists;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyConfirmedBlockHeightExists(request, roundId, numberOfConfirmations, recheck, indexer);
+  const result = await verifyConfirmedBlockHeightExists(request, roundId, recheck, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

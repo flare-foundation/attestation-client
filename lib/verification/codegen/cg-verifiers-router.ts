@@ -21,7 +21,7 @@ ${sourceCases}
 function genSourceCase(definition: AttestationTypeScheme, sourceId: number) {
   const result = `
 case SourceId.${getSourceName(sourceId)}:
-	return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestation, indexer, recheck);`;
+	return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestationRequest, roundId, indexer, recheck);`;
   return trimStartNewline(result);
 }
 
@@ -69,11 +69,17 @@ export class WrongSourceIdError extends Error {
 }
 
 export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
-	return traceFunction( _verifyAttestation , client, attestation, indexer, recheck );
+	return traceFunction( _verifyAttestation , client, attestation.data.request, attestation.roundId, indexer, recheck );
 }
 
-export async function _verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
-	let {attestationType, sourceId} = getAttestationTypeAndSource(attestation.data.request);
+export async function _verifyAttestation(
+  client: MccClient, 
+  attestationRequest: string,
+  roundId: number,
+  indexer: IndexedQueryManager, 
+  recheck = false
+): Promise<Verification<any, any>>{
+	let {attestationType, sourceId} = getAttestationTypeAndSource(attestationRequest);
 	switch(attestationType) {
 ${attestationTypeCases}
 		default:

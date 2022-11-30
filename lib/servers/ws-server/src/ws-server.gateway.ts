@@ -11,6 +11,7 @@ import WebSocket, { Server } from 'ws';
 import { AttLogger, getGlobalLogger } from "../../../utils/logger";
 import { WSServerConfigurationService } from "../../common/src";
 import { AuthGuard } from "./guards/auth.guard";
+import { WsCommandProcessorService } from "./services/ws-command-processor.service";
 
 interface ClientRecord {
    id: number;
@@ -40,7 +41,10 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
    clientId = 0;
    connections = new Map<WebSocket, ClientRecord>();
 
-   constructor(private config: WSServerConfigurationService) {
+   constructor(
+      private config: WSServerConfigurationService,
+      private commandProcessor: WsCommandProcessorService
+   ) {
    }
 
    handleConnection(client: WebSocket, ...args: any[]) {
@@ -97,16 +101,20 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       @MessageBody() data: any,
       @ConnectedSocket() client: WebSocket,
    ) {
-      let response = {
-         status: "OK",
-         data
-      };
-      return response;
+      return this.commandProcessor.mirrorResponse(data);
    }
+
+   @SubscribeMessage("supported")
+   handleSupportedMessage(
+   ) {
+      return this.commandProcessor.supportedAttestationTypes();
+   }
+
 
 }
 
-// var ws = new WebSocket("ws://localhost:9500"); ws.onmessage = (event) => console.log(JSON.parse(event.data)); ws.onerror = (event) => console.log(event); var data = { a: 1, b: "two" };
+// var ws = new WebSocket("ws://localhost:9500?apiKey=7890"); ws.onmessage = (event) => console.log(JSON.parse(event.data)); ws.onerror = (event) => console.log(event); 
+//var data = { a: 1, b: "two" };
 // ws.onmessage = (event) => console.log(JSON.parse(event.data));
 // ws.onerror = (event) => console.log(event);
 // var data = { a: 1, b: "two" };

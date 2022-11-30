@@ -279,12 +279,11 @@ export class IndexedQueryManager {
   /**
    * Checks for existence of the block with hash `upperBoundProof`.
    * @param upperBoundProof hash of the upper bound block
-   * @param numberOfConfirmations number of confirmations to consider
    * @param recheck phase of query (first query or recheck)
    * @returns search status, and if the upper bound proof block is found it returns the hight (`U`)
-   * that is confirmed by the block, subject to `numberOfConfirmations`
+   * that is confirmed by the block, subject to number of confirmations set in the class level.
    */
-  private async upperBoundaryCheck(upperBoundProof: string, numberOfConfirmations: number, roundId: number, recheck: boolean): Promise<UpperBoundaryCheck> {
+  private async upperBoundaryCheck(upperBoundProof: string, roundId: number, recheck: boolean): Promise<UpperBoundaryCheck> {
     const confBlock = await this.getBlockByHash(unPrefix0x(upperBoundProof));
     if (!confBlock) {
       if (!recheck) {
@@ -308,7 +307,7 @@ export class IndexedQueryManager {
     }
 
     const H = confBlock.blockNumber;
-    const U = H - numberOfConfirmations + 1;
+    const U = H - this.settings.numberOfConfirmations() + 1;
     const N = await this.getLastConfirmedBlockNumber();
     if (N < U) {
       if (!recheck) {
@@ -346,7 +345,7 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
+    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }
@@ -384,7 +383,7 @@ export class IndexedQueryManager {
    * lower and upper boundary blocks, if required by query parameters.
    */
   public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
+    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }
@@ -420,7 +419,7 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse> {
-    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.numberOfConfirmations, params.roundId, params.type === "RECHECK");
+    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.roundId, params.type === "RECHECK");
     if (status != "OK") {
       return { status };
     }

@@ -8,7 +8,6 @@
 
 import {
   ARReferencedPaymentNonexistence,
-  Attestation,
   BN,
   DHReferencedPaymentNonexistence,
   hashReferencedPaymentNonexistence,
@@ -27,17 +26,16 @@ const web3 = new Web3();
 
 export async function verifyReferencedPaymentNonexistenceXRP(
   client: MCC.XRP,
-  attestation: Attestation,
+  attestationRequest: string,
+  roundId: number,
   indexer: IndexedQueryManager,
   recheck = false
 ): Promise<Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>> {
-  const request = parseRequest(attestation.data.request) as ARReferencedPaymentNonexistence;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARReferencedPaymentNonexistence;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyReferencedPaymentNonExistence(XrpTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+  const result = await verifyReferencedPaymentNonExistence(XrpTransaction, request, roundId, recheck, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

@@ -19,9 +19,7 @@
   - [Scope of indexing](./indexing/indexer-scope.md)
   - [Synchronized query window](./indexing/synchronized-query-window.md)
   - [Optimizations](./indexing/indexer-optimizations.md)
-- [Attestation types](./attestation-types/attestation-types.md)
-  - Adding new attestation types
-  - [00001 - Payment](attestation-types/00001-payment.md)
-  - [00002 - Balance Decreasing Transaction](attestation-types/00002-balance-decreasing-transaction.md)
-  - [00003 - Confirmed Block Height](attestation-types/00003-confirmed-block-height-exists.md)
-  - [00004 - Referenced Payment Nonexistence](attestation-types/00004-referenced-payment-nonexistence.md)
+- [Verification system](./verfication/verification.md)
+  - [Code generation](./verfication/code-generation.md)
+  - [Proof API](./verfication/proof-api.md)
+  - [Example workflow](./verfication/verification-workflow.md)

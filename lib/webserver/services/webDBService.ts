@@ -6,25 +6,24 @@ import { ConfigurationService } from "./configurationService";
 @Singleton
 @Factory(() => new WebDatabaseService())
 export class WebDatabaseService {
+  @Inject
+  configurationService: ConfigurationService;
 
-   @Inject
-   configurationService: ConfigurationService;
+  dbService: DatabaseService;
 
-   dbService: DatabaseService;
+  constructor() {
+    this.dbService = new DatabaseService(getGlobalLogger("web"), this.configurationService.serverCredentials.attesterDatabase, "attester");
+  }
 
-   constructor() {
-      this.dbService = new DatabaseService(getGlobalLogger("web"), this.configurationService.serverCredentials.attesterDatabase, "attester");
-   }
+  public get connection() {
+    return this.dbService.connection;
+  }
 
-   public get connection() {
-      return this.dbService.connection;
-   }
+  public get manager() {
+    return this.dbService.manager;
+  }
 
-   public get manager() {
-      return this.dbService.manager
-   }
-
-   async waitForDBConnection() {
-      await this.dbService.waitForDBConnection();
-   }
+  async waitForDBConnection() {
+    await this.dbService.waitForDBConnection();
+  }
 }

@@ -1,111 +1,143 @@
-[TOC](./../README.md)
 # General Installation
 
 ## Supported systems
 
-Attestation Client package has been tested on next platforms:
+The Attestation Suite has been tested on the following platforms:
+
 - UBUNTU 20.04
-- WSL 0.2.1
 
-## Modules
-Attestation Client package is divided into several standalone modules that can be installed on single or multiple machines:
-- [Indexer](./indexer-installation.md)
-- [Attester Client](./attester-client-installation.md)
-- [Alerts](./alerts-installation.md)
-- [Back end](./backend-installation.md)
+## Recomended hardware requirements
 
+Recomended hardware requirements for running Attestation-Suite only are:
+- CPU: 4 cores @ 2.2GHz
+- DISK: 50 GB SSD disk
+- MEMORY: 4 GB
 
-## Services
+Minimal hardware requirements for complete `testnet` configuration are:
+- CPU: 8 cores @ 2.2GHz
+- DISK: 100 GB SSD disk
+- MEMORY: 8 GB
 
-All modules are run as services. Check [services](services.md) section for more details.
+Minimal hardware requirements for complete `mainnet` configuration are:
+- CPU: 16 cores @ 2.2GHz
+- DISK: 3 TB SSD disk
+- MEMORY: 16 GB
 
+## Complete Attestation Suite `coston2` `testnet` Installation
 
-## General prerequisits
+Start on a new clean ubuntu installation with admin priviledges.
 
-- NODE add version ....
-- YARN
-- MYSQL server
-- ctail
+User must ATM be `ubuntu`.
 
-Each prerequisit should be installed only once.
+This script will:
+- install Attestation Suite
+    - indexer
+    - monitor
+    - attestation client
+    - front end
+- mysql database
+- nodes (testnet)
+    - algo
+    - btc
+    - doge
+    - ltc
+    - xrp
+- nginX (used by frontend)
+- certman (used by nginX for ssl certificate)
 
-### NODE
+Estimated installation required: `10min`
 
-For NODE installation use next script:
+---
+### 1) Download Attestation Suite repository
+
+``` bash
+cd ~
+mkdir -p attestation-suite
+cd attestation-suite
+
+git clone https://github.com/flare-foundation/attestation-client.git
+cd attestation-client
+
+git checkout commit-reveal-fixes-c2
 
 ```
-sudo apt install nodejs
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add –
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-sudo apt-get update
-sudo apt-get install yarn
+
+---
+### 2) Configurate
+
+Edit what modules you want to be installed.
+
+Only `Coston2` chain is enabled by default (ATM).
+If you need additional chains edit setting with:
 ```
-### YARN
-
-YARN can be installed after only after NODE.
-
-For YARN installation use next script:
-
-```
-sudo apt-get update
-sudo apt-get install yarn
+nano config.modules.sh
 ```
 
-### MYSQL server
+Set selected chain secret key. Secret key can be changed later.
 
-#### Installation
-````
-sudo apt install mysql-server
-sudo mysql_secure_installation
-````
-
-If you need remote access to the MYSQL you need to change MYSQL configuration file `/etc/mysql/mysql.conf.d/mysqld.cnf` line with value `bind-address` from `127.0.0.1` to `0.0.0.0`.
+Important: also select network host name. Network host name cannot be changed later.
 ```
-sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+nano .config.secret.sh
 ```
 
-After change you must restart MYSQL server.
+---
+### 3) Install
+After the configuration is setup run the main installer
 ```
-sudo systemctl restart mysql
+./scripts/install.sh
 ```
 
-#### Setup Indexer
+## Update configuration
+Once Attestation Suite is installed you can change configuration files and run next script.
 
-For security reasons two users are created. User with the write access is linked only to the local machine.
+Settings that cannot be changed are:
+- hostname
+- node password
 
-````
-CREATE DATABASE indexer;
 
-CREATE USER 'indexWriter'@'localhost' IDENTIFIED BY '.IndexerWriterPassw0rd';
-GRANT ALL PRIVILEGES ON indexer.* TO 'indexWriter'@'localhost';
-
-CREATE USER 'indexReader'@'%' IDENTIFIED BY '.IndexerReaderPassw0rd';
-GRANT SELECT ON indexer.* TO 'indexReader'@'%';
-
-FLUSH PRIVILEGES;
-````
-
-#### Setup Attester Client
-
-For security reasons two users are created. User with the write access is linked only to the local machine.
-
-````
-CREATE DATABASE attester;
-
-CREATE USER 'attesterWriter'@'localhost' IDENTIFIED BY '.AttesterWriterPassw0rd';
-GRANT ALL PRIVILEGES ON attester.* TO 'attesterWriter'@'localhost';
-
-CREATE USER 'attesterReader'@'%' IDENTIFIED BY '.AttesterReaderPassw0rd';
-GRANT SELECT ON attester.* TO 'attesterReader'@'%';
-
-FLUSH PRIVILEGES;
-````
-
-### ctail
-
-Flare modules use specialized color tagged logs. To display them with colors use ctail.
-
-To install ctail use:
+Setup configuration files are in folder `../attestation-suite-config/`:
+- chains.credentials.json 
 ```
-npm i -g ctail
+nano ~/attestation-suite/attestation-suite-config/chains.credentials.json
 ```
+- database.json
+```
+nano ~/attestation-suite/attestation-suite-config/database.credentials.json
+```
+- networks.credential.json
+```
+nano ~/attestation-suite/attestation-suite-config/networks.credentials.json
+```
+
+To update changes in configuration run:
+```
+cd ~/attestation-suite/attestation-client
+./scripts/update-config.sh
+```
+
+the script will :
+- preprocess configuration files
+- copy configuration files into deployment folders
+- update mysql passwords
+- restart services
+
+
+## Administration module
+We included a simple administration module that helps monitor and administrate Attestation Suite.
+
+```
+cd ~/attestation-suite/attestation-client
+yarn admin
+```
+
+## Indexer syncing times
+
+For 2days:
+
+- ALGO running sync (2 days)
+- BTC ~20 min
+- DOGE ~45 min
+- LTC ~10 min
+- XRP ~2 h
+
+[Back to Home](./../README.md)

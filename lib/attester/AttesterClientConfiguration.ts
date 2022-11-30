@@ -1,19 +1,24 @@
+import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../utils/databaseService";
-import { AdditionalTypeInfo, IReflection, reflection } from "../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 
-@reflection()
-export class AttesterClientConfiguration implements IReflection<AttesterClientConfiguration>{
-
+/**
+ * Class that stores configuration of an attestation client
+ */
+export class AttesterClientConfiguration implements IReflection<AttesterClientConfiguration> {
   // start epoch in sec
-  public firstEpochStartTime: number = 1636070400;
+  public firstEpochStartTime = 1636070400;
 
   // voting round duration in sec
-  public roundDurationSec: number = 90;
+  public roundDurationSec = 90;
 
-  public dynamicAttestationConfigurationFolder: string = "./configs/prod/dac/";
+  public dynamicAttestationConfigurationFolder = "./configs/prod/dac/";
 
   // in sec
-  public commitTime: number = 10;
+  public commitTime = 10;
+
+  // additional empty submit at the beggining of commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds)
+  public submitCommitFinalize = false;
 
   instanciate() {
     return new AttesterClientConfiguration();
@@ -22,17 +27,17 @@ export class AttesterClientConfiguration implements IReflection<AttesterClientCo
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
 }
 
 export class AttesterWebOptions {
-  public accountPrivateKey: string = "";
-  public rpcUrl: string = "";
-  public stateConnectorContractAddress: string = "";
+  public accountPrivateKey = "";
+  public rpcUrl = "";
+  public stateConnectorContractAddress = "";
 
+  @optional() public refreshEventsMs = 100;
 }
 
-export class AttesterCredentials implements IReflection<AttesterCredentials>{
+export class AttesterCredentials implements IReflection<AttesterCredentials> {
   public web = new AttesterWebOptions();
   public attesterDatabase = new DatabaseConnectOptions();
   public indexerDatabase = new DatabaseConnectOptions();
@@ -43,6 +48,4 @@ export class AttesterCredentials implements IReflection<AttesterCredentials>{
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
 }
-

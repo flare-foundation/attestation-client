@@ -1,7 +1,8 @@
+import { Managed } from "@flarenetwork/mcc";
 import { Verification } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
-import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
+import { EventValidateAttestation } from "./SourceHandler";
 
 export enum AttestationStatus {
   queued,
@@ -18,29 +19,30 @@ export interface EventProcessed {
   (tx: Attestation): void;
 }
 
-export interface EventValidate {
-  (): void;
-}
-
+/**
+ * Attestation class for Attestation providers to attest validity or a request.
+ * Validity of the attestation is given by verificationData that is provided using {@link ChainNode}
+ */
+@Managed()
 export class Attestation {
   round: AttestationRound;
 
   status: AttestationStatus = AttestationStatus.invalid;
 
-  processStartTime: number = 0;
-  processEndTime: number = 0;
+  processStartTime = 0;
+  processEndTime = 0;
 
   data: AttestationData;
 
   verificationData!: Verification<any, any>;
 
   // how many time was attestation retried
-  retry: number = 0;
-  reverification: boolean = false;
+  retry = 0;
+  reverification = false;
   exception: any;
 
   onProcessed: EventProcessed | undefined = undefined;
-  onValidateAttestation: EventValidateAttestation
+  onValidateAttestation: EventValidateAttestation;
 
   constructor(round: AttestationRound, data: AttestationData, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
@@ -48,9 +50,12 @@ export class Attestation {
     this.onValidateAttestation = onValidateAttestation;
   }
 
+  /**
+   *  Round in which attestation in considered
+   */
   public get roundId() {
     if (this._testRoundId == null) {
-      return this.round?.roundId
+      return this.round?.roundId;
     }
     return this._testRoundId;
   }
@@ -67,9 +72,9 @@ export class Attestation {
   }
 
   ///////////////////////////////////////////////////////
-  //// Testing utils - used for testing
+  // Testing utils - used for testing
   ///////////////////////////////////////////////////////
-  
+
   _testRoundId: number | undefined = undefined;
   _testNumberOfConfirmationBlocks: number | undefined = undefined;
 

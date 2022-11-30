@@ -1,30 +1,36 @@
 import fs from "fs";
+import prettier from 'prettier';
 import Web3 from "web3";
-import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, DataHashScheme, SupportedRequestType } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, DataHashScheme, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
-import { ATTESTATION_TYPE_PREFIX, ATT_RANDOM_UTILS_FILE, CODEGEN_TAB, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, RANDOM_RESPONSE_HEADER } from "./cg-constants";
-import { indentText, tab, trimStartNewline } from "./cg-utils";
-
+import {
+  ATTESTATION_TYPE_PREFIX,
+  ATT_RANDOM_UTILS_FILE, DATA_HASH_TYPE_PREFIX,
+  DEFAULT_GEN_FILE_HEADER,
+  PRETTIER_SETTINGS,
+  RANDOM_RESPONSE_HEADER
+} from "./cg-constants";
+import { trimStartNewline } from "./cg-utils";
 
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
-  let res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`
+  const res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;
   return trimStartNewline(res);
 }
 
 export function randReqItemCode(type: SupportedRequestType, size: number) {
-  let rand = Web3.utils.randomHex(size);
+  const rand = Web3.utils.randomHex(size);
   switch (type) {
     case "AttestationType":
-      throw new Error("This should not be used")
+      throw new Error("This should not be used");
     case "NumberLike":
       return `toBN(Web3.utils.randomHex(${size}))`;
     case "SourceId":
-      throw new Error("This should not be used")
+      throw new Error("This should not be used");
     case "ByteSequenceLike":
       return `Web3.utils.randomHex(${size})`;
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
 
@@ -33,136 +39,135 @@ export function randReqItemCode(type: SupportedRequestType, size: number) {
 // funkcija za enkodiranje vsakega od tipov
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  let responseFields = definition.dataHashDefinition.map(item => indentText(randomHashItemValue(item, defaultReadObject), CODEGEN_TAB)).join(",\n");
-  let randomResponse =
-    `
+  const responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
+  const randomResponse = `
 let response = {
 ${responseFields}      
 } as ${DATA_HASH_TYPE_PREFIX}${definition.name};
-`
+`;
   return randomResponse;
 }
 
 export function genRandomResponseFunction(definition: AttestationTypeScheme) {
   return `
 export function randomResponse${definition.name}() {
-${indentText(genRandomResponseCode(definition), CODEGEN_TAB)}
+${genRandomResponseCode(definition)}
    return response;
 }
-`
+`;
 }
 
 function genRandomResponseCase(definition: AttestationTypeScheme) {
-  let result = `
+  const result = `
 case AttestationType.${definition.name}:
    return randomResponse${definition.name}();
 `;
   return trimStartNewline(result);
 }
 
-
 export function genRandomResponseForAttestationTypeFunction(definitions: AttestationTypeScheme[]) {
-  let attestationTypeCases = definitions.map(definition => indentText(genRandomResponseCase(definition), CODEGEN_TAB * 2)).join("\n")
+  const attestationTypeCases = definitions.map((definition) => genRandomResponseCase(definition)).join("\n");
   return `
 export function getRandomResponseForType(attestationType: AttestationType) {
-${tab()}switch(attestationType) {
+	switch(attestationType) {
 ${attestationTypeCases}
-${tab()}${tab()}default:
-${tab()}${tab()}${tab()}throw new Error("Wrong attestation type.")
+		default:
+			throw new Error("Wrong attestation type.")
   }   
 }
-`
+`;
 }
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
-  let types = definition.dataHashDefinition.map(item => `"${item.type}",\t\t// ${item.key}`).join("\n");
-  let values = definition.dataHashDefinition.map(item => `${defaultResponse}.${item.key}`).join(",\n");
+  const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
+  const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 let encoded = web3.eth.abi.encodeParameters(
-${tab()}[
-${tab()}${tab()}"uint${ATT_BYTES * 8}",\t\t// attestationType
-${tab()}${tab()}"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
-${indentText(types, CODEGEN_TAB * 2)}
-${tab()}],
-${tab()}[
-${tab()}${tab()}${defaultRequest}.attestationType,
-${tab()}${tab()}${defaultRequest}.sourceId,
-${indentText(values, CODEGEN_TAB * 2)}
-${tab()}]
+	[
+		"uint${ATT_BYTES * 8}",\t\t// attestationType
+		"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
+${types}
+	],
+	[
+		${defaultRequest}.attestationType,
+		${defaultRequest}.sourceId,
+${values}
+	]
 );   
-`
+`;
 }
 
 function genRandomAttestationCase(definition: AttestationTypeScheme) {
-  let sourceIds = definition.supportedSources;
+  const sourceIds = definition.supportedSources;
   return `
 case AttestationType.${definition.name}:
-${tab()}sourceIds = [${sourceIds}];
-${tab()}sourceId = sourceIds[Math.floor(Math.random()*${sourceIds.length})];
-${tab()}return {attestationType: randomAttestationType, sourceId } as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
+	sourceIds = [${sourceIds}];
+	sourceId = sourceIds[Math.floor(Math.random()*${sourceIds.length})];
+	return {attestationType: randomAttestationType, sourceId } as ${ATTESTATION_TYPE_PREFIX}${definition.name};`;
 }
 
 export function randomRequest(definitions: AttestationTypeScheme[]) {
-  let ids = definitions.map(definition => definition.id).join(", ");
-  let attestationTypeCases = definitions.map(definition => genRandomAttestationCase(definition)).join("");
+  const ids = definitions.map((definition) => definition.id).join(", ");
+  const attestationTypeCases = definitions.map((definition) => genRandomAttestationCase(definition)).join("");
   return `
 export function getRandomRequest() {  
-${tab()}let ids = [${ids}];
-${tab()}let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*${definitions.length})];
-${tab()}let sourceId: SourceId = -1;
-${tab()}let sourceIds: SourceId[] = [];
-${tab()}switch(randomAttestationType) {
-${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
-${tab()}${tab()}default:
-${tab()}${tab()}${tab()}throw new Error("Invalid attestation type");
-${tab()}}
+	let ids = [${ids}];
+	let randomAttestationType: AttestationType = ids[Math.floor(Math.random()*${definitions.length})];
+	let sourceId: SourceId = -1;
+	let sourceIds: SourceId[] = [];
+	switch(randomAttestationType) {
+${attestationTypeCases}
+		default:
+			throw new Error("Invalid attestation type");
+	}
 }
-`
+`;
 }
 
 function genRandomAttestationCaseForRandomRequest(definition: AttestationTypeScheme) {
-  let randomValuesForRequestItems = definition.request
-    .filter(item => item.key != "attestationType" && item.key != "sourceId")
-    .map(item => `${item.key}: ${randReqItemCode(item.type, item.size)}`).join(",\n");
+  const randomValuesForRequestItems = definition.request
+    .filter((item) => item.key != "attestationType" && item.key != "sourceId")
+    .map((item) => `${item.key}: ${randReqItemCode(item.type, item.size)}`)
+    .join(",\n");
   return `
 case AttestationType.${definition.name}:
-${tab()}return {
-${tab()}${tab()}attestationType,
-${tab()}${tab()}sourceId,
-${indentText(randomValuesForRequestItems, CODEGEN_TAB * 2)}
-${tab()}} as ${ATTESTATION_TYPE_PREFIX}${definition.name};`
+	return {
+		attestationType,
+		sourceId,
+${randomValuesForRequestItems}
+	} as ${ATTESTATION_TYPE_PREFIX}${definition.name};`;
 }
 
 export function randomRequestForAttestationTypeAndSourceId(definitions: AttestationTypeScheme[]) {
-  let ids = definitions.map(definition => definition.id).join(", ");
-  let attestationTypeCases = definitions.map(definition => genRandomAttestationCaseForRandomRequest(definition)).join("");
+  const ids = definitions.map((definition) => definition.id).join(", ");
+  const attestationTypeCases = definitions.map((definition) => genRandomAttestationCaseForRandomRequest(definition)).join("");
   return `
 export function getRandomRequestForAttestationTypeAndSourceId (
-${tab()}attestationType: AttestationType,
-${tab()}sourceId: SourceId
+	attestationType: AttestationType,
+	sourceId: SourceId
 ) {  
-${tab()}switch(attestationType) {
-${indentText(attestationTypeCases, CODEGEN_TAB * 2)}
-${tab()}${tab()}default:
-${tab()}${tab()}${tab()}throw new Error("Invalid attestation type");
-${tab()}}
+	switch(attestationType) {
+${attestationTypeCases}
+		default:
+			throw new Error("Invalid attestation type");
+	}
 }
-`
+`;
 }
 
 export function createAttestationRandomUtils(definitions: AttestationTypeScheme[]) {
-  let arImports = definitions.map(definition => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n")
-  let dhImports = definitions.map(definition => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n")
+  const arImports = definitions.map((definition) => `${ATTESTATION_TYPE_PREFIX}${definition.name}`).join(",\n");
+  const dhImports = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`).join(",\n");
 
   let content = `${DEFAULT_GEN_FILE_HEADER}
 import BN from "bn.js";
 import Web3 from "web3";
 import { randSol } from "../attestation-types/attestation-types-helpers";
 import { 
-${indentText(arImports, CODEGEN_TAB)},
+${arImports},
 } from "./attestation-request-types";
 import {
-${indentText(dhImports, CODEGEN_TAB)},
+${dhImports},
 } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
 import { SourceId } from "../sources/sources";
@@ -171,9 +176,9 @@ const toBN = Web3.utils.toBN;
 const web3 = new Web3();
 `;
 
-  definitions.forEach(definition => {
+  definitions.forEach((definition) => {
     content += genRandomResponseFunction(definition);
-  })
+  });
 
   content += RANDOM_RESPONSE_HEADER;
 
@@ -183,5 +188,6 @@ const web3 = new Web3();
 
   content += randomRequestForAttestationTypeAndSourceId(definitions);
 
-  fs.writeFileSync(ATT_RANDOM_UTILS_FILE, content, "utf8");
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
+  fs.writeFileSync(ATT_RANDOM_UTILS_FILE, prettyContent, "utf8");
 }

@@ -2,9 +2,15 @@ import Web3 from "web3";
 import { getTimeMilli } from "./internetTime";
 import { AttLogger, logException } from "./logger";
 import { getUnixEpochTimestamp, getWeb3Wallet, sleepms, waitFinalize3Factory } from "./utils";
+import { stringify } from "safe-stable-stringify";
 
 export const DEFAULT_GAS = "2500000";
 export const DEFAULT_GAS_PRICE = "300000000000";
+
+export interface ExtendedReceipt {
+  receipt?: any;
+  nonce?: number;
+}
 
 export class Web3Functions {
   logger: AttLogger;
@@ -59,8 +65,8 @@ export class Web3Functions {
     timeEnd?: number,
     gas: string = DEFAULT_GAS,
     gasPrice: string = DEFAULT_GAS_PRICE,
-    quiet: boolean = false,
-  ): Promise<any> {
+    quiet = false
+  ): Promise<ExtendedReceipt> {
     try {
       const waitIndex = this.nextIndex;
       this.nextIndex += 1;
@@ -73,11 +79,11 @@ export class Web3Functions {
         }
 
         while (waitIndex !== this.currentIndex) {
-
           if (timeEnd) {
             if (getUnixEpochTimestamp() > timeEnd) {
               this.logger.error2(`sign ${label} timeout #${waitIndex}`);
-              return null;
+
+              return {};
             }
           }
 
@@ -94,21 +100,22 @@ export class Web3Functions {
       const time1 = getTimeMilli();
 
       if (!quiet) {
-        this.logger.debug2(`sign ${label} done #${waitIndex} (time ${time1 - time0}s)`);
+        this.logger.debug2(`sign ${label} done #${waitIndex} (time ${time1 - time0}ms)`);
       }
 
-      this.currentIndex += 1;
-
       return res;
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `signAndFinalize3`);
+    } finally {
+      // current index MUST be increased or everything stalls
+      this.currentIndex++;
+      this.logger.debug(`sign ${label} index inc (#${this.currentIndex})`);
     }
   }
 
   async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE): Promise<any> {
     try {
-      const nonce = await this.getNonce();
+      const nonce = parseInt(await this.getNonce());
       const tx = {
         from: this.account.address,
         to: toAddress,
@@ -126,20 +133,17 @@ export class Web3Functions {
         if (e.message.indexOf(`Transaction has been reverted by the EVM`) < 0) {
           logException(`${label}, nonce sent: ${nonce}`, e);
         } else {
-
           try {
             const result = await fnToEncode.call({ from: this.account.address });
 
-            throw Error("unlikely to happen: " + JSON.stringify(result));
-          }
-          catch (revertReason) {
+            throw Error("unlikely to happen: " + stringify(result));
+          } catch (revertReason) {
             this.logger.error2(`${label}, nonce sent: ${nonce}, revert reason: ${revertReason}`);
           }
         }
-        return null;
+        return {};
       }
-    }
-    catch (error) {
+    } catch (error) {
       logException(error, `_signAndFinalize3`);
     }
   }

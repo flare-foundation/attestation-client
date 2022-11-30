@@ -1,6 +1,0 @@
-            // await this.dbService.manager
-            //   .createQueryBuilder()
-            //   .update(DBBlock)
-            //   .set({ confirmed: true })
-            //   .where("blockNumber < :blockNumber", { blockNumber: blockNumber - this.chainConfig.confirmationsIndex })
-            //   .execute();

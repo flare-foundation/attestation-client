@@ -2,50 +2,45 @@
 
 MCC Create Configuration depends on the selected chain.
 
----
 ## XRP chain MCC Create Configuration
 
-> class XrpMccCreate
+> Class `XrpMccCreate`
 
-|Name |Description |Default|
-|---|---|---|
-|url|XRP RPC address||
-|username|network username|""|
-|password|network password|""|
-|inRegTest||false|
-
----
+| Name        | Description      | Default |
+| ----------- | ---------------- | ------- |
+| `url`       | XRP RPC address  |         |
+| `username`  | Network username | ""      |
+| `password`  | Network password | ""      |
+| `inRegTest` |                  | false   |
 
 ## ALGO chain MCC Create Configuration
 
-> class AlgoMccCreate
+> Class `AlgoMccCreate`
 
-|Name |Description |Default|
-|---|---|---|
-|algod|[AlgoNodeApp](#AlgoNodeApp)||
-|indexer|[AlgoNodeApp](#AlgoNodeApp)||
-
-
+| Name      | Description                 | Default |
+| --------- | --------------------------- | ------- |
+| `algod`   | [AlgoNodeApp](#AlgoNodeApp) |         |
+| `indexer` | [AlgoNodeApp](#AlgoNodeApp) |         |
 
 ### AlgoNodeApp
 
-> class AlgoNodeApp
+> Class `AlgoNodeApp`
 
-|Name |Description |Default|
-|---|---|---|
-|url|Algo RPC address||
-|token|Algo token|""|
+| Name    | Description      | Default |
+| ------- | ---------------- | ------- |
+| `url`   | Algo RPC address |         |
+| `token` | Algo token       | ""      |
 
----
 ## UTXO chain MCC Create Configuration
 
-> class UtxoMccCreate
+> Class `UtxoMccCreate`
 
-|Name |Description |Default|
-|---|---|---|
-|url|XRP RPC address||
-|username|network username|""|
-|password|network password|""|
-|inRegTest||false|
+| Name        | Description      | Default |
+| ----------- | ---------------- | ------- |
+| `url`       | XRP RPC address  |         |
+| `username`  | Network username | ""      |
+| `password`  | Network password | ""      |
+| `inRegTest` |                  | false   |
 
-> Values with default value are optional.
+> **NOTE:**
+> Entries with default values are optional.

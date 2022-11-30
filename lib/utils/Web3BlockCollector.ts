@@ -1,7 +1,7 @@
 import Web3 from "web3";
 import { Logger } from "winston";
 import { logException } from "./logger";
-import { getWeb3, getWeb3Contract, sleepms } from "./utils";
+import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract, sleepms } from "./utils";
 
 export class Web3BlockCollector {
   logger: Logger;
@@ -9,15 +9,30 @@ export class Web3BlockCollector {
   web3: Web3;
 
   startingBlockNumber: number | undefined;
-  currentBlockNumber: number = 0;
+  currentBlockNumber = 0;
 
-  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
+  contractAddress: string;
+  contractName: string;
+  startBlock: number | undefined;
+  action: any;
+  refreshEventsMs: number;
+
+  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any, refreshEventsMs = 100) {
     this.logger = logger;
 
     this.web3 = getWeb3(url, this.logger);
 
-    this.processEvents(contractAddress, contractName, startBlock, action);
+    this.contractAddress = contractAddress;
+    this.contractName = contractName;
+    this.startBlock = startBlock;
+    this.action = action;
+    this.refreshEventsMs = refreshEventsMs;
   }
+
+  async run() {
+    await this.processEvents(this.contractAddress, this.contractName, this.startBlock, this.action);
+  }
+
 
   // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
   eventComparator(a: any, b: any): number {
@@ -36,7 +51,10 @@ export class Web3BlockCollector {
     const blockHeight = await this.web3.eth.getBlockNumber();
     this.startingBlockNumber = startBlock ? startBlock : blockHeight;
 
-    const stateConnectorContract = await getWeb3Contract(this.web3, contractAddress, contractName);
+    const stateConnectorContract =
+      contractName === "StateConnector"
+        ? await getWeb3StateConnectorContract(this.web3, contractAddress)
+        : await getWeb3Contract(this.web3, contractAddress, contractName);
     let processBlock: number = this.startingBlockNumber;
 
     this.logger.info(`^Rnetwork event processing started ^Y${this.startingBlockNumber} (height ${blockHeight})`);
@@ -46,7 +64,7 @@ export class Web3BlockCollector {
         this.currentBlockNumber = await this.web3.eth.getBlockNumber();
         // wait for new block
         if (processBlock >= this.currentBlockNumber + 1) {
-          await sleepms(100);
+          await sleepms(this.refreshEventsMs);
           continue;
         }
 
@@ -65,9 +83,9 @@ export class Web3BlockCollector {
         }
 
         processBlock++;
-      }
-      catch (error) {
-        logException(error, `Web3BlockCollector::procesEvents`);
+      } catch (error) {
+        // not for reporting 
+        //logException(error, `Web3BlockCollector::procesEvents`);
       }
     }
   }

@@ -1,19 +1,17 @@
-import { optional } from "flare-mcc";
-import { AdditionalTypeInfo, IReflection, reflection } from "../../utils/typeReflection";
+import { optional } from "@flarenetwork/mcc";
+import { AdditionalTypeInfo, IReflection } from "../../utils/reflection";
 
-@reflection()
-export class ServerConfiguration implements IReflection<ServerConfiguration>{
-
+export class ServerConfiguration implements IReflection<ServerConfiguration> {
   // start epoch in sec
-  public firstEpochStartTime: number = 1636070400;
+  public firstEpochStartTime = 1636070400;
 
   // voting round duration in sec
-  public roundDurationSec: number = 90;
+  public roundDurationSec = 90;
 
   // path to service status file on server
-  @optional() public serviceStatusFilePath: string = "";
+  @optional() public serviceStatusFilePath = "";
 
-  @optional() public deploymentName: string = "";
+  @optional() public deploymentName = "";
 
   instanciate() {
     return new ServerConfiguration();
@@ -22,6 +20,4 @@ export class ServerConfiguration implements IReflection<ServerConfiguration>{
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
 }
-

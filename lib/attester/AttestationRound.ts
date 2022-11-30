@@ -1,10 +1,12 @@
+import { Managed, toBN } from "@flarenetwork/mcc";
 import assert from "assert";
-import { toBN } from "flare-mcc";
+import { stringify } from "safe-stable-stringify";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
+import { criticalAsync } from "../indexer/indexer-utils";
 import { getTimeMilli } from "../utils/internetTime";
 import { AttLogger, logException } from "../utils/logger";
-import { MerkleTree, singleHash } from "../utils/MerkleTree";
+import { commitHash, MerkleTree, singleHash } from "../utils/MerkleTree";
 import { getCryptoSafeRandom, prepareString, xor32 } from "../utils/utils";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation, AttestationStatus } from "./Attestation";
@@ -13,9 +15,7 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { EventValidateAttestation, SourceHandler } from "./SourceHandler";
 
-//const BN = require("bn");
-
-export enum AttestationRoundEpoch {
+export enum AttestationRoundPhase {
   collect,
   commit,
   reveal,
@@ -33,46 +33,18 @@ export enum AttestationRoundStatus {
   processingTimeout,
 }
 
-// todo: priority attestation
-// [x] make attestation queue per chain
-// [x] make per chain attestation limit
-// [x] remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
-// [x] optimize remove duplicates (sorted set)
-// [/] cache chain results (non persistent in memory caching)
-// [/] priority event attestations: allow addidional amount of them
-
-// [x] multiple nodes per chain
-// [x] node load limiting
-
-// [x] rename Epoch into Round
-// [x] Attester -> AttetstationRoundManager
-// [x] AttesterEpoch -> AttestationRound
-// [x] check for in-code variable names and rename them
-
-// [x] epoch settings manager 'on-the-fly' settings (SourceHandler) `Dynamic Attestation Config`
-// [x] - for each combination source (validate transaction, BTC, ...)
-// [x] - "requiredBlocks" to 'on-the-fly' settings from static config.json
-// [x] - 1000 normal + 50 priority
-// [x] - 'on-the-fly' (from epoch)
-// [x] watch folder for changes and load then dynamically
-// [x] DAC cleanup (remove all that are older than active epoch - but one)
-// [x] make json human readable
-// [x] convert code to read human redable json
-// [x] check if ChainType and SourceId values and names match
-
-// [ ] make nice text base round display (cursor moving)
-
-// [ ] check performance for new nodes
-// [ ] test two node of single type 
-
 // terminology
 // att/sec
 // call/sec
 // call/att
 
+/**
+ * Manages a specific attestation round, specifically the data in the commit-reveal scheme.
+ */
+@Managed()
 export class AttestationRound {
   logger: AttLogger;
-  status: AttestationRoundEpoch = AttestationRoundEpoch.collect;
+  status: AttestationRoundPhase = AttestationRoundPhase.collect;
   attestStatus: AttestationRoundStatus;
   attesterWeb3: AttesterWeb3;
   roundId: number;
@@ -84,27 +56,31 @@ export class AttestationRound {
   // processing
   attestations = new Array<Attestation>();
   attestationsMap = new Map<string, Attestation>();
-  attestationsProcessed: number = 0;
+  attestationsProcessed = 0;
 
   // save submitted values for reveal
   roundMerkleRoot!: string;
   roundRandom!: string;
   roundMaskedMerkleRoot: string;
-  roundHashedRandom: string;
 
   merkleTree!: MerkleTree;
-
 
   sourceHandlers = new Map<number, SourceHandler>();
 
   constructor(epochId: number, logger: AttLogger, attesterWeb3: AttesterWeb3) {
     this.roundId = epochId;
     this.logger = logger;
-    this.status = AttestationRoundEpoch.collect;
+    this.status = AttestationRoundPhase.collect;
     this.attestStatus = AttestationRoundStatus.collecting;
     this.attesterWeb3 = attesterWeb3;
   }
 
+  /**
+   * Returns the existing source Handler for the source chain of an attestation or creates a new sourceHandler
+   * @param data 
+   * @param onValidateAttestation 
+   * @returns 
+   */
   getSourceHandler(data: AttestationData, onValidateAttestation: EventValidateAttestation): SourceHandler {
     let sourceHandler = this.sourceHandlers.get(data.sourceId);
 
@@ -119,15 +95,19 @@ export class AttestationRound {
     return sourceHandler;
   }
 
+  /**
+   * Adds the @param attestation to the list of attestations for this round and starts the validation process
+   */
   addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
     // todo: check how fast is hash
-
     const attestationHash = attestation.data.getHash();
     const duplicate = this.attestationsMap.get(attestationHash);
 
     if (duplicate) {
-      this.logger.debug3(`attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`);
+      this.logger.debug3(
+        `attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
+      );
       return;
     }
 
@@ -142,65 +122,83 @@ export class AttestationRound {
     attestation.sourceHandler.validate(attestation);
   }
 
-  startCommitEpoch() {
+  /**
+   * Announces the start of the commit phase and tries to commit
+   */
+  async startCommitEpoch() {
     this.logger.group(
       `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / AttestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
-    this.status = AttestationRoundEpoch.commit;
-    this.tryTriggerCommit();   // In case all requests are already processed
+    this.status = AttestationRoundPhase.commit;
+
+    //
+    await this.tryTriggerCommit(); // In case all requests are already processed
   }
 
+  /**
+   * Empty commit.
+   * Used in the first round after joining the attestation scheme to commit empty data for commit and reveal of two previous rounds???
+   */
   startCommitSubmit() {
-    let action = `Finalizing ^Y#${this.roundId-3}^^`;
-    this.attesterWeb3
-      .submitAttestation(
-        action,
-        this.roundId,
-        // commit index (collect+1)
-        toBN(this.roundId + 1),
-        //this.roundMerkleRoot,
-        toHex(0, 32),
-        //this.roundMaskedMerkleRoot,
-        toHex(0, 32),
-        //this.roundRandom,
-        toHex(0, 32),
-        //this.roundHashedRandom,
-        toHex(0, 32),
-        toHex(0, 32)
-      )
-      .then((receipt) => {
+    if (AttestationRoundManager.config.submitCommitFinalize) {
+      const action = `Finalizing ^Y#${this.roundId - 3}^^`;
+
+      // eslint-disable-next-line
+      criticalAsync("", async () => {
+        const receipt = await this.attesterWeb3.submitAttestation(
+          action,
+          // commit index (collect+1)
+          toBN(this.roundId + 1),
+          toHex(0, 32),
+          toHex(0, 32),
+          toHex(0, 32),
+          toHex(0, 32),
+          toHex(0, 32),
+          false
+        );
         if (receipt) {
-          this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId-3}`);
-          //this.attestStatus = AttestationRoundStatus.comitted;
-        } else {
-          //this.attestStatus = AttestationRoundStatus.error;
+          this.logger.info(`^G^wfinalized^^ round ^Y#${this.roundId - 3}`);
         }
       });
+    }
   }
 
+  /**
+   * Announces the start of the reveal phase and sets the Round status to reveal
+   */
   startRevealEpoch() {
     this.logger.group(`round #${this.roundId} reveal epoch started [2]`);
-    this.status = AttestationRoundEpoch.reveal;
+    this.status = AttestationRoundPhase.reveal;
   }
 
+  /**
+   * Announces the the end of the round and sets the round status to completed
+   */  
   completed() {
     this.logger.group(`round #${this.roundId} completed`);
-    this.status = AttestationRoundEpoch.completed;
+    this.status = AttestationRoundPhase.completed;
   }
 
-  processed(tx: Attestation) {
+  processed(tx: Attestation): void {
     this.attestationsProcessed++;
     assert(this.attestationsProcessed <= this.attestations.length);
-    this.tryTriggerCommit();
+
+    // eslint-disable-next-line
+    criticalAsync("processed", async () => {
+      await this.tryTriggerCommit();
+    });
   }
 
-  async tryTriggerCommit() {
+  /**
+   * Commits if all attestations are processed and commit epoch has started
+   */  
+  async tryTriggerCommit(): Promise<void> {
     if (this.attestationsProcessed === this.attestations.length) {
-      if (this.status === AttestationRoundEpoch.commit) {
+      if (this.status === AttestationRoundPhase.commit) {
         // all transactions were processed and we are in commit epoch
         this.logger.info(`round #${this.roundId} all transactions processed ${this.attestations.length} commiting...`);
-        this.commit();
+        await this.commit();
       } else {
         // all transactions were processed but we are NOT in commit epoch yet
         //this.logger.info(`round #${this.epochId} all transactions processed ${this.attestations.length} waiting for commit epoch`);
@@ -210,7 +208,8 @@ export class AttestationRound {
       //this.logger.info(`round #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
     }
   }
-  async commitLimit() {
+
+  async commitLimit(): Promise<void> {
     if (this.attestStatus === AttestationRoundStatus.collecting) {
       this.logger.error2(`Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
 
@@ -219,14 +218,26 @@ export class AttestationRound {
     }
   }
 
+  /**
+   * Checks if all attestations are processed and if round is in the commit phase
+   * @returns
+   */  
   canCommit(): boolean {
-    this.logger.debug(`canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`)
-    return this.attestationsProcessed === this.attestations.length &&
+    this.logger.debug(
+      `canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch status: ${this.status}, attest status ${this.attestStatus}`
+    );
+    return (
+      this.attestationsProcessed === this.attestations.length &&
       this.attestStatus === AttestationRoundStatus.commiting &&
-      this.status === AttestationRoundEpoch.commit;
+      this.status === AttestationRoundPhase.commit
+    );
   }
 
-
+  /**
+   * Formats an attestation to be stored in database
+   * @param att
+   * @returns
+   */  
   prepareDBAttestationRequest(att: Attestation): DBAttestationRequest {
     const db = new DBAttestationRequest();
 
@@ -235,9 +246,10 @@ export class AttestationRound {
     db.logIndex = att.data.logIndex;
 
     db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
+    db.attestationStatus = AttestationStatus[att.status];
 
-    db.request = prepareString(JSON.stringify(att.verificationData?.request ? att.verificationData.request : ""), 4 * 1024);
-    db.response = prepareString(JSON.stringify(att.verificationData?.response ? att.verificationData.response : ""), 4 * 1024);
+    db.request = prepareString(stringify(att.verificationData?.request ? att.verificationData.request : ""), 4 * 1024);
+    db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 4 * 1024);
 
     db.exceptionError = prepareString(att.exception?.toString(), 128);
 
@@ -248,9 +260,33 @@ export class AttestationRound {
     return db;
   }
 
+  /**
+   *Starts the commit-reveal scheme and saves the attestation data to database.
+   */  
   async commit() {
-    //console.log("COMMIT")
-    if (this.status !== AttestationRoundEpoch.commit) {
+    // collect valid attestations and prepare to save all requests
+    const dbAttestationRequests = [];
+    const validated = new Array<Attestation>();
+    for (const attestation of this.attestations.values()) {
+      if (attestation.status === AttestationStatus.valid) {
+        validated.push(attestation);
+      }
+
+      dbAttestationRequests.push(this.prepareDBAttestationRequest(attestation));
+    }
+
+    // save to DB only if epoch does not exists in the DB yet - save async
+    const alreadySavedRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBAttestationRequest, { where: { roundId: this.roundId } });
+
+    if (!alreadySavedRound) {
+      // eslint-disable-next-line
+      criticalAsync("commit", async () => {
+        await AttestationRoundManager.dbServiceAttester.manager.save(dbAttestationRequests);
+      });
+    }
+
+    // check if commit can be performed
+    if (this.status !== AttestationRoundPhase.commit) {
       this.logger.error(`round #${this.roundId} cannot commit (wrong epoch status ${this.status})`);
       return;
     }
@@ -261,42 +297,15 @@ export class AttestationRound {
 
     this.attestStatus = AttestationRoundStatus.commiting;
 
-    // collect validat attestations
-    const dbAttesttaionRequests = [];
-    const validated = new Array<Attestation>();
-    for (const tx of this.attestations.values()) {
-      if (tx.status === AttestationStatus.valid) {
-        validated.push(tx);
-      } else {
-        //console.log("INVALID:", tx.data.request)
-      }
-
-      // prepare the attestation r
-      const dbAttestationRequest = new DBAttestationRequest();
-
-      dbAttesttaionRequests.push(this.prepareDBAttestationRequest(tx));
-    }
-
-    // save to DB
-    try {
-      AttestationRoundManager.dbServiceAttester.manager.save(dbAttesttaionRequests);
-    }
-    catch (error) {
-      logException(error, `AttestationRound::commit save DB`);
-    }
-
     // check if there is any valid attestation
     if (validated.length === 0) {
       this.logger.error(`round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
       this.attestStatus = AttestationRoundStatus.nothingToCommit;
+      await this.createEmptyState();      
       return;
     }
 
     this.logger.info(`round #${this.roundId} comitting (${validated.length}/${this.attestations.length} attestation(s))`);
-
-    // sort valid attestations (blockNumber, transactionIndex, signature)
-    // external sorting is not needed anymore
-    //validated.sort((a: Attestation, b: Attestation) => a.data.comparator(b.data));
 
     const time0 = getTimeMilli();
 
@@ -304,8 +313,7 @@ export class AttestationRound {
     const validatedHashes: string[] = new Array<string>();
     const dbVoteResults = [];
     for (const valid of validated) {
-      // let hash = valid.verificationData ? valid.verificationData.hash : valid.data.getHash();
-      let voteHash = valid.verificationData.hash!;
+      const voteHash = valid.verificationData.hash!;
       validatedHashes.push(voteHash);
 
       // save to DB
@@ -314,23 +322,14 @@ export class AttestationRound {
 
       dbVoteResult.roundId = this.roundId;
       dbVoteResult.hash = voteHash;
-      dbVoteResult.request = JSON.stringify(
-        valid.verificationData?.request
-          ? hexlifyBN(valid.verificationData.request)
-          : ""
-      );
-      dbVoteResult.response = JSON.stringify(
-        valid.verificationData?.response
-          ? hexlifyBN(valid.verificationData.response)
-          : ""
-      );
+      dbVoteResult.request = stringify(valid.verificationData?.request ? hexlifyBN(valid.verificationData.request) : "");
+      dbVoteResult.response = stringify(valid.verificationData?.response ? hexlifyBN(valid.verificationData.response) : "");
     }
 
     // save to DB
     try {
-      AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
-    }
-    catch (error) {
+      await AttestationRoundManager.dbServiceAttester.manager.save(dbVoteResults);
+    } catch (error) {
       logException(error, `AttestationRound::commit save DB`);
     }
 
@@ -341,24 +340,10 @@ export class AttestationRound {
 
     this.roundMerkleRoot = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
-
-    //const hash = toBN(this.roundHash);
-    //const random = toBN(this.roundRandom);
-    //const maskedHash = hash.xor(random);
-    //this.maskedMerkleRoot = this.BNtoString(maskedHash);
-
-    this.roundMaskedMerkleRoot = xor32(this.roundMerkleRoot, this.roundRandom);
-    this.roundHashedRandom = singleHash(this.roundRandom);
-
-    // validate
-    const hashTest = xor32(this.roundMaskedMerkleRoot, this.roundRandom);
-
-    if (hashTest !== this.roundMerkleRoot) {
-      this.logger.error2(`maskedHash calculated incorrectly !!!`);
-    }
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
-    AttestationRoundManager.state.saveRound(this, validated.length);
+    await AttestationRoundManager.state.saveRound(this, validated.length);
 
     const time2 = getTimeMilli();
 
@@ -373,7 +358,8 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1}ms)`
+      `^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0}ms M:${time2 - time1
+      }ms)`
     );
   }
 
@@ -383,59 +369,63 @@ export class AttestationRound {
     this.roundMerkleRoot = "0x0000000000000000000000000000000000000000000000000000000000000000";
     this.roundRandom = await getCryptoSafeRandom();
 
-    this.roundMaskedMerkleRoot = xor32(this.roundMerkleRoot, this.roundRandom);
-    this.roundHashedRandom = singleHash(this.roundRandom);
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, AttestationRoundManager.attesterWeb3.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
-    AttestationRoundManager.state.saveRound(this);
+    await AttestationRoundManager.state.saveRound(this);
   }
 
+  /**
+   * First nonempty commit after the attestation client starts running. Tries to get reveal data from database otherwise
+   * it does not send reveal data for the previous round?
+   */  
   async firstCommit() {
     if (!this.canCommit()) {
       await this.createEmptyState();
     }
 
-    let action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
+    const action = `Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
-    const nextState = await AttestationRoundManager.state.getRound(this.roundId - 1);
+    const prevRound = await AttestationRoundManager.state.getRound(this.roundId - 1);
 
-    this.attesterWeb3
-      .submitAttestation(
+    // eslint-disable-next-line
+    criticalAsync("firstCommit", async () => {
+      const receipt = await this.attesterWeb3.submitAttestation(
         action,
-        this.roundId,
         // commit index (collect+1)
         toBN(this.roundId + 1),
+        // commit
         this.roundMerkleRoot,
         this.roundMaskedMerkleRoot,
         this.roundRandom,
-        this.roundHashedRandom,
-        nextState && nextState.random ? nextState.random : toHex(0, 32)
-      )
-      .then((receipt) => {
-        if (receipt) {
-          this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
-          //console.log( receipt );
-          this.attestStatus = AttestationRoundStatus.comitted;
-        } else {
-          this.attestStatus = AttestationRoundStatus.error;
-        }
-      });
+        // reveal
+        prevRound && prevRound.merkleRoot ? prevRound.merkleRoot : toHex(0, 32),
+        prevRound && prevRound.random ? prevRound.random : toHex(0, 32),
+      );
+
+      if (receipt) {
+        this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
+        this.attestStatus = AttestationRoundStatus.comitted;
+      } else {
+        this.attestStatus = AttestationRoundStatus.error;
+      }
+    });
   }
 
+  /**
+   * Sends reveal data for this round and commit data for next round
+   */  
   async reveal() {
-    if (this.status !== AttestationRoundEpoch.reveal) {
+    if (this.status !== AttestationRoundPhase.reveal) {
       this.logger.error(`round #${this.roundId} cannot reveal (not in reveal epoch status ${this.status})`);
       return;
     }
-    if (this.attestStatus !== AttestationRoundStatus.comitted) {
+    if( this.attestStatus === AttestationRoundStatus.nothingToCommit ) {
+      this.logger.warning(`round #${this.roundId} nothing to commit`);
+    } else if (this.attestStatus !== AttestationRoundStatus.comitted ) {
       switch (this.attestStatus) {
-        case AttestationRoundStatus.nothingToCommit:
-          this.logger.warning(`round #${this.roundId} nothing to reveal`);
-          break;
         case AttestationRoundStatus.collecting:
-          this.logger.error(
-            `  ! AttestEpoch #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`
-          );
+          this.logger.error(`round #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`);
           break;
         case AttestationRoundStatus.commiting:
           this.logger.error(`round #${this.roundId} cannot reveal (still comitting)`);
@@ -444,17 +434,19 @@ export class AttestationRound {
           this.logger.error(`round #${this.roundId} cannot reveal (not commited ${this.attestStatus})`);
           break;
       }
-      return;
+
+      // we should still commit next round
+      //return;
     }
+
 
     // this.logger.info(`^Cround #${this.roundId} reveal`);
 
     let nextRoundMerkleRoot = toHex(toBN(0), 32);
     let nextRoundMaskedMerkleRoot = toHex(toBN(0), 32);
     let nextRoundRandom = toHex(toBN(0), 32);
-    let nextRoundHashedRandom = toHex(toBN(0), 32);
 
-    let action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
+    const action = `submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
     if (this.nextRound) {
       if (!this.nextRound.canCommit()) {
@@ -464,31 +456,32 @@ export class AttestationRound {
       nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;
       nextRoundMaskedMerkleRoot = this.nextRound.roundMaskedMerkleRoot;
       nextRoundRandom = this.nextRound.roundRandom;
-      nextRoundHashedRandom = this.nextRound.roundHashedRandom;
 
       this.nextRound.attestStatus = AttestationRoundStatus.comitted;
     }
 
-    this.attesterWeb3
-      .submitAttestation(
+    // eslint-disable-next-line
+    criticalAsync("", async () => {
+      const receipt = await this.attesterWeb3.submitAttestation(
         action,
-        this.roundId + 1, // the next one is commited and this one is revealed
         // commit index (collect+2)
         toBN(this.roundId + 2),
+        // commit
         nextRoundMerkleRoot,
         nextRoundMaskedMerkleRoot,
         nextRoundRandom,
-        nextRoundHashedRandom,
-        this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32)
-      )
-      .then((receit) => {
-        if (receit) {
-          this.logger.info(`^Cround ^Y#${this.roundId}^C submit completed (buffernumber ${this.roundId + 2})`);
-          this.attestStatus = AttestationRoundStatus.revealed;
-        } else {
-          this.logger.info(`^Rround ^Y#${this.roundId}^R submit error (buffernumber ${this.roundId + 2}) - no receipt`);
-          this.attestStatus = AttestationRoundStatus.error;
-        }
-      });
+        // reveal
+        this.attestStatus === AttestationRoundStatus.comitted ? this.roundMerkleRoot : toHex(0, 32),
+        this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32),
+      );
+
+      if (receipt) {
+        this.logger.info(`^Cround ^Y#${this.roundId}^C submit completed (buffernumber ${this.roundId + 2})`);
+        this.attestStatus = AttestationRoundStatus.revealed;
+      } else {
+        this.logger.info(`^Rround ^Y#${this.roundId}^R submit error (buffernumber ${this.roundId + 2}) - no receipt`);
+        this.attestStatus = AttestationRoundStatus.error;
+      }
+    });
   }
 }

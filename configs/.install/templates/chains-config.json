@@ -1,0 +1,154 @@
+{
+    // chains definition
+    "chains": [
+        {
+            // chain name. allowed names are XRP, BTC, LTC, ALGO, DOGE
+            "name": "XRP",
+            // MCC create options
+            "mccCreate" : {
+                "url": "$(XRLURL)",
+                "username":"$(XRPUsername)",
+                "password":"$(XRPPassword)",
+            },
+
+            // rate limiting options
+            "rateLimitOptions": {
+                "maxRPS": 20,
+                "timeoutMs": 30000,
+                "retries": 10
+            },
+            "numberOfConfirmations": 1,
+
+            "syncReadAhead":20,
+
+            "blockCollecting":"raw",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+        },
+        {
+            "name": "BTC",
+            "mccCreate" : {
+                "url": "$(BTCURL)",
+                "username": "$(BTCUsername)",
+                "password": "$(BTCPassword)"
+            },
+            "rateLimitOptions": {
+                "maxRPS": 20,
+                "timeoutMs": 15000,
+                "retries": 3
+            },
+            "numberOfConfirmations": 6,
+            "syncReadAhead":10,
+            "blockCollecting":"tips",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+
+        },
+        {
+            "name": "LTC",
+            "mccCreate" : {
+                "url": "$(LTCURL)",
+                "username": "$(LTCUsername)",
+                "password": "$(LTCPassword)"
+            },
+            "rateLimitOptions": {
+                "maxRPS": 20,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "numberOfConfirmations": 6,
+            "syncReadAhead":30,
+            "blockCollecting":"tips",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+        },
+        {
+            "name": "ALGO",
+            "mccCreate": {
+                "algod": {
+                  "url": "$(ALGOURLAlgod)",
+                  "token": "$(ALGOTokenAlgod)"
+                }
+            },
+            "rateLimitOptions": {
+                "maxRPS": 300,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "numberOfConfirmations": 3,
+            "syncReadAhead":30,
+            "blockCollecting":"raw",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100 ,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+        },
+        {
+            "name": "DOGE",
+            "mccCreate" : {
+                "url": "$(DOGEURL)",
+                "username": "$(DOGEUsername)",
+                "password": "$(DOGEPassword)"
+            },
+            "rateLimitOptions": {
+                "maxRPS": 30,
+                "timeoutMs": 5000,
+                "retries": 3
+            },
+            "numberOfConfirmations": 6,
+            "syncReadAhead":10,
+            "blockCollecting":"tips",
+            "minimalStorageHistoryDays":2,
+            "minimalStorageHistoryBlocks":100,
+
+            "maxRequestsPerSecond":80,
+            "maxProcessingTransactions":3000,
+
+            "maxFailedRetry": 1,
+            "delayBeforeRetry": 10,
+
+            "maxValidIndexerDelaySec": 10,
+
+            "reverificationTimeOffset": 10
+        }
+
+    ]
+}

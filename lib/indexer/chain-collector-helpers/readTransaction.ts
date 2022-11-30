@@ -1,81 +1,41 @@
-import { UtxoTransaction } from "flare-mcc";
-import { IUtxoCoinbase, IUtxoVinTransaction, IUtxoVinVoutsMapper } from "flare-mcc/dist/types/utxoTypes";
+import { IUtxoVinTransaction, MccUtxoClient, UtxoTransaction } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
-import { getGlobalLogger, logException } from "../../utils/logger";
 
+/**
+ * Given a UTXO transaction it does additional processing on UTXO inputs.
+ * The processing is done only if the transaction contains some kind of a payment reference (OP_RETURN).
+ * Inputs of other transactions are not processed.
+ * Processing inputs means that all transactions that appear on vin (inputs) are read and their respective
+ * outputs are stored into additional field of the transaction record.
+ * @param client chain client
+ * @param blockTransaction specific transaction from the block to be processed with block processor
+ * @param processor block processor
+ * @returns processed transaction
+ */
+export async function getFullTransactionUtxo(
+  client: CachedMccClient,
+  blockTransaction: UtxoTransaction,
+  processor: LimitingProcessor
+): Promise<UtxoTransaction> {
+  processor.registerTopLevelJob();
+  // only for transactions with reference all input transactions are processed
+  if (blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase") {
+    blockTransaction.synchronizeAdditionalData();
 
-
-export async function getFullTransactionUtxo(client: CachedMccClient<any, any>, blockTransaction: UtxoTransaction, processor: LimitingProcessor): Promise<UtxoTransaction> {
-  let errorPoint = 0;
-
-  try {
-    processor.registerTopLevelJob();
-    // let res = (await processor.call(() => client.getTransaction(txid))) as UtxoTransaction;
-    // console.log("Toplevel tx processed");
-
-    // const txid = `d279fb08798f8b37fe80fcd29aa146268d3efac542552ca829d3bc780e0d0083`;
-
-    // let test = await client.getTransaction(txid);
-
-    // console.log( test );
-
-
-    // if (res === null) {
-    //   return null;
-    // }
-    // let response: IUtxoGetFullTransactionRes = { vinouts: [], ...res.data };
-
-    // here we could check if reference starts with 0x46425052 ()
-    if (blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase") {
-
-      // We need to create IUtxoTransactionAdditionalData
-
-      let txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction) => {
-        if (vin.txid) {
-          // the in-transactions are prepended to queue in order to process them earlier
-          return (processor.call(() => client.getTransaction(vin.txid), true)) as Promise<UtxoTransaction>;
-        }
-      });
-
-      errorPoint=1;
-
-      let vinTransactions = await Promise.all(txPromises as any);
-
-      const vinInputs: IUtxoVinVoutsMapper[] = [];
-
-      errorPoint=2;
-
-      for (let i = 0; i < blockTransaction.data.vin.length; i++) {
-        const vin = blockTransaction.data.vin[i];
-        const tx = vinTransactions[i] as UtxoTransaction;
-
-        errorPoint = i * 100;
-
-        if (tx) {
-          const inVout = vin.vout!;
-          vinInputs.push({
-            index: i,
-            vinvout: tx.extractVoutAt(inVout)
-          });
-        }
+    const txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction, index: number) => {
+      if (vin.txid) {
+        // the in-transactions are prepended to queue in order to process them earlier
+        return processor.call(() => blockTransaction.vinVoutAt(index, client.client as MccUtxoClient), true) as Promise<UtxoTransaction>;
       }
+    });
 
-      errorPoint=3;
-      blockTransaction.additionalData = { vinouts: [], ...blockTransaction.additionalData };
+    await Promise.all(txPromises);
 
-      blockTransaction.additionalData.vinouts = vinInputs;
-      processor.markTopLevelJobDone();
+    processor.markTopLevelJobDone();
 
-      errorPoint=4;
-
-      return blockTransaction;
-    }
-    else {
-      return blockTransaction
-    }
-  }
-  catch (error) {
-    logException(error, `getFullTransactionUtxo2 ${errorPoint}`);
+    return blockTransaction;
+  } else {
+    return blockTransaction;
   }
 }

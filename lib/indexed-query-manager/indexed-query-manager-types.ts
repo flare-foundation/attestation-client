@@ -1,4 +1,4 @@
-import { ChainType } from "flare-mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
@@ -6,10 +6,11 @@ import { DatabaseService } from "../utils/databaseService";
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
   dbService?: DatabaseService;
-  numberOfConfirmations: ()=> number;
+  numberOfConfirmations: () => number;
   maxValidIndexerDelaySec: number;
   // return windows start time from current epochId
   windowStartTime: (roundId: number) => number;
+  UBPCutoffTime: (roundId: number) => number;
 }
 
 export interface BlockHeightSample {
@@ -74,7 +75,7 @@ export interface ConfirmedBlockQueryRequest {
 
 export interface ConfirmedBlockQueryResponse {
   status: UpperBoundaryCheckStatus | "NOT_EXIST";
-  block?: DBBlockBase;  
+  block?: DBBlockBase;
   lowerBoundaryBlock?: DBBlockBase;
   upperBoundaryBlock?: DBBlockBase;
 }
@@ -98,7 +99,7 @@ export interface ConfirmedTransactionQueryResponse {
 export interface ReferencedTransactionsQueryRequest {
   deadlineBlockNumber: number;
   deadlineBlockTimestamp: number;
-  numberOfConfirmations: number; 
+  numberOfConfirmations: number;
   paymentReference: string; // payment reference
   // Used to determine overflow block - the first block with blockNumber > endBlock and timestamp > endTime
   // overflowBlockNumber: number;
@@ -113,4 +114,3 @@ export interface ReferencedTransactionsQueryResponse {
   firstOverflowBlock?: DBBlockBase;
   lowerBoundaryBlock?: DBBlockBase;
 }
-

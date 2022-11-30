@@ -1,14 +1,13 @@
-import { optional } from "flare-mcc";
+import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../utils/databaseService";
-import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 
 export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
+  @optional() public syncEnabled = true;
+  @optional() public syncTimeDays = 2;
+  @optional() public blockCollectTimeMs = 1000;
 
-  @optional() public syncEnabled: boolean = true;
-  @optional() public syncTimeDays: number = 2;
-  @optional() public blockCollectTimeMs: number = 1000;
-
-  @optional() public syncUpdateTimeMs: number = 10000;
+  @optional() public syncUpdateTimeMs = 10000;
 
   instanciate(): IndexerConfiguration {
     return new IndexerConfiguration();
@@ -16,8 +15,6 @@ export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
-
 }
 
 export class IndexerCredentials implements IReflection<IndexerCredentials> {
@@ -29,5 +26,4 @@ export class IndexerCredentials implements IReflection<IndexerCredentials> {
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
 }

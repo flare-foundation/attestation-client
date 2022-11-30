@@ -5,28 +5,31 @@ import { SourceId } from "../sources/sources";
 // Verification status
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Enumerated verification status of attestation
+ */
 export enum VerificationStatus {
   // Successful verification
   OK = "OK",
 
   // Needs recheck
   RECHECK_LATER = "RECHECK_LATER",
-  
+
   // Temporary status during checks
   NEEDS_MORE_CHECKS = "NEEDS_MORE_CHECKS",
-  
+
   // Source failure - source data is not up to date and does not allow consistent queries
   SYSTEM_FAILURE = "SYSTEM_FAILURE",
-  
+
   // Error fields
   NOT_CONFIRMED = "NOT_CONFIRMED",
-  
+
   WRONG_DATA_AVAILABILITY_PROOF = "WRONG_DATA_AVAILABILITY_PROOF",
 
   NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",
   NON_EXISTENT_BLOCK = "NON_EXISTENT_BLOCK",
   NOT_PAYMENT = "NOT_PAYMENT",
-  
+
   WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP = "WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP",
   WRONG_OVERFLOW_BLOCK_ENDTIME = "WRONG_OVERFLOW_BLOCK_ENDTIME",
   REFERENCED_TRANSACTION_EXISTS = "REFERENCED_TRANSACTION_EXISTS",
@@ -34,8 +37,16 @@ export enum VerificationStatus {
   NON_EXISTENT_INPUT_UTXO_ADDRESS = "NON_EXISTENT_INPUT_UTXO_ADDRESS",
   NON_EXISTENT_OUTPUT_UTXO_ADDRESS = "NON_EXISTENT_OUTPUT_UTXO_ADDRESS",
 
-  PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR"
+  PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR",
+
+  GENERIC_ERROR = "GENERIC_ERROR",
+  EXCEPTION = "EXCEPTION",
 }
+
+/**
+ * Interface for a verification of a request of type R with response of typo T.
+ * The validity of the request is stored in status.
+ */
 export interface Verification<R, T> {
   hash?: string;
   request?: R;
@@ -63,6 +74,7 @@ export const UPPER_BOUND_PROOF_BYTES = 32;
 export const SOURCE_ADDRESS_KEY_BYTES = 32;
 export const SOURCE_ADDRESS_CHEKSUM_BYTES = 4;
 export const PAYMENT_REFERENCE_BYTES = 32;
+export const XRP_ACCOUNT_BYTES = 20;
 
 export type NumberLike = number | BN | string;
 export type ByteSequenceLike = string;

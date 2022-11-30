@@ -1,46 +1,55 @@
-import { AlgoMccCreate, ChainType, MCC, ReadRpcInterface, RPCInterface, UtxoMccCreate, XrpMccCreate } from "flare-mcc";
-import { getGlobalLogger, logException } from "../utils/logger";
+import { AlgoMccCreate, ChainType, IBlock, ITransaction, Managed, MCC, ReadRpcInterface, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { criticalAsync } from "../indexer/indexer-utils";
+import { retry } from "../utils/PromiseTimeout";
 import { Queue } from "../utils/Queue";
 
-export interface CachedMccClientOptions {
+export interface CachedMccClientOptionsFull {
   transactionCacheSize: number;
   blockCacheSize: number;
   cleanupChunkSize: number;
-     // maximum number of requests that are either in processing or in queue
-  activeLimit: number; 
+  // maximum number of requests that are either in processing or in queue
+  activeLimit: number;
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
-  // onChange?: (inProcessing?: number, inQueue?: number) => void;
+  forcedClient?: ReadRpcInterface;
 }
 
-let defaultCachedMccClientOptions: CachedMccClientOptions = {
+export interface CachedMccClientOptionsTest {
+  forcedClient: ReadRpcInterface
+}
+
+export type CachedMccClientOptions = CachedMccClientOptionsFull | CachedMccClientOptionsTest;
+
+const defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
   cleanupChunkSize: 100,
-  activeLimit: 50, 
-  clientConfig: {} as any
-}
+  activeLimit: 50,
+  clientConfig: {} as any,
+};
 
 // Usage:
 // 1) External service should initialize relevant MCC client through CachedMccClient wrapper class
 // 2) Services should use the following call sequence
 //   (a) try calling `getTransactionFromCache` or `getBlockFromCache`
-//   (b) if response is null, then check `canAccept`. 
+//   (b) if response is null, then check `canAccept`.
 //        (i) If `true` is returned, call `getTransaction` (`getBlock`)
-//        (ii) if `false` is returned, sleep for a while and retry `canAccept`. Repeat this until `true` is 
+//        (ii) if `false` is returned, sleep for a while and retry `canAccept`. Repeat this until `true` is
 //             eventually returned and then proceed with (i)
 
-export class CachedMccClient<T, B> {
+@Managed()
+export class CachedMccClient {
   client: ReadRpcInterface;
   chainType: ChainType;
 
-  transactionCache: Map<string, Promise<T>>;
+  transactionCache: Map<string, Promise<ITransaction>>;
   transactionCleanupQueue: Queue<string>;
 
-  blockCache: Map<string | number, Promise<B>>;
+  blockCache: Map<string | number, Promise<IBlock>>;
   blockCleanupQueue: Queue<string>;
 
   settings: CachedMccClientOptions;
 
+  // counters
   inProcessing = 0;
   inQueue = 0;
   reqsPs = 0;
@@ -50,23 +59,30 @@ export class CachedMccClient<T, B> {
 
   constructor(chainType: ChainType, options?: CachedMccClientOptions) {
     this.chainType = chainType;
-    this.transactionCache = new Map<string, Promise<T>>();
+    this.transactionCache = new Map<string, Promise<ITransaction>>();
     this.transactionCleanupQueue = new Queue<string>();
-    this.blockCache = new Map<string, Promise<B>>();
+    this.blockCache = new Map<string, Promise<IBlock>>();
     this.blockCleanupQueue = new Queue<string>();
 
     this.settings = options || defaultCachedMccClientOptions;
 
     // Override onSend
-    this.settings.clientConfig.rateLimitOptions = {
-      ...this.settings.clientConfig.rateLimitOptions,
-      onSend: this.onChange.bind(this),
-      onResponse: this.onChange.bind(this),
-      onPush: this.onChange.bind(this),
-      onRpsSample: this.onChange.bind(this),
+    const fullSettings = this.settings as CachedMccClientOptionsFull;
+    if (fullSettings.clientConfig) {
+      fullSettings.clientConfig.rateLimitOptions = {
+        ...fullSettings.clientConfig.rateLimitOptions,
+        onSend: this.onChange.bind(this),
+        onResponse: this.onChange.bind(this),
+        onPush: this.onChange.bind(this),
+        onRpsSample: this.onChange.bind(this),
+      };
     }
 
-    this.client = MCC.Client(this.chainType, this.settings.clientConfig) as any as RPCInterface // TODO
+    if (options?.forcedClient) {
+      this.client = options.forcedClient;
+    } else {
+      this.client = MCC.Client(this.chainType, fullSettings.clientConfig) as any as ReadRpcInterface;
+    }
   }
 
   private onChange(inProcessing?: number, inQueue?: number, reqsPs?: number, retriesPs?: number) {
@@ -76,81 +92,94 @@ export class CachedMccClient<T, B> {
     this.retriesPs = retriesPs;
   }
 
-  // returns T or null
-  public getTransactionFromCache(txId: string): Promise<T> | undefined {
-    return this.transactionCache.get(txId);
-  }
-
   public async getTransaction(txId: string) {
-    try {
-      // if(!this.canAccept) {
-      //   throw Error("Cannot accept transaction requests");
-      // }
-      let txPromise = this.getTransactionFromCache(txId);
-      if(txPromise) {
-        return txPromise;
-      }
-      let newPromise = this.client.getTransaction(txId);
-      this.transactionCache.set(txId, newPromise);
-      this.checkAndCleanup();
-      return newPromise;    
+    const txPromise = this.transactionCache.get(txId)
+    if (txPromise) {
+      return txPromise;
     }
-    catch( error ) {
-      logException(error, `CachedMccClient::getTransaction(${txId})`);
-    }
+
+    // if client.getTransaction after retrying fails, the application is terminated (critical error)
+    // eslint-disable-next-line
+    const newPromise = criticalAsync(`CachedMccClient::getTransaction(${txId}) exception: `, () =>
+      retry(`CachedMccClient.getTransaction`, async () => {
+        return await this.client.getTransaction(txId);
+      })
+    )
+
+    this.transactionCache.set(txId, newPromise as Promise<ITransaction>);
+    this.transactionCleanupQueue.push(txId);
+    this.checkAndCleanup();
+    return newPromise;
   }
 
   public async getBlockFromCache(blockHash: string) {
-    return this.blockCache.get(blockHash)
+    return this.blockCache.get(blockHash);
   }
 
-  // getBlock is caching by hashes only! by blockNumber queries are always executed
-  public async getBlock(blockHashOrNumber: string | number): Promise<B | null> {
-    // if(!this.canAccept) {
-    //   throw Error("Cannot accept block requests");
-    // }
-    let blockPromise = this.blockCache.get(blockHashOrNumber);
-    if(blockPromise) {
+  /**
+   * @dev getBlock is caching by hashes only! by blockNumber queries are always executed
+   * @param blockHashOrNumber block hash or block number
+   * @returns 
+   */
+  public async getBlock(blockHashOrNumber: string | number): Promise<IBlock | null> {
+    const blockPromise = this.blockCache.get(blockHashOrNumber);
+    if (blockPromise) {
       return blockPromise;
     }
 
-    // MCC client should support hash queries
-    let newPromise = this.client.getBlock(blockHashOrNumber);
-    if(typeof blockHashOrNumber === "number") {
-      let block = await newPromise;
-      if( !block ) return null;
-      let blockHash = block.hash // TODO
-      this.blockCache.set(blockHash, newPromise); 
+    // if client.getBlock after retrying fails, the application is terminated (critical error)
+    // eslint-disable-next-line
+    const newPromise = criticalAsync(`CachedMccClient::getBlock(${blockHashOrNumber}) exception: `, () =>
+      retry(`CachedMccClient.getBlock`, async () => {
+        return await this.client.getBlock(blockHashOrNumber);
+      })
+    )
+
+    if (typeof blockHashOrNumber === "number") {
+      const block = await newPromise;
+      if (!block) return null;
+      const blockHash = block.blockHash; // TODO
+      this.blockCache.set(blockHash, newPromise as Promise<IBlock>);
+      this.blockCleanupQueue.push(blockHash);
     } else {
-      this.blockCache.set(blockHashOrNumber, newPromise); 
-    }    
+      this.blockCache.set(blockHashOrNumber, newPromise as Promise<IBlock>);
+      this.blockCleanupQueue.push(blockHashOrNumber);
+    }
     this.checkAndCleanup();
-    return newPromise;    
+    return newPromise as Promise<IBlock>; // TODO type
   }
 
   public get canAccept(): boolean {
-    return !this.settings.activeLimit || this.inProcessing + this.inQueue <= this.settings.activeLimit;
+    const fullSettings = this.settings as CachedMccClientOptionsFull;
+    return !fullSettings.activeLimit || this.inProcessing + this.inQueue <= fullSettings.activeLimit;
   }
 
   private checkAndCleanup() {
+    const fullSettings = this.settings as CachedMccClientOptionsFull;
+    if(!fullSettings.cleanupChunkSize) {
+      return;
+    }
     this.cleanupCheckCounter++;
-    if(this.cleanupCheckCounter >= this.settings.cleanupChunkSize) {
+    if (this.cleanupCheckCounter >= fullSettings.cleanupChunkSize) {
       this.cleanupCheckCounter = 0;
-      setTimeout(() => this.cleanup());   // non-blocking call
+      setTimeout(() => this.cleanup()); // non-blocking call
     }
   }
 
   private cleanup() {
-    if(this.blockCleanupQueue.size >= this.settings.blockCacheSize + this.settings.cleanupChunkSize) {
-      while(this.blockCleanupQueue.size > this.settings.blockCacheSize) {
-        this.blockCache.delete(this.blockCleanupQueue.shift())
-      }  
+    const fullSettings = this.settings as CachedMccClientOptionsFull;
+    if(!fullSettings.blockCacheSize) {
+      return;
     }
-    if(this.transactionCleanupQueue.size >= this.settings.transactionCacheSize + this.settings.cleanupChunkSize) {
-      while(this.transactionCleanupQueue.size > this.settings.transactionCacheSize) {
-        this.transactionCache.delete(this.transactionCleanupQueue.shift())
+    if (this.blockCleanupQueue.size >= fullSettings.blockCacheSize + fullSettings.cleanupChunkSize) {
+      while (this.blockCleanupQueue.size > fullSettings.blockCacheSize) {
+        this.blockCache.delete(this.blockCleanupQueue.shift());
+      }
+    }
+    if (this.transactionCleanupQueue.size >= fullSettings.transactionCacheSize + fullSettings.cleanupChunkSize) {
+      while (this.transactionCleanupQueue.size > fullSettings.transactionCacheSize) {
+        this.transactionCache.delete(this.transactionCleanupQueue.shift());
       }
     }
   }
-
 }

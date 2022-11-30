@@ -1,43 +1,46 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
-// @Entity({name:"block"})
+/**
+ * Format for storing block data in indexer database
+ */
 export class DBBlockBase {
+  @PrimaryColumn({ type: "varchar" })
+  blockHash!: string;
 
-    @PrimaryColumn({ type: "varchar" })
-    blockHash!: string;
+  @Column()
+  @Index()
+  blockNumber!: number;
 
-    @Column()
-    @Index()
-    blockNumber!: number;
+  @Column()
+  @Index()
+  timestamp!: number;
 
+  @Column({ nullable: true })
+  transactions: number;
 
-    @Column()
-    @Index()
-    timestamp!: number;
+  @Column({ nullable: true })
+  @Index()
+  confirmed: boolean;
 
-    @Column({nullable:true})
-    transactions: number;
+  // relevant only if confirmed not true
+  @Column({ nullable: true })
+  @Index()
+  numberOfConfirmations: number;
 
+  @Column({ nullable: true })
+  @Index()
+  previousBlockHash: string;
 
-    @Column({nullable:true})
-    @Index()
-    confirmed: boolean;
 }
-
 
 @Entity({ name: "btc_block" })
-export class DBBlockBTC extends DBBlockBase {
-}
+export class DBBlockBTC extends DBBlockBase {}
 @Entity({ name: "ltc_block" })
-export class DBBlockLTC extends DBBlockBase {
-}
+export class DBBlockLTC extends DBBlockBase {}
 @Entity({ name: "doge_block" })
-export class DBBlockDOGE extends DBBlockBase {
-}
+export class DBBlockDOGE extends DBBlockBase {}
 @Entity({ name: "xrp_block" })
-export class DBBlockXRP extends DBBlockBase {
-}
+export class DBBlockXRP extends DBBlockBase {}
 
 @Entity({ name: "algo_block" })
-export class DBBlockALGO extends DBBlockBase {
-}
+export class DBBlockALGO extends DBBlockBase {}

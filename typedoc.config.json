@@ -1,0 +1,16 @@
+{
+  "excludeExternals": true,
+  "entryPoints": ["./lib"],
+  "categorizeByGroup": true,
+  "categoryOrder": ["BaseMethod", "AdvancedMethod", "Indexer", "Verifiers", "*"],
+  "mergeModulesMergeMode": "project",
+  "entryPointStrategy": "expand",
+  "out": "genDocs",
+  "pluginPages": {
+    "output": "",
+    "pages": [
+       { "title": "Documentation Home", "source": "./docs/README.md" },
+       { "title": "Using connected Testnets", "source": "./docs/testnets/README.md" }
+    ]
+  }
+}

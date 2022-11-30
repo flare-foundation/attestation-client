@@ -1,13 +1,15 @@
 import BN from "bn.js";
 import Web3 from "web3";
-import { Logger } from "winston";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
-import { getWeb3, getWeb3Contract, round } from "../utils/utils";
-import { Web3Functions } from "../utils/Web3Functions";
 import { AttLogger } from "../utils/logger";
+import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
+import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationRoundManager } from "./AttestationRoundManager";
+import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 
+/**
+ * Handles submitions to StateConnector
+ */
 export class AttesterWeb3 {
   config: AttesterClientConfiguration;
   credentials: AttesterCredentials;
@@ -20,60 +22,85 @@ export class AttesterWeb3 {
   constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
     this.logger = logger;
     this.config = configuration;
-    this.credentials=credentials;
+    if (!credentials) {
+      return;
+    }
+    this.credentials = credentials;
     this.web3 = getWeb3(credentials.web.rpcUrl) as Web3;
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.credentials.web.accountPrivateKey);
   }
 
   async initialize() {
-    this.stateConnector = await getWeb3Contract(this.web3, this.credentials.web.stateConnectorContractAddress, "StateConnector");
+    this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.credentials.web.stateConnectorContractAddress);
   }
 
   check(bnString: string) {
-    if( bnString.length!=64+2 || bnString[0]!=='0' || bnString[1]!=='x' ) {
-      this.logger.error( `invalid BN formating ${bnString}` );
+    if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
+      this.logger.error(`invalid BN formating ${bnString}`);
     }
   }
 
-  async submitAttestation(action: string, 
-    roundId: number,
-    bufferNumber: BN, 
-    merkleRoot: string, 
-    maskedMerkleRoot: string, 
-    random: string,
-    hashedRandom: string, 
-    revealedRandomPrev: string) {
+  /**
+   * Submits the attestation data in commit-reveal scheme.
+   * For any given submission in `bufferNumber` we always:
+   *  - commit for `roundId = bufferNumber - 1`
+   *  - reveal for `roundId = bufferNumber - 2`
+   * @param action - label for recording action in logs
+   * @param bufferNumber - buffer number in which we are submitting attestation
+   * 
+   * @param commitedMerkleRoot - committed Merkle root (used just for logging)
+   * @param commitedMaskedMerkleRoot - committed masked Merkle root
+   * @param commitedRandom - random number of commited round (used just for logging)
+   * 
+   * @param revealedMerkleRoot - revealed merkle root
+   * @param revealedRandom - revealed random
+   * 
+   * @param verbose - whether loggin is verbose (default true)
+   * @returns
+   */
+  async submitAttestation(
+    action: string,
+    bufferNumber: BN,
+    // commit
+    commitedMerkleRoot: string,
+    commitedMaskedMerkleRoot: string,
+    commitedRandom: string,
+    // reveal
+    revealedMerkleRoot: string,
+    revealedRandom: string,
 
-    this.check(maskedMerkleRoot);
-    this.check(hashedRandom);
-    this.check(revealedRandomPrev);
+    verbose = true
+  ) {
+    this.check(commitedMerkleRoot);
+    this.check(commitedMaskedMerkleRoot);
+    this.check(revealedRandom);
 
-    let fnToEncode = this.stateConnector.methods.submitAttestation(bufferNumber, maskedMerkleRoot, hashedRandom, revealedRandomPrev);
+    const fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, commitedMaskedMerkleRoot, revealedMerkleRoot, revealedRandom);
 
-    this.logger.info( `action ................. : ${action}` )
-    this.logger.info( `bufferNumber_n ......... : ${bufferNumber.toString()}` )
-    this.logger.info( `merkleRoot_n ........... : ^e${merkleRoot.toString()}` )
-    this.logger.info( `maskedMerkleRoot_n ..... : ${maskedMerkleRoot.toString()}` )
-    this.logger.info( `random_n ............... : ^e${random.toString()}` )
-    this.logger.info( `hashedRandom_n ......... : ${hashedRandom.toString()}` )
-    this.logger.info( `random_n-1 ............. : ${revealedRandomPrev.toString()}` )
+    if (verbose) {
+      this.logger.info(`action .................... : ${action}`);
+      this.logger.info(`bufferNumber .............. : ^e${bufferNumber.toString()}`);
+      this.logger.info(`commitedMaskedMerkleRoot .. : ^e${commitedMaskedMerkleRoot.toString()}`);
+      this.logger.info(`commitedMerkleRoot ........ : ${commitedMerkleRoot.toString()}`);
+      this.logger.info(`commitedRandom ............ : ${commitedRandom.toString()}`);
+      this.logger.info(`revealedMerkleRoot ........ : ^e${revealedMerkleRoot.toString()}`);
+      this.logger.info(`revealedRandom ............ : ^e${revealedRandom.toString()}`);
+    }
 
+    //if (process.env.NODE_ENV === "production") {
+    if( true ) {
 
-    if( process.env.NODE_ENV==="production") {
-    //if( true ) {
+      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000;
+      const extReceipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
 
-      const {receipt,nonce} = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
-
-      if( receipt ) {
-        AttestationRoundManager.state.saveRoundCommited(roundId,nonce,receipt.transactionHash);
-        AttestationRoundManager.state.saveRoundRevealed(roundId-1,nonce,receipt.transactionHash);
+      if (extReceipt.receipt) {
+        await AttestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1 , extReceipt.nonce, extReceipt.receipt.transactionHash);
+        await AttestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2 , extReceipt.nonce, extReceipt.receipt.transactionHash);
       }
 
-      return receipt;
-    }
-    else {
+      return extReceipt.receipt;
+    } else {
       this.logger.warning(`signAndFinalize3 skipped in ^edevelopment mode^^`);
 
       return "devmode";

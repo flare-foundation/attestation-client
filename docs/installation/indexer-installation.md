@@ -1,14 +1,13 @@
-[TOC](./../README.md)/[General installation](../installation/general-installation.md)
 # Indexer Installation
 
-## Prerequisits
-Indexer module requires next prerequisits:
+## Prerequisites
+Indexer module requires next prerequisites:
 - NODE
 - YARN
 - MYSQL
 - ctail
 
-Installation instructions for all prerequisits are in [general installation](general-installation.md) section.
+Installation instructions for all prerequisites are in [general installation](general-installation.md) section.
 
 ## Installation
 
@@ -17,13 +16,15 @@ Installation instructions for all prerequisits are in [general installation](gen
 Indexer is installed with the deployment script `./script/deploy-indexer.sh`.
 
 Before running script you need to change your server username and address.
-```
+
+``` bash
 export USER=<username>
 export SERVER=<your server address>
 ```
 
 After these corrections are made run the script:
-```
+
+``` bash
 ./script/deploy-indexer
 ```
 
@@ -31,17 +32,18 @@ Deployment is performed into folder `/home/<username>/global/indexer`.
 
 Logs are in `global/indexer/logs/attester-<chain name>.log`.
 
-Example: 
-```
+Example:
+
+``` bash
 ctail -f -i global/indexer/logs/attester-XRP.log
 ```
 
-
 ### Services
 
-After the 1st deployment the services must be installed. Once installed they will be automatically restarted by deployment script.
+After the 1st deployment, the services must be installed. Once installed, they will be automatically restarted by the deployment script.
 
-Indexer uses one service for each chain: 
+Indexer uses one service for each chain:
+
 - indexer-algo
 - indexer-btc
 - indexer-doge
@@ -49,3 +51,5 @@ Indexer uses one service for each chain:
 - indexer-xrp
 
 Check [services](services.md) section for instructions on how to manage services.
+
+[Home](./../README.md)/[General installation](../installation/general-installation.md)

@@ -100,3 +100,8 @@ export interface AttestationTypeScheme {
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
 }
+
+export interface AttestationRequest {
+  roundId: number;
+  request: string;
+}

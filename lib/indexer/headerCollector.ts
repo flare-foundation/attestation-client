@@ -60,7 +60,7 @@ export class HeaderCollector {
       onFailure("saveBlocksHeaders: fromBlock too low");
       // this should exit the program
     }
-    const blockPromisses = [];
+    const blockPromises = [];
 
     for (let blockNumber = fromBlockNumber; blockNumber <= toBlockNumberInc; blockNumber++) {
       // // if rawUnforkable then we can skip block numbers if they are already written
@@ -69,10 +69,10 @@ export class HeaderCollector {
       //     continue;
       //   }
       // }
-      blockPromisses.push(async () => this.indexerToClient.getBlockFromClient(`saveBlocksHeaders`, blockNumber));
+      blockPromises.push(async () => this.indexerToClient.getBlockFromClient(`saveBlocksHeaders`, blockNumber));
     }
 
-    let blocks = (await retryMany(`saveBlocksHeaders`, blockPromisses, 5000, 5)) as IBlock[];
+    let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as IBlock[];
     blocks = blocks.filter((block) => !this.isBlockCached(block));
     await this.saveHeadersOnNewTips(blocks);
   }

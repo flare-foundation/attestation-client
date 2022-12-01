@@ -59,6 +59,7 @@ describe("interlacing", () => {
     if (dataService.dataSource.isInitialized) {
       await dataService.dataSource.destroy();
     }
+    sinon.restore();
   });
 
   // after(async ())

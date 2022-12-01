@@ -114,7 +114,6 @@ export class LimitingProcessor {
     this.interlacing = interlacing;
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = client;
-    //????calling async in constructor????
     // eslint-disable-next-line
     criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }

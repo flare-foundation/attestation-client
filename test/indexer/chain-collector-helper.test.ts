@@ -5,27 +5,34 @@ import {
   UtxoMccCreate,
   UtxoTransaction,
   XrpBlock,
+  XrpMccCreate,
   XrpTransaction,
   xrp_ensure_data,
 } from "@flarenetwork/mcc";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
 import { ChainType } from "@flarenetwork/mcc";
-import { expect } from "chai";
 import { augmentTransactionUtxo, augmentTransactionXrp } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
 import { DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
-import * as resBTCTxAlt from "../mockData/BTCTxAlt.json";
 import * as resXRPBlock from "../mockData/XRPBlock.json";
 import * as resXRPTx from "../mockData/XRPTx.json";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { Interlacing } from "../../lib/indexer/interlacing";
-import { globalTestLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, globalTestLogger } from "../../lib/utils/logger";
 import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
-import { LimitingProcessor } from "../../lib/caching/LimitingProcessor";
-import { UtxoBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
+import { BlockProcessor, UtxoBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
 import { getFullTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/readTransaction";
+import { TestBlockBTC, TestBlockDOGE, TestBlockXRP, TestTxBTC, TestTxBTCAlt, TestTxBTCFake } from "../mockData/indexMock";
+
+import sinon from "sinon";
+import { afterEach } from "mocha";
+
+const chai = require("chai");
+const chaiaspromised = require("chai-as-promised");
+chai.use(chaiaspromised);
+const expect = chai.expect;
 
 describe("augmentBlock", () => {
   it("Should create entity for a block", async () => {
@@ -86,40 +93,165 @@ describe("readTransaction", () => {
   const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
   const interlacing = new Interlacing();
   let utxoBlockProcessor: UtxoBlockProcessor;
-  const tx = new UtxoTransaction(resBTCTxAlt);
+  const tx = TestTxBTC;
+  const txFake = TestTxBTCFake;
   before(async () => {
     await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 12);
     utxoBlockProcessor = new UtxoBlockProcessor(interlacing, cachedClient);
   });
 
-  // it("should get full transaction utxo", async (done) => {
-  //   console.log(tx.reference);
-  //   const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor);
-  //   console.log(fullTx);
-  // });
+  it("should not read full transaction utxo", async () => {
+    const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor);
+    expect(fullTx.additionalData.vinouts[0]).to.be.undefined;
+  });
+
+  it("should read full transaction utxo", async () => {
+    const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor);
+    expect(fullTx.additionalData.vinouts.length).to.be.eq(1);
+  });
 });
-// describe("UtxoBlockProcessor", () => {
-//   const BtcMccConnection = {
-//     url: "https://bitcoin-api.flare.network",
-//     username: "public",
-//     password: "d681co1pe2l3wcj9adrm2orlk0j5r5gr3wghgxt58tvge594co0k1ciljxq9glei",
-//   } as UtxoMccCreate;
 
-//   let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-//     transactionCacheSize: 2,
-//     blockCacheSize: 2,
-//     cleanupChunkSize: 2,
-//     activeLimit: 1,
-//     clientConfig: BtcMccConnection,
-//   };
+describe("BlockProcessors", () => {
+  const databaseConnectOptions = new DatabaseSourceOptions();
+  databaseConnectOptions.database = process.env.DATABASE_NAME1;
+  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
+  databaseConnectOptions.password = process.env.DATBASE_PASS;
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
 
-//   const databaseConnectOptions = new DatabaseSourceOptions();
-//   databaseConnectOptions.database = "AttDBtestLimit";
-//   databaseConnectOptions.username = "root";
-//   databaseConnectOptions.password = "praporscak";
-//   const dataService = new DatabaseService(globalTestLogger, databaseConnectOptions);
-//   const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
-//   const interlacing = new Interlacing();
-//   let utxoBlockProcessor: UtxoBlockProcessor;
-//
-// });
+  before(async function () {
+    if (!dataService.dataSource.isInitialized) {
+      await dataService.init();
+    }
+  });
+
+  afterEach(function () {
+    sinon.restore();
+  });
+
+  it("should return null processor", function () {
+    expect(BlockProcessor(-1)).to.be.null;
+  });
+
+  describe("BTC", function () {
+    const BtcMccConnection = {
+      url: process.env.BTC_URL,
+      username: process.env.BTC_USERNAME,
+      password: process.env.BTC_PASSWORD,
+    } as UtxoMccCreate;
+
+    let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
+      transactionCacheSize: 2,
+      blockCacheSize: 2,
+      cleanupChunkSize: 2,
+      activeLimit: 1,
+      clientConfig: BtcMccConnection,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
+    const interlacing = new Interlacing();
+
+    const blockProcessorConst = BlockProcessor(ChainType.BTC);
+    let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
+
+    before(async function () {
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+    });
+
+    it("Should initializeJobs", async function () {
+      const block = TestBlockBTC;
+      const fake = sinon.fake();
+      let res = [];
+      const voidOnSave = async (blockDb, transDb) => {
+        fake(blockDb, transDb);
+        res = transDb;
+        return true;
+      };
+
+      await blockProcessor.initializeJobs(block, voidOnSave);
+      expect(res.length).to.eq(219);
+      expect(fake.callCount).to.eq(1);
+    });
+  });
+
+  describe("DOGE", function () {
+    const DOGEMccConnection = {
+      url: process.env.DOGE_URL,
+      username: process.env.DOGE_USERNAME,
+      password: process.env.DOGE_PASSWORD,
+    } as UtxoMccCreate;
+
+    let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
+      transactionCacheSize: 2,
+      blockCacheSize: 2,
+      cleanupChunkSize: 2,
+      activeLimit: 1,
+      clientConfig: DOGEMccConnection,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.DOGE, cachedMccClientOptionsFull);
+    const interlacing = new Interlacing();
+
+    const blockProcessorConst = BlockProcessor(ChainType.DOGE);
+    let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
+
+    before(async function () {
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.DOGE, 3600, 10);
+    });
+
+    it("Should initializeJobs", async function () {
+      const block = TestBlockDOGE;
+      const fake = sinon.fake();
+      let res = [];
+      const voidOnSave = async (blockDb, transDb) => {
+        fake(blockDb, transDb);
+        res = transDb;
+        return true;
+      };
+
+      await blockProcessor.initializeJobs(block, voidOnSave);
+      expect(res.length).to.eq(125);
+      expect(fake.callCount).to.eq(1);
+    });
+  });
+
+  describe("XRP", function () {
+    const DOGEMccConnection = {
+      url: process.env.XRP_URL,
+      username: process.env.XRP_USERNAME || "",
+      password: process.env.XRP_PASSWORD || "",
+    } as XrpMccCreate;
+
+    let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
+      transactionCacheSize: 2,
+      blockCacheSize: 2,
+      cleanupChunkSize: 2,
+      activeLimit: 1,
+      clientConfig: DOGEMccConnection,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.XRP, cachedMccClientOptionsFull);
+    const interlacing = new Interlacing();
+
+    const blockProcessorConst = BlockProcessor(ChainType.XRP);
+    let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
+
+    before(async function () {
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.XRP, 3600, 10);
+    });
+
+    it("Should initializeJobs", async function () {
+      const block = TestBlockXRP;
+      const fake = sinon.fake();
+      let res = [];
+      const voidOnSave = async (blockDb, transDb) => {
+        fake(blockDb, transDb);
+        res = transDb;
+        return true;
+      };
+
+      await blockProcessor.initializeJobs(block, voidOnSave);
+      expect(res.length).to.eq(33);
+      expect(fake.callCount).to.eq(1);
+    });
+  });
+});

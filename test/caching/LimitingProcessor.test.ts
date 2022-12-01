@@ -11,7 +11,6 @@ const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const assert = chai.assert;
 
 describe("Delayed execution", () => {
   async function testFunc() {
@@ -69,9 +68,9 @@ describe("Limiting Processor", () => {
   const dataService = new DatabaseService(globalTestLogger, databaseConnectOptions);
 
   const BtcMccConnection = {
-    url: "https://bitcoin-api.flare.network",
-    username: "public",
-    password: "d681co1pe2l3wcj9adrm2orlk0j5r5gr3wghgxt58tvge594co0k1ciljxq9glei",
+    url: process.env.BTC_URL,
+    username: process.env.BTC_USERNAME,
+    password: process.env.BTC_PASSWORD,
   } as UtxoMccCreate;
 
   let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
@@ -212,30 +211,3 @@ describe("Limiting Processor", () => {
     });
   });
 });
-
-// describe("ucenje async", () => {
-//   it("should do something", async function (done) {
-//     function main(x) {
-//       return new Promise((resolve) => {
-//         console.log(3);
-//         setTimeout(() => {
-//           resolve(x);
-//           console.log(5);
-//         }, 2000);
-//         console.log(4);
-//       });
-//     }
-//     async function f(x) {
-//       let r = main(x);
-//       return r;
-//     }
-//     let d;
-//     let c = f(15).then((res) => {
-//       d = res;
-//     });
-
-//     setTimeout(() => {
-//       console.log(d);
-//     }, 3000);
-//   });
-// });

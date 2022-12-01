@@ -12,7 +12,7 @@ import { Interlacing } from "./interlacing";
  * Class that manages interactions of indexer with DataBase
  */
 export class IndexerToDB {
-  interlace = new Interlacing();
+  // interlace = new Interlacing();
   dbService: DatabaseService;
   dbTransactionClasses: IDBTransactionBase[];
   dbBlockClass: IDBBlockBase;
@@ -24,8 +24,8 @@ export class IndexerToDB {
   // N - last processed and saved block
   N = 0;
 
-  constructor(logger: AttLogger, interlace: Interlacing, dbService: DatabaseService, chainType: ChainType) {
-    this.interlace = interlace;
+  constructor(logger: AttLogger, dbService: DatabaseService, chainType: ChainType) {
+    // this.interlace = interlace;
     this.logger = logger;
     this.dbService = dbService;
     const tables = prepareIndexerTables(chainType);

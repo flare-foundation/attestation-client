@@ -32,7 +32,7 @@ describe("IndexerToBD", function () {
   let augTx1: DBTransactionBase;
   let augTxAlt1: DBTransactionBase;
 
-  const indexerToDB = new IndexerToDB(getGlobalLogger(), interlacing, dataService, ChainType.BTC);
+  const indexerToDB = new IndexerToDB(getGlobalLogger(), dataService, ChainType.BTC);
 
   before(async () => {
     augTx0 = await promAugTxBTC0;

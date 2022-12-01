@@ -7,26 +7,43 @@ import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
 import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 
+interface IHeaderCollectorSettings {
+  blockCollectTimeMs: number;
+  numberOfConfirmations: number;
+  blockCollecting: "raw" | "rawUnforkable" | "tips" | "latestBlock";
+}
+
 /**
  * Manages the block header collection on a blockchain.
  */
 @Managed()
 export class HeaderCollector {
-  private indexer: Indexer;
+  // private indexer: Indexer;
+  private settings: IHeaderCollectorSettings;
   private indexerToClient: IndexerToClient;
   private indexerToDB: IndexerToDB;
-
   private logger: AttLogger;
-
+  private N: number;
   private blockHeaderHash = new Set<string>();
   private blockHeaderNumber = new Set<number>();
   // Use this only on non-forkable chains
   private blockNumberHash = new Map<number, string>();
 
-  constructor(logger: AttLogger, indexer: Indexer) {
+  constructor(logger: AttLogger, N: number, indexerToClient: IndexerToClient, indexerToDB: IndexerToDB, settings: IHeaderCollectorSettings) {
     this.logger = logger;
-    this.indexer = indexer;
-    this.indexerToClient = indexer.indexerToClient;
+    // this.indexer = indexer;
+    this.N = N;
+    this.indexerToClient = indexerToClient;
+    this.indexerToDB = indexerToDB;
+    this.settings = settings;
+  }
+
+  /////////////////////////////////////////////////////////////
+  // update N
+  /////////////////////////////////////////////////////////////
+
+  public updateN(newN: number) {
+    this.N = newN;
   }
 
   /////////////////////////////////////////////////////////////
@@ -55,7 +72,7 @@ export class HeaderCollector {
    */
   public async readAndSaveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
     // assert - this should never happen
-    if (fromBlockNumber <= this.indexer.N) {
+    if (fromBlockNumber <= this.N) {
       const onFailure = getRetryFailureCallback();
       onFailure("saveBlocksHeaders: fromBlock too low");
       // this should exit the program
@@ -93,12 +110,12 @@ export class HeaderCollector {
   public async saveHeadersOnNewTips(blockTips: IBlockTip[] | IBlockHeader[]) {
     let blocksText = "[";
 
-    const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexerToDB.dbService, this.indexer.dbBlockClass, this.indexer.N);
+    const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexerToDB.dbService, this.indexerToDB.dbBlockClass, this.N);
     await unconfirmedBlockManager.initialize();
 
     for (const blockTip of blockTips) {
       // due to the above async call N could increase
-      if (!blockTip || !blockTip.stdBlockHash || blockTip.number <= this.indexer.N) {
+      if (!blockTip || !blockTip.stdBlockHash || blockTip.number <= this.N) {
         continue;
       }
       const blockNumber = blockTip.number;
@@ -149,7 +166,7 @@ export class HeaderCollector {
 
     // remove all blockNumbers <= N. Note that N might have changed after the above
     // async query
-    dbBlocks = dbBlocks.filter((dbBlock) => dbBlock.blockNumber > this.indexer.N);
+    dbBlocks = dbBlocks.filter((dbBlock) => dbBlock.blockNumber > this.N);
 
     if (dbBlocks.length === 0) {
       //this.logger.debug(`write block headers (no new blocks)`);
@@ -193,7 +210,7 @@ export class HeaderCollector {
         await this.indexerToDB.writeT(newT);
         T = newT;
       }
-      await sleepms(this.indexer.config.blockCollectTimeMs);
+      await sleepms(this.settings.blockCollectTimeMs);
     }
   }
 
@@ -210,16 +227,16 @@ export class HeaderCollector {
         T = newT;
       }
 
-      const blocks: IBlockTip[] = await this.indexerToClient.client.getTopLiteBlocks(this.indexer.chainConfig.numberOfConfirmations);
+      const blocks: IBlockTip[] = await this.indexerToClient.client.getTopLiteBlocks(this.settings.numberOfConfirmations);
 
       await this.saveHeadersOnNewTips(blocks);
 
-      await sleepms(this.indexer.config.blockCollectTimeMs);
+      await sleepms(this.settings.blockCollectTimeMs);
     }
   }
 
   async runBlockHeaderCollecting() {
-    switch (this.indexer.chainConfig.blockCollecting) {
+    switch (this.settings.blockCollecting) {
       case "raw":
       case "latestBlock":
       case "rawUnforkable":

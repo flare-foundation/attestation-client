@@ -111,7 +111,12 @@ export class Indexer {
 
     this.blockProcessorManager = new BlockProcessorManager(this, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this));
 
-    this.headerCollector = new HeaderCollector(this.logger, this);
+    const headerCollectorSettings = {
+      blockCollectTimeMs: this.config.blockCollectTimeMs,
+      numberOfConfirmations: this.chainConfig.numberOfConfirmations,
+      blockCollecting: this.chainConfig.blockCollecting,
+    };
+    this.headerCollector = new HeaderCollector(this.logger, this.N, this.indexerToClient, this.indexerToDB, headerCollectorSettings);
 
     this.indexerSync = new IndexerSync(this);
   }
@@ -469,6 +474,7 @@ export class Indexer {
 
     // increment N if all is ok
     this.N = Np1;
+    this.headerCollector.updateN(this.N);
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
     if (!this.bottomBlockTime) {
@@ -908,6 +914,7 @@ export class Indexer {
     if (dbStartBlockNumber > 0) {
       this.N = dbStartBlockNumber;
     }
+    this.headerCollector.updateN(this.N);
 
     await this.interlace.initialize(
       this.logger,
@@ -926,6 +933,7 @@ export class Indexer {
     await this.indexerSync.runSync(dbStartBlockNumber);
 
     // ------- 2. Run  header collection ----------------------
+
     // eslint-disable-next-line
     criticalAsync("runBlockHeaderCollecting", async () => this.headerCollector.runBlockHeaderCollecting());
 

@@ -107,7 +107,7 @@ export class Indexer {
 
     this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
     this.indexerToClient = new IndexerToClient(this.cachedClient.client);
-    this.indexerToDB = new IndexerToDB(this.logger, this.interlace, this.dbService, this.chainType);
+    this.indexerToDB = new IndexerToDB(this.logger, this.dbService, this.chainType);
 
     this.blockProcessorManager = new BlockProcessorManager(this, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this));
 

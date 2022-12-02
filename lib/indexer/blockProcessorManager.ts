@@ -8,6 +8,13 @@ import { Indexer } from "./indexer";
 import { criticalAsync } from "./indexer-utils";
 import { IndexerToClient } from "./indexerToClient";
 import { Interlacing } from "./interlacing";
+
+interface IBlockProcessorManagerSettings {
+  validateBlockBeforeProcess: boolean;
+  validateBlockMaxRetry: number;
+  validateBlockWaitMs: number;
+}
+
 /**
  * Manages a list of block processors, each processing a block (reading block metadata and transaction data).
  * Management includes starting, pausing, resuming, processing data on completion and switching processing of
@@ -16,10 +23,11 @@ import { Interlacing } from "./interlacing";
  */
 @Managed()
 export class BlockProcessorManager {
-  indexer: Indexer;
   indexerToClient: IndexerToClient;
   interlace: Interlacing;
   cachedClient: CachedMccClient;
+
+  settings: IBlockProcessorManagerSettings;
 
   logger: AttLogger;
 
@@ -35,14 +43,22 @@ export class BlockProcessorManager {
   // If block is hashed this indicates that the block is being processed or is in processing
   blockNumbersInProcessing = new Set<number>();
 
-  constructor(indexer: Indexer, completeCallback: any, alreadyCompleteCallback: any) {
-    this.indexer = indexer;
-    this.logger = indexer.logger;
-    this.indexerToClient = indexer.indexerToClient;
-    this.cachedClient = indexer.cachedClient;
-    this.interlace = indexer.interlace;
+  constructor(
+    logger: AttLogger,
+    cachedClient: CachedMccClient,
+    indexerToClient: IndexerToClient,
+    interlace: Interlacing,
+    settings: IBlockProcessorManagerSettings,
+    completeCallback: any,
+    alreadyCompleteCallback: any
+  ) {
+    this.logger = logger;
+    this.indexerToClient = indexerToClient;
+    this.cachedClient = cachedClient;
+    this.interlace = interlace;
     this.completeCallback = completeCallback;
     this.alreadyCompleteCallback = alreadyCompleteCallback;
+    this.settings = settings;
   }
 
   /**
@@ -150,7 +166,7 @@ export class BlockProcessorManager {
    * @returns valid (confirmed) block on the same height as `block`
    */
   private async waitUntilBlockIsValid(block: IBlock): Promise<IBlock> {
-    if (!this.indexer.chainConfig.validateBlockBeforeProcess) {
+    if (!this.settings.validateBlockBeforeProcess) {
       return block;
     }
 
@@ -161,11 +177,11 @@ export class BlockProcessorManager {
         this.logger.debug2(`waiting on block ${block.number} to be valid`);
       }
 
-      if (retryCount > this.indexer.chainConfig.validateBlockMaxRetry) {
+      if (retryCount > this.settings.validateBlockMaxRetry) {
         failureCallback(`invalid block: block ${block.number} did not become valid in ${retryCount} retires`);
       }
 
-      await sleepMs(this.indexer.chainConfig.validateBlockWaitMs);
+      await sleepMs(this.settings.validateBlockWaitMs);
 
       // get block again (NOTE: on reading by block.number blocks are not cached)
       currentBlock = await this.cachedClient.client.getBlock(block.number);

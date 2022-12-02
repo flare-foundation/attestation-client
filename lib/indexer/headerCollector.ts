@@ -1,6 +1,6 @@
 import { BlockHeaderBase, IBlock, IBlockHeader, IBlockTip, Managed } from "@flarenetwork/mcc";
 import { AttLogger } from "../utils/logger";
-import { getRetryFailureCallback, retry, retryMany } from "../utils/PromiseTimeout";
+import { failureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
 import { Indexer } from "./indexer";
 import { IndexerToClient } from "./indexerToClient";
@@ -73,7 +73,7 @@ export class HeaderCollector {
   public async readAndSaveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
     // assert - this should never happen
     if (fromBlockNumber <= this.N) {
-      const onFailure = getRetryFailureCallback();
+      const onFailure = failureCallback;
       onFailure("saveBlocksHeaders: fromBlock too low");
       // this should exit the program
     }
@@ -86,7 +86,7 @@ export class HeaderCollector {
       //     continue;
       //   }
       // }
-      blockPromises.push(async () => this.indexerToClient.getBlockFromClient(`saveBlocksHeaders`, blockNumber));
+      blockPromises.push(async () => this.indexerToClient.getBlockFromClient(`saveBlocksHeaders`, blockNumber)); //we only need headers!!!
     }
 
     let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as IBlock[];

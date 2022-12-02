@@ -109,7 +109,21 @@ export class Indexer {
     this.indexerToClient = new IndexerToClient(this.cachedClient.client);
     this.indexerToDB = new IndexerToDB(this.logger, this.dbService, this.chainType);
 
-    this.blockProcessorManager = new BlockProcessorManager(this, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this));
+    const blockProcessorManagerSetting = {
+      validateBlockBeforeProcess: this.chainConfig.validateBlockBeforeProcess,
+      validateBlockMaxRetry: this.chainConfig.validateBlockMaxRetry,
+      validateBlockWaitMs: this.chainConfig.validateBlockWaitMs,
+    };
+
+    this.blockProcessorManager = new BlockProcessorManager(
+      this.logger,
+      this.cachedClient,
+      this.indexerToClient,
+      this.interlace,
+      blockProcessorManagerSetting,
+      this.blockCompleted.bind(this),
+      this.blockAlreadyCompleted.bind(this)
+    );
 
     const headerCollectorSettings = {
       blockCollectTimeMs: this.config.blockCollectTimeMs,

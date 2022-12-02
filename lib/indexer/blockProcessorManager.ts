@@ -4,12 +4,11 @@ import { LimitingProcessor } from "../caching/LimitingProcessor";
 import { AttLogger } from "../utils/logger";
 import { failureCallback } from "../utils/PromiseTimeout";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
-import { Indexer } from "./indexer";
 import { criticalAsync } from "./indexer-utils";
 import { IndexerToClient } from "./indexerToClient";
 import { Interlacing } from "./interlacing";
 
-interface IBlockProcessorManagerSettings {
+export interface IBlockProcessorManagerSettings {
   validateBlockBeforeProcess: boolean;
   validateBlockMaxRetry: number;
   validateBlockWaitMs: number;

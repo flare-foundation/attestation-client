@@ -17,7 +17,6 @@ describe("Cached MCC Client test", function () {
   it("Mcc Client Mock returns a transaction", async function () {
     const randomTxId = mockMccClient.randomHash32();
     const result = await mockMccClient.getTransaction(randomTxId);
-    console.log(result);
     expect(result.txid.length, "Wrong txId").to.equal(64);
   });
 

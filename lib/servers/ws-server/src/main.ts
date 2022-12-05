@@ -12,6 +12,7 @@ async function bootstrap() {
   const configurationService = app.get(WSServerConfigurationService);
 
   let port = configurationService.wsServerConfiguration.port;
+  logger.info(`Verifier type: ${configurationService.verifierType}`);
   await app.listen(port, undefined, () =>
     // tslint:disable-next-line:no-console
     // console.log(`Server started listening at http://localhost:${ port }`)

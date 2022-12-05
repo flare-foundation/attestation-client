@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { AttestationProviderConfig, WSServerConfigurationService } from '../../../common/src';
+import { WSServerConfigurationService } from '../../../common/src';
 
 @Injectable()
 export class WsCommandProcessorService {
 
   constructor(
     private config: WSServerConfigurationService,
-  ) {}
+  ) { }
 
   public mirrorResponse(data: any) {
     let response = {
@@ -16,8 +16,8 @@ export class WsCommandProcessorService {
     return response;
   }
 
-  public supportedAttestationTypes(): AttestationProviderConfig[] {
-    return this.config.wsServerConfiguration.providers;
-  } 
+  // public supportedAttestationTypes(): [] {
+  //   return this.config.wsServerConfiguration.sourceId;
+  // }
 
 }

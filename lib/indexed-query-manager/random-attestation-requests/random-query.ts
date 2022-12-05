@@ -65,6 +65,7 @@ export class RandomDBIterator<T> {
     console.time(this.label);
     const items = await this.fetch();
     console.timeEnd(this.label);
+    console.log(`${this.label}: ${items.length}`);
 
     for (const item of items) {
       this.insert(item);
@@ -89,7 +90,7 @@ export async function fetchRandomTransactions(iqm: IndexedQueryManager, batchSiz
     const tableId = Math.round(Math.random());
     const table = iqm.transactionTable[tableId];
 
-    const maxQuery = iqm.dbService.connection.manager.createQueryBuilder(table, "transaction").select("MAX(transaction.id)", "max");
+    const maxQuery = iqm.entityManager.createQueryBuilder(table, "transaction").select("MAX(transaction.id)", "max");
     const res = await maxQuery.getRawOne();
     if (!res.max) {
       maxReps--;
@@ -99,7 +100,7 @@ export async function fetchRandomTransactions(iqm: IndexedQueryManager, batchSiz
       continue;
     }
     const randN = Math.floor(Math.random() * res.max);
-    let query = iqm.dbService.connection.manager.createQueryBuilder(table, "transaction").andWhere("transaction.id > :max", { max: randN });
+    let query = iqm.entityManager.createQueryBuilder(table, "transaction").andWhere("transaction.id > :max", { max: randN });
     // .andWhere("transaction.id < :upper", {upper: randN + 100000})
 
     if (options.mustHavePaymentReference) {
@@ -127,10 +128,15 @@ export async function fetchRandomTransactions(iqm: IndexedQueryManager, batchSiz
 }
 
 export async function fetchRandomConfirmedBlocks(iqm: IndexedQueryManager, batchSize = 100, startTime?: number): Promise<DBBlockBase[]> {
-  let query = iqm.dbService.connection.manager.createQueryBuilder(iqm.blockTable, "block").where("block.confirmed = :confirmed", { confirmed: true });
+  let query = iqm.entityManager.createQueryBuilder(iqm.blockTable, "block").where("block.confirmed = :confirmed", { confirmed: true });
   if (startTime) {
     query = query.andWhere("block.timestamp >= :startTime", { startTime });
   }
-  query = query.orderBy("RAND()").limit(batchSize);
+  if(iqm.entityManager.connection.options.database === ":memory:") {
+    query = query.orderBy("RANDOM()").limit(batchSize);  
+  } else {
+    query = query.orderBy("RAND()").limit(batchSize);
+  }
+  
   return (await query.getMany()) as DBBlockBase[];
 }

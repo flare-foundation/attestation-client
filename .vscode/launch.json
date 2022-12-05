@@ -50,6 +50,17 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "Launch Secure Credentials",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devsecurecredentials"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Launch Install-file",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [

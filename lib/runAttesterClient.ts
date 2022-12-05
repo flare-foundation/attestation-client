@@ -3,7 +3,7 @@ import { exit } from "process";
 import { AttesterClient } from "./attester/AttesterClient";
 import { AttesterClientConfiguration, AttesterCredentials } from "./attester/AttesterClientConfiguration";
 import { ChainsConfiguration } from "./chain/ChainConfiguration";
-import { readConfig, readCredentials } from "./utils/config";
+import { readSecureConfig, readSecureCredentials } from "./utils/configSecure";
 import { getGlobalLogger, logException, setLoggerName } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 
@@ -17,28 +17,28 @@ const args = yargs
 
 // setup retry terminate callback
 function terminateOnRetryFailure(label: string) {
-    getGlobalLogger().error2(`retry failure: ${label} - application exit`);
-    process.exit(2);
+  getGlobalLogger().error2(`retry failure: ${label} - application exit`);
+  process.exit(2);
 }
 
 async function runAttester() {
-    // setup debug trace
-    TraceManager.enabled = false;
-    traceManager.displayRuntimeTrace = false;
-    traceManager.displayStateOnException = false;
+  // setup debug trace
+  TraceManager.enabled = false;
+  traceManager.displayRuntimeTrace = false;
+  traceManager.displayStateOnException = false;
 
-    // setup retry terminate callback
-    setRetryFailureCallback(terminateOnRetryFailure);
+  // setup retry terminate callback
+  setRetryFailureCallback(terminateOnRetryFailure);
 
-    // Reading configuration
-    const chains = readConfig(new ChainsConfiguration(), "chains");
-    const config = readConfig(new AttesterClientConfiguration(), "attester");
-    const credentials = readCredentials(new AttesterCredentials(), "attester");
+  // Reading configuration
+  const chains = await readSecureConfig(new ChainsConfiguration(), "chains");
+  const config = await readSecureConfig(new AttesterClientConfiguration(), "attester");
+  const credentials = await readSecureCredentials(new AttesterCredentials(), "attester");
 
 
-    // Create and start Attester Client
-    const attesterClient = new AttesterClient(config, credentials, chains);
-    return await attesterClient.runAttesterClient();
+  // Create and start Attester Client
+  const attesterClient = new AttesterClient(config, credentials, chains);
+  return await attesterClient.runAttesterClient();
 }
 
 setLoggerName("attestation-client");
@@ -52,18 +52,17 @@ var locker = new SingleInstance(instanceName);
 
 locker.lock()
   .then(function () {
-        // indexer entry point
-        runAttester()
-            .then(() => process.exit(0))
-            .catch((error) => {
-                logException(error, `runIndexer`);
-                process.exit(1);
-            });
-        })
-        .catch(function (err) {
-          getGlobalLogger().error( `unable to start application. ^w${instanceName}^^ is locked` );
-      
-          // Quit the application
-          exit(5);
-        })
-      
+    // indexer entry point
+    runAttester()
+      .then(() => process.exit(0))
+      .catch((error) => {
+        logException(error, `runIndexer`);
+        process.exit(1);
+      });
+  })
+  .catch(function (err) {
+    getGlobalLogger().error(`unable to start application. ^w${instanceName}^^ is locked`);
+
+    // Quit the application
+    exit(5);
+  })

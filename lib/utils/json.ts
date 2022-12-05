@@ -1,0 +1,132 @@
+import { parser as theParser } from 'clarinet';
+import { getGlobalLogger } from "./logger";
+
+/**
+   * Extract a detailed JSON parse error 
+   * using https://github.com/dscape/clarinet
+   * 
+   * @param {string} json
+   * @returns {{snippet:string, message:string, line:number, column:number, position:number}} or undefined if no error
+   */
+function getJSONParseError(json) {
+  let parser = theParser();
+  let firstError = undefined;
+
+  // generate a detailed error using the parser's state
+  function makeError(e) {
+    let currentNL = 0, nextNL = json.indexOf('\n'), line = 1;
+    while (line < parser.line) {
+      currentNL = nextNL;
+      nextNL = json.indexOf('\n', currentNL + 1);
+      ++line;
+    }
+    return {
+      snippet: json.substr(currentNL + 1, nextNL - currentNL - 1),
+      message: (e.message || '').split('\n', 1)[0],
+      line: parser.line,
+      column: parser.column
+    }
+  }
+
+  // trigger the parse error
+  parser.onerror = function (e) {
+    firstError = makeError(e);
+    parser.close();
+  };
+  try {
+    parser.write(json)
+    parser.close();
+  } catch (e) {
+    if (firstError === undefined) {
+      return makeError(e);
+    } else {
+      return firstError;
+    }
+  }
+
+  return firstError;
+}
+
+/**
+ * parse json with support of comments (end of line comments and multiline comments) and end element comma.
+ * @param data 
+ * @param reviver 
+ * @returns 
+ */
+export function parseJSON<T>(data: string, reviver: any = null) {
+  try {
+    // remove all comments
+    data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
+
+    // remove trailing commas
+    data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
+
+    //console.log( data );
+
+    const res = JSON.parse(data, reviver) as T;
+
+    return res;
+  }
+  catch (error) {
+    getGlobalLogger().error(`error parsing JSON`);
+  }
+}
+
+/**
+ * read json file from string
+ * 
+ * @param data 
+ * @param parser 
+ * @param validate 
+ * @param filename 
+ * @returns 
+ */
+export function readJSONfromString<T>(data: string, parser: any = null, validate = false, filename = ""): T {
+  // remove all comments
+  data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
+
+  // remove trailing commas
+  data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
+
+  if (validate) {
+    const validateRes = getJSONParseError(data);
+
+    if (validateRes) {
+      getGlobalLogger().error(`readJSON error ^r^W${validateRes.message}^^ file ^e${filename}^w@${validateRes.line}^^ (snippet ^w^K${validateRes.snippet}^^)`);
+      throw new Error(`error parsing json file ${filename}@${validateRes.line}: ${validateRes.message}`);
+      return null;
+    }
+  }
+
+  const res = JSON.parse(data, parser) as T;
+
+  return res;
+}
+
+/**
+ * read json from file
+ * 
+ * @param filename 
+ * @param parser 
+ * @param validate 
+ * @returns 
+ */
+export function readJSONfromFile<T>(filename: string, parser: any = null, validate = false): T {
+  const fs = require("fs");
+
+  let data = fs.readFileSync(filename).toString();
+
+  return readJSONfromString<T>(data, parser, validate, filename);
+}
+
+/**
+ * default function to read json (from file)
+ * 
+ * @param filename 
+ * @param parser 
+ * @param validate 
+ * @returns 
+ */
+export function readJSON<T>(filename: string, parser: any = null, validate = false): T {
+  return readJSONfromFile(filename, parser, validate);
+}

@@ -59,24 +59,7 @@ export class ChainNode {
         return AttestationRoundManager.getSourceHandlerConfig(chainConfiguration.name).numberOfConfirmations;
       },
 
-      windowStartTime: (roundId: number) => {
-        const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-        const queryWindowsInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
-          toSourceId(chainConfiguration.name),
-          roundId
-        ).queryWindowInSec;
-        return roundStartTime - queryWindowsInSec;
-      },
-
-      UBPCutoffTime: (roundId: number) => {
-        const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-        const UBPUnconfirmedWindowInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
-          toSourceId(chainConfiguration.name),
-          roundId
-        ).UBPUnconfirmedWindowInSec;
-        return roundStartTime - UBPUnconfirmedWindowInSec;
-      }
-
+      // Note: `windowStartTime` and `UBPCutoffTime` are not set here on purpose as they are passed by each verification request
     };
 
     this.indexedQueryManager = new IndexedQueryManager(options);
@@ -88,7 +71,7 @@ export class ChainNode {
 
   /**
    * the number of attestation in process or to be processed
-   */  
+   */
   getLoad(): number {
     return this.attestationsQueue.length + this.attestationProcessing.length + this.attestationsPriorityQueue.length();
   }
@@ -306,6 +289,7 @@ export class ChainNode {
   validate(attestation: Attestation): void {
     //this.chainManager.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
+    this.augmentCutoffTimes(attestation);
     // check if transaction can be added into processing
     if (this.canProcess()) {
       // eslint-disable-next-line
@@ -313,6 +297,46 @@ export class ChainNode {
     } else {
       this.queue(attestation);
     }
+  }
+
+  /**
+   * Auxillary function to calculate query window start time in no lower bound for block was given.
+   * The time is calculated relative to the `roundId`
+   * @param roundId 
+   * @returns 
+   */
+  private windowStartTime(roundId: number) {
+    const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
+    const queryWindowsInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
+      toSourceId(this.chainConfig.name),
+      roundId
+    ).queryWindowInSec;
+    return roundStartTime - queryWindowsInSec;
+  }
+
+  /**
+   * Auxillary function to calculate fork cut-off time.
+   * The time is calculated relative to the `roundId`
+   * @param roundId 
+   * @returns 
+   */
+  private UBPCutoffTime(roundId: number) {
+    const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
+    const UBPUnconfirmedWindowInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
+      toSourceId(this.chainConfig.name),
+      roundId
+    ).UBPUnconfirmedWindowInSec;
+    return roundStartTime - UBPUnconfirmedWindowInSec;
+  }
+
+  /**
+   * Adds minimum block timestamp (`windowStartTime`) and fork cut-off time for upper bound proof to the attestation, 
+   * both calculated relative to the `roundId`.
+   * @param attestation 
+   */
+  private augmentCutoffTimes(attestation: Attestation) {
+    attestation.windowStartTime = this.windowStartTime(attestation.roundId);
+    attestation.UBPCutoffTime = this.UBPCutoffTime(attestation.roundId)
   }
 
   /**
@@ -348,10 +372,10 @@ export class ChainNode {
 
       // check if there is any queued transaction to be processed
       while (this.attestationsQueue.length && this.canProcess()) {
-        const tx = this.attestationsQueue.shift();
+        const attestation = this.attestationsQueue.shift();
 
         // eslint-disable-next-line
-        this.process(tx!);
+        this.process(attestation!);
       }
     } catch (error) {
       logException(error, `ChainNode::startNext`);

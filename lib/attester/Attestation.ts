@@ -45,6 +45,11 @@ export class Attestation {
   onProcessed: EventProcessed | undefined = undefined;
   onValidateAttestation: EventValidateAttestation;
 
+  // Cut-off times set by attestation client
+  // Set when passed to the relevant ChainNode
+  windowStartTime: number = 0;
+  UBPCutoffTime: number = 0;
+
   constructor(round: AttestationRound, data: AttestationData, onValidateAttestation: EventValidateAttestation) {
     this.round = round;
     this.data = data;

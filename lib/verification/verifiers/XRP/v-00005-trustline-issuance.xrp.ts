@@ -8,6 +8,7 @@
 
 import {
   ARTrustlineIssuance,
+  AttestationRequestOptions,
   BN,
   DHTrustlineIssuance,
   hashTrustlineIssuance,
@@ -25,9 +26,8 @@ const web3 = new Web3();
 export async function verifyTrustlineIssuanceXRP(
   client: MCC.XRP,
   attestationRequest: string,
-  roundId: number,
-  indexer: IndexedQueryManager,
-  recheck = false
+  attestationRequestOptions: AttestationRequestOptions,
+  indexer: IndexedQueryManager
 ): Promise<Verification<ARTrustlineIssuance, DHTrustlineIssuance>> {
   const request = parseRequest(attestationRequest) as ARTrustlineIssuance;
 

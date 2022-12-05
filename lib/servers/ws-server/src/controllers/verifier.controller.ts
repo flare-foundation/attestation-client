@@ -2,7 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AttestationRequest } from '../../../../verification/attestation-types/attestation-types';
 import { ApiResponse, handleApiResponse } from '../../../common/src';
-import { XRPProcessorService } from '../services/xrp-processor';
+import { XRPProcessorService } from '../services/verifier-processors/xrp-processor.service';
 
 @ApiTags('Verifier')
 @Controller("query")

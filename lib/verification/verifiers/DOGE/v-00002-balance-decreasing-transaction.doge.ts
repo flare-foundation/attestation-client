@@ -8,6 +8,7 @@
 
 import {
   ARBalanceDecreasingTransaction,
+  AttestationRequestOptions,
   BN,
   DHBalanceDecreasingTransaction,
   hashBalanceDecreasingTransaction,
@@ -27,15 +28,14 @@ const web3 = new Web3();
 export async function verifyBalanceDecreasingTransactionDOGE(
   client: MCC.DOGE,
   attestationRequest: string,
-  roundId: number,
-  indexer: IndexedQueryManager,
-  recheck = false
+  attestationRequestOptions: AttestationRequestOptions,
+  indexer: IndexedQueryManager
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
   const request = parseRequest(attestationRequest) as ARBalanceDecreasingTransaction;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyBalanceDecreasingTransaction(DogeTransaction, request, roundId, recheck, indexer, client);
+  const result = await verifyBalanceDecreasingTransaction(DogeTransaction, request, attestationRequestOptions, indexer, client);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

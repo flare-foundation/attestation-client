@@ -8,10 +8,9 @@ import { genVerifier, verifierFile, verifierFolder, verifierFunctionName } from 
 
 function genAttestationCaseForSource(definition: AttestationTypeScheme, sourceId: number) {
   if (definition.supportedSources.find(x => x === sourceId) !== undefined) {
-    let sourceName = getSourceName(sourceId);
     const result = `
     case AttestationType.${definition.name}:
-      return ${verifierFunctionName(definition, sourceId)}(client, attestationRequest, roundId, indexer, recheck);`;
+      return ${verifierFunctionName(definition, sourceId)}(client, attestationRequest, attestationRequestOptions, indexer);`;
     return trimStartNewline(result);
   }
   return "";
@@ -25,9 +24,8 @@ function genVerifiersForSourceId(definitions: AttestationTypeScheme[], sourceId:
 export async function verify${sourceName}(
   client:  MCC.${sourceName}, 
   attestationRequest: string,
-  roundId: number,
-  indexer: IndexedQueryManager, 
-  recheck = false
+  attestationRequestOptions: AttestationRequestOptions,
+  indexer: IndexedQueryManager
 ): Promise<Verification<any, any>>{
   let {attestationType, sourceId} = getAttestationTypeAndSource(attestationRequest);
 
@@ -71,7 +69,7 @@ ${sourceCases}
 function genSourceCase(definition: AttestationTypeScheme, sourceId: number) {
   const result = `
 case SourceId.${getSourceName(sourceId)}:
-	return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestationRequest, roundId, indexer, recheck);`;
+	return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestationRequest, attestationRequestOptions, indexer);`;
   return trimStartNewline(result);
 }
 
@@ -99,7 +97,7 @@ import { MccClient, MCC, traceFunction } from "@flarenetwork/mcc"
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"
 import { SourceId } from "../sources/sources";
-import { Verification } from "../attestation-types/attestation-types"
+import { AttestationRequestOptions, Verification } from "../attestation-types/attestation-types";
       
 ${routerImports}
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager"
@@ -120,15 +118,25 @@ export class WrongSourceIdError extends Error {
 }
 
 export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
-	return traceFunction( _verifyAttestation , client, attestation.data.request, attestation.roundId, indexer, recheck );
+  return traceFunction(
+    _verifyAttestation,
+    client,
+    attestation.data.request,
+    {
+      roundId: attestation.roundId,
+      recheck,
+      windowStartTime: attestation.windowStartTime,
+      UBPCutoffTime: attestation.UBPCutoffTime          
+    },
+    indexer
+  );
 }
 
 export async function _verifyAttestation(
-  client: MccClient, 
+  client: MccClient,
   attestationRequest: string,
-  roundId: number,
-  indexer: IndexedQueryManager, 
-  recheck = false
+  attestationRequestOptions: AttestationRequestOptions,
+  indexer: IndexedQueryManager
 ): Promise<Verification<any, any>>{
 	let {attestationType, sourceId} = getAttestationTypeAndSource(attestationRequest);
 	switch(attestationType) {

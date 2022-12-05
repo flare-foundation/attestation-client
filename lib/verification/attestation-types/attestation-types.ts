@@ -101,7 +101,14 @@ export interface AttestationTypeScheme {
   dataHashDefinition: DataHashScheme[];
 }
 
-export interface AttestationRequest {
+export interface AttestationRequestOptions {
   roundId: number;
+  recheck?: boolean;
+  windowStartTime?: number;  // legacy
+  UBPCutoffTime?: number;    // legacy
+}
+
+export interface AttestationRequest {
   request: string;
+  options: AttestationRequestOptions;
 }

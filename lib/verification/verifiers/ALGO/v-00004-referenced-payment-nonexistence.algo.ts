@@ -8,6 +8,7 @@
 
 import {
   ARReferencedPaymentNonexistence,
+  AttestationRequestOptions,
   BN,
   DHReferencedPaymentNonexistence,
   hashReferencedPaymentNonexistence,
@@ -27,15 +28,14 @@ const web3 = new Web3();
 export async function verifyReferencedPaymentNonexistenceALGO(
   client: MCC.ALGO,
   attestationRequest: string,
-  roundId: number,
-  indexer: IndexedQueryManager,
-  recheck = false
+  attestationRequestOptions: AttestationRequestOptions,
+  indexer: IndexedQueryManager
 ): Promise<Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>> {
   const request = parseRequest(attestationRequest) as ARReferencedPaymentNonexistence;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyReferencedPaymentNonExistence(AlgoTransaction, request, roundId, recheck, indexer);
+  const result = await verifyReferencedPaymentNonExistence(AlgoTransaction, request, attestationRequestOptions, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

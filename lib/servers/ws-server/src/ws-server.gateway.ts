@@ -104,11 +104,11 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       return this.commandProcessor.mirrorResponse(data);
    }
 
-   @SubscribeMessage("supported")
-   handleSupportedMessage(
-   ) {
-      return this.commandProcessor.supportedAttestationTypes();
-   }
+   // @SubscribeMessage("supported")
+   // handleSupportedMessage(
+   // ) {
+   //    return this.commandProcessor.supportedAttestationTypes();
+   // }
 
 
 }

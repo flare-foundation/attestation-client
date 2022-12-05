@@ -1,6 +1,6 @@
 // // yarn test test/indexer/blockHeaderCollector.test.ts
 
-import { BtcBlock, BtcBlockHeader, ChainType, IBlockHeader, IBlockTip, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
+import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
@@ -11,6 +11,7 @@ import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
 import * as BTCBlockHeaderAlt from "../mockData/BTCBlockHeaderAlt.json";
 
+const sinon = require("sinon");
 const chai = require("chai");
 const expect = chai.expect;
 // const fs = require("fs");
@@ -101,11 +102,34 @@ describe(`Header Collector`, () => {
   it("should not readAndSaveBlocksHeaders", async function () {
     headerCollector.updateN(10);
     let j = "not jet failed";
+    const fake = sinon.fake();
     setRetryFailureCallback((string) => {
-      j = "failed";
-      throw string;
+      fake();
     });
-    await expect(headerCollector.readAndSaveBlocksHeaders(9, 12)).to.be.rejected;
-    expect(j).to.eq("failed");
+    await expect(headerCollector.readAndSaveBlocksHeaders(9, 12));
+    setRetryFailureCallback(undefined);
+    expect(fake.callCount).to.eq(1);
+    sinon.restore();
+  });
+
+  it("should runBlockHeaderCollectingRaw", function (done) {
+    const spy = sinon.spy(headerCollector.indexerToDB, "writeT");
+    setTimeout(done, 6000);
+    headerCollector.runBlockHeaderCollecting();
+    setTimeout(() => {
+      expect(spy.called).to.be.true, sinon.restore();
+    }, 2000);
+  });
+
+  it("should runBlockHeaderCollectingTips", function (done) {
+    const spy1 = sinon.spy(headerCollector.indexerToDB, "writeT");
+    const spy2 = sinon.spy(headerCollector, "saveHeadersOnNewTips");
+    setTimeout(done, 6000);
+    headerCollector.runBlockHeaderCollectingTips();
+    setTimeout(() => {
+      expect(spy1.called).to.be.true;
+      expect(!spy2.called).to.be.false;
+      sinon.restore();
+    }, 5000);
   });
 });

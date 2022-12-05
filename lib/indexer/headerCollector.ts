@@ -21,7 +21,7 @@ export class HeaderCollector {
   // private indexer: Indexer;
   private settings: IHeaderCollectorSettings;
   private indexerToClient: IndexerToClient;
-  private indexerToDB: IndexerToDB;
+  public indexerToDB: IndexerToDB;
   private logger: AttLogger;
   private N: number;
   private blockHeaderHash = new Set<string>();

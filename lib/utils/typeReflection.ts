@@ -1,6 +1,11 @@
 import { getOptionalKeys } from "@flarenetwork/mcc";
 import { getGlobalLogger } from "./logger";
 
+
+/**
+ * @param object 
+ * @returns returns `object` constructor name of object of type `object` and `typeof` for all the rest.
+ */
 function getType(object: any) {
   let type = typeof object;
 
@@ -11,6 +16,17 @@ function getType(object: any) {
   return type;
 }
 
+/**
+ * checks if `A` and `B` have unique members.
+ * 
+ * @param parent 
+ * @param A 
+ * @param B 
+ * @param notFound 
+ * @param optionalNotFound 
+ * @param checkType 
+ * @returns 
+ */
 function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, optionalNotFound: string, checkType: boolean): boolean {
   let valid = true;
 
@@ -77,7 +93,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
                 const arrayType = typeInfoA.getArrayType(keyA);
 
                 if (!arrayType) {
-                  getGlobalLogger().error(`'${parent}${keyA}' array item type is not provided`);
+                  getGlobalLogger().error(`   '${parent}${keyA}' array item type is not provided`);
                   continue;
                 }
 
@@ -96,7 +112,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
             }
           } else {
             valid = false;
-            getGlobalLogger().error2(`member "${parent}${keyA}": type ^Y${realTypeB}^^ is not assignable to ^Y${realTypeA}^^`);
+            getGlobalLogger().error2(`   member "${parent}${keyA}": type ^Y${realTypeB}^^ is not assignable to ^Y${realTypeA}^^`);
           }
         }
         break;
@@ -108,17 +124,17 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
         const isOptional = optionalA.find((x) => x == keyA);
 
         if (isOptional) {
-          getGlobalLogger().info(`${optionalNotFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
+          //getGlobalLogger().info(`${optionalNotFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
         } else {
           valid = false;
-          getGlobalLogger().error2(`${notFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
+          getGlobalLogger().error2(`   ${notFound} "${parent}${keyA}:${realTypeA}" (using default "${A[keyA]}")`);
         }
 
         // unify
         B[keyA] = A[keyA];
       } else {
         // todo: this should be warning
-        getGlobalLogger().warning(`${notFound} "${parent}${keyA}:${realTypeA}"`);
+        getGlobalLogger().warning(`   ${notFound} "${parent}${keyA}:${realTypeA}"`);
       }
     }
   }
@@ -126,6 +142,15 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
   return valid;
 }
 
+
+/**
+ * checks if object `A` has same members as object `B`.
+ * 
+ * @param A 
+ * @param B 
+ * @param parent 
+ * @returns 
+ */
 export function isEqualType(A: any, B: any, parent = ""): boolean {
   const testAB = isEqualTypeUni(parent, A, B, "missing propery", "property using default value", true);
   const testBA = isEqualTypeUni(parent, B, A, "unknown propery", "", false);

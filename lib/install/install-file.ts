@@ -1,4 +1,4 @@
-import { readJSON } from "../utils/config";
+import { readJSON } from "../utils/json";
 import { getGlobalLogger } from "../utils/logger";
 import { getCryptoSafeRandom } from "../utils/utils";
 

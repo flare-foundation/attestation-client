@@ -197,6 +197,10 @@ describe("BlockProcessors", () => {
     before(async function () {
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.DOGE, 3600, 10);
     });
+    after(function () {
+      blockProcessor.stop();
+      blockProcessor.destroy();
+    });
 
     it("Should initializeJobs", async function () {
       const block = TestBlockDOGE;

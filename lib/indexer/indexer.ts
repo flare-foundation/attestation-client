@@ -492,7 +492,7 @@ export class Indexer {
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
     if (!this.bottomBlockTime) {
-      await this.saveBottomState();
+      await this.indexerToDB.saveBottomState();
     }
 
     this.blockProcessorManager.clearProcessorsUpToBlockNumber(Np1);
@@ -502,7 +502,7 @@ export class Indexer {
     // table interlacing
     if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
-      await this.saveBottomState();
+      await this.indexerToDB.saveBottomState();
     }
 
     return true;
@@ -516,28 +516,28 @@ export class Indexer {
    * Saves the bottom block number and timestamp into the state table in the database.
    * The bottom block is the minimal block for confirmed transactions that are currently
    * stored in the interlacing transaction tables.
-   */
-  async saveBottomState() {
-    try {
-      const bottomBlockNumber = await this.indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
-      if (bottomBlockNumber) {
-        const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber, confirmed: true } });
+  //  */
+  // async saveBottomState() {
+  //   try {
+  //     const bottomBlockNumber = await this.indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
+  //     if (bottomBlockNumber) {
+  //       const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber, confirmed: true } });
 
-        this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
+  //       this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
 
-        this.logger.debug(`block bottom state ${bottomBlockNumber}`);
-        const bottomStates = [
-          getStateEntry(`Nbottom`, this.chainConfig.name, bottomBlockNumber),
-          getStateEntry(`NbottomTime`, this.chainConfig.name, this.bottomBlockTime),
-        ];
-        await this.dbService.manager.save(bottomStates);
-      } else {
-        this.logger.debug(`block bottom state is undefined`);
-      }
-    } catch (error) {
-      logException(error, `saving block bottom state`);
-    }
-  }
+  //       this.logger.debug(`block bottom state ${bottomBlockNumber}`);
+  //       const bottomStates = [
+  //         getStateEntry(`Nbottom`, this.chainConfig.name, bottomBlockNumber),
+  //         getStateEntry(`NbottomTime`, this.chainConfig.name, this.bottomBlockTime),
+  //       ];
+  //       await this.dbService.manager.save(bottomStates);
+  //     } else {
+  //       this.logger.debug(`block bottom state is undefined`);
+  //     }
+  //   } catch (error) {
+  //     logException(error, `saving block bottom state`);
+  //   }
+  // }
 
   /////////////////////////////////////////////////////////////
   // get respective DB block number
@@ -914,7 +914,7 @@ export class Indexer {
 
     // this.prepareTables();
 
-    await this.saveBottomState();
+    await this.indexerToDB.saveBottomState();
 
     const startBlockNumber = (await this.indexerToClient.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
 

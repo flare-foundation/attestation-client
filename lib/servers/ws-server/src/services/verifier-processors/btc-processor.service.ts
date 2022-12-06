@@ -15,7 +15,7 @@ export class BTCProcessorService {
 
   constructor(
     private config: WSServerConfigurationService,
-    @InjectEntityManager("attesterDatabase") private manager: EntityManager
+    @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
     this.client = new MCC.BTC(this.config.wsServerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
 

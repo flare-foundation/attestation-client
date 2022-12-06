@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from '../../common/src';
 import { VerifierController } from './controllers/verifier.controller';
-import { AuthGuard } from './guards/auth.guard';
 import { AlgoProcessorService } from './services/verifier-processors/algo-processor.service';
 import { BTCProcessorService } from './services/verifier-processors/btc-processor.service';
 import { DOGEProcessorService } from './services/verifier-processors/doge-processor.service';
@@ -12,6 +11,22 @@ import { WsCommandProcessorService } from './services/ws-command-processor.servi
 import { createTypeOrmOptions } from './utils/db-config';
 import { WsServerGateway } from './ws-server.gateway';
 
+function processorProvider() {
+  switch (process.env.VERIFIER_TYPE) {
+    case "btc":
+      return BTCProcessorService;
+    case "ltc":
+      return LTCProcessorService;
+    case "doge":
+      return DOGEProcessorService;
+    case "xrp":
+      return XRPProcessorService;
+    case "algo":
+      return AlgoProcessorService;
+    default:
+      throw new Error(`Wrong verifier type: '${process.env.VERIFIER_TYPE}'`)
+  }
+}
 @Module({
   imports: [
     CommonModule,
@@ -22,8 +37,10 @@ import { WsServerGateway } from './ws-server.gateway';
   ],
   controllers: [VerifierController],
   providers: [
-    WsServerGateway, AuthGuard, WsCommandProcessorService, 
-    XRPProcessorService, AlgoProcessorService, BTCProcessorService, LTCProcessorService, DOGEProcessorService
+    processorProvider(),
+    WsCommandProcessorService,
+    WsServerGateway,
+    WsCommandProcessorService
   ],
 })
 export class WsServerModule { }

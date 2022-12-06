@@ -1,24 +1,21 @@
 // Run tests with the following command lines:
 
-import { ChainType, MccClient } from "@flarenetwork/mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { assert } from "chai";
-import { DataSource, DataSourceOptions, EntityManager } from "typeorm";
+import { DataSource, DataSourceOptions } from "typeorm";
 import { DBBlockBase, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
 import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
 import { createTypeOrmOptions } from "../../lib/servers/ws-server/src/utils/db-config";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
+import { SourceId } from "../../lib/verification/sources/sources";
 import { generateTestIndexerDB } from "./utils/indexerTestDataGenerator";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
-const MINUTES = 60;
-const HISTORY_WINDOW = 5 * MINUTES;
 const NUMBER_OF_CONFIRMATIONS = 1;
 const BATCH_SIZE = 100;
 const TOP_UP_THRESHOLD = 0.25;
@@ -30,6 +27,7 @@ console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
 process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "xrp"
+process.env.IN_MEMORY_DB = "1";
 DotEnvExt();
 
 describe("Indexed query manager", () => {
@@ -37,7 +35,7 @@ describe("Indexed query manager", () => {
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
-    let dbOptions = await createTypeOrmOptions(":memory:", "test");
+    let dbOptions = await createTypeOrmOptions("indexerDatabase", "test");
     let dataSource = new DataSource(dbOptions as DataSourceOptions);
     await dataSource.initialize();
     await generateTestIndexerDB(

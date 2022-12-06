@@ -15,7 +15,7 @@ export class XRPProcessorService {
 
   constructor(
     private config: WSServerConfigurationService,
-    @InjectEntityManager("attesterDatabase") private manager: EntityManager
+    @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
     this.client = new MCC.XRP(this.config.wsServerCredentials.chainConfiguration.mccCreate as XrpMccCreate);
 

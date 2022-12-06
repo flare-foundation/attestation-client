@@ -44,9 +44,6 @@ export class IndexedQueryManager {
   client: MccClient;
   _entityManager: EntityManager;
 
-  // debug helper
-  debugLastConfirmedBlock: number | undefined = undefined;
-
   //Two transaction table entities `transaction0` and `transaction1`
   transactionTable = [undefined, undefined];
 
@@ -106,14 +103,11 @@ export class IndexedQueryManager {
    * @returns 
    */
   public async getLastConfirmedBlockNumber(): Promise<number> {
-    if (this.debugLastConfirmedBlock === undefined || this.debugLastConfirmedBlock === null) {
-      const res = await this.entityManager.findOne(DBState, { where: { name: this.getChainN() } });
-      if (res === undefined || res === null) {
-        return 0;
-      }
-      return res.valueNumber;
+    const res = await this.entityManager.findOne(DBState, { where: { name: this.getChainN() } });
+    if (res === undefined || res === null) {
+      return 0;
     }
-    return this.debugLastConfirmedBlock;
+    return res.valueNumber;
   }
 
   /**
@@ -121,19 +115,13 @@ export class IndexedQueryManager {
    * @returns 
    */
   public async getLatestBlockTimestamp(): Promise<BlockHeightSample | null> {
-    if (this.debugLastConfirmedBlock === undefined || this.debugLastConfirmedBlock === null) {
-      const res = await this.entityManager.findOne(DBState, { where: { name: this.getChainT() } });
-      if (res === undefined || res === null) {
-        return null;
-      }
-      return {
-        height: res.valueNumber,
-        timestamp: res.timestamp,
-      };
+    const res = await this.entityManager.findOne(DBState, { where: { name: this.getChainT() } });
+    if (res === undefined || res === null) {
+      return null;
     }
     return {
-      height: this.debugLastConfirmedBlock + this.settings.numberOfConfirmations(),
-      timestamp: getUnixEpochTimestamp(),
+      height: res.valueNumber,
+      timestamp: res.timestamp,
     };
   }
 
@@ -155,25 +143,6 @@ export class IndexedQueryManager {
     return true;
   }
 
-
-  /**
-   * Allows for artificial setup of the last known confirmed block. For debuging use.
-   * @param blockNumber 
-   * @returns 
-   */
-  public async setDebugLastConfirmedBlock(blockNumber: number | undefined): Promise<number | undefined> {
-    if (blockNumber == null) {
-      this.debugLastConfirmedBlock = undefined;
-    } else if (blockNumber >= 0) {
-      this.debugLastConfirmedBlock = blockNumber;
-    } else {
-      this.debugLastConfirmedBlock = undefined;
-      const lastBlockNumber = await this.getLastConfirmedBlockNumber();
-      this.debugLastConfirmedBlock = lastBlockNumber - blockNumber;
-    }
-    return this.debugLastConfirmedBlock;
-  }
-
   ////////////////////////////////////////////////////////////
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////
@@ -189,14 +158,14 @@ export class IndexedQueryManager {
 
     let startTimestamp = params.windowStartTime;
     if (!startTimestamp && startTimestamp !== 0) {
-      if(this.settings.windowStartTime) {
+      if (this.settings.windowStartTime) {
         startTimestamp = this.settings.windowStartTime(params.roundId);
       } else {
         throw new Error("IndexedQueryManager: windowStartTime not configured");
-      }      
-    } 
-      
-    
+      }
+    }
+
+
 
     for (const table of this.transactionTable) {
       let query = this.entityManager
@@ -249,11 +218,11 @@ export class IndexedQueryManager {
 
     let startTimestamp = params.windowStartTime;
     if (!startTimestamp && startTimestamp !== 0) {
-      if(this.settings.windowStartTime) {
+      if (this.settings.windowStartTime) {
         startTimestamp = this.settings.windowStartTime(params.roundId);
       } else {
         throw new Error("IndexedQueryManager: windowStartTime not configured");
-      }      
+      }
     }
 
     let query = this.entityManager
@@ -279,7 +248,9 @@ export class IndexedQueryManager {
       lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
       const upperBlockResult = await this.queryBlock({
         endBlock: params.blockNumber,
+        // Depending on what parameter was provided, one of them will be non-empty
         blockNumber: params.blockNumber,
+        hash: params.hash,
         roundId: params.roundId,
         confirmed: true,
         windowStartTime: params.windowStartTime,
@@ -345,6 +316,7 @@ export class IndexedQueryManager {
       if (!recheck) {
         return { status: "RECHECK" };
       }
+      // gap of more than numberOfConfirmations - indexer delay
       return { status: "SYSTEM_FAILURE" };
     }
     return {
@@ -364,11 +336,11 @@ export class IndexedQueryManager {
     // lower boundary timestamp
     let startTimestamp = windowStartTime;
     if (!startTimestamp && startTimestamp !== 0) {
-      if(this.settings.windowStartTime) {
+      if (this.settings.windowStartTime) {
         startTimestamp = this.settings.windowStartTime(roundId);
       } else {
         throw new Error("IndexedQueryManager: windowStartTime not configured");
-      }      
+      }
     }
 
     return await this.hasIndexerConfirmedBlockStrictlyBeforeTime(startTimestamp);

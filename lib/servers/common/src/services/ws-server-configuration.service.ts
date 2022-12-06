@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { readConfig, readCredentials } from '../../../../utils/config';
-import { EpochSettings } from '../../../../utils/EpochSettings';
 import { WSServerConfiguration, WSServerCredentials } from '../config-models';
 
 @Injectable()

@@ -1,12 +1,15 @@
-import { ChainType, unPrefix0x } from "@flarenetwork/mcc";
+import { ChainType, prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
 import { DBTransactionBase } from "../../../lib/entity/indexer/dbTransaction";
 import { toHex } from "../../../lib/verification/attestation-types/attestation-types-helpers";
 import fs from "fs";
 import Web3 from "web3";
 import { DBState } from "../../../lib/entity/indexer/dbState";
-import { getSourceName } from "../../../lib/verification/sources/sources";
+import { getSourceName, SourceId } from "../../../lib/verification/sources/sources";
 import { getUnixEpochTimestamp } from "../../../lib/utils/utils";
+import { DBBlockBase } from "../../../lib/entity/indexer/dbBlock";
+import { ARPayment } from "../../../lib/verification/generated/attestation-request-types";
+import { AttestationType } from "../../../lib/verification/generated/attestation-types-enum";
 
 const TEST_DATA_PATH = 'test/indexed-query-manager/test-data'
 
@@ -23,14 +26,16 @@ const XRP_ACCOUNT_SET = fs.readFileSync(`${TEST_DATA_PATH}/xrp-account-set.json`
 const XRP_OFFER_CREATE = fs.readFileSync(`${TEST_DATA_PATH}/xrp-offer-create.json`).toString();
 const XRP_PAYMENT_REFERENCE = fs.readFileSync(`${TEST_DATA_PATH}/xrp-payment-reference.json`).toString();
 
+export const ZERO_PAYMENT_REFERENCE = "0000000000000000000000000000000000000000000000000000000000000000";
+
 export function testBlockHash(blockNumber: number): string {
-   return Web3.utils.soliditySha3(toHex(blockNumber, 32));
+   return unPrefix0x(Web3.utils.soliditySha3(toHex(blockNumber, 32)));
 }
 
 export function testTransactionHash(transactionIndex: number, blockNumber: number) {
    let txHash = Web3.utils.soliditySha3(toHex(transactionIndex, 32));
-   let blockHash = unPrefix0x(testBlockHash(blockNumber));
-   return Web3.utils.soliditySha3(txHash + blockHash);
+   let blockHash = testBlockHash(blockNumber);
+   return unPrefix0x(Web3.utils.soliditySha3(txHash + blockHash));
 }
 
 function addBtcTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
@@ -73,7 +78,7 @@ function addXrpTransactionResponse(transaction: DBTransactionBase, transactionIn
          break;
       case 3:
          txStr = XRP_PAYMENT_REFERENCE
-         paymentReference = unPrefix0x(toHex(index, 32));
+         paymentReference = unPrefix0x(toHex(parseInt(transaction.transactionId.slice(-10), 16), 32))
          break;
       default:
          throw new Error("Impossible option");
@@ -151,6 +156,9 @@ export async function generateTestIndexerDB(
       dbBlock.previousBlockHash = testBlockHash(blockNumber - 1);
       await manager.save(dbBlock);
       await manager.save(transactions);
+      // if(blockNumber === endBlock) {
+      //    console.log(timestamp);
+      // }
    }
    let stateEntries: DBState[] = [];
    let prefixName = getSourceName(chainType).toUpperCase();
@@ -159,9 +167,10 @@ export async function generateTestIndexerDB(
    dbState.valueNumber = lastConfirmedBlock;
    dbState.timestamp = lastSampleTimestamp ? lastSampleTimestamp : getUnixEpochTimestamp();
    stateEntries.push(dbState);
-   
+
    dbState = new DBState();
-   dbState.name = `${prefixName}_T`;
+   // dbState.name = `${prefixName}_T`;
+   dbState.name = getChainT(chainType);
    dbState.valueNumber = endBlock;
    dbState.timestamp = lastSampleTimestamp ? lastSampleTimestamp : getUnixEpochTimestamp();
    stateEntries.push(dbState);
@@ -182,7 +191,68 @@ export async function generateTestIndexerDB(
 
 }
 
+function getChainT(chainType: ChainType) {
+   return `${getSourceName(chainType)}_T`;
+}
 
+export async function snapshotTimestampT(manager: EntityManager, chainType: ChainType) {
+   const res = await manager.findOne(DBState, { where: { name: getChainT(chainType) } });
+   if (!res) {
+      throw new Error(`State '${getChainT(chainType)}' does not exist`);
+   }
+   return res.valueNumber;
+}
+
+export async function changeTimestampT(manager: EntityManager, chainType: ChainType, newTimestamp: number) {
+   const res = await manager.findOne(DBState, { where: { name: getChainT(chainType) } });
+   if (!res) {
+      throw new Error(`State '${getChainT(chainType)}' does not exist`);
+   }
+   res.timestamp = newTimestamp;
+   await manager.save(res);
+}
+
+export async function selectedReferencedTx(
+   entityManager: EntityManager,
+   dbTxClass: any,
+   blockNumber: number
+): Promise<DBTransactionBase> {
+   let query2 = entityManager
+      .createQueryBuilder(dbTxClass, "transaction")
+      .where("transaction.blockNumber = :blockNumber", { blockNumber })
+      .andWhere("transaction.paymentReference != :paymentReference", { paymentReference: ZERO_PAYMENT_REFERENCE })
+      .orderBy("transaction.transactionId", "ASC");
+   return await query2.getOne() as any as DBTransactionBase;
+}
+
+export async function selectBlock(
+   entityManager: EntityManager,
+   blockClass: any,
+   blockNumber: number
+): Promise<DBBlockBase> {
+   let query = entityManager
+      .createQueryBuilder(blockClass, "block")
+      .where("block.blockNumber = :blockNumber", { blockNumber });
+   return await query.getOne() as any as DBBlockBase;
+}
+
+export async function testPaymentRequest(
+   entityManager: EntityManager,
+   dbTransaction: DBTransactionBase,
+   blockClass: any,
+   numberOfConfirmations: number,
+   chainType: ChainType
+) {
+   let block = await selectBlock(entityManager, blockClass, dbTransaction.blockNumber + numberOfConfirmations);
+   return {
+      attestationType: AttestationType.Payment,
+      sourceId: chainType as any as SourceId,
+      upperBoundProof: prefix0x(block.blockHash),
+      id: prefix0x(dbTransaction.transactionId),
+      inUtxo: 0,
+      utxo: 0
+   } as ARPayment;
+}
 
 // name, valueString, valueNumber,timestamp, comment
 // 'XRP_N', '', '33239817', '1669640060', ''

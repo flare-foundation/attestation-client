@@ -138,7 +138,7 @@ describe("Cached MCC Client test", function () {
    });
 
    // Exits application, so it is hard to test
-   it("Should terminate application after several retries", async function () {
+   it.skip("Should terminate application after several retries", async function () {
       await testWithoutLoggingTracingAndApplicationTermination(async () => {
          const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
          try {

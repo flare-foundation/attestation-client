@@ -15,7 +15,7 @@ export class DOGEProcessorService {
 
   constructor(
     private config: WSServerConfigurationService,
-    @InjectEntityManager("attesterDatabase") private manager: EntityManager
+    @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
     this.client = new MCC.DOGE(this.config.wsServerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
 

@@ -1,29 +1,23 @@
-// Run tests with the following command lines:
-// Make sure that you are connected to a synced database and indexers are running
-//
-// SOURCE_ID=XRP DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
-// SOURCE_ID=BTC DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
-// SOURCE_ID=LTC DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
-// SOURCE_ID=DOGE DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
-// SOURCE_ID=ALGO DOTENV_INCLUDE=".indexer.remote.dev.read.env" yarn hardhat test test/IndexedQueryManager.test.ts
 
-import { ChainType, MccClient } from "@flarenetwork/mcc";
+import { ChainType, unPrefix0x } from "@flarenetwork/mcc";
 import { assert } from "chai";
-import { DataSource, DataSourceOptions, EntityManager } from "typeorm";
+import { DataSource, DataSourceOptions } from "typeorm";
 import { DBBlockBase, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
 import { createTypeOrmOptions } from "../../lib/servers/ws-server/src/utils/db-config";
-import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
-import { generateTestIndexerDB } from "./utils/indexerTestDataGenerator";
+import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { SourceId } from "../../lib/verification/sources/sources";
+import { changeTimestampT, generateTestIndexerDB, selectBlock, selectedReferencedTx, snapshotTimestampT, ZERO_PAYMENT_REFERENCE } from "./utils/indexerTestDataGenerator";
 
-const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
+// XRP
+const SOURCE_ID = SourceId.XRP;
+// To setup the correct entities in the database
+process.env.VERIFIER_TYPE = "xrp"
+process.env.IN_MEMORY_DB = "1";
+
 const NUMBER_OF_CONFIRMATIONS = 1;
 const FIRST_BLOCK = 100;
 const LAST_BLOCK = 203;
@@ -32,32 +26,23 @@ const CHAIN_TYPE = ChainType.XRP;
 const DB_BLOCK_TABLE = DBBlockXRP;
 const DB_TX_TABLE = DBTransactionXRP0;
 const BLOCK_CHOICE = 150;
-const ZERO_PAYMENT_REFERENCE = "0000000000000000000000000000000000000000000000000000000000000000";
 const TXS_IN_BLOCK = 10;
 
 
-console.warn(`This test should run while ${getSourceName(SOURCE_ID)} indexer is running`);
-// Overriding .env variables for this particular test only
-console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
-process.env.DOTENV = "DEV";
-process.env.NODE_ENV = "development";
-process.env.VERIFIER_TYPE = "xrp"
-DotEnvExt();
 
 describe("Indexed query manager", () => {
   let indexedQueryManager: IndexedQueryManager;
-  let client: MccClient;
-  let indexerConfiguration: IndexerConfiguration;
-  let chainName: string;
   let startTime = 0;
   let selectedBlock: DBBlockBase;
   let selectedReferencedTransaction: DBTransactionBase;
+  let lastTimestamp: number = 0;
+  let dataSource: DataSource;
 
   before(async () => {
-    let dbOptions = await createTypeOrmOptions(":memory:", "test");
-    let dataSource = new DataSource(dbOptions as DataSourceOptions);
+    let dbOptions = await createTypeOrmOptions("indexerDatabase", "test");
+    dataSource = new DataSource(dbOptions as DataSourceOptions);
     await dataSource.initialize();
-    let now = getUnixEpochTimestamp();
+    lastTimestamp = getUnixEpochTimestamp();
     await generateTestIndexerDB(
       CHAIN_TYPE,
       dataSource.manager,
@@ -65,11 +50,12 @@ describe("Indexed query manager", () => {
       DB_TX_TABLE,
       FIRST_BLOCK,
       LAST_BLOCK,
-      now,
+      lastTimestamp,
       LAST_CONFIRMED_BLOCK,
-      TXS_IN_BLOCK
+      TXS_IN_BLOCK,
+      lastTimestamp
     );
-    startTime = now - (LAST_BLOCK - FIRST_BLOCK);
+    startTime = lastTimestamp - (LAST_BLOCK - FIRST_BLOCK);
 
     const options: IndexedQueryManagerOptions = {
       entityManager: dataSource.manager,
@@ -78,22 +64,33 @@ describe("Indexed query manager", () => {
       maxValidIndexerDelaySec: 10,
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
-    let query = indexedQueryManager.entityManager
-      .createQueryBuilder(DB_BLOCK_TABLE, "block")
-      .where("block.blockNumber = :blockNumber", { blockNumber: BLOCK_CHOICE });
-    selectedBlock = await query.getOne();
-    let query2 = indexedQueryManager.entityManager
-      .createQueryBuilder(DB_TX_TABLE, "transaction")
-      .where("transaction.blockNumber = :blockNumber", { blockNumber: BLOCK_CHOICE })
-      .andWhere("transaction.paymentReference != :paymentReference", { paymentReference: ZERO_PAYMENT_REFERENCE });
-    selectedReferencedTransaction = await query2.getOne();
+
+    selectedBlock = await selectBlock(dataSource.manager, DB_BLOCK_TABLE, BLOCK_CHOICE);
+    selectedReferencedTransaction = await selectedReferencedTx(dataSource.manager, DB_TX_TABLE, BLOCK_CHOICE)
+  });
+
+  it("Should referenced transaction have proper reference", async () => {
+    assert(selectedReferencedTransaction.paymentReference?.length === 64)
+    assert(selectedReferencedTransaction.paymentReference !== ZERO_PAYMENT_REFERENCE);
   });
 
   it("Should get last confirmed block number", async () => {
     const lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
-    assert(lastConfirmedBlock > 0);
+    assert(lastConfirmedBlock === LAST_CONFIRMED_BLOCK);
     // console.log(`Last confirmed block ${lastConfirmedBlock}`);
   });
+
+  it("Should get latest block timestamp", async () => {
+    const response = await indexedQueryManager.getLatestBlockTimestamp();
+    assert(response.timestamp === lastTimestamp);
+    assert(response.height === LAST_BLOCK);
+  });
+
+  it("Should indexer be up to date", async () => {
+    const response = await indexedQueryManager.isIndexerUpToDate();
+    assert(response);
+  });
+
 
   it("Should get the correct block greater or equal to timestamp", async () => {
     const timestamp = selectedBlock.timestamp - 20;
@@ -156,8 +153,8 @@ describe("Indexed query manager", () => {
     const tmpTransactions = tmpTransactionsQueryResult.result;
     assert(tmpTransactions.length === 1 && tmpTransactions[0].transactionId === selectedReferencedTransaction.transactionId);
   });
-
-  it("Should query transactions by payment reference", async () => {
+  
+  it("Should query transactions by payment reference and return boundary blocks", async () => {
     const lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
     if (!selectedReferencedTransaction) {
       console.log("Probably too little transactions. Run indexer");
@@ -165,8 +162,9 @@ describe("Indexed query manager", () => {
     const tmpTransactionsQueryResult = await indexedQueryManager.queryTransactions({
       roundId: 0,
       endBlock: lastConfirmedBlock,
-      transactionId: selectedReferencedTransaction.transactionId,
-      windowStartTime: startTime
+      paymentReference: selectedReferencedTransaction.paymentReference,
+      windowStartTime: startTime + 10,
+      returnQueryBoundaryBlocks: true
     });
     assert(tmpTransactionsQueryResult.result.length > 0);
     let found = false;
@@ -176,20 +174,11 @@ describe("Indexed query manager", () => {
       }
     }
     assert(found);
+    assert(tmpTransactionsQueryResult.lowerQueryWindowBlock?.blockNumber === 110, "Lower bound does not match");
+    assert(tmpTransactionsQueryResult.upperQueryWindowBlock?.blockNumber === 200, "Upper bound does not match");
   });
 
-  // it("Should be able to set last debug confirmed block", async () => {
-  //   const offset = 5;
-  //   indexedQueryManager.setDebugLastConfirmedBlock(undefined);
-  //   const lastConfirmedBlockNumber = await indexedQueryManager.getLastConfirmedBlockNumber();
-  //   indexedQueryManager.setDebugLastConfirmedBlock(lastConfirmedBlockNumber - offset);
-  //   let newLastConfirmedBlockNumber = await indexedQueryManager.getLastConfirmedBlockNumber();
-  //   assert(newLastConfirmedBlockNumber === lastConfirmedBlockNumber - offset);
-  //   indexedQueryManager.setDebugLastConfirmedBlock(undefined);
-  //   newLastConfirmedBlockNumber = await indexedQueryManager.getLastConfirmedBlockNumber();
-  //   assert(newLastConfirmedBlockNumber >= lastConfirmedBlockNumber);
-  // });
-
+  
   it("Should confirmed block queries respect start time", async () => {
     let blockQueryResult = await indexedQueryManager.queryBlock({
       roundId: 1,
@@ -205,6 +194,34 @@ describe("Indexed query manager", () => {
       windowStartTime: blockQueryResult.result.timestamp + 1
     });
     assert(!blockQueryResult.result, "Block should not be returned");
+  });
+
+  it("Should query confirmed block by hash and return boundaries", async () => {
+    let blockQueryResult = await indexedQueryManager.queryBlock({
+      roundId: 1,
+      hash: selectedBlock.blockHash,
+      confirmed: true,
+      windowStartTime: startTime + 10,
+    });
+    assert(blockQueryResult.result.blockHash === selectedBlock.blockHash, "Wrong block found");
+    assert(!blockQueryResult.lowerQueryWindowBlock, "Lower bound should not be present");
+    assert(!blockQueryResult.upperQueryWindowBlock, "Upper bound should not be present");
+    blockQueryResult = await indexedQueryManager.queryBlock({
+      roundId: 1,
+      hash: selectedBlock.blockHash,
+      confirmed: true,
+      windowStartTime: startTime + 10,
+      returnQueryBoundaryBlocks: true
+    });
+    assert(blockQueryResult.result.blockHash === selectedBlock.blockHash, "Wrong block found");
+    assert(blockQueryResult.lowerQueryWindowBlock?.blockNumber === 110, "Lower bound does not match");
+    assert(blockQueryResult.upperQueryWindowBlock?.blockNumber === selectedBlock.blockNumber, "Upper bound does not match");
+  });
+
+
+  it("Should return block by hash", async () => {
+    let result = await indexedQueryManager.getBlockByHash(selectedBlock.blockHash);
+    assert(result.blockNumber === selectedBlock.blockNumber, "Wrong block found")
   });
 
   it("Should confirmed transactions queries respect start time and endBlock number", async () => {
@@ -236,4 +253,97 @@ describe("Indexed query manager", () => {
     });
     assert(transactionsQueryResult.result.length === 0, "Does not respect endBlock");
   });
+
+  it("Should succeed in getting a confirmed block", async () => {
+    const confirmedBlockQueryResult = await indexedQueryManager.getConfirmedBlock({
+      upperBoundProof: selectedBlock.blockHash,
+      roundId: 1,
+      type: "FIRST_CHECK",    
+      windowStartTime: startTime + 1,
+      UBPCutoffTime: startTime + 1,
+      returnQueryBoundaryBlocks: true,
+    });
+    assert(confirmedBlockQueryResult.status === 'OK', "Wrong status");
+    assert(confirmedBlockQueryResult.block.blockHash === unPrefix0x(selectedBlock.blockHash));
+    assert(confirmedBlockQueryResult.lowerBoundaryBlock?.blockNumber === 101);
+    assert(confirmedBlockQueryResult.upperBoundaryBlock?.blockNumber === selectedBlock.blockNumber)    
+  });
+
+  it("Should fail getting unconfirmed block", async () => {
+    let selectedBlock2 = await selectBlock(indexedQueryManager.entityManager, DB_BLOCK_TABLE, LAST_BLOCK);
+    let confirmedBlockQueryResult = await indexedQueryManager.getConfirmedBlock({
+      upperBoundProof: selectedBlock2.blockHash,
+      roundId: 1,
+      type: "FIRST_CHECK",    
+      windowStartTime: startTime + 1,
+      UBPCutoffTime: startTime + 1,
+    });
+    assert(confirmedBlockQueryResult.status === "RECHECK");
+    confirmedBlockQueryResult = await indexedQueryManager.getConfirmedBlock({
+      upperBoundProof: selectedBlock2.blockHash,
+      roundId: 1,
+      type: "RECHECK",    
+      windowStartTime: startTime + 1,
+      UBPCutoffTime: startTime + 1,
+    });
+    // gap is bigger then number of confirmations
+    assert(confirmedBlockQueryResult.status === "SYSTEM_FAILURE");
+  });
+
+  it("Should fail to check upper boundary", async () => {
+    let resp = await indexedQueryManager.getConfirmedBlock({
+      upperBoundProof: toHex(1, 32),
+      roundId: 1,
+      type: "FIRST_CHECK",    
+      windowStartTime: startTime + 1,
+      UBPCutoffTime: startTime + 1,
+    });
+    assert(resp.status === "RECHECK");
+    resp = await indexedQueryManager.getConfirmedBlock({
+      upperBoundProof: toHex(1, 32),
+      roundId: 1,
+      type: "RECHECK",    
+      windowStartTime: startTime + 1,
+      UBPCutoffTime: startTime + 1,
+    });
+    assert(resp.status === "NO_BOUNDARY");
+    let previousTimestamp = await snapshotTimestampT(dataSource.manager, CHAIN_TYPE);
+    await changeTimestampT(dataSource.manager, CHAIN_TYPE, previousTimestamp + 20);
+    resp = await indexedQueryManager.getConfirmedBlock({
+      upperBoundProof: toHex(1, 32),
+      roundId: 1,
+      type: "RECHECK",    
+      windowStartTime: startTime + 1,
+      UBPCutoffTime: startTime + 1,
+    });
+    assert(resp.status === "SYSTEM_FAILURE");
+    await changeTimestampT(dataSource.manager, CHAIN_TYPE, previousTimestamp);
+  });
+
+  it("Should get referenced transactions", async () => {
+    let selectedBlock = await selectBlock(dataSource.manager, DB_BLOCK_TABLE, LAST_CONFIRMED_BLOCK - 10);
+    let upperBoundBlock = await selectBlock(dataSource.manager, DB_BLOCK_TABLE, LAST_CONFIRMED_BLOCK - 5);
+
+    const resp = await indexedQueryManager.getReferencedTransactions({
+      deadlineBlockNumber: selectedBlock.blockNumber + 1,
+      deadlineBlockTimestamp: selectedBlock.timestamp + 2,
+      paymentReference: selectedReferencedTransaction.paymentReference,
+      upperBoundProof: upperBoundBlock.blockHash,
+      roundId: 1,
+      type: "FIRST_CHECK",
+      windowStartTime: startTime + 1,
+      UBPCutoffTime: startTime + 1,
+    });
+    assert(resp.status === 'OK');
+    assert(resp.transactions.length === 1);
+    assert(resp.transactions[0].transactionId === selectedReferencedTransaction.transactionId);
+    assert(resp.lowerBoundaryBlock.blockNumber === FIRST_BLOCK + 1);
+    assert(resp.firstOverflowBlock.blockNumber === LAST_CONFIRMED_BLOCK - 10 + 3);
+    assert(resp.firstOverflowBlock.blockNumber > selectedBlock.blockNumber + 1);
+    assert(resp.firstOverflowBlock.timestamp > selectedBlock.timestamp + 2);
+  });
 });
+
+
+
+

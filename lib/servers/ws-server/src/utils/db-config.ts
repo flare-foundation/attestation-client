@@ -3,7 +3,6 @@ import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockX
 import { DBState } from "../../../../entity/indexer/dbState";
 import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from "../../../../entity/indexer/dbTransaction";
 import { readCredentials } from "../../../../utils/config";
-import { DatabaseConnectOptions } from "../../../../utils/databaseService";
 import { getGlobalLogger } from "../../../../utils/logger";
 import { WSServerCredentials } from "../../../common/src";
 
@@ -33,8 +32,9 @@ export async function createTypeOrmOptions(configKey: string, loggerLabel: strin
          throw new Error(`Wrong verifier type '${verifierType}'`)
    }
 
-   if(configKey === ':memory:') {
+   if(process.env.IN_MEMORY_DB) {
       return {
+         name: configKey,
          type: 'better-sqlite3',
          database: ':memory:',
          dropSchema: true,
@@ -46,8 +46,7 @@ export async function createTypeOrmOptions(configKey: string, loggerLabel: strin
    }
 
    // MySQL database, get credentials
-   const allCredentials = readCredentials(new WSServerCredentials(), "backend")[configKey];
-   const credentials = allCredentials.indexerDatabase as DatabaseConnectOptions;
+   const credentials = readCredentials(new WSServerCredentials(), "backend")[configKey];
    let databaseName = credentials.database;
    let logger = getGlobalLogger(loggerLabel);
    logger.info(

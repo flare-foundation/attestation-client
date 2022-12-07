@@ -8,7 +8,7 @@ import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { SourceId } from "../verification/sources/sources";
-import { AttestationChooseData, AttestationData } from "./AttestationData";
+import { AttestationData, AttestationSubmit } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
@@ -132,16 +132,16 @@ export class AttesterClient {
     try {
       // handle Choose data events 
 
-      if (event.event === "AttestationChooseBytes") {
-        const attestationChoose = new AttestationChooseData(event);
+      if (event.event === "AttestationSubmit") {
+        const attestationSubmitEvent = new AttestationSubmit(event);
 
-        this.logger.info(`Choose data ${attestationChoose.data}`);
+        this.logger.info(`Choose data ${attestationSubmitEvent.data}`);
 
         // TODO save events in Attestation Round
       }
       
     } catch (error) {
-      logException(error, `processEvent(AttestationChooseBytes)`);
+      logException(error, `processEvent(AttestationSubmit)`);
     }
 
     try {

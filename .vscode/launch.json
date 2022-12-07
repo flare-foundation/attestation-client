@@ -562,7 +562,7 @@
             },
             "runtimeArgs": [
                 "test",
-                "test/choose-combinators/combinators.test.ts"
+                "test/choose-subsets/combinators.test.ts"
             ]
         },
 

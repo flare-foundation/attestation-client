@@ -44,11 +44,14 @@ export class AttestationData {
 /**
  * Choose Round data event emitted by attestation providers when they coos which requests can be attested to
  */
- export class AttestationChooseData {
+export class AttestationSubmit {
   // event parameters
   sender: string;
-  roundId: BN;
-  data: string
+  bufferNumber: BN;
+  commitHash: string;
+  merkleRoot: string;
+  randomNumber: string;
+  data: string;
 
   // processed data (bytes)
 
@@ -56,8 +59,11 @@ export class AttestationData {
   constructor(event?: any) {
     if (!event) return;
 
-    this.roundId = toBN(event.returnValues.roundId);
+    this.bufferNumber = toBN(event.returnValues.bufferNumber);
     this.sender = event.returnValues.sender;
     this.data = event.returnValues.data;
+    this.commitHash = event.returnValues.commitHash;
+    this.merkleRoot = event.returnValues.merkleRoot;
+    this.randomNumber = event.returnValues.randomNumber;
   }
 }

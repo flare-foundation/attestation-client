@@ -126,4 +126,10 @@ describe("BlockProcessorManager", function () {
     blockProcessorManager.clearProcessorsUpToBlockNumber(100000000);
     expect(blockProcessorManager.blockProcessors.length).to.eq(0);
   });
+
+  it("should onSyncCompleted", function () {
+    expect(blockProcessorManager.blockNumbersInProcessing.size).to.eq(1);
+    blockProcessorManager.onSyncCompleted();
+    expect(blockProcessorManager.blockNumbersInProcessing.size).to.eq(0);
+  });
 });

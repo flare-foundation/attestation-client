@@ -16,7 +16,7 @@ const BtcMccConnection = {
 const client = new MCC.BTC(BtcMccConnection);
 
 describe("Indexer to client", function () {
-  let inToCl = new IndexerToClient(client);
+  let inToCl = new IndexerToClient(client, 10000, 3, 100);
 
   it("Should get Block", async function () {
     let res = await inToCl.getBlockFromClient("something", 763418);

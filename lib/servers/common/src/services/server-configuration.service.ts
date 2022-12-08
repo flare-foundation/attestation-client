@@ -12,8 +12,8 @@ export class ServerConfigurationService {
    epochSettings: EpochSettings;
  
    constructor() {
-     this.serverCredentials = readCredentials(new ServerCredentials(), "backend");
-     this.serverConfig = readConfig(new ServerConfiguration(), "backend");
+     this.serverCredentials = readCredentials(new ServerCredentials(), process.env.VERIFIER_TYPE ?? "backend");
+     this.serverConfig = readConfig(new ServerConfiguration(), process.env.VERIFIER_TYPE ?? "backend");
      this.epochSettings = new EpochSettings(toBN(this.serverConfig.firstEpochStartTime), toBN(this.serverConfig.roundDurationSec));
    }
  }

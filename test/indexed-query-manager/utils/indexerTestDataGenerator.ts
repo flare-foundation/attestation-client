@@ -8,8 +8,9 @@ import { DBState } from "../../../lib/entity/indexer/dbState";
 import { getSourceName, SourceId } from "../../../lib/verification/sources/sources";
 import { getUnixEpochTimestamp } from "../../../lib/utils/utils";
 import { DBBlockBase } from "../../../lib/entity/indexer/dbBlock";
-import { ARPayment } from "../../../lib/verification/generated/attestation-request-types";
+import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../../lib/verification/generated/attestation-types-enum";
+import { NumberLike } from "../../../lib/verification/attestation-types/attestation-types";
 
 const TEST_DATA_PATH = 'test/indexed-query-manager/test-data'
 
@@ -253,6 +254,59 @@ export async function testPaymentRequest(
       utxo: 0
    } as ARPayment;
 }
+
+export async function testBalanceDecreasingTransactionRequest(
+   entityManager: EntityManager,
+   dbTransaction: DBTransactionBase,
+   blockClass: any,
+   numberOfConfirmations: number,
+   chainType: ChainType
+) {
+   let block = await selectBlock(entityManager, blockClass, dbTransaction.blockNumber + numberOfConfirmations);
+   return {
+      attestationType: AttestationType.BalanceDecreasingTransaction,
+      sourceId: chainType as any as SourceId,
+      upperBoundProof: prefix0x(block.blockHash),
+      id: prefix0x(dbTransaction.transactionId),
+      inUtxo: 0,
+   } as ARBalanceDecreasingTransaction;
+}
+
+export async function testConfirmedBlockHeightExistsRequest(
+   confirmationBlock: DBBlockBase,
+   chainType: ChainType
+) {   
+   return {
+      attestationType: AttestationType.ConfirmedBlockHeightExists,
+      sourceId: chainType as any as SourceId,
+      upperBoundProof: prefix0x(confirmationBlock.blockHash),
+   } as ARConfirmedBlockHeightExists;
+}
+
+export async function testReferencedPaymentNonexistenceRequest(
+   entityManager: EntityManager,
+   upperBoundBlockNumber: number,
+   blockClass: any,
+   chainType: ChainType,
+   deadlineBlockNumber: number,
+   deadlineTimestamp: number,
+   destinationAddress: string,
+   amount: NumberLike,
+   paymentReference: string,
+) {
+   let confirmationBlock = await selectBlock(entityManager, blockClass, upperBoundBlockNumber);
+   return {
+      attestationType: AttestationType.ReferencedPaymentNonexistence,
+      sourceId: chainType as any as SourceId,
+      upperBoundProof: prefix0x(confirmationBlock.blockHash),
+      deadlineBlockNumber,
+      deadlineTimestamp,
+      destinationAddressHash: Web3.utils.soliditySha3(destinationAddress),
+      amount,
+      paymentReference
+   } as ARReferencedPaymentNonexistence;
+}
+
 
 // name, valueString, valueNumber,timestamp, comment
 // 'XRP_N', '', '33239817', '1669640060', ''

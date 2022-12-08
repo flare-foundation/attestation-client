@@ -1,5 +1,5 @@
-import assert from "assert";
 import { ChainType, Managed, MCC, MccClient } from "@flarenetwork/mcc";
+import assert from "assert";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
@@ -10,8 +10,9 @@ import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
-import { toSourceId } from "../verification/sources/sources";
-import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
+import { VerifierRouter } from "../verification/routing/VerifierRouter";
+import { SourceId, toSourceId } from "../verification/sources/sources";
+import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainConfiguration } from "./ChainConfiguration";
 import { ChainManager } from "./ChainManager";
 
@@ -39,6 +40,8 @@ export class ChainNode {
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
+  verifierRouter: VerifierRouter;
+
   constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, chainConfiguration: ChainConfiguration) {
     this.chainName = chainName;
     this.chainType = chainType;
@@ -63,6 +66,14 @@ export class ChainNode {
     };
 
     this.indexedQueryManager = new IndexedQueryManager(options);
+  }
+
+  /**
+   * Initializes ChainNode class (async initializations)
+   */
+  public async initialize() {
+    this.verifierRouter = new VerifierRouter(this.client, this.indexedQueryManager, this.chainType as any as SourceId);
+    await this.verifierRouter.initialize();
   }
 
   onSend(inProcessing?: number, inQueue?: number) {
@@ -195,7 +206,7 @@ export class ChainNode {
     }
 
     // TODO - failure simulation
-    verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification)
+    this.verifierRouter.verifyAttestation(attestation, attestation.reverification)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
 
@@ -204,7 +215,7 @@ export class ChainNode {
 
           attestation.reverification = true;
 
-          // actual time when attesttion will be rechecked
+          // actual time when attestion will be rechecked
           const startTimeMs =
             AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
             AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 -

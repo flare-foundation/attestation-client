@@ -9,3 +9,11 @@ export enum AttestationType {
   ReferencedPaymentNonexistence = 4,
   TrustlineIssuance = 5,
 }
+
+
+export function getAttestationTypeName(attestationType: number) {
+  if (attestationType == null || AttestationType[attestationType] === null) {
+    return null;
+  }
+  return AttestationType[attestationType];
+}

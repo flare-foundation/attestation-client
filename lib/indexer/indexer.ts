@@ -156,6 +156,7 @@ export class Indexer {
   // Safeguarded client functions
   /////////////////////////////////////////////////////////////
 
+  // MOVED TO indexerToClient.ts
   // /**
   //  *
   //  * @param label
@@ -173,7 +174,6 @@ export class Indexer {
   //   }
   //   return result;
   // }
-
   // /**
   //  *
   //  * @param label
@@ -191,7 +191,6 @@ export class Indexer {
   //   }
   //   return result;
   // }
-
   // /**
   //  *
   //  * @param label
@@ -209,19 +208,16 @@ export class Indexer {
   //   }
   //   return result;
   // }
-
   // public async getBlockHeightFromClient(label: string): Promise<number> {
   //   return await retry(`indexer.getBlockHeightFromClient.${label}`, async () => {
   //     return this.cachedClient.client.getBlockHeight();
   //   });
   // }
-
   // public async getBottomBlockHeightFromClient(label: string): Promise<number> {
   //   return await retry(`indexer.getBottomBlockHeightFromClient.${label}`, async () => {
   //     return this.cachedClient.client.getBottomBlockHeight();
   //   });
   // }
-
   // /**
   //  *
   //  * @param blockNumber
@@ -248,8 +244,6 @@ export class Indexer {
   // private prefixChainNameTo(name: string) {
   //   return this.chainConfig.name + "_" + name;
   // }
-
-  // Moved to indexer-utils
   // /**
   //  * Returns entry key for N in the database.
   //  * @returns
@@ -272,7 +266,7 @@ export class Indexer {
   // state recording functions
   /////////////////////////////////////////////////////////////
 
-  // Moved to indexer-ui
+  // Moved to indexer-utils
   // /**
   //  * Constructs dbState entity for key-value pair
   //  * @param name name associated to key
@@ -281,15 +275,13 @@ export class Indexer {
   // //  */
   // public getStateEntry(name: string, value: number): DBState {
   //   const state = new DBState();
-
+  //
   //   state.name = this.prefixChainNameTo(name);
   //   state.valueNumber = value;
   //   state.timestamp = getUnixEpochTimestamp();
-
+  //
   //   return state;
   // }
-
-  // Moved to indexer utils
   // /**
   //  * Construct dbState entity for key-values entry, that contains string, number and comment values.
   //  * @param name
@@ -300,13 +292,13 @@ export class Indexer {
   //  */
   // public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
   //   const state = new DBState();
-
+  //
   //   state.name = this.prefixChainNameTo(name);
   //   state.valueString = valueString;
   //   state.valueNumber = valueNum;
   //   state.timestamp = getUnixEpochTimestamp();
   //   state.comment = comment;
-
+  //
   //   return state;
   // }
 
@@ -388,7 +380,7 @@ export class Indexer {
     this.dbBlockClass = prepared.blockTable;
   }
 
-  // In interlacing
+  // MOVED TO interlacing.ts
   // /**
   //  * Returns current active transaction table managed by interlacing
   //  * @returns
@@ -397,7 +389,7 @@ export class Indexer {
   //   // we write into table by active index:
   //   //  0 - table0
   //   //  1 - table1
-
+  //
   //   const index = this.interlace.activeIndex;
   //   return this.dbTransactionClasses[index];
   // }
@@ -491,7 +483,7 @@ export class Indexer {
     this.headerCollector.updateN(this.N);
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
-    if (!this.bottomBlockTime) {
+    if (!this.indexerToDB.bottomBlockTime) {
       await this.indexerToDB.saveBottomState();
     }
 
@@ -512,10 +504,11 @@ export class Indexer {
   // Save bottom N state (used for verification)
   /////////////////////////////////////////////////////////////
 
-  /**
-   * Saves the bottom block number and timestamp into the state table in the database.
-   * The bottom block is the minimal block for confirmed transactions that are currently
-   * stored in the interlacing transaction tables.
+  // MOVED TO indexerToDB.ts
+  // /**
+  //  * Saves the bottom block number and timestamp into the state table in the database.
+  //  * The bottom block is the minimal block for confirmed transactions that are currently
+  //  * stored in the interlacing transaction tables.
   //  */
   // async saveBottomState() {
   //   try {
@@ -543,17 +536,18 @@ export class Indexer {
   // get respective DB block number
   /////////////////////////////////////////////////////////////
 
+  // MOVED TO indexerToDB.ts
   // /**
   //  * @returns Returns last N saved into the database
   //  */
   // private async getNfromDB(): Promise<number> {
   //   const res = await this.dbService.manager.findOne(DBState, { where: { name: getChainN(this.chainConfig.name) } });
-
+  //
   //   if (res === undefined || res === null) return 0;
-
+  //
   //   return res.valueNumber;
   // }
-
+  //
   // /**
   //  * Finds minimal block number that appears in interlacing transaction tables
   //  * @returns
@@ -648,9 +642,10 @@ export class Indexer {
   // Auxillary functions
   /////////////////////////////////////////////////////////////
 
+  // MOVED TO indexer-utils.ts
   // async dropAllStateInfo() {
   //   this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
-
+  //
   //   await this.dbService.manager
   //     .createQueryBuilder()
   //     .delete()
@@ -720,6 +715,7 @@ export class Indexer {
     return false;
   }
 
+  // MOVED TO indexerToDB.ts
   // /**
   //  * Securely drops the table given the name
   //  * @param name name of the table to be dropped
@@ -728,7 +724,6 @@ export class Indexer {
   // async dropTable(name: string) {
   //   try {
   //     this.logger.info(`dropping table ${name}`);
-
   //     const queryRunner = this.dbService.connection.createQueryRunner();
   //     const table = await queryRunner.getTable(name);
   //     if (!table) {
@@ -741,7 +736,6 @@ export class Indexer {
   //     logException(error, `dropTable`);
   //   }
   // }
-
   // /**
   //  * Drops all block and transactions tables for the specified chain
   //  * @param chain chain name (XRP, LTC, BTC, DOGE, ALGO)
@@ -761,10 +755,10 @@ export class Indexer {
   private async updateStatus(blockNp1: IBlock) {
     const NisReady = this.N >= this.T - this.chainConfig.numberOfConfirmations - 2;
     const syncTimeSec = this.syncTimeDays() * SECONDS_PER_DAY;
-    const fullHistory = !this.bottomBlockTime ? false : blockNp1.unixTimestamp - this.bottomBlockTime > syncTimeSec;
+    const fullHistory = !this.indexerToDB.bottomBlockTime ? false : blockNp1.unixTimestamp - this.indexerToDB.bottomBlockTime > syncTimeSec;
     let dbStatus;
     if (!fullHistory) {
-      let min = Math.ceil((syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60);
+      let min = Math.ceil((syncTimeSec - (blockNp1.unixTimestamp - this.indexerToDB.bottomBlockTime)) / 60);
       let hr = 0;
       if (min > 90) {
         hr = Math.floor(min / 60);

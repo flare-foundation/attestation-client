@@ -1,4 +1,4 @@
-import { ChainType } from "@flarenetwork/mcc";
+import { ChainType, Managed } from "@flarenetwork/mcc";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
@@ -11,6 +11,7 @@ import { Interlacing } from "./interlacing";
 /**
  * Class that manages interactions of indexer with DataBase
  */
+@Managed()
 export class IndexerToDB {
   // interlace = new Interlacing();
   dbService: DatabaseService;

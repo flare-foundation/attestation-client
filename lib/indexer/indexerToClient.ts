@@ -1,10 +1,11 @@
-import { IBlock, IBlockHeader, MccClient, ReadRpcInterface } from "@flarenetwork/mcc";
+import { IBlock, IBlockHeader, Managed, MccClient, ReadRpcInterface } from "@flarenetwork/mcc";
 // import { CachedMccClient } from "../caching/CachedMccClient";
 import { DEFAULT_BACK_OFF_TIME, DEFAULT_RETRY, DEFAULT_TIMEOUT, failureCallback, retry } from "../utils/PromiseTimeout";
 
 /**
  * Class that manages interactions of indexer with CachedClient
  */
+@Managed()
 export class IndexerToClient {
   client: ReadRpcInterface;
   // cachedClient: CachedMccClient;
@@ -20,7 +21,7 @@ export class IndexerToClient {
     if (backOffTime) this.backOffTime = backOffTime;
   }
 
-  //Error is handled by retry not by !result
+  //!!!Error is handled by retry not by !result!!!
   /**
    *
    * @param label
@@ -32,7 +33,7 @@ export class IndexerToClient {
     // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
-      `indexer.getBlockFromClient.${label}`,
+      `indexerToClient.getBlockFromClient.${label}`,
       async () => {
         return await this.client.getBlock(blockNumber);
       },
@@ -41,7 +42,7 @@ export class IndexerToClient {
       thisreference.backOffTime
     );
     if (!result) {
-      failureCallback(`indexer.getBlockFromClient.${label} - null block returned`);
+      failureCallback(`indexerToClient.getBlockFromClient.${label} - null block returned`);
     }
     return result;
   }
@@ -57,7 +58,7 @@ export class IndexerToClient {
     // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
-      `indexer.getBlockFromClientByHash.${label}`,
+      `indexerToClient.getBlockFromClientByHash.${label}`,
       async () => {
         return await this.client.getBlock(blockHash);
       },
@@ -66,7 +67,7 @@ export class IndexerToClient {
       thisreference.backOffTime
     );
     if (!result) {
-      failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`);
+      failureCallback(`indexerTOClient.getBlockFromClientByHash.${label} - null block returned`);
     }
     return result;
   }
@@ -82,7 +83,7 @@ export class IndexerToClient {
     // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
-      `indexer.getBlockHeaderFromClientByHash.${label}`,
+      `indexerToClient.getBlockHeaderFromClientByHash.${label}`,
       async () => {
         return await this.client.getBlockHeader(blockHash);
       },
@@ -91,7 +92,7 @@ export class IndexerToClient {
       thisreference.backOffTime
     );
     if (!result) {
-      failureCallback(`indexer.getBlockHeaderFromClientByHash.${label} - null block returned`);
+      failureCallback(`indexerToClient.getBlockHeaderFromClientByHash.${label} - null block returned`);
     }
     return result;
   }
@@ -99,7 +100,7 @@ export class IndexerToClient {
   public async getBlockHeightFromClient(label: string): Promise<number> {
     let thisreference = this;
     return await retry(
-      `indexer.getBlockHeightFromClient.${label}`,
+      `indexerToClient.getBlockHeightFromClient.${label}`,
       async () => {
         return this.client.getBlockHeight();
       },
@@ -112,7 +113,7 @@ export class IndexerToClient {
   public async getBottomBlockHeightFromClient(label: string): Promise<number> {
     let thisreference = this;
     return await retry(
-      `indexer.getBottomBlockHeightFromClient.${label}`,
+      `indexerToClient.getBottomBlockHeightFromClient.${label}`,
       async () => {
         return this.client.getBottomBlockHeight();
       },

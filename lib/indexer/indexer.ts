@@ -462,8 +462,8 @@ export class Indexer {
 
           // fix transactions class to active interlace tranascation class
           const dummy = new transactionClass();
-          for (let transaction of transactions) {
-            Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
+          for (let tx of transactions) {
+            Object.setPrototypeOf(tx, Object.getPrototypeOf(dummy));
           }
 
           await transaction.save(transactions);

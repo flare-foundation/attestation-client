@@ -7,16 +7,16 @@ const expect = chai.expect;
 const assert = chai.assert;
 
 //To be eventually mocked
-const BtcMccConnection = {
-  url: process.env.BTC_URL || "",
-  username: process.env.BTC_USERNAME || "",
-  password: process.env.BTC_PASSWORD || "",
-} as UtxoMccCreate;
-
-const client = new MCC.BTC(BtcMccConnection);
 
 describe("Indexer to client", function () {
-  let inToCl = new IndexerToClient(client, 10000, 3, 100);
+  const BtcMccConnection = {
+    url: process.env.BTC_URL || "",
+    username: process.env.BTC_USERNAME || "",
+    password: process.env.BTC_PASSWORD || "",
+  } as UtxoMccCreate;
+
+  const client = new MCC.BTC(BtcMccConnection);
+  let inToCl = new IndexerToClient(client, 1000, 3, 100);
 
   it("Should get Block", async function () {
     let res = await inToCl.getBlockFromClient("something", 763418);

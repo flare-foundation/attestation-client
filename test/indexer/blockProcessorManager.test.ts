@@ -14,25 +14,23 @@ const expect = chai.expect;
 const assert = chai.assert;
 const sinon = require("sinon");
 
-const BtcMccConnection = {
-  url: process.env.BTC_URL || "",
-  username: process.env.BTC_USERNAME || "",
-  password: process.env.BTC_PASSWORD || "",
-} as UtxoMccCreate;
-
-// const client = new MCC.BTC(BtcMccConnection);
-
-let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-  transactionCacheSize: 2,
-  blockCacheSize: 2,
-  cleanupChunkSize: 2,
-  activeLimit: 1,
-  clientConfig: BtcMccConnection,
-};
-
-const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
-
 describe("BlockProcessorManager", function () {
+  const BtcMccConnection = {
+    url: process.env.BTC_URL || "",
+    username: process.env.BTC_USERNAME || "",
+    password: process.env.BTC_PASSWORD || "",
+  } as UtxoMccCreate;
+
+  // const client = new MCC.BTC(BtcMccConnection);
+
+  let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
+    transactionCacheSize: 2,
+    blockCacheSize: 2,
+    cleanupChunkSize: 2,
+    activeLimit: 1,
+    clientConfig: BtcMccConnection,
+  };
+
   const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
   const indexerToClient = new IndexerToClient(cachedClient.client);
 

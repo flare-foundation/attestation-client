@@ -6,6 +6,7 @@ import { AlgoProcessorService } from './services/verifier-processors/algo-proces
 import { BTCProcessorService } from './services/verifier-processors/btc-processor.service';
 import { DOGEProcessorService } from './services/verifier-processors/doge-processor.service';
 import { LTCProcessorService } from './services/verifier-processors/ltc-processor.service';
+import { VerifierProcessor } from './services/verifier-processors/verifier-processor';
 import { XRPProcessorService } from './services/verifier-processors/xrp-processor.service';
 import { WsCommandProcessorService } from './services/ws-command-processor.service';
 import { createTypeOrmOptions } from './utils/db-config';
@@ -37,7 +38,10 @@ function processorProvider() {
   ],
   controllers: [VerifierController],
   providers: [
-    processorProvider(),
+    {
+      provide: VerifierProcessor,
+      useClass: processorProvider()
+    },
     WsCommandProcessorService,
     WsServerGateway,
     WsCommandProcessorService

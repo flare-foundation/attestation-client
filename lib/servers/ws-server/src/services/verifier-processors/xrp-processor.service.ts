@@ -5,11 +5,13 @@ import { EntityManager } from 'typeorm';
 import { IndexedQueryManagerOptions } from '../../../../../indexed-query-manager/indexed-query-manager-types';
 import { IndexedQueryManager } from '../../../../../indexed-query-manager/IndexedQueryManager';
 import { AttestationRequest } from '../../../../../verification/attestation-types/attestation-types';
+import { hexlifyBN } from '../../../../../verification/attestation-types/attestation-types-helpers';
 import { verifyXRP } from '../../../../../verification/verifiers/verifier_routing';
 import { WSServerConfigurationService } from '../../../../common/src';
+import { VerifierProcessor } from './verifier-processor';
 
 @Injectable()
-export class XRPProcessorService {
+export class XRPProcessorService extends VerifierProcessor {
   client: MCC.XRP;
   indexedQueryManager: IndexedQueryManager;
 
@@ -17,6 +19,7 @@ export class XRPProcessorService {
     private config: WSServerConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
+    super();
     this.client = new MCC.XRP(this.config.wsServerCredentials.chainConfiguration.mccCreate as XrpMccCreate);
 
     const options: IndexedQueryManagerOptions = {
@@ -34,12 +37,13 @@ export class XRPProcessorService {
   }
 
   public async verify(attestationRequest: AttestationRequest) {
-    return verifyXRP(
+    let response = await verifyXRP(
       this.client,
       attestationRequest.request,
       attestationRequest.options,
       this.indexedQueryManager
-    )
+    );
+    return hexlifyBN(response);
   }
 
 }

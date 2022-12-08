@@ -219,8 +219,6 @@ export async function verifyConfirmedBlockHeightExists(
     averageBlockProductionTimeMs,
     lowestQueryWindowBlockNumber: toBN(lowerQueryWindowBlock.blockNumber),
     lowestQueryWindowBlockTimestamp: toBN(lowerQueryWindowBlock.timestamp),
-    windowStartTime: requestOptions.windowStartTime,
-    UBPCutoffTime: requestOptions.UBPCutoffTime,
   } as DHConfirmedBlockHeightExists;
 
   return {
@@ -248,7 +246,7 @@ export async function verifyReferencedPaymentNonExistence(
   const referencedTransactionsResponse = await iqm.getReferencedTransactions({
     deadlineBlockNumber: numberLikeToNumber(request.deadlineBlockNumber),
     deadlineBlockTimestamp: numberLikeToNumber(request.deadlineTimestamp),
-    paymentReference: request.paymentReference,
+    paymentReference: unPrefix0x(request.paymentReference),
     upperBoundProof: request.upperBoundProof,
     roundId: requestOptions.roundId,
     type: requestOptions.recheck ? "RECHECK" : "FIRST_CHECK",
@@ -295,7 +293,7 @@ export async function verifyReferencedPaymentNonExistence(
     stateConnectorRound: requestOptions.roundId,
     deadlineBlockNumber: request.deadlineBlockNumber,
     deadlineTimestamp: request.deadlineTimestamp,
-    destinationAddressHash: Web3.utils.soliditySha3(request.destinationAddressHash),
+    destinationAddressHash: request.destinationAddressHash,
     paymentReference: prefix0x(request.paymentReference),
     amount: request.amount,
     lowerBoundaryBlockNumber: toBN(lowerBoundaryBlock.blockNumber),

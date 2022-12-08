@@ -5,11 +5,13 @@ import { EntityManager } from 'typeorm';
 import { IndexedQueryManagerOptions } from '../../../../../indexed-query-manager/indexed-query-manager-types';
 import { IndexedQueryManager } from '../../../../../indexed-query-manager/IndexedQueryManager';
 import { AttestationRequest } from '../../../../../verification/attestation-types/attestation-types';
+import { hexlifyBN } from '../../../../../verification/attestation-types/attestation-types-helpers';
 import { verifyALGO } from '../../../../../verification/verifiers/verifier_routing';
 import { WSServerConfigurationService } from '../../../../common/src';
+import { VerifierProcessor } from './verifier-processor';
 
 @Injectable()
-export class AlgoProcessorService {
+export class AlgoProcessorService extends VerifierProcessor {
   client: MCC.ALGO;
   indexedQueryManager: IndexedQueryManager;
 
@@ -17,6 +19,7 @@ export class AlgoProcessorService {
     private config: WSServerConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
+    super();
     this.client = new MCC.ALGO(this.config.wsServerCredentials.chainConfiguration.mccCreate as AlgoMccCreate);
 
     const options: IndexedQueryManagerOptions = {
@@ -34,12 +37,13 @@ export class AlgoProcessorService {
   }
 
   public async verify(attestationRequest: AttestationRequest) {
-    return verifyALGO(
+    let response = await verifyALGO(
       this.client,
       attestationRequest.request,
       attestationRequest.options,
       this.indexedQueryManager
-    )
+    );
+    return hexlifyBN(response);
   }
 
 }

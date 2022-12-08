@@ -510,7 +510,7 @@
             },
             "runtimeArgs": [
                 "test",
-                "test/server/ws-server.test.ts"
+                "test/server/xrp-verifier-server.test.ts"
             ]
         },
         {

@@ -16,14 +16,14 @@ describe("Indexer to client", function () {
   } as UtxoMccCreate;
 
   const client = new MCC.BTC(BtcMccConnection);
-  let inToCl = new IndexerToClient(client, 1000, 3, 100);
+  let inToCl = new IndexerToClient(client, 1800, 3, 300);
 
   it("Should get Block", async function () {
-    let res = await inToCl.getBlockFromClient("something", 763418);
+    let res = await inToCl.getBlockFromClient("height", 763418);
     expect(res.blockHash).to.be.eq("0000000000000000000275e5d4097fb6121787976f42e85310976b34b1e36072");
   });
 
-  it("Should not get Block", async function () {
+  it.skip("Should not get Block", async function () {
     await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
   });
 

@@ -1,4 +1,5 @@
 import {
+  AlgoMccCreate,
   IXrpGetBlockRes,
   IXrpGetTransactionRes,
   UtxoBlock,
@@ -140,10 +141,10 @@ describe("BlockProcessors", () => {
     } as UtxoMccCreate;
 
     let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-      transactionCacheSize: 2,
+      transactionCacheSize: 100,
       blockCacheSize: 2,
-      cleanupChunkSize: 2,
-      activeLimit: 1,
+      cleanupChunkSize: 12,
+      activeLimit: 3,
       clientConfig: BtcMccConnection,
     };
 
@@ -181,10 +182,10 @@ describe("BlockProcessors", () => {
     } as UtxoMccCreate;
 
     let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-      transactionCacheSize: 2,
-      blockCacheSize: 2,
-      cleanupChunkSize: 2,
-      activeLimit: 1,
+      transactionCacheSize: 1000,
+      blockCacheSize: 5,
+      cleanupChunkSize: 10,
+      activeLimit: 5,
       clientConfig: DOGEMccConnection,
     };
 
@@ -195,7 +196,7 @@ describe("BlockProcessors", () => {
     let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
 
     before(async function () {
-      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.DOGE, 3600, 10);
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.DOGE, 36000, 10);
     });
     after(function () {
       blockProcessor.stop();
@@ -218,8 +219,55 @@ describe("BlockProcessors", () => {
     });
   });
 
+  describe("ALGO", function () {
+    const algoCreateConfig = {
+      algod: {
+        url: process.env.ALGO_ALGOD_URL || "",
+        token: process.env.ALGO_ALGOD_TOKEN || "",
+      },
+    } as AlgoMccCreate;
+
+    let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
+      transactionCacheSize: 1000,
+      blockCacheSize: 5,
+      cleanupChunkSize: 10,
+      activeLimit: 5,
+      clientConfig: algoCreateConfig,
+    };
+
+    const cachedClient = new CachedMccClient(ChainType.ALGO, cachedMccClientOptionsFull);
+    const interlacing = new Interlacing();
+
+    const blockProcessorConst = BlockProcessor(ChainType.ALGO);
+    let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
+
+    before(async function () {
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.ALGO, 36000, 10);
+    });
+    after(function () {
+      blockProcessor.stop();
+      blockProcessor.destroy();
+    });
+
+    it("Should initializeJobs", async function () {
+      const block = await cachedClient.client.getBlock(25400573);
+
+      const fake = sinon.fake();
+      let res = [];
+      const voidOnSave = async (blockDb, transDb) => {
+        fake(blockDb, transDb);
+        res = transDb;
+        return true;
+      };
+
+      await blockProcessor.initializeJobs(block, voidOnSave);
+      expect(res.length).to.eq(67);
+      expect(fake.callCount).to.eq(1);
+    });
+  });
+
   describe("XRP", function () {
-    const DOGEMccConnection = {
+    const XRPMccConnection = {
       url: process.env.XRP_URL,
       username: process.env.XRP_USERNAME || "",
       password: process.env.XRP_PASSWORD || "",
@@ -230,7 +278,7 @@ describe("BlockProcessors", () => {
       blockCacheSize: 2,
       cleanupChunkSize: 2,
       activeLimit: 1,
-      clientConfig: DOGEMccConnection,
+      clientConfig: XRPMccConnection,
     };
 
     const cachedClient = new CachedMccClient(ChainType.XRP, cachedMccClientOptionsFull);

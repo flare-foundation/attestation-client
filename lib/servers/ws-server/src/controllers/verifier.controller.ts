@@ -1,11 +1,13 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AttestationRequest } from '../../../../verification/attestation-types/attestation-types';
 import { ApiResponse, handleApiResponse } from '../../../common/src';
+import { AuthGuard } from '../guards/auth.guard';
 import { VerifierProcessor } from '../services/verifier-processors/verifier-processor';
 
 @ApiTags('Verifier')
 @Controller("query")
+@UseGuards(AuthGuard)
 export class VerifierController {
 
   constructor(private processor: VerifierProcessor) { }

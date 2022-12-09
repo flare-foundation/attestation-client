@@ -41,7 +41,7 @@ const DB_BLOCK_TABLE = DBBlockBTC;
 const DB_TX_TABLE = DBTransactionBTC0;
 const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
-
+const API_KEY = "123456";
 
 interface TestData extends IIdentifiable {
   a: number;
@@ -112,7 +112,7 @@ describe("Test BTC verifier server", () => {
       }
     } as AttestationRequest;
 
-    let resp = await sendToVerifier(configurationService, attestationRequest);
+    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
@@ -136,7 +136,7 @@ describe("Test BTC verifier server", () => {
       }
     } as AttestationRequest;
 
-    let resp = await sendToVerifier(configurationService, attestationRequest);
+    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
@@ -158,7 +158,7 @@ describe("Test BTC verifier server", () => {
       }
     } as AttestationRequest;
 
-    let resp = await sendToVerifier(configurationService, attestationRequest);
+    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.response.blockNumber === toHex(BLOCK_CHOICE - NUMBER_OF_CONFIRMATIONS + 1), "Wrong block number");
@@ -183,7 +183,7 @@ describe("Test BTC verifier server", () => {
       }
     } as AttestationRequest;
 
-    let resp = await sendToVerifier(configurationService, attestationRequest);
+    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.status === "REFERENCED_TRANSACTION_EXISTS", "Did not manage to find referenced transaction");
   });
@@ -207,7 +207,7 @@ describe("Test BTC verifier server", () => {
       }
     } as AttestationRequest; 
 
-    let resp = await sendToVerifier(configurationService, attestationRequest);
+    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.status === "OK", "Status is not OK");

@@ -1,15 +1,22 @@
 import { AbiItem } from "web3-utils";
 import StateConnectorAbi from "../../artifacts/contracts/StateConnectorTemp.sol/StateConnectorTemp.json";
+import StateConnectorTranAbi from "../../artifacts/contracts/StateConnectorTempTran.sol/StateConnectorTempTran.json";
 import { StateConnectorTemp } from "../../typechain-web3-v1/StateConnectorTemp";
+import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { getWeb3 } from "../utils/utils";
 
-async function deployTempStateConnector(web3Rpc: string) {
+async function deployTempStateConnector(web3Rpc: string, flavor: string) {
   const web3 = getWeb3(web3Rpc);
 
   const chainId = await web3.eth.getChainId();
 
   // State connector
-  const stateConnectorContract = new web3.eth.Contract(StateConnectorAbi.abi as AbiItem[]) as any as StateConnectorTemp;
+  const AbiItemForDeploy = flavor === "tran" ? StateConnectorTranAbi : StateConnectorAbi;
+
+  let stateConnectorContract: StateConnectorTemp | StateConnectorTempTran =
+    flavor === "tran"
+      ? (new web3.eth.Contract(AbiItemForDeploy.abi as AbiItem[]) as any as StateConnectorTemp)
+      : (new web3.eth.Contract(AbiItemForDeploy.abi as AbiItem[]) as any as StateConnectorTempTran);
 
   let botPrivateKey = "";
   if (process.env.FINALIZING_BOT_PRIVATE_KEY) {
@@ -37,7 +44,7 @@ async function deployTempStateConnector(web3Rpc: string) {
 
   const constructorData = stateConnectorContract
     .deploy({
-      data: StateConnectorAbi.bytecode,
+      data: AbiItemForDeploy.bytecode,
       arguments: [botWallet.address],
     })
     .encodeABI();
@@ -45,7 +52,7 @@ async function deployTempStateConnector(web3Rpc: string) {
   const tx = {
     from: botWallet.address,
     gas: "0x" + web3.utils.toBN(1500000).toString(16),
-    gasPrice: "0x" + web3.utils.toBN("30000000000000").toString(16),
+    gasPrice: "0x" + web3.utils.toBN("25000000000").toString(16),
     chainId: chainId,
     data: constructorData,
   };
@@ -61,17 +68,27 @@ async function deployTempStateConnector(web3Rpc: string) {
   }
 }
 
-const { argv } = require("yargs").scriptName("airdropTransactions").option("r", {
-  alias: "rpc",
-  describe: "Rpc url",
-  demandOption: "Provide rpc url",
-  type: "string",
-  nargs: 1,
-});
+const { argv } = require("yargs")
+  .scriptName("airdropTransactions")
+  .option("r", {
+    alias: "rpc",
+    describe: "Rpc url",
+    demandOption: "Provide rpc url",
+    type: "string",
+    nargs: 1,
+  })
+  .option("f", {
+    alias: "flavor",
+    describe: "Which flavor of stateconn to deploy",
+    default: "temp",
+    choices: ["temp", "tran"],
+    type: "string",
+    nargs: 1,
+  });
 
-const { rpc } = argv;
+const { rpc, flavor } = argv;
 
-deployTempStateConnector(rpc)
+deployTempStateConnector(rpc, flavor)
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);

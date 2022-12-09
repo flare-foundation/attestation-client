@@ -1,6 +1,5 @@
 import { toBN } from "@flarenetwork/mcc";
 import BN from "bn.js";
-import { AttestationChooseBytes } from "../../typechain-truffle/StateConnector";
 import { getAttestationTypeAndSource } from "../verification/generated/attestation-request-parse";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { SourceId } from "../verification/sources/sources";

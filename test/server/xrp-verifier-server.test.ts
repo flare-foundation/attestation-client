@@ -4,7 +4,7 @@ process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "xrp";
 process.env.IN_MEMORY_DB = "1";
 
-import { ChainType, prefix0x } from "@flarenetwork/mcc";
+import { ChainType, prefix0x, toHex } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
@@ -12,7 +12,6 @@ import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
-import { toHex } from "web3-utils";
 import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
 import { WSServerConfigurationService } from "../../lib/servers/common/src";
@@ -24,6 +23,7 @@ import { AttestationRequest } from "../../lib/verification/attestation-types/att
 import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
 import { encodeBalanceDecreasingTransaction, encodeConfirmedBlockHeightExists, encodePayment, encodeReferencedPaymentNonexistence } from "../../lib/verification/generated/attestation-request-encode";
 import { generateTestIndexerDB, selectBlock, selectedReferencedTx, testBalanceDecreasingTransactionRequest, testConfirmedBlockHeightExistsRequest, testPaymentRequest, testReferencedPaymentNonexistenceRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
+import { sendToVerifier } from "./utils/server-test-utils";
 
 chai.use(chaiAsPromised);
 
@@ -50,7 +50,7 @@ interface TestData extends IIdentifiable {
 
 const axios = require("axios");
 
-describe("Test websocket verifier server ", () => {
+describe("Test XRP verifier server ", () => {
 
   let app: INestApplication;
   let configurationService: WSServerConfigurationService;
@@ -101,7 +101,6 @@ describe("Test websocket verifier server ", () => {
 
   it(`Should verify Payment attestation`, async function () {
     let request = await testPaymentRequest(entityManager, selectedTransaction, DB_BLOCK_TABLE, NUMBER_OF_CONFIRMATIONS, CHAIN_TYPE);
-    // console.log(request)
     let attestationRequest = {
       request: encodePayment(request),
       options: {
@@ -110,19 +109,14 @@ describe("Test websocket verifier server ", () => {
         windowStartTime: startTime + 1, // must exist one block with timestamp lower
         UBPCutoffTime: startTime
       }
-    } as AttestationRequest
-    const resp = await axios.post(
-      `http://localhost:${configurationService.wsServerConfiguration.port}/query`,
-      attestationRequest
-    );
-    // console.log(resp.data)
-    assert(resp.data.status === "OK", "Wrong server response");
-    assert(resp.data.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
+    } as AttestationRequest;
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
     let response = JSON.parse(selectedTransaction.response);
-    assert(resp.data.data.response.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
-    assert(resp.data.data.response.receivingAddressHash === Web3.utils.soliditySha3(response.data.result.Destination), "Wrong receiving address");
-    // console.log(selectedTransaction);
-    // console.log(resp.data.data);
+    assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
+    assert(resp.data.response.receivingAddressHash === Web3.utils.soliditySha3(response.data.result.Destination), "Wrong receiving address");
   });
 
   it(`Should verify Balance Decreasing attestation attestation`, async function () {
@@ -136,22 +130,18 @@ describe("Test websocket verifier server ", () => {
         windowStartTime: startTime + 1, // must exist one block with timestamp lower
         UBPCutoffTime: startTime
       }
-    } as AttestationRequest
-    const resp = await axios.post(
-      `http://localhost:${configurationService.wsServerConfiguration.port}/query`,
-      attestationRequest
-    );
-    // console.log(resp.data)
-    assert(resp.data.status === "OK", "Wrong server response");
-    assert(resp.data.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
+    } as AttestationRequest;
+    
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
     let response = JSON.parse(selectedTransaction.response);
-    assert(resp.data.data.response.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
-    // console.log(selectedTransaction);
-    // console.log(resp.data.data);    
+    assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
   });
 
   it(`Should verify Confirmed Block Height Exists attestation`, async function () {
-    let confirmationBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, 150);
+    let confirmationBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
     let request = await testConfirmedBlockHeightExistsRequest(confirmationBlock, CHAIN_TYPE);
     let attestationRequest = {
       request: encodeConfirmedBlockHeightExists(request),
@@ -161,22 +151,19 @@ describe("Test websocket verifier server ", () => {
         windowStartTime: startTime + 1, // must exist one block with timestamp lower
         UBPCutoffTime: startTime
       }
-    } as AttestationRequest
-    const resp = await axios.post(
-      `http://localhost:${configurationService.wsServerConfiguration.port}/query`,
-      attestationRequest
-    );
-    assert(resp.data.status === "OK", "Wrong server response");
-    assert(resp.data.data.response.blockNumber === toHex(150), "Wrong block number");
-    assert(resp.data.data.response.lowestQueryWindowBlockNumber === toHex(101), "Wrong lowest query window block number");
-    // console.log(resp.data.data);    
+    } as AttestationRequest;
+
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.response.blockNumber === toHex(BLOCK_CHOICE - NUMBER_OF_CONFIRMATIONS + 1), "Wrong block number");
+    assert(resp.data.response.lowestQueryWindowBlockNumber === toHex(101), "Wrong lowest query window block number");
   });
 
   it(`Should fail to provide Referenced Payment Nonexistence attestation`, async function () {
     let response = JSON.parse(selectedTransaction.response);
     let request = await testReferencedPaymentNonexistenceRequest(entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, selectedTransaction.timestamp + 2, response.data.result.Destination, parseInt(response.data.result.Amount), prefix0x(selectedTransaction.paymentReference));
 
-    // console.log(request)
     let attestationRequest = {
       request: encodeReferencedPaymentNonexistence(request),
       options: {
@@ -185,21 +172,18 @@ describe("Test websocket verifier server ", () => {
         windowStartTime: startTime + 1, // must exist one block with timestamp lower
         UBPCutoffTime: startTime
       }
-    } as AttestationRequest
-    const resp = await axios.post(
-      `http://localhost:${configurationService.wsServerConfiguration.port}/query`,
-      attestationRequest
-    );
-    assert(resp.data.status === "OK", "Wrong server response");
-    assert(resp.data.data.status === "REFERENCED_TRANSACTION_EXISTS", "Did not manage to find referenced transaction");
+    } as AttestationRequest;
+
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.status === "REFERENCED_TRANSACTION_EXISTS", "Did not manage to find referenced transaction");
   });
 
   it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
     let response = JSON.parse(selectedTransaction.response);
-    // console.log(response)
     let request = await testReferencedPaymentNonexistenceRequest(entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, selectedTransaction.timestamp + 2, response.data.result.Destination, parseInt(response.data.result.Amount) + 1, prefix0x(selectedTransaction.paymentReference));
 
-    // console.log(request)
     let attestationRequest = {
       request: encodeReferencedPaymentNonexistence(request),
       options: {
@@ -208,16 +192,14 @@ describe("Test websocket verifier server ", () => {
         windowStartTime: startTime + 1, // must exist one block with timestamp lower
         UBPCutoffTime: startTime
       }
-    } as AttestationRequest
-    const resp = await axios.post(
-      `http://localhost:${configurationService.wsServerConfiguration.port}/query`,
-      attestationRequest
-    );
-    // console.log(resp.data)
-    assert(resp.data.status === "OK", "Wrong server response");
-    assert(resp.data.data.status === "OK", "Status is not OK");
-    assert(resp.data.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE + 3), "Incorrect first overflow block");
-    assert(resp.data.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp + 3), "Incorrect first overflow block timestamp");
+    } as AttestationRequest; 
+
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.status === "OK", "Status is not OK");
+    assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE + 3), "Incorrect first overflow block");
+    assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp + 3), "Incorrect first overflow block timestamp");
   });
 
   after(async () => {

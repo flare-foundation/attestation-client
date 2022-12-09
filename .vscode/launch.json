@@ -510,7 +510,7 @@
             },
             "runtimeArgs": [
                 "test",
-                "test/server/xrp-verifier-server.test.ts"
+                "test/server/btc-verifier-server.test.ts"
             ]
         },
         {

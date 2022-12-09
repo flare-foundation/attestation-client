@@ -1,9 +1,11 @@
 import StateConnectorAbi from "../../artifacts/contracts/StateConnectorTemp.sol/StateConnectorTemp.json";
+import StateConnectorTranAbi from "../../artifacts/contracts/StateConnectorTempTran.sol/StateConnectorTempTran.json";
+import { sleepMs } from "@flarenetwork/mcc";
+import { AbiItem } from "web3-utils";
 import { StateConnectorTemp } from "../../typechain-web3-v1/StateConnectorTemp";
 import { getTimeSec } from "../utils/internetTime";
 import { getWeb3 } from "../utils/utils";
-import { AbiItem } from "web3-utils";
-import { sleepMs } from "@flarenetwork/mcc";
+import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 
 const ZERO_ROOT = "0x0000000000000000000000000000000000000000000000000000000000000000";
 const DEFAULT_GAS = "2500000";
@@ -80,7 +82,7 @@ function getAttestationSigners(chainId: number): string[] {
   }
 }
 
-export async function runBot(SCAddress: string, web3Rpc: string) {
+export async function runBot(SCAddress: string, web3Rpc: string, flavor: string) {
   const web3 = getWeb3(web3Rpc);
 
   function toBN(inp: string | number) {
@@ -91,7 +93,13 @@ export async function runBot(SCAddress: string, web3Rpc: string) {
   const voteThreshold = (getAttestationSigners(chainId).length - 1) / 2;
 
   // State connector
-  const stateConnectorContract = new web3.eth.Contract(StateConnectorAbi.abi as AbiItem[], SCAddress) as any as StateConnectorTemp;
+  // State connector
+  const AbiItemForDeploy = flavor === "tran" ? StateConnectorTranAbi : StateConnectorAbi;
+
+  let stateConnectorContract: StateConnectorTemp | StateConnectorTempTran =
+    flavor === "tran"
+      ? (new web3.eth.Contract(AbiItemForDeploy.abi as AbiItem[], SCAddress) as any as StateConnectorTemp)
+      : (new web3.eth.Contract(AbiItemForDeploy.abi as AbiItem[], SCAddress) as any as StateConnectorTempTran);
 
   const BUFFER_WINDOW = toBN(await stateConnectorContract.methods.BUFFER_WINDOW().call());
   const BUFFER_TIMESTAMP_OFFSET = toBN(await stateConnectorContract.methods.BUFFER_TIMESTAMP_OFFSET().call());

@@ -77,7 +77,9 @@
     "devwsserver": "env CONFIG_PATH=.secure.dev NODE_ENV=development yarn nest start ws-server --debug --watch",
     "-------SC-finalizing-bot------": "",
     "deployTempStateConnector": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/deploy-temp-state-connector.ts -r 'https://coston2-api.flare.network/ext/C/rpc'",
-    "runFinalizingBot": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/main.ts -a '0xB6fF182DB28C3aD8f0611d59b183BFC40AF5268d' -r 'https://coston2-api.flare.network/ext/C/rpc'"
+    "deployTempTranStateConnector": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/deploy-temp-state-connector.ts -f tran -r 'https://coston2-api.flare.network/ext/C/rpc'",
+    "runFinalizingBot": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/main.ts -a '0xB6fF182DB28C3aD8f0611d59b183BFC40AF5268d' -r 'https://coston2-api.flare.network/ext/C/rpc'",
+    "runFinalizingBotTran": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/main.ts -a '0xd035F05E6d159F7DE00809f8E3bAb809Cd33bACA' -f tran -r 'https://coston2-api.flare.network/ext/C/rpc'"
   },
   "dependencies": {
     "@flarenetwork/mcc": "2.0.8",

@@ -15,11 +15,19 @@ const { argv } = require("yargs")
     demandOption: "Provide rpc url",
     type: "string",
     nargs: 1,
+  })
+  .option("f", {
+    alias: "flavor",
+    describe: "Which flavor of stateconn to deploy",
+    default: "temp",
+    choices: ["temp", "tran"],
+    type: "string",
+    nargs: 1,
   });
 
-const { stateConnectorAddress, rpc } = argv;
+const { stateConnectorAddress, rpc, flavor } = argv;
 
-runBot(stateConnectorAddress, rpc)
+runBot(stateConnectorAddress, rpc, flavor)
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);

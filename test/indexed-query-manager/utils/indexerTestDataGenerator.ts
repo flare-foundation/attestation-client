@@ -1,16 +1,16 @@
-import { ChainType, prefix0x, unPrefix0x } from "@flarenetwork/mcc";
-import { EntityManager } from "typeorm";
-import { DBTransactionBase } from "../../../lib/entity/indexer/dbTransaction";
-import { toHex } from "../../../lib/verification/attestation-types/attestation-types-helpers";
+import { ChainType, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
 import fs from "fs";
+import { EntityManager } from "typeorm";
 import Web3 from "web3";
-import { DBState } from "../../../lib/entity/indexer/dbState";
-import { getSourceName, SourceId } from "../../../lib/verification/sources/sources";
-import { getUnixEpochTimestamp } from "../../../lib/utils/utils";
 import { DBBlockBase } from "../../../lib/entity/indexer/dbBlock";
+import { DBState } from "../../../lib/entity/indexer/dbState";
+import { DBTransactionBase } from "../../../lib/entity/indexer/dbTransaction";
+import { getUnixEpochTimestamp } from "../../../lib/utils/utils";
+import { NumberLike } from "../../../lib/verification/attestation-types/attestation-types";
+import { toHex } from "../../../lib/verification/attestation-types/attestation-types-helpers";
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../../../lib/verification/generated/attestation-request-types";
 import { AttestationType } from "../../../lib/verification/generated/attestation-types-enum";
-import { NumberLike } from "../../../lib/verification/attestation-types/attestation-types";
+import { getSourceName, SourceId } from "../../../lib/verification/sources/sources";
 
 const TEST_DATA_PATH = 'test/indexed-query-manager/test-data'
 
@@ -28,6 +28,7 @@ const XRP_OFFER_CREATE = fs.readFileSync(`${TEST_DATA_PATH}/xrp-offer-create.jso
 const XRP_PAYMENT_REFERENCE = fs.readFileSync(`${TEST_DATA_PATH}/xrp-payment-reference.json`).toString();
 
 export const ZERO_PAYMENT_REFERENCE = "0000000000000000000000000000000000000000000000000000000000000000";
+const BTC_IN_SATOSHI = 100000000;
 
 export function testBlockHash(blockNumber: number): string {
    return unPrefix0x(Web3.utils.soliditySha3(toHex(blockNumber, 32)));
@@ -39,9 +40,20 @@ export function testTransactionHash(transactionIndex: number, blockNumber: numbe
    return unPrefix0x(Web3.utils.soliditySha3(txHash + blockHash));
 }
 
+function setFirstOPReturn(vouts: any, value: string) {
+   for (let vout of vouts) {
+      if (vout.scriptPubKey?.asm?.startsWith("OP_RETURN")) {
+         vout.scriptPubKey.asm = `OP_RETURN ${unPrefix0x(value)}`;
+         return;
+      }
+   }
+   throw new Error("No OP_RETURN found");
+}
+
 function addBtcTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
    let index = parseInt(transaction.transactionId.slice(-1), 16) % BTC_TYPES_COUNT;
    let txStr = "";
+   let paymentReference = null;
    switch (index) {
       case 0:
          txStr = BTC_PAYMENT;
@@ -51,15 +63,23 @@ function addBtcTransactionResponse(transaction: DBTransactionBase, transactionIn
          break;
       case 2:
          txStr = BTC_PAYMENT_WITH_REFERENCE_1
+         paymentReference = unPrefix0x(toHex(parseInt(transaction.transactionId.slice(-10), 16), 32))
          break;
       case 3:
          txStr = BTC_PAYMENT_WITH_REFERENCE_2
+         paymentReference = unPrefix0x(toHex(parseInt(transaction.transactionId.slice(-10), 16), 32))
          break;
       default:
          throw new Error("Impossible option");
    }
    let json = JSON.parse(txStr);
    json.data.txid = unPrefix0x(transaction.transactionId);
+   if (paymentReference) {
+      setFirstOPReturn(json.data.vout, paymentReference);
+      transaction.paymentReference = paymentReference
+   } else {
+      transaction.paymentReference = unPrefix0x(toHex(0, 32));
+   }
    return JSON.stringify(json);
 }
 
@@ -237,12 +257,70 @@ export async function selectBlock(
    return await query.getOne() as any as DBBlockBase;
 }
 
+export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
+   let response = JSON.parse(dbTransaction.response);
+   let appearances = [];
+   for (let i = 0; i < response.data.vout.length; i++) {
+      let address = response.data.vout[i].scriptPubKey?.address;
+      if (address) {
+         if(appearances.indexOf(address) >= 0) {
+            continue;
+         }
+         if(appearances.length === index) {
+            return i;
+         }
+         appearances.push(address);
+      }
+   }
+   throw new Error("No output address");
+}
+
+export function firstAddressVin(dbTransaction: DBTransactionBase) {
+   let response = JSON.parse(dbTransaction.response);
+   for (let i = 0; i < response.additionalData.vinouts.length; i++) {
+      if (response.additionalData?.vinouts?.[i]?.vinvout?.scriptPubKey?.address) {
+         return i;
+      }
+   }
+   throw new Error("No input address");
+}
+
+export function addressOnVout(dbTransaction: DBTransactionBase, i: number) {
+   let response = JSON.parse(dbTransaction.response);
+   return response.data?.vout?.[i]?.scriptPubKey?.address
+}
+
+export function totalDeliveredAmountToAddress(dbTransaction: DBTransactionBase, address: string) {
+   let spent = toBN(0);
+   let response = JSON.parse(dbTransaction.response);
+   for (let i = 0; i < response.additionalData.vinouts.length; i++) {
+      if (response.additionalData?.vinouts?.[i]?.vinvout?.scriptPubKey?.address === address) {
+         let value = response.additionalData?.vinouts?.[i]?.vinvout.value;
+         if (value) {            
+            spent = spent.add(toBN(Math.floor(value*BTC_IN_SATOSHI)));
+         }
+      }
+   }
+   let received = toBN(0);
+   for (let i = 0; i < response.data.vout.length; i++) {
+      if (response.data.vout[i].scriptPubKey?.address === address) {
+         let value = response.data.vout[i].value;
+         if (value) {
+            received = received.add(toBN(Math.floor(value*BTC_IN_SATOSHI)));
+         }
+      }
+   }
+   return received.sub(spent);
+}
+
 export async function testPaymentRequest(
    entityManager: EntityManager,
    dbTransaction: DBTransactionBase,
    blockClass: any,
    numberOfConfirmations: number,
-   chainType: ChainType
+   chainType: ChainType,
+   inUtxo: number = 0,
+   utxo: number = 0
 ) {
    let block = await selectBlock(entityManager, blockClass, dbTransaction.blockNumber + numberOfConfirmations);
    return {
@@ -250,8 +328,8 @@ export async function testPaymentRequest(
       sourceId: chainType as any as SourceId,
       upperBoundProof: prefix0x(block.blockHash),
       id: prefix0x(dbTransaction.transactionId),
-      inUtxo: 0,
-      utxo: 0
+      inUtxo,
+      utxo
    } as ARPayment;
 }
 
@@ -260,7 +338,8 @@ export async function testBalanceDecreasingTransactionRequest(
    dbTransaction: DBTransactionBase,
    blockClass: any,
    numberOfConfirmations: number,
-   chainType: ChainType
+   chainType: ChainType,
+   inUtxo: number = 0
 ) {
    let block = await selectBlock(entityManager, blockClass, dbTransaction.blockNumber + numberOfConfirmations);
    return {
@@ -268,14 +347,14 @@ export async function testBalanceDecreasingTransactionRequest(
       sourceId: chainType as any as SourceId,
       upperBoundProof: prefix0x(block.blockHash),
       id: prefix0x(dbTransaction.transactionId),
-      inUtxo: 0,
+      inUtxo
    } as ARBalanceDecreasingTransaction;
 }
 
 export async function testConfirmedBlockHeightExistsRequest(
    confirmationBlock: DBBlockBase,
    chainType: ChainType
-) {   
+) {
    return {
       attestationType: AttestationType.ConfirmedBlockHeightExists,
       sourceId: chainType as any as SourceId,

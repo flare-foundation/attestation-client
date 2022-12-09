@@ -161,24 +161,33 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
 }
 
 /**
- * Prefixes hex string with `0x` if the string is not yet prefixed
+ * Prefixes hex string with `0x` if the string is not yet prefixed.
+ * It can handle also negative values.
  * @param tx input hex string with or without `0x` prefix
  * @returns `0x` prefixed hex string.
  */
-export function prefix0x(tx: string) {
-  return tx.startsWith("0x") ? tx : "0x" + tx;
+export function prefix0xSigned(tx: string) {
+  if(tx.startsWith("0x") || tx.startsWith("-0x")) {
+    return tx;
+  }
+  if(tx.startsWith("-")) {
+    return "-0x" + tx.slice(1);
+  }
+  return tx;
 }
 
 /**
  * Converts fields of an object to Hex values
+ * Note: negative values are hexlified with '-0x'.
+ * This is compatible with web3.eth.encodeParameters
  * @param obj input object
  * @returns object with matching fields to input object but instead having various number types (number, BN)
- * converted to hex values ('0x'-prefixed)
+ * converted to hex values ('0x'-prefixed).
  */
 export function hexlifyBN(obj: any): any {
   const isHexReqex = /^[0-9A-Fa-f]+$/;
   if (obj?.mul) {
-    return prefix0x(toHex(obj));
+    return prefix0xSigned(toHex(obj));
   }
   if (Array.isArray(obj)) {
     return (obj as any[]).map((item) => hexlifyBN(item));
@@ -192,7 +201,8 @@ export function hexlifyBN(obj: any): any {
     return res;
   }
   if (typeof obj === "string" && obj.match(isHexReqex)) {
-    return prefix0x(obj);
+    return prefix0xSigned(obj);
   }
   return obj;
 }
+

@@ -4,14 +4,15 @@ process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "btc";
 process.env.IN_MEMORY_DB = "1";
 
-import { ChainType, prefix0x } from "@flarenetwork/mcc";
+import { ChainType, prefix0x, toBN, toHex } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
-import chai, { assert } from 'chai';
+import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { EntityManager } from "typeorm";
-import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
+import Web3 from "web3";
+import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBTC0, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
 import { WSServerConfigurationService } from "../../lib/servers/common/src";
 import { WsServerModule } from "../../lib/servers/ws-server/src/ws-server.module";
@@ -20,8 +21,9 @@ import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { AttestationRequest } from "../../lib/verification/attestation-types/attestation-types";
 import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
-import { encodePayment } from "../../lib/verification/generated/attestation-request-encode";
-import { generateTestIndexerDB, selectedReferencedTx, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
+import { encodeBalanceDecreasingTransaction, encodeConfirmedBlockHeightExists, encodePayment, encodeReferencedPaymentNonexistence } from "../../lib/verification/generated/attestation-request-encode";
+import { addressOnVout, firstAddressVin, firstAddressVout, generateTestIndexerDB, selectBlock, selectedReferencedTx, testBalanceDecreasingTransactionRequest, testConfirmedBlockHeightExistsRequest, testPaymentRequest, testReferencedPaymentNonexistenceRequest, totalDeliveredAmountToAddress } from "../indexed-query-manager/utils/indexerTestDataGenerator";
+import { sendToVerifier } from "./utils/server-test-utils";
 
 chai.use(chaiAsPromised);
 
@@ -46,9 +48,7 @@ interface TestData extends IIdentifiable {
   b: string;
 }
 
-const axios = require("axios");
-
-describe("Test websocket verifier server ", () => {
+describe("Test BTC verifier server", () => {
 
   let app: INestApplication;
   let configurationService: WSServerConfigurationService;
@@ -97,10 +97,11 @@ describe("Test websocket verifier server ", () => {
     selectedTransaction = await selectedReferencedTx(entityManager, DB_TX_TABLE, BLOCK_CHOICE);
   });
 
-  it(`Should verify attestation`, async function () {
-    console.log(selectedTransaction)
-    let request = await testPaymentRequest(entityManager, selectedTransaction, DB_BLOCK_TABLE, NUMBER_OF_CONFIRMATIONS, CHAIN_TYPE);
-    console.log(request)
+  it(`Should verify Payment attestation`, async function () {
+    let inUtxo = firstAddressVin(selectedTransaction);
+    let utxo = firstAddressVout(selectedTransaction);
+    let request = await testPaymentRequest(entityManager, selectedTransaction, DB_BLOCK_TABLE, NUMBER_OF_CONFIRMATIONS, CHAIN_TYPE, inUtxo, utxo);
+    // console.log(request)
     let attestationRequest = {
       request: encodePayment(request),
       options: {
@@ -109,16 +110,120 @@ describe("Test websocket verifier server ", () => {
         windowStartTime: startTime + 1, // must exist one block with timestamp lower
         UBPCutoffTime: startTime
       }
-    } as AttestationRequest
-    const resp = await axios.post(
-      `http://localhost:${configurationService.wsServerConfiguration.port}/query`,
-      attestationRequest
-    );
-    // console.log(resp.data)
-    assert(resp.data.status === "OK", "Wrong server response");
-    console.log(resp.data)
-    // assert(resp.data.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-    
+    } as AttestationRequest;
+
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
+    let response = JSON.parse(selectedTransaction.response);
+    let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
+    let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
+    assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
+    assert(resp.data.response.receivingAddressHash === Web3.utils.soliditySha3(receivingAddress), "Wrong receiving address");
+  });
+
+  it(`Should verify Balance Decreasing attestation attestation`, async function () {
+    let inUtxo = firstAddressVin(selectedTransaction);
+    let request = await testBalanceDecreasingTransactionRequest(entityManager, selectedTransaction, DB_BLOCK_TABLE, NUMBER_OF_CONFIRMATIONS, CHAIN_TYPE, inUtxo);
+    let attestationRequest = {
+      request: encodeBalanceDecreasingTransaction(request),
+      options: {
+        roundId: 1,
+        recheck: false,
+        windowStartTime: startTime + 1, // must exist one block with timestamp lower
+        UBPCutoffTime: startTime
+      }
+    } as AttestationRequest;
+
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
+    let response = JSON.parse(selectedTransaction.response);
+    let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
+    assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
+  });
+
+  it(`Should verify Confirmed Block Height Exists attestation`, async function () {
+    let confirmationBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
+    let request = await testConfirmedBlockHeightExistsRequest(confirmationBlock, CHAIN_TYPE);
+    let attestationRequest = {
+      request: encodeConfirmedBlockHeightExists(request),
+      options: {
+        roundId: 1,
+        recheck: false,
+        windowStartTime: startTime + 1, // must exist one block with timestamp lower
+        UBPCutoffTime: startTime
+      }
+    } as AttestationRequest;
+
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.response.blockNumber === toHex(BLOCK_CHOICE - NUMBER_OF_CONFIRMATIONS + 1), "Wrong block number");
+    assert(resp.data.response.lowestQueryWindowBlockNumber === toHex(101), "Wrong lowest query window block number");
+  });
+
+  it(`Should fail to provide Referenced Payment Nonexistence attestation`, async function () {
+    let utxo = firstAddressVout(selectedTransaction, 1);
+    let receivingAddress = addressOnVout(selectedTransaction, utxo);
+    let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
+    let request = await testReferencedPaymentNonexistenceRequest(
+      entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, 
+      selectedTransaction.timestamp + 2, receivingAddress, receivedAmount, prefix0x(selectedTransaction.paymentReference));
+
+    let attestationRequest = {
+      request: encodeReferencedPaymentNonexistence(request),
+      options: {
+        roundId: 1,
+        recheck: false,
+        windowStartTime: startTime + 1, // must exist one block with timestamp lower
+        UBPCutoffTime: startTime
+      }
+    } as AttestationRequest;
+
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.status === "REFERENCED_TRANSACTION_EXISTS", "Did not manage to find referenced transaction");
+  });
+
+  it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
+    let utxo = firstAddressVout(selectedTransaction, 1);
+    let receivingAddress = addressOnVout(selectedTransaction, utxo);
+    let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
+
+    let request = await testReferencedPaymentNonexistenceRequest(entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, 
+      DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, selectedTransaction.timestamp + 2, 
+      receivingAddress, receivedAmount.add(toBN(1)), prefix0x(selectedTransaction.paymentReference));
+
+    let attestationRequest = {
+      request: encodeReferencedPaymentNonexistence(request),
+      options: {
+        roundId: 1,
+        recheck: false,
+        windowStartTime: startTime + 1, // must exist one block with timestamp lower
+        UBPCutoffTime: startTime
+      }
+    } as AttestationRequest; 
+
+    let resp = await sendToVerifier(configurationService, attestationRequest);
+
+    assert(resp.status === "OK", "Wrong server response");
+    assert(resp.data.status === "OK", "Status is not OK");
+    assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE + 3), "Incorrect first overflow block");
+    assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp + 3), "Incorrect first overflow block timestamp");
+  });
+
+  it(`Should fail to provide Referenced Payment Nonexistence with negative value`, async function () {
+    let utxo = firstAddressVout(selectedTransaction, 0);
+    let receivingAddress = addressOnVout(selectedTransaction, utxo);
+    let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
+    let request = await testReferencedPaymentNonexistenceRequest(
+      entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, 
+      selectedTransaction.timestamp + 2, receivingAddress, receivedAmount, prefix0x(selectedTransaction.paymentReference));
+
+    expect(() => encodeReferencedPaymentNonexistence(request)).to.throw("Negative values are not supported in attestation requests")    
   });
 
   after(async () => {

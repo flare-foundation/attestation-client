@@ -1,4 +1,4 @@
-import { runBot } from "./state-connecotr-validator-bot";
+import { runBot } from "./state-connector-validator-bot";
 
 const { argv } = require("yargs")
   .scriptName("airdropTransactions")

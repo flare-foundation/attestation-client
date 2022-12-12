@@ -4,7 +4,7 @@ import { getGlobalLogger } from "./logger";
 
 /**
  * @param object 
- * @returns returns `object` constructor name of object of type `object` and `typeof` for all the rest.
+ * @returns Returns @param object constructor name for object of type `object` and `typeof` for all the rest.
  */
 function getType(object: any) {
   let type = typeof object;
@@ -17,7 +17,7 @@ function getType(object: any) {
 }
 
 /**
- * checks if `A` and `B` have unique members.
+ * Checks if `A` and `B` have unique members.
  * 
  * @param parent 
  * @param A 
@@ -144,7 +144,7 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
 
 
 /**
- * checks if object `A` has same members as object `B`.
+ * Checks if object `A` has same members as object `B`.
  * 
  * @param A 
  * @param B 

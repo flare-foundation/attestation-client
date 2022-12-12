@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 /**
- * encrypt string using AES256
+ * Encrypt string using AES256.
  * @param password
  * @param text 
  * @returns 
@@ -15,7 +15,7 @@ export function encryptString(password: string, text: string): string {
 }
 
 /**
- * decrypt string using AES256
+ * Decrypt string using AES256.
  * @param password 
  * @param encryptedText 
  * @returns 

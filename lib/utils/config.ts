@@ -7,12 +7,12 @@ const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
 /**
- * read config file with all the parameters.
+ * Read config file with all the parameters.
  * 
- * function creates configutaion object of `obj` and checks if all class members are set.
+ * Function creates configuration object of @param obj and checks if all class members are set.
  * Any unset (non optional) members return error.
  * 
- * Instance class (obj) must be inherited from `IReflection`
+ * Instance class @param obj must be inherited from `IReflection`.
  * 
  * use `CONFIG_PATH` env variable to set configuration path. note that path start location is rooted in `<app_root>/.config/` folder.
  * 
@@ -64,7 +64,7 @@ function readConfigBase<T extends IReflection<T>>(project: string, type: string,
 }
 
 /**
- * helper class for `readConfigBase` to read `config`
+ * Helper class for `readConfigBase` to read `config`.
  * @param obj 
  * @param project 
  * @param mode 
@@ -76,7 +76,7 @@ export function readConfig<T extends IReflection<T>>(obj: T, project: string, mo
 }
 
 /**
- * helper class for `readConfigBase` to read `credentials`
+ * Helper class for `readConfigBase` to read `credentials`.
  * @param obj 
  * @param project 
  * @param mode 

@@ -1,14 +1,19 @@
+import fs from "fs";
+import path from "path";
 import { exit } from "process";
+import { getCredentialsKey } from "./credentialsKey";
 import { decryptString } from "./encrypt";
 import { readJSONfromFile, readJSONfromString } from "./json";
 import { getGlobalLogger } from "./logger";
-import { getCredentialsKey } from "./credentialsKey";
 
-export const secureMasterConfigs = [];
+// We assume that one app run has only one network credentials.
+export let secureMasterConfigs = [];
 let networkName = "";
 
+const CREDENTIALS_ERROR = 500;
+
 /**
- * read credentials from json and add it secure master config
+ * Read credentials from JSON and add it secure master config.
  * @param filename
  */
 function addSecureCredentials<T>(filename: string) {
@@ -20,31 +25,53 @@ function addSecureCredentials<T>(filename: string) {
 }
 
 /**
- * initialize json secure
+ * Clear credentials. 
+ * For testing purposes.
+ */
+export function _clearSecureCredentials() {
+    networkName = "";
+    secureMasterConfigs = [];
+}
+
+/**
+ * Initialize JSON secure.
  * 
- * reads data from `credentials.json.secure` and decrypt it.
- * all keys are added in secure master config
+ * Reads data from `credentials.json.secure` and decrypt it.
+ * All keys are added in @variable secureMasterConfigs.
  * 
- * @param path
+ * @param credentialsPath
  * @param network 
  * @returns 
  */
-export async function initializeJSONsecure<T>(path: string, network: string = "") {
+export async function initializeJSONsecure<T>(credentialsPath: string, network: string = "", secureCredentialsFilename: string = "credentials.json.secure") {
 
-    if (isInitializedJSONsecure()) return;
+    if (isInitializedJSONsecure()) {
+        if (network !== "" && network != networkName) {
+            getGlobalLogger().error(`only single network application supported`);
+            exit(CREDENTIALS_ERROR);
+        }
+        return;
+    }
 
     networkName = network;
 
+    // check that no keys exist
+    if (Object.keys(secureMasterConfigs).length > 0) {
+        getGlobalLogger().error(`secure master config not empty`);
+        exit(CREDENTIALS_ERROR);
+
+        // when testing exit is stubbed to save value and continue
+        return null;
+    }
+
     // check if encrypted config exists
-    const fs = require('fs');
+    const credentialsFilename = path.join(credentialsPath, secureCredentialsFilename);
 
-    const secureCredentialsFilename = "credentials.json.secure";
-
-    if (fs.existsSync(path + secureCredentialsFilename)) {
+    if (fs.existsSync(credentialsFilename)) {
 
         const password = await getCredentialsKey();
 
-        let data = fs.readFileSync(path + secureCredentialsFilename).toString();
+        let data = fs.readFileSync(credentialsFilename).toString();
 
         // decrypt
         data = decryptString(password, data);
@@ -53,24 +80,27 @@ export async function initializeJSONsecure<T>(path: string, network: string = ""
             const config = readJSONfromString<any>(data, null, false);
 
             for (const key of Object.keys(config)) {
-
+                if (secureMasterConfigs[key]) {
+                    getGlobalLogger().error(`duplicate key '${key}' from '${credentialsFilename}'`);
+                    exit(CREDENTIALS_ERROR);
+                }
                 secureMasterConfigs.push([key, config[key]]);
             }
         }
         catch (error) {
-            getGlobalLogger().error( `error decrypting credentials ^R^w${path + secureCredentialsFilename}` );
-            exit(500);
+            getGlobalLogger().error(`error decrypting credentials ^R^w${credentialsFilename}`);
+            exit(CREDENTIALS_ERROR);
         }
     }
     else {
-        addSecureCredentials(path + "chains.credentials.json");
-        addSecureCredentials(path + "networks.credentials.json");
-        addSecureCredentials(path + "database.credentials.json");
+        addSecureCredentials(path.join(credentialsPath, "chains.credentials.json"));
+        addSecureCredentials(path.join(credentialsPath, "networks.credentials.json"));
+        addSecureCredentials(path.join(credentialsPath, "database.credentials.json"));
     }
 }
 
 /**
- * checks if secure JSON is initialized
+ * Checks if secure JSON is initialized.
  * @returns true if secure JSON is initialized
  */
 export function isInitializedJSONsecure(): boolean {
@@ -78,9 +108,9 @@ export function isInitializedJSONsecure(): boolean {
 }
 
 /**
- * reads json and process it with secure data 
+ * Reads JSON data from @param filename and process it with secure data.
  * 
- * it reads json template and make credentials replacements (check `processData`).
+ * It reads JSON template and make credentials replacements (check @function _prepareSecureData).
  * 
  * @param filename
  * @param parser 
@@ -92,31 +122,27 @@ export function readJSONsecure<T>(filename: string, parser: any = null, validate
         return readJSONfromFile(filename, parser, validate);
     }
 
-    const fs = require("fs");
-
     let data = fs.readFileSync(filename).toString();
 
-    data = prepareSecureData(data, filename, networkName)
+    data = _prepareSecureData(data, filename, networkName)
 
     return readJSONfromString<T>(data, parser, validate, filename);
 }
 
 /**
- * prepare template file `inputFilename` data `data` by replacing all $(key) instances from secure master config.
+ * Prepare template file @param inputFilename data @param data by replacing all $(key) instances from secure master config.
  * 
- * first it replaces all instances of `$(Network)` to value of `chain`.
- * second it replaces all instances of `$(key)` to value of 'key` from secure master config.
+ * First it replaces all instances of `$(Network)` to value of @param chain.
+ * Second it replaces all instances of `$(key)` to value of 'key` from secure master config.
  * 
- * finally it checks if any instance of `$(` is left to validate that everything is correctly replaced.
+ * Finally it checks if any instance of `$(` is left to validate that everything is correctly replaced.
  * 
  * @param data 
  * @param inputFilename 
  * @param chain 
  * @returns 
  */
-export function prepareSecureData(data: string, inputFilename: string, chain: string): string {
-    //logger.info(`processing ^G${inputFilename}^^ (${outputFilename})`);
-
+export function _prepareSecureData(data: string, inputFilename: string, chain: string): string {
     data = replaceAll(data, `Network`, chain);
 
     for (const config of secureMasterConfigs) {
@@ -138,14 +164,14 @@ export function prepareSecureData(data: string, inputFilename: string, chain: st
 }
 
 /**
- * replace all instances of `from` to `to` in `source`.
+ * Replace all instances of @param from to @param to in @param source.
  * @param source 
  * @param from 
  * @param to 
  * @returns 
  */
 function replaceAll(source: string, from: string, to: string): string {
-    while (1) {
+    while (true) {
         const newSource = source.replace(`$(${from})`, to);
         if (newSource === source) return source;
         source = newSource;

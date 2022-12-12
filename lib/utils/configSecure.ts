@@ -6,16 +6,16 @@ import { isEqualType } from "./typeReflection";
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
 /**
- * read secure credentials file and substitude its variables in the template files.
+ * Read secure credentials file and substitude its variables in the template files.
  * 
- * function creates configutaion object of `obj` and checks if all class members are set.
+ * Function creates configutaion object of `obj` and checks if all class members are set.
  * Any unset (non optional) members return error.
  * 
  * Instance class (obj) must be inherited from `IReflection`
  * 
- * use `SECURE_CONFIG_PATH` env variable to set configuration path if non standard (`../attestation-suite-config`). note that path in this function is absolute (different usage as with the `readConfigBase` function).
+ * Use `SECURE_CONFIG_PATH` env variable to set configuration path if non standard (`../attestation-suite-config`). note that path in this function is absolute (different usage as with the `readConfigBase` function).
  * 
- * use `SECURE_CONFIG_NETWORK` env variables to specify the network.
+ * Use `SECURE_CONFIG_NETWORK` env variables to specify the network.
  * 
  * @param project project name 
  * @param type configuration type (config, cretentials)
@@ -64,7 +64,7 @@ async function readSecureConfigBase<T extends IReflection<T>>(project: string, t
 }
 
 /**
- * helper class for `readSecureConfigBase` to read `config`
+ * Helper class for `readSecureConfigBase` to read `config`.
  * @param obj 
  * @param project 
  * @returns 
@@ -74,8 +74,8 @@ export async function readSecureConfig<T extends IReflection<T>>(obj: T, project
 }
 
 /**
- * helper class for `readSecureConfigBase` to read `credentials`
- * [obsolete] this function should be obsolete now. for new project use all configurations in one file and use only `readSecureConfig`.
+ * Helper class for `readSecureConfigBase` to read `credentials`.
+ * [obsolete] This function should be obsolete now. for new project use all configurations in one file and use only `readSecureConfig`.
  * @param obj 
  * @param project 
  * @returns 

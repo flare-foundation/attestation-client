@@ -42,11 +42,13 @@ export async function prepareSecureCredentials(credentialsPath: string, password
 
         logger.info(`  loading credentials ^R${file}`);
 
-        const config = readJSONfromFile<any>(credentialsPath + file, null, true);
+        const filename = path.join(credentialsPath, file);
+
+        const config = readJSONfromFile<any>(filename, null, true);
 
         for (const key of Object.keys(config)) {
-            if( combinedConfigs[key] ) {
-                logger.error(`duplicate key '${key}' from '${credentialsPath + file}'`);
+            if (combinedConfigs[key]) {
+                logger.error(`duplicate key '${key}' from '${filename}'`);
                 exit(3);
             }
             combinedConfigs[key] = config[key];

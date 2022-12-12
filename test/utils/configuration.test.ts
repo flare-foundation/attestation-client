@@ -1,20 +1,18 @@
 // yarn test test/utils/configuration.test.ts
 // yarn nyc yarn test test/utils/configuration.test.ts
 
-
 import { assert } from "chai";
+import sinon from "sinon";
 import { prepareSecureCredentials } from "../../lib/install/prepareSecureCredentials";
 import { readSecureConfig, readSecureCredentials } from "../../lib/utils/configSecure";
 import { getCredentialsKey, getCredentialsKeyByAddress } from "../../lib/utils/credentialsKey";
 import { decryptString, encryptString } from "../../lib/utils/encrypt";
 import { readJSON, readJSONfromString } from "../../lib/utils/json";
-import { prepareSecureData, secureMasterConfigs } from "../../lib/utils/jsonSecure";
+import { secureMasterConfigs, _clearSecureCredentials, _prepareSecureData } from "../../lib/utils/jsonSecure";
 import { initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { AdditionalTypeInfo, IReflection } from "../../lib/utils/reflection";
 import { TestLogger } from "../../lib/utils/testLogger";
 import { getTestFile } from "../test-utils/test-utils";
-
-const sinon = require('sinon');
 
 const password = "t3stPassw0rd";
 
@@ -43,6 +41,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
     before(async () => {
         initializeTestGlobalLogger();
 
+        // Enable Test Logger display
         //TestLogger.setDisplay(1);
 
         process.env.SECURE_CONFIG_PATH = secureConfigPath;
@@ -55,6 +54,12 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
             exitCode = code;
         });
 
+    });
+
+    beforeEach(async () => {
+        exitCode = 0;
+
+        _clearSecureCredentials();
     });
 
     // encryption
@@ -75,7 +80,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         secureMasterConfigs.push(["test1", "value1"]);
         secureMasterConfigs.push(["test2", 2]);
 
-        const prepared = prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)"}`, "", "TestNetwork");
+        const prepared = _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)"}`, "", "TestNetwork");
 
         assert(prepared === `{"test1"="value1","test2"=2"}`, `prepareSecureData does not work`);
     });
@@ -84,7 +89,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         secureMasterConfigs.push(["test1", "value1"]);
         secureMasterConfigs.push(["test2", 2]);
 
-        const prepared = prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)", "test3"=$(test3)}`, "", "TestNetwork");
+        const prepared = _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)", "test3"=$(test3)}`, "", "TestNetwork");
 
         assert(TestLogger.exists("file ^w^^ (chain ^ETestNetwork^^) variable ^r^W$(test3)^^ left unset (check the configuration)"), `config error not reported`);
     });
@@ -92,7 +97,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
     it(`test prepare secure data with network`, async () => {
         secureMasterConfigs.push(["TestNetworkPassword", "123"]);
 
-        const prepared = prepareSecureData(`{"Password"="$($(Network)Password)"}`, "", "TestNetwork");
+        const prepared = _prepareSecureData(`{"Password"="$($(Network)Password)"}`, "", "TestNetwork");
 
         assert(prepared === `{"Password"="123"}`, `prepareSecureData with network does not work`);
     });
@@ -172,6 +177,8 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         assert(test.key2 === 2, "incorrect config key");
         assert(test.key3 === 3, "incorrect config key");
         assert(test.key4 === 4, "incorrect config key");
+
+        assert(exitCode === 0, `function must not exit`);
     });
 
     it(`secure credentials read`, async () => {
@@ -183,6 +190,20 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         assert(test.key2 === 2, "incorrect config key");
         assert(test.key3 === 3, "incorrect config key");
         assert(test.key4 === 4, "incorrect config key");
+
+        assert(exitCode === 0, `function must not exit`);
     });
+
+    it(`test empty credentials at start`, async () => {
+        let testConfig = new TestConfig();
+
+        secureMasterConfigs.push(["dummy", 123]);
+
+        const test = await readSecureConfig(testConfig, "template1");
+
+        assert(exitCode !== 0, `function must exit`);
+    });
+
+
 
 })

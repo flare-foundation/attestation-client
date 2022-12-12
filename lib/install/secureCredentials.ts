@@ -7,9 +7,6 @@
 import { getGlobalLogger } from "../utils/logger";
 import { prepareSecureCredentials } from "./prepareSecureCredentials";
 
-const fs = require("fs");
-const path = require('path');
-
 const logger = getGlobalLogger();
 
 const yargs = require("yargs");

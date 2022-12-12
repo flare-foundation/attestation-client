@@ -2,6 +2,9 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { exit } from "process";
 import { getGlobalLogger } from "./logger";
 
+const INVALID_CREDENTIAL_ADDRESS = 501;
+const UNKNOWN_SECRET_PROVIDER = 502;
+const GOOGLE_CLOUD_SECRET_MANAGER_ERROR = 503;
 
 /**
  * get secret from the Google Cloud Secret Manager Servis
@@ -17,22 +20,23 @@ export async function getSecretPasswordGoogleCloud(name: string) {
 
         if (!payload) {
             getGlobalLogger().error(`GoogleCould: failed to fetch secret "${name}": no payload`)
-            exit(501);
-            return "";
+            exit(GOOGLE_CLOUD_SECRET_MANAGER_ERROR);
+            return;
         }
 
         return payload
     }
     catch (error) {
         getGlobalLogger().error(`GoogleCould: failed to fetch secret "${name}": ${error}`)
-        exit(501);
+        exit(GOOGLE_CLOUD_SECRET_MANAGER_ERROR);
+        return;
     }
 }
 
 /**
  * get secret password by provider
  * supported providers:
- * - GoogleCloudSecretManager - addres is GoogleCloudSecretManager secret address
+ * - GoogleCloudSecretManager - address is GoogleCloudSecretManager secret address
  * - direct - addres is plain password *don't use that for anything else but testing*
  * @param provider provider name
  * @param address secret address
@@ -52,13 +56,17 @@ export async function getSecretPasswordByProvider(provider: string, address: str
         default:
             {
                 getGlobalLogger().error(`invalid getSecretPassword provider "${provider}"`);
-                exit(502);
+                exit(UNKNOWN_SECRET_PROVIDER);
+                return;
             }
     }
 }
 
 /**
- * get credentials key by address made from provider and addres separated by `:`.
+ * Get credentials key by @param address made from provider and address separated by `:`.
+ * Address example:
+ * -@param address="GoogleCloudSecretManager:projects/flare-network-staging/secrets/data-provider-2_heartbeat-daemon_accountPrivateKey/versions/latest"
+ * -@param address="direct:testPassword"
  * 
  * @param address 
  * @returns 
@@ -69,7 +77,8 @@ export async function getCredentialsKeyByAddress(address: string) {
 
     if (providerAddress.length != 2) {
         getGlobalLogger().error(`invalid getCredentialsKeyByAddress address`);
-        exit(503);
+        exit(INVALID_CREDENTIAL_ADDRESS);
+        return;
     }
 
     return await getSecretPasswordByProvider(providerAddress[0], providerAddress[1]);
@@ -77,13 +86,10 @@ export async function getCredentialsKeyByAddress(address: string) {
 
 /**
  * get credentials key from `CREDENTIALS_KEY` env variables. 
- * address is like this:
- * CREDENTIALS_KEY="GoogleCloudSecretManager:projects/flare-network-staging/secrets/data-provider-2_heartbeat-daemon_accountPrivateKey/versions/latest"
- * CREDENTIALS_KEY="direct:testPassword"
  * 
  * @returns 
  */
 export async function getCredentialsKey() {
-    return await getCredentialsKeyByAddress( process.env.CREDENTIALS_KEY );
+    return await getCredentialsKeyByAddress(process.env.CREDENTIALS_KEY);
 }
 

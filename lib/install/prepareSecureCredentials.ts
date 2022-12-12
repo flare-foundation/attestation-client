@@ -4,17 +4,22 @@
 // `credentials.json.secure` contains all keys in all .json files in `path` folder (non recursive).
 // this file should be copied into target config path.
 
+import fs from "fs";
+import path from "path";
 import { exit } from "process";
 import { getCredentialsKeyByAddress } from "../utils/credentialsKey";
 import { encryptString } from "../utils/encrypt";
 import { readJSONfromFile } from "../utils/json";
 import { getGlobalLogger } from "../utils/logger";
 
-const fs = require("fs");
-const path = require('path');
-
 const logger = getGlobalLogger();
 
+/**
+ * Combine all `.json` files from @param credentialsPath, encrypts them with password from @param passwordAddress and save all in a file @param output.
+ * @param credentialsPath 
+ * @param passwordAddress 
+ * @param output 
+ */
 export async function prepareSecureCredentials(credentialsPath: string, passwordAddress: string, output: string) {
     logger.group(`secureCredentials ^r${credentialsPath}`);
 
@@ -40,6 +45,10 @@ export async function prepareSecureCredentials(credentialsPath: string, password
         const config = readJSONfromFile<any>(credentialsPath + file, null, true);
 
         for (const key of Object.keys(config)) {
+            if( combinedConfigs[key] ) {
+                logger.error(`duplicate key '${key}' from '${credentialsPath + file}'`);
+                exit(3);
+            }
             combinedConfigs[key] = config[key];
         }
     }

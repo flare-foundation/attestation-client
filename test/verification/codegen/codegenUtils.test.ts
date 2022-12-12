@@ -1,8 +1,9 @@
 import { expect } from "chai";
 import { constantize } from "../../../lib/verification/codegen/cg-utils";
+import { getTestFile } from "../../test-utils/test-utils";
 
 
-describe(`Code gen utils tests`, function () {
+describe(`Code gen utils tests (${getTestFile(__filename)})`, function () {
 
   describe(`constantize`, function () {
     it("methodNameToCon", function () {

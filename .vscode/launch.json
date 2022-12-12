@@ -345,9 +345,8 @@
                 "${workspaceFolder}/../mcc/src/**"
             ],
             "runtimeArgs": [
-                "hardhat",
                 "test",
-                "test/generated/AttestationRequestParser.test.ts"
+                "test/test-utils/configuration.test.ts"
             ]
         },
         {

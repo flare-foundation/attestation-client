@@ -2,6 +2,7 @@ import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { getGlobalLogger } from "../../lib/utils/logger";
 import { IIdentifiable, IIdentifiableResponse, PromiseRequestManager, WsResponseStatus } from "../../lib/utils/PromiseRequestManager";
+import { getTestFile } from '../test-utils/test-utils';
 chai.use(chaiAsPromised);
 
 interface PingRequest extends IIdentifiable {
@@ -29,7 +30,7 @@ async function sendPingGetPong(request: PingRequest, manager: PromiseRequestMana
   }, timeout)
 }
 
-describe("PromiseRequestHandler", () => {
+describe(`PromiseRequestHandler (${getTestFile(__filename)})`, () => {
   let logger = getGlobalLogger("test");
 
   it("Should send and receive a request", async () => {

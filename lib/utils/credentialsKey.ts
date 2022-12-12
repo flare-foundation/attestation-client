@@ -44,11 +44,6 @@ export async function getSecretPasswordByProvider(provider: string, address: str
             {
                 return await getSecretPasswordGoogleCloud(address);
             }
-        case "AmazonKeyManagementSystem":
-            {
-                getGlobalLogger().error(`not implemented yet "${provider}"`);
-                exit(502);
-            }
         case "direct":
             {
                 getGlobalLogger().warning(`password is not secure`);

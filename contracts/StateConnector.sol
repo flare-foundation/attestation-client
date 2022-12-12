@@ -149,7 +149,7 @@ contract StateConnector {
 
     // Called from validator (GO) when first submit attestation comes
     function finaliseRound(uint256 _bufferNumber, bytes32 _merkleRoot) external {
-        require(_bufferNumber > 4);
+        require(_bufferNumber > 3);
         require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
         require(_bufferNumber > totalBuffers);
         // The following region can only be called from the golang code

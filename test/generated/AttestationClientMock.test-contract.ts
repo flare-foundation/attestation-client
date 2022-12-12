@@ -31,6 +31,7 @@ import {
 } from "../../lib/verification/generated/attestation-hash-utils";
 
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
+import { getTestFile } from "../test-utils/test-utils";
 
 const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
@@ -38,7 +39,7 @@ const STATECONNECTOR_ROUND = 1;
 const CHAIN_ID = SourceId.BTC;
 const NUM_OF_HASHES = 100;
 
-describe("Attestestation Client Mock", function () {
+describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () {
   let attestationClient: AttestationClientSCInstance;
   let stateConnectorMock: StateConnectorMockInstance;
   beforeEach(async () => {

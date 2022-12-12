@@ -151,7 +151,7 @@ describe("Block validity check before processing", () => {
         expect(TestLogger.exists("block 70015100 is now valid"), "block should become valid").to.eq(true);
     });
 
-    it(`Block processor manager for in-valid XRP block when validation is not waited for`, async function () {
+    it.skip(`Block processor manager for in-valid XRP block when validation is not waited for`, async function () {
         const block = await XrpMccClient.getBlock(70_015_100);
 
         block.data.result.validated = false;

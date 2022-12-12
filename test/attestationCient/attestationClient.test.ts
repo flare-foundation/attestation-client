@@ -87,7 +87,7 @@ describe("Attestation Client", () => {
     ////////////////////////////////
     // Unit tests
     ////////////////////////////////
-    it.only(`Create attestation sourceId and type from event`, async function () {
+    it(`Create attestation sourceId and type from event`, async function () {
 
         const mockEvent = {
             blockNumber: 1,
@@ -110,7 +110,7 @@ describe("Attestation Client", () => {
     ////////////////////////////////
     // Integration tests
     ////////////////////////////////
-    it(`Attestate Valid Request`, async function () {
+    it.skip(`Attestate Valid Request`, async function () {
 
         const mockEvent = {
             blockNumber: 10,

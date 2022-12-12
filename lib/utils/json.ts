@@ -48,32 +48,8 @@ function getJSONParseError(json) {
 }
 
 /**
- * parse json with support of comments (end of line comments and multiline comments) and end element comma.
- * @param data 
- * @param reviver 
- * @returns 
- */
-export function parseJSON<T>(data: string, reviver: any = null) {
-  try {
-    // remove all comments
-    data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
-
-    // remove trailing commas
-    data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
-
-    //console.log( data );
-
-    const res = JSON.parse(data, reviver) as T;
-
-    return res;
-  }
-  catch (error) {
-    getGlobalLogger().error(`error parsing JSON`);
-  }
-}
-
-/**
  * read json file from string
+ * support of comments (end of line comments and multiline comments) and end element comma.
  * 
  * @param data 
  * @param parser 

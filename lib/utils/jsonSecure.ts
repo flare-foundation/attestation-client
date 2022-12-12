@@ -4,7 +4,7 @@ import { readJSONfromFile, readJSONfromString } from "./json";
 import { getGlobalLogger } from "./logger";
 import { getCredentialsKey } from "./credentialsKey";
 
-const secureMasterConfigs = [];
+export const secureMasterConfigs = [];
 let networkName = "";
 
 /**
@@ -15,7 +15,6 @@ function addSecureCredentials<T>(filename: string) {
     const config = readJSONfromFile<any>(filename, null, true);
 
     for (const key of Object.keys(config)) {
-
         secureMasterConfigs.push([key, config[key]]);
     }
 }
@@ -97,7 +96,7 @@ export function readJSONsecure<T>(filename: string, parser: any = null, validate
 
     let data = fs.readFileSync(filename).toString();
 
-    data = processData(data, filename, networkName)
+    data = prepareSecureData(data, filename, networkName)
 
     return readJSONfromString<T>(data, parser, validate, filename);
 }
@@ -115,7 +114,7 @@ export function readJSONsecure<T>(filename: string, parser: any = null, validate
  * @param chain 
  * @returns 
  */
-function processData(data: string, inputFilename: string, chain: string): string {
+export function prepareSecureData(data: string, inputFilename: string, chain: string): string {
     //logger.info(`processing ^G${inputFilename}^^ (${outputFilename})`);
 
     data = replaceAll(data, `Network`, chain);

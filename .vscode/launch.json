@@ -335,7 +335,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Test Attestation parser",
+            "name": "Test Configuration",
             "runtimeExecutable": "yarn",
             "console": "integratedTerminal",
             "outFiles": [
@@ -346,7 +346,7 @@
             ],
             "runtimeArgs": [
                 "test",
-                "test/test-utils/configuration.test.ts"
+                "test/utils/configuration.test.ts"
             ]
         },
         {

@@ -1,4 +1,5 @@
 import { parser as theParser } from 'clarinet';
+import fs from "fs";
 import { getGlobalLogger } from "./logger";
 
 /**
@@ -48,8 +49,8 @@ function getJSONParseError(json) {
 }
 
 /**
- * read json file from string
- * support of comments (end of line comments and multiline comments) and end element comma.
+ * Read json file from string.
+ * Support of comments (end of line comments and multiline comments) and end element comma.
  * 
  * @param data 
  * @param parser 
@@ -70,7 +71,6 @@ export function readJSONfromString<T>(data: string, parser: any = null, validate
     if (validateRes) {
       getGlobalLogger().error(`readJSON error ^r^W${validateRes.message}^^ file ^e${filename}^w@${validateRes.line}^^ (snippet ^w^K${validateRes.snippet}^^)`);
       throw new Error(`error parsing json file ${filename}@${validateRes.line}: ${validateRes.message}`);
-      return null;
     }
   }
 
@@ -80,7 +80,7 @@ export function readJSONfromString<T>(data: string, parser: any = null, validate
 }
 
 /**
- * read json from file
+ * Read json from file.
  * 
  * @param filename 
  * @param parser 
@@ -88,15 +88,13 @@ export function readJSONfromString<T>(data: string, parser: any = null, validate
  * @returns 
  */
 export function readJSONfromFile<T>(filename: string, parser: any = null, validate = false): T {
-  const fs = require("fs");
-
   let data = fs.readFileSync(filename).toString();
 
   return readJSONfromString<T>(data, parser, validate, filename);
 }
 
 /**
- * default function to read json (from file)
+ * Default function to read json (from file).
  * 
  * @param filename 
  * @param parser 

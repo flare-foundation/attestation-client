@@ -1,4 +1,4 @@
-import { ChainType, IBlock, IBlockHeader, Managed, MCC } from "@flarenetwork/mcc";
+import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { EntityTarget } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
@@ -9,10 +9,10 @@ import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTrans
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { failureCallback, retry } from "../utils/PromiseTimeout";
-import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
+import { round, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
-import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
+import { criticalAsync, getStateEntry, getStateEntryString, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
 import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { IndexerSync } from "./indexerSync";
 import { IndexerToClient } from "./indexerToClient";

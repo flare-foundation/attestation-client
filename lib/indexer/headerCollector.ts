@@ -2,7 +2,6 @@ import { BlockHeaderBase, IBlock, IBlockHeader, IBlockTip, Managed } from "@flar
 import { AttLogger } from "../utils/logger";
 import { failureCallback, retry, retryMany } from "../utils/PromiseTimeout";
 import { sleepms } from "../utils/utils";
-import { Indexer } from "./indexer";
 import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
 import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";

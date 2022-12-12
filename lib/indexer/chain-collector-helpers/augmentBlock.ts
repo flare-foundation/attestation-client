@@ -1,7 +1,6 @@
 import { IBlock } from "@flarenetwork/mcc";
 import { DBBlockBase, IDBBlockBase } from "../../entity/indexer/dbBlock";
 import { prepareString } from "../../utils/utils";
-import { Indexer } from "../indexer";
 
 // No need to include indexer in this function
 // No need to be async

@@ -7,7 +7,6 @@ const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const assert = chai.assert;
 
 describe("UnconfirmedBlockManager", function () {
   const databaseConnectOptions = new DatabaseSourceOptions();

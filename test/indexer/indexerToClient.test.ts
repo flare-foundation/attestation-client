@@ -4,7 +4,6 @@ const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const assert = chai.assert;
 
 //To be eventually mocked
 

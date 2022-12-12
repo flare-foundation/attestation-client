@@ -1,4 +1,4 @@
-import { ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
+import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import { Indexer } from "../../lib/indexer/indexer";
 import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
@@ -19,7 +19,6 @@ const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const assert = chai.assert;
 const sinon = require("sinon");
 
 describe("Indexer XRP", () => {

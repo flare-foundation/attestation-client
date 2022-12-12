@@ -1,6 +1,6 @@
 import { DelayedExecution, LimitingProcessor } from "../../lib/caching/LimitingProcessor";
 import { sleepms } from "../../lib/utils/utils";
-import { DatabaseConnectOptions, DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
+import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
 import { globalTestLogger } from "../../lib/utils/logger";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";

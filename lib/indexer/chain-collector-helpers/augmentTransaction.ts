@@ -12,7 +12,6 @@ import {
 } from "@flarenetwork/mcc";
 import { DBTransactionBase, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";
-import { Indexer } from "../indexer";
 
 //No need for indexer to be involved!! We only need active index from interlace
 //Why is this async???

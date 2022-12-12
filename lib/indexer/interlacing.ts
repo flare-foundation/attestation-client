@@ -2,8 +2,7 @@ import { ChainType, Managed } from "@flarenetwork/mcc";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
 import { sleepms } from "../utils/utils";
-import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
-import { Indexer } from "./indexer";
+import { IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
 import { IDBBlockBase } from "../entity/indexer/dbBlock";
 

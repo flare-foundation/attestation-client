@@ -1,9 +1,8 @@
 const sinon = require("sinon");
 import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables } from "../../lib/indexer/indexer-utils";
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
-import exp from "constants";
 const proxi = require("../../lib/utils/PromiseTimeout");
 
 describe("prepareIndexerTables", function () {

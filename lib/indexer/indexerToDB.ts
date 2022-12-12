@@ -1,12 +1,11 @@
 import { ChainType, Managed } from "@flarenetwork/mcc";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
-import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
+import { IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger, logException } from "../utils/logger";
-import { failureCallback, retry } from "../utils/PromiseTimeout";
+import { retry } from "../utils/PromiseTimeout";
 import { getChainN, getStateEntry, prepareIndexerTables } from "./indexer-utils";
-import { Interlacing } from "./interlacing";
 
 /**
  * Class that manages interactions of indexer with DataBase

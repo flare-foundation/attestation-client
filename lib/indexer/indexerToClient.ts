@@ -1,4 +1,4 @@
-import { IBlock, IBlockHeader, Managed, MccClient, ReadRpcInterface } from "@flarenetwork/mcc";
+import { IBlock, IBlockHeader, Managed, ReadRpcInterface } from "@flarenetwork/mcc";
 // import { CachedMccClient } from "../caching/CachedMccClient";
 import { DEFAULT_BACK_OFF_TIME, DEFAULT_RETRY, DEFAULT_TIMEOUT, failureCallback, retry } from "../utils/PromiseTimeout";
 

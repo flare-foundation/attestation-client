@@ -3,7 +3,7 @@ import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, globalTestLogger } from "../../lib/utils/logger";
 import { expect } from "chai";
-import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
+import { DBTransactionBase, DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
 import { afterEach } from "mocha";
 const utils = require("../../lib/utils/utils");
 import sinon from "sinon";

@@ -1,11 +1,10 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { DBBlockALGO, DBBlockBase, IDBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
+import { DBBlockALGO, IDBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import {
   IDBTransactionBase,
   DBTransactionALGO0,
   DBTransactionALGO1,
-  DBTransactionBase,
   DBTransactionBTC0,
   DBTransactionBTC1,
   DBTransactionDOGE0,

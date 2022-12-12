@@ -1,4 +1,4 @@
-import { ChainType, IUtxoGetBlockRes, UtxoBlock, UtxoTransaction } from "@flarenetwork/mcc";
+import { ChainType, UtxoBlock, UtxoTransaction } from "@flarenetwork/mcc";
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { augmentTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
 import * as resBTCBlock from "../mockData/BTCBlock.json";

@@ -6,11 +6,9 @@ import { globalTestLogger } from "../../lib/utils/logger";
 import { expect } from "chai";
 import { DBState } from "../../lib/entity/indexer/dbState";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
-import * as resBTCTx from "../mockData/BTCTx.json";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import sinon from "sinon";
-import { exec } from "child_process";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 

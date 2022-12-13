@@ -58,7 +58,7 @@ class MockAttesterWeb3 extends AttesterWeb3 {
 
 }
 
-describe("Attestation Client", () => {
+describe.skip("Attestation Client", () => {
     let attestationRoundManager: AttestationRoundManager;
 
     before(async function () {

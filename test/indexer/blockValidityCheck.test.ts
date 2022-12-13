@@ -82,7 +82,7 @@ class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
 
 
 
-describe("Block validity check before processing", () => {
+describe.skip("Block validity check before processing", () => {
     let XrpMccClient: MCC.XRP;
     let indexer: Indexer;
 

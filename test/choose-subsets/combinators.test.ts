@@ -2,7 +2,7 @@
 
 import { expect } from "chai";
 import { stringify } from "safe-stable-stringify";
-import { chooseCandidate, countOnes, dec2bin, getSubsetsOfSize, hexStringAnd } from "../../lib/choose-subsets-lib/subsets-lib";
+import { chooseCandidate, countOnes, getSubsetsOfSize, hexStringAnd } from "../../lib/choose-subsets-lib/subsets-lib";
 
 function arrayEquality(a: any[], b: any[]) {
   return stringify(a.sort()) === stringify(b.sort());
@@ -79,6 +79,13 @@ describe("Choose round combinator lib test", function () {
       const count = countOnes(a);
 
       expect(count).to.eq(8);
+    });
+
+    it("Test count ones", async function () {
+      const a = "0x0000";
+      const count = countOnes(a);
+
+      expect(count).to.eq(0);
     });
   });
 

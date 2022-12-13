@@ -1,10 +1,11 @@
 import { MerkleTree } from "../../lib/utils/MerkleTree";
 import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
 import { MerkleInstance } from "../../typechain-truffle";
+import { getTestFile } from "../test-utils/test-utils";
 
 const N = 20;
 
-describe("Merkle Tree", () => {
+describe(`Merkle Tree (${getTestFile(__filename)})`, () => {
   const makeHashes = (i: number) => new Array(i).fill(0).map((x) => toHex(Math.floor(Math.random() * 10000000000000), 32));
 
   describe("Checking proofs on a contract", () => {

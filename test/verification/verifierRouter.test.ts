@@ -19,6 +19,7 @@ import { encodeRequest } from "../../lib/verification/generated/attestation-requ
 import { ARType } from "../../lib/verification/generated/attestation-request-types";
 import { VerifierRouter } from "../../lib/verification/routing/VerifierRouter";
 import { generateTestIndexerDB, selectBlock, selectedReferencedTx, testConfirmedBlockHeightExistsRequest, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
+import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
 
@@ -98,7 +99,7 @@ function prepareAttestation(request: ARType, startTime: number): Attestation {
   return attestation;
 }
 
-describe("Test websocket verifier server ", () => {
+describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
   let appXRP: INestApplication;
   let appBTC: INestApplication;

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Inject, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AttestationRequest } from '../../../../verification/attestation-types/attestation-types';
 import { ApiResponse, handleApiResponse } from '../../../common/src';
@@ -10,7 +10,7 @@ import { VerifierProcessor } from '../services/verifier-processors/verifier-proc
 @UseGuards(AuthGuard)
 export class VerifierController {
 
-  constructor(private processor: VerifierProcessor) { }
+  constructor(@Inject("VERIFIER_PROCESSOR") private processor: VerifierProcessor) { }
 
   @Post("")
   public async processAttestationRequest(@Body() attestationRequest: AttestationRequest): Promise<ApiResponse<any>> {

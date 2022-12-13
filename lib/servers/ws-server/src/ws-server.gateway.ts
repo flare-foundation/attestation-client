@@ -18,21 +18,7 @@ interface ClientRecord {
    name: string;
    ip?: string;
 }
-@WebSocketGateway(
-   // {
-   //    transports: ['websocket'],
-   //    verifyClient: (info, cb) => {
-   //       // console.log(info.req);
-   //       let request = info.req as Request;
-
-   //       let apiKey = url.parse(request.url, true).query.api;
-   //       console.log("API", apiKey)
-   //       // console.log(this.config)
-   //       cb(true, 200);
-   //    }
-   // }
-)
-@UseGuards(AuthGuard)
+@WebSocketGateway()
 export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
    @WebSocketServer() server: Server;

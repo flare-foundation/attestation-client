@@ -15,8 +15,6 @@ import { changeTimestampT, generateTestIndexerDB, selectBlock, selectedReference
 // XRP
 const SOURCE_ID = SourceId.XRP;
 // To setup the correct entities in the database
-process.env.VERIFIER_TYPE = "xrp"
-process.env.IN_MEMORY_DB = "1";
 
 const NUMBER_OF_CONFIRMATIONS = 1;
 const FIRST_BLOCK = 100;
@@ -39,6 +37,9 @@ describe("Indexed query manager", () => {
   let dataSource: DataSource;
 
   before(async () => {
+    process.env.VERIFIER_TYPE = "xrp"
+    process.env.IN_MEMORY_DB = "1";
+    
     let dbOptions = await createTypeOrmOptions("indexerDatabase", "test");
     dataSource = new DataSource(dbOptions as DataSourceOptions);
     await dataSource.initialize();

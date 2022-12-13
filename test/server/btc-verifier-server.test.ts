@@ -1,9 +1,4 @@
 // This should always be on the top of the file, before imports
-process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
-process.env.NODE_ENV = "development";
-process.env.VERIFIER_TYPE = "btc";
-process.env.IN_MEMORY_DB = "1";
-
 import { ChainType, prefix0x, toBN, toHex } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
@@ -58,8 +53,11 @@ describe("Test BTC verifier server", () => {
   let selectedTransaction: DBTransactionXRP0;
 
   before(async () => {
+    process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
+    process.env.NODE_ENV = "development";
+    process.env.VERIFIER_TYPE = "btc";
+    process.env.IN_MEMORY_DB = "1";
     initializeTestGlobalLogger();
-
     const module = await Test.createTestingModule({
       imports: [WsServerModule],
     }).compile();

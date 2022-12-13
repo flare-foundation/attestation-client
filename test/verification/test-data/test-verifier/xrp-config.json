@@ -1,0 +1,9 @@
+{
+   "port": 9501,
+   "checkAliveIntervalMs": 5000,
+   "sourceId": "XRP",
+   "attestationTypes": [
+      "Payment",
+      "BalanceDecreasingTransaction"
+   ]
+}

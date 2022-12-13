@@ -1,8 +1,4 @@
 // This should always be on the top of the file, before imports
-process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
-process.env.NODE_ENV = "development";
-process.env.VERIFIER_TYPE = "xrp";
-process.env.IN_MEMORY_DB = "1";
 
 import { ChainType, prefix0x, toHex } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
@@ -60,6 +56,11 @@ describe("Test XRP verifier server ", () => {
   let selectedTransaction: DBTransactionXRP0;
 
   before(async () => {
+    process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
+    process.env.NODE_ENV = "development";
+    process.env.VERIFIER_TYPE = "xrp";
+    process.env.IN_MEMORY_DB = "1";
+    
     initializeTestGlobalLogger();
 
     const module = await Test.createTestingModule({

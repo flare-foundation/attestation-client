@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { CommonModule } from '../../common/src';
+import { getEntityManagerToken, TypeOrmModule } from '@nestjs/typeorm';
+import { EntityManager } from 'typeorm';
+import { CommonModule, WSServerConfigurationService } from '../../common/src';
 import { VerifierController } from './controllers/verifier.controller';
 import { AlgoProcessorService } from './services/verifier-processors/algo-processor.service';
 import { BTCProcessorService } from './services/verifier-processors/btc-processor.service';
@@ -12,18 +13,18 @@ import { WsCommandProcessorService } from './services/ws-command-processor.servi
 import { createTypeOrmOptions } from './utils/db-config';
 import { WsServerGateway } from './ws-server.gateway';
 
-function processorProvider() {
+function processorProvider(config: WSServerConfigurationService, manager: EntityManager): VerifierProcessor {
   switch (process.env.VERIFIER_TYPE) {
     case "btc":
-      return BTCProcessorService;
+      return new BTCProcessorService(config, manager)
     case "ltc":
-      return LTCProcessorService;
+      return new LTCProcessorService(config, manager);
     case "doge":
-      return DOGEProcessorService;
+      return new DOGEProcessorService(config, manager);
     case "xrp":
-      return XRPProcessorService;
+      return new XRPProcessorService(config, manager);
     case "algo":
-      return AlgoProcessorService;
+      return new AlgoProcessorService(config, manager);
     default:
       throw new Error(`Wrong verifier type: '${process.env.VERIFIER_TYPE}'`)
   }
@@ -39,8 +40,9 @@ function processorProvider() {
   controllers: [VerifierController],
   providers: [
     {
-      provide: VerifierProcessor,
-      useClass: processorProvider()
+      provide: "VERIFIER_PROCESSOR",
+      useFactory: async (config: WSServerConfigurationService, manager: EntityManager) => processorProvider(config, manager),
+      inject: [WSServerConfigurationService, { token: getEntityManagerToken("indexerDatabase"), optional: false }]
     },
     WsCommandProcessorService,
     WsServerGateway,

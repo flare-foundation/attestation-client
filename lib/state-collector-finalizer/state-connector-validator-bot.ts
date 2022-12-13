@@ -91,7 +91,7 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: string)
   }
 
   const chainId = await web3.eth.getChainId();
-  const voteThreshold = (getAttestationSigners(chainId).length + 1) / 2;
+  const voteThreshold = Math.ceil(getAttestationSigners(chainId).length / 2);
 
   // State connector
   // State connector

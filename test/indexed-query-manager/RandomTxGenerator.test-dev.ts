@@ -9,7 +9,7 @@ import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/inde
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
 import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { createTypeOrmOptions } from "../../lib/servers/ws-server/src/utils/db-config";
+import { createTypeOrmOptions } from "../../lib/servers/verifier-server/src/utils/db-config";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { SourceId } from "../../lib/verification/sources/sources";

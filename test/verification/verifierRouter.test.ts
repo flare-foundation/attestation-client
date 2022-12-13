@@ -10,8 +10,8 @@ import { Attestation } from "../../lib/attester/Attestation";
 import { AttestationData } from "../../lib/attester/AttestationData";
 import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
-import { WSServerConfigurationService } from "../../lib/servers/common/src";
-import { WsServerModule } from "../../lib/servers/ws-server/src/ws-server.module";
+import { VerifierConfigurationService } from "../../lib/servers/verifier-server/src/services/verifier-configuration.service";
+import { VerifierServerModule } from "../../lib/servers/verifier-server/src/verifier-server.module";
 import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
@@ -53,17 +53,17 @@ async function bootstrapVerifier(
 
   const chainType = ChainType[verifierType.toUpperCase()]
   let app: INestApplication;
-  let configurationService: WSServerConfigurationService;
+  let configurationService: VerifierConfigurationService;
   let entityManager: EntityManager;
 
   const module = await Test.createTestingModule({
-    imports: [WsServerModule]
+    imports: [VerifierServerModule]
   }).compile();
   app = module.createNestApplication();
 
   app.useWebSocketAdapter(new WsAdapter(app));
 
-  configurationService = app.get(WSServerConfigurationService);
+  configurationService = app.get(VerifierConfigurationService);
   entityManager = app.get(getEntityManagerToken("indexerDatabase"));
 
   let port = configurationService.wsServerConfiguration.port;
@@ -109,8 +109,8 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   let selectedTransactionBTC: DBTransactionBase;
   let entityManagerXRP: EntityManager;
   let entityManagerBTC: EntityManager;
-  let configXRP: WSServerConfigurationService;
-  let configBTC: WSServerConfigurationService;
+  let configXRP: VerifierConfigurationService;
+  let configBTC: VerifierConfigurationService;
 
   before(async () => {
 
@@ -124,8 +124,8 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     entityManagerXRP = appXRP.get(getEntityManagerToken("indexerDatabase"));
     entityManagerBTC = appBTC.get(getEntityManagerToken("indexerDatabase"));
 
-    configXRP = appXRP.get(WSServerConfigurationService);
-    configBTC = appBTC.get(WSServerConfigurationService);
+    configXRP = appXRP.get(VerifierConfigurationService);
+    configBTC = appBTC.get(VerifierConfigurationService);
 
     selectedTransactionXRP = await selectedReferencedTx(entityManagerXRP, DBTransactionXRP0, BLOCK_CHOICE);
     selectedTransactionBTC = await selectedReferencedTx(entityManagerBTC, DBTransactionBTC0, BLOCK_CHOICE, 5);

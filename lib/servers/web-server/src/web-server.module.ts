@@ -12,6 +12,7 @@ import { ProofController } from './controllers/proof.controller';
 import { StatusController } from './controllers/status.controller';
 import { IndexerEngineService } from './services/indexer-engine.service';
 import { ProofEngineService } from './services/proof-engine.service';
+import { ServerConfigurationService } from './services/server-configuration.service';
 import { createTypeOrmOptions } from './utils/db-config';
 
 @Module({
@@ -38,6 +39,6 @@ import { createTypeOrmOptions } from './utils/db-config';
     }),
   ],
   controllers: [ProofController, StatusController, IndexerController],
-  providers: [ProofEngineService, IndexerEngineService],
+  providers: [ProofEngineService, IndexerEngineService, ServerConfigurationService],
 })
 export class WebServerModule { }

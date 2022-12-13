@@ -6,7 +6,7 @@ import { DBBlockBase, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { createTypeOrmOptions } from "../../lib/servers/ws-server/src/utils/db-config";
+import { createTypeOrmOptions } from "../../lib/servers/verifier-server/src/utils/db-config";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
 import { SourceId } from "../../lib/verification/sources/sources";

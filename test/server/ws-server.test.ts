@@ -10,8 +10,8 @@ import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { WSServerConfigurationService } from "../../lib/servers/common/src";
-import { WsServerModule } from "../../lib/servers/ws-server/src/ws-server.module";
+import { VerifierConfigurationService } from "../../lib/servers/verifier-server/src/services/verifier-configuration.service";
+import { VerifierServerModule } from "../../lib/servers/verifier-server/src/verifier-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
 import { WsClient } from "../../lib/verification/client/WsClient";
@@ -35,13 +35,13 @@ const axios = require("axios");
 describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
 
   let app: INestApplication;
-  let configurationService: WSServerConfigurationService;
+  let configurationService: VerifierConfigurationService;
 
   before(async () => {
     initializeTestGlobalLogger();
 
     const module = await Test.createTestingModule({
-      imports: [WsServerModule],
+      imports: [VerifierServerModule],
       // providers: [WsServerService, WsServerGateway, AuthGuard],
     }).compile();
     app = module.createNestApplication();
@@ -51,7 +51,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    configurationService = app.get(WSServerConfigurationService);
+    configurationService = app.get(VerifierConfigurationService);
     let port = configurationService.wsServerConfiguration.port;
     await app.listen(port, undefined, () => {
       logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`);

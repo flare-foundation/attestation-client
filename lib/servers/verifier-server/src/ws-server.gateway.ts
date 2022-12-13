@@ -1,5 +1,4 @@
 // import { WSServerConfigurationService } from "@atc/common";
-import { UseGuards } from "@nestjs/common";
 import {
    ConnectedSocket, MessageBody, OnGatewayConnection,
    OnGatewayDisconnect, OnGatewayInit, SubscribeMessage,
@@ -9,8 +8,7 @@ import { IncomingMessage } from "http";
 import * as url from "url";
 import WebSocket, { Server } from 'ws';
 import { AttLogger, getGlobalLogger } from "../../../utils/logger";
-import { WSServerConfigurationService } from "../../common/src";
-import { AuthGuard } from "./guards/auth.guard";
+import { VerifierConfigurationService } from "./services/verifier-configuration.service";
 import { WsCommandProcessorService } from "./services/ws-command-processor.service";
 
 interface ClientRecord {
@@ -28,7 +26,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
    connections = new Map<WebSocket, ClientRecord>();
 
    constructor(
-      private config: WSServerConfigurationService,
+      private config: VerifierConfigurationService,
       private commandProcessor: WsCommandProcessorService
    ) {
    }

@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
 
-contract StateConnector {
+contract StateConnectorTemp {
 
 //====================================================================
 // Data Structures
@@ -61,6 +61,11 @@ contract StateConnector {
     // within one week of proving the merkle root.
     bytes32[TOTAL_STORED_PROOFS] public merkleRoots;
 
+    // TMP S
+    // Temporay updas to surpas the go code and test state connecotr using bots
+    address public finalizingBot;
+    // TMP E
+
 //====================================================================
 // Events
 //====================================================================
@@ -89,9 +94,11 @@ contract StateConnector {
 // Constructor
 //====================================================================
 
-    constructor() {
-        /* empty block */
+    // TMP S
+    constructor(address bot) {
+        finalizingBot = bot;
     }
+    // TMP E
 
 //====================================================================
 // Functions
@@ -132,32 +139,34 @@ contract StateConnector {
         return false;
     }
 
-    // Called from validator (GO)
-    function getAttestation(uint256 _bufferNumber) external view returns (bytes32 _merkleRoot) {
-        address attestor = attestorAddressMapping[msg.sender];
+    // TMP S
+    function getAttestation(uint256 _bufferNumber, address assigner) external view returns (bytes32 _merkleRoot) {
+        address attestor = attestorAddressMapping[assigner];
         if (attestor == address(0)) {
-            attestor = msg.sender;
+            attestor = assigner;
         }
-        require(_bufferNumber > 1);
+        require(_bufferNumber > 1, "bufferNumber < 2");
         uint256 prevBufferNumber = _bufferNumber - 1;
-        require(buffers[attestor].latestVote >= prevBufferNumber);
+        require(buffers[attestor].latestVote >= prevBufferNumber, "no vote for saved buffer yet");
         bytes32 commitHash = buffers[attestor].votes[(prevBufferNumber - 1) % TOTAL_STORED_BUFFERS].commitHash;
         _merkleRoot = buffers[attestor].votes[prevBufferNumber % TOTAL_STORED_BUFFERS].merkleRoot;
         bytes32 randomNumber = buffers[attestor].votes[prevBufferNumber % TOTAL_STORED_BUFFERS].randomNumber;
-        require(commitHash == keccak256(abi.encode(_merkleRoot, randomNumber, attestor)));
+        require(commitHash == keccak256(abi.encode(_merkleRoot, randomNumber, attestor)), "unsucesfull finalisation");
     }
+    // TMP E
 
-    // Called from validator (GO) when first submit attestation comes
     function finaliseRound(uint256 _bufferNumber, bytes32 _merkleRoot) external {
         require(_bufferNumber > 3);
         require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
         require(_bufferNumber > totalBuffers);
         // The following region can only be called from the golang code
-        if (msg.sender == block.coinbase && block.coinbase == SIGNAL_COINBASE) {
+        // TMP S
+        if (msg.sender == finalizingBot) {
             totalBuffers = _bufferNumber;
             merkleRoots[(_bufferNumber - 4) % TOTAL_STORED_PROOFS] = _merkleRoot;
             emit RoundFinalised(_bufferNumber - 4, _merkleRoot);
         }
+        // TMP E
     }
 
     function lastFinalizedRoundId() external view returns (uint256 _roundId) {

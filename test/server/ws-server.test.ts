@@ -22,7 +22,7 @@ interface TestData extends IIdentifiable {
   b: string;
 }
 
-describe("Test websocket verifier server ", () => {
+describe.skip("Test websocket verifier server ", () => {
 
   let app: INestApplication;
 

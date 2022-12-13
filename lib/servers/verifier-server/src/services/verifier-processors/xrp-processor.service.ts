@@ -1,4 +1,4 @@
-import { ChainType, MCC, UtxoMccCreate } from '@flarenetwork/mcc';
+import { ChainType, MCC, XrpMccCreate } from '@flarenetwork/mcc';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
@@ -6,24 +6,24 @@ import { IndexedQueryManagerOptions } from '../../../../../indexed-query-manager
 import { IndexedQueryManager } from '../../../../../indexed-query-manager/IndexedQueryManager';
 import { AttestationRequest } from '../../../../../verification/attestation-types/attestation-types';
 import { hexlifyBN } from '../../../../../verification/attestation-types/attestation-types-helpers';
-import { verifyLTC } from '../../../../../verification/verifiers/verifier_routing';
-import { WSServerConfigurationService } from '../../../../common/src';
+import { verifyXRP } from '../../../../../verification/verifiers/verifier_routing';
+import { VerifierConfigurationService } from '../verifier-configuration.service';
 import { VerifierProcessor } from './verifier-processor';
 
 @Injectable()
-export class LTCProcessorService extends VerifierProcessor {
-  client: MCC.LTC;
+export class XRPProcessorService extends VerifierProcessor {
+  client: MCC.XRP;
   indexedQueryManager: IndexedQueryManager;
 
   constructor(
-    private config: WSServerConfigurationService,
+    private config: VerifierConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
     super();
-    this.client = new MCC.LTC(this.config.wsServerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
+    this.client = new MCC.XRP(this.config.wsServerCredentials.chainConfiguration.mccCreate as XrpMccCreate);
 
     const options: IndexedQueryManagerOptions = {
-      chainType: ChainType.LTC,
+      chainType: ChainType.XRP,
       entityManager: this.manager,
       maxValidIndexerDelaySec: this.config.wsServerCredentials.chainConfiguration.maxValidIndexerDelaySec,
 
@@ -37,7 +37,7 @@ export class LTCProcessorService extends VerifierProcessor {
   }
 
   public async verify(attestationRequest: AttestationRequest) {
-    let response = await verifyLTC(
+    let response = await verifyXRP(
       this.client,
       attestationRequest.request,
       attestationRequest.options,

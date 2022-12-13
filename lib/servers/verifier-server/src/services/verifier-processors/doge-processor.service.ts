@@ -6,24 +6,24 @@ import { IndexedQueryManagerOptions } from '../../../../../indexed-query-manager
 import { IndexedQueryManager } from '../../../../../indexed-query-manager/IndexedQueryManager';
 import { AttestationRequest } from '../../../../../verification/attestation-types/attestation-types';
 import { hexlifyBN } from '../../../../../verification/attestation-types/attestation-types-helpers';
-import { verifyBTC } from '../../../../../verification/verifiers/verifier_routing';
-import { WSServerConfigurationService } from '../../../../common/src';
+import { verifyDOGE } from '../../../../../verification/verifiers/verifier_routing';
+import { VerifierConfigurationService } from '../verifier-configuration.service';
 import { VerifierProcessor } from './verifier-processor';
 
 @Injectable()
-export class BTCProcessorService extends VerifierProcessor{
-  client: MCC.BTC;
+export class DOGEProcessorService extends VerifierProcessor {
+  client: MCC.DOGE;
   indexedQueryManager: IndexedQueryManager;
 
   constructor(
-    private config: WSServerConfigurationService,
+    private config: VerifierConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
     super();
-    this.client = new MCC.BTC(this.config.wsServerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
+    this.client = new MCC.DOGE(this.config.wsServerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
 
     const options: IndexedQueryManagerOptions = {
-      chainType: ChainType.BTC,
+      chainType: ChainType.DOGE,
       entityManager: this.manager,
       maxValidIndexerDelaySec: this.config.wsServerCredentials.chainConfiguration.maxValidIndexerDelaySec,
 
@@ -37,7 +37,7 @@ export class BTCProcessorService extends VerifierProcessor{
   }
 
   public async verify(attestationRequest: AttestationRequest) {
-    let response = await verifyBTC(
+    let response = await verifyDOGE(
       this.client,
       attestationRequest.request,
       attestationRequest.options,

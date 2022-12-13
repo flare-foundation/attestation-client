@@ -1,5 +1,4 @@
-import { ServerConfigurationService } from '@atc/common';
-import { ChainType, MCC, toCamelCase } from '@flarenetwork/mcc';
+import { ChainType, MCC } from '@flarenetwork/mcc';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
@@ -8,6 +7,7 @@ import { DBState } from '../../../../entity/indexer/dbState';
 import { DBTransactionBase } from '../../../../entity/indexer/dbTransaction';
 import { prepareIndexerTables } from '../../../../indexer/indexer-utils';
 import { BlockRange } from '../dtos/BlockRange.dto';
+import { ServerConfigurationService } from './server-configuration.service';
 
 @Injectable()
 export class IndexerEngineService {

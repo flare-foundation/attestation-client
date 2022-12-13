@@ -1,15 +1,15 @@
-import { WSServerConfigurationService } from '@atc/common';
 import { NestFactory } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { getGlobalLogger } from '../../../utils/logger';
-import { WsServerModule } from './ws-server.module';
+import { VerifierConfigurationService } from './services/verifier-configuration.service';
+import { VerifierServerModule } from './verifier-server.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(WsServerModule);
+  const app = await NestFactory.create(VerifierServerModule);
   app.useWebSocketAdapter(new WsAdapter(app));
 
   const logger = getGlobalLogger("web");
-  const configurationService = app.get(WSServerConfigurationService);
+  const configurationService = app.get(VerifierConfigurationService);
 
   let port = configurationService.wsServerConfiguration.port;
   logger.info(`Verifier type: ${configurationService.verifierType}`);

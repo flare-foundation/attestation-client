@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { WSServerConfigurationService } from '../../../common/src';
+import { VerifierConfigurationService } from './verifier-configuration.service';
 
 @Injectable()
 export class WsCommandProcessorService {
 
   constructor(
-    private config: WSServerConfigurationService,
+    private config: VerifierConfigurationService,
   ) { }
 
   public mirrorResponse(data: any) {

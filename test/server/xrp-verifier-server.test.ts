@@ -10,10 +10,9 @@ import { EntityManager } from "typeorm";
 import Web3 from "web3";
 import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
-import { WSServerConfigurationService } from "../../lib/servers/common/src";
-import { VerifierProcessor } from "../../lib/servers/ws-server/src/services/verifier-processors/verifier-processor";
-import { XRPProcessorService } from "../../lib/servers/ws-server/src/services/verifier-processors/xrp-processor.service";
-import { WsServerModule } from "../../lib/servers/ws-server/src/ws-server.module";
+import { VerifierConfigurationService } from "../../lib/servers/verifier-server/src/services/verifier-configuration.service";
+import { VerifierProcessor } from "../../lib/servers/verifier-server/src/services/verifier-processors/verifier-processor";
+import { VerifierServerModule } from "../../lib/servers/verifier-server/src/verifier-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
@@ -51,7 +50,7 @@ interface TestData extends IIdentifiable {
 describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__filename)})`, () => {
 
   let app: INestApplication;
-  let configurationService: WSServerConfigurationService;
+  let configurationService: VerifierConfigurationService;
   let entityManager: EntityManager;
   let lastTimestamp: number = 0;
   let startTime: number = 0;
@@ -66,7 +65,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     initializeTestGlobalLogger();
 
     const module = await Test.createTestingModule({
-      imports: [WsServerModule],
+      imports: [VerifierServerModule],
     }).compile();
     app = module.createNestApplication();
 
@@ -75,7 +74,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    configurationService = app.get(WSServerConfigurationService);
+    configurationService = app.get(VerifierConfigurationService);
     entityManager = app.get("indexerDatabaseEntityManager")
 
     let port = configurationService.wsServerConfiguration.port;

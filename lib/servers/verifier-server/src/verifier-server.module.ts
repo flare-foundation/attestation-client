@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { getEntityManagerToken, TypeOrmModule } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
-import { CommonModule, WSServerConfigurationService } from '../../common/src';
+import { CommonModule } from '../../common/src';
+import { VerifierConfigurationService } from './services/verifier-configuration.service';
 import { VerifierController } from './controllers/verifier.controller';
 import { AlgoProcessorService } from './services/verifier-processors/algo-processor.service';
 import { BTCProcessorService } from './services/verifier-processors/btc-processor.service';
@@ -13,7 +14,7 @@ import { WsCommandProcessorService } from './services/ws-command-processor.servi
 import { createTypeOrmOptions } from './utils/db-config';
 import { WsServerGateway } from './ws-server.gateway';
 
-function processorProvider(config: WSServerConfigurationService, manager: EntityManager): VerifierProcessor {
+function processorProvider(config: VerifierConfigurationService, manager: EntityManager): VerifierProcessor {
   switch (process.env.VERIFIER_TYPE) {
     case "btc":
       return new BTCProcessorService(config, manager)
@@ -41,12 +42,13 @@ function processorProvider(config: WSServerConfigurationService, manager: Entity
   providers: [
     {
       provide: "VERIFIER_PROCESSOR",
-      useFactory: async (config: WSServerConfigurationService, manager: EntityManager) => processorProvider(config, manager),
-      inject: [WSServerConfigurationService, { token: getEntityManagerToken("indexerDatabase"), optional: false }]
+      useFactory: async (config: VerifierConfigurationService, manager: EntityManager) => processorProvider(config, manager),
+      inject: [VerifierConfigurationService, { token: getEntityManagerToken("indexerDatabase"), optional: false }]
     },
     WsCommandProcessorService,
     WsServerGateway,
-    WsCommandProcessorService
+    WsCommandProcessorService,
+    VerifierConfigurationService
   ],
 })
-export class WsServerModule { }
+export class VerifierServerModule { }

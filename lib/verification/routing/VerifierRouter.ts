@@ -39,18 +39,18 @@ export const EMPTY_VERIFIER_ROUTE = new VerifierRoute();
  * as local verifications (legacy support).
  */
 export class VerifierRouter {
-   client: MccClient;
-   indexedQueryManager: IndexedQueryManager;
-   sourceFilter: SourceId;
+   client?: MccClient;
+   indexedQueryManager?: IndexedQueryManager;
+   sourceFilter?: SourceId;
    credentials: VerifierRouteCredentials;
    // routing map: sourceName -> attestationTypeName -> VerifierRoute
    routeMap: Map<string, Map<string, VerifierRoute>>;
    _initialized = false;
 
-   constructor(client: MccClient, indexedQueryManager: IndexedQueryManager, sourceFilter: SourceId) {
+   constructor(client?: MccClient, indexedQueryManager?: IndexedQueryManager, sourceFilter?: SourceId) {
       this.client = client;
       this.indexedQueryManager = indexedQueryManager;
-      this.sourceFilter = sourceFilter;;
+      this.sourceFilter = sourceFilter;
    }
 
    /**
@@ -125,7 +125,7 @@ export class VerifierRouter {
          let sourceName = sourceCred.sourceId;
          for (let attestationCred of sourceCred.routes) {
             let verifierRoute = null;
-            if (verifierRoute.url || verifierRoute.url.length > 0) {
+            if (attestationCred.url || attestationCred.url.length > 0) {
                verifierRoute = new VerifierRoute(attestationCred.url, attestationCred.apiKey);
             } else if (defaultRoute) {
                verifierRoute = defaultRoute;

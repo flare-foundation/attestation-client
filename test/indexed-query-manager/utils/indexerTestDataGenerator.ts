@@ -236,14 +236,19 @@ export async function changeTimestampT(manager: EntityManager, chainType: ChainT
 export async function selectedReferencedTx(
    entityManager: EntityManager,
    dbTxClass: any,
-   blockNumber: number
+   blockNumber: number,
+   which = 0
 ): Promise<DBTransactionBase> {
    let query2 = entityManager
       .createQueryBuilder(dbTxClass, "transaction")
       .where("transaction.blockNumber = :blockNumber", { blockNumber })
       .andWhere("transaction.paymentReference != :paymentReference", { paymentReference: ZERO_PAYMENT_REFERENCE })
       .orderBy("transaction.transactionId", "ASC");
-   return await query2.getOne() as any as DBTransactionBase;
+   let result = await query2.getMany();
+   if(result.length <= which) {
+      throw new Error("Wrong 'which");
+   } 
+   return result[which] as any as DBTransactionBase;
 }
 
 export async function selectBlock(

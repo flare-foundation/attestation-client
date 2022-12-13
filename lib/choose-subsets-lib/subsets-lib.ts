@@ -1,10 +1,6 @@
 const SUBGROUP_TO_BIG_ERROR = "Groups can ony have subgroups whose size is smaller or equal to original group's size";
 const INVALID_HEX = "Incorrectly formatted hex strings";
 
-export function dec2bin(dec) {
-  return (dec >>> 0).toString(2);
-}
-
 export function unPrefix0x(tx: string) {
   if (!tx) {
     return "0x0";
@@ -27,10 +23,15 @@ export function isPrefixed0x(tx: string) {
 }
 
 export function isValidHexString(maybeHexString: string) {
-  return /^(0x|0X)?[0-9a-fA-F]*$/i.test(maybeHexString);
+  return /^(-)?(0x|0X)?[0-9a-fA-F]*$/i.test(maybeHexString);
 }
 
-// pad hex string with zeros so they are of the same length
+/**
+ * Pad hex string with zeros so they are of the desired length
+ * @param hex hex string to pad
+ * @param len desired length of hex string
+ * @returns padded hex string
+ */
 export function padHexZeros(hex: string, len: number) {
   const hexA = unPrefix0x(hex);
   if (hexA.length > len) {
@@ -62,6 +63,11 @@ export function hexStringAnd(hex1: string, hex2: string) {
   return prefix0x(Buffer.from(bufResult).toString("hex"));
 }
 
+/**
+ * Count number of 1 in binary representation of hex string
+ * @param hesString hex string 
+ * @returns number of 1s in bin representation
+ */
 export function countOnes(hesString: string) {
   if (!isValidHexString(hesString)) {
     throw new Error(INVALID_HEX);
@@ -77,6 +83,15 @@ export function countOnes(hesString: string) {
   }, 0);
 }
 
+/**
+ * Method that
+ * - Calculates all subgroups of votes of size groupSize
+ * - Compares their votes in each subgroup to get all votes everyone is aligned on 
+ * - Returns the vote that had the most positive votes, if there are many of those return the one that have higher priority in lexicographic order
+ * @param votes array of hex string representing choose data
+ * @param groupSize subgroup size 
+ * @returns 
+ */
 export function chooseCandidate(votes: string[], groupSize: number): string {
   if (votes.length < groupSize) {
     throw Error(SUBGROUP_TO_BIG_ERROR);
@@ -96,6 +111,16 @@ export function chooseCandidate(votes: string[], groupSize: number): string {
   return prefix0x(candidates[candidates.length-1][1]);
 }
 
+/**
+ * Method that returns the array of all subsets of original array.
+ * 
+ * << getSubsetsOfSize([1,2,3], 2);
+ * >> [[1,2],[1,3],[2,3]]
+ * 
+ * @param array set of which we want to get all subsets
+ * @param size size of subsets we want
+ * @returns array of arrays of all subsets of input array
+ */
 export function getSubsetsOfSize(array: any[], size: number) {
   if (array.length < size) {
     throw Error(SUBGROUP_TO_BIG_ERROR);

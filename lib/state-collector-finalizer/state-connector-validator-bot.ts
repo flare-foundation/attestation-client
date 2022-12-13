@@ -2,9 +2,10 @@ import StateConnectorAbi from "../../artifacts/contracts/StateConnectorTemp.sol/
 import StateConnectorTranAbi from "../../artifacts/contracts/StateConnectorTempTran.sol/StateConnectorTempTran.json";
 import { sleepMs } from "@flarenetwork/mcc";
 import { AbiItem } from "web3-utils";
-import { StateConnectorTemp } from "../../typechain-web3-v1/StateConnectorTemp";
+
 import { getTimeSec } from "../utils/internetTime";
 import { getWeb3 } from "../utils/utils";
+import { StateConnectorTemp } from "../../typechain-web3-v1/StateConnectorTemp";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 
 const ZERO_ROOT = "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -90,7 +91,7 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: string)
   }
 
   const chainId = await web3.eth.getChainId();
-  const voteThreshold = (getAttestationSigners(chainId).length - 1) / 2;
+  const voteThreshold = (getAttestationSigners(chainId).length + 1) / 2;
 
   // State connector
   // State connector

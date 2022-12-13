@@ -190,7 +190,8 @@
       "lib/indexed-query-manager/indexed-query-manager-types.ts",
       "lib/entity/**/*.*",
       "lib/utils/instanciate.ts",
-      "lib/scripts/**/*.*"
+      "lib/scripts/**/*.*",
+      "lib/state-collector-finalizer/**/*.*"
     ],
     "reporter": [
       "html",

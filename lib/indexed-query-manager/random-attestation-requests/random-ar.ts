@@ -57,13 +57,12 @@ export async function getRandomAttestationRequest(
   }
 }
 
-export function createTestAttestationFromRequest(request: ARType, roundId: number, numberOfConfirmations: number): Attestation {
+export function createTestAttestationFromRequest(request: ARType, roundId: number): Attestation {
   const data = new AttestationData();
   data.type = request.attestationType;
   data.sourceId = request.sourceId;
   data.request = encodeRequest(request);
   const attestation = new Attestation(undefined, data, undefined);
-  attestation.setTestNumberOfConfirmationBlocks(numberOfConfirmations);
   attestation.setTestRoundId(roundId);
   return attestation;
 }

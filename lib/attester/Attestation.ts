@@ -66,13 +66,6 @@ export class Attestation {
     return this._testRoundId;
   }
 
-  public get numberOfConfirmationBlocks() {
-    if (this._testNumberOfConfirmationBlocks == null) {
-      return this.sourceHandler?.config?.numberOfConfirmations;
-    }
-    return this._testNumberOfConfirmationBlocks;
-  }
-
   public get sourceHandler() {
     return this.round?.getSourceHandler(this.data, this.onValidateAttestation);
   }
@@ -82,13 +75,9 @@ export class Attestation {
   ///////////////////////////////////////////////////////
 
   _testRoundId: number | undefined = undefined;
-  _testNumberOfConfirmationBlocks: number | undefined = undefined;
 
   setTestRoundId(roundId: number | undefined) {
     this._testRoundId = roundId;
   }
 
-  setTestNumberOfConfirmationBlocks(numberOfConfirmationBlocks: number | undefined) {
-    this._testNumberOfConfirmationBlocks = numberOfConfirmationBlocks;
-  }
 }

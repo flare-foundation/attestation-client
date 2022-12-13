@@ -11,6 +11,8 @@ import Web3 from "web3";
 import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
 import { WSServerConfigurationService } from "../../lib/servers/common/src";
+import { VerifierProcessor } from "../../lib/servers/ws-server/src/services/verifier-processors/verifier-processor";
+import { XRPProcessorService } from "../../lib/servers/ws-server/src/services/verifier-processors/xrp-processor.service";
 import { WsServerModule } from "../../lib/servers/ws-server/src/ws-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
@@ -18,6 +20,7 @@ import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { AttestationRequest } from "../../lib/verification/attestation-types/attestation-types";
 import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
 import { encodeBalanceDecreasingTransaction, encodeConfirmedBlockHeightExists, encodePayment, encodeReferencedPaymentNonexistence } from "../../lib/verification/generated/attestation-request-encode";
+import { getSourceName } from "../../lib/verification/sources/sources";
 import { generateTestIndexerDB, selectBlock, selectedReferencedTx, testBalanceDecreasingTransactionRequest, testConfirmedBlockHeightExistsRequest, testPaymentRequest, testReferencedPaymentNonexistenceRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { sendToVerifier } from "./utils/server-test-utils";
 
@@ -44,9 +47,7 @@ interface TestData extends IIdentifiable {
   b: string;
 }
 
-const axios = require("axios");
-
-describe("Test XRP verifier server ", () => {
+describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server`, () => {
 
   let app: INestApplication;
   let configurationService: WSServerConfigurationService;
@@ -58,9 +59,9 @@ describe("Test XRP verifier server ", () => {
   before(async () => {
     process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
     process.env.NODE_ENV = "development";
-    process.env.VERIFIER_TYPE = "xrp";
+    process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
     process.env.IN_MEMORY_DB = "1";
-    
+
     initializeTestGlobalLogger();
 
     const module = await Test.createTestingModule({
@@ -132,7 +133,7 @@ describe("Test XRP verifier server ", () => {
         UBPCutoffTime: startTime
       }
     } as AttestationRequest;
-    
+
     let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "OK", "Wrong server response");
@@ -193,7 +194,7 @@ describe("Test XRP verifier server ", () => {
         windowStartTime: startTime + 1, // must exist one block with timestamp lower
         UBPCutoffTime: startTime
       }
-    } as AttestationRequest; 
+    } as AttestationRequest;
 
     let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
@@ -201,6 +202,15 @@ describe("Test XRP verifier server ", () => {
     assert(resp.data.status === "OK", "Status is not OK");
     assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE + 3), "Incorrect first overflow block");
     assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp + 3), "Incorrect first overflow block timestamp");
+  });
+
+
+  it(`Should return correct supported source and types`, async function () {
+    let processor = app.get("VERIFIER_PROCESSOR") as VerifierProcessor;
+    assert(processor.supportedSource() === getSourceName(CHAIN_TYPE).toUpperCase(), `Supported source should be ${getSourceName(CHAIN_TYPE).toUpperCase()}`);
+    let supported = processor.supportedAttestationTypes();
+    assert(supported.indexOf("Payment") >= 0, "Payment shoud be supported")
+    assert(supported.indexOf("BalanceDecreasingTransaction") >= 0, "BalanceDecreasingTransaction shoud be supported")
   });
 
   after(async () => {

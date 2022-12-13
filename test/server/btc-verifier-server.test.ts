@@ -10,6 +10,7 @@ import Web3 from "web3";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBTC0, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
 import { WSServerConfigurationService } from "../../lib/servers/common/src";
+import { VerifierProcessor } from "../../lib/servers/ws-server/src/services/verifier-processors/verifier-processor";
 import { WsServerModule } from "../../lib/servers/ws-server/src/ws-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
@@ -17,6 +18,7 @@ import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { AttestationRequest } from "../../lib/verification/attestation-types/attestation-types";
 import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
 import { encodeBalanceDecreasingTransaction, encodeConfirmedBlockHeightExists, encodePayment, encodeReferencedPaymentNonexistence } from "../../lib/verification/generated/attestation-request-encode";
+import { getSourceName } from "../../lib/verification/sources/sources";
 import { addressOnVout, firstAddressVin, firstAddressVout, generateTestIndexerDB, selectBlock, selectedReferencedTx, testBalanceDecreasingTransactionRequest, testConfirmedBlockHeightExistsRequest, testPaymentRequest, testReferencedPaymentNonexistenceRequest, totalDeliveredAmountToAddress } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { sendToVerifier } from "./utils/server-test-utils";
 
@@ -38,12 +40,7 @@ const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
 const API_KEY = "123456";
 
-interface TestData extends IIdentifiable {
-  a: number;
-  b: string;
-}
-
-describe("Test BTC verifier server", () => {
+describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server`, () => {
 
   let app: INestApplication;
   let configurationService: WSServerConfigurationService;
@@ -55,7 +52,7 @@ describe("Test BTC verifier server", () => {
   before(async () => {
     process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
     process.env.NODE_ENV = "development";
-    process.env.VERIFIER_TYPE = "btc";
+    process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
     process.env.IN_MEMORY_DB = "1";
     initializeTestGlobalLogger();
     const module = await Test.createTestingModule({
@@ -222,6 +219,14 @@ describe("Test BTC verifier server", () => {
       selectedTransaction.timestamp + 2, receivingAddress, receivedAmount, prefix0x(selectedTransaction.paymentReference));
 
     expect(() => encodeReferencedPaymentNonexistence(request)).to.throw("Negative values are not supported in attestation requests")    
+  });
+
+  it(`Should return correct supported source and types`, async function () {
+    let processor = app.get("VERIFIER_PROCESSOR") as VerifierProcessor;
+    assert(processor.supportedSource() === getSourceName(CHAIN_TYPE).toUpperCase(), `Supported source should be ${getSourceName(CHAIN_TYPE).toUpperCase()}`);
+    let supported = processor.supportedAttestationTypes();
+    assert(supported.indexOf("Payment") >= 0, "Payment shoud be supported")
+    assert(supported.indexOf("BalanceDecreasingTransaction") >= 0, "BalanceDecreasingTransaction shoud be supported")
   });
 
   after(async () => {

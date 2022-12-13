@@ -120,7 +120,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
     console.log( "***1");    
 
-    const att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations);
+    const att = createTestAttestationFromRequest(parsed, roundId);
     const result = await verifyAttestation(client, att, indexedQueryManager, recheck);
 
     console.log(`Status ${result.status}`);
@@ -142,7 +142,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       utxo: "0x0",
     };
 
-    const att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations);
+    const att = createTestAttestationFromRequest(parsed, roundId);
     const result = await verifyAttestation(client, att, indexedQueryManager, recheck);
 
     console.log(hexlifyBN(result));

@@ -183,7 +183,9 @@
       "lib/verification/codegen/**/*.*",
       "lib/webserver/**/*.*",
       "lib/indexed-query-manager/indexed-query-manager-types.ts",
-      "lib/entity/**/*.*"
+      "lib/entity/**/*.*",
+      "lib/utils/instanciate.ts",
+      "lib/scripts/**/*.*"
     ],
     "reporter": [
       "html",

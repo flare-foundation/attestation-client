@@ -46,4 +46,12 @@ export class XRPProcessorService extends VerifierProcessor {
     return hexlifyBN(response);
   }
 
+  public supportedAttestationTypes(): string[] {
+    return this.config.wsServerConfiguration.attestationTypes;
+  }
+
+  public supportedSource(): string {
+    return this.config.wsServerConfiguration.sourceId;
+  }
+
 }

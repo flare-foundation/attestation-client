@@ -104,7 +104,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       "CORRECT"
     );
 
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID, indexedQueryManager.settings.numberOfConfirmations());
+    const attestation = createTestAttestationFromRequest(request, ROUND_ID);
 
     const res = await verifyAttestation(client, attestation, indexedQueryManager);
     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
@@ -124,7 +124,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       "CORRECT"
     );
 
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID, indexedQueryManager.settings.numberOfConfirmations());
+    const attestation = createTestAttestationFromRequest(request, ROUND_ID);
 
     const res = await verifyAttestation(client, attestation, indexedQueryManager);
 
@@ -151,7 +151,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     if (!request) {
       console.log("NO REQUEST - Repeat the test", request);
     }
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID, indexedQueryManager.settings.numberOfConfirmations());
+    const attestation = createTestAttestationFromRequest(request, ROUND_ID);
 
     const res = await verifyAttestation(client, attestation, indexedQueryManager);
     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
@@ -187,7 +187,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
         return;
       }
 
-      const attestation = createTestAttestationFromRequest(request, ROUND_ID, indexedQueryManager.settings.numberOfConfirmations());
+      const attestation = createTestAttestationFromRequest(request, ROUND_ID);
 
       const res = await verifyAttestation(client, attestation, indexedQueryManager);
       assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);

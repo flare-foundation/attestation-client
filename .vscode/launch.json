@@ -493,6 +493,7 @@
                 "devwsserver"
             ]
         },
+
         {
             "type": "node",
             "console": "integratedTerminal",
@@ -551,6 +552,57 @@
             "runtimeArgs": [
                 "test",
                 "test/verification/verifierRouter.test.ts"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "--- FINALIZING BOT ---",
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Finalizing bot",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
+            "env": {
+            },
+            "runtimeArgs": [
+                "runFinalizingBot"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "--- SubSets LIB ---",
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "SubSets Lib Test",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
+            "env": {
+            },
+            "runtimeArgs": [
+                "test",
+                "test/choose-subsets/combinators.test.ts"
             ]
         },
 

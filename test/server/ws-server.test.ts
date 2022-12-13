@@ -16,6 +16,7 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
 import { WsClient } from "../../lib/verification/client/WsClient";
 import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
+import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
 
@@ -31,7 +32,7 @@ interface TestData extends IIdentifiable {
 
 const axios = require("axios");
 
-describe("Test websocket verifier server ", () => {
+describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
 
   let app: INestApplication;
   let configurationService: WSServerConfigurationService;

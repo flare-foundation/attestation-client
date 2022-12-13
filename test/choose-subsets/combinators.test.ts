@@ -3,12 +3,13 @@
 import { expect } from "chai";
 import { stringify } from "safe-stable-stringify";
 import { chooseCandidate, countOnes, getSubsetsOfSize, hexStringAnd } from "../../lib/choose-subsets-lib/subsets-lib";
+import { getTestFile } from "../test-utils/test-utils";
 
 function arrayEquality(a: any[], b: any[]) {
   return stringify(a.sort()) === stringify(b.sort());
 }
 
-describe("Choose round combinator lib test", function () {
+describe(`Choose round combinator lib test (${getTestFile(__filename)})`, function () {
   it("Two choose common 1s ", async function () {
     const a =
       "0xd954ad026f981f6d4cb0928b41d71971df08a0b2f46102f53ba88652166b25751cb949cf2e01cc6a445aa5a19b9de63e4950032517097108706b2e1d896fb4bdee9c9e02b60154287bdc1905d8bb8becb82e18e50342680f004f5fcefb9290c911964c4b20696292e69c359dfc0b66acba7da12d2526183340bda3019a0646a4105f0c3f77f0ce5ec750017608a390f5db2d6eec51bf75d5184954a6c5308284c5ab852bf9b728ab3dd619114b769371f5690a9e222337182c5b24bc36ab93fe1c547d495fd4bfd4";

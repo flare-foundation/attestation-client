@@ -4,11 +4,11 @@ import { CachedMccClient } from "../../lib/caching/CachedMccClient";
 import { MockMccClient } from "../../lib/caching/test-utils/MockMccClient";
 import { sleepms } from "../../lib/utils/utils";
 import { SourceId } from "../../lib/verification/sources/sources";
-import { TERMINATION_TOKEN, testWithoutLoggingTracingAndApplicationTermination } from "../test-utils/test-utils";
+import { getTestFile, TERMINATION_TOKEN, testWithoutLoggingTracingAndApplicationTermination } from "../test-utils/test-utils";
 
 const CHAIN_ID = SourceId.BTC;
 
-describe("Cached MCC Client test", function () {
+describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
    let mockMccClient: MockMccClient;
    beforeEach(async () => {
       mockMccClient = new MockMccClient();

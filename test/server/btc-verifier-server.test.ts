@@ -20,6 +20,7 @@ import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
 import { encodeBalanceDecreasingTransaction, encodeConfirmedBlockHeightExists, encodePayment, encodeReferencedPaymentNonexistence } from "../../lib/verification/generated/attestation-request-encode";
 import { getSourceName } from "../../lib/verification/sources/sources";
 import { addressOnVout, firstAddressVin, firstAddressVout, generateTestIndexerDB, selectBlock, selectedReferencedTx, testBalanceDecreasingTransactionRequest, testConfirmedBlockHeightExistsRequest, testPaymentRequest, testReferencedPaymentNonexistenceRequest, totalDeliveredAmountToAddress } from "../indexed-query-manager/utils/indexerTestDataGenerator";
+import { getTestFile } from "../test-utils/test-utils";
 import { sendToVerifier } from "./utils/server-test-utils";
 
 chai.use(chaiAsPromised);
@@ -40,7 +41,7 @@ const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
 const API_KEY = "123456";
 
-describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server`, () => {
+describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__filename)})`, () => {
 
   let app: INestApplication;
   let configurationService: WSServerConfigurationService;

@@ -10,6 +10,7 @@ import { createTypeOrmOptions } from "../../lib/servers/ws-server/src/utils/db-c
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
 import { SourceId } from "../../lib/verification/sources/sources";
+import { getTestFile } from "../test-utils/test-utils";
 import { changeTimestampT, generateTestIndexerDB, selectBlock, selectedReferencedTx, snapshotTimestampT, ZERO_PAYMENT_REFERENCE } from "./utils/indexerTestDataGenerator";
 
 // XRP
@@ -28,7 +29,7 @@ const TXS_IN_BLOCK = 10;
 
 
 
-describe("Indexed query manager", () => {
+describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
   let indexedQueryManager: IndexedQueryManager;
   let startTime = 0;
   let selectedBlock: DBBlockBase;

@@ -1,25 +1,35 @@
+import ts from "typescript";
+
 const SUBGROUP_TO_BIG_ERROR = "Groups can ony have subgroups whose size is smaller or equal to original group's size";
 const INVALID_HEX = "Incorrectly formatted hex strings";
 
 export function unPrefix0x(tx: string) {
   if (!tx) {
     return "0x0";
+  } else if (tx.startsWith("0x") || tx.startsWith("0X")) {
+    return tx.slice(2);
+  } else if (tx.startsWith("-0x") || tx.startsWith("-0X")) {
+    return tx.slice(3);
   }
-  return tx.startsWith("0x") ? tx.slice(2) : tx;
+  return tx;
 }
 
 export function prefix0x(tx: string) {
   if (!tx) {
     return "0x0";
+  } else if (tx.startsWith("0x") || tx.startsWith("0X") || tx.startsWith("-0x") || tx.startsWith("-0X")) {
+    return tx
   }
-  return tx.startsWith("0x") ? tx : "0x" + tx;
+  return "0x" + tx;
 }
 
 export function isPrefixed0x(tx: string) {
   if (!tx) {
     return false;
+  } else if (tx.startsWith("0x") || tx.startsWith("0X") || tx.startsWith("-0x") || tx.startsWith("-0X")) {
+    return true
   }
-  return tx.startsWith("0x") ? true : false;
+  return false;
 }
 
 export function isValidHexString(maybeHexString: string) {
@@ -65,7 +75,7 @@ export function hexStringAnd(hex1: string, hex2: string) {
 
 /**
  * Count number of 1 in binary representation of hex string
- * @param hesString hex string 
+ * @param hesString hex string
  * @returns number of 1s in bin representation
  */
 export function countOnes(hesString: string) {
@@ -86,11 +96,11 @@ export function countOnes(hesString: string) {
 /**
  * Method that
  * - Calculates all subgroups of votes of size groupSize
- * - Compares their votes in each subgroup to get all votes everyone is aligned on 
+ * - Compares their votes in each subgroup to get all votes everyone is aligned on
  * - Returns the vote that had the most positive votes, if there are many of those return the one that have higher priority in lexicographic order
  * @param votes array of hex string representing choose data
- * @param groupSize subgroup size 
- * @returns 
+ * @param groupSize subgroup size
+ * @returns
  */
 export function chooseCandidate(votes: string[], groupSize: number): string {
   if (votes.length < groupSize) {
@@ -108,15 +118,15 @@ export function chooseCandidate(votes: string[], groupSize: number): string {
     candidates.push([ones, candidate]);
   }
   candidates.sort();
-  return prefix0x(candidates[candidates.length-1][1]);
+  return prefix0x(candidates[candidates.length - 1][1]);
 }
 
 /**
  * Method that returns the array of all subsets of original array.
- * 
+ *
  * << getSubsetsOfSize([1,2,3], 2);
  * >> [[1,2],[1,3],[2,3]]
- * 
+ *
  * @param array set of which we want to get all subsets
  * @param size size of subsets we want
  * @returns array of arrays of all subsets of input array

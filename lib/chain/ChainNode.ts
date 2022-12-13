@@ -205,7 +205,6 @@ export class ChainNode {
       testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
-    // TODO - failure simulation
     this.verifierRouter.verifyAttestation(attestation, attestation.reverification)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();

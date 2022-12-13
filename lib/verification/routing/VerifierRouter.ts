@@ -46,6 +46,8 @@ export class VerifierRouter {
    // routing map: sourceName -> attestationTypeName -> VerifierRoute
    routeMap: Map<string, Map<string, VerifierRoute>>;
    _initialized = false;
+   // Remote only verification possible
+   _enableLocalVerification = true;
 
    constructor(client?: MccClient, indexedQueryManager?: IndexedQueryManager, sourceFilter?: SourceId) {
       this.client = client;
@@ -92,7 +94,7 @@ export class VerifierRouter {
     * configurations are read and set and there are no double setting of a specific configuration for
     * a pair of (sourceName, attestationTypeName)
     */
-   public async initialize() {
+   public async initialize(enableLocalVerification = true) {
       if (this._initialized) {
          throw new Error("Already initialized");
       }
@@ -141,6 +143,7 @@ export class VerifierRouter {
             }
          }
       }
+      this._enableLocalVerification = enableLocalVerification;
       this._initialized = true;
    }
 
@@ -187,6 +190,9 @@ export class VerifierRouter {
          return resp.data;
       }
       // If no routing, do direct query (local)
+      if (!this._enableLocalVerification) {
+         throw new Error(`Local verification not enabled.`);
+      }
       return verifyAttestation(this.client, attestation, this.indexedQueryManager, recheck);
    }
 }

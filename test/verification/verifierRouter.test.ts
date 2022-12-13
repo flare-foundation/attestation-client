@@ -3,7 +3,7 @@ import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
 import { getEntityManagerToken } from "@nestjs/typeorm";
-import chai, { assert } from 'chai';
+import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { EntityManager } from "typeorm";
 import { Attestation } from "../../lib/attester/Attestation";
@@ -18,7 +18,7 @@ import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
 import { encodeRequest } from "../../lib/verification/generated/attestation-request-encode";
 import { ARType } from "../../lib/verification/generated/attestation-request-types";
 import { VerifierRouter } from "../../lib/verification/routing/VerifierRouter";
-import { generateTestIndexerDB, selectedReferencedTx, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
+import { generateTestIndexerDB, selectBlock, selectedReferencedTx, testConfirmedBlockHeightExistsRequest, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 
 chai.use(chaiAsPromised);
 
@@ -136,7 +136,7 @@ describe("Test websocket verifier server ", () => {
   it(`Should verify attestation`, async function () {
     process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
-    await verifierRouter.initialize();
+    await verifierRouter.initialize(false);
 
     let requestXRP = await testPaymentRequest(entityManagerXRP, selectedTransactionXRP, DBBlockXRP, NUMBER_OF_CONFIRMATIONS_XRP, ChainType.XRP);
     const attestationXRP = prepareAttestation(requestXRP, startTime);
@@ -153,6 +153,22 @@ describe("Test websocket verifier server ", () => {
 
     assert(respBTC.status === "OK", "Wrong server response");
     assert(respBTC.data.response.transactionHash === prefix0x(selectedTransactionBTC.transactionId), "Wrong transaction id");
+  });
+
+
+
+  it(`Should fail due to sending wrong source id`, async function () {
+    process.env.CONFIG_PATH = CONFIG_PATH;
+    const verifierRouter = new VerifierRouter();
+    await verifierRouter.initialize(false);
+
+    let confirmationBlock = await selectBlock(entityManagerXRP, DBBlockXRP, BLOCK_CHOICE);
+    let requestXRP = await testConfirmedBlockHeightExistsRequest(confirmationBlock, ChainType.XRP);
+
+    const attestationXRP = prepareAttestation(requestXRP, startTime);
+
+    await expect(verifierRouter.verifyAttestation(attestationXRP, attestationXRP.reverification)).to.eventually.be.rejectedWith("Local verification not enabled");
+
   });
 
   after(async () => {

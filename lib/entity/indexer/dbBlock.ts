@@ -1,6 +1,8 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
-// @Entity({name:"block"})
+/**
+ * Format for storing block data in indexer database
+ */
 export class DBBlockBase {
   @PrimaryColumn({ type: "varchar" })
   blockHash!: string;

@@ -8,8 +8,9 @@ import {
   UtxoBlock,
   UtxoTransaction,
   XrpBlock,
-  XrpTransaction,
+  XrpTransaction
 } from "@flarenetwork/mcc";
+import { stringify } from "safe-stable-stringify";
 import { DBTransactionBase, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";
 
@@ -22,21 +23,6 @@ import { prepareString } from "../../utils/utils";
  * @param txData transaction data obtained from MCC (ITransaction)
  * @returns
  */
-// async function augmentTransactionBase(indexer: Indexer, block: IBlock, txData: ITransaction): Promise<DBTransactionBase> {
-//   const table = new (indexer.getActiveTransactionWriteTable() as any)();
-
-//   table.chainType = indexer.cachedClient.client.chainType;
-//   table.transactionId = prepareString(txData.stdTxid, 64);
-//   table.blockNumber = block.number;
-//   table.timestamp = block.unixTimestamp;
-//   table.transactionType = txData.type;
-//   table.isNativePayment = txData.isNativePayment;
-//   table.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
-//   table.response = prepareString(JSON.stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
-
-//   return table;
-// }
-
 //Do we want the whole block just for two lines???
 function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: ChainType, block: IBlock, txData: ITransaction): DBTransactionBase {
   const txEntity = new dbTransaction();
@@ -48,7 +34,7 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
   txEntity.transactionType = txData.type;
   txEntity.isNativePayment = txData.isNativePayment;
   txEntity.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
-  txEntity.response = prepareString(JSON.stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
+  txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
 
   return txEntity;
 }

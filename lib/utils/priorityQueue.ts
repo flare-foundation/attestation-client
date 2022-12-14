@@ -1,8 +1,14 @@
+/**
+ * Interface for elements of queue
+ * key represents time when the value (attestation) should be procesed and is used as a criterion for sorting,
+ */
 export interface QueueNode<T> {
   key: number;
   value: T;
 }
-
+/**
+ * Heap implementation of priority queue
+ */
 export class PriorityQueue<T> {
   heap: QueueNode<T>[] = [];
 
@@ -16,9 +22,16 @@ export class PriorityQueue<T> {
     return this.heap.length == 0;
   }
 
+  /**
+   * returns the value of the first element in queue
+   */
   peek(): T | null {
     return this.heap.length == 0 ? null : this.heap[0].value;
   }
+
+  /**
+   * returns the value of the first element in queue
+   */
   peekKey(): number | null {
     return this.heap.length == 0 ? null : this.heap[0].key;
   }
@@ -27,26 +40,39 @@ export class PriorityQueue<T> {
     return this.heap.length;
   }
 
-  swap = (a: number, b: number) => {
+  /**
+   * Swaps elements at index a and b
+   * @param a
+   * @param b
+   */
+  swap(a: number, b: number): void {
     const tmp = this.heap[a];
     this.heap[a] = this.heap[b];
     this.heap[b] = tmp;
   };
 
+  /**
+  * Adds an elements to priority Queue and puts it at the right place according to the priority
+  * @param item
+  * @param priority
+  */
   push(item: T, priority: number): void {
     this.heap.push({ key: priority, value: item });
 
-    let i = this.heap.length - 1;
-    while (i > 0) {
-      const p = this.parent(i);
-      if (this.heap[p].key < this.heap[i].key) break;
-      const tmp = this.heap[i];
-      this.heap[i] = this.heap[p];
-      this.heap[p] = tmp;
-      i = p;
+    let addedIndex = this.heap.length - 1;
+    while (addedIndex > 0) {
+      const parentIndex = this.parent(addedIndex);
+      if (this.heap[parentIndex].key < this.heap[addedIndex].key) break;
+      this.swap(addedIndex, parentIndex);
+      addedIndex = parentIndex;
     }
   }
 
+  /**
+   * Removes and returnes the first element from the queue and sorts the rest
+   * @param item
+   * @param priority
+   */
   pop(): T | null {
     if (this.heap.length == 0) return null;
 
@@ -64,6 +90,6 @@ export class PriorityQueue<T> {
       current = smallerChild;
     }
 
-    return item!.value;
+    return item.value;
   }
 }

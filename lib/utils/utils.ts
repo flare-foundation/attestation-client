@@ -25,7 +25,7 @@ export function arrayRemoveElement(array: Array<any>, element: any) {
  * @param logger logger object (optional)
  * @returns 
  */
-export function getWeb3(rpcLink: string, logger?: any) {
+export function getWeb3(rpcLink: string, logger?: any): Web3 {
   const web3 = new Web3();
   if (rpcLink.startsWith("http")) {
     web3.setProvider(new Web3.providers.HttpProvider(rpcLink));

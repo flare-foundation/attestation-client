@@ -95,9 +95,9 @@ export async function ${functionName}(
 	recheck = false
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
 {
-	let request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
-	let roundId = attestation.roundId;
-	let numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+	const request = parseRequest(attestation.data.request) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+	const roundId = attestation.roundId;
+	const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
 
 	//-$$$<start> of the custom code section. Do not change this comment.
 
@@ -107,7 +107,7 @@ ${code}
 
 ${hasResponseDefined ? "" : randomResponse}
 
-	let hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
+	const hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
 
 	return {
 		hash,

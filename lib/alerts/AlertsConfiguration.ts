@@ -1,6 +1,6 @@
 import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../utils/databaseService";
-import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 
 class AlertAttestationConfig {
   name = "";

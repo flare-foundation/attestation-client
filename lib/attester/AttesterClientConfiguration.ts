@@ -1,7 +1,10 @@
 import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../utils/databaseService";
-import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
+import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 
+/**
+ * Class that stores configuration of an attestation client
+ */
 export class AttesterClientConfiguration implements IReflection<AttesterClientConfiguration> {
   // start epoch in sec
   public firstEpochStartTime = 1636070400;

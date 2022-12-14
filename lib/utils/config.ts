@@ -1,13 +1,12 @@
 import { getGlobalLogger, logException } from "./logger";
-import { IReflection, isEqualType } from "./typeReflection";
+import { IReflection } from "./reflection";
+import { isEqualType } from "./typeReflection";
 
 const DEFAULT_CONFIG_PATH = "prod";
 const DEFAULT_DEBUG_CONFIG_PATH = "dev";
+import { parser as theParser} from 'clarinet';
 
-
-
-const clarinet = require('clarinet');
-
+// const clarinet = require('clarinet');
 
 /**
    * Extract a detailed JSON parse error 
@@ -17,8 +16,9 @@ const clarinet = require('clarinet');
    * @returns {{snippet:string, message:string, line:number, column:number, position:number}} or undefined if no error
    */
 function getJSONParseError(json) {
-  let parser = clarinet.parser(),
-    firstError = undefined;
+  // let parser = clarinet.parser();
+  let parser = theParser();  
+  let firstError = undefined;
 
   // generate a detailed error using the parser's state
   function makeError(e) {
@@ -42,7 +42,8 @@ function getJSONParseError(json) {
     parser.close();
   };
   try {
-    parser.write(json).close();
+    parser.write(json)
+    parser.close();
   } catch (e) {
     if (firstError === undefined) {
       return makeError(e);
@@ -54,7 +55,24 @@ function getJSONParseError(json) {
   return firstError;
 }
 
+export function parseJSON<T>(data: string, reviver: any = null) {
+  try {
+    // remove all comments
+    data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
 
+    // remove trailing commas
+    data = data.replace(/\,(?!\s*?[\{\[\"\'\w])/g, "");
+
+    //console.log( data );
+
+    const res = JSON.parse(data, reviver) as T;
+
+    return res;
+  }
+  catch (error) {
+    getGlobalLogger().error(`error parsing JSON`);
+  }
+}
 
 export function readJSON<T>(filename: string, parser: any = null, validate = false) {
   const fs = require("fs");

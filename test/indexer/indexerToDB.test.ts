@@ -6,7 +6,7 @@ import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../l
 import { getStateEntry } from "../../lib/indexer/indexer-utils";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
+import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger } from "../../lib/utils/logger";
 import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 const loggers = require("../../lib/utils/logger");
@@ -19,7 +19,7 @@ const expect = chai.expect;
 const assert = chai.assert;
 
 describe("IndexerToBD", function () {
-  const databaseConnectOptions = new DatabaseSourceOptions();
+  const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME1;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
   databaseConnectOptions.password = process.env.DATBASE_PASS;
@@ -41,17 +41,17 @@ describe("IndexerToBD", function () {
     augTxAlt1 = await promAugTxBTCAlt1;
 
     if (!dataService.dataSource.isInitialized) {
-      await dataService.init();
+      await dataService.connect();
     }
 
     //start with empty tables
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
-      await dataService.connection.query(`TRUNCATE ${tableName};`);
+      await dataService.manager.query(`TRUNCATE ${tableName};`);
     }
 
     const tableName = "state";
-    await dataService.connection.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`TRUNCATE ${tableName};`);
   });
 
   afterEach(function () {
@@ -85,7 +85,7 @@ describe("IndexerToBD", function () {
 
   it("should getBottomDBBlockNumberFromStoredTransactions from non empty database #2", async function () {
     const tableName = `btc_transactions0`;
-    await dataService.connection.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`TRUNCATE ${tableName};`);
 
     await dataService.manager.save(augTx1);
     await dataService.manager.save(augTxAlt1);
@@ -95,7 +95,7 @@ describe("IndexerToBD", function () {
 
   it("should getBottomDBBlockNumberFromStoredTransactions from non empty database #3", async function () {
     const tableName = `btc_transactions1`;
-    await dataService.connection.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`TRUNCATE ${tableName};`);
 
     await dataService.manager.save(augTx1);
     await dataService.manager.save(augTxAlt0);
@@ -106,7 +106,7 @@ describe("IndexerToBD", function () {
   it("should getBottomDBBlockNumberFromStoredTransactions from non empty database #4", async function () {
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
-      await dataService.connection.query(`TRUNCATE ${tableName};`);
+      await dataService.manager.query(`TRUNCATE ${tableName};`);
     }
 
     await dataService.manager.save(augTx0);
@@ -118,7 +118,7 @@ describe("IndexerToBD", function () {
   it("should not saveBottomState with no transaction in DB", async function () {
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
-      await dataService.connection.query(`TRUNCATE ${tableName};`);
+      await dataService.manager.query(`TRUNCATE ${tableName};`);
     }
 
     const spy = sinon.spy(indexerToDB.logger, "debug");
@@ -130,7 +130,7 @@ describe("IndexerToBD", function () {
   it("should not saveBottomState with no transaction in DB", async function () {
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
-      await dataService.connection.query(`TRUNCATE ${tableName};`);
+      await dataService.manager.query(`TRUNCATE ${tableName};`);
     }
 
     const spy = sinon.spy(indexerToDB.logger, "debug");
@@ -143,7 +143,7 @@ describe("IndexerToBD", function () {
     await dataService.manager.save(augTx0);
     await dataService.manager.save(augTxAlt1);
     const tableName = "btc_block";
-    await dataService.connection.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`TRUNCATE ${tableName};`);
 
     const spy = sinon.spy(loggers, "logException");
 

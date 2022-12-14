@@ -7,6 +7,7 @@ import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
 import { Indexer } from "../../lib/indexer/indexer";
+import { getGlobalLogger } from "../../lib/utils/logger";
 
 const BtcMccConnection = {
   url: "https://bitcoin.flare.network/",
@@ -96,13 +97,17 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    const processor = new UtxoBlockProcessor(indexer);
+    const processor = new UtxoBlockProcessor(indexer.interlace, indexer.cachedClient);
     processor.debugOn("FIRST");
-    processor.initializeJobs(block, save);
+    processor.initializeJobs(block, save).then(() => {}).catch(e => {
+      getGlobalLogger().error("Initialize jobs failed for processor 1")
+    });
 
-    const processor2 = new UtxoBlockProcessor(indexer);
+    const processor2 = new UtxoBlockProcessor(indexer.interlace, indexer.cachedClient);
     processor2.debugOn("SECOND");
-    processor2.initializeJobs(block2, save);
+    processor2.initializeJobs(block2, save).then(() => {}).catch(e => {
+      getGlobalLogger().error("Initialize jobs failed for processor 1")
+    });
 
     // Simulation of switching between the two processors
     let first = false;
@@ -112,7 +117,9 @@ describe("Test process helpers ", () => {
       if (first) {
         console.log("RUNNING 2 ...");
         processor.pause();
-        processor2.resume();
+        processor2.resume().then(() => {}).catch(e => {
+          getGlobalLogger().error("Resume failed for processor 2")
+        });
         first = false;
         setTimeout(() => {
           simulate();
@@ -120,7 +127,9 @@ describe("Test process helpers ", () => {
       } else {
         console.log("RUNNING 1 ...");
         processor2.pause();
-        processor.resume();
+        processor.resume().then(() => {}).catch(e => {
+          getGlobalLogger().error("Resume failed for processor 2")
+        });
         first = true;
         setTimeout(() => {
           simulate();
@@ -155,7 +164,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    const processor = new UtxoBlockProcessor(indexer);
+    const processor = new UtxoBlockProcessor(indexer.interlace, indexer.cachedClient);
     processor.debugOn("FIRST");    
     await processor.initializeJobs(block, save);
   });
@@ -176,9 +185,9 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    const processor = new AlgoBlockProcessor(indexer);
+    const processor = new AlgoBlockProcessor(indexer.interlace, indexer.cachedClient);
     processor.debugOn("FIRST");
-    processor.initializeJobs(block, save);
+    await processor.initializeJobs(block, save);
   });
 
   it.only(`Test xrp block processing `, async function () {
@@ -201,7 +210,7 @@ describe("Test process helpers ", () => {
     indexer.prepareTables();
 
 
-    const processor = new XrpBlockProcessor(indexer);
+    const processor = new XrpBlockProcessor(indexer.interlace, indexer.cachedClient);
     processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });

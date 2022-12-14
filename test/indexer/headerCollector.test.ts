@@ -5,7 +5,7 @@ import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
-import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
+import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
@@ -27,7 +27,7 @@ describe(`Header Collector`, () => {
   const client = new MCC.BTC(BtcMccConnection);
   const indexerToClient = new IndexerToClient(client);
 
-  const databaseConnectOptions = new DatabaseSourceOptions();
+  const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME1;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
   databaseConnectOptions.password = process.env.DATBASE_PASS;
@@ -47,11 +47,11 @@ describe(`Header Collector`, () => {
 
   before(async function () {
     if (!dataService.dataSource.isInitialized) {
-      await dataService.init();
+      await dataService.connect();
     }
 
     const tableName = "btc_block";
-    await dataService.connection.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`TRUNCATE ${tableName};`);
   });
 
   it("should update N", async function () {
@@ -115,7 +115,7 @@ describe(`Header Collector`, () => {
   it("should runBlockHeaderCollectingRaw", function (done) {
     const spy = sinon.spy(headerCollector.indexerToDB, "writeT");
     setTimeout(done, 6000);
-    headerCollector.runBlockHeaderCollecting();
+    headerCollector.runBlockHeaderCollecting().then(() => {}).catch(e => getGlobalLogger().error("runBlockHeaderCollecting failed"));
     setTimeout(() => {
       expect(spy.called).to.be.true, sinon.restore();
     }, 2000);
@@ -125,7 +125,7 @@ describe(`Header Collector`, () => {
     const spy1 = sinon.spy(headerCollector.indexerToDB, "writeT");
     const spy2 = sinon.spy(headerCollector, "saveHeadersOnNewTips");
     setTimeout(done, 6000);
-    headerCollector.runBlockHeaderCollectingTips();
+    headerCollector.runBlockHeaderCollectingTips().then(() => {}).catch(e => getGlobalLogger().error("runBlockHeaderCollectingTips failed"));
     setTimeout(() => {
       expect(spy1.called).to.be.true;
       expect(!spy2.called).to.be.false;

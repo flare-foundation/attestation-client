@@ -118,7 +118,7 @@ export class IndexerToDB {
 
   //   // create transaction and save everything with retry (terminate app on failure)
   //   await retry(`blockSave N=${Np1}`, async () => {
-  //     await this.dbService.connection.transaction(async (transaction) => {
+  //     await this.dbService.manager.transaction(async (transaction) => {
   //       // save state N, T and T_CHECK_TIME
   //       const stateEntries = [getStateEntry("N", this.chainName, Np1), getStateEntry("T", this.chainName, this.chainHeight)];
 
@@ -211,8 +211,8 @@ export class IndexerToDB {
     try {
       this.logger.info(`dropping table ${name}`);
 
-      await this.dbService.connection.query(`TRUNCATE ${name};`);
-      // const queryRunner = this.dbService.connection.createQueryRunner();
+      await this.dbService.manager.query(`TRUNCATE ${name};`);
+      // const queryRunner = this.dbService.manager.createQueryRunner();
       // const table = await queryRunner.getTable(name);
       // if (!table) {
       //   this.logger.error(`unable to find table ${name}`);

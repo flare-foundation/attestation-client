@@ -3,7 +3,7 @@ import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/C
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../lib/indexer/blockProcessorManager";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
+import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger } from "../../lib/utils/logger";
 import { TestBlockBTC, TestBlockBTCAlt } from "../mockData/indexMock";
 
@@ -34,7 +34,7 @@ describe("BlockProcessorManager", function () {
   const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
   const indexerToClient = new IndexerToClient(cachedClient.client);
 
-  const databaseConnectOptions = new DatabaseSourceOptions();
+  const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME2;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
   databaseConnectOptions.password = process.env.DATBASE_PASS;
@@ -52,7 +52,7 @@ describe("BlockProcessorManager", function () {
   const fake2 = sinon.fake();
   before(async function () {
     if (!dataService.dataSource.isInitialized) {
-      await dataService.init();
+      await dataService.connect();
     }
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 100);
     blockProcessorManager = new BlockProcessorManager(getGlobalLogger(), cachedClient, indexerToClient, interlacing, settings, fake1, fake2);

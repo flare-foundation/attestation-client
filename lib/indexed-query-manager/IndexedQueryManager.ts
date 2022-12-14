@@ -178,7 +178,7 @@ export class IndexedQueryManager {
     const startTimestamp = this.settings.windowStartTime(params.roundId);
 
     for (const table of this.transactionTable) {
-      let query = this.dbService.connection.manager
+      let query = this.dbService.manager
         .createQueryBuilder(table, "transaction")
         .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp }) // always query in the window.
         .andWhere("transaction.blockNumber <= :endBlock", { endBlock: params.endBlock });
@@ -224,7 +224,7 @@ export class IndexedQueryManager {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
     }
     const startTimestamp = this.settings.windowStartTime(params.roundId);
-    let query = this.dbService.connection.manager
+    let query = this.dbService.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.timestamp >= :timestamp", { timestamp: startTimestamp });
     if (params.endBlock) {
@@ -266,7 +266,7 @@ export class IndexedQueryManager {
    * @returns the block with given hash, if exists, `null` otherwise
    */
   async getBlockByHash(hash: string): Promise<DBBlockBase | null> {
-    const query = this.dbService.connection.manager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
+    const query = this.dbService.manager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
     const result = await query.getOne();
     if (result) {
       return result as DBBlockBase;
@@ -462,7 +462,7 @@ export class IndexedQueryManager {
    * @returns the block, if exists, otherwise `null`
    */
   public async getFirstConfirmedBlockAfterTime(timestamp: number): Promise<DBBlockBase | null> {
-    const query = this.dbService.connection.manager
+    const query = this.dbService.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp >= :timestamp", { timestamp: timestamp })
@@ -490,7 +490,7 @@ export class IndexedQueryManager {
    * @returns `true` if the block exists, `false` otherwise
    */
   public async hasIndexerConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<boolean> {
-    const query = this.dbService.connection.manager
+    const query = this.dbService.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp < :timestamp", { timestamp: timestamp })
@@ -507,7 +507,7 @@ export class IndexedQueryManager {
    * @returns the block, if it exists, `null` otherwise
    */
   public async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | null> {
-    const query = this.dbService.connection.manager
+    const query = this.dbService.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp > :timestamp", { timestamp: timestamp })
@@ -540,7 +540,7 @@ export class IndexedQueryManager {
       return true;
     }
     // upper bound proof has to be on one of the longest chains (viewed locally)
-    const query = this.dbService.connection.manager
+    const query = this.dbService.manager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.blockNumber = :blockNumber", { blockNumber: confBlock.blockNumber });
     const result = (await query.getMany()) as DBBlockBase[];

@@ -209,7 +209,7 @@ const myCustomLevels = {
 
 const globalLogger = new Map<string, AttLogger>();
 
-export let globalTestLogger: AttLogger = null;
+let globalTestLogger: AttLogger = null;
 
 let globalLoggerLabel;
 let loggerName = "log";

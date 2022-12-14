@@ -66,7 +66,7 @@ export class Interlacing {
     // this.indexer = indexer;
     this.logger = logger;
     this.dbService = dbService;
-    await this.dbService.init(); //creates connection to database if there is none
+    await this.dbService.connect(); //creates connection to database if there is none
 
     this.timeRange = timeRangeSec * SECONDS_PER_DAY;
     this.blockRange = blockRange;
@@ -77,8 +77,8 @@ export class Interlacing {
     this.chainName = ChainType[chainType];
 
     // get first block from both transaction tables
-    items.push(await dbService.connection.getRepository(this.dbTransactionClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
-    items.push(await dbService.connection.getRepository(this.dbTransactionClasses[1]).find({ order: { blockNumber: "ASC" }, take: 1 }));
+    items.push(await dbService.manager.getRepository(this.dbTransactionClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
+    items.push(await dbService.manager.getRepository(this.dbTransactionClasses[1]).find({ order: { blockNumber: "ASC" }, take: 1 }));
 
     if (items[0].length === 0 && items[1].length === 0) {
       // if both tables are empty we start with 0 and leave timeRange at -1, this indicates that it will be set on 1st update
@@ -170,7 +170,7 @@ export class Interlacing {
 
     // drop inactive table and create new one
     const time0 = Date.now();
-    const queryRunner = this.dbService.connection.createQueryRunner();
+    const queryRunner = this.dbService.manager.connection.createQueryRunner();
     const tableName = this.getTransactionDropTableName();
     const table = await queryRunner.getTable(tableName);
     await queryRunner.dropTable(table);
@@ -206,7 +206,7 @@ export class Interlacing {
 
     // drop inactive table and create new one
     for (let i = 0; i < 2; i++) {
-      const queryRunner = this.dbService.connection.createQueryRunner();
+      const queryRunner = this.dbService.manager.connection.createQueryRunner();
       const tableName = this.getTransactionTableNameForIndex(i);
       await queryRunner.connect();
       const table = await queryRunner.getTable(tableName);

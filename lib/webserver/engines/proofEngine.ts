@@ -28,11 +28,11 @@ export class ProofEngine {
     if (this.cache[roundId]) {
       return this.cache[roundId];
     }
-    await this.dbService.waitForDBConnection();
+    await this.dbService.connect();
     if (!this.canReveal(roundId)) {
       return null;
     }
-    const query = this.dbService.connection.manager
+    const query = this.dbService.manager
       .createQueryBuilder(DBVotingRoundResult, "voting_round_result")
       .andWhere("voting_round_result.roundId = :roundId", { roundId });
     const result = await query.getMany();
@@ -57,11 +57,11 @@ export class ProofEngine {
     if (this.requestCache[roundId]) {
       return this.requestCache[roundId];
     }
-    await this.dbService.waitForDBConnection();
+    await this.dbService.connect();
     if (!this.canReveal(roundId)) {
       return null;
     }
-    const query = this.dbService.connection.manager
+    const query = this.dbService.manager
       .createQueryBuilder(DBAttestationRequest, "attestation_request")
       .andWhere("attestation_request.roundId = :roundId", { roundId })
       .select("attestation_request.requestBytes", "requestBytes")
@@ -102,7 +102,7 @@ export class ProofEngine {
   }
 
   private async maxRoundId() {
-    const maxQuery = this.dbService.connection.manager
+    const maxQuery = this.dbService.manager
       .createQueryBuilder(DBVotingRoundResult, "voting_round_result")
       .select("MAX(voting_round_result.roundId)", "max");
     const res = await maxQuery.getRawOne();
@@ -110,7 +110,7 @@ export class ProofEngine {
   }
 
   public async systemStatus(): Promise<SystemStatus> {
-    await this.dbService.waitForDBConnection();
+    await this.dbService.connect();
     const currentBufferNumber = this.configService.epochSettings.getCurrentEpochId().toNumber();
     let latestAvailableRoundId = await this.maxRoundId();
     // Do not disclose the latest available round, if it is too early

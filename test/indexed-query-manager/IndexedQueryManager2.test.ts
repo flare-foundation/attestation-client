@@ -1,8 +1,8 @@
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
 import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { ChainType, round, UtxoBlock } from "@flarenetwork/mcc";
-import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
-import { globalTestLogger } from "../../lib/utils/logger";
+import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { expect } from "chai";
 import { DBState } from "../../lib/entity/indexer/dbState";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
@@ -13,11 +13,11 @@ import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 
 describe("indexedQueryManager", () => {
-  const databaseConnectOptions = new DatabaseSourceOptions();
+  const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME2;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
   databaseConnectOptions.password = process.env.DATBASE_PASS;
-  const dataService = new DatabaseService(globalTestLogger, databaseConnectOptions);
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
 
   const options: IndexedQueryManagerOptions = {
     chainType: ChainType.BTC,
@@ -36,7 +36,8 @@ describe("indexedQueryManager", () => {
   let augTxAlt1: DBTransactionBase;
 
   before(async () => {
-    await dataService.init();
+    initializeTestGlobalLogger();
+    await dataService.connect();
     augTx0 = await promAugTxBTC0;
     augTxAlt0 = await promAugTxBTCALt0;
     augTx1 = await promAugTxBTC1;

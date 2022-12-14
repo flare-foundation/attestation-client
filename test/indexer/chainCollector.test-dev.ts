@@ -227,7 +227,7 @@ describe("Test process helpers ", () => {
     indexer.chainConfig.name = "ALGO";
     indexer.prepareTables();
 
-    const processor = new AlgoBlockProcessor(indexer);
+    const processor = new AlgoBlockProcessor(indexer.interlace, indexer.cachedClient);
     processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });

@@ -151,8 +151,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
 
     });
 
-    // The test fails
-    it.skip(`get credentials key google cloud secret manager`, async () => {
+    it(`get credentials key google cloud secret manager`, async () => {
         const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:projects/746294693511/secrets/test1/versions/latest");
 
         assert(credentialsPassword === password, `credentials password not correct`);

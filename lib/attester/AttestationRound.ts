@@ -101,8 +101,8 @@ export class AttestationRound {
   addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
     // todo: check how fast is hash
-    const attestationHash = attestation.data.getHash();
-    const duplicate = this.attestationsMap.get(attestationHash);
+    const requestId = attestation.data.getId();
+    const duplicate = this.attestationsMap.get(requestId);
 
     if (duplicate) {
       this.logger.debug3(
@@ -116,9 +116,9 @@ export class AttestationRound {
     };
 
     this.attestations.push(attestation);
-    this.attestationsMap.set(attestationHash, attestation);
+    this.attestationsMap.set(requestId, attestation);
 
-    // start attestation proces
+    // start attestation process
     attestation.sourceHandler.validate(attestation);
   }
 

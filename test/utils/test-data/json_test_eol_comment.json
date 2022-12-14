@@ -1,0 +1,4 @@
+// EOL comment 1
+{ 
+    "test":1 // EOL comment 2
+}

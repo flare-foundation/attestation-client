@@ -30,8 +30,6 @@ interface TestData extends IIdentifiable {
   b: string;
 }
 
-const axios = require("axios");
-
 describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
 
   let app: INestApplication;

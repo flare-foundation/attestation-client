@@ -199,7 +199,7 @@ describe("Test process helpers ", () => {
     await processor.initializeJobs(block, save);
   });
 
-  it.only(`Test ALGO block processing `, async function () {
+  it(`Test ALGO block processing `, async function () {
     const block = await AlgoMccClient.getBlock(25254303);
 
     const defaultCachedMccClientOptions: CachedMccClientOptions = {

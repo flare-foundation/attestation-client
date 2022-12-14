@@ -34,3 +34,4 @@ export async function testWithoutLoggingTracingAndApplicationTermination(func: a
  export function getTestFile(myFile: string) {
    return myFile.slice(myFile.replace(/\\/g, '/').indexOf("test/"));
  };
+ 

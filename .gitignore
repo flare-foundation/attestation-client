@@ -89,3 +89,6 @@ routes
 
 # temp
 temp
+
+# tests
+test/utils/test-data/config/credentials.json.secure

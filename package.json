@@ -59,7 +59,7 @@
     "htest": "yarn codegen && yarn c && yarn hardhat test test/HashTest.test.ts",
     "test": "mocha -r dotenv/config -r ts-node/register -t 0 --exit",
     "test-all-contracts": "yarn hardhat test test/**/*.test-contract.ts",
-    "test-all-other": "mocha -r dotenv/config -r ts-node/register -t 0 --exit test/**/*.test.ts",
+    "test-all-other": "mocha -r dotenv/config -r ts-node/register -t 0 --exit 'test/**/*.test.ts'",
     "test-all": "npm-run-all test-all-contracts test-all-other",
     "test:coverage": "nyc yarn test-all",
     "atest": "yarn hardhat run scripts/generateAttestationRequest.ts --network local",

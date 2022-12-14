@@ -1,5 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
-import { DatabaseConnectOptions, DatabaseSourceOptions } from "../utils/databaseService";
+import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
 export class AttesterClientConfiguration implements IReflection<AttesterClientConfiguration> {
@@ -38,8 +38,8 @@ export class AttesterCredentials implements IReflection<AttesterCredentials> {
   public web = new AttesterWebOptions();
   // public attesterDatabase = new DatabaseConnectOptions();
   // public indexerDatabase = new DatabaseConnectOptions();
-  public attesterDatabase = new DatabaseSourceOptions();
-  public indexerDatabase = new DatabaseSourceOptions();
+  public attesterDatabase = new DatabaseConnectOptions();
+  public indexerDatabase = new DatabaseConnectOptions();
 
   instanciate() {
     return new AttesterCredentials();

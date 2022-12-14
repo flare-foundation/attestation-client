@@ -1,5 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
-import { DatabaseConnectOptions, DatabaseSourceOptions } from "../utils/databaseService";
+import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/typeReflection";
 
 export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
@@ -19,7 +19,7 @@ export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
 
 export class IndexerCredentials implements IReflection<IndexerCredentials> {
   // indexerDatabase = new DatabaseConnectOptions();
-  indexerDatabase = new DatabaseSourceOptions();
+  indexerDatabase = new DatabaseConnectOptions();
 
   instanciate() {
     return new IndexerCredentials();

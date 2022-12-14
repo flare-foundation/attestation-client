@@ -1,7 +1,7 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, globalTestLogger } from "../../lib/utils/logger";
+import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { expect } from "chai";
 import { DBTransactionBase, DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
 import { afterEach } from "mocha";
@@ -11,11 +11,11 @@ import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 
 describe("interlacing", () => {
-  const databaseConnectOptions = new DatabaseSourceOptions();
+  const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME2;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
   databaseConnectOptions.password = process.env.DATBASE_PASS;
-  const dataService = new DatabaseService(globalTestLogger, databaseConnectOptions);
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
 
   let interlacing = new Interlacing();
 
@@ -25,18 +25,19 @@ describe("interlacing", () => {
   let augTxAlt1: DBTransactionBase;
 
   before(async () => {
+    initializeTestGlobalLogger();
     augTx0 = await promAugTxBTC0;
     augTxAlt0 = await promAugTxBTCALt0;
     augTx1 = await promAugTxBTC1;
     augTxAlt1 = await promAugTxBTCAlt1;
 
     if (!dataService.dataSource.isInitialized) {
-      await dataService.init();
+      await dataService.connect();
     }
 
     //start with empty tables
     for (let i = 0; i < 2; i++) {
-      const queryRunner = dataService.connection.createQueryRunner();
+      const queryRunner = dataService.manager.connection.createQueryRunner();
       const tableName = `btc_transactions${i}`;
       const table = await queryRunner.getTable(tableName);
       await queryRunner.dropTable(table);
@@ -48,7 +49,7 @@ describe("interlacing", () => {
     if (dataService.dataSource.isInitialized) {
       await dataService.dataSource.destroy();
     }
-    await dataService.init();
+    await dataService.connect();
 
     // await dataService.manager.save(augTx1);
     // await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
@@ -124,7 +125,7 @@ describe("interlacing", () => {
     await dataService.dataSource.manager.save(augTx0);
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
 
-    interlacing.update(16685757980, 7643800);
+    interlacing.update(16685757980, 7643800).then(() => {}).catch(e => getGlobalLogger().error("interlacing.update failed"));
     const spy = sinon.spy(utils, "sleepms");
     await interlacing.update(16685747980, 7633800);
     expect(spy.calledWith(1)).to.be.true;
@@ -134,7 +135,7 @@ describe("interlacing", () => {
   it("Should wait for table to unlock resetAll", async function () {
     await dataService.dataSource.manager.save(augTx0);
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
-    interlacing.resetAll();
+    interlacing.resetAll().then(() => {}).catch(e => getGlobalLogger().error("interlacing.update failed"));;
     const spy = sinon.spy(utils, "sleepms");
     expect(spy.calledWith(1)).to.be.false;
     await interlacing.resetAll();

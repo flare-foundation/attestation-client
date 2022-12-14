@@ -427,7 +427,7 @@ export class Indexer {
 
     // create transaction and save everything with retry (terminate app on failure)
     await retry(`blockSave N=${Np1}`, async () => {
-      await this.dbService.connection.transaction(async (transaction) => {
+      await this.dbService.manager.transaction(async (transaction) => {
         // save state N, T and T_CHECK_TIME
         const stateEntries = [getStateEntry("N", this.chainConfig.name, Np1), getStateEntry("T", this.chainConfig.name, this.T)];
 
@@ -724,7 +724,7 @@ export class Indexer {
   // async dropTable(name: string) {
   //   try {
   //     this.logger.info(`dropping table ${name}`);
-  //     const queryRunner = this.dbService.connection.createQueryRunner();
+  //     const queryRunner = this.dbService.manager.createQueryRunner();
   //     const table = await queryRunner.getTable(name);
   //     if (!table) {
   //       this.logger.error(`unable to find table ${name}`);
@@ -897,7 +897,7 @@ export class Indexer {
 
     // ------- 0. Initialization ------------------------------
     // wait for db to connect
-    await this.dbService.waitForDBConnection();
+    await this.dbService.connect();
 
     if (await this.processCommandLineParameters(args)) {
       // some parameter settings do not require running indexer

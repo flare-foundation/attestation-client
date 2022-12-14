@@ -9,7 +9,7 @@ import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { getGlobalLogger } from "../../lib/utils/logger";
-import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
+import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
 import { AugTestBlockBTC, promAugTxBTC0 } from "../mockData/indexMock";
@@ -96,7 +96,7 @@ describe.skip("Indexer BTC", () => {
   indexer.cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptions);
   indexer.indexerToClient = new IndexerToClient(indexer.cachedClient.client);
 
-  const databaseConnectOptions = new DatabaseSourceOptions();
+  const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME1;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
   databaseConnectOptions.password = process.env.DATBASE_PASS;
@@ -107,17 +107,17 @@ describe.skip("Indexer BTC", () => {
   indexer.dbService = dataService;
   before(async function () {
     if (!dataService.dataSource.isInitialized) {
-      await dataService.init();
+      await dataService.connect();
     }
     const tableName1 = "state";
-    await dataService.connection.query(`TRUNCATE ${tableName1};`);
+    await dataService.manager.query(`TRUNCATE ${tableName1};`);
     const tableName2 = "btc_transactions0";
-    await dataService.connection.query(`TRUNCATE ${tableName2};`);
+    await dataService.manager.query(`TRUNCATE ${tableName2};`);
     const tableName3 = "btc_transactions1";
-    await dataService.connection.query(`TRUNCATE ${tableName3};`);
+    await dataService.manager.query(`TRUNCATE ${tableName3};`);
 
     indexer.indexerToDB = new IndexerToDB(getGlobalLogger(), dataService, ChainType.BTC);
-    indexer.interlace.initialize(getGlobalLogger(), dataService, ChainType.BTC, 36000, 10);
+    await indexer.interlace.initialize(getGlobalLogger(), dataService, ChainType.BTC, 36000, 10);
     indexer.blockProcessorManager = new BlockProcessorManager(
       getGlobalLogger(),
       indexer.cachedClient,

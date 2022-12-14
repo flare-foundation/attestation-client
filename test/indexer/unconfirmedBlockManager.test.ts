@@ -1,6 +1,6 @@
 import { DBBlockDOGE } from "../../lib/entity/indexer/dbBlock";
 import { UnconfirmedBlockManager } from "../../lib/indexer/UnconfirmedBlockManager";
-import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
+import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger } from "../../lib/utils/logger";
 
 const chai = require("chai");
@@ -9,7 +9,7 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 
 describe("UnconfirmedBlockManager", function () {
-  const databaseConnectOptions = new DatabaseSourceOptions();
+  const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME2;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
   databaseConnectOptions.password = process.env.DATBASE_PASS;
@@ -19,12 +19,12 @@ describe("UnconfirmedBlockManager", function () {
 
   before(async () => {
     if (!dataService.dataSource.isInitialized) {
-      await dataService.init();
+      await dataService.connect();
     }
 
     //generate test table
     const tableName = "doge_block";
-    await dataService.connection.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`TRUNCATE ${tableName};`);
     for (let j = 5; j < 16; j++) {
       const entity = new DBBlockDOGE();
       entity.blockNumber = j;

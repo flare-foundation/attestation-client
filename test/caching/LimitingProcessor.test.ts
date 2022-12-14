@@ -1,7 +1,7 @@
 import { DelayedExecution, LimitingProcessor } from "../../lib/caching/LimitingProcessor";
 import { sleepms } from "../../lib/utils/utils";
-import { DatabaseService, DatabaseSourceOptions } from "../../lib/utils/databaseService";
-import { globalTestLogger } from "../../lib/utils/logger";
+import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import { Interlacing } from "../../lib/indexer/interlacing";
@@ -61,11 +61,11 @@ describe("Delayed execution", () => {
 });
 
 describe("Limiting Processor", () => {
-  const databaseConnectOptions = new DatabaseSourceOptions();
+  const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME1;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
   databaseConnectOptions.password = process.env.DATBASE_PASS;
-  const dataService = new DatabaseService(globalTestLogger, databaseConnectOptions);
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
 
   const BtcMccConnection = {
     url: process.env.BTC_URL,
@@ -86,7 +86,8 @@ describe("Limiting Processor", () => {
   const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
 
   before(async () => {
-    await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
+    initializeTestGlobalLogger();
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     limitingProcessor = new LimitingProcessor(interlacing, cachedClient);
     limitingProcessor.settings.retry = 4;
   });
@@ -125,7 +126,7 @@ describe("Limiting Processor", () => {
     limitingProcessor
       .call(preFake1)
       .then(() => {
-        limitingProcessor.call(preFake2);
+        limitingProcessor.call(preFake2).catch(e => getGlobalLogger().error("limiting processor failed"));
       })
       .then(() => {
         console.log("tu smo 1");
@@ -143,7 +144,7 @@ describe("Limiting Processor", () => {
   it("Should call and process while running with debug on", function () {
     expect(limitingProcessor.isCompleted).to.be.false;
 
-    limitingProcessor.resume(true);
+    limitingProcessor.resume(true).catch(e => getGlobalLogger().error("Limiting processor resume failed"));
 
     expect(limitingProcessor.isActive).to.be.true;
     const firstFake = sinon.fake();
@@ -177,7 +178,7 @@ describe("Limiting Processor", () => {
     limitingProcessor.call(() => {
       console.log("first");
       return "54321";
-    }, true);
+    }, true).catch(e => getGlobalLogger().error("Limiting processor call failed"));
     expect(limitingProcessor.queue.size).to.be.eq(1);
     limitingProcessor.destroy();
     expect(limitingProcessor.queue.size).to.be.eq(0);

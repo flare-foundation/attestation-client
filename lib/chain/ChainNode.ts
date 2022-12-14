@@ -11,7 +11,7 @@ import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
-import { SourceId, toSourceId } from "../verification/sources/sources";
+import { SourceId } from "../verification/sources/sources";
 import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainConfiguration } from "./ChainConfiguration";
 import { ChainManager } from "./ChainManager";
@@ -299,7 +299,6 @@ export class ChainNode {
   validate(attestation: Attestation): void {
     //this.chainManager.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
-    this.augmentCutoffTimes(attestation);
     // check if transaction can be added into processing
     if (this.canProcess()) {
       // eslint-disable-next-line
@@ -307,46 +306,6 @@ export class ChainNode {
     } else {
       this.queue(attestation);
     }
-  }
-
-  /**
-   * Auxillary function to calculate query window start time in no lower bound for block was given.
-   * The time is calculated relative to the `roundId`
-   * @param roundId 
-   * @returns 
-   */
-  private windowStartTime(roundId: number) {
-    const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-    const queryWindowsInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
-      toSourceId(this.chainConfig.name),
-      roundId
-    ).queryWindowInSec;
-    return roundStartTime - queryWindowsInSec;
-  }
-
-  /**
-   * Auxillary function to calculate fork cut-off time.
-   * The time is calculated relative to the `roundId`
-   * @param roundId 
-   * @returns 
-   */
-  private UBPCutoffTime(roundId: number) {
-    const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-    const UBPUnconfirmedWindowInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
-      toSourceId(this.chainConfig.name),
-      roundId
-    ).UBPUnconfirmedWindowInSec;
-    return roundStartTime - UBPUnconfirmedWindowInSec;
-  }
-
-  /**
-   * Adds minimum block timestamp (`windowStartTime`) and fork cut-off time for upper bound proof to the attestation, 
-   * both calculated relative to the `roundId`.
-   * @param attestation 
-   */
-  private augmentCutoffTimes(attestation: Attestation) {
-    attestation.windowStartTime = this.windowStartTime(attestation.roundId);
-    attestation.UBPCutoffTime = this.UBPCutoffTime(attestation.roundId)
   }
 
   /**

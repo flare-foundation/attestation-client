@@ -32,7 +32,7 @@ process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
 DotEnvExt();
 
-describe("Indexed query manager", () => {
+describe.skip("Indexed query manager", () => {
   let indexedQueryManager: IndexedQueryManager;
   let client: MccClient;
   let indexerConfiguration: IndexerConfiguration;

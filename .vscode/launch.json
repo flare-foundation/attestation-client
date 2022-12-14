@@ -50,6 +50,17 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "Launch Secure Credentials",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devsecurecredentials"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Launch Install-file",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
@@ -324,7 +335,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Test Attestation parser",
+            "name": "Test Configuration",
             "runtimeExecutable": "yarn",
             "console": "integratedTerminal",
             "outFiles": [
@@ -334,9 +345,8 @@
                 "${workspaceFolder}/../mcc/src/**"
             ],
             "runtimeArgs": [
-                "hardhat",
                 "test",
-                "test/generated/AttestationRequestParser.test.ts"
+                "test/utils/configuration.test.ts"
             ]
         },
         {

@@ -109,7 +109,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   });
 
   // Used for debugging specific requests
-  it.only("Specific request check", async () => {
+  it("Specific request check", async () => {
     const request = "0x000100000004d35d367c3abd09d92c956c9e73d73fd9e7da10ba209b807829b7093a9a55f62f145848860e2f9e81c6c21eaeaa0fcbfe2d4876b872c09ea2294e19a965b92c420000";
     const roundId = 366582;
     const recheck = true;

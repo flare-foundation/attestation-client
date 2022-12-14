@@ -81,11 +81,12 @@ export class DatabaseService {
   }
 
   public async connect() {
+    this.logger.info(
+      `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
+    );
     if (!this.dataSource.isInitialized) {
       // TODO: retry logic
-      this.logger.info(
-        `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
-      );
+
       await this.dataSource.initialize();
     }
   }

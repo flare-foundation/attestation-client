@@ -11,6 +11,7 @@ import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 
 describe("interlacing", () => {
+  initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME2;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
@@ -25,7 +26,6 @@ describe("interlacing", () => {
   let augTxAlt1: DBTransactionBase;
 
   before(async () => {
-    initializeTestGlobalLogger();
     augTx0 = await promAugTxBTC0;
     augTxAlt0 = await promAugTxBTCALt0;
     augTx1 = await promAugTxBTC1;
@@ -125,7 +125,10 @@ describe("interlacing", () => {
     await dataService.dataSource.manager.save(augTx0);
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
 
-    interlacing.update(16685757980, 7643800).then(() => {}).catch(e => getGlobalLogger().error("interlacing.update failed"));
+    interlacing
+      .update(16685757980, 7643800)
+      .then(() => {})
+      .catch((e) => getGlobalLogger().error("interlacing.update failed"));
     const spy = sinon.spy(utils, "sleepms");
     await interlacing.update(16685747980, 7633800);
     expect(spy.calledWith(1)).to.be.true;
@@ -135,7 +138,10 @@ describe("interlacing", () => {
   it("Should wait for table to unlock resetAll", async function () {
     await dataService.dataSource.manager.save(augTx0);
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
-    interlacing.resetAll().then(() => {}).catch(e => getGlobalLogger().error("interlacing.update failed"));;
+    interlacing
+      .resetAll()
+      .then(() => {})
+      .catch((e) => getGlobalLogger().error("interlacing.update failed"));
     const spy = sinon.spy(utils, "sleepms");
     expect(spy.calledWith(1)).to.be.false;
     await interlacing.resetAll();

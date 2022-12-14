@@ -1,7 +1,7 @@
 import { DBBlockDOGE } from "../../lib/entity/indexer/dbBlock";
 import { UnconfirmedBlockManager } from "../../lib/indexer/UnconfirmedBlockManager";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
@@ -18,6 +18,7 @@ describe("UnconfirmedBlockManager", function () {
   let unconfirmedBlockManager = new UnconfirmedBlockManager(dataService, DBBlockDOGE, 7);
 
   before(async () => {
+    initializeTestGlobalLogger();
     if (!dataService.dataSource.isInitialized) {
       await dataService.connect();
     }

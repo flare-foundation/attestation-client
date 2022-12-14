@@ -11,8 +11,9 @@ import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import sinon from "sinon";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
+import { getTestFile } from "../test-utils/test-utils";
 
-describe("indexedQueryManager", () => {
+describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
   const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME2;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
@@ -42,6 +43,15 @@ describe("indexedQueryManager", () => {
     augTxAlt0 = await promAugTxBTCALt0;
     augTx1 = await promAugTxBTC1;
     augTxAlt1 = await promAugTxBTCAlt1;
+
+    //start with empty tables
+    for (let i = 0; i < 2; i++) {
+      const tableName = `btc_transactions${i}`;
+      await dataService.manager.query(`TRUNCATE ${tableName};`);
+    }
+
+    const tableName = "btc_block";
+    await dataService.manager.query(`TRUNCATE ${tableName};`);
   });
 
   it("Should get chain N ", () => {

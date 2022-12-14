@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import { numberLikeToNumber, randomListElement } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { getTestFile } from "../test-utils/test-utils";
 
-describe(`Attestation Helpers Tests`, function () {
+describe(`Attestation Helpers Tests (${getTestFile(__filename)})`, function () {
   describe(`numberLikeToNumber`, function () {
     it("string to number safe", function () {
       const num = "9007199254740991";

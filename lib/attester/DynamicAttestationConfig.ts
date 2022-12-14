@@ -1,5 +1,5 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { readJSON } from "../utils/config";
+import { readJSON } from "../utils/json";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";

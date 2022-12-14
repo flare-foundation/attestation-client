@@ -1,4 +1,4 @@
-import { readJSON } from "../utils/config";
+import { readJSON } from "../utils/json";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger, logException } from "../utils/logger";
 

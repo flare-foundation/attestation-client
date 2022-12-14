@@ -11,6 +11,7 @@ import { DatabaseAlert } from "./DatabaseAlert";
 import { DockerAlert } from "./DockerAlert";
 import { IndexerAlert } from "./IndexerAlert";
 import { NodeAlert } from "./NodeAlert";
+import { stringify } from "safe-stable-stringify";
 
 @Managed()
 export class AlertsManager {
@@ -105,7 +106,7 @@ export class AlertsManager {
         if (this.config.stateSaveFilename) {
           try {
             const fs = require("fs");
-            fs.writeFile(this.config.stateSaveFilename, JSON.stringify({ alerts: statusAlerts, perf: statusPerfs }), function (err) {
+            fs.writeFile(this.config.stateSaveFilename, stringify({ alerts: statusAlerts, perf: statusPerfs }), function (err) {
               if (err) {
                 this.logger.error(err);
               }

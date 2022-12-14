@@ -337,7 +337,7 @@ export class Indexer {
       if (isBlockNp1) {
         const blockNp2 = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.N + 2);
         // eslint-disable-next-line
-        criticalAsync(`blockCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
+        criticalAsync(`blockCompleted(${block.blockNumber}) -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
     }
 
@@ -359,7 +359,9 @@ export class Indexer {
       if (isBlockNp1) {
         const blockNp2 = await this.indexerToClient.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
         // eslint-disable-next-line
-        criticalAsync(`blockAlreadyCompleted -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
+        criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () =>
+          this.blockProcessorManager.process(blockNp2)
+        );
       }
     }
   }
@@ -433,25 +435,6 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
-          // let newTransactions = [];
-
-          // for( const tx of transactions ) {
-          //   const newTx = new transactionClass();
-
-          //   newTx.chainType=tx.chainType;
-          //   newTx.transactionId=tx.transactionId;
-          //   newTx.blockNumber=tx.blockNumber;
-          //   newTx.timestamp=tx.timestamp;
-          //   newTx.paymentReference=tx.paymentReference;
-          //   newTx.response=tx.response;
-          //   newTx.isNativePayment=tx.isNativePayment;
-          //   newTx.transactionType=tx.transactionType;
-
-          //   newTransactions.push( newTx );
-          // }
-
-          // await transaction.save(newTransactions);
-
           // fix transactions class to active interlace tranascation class
           const dummy = new transactionClass();
           for (let tx of transactions) {
@@ -495,6 +478,7 @@ export class Indexer {
     if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
       await this.indexerToDB.saveBottomState();
+      await this.checkDatabaseContinuous();
     }
 
     return true;
@@ -641,18 +625,6 @@ export class Indexer {
   /////////////////////////////////////////////////////////////
   // Auxillary functions
   /////////////////////////////////////////////////////////////
-
-  // MOVED TO indexer-utils.ts
-  // async dropAllStateInfo() {
-  //   this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
-  //
-  //   await this.dbService.manager
-  //     .createQueryBuilder()
-  //     .delete()
-  //     .from(DBState)
-  //     .where("`name` like :name", { name: `%${this.chainConfig.name}_%` })
-  //     .execute();
-  // }
 
   /**
    * Processes command line parameters when supplied.
@@ -819,75 +791,97 @@ export class Indexer {
   /**
    * check if indexer database is continous
    */
-  async checkDatabaseContinuous() {
-    const name = this.chainConfig.name.toLowerCase();
 
-    // reference sql query
-    //const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
+   async waitForever() {
+    this.logger.error2("waiting forever");
+    while (true) {
+      await sleepms(60000);
 
-    // get DB N_bottom
-    const queryNbottom = this.dbService.manager
-      .createQueryBuilder()
-      .select("valueNumber")
-      .addSelect("name")
-      .from(DBState, "s")
-      .where("s.name = :name", { name: `${name.toUpperCase()}_Nbottom` });
-
-    //this.queryPrint(queryNbottom);
-
-    const Nbottom = await queryNbottom.getRawOne();
-
-    if (!Nbottom || !Nbottom.valueNumber) {
-      this.logger.error(`${name} discontinuity test failed (unable to get state:${name.toUpperCase()}_Nbottom)`);
-      return;
-    }
-
-    const queryTable0 = this.dbService.manager
-      .createQueryBuilder()
-      .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
-      .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx")
-      .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
-
-    const queryTable1 = this.dbService.manager
-      .createQueryBuilder()
-      .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
-      .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx")
-      .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
-
-    const table0missing = await queryTable0.getRawOne();
-    const table1missing = await queryTable1.getRawOne();
-
-    if (table0missing && table0missing.missing) {
-      if (table0missing.missing != 0) {
-        this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
-
-        //await this.interlace.resetAll();
-
-        this.logger.debug(`restarting`);
-        exit(3);
-      } else {
-        this.logger.debug(`${name} continuity ok on [0]`);
-      }
-    }
-
-    if (table1missing && table1missing.missing) {
-      if (table1missing.missing != 0) {
-        this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
-
-        await this.interlace.resetAll();
-        await this.indexerToDB.dropAllStateInfo();
-
-        this.logger.debug(`restarting`);
-        exit(3);
-      } else {
-        this.logger.debug(`${name} continuity ok on [1]`);
-      }
+      this.logger.debug("waiting forever");
     }
   }
+
+  async checkDatabaseContinuous() {
+    try {
+      const name = this.chainConfig.name.toLowerCase();
+
+      // reference sql query
+      //const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
+
+      // get DB N_bottom
+      const queryNbottom = this.dbService.manager
+        .createQueryBuilder()
+        .select("valueNumber")
+        .addSelect("name")
+        .from(DBState, "s")
+        .where("s.name = :name", { name: `${name.toUpperCase()}_Nbottom` });
+
+      //this.queryPrint(queryNbottom);
+
+      const Nbottom = await queryNbottom.getRawOne();
+
+      if (!Nbottom || !Nbottom.valueNumber) {
+        this.logger.error(`${name} discontinuity test failed (unable to get state:${name.toUpperCase()}_Nbottom)`);
+        return;
+      }
+
+      const queryTable0 = this.dbService.manager
+        .createQueryBuilder()
+        .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
+        .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx")
+        .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
+
+      const queryTable1 = this.dbService.manager
+        .createQueryBuilder()
+        .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
+        .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx")
+        .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
+
+      const table0missing = await queryTable0.getRawOne();
+      const table1missing = await queryTable1.getRawOne();
+
+      if (table0missing && table0missing.missing) {
+        if (table0missing.missing != 0) {
+          this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
+
+          //await this.interlace.resetAll();
+
+          this.logger.debug(`restarting`);
+          await this.waitForever();
+          exit(3);
+        } else {
+          this.logger.debug(`${name} continuity ok on [0]`);
+        }
+      }
+
+      if (table1missing && table1missing.missing) {
+        if (table1missing.missing != 0) {
+          this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
+
+          await this.interlace.resetAll();
+
+          this.logger.debug(`restarting`);
+          await this.waitForever();
+          exit(3);
+        } else {
+          this.logger.debug(`${name} continuity ok on [1]`);
+        }
+      }
+    } catch (error) {
+      logException(error, "checkDatabaseContinuous");
+    }
+  }
+
 
   /////////////////////////////////////////////////////////////
   // main indexer entry function
   /////////////////////////////////////////////////////////////
+
+  runContinuosContinuityTest() {
+    setInterval(async () => {
+      await this.checkDatabaseContinuous();
+    }, 60 * 1000);
+  }
 
   async runIndexer(args: any) {
     // setup tracing
@@ -937,15 +931,17 @@ export class Indexer {
     // check if indexer database is continous
     await this.checkDatabaseContinuous();
 
-    // ------- 1. sync blocks from the past -------------------
+    // ------- 1. sync blocks from the past ------------------
     await this.indexerSync.runSync(dbStartBlockNumber);
 
-    // ------- 2. Run  header collection ----------------------
-
+    // ------- 2. Run header collection ----------------------
     // eslint-disable-next-line
     criticalAsync("runBlockHeaderCollecting", async () => this.headerCollector.runBlockHeaderCollecting());
 
-    // ------- 3. Process real time blocks N + 1 --------------
+    // ------- 3. Run Continuos Continuity Test --------------
+    this.runContinuosContinuityTest();
+
+    // ------- 4. Process real time blocks N + 1 -------------
 
     while (true) {
       // get chain top block

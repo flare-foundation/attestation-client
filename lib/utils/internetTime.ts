@@ -1,13 +1,19 @@
 const timeSync = 0;
 
-// time in milliseconds
+/**
+ * Returns time passed from 1 January 1970 in milliseconds, UTC
+ * @returns
+ */
 export function getTimeMilli() {
   const now = new Date().getTime();
 
   return Math.round(now + timeSync);
 }
 
-// time in sec
+/**
+ * Returns time passed from 1 January 1970 in seconds, UTC
+ * @returns
+ */
 export function getTimeSec() {
   return Math.floor(getTimeMilli() / 1000);
 }

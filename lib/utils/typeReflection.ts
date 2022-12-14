@@ -1,20 +1,6 @@
 import { getOptionalKeys } from "@flarenetwork/mcc";
 import { getGlobalLogger } from "./logger";
 
-export class AdditionalTypeInfo {
-  arrayMap = new Map<string, any>();
-  additionalKeys = new Map<string, any>();
-
-  getArrayType(name: string) {
-    return this.arrayMap.get(name);
-  }
-}
-
-export interface IReflection<T> {
-  instanciate(): T;
-  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo;
-}
-
 function getType(object: any) {
   let type = typeof object;
 

@@ -42,7 +42,7 @@ async function generatePasswords(source: string, length = 32) {
     return source;
   }
 
-  while (1) {
+  while (true) {
     const password = (await getCryptoSafeRandom(length)).substring(2,length+2);
 
     const newSource = source.replace(search, password);

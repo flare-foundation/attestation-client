@@ -5,6 +5,9 @@ import { AttLogger } from "./logger";
 
 // temporary fix???
 
+/**
+ *Class describing with data to establish connection to database
+ */
 export class DatabaseConnectOptions {
   @optional() type = "mysql";
   @optional() host = "localhost";
@@ -19,6 +22,9 @@ export class DatabaseConnectOptions {
   @optional() subscribers = [];
 }
 
+/**
+ * DatabaseService for storing the attestation data and indexer data
+ */
 export class DatabaseService {
   private logger!: AttLogger;
 

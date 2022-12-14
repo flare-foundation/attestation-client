@@ -1,5 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
-import { DataSource } from "typeorm";
+import { DataSource, DataSourceOptions } from "typeorm";
 import { MysqlConnectionOptions } from "typeorm/driver/mysql/MysqlConnectionOptions";
 import { AttLogger } from "./logger";
 
@@ -49,22 +49,37 @@ export class DatabaseService {
 
     const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
 
-    let connectOptions = {
-      name: this.connectionName,
-      type: "mysql",
-      host: this.options.host,
-      port: this.options.port,
-      username: this.options.username,
-      password: this.options.password,
-      database: this.options.database,
-      entities: this.options.entities ?? [entities],
-      migrations: this.options.migrations ?? [migrations],
-      synchronize: this.options.synchronize ?? true,
-      logging: this.options.logging ?? false
-    } as MysqlConnectionOptions;
+    if (process.env.IN_MEMORY_DB) {
+      let connectOptions = {
+        name: this.connectionName,
+        type: 'better-sqlite3',
+        database: ':memory:',
+        dropSchema: true,
+        entities: this.options.entities ?? [entities],
+        synchronize: true,
+        migrationsRun: false,
+        logging: false
+      } as DataSourceOptions;;
+      this.dataSource = new DataSource(connectOptions);
+      this.logger.debug2(`entity: ${entities}`);
+    } else {
+      let connectOptions = {
+        name: this.connectionName,
+        type: "mysql",
+        host: this.options.host,
+        port: this.options.port,
+        username: this.options.username,
+        password: this.options.password,
+        database: this.options.database,
+        entities: this.options.entities ?? [entities],
+        migrations: this.options.migrations ?? [migrations],
+        synchronize: this.options.synchronize ?? true,
+        logging: this.options.logging ?? false
+      } as MysqlConnectionOptions;
 
-    this.dataSource = new DataSource(connectOptions);
-    this.logger.debug2(`entity: ${entities}`);
+      this.dataSource = new DataSource(connectOptions);
+      this.logger.debug2(`entity: ${entities}`);
+    }
   }
 
   public async connect() {

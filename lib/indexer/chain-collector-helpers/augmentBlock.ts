@@ -2,12 +2,10 @@ import { IBlock } from "@flarenetwork/mcc";
 import { DBBlockBase, IDBBlockBase } from "../../entity/indexer/dbBlock";
 import { prepareString } from "../../utils/utils";
 
-// No need to include indexer in this function
-// No need to be async
 /**
- * Creates database entity for a confirmed block while indexing.
- * @param indexer indexer
- * @param block block as returned by MCC
+ * Creates database entity for a confirmed block
+ * @param dbBlockClass
+ * @param block
  * @returns
  */
 export function augmentBlock(dbBlockClass: IDBBlockBase, block: IBlock): DBBlockBase {

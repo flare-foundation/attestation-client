@@ -792,7 +792,7 @@ export class Indexer {
    * check if indexer database is continous
    */
 
-   async waitForever() {
+  async waitForever() {
     this.logger.error2("waiting forever");
     while (true) {
       await sleepms(60000);
@@ -859,6 +859,7 @@ export class Indexer {
           this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
 
           await this.interlace.resetAll();
+          await this.indexerToDB.dropAllStateInfo();
 
           this.logger.debug(`restarting`);
           await this.waitForever();
@@ -871,7 +872,6 @@ export class Indexer {
       logException(error, "checkDatabaseContinuous");
     }
   }
-
 
   /////////////////////////////////////////////////////////////
   // main indexer entry function

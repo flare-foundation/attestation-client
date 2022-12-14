@@ -40,9 +40,6 @@ export class Interlacing {
   chainType: ChainType;
   public chainName: string;
 
-  // private indexer: Indexer;
-  chainConfig: any;
-
   /**
    * Sets the initial limits for the interlacing.
    *
@@ -53,17 +50,9 @@ export class Interlacing {
    * @param blockRange
    * @returns
    */
-  public async initialize(
-    logger: AttLogger,
-    dbService: DatabaseService,
-    chainType: ChainType,
-    // dbTransactionClasses: IDBTransactionBase[],
-    timeRangeSec: number,
-    blockRange: number
-  ) {
+  public async initialize(logger: AttLogger, dbService: DatabaseService, chainType: ChainType, timeRangeSec: number, blockRange: number) {
     const items = [];
 
-    // this.indexer = indexer;
     this.logger = logger;
     this.dbService = dbService;
     await this.dbService.connect(); //creates connection to database if there is none
@@ -71,7 +60,7 @@ export class Interlacing {
     this.timeRange = timeRangeSec * SECONDS_PER_DAY;
     this.blockRange = blockRange;
     const prepared = prepareIndexerTables(chainType);
-    this.dbBlockClass = prepared.blockTable; // quick fix, to be stored somewhere else
+    this.dbBlockClass = prepared.blockTable;
     this.dbTransactionClasses = prepared.transactionTable;
     this.chainType = chainType;
     this.chainName = ChainType[chainType];

@@ -107,7 +107,6 @@ export class LimitingProcessor {
 
   block: IBlock;
 
-  // indexer: Indexer; //only needed in block processor
   interlacing: Interlacing;
 
   constructor(interlacing: Interlacing, client: CachedMccClient, options?: LimitingProcessorOptions) {

@@ -18,7 +18,6 @@ export class IndexerConfiguration implements IReflection<IndexerConfiguration> {
 }
 
 export class IndexerCredentials implements IReflection<IndexerCredentials> {
-  // indexerDatabase = new DatabaseConnectOptions();
   indexerDatabase = new DatabaseConnectOptions();
 
   instanciate() {

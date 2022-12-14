@@ -10,10 +10,6 @@ export const DEFAULT_BACK_OFF_TIME = 1000;
  * @param label logging label
  */
 let onRetryFailure: (label: string) => void;
-// = (label) => {
-//   getGlobalLogger().error(`failure callback not set (label '${label}')`);
-//   throw new Error("FailureCallbackNotSet");
-// };
 
 /**
  * Executes the global failure callback. This should be called in critical cases,

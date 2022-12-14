@@ -103,7 +103,7 @@ export async function criticalAsync(label: string, funct: (...args: any[]) => Pr
  * Constructs dbState entity for key-value pair
  * @param name name associated to key
  * @param chainName
- * @param value value (number)
+ * @param value (number)
  * @returns
  */
 export function getStateEntry(name: string, chainName: string, value: number): DBState {
@@ -114,25 +114,6 @@ export function getStateEntry(name: string, chainName: string, value: number): D
   state.timestamp = getUnixEpochTimestamp();
 
   return state;
-}
-
-/**
- * Prefixes chain name and undercore to the given name
- * @param name  name
- * @param chainName
- * @returns
- */
-function prefixChainNameTo(name: string, chainName: string) {
-  return chainName.toLowerCase() + "_" + name;
-}
-
-/**
- * Returns entry key for N in the database.
- * @param chainName
- * @returns
- */
-export function getChainN(chainName: string) {
-  return prefixChainNameTo("N", chainName);
 }
 
 /**
@@ -154,4 +135,23 @@ export function getStateEntryString(name: string, chainName: string, valueString
   state.comment = comment;
 
   return state;
+}
+
+/**
+ * Prefixes chain name and undercore to the given name
+ * @param name
+ * @param chainName
+ * @returns
+ */
+function prefixChainNameTo(name: string, chainName: string) {
+  return chainName.toLowerCase() + "_" + name;
+}
+
+/**
+ * Returns entry key for N in the database.
+ * @param chainName
+ * @returns
+ */
+export function getChainN(chainName: string) {
+  return prefixChainNameTo("N", chainName);
 }

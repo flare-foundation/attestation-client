@@ -75,7 +75,7 @@ export function sortedHashPair(x: string, y: string) {
  */
 export class MerkleTree {
   _tree: string[] = [];
-  initialHash = false; //What is this used for?
+  initialHash = false;
 
   constructor(values: string[], initialHash = false) {
     this.initialHash = initialHash;
@@ -185,7 +185,7 @@ export class MerkleTree {
     return proof;
   }
 }
-// To be excluded out of the class of merkleTree
+
 /**
  * Verifies a Merkle proof for a given leaf
  * @param leaf leaf as (`0x`-prefixed 32-byte hex string)

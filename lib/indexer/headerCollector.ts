@@ -17,7 +17,6 @@ interface IHeaderCollectorSettings {
  */
 @Managed()
 export class HeaderCollector {
-  // private indexer: Indexer;
   private settings: IHeaderCollectorSettings;
   private indexerToClient: IndexerToClient;
   public indexerToDB: IndexerToDB;
@@ -30,7 +29,6 @@ export class HeaderCollector {
 
   constructor(logger: AttLogger, N: number, indexerToClient: IndexerToClient, indexerToDB: IndexerToDB, settings: IHeaderCollectorSettings) {
     this.logger = logger;
-    // this.indexer = indexer;
     this.N = N;
     this.indexerToClient = indexerToClient;
     this.indexerToDB = indexerToDB;
@@ -176,22 +174,6 @@ export class HeaderCollector {
 
     await retry(`saveBlocksHeadersArray`, async () => await this.indexerToDB.dbService.manager.save(dbBlocks));
   }
-
-  /////////////////////////////////////////////////////////////
-  // save state
-  /////////////////////////////////////////////////////////////
-
-  //Moved to indexerToDB
-  // /**
-  //  * Saves the last top height into the database state
-  //  * @param T top height
-  //  */
-  // private async writeT(T: number) {
-  //   // every update save last T
-  //   const stateTcheckTime = getStateEntry("T", this.indexer.chainConfig.name, T);
-
-  //   await retry(`writeT`, async () => await this.indexer.dbService.manager.save(stateTcheckTime));
-  // }
 
   /////////////////////////////////////////////////////////////
   // header collectors

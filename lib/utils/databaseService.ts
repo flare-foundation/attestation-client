@@ -3,8 +3,6 @@ import { DataSource, DataSourceOptions } from "typeorm";
 import { MysqlConnectionOptions } from "typeorm/driver/mysql/MysqlConnectionOptions";
 import { AttLogger } from "./logger";
 
-// temporary fix???
-
 /**
  *Class describing with data to establish connection to database
  */
@@ -34,7 +32,7 @@ export class DatabaseService {
 
   private options: DatabaseConnectOptions;
 
-  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "") {
+  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "", isTestDB: boolean = false) {
     this.logger = logger;
 
     this.databaseName = databaseName;
@@ -49,17 +47,17 @@ export class DatabaseService {
 
     const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
 
-    if (process.env.IN_MEMORY_DB) {
+    if (isTestDB) {
       let connectOptions = {
         name: this.connectionName,
-        type: 'better-sqlite3',
-        database: ':memory:',
+        type: "better-sqlite3",
+        database: ":memory:",
         dropSchema: true,
         entities: this.options.entities ?? [entities],
         synchronize: true,
         migrationsRun: false,
-        logging: false
-      } as DataSourceOptions;;
+        logging: false,
+      } as DataSourceOptions;
       this.dataSource = new DataSource(connectOptions);
       this.logger.debug2(`entity: ${entities}`);
     } else {
@@ -74,7 +72,7 @@ export class DatabaseService {
         entities: this.options.entities ?? [entities],
         migrations: this.options.migrations ?? [migrations],
         synchronize: this.options.synchronize ?? true,
-        logging: this.options.logging ?? false
+        logging: this.options.logging ?? false,
       } as MysqlConnectionOptions;
 
       this.dataSource = new DataSource(connectOptions);
@@ -88,7 +86,6 @@ export class DatabaseService {
       this.logger.info(
         `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
       );
-
       await this.dataSource.initialize();
     }
   }
@@ -97,5 +94,4 @@ export class DatabaseService {
     if (this.dataSource.manager) return this.dataSource.manager;
     throw Error(`no database connection ${this.databaseName}`);
   }
-
 }

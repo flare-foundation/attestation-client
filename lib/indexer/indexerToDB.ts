@@ -12,7 +12,6 @@ import { getChainN, getStateEntry, prepareIndexerTables } from "./indexer-utils"
  */
 @Managed()
 export class IndexerToDB {
-  // interlace = new Interlacing();
   dbService: DatabaseService;
   dbTransactionClasses: IDBTransactionBase[];
   dbBlockClass: IDBBlockBase;
@@ -20,12 +19,8 @@ export class IndexerToDB {
   chainType: ChainType;
   logger!: AttLogger;
   bottomBlockTime: number;
-  chainHeight = 0;
-  // N - last processed and saved block
-  N = 0;
 
   constructor(logger: AttLogger, dbService: DatabaseService, chainType: ChainType) {
-    // this.interlace = interlace;
     this.logger = logger;
     this.dbService = dbService;
     const tables = prepareIndexerTables(chainType);
@@ -34,6 +29,11 @@ export class IndexerToDB {
     this.chainType = chainType;
     this.chainName = ChainType[chainType];
   }
+
+  /////////////////////////////////////////////////////////////
+  // get respective DB block number
+  /////////////////////////////////////////////////////////////
+
   /**
    * @returns Returns last N saved into the database
    */
@@ -68,6 +68,25 @@ export class IndexerToDB {
     return result0.min < result1.min ? result0.min : result1.min;
   }
 
+  /////////////////////////////////////////////////////////////
+  // save state
+  /////////////////////////////////////////////////////////////
+
+  /**
+   * Saves the last top height into the database state
+   * @param T top height
+   */
+  public async writeT(T: number) {
+    // every update save last T
+    const stateTcheckTime = getStateEntry("T", this.chainName, T);
+
+    await retry(`writeT`, async () => await this.dbService.manager.save(stateTcheckTime));
+  }
+
+  /////////////////////////////////////////////////////////////
+  // Save bottom N state (used for verification)
+  /////////////////////////////////////////////////////////////
+
   /**
    * Saves the bottom block number and timestamp into the state table in the database.
    * The bottom block is the minimal block for confirmed transactions that are currently
@@ -90,105 +109,6 @@ export class IndexerToDB {
       logException(error, `saving block bottom state`);
     }
   }
-
-  // /**
-  //  * Saves block and related transaction entities into the database in
-  //  * database transaction safe way with retries.
-  //  * After saving it triggers transaction table interlacing update.
-  //  * @param block block entity to be saved
-  //  * @param transactions block transaction entities to be saved
-  //  * @returns
-  //  */
-  // public async blockSave(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
-  //   const Np1 = this.N + 1;
-
-  //   if (block.blockNumber !== Np1) {
-  //     failureCallback(`unexpected block number: expected to save blockNumber ${Np1} (but got ${block.blockNumber})`);
-  //     // function exits
-  //     return false;
-  //   }
-
-  //   this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.activeIndex})`);
-  //   const transactionClass = this.interlace.getActiveTransactionWriteTable();
-
-  //   // fix data
-  //   block.transactions = transactions.length;
-
-  //   const time0 = Date.now();
-
-  //   // create transaction and save everything with retry (terminate app on failure)
-  //   await retry(`blockSave N=${Np1}`, async () => {
-  //     await this.dbService.manager.transaction(async (transaction) => {
-  //       // save state N, T and T_CHECK_TIME
-  //       const stateEntries = [getStateEntry("N", this.chainName, Np1), getStateEntry("T", this.chainName, this.chainHeight)];
-
-  //       // block must be marked as confirmed
-  //       if (transactions.length > 0) {
-  //         // let newTransactions = [];
-
-  //         // for( const tx of transactions ) {
-  //         //   const newTx = new transactionClass();
-
-  //         //   newTx.chainType=tx.chainType;
-  //         //   newTx.transactionId=tx.transactionId;
-  //         //   newTx.blockNumber=tx.blockNumber;
-  //         //   newTx.timestamp=tx.timestamp;
-  //         //   newTx.paymentReference=tx.paymentReference;
-  //         //   newTx.response=tx.response;
-  //         //   newTx.isNativePayment=tx.isNativePayment;
-  //         //   newTx.transactionType=tx.transactionType;
-
-  //         //   newTransactions.push( newTx );
-  //         // }
-
-  //         // await transaction.save(newTransactions);
-
-  //         // fix transactions class to active interlace tranascation class
-  //         const dummy = new transactionClass();
-  //         for (let transaction of transactions) {
-  //           Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
-  //         }
-
-  //         await transaction.save(transactions);
-  //       } else {
-  //         // save dummy transaction to keep transaction table block continuity
-  //         this.logger.debug(`block ${block.blockNumber} no transactions (dummy tx added)`);
-
-  //         const dummyTx = new transactionClass();
-
-  //         dummyTx.chainType = this.chainType;
-  //         dummyTx.blockNumber = block.blockNumber;
-  //         dummyTx.transactionType = "EMPTY_BLOCK_INDICATOR";
-
-  //         await transaction.save(dummyTx);
-  //       }
-
-  //       await transaction.save(block);
-  //       await transaction.save(stateEntries);
-  //     });
-  //     return true;
-  //   });
-
-  //   // increment N if all is ok
-  //   this.N = Np1;
-
-  //   // if bottom block is undefined then save it (this happens only on clean start or after database reset)
-  //   if (!this.bottomBlockTime) {
-  //     await this.saveBottomState();
-  //   }
-
-  //   this.blockProcessorManager.clearProcessorsUpToBlockNumber(Np1);
-  //   const time1 = Date.now();
-  //   this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms)`);
-
-  //   // table interlacing
-  //   if (await this.interlace.update(block.timestamp, block.blockNumber)) {
-  //     // bottom state was changed because one table was dropped - we need to save new value
-  //     await this.saveBottomState();
-  //   }
-
-  //   return true;
-  // }
 
   async dropAllStateInfo() {
     this.logger.info(`drop all state info for '${this.chainName}'`);
@@ -235,16 +155,5 @@ export class IndexerToDB {
     await this.dropTable(`${chain}_block`);
     await this.dropTable(`${chain}_transactions0`);
     await this.dropTable(`${chain}_transactions1`);
-  }
-
-  /**
-   * Saves the last top height into the database state
-   * @param T top height
-   */
-  public async writeT(T: number) {
-    // every update save last T
-    const stateTcheckTime = getStateEntry("T", this.chainName, T);
-
-    await retry(`writeT`, async () => await this.dbService.manager.save(stateTcheckTime));
   }
 }

@@ -21,7 +21,6 @@ export class IndexerToClient {
     if (backOffTime) this.backOffTime = backOffTime;
   }
 
-  //!!!Error is handled by retry not by !result!!!
   /**
    *
    * @param label

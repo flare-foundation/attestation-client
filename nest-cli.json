@@ -1,19 +1,19 @@
 {
   "monorepo": true,
-  "root": "lib/servers/ws-server",
-  "sourceRoot": "lib/servers/ws-server/src",
+  "root": "lib/servers/verifier-server",
+  "sourceRoot": "lib/servers/verifier-server/src",
   "compilerOptions": {
     "webpack": true,
-    "tsConfigPath": "lib/servers/ws-server/tsconfig.app.json"
+    "tsConfigPath": "lib/servers/verifier-server/tsconfig.app.json"
   },
   "projects": {
-    "ws-server": {
+    "verifier-server": {
       "type": "application",
-      "root": "lib/servers/ws-server",
+      "root": "lib/servers/verifier-server",
       "entryFile": "main",
-      "sourceRoot": "lib/servers/ws-server/src",
+      "sourceRoot": "lib/servers/verifier-server/src",
       "compilerOptions": {
-        "tsConfigPath": "lib/servers/ws-server/tsconfig.app.json"
+        "tsConfigPath": "lib/servers/verifier-server/tsconfig.app.json"
       }
     },
     "web-server": {

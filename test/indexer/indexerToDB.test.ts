@@ -7,8 +7,9 @@ import { getStateEntry } from "../../lib/indexer/indexer-utils";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
+import { getTestFile } from "../test-utils/test-utils";
 const loggers = require("../../lib/utils/logger");
 const sinon = require("sinon");
 
@@ -18,7 +19,8 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 const assert = chai.assert;
 
-describe("IndexerToBD", function () {
+describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
+  initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
   databaseConnectOptions.database = process.env.DATABASE_NAME1;
   databaseConnectOptions.username = process.env.DATABASE_USERNAME;
@@ -49,7 +51,7 @@ describe("IndexerToBD", function () {
       const tableName = `btc_transactions${i}`;
       await dataService.manager.query(`TRUNCATE ${tableName};`);
     }
-
+    await dataService.manager.query(`TRUNCATE btc_block;`);
     const tableName = "state";
     await dataService.manager.query(`TRUNCATE ${tableName};`);
   });

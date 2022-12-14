@@ -1,5 +1,7 @@
 import { MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
+import { initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { getTestFile } from "../test-utils/test-utils";
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
@@ -7,22 +9,24 @@ const expect = chai.expect;
 
 //To be eventually mocked
 
-describe("Indexer to client", function () {
+describe(`Indexer to client (${getTestFile(__filename)})`, function () {
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",
     username: process.env.BTC_USERNAME || "",
     password: process.env.BTC_PASSWORD || "",
   } as UtxoMccCreate;
 
+  initializeTestGlobalLogger();
+
   const client = new MCC.BTC(BtcMccConnection);
   let inToCl = new IndexerToClient(client, 1800, 3, 300);
 
-  it("Should get Block", async function () {
+  it("Should get block", async function () {
     let res = await inToCl.getBlockFromClient("height", 763418);
     expect(res.blockHash).to.be.eq("0000000000000000000275e5d4097fb6121787976f42e85310976b34b1e36072");
   });
 
-  it.skip("Should not get Block", async function () {
+  it("Should not get Block", async function () {
     await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
   });
 

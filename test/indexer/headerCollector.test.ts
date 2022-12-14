@@ -6,7 +6,7 @@ import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
 import * as BTCBlockHeaderAlt from "../mockData/BTCBlockHeaderAlt.json";
@@ -18,6 +18,7 @@ const expect = chai.expect;
 chai.use(require("chai-as-promised"));
 
 describe(`Header Collector`, () => {
+  initializeTestGlobalLogger();
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",
     username: process.env.BTC_USERNAME || "",
@@ -115,7 +116,10 @@ describe(`Header Collector`, () => {
   it("should runBlockHeaderCollectingRaw", function (done) {
     const spy = sinon.spy(headerCollector.indexerToDB, "writeT");
     setTimeout(done, 6000);
-    headerCollector.runBlockHeaderCollecting().then(() => {}).catch(e => getGlobalLogger().error("runBlockHeaderCollecting failed"));
+    headerCollector
+      .runBlockHeaderCollecting()
+      .then(() => {})
+      .catch((e) => getGlobalLogger().error("runBlockHeaderCollecting failed"));
     setTimeout(() => {
       expect(spy.called).to.be.true, sinon.restore();
     }, 2000);
@@ -125,7 +129,10 @@ describe(`Header Collector`, () => {
     const spy1 = sinon.spy(headerCollector.indexerToDB, "writeT");
     const spy2 = sinon.spy(headerCollector, "saveHeadersOnNewTips");
     setTimeout(done, 6000);
-    headerCollector.runBlockHeaderCollectingTips().then(() => {}).catch(e => getGlobalLogger().error("runBlockHeaderCollectingTips failed"));
+    headerCollector
+      .runBlockHeaderCollectingTips()
+      .then(() => {})
+      .catch((e) => getGlobalLogger().error("runBlockHeaderCollectingTips failed"));
     setTimeout(() => {
       expect(spy1.called).to.be.true;
       expect(!spy2.called).to.be.false;

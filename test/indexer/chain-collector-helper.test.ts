@@ -1,5 +1,7 @@
 import {
-  AlgoMccCreate, ChainType, IXrpGetBlockRes,
+  AlgoMccCreate,
+  ChainType,
+  IXrpGetBlockRes,
   IXrpGetTransactionRes,
   UtxoBlock,
   UtxoMccCreate,
@@ -7,7 +9,7 @@ import {
   XrpBlock,
   XrpMccCreate,
   XrpTransaction,
-  xrp_ensure_data
+  xrp_ensure_data,
 } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
@@ -27,13 +29,14 @@ import * as resXRPTx from "../mockData/XRPTx.json";
 
 import { afterEach } from "mocha";
 import sinon from "sinon";
+import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
 
-describe("Chain collector helpers", () => {
+describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
   before(async function () {
     initializeTestGlobalLogger();
   });
@@ -100,6 +103,7 @@ describe("Chain collector helpers", () => {
     const tx = TestTxBTC;
     const txFake = TestTxBTCFake;
     before(async () => {
+      await dataService.connect();
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 12);
       utxoBlockProcessor = new UtxoBlockProcessor(interlacing, cachedClient);
     });

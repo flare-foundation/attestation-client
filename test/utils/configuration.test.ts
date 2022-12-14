@@ -62,6 +62,10 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         _clearSecureCredentials();
     });
 
+    after(() => {
+        sinon.restore();
+    })
+
     // encryption
 
     it(`Encrypt and decrypt string`, async () => {
@@ -203,7 +207,5 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
 
         assert(exitCode !== 0, `function must exit`);
     });
-
-
 
 })

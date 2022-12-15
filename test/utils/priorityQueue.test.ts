@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import { string } from "yargs";
 import { PriorityQueue } from "../../lib/utils/priorityQueue";
+import { getTestFile } from "../test-utils/test-utils";
 
-describe("PriorityQueue", () => {
+describe(`PriorityQueue, (${getTestFile(__filename)})`, () => {
   let priorityQueueEmpty = new PriorityQueue<number>();
   let priorityQueue = new PriorityQueue<number>();
 

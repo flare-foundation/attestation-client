@@ -2,13 +2,14 @@ import { DBBlockDOGE } from "../../lib/entity/indexer/dbBlock";
 import { UnconfirmedBlockManager } from "../../lib/indexer/UnconfirmedBlockManager";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
 
-describe("UnconfirmedBlockManager", function () {
+describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);

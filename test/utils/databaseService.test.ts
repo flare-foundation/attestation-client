@@ -3,7 +3,7 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { getTestFile } from "../test-utils/test-utils";
 import { expect } from "chai";
 
-describe(`databaseService tests (${getTestFile(__filename)})`, function () {
+describe(`DatabaseService tests (${getTestFile(__filename)})`, function () {
   const databaseConnectOptions = new DatabaseConnectOptions();
 
   let dataService: DatabaseService;

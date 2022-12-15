@@ -5,14 +5,11 @@ import { expect } from "chai";
 
 describe(`databaseService tests (${getTestFile(__filename)})`, function () {
   const databaseConnectOptions = new DatabaseConnectOptions();
-  databaseConnectOptions.database = process.env.DATABASE_NAME1;
-  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-  databaseConnectOptions.password = process.env.DATBASE_PASS;
 
   let dataService: DatabaseService;
   before(async function () {
     // initializeTestGlobalLogger();
-    dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+    dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
     await dataService.connect();
   });
 

@@ -10,6 +10,7 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
 import * as BTCBlockHeaderAlt from "../mockData/BTCBlockHeaderAlt.json";
+import { getTestFile } from "../test-utils/test-utils";
 
 const sinon = require("sinon");
 const chai = require("chai");
@@ -17,7 +18,7 @@ const expect = chai.expect;
 // const fs = require("fs");
 chai.use(require("chai-as-promised"));
 
-describe(`Header Collector`, () => {
+describe(`Header Collector (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",
@@ -29,10 +30,7 @@ describe(`Header Collector`, () => {
   const indexerToClient = new IndexerToClient(client);
 
   const databaseConnectOptions = new DatabaseConnectOptions();
-  databaseConnectOptions.database = process.env.DATABASE_NAME1;
-  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-  databaseConnectOptions.password = process.env.DATBASE_PASS;
-  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
   //   let interlacing = new Interlacing();
 
@@ -52,7 +50,11 @@ describe(`Header Collector`, () => {
     }
 
     const tableName = "btc_block";
-    await dataService.manager.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`delete from ${tableName};`);
+  });
+
+  afterEach(function () {
+    sinon.restore();
   });
 
   it("should update N", async function () {

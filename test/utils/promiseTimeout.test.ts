@@ -7,11 +7,12 @@ import PromiseTimeout = require("../../lib/utils/PromiseTimeout");
 import sinon = require("sinon");
 import { afterEach } from "mocha";
 import loggers = require("../../lib/utils/logger");
-import { MccError, sleepMs } from "@flarenetwork/mcc";
-import { sleepms } from "../../lib/utils/utils";
+import { sleepMs } from "@flarenetwork/mcc";
+import { getTestFile } from "../test-utils/test-utils";
 
 chai.should();
-describe("PromiseTimeout", function () {
+describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
+  loggers.initializeTestGlobalLogger();
   afterEach(function () {
     sinon.restore();
   });

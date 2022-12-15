@@ -131,15 +131,15 @@ export class IndexerToDB {
     try {
       this.logger.info(`dropping table ${name}`);
 
-      await this.dbService.manager.query(`TRUNCATE ${name};`);
-      // const queryRunner = this.dbService.manager.createQueryRunner();
-      // const table = await queryRunner.getTable(name);
-      // if (!table) {
-      //   this.logger.error(`unable to find table ${name}`);
-      //   return;
-      // }
-      // await queryRunner.dropTable(table);
-      // await queryRunner.release();
+      // await this.dbService.manager.query(`TRUNCATE ${name};`);
+      const queryRunner = this.dbService.manager.connection.createQueryRunner();
+      const table = await queryRunner.getTable(name);
+      if (!table) {
+        this.logger.error(`unable to find table ${name}`);
+        return;
+      }
+      await queryRunner.dropTable(table);
+      await queryRunner.release();
     } catch (error) {
       logException(error, `dropTable`);
     }

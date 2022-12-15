@@ -66,10 +66,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
 
   describe("Limiting Processor", () => {
     const databaseConnectOptions = new DatabaseConnectOptions();
-    databaseConnectOptions.database = process.env.DATABASE_NAME1;
-    databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-    databaseConnectOptions.password = process.env.DATBASE_PASS;
-    const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+    const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
     const BtcMccConnection = {
       url: process.env.BTC_URL,

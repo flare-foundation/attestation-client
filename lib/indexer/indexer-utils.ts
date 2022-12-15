@@ -1,5 +1,5 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { DBBlockALGO, IDBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
+import { DBBlockALGO, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import {
   IDBTransactionBase,
@@ -21,13 +21,18 @@ import { getUnixEpochTimestamp } from "../utils/utils";
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
 
+export interface IndexerTablesScheme {
+  transactionTable: IDBTransactionBase[];
+  blockTable: IDBBlockBase
+}
+
 /**
  * Returns a pair of entity tables for transactions used in interlacing tables.
  * Tables match the entities specific for the given chain type.
  * @param type - chain type
  * @category Indexer
  */
-export function prepareIndexerTables(type: ChainType): { transactionTable: IDBTransactionBase[]; blockTable: IDBBlockBase } {
+export function prepareIndexerTables(type: ChainType): IndexerTablesScheme {
   const transactionTable = [];
   let blockTable;
   switch (type) {
@@ -60,7 +65,7 @@ export function prepareIndexerTables(type: ChainType): { transactionTable: IDBTr
       throw new Error("Invalid chain type");
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      ((_: never): void => { })(type);
   }
   return {
     transactionTable,

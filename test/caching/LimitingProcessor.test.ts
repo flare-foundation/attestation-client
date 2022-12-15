@@ -1,11 +1,11 @@
-import { DelayedExecution, LimitingProcessor } from "../../lib/caching/LimitingProcessor";
-import { sleepms } from "../../lib/utils/utils";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
-import { Interlacing } from "../../lib/indexer/interlacing";
 import sinon from "sinon";
+import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
+import { DelayedExecution, LimitingProcessor } from "../../lib/caching/LimitingProcessor";
+import { Interlacing } from "../../lib/indexer/interlacing";
+import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { sleepms } from "../../lib/utils/utils";
 import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");
@@ -89,7 +89,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
     before(async () => {
       initializeTestGlobalLogger();
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
-      limitingProcessor = new LimitingProcessor(interlacing, cachedClient);
+      limitingProcessor = new LimitingProcessor(cachedClient);
       limitingProcessor.settings.retry = 4;
     });
 

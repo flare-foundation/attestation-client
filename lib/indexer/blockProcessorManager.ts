@@ -123,7 +123,7 @@ export class BlockProcessorManager {
     this.logger.info(`^w^Kprocess block ${validatedBlock.number}`);
 
     // newly created block processor starts automatically
-    const processor = new (BlockProcessor(this.cachedClient.chainType))(this.interlace, this.cachedClient);
+    const processor = new (BlockProcessor(this.cachedClient.chainType))(this.cachedClient);
     this.blockProcessors.push(processor);
 
     // terminate app on exception
@@ -145,7 +145,7 @@ export class BlockProcessorManager {
 
     this.logger.info(`^w^Ksync process block ${validatedBlock.number}`);
 
-    const processor = new (BlockProcessor(this.cachedClient.chainType))(this.interlace, this.cachedClient);
+    const processor = new (BlockProcessor(this.cachedClient.chainType))(this.cachedClient);
     this.blockProcessors.push(processor);
 
     // terminate app on exception

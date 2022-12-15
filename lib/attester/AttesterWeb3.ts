@@ -1,36 +1,39 @@
 import BN from "bn.js";
 import Web3 from "web3";
 import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
-import { AttLogger } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
+import { AttesterCredentials } from "./AttesterClientConfiguration";
 
 /**
  * Handles submitions to StateConnector
  */
 export class AttesterWeb3 {
-  config: AttesterClientConfiguration;
-  credentials: AttesterCredentials;
-  logger: AttLogger;
+  attestationRoundManager: AttestationRoundManager;
+  credentials: AttesterCredentials
 
   web3!: Web3;
   stateConnector!: StateConnectorOld;
   web3Functions!: Web3Functions;
-
-  constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
-    this.logger = logger;
-    this.config = configuration;
-    if (!credentials) {
+  
+  constructor(credentials: AttesterCredentials) {
+    // for testing only
+    if (process.env.NODE_ENV !== "production" && !credentials) {
       return;
     }
+
     this.credentials = credentials;
     this.web3 = getWeb3(credentials.web.rpcUrl) as Web3;
-    this.web3Functions = new Web3Functions(this.logger, this.web3, this.credentials.web.accountPrivateKey);
+    this.web3Functions = new Web3Functions(this.logger, this.web3, credentials.web.accountPrivateKey);
   }
 
-  async initialize() {
+  get logger() {
+    return this.attestationRoundManager.logger;
+  }
+
+  async initialize(attestationRoundManager: AttestationRoundManager) {
+    this.attestationRoundManager = attestationRoundManager;
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.credentials.web.stateConnectorContractAddress);
   }
 
@@ -88,15 +91,15 @@ export class AttesterWeb3 {
     }
 
     //if (process.env.NODE_ENV === "production") {
-    if( true ) {
+    if (true) {
 
-      const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
+      const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
       const extReceipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
 
       if (extReceipt.receipt) {
-        await AttestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1 , extReceipt.nonce, extReceipt.receipt.transactionHash);
-        await AttestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2 , extReceipt.nonce, extReceipt.receipt.transactionHash);
+        await this.attestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
+        await this.attestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
       }
 
       return extReceipt.receipt;

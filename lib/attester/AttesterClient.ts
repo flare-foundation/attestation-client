@@ -22,7 +22,7 @@ export class AttesterClient {
   chainsConfig: ChainsConfiguration;
   credentials: AttesterCredentials;
   logger: AttLogger;
-  roundMng: AttestationRoundManager;
+  attestationRoundManager: AttestationRoundManager;
   attesterWeb3: AttesterWeb3;
   chainManager: ChainManager;
   blockCollector!: Web3BlockCollector;
@@ -38,8 +38,8 @@ export class AttesterClient {
     this.chainsConfig = chains;
     this.credentials = credentials;
     this.chainManager = new ChainManager(this.logger);
-    this.attesterWeb3 = new AttesterWeb3(this.logger, this.config, this.credentials);
-    this.roundMng = new AttestationRoundManager(this.chainManager, this.config, this.credentials, this.logger, this.attesterWeb3);
+    this.attesterWeb3 = new AttesterWeb3(this.credentials);
+    this.attestationRoundManager = new AttestationRoundManager(this.chainManager, this.config, this.credentials, this.logger, this.attesterWeb3);
   }
 
   /**
@@ -104,7 +104,7 @@ export class AttesterClient {
         continue;
       }
 
-      const node = new ChainNode(this.chainManager, chain);
+      const node = new ChainNode(this.attestationRoundManager, chain);
       await node.initialize();
       this.logger.info(`chain ${chain.name}:#${chainType}`);
       this.chainManager.addNode(chainType as any as SourceId, node);
@@ -123,9 +123,9 @@ export class AttesterClient {
         const attestation = new AttestationData(event);
 
         // eslint-disable-next-line
-        this.roundMng.attestate(attestation); // non awaited promise
+        this.attestationRoundManager.attestate(attestation); // non awaited promise
       }
-      
+
     } catch (error) {
       logException(error, `processEvent(AttestationRequest)`);
     }
@@ -140,7 +140,7 @@ export class AttesterClient {
 
         // TODO save events in Attestation Round
       }
-      
+
     } catch (error) {
       logException(error, `processEvent(AttestationSubmit)`);
     }
@@ -152,11 +152,11 @@ export class AttesterClient {
         const roundId = event.returnValues.roundId;
         const merkleRoot = event.returnValues.merkleRoot;
 
-        if( !roundId || Number.isNaN( roundId ) ) {
-          this.logger.error( `invalid RoundFinalized buffer number` );
+        if (!roundId || Number.isNaN(roundId)) {
+          this.logger.error(`invalid RoundFinalized buffer number`);
         }
         else {
-          const dbState = await AttestationRoundManager.state.getRound(roundId);
+          const dbState = await this.attestationRoundManager.state.getRound(roundId);
           const commitedRoot = dbState ? dbState.merkleRoot : undefined;
 
           if (commitedRoot) {
@@ -190,14 +190,14 @@ export class AttesterClient {
 
     // create state connector
     this.logger.info(`attesterWeb3 initialize`);
-    await this.attesterWeb3.initialize();
+    await this.attesterWeb3.initialize(this.attestationRoundManager);
 
     // process configuration
     this.logger.info(`configuration initialize`);
     await this.initializeConfiguration();
 
     this.logger.info(`roundManager initialize`);
-    await this.roundMng.initialize();
+    await this.attestationRoundManager.initialize();
 
     // validate configuration chains and create nodes
     try {
@@ -208,8 +208,8 @@ export class AttesterClient {
     }
 
     // get block current attestation round
-    const startRoundTime = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(AttestationRoundManager.activeEpochId) / 1000;
-    this.logger.debug(`start round ^Y#${AttestationRoundManager.activeEpochId}^^ time ${secToHHMMSS(startRoundTime)}`);
+    const startRoundTime = this.attestationRoundManager.epochSettings.getRoundIdTimeStartMs(this.attestationRoundManager.activeEpochId) / 1000;
+    this.logger.debug(`start round ^Y#${this.attestationRoundManager.activeEpochId}^^ time ${secToHHMMSS(startRoundTime)}`);
     const startBlock = await this.getBlockBeforeTime(startRoundTime);
 
     // connect to network block callback

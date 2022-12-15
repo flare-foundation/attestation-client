@@ -74,7 +74,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       numberOfConfirmations: () => {
         return indexerChainConfiguration.numberOfConfirmations;
       },
-      dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
+      entityManager: (new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer")).manager,
       maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
       // todo: return epochStartTime - query window length, add query window length into DAC
       windowStartTime: (roundId: number) => {

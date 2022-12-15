@@ -1,12 +1,10 @@
 import { MccClient, unPrefix0x } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
-import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import { DatabaseService } from "../utils/databaseService";
-import { getGlobalLogger } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 import { getSourceName } from "../verification/sources/sources";
 import {
@@ -51,13 +49,10 @@ export class IndexedQueryManager {
   blockTable;
 
   constructor(options: IndexedQueryManagerOptions) {
-    if (options.entityManager) {
-      this._entityManager = options.entityManager;
-    } else if (options.dbService) { // The database service can be passed through options or generated in place
-      this.dbService = options.dbService;
-    } else {
-      this.dbService = new DatabaseService(getGlobalLogger(), AttestationRoundManager.credentials.indexerDatabase, "indexer");
+    if (!options.entityManager) {
+      throw new Error("unsupported without entityManager");
     }
+    this._entityManager = options.entityManager;
     this.settings = options;
     this.prepareTables();
   }

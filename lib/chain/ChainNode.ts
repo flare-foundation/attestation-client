@@ -11,11 +11,10 @@ import { AttestationRequestParseError } from "../verification/generated/attestat
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
 import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainConfiguration } from "./ChainConfiguration";
-import { ChainManager } from "./ChainManager";
 
 @Managed()
 export class ChainNode {
-  chainManager: ChainManager;
+  attestationRoundManager: AttestationRoundManager;
   // node rate limiting control
   requestTime = 0;
   requestsPerSecond = 0;
@@ -32,10 +31,15 @@ export class ChainNode {
 
   verifierRouter: VerifierRouter;
 
-  constructor(chainManager: ChainManager, chainConfiguration: ChainConfiguration) {
-    this.chainManager = chainManager;
+  constructor(attestationRoundManager: AttestationRoundManager, chainConfiguration: ChainConfiguration) {
+    this.attestationRoundManager = attestationRoundManager;
     this.chainConfig = chainConfiguration;
   }
+
+  get chainManager() {
+    return this.attestationRoundManager.chainManager;
+  }
+
 
   /**
    * Initializes ChainNode class (async initializations)
@@ -178,8 +182,8 @@ export class ChainNode {
 
           // actual time when attestion will be rechecked
           const startTimeMs =
-            AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
-            AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
+            this.attestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
+            this.attestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
             this.chainConfig.reverificationTimeOffset * 1000;
 
           this.delayQueue(attestation, startTimeMs);
@@ -243,10 +247,7 @@ export class ChainNode {
     arrayRemoveElement(this.attestationProcessing, attestation);
 
     // todo: save transaction data
-
-    if (attestation.onProcessed !== undefined) {
-      attestation.onProcessed(attestation);
-    }
+    attestation.round.processed(attestation);
 
     if (attestation.status !== AttestationStatus.tooLate) {
       // start next transaction

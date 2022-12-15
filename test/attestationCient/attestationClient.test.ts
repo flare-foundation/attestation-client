@@ -1,15 +1,14 @@
 // yarn test test/attestationCient/attestationClient.test.ts
 
-import BN from "bn.js";
 import { traceManager } from "@flarenetwork/mcc";
+import BN from "bn.js";
 import { Attestation } from "../../lib/attester/Attestation";
 import { AttestationData } from "../../lib/attester/AttestationData";
 import { AttestationRoundManager } from "../../lib/attester/AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
 import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
-import { ChainsConfiguration } from "../../lib/chain/ChainConfiguration";
 import { ChainManager } from "../../lib/chain/ChainManager";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
 import { SourceId } from "../../lib/verification/sources/sources";
@@ -27,11 +26,11 @@ class MockChainManager extends ChainManager {
 
 class MockAttesterWeb3 extends AttesterWeb3 {
 
-    constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
-        super(logger, null, null);
+    constructor(credentials: AttesterCredentials) {
+        super(credentials);
     }
 
-    async initialize() {
+    async initialize(attestationRoundManager: AttestationRoundManager) {
     }
 
     check(bnString: string) {
@@ -39,7 +38,6 @@ class MockAttesterWeb3 extends AttesterWeb3 {
             this.logger.error(`invalid BN formating ${bnString}`);
         }
     }
-
 
     async submitAttestation(
         action: string,
@@ -75,13 +73,14 @@ describe.skip("Attestation Client", () => {
         const logger = getGlobalLogger();
 
         // Reading configuration
-        const chains = new ChainsConfiguration();
+        //const chains = new ChainsConfiguration();
         const config = new AttesterClientConfiguration();
         const credentials = new AttesterCredentials();
 
         const chainManager = new MockChainManager(this.logger);
-        const attesterWeb3 = new MockAttesterWeb3(this.logger, this.config, this.credentials);
+        const attesterWeb3 = new MockAttesterWeb3(this.credentials);
         attestationRoundManager = new AttestationRoundManager(chainManager, config, credentials, logger, attesterWeb3);
+        attesterWeb3.initialize(attestationRoundManager);
     });
 
     ////////////////////////////////
@@ -92,20 +91,20 @@ describe.skip("Attestation Client", () => {
         const mockEvent = {
             blockNumber: 1,
             logIndex: 2,
-            returnValues : { 
-                timestamp : 3,
-                data : "0x5d0d557df9c7e2d70ac3ebe35117c25bb1ffa8873fac714dec6c4e362da8f3b6"
+            returnValues: {
+                timestamp: 3,
+                data: "0x5d0d557df9c7e2d70ac3ebe35117c25bb1ffa8873fac714dec6c4e362da8f3b6"
             },
 
         }
 
-        const attestation = new AttestationData( mockEvent );
+        const attestation = new AttestationData(mockEvent);
 
-        expect(attestation.sourceId , "attestation.sourceId should be 1434319303").to.eq(1434319303);
-        expect(attestation.type , "attestation.type should be 23821").to.eq(23821);
+        expect(attestation.sourceId, "attestation.sourceId should be 1434319303").to.eq(1434319303);
+        expect(attestation.type, "attestation.type should be 23821").to.eq(23821);
     });
 
-    
+
 
     ////////////////////////////////
     // Integration tests

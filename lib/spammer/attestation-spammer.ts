@@ -72,6 +72,7 @@ class AttestationSpammer {
 
   indexedQueryManager: IndexedQueryManager;
   definitions: AttestationTypeScheme[];
+  attestationRoundManager: AttestationRoundManager;
 
   get numberOfConfirmations(): number {
     // todo: get from chain confing
@@ -99,8 +100,10 @@ class AttestationSpammer {
     this.spammerConfig = readConfig(new SpammerConfig(), "spammer");
     const spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
 
-    AttestationRoundManager.credentials = new AttesterCredentials();
-    AttestationRoundManager.credentials.web = spammerCredentials.web;
+    // create dummy attestation round manager and assign needed variables
+    this.attestationRoundManager = new AttestationRoundManager(null, null, null, null, null);
+    this.attestationRoundManager.credentials = new AttesterCredentials();
+    this.attestationRoundManager.credentials.web = spammerCredentials.web;
 
     const options: IndexedQueryManagerOptions = {
       chainType: this.chainType,
@@ -109,7 +112,7 @@ class AttestationSpammer {
       },
       // todo: get from chain confing
       maxValidIndexerDelaySec: 10, //this.chainAttestationConfig.maxValidIndexerDelaySec,
-      dbService: new DatabaseService(getGlobalLogger(), spammerCredentials.indexerDatabase, "indexer"),
+      entityManager: (new DatabaseService(getGlobalLogger(), spammerCredentials.indexerDatabase, "indexer")).manager,
 
       windowStartTime: (roundId: number) => {
         // todo: read this from DAC
@@ -134,7 +137,7 @@ class AttestationSpammer {
 
     // eslint-disable-next-line
     getWeb3StateConnectorContract(this.web3, spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
-      this.stateConnector  = sc;
+      this.stateConnector = sc;
     });
 
     this.web3Functions = new Web3Functions(this.logger, this.web3, spammerCredentials.web.accountPrivateKey);
@@ -337,7 +340,7 @@ async function displayStats() {
 }
 
 async function runAllAttestationSpammers() {
-  
+
   // eslint-disable-next-line
   displayStats();
 
@@ -347,7 +350,7 @@ async function runAllAttestationSpammers() {
   await spammer.runSpammer();
 }
 
-setLoggerName( "spammer" );
+setLoggerName("spammer");
 setGlobalLoggerLabel(args.chain)
 
 // (new AttestationSpammer()).runSpammer()

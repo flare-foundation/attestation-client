@@ -19,7 +19,7 @@ export class ChainManager {
 
   /**
    * Assign @param node to @param sourceId
-   */  
+   */
   addNode(sourceId: SourceId, node: ChainNode) {
     this.nodes.set(sourceId, node);
   }

@@ -68,7 +68,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
         return chainIndexerConfig.numberOfConfirmations;
       },
       maxValidIndexerDelaySec: 10,
-      dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
+      entityManager: (new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer")).manager,
       windowStartTime: (roundId: number) => {
         const queryWindowInSec = 86400;
         return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - queryWindowInSec;

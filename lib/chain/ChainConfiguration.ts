@@ -53,7 +53,7 @@ export class ChainConfiguration implements IReflection<ChainsConfiguration> {
     return info;
   }
 }
-//Self-defining???
+
 export class ChainsConfiguration implements IReflection<ChainsConfiguration> {
   public chains: ChainConfiguration[] = [];
 

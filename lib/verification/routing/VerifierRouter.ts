@@ -13,11 +13,6 @@ import { VerifierRouteCredentials } from "./configs/VerifierRouteCredentials";
 
 const axios = require("axios");
 
-export interface VerifierRequest {
-   url: string;
-   request: AttestationRequest;
-}
-
 export class VerifierRoute {
    url?: string;
    apiKey?: string;
@@ -49,10 +44,7 @@ export class VerifierRouter {
    // Remote only verification possible
    _enableLocalVerification = true;
 
-   constructor(client?: MccClient, indexedQueryManager?: IndexedQueryManager, sourceFilter?: SourceId) {
-      this.client = client;
-      this.indexedQueryManager = indexedQueryManager;
-      this.sourceFilter = sourceFilter;
+   constructor() {
    }
 
    /**
@@ -189,10 +181,6 @@ export class VerifierRouter {
          );
          return resp.data;
       }
-      // If no routing, do direct query (local)
-      if (!this._enableLocalVerification) {
-         throw new Error(`Local verification not enabled.`);
-      }
-      return verifyAttestation(this.client, attestation, this.indexedQueryManager, recheck);
+      throw new Error(`Invalid route.`);
    }
 }

@@ -104,7 +104,7 @@ export class AttesterClient {
         continue;
       }
 
-      const node = new ChainNode(this.chainManager, chain.name, chainType, chain);
+      const node = new ChainNode(this.chainManager, chain);
       await node.initialize();
       this.logger.info(`chain ${chain.name}:#${chainType}`);
       this.chainManager.addNode(chainType as any as SourceId, node);

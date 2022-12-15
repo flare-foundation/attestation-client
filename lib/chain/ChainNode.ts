@@ -1,9 +1,7 @@
-import { ChainType, Managed, MCC, MccClient } from "@flarenetwork/mcc";
+import { Managed } from "@flarenetwork/mcc";
 import assert from "assert";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { logException } from "../utils/logger";
 import { PriorityQueue } from "../utils/priorityQueue";
@@ -11,7 +9,6 @@ import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
-import { SourceId } from "../verification/sources/sources";
 import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainConfiguration } from "./ChainConfiguration";
 import { ChainManager } from "./ChainManager";
@@ -19,11 +16,6 @@ import { ChainManager } from "./ChainManager";
 @Managed()
 export class ChainNode {
   chainManager: ChainManager;
-
-  chainName: string;
-  chainType: ChainType; //index of chain supported by Flare. Should match chainName
-  client: MccClient;
-
   // node rate limiting control
   requestTime = 0;
   requestsPerSecond = 0;
@@ -35,56 +27,26 @@ export class ChainNode {
 
   attestationProcessing = new Array<Attestation>();
 
-  indexedQueryManager: IndexedQueryManager;
-
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
   verifierRouter: VerifierRouter;
 
-  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, chainConfiguration: ChainConfiguration) {
-    this.chainName = chainName;
-    this.chainType = chainType;
+  constructor(chainManager: ChainManager, chainConfiguration: ChainConfiguration) {
     this.chainManager = chainManager;
     this.chainConfig = chainConfiguration;
-
-    // create chain client
-    this.client = MCC.Client(this.chainType, chainConfiguration.mccCreate);
-
-    //const confirmations = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig( )
-
-    const options: IndexedQueryManagerOptions = {
-      chainType: chainType,
-      dbService: AttestationRoundManager.dbServiceIndexer,
-      maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec,
-
-      numberOfConfirmations: () => {
-        return AttestationRoundManager.getSourceHandlerConfig(chainConfiguration.name).numberOfConfirmations;
-      },
-
-      // Note: `windowStartTime` and `UBPCutoffTime` are not set here on purpose as they are passed by each verification request
-    };
-
-    this.indexedQueryManager = new IndexedQueryManager(options);
   }
 
   /**
    * Initializes ChainNode class (async initializations)
    */
   public async initialize() {
-    this.verifierRouter = new VerifierRouter(this.client, this.indexedQueryManager, this.chainType as any as SourceId);
+    this.verifierRouter = new VerifierRouter();
     await this.verifierRouter.initialize();
   }
 
   onSend(inProcessing?: number, inQueue?: number) {
     this.addRequestCount();
-  }
-
-  /**
-   * the number of attestation in process or to be processed
-   */
-  getLoad(): number {
-    return this.attestationsQueue.length + this.attestationProcessing.length + this.attestationsPriorityQueue.length();
   }
 
   canAddRequests() {

@@ -73,11 +73,7 @@ describe("Attestation Client", () => {
     const chains = new ChainsConfiguration();
     const config = new AttesterClientConfiguration();
     const credentials = new AttesterCredentials();
-
-    ////////////////////////////////
-    // Unit tests
-    ////////////////////////////////
-    it(`Create attestation sourceId and type from event`, async function () {
+  });
 
   ////////////////////////////////
   // Unit tests
@@ -111,8 +107,6 @@ describe("Attestation Client", () => {
       },
     };
 
-    
-
     ////////////////////////////////
     // Integration tests
     ////////////////////////////////
@@ -121,7 +115,7 @@ describe("Attestation Client", () => {
     //     const mockEvent = {
     //         blockNumber: 10,
     //         logIndex: 1,
-    //         returnValues : { 
+    //         returnValues : {
     //             timestamp : 123,
     //             data : "0x5d0d557df9c7e2d70ac3ebe35117c25bb1ffa8873fac714dec6c4e362da8f3b6"
     //         },
@@ -135,4 +129,5 @@ describe("Attestation Client", () => {
 
     //     expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
     // });
+  });
 });

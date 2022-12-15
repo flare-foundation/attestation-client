@@ -1,123 +1,126 @@
-// // yarn test test/attestationCient/attestationClient.test.ts
+// yarn test test/attestationClient/attestationClient.test.ts
 
-// import BN from "bn.js";
-// import { traceManager } from "@flarenetwork/mcc";
-// import { Attestation } from "../../lib/attester/Attestation";
-// import { AttestationData } from "../../lib/attester/AttestationData";
-// import { AttestationRoundManager } from "../../lib/attester/AttestationRoundManager";
-// import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
-// import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
-// import { ChainsConfiguration } from "../../lib/chain/ChainConfiguration";
-// import { ChainManager } from "../../lib/chain/ChainManager";
-// import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-// import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
-// import { TestLogger } from "../../lib/utils/testLogger";
-// import { SourceId } from "../../lib/verification/sources/sources";
-// import { TERMINATION_TOKEN } from "../test-utils/test-utils";
+import BN from "bn.js";
+import { traceManager } from "@flarenetwork/mcc";
+import { Attestation } from "../../lib/attester/Attestation";
+import { AttestationData } from "../../lib/attester/AttestationData";
+import { AttestationRoundManager } from "../../lib/attester/AttestationRoundManager";
+import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
+import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
+import { ChainsConfiguration } from "../../lib/chain/ChainConfiguration";
+import { ChainManager } from "../../lib/chain/ChainManager";
+import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
+import { TestLogger } from "../../lib/utils/testLogger";
+import { SourceId } from "../../lib/verification/sources/sources";
+import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
-// const chai = require("chai");
-// const expect = chai.expect;
+const chai = require("chai");
+const expect = chai.expect;
 
-// class MockChainManager extends ChainManager {
-//   validateTransaction(sourceId: SourceId, transaction: Attestation) {}
-// }
+class MockChainManager extends ChainManager {
+  validateTransaction(sourceId: SourceId, transaction: Attestation) {}
+}
 
-// class MockAttesterWeb3 extends AttesterWeb3 {
-//   constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
-//     super(logger, null, null);
-//   }
+class MockAttesterWeb3 extends AttesterWeb3 {
+  constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
+    super(logger, null, null);
+  }
 
-//   async initialize() {}
+  async initialize() {}
 
-//   check(bnString: string) {
-//     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
-//       this.logger.error(`invalid BN formating ${bnString}`);
-//     }
-//   }
+  check(bnString: string) {
+    if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
+      this.logger.error(`invalid BN formating ${bnString}`);
+    }
+  }
 
-//   async submitAttestation(
-//     action: string,
-//     bufferNumber: BN,
-//     merkleRoot: string,
-//     maskedMerkleRoot: string,
-//     random: string,
-//     hashedRandom: string,
-//     revealedRandomPrev: string,
-//     merkleRootPrev: string,
-//     commitHash: string,
-//     verbose = true
-//   ) {
-//     const roundId = bufferNumber.toNumber() - 1;
-//     this.check(maskedMerkleRoot);
-//     this.check(hashedRandom);
-//     this.check(revealedRandomPrev);
-//   }
-// }
+  async submitAttestation(
+    action: string,
+    bufferNumber: BN,
+    // commit
+    commitedMerkleRoot: string,
+    commitedMaskedMerkleRoot: string,
+    commitedRandom: string,
+    // reveal
+    revealedMerkleRoot: string,
+    revealedRandom: string,
 
-// describe("Attestation Client", () => {
-//   let attestationRoundManager: AttestationRoundManager;
+    verbose = true
+  ) {
+    const roundId = bufferNumber.toNumber() - 1;
+    this.check(commitedMerkleRoot);
+    this.check(commitedMaskedMerkleRoot);
+    this.check(commitedRandom);
+    this.check(revealedMerkleRoot);
+    this.check(revealedRandom);
+  }
+}
 
-//   before(async function () {
-//     initializeTestGlobalLogger();
+describe("Attestation Client", () => {
+  let attestationRoundManager: AttestationRoundManager;
 
-//     setRetryFailureCallback((label: string) => {
-//       throw new Error(TERMINATION_TOKEN);
-//     });
+  before(async function () {
+    initializeTestGlobalLogger();
 
-//     traceManager.displayStateOnException = false;
-//   });
+    setRetryFailureCallback((label: string) => {
+      throw new Error(TERMINATION_TOKEN);
+    });
 
-//   beforeEach(async function () {
-//     TestLogger.clear();
+    traceManager.displayStateOnException = false;
+  });
 
-//     const logger = getGlobalLogger();
+  beforeEach(async function () {
+    TestLogger.clear();
 
-//     // Reading configuration
-//     const chains = new ChainsConfiguration();
-//     const config = new AttesterClientConfiguration();
-//     const credentials = new AttesterCredentials();
+    const logger = getGlobalLogger();
 
-//     const chainManager = new MockChainManager(this.logger);
-//     const attesterWeb3 = new MockAttesterWeb3(this.logger, this.config, this.credentials);
-//     attestationRoundManager = new AttestationRoundManager(chainManager, config, credentials, logger, attesterWeb3);
-//   });
+    // Reading configuration
+    const chains = new ChainsConfiguration();
+    const config = new AttesterClientConfiguration();
+    const credentials = new AttesterCredentials();
 
-//   ////////////////////////////////
-//   // Unit tests
-//   ////////////////////////////////
-//   it.only(`Create attestation sourceId and type from event`, async function () {
-//     const mockEvent = {
-//       blockNumber: 1,
-//       logIndex: 2,
-//       returnValues: {
-//         timestamp: 3,
-//         data: "0x5d0d557df9c7e2d70ac3ebe35117c25bb1ffa8873fac714dec6c4e362da8f3b6",
-//       },
-//     };
+    const chainManager = new MockChainManager(this.logger);
+    const attesterWeb3 = new MockAttesterWeb3(this.logger, this.config, this.credentials);
+    attestationRoundManager = new AttestationRoundManager(chainManager, config, credentials, logger, attesterWeb3);
+  });
 
-//     const attestation = new AttestationData(mockEvent);
+  ////////////////////////////////
+  // Unit tests
+  ////////////////////////////////
+  it.only(`Create attestation sourceId and type from event`, async function () {
+    const mockEvent = {
+      blockNumber: 1,
+      logIndex: 2,
+      returnValues: {
+        timestamp: 3,
+        data: "0x5d0d557df9c7e2d70ac3ebe35117c25bb1ffa8873fac714dec6c4e362da8f3b6",
+      },
+    };
 
-//     expect(attestation.sourceId, "attestation.sourceId should be 1434319303").to.eq(1434319303);
-//     expect(attestation.type, "attestation.type should be 23821").to.eq(23821);
-//   });
+    const attestation = new AttestationData(mockEvent);
 
-//   ////////////////////////////////
-//   // Integration tests
-//   ////////////////////////////////
-//   it(`Attestate Valid Request`, async function () {
-//     const mockEvent = {
-//       blockNumber: 10,
-//       logIndex: 1,
-//       returnValues: {
-//         timestamp: 123,
-//         data: "0x5d0d557df9c7e2d70ac3ebe35117c25bb1ffa8873fac714dec6c4e362da8f3b6",
-//       },
-//     };
+    expect(attestation.sourceId, "attestation.sourceId should be 1434319303").to.eq(1434319303);
+    expect(attestation.type, "attestation.type should be 23821").to.eq(23821);
+  });
 
-//     const attestation = new AttestationData(mockEvent);
+  ////////////////////////////////
+  // Integration tests
+  ////////////////////////////////
+  it(`Attestate Valid Request`, async function () {
+    const mockEvent = {
+      blockNumber: 10,
+      logIndex: 1,
+      returnValues: {
+        timestamp: 123,
+        data: "0x5d0d557df9c7e2d70ac3ebe35117c25bb1ffa8873fac714dec6c4e362da8f3b6",
+      },
+    };
 
-//     attestationRoundManager.attestate(attestation);
+    const attestation = new AttestationData(mockEvent);
 
-//     expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
-//   });
-// });
+    attestationRoundManager.attestate(attestation);
+
+    expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
+  });
+});

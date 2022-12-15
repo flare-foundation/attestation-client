@@ -74,10 +74,10 @@ describe("Attestation Client", () => {
     const config = new AttesterClientConfiguration();
     const credentials = new AttesterCredentials();
 
-    const chainManager = new MockChainManager(this.logger);
-    const attesterWeb3 = new MockAttesterWeb3(this.logger, this.config, this.credentials);
-    attestationRoundManager = new AttestationRoundManager(chainManager, config, credentials, logger, attesterWeb3);
-  });
+    ////////////////////////////////
+    // Unit tests
+    ////////////////////////////////
+    it(`Create attestation sourceId and type from event`, async function () {
 
   ////////////////////////////////
   // Unit tests
@@ -111,10 +111,28 @@ describe("Attestation Client", () => {
       },
     };
 
+    
+
+    ////////////////////////////////
+    // Integration tests
+    ////////////////////////////////
+    // it.skip(`Attestate Valid Request`, async function () {
+
+    //     const mockEvent = {
+    //         blockNumber: 10,
+    //         logIndex: 1,
+    //         returnValues : { 
+    //             timestamp : 123,
+    //             data : "0x5d0d557df9c7e2d70ac3ebe35117c25bb1ffa8873fac714dec6c4e362da8f3b6"
+    //         },
+
+    //     }
     const attestation = new AttestationData(mockEvent);
 
-    attestationRoundManager.attestate(attestation);
+    //     const attestation = new AttestationData( mockEvent );
 
-    expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
-  });
+    //     attestationRoundManager.attestate( attestation );
+
+    //     expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
+    // });
 });

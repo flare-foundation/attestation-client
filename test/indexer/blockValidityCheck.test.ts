@@ -11,187 +11,178 @@ import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
-const chai = require('chai')
-const expect = chai.expect
+const chai = require("chai");
+const expect = chai.expect;
 
 const XRPMccConnection = {
-    url: "https://xrplcluster.com",
+  url: "https://xrplcluster.com",
 };
 
-
-
 class MockXRPImplementation extends XRPImplementation {
+  async getBlock(blockNumberOrHash: number | string): Promise<MockXrpBlock> {
+    const block = await super.getBlock(blockNumberOrHash);
 
-    async getBlock(blockNumberOrHash: number | string): Promise<MockXrpBlock> {
-        const block = await super.getBlock(blockNumberOrHash);
-
-        return new MockXrpBlock(block);
-    }
-
+    return new MockXrpBlock(block);
+  }
 }
 
 class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
+  get previousBlockHash(): string {
+    throw new Error("Method not implemented.");
+  }
+  get stdPreviousBlockHash(): string {
+    throw new Error("Method not implemented.");
+  }
 
-    get previousBlockHash(): string {
-        throw new Error("Method not implemented.");
-    }
-    get stdPreviousBlockHash(): string {
-        throw new Error("Method not implemented.");
-    }
+  private block: IBlock;
 
-    private block: IBlock;
+  public constructor(block: IBlock) {
+    super(block.data);
+    this.block = block;
+  }
 
-    public constructor(block: IBlock) {
-        super(block.data);
-        this.block = block;
-    }
+  public get number(): number {
+    return this.block.number;
+  }
 
+  public get blockHash(): string {
+    return this.block.blockHash;
+  }
 
-    public get number(): number {
-        return this.block.number;
-    }
+  public get stdBlockHash(): string {
+    return this.block.stdBlockHash;
+  }
 
-    public get blockHash(): string {
-        return this.block.blockHash;
-    }
+  public get unixTimestamp(): number {
+    return this.block.unixTimestamp;
+  }
 
-    public get stdBlockHash(): string {
-        return this.block.stdBlockHash;
-    }
+  public get transactionIds(): string[] {
+    return this.block.transactionIds;
+  }
 
-    public get unixTimestamp(): number {
-        return this.block.unixTimestamp;
-    }
+  public get stdTransactionIds(): string[] {
+    return this.block.stdTransactionIds;
+  }
 
-    public get transactionIds(): string[] {
-        return this.block.transactionIds;
-    }
+  public get transactionCount(): number {
+    return this.block.transactionCount;
+  }
 
-    public get stdTransactionIds(): string[] {
-        return this.block.stdTransactionIds;
-    }
-
-    public get transactionCount(): number {
-        return this.block.transactionCount;
-    }
-
-    public get isValid(): boolean {
-        return false;
-    }
+  public get isValid(): boolean {
+    return false;
+  }
 }
 
+describe("Block validity check before processing", () => {
+  let XrpMccClient: MCC.XRP;
+  let indexer: Indexer;
 
+  before(async function () {
+    initializeTestGlobalLogger();
 
-describe.skip("Block validity check before processing", () => {
-    let XrpMccClient: MCC.XRP;
-    let indexer: Indexer;
-
-    before(async function () {
-        initializeTestGlobalLogger();
-
-        setRetryFailureCallback((label: string) => { throw new Error(TERMINATION_TOKEN) });
-
-        traceManager.displayStateOnException = false;
+    setRetryFailureCallback((label: string) => {
+      throw new Error(TERMINATION_TOKEN);
     });
 
-    beforeEach(async function () {
-        TestLogger.clear();
+    traceManager.displayStateOnException = false;
+  });
 
-        indexer = new Indexer(null, null, null, null);
+  beforeEach(async function () {
+    TestLogger.clear();
 
-        XrpMccClient = new MCC.XRP(XRPMccConnection);
+    indexer = new Indexer(null, null, null, null);
 
-        const defaultCachedMccClientOptions: CachedMccClientOptions = {
-            transactionCacheSize: 100000,
-            blockCacheSize: 100000,
-            cleanupChunkSize: 100,
-            activeLimit: 70,
-            clientConfig: XRPMccConnection,
-        };
+    XrpMccClient = new MCC.XRP(XRPMccConnection);
 
-        const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
+    const defaultCachedMccClientOptions: CachedMccClientOptions = {
+      transactionCacheSize: 100000,
+      blockCacheSize: 100000,
+      cleanupChunkSize: 100,
+      activeLimit: 70,
+      clientConfig: XRPMccConnection,
+    };
 
-        indexer.logger = getGlobalLogger();
-        indexer.cachedClient = cachedClient as any;
-        indexer.chainConfig = new ChainConfiguration();
+    const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
 
-        indexer.chainConfig.name = "XRP";
+    indexer.logger = getGlobalLogger();
+    indexer.cachedClient = cachedClient as any;
+    indexer.chainConfig = new ChainConfiguration();
 
-        indexer.prepareTables();
+    indexer.chainConfig.name = "XRP";
 
-        indexer.blockProcessorManager = new BlockProcessorManager(
-            indexer.logger,
-            indexer.cachedClient,
-            indexer.indexerToClient,
-            indexer.interlace,
-            {
-                validateBlockBeforeProcess: indexer.chainConfig.validateBlockBeforeProcess,
-                validateBlockMaxRetry: indexer.chainConfig.validateBlockMaxRetry,
-                validateBlockWaitMs: indexer.chainConfig.validateBlockWaitMs,
-            },                
-            indexer.blockCompleted.bind(indexer),
-            indexer.blockAlreadyCompleted.bind(indexer)
-        );
+    indexer.prepareTables();
 
-    });
+    indexer.blockProcessorManager = new BlockProcessorManager(
+      indexer.logger,
+      indexer.cachedClient,
+      indexer.indexerToClient,
+      indexer.interlace,
+      {
+        validateBlockBeforeProcess: indexer.chainConfig.validateBlockBeforeProcess,
+        validateBlockMaxRetry: indexer.chainConfig.validateBlockMaxRetry,
+        validateBlockWaitMs: indexer.chainConfig.validateBlockWaitMs,
+      },
+      indexer.blockCompleted.bind(indexer),
+      indexer.blockAlreadyCompleted.bind(indexer)
+    );
+  });
 
-    it(`Block processor manager for valid XRP block`, async function () {
-        const block = await XrpMccClient.getBlock(70_015_100);
+  it(`Block processor manager for valid XRP block`, async function () {
+    const block = await XrpMccClient.getBlock(70_015_100);
 
-        //block.data.result.validated = false;
+    //block.data.result.validated = false;
 
-        indexer.chainConfig.validateBlockBeforeProcess = true;
+    indexer.chainConfig.validateBlockBeforeProcess = true;
 
-        await indexer.blockProcessorManager.process(block);
+    await indexer.blockProcessorManager.process(block);
 
-        expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
-    });
+    expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
+  });
 
-    it(`Block processor manager for in-valid XRP block`, async function () {
-        const block = await XrpMccClient.getBlock(70_015_100);
+  it(`Block processor manager for in-valid XRP block`, async function () {
+    const block = await XrpMccClient.getBlock(70_015_100);
 
-        block.data.result.validated = false;
+    block.data.result.validated = false;
 
-        indexer.chainConfig.validateBlockBeforeProcess = true;
+    indexer.chainConfig.validateBlockBeforeProcess = true;
 
-        await indexer.blockProcessorManager.process(block);
+    await indexer.blockProcessorManager.process(block);
 
-        expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be invalid at start").to.eq(true);
-        expect(TestLogger.exists("block 70015100 is now valid"), "block should become valid").to.eq(true);
-    });
+    expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be invalid at start").to.eq(true);
+    expect(TestLogger.exists("block 70015100 is now valid"), "block should become valid").to.eq(true);
+  });
 
-    it.skip(`Block processor manager for in-valid XRP block when validation is not waited for`, async function () {
-        const block = await XrpMccClient.getBlock(70_015_100);
+  it.skip(`Block processor manager for in-valid XRP block when validation is not waited for`, async function () {
+    const block = await XrpMccClient.getBlock(70_015_100);
 
-        block.data.result.validated = false;
+    block.data.result.validated = false;
 
-        indexer.chainConfig.validateBlockBeforeProcess = false;
+    indexer.chainConfig.validateBlockBeforeProcess = false;
 
-        await indexer.blockProcessorManager.process(block);
+    await indexer.blockProcessorManager.process(block);
 
-        expect(TestLogger.exists("waiting on block 70015100 to be valid"), "invalid block should not be detected").to.eq(false);
-    });
+    expect(TestLogger.exists("waiting on block 70015100 to be valid"), "invalid block should not be detected").to.eq(false);
+  });
 
-    it(`Block processor manager for always in-valid XRP block`, async function () {
-        const XrpMccClient = new MockXRPImplementation(XRPMccConnection);
+  it(`Block processor manager for always in-valid XRP block`, async function () {
+    const XrpMccClient = new MockXRPImplementation(XRPMccConnection);
 
-        indexer.logger = getGlobalLogger();
-        indexer.cachedClient.client = XrpMccClient;
+    indexer.logger = getGlobalLogger();
+    indexer.cachedClient.client = XrpMccClient;
 
-        const block = await XrpMccClient.getBlock(70_015_100);
+    const block = await XrpMccClient.getBlock(70_015_100);
 
-        const invalidBlock = new MockXrpBlock(block);
+    const invalidBlock = new MockXrpBlock(block);
 
-        indexer.chainConfig.validateBlockBeforeProcess = true;
-        indexer.chainConfig.validateBlockWaitMs = 1;
+    indexer.chainConfig.validateBlockBeforeProcess = true;
+    indexer.chainConfig.validateBlockWaitMs = 1;
 
-        try {
-            await indexer.blockProcessorManager.process(invalidBlock);
-            expect(1, "Did not terminate").to.equal(2);
-        } catch (e: any) {
-            expect(e.innerError.message).to.equal(TERMINATION_TOKEN);
-        }
-    });
-
-
+    try {
+      await indexer.blockProcessorManager.process(invalidBlock);
+      expect(1, "Did not terminate").to.equal(2);
+    } catch (e: any) {
+      expect(e.innerError.message).to.equal(TERMINATION_TOKEN);
+    }
+  });
 });

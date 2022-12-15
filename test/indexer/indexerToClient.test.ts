@@ -9,7 +9,7 @@ const expect = chai.expect;
 
 //To be eventually mocked
 
-describe(`Indexer to client (${getTestFile(__filename)})`, function () {
+describe.skip(`Indexer to client (${getTestFile(__filename)})`, function () {
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",
     username: process.env.BTC_USERNAME || "",

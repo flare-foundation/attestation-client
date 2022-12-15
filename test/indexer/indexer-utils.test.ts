@@ -4,9 +4,12 @@ import { expect } from "chai";
 import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
+import { initializeTestGlobalLogger } from "../../lib/utils/logger";
 const proxi = require("../../lib/utils/PromiseTimeout");
 
 describe(`Indexer utils (${getTestFile(__filename)})`, function () {
+  initializeTestGlobalLogger();
+
   describe("prepareIndexerTables", function () {
     it("should throw for invalid chain type", function () {
       expect(() => prepareIndexerTables(ChainType.invalid)).to.throw("Invalid chain type");

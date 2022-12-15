@@ -18,7 +18,7 @@ const expect = chai.expect;
 // const fs = require("fs");
 chai.use(require("chai-as-promised"));
 
-describe(`Header Collector (${getTestFile(__filename)})`, () => {
+describe.skip(`Header Collector (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",

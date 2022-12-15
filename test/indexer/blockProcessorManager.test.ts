@@ -14,7 +14,7 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 const sinon = require("sinon");
 
-describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
+describe.skip(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",
     username: process.env.BTC_USERNAME || "",
@@ -37,9 +37,6 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
   const databaseConnectOptions = new DatabaseConnectOptions();
-  databaseConnectOptions.database = process.env.DATABASE_NAME2;
-  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-  databaseConnectOptions.password = process.env.DATBASE_PASS;
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
   let interlacing = new Interlacing();
 

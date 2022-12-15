@@ -1,20 +1,22 @@
-import { ChainType, IBlock, IBlockHeader, Managed, MCC } from "@flarenetwork/mcc";
+import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { EntityTarget } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
-import { DBBlockBase } from "../entity/indexer/dbBlock";
+import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { failureCallback, retry } from "../utils/PromiseTimeout";
-import { getUnixEpochTimestamp, round, sleepms } from "../utils/utils";
+import { round, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
-import { criticalAsync, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
+import { criticalAsync, getStateEntry, getStateEntryString, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
 import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
 import { IndexerSync } from "./indexerSync";
+import { IndexerToClient } from "./indexerToClient";
+import { IndexerToDB } from "./indexerToDB";
 import { Interlacing } from "./interlacing";
 import { PreparedBlock } from "./preparedBlock";
 
@@ -40,6 +42,10 @@ export class Indexer {
   dbService: DatabaseService;
   blockProcessorManager: BlockProcessorManager;
 
+  indexerToClient: IndexerToClient;
+
+  indexerToDB: IndexerToDB;
+
   headerCollector: HeaderCollector;
 
   indexerSync: IndexerSync;
@@ -61,9 +67,9 @@ export class Indexer {
   preparedBlocks = new Map<number, PreparedBlock[]>();
 
   // two interlacing table entity classes for confirmed transaction storage
-  dbTransactionClasses: DBTransactionBase[];
+  dbTransactionClasses: IDBTransactionBase[]; //set by prepareTables()
   // entity class for the block table
-  dbBlockClass;
+  dbBlockClass: IDBBlockBase; //set by prepareTables()
 
   // bottom block in the transaction tables - used to check if we have enough history
   bottomBlockTime = undefined;
@@ -100,10 +106,31 @@ export class Indexer {
     };
 
     this.cachedClient = new CachedMccClient(this.chainType, cachedMccClientOptions);
+    this.indexerToClient = new IndexerToClient(this.cachedClient.client);
+    this.indexerToDB = new IndexerToDB(this.logger, this.dbService, this.chainType);
 
-    this.blockProcessorManager = new BlockProcessorManager(this, this.blockCompleted.bind(this), this.blockAlreadyCompleted.bind(this));
+    const blockProcessorManagerSetting = {
+      validateBlockBeforeProcess: this.chainConfig.validateBlockBeforeProcess,
+      validateBlockMaxRetry: this.chainConfig.validateBlockMaxRetry,
+      validateBlockWaitMs: this.chainConfig.validateBlockWaitMs,
+    };
 
-    this.headerCollector = new HeaderCollector(this.logger, this);
+    this.blockProcessorManager = new BlockProcessorManager(
+      this.logger,
+      this.cachedClient,
+      this.indexerToClient,
+      this.interlace,
+      blockProcessorManagerSetting,
+      this.blockCompleted.bind(this),
+      this.blockAlreadyCompleted.bind(this)
+    );
+
+    const headerCollectorSettings = {
+      blockCollectTimeMs: this.config.blockCollectTimeMs,
+      numberOfConfirmations: this.chainConfig.numberOfConfirmations,
+      blockCollecting: this.chainConfig.blockCollecting,
+    };
+    this.headerCollector = new HeaderCollector(this.logger, this.N, this.indexerToClient, this.indexerToDB, headerCollectorSettings);
 
     this.indexerSync = new IndexerSync(this);
   }
@@ -129,105 +156,101 @@ export class Indexer {
   // Safeguarded client functions
   /////////////////////////////////////////////////////////////
 
-  /**
-   *
-   * @param label
-   * @param blockNumber
-   * @returns
-   * @category BaseMethod
-   */
-  public async getBlockFromClient(label: string, blockNumber: number): Promise<IBlock> {
-    // todo: implement MCC lite version of getBlock
-    const result = await retry(`indexer.getBlockFromClient.${label}`, async () => {
-      return await this.cachedClient.client.getBlock(blockNumber);
-    });
-    if (!result) {
-      failureCallback(`indexer.getBlockFromClient.${label} - null block returned`);
-    }
-    return result;
-  }
-
-  /**
-   *
-   * @param label
-   * @param blockHash
-   * @returns
-   * @category BaseMethod
-   */
-  public async getBlockFromClientByHash(label: string, blockHash: string): Promise<IBlock> {
-    // todo: implement MCC lite version of getBlock
-    const result = await retry(`indexer.getBlockFromClientByHash.${label}`, async () => {
-      return await this.cachedClient.client.getBlock(blockHash);
-    });
-    if (!result) {
-      failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`);
-    }
-    return result;
-  }
-
-  /**
-   *
-   * @param label
-   * @param blockHash
-   * @returns
-   * @category BaseMethod
-   */
-  public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<IBlockHeader> {
-    // todo: implement MCC lite version of getBlock
-    const result = await retry(`indexer.getBlockHeaderFromClientByHash.${label}`, async () => {
-      return await this.cachedClient.client.getBlockHeader(blockHash);
-    });
-    if (!result) {
-      failureCallback(`indexer.getBlockHeaderFromClientByHash.${label} - null block returned`);
-    }
-    return result;
-  }
-
-  public async getBlockHeightFromClient(label: string): Promise<number> {
-    return await retry(`indexer.getBlockHeightFromClient.${label}`, async () => {
-      return this.cachedClient.client.getBlockHeight();
-    });
-  }
-
-  public async getBottomBlockHeightFromClient(label: string): Promise<number> {
-    return await retry(`indexer.getBottomBlockHeightFromClient.${label}`, async () => {
-      return this.cachedClient.client.getBottomBlockHeight();
-    });
-  }
-
-  /**
-   *
-   * @param blockNumber
-   * @returns
-   * @category AdvancedMethod
-   */
-  public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
-    // todo: get `getBlockLite` FAST version of block read since we only need timestamp
-    const block = (await this.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
-    // block cannot be undefined as the above call will fatally fail and terminate app
-    return block.unixTimestamp;
-  }
+  // MOVED TO indexerToClient.ts
+  // /**
+  //  *
+  //  * @param label
+  //  * @param blockNumber
+  //  * @returns
+  //  * @category BaseMethod
+  //  */
+  // public async getBlockFromClient(label: string, blockNumber: number): Promise<IBlock> {
+  //   // todo: implement MCC lite version of getBlock
+  //   const result = await retry(`indexer.getBlockFromClient.${label}`, async () => {
+  //     return await this.cachedClient.client.getBlock(blockNumber);
+  //   });
+  //   if (!result) {
+  //     failureCallback(`indexer.getBlockFromClient.${label} - null block returned`);
+  //   }
+  //   return result;
+  // }
+  // /**
+  //  *
+  //  * @param label
+  //  * @param blockHash
+  //  * @returns
+  //  * @category BaseMethod
+  //  */
+  // public async getBlockFromClientByHash(label: string, blockHash: string): Promise<IBlock> {
+  //   // todo: implement MCC lite version of getBlock
+  //   const result = await retry(`indexer.getBlockFromClientByHash.${label}`, async () => {
+  //     return await this.cachedClient.client.getBlock(blockHash);
+  //   });
+  //   if (!result) {
+  //     failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`);
+  //   }
+  //   return result;
+  // }
+  // /**
+  //  *
+  //  * @param label
+  //  * @param blockHash
+  //  * @returns
+  //  * @category BaseMethod
+  //  */
+  // public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<IBlockHeader> {
+  //   // todo: implement MCC lite version of getBlock
+  //   const result = await retry(`indexer.getBlockHeaderFromClientByHash.${label}`, async () => {
+  //     return await this.cachedClient.client.getBlockHeader(blockHash);
+  //   });
+  //   if (!result) {
+  //     failureCallback(`indexer.getBlockHeaderFromClientByHash.${label} - null block returned`);
+  //   }
+  //   return result;
+  // }
+  // public async getBlockHeightFromClient(label: string): Promise<number> {
+  //   return await retry(`indexer.getBlockHeightFromClient.${label}`, async () => {
+  //     return this.cachedClient.client.getBlockHeight();
+  //   });
+  // }
+  // public async getBottomBlockHeightFromClient(label: string): Promise<number> {
+  //   return await retry(`indexer.getBottomBlockHeightFromClient.${label}`, async () => {
+  //     return this.cachedClient.client.getBottomBlockHeight();
+  //   });
+  // }
+  // /**
+  //  *
+  //  * @param blockNumber
+  //  * @returns
+  //  * @category AdvancedMethod
+  //  */
+  // public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
+  //   // todo: get `getBlockLite` FAST version of block read since we only need timestamp
+  //   const block = (await this.indexerToClient.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
+  //   // block cannot be undefined as the above call will fatally fail and terminate app
+  //   return block.unixTimestamp;
+  // }
 
   /////////////////////////////////////////////////////////////
   // misc
   /////////////////////////////////////////////////////////////
 
-  /**
-   * Prefixes chain name and undercore to the given name
-   * @param name chain name
-   * @returns
-   */
-  private prefixChainNameTo(name: string) {
-    return this.chainConfig.name + "_" + name;
-  }
-
-  /**
-   * Returns entry key for N in the database.
-   * @returns
-   */
-  private getChainN() {
-    return this.prefixChainNameTo("N");
-  }
+  // Moved to indexer-utils
+  // /**
+  //  * Prefixes chain name and undercore to the given name
+  //  * @param name chain name
+  //  * @returns
+  //  */
+  // private prefixChainNameTo(name: string) {
+  //   return this.chainConfig.name + "_" + name;
+  // }
+  // /**
+  //  * Returns entry key for N in the database.
+  //  * @returns
+  //  */
+  // private getChainN() {
+  //   return this.prefixChainNameTo("N");
+  // }
 
   /**
    * Returns number of days for syncing from configurations
@@ -243,41 +266,41 @@ export class Indexer {
   // state recording functions
   /////////////////////////////////////////////////////////////
 
-  /**
-   * Constructs dbState entity for key-value pair
-   * @param name name associated to key
-   * @param value value (number)
-   * @returns
-   */
-  public getStateEntry(name: string, value: number): DBState {
-    const state = new DBState();
-
-    state.name = this.prefixChainNameTo(name);
-    state.valueNumber = value;
-    state.timestamp = getUnixEpochTimestamp();
-
-    return state;
-  }
-
-  /**
-   * Construct dbState entity for key-values entry, that contains string, number and comment values.
-   * @param name
-   * @param valueString
-   * @param valueNum
-   * @param comment
-   * @returns
-   */
-  public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
-    const state = new DBState();
-
-    state.name = this.prefixChainNameTo(name);
-    state.valueString = valueString;
-    state.valueNumber = valueNum;
-    state.timestamp = getUnixEpochTimestamp();
-    state.comment = comment;
-
-    return state;
-  }
+  // Moved to indexer-utils
+  // /**
+  //  * Constructs dbState entity for key-value pair
+  //  * @param name name associated to key
+  //  * @param value value (number)
+  //  * @returns
+  // //  */
+  // public getStateEntry(name: string, value: number): DBState {
+  //   const state = new DBState();
+  //
+  //   state.name = this.prefixChainNameTo(name);
+  //   state.valueNumber = value;
+  //   state.timestamp = getUnixEpochTimestamp();
+  //
+  //   return state;
+  // }
+  // /**
+  //  * Construct dbState entity for key-values entry, that contains string, number and comment values.
+  //  * @param name
+  //  * @param valueString
+  //  * @param valueNum
+  //  * @param comment
+  //  * @returns
+  //  */
+  // public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
+  //   const state = new DBState();
+  //
+  //   state.name = this.prefixChainNameTo(name);
+  //   state.valueString = valueString;
+  //   state.valueNumber = valueNum;
+  //   state.timestamp = getUnixEpochTimestamp();
+  //   state.comment = comment;
+  //
+  //   return state;
+  // }
 
   /////////////////////////////////////////////////////////////
   // block processor callbacks
@@ -312,7 +335,7 @@ export class Indexer {
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
-        const blockNp2 = await this.getBlockFromClient(`blockCompleted`, this.N + 2);
+        const blockNp2 = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.N + 2);
         // eslint-disable-next-line
         criticalAsync(`blockCompleted(${block.blockNumber}) -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
       }
@@ -334,7 +357,7 @@ export class Indexer {
 
     if (!this.indexerSync.isSyncing) {
       if (isBlockNp1) {
-        const blockNp2 = await this.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
+        const blockNp2 = await this.indexerToClient.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
         // eslint-disable-next-line
         criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () =>
           this.blockProcessorManager.process(blockNp2)
@@ -347,30 +370,31 @@ export class Indexer {
   // table interlacing prepare and management
   /////////////////////////////////////////////////////////////
 
+  //???Put this into constructor????
   /**
    * Prepares table entities for transactions (interlaced) and block
    */
   public prepareTables() {
-    const chainType = MCC.getChainType(this.chainConfig.name);
-    const prepared = prepareIndexerTables(chainType);
+    // const chainType = MCC.getChainType(this.chainConfig.name); //Why not use indexer.chainType
+    const prepared = prepareIndexerTables(this.chainType);
 
     this.dbTransactionClasses = prepared.transactionTable;
     this.dbBlockClass = prepared.blockTable;
   }
 
-  /**
-   * Returns current active transaction table managed by interlacing
-   * @returns
-   */
-  public getActiveTransactionWriteTable(): DBTransactionBase {
-    // we write into table by active index:
-    //  0 - table0
-    //  1 - table1
-
-    const index = this.interlace.getActiveIndex();
-
-    return this.dbTransactionClasses[index];
-  }
+  // MOVED TO interlacing.ts
+  // /**
+  //  * Returns current active transaction table managed by interlacing
+  //  * @returns
+  //  */
+  // public getActiveTransactionWriteTable(): IDBTransactionBase {
+  //   // we write into table by active index:
+  //   //  0 - table0
+  //   //  1 - table1
+  //
+  //   const index = this.interlace.activeIndex;
+  //   return this.dbTransactionClasses[index];
+  // }
 
   /////////////////////////////////////////////////////////////
   // block save
@@ -395,8 +419,8 @@ export class Indexer {
       return false;
     }
 
-    this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.getActiveIndex()})`);
-    const transactionClass = this.getActiveTransactionWriteTable() as any;
+    this.logger.debug(`start save block N+1=${Np1} (transaction table index ${this.interlace.activeIndex})`);
+    const transactionClass = this.interlace.getActiveTransactionWriteTable();
 
     // fix data
     block.transactions = transactions.length;
@@ -405,16 +429,16 @@ export class Indexer {
 
     // create transaction and save everything with retry (terminate app on failure)
     await retry(`blockSave N=${Np1}`, async () => {
-      await this.dbService.connection.transaction(async (transaction) => {
+      await this.dbService.manager.transaction(async (transaction) => {
         // save state N, T and T_CHECK_TIME
-        const stateEntries = [this.getStateEntry("N", Np1), this.getStateEntry("T", this.T)];
+        const stateEntries = [getStateEntry("N", this.chainConfig.name, Np1), getStateEntry("T", this.chainConfig.name, this.T)];
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
           // fix transactions class to active interlace tranascation class
           const dummy = new transactionClass();
-          for (let transaction of transactions) {
-            Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
+          for (let tx of transactions) {
+            Object.setPrototypeOf(tx, Object.getPrototypeOf(dummy));
           }
 
           await transaction.save(transactions);
@@ -439,10 +463,11 @@ export class Indexer {
 
     // increment N if all is ok
     this.N = Np1;
+    this.headerCollector.updateN(this.N);
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
-    if (!this.bottomBlockTime) {
-      await this.saveBottomState();
+    if (!this.indexerToDB.bottomBlockTime) {
+      await this.indexerToDB.saveBottomState();
     }
 
     this.blockProcessorManager.clearProcessorsUpToBlockNumber(Np1);
@@ -452,8 +477,7 @@ export class Indexer {
     // table interlacing
     if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
-      await this.saveBottomState();
-
+      await this.indexerToDB.saveBottomState();
       await this.checkDatabaseContinuous();
     }
 
@@ -464,67 +488,72 @@ export class Indexer {
   // Save bottom N state (used for verification)
   /////////////////////////////////////////////////////////////
 
-  /**
-   * Saves the bottom block number and timestamp into the state table in the database.
-   * The bottom block is the minimal block for confirmed transactions that are currently
-   * stored in the interlacing transaction tables.
-   */
-  async saveBottomState() {
-    try {
-      const bottomBlockNumber = await this.getBottomDBBlockNumberFromStoredTransactions();
-      if (bottomBlockNumber) {
-        const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber, confirmed: true } });
+  // MOVED TO indexerToDB.ts
+  // /**
+  //  * Saves the bottom block number and timestamp into the state table in the database.
+  //  * The bottom block is the minimal block for confirmed transactions that are currently
+  //  * stored in the interlacing transaction tables.
+  //  */
+  // async saveBottomState() {
+  //   try {
+  //     const bottomBlockNumber = await this.indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
+  //     if (bottomBlockNumber) {
+  //       const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber, confirmed: true } });
 
-        this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
+  //       this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
 
-        this.logger.debug(`block bottom state ${bottomBlockNumber}`);
-        const bottomStates = [this.getStateEntry(`Nbottom`, bottomBlockNumber), this.getStateEntry(`NbottomTime`, this.bottomBlockTime)];
-        await this.dbService.manager.save(bottomStates);
-      } else {
-        this.logger.debug(`block bottom state is undefined`);
-      }
-    } catch (error) {
-      logException(error, `saving block bottom state`);
-    }
-  }
+  //       this.logger.debug(`block bottom state ${bottomBlockNumber}`);
+  //       const bottomStates = [
+  //         getStateEntry(`Nbottom`, this.chainConfig.name, bottomBlockNumber),
+  //         getStateEntry(`NbottomTime`, this.chainConfig.name, this.bottomBlockTime),
+  //       ];
+  //       await this.dbService.manager.save(bottomStates);
+  //     } else {
+  //       this.logger.debug(`block bottom state is undefined`);
+  //     }
+  //   } catch (error) {
+  //     logException(error, `saving block bottom state`);
+  //   }
+  // }
 
   /////////////////////////////////////////////////////////////
   // get respective DB block number
   /////////////////////////////////////////////////////////////
 
-  /**
-   * @returns Returns last N saved into the database
-   */
-  private async getNfromDB(): Promise<number> {
-    const res = await this.dbService.manager.findOne(DBState, { where: { name: this.getChainN() } });
+  // MOVED TO indexerToDB.ts
+  // /**
+  //  * @returns Returns last N saved into the database
+  //  */
+  // private async getNfromDB(): Promise<number> {
+  //   const res = await this.dbService.manager.findOne(DBState, { where: { name: getChainN(this.chainConfig.name) } });
+  //
+  //   if (res === undefined || res === null) return 0;
+  //
+  //   return res.valueNumber;
+  // }
+  //
+  // /**
+  //  * Finds minimal block number that appears in interlacing transaction tables
+  //  * @returns
+  //  * NOTE: we assume there is no gaps
+  //  */
+  // public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
+  //   const query0 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
+  //   query0.select(`MIN(blocks.blockNumber)`, "min");
+  //   const result0 = await query0.getRawOne();
 
-    if (res === undefined || res === null) return 0;
+  //   const query1 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
+  //   query1.select(`MIN(blocks.blockNumber)`, "min");
+  //   const result1 = await query1.getRawOne();
 
-    return res.valueNumber;
-  }
+  //   if (!result0.min && !result1.min) {
+  //     return undefined;
+  //   }
+  //   if (!result0.min) return result1.min;
+  //   if (!result1.min) return result0.min;
 
-  /**
-   * Finds minimal block number that appears in interlacing transaction tables
-   * @returns
-   * NOTE: we assume there is no gaps
-   */
-  public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
-    const query0 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
-    query0.select(`MIN(blocks.blockNumber)`, "min");
-    const result0 = await query0.getRawOne();
-
-    const query1 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
-    query1.select(`MIN(blocks.blockNumber)`, "min");
-    const result1 = await query1.getRawOne();
-
-    if (!result0.min && !result1.min) {
-      return undefined;
-    }
-    if (!result0.min) return result1.min;
-    if (!result1.min) return result0.min;
-
-    return result0.min < result1.min ? result0.min : result1.min;
-  }
+  //   return result0.min < result1.min ? result0.min : result1.min;
+  // }
 
   /////////////////////////////////////////////////////////////
   // Block saving management
@@ -597,17 +626,6 @@ export class Indexer {
   // Auxillary functions
   /////////////////////////////////////////////////////////////
 
-  async dropAllStateInfo() {
-    this.logger.info(`drop all state info for '${this.chainConfig.name}'`);
-
-    await this.dbService.manager
-      .createQueryBuilder()
-      .delete()
-      .from(DBState)
-      .where("`name` like :name", { name: `%${this.chainConfig.name}_%` })
-      .execute();
-  }
-
   /**
    * Processes command line parameters when supplied.
    * If true is returned, utility functionalities are performed.
@@ -619,7 +637,7 @@ export class Indexer {
       let n = args.setn;
 
       if (args.setn < 0) {
-        const t = await this.getBlockHeightFromClient(`runIndexer2`);
+        const t = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
 
         this.logger.error2(`force set N to T - ${-n}=${t}`);
 
@@ -628,7 +646,7 @@ export class Indexer {
         this.logger.error2("force set N to ");
       }
 
-      const stateEntry = this.getStateEntry("N", n);
+      const stateEntry = getStateEntry("N", this.chainConfig.name, n);
 
       await this.dbService.manager.save(stateEntry);
     }
@@ -637,11 +655,11 @@ export class Indexer {
     if (args.reset === "RESET_COMPLETE") {
       this.logger.error2("command: RESET_COMPLETE");
 
-      await this.dropTable(`state`);
+      await this.indexerToDB.dropTable(`state`);
 
       // Be careful when adding chains
       for (const chainName of SUPPORTED_CHAINS) {
-        await this.dropAllChainTables(chainName);
+        await this.indexerToDB.dropAllChainTables(chainName);
       }
 
       this.logger.info("completed - exiting");
@@ -655,9 +673,9 @@ export class Indexer {
       this.logger.error2("command: RESET_ACTIVE");
 
       // reset state for this chain
-      await this.dropAllStateInfo();
+      await this.indexerToDB.dropAllStateInfo();
 
-      await this.dropAllChainTables(this.chainConfig.name);
+      await this.indexerToDB.dropAllChainTables(this.chainConfig.name);
 
       this.logger.info("completed - exiting");
 
@@ -669,39 +687,38 @@ export class Indexer {
     return false;
   }
 
-  /**
-   * Securely drops the table given the name
-   * @param name name of the table to be dropped
-   * @returns
-   */
-  async dropTable(name: string) {
-    try {
-      this.logger.info(`dropping table ${name}`);
+  // MOVED TO indexerToDB.ts
+  // /**
+  //  * Securely drops the table given the name
+  //  * @param name name of the table to be dropped
+  //  * @returns
+  //  */
+  // async dropTable(name: string) {
+  //   try {
+  //     this.logger.info(`dropping table ${name}`);
+  //     const queryRunner = this.dbService.manager.createQueryRunner();
+  //     const table = await queryRunner.getTable(name);
+  //     if (!table) {
+  //       this.logger.error(`unable to find table ${name}`);
+  //       return;
+  //     }
+  //     await queryRunner.dropTable(table);
+  //     await queryRunner.release();
+  //   } catch (error) {
+  //     logException(error, `dropTable`);
+  //   }
+  // }
+  // /**
+  //  * Drops all block and transactions tables for the specified chain
+  //  * @param chain chain name (XRP, LTC, BTC, DOGE, ALGO)
+  //  */
+  // private async dropAllChainTables(chain: string) {
+  //   chain = chain.toLocaleLowerCase();
 
-      const queryRunner = this.dbService.connection.createQueryRunner();
-      const table = await queryRunner.getTable(name);
-      if (!table) {
-        this.logger.error(`unable to find table ${name}`);
-        return;
-      }
-      await queryRunner.dropTable(table);
-      await queryRunner.release();
-    } catch (error) {
-      logException(error, `dropTable`);
-    }
-  }
-
-  /**
-   * Drops all block and transactions tables for the specified chain
-   * @param chain chain name (XRP, LTC, BTC, DOGE, ALGO)
-   */
-  private async dropAllChainTables(chain: string) {
-    chain = chain.toLocaleLowerCase();
-
-    await this.dropTable(`${chain}_block`);
-    await this.dropTable(`${chain}_transactions0`);
-    await this.dropTable(`${chain}_transactions1`);
-  }
+  //   await this.indexerToDB.dropTable(`${chain}_block`);
+  //   await this.indexerToDB.dropTable(`${chain}_transactions0`);
+  //   await this.indexerToDB.dropTable(`${chain}_transactions1`);
+  // }
 
   /**
    * Updates the status for monitoring
@@ -710,31 +727,33 @@ export class Indexer {
   private async updateStatus(blockNp1: IBlock) {
     const NisReady = this.N >= this.T - this.chainConfig.numberOfConfirmations - 2;
     const syncTimeSec = this.syncTimeDays() * SECONDS_PER_DAY;
-    const fullHistory = !this.bottomBlockTime ? false : blockNp1.unixTimestamp - this.bottomBlockTime > syncTimeSec;
+    const fullHistory = !this.indexerToDB.bottomBlockTime ? false : blockNp1.unixTimestamp - this.indexerToDB.bottomBlockTime > syncTimeSec;
     let dbStatus;
     if (!fullHistory) {
-      let min = Math.ceil((syncTimeSec - (blockNp1.unixTimestamp - this.bottomBlockTime)) / 60);
+      let min = Math.ceil((syncTimeSec - (blockNp1.unixTimestamp - this.indexerToDB.bottomBlockTime)) / 60);
       let hr = 0;
       if (min > 90) {
         hr = Math.floor(min / 60);
         min -= hr * 60;
       }
 
-      dbStatus = this.getStateEntryString(
+      dbStatus = getStateEntryString(
         "state",
+        this.chainConfig.name,
         "running-sync",
         this.processedBlocks,
         `N=${this.N} T=${this.T} (missing ${hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, "0")}`})`
       );
     } else if (!NisReady) {
-      dbStatus = this.getStateEntryString(
+      dbStatus = getStateEntryString(
         "state",
+        this.chainConfig.name,
         "running-sync",
         this.processedBlocks,
         `N=${this.N} T=${this.T} (N is late: < T-${this.chainConfig.numberOfConfirmations})`
       );
     } else {
-      dbStatus = this.getStateEntryString("state", "running", this.processedBlocks, `N=${this.N} T=${this.T}`);
+      dbStatus = getStateEntryString("state", this.chainConfig.name, "running", this.processedBlocks, `N=${this.N} T=${this.T}`);
     }
     this.processedBlocks++;
     await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
@@ -759,7 +778,7 @@ export class Indexer {
 
       if (!waiting) {
         // update state
-        const dbStatus = this.getStateEntryString("state", "waiting", 0, "waiting for node to be synced");
+        const dbStatus = getStateEntryString("state", this.chainConfig.name, "waiting", 0, "waiting for node to be synced");
         await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
       }
 
@@ -840,6 +859,7 @@ export class Indexer {
           this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
 
           await this.interlace.resetAll();
+          await this.indexerToDB.dropAllStateInfo();
 
           this.logger.debug(`restarting`);
           await this.waitForever();
@@ -871,7 +891,7 @@ export class Indexer {
 
     // ------- 0. Initialization ------------------------------
     // wait for db to connect
-    await this.dbService.waitForDBConnection();
+    await this.dbService.connect();
 
     if (await this.processCommandLineParameters(args)) {
       // some parameter settings do not require running indexer
@@ -880,11 +900,11 @@ export class Indexer {
 
     await this.waitForNodeSynced();
 
-    this.prepareTables();
+    // this.prepareTables();
 
-    await this.saveBottomState();
+    await this.indexerToDB.saveBottomState();
 
-    const startBlockNumber = (await this.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
+    const startBlockNumber = (await this.indexerToClient.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
 
     this.logger.warning(`${this.chainConfig.name} T=${startBlockNumber}`);
 
@@ -892,19 +912,21 @@ export class Indexer {
     this.N = startBlockNumber;
 
     // N is last completed block - confirmed and stored in DB
-    const dbStartBlockNumber = await this.getNfromDB();
+    const dbStartBlockNumber = await this.indexerToDB.getNfromDB();
     if (dbStartBlockNumber > 0) {
       this.N = dbStartBlockNumber;
     }
+    this.headerCollector.updateN(this.N);
 
     await this.interlace.initialize(
-      this,
+      this.logger,
       this.dbService,
-      this.dbTransactionClasses,
+      this.chainType,
       this.chainConfig.minimalStorageHistoryDays,
-      this.chainConfig.minimalStorageHistoryBlocks,
-      this.chainConfig.name
+      this.chainConfig.minimalStorageHistoryBlocks
     );
+    this.dbBlockClass = this.interlace.DBBlockClass;
+    this.dbTransactionClasses = this.interlace.DBTransactionClasses;
 
     // check if indexer database is continous
     await this.checkDatabaseContinuous();
@@ -923,10 +945,10 @@ export class Indexer {
 
     while (true) {
       // get chain top block
-      this.T = await this.getBlockHeightFromClient(`runIndexer2`);
+      this.T = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
 
       // change getBlock to getBlockHeader
-      let blockNp1 = await this.getBlockFromClient(`runIndexer2`, this.N + 1);
+      let blockNp1 = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.N + 1);
 
       // has N+1 confirmation block
       const isNp1Confirmed = this.N < this.T - this.chainConfig.numberOfConfirmations;
@@ -954,7 +976,7 @@ export class Indexer {
         await this.trySaveNp1Block();
 
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
-        blockNp1 = await this.getBlockFromClient(`runIndexer3`, this.N + 1);
+        blockNp1 = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.N + 1);
         // process new or changed N+1
         this.blockNp1hash = blockNp1.stdBlockHash;
       }

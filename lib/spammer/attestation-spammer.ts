@@ -155,7 +155,7 @@ class AttestationSpammer {
 
   async init() {
     await this.initializeStateConnector();
-    await this.indexedQueryManager.dbService.waitForDBConnection();
+    await this.indexedQueryManager.dbService.connect();
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
 
     // eslint-disable-next-line

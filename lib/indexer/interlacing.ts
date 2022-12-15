@@ -1,20 +1,20 @@
-import { Managed } from "@flarenetwork/mcc";
+import { ChainType, Managed } from "@flarenetwork/mcc";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
 import { sleepms } from "../utils/utils";
-import { Indexer } from "./indexer";
-import { SECONDS_PER_DAY } from "./indexer-utils";
-
+import { IDBTransactionBase } from "../entity/indexer/dbTransaction";
+import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
+import { IDBBlockBase } from "../entity/indexer/dbBlock";
 
 /**
  * Manages table double buffering for transactions (DBTransactionBase)
- * 
+ *
  * We have two tables that we use to optimize how to control number if items in the tables.
- * 
- * We first fill one table when we reach table limits we continue with another and once this one is filled as well, 
- * we drop the first one and recreate a new one and continue on it. 
- * 
- * When one table has more than `endBlock` blocks and last block timestamp is above `endTime` we drop 
+ *
+ * We first fill one table when we reach table limits we continue with another and once this one is filled as well,
+ * we drop the first one and recreate a new one and continue on it.
+ *
+ * When one table has more than `endBlock` blocks and last block timestamp is above `endTime` we drop
  * the last table and create a new one.
  */
 @Managed()
@@ -34,38 +34,40 @@ export class Interlacing {
 
   private dbService: DatabaseService;
 
-  private chainName: string;
+  private dbTransactionClasses: IDBTransactionBase[];
+  public dbBlockClass: IDBBlockBase; // quick fix, to be stored somewhere else
 
-  private indexer: Indexer;
-  chainConfig: any;
+  chainType: ChainType;
+  public chainName: string;
 
   /**
    * Sets the initial limits for the interlacing.
-   * 
-   * @param logger 
-   * @param dbService 
-   * @param dbClasses 
-   * @param timeRangeSec 
-   * @param blockRange 
-   * @param chainName 
-   * @returns 
+   *
+   * @param logger
+   * @param dbService
+   * @param chainType
+   * @param timeRangeSec
+   * @param blockRange
+   * @returns
    */
-  public async initialize(indexer: Indexer, dbService: DatabaseService, dbClasses: any[], timeRangeSec: number, blockRange: number, chainName: string) {
+  public async initialize(logger: AttLogger, dbService: DatabaseService, chainType: ChainType, timeRangeSec: number, blockRange: number) {
     const items = [];
 
-    this.indexer = indexer;
-    this.logger = indexer.logger;
+    this.logger = logger;
     this.dbService = dbService;
+    await this.dbService.connect(); //creates connection to database if there is none
 
     this.timeRange = timeRangeSec * SECONDS_PER_DAY;
     this.blockRange = blockRange;
-
-    this.chainName = chainName;
-
+    const prepared = prepareIndexerTables(chainType);
+    this.dbBlockClass = prepared.blockTable;
+    this.dbTransactionClasses = prepared.transactionTable;
+    this.chainType = chainType;
+    this.chainName = ChainType[chainType];
 
     // get first block from both transaction tables
-    items.push(await dbService.connection.getRepository(dbClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
-    items.push(await dbService.connection.getRepository(dbClasses[1]).find({ order: { blockNumber: "ASC" }, take: 1 }));
+    items.push(await dbService.manager.getRepository(this.dbTransactionClasses[0]).find({ order: { blockNumber: "ASC" }, take: 1 }));
+    items.push(await dbService.manager.getRepository(this.dbTransactionClasses[1]).find({ order: { blockNumber: "ASC" }, take: 1 }));
 
     if (items[0].length === 0 && items[1].length === 0) {
       // if both tables are empty we start with 0 and leave timeRange at -1, this indicates that it will be set on 1st update
@@ -92,31 +94,44 @@ export class Interlacing {
     this.endBlockNumber = items[this.index][0].blockNumber + this.blockRange;
   }
 
-  public getActiveIndex() {
+  public get activeIndex(): number {
     return this.index;
   }
 
-  private getTransactionDropTableName(): any {
+  public get DBBlockClass(): IDBBlockBase {
+    return this.dbBlockClass;
+  }
+
+  public get DBTransactionClasses(): IDBTransactionBase[] {
+    return this.dbTransactionClasses;
+  }
+
+  public getActiveTransactionWriteTable(): IDBTransactionBase {
+    // we write into table by active index:
+    //  0 - table0
+    //  1 - table1
+    return this.dbTransactionClasses[this.index];
+  }
+
+  public getTransactionDropTableName(): string {
     // we drop table by active index:
     //  0 - table0
     //  1 - table1
-
-    return this.getTransactionTableNameForIndex(this.getActiveIndex());
+    return this.getTransactionTableNameForIndex(this.activeIndex);
   }
 
-  private getTransactionTableNameForIndex(index: number): any {
+  private getTransactionTableNameForIndex(index: number): string {
     return `${this.chainName.toLowerCase()}_transactions${index}`;
   }
 
   /**
    * Given a new block data checks the conditions and performs table change if necessary.
-   * 
-   * @param blockTime 
-   * @param blockNumber 
-   * @returns 
+   *
+   * @param blockTime
+   * @param blockNumber
+   * @returns
    */
   public async update(blockTime: number, blockNumber: number): Promise<boolean> {
-
     // in case table drop was requested in another async we need to wait until drop is completed
     while (this.tableLock) {
       await sleepms(1);
@@ -144,7 +159,7 @@ export class Interlacing {
 
     // drop inactive table and create new one
     const time0 = Date.now();
-    const queryRunner = this.dbService.connection.createQueryRunner();
+    const queryRunner = this.dbService.manager.connection.createQueryRunner();
     const tableName = this.getTransactionDropTableName();
     const table = await queryRunner.getTable(tableName);
     await queryRunner.dropTable(table);
@@ -163,7 +178,6 @@ export class Interlacing {
    * reset all - drop both tables
    */
   public async resetAll() {
-
     // in case table drop was requested in another async we need to wait until drop is completed
     while (this.tableLock) {
       await sleepms(1);
@@ -181,18 +195,18 @@ export class Interlacing {
 
     // drop inactive table and create new one
     for (let i = 0; i < 2; i++) {
-      const queryRunner = this.dbService.connection.createQueryRunner();
+      const queryRunner = this.dbService.manager.connection.createQueryRunner();
       const tableName = this.getTransactionTableNameForIndex(i);
+      await queryRunner.connect();
       const table = await queryRunner.getTable(tableName);
       await queryRunner.dropTable(table);
       await queryRunner.createTable(table);
       await queryRunner.release();
     }
 
-    // drop all state info
-    await this.indexer.dropAllStateInfo();
+    // drop all state info (moved to indexer)
+    // await this.indexer.dropAllStateInfo();
 
     this.tableLock = false;
   }
-
 }

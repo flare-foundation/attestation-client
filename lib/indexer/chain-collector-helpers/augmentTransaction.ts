@@ -1,57 +1,74 @@
-import { AlgoBlock, AlgoTransaction, IBlock, ITransaction, unPrefix0x, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
-import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
-import { prepareString } from "../../utils/utils";
-import { Indexer } from "../indexer";
+import {
+  AlgoBlock,
+  AlgoTransaction,
+  ChainType,
+  IBlock,
+  ITransaction,
+  unPrefix0x,
+  UtxoBlock,
+  UtxoTransaction,
+  XrpBlock,
+  XrpTransaction,
+} from "@flarenetwork/mcc";
 import { stringify } from "safe-stable-stringify";
+import { DBTransactionBase, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { prepareString } from "../../utils/utils";
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
- * @param indexer the indexer
- * @param block block of the transaction (IBlock)
- * @param txData transaction data obtained from MCC (ITransaction)
+ * @param dbTransaction
+ * @param chainType
+ * @param block
+ * @param txData
  * @returns
  */
-async function augmentTransactionBase(indexer: Indexer, block: IBlock, txData: ITransaction): Promise<DBTransactionBase> {
-  const table = new (indexer.getActiveTransactionWriteTable() as any)();
+function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: ChainType, block: IBlock, txData: ITransaction): DBTransactionBase {
+  const txEntity = new dbTransaction();
 
-  table.chainType = indexer.cachedClient.client.chainType;
-  table.transactionId = prepareString(txData.stdTxid, 64);
-  table.blockNumber = block.number;
-  table.timestamp = block.unixTimestamp;
-  table.transactionType = txData.type;
-  table.isNativePayment = txData.isNativePayment;
-  table.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
-  table.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
+  txEntity.chainType = chainType;
+  txEntity.transactionId = prepareString(txData.stdTxid, 64);
+  txEntity.blockNumber = block.number;
+  txEntity.timestamp = block.unixTimestamp;
+  txEntity.transactionType = txData.type;
+  txEntity.isNativePayment = txData.isNativePayment;
+  txEntity.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
+  txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
 
-  return table;
+  return txEntity;
 }
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
  * Specialization of the function for ALGO.
- * @param indexer the indexer
- * @param block block of the transaction (IBlock)
- * @param txData transaction data obtained from MCC (ITransaction)
+ * @param dbTransaction
+ * @param block
+ * @param txData
  * @returns
  */
-export async function augmentTransactionAlgo(indexer: Indexer, block: AlgoBlock, txData: AlgoTransaction): Promise<DBTransactionBase> {
-  const res = await augmentTransactionBase(indexer, block, txData);
+export function augmentTransactionAlgo(dbTransaction: IDBTransactionBase, block: AlgoBlock, txData: AlgoTransaction): DBTransactionBase {
+  const res = augmentTransactionBase(dbTransaction, ChainType.ALGO, block, txData);
 
   return res as DBTransactionBase;
 }
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
- * Specialization of the function for UTXO (Bitcon based) chains.
+ * Specialization of the function for UTXO (Bitcoin based) chains.
  * Promise in place of txDataPromise is due to non-blocking optimization when reading input transactions of the transaction.
- * @param indexer the indexer
- * @param block block of the transaction (IBlock)
- * @param txDataPromise promise of transaction data obtained from MCC (ITransaction)
+ * @param dbTransaction
+ * @param chainType
+ * @param block
+ * @param txDataPromise
  * @returns
  */
-export async function augmentTransactionUtxo(indexer: Indexer, block: UtxoBlock, txDataPromise: Promise<UtxoTransaction>): Promise<DBTransactionBase> {
+export async function augmentTransactionUtxo(
+  dbTransaction: any,
+  chainType: ChainType,
+  block: UtxoBlock,
+  txDataPromise: Promise<UtxoTransaction>
+): Promise<DBTransactionBase> {
   const txData = await txDataPromise;
-  const res = await augmentTransactionBase(indexer, block, txData);
+  const res = augmentTransactionBase(dbTransaction, chainType, block, txData);
 
   return res as DBTransactionBase;
 }
@@ -59,13 +76,13 @@ export async function augmentTransactionUtxo(indexer: Indexer, block: UtxoBlock,
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
  * Specialization of the function for XRP.
- * @param indexer the indexer
- * @param block block of the transaction (IBlock)
- * @param txData transaction data obtained from MCC (ITransaction)
+ * @param dbTransaction
+ * @param block
+ * @param txData
  * @returns
  */
-export async function augmentTransactionXrp(indexer: Indexer, block: XrpBlock, txData: XrpTransaction): Promise<DBTransactionBase> {
-  const res = await augmentTransactionBase(indexer, block, txData);
+export function augmentTransactionXrp(dbTransaction: IDBTransactionBase, block: XrpBlock, txData: XrpTransaction): DBTransactionBase {
+  const res = augmentTransactionBase(dbTransaction, ChainType.XRP, block, txData);
 
   return res as DBTransactionBase;
 }

@@ -15,15 +15,11 @@ export class WebDatabaseService {
     this.dbService = new DatabaseService(getGlobalLogger("web"), this.configurationService.serverCredentials.attesterDatabase, "attester");
   }
 
-  public get connection() {
-    return this.dbService.connection;
-  }
-
   public get manager() {
     return this.dbService.manager;
   }
 
-  async waitForDBConnection() {
-    await this.dbService.waitForDBConnection();
+  async connect() {
+    await this.dbService.connect();
   }
 }

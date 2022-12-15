@@ -96,7 +96,7 @@ export class MerkleTree {
     const rt = this.root;
     return rt ? web3.utils.toBN(rt) : web3.utils.toBN(0);
   }
-  
+
   /**
    * The array representing full tree (length is `2*hashCount - 1`)
    */
@@ -130,7 +130,7 @@ export class MerkleTree {
 
   /**
    * Given an array of leave hashes (`0x`-prefixed 32-byte hex strings) it builds the Merkle tree.
-   * @param values 
+   * @param values
    */
   build(values: string[]) {
     const sorted = values.map((x) => toHex(x, 32));
@@ -154,8 +154,8 @@ export class MerkleTree {
 
   /**
    * Returns the hash of the `i`-th leaf (index determined by sorting and positioning in the build)
-   * @param i 
-   * @returns 
+   * @param i
+   * @returns
    */
   getHash(i: number) {
     if (this.hashCount === 0 || i < 0 || i >= this.hashCount) {
@@ -184,19 +184,20 @@ export class MerkleTree {
     }
     return proof;
   }
+}
 
-  /**
-   * Verifies a Merkle proof for a given leaf
-   * @param leaf leaf as `0x`-prefixed 32-byte hex string
-   * @param proof Merkle proof (a list of `0x`-prefixed 32-byte hex strings)
-   * @returns `true` if the proof is valid, `false` otherwise 
-   */
-  verify(leaf: string, proof: string[]) {
-    if (!leaf || !proof || !this.root) return false;
-    let hash = leaf;
-    for (const pair of proof) {
-      hash = sortedHashPair(pair, hash)!;
-    }
-    return hash === this.root;
+/**
+ * Verifies a Merkle proof for a given leaf
+ * @param leaf leaf as (`0x`-prefixed 32-byte hex string)
+ * @param proof Merkle proof (a list of `0x`-prefixed 32-byte hex strings)
+ * @param root Merkle root (`0x`-prefixed 32-byte hex string)
+ * @returns `true` if the proof is valid, `false` otherwise
+ */
+export function verifyWithMerkleProof(leaf: string, proof: string[], root: string) {
+  if (!leaf || !proof || !root) return false;
+  let hash = leaf;
+  for (const pair of proof) {
+    hash = sortedHashPair(pair, hash)!;
   }
+  return hash == root;
 }

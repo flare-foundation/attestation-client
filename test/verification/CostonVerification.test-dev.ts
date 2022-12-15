@@ -81,7 +81,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
-    await indexedQueryManager.dbService.waitForDBConnection();
+    await indexedQueryManager.dbService.connect();
   });
 
   it("Should verify that merkle roots match.", async () => {

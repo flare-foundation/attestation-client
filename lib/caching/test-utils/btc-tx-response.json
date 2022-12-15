@@ -1,0 +1,59 @@
+{
+  "data": {
+    "result": {
+      "txid": "1a03e854e72c8fc2ec8e82a197a4b72e1b4a5091a866b087582dc5d0a5dd1a39",
+      "hash": "e687f5f867ea7ff58917fb3e6d3383a6d38ea594a7db8e6dfcdf7f9a742e97c7",
+      "version": 2,
+      "size": 225,
+      "vsize": 144,
+      "weight": 573,
+      "locktime": 0,
+      "vin": [
+        {
+          "txid": "f0f6aa381ae6f7c75ae4716760d08f00675989445f70e7afb7ff75952400759e",
+          "vout": 3,
+          "scriptSig": {
+            "asm": "",
+            "hex": ""
+          },
+          "txinwitness": [
+            "30440220604d2089df9fe4e60adccc302d9c54bb2129a8c697515f2e838ca6863eb8101b0220588a950a1b7b58a550e59b83344a5af0b34cebf1eafb3839046fb58d33d9627c01",
+            "026e5628506ecd33242e5ceb5fdafe4d3066b5c0f159b3c05a621ef65f177ea286"
+          ],
+          "sequence": 4294967293
+        }
+      ],
+      "vout": [
+        {
+          "value": 0.02231,
+          "n": 0,
+          "scriptPubKey": {
+            "asm": "OP_DUP OP_HASH160 ebeb55c7178122e9a063523fe5383e90925eda51 OP_EQUALVERIFY OP_CHECKSIG",
+            "desc": "addr(1NWRiSx6RkiMvNhfFPqqpLzHES2Wy7bSgN)#2gp9xczr",
+            "hex": "76a914ebeb55c7178122e9a063523fe5383e90925eda5188ac",
+            "address": "1NWRiSx6RkiMvNhfFPqqpLzHES2Wy7bSgN",
+            "type": "pubkeyhash"
+          }
+        },
+        {
+          "value": 1.73237337,
+          "n": 1,
+          "scriptPubKey": {
+            "asm": "0 f60834ef165253c571b11ce9fa74e46692fc5ec1",
+            "desc": "addr(bc1q7cyrfmck2ffu2ud3rn5l5a8yv6f0chkp0zpemf)#kcdfju3j",
+            "hex": "0014f60834ef165253c571b11ce9fa74e46692fc5ec1",
+            "address": "bc1q7cyrfmck2ffu2ud3rn5l5a8yv6f0chkp0zpemf",
+            "type": "witness_v0_keyhash"
+          }
+        }
+      ],
+      "hex": "020000000001019e7500249575ffb7afe7705f44895967008fd0606771e45ac7f7e61a38aaf6f00300000000fdffffff02d80a2200000000001976a914ebeb55c7178122e9a063523fe5383e90925eda5188ac5964530a00000000160014f60834ef165253c571b11ce9fa74e46692fc5ec1024730440220604d2089df9fe4e60adccc302d9c54bb2129a8c697515f2e838ca6863eb8101b0220588a950a1b7b58a550e59b83344a5af0b34cebf1eafb3839046fb58d33d9627c0121026e5628506ecd33242e5ceb5fdafe4d3066b5c0f159b3c05a621ef65f177ea28600000000",
+      "blockhash": "00000000000000000000a23599f32f05f66204ca773f393a33f9c9abd69264d9",
+      "confirmations": 4,
+      "time": 1667476127,
+      "blocktime": 1667476127
+    },
+    "error": null,
+    "id": "rpc"
+  }
+}

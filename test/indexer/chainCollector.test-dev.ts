@@ -92,13 +92,13 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    const processor = new UtxoBlockProcessor(indexer.interlace, indexer.cachedClient);
+    const processor = new UtxoBlockProcessor(indexer.cachedClient);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save).then(() => {}).catch(e => {
       getGlobalLogger().error("Initialize jobs failed for processor 1")
     });
 
-    const processor2 = new UtxoBlockProcessor(indexer.interlace, indexer.cachedClient);
+    const processor2 = new UtxoBlockProcessor(indexer.cachedClient);
     processor2.debugOn("SECOND");
     processor2.initializeJobs(block2, save).then(() => {}).catch(e => {
       getGlobalLogger().error("Initialize jobs failed for processor 1")
@@ -159,7 +159,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    const processor = new UtxoBlockProcessor(indexer.interlace, indexer.cachedClient);
+    const processor = new UtxoBlockProcessor(indexer.cachedClient);
     processor.debugOn("FIRST");    
     await processor.initializeJobs(block, save);
   });
@@ -180,7 +180,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    const processor = new AlgoBlockProcessor(indexer.interlace, indexer.cachedClient);
+    const processor = new AlgoBlockProcessor(indexer.cachedClient);
     processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });
@@ -204,7 +204,7 @@ describe("Test process helpers ", () => {
     indexer.prepareTables();
 
 
-    const processor = new XrpBlockProcessor(indexer.interlace, indexer.cachedClient);
+    const processor = new XrpBlockProcessor(indexer.cachedClient);
     processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });
@@ -227,7 +227,7 @@ describe("Test process helpers ", () => {
     indexer.chainConfig.name = "ALGO";
     indexer.prepareTables();
 
-    const processor = new AlgoBlockProcessor(indexer.interlace, indexer.cachedClient);
+    const processor = new AlgoBlockProcessor(indexer.cachedClient);
     processor.debugOn("FIRST");
     await processor.initializeJobs(block, save);
   });

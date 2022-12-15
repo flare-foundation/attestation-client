@@ -105,7 +105,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     before(async () => {
       await dataService.connect();
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 12);
-      utxoBlockProcessor = new UtxoBlockProcessor(interlacing, cachedClient);
+      utxoBlockProcessor = new UtxoBlockProcessor(cachedClient);
     });
 
     it("should not read full transaction utxo", async () => {
@@ -159,7 +159,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       const interlacing = new Interlacing();
 
       const blockProcessorConst = BlockProcessor(ChainType.BTC);
-      let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
+      let blockProcessor = new blockProcessorConst(cachedClient);
 
       before(async function () {
         await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
@@ -200,7 +200,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       const interlacing = new Interlacing();
 
       const blockProcessorConst = BlockProcessor(ChainType.DOGE);
-      let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
+      let blockProcessor = new blockProcessorConst(cachedClient);
 
       before(async function () {
         await interlacing.initialize(getGlobalLogger(), dataService, ChainType.DOGE, 36000, 10);
@@ -246,7 +246,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       const interlacing = new Interlacing();
 
       const blockProcessorConst = BlockProcessor(ChainType.ALGO);
-      let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
+      let blockProcessor = new blockProcessorConst(cachedClient);
 
       before(async function () {
         await interlacing.initialize(getGlobalLogger(), dataService, ChainType.ALGO, 36000, 10);
@@ -292,7 +292,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       const interlacing = new Interlacing();
 
       const blockProcessorConst = BlockProcessor(ChainType.XRP);
-      let blockProcessor = new blockProcessorConst(interlacing, cachedClient);
+      let blockProcessor = new blockProcessorConst(cachedClient);
 
       before(async function () {
         await interlacing.initialize(getGlobalLogger(), dataService, ChainType.XRP, 3600, 10);

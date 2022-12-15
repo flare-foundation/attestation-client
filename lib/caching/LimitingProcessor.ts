@@ -1,7 +1,6 @@
 import { IBlock, Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
-import { Interlacing } from "../indexer/interlacing";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
@@ -107,10 +106,7 @@ export class LimitingProcessor {
 
   block: IBlock;
 
-  interlacing: Interlacing;
-
-  constructor(interlacing: Interlacing, client: CachedMccClient, options?: LimitingProcessorOptions) {
-    this.interlacing = interlacing;
+  constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = client;
     // eslint-disable-next-line
@@ -191,9 +187,8 @@ export class LimitingProcessor {
       `${(this.debugLabel ? this.debugLabel : "").padEnd(10)}  calls/s: ${this.client.reqsPs.toString().padStart(3)}   retries/s: ${this.client.retriesPs
         .toString()
         .padStart(3)}   inProcessing: ${this.client.inProcessing.toString().padStart(3)}   inQueue: ${this.client.inQueue
-        .toString()
-        .padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}   topLevelJobs: ${
-        this.topLevelJobsDoneCounter
+          .toString()
+          .padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}   topLevelJobs: ${this.topLevelJobsDoneCounter
       }/${this.topLevelJobsCounter}`
     );
   }

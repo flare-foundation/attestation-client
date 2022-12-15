@@ -37,6 +37,7 @@ export class LTCProcessorService extends VerifierProcessor {
   }
 
   public async verify(attestationRequest: AttestationRequest) {
+    this.assertIsSupported(attestationRequest);
     let response = await verifyLTC(
       this.client,
       attestationRequest.request,

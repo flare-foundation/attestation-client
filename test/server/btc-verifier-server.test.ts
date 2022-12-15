@@ -54,6 +54,8 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     process.env.NODE_ENV = "development";
     process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
     process.env.IN_MEMORY_DB = "1";
+    process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
+
     initializeTestGlobalLogger();
     const module = await Test.createTestingModule({
       imports: [VerifierServerModule],
@@ -165,7 +167,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let receivingAddress = addressOnVout(selectedTransaction, utxo);
     let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
     let request = await testReferencedPaymentNonexistenceRequest(
-      entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, 
+      entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1,
       selectedTransaction.timestamp + 2, receivingAddress, receivedAmount, prefix0x(selectedTransaction.paymentReference));
 
     let attestationRequest = {
@@ -188,8 +190,8 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let receivingAddress = addressOnVout(selectedTransaction, utxo);
     let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
 
-    let request = await testReferencedPaymentNonexistenceRequest(entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, 
-      DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, selectedTransaction.timestamp + 2, 
+    let request = await testReferencedPaymentNonexistenceRequest(entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5,
+      DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, selectedTransaction.timestamp + 2,
       receivingAddress, receivedAmount.add(toBN(1)), prefix0x(selectedTransaction.paymentReference));
 
     let attestationRequest = {
@@ -200,7 +202,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
         windowStartTime: startTime + 1, // must exist one block with timestamp lower
         UBPCutoffTime: startTime
       }
-    } as AttestationRequest; 
+    } as AttestationRequest;
 
     let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
@@ -215,10 +217,10 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let receivingAddress = addressOnVout(selectedTransaction, utxo);
     let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
     let request = await testReferencedPaymentNonexistenceRequest(
-      entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, 
+      entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1,
       selectedTransaction.timestamp + 2, receivingAddress, receivedAmount, prefix0x(selectedTransaction.paymentReference));
 
-    expect(() => encodeReferencedPaymentNonexistence(request)).to.throw("Negative values are not supported in attestation requests")    
+    expect(() => encodeReferencedPaymentNonexistence(request)).to.throw("Negative values are not supported in attestation requests")
   });
 
   it(`Should return correct supported source and types`, async function () {
@@ -230,6 +232,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   after(async () => {
+    delete process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
     await app.close();
   });
 

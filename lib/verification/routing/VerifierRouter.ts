@@ -1,13 +1,10 @@
-import { MccClient } from "@flarenetwork/mcc"
 import { Attestation } from "../../attester/Attestation";
-import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { readCredentials } from "../../utils/config";
 import { AttestationRequest, AttestationRequestOptions } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
 import { getAttestationTypeName } from "../generated/attestation-types-enum";
-import { getSourceName, SourceId } from "../sources/sources";
-import { verifyAttestation } from "../verifiers/verifier_routing";
+import { getSourceName } from "../sources/sources";
 import { VerifierAttestationTypeRouteCredentials } from "./configs/VerifierAttestationTypeRouteCredentials";
 import { VerifierRouteCredentials } from "./configs/VerifierRouteCredentials";
 
@@ -34,18 +31,12 @@ export const EMPTY_VERIFIER_ROUTE = new VerifierRoute();
  * as local verifications (legacy support).
  */
 export class VerifierRouter {
-   client?: MccClient;
-   indexedQueryManager?: IndexedQueryManager;
-   sourceFilter?: SourceId;
    credentials: VerifierRouteCredentials;
    // routing map: sourceName -> attestationTypeName -> VerifierRoute
    routeMap: Map<string, Map<string, VerifierRoute>>;
    _initialized = false;
    // Remote only verification possible
    _enableLocalVerification = true;
-
-   constructor() {
-   }
 
    /**
     * Auxilliary function. Returns VerifierRoute for given @param sourceName and @param attestationTypeName

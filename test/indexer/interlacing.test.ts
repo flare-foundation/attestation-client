@@ -13,10 +13,7 @@ import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 describe("interlacing", () => {
   initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
-  databaseConnectOptions.database = process.env.DATABASE_NAME2;
-  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-  databaseConnectOptions.password = process.env.DATBASE_PASS;
-  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
   let interlacing = new Interlacing();
 

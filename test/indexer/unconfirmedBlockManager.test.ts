@@ -9,23 +9,20 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 
 describe("UnconfirmedBlockManager", function () {
+  initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
-  databaseConnectOptions.database = process.env.DATABASE_NAME2;
-  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-  databaseConnectOptions.password = process.env.DATBASE_PASS;
-  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
   let unconfirmedBlockManager = new UnconfirmedBlockManager(dataService, DBBlockDOGE, 7);
 
   before(async () => {
-    initializeTestGlobalLogger();
     if (!dataService.dataSource.isInitialized) {
       await dataService.connect();
     }
 
     //generate test table
     const tableName = "doge_block";
-    await dataService.manager.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`delete from ${tableName};`);
     for (let j = 5; j < 16; j++) {
       const entity = new DBBlockDOGE();
       entity.blockNumber = j;

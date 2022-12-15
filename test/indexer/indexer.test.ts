@@ -15,6 +15,7 @@ import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
 import { AugTestBlockBTC, promAugTxBTC0 } from "../mockData/indexMock";
 import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { afterEach } from "mocha";
+import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
@@ -22,7 +23,7 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 const sinon = require("sinon");
 
-describe("Indexer XRP", () => {
+describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   let indexer = new Indexer(null, null, null, null);
   indexer.chainType = ChainType.XRP;
   indexer.chainConfig = new ChainConfiguration();
@@ -44,7 +45,7 @@ describe("Indexer XRP", () => {
   });
 });
 
-describe.skip("Indexer BTC", () => {
+describe.skip(`Indexer BTC ${getTestFile(__filename)})`, () => {
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",
     username: process.env.BTC_USERNAME || "",
@@ -73,10 +74,7 @@ describe.skip("Indexer BTC", () => {
   indexer.indexerToClient = new IndexerToClient(indexer.cachedClient.client);
 
   const databaseConnectOptions = new DatabaseConnectOptions();
-  databaseConnectOptions.database = process.env.DATABASE_NAME1;
-  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-  databaseConnectOptions.password = process.env.DATBASE_PASS;
-  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
   const fake1 = sinon.fake();
   const fake2 = sinon.fake();
@@ -86,11 +84,11 @@ describe.skip("Indexer BTC", () => {
       await dataService.connect();
     }
     const tableName1 = "state";
-    await dataService.manager.query(`TRUNCATE ${tableName1};`);
+    await dataService.manager.query(`delete from ${tableName1};`);
     const tableName2 = "btc_transactions0";
-    await dataService.manager.query(`TRUNCATE ${tableName2};`);
+    await dataService.manager.query(`delete from ${tableName2};`);
     const tableName3 = "btc_transactions1";
-    await dataService.manager.query(`TRUNCATE ${tableName3};`);
+    await dataService.manager.query(`delete from ${tableName3};`);
 
     indexer.indexerToDB = new IndexerToDB(getGlobalLogger(), dataService, ChainType.BTC);
     await indexer.interlace.initialize(getGlobalLogger(), dataService, ChainType.BTC, 36000, 10);

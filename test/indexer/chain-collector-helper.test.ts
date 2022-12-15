@@ -96,7 +96,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     databaseConnectOptions.database = process.env.DATABASE_NAME1;
     databaseConnectOptions.username = process.env.DATABASE_USERNAME;
     databaseConnectOptions.password = process.env.DATBASE_PASS;
-    const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+    const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
     const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
     const interlacing = new Interlacing();
     let utxoBlockProcessor: UtxoBlockProcessor;
@@ -124,7 +124,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     databaseConnectOptions.database = process.env.DATABASE_NAME1;
     databaseConnectOptions.username = process.env.DATABASE_USERNAME;
     databaseConnectOptions.password = process.env.DATBASE_PASS;
-    const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+    const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
     before(async function () {
       if (!dataService.dataSource.isInitialized) {

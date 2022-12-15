@@ -14,11 +14,9 @@ import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
+  initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
-  databaseConnectOptions.database = process.env.DATABASE_NAME2;
-  databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-  databaseConnectOptions.password = process.env.DATBASE_PASS;
-  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions);
+  const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
   const options: IndexedQueryManagerOptions = {
     chainType: ChainType.BTC,
@@ -47,11 +45,11 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     //start with empty tables
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
-      await dataService.manager.query(`TRUNCATE ${tableName};`);
+      await dataService.manager.query(`delete from ${tableName};`);
     }
 
     const tableName = "btc_block";
-    await dataService.manager.query(`TRUNCATE ${tableName};`);
+    await dataService.manager.query(`delete from ${tableName};`);
   });
 
   it("Should get chain N ", () => {

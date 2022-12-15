@@ -7,8 +7,9 @@ import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentB
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { PreparedBlock } from "../../lib/indexer/preparedBlock";
 import { assert, expect } from "chai";
+import { getTestFile } from "../test-utils/test-utils";
 
-describe("PreparedBlock", function () {
+describe(`PreparedBlock, (${getTestFile(__filename)})`, function () {
   const block = new UtxoBlock(resBTCBlock);
   const tx = new UtxoTransaction(resBTCTx);
 

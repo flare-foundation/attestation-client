@@ -6,6 +6,7 @@ import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { TestBlockBTC, TestBlockBTCAlt } from "../mockData/indexMock";
+import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
@@ -13,7 +14,7 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 const sinon = require("sinon");
 
-describe("BlockProcessorManager", function () {
+describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",
     username: process.env.BTC_USERNAME || "",

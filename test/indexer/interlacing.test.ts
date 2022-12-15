@@ -9,8 +9,9 @@ const utils = require("../../lib/utils/utils");
 import sinon from "sinon";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
+import { getTestFile } from "../test-utils/test-utils";
 
-describe("interlacing", () => {
+describe(`Interlacing (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
@@ -110,46 +111,48 @@ describe("interlacing", () => {
     expect(res).to.be.eq(DBBlockBTC);
   });
 
-  it("should update", async () => {
-    await dataService.dataSource.manager.save(augTx0);
-    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
-    let res = await interlacing.update(16685747980, 7633800);
-    expect(res).to.be.true;
-    expect(interlacing.activeIndex).to.be.equal(1);
-  });
+  describe("Tables updates", function () {
+    it("should update", async () => {
+      await dataService.dataSource.manager.save(augTx0);
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+      let res = await interlacing.update(16685747980, 7633800);
+      expect(res).to.be.true;
+      expect(interlacing.activeIndex).to.be.equal(1);
+    });
 
-  it("Should wait for table to unlock update", async function () {
-    await dataService.dataSource.manager.save(augTx0);
-    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+    it("Should wait for table to unlock update", async function () {
+      await dataService.dataSource.manager.save(augTx0);
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
 
-    interlacing
-      .update(16685757980, 7643800)
-      .then(() => {})
-      .catch((e) => getGlobalLogger().error("interlacing.update failed"));
-    const spy = sinon.spy(utils, "sleepms");
-    await interlacing.update(16685747980, 7633800);
-    expect(spy.calledWith(1)).to.be.true;
-    sinon.restore();
-  });
+      interlacing
+        .update(16685757980, 7643800)
+        .then(() => {})
+        .catch((e) => getGlobalLogger().error("interlacing.update failed"));
+      const spy = sinon.spy(utils, "sleepms");
+      await interlacing.update(16685747980, 7633800);
+      expect(spy.calledWith(1)).to.be.true;
+      sinon.restore();
+    });
 
-  it("Should wait for table to unlock resetAll", async function () {
-    await dataService.dataSource.manager.save(augTx0);
-    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
-    interlacing
-      .resetAll()
-      .then(() => {})
-      .catch((e) => getGlobalLogger().error("interlacing.update failed"));
-    const spy = sinon.spy(utils, "sleepms");
-    expect(spy.calledWith(1)).to.be.false;
-    await interlacing.resetAll();
-    expect(spy.calledWith(1)).to.be.true;
-  });
+    it("Should wait for table to unlock resetAll", async function () {
+      await dataService.dataSource.manager.save(augTx0);
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+      interlacing
+        .resetAll()
+        .then(() => {})
+        .catch((e) => getGlobalLogger().error("interlacing.update failed"));
+      const spy = sinon.spy(utils, "sleepms");
+      expect(spy.calledWith(1)).to.be.false;
+      await interlacing.resetAll();
+      expect(spy.calledWith(1)).to.be.true;
+    });
 
-  it("should not update", async () => {
-    await dataService.dataSource.manager.save(augTx0);
-    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
-    let res = await interlacing.update(10, 10);
-    expect(res).to.be.false;
-    // expect(interlacing.activeIndex).to.be.equal(0);
+    it("should not update", async () => {
+      await dataService.dataSource.manager.save(augTx0);
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+      let res = await interlacing.update(10, 10);
+      expect(res).to.be.false;
+      // expect(interlacing.activeIndex).to.be.equal(0);
+    });
   });
 });

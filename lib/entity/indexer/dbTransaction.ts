@@ -1,4 +1,4 @@
-import { Column, Entity, Index } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 import { BaseEntity } from "../base/BaseEntity";
 
 /**
@@ -20,6 +20,10 @@ export class DBTransactionBase extends BaseEntity {
   @Column() @Index() isNativePayment: boolean = false;
 
   @Column({ type: "varchar", length: 64 }) @Index() transactionType: string = "";
+}
+
+export interface IDBTransactionBase {
+  new (): DBTransactionBase;
 }
 
 @Entity({ name: "xrp_transactions0" })

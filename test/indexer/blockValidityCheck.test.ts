@@ -31,7 +31,7 @@ class MockXRPImplementation extends XRPImplementation {
 }
 
 class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
-    
+
     get previousBlockHash(): string {
         throw new Error("Method not implemented.");
     }
@@ -120,10 +120,19 @@ describe.skip("Block validity check before processing", () => {
         indexer.prepareTables();
 
         indexer.blockProcessorManager = new BlockProcessorManager(
-            indexer,
+            indexer.logger,
+            indexer.cachedClient,
+            indexer.indexerToClient,
+            indexer.interlace,
+            {
+                validateBlockBeforeProcess: indexer.chainConfig.validateBlockBeforeProcess,
+                validateBlockMaxRetry: indexer.chainConfig.validateBlockMaxRetry,
+                validateBlockWaitMs: indexer.chainConfig.validateBlockWaitMs,
+            },                
             indexer.blockCompleted.bind(indexer),
             indexer.blockAlreadyCompleted.bind(indexer)
         );
+
     });
 
     it(`Block processor manager for valid XRP block`, async function () {

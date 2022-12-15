@@ -63,10 +63,10 @@ export class AttestationRoundManager {
     await this.attestationConfigManager.initialize();
 
     this.dbServiceIndexer = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
-    await this.dbServiceIndexer.waitForDBConnection();
+    await this.dbServiceIndexer.connect();
 
     this.dbServiceAttester = new DatabaseService(this.logger, this.credentials.attesterDatabase, "attester");
-    await this.dbServiceAttester.waitForDBConnection();
+    await this.dbServiceAttester.connect();
 
     // update active round again since waitin for DB connection can take time
     this.activeEpochId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();

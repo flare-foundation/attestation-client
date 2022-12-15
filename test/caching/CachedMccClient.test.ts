@@ -6,7 +6,7 @@ import { sleepms } from "../../lib/utils/utils";
 import { SourceId } from "../../lib/verification/sources/sources";
 import { getTestFile, TERMINATION_TOKEN, testWithoutLoggingTracingAndApplicationTermination } from "../test-utils/test-utils";
 
-const CHAIN_ID = SourceId.BTC;
+const CHAIN_ID = SourceId.XRP;
 
 describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
    let mockMccClient: MockMccClient;
@@ -14,23 +14,23 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
       mockMccClient = new MockMccClient();
    });
 
-   it("Mcc Client Mock returns a transaction", async function () {
-      const randomTxId = mockMccClient.randomHash32();
-      const result = await mockMccClient.getTransaction(randomTxId);
-      expect(result.txid.length, "Wrong txId").to.equal(64);
-   });
+  it("Mcc Client Mock returns a transaction", async function () {
+    const randomTxId = mockMccClient.randomHash32();
+    const result = await mockMccClient.getTransaction(randomTxId);
+    expect(result.txid.length, "Wrong txId").to.equal(64);
+  });
 
-   it("Mcc Client Mock returns a block", async function () {
-      const randomBlockHash = mockMccClient.randomHash32(true);
-      let result = await mockMccClient.getBlock(randomBlockHash);
-      expect(result.blockHash.length).to.equal(64);
-      expect(result.blockHash).to.equal(randomBlockHash)
-      expect(result.number).to.be.greaterThan(0);
-      const randomNumber = mockMccClient.randomBlockNumber();
-      result = await mockMccClient.getBlock(randomNumber);
-      expect(result.number).to.equal(randomNumber);
-      expect(result.blockHash?.length).to.equal(64);
-   });
+  it("Mcc Client Mock returns a block", async function () {
+    const randomBlockHash = mockMccClient.randomHash32(true);
+    let result = await mockMccClient.getBlock(randomBlockHash);
+    expect(result.blockHash.length).to.equal(64);
+    expect(result.blockHash).to.equal(randomBlockHash);
+    expect(result.number).to.be.greaterThan(0);
+    const randomNumber = mockMccClient.randomBlockNumber();
+    result = await mockMccClient.getBlock(randomNumber);
+    expect(result.number).to.equal(randomNumber);
+    expect(result.blockHash?.length).to.equal(64);
+  });
 
    it("Correct client initialization", async function () {
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, undefined);
@@ -67,25 +67,24 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
       };
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, cachedMccClientOptions);
 
-      for (let i = 0; i < LIMIT; i++) {
-         const randomTxId = mockMccClient.randomHash32(true);
-         await cachedMccClient.getTransaction(randomTxId);
-         expect(cachedMccClient.cleanupCheckCounter).to.equal((i + 1) % BATCH_SIZE)
-      }
-      expect(cachedMccClient.transactionCleanupQueue.size).to.equal(LIMIT);
-      for (let i = 0; i < BATCH_SIZE; i++) {
-         const randomTxId = mockMccClient.randomHash32(true);
-         await cachedMccClient.getTransaction(randomTxId);
-      }
-      expect(cachedMccClient.cleanupCheckCounter).to.equal(0);
-      const first = cachedMccClient.transactionCleanupQueue.first;
-      // allow for async cleanup
-      expect(cachedMccClient.transactionCache.get(first)).not.to.be.undefined;
-      await (sleepms(10));
-      expect(cachedMccClient.transactionCleanupQueue.size).to.equal(LIMIT);
-      expect(cachedMccClient.transactionCache.get(first)).to.be.undefined;
-
-   });
+    for (let i = 0; i < LIMIT; i++) {
+      const randomTxId = mockMccClient.randomHash32(true);
+      await cachedMccClient.getTransaction(randomTxId);
+      expect(cachedMccClient.cleanupCheckCounter).to.equal((i + 1) % BATCH_SIZE);
+    }
+    expect(cachedMccClient.transactionCleanupQueue.size).to.equal(LIMIT);
+    for (let i = 0; i < BATCH_SIZE; i++) {
+      const randomTxId = mockMccClient.randomHash32(true);
+      await cachedMccClient.getTransaction(randomTxId);
+    }
+    expect(cachedMccClient.cleanupCheckCounter).to.equal(0);
+    const first = cachedMccClient.transactionCleanupQueue.first;
+    // allow for async cleanup
+    expect(cachedMccClient.transactionCache.get(first)).not.to.be.undefined;
+    await sleepms(10);
+    expect(cachedMccClient.transactionCleanupQueue.size).to.equal(LIMIT);
+    expect(cachedMccClient.transactionCache.get(first)).to.be.undefined;
+  });
 
    it("Block is cached", async function () {
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
@@ -118,24 +117,24 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
       };
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, cachedMccClientOptions);
 
-      for (let i = 0; i < LIMIT; i++) {
-         const randomBlockHash = mockMccClient.randomHash32(true);
-         await cachedMccClient.getBlock(randomBlockHash);
-         expect(cachedMccClient.cleanupCheckCounter).to.equal((i + 1) % BATCH_SIZE)
-      }
-      expect(cachedMccClient.blockCleanupQueue.size).to.equal(LIMIT);
-      for (let i = 0; i < BATCH_SIZE; i++) {
-         const randomBlockHash = mockMccClient.randomHash32(true);
-         await cachedMccClient.getBlock(randomBlockHash);
-      }
-      expect(cachedMccClient.cleanupCheckCounter).to.equal(0);
-      const first = cachedMccClient.blockCleanupQueue.first;
-      // allow for async cleanup
-      expect(cachedMccClient.blockCache.get(first)).not.to.be.undefined;
-      await (sleepms(10));
-      expect(cachedMccClient.blockCleanupQueue.size).to.equal(LIMIT);
-      expect(cachedMccClient.blockCache.get(first)).to.be.undefined;
-   });
+    for (let i = 0; i < LIMIT; i++) {
+      const randomBlockHash = mockMccClient.randomHash32(true);
+      await cachedMccClient.getBlock(randomBlockHash);
+      expect(cachedMccClient.cleanupCheckCounter).to.equal((i + 1) % BATCH_SIZE);
+    }
+    expect(cachedMccClient.blockCleanupQueue.size).to.equal(LIMIT);
+    for (let i = 0; i < BATCH_SIZE; i++) {
+      const randomBlockHash = mockMccClient.randomHash32(true);
+      await cachedMccClient.getBlock(randomBlockHash);
+    }
+    expect(cachedMccClient.cleanupCheckCounter).to.equal(0);
+    const first = cachedMccClient.blockCleanupQueue.first;
+    // allow for async cleanup
+    expect(cachedMccClient.blockCache.get(first)).not.to.be.undefined;
+    await sleepms(10);
+    expect(cachedMccClient.blockCleanupQueue.size).to.equal(LIMIT);
+    expect(cachedMccClient.blockCache.get(first)).to.be.undefined;
+  });
 
    // Exits application, so it is hard to test
    it.skip("Should terminate application after several retries", async function () {

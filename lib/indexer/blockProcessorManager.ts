@@ -1,19 +1,32 @@
 import { IBlock, Managed, sleepMs } from "@flarenetwork/mcc";
+import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
 import { AttLogger } from "../utils/logger";
 import { failureCallback } from "../utils/PromiseTimeout";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
-import { Indexer } from "./indexer";
 import { criticalAsync } from "./indexer-utils";
+import { IndexerToClient } from "./indexerToClient";
+import { Interlacing } from "./interlacing";
+
+export interface IBlockProcessorManagerSettings {
+  validateBlockBeforeProcess: boolean;
+  validateBlockMaxRetry: number;
+  validateBlockWaitMs: number;
+}
+
 /**
  * Manages a list of block processors, each processing a block (reading block metadata and transaction data).
- * Management includes starting, pausing, resuming, processing data on completion and switching processing of 
+ * Management includes starting, pausing, resuming, processing data on completion and switching processing of
  * active block according to priority.
  * @category Indexer
  */
 @Managed()
 export class BlockProcessorManager {
-  indexer: Indexer;
+  indexerToClient: IndexerToClient;
+  interlace: Interlacing;
+  cachedClient: CachedMccClient;
+
+  settings: IBlockProcessorManagerSettings;
 
   logger: AttLogger;
 
@@ -25,22 +38,33 @@ export class BlockProcessorManager {
   // Called if before actual block processing we find out that the block processing is already completed.
   alreadyCompleteCallback: any;
 
-  // maps block number to block. 
+  // maps block number to block.
   // If block is hashed this indicates that the block is being processed or is in processing
   blockNumbersInProcessing = new Set<number>();
 
-  constructor(indexer: Indexer, completeCallback: any, alreadyCompleteCallback: any) {
-    this.indexer = indexer;
-    this.logger = indexer.logger;
+  constructor(
+    logger: AttLogger,
+    cachedClient: CachedMccClient,
+    indexerToClient: IndexerToClient,
+    interlace: Interlacing,
+    settings: IBlockProcessorManagerSettings,
+    completeCallback: any,
+    alreadyCompleteCallback: any
+  ) {
+    this.logger = logger;
+    this.indexerToClient = indexerToClient;
+    this.cachedClient = cachedClient;
+    this.interlace = interlace;
     this.completeCallback = completeCallback;
     this.alreadyCompleteCallback = alreadyCompleteCallback;
+    this.settings = settings;
   }
 
   /**
    * Triggers processing of block with given block number. Used while syncing.
    * Several block processors will run in parallel while syncing.
-   * @param blockNumber 
-   * @returns 
+   * @param blockNumber
+   * @returns
    * Assumptions:
    * - blockNumber is valid
    */
@@ -48,27 +72,26 @@ export class BlockProcessorManager {
     if (this.blockNumbersInProcessing.has(blockNumber)) {
       return;
     }
-    const block = await this.indexer.getBlockFromClient("BlockProcessorManager.processSyncBlockNumber", blockNumber);
+    const block = await this.indexerToClient.getBlockFromClient("BlockProcessorManager.processSyncBlockNumber", blockNumber);
     this.blockNumbersInProcessing.add(blockNumber);
     await this.processSync(block);
   }
 
   /**
    * Triggers block processing for the block (if not started yet) while real time processing (after syncing).
-   * The function manages that only one block processor can be active in order to effectively manage 
-   * rate limited request queue on the client. All others are paused. 
+   * The function manages that only one block processor can be active in order to effectively manage
+   * rate limited request queue on the client. All others are paused.
    * This enable fast switching between processors according to priorities.
    * Each time the function is called the block processor for the `block` becomes active.
    * If the processor is completed, the function just calls back and exits.
    * @param block the block for which processor should be activated
-   * @returns 
+   * @returns
    * Assumptions:
    * - block is on height > N
    */
   async process(block: IBlock) {
-
     // check if processor for this block is already completed
-    if (this.blockProcessors.find(processor => processor.block.stdBlockHash === block.stdBlockHash && processor.isCompleted)) {
+    if (this.blockProcessors.find((processor) => processor.block.stdBlockHash === block.stdBlockHash && processor.isCompleted)) {
       this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
       // eslint-disable-next-line
       criticalAsync(`process -> BlockProcessorManager(${block.number})::alreadyCompleteCallback exception:`, () => this.alreadyCompleteCallback(block));
@@ -100,7 +123,7 @@ export class BlockProcessorManager {
     this.logger.info(`^w^Kprocess block ${validatedBlock.number}`);
 
     // newly created block processor starts automatically
-    const processor = new (BlockProcessor(this.indexer.cachedClient.chainType))(this.indexer);
+    const processor = new (BlockProcessor(this.cachedClient.chainType))(this.cachedClient);
     this.blockProcessors.push(processor);
 
     // terminate app on exception
@@ -111,10 +134,10 @@ export class BlockProcessorManager {
   /**
    * Triggers block processing for the block (if not started yet) while syncing.
    * @param block block to process
-   * @returns 
+   * @returns
    */
   async processSync(block: IBlock) {
-    if (this.blockProcessors.find(processor => processor.block.stdBlockHash === block.stdBlockHash)) {
+    if (this.blockProcessors.find((processor) => processor.block.stdBlockHash === block.stdBlockHash)) {
       return;
     }
 
@@ -122,7 +145,7 @@ export class BlockProcessorManager {
 
     this.logger.info(`^w^Ksync process block ${validatedBlock.number}`);
 
-    const processor = new (BlockProcessor(this.indexer.cachedClient.chainType))(this.indexer);
+    const processor = new (BlockProcessor(this.cachedClient.chainType))(this.cachedClient);
     this.blockProcessors.push(processor);
 
     // terminate app on exception
@@ -131,14 +154,14 @@ export class BlockProcessorManager {
   }
 
   /**
-   * Waits until the block is valid. While waiting block can change. The valid confirmed 
-   * block on the same height is returned. 
+   * Waits until the block is valid. While waiting block can change. The valid confirmed
+   * block on the same height is returned.
    * NOTE: at the moment it is used with XRP only.
-   * @param block 
+   * @param block
    * @returns valid (confirmed) block on the same height as `block`
    */
   private async waitUntilBlockIsValid(block: IBlock): Promise<IBlock> {
-    if (!this.indexer.chainConfig.validateBlockBeforeProcess) {
+    if (!this.settings.validateBlockBeforeProcess) {
       return block;
     }
 
@@ -149,14 +172,14 @@ export class BlockProcessorManager {
         this.logger.debug2(`waiting on block ${block.number} to be valid`);
       }
 
-      if (retryCount > this.indexer.chainConfig.validateBlockMaxRetry) {
+      if (retryCount > this.settings.validateBlockMaxRetry) {
         failureCallback(`invalid block: block ${block.number} did not become valid in ${retryCount} retires`);
       }
 
-      await sleepMs(this.indexer.chainConfig.validateBlockWaitMs);
+      await sleepMs(this.settings.validateBlockWaitMs);
 
       // get block again (NOTE: on reading by block.number blocks are not cached)
-      currentBlock = await this.indexer.cachedClient.client.getBlock(block.number);
+      currentBlock = await this.cachedClient.client.getBlock(block.number);
     }
 
     if (retryCount > 0) {

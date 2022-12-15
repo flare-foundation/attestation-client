@@ -69,12 +69,15 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
     //NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
 
+    let dbService = (new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"));
+    await dbService.connect()
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,
       numberOfConfirmations: () => {
         return indexerChainConfiguration.numberOfConfirmations;
       },
-      entityManager: (new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer")).manager,
+      // TODO: connect the database
+      entityManager: dbService.manager,
       maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
       // todo: return epochStartTime - query window length, add query window length into DAC
       windowStartTime: (roundId: number) => {
@@ -86,7 +89,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       },
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
-    await indexedQueryManager.dbService.waitForDBConnection();
     randomGenerators = await prepareRandomGenerators(indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD);
   });
 

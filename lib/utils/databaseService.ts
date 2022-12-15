@@ -1,7 +1,7 @@
 import { optional } from "@flarenetwork/mcc";
-import { Connection, createConnection } from "typeorm";
-import { AttLogger, logException } from "./logger";
-import { sleepms } from "./utils";
+import { DataSource, DataSourceOptions } from "typeorm";
+import { MysqlConnectionOptions } from "typeorm/driver/mysql/MysqlConnectionOptions";
+import { AttLogger } from "./logger";
 
 /**
  *Class describing with data to establish connection to database
@@ -13,6 +13,11 @@ export class DatabaseConnectOptions {
   database = "database";
   username = "username";
   password = "password";
+  @optional() synchronize = true;
+  @optional() logging = false;
+  @optional() entities = [`lib/entity/**/*.ts`];
+  @optional() migrations = [];
+  @optional() subscribers = [];
 }
 
 /**
@@ -21,14 +26,13 @@ export class DatabaseConnectOptions {
 export class DatabaseService {
   private logger!: AttLogger;
 
-  _connection!: Connection;
-
   private databaseName: string;
   private connectionName: string;
+  public dataSource: DataSource;
 
   private options: DatabaseConnectOptions;
 
-  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "") {
+  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "", isTestDB: boolean = false) {
     this.logger = logger;
 
     this.databaseName = databaseName;
@@ -36,128 +40,59 @@ export class DatabaseService {
 
     this.options = options;
 
-    // eslint-disable-next-line
-    this.connect();
-  }
-
-  /**
-   * Connects to the data base prescribed in DataConnectOptions
-   */
-  private async connect() {
-    // Typeorm/ES6/Typescript issue with importing modules
     let path = this.databaseName;
     if (path !== "") path += "/";
+
     const entities = process.env.NODE_ENV === "development" ? `lib/entity/${path}**/*.ts` : `dist/lib/entity/${path}**/*.js`;
 
     const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
 
-    this.logger.info(
-      `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
-    );
-    this.logger.debug2(`entity: ${entities}`);
-
-    let type:
-      | "mysql"
-      | "mariadb"
-      | "postgres"
-      | "cockroachdb"
-      | "sqlite"
-      | "mssql"
-      | "sap"
-      | "oracle"
-      | "cordova"
-      | "nativescript"
-      | "react-native"
-      | "sqljs"
-      | "mongodb"
-      | "aurora-data-api"
-      | "aurora-data-api-pg"
-      | "expo"
-      | "better-sqlite3"
-      | "capacitor";
-
-    type = "mysql";
-
-    switch (this.options.type) {
-      case "mysql":
-        type = "mysql";
-        break;
-      case "postgres":
-        type = "postgres";
-        break;
-      case "sqlite":
-        type = "sqlite";
-        break;
-    }
-
-    let options;
-
-    if (type === "sqlite") {
-      options = {
+    if (isTestDB) {
+      let connectOptions = {
         name: this.connectionName,
-        type: type,
-        database: this.options.database!,
-        entities: [entities],
-        migrations: [migrations],
+        type: "better-sqlite3",
+        database: ":memory:",
+        dropSchema: true,
+        entities: this.options.entities ?? [entities],
         synchronize: true,
+        migrationsRun: false,
         logging: false,
-      };
+      } as DataSourceOptions;
+      this.dataSource = new DataSource(connectOptions);
+      this.logger.debug2(`entity: ${entities}`);
     } else {
-      options = {
+      let connectOptions = {
         name: this.connectionName,
-        type: type,
+        type: "mysql",
         host: this.options.host,
         port: this.options.port,
         username: this.options.username,
         password: this.options.password,
         database: this.options.database,
-        entities: [entities],
-        migrations: [migrations],
-        synchronize: true,
-        migrationsRun: false,
-        logging: false,
-      };
+        entities: this.options.entities ?? [entities],
+        migrations: this.options.migrations ?? [migrations],
+        synchronize: this.options.synchronize ?? true,
+        logging: this.options.logging ?? false,
+      } as MysqlConnectionOptions;
+
+      this.dataSource = new DataSource(connectOptions);
+      this.logger.debug2(`entity: ${entities}`);
     }
-
-    createConnection(options)
-      .then(async (conn) => {
-        this.logger.info(`^Gconnected to database ^g^K${this.databaseName}^^`);
-        this._connection = conn;
-        return;
-      })
-      .catch(async (e) => {
-        logException(e, `connect`);
-
-        await sleepms(3000);
-
-        // eslint-disable-next-line
-        this.connect();
-      });
   }
 
-  public get connection() {
-    return this._connection;
+  public async connect() {
+    this.logger.info(
+      `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
+    );
+    if (!this.dataSource.isInitialized) {
+      // TODO: retry logic
+
+      await this.dataSource.initialize();
+    }
   }
 
   public get manager() {
-    if (this._connection) return this._connection.manager;
+    if (this.dataSource.manager) return this.dataSource.manager;
     throw Error(`no database connection ${this.databaseName}`);
-  }
-
-  async waitForDBConnection() {
-    while (true) {
-      try {
-        if (!this.connection) {
-          this.logger.debug(`waiting for database connection ^b^K${this.databaseName}^^`);
-          await sleepms(1000);
-          continue;
-        }
-      } catch (error) {
-        logException(error, `waitForDBConnection`);
-        await sleepms(1000);
-        continue;
-      }
-      break;
-    }
   }
 }

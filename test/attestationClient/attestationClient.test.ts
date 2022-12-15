@@ -57,7 +57,7 @@ class MockAttesterWeb3 extends AttesterWeb3 {
   }
 }
 
-describe("Attestation Client", () => {
+describe.skip("Attestation Client", () => {
   let attestationRoundManager: AttestationRoundManager;
 
   before(async function () {
@@ -88,7 +88,7 @@ describe("Attestation Client", () => {
   ////////////////////////////////
   // Unit tests
   ////////////////////////////////
-  it.only(`Create attestation sourceId and type from event`, async function () {
+  it(`Create attestation sourceId and type from event`, async function () {
     const mockEvent = {
       blockNumber: 1,
       logIndex: 2,

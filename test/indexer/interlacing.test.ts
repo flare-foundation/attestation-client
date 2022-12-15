@@ -61,8 +61,6 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
     sinon.restore();
   });
 
-  // after(async ())
-
   it("should get active index for empty tables", async () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(0);

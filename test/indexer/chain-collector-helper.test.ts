@@ -37,9 +37,7 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 
 describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
-  before(async function () {
-    initializeTestGlobalLogger();
-  });
+  initializeTestGlobalLogger();
 
   describe("augmentBlock", () => {
     it("Should create entity for a block", async () => {
@@ -77,7 +75,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     });
   });
 
-  describe("readTransaction", () => {
+  describe.skip("readTransaction", () => {
     const BtcMccConnection = {
       url: process.env.BTC_URL,
       username: process.env.BTC_USERNAME,
@@ -121,9 +119,6 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
 
   describe("BlockProcessors", () => {
     const databaseConnectOptions = new DatabaseConnectOptions();
-    databaseConnectOptions.database = process.env.DATABASE_NAME1;
-    databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-    databaseConnectOptions.password = process.env.DATBASE_PASS;
     const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
     before(async function () {
@@ -140,7 +135,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       expect(BlockProcessor(-1)).to.be.null;
     });
 
-    describe("BTC", function () {
+    describe.skip("BTC", function () {
       const BtcMccConnection = {
         url: process.env.BTC_URL,
         username: process.env.BTC_USERNAME,
@@ -181,7 +176,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       });
     });
 
-    describe("DOGE", function () {
+    describe.skip("DOGE", function () {
       const DOGEMccConnection = {
         url: process.env.DOGE_URL,
         username: process.env.DOGE_USERNAME,
@@ -229,8 +224,8 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     describe("ALGO", function () {
       const algoCreateConfig = {
         algod: {
-          url: process.env.ALGO_ALGOD_URL || "",
-          token: process.env.ALGO_ALGOD_TOKEN || "",
+          url: "https://node.algoexplorerapi.io/",
+          token: "",
         },
       } as AlgoMccCreate;
 
@@ -275,9 +270,10 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
 
     describe("XRP", function () {
       const XRPMccConnection = {
-        url: process.env.XRP_URL,
-        username: process.env.XRP_USERNAME || "",
-        password: process.env.XRP_PASSWORD || "",
+        url: "https://xrplcluster.com",
+
+        username: "",
+        password: "",
       } as XrpMccCreate;
 
       let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {

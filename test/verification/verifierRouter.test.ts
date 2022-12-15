@@ -93,7 +93,7 @@ function prepareAttestation(request: ARType, startTime: number): Attestation {
   data.type = request.attestationType;
   data.sourceId = request.sourceId;
   data.request = encodeRequest(request);
-  const attestation = new Attestation(undefined, data, undefined);
+  const attestation = new Attestation(undefined, data);
   attestation.windowStartTime = startTime + 1;
   attestation.UBPCutoffTime = startTime;
   return attestation;

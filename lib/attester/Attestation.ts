@@ -2,7 +2,6 @@ import { Managed } from "@flarenetwork/mcc";
 import { Verification } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
-import { EventValidateAttestation } from "./SourceHandler";
 
 export enum AttestationStatus {
   queued,
@@ -42,18 +41,14 @@ export class Attestation {
   reverification = false;
   exception: any;
 
-  onProcessed: EventProcessed | undefined = undefined;
-  onValidateAttestation: EventValidateAttestation;
-
   // Cut-off times set by attestation client
   // Set when passed to the relevant ChainNode
   windowStartTime: number = 0;
   UBPCutoffTime: number = 0;
 
-  constructor(round: AttestationRound, data: AttestationData, onValidateAttestation: EventValidateAttestation) {
+  constructor(round: AttestationRound, data: AttestationData) {
     this.round = round;
     this.data = data;
-    this.onValidateAttestation = onValidateAttestation;
   }
 
   /**
@@ -67,7 +62,7 @@ export class Attestation {
   }
 
   public get sourceHandler() {
-    return this.round?.getSourceHandler(this.data, this.onValidateAttestation);
+    return this.round?.getSourceHandler(this.data);
   }
 
   ///////////////////////////////////////////////////////

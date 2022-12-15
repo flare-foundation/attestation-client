@@ -7,12 +7,12 @@ import { encodeRequest } from "../../verification/generated/attestation-request-
 import { ARType } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
-import { fetchRandomConfirmedBlocks, fetchRandomTransactions, RandomDBIterator } from "./random-query";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 import { prepareRandomizedRequestPayment } from "./random-ar-00001-payment";
 import { prepareRandomizedRequestBalanceDecreasingTransaction } from "./random-ar-00002-balance-decreasing-transaction";
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "./random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "./random-ar-00004-referenced-payment-nonexistence";
+import { fetchRandomConfirmedBlocks, fetchRandomTransactions, RandomDBIterator } from "./random-query";
 
 /////////////////////////////////////////////////////////////////
 // Helper functions for generating random attestation requests
@@ -50,7 +50,7 @@ export async function getRandomAttestationRequest(
         indexedQueryManager,
         txOrBlock as DBTransactionBase,
         sourceId,
-        roundId        
+        roundId
       );
     default:
       throw new Error("Invalid attestation type");
@@ -62,7 +62,7 @@ export function createTestAttestationFromRequest(request: ARType, roundId: numbe
   data.type = request.attestationType;
   data.sourceId = request.sourceId;
   data.request = encodeRequest(request);
-  const attestation = new Attestation(undefined, data, undefined);
+  const attestation = new Attestation(undefined, data);
   attestation.setTestRoundId(roundId);
   return attestation;
 }
@@ -125,7 +125,7 @@ export function prepareGenerator(
       );
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      ((_: never): void => { })(type);
   }
 }
 

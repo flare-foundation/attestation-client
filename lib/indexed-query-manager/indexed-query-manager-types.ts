@@ -6,8 +6,7 @@ import { DatabaseService } from "../utils/databaseService";
 
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
-  dbService?: DatabaseService;
-  entityManager?: EntityManager;
+  entityManager: EntityManager;
   numberOfConfirmations: () => number;
   maxValidIndexerDelaySec: number;
   // return windows start time from current epochId

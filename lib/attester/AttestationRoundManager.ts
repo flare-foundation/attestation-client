@@ -211,13 +211,7 @@ export class AttestationRoundManager {
     const activeRound = this.getRoundOrCreateIt(epochId);
 
     // create, check and add attestation
-    const attestation = await this.createAttestation(activeRound, attestationData);
-
-    this.augmentCutoffTimes(attestation);
-
-    if (attestation === undefined) {
-      return;
-    }
+    const attestation = await this.createAttestation(activeRound, attestationData);    
 
     activeRound.addAttestation(attestation);
 
@@ -239,12 +233,14 @@ export class AttestationRoundManager {
    * @param data 
    * @returns 
    */
-  async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
+  async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation> {
     // create attestation depending on attestation type
-    return new Attestation(round, data, (attestation: Attestation) => {
+    const attestation = new Attestation(round, data, (attestation: Attestation) => {
       // chain node validation
       AttestationRoundManager.chainManager.validateAttestation(data.sourceId, attestation);
     });
+    this.augmentCutoffTimes(attestation);
+    return attestation;
   }
 
   /**

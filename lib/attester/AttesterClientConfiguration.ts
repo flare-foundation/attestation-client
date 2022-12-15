@@ -39,6 +39,8 @@ export class AttesterWebOptions {
 
 export class AttesterCredentials implements IReflection<AttesterCredentials> {
   public web = new AttesterWebOptions();
+  // public attesterDatabase = new DatabaseConnectOptions();
+  // public indexerDatabase = new DatabaseConnectOptions();
   public attesterDatabase = new DatabaseConnectOptions();
   public indexerDatabase = new DatabaseConnectOptions();
 

@@ -89,6 +89,9 @@ routes
 
 # temp
 temp
+.env
+test/mockData/writeMock.ts
+test/mockData/trySinon.ts
 
 # tests
 test/utils/test-data/config/credentials.json.secure

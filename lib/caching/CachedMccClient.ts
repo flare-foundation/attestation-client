@@ -3,18 +3,26 @@ import { criticalAsync } from "../indexer/indexer-utils";
 import { retry } from "../utils/PromiseTimeout";
 import { Queue } from "../utils/Queue";
 
+/**
+ * Interface for setting the capacities for CachedMccClinet:
+ *
+ * transactionCacheSize+cleanupChunkSize is the maximal number of cached transactions
+ * blockCacheSize+cleanupChunkSize is the maximal number of cached blocks
+ *
+ * After each cleanupChunkSize new items has been cached cleanup is initalized and transactionCached and blockCached
+ * are reduced to size at most transactionCacheSize, blockCacheSize, respectively.
+ */
 export interface CachedMccClientOptionsFull {
   transactionCacheSize: number;
   blockCacheSize: number;
   cleanupChunkSize: number;
-  // maximum number of requests that are either in processing or in queue
-  activeLimit: number;
+  activeLimit: number; // maximum number of requests that are either in processing or in queue
   clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
   forcedClient?: ReadRpcInterface;
 }
 
 export interface CachedMccClientOptionsTest {
-  forcedClient: ReadRpcInterface
+  forcedClient: ReadRpcInterface;
 }
 
 export type CachedMccClientOptions = CachedMccClientOptionsFull | CachedMccClientOptionsTest;
@@ -93,7 +101,7 @@ export class CachedMccClient {
   }
 
   public async getTransaction(txId: string) {
-    const txPromise = this.transactionCache.get(txId)
+    const txPromise = this.transactionCache.get(txId);
     if (txPromise) {
       return txPromise;
     }
@@ -104,7 +112,7 @@ export class CachedMccClient {
       retry(`CachedMccClient.getTransaction`, async () => {
         return await this.client.getTransaction(txId);
       })
-    )
+    );
 
     this.transactionCache.set(txId, newPromise as Promise<ITransaction>);
     this.transactionCleanupQueue.push(txId);
@@ -119,7 +127,7 @@ export class CachedMccClient {
   /**
    * @dev getBlock is caching by hashes only! by blockNumber queries are always executed
    * @param blockHashOrNumber block hash or block number
-   * @returns 
+   * @returns
    */
   public async getBlock(blockHashOrNumber: string | number): Promise<IBlock | null> {
     const blockPromise = this.blockCache.get(blockHashOrNumber);
@@ -133,7 +141,7 @@ export class CachedMccClient {
       retry(`CachedMccClient.getBlock`, async () => {
         return await this.client.getBlock(blockHashOrNumber);
       })
-    )
+    );
 
     if (typeof blockHashOrNumber === "number") {
       const block = await newPromise;
@@ -156,7 +164,8 @@ export class CachedMccClient {
 
   private checkAndCleanup() {
     const fullSettings = this.settings as CachedMccClientOptionsFull;
-    if(!fullSettings.cleanupChunkSize) {
+    if (!fullSettings.cleanupChunkSize) {
+      //???If this is not set no cleanup is attempted???
       return;
     }
     this.cleanupCheckCounter++;
@@ -168,7 +177,8 @@ export class CachedMccClient {
 
   private cleanup() {
     const fullSettings = this.settings as CachedMccClientOptionsFull;
-    if(!fullSettings.blockCacheSize) {
+    if (!fullSettings.blockCacheSize) {
+      //???Why is this here???
       return;
     }
     if (this.blockCleanupQueue.size >= fullSettings.blockCacheSize + fullSettings.cleanupChunkSize) {

@@ -47,14 +47,14 @@ export class AttesterWeb3 {
    *  - reveal for `roundId = bufferNumber - 2`
    * @param action - label for recording action in logs
    * @param bufferNumber - buffer number in which we are submitting attestation
-   * 
+   *
    * @param commitedMerkleRoot - committed Merkle root (used just for logging)
    * @param commitedMaskedMerkleRoot - committed masked Merkle root
    * @param commitedRandom - random number of commited round (used just for logging)
-   * 
+   *
    * @param revealedMerkleRoot - revealed merkle root
    * @param revealedRandom - revealed random
-   * 
+   *
    * @param verbose - whether loggin is verbose (default true)
    * @returns
    */
@@ -75,7 +75,13 @@ export class AttesterWeb3 {
     this.check(commitedMaskedMerkleRoot);
     this.check(revealedRandom);
 
-    const fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(bufferNumber, commitedMaskedMerkleRoot, revealedMerkleRoot, revealedRandom);
+    const fnToEncode = (this.stateConnector as StateConnector).methods.submitAttestation(
+      bufferNumber,
+      commitedMaskedMerkleRoot,
+      revealedMerkleRoot,
+      revealedRandom,
+      ""
+    );
 
     if (verbose) {
       this.logger.info(`action .................... : ${action}`);
@@ -88,15 +94,14 @@ export class AttesterWeb3 {
     }
 
     //if (process.env.NODE_ENV === "production") {
-    if( true ) {
-
+    if (true) {
       const epochEndTime = AttestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
       const extReceipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
 
       if (extReceipt.receipt) {
-        await AttestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1 , extReceipt.nonce, extReceipt.receipt.transactionHash);
-        await AttestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2 , extReceipt.nonce, extReceipt.receipt.transactionHash);
+        await AttestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
+        await AttestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
       }
 
       return extReceipt.receipt;

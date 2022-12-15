@@ -23,7 +23,7 @@ export class AttesterAlert extends AlertBase {
   }
 
   async initialize() {
-    await this.dbService.waitForDBConnection();
+    await this.dbService.connect();
   }
 
   async perf() {
@@ -36,8 +36,8 @@ export class AttesterAlert extends AlertBase {
     res.type = `attestation client`;
     res.name = this.name;
 
-    //const dbRes = await this.dbService.connection.getRepository(DBVotingRoundResult).find({ order: { roundId: 'DESC' }, take: 1 });
-    const dbRes = await this.dbService.connection.getRepository(DBRoundResult).find({ order: { roundId: "DESC" }, take: 1 });
+    //const dbRes = await this.dbService.manager.getRepository(DBVotingRoundResult).find({ order: { roundId: 'DESC' }, take: 1 });
+    const dbRes = await this.dbService.manager.getRepository(DBRoundResult).find({ order: { roundId: "DESC" }, take: 1 });
 
     let transactions = 0;
     let validTransactions = 0;

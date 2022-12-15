@@ -30,7 +30,10 @@ export class DBBlockBase {
   @Column({ nullable: true })
   @Index()
   previousBlockHash: string;
+}
 
+export interface IDBBlockBase {
+  new (): DBBlockBase;
 }
 
 @Entity({ name: "btc_block" })

@@ -62,10 +62,10 @@ export class AttestationRoundManager {
     await AttestationRoundManager.attestationConfigManager.initialize();
 
     AttestationRoundManager.dbServiceIndexer = new DatabaseService(this.logger, AttestationRoundManager.credentials.indexerDatabase, "indexer");
-    await AttestationRoundManager.dbServiceIndexer.waitForDBConnection();
+    await AttestationRoundManager.dbServiceIndexer.connect();
 
     AttestationRoundManager.dbServiceAttester = new DatabaseService(this.logger, AttestationRoundManager.credentials.attesterDatabase, "attester");
-    await AttestationRoundManager.dbServiceAttester.waitForDBConnection();
+    await AttestationRoundManager.dbServiceAttester.connect();
 
     // update active round again since waitin for DB connection can take time
     AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();

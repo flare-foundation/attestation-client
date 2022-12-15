@@ -50,14 +50,14 @@ export class AttesterWeb3 {
    *  - reveal for `roundId = bufferNumber - 2`
    * @param action - label for recording action in logs
    * @param bufferNumber - buffer number in which we are submitting attestation
-   * 
+   *
    * @param commitedMerkleRoot - committed Merkle root (used just for logging)
    * @param commitedMaskedMerkleRoot - committed masked Merkle root
    * @param commitedRandom - random number of commited round (used just for logging)
-   * 
+   *
    * @param revealedMerkleRoot - revealed merkle root
    * @param revealedRandom - revealed random
-   * 
+   *
    * @param verbose - whether loggin is verbose (default true)
    * @returns
    */

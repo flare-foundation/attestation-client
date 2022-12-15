@@ -1,9 +1,10 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../entity/indexer/dbBlock";
+import { DBBlockALGO, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP, IDBBlockBase } from "../entity/indexer/dbBlock";
+import { DBState } from "../entity/indexer/dbState";
 import {
+  IDBTransactionBase,
   DBTransactionALGO0,
   DBTransactionALGO1,
-  DBTransactionBase,
   DBTransactionBTC0,
   DBTransactionBTC1,
   DBTransactionDOGE0,
@@ -15,9 +16,15 @@ import {
 } from "../entity/indexer/dbTransaction";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { getRetryFailureCallback } from "../utils/PromiseTimeout";
+import { getUnixEpochTimestamp } from "../utils/utils";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
+
+export interface IndexerTablesScheme {
+  transactionTable: IDBTransactionBase[];
+  blockTable: IDBBlockBase
+}
 
 /**
  * Returns a pair of entity tables for transactions used in interlacing tables.
@@ -25,7 +32,7 @@ export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
  * @param type - chain type
  * @category Indexer
  */
-export function prepareIndexerTables(type: ChainType): { transactionTable: DBTransactionBase[]; blockTable: DBBlockBase } {
+export function prepareIndexerTables(type: ChainType): IndexerTablesScheme {
   const transactionTable = [];
   let blockTable;
   switch (type) {
@@ -58,7 +65,7 @@ export function prepareIndexerTables(type: ChainType): { transactionTable: DBTra
       throw new Error("Invalid chain type");
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      ((_: never): void => { })(type);
   }
   return {
     transactionTable,
@@ -86,11 +93,70 @@ export async function criticalAsync(label: string, funct: (...args: any[]) => Pr
     logException(error, label);
 
     const onFailure = getRetryFailureCallback();
+    console.log(onFailure);
     if (!onFailure) {
-      getGlobalLogger().error2(`application exit`);
+      const logger = getGlobalLogger();
+      if (logger) logger.error2(`application exit`);
       process.exit(2);
     } else {
       onFailure(label);
     }
   }
+}
+
+/**
+ * Constructs dbState entity for key-value pair
+ * @param name name associated to key
+ * @param chainName
+ * @param value (number)
+ * @returns
+ */
+export function getStateEntry(name: string, chainName: string, value: number): DBState {
+  const state = new DBState();
+
+  state.name = prefixChainNameTo(name, chainName);
+  state.valueNumber = value;
+  state.timestamp = getUnixEpochTimestamp();
+
+  return state;
+}
+
+/**
+ * Construct dbState entity for key-values entry, that contains string, number and comment values.
+ * @param name
+ * @param chainName
+ * @param valueString
+ * @param valueNum
+ * @param comment
+ * @returns
+ */
+export function getStateEntryString(name: string, chainName: string, valueString: string, valueNum: number, comment = ""): DBState {
+  const state = new DBState();
+
+  state.name = prefixChainNameTo(name, chainName);
+  state.valueString = valueString;
+  state.valueNumber = valueNum;
+  state.timestamp = getUnixEpochTimestamp();
+  state.comment = comment;
+
+  return state;
+}
+
+/**
+ * Prefixes chain name and undercore to the given name
+ * @param name
+ * @param chainName
+ * @returns
+ */
+function prefixChainNameTo(name: string, chainName: string) {
+  return chainName.toLowerCase() + "_" + name;
+}
+
+/**
+ * Returns entry key for N in the database.
+ * @param chainName
+ * @returns
+ */
+export function getChainN(chainName: string) {
+  return prefixChainNameTo("N", chainName);
 }

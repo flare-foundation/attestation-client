@@ -62,13 +62,15 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       rateLimitOptions: chainIndexerConfig.rateLimitOptions,
     });
 
+    const dbService = new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer");
+    await dbService.connect();
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,
       numberOfConfirmations: () => {
         return chainIndexerConfig.numberOfConfirmations;
       },
       maxValidIndexerDelaySec: 10,
-      entityManager: (new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer")).manager,
+      entityManager: dbService.manager,
       windowStartTime: (roundId: number) => {
         const queryWindowInSec = 86400;
         return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - queryWindowInSec;
@@ -81,7 +83,6 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
-    await indexedQueryManager.dbService.waitForDBConnection();
   });
 
   it("Should verify that merkle roots match.", async () => {

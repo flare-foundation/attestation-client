@@ -25,7 +25,7 @@ export class IndexerAlert extends AlertBase {
   }
 
   async initialize() {
-    await IndexerAlert.dbService.waitForDBConnection();
+    await IndexerAlert.dbService.connect();
   }
 
   async perf() {

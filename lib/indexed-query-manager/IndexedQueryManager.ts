@@ -1,10 +1,9 @@
 import { MccClient, unPrefix0x } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
-import { DBBlockBase } from "../entity/indexer/dbBlock";
+import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
-import { DatabaseService } from "../utils/databaseService";
 import { getUnixEpochTimestamp } from "../utils/utils";
 import { getSourceName } from "../verification/sources/sources";
 import {
@@ -23,7 +22,7 @@ import {
   UpperBoundaryCheck
 } from "./indexed-query-manager-types";
 
-// no supported chain produces more than 20 blocks per second 
+// no supported chain produces more than 20 blocks per second
 const MAX_BLOCKCHAIN_PRODUCTION = 20;
 
 ////////////////////////////////////////////////////////
@@ -32,21 +31,19 @@ const MAX_BLOCKCHAIN_PRODUCTION = 20;
 // upper and lower bounds are synchronized.
 ////////////////////////////////////////////////////////
 
-
 /**
  * A class used to carry out queries on the indexer database such that the upper and lower bounds are synchronized.
  */
 export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
-  dbService: DatabaseService;
   client: MccClient;
   _entityManager: EntityManager;
 
   //Two transaction table entities `transaction0` and `transaction1`
-  transactionTable = [undefined, undefined];
+  transactionTable: IDBTransactionBase[];
 
   // Block table entity
-  blockTable;
+  blockTable: IDBBlockBase;
 
   constructor(options: IndexedQueryManagerOptions) {
     if (!options.entityManager) {
@@ -58,10 +55,7 @@ export class IndexedQueryManager {
   }
 
   get entityManager(): EntityManager {
-    if (this._entityManager) {
-      return this._entityManager;
-    }
-    return this.dbService.connection.manager;
+    return this._entityManager;
   }
 
   /**
@@ -95,7 +89,7 @@ export class IndexedQueryManager {
 
   /**
    * Returns the last confirmed block height (`N`) for which all transactions are in database
-   * @returns 
+   * @returns
    */
   public async getLastConfirmedBlockNumber(): Promise<number> {
     const res = await this.entityManager.findOne(DBState, { where: { name: this.getChainN() } });
@@ -107,7 +101,7 @@ export class IndexedQueryManager {
 
   /**
    * Returns last block height (`T`) and the timestamp of the last sampling by indexer
-   * @returns 
+   * @returns
    */
   public async getLatestBlockTimestamp(): Promise<BlockHeightSample | null> {
     const res = await this.entityManager.findOne(DBState, { where: { name: this.getChainT() } });
@@ -262,7 +256,7 @@ export class IndexedQueryManager {
 
   /**
    * Gets a block for a given hash
-   * @param hash 
+   * @param hash
    * @returns the block with given hash, if exists, `null` otherwise
    */
   async getBlockByHash(hash: string): Promise<DBBlockBase | null> {
@@ -322,10 +316,10 @@ export class IndexedQueryManager {
 
   /**
    * Checks whether lower boundary of query range within confirmed transactions is met.
-   * For that at least one confirmed block with lower timestamp that lower boundary timestamp 
+   * For that at least one confirmed block with lower timestamp that lower boundary timestamp
    * must exist in the database.
-   * @param roundId 
-   * @returns 
+   * @param roundId
+   * @returns
    */
   private async lowerBoundaryCheck(roundId: number, windowStartTime?: number): Promise<boolean> {
     // lower boundary timestamp
@@ -386,7 +380,7 @@ export class IndexedQueryManager {
 
   /**
    * Carries the boundary synchronized query and tries to obtain transaction meeting the query criteria from the indexer database.
-   * @param params 
+   * @param params
    * @returns search status, required
    * transaction block, if found,
    * lower and upper boundary blocks, if required by query parameters.
@@ -425,7 +419,7 @@ export class IndexedQueryManager {
 
   /**
    * Carries the boundary synchronized query and tries to obtain transactions meeting the query criteria from the indexer database.
-   * @param params 
+   * @param params
    * @returns search status, list of transactions meeting query criteria, and lower and upper boundary blocks, if required by
    * query parameters.
    */
@@ -472,7 +466,7 @@ export class IndexedQueryManager {
   /**
    * Gets the first confirmed block with the timestamp greater or equal to the given
    * timestamp
-   * @param timestamp 
+   * @param timestamp
    * @returns the block, if exists, otherwise `null`
    */
   public async getFirstConfirmedBlockAfterTime(timestamp: number): Promise<DBBlockBase | null> {
@@ -498,9 +492,9 @@ export class IndexedQueryManager {
   }
 
   /**
-   * Checks whether there is a confirmed block with timestamp strictly before given timestamp in the 
+   * Checks whether there is a confirmed block with timestamp strictly before given timestamp in the
    * indexer database
-   * @param timestamp 
+   * @param timestamp
    * @returns `true` if the block exists, `false` otherwise
    */
   public async hasIndexerConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<boolean> {
@@ -564,8 +558,8 @@ export class IndexedQueryManager {
     // upper bound proof has to be on one of the longest chains (viewed locally)
     const query = this.entityManager
       .createQueryBuilder(this.blockTable, "block")
-      .where("block.blockNumber = :blockNumber", { blockNumber: confBlock.blockNumber })
-    const result = await query.getMany() as DBBlockBase[];
+      .where("block.blockNumber = :blockNumber", { blockNumber: confBlock.blockNumber });
+    const result = (await query.getMany()) as DBBlockBase[];
 
     for (const entity of result) {
       if (entity.confirmed) {

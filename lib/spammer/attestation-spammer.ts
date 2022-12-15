@@ -73,6 +73,7 @@ class AttestationSpammer {
   indexedQueryManager: IndexedQueryManager;
   definitions: AttestationTypeScheme[];
   attestationRoundManager: AttestationRoundManager;
+  spammerCredentials: SpammerCredentials;
 
   get numberOfConfirmations(): number {
     // todo: get from chain confing
@@ -98,13 +99,45 @@ class AttestationSpammer {
 
     // Reading configuration
     this.spammerConfig = readConfig(new SpammerConfig(), "spammer");
-    const spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
+    this.spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
 
     // create dummy attestation round manager and assign needed variables
     this.attestationRoundManager = new AttestationRoundManager(null, null, null, null, null);
     this.attestationRoundManager.credentials = new AttesterCredentials();
-    this.attestationRoundManager.credentials.web = spammerCredentials.web;
+    this.attestationRoundManager.credentials.web = this.spammerCredentials.web;
 
+    this.logger = getGlobalLogger();
+    this.web3 = getWeb3(this.spammerCredentials.web.rpcUrl) as Web3;
+
+    //let stateConnectorAddress = spammerCredentials.web.stateConnectorContractAddress;
+
+    this.logger.info(`RPC: ${this.spammerCredentials.web.rpcUrl}`);
+    this.logger.info(`Using state connector at: ${this.spammerCredentials.web.stateConnectorContractAddress}`);
+
+    // eslint-disable-next-line
+    getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
+      this.stateConnector = sc;
+    });
+
+    this.web3Functions = new Web3Functions(this.logger, this.web3, this.spammerCredentials.web.accountPrivateKey);
+
+    if (this.spammerCredentials.web2) {
+      this.web3_2 = getWeb3(this.spammerCredentials.web2.rpcUrl) as Web3;
+
+      this.logger.info(`RPC2: ${this.spammerCredentials.web2.rpcUrl}`);
+      this.logger.info(`Using state connector 2 at: ${this.spammerCredentials.web2.stateConnectorContractAddress}`);
+      // eslint-disable-next-line
+      getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web2.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
+        this.stateConnector_2 = sc;
+      });
+
+      this.web3Functions_2 = new Web3Functions(this.logger, this.web3_2, this.spammerCredentials.web2.accountPrivateKey);
+    }
+  }
+
+  async init() {
+    let dbService = new DatabaseService(getGlobalLogger(), this.spammerCredentials.indexerDatabase, "indexer");
+    await dbService.connect();
     const options: IndexedQueryManagerOptions = {
       chainType: this.chainType,
       numberOfConfirmations: () => {
@@ -112,7 +145,7 @@ class AttestationSpammer {
       },
       // todo: get from chain confing
       maxValidIndexerDelaySec: 10, //this.chainAttestationConfig.maxValidIndexerDelaySec,
-      entityManager: (new DatabaseService(getGlobalLogger(), spammerCredentials.indexerDatabase, "indexer")).manager,
+      entityManager: dbService.manager,
 
       windowStartTime: (roundId: number) => {
         // todo: read this from DAC
@@ -127,38 +160,8 @@ class AttestationSpammer {
 
     } as IndexedQueryManagerOptions;
     this.indexedQueryManager = new IndexedQueryManager(options);
-    this.logger = getGlobalLogger();
-    this.web3 = getWeb3(spammerCredentials.web.rpcUrl) as Web3;
 
-    //let stateConnectorAddress = spammerCredentials.web.stateConnectorContractAddress;
-
-    this.logger.info(`RPC: ${spammerCredentials.web.rpcUrl}`);
-    this.logger.info(`Using state connector at: ${spammerCredentials.web.stateConnectorContractAddress}`);
-
-    // eslint-disable-next-line
-    getWeb3StateConnectorContract(this.web3, spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
-      this.stateConnector = sc;
-    });
-
-    this.web3Functions = new Web3Functions(this.logger, this.web3, spammerCredentials.web.accountPrivateKey);
-
-    if (spammerCredentials.web2) {
-      this.web3_2 = getWeb3(spammerCredentials.web2.rpcUrl) as Web3;
-
-      this.logger.info(`RPC2: ${spammerCredentials.web2.rpcUrl}`);
-      this.logger.info(`Using state connector 2 at: ${spammerCredentials.web2.stateConnectorContractAddress}`);
-      // eslint-disable-next-line
-      getWeb3StateConnectorContract(this.web3, spammerCredentials.web2.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
-        this.stateConnector_2 = sc;
-      });
-
-      this.web3Functions_2 = new Web3Functions(this.logger, this.web3_2, spammerCredentials.web2.accountPrivateKey);
-    }
-  }
-
-  async init() {
     await this.initializeStateConnector();
-    await this.indexedQueryManager.dbService.waitForDBConnection();
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
 
     // eslint-disable-next-line

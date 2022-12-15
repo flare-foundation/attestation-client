@@ -14,7 +14,7 @@ export class DatabaseAlert extends AlertBase {
   }
 
   async initialize() {
-    await this.dbService.waitForDBConnection();
+    await this.dbService.connect();
   }
 
   async check() {

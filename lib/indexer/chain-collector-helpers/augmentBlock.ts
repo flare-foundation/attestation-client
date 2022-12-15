@@ -1,20 +1,21 @@
 import { IBlock } from "@flarenetwork/mcc";
-import { DBBlockBase } from "../../entity/indexer/dbBlock";
+import { DBBlockBase, IDBBlockBase } from "../../entity/indexer/dbBlock";
 import { prepareString } from "../../utils/utils";
-import { Indexer } from "../indexer";
 
 /**
- * Creates database entity for a confirmed block while indexing.
- * @param indexer indexer
- * @param block block as returned by MCC
- * @returns 
+ * Creates database entity for a confirmed block
+ * @param dbBlockClass
+ * @param block
+ * @returns
  */
-export async function augmentBlock(indexer: Indexer, block: IBlock): Promise<DBBlockBase> {
-  const entity = new indexer.dbBlockClass() as DBBlockBase;
+export function augmentBlock(dbBlockClass: IDBBlockBase, block: IBlock): DBBlockBase {
+  const entity = new dbBlockClass();
   entity.blockNumber = block.number;
   entity.blockHash = prepareString(block.stdBlockHash, 128);
   entity.timestamp = block.unixTimestamp;
   entity.confirmed = true;
-  return entity;  
-}
+  entity.transactions = block.transactionCount;
+  entity.previousBlockHash = block.previousBlockHash;
 
+  return entity;
+}

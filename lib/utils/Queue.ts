@@ -50,5 +50,7 @@ export class Queue<T> {
   public destroy() {
     delete this.data;
     this.data = {};
+    this.tail = 0;
+    this.head = 0;
   }
 }

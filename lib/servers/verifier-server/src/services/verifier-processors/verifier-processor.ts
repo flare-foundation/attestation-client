@@ -8,7 +8,10 @@ export abstract class VerifierProcessor {
   public abstract supportedAttestationTypes(): string[];
   public abstract supportedSource(): string;
 
-  public isSupported(attestationRequest: AttestationRequest) {
+  public assertIsSupported(attestationRequest: AttestationRequest) {
+    if (process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST) {
+      return;
+    }
     let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest.request);
     if (this.supportedSource() !== getSourceName(sourceId)) {
       throw new Error(`Unsupported source '${getSourceName(sourceId)}'. Verifier supports '${this.supportedSource()}'`);

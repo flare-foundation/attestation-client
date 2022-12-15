@@ -37,6 +37,7 @@ export class BTCProcessorService extends VerifierProcessor{
   }
 
   public async verify(attestationRequest: AttestationRequest) {
+    this.assertIsSupported(attestationRequest);
     let response = await verifyBTC(
       this.client,
       attestationRequest.request,

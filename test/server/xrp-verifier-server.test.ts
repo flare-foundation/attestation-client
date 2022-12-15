@@ -61,6 +61,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     process.env.NODE_ENV = "development";
     process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
     process.env.IN_MEMORY_DB = "1";
+    process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
 
     initializeTestGlobalLogger();
 
@@ -214,6 +215,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   after(async () => {
+    delete process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
     await app.close();
   });
 

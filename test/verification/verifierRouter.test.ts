@@ -113,7 +113,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   let configBTC: VerifierConfigurationService;
 
   before(async () => {
-
+    delete process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
     initializeTestGlobalLogger();
     const logger = getGlobalLogger("web");
     lastTimestamp = getUnixEpochTimestamp();
@@ -158,7 +158,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
 
 
-  it(`Should fail due to sending wrong source id`, async function () {
+  it(`Should fail due to sending wrong route`, async function () {
     process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
     await verifierRouter.initialize(false);
@@ -168,7 +168,23 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
     const attestationXRP = prepareAttestation(requestXRP, startTime);
 
-    await expect(verifierRouter.verifyAttestation(attestationXRP, attestationXRP.reverification)).to.eventually.be.rejectedWith("Local verification not enabled");
+    await expect(verifierRouter.verifyAttestation(attestationXRP, attestationXRP.reverification)).to.eventually.be.rejectedWith("Invalid route.");
+
+  });
+
+  it(`Should fail due to verifier not supporting the attestation type`, async function () {
+    process.env.CONFIG_PATH = CONFIG_PATH;
+    const verifierRouter = new VerifierRouter();
+    await verifierRouter.initialize(false);
+
+    let confirmationBlock = await selectBlock(entityManagerBTC, DBBlockBTC, BLOCK_CHOICE);
+    let requestBTC = await testConfirmedBlockHeightExistsRequest(confirmationBlock, ChainType.BTC);
+
+    const attestationBTC = prepareAttestation(requestBTC, startTime);
+
+    const resp = await verifierRouter.verifyAttestation(attestationBTC, attestationBTC.reverification);
+    assert(resp.status === 'ERROR', "Did not reject the attestation");
+    assert(resp.errorMessage.startsWith("Error: Unsupported attestation type 'ConfirmedBlockHeightExists'"), "Wrong error message")
 
   });
 

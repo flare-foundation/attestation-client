@@ -37,6 +37,7 @@ export class DOGEProcessorService extends VerifierProcessor {
   }
 
   public async verify(attestationRequest: AttestationRequest) {
+    this.assertIsSupported(attestationRequest);
     let response = await verifyDOGE(
       this.client,
       attestationRequest.request,

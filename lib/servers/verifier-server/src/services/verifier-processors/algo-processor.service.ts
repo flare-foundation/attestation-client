@@ -37,6 +37,7 @@ export class AlgoProcessorService extends VerifierProcessor {
   }
 
   public async verify(attestationRequest: AttestationRequest) {
+    this.assertIsSupported(attestationRequest);
     let response = await verifyALGO(
       this.client,
       attestationRequest.request,

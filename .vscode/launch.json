@@ -508,7 +508,7 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "Launch WS Server test",
+            "name": "Launch Verifier Server test",
             "runtimeExecutable": "yarn",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",
@@ -521,7 +521,7 @@
             },
             "runtimeArgs": [
                 "test",
-                "test/server/btc-verifier-server.test.ts"
+                "test/server/xrp-verifier-server.test.ts"
             ]
         },
         {

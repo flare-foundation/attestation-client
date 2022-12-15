@@ -59,7 +59,7 @@ describe.skip("CachedClient", () => {
   });
 });
 
-describe("blockCacheSize=0 or other false", () => {
+describe.skip("blockCacheSize=0 or other false", () => {
   let cachedMccClientOptionsFull2: CachedMccClientOptionsFull = {
     transactionCacheSize: 2,
     blockCacheSize: 0,

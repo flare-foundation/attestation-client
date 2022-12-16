@@ -19,7 +19,7 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 const assert = chai.assert;
 
-describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
+describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
@@ -170,20 +170,20 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res2.length).to.be.eq(0);
   });
 
-  it.skip("Should not drop non existing table", async function () {
-    const spy2 = sinon.spy(loggers, "logException");
+  it("Should not drop non existing table", async function () {
+    const spy2 = sinon.spy(indexerToDB.logger, "error");
     await indexerToDB.dropTable("MissingTable");
     expect(spy2.callCount).to.eq(1);
   });
 
-  it.skip("Should drop a table", async function () {
+  it("Should drop a table", async function () {
     await dataService.manager.save(augTx0);
     await indexerToDB.dropTable("btc_transactions0");
     const res = await dataService.manager.find(DBTransactionBTC0);
     expect(res.length).to.be.eq(0);
   });
 
-  it.skip("Should drop all dropAllChainTables", async function () {
+  it("Should drop all dropAllChainTables", async function () {
     await dataService.manager.save(augTx0);
     await dataService.manager.save(augTxAlt1);
     await dataService.manager.save(AugTestBlockBTC);

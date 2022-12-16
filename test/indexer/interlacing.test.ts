@@ -109,6 +109,12 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
     expect(res).to.be.eq(DBBlockBTC);
   });
 
+  it("Should getActiveTransactionWriteTable", async function () {
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+    const res = interlacing.getActiveTransactionWriteTable();
+    expect(res).to.eq(DBTransactionBTC0);
+  });
+
   describe("Tables updates", function () {
     it("Should update", async () => {
       await dataService.dataSource.manager.save(augTx0);

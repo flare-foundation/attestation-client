@@ -24,7 +24,7 @@ class MockChainManager extends ChainManager {
 
 class MockAttesterWeb3 extends AttesterWeb3 {
   constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
-    super(logger, null, null);
+    super(credentials);
   }
 
   async initialize() {}

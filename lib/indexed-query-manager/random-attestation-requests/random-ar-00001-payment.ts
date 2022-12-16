@@ -25,14 +25,13 @@ export async function prepareRandomizedRequestPayment(
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
   roundId: number,
-  numberOfConfirmations: number,
   enforcedChoice?: RandomPaymentChoiceType
 ): Promise<ARPayment | null> {
   if (!randomTransaction) {
     return null;
   }
   const confirmationBlockQueryResponse = await indexedQueryManager.queryBlock({
-    blockNumber: randomTransaction.blockNumber + numberOfConfirmations,
+    blockNumber: randomTransaction.blockNumber + indexedQueryManager.settings.numberOfConfirmations(),
     roundId,
   });
   if (!confirmationBlockQueryResponse?.result) {

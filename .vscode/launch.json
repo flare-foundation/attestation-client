@@ -508,7 +508,7 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "Launch WS Server test",
+            "name": "Launch Verifier Server test",
             "runtimeExecutable": "yarn",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",
@@ -521,7 +521,47 @@
             },
             "runtimeArgs": [
                 "test",
-                "test/server/ws-server.test.ts"
+                "test/server/xrp-verifier-server.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Test indexed query manager",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
+            "env": {
+                "CONFIG_PATH": ".secure.dev",
+                "NODE_ENV":"development"
+            },
+            "runtimeArgs": [
+                "test",
+                "test/indexed-query-manager/IndexedQueryManager.test.ts"
+            ]
+        },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch VerifierRouter test",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
+            "env": {
+                "CONFIG_PATH": ".secure.dev",
+                "NODE_ENV":"development"
+            },
+            "runtimeArgs": [
+                "test",
+                "test/verification/verifierRouter.test.ts"
             ]
         },
 

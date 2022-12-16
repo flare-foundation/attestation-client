@@ -8,7 +8,7 @@
 
 import {
   ARPayment,
-  Attestation,
+  AttestationRequestOptions,
   BN,
   DHPayment,
   hashPayment,
@@ -27,17 +27,15 @@ const web3 = new Web3();
 
 export async function verifyPaymentALGO(
   client: MCC.ALGO,
-  attestation: Attestation,
-  indexer: IndexedQueryManager,
-  recheck = false
+  attestationRequest: string,
+  attestationRequestOptions: AttestationRequestOptions,
+  indexer: IndexedQueryManager
 ): Promise<Verification<ARPayment, DHPayment>> {
-  const request = parseRequest(attestation.data.request) as ARPayment;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARPayment;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyPayment(AlgoTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+  const result = await verifyPayment(AlgoTransaction, request, attestationRequestOptions, indexer, client);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

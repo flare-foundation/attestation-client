@@ -1,15 +1,14 @@
 // yarn test test/attestationClient/attestationClient.test.ts
 
-import BN from "bn.js";
 import { traceManager } from "@flarenetwork/mcc";
+import BN from "bn.js";
 import { Attestation } from "../../lib/attester/Attestation";
 import { AttestationData } from "../../lib/attester/AttestationData";
 import { AttestationRoundManager } from "../../lib/attester/AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
 import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
-import { ChainsConfiguration } from "../../lib/chain/ChainConfiguration";
 import { ChainManager } from "../../lib/chain/ChainManager";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
 import { SourceId } from "../../lib/verification/sources/sources";
@@ -19,15 +18,15 @@ const chai = require("chai");
 const expect = chai.expect;
 
 class MockChainManager extends ChainManager {
-  validateTransaction(sourceId: SourceId, transaction: Attestation) {}
+  validateTransaction(sourceId: SourceId, transaction: Attestation) { }
 }
 
 class MockAttesterWeb3 extends AttesterWeb3 {
-  constructor(logger: AttLogger, configuration: AttesterClientConfiguration, credentials: AttesterCredentials) {
-    super(logger, null, null);
+  constructor(credentials: AttesterCredentials) {
+    super(credentials);
   }
 
-  async initialize() {}
+  async initialize() { }
 
   check(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
@@ -76,12 +75,11 @@ describe.skip("Attestation Client", () => {
     const logger = getGlobalLogger();
 
     // Reading configuration
-    const chains = new ChainsConfiguration();
     const config = new AttesterClientConfiguration();
     const credentials = new AttesterCredentials();
 
     const chainManager = new MockChainManager(this.logger);
-    const attesterWeb3 = new MockAttesterWeb3(this.logger, this.config, this.credentials);
+    const attesterWeb3 = new MockAttesterWeb3(this.credentials);
     attestationRoundManager = new AttestationRoundManager(chainManager, config, credentials, logger, attesterWeb3);
   });
 
@@ -119,7 +117,7 @@ describe.skip("Attestation Client", () => {
 
     const attestation = new AttestationData(mockEvent);
 
-    attestationRoundManager.attestate(attestation);
+    await attestationRoundManager.attestate(attestation);
 
     expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
   });

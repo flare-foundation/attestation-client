@@ -3,11 +3,19 @@ import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { getUnixEpochTimestamp } from "../utils/utils";
 import { AttestationRound } from "./AttestationRound";
-import { AttestationRoundManager } from "./AttestationRoundManager";
 
 import _ from "lodash";
+import { EntityManager } from "typeorm";
 
+/**
+ * Update or insert new state.
+ * @param entityManager 
+ * @param obj 
+ * @param primary_key 
+ * @param opts 
+ */
 async function Upsert<T>(
+  entityManager: EntityManager,
   obj: T,
   primary_key: string,
   opts?: {
@@ -16,17 +24,13 @@ async function Upsert<T>(
   }
 ) {
   const keys: string[] = _.difference(_.keys(obj), opts ? opts.do_not_upsert : []);
-  const setter_string = keys.map((k) => `${opts ? opts.key_naming_transform(k) : k} = :${k}`);
 
-  await AttestationRoundManager.dbServiceAttester.manager
+  await entityManager
     .createQueryBuilder()
     .insert()
     .into(DBRoundResult)
     .values(obj)
-    .orUpdate({
-      conflict_target: [primary_key],
-      overwrite: keys,
-    })
+    .orUpdate([primary_key], keys)
     .execute();
 }
 
@@ -35,10 +39,17 @@ async function Upsert<T>(
  * in regard to specific round.
  */
 export class AttesterState {
+
+  entityManager: EntityManager;
+
+  constructor(entityManager: EntityManager) {
+    this.entityManager = entityManager;
+  }
+
   private async saveOrUpdateRound(dbRound: DBRoundResult) {
     await retry(`saveOrUpdateRound #${dbRound.roundId}`, async () => {
       try {
-        await Upsert(dbRound, "roundId");
+        await Upsert(this.entityManager, dbRound, "roundId");
         //await transaction.save( DBRoundResult, dbRound );
       } catch (error) {
         logException(error, `saveOrUpdateRound.save(${dbRound.roundId})`);
@@ -62,7 +73,6 @@ export class AttesterState {
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
 
-    //await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     await this.saveOrUpdateRound(dbRound);
   }
 
@@ -78,7 +88,6 @@ export class AttesterState {
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
 
-    //await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     await this.saveOrUpdateRound(dbRound);
   }
 
@@ -98,7 +107,6 @@ export class AttesterState {
     dbRound.commitNounce = nounce;
     dbRound.commitTransactionId = txid;
 
-    //await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     await this.saveOrUpdateRound(dbRound);
   }
 
@@ -118,7 +126,6 @@ export class AttesterState {
     dbRound.revealNounce = nounce;
     dbRound.revealTransactionId = txid;
 
-    //await AttestationRoundManager.dbServiceAttester.manager.save(dbRound);
     await this.saveOrUpdateRound(dbRound);
   }
 
@@ -128,7 +135,7 @@ export class AttesterState {
    * @returns
    */
   async getRound(roundId: number): Promise<DBRoundResult> {
-    const dbRound = await AttestationRoundManager.dbServiceAttester.manager.findOne(DBRoundResult, { where: { roundId: roundId } });
+    const dbRound = await this.entityManager.findOne(DBRoundResult, { where: { roundId: roundId } });
 
     if (dbRound) return dbRound;
 

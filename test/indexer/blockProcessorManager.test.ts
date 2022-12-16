@@ -61,7 +61,7 @@ describe.skip(`BlockProcessorManager (${getTestFile(__filename)})`, function () 
     sinon.restore();
   });
 
-  it("should processSync ", async function () {
+  it("Should processSync ", async function () {
     const block = TestBlockBTC;
     await blockProcessorManager.processSync(block);
     expect(blockProcessorManager.blockProcessors.length).to.eq(1);
@@ -73,13 +73,13 @@ describe.skip(`BlockProcessorManager (${getTestFile(__filename)})`, function () 
     expect(fake1.called).to.be.true;
   });
 
-  it("should not processSync twice", async function () {
+  it("Should not processSync twice", async function () {
     const block = TestBlockBTC;
     await blockProcessorManager.processSync(block);
     expect(blockProcessorManager.blockProcessors.length).to.eq(1);
   });
 
-  it("should process completed block", async function () {
+  it("Should process completed block", async function () {
     const block = TestBlockBTC;
     await blockProcessorManager.process(block);
     //wait for the processor to do the job !!!NEEDS FIX!!!
@@ -89,7 +89,7 @@ describe.skip(`BlockProcessorManager (${getTestFile(__filename)})`, function () 
     expect(fake2.called).to.be.true;
   });
 
-  it("should process uncompleted block", async function () {
+  it("Should process uncompleted block", async function () {
     const block = TestBlockBTCAlt;
     expect(fake1.callCount).to.eq(1);
 
@@ -104,7 +104,7 @@ describe.skip(`BlockProcessorManager (${getTestFile(__filename)})`, function () 
     expect(fake1.callCount).to.be.eq(2);
   });
 
-  it("should processSyncBlockNumber", async function () {
+  it("Should processSyncBlockNumber", async function () {
     await blockProcessorManager.processSyncBlockNumber(12);
     await blockProcessorManager.processSyncBlockNumber(12);
     while (fake1.callCount < 3) {
@@ -114,17 +114,17 @@ describe.skip(`BlockProcessorManager (${getTestFile(__filename)})`, function () 
     expect(blockProcessorManager.blockNumbersInProcessing.size).to.eq(1);
   });
 
-  it("should clearProcessorsUpToBlockNumber #1", function () {
+  it("Should clearProcessorsUpToBlockNumber #1", function () {
     blockProcessorManager.clearProcessorsUpToBlockNumber(13);
     expect(blockProcessorManager.blockProcessors.length).to.eq(2);
   });
 
-  it("should clearProcessorsUpToBlockNumber #2", function () {
+  it("Should clearProcessorsUpToBlockNumber #2", function () {
     blockProcessorManager.clearProcessorsUpToBlockNumber(100000000);
     expect(blockProcessorManager.blockProcessors.length).to.eq(0);
   });
 
-  it("should onSyncCompleted", function () {
+  it("Should onSyncCompleted", function () {
     expect(blockProcessorManager.blockNumbersInProcessing.size).to.eq(1);
     blockProcessorManager.onSyncCompleted();
     expect(blockProcessorManager.blockNumbersInProcessing.size).to.eq(0);

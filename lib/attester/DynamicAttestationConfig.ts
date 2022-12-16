@@ -1,11 +1,10 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { readJSON } from "../utils/json";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
+import { getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { SourceId, toSourceId } from "../verification/sources/sources";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { AttesterClientConfiguration } from "./AttesterClientConfiguration";
 
 const fs = require("fs");
 export class SourceHandlerTypeConfig {
@@ -43,21 +42,26 @@ export class AttestationConfig {
  * Class for managing attestation configurations
  */
 export class AttestationConfigManager {
-  config: AttesterClientConfiguration;
-  logger: AttLogger;
-
+  attestationRoundManager: AttestationRoundManager;
   attestationConfig = new Array<AttestationConfig>();
 
-  constructor(config: AttesterClientConfiguration, logger: AttLogger) {
-    this.config = config;
-    this.logger = logger;
+  constructor(attestationRoundManager: AttestationRoundManager) {
+    this.attestationRoundManager = attestationRoundManager;
 
     this.validateEnumNames();
   }
 
+  get config() {
+    return this.attestationRoundManager.config;
+  }
+
+  get logger() {
+    return this.attestationRoundManager.logger;
+  }
+
   /**
    * Checks that globally set enumerations of chains in Multi Chain Client and Attestation Client match
-   */  
+   */
   validateEnumNames() {
     const logger = getGlobalLogger();
 
@@ -88,7 +92,7 @@ export class AttestationConfigManager {
 
   /**
    * Check for changes in dynamicAttestationConfigurationFolder and loads new files
-   */  
+   */
   dynamicLoadInitialize() {
     try {
       fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
@@ -101,14 +105,14 @@ export class AttestationConfigManager {
         }
       });
     }
-    catch( error ) {
-      this.logger.exception( error );
+    catch (error) {
+      this.logger.exception(error);
     }
   }
 
   /**
    * Loads all AttestationConfig that are stored in dynamicAttestationConfigurationFolder
-   */  
+   */
   async loadAll() {
     try {
       await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err: number, files: string[]) => {
@@ -132,7 +136,7 @@ export class AttestationConfigManager {
     const fileConfig = readJSON<any>(filename, JSONMapParser);
 
     // check if loading current epoch (or next one)
-    if (fileConfig.startEpoch == AttestationRoundManager.activeEpochId || fileConfig.startEpoch == AttestationRoundManager.activeEpochId + 1) {
+    if (fileConfig.startEpoch == this.attestationRoundManager.activeEpochId || fileConfig.startEpoch == this.attestationRoundManager.activeEpochId + 1) {
       this.logger.warning(`DAC almost alive (epoch ${fileConfig.startEpoch})`);
     }
 
@@ -174,7 +178,7 @@ export class AttestationConfigManager {
 
   /**
    * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epoches
-   */  
+   */
   orderConfigurations() {
     this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {
       if (a.startEpoch < b.startEpoch) return 1;
@@ -184,7 +188,7 @@ export class AttestationConfigManager {
 
     // cleanup
     for (let a = 1; a < this.attestationConfig.length; a++) {
-      if (this.attestationConfig[a].startEpoch < AttestationRoundManager.activeEpochId) {
+      if (this.attestationConfig[a].startEpoch < this.attestationRoundManager.activeEpochId) {
         this.logger.debug(`DAC cleanup #${a} (epoch ${this.attestationConfig[a].startEpoch})`);
         this.attestationConfig.slice(a);
         return;
@@ -194,7 +198,7 @@ export class AttestationConfigManager {
 
   /**
    * @returns SourceHandlerConfig for a given @param source that is valid for in @param epoch
-   */  
+   */
   getSourceHandlerConfig(source: number, epoch: number): SourceHandlerConfig {
     // configs must be ordered by decreasing epoch number
     for (let a = 0; a < this.attestationConfig.length; a++) {

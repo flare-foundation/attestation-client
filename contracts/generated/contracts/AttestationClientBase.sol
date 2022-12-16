@@ -120,11 +120,7 @@ abstract contract AttestationClientBase is IAttestationClient {
             );
     }
 
-    function _verifyMerkleProof(
-        bytes32[] memory proof,
-        bytes32 merkleRoot,
-        bytes32 leaf
-    ) internal pure returns (bool) {
+    function _verifyMerkleProof(bytes32[] memory proof, bytes32 merkleRoot, bytes32 leaf) internal pure returns (bool) {
         return proof.verify(merkleRoot, leaf);
     }
 }

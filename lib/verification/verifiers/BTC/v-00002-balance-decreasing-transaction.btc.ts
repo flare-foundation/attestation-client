@@ -8,7 +8,7 @@
 
 import {
   ARBalanceDecreasingTransaction,
-  Attestation,
+  AttestationRequestOptions,
   BN,
   DHBalanceDecreasingTransaction,
   hashBalanceDecreasingTransaction,
@@ -27,17 +27,15 @@ const web3 = new Web3();
 
 export async function verifyBalanceDecreasingTransactionBTC(
   client: MCC.BTC,
-  attestation: Attestation,
-  indexer: IndexedQueryManager,
-  recheck = false
+  attestationRequest: string,
+  attestationRequestOptions: AttestationRequestOptions,
+  indexer: IndexedQueryManager
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
-  const request = parseRequest(attestation.data.request) as ARBalanceDecreasingTransaction;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARBalanceDecreasingTransaction;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyBalanceDecreasingTransaction(BtcTransaction, request, roundId, numberOfConfirmations, recheck, indexer, client);
+  const result = await verifyBalanceDecreasingTransaction(BtcTransaction, request, attestationRequestOptions, indexer, client);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

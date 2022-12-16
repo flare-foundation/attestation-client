@@ -2,7 +2,7 @@ import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
-import { StateConnector } from "../../typechain-web3-v1/StateConnector";
+import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
 import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
@@ -89,12 +89,12 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
  * @param address Address of the contract
  * @returns StateConnector contract object
  */
-export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector> {
+export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnectorOld> {
   let abiPath = "";
   const artifacts = "artifacts";
   try {
     abiPath = await relativeContractABIPathForContractName("StateConnector", artifacts);
-    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnector;
+    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnectorOld;
   } catch (e: any) {
     console.error(`getWeb3Contract error - ABI not found: ${e}`);
   }

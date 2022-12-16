@@ -37,10 +37,14 @@ export function prefix0x(tx: string) {
 }
 
 export function toHex(x: string | number | BN, padToBytes?: number) {
+  const hexValue = Web3.utils.toHex(x);
+  if (hexValue.startsWith("-")) {
+    throw new AttestationRequestParseError("Negative values are not supported in attestation requests");
+  }
   if ((padToBytes as any) > 0) {
     return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
   }
-  return Web3.utils.toHex(x);
+  return hexValue;
 }
 
 function fromUnprefixedBytes(bytes: string, type: string, size: number) {

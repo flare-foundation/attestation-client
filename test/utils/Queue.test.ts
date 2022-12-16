@@ -1,7 +1,8 @@
 import { assert, expect } from "chai";
 import { Queue } from "../../lib/utils/Queue";
+import { getTestFile } from "../test-utils/test-utils";
 
-describe("Queue", () => {
+describe(`Queue ${getTestFile(__filename)})`, () => {
   let queue = new Queue<Number>();
   for (let i = 0; i < 15; i++) {
     queue.push(i);

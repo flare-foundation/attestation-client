@@ -57,11 +57,11 @@ describe.skip(`Header Collector (${getTestFile(__filename)})`, () => {
     sinon.restore();
   });
 
-  it("should update N", async function () {
+  it("Should update N", async function () {
     headerCollector.updateN(765468);
   });
 
-  it("should saveHeadersOnNewTips ", async function () {
+  it("Should saveHeadersOnNewTips ", async function () {
     const header = new BtcBlockHeader(BTCBlockHeader);
     const headerAlt = new BtcBlockHeader(BTCBlockHeaderAlt);
 
@@ -70,7 +70,7 @@ describe.skip(`Header Collector (${getTestFile(__filename)})`, () => {
     expect(res.length).to.eq(1);
   });
 
-  it("should cache when saveHeadersOnNewTips", async function () {
+  it("Should cache when saveHeadersOnNewTips", async function () {
     const header = new BtcBlockHeader(BTCBlockHeader);
 
     await headerCollector.saveHeadersOnNewTips([header, header]);
@@ -78,13 +78,13 @@ describe.skip(`Header Collector (${getTestFile(__filename)})`, () => {
     expect(res.length).to.be.eq(1);
   });
 
-  it("should not work with empty list saveHeadersOnNewTips ", async function () {
+  it("Should not work with empty list saveHeadersOnNewTips ", async function () {
     await headerCollector.saveHeadersOnNewTips([]);
     let res = await dataService.manager.find(DBBlockBTC);
     expect(res.length).to.eq(1);
   });
 
-  it("should saveHeadersOnNewTips", async function () {
+  it("Should saveHeadersOnNewTips", async function () {
     headerCollector.updateN(10);
 
     const tips = await client.getBlockTips(10);
@@ -94,7 +94,7 @@ describe.skip(`Header Collector (${getTestFile(__filename)})`, () => {
     expect(res.length).to.be.above(1);
   });
 
-  it("should readAndSaveBlocksHeaders", async function () {
+  it("Should readAndSaveBlocksHeaders", async function () {
     headerCollector.updateN(10);
 
     await headerCollector.readAndSaveBlocksHeaders(11, 12);
@@ -102,7 +102,7 @@ describe.skip(`Header Collector (${getTestFile(__filename)})`, () => {
     expect(res.blockHash).eq("0000000027c2488e2510d1acf4369787784fa20ee084c258b58d9fbd43802b5e");
   });
 
-  it("should not readAndSaveBlocksHeaders", async function () {
+  it("Should not readAndSaveBlocksHeaders", async function () {
     headerCollector.updateN(10);
     let j = "not jet failed";
     const fake = sinon.fake();
@@ -115,7 +115,7 @@ describe.skip(`Header Collector (${getTestFile(__filename)})`, () => {
     sinon.restore();
   });
 
-  it("should runBlockHeaderCollectingRaw", function (done) {
+  it("Should runBlockHeaderCollectingRaw", function (done) {
     const spy = sinon.spy(headerCollector.indexerToDB, "writeT");
     setTimeout(done, 6000);
     headerCollector
@@ -127,7 +127,7 @@ describe.skip(`Header Collector (${getTestFile(__filename)})`, () => {
     }, 2000);
   });
 
-  it("should runBlockHeaderCollectingTips", function (done) {
+  it("Should runBlockHeaderCollectingTips", function (done) {
     const spy1 = sinon.spy(headerCollector.indexerToDB, "writeT");
     const spy2 = sinon.spy(headerCollector, "saveHeadersOnNewTips");
     setTimeout(done, 6000);

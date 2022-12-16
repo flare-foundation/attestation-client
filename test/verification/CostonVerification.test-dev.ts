@@ -62,13 +62,15 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       rateLimitOptions: chainIndexerConfig.rateLimitOptions,
     });
 
+    const dbService = new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer");
+    await dbService.connect();
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,
       numberOfConfirmations: () => {
         return chainIndexerConfig.numberOfConfirmations;
       },
       maxValidIndexerDelaySec: 10,
-      dbService: new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"),
+      entityManager: dbService.manager,
       windowStartTime: (roundId: number) => {
         const queryWindowInSec = 86400;
         return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - queryWindowInSec;
@@ -81,7 +83,6 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
-    await indexedQueryManager.dbService.connect();
   });
 
   it("Should verify that merkle roots match.", async () => {
@@ -120,7 +121,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
     console.log( "***1");    
 
-    const att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations);
+    const att = createTestAttestationFromRequest(parsed, roundId);
     const result = await verifyAttestation(client, att, indexedQueryManager, recheck);
 
     console.log(`Status ${result.status}`);
@@ -142,7 +143,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       utxo: "0x0",
     };
 
-    const att = createTestAttestationFromRequest(parsed, roundId, chainIndexerConfig.numberOfConfirmations);
+    const att = createTestAttestationFromRequest(parsed, roundId);
     const result = await verifyAttestation(client, att, indexedQueryManager, recheck);
 
     console.log(hexlifyBN(result));

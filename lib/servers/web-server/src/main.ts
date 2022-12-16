@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { getGlobalLogger } from '../../../utils/logger';
-import { ServerConfigurationService } from '@atc/common';
+import { ServerConfigurationService } from './services/server-configuration.service';
 import { WebServerModule } from './web-server.module';
 
 async function bootstrap() {

@@ -37,16 +37,16 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     }
   });
 
-  it("should construct", function () {
+  it("Should construct", function () {
     expect(unconfirmedBlockManager).to.not.be.undefined;
   });
 
-  it("should initalize", async function () {
+  it("Should initalize", async function () {
     await unconfirmedBlockManager.initialize();
     expect(unconfirmedBlockManager.blockHashToEntity.size).to.eq(8);
   });
 
-  it("should add new block", function () {
+  it("Should add new block", function () {
     const entity = new DBBlockDOGE();
     entity.blockNumber = 16;
     entity.blockHash = "16";
@@ -61,7 +61,7 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     expect(unconfirmedBlockManager.changed.size).to.eq(9);
   });
 
-  it("should add new block", function () {
+  it("Should add new block", function () {
     const entity = new DBBlockDOGE();
     entity.blockNumber = 17;
     entity.blockHash = "17";
@@ -77,7 +77,7 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     expect(unconfirmedBlockManager.changed.size).to.eq(10);
   });
 
-  it("should not add new block", function () {
+  it("Should not add new block", function () {
     const entity = new DBBlockDOGE();
     entity.blockNumber = 17;
     entity.blockHash = "9";
@@ -93,7 +93,7 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     expect(unconfirmedBlockManager.changed.size).to.eq(10);
   });
 
-  it("should get changed blocks", function () {
+  it("Should get changed blocks", function () {
     let res = unconfirmedBlockManager.getChangedBlocks();
     expect(res.length).to.eq(10);
   });

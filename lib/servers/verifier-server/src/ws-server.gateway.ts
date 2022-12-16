@@ -1,5 +1,4 @@
 // import { WSServerConfigurationService } from "@atc/common";
-import { UseGuards } from "@nestjs/common";
 import {
    ConnectedSocket, MessageBody, OnGatewayConnection,
    OnGatewayDisconnect, OnGatewayInit, SubscribeMessage,
@@ -9,29 +8,15 @@ import { IncomingMessage } from "http";
 import * as url from "url";
 import WebSocket, { Server } from 'ws';
 import { AttLogger, getGlobalLogger } from "../../../utils/logger";
-import { WSServerConfigurationService } from "../../common/src";
-import { AuthGuard } from "./guards/auth.guard";
+import { VerifierConfigurationService } from "./services/verifier-configuration.service";
+import { WsCommandProcessorService } from "./services/ws-command-processor.service";
 
 interface ClientRecord {
    id: number;
    name: string;
    ip?: string;
 }
-@WebSocketGateway(
-   // {
-   //    transports: ['websocket'],
-   //    verifyClient: (info, cb) => {
-   //       // console.log(info.req);
-   //       let request = info.req as Request;
-
-   //       let apiKey = url.parse(request.url, true).query.api;
-   //       console.log("API", apiKey)
-   //       // console.log(this.config)
-   //       cb(true, 200);
-   //    }
-   // }
-)
-@UseGuards(AuthGuard)
+@WebSocketGateway()
 export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
    @WebSocketServer() server: Server;
@@ -40,7 +25,10 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
    clientId = 0;
    connections = new Map<WebSocket, ClientRecord>();
 
-   constructor(private config: WSServerConfigurationService) {
+   constructor(
+      private config: VerifierConfigurationService,
+      private commandProcessor: WsCommandProcessorService
+   ) {
    }
 
    handleConnection(client: WebSocket, ...args: any[]) {
@@ -97,16 +85,20 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       @MessageBody() data: any,
       @ConnectedSocket() client: WebSocket,
    ) {
-      let response = {
-         status: "OK",
-         data
-      };
-      return response;
+      return this.commandProcessor.mirrorResponse(data);
    }
+
+   // @SubscribeMessage("supported")
+   // handleSupportedMessage(
+   // ) {
+   //    return this.commandProcessor.supportedAttestationTypes();
+   // }
+
 
 }
 
-// var ws = new WebSocket("ws://localhost:9500"); ws.onmessage = (event) => console.log(JSON.parse(event.data)); ws.onerror = (event) => console.log(event); var data = { a: 1, b: "two" };
+// var ws = new WebSocket("ws://localhost:9500?apiKey=7890"); ws.onmessage = (event) => console.log(JSON.parse(event.data)); ws.onerror = (event) => console.log(event); 
+//var data = { a: 1, b: "two" };
 // ws.onmessage = (event) => console.log(JSON.parse(event.data));
 // ws.onerror = (event) => console.log(event);
 // var data = { a: 1, b: "two" };

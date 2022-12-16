@@ -32,12 +32,12 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
     expect(result.blockHash?.length).to.equal(64);
   });
 
-   it.skip("Correct client initialization", async function () {
+   it("Correct client initialization", async function () {
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, undefined);
       expect(cachedMccClient.client).not.to.be.undefined;
    });
 
-   it.skip("Transaction is cached", async function () {
+   it("Transaction is cached", async function () {
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
       const randomTxId = mockMccClient.randomHash32(true);
       const result = await cachedMccClient.getTransaction(randomTxId);
@@ -46,7 +46,7 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
       expect(randomTxId).to.equal(cachedMccClient.transactionCleanupQueue.first);
    });
 
-   it.skip("Transaction not recorded twice", async function () {
+   it("Transaction not recorded twice", async function () {
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
       const randomTxId = mockMccClient.randomHash32(true);
       await cachedMccClient.getTransaction(randomTxId);
@@ -54,7 +54,7 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
       expect(cachedMccClient.transactionCleanupQueue.size).to.equal(1);
    });
 
-   it.skip("Transaction cache is properly cleaned", async function () {
+   it("Transaction cache is properly cleaned", async function () {
       const LIMIT = 100;
       const BATCH_SIZE = 10;
       const cachedMccClientOptions = {
@@ -86,7 +86,7 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
     expect(cachedMccClient.transactionCache.get(first)).to.be.undefined;
   });
 
-   it.skip("Block is cached", async function () {
+   it("Block is cached", async function () {
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
       const randomBlockHash = mockMccClient.randomHash32(true);
       await cachedMccClient.getBlock(randomBlockHash);
@@ -96,7 +96,7 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
       expect(await cachedMccClient.getBlockFromCache(randomBlockHash)).not.to.be.undefined;
    });
 
-   it.skip("Block not recorded twice", async function () {
+   it("Block not recorded twice", async function () {
       const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, {forcedClient: mockMccClient});
       const randomBlockHash = mockMccClient.randomHash32(true);
       await cachedMccClient.getBlock(randomBlockHash);
@@ -104,7 +104,7 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
       expect(cachedMccClient.blockCleanupQueue.size).to.equal(1);
    });
 
-   it.skip("Block cache is properly cleaned", async function () {
+   it("Block cache is properly cleaned", async function () {
       const LIMIT = 100;
       const BATCH_SIZE = 10;
       const cachedMccClientOptions = {

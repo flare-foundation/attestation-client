@@ -1,0 +1,62 @@
+{
+   "data": {
+      "result": {
+         "Account": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
+         "Amount": "1000000000",
+         "Destination": "r4m9t6A2aA3z2779AZiZhsFQ5cANcmK4PB",
+         "Fee": "12",
+         "Flags": 2147483648,
+         "LastLedgerSequence": 33157118,
+         "Memos": [
+            {
+               "Memo": {
+                  "MemoData": "373837323730364332453646373236373244363636313735363336353734"
+               }
+            }
+         ],
+         "Sequence": 4488426,
+         "SigningPubKey": "02356E89059A75438887F9FEE2056A2890DB82A68353BE9C0C0C8F89C0018B37FC",
+         "TransactionType": "Payment",
+         "TxnSignature": "3045022100CEB26B992C9932D69D5FF0A58F7D62F0A745CFCEE03B73F38D282C3E5B21B78802202AD87152E94CB6C0EC7DCBF0DBA668D54267A05CCEE5384E84C0D3A8EACE4F24",
+         "date": 722694950,
+         "hash": "D8655BA0E88BA5244E3A0F5830B4677AD2F3176D205D1B4701F2200946D9EED7",
+         "metaData": {
+            "AffectedNodes": [
+               {
+                  "ModifiedNode": {
+                     "FinalFields": {
+                        "Account": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
+                        "Balance": "94506503531423126",
+                        "Flags": 0,
+                        "OwnerCount": 0,
+                        "Sequence": 4488427
+                     },
+                     "LedgerEntryType": "AccountRoot",
+                     "LedgerIndex": "31CCE9D28412FF973E9AB6D0FA219BACF19687D9A2456A0C2ABC3280E9D47E37",
+                     "PreviousFields": {
+                        "Balance": "94506504531423138",
+                        "Sequence": 4488426
+                     },
+                     "PreviousTxnID": "23431948BC9EAE12B86268ED06B6F71872C9F02D6C24AA1E9E584394FA3B83AA",
+                     "PreviousTxnLgrSeq": 33157082
+                  }
+               },
+               {
+                  "CreatedNode": {
+                     "LedgerEntryType": "AccountRoot",
+                     "LedgerIndex": "3391BC461A698AF2299A1CA7A06BDED24E9A085CA1C068EA36189CB05695762F",
+                     "NewFields": {
+                        "Account": "r4m9t6A2aA3z2779AZiZhsFQ5cANcmK4PB",
+                        "Balance": "1000000000",
+                        "Sequence": 33157115
+                     }
+                  }
+               }
+            ],
+            "TransactionIndex": 0,
+            "TransactionResult": "tesSUCCESS",
+            "delivered_amount": "1000000000"
+         }
+      }
+   }
+}

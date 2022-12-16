@@ -11,6 +11,7 @@ import { TDEF as TDEF_confirmed_block_height_exists } from "../../attestation-ty
 import { TDEF as TDEF_referenced_payment_nonexistence } from "../../attestation-types/t-00004-referenced-payment-nonexistence";
 import { TDEF as TDEF_trustline_issuance } from "../../attestation-types/t-00005-trustline-issuance";
 
+export { AttestationRequestOptions } from "../../attestation-types/attestation-types";
 export { RPCInterface, MCC } from "@flarenetwork/mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
 export { Verification, VerificationStatus } from "../../attestation-types/attestation-types";

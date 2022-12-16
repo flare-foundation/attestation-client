@@ -17,7 +17,7 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
     sinon.restore();
   });
 
-  it("should execute on null failureCallback", function () {
+  it("Should execute on null failureCallback", function () {
     const spy = sinon.spy(loggers, "getGlobalLogger");
     PromiseTimeout.setRetryFailureCallback(null);
 
@@ -26,21 +26,21 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
     assert(spy.called);
   });
 
-  it("should setRetryFailureCallback", function () {
+  it("Should setRetryFailureCallback", function () {
     const fake = sinon.fake();
     PromiseTimeout.setRetryFailureCallback(fake);
     PromiseTimeout.failureCallback("something");
     assert(fake.calledWith("something"));
   });
 
-  it("should getRetryFailureCallback", function () {
+  it("Should getRetryFailureCallback", function () {
     const fake = sinon.fake();
     PromiseTimeout.setRetryFailureCallback(fake);
     let result = PromiseTimeout.getRetryFailureCallback();
     expect(result).to.be.deep.eq(fake);
   });
 
-  it("should retry", async function () {
+  it("Should retry", async function () {
     const fake = sinon.stub();
     fake.onFirstCall().throws("wait");
     fake.onSecondCall().returns(3);
@@ -49,7 +49,7 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
     expect(res).to.eq(3);
   });
 
-  it("should retry fail", async function () {
+  it("Should retry fail", async function () {
     async function testError() {
       await sleepMs(10);
       throw "fail";
@@ -61,7 +61,7 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
   });
 
   // Needs further inspection
-  it("should retry sleep", async function () {
+  it("Should retry sleep", async function () {
     async function testError() {
       await sleepMs(100000);
       return 12;
@@ -72,13 +72,13 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
     await expect(PromiseTimeout.retry("sleep test", testError, 2, 2, 2)).to.be.rejected;
   });
 
-  it("should safeCatch execute", function () {
+  it("Should safeCatch execute", function () {
     const fake = sinon.fake();
     PromiseTimeout.safeCatch("something alse", fake);
     assert(fake.called);
   });
 
-  it("should safeCatch throw", function () {
+  it("Should safeCatch throw", function () {
     // const fake = sinon.fake.throws(new Error("wrong"));
 
     const stub = sinon.stub(loggers, "logException");

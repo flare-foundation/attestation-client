@@ -165,21 +165,21 @@ export async function generateTestIndexerDB(
    lastSampleTimestamp?: number
 ) {
    for (let blockNumber = startBlock; blockNumber <= endBlock; blockNumber++) {
-      let timestamp = lastTimestamp - (endBlock - startBlock) + (blockNumber - startBlock);
-      let transactions = generateTransactionsForBlock(chainType, blockNumber, timestamp, transactionEntity, transactionsPerBlock);
+      let timestamp = lastTimestamp - (endBlock - startBlock) + (blockNumber - startBlock);      
       let dbBlock = new blockEntity();
       dbBlock.blockHash = testBlockHash(blockNumber);
       dbBlock.blockNumber = blockNumber;
       dbBlock.timestamp = timestamp;
-      dbBlock.transactions = transactions.length;
+      dbBlock.transactions = transactionsPerBlock;
       dbBlock.confirmed = blockNumber <= lastConfirmedBlock;
       dbBlock.numberOfConfirmations = 0;
       dbBlock.previousBlockHash = testBlockHash(blockNumber - 1);
+      
+      if(dbBlock.confirmed) {
+         let transactions = generateTransactionsForBlock(chainType, blockNumber, timestamp, transactionEntity, transactionsPerBlock);
+         await manager.save(transactions);
+      }
       await manager.save(dbBlock);
-      await manager.save(transactions);
-      // if(blockNumber === endBlock) {
-      //    console.log(timestamp);
-      // }
    }
    let stateEntries: DBState[] = [];
    let prefixName = getSourceName(chainType).toUpperCase();

@@ -18,7 +18,7 @@ const chai = require("chai");
 const expect = chai.expect;
 
 class MockChainManager extends ChainManager {
-  validateTransaction(sourceId: SourceId, transaction: Attestation) { }
+  validateTransaction(sourceId: SourceId, transaction: Attestation) {}
 }
 
 class MockAttesterWeb3 extends AttesterWeb3 {
@@ -26,7 +26,7 @@ class MockAttesterWeb3 extends AttesterWeb3 {
     super(credentials);
   }
 
-  async initialize() { }
+  async initialize() {}
 
   check(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {

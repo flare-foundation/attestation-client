@@ -88,7 +88,16 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
       expect(res.timestamp).to.be.greaterThan(10);
     });
 
-    it("Should getStateEntryString", function () {
+    it("Should getStateEntryString #1", function () {
+      let res = getStateEntryString("first", "second", "third", 15);
+      expect(res.name).to.be.eq("second_first");
+      expect(res.valueNumber).to.be.eq(15);
+      expect(res.valueString).to.be.eq("third");
+      expect(res.timestamp).to.be.greaterThan(10);
+      expect(res.comment).to.be.eq("");
+    });
+
+    it("Should getStateEntryString #2", function () {
       let res = getStateEntryString("first", "second", "third", 15, "fourth");
       expect(res.name).to.be.eq("second_first");
       expect(res.valueNumber).to.be.eq(15);

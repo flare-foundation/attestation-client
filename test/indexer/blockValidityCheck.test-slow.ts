@@ -7,12 +7,15 @@ import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
 import { Indexer } from "../../lib/indexer/indexer";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
+import { getRetryFailureCallback, setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
 const chai = require("chai");
+const chaiaspromised = require("chai-as-promised");
+chai.use(chaiaspromised);
 const expect = chai.expect;
+const sinon = require("sinon");
 
 const XRPMccConnection = {
   url: "https://xrplcluster.com",
@@ -128,12 +131,17 @@ describe("Block validity check before processing", () => {
     );
   });
 
+  afterEach(function () {
+    sinon.restore();
+  });
+
   it(`Block processor manager for valid XRP block`, async function () {
     const block = await XrpMccClient.getBlock(70_015_100);
 
     //block.data.result.validated = false;
 
     indexer.chainConfig.validateBlockBeforeProcess = true;
+    indexer.blockProcessorManager.settings.validateBlockBeforeProcess = true;
 
     await indexer.blockProcessorManager.process(block);
 
@@ -146,6 +154,7 @@ describe("Block validity check before processing", () => {
     block.data.result.validated = false;
 
     indexer.chainConfig.validateBlockBeforeProcess = true;
+    indexer.blockProcessorManager.settings.validateBlockBeforeProcess = true;
 
     await indexer.blockProcessorManager.process(block);
 
@@ -153,19 +162,20 @@ describe("Block validity check before processing", () => {
     expect(TestLogger.exists("block 70015100 is now valid"), "block should become valid").to.eq(true);
   });
 
-  it.skip(`Block processor manager for in-valid XRP block when validation is not waited for`, async function () {
+  it(`Block processor manager for in-valid XRP block when validation is not waited for`, async function () {
     const block = await XrpMccClient.getBlock(70_015_100);
 
     block.data.result.validated = false;
 
     indexer.chainConfig.validateBlockBeforeProcess = false;
+    indexer.blockProcessorManager.settings.validateBlockBeforeProcess = false;
 
     await indexer.blockProcessorManager.process(block);
 
     expect(TestLogger.exists("waiting on block 70015100 to be valid"), "invalid block should not be detected").to.eq(false);
   });
 
-  it(`Block processor manager for always in-valid XRP block`, async function () {
+  it.skip(`Block processor manager for always in-valid XRP block`, async function () {
     const XrpMccClient = new MockXRPImplementation(XRPMccConnection);
 
     indexer.logger = getGlobalLogger();
@@ -177,12 +187,11 @@ describe("Block validity check before processing", () => {
 
     indexer.chainConfig.validateBlockBeforeProcess = true;
     indexer.chainConfig.validateBlockWaitMs = 1;
+    indexer.blockProcessorManager.settings.validateBlockBeforeProcess = true;
+    indexer.blockProcessorManager.settings.validateBlockWaitMs = 1;
 
-    try {
-      await indexer.blockProcessorManager.process(invalidBlock);
-      expect(1, "Did not terminate").to.equal(2);
-    } catch (e: any) {
-      expect(e.innerError.message).to.equal(TERMINATION_TOKEN);
-    }
+    const stub1 = sinon.spy(getRetryFailureCallback());
+    indexer.blockProcessorManager.process(invalidBlock);
+    expect(stub1.callback).to.be.eq("");
   });
 });

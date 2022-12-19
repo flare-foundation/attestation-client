@@ -10,7 +10,7 @@ import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentB
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import sinon from "sinon";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
-import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
+import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
@@ -36,11 +36,11 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       UBPCutoffTime: (roundId: number) => roundId * 5 + 4,
     };
     indexedQueryManager = new IndexedQueryManager(options);
-  
+
     initializeTestGlobalLogger();
     await dataService.connect();
     augTx0 = await promAugTxBTC0;
-    augTxAlt0 = await promAugTxBTCALt0;
+    augTxAlt0 = await promAugTxBTCAlt0;
     augTx1 = await promAugTxBTC1;
     augTxAlt1 = await promAugTxBTCAlt1;
 

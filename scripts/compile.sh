@@ -4,6 +4,7 @@ rm -rf node_modules
 
 rm -rf typechain-truffle
 rm -rf typechain-web3-v1
+rm -rf artifacts
 
 yarn install --frozen-lockfile
 

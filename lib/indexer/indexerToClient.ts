@@ -8,8 +8,6 @@ import { DEFAULT_BACK_OFF_TIME, DEFAULT_RETRY, DEFAULT_TIMEOUT, failureCallback,
 @Managed()
 export class IndexerToClient {
   client: ReadRpcInterface;
-  // cachedClient: CachedMccClient;
-
   timeoutTime: number = DEFAULT_TIMEOUT;
   numRetry: number = DEFAULT_RETRY;
   backOffTime: number = DEFAULT_BACK_OFF_TIME;

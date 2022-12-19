@@ -4,7 +4,6 @@ import {
   IXrpGetBlockRes,
   IXrpGetTransactionRes,
   UtxoBlock,
-  UtxoMccCreate,
   UtxoTransaction,
   XrpBlock,
   XrpMccCreate,
@@ -16,14 +15,13 @@ import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
 import { augmentTransactionUtxo, augmentTransactionXrp } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
-import { BlockProcessor, UtxoBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
-import { getFullTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/readTransaction";
+import { BlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
-import { TestBlockBTC, TestBlockDOGE, TestBlockXRP, TestTxBTC, TestTxBTCFake } from "../mockData/indexMock";
+import { TestBlockXRP } from "../mockData/indexMock";
 import * as resXRPBlock from "../mockData/XRPBlock.json";
 import * as resXRPTx from "../mockData/XRPTx.json";
 
@@ -36,10 +34,8 @@ const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
 
-describe.skip(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
-  before(async function () {
-    initializeTestGlobalLogger();
-  });
+describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
+  initializeTestGlobalLogger();
 
   describe("augmentBlock", () => {
     it("Should create entity for a block", async () => {
@@ -70,60 +66,15 @@ describe.skip(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
 
       const tx = new XrpTransaction(resXRPTx as unknown as IXrpGetTransactionRes);
 
-      const augTx = augmentTransactionXrp(DBTransactionBTC0, block, tx);
+      const augTx = augmentTransactionXrp(block, tx);
       expect(augTx.blockNumber).to.be.eq(blockId);
       expect(augTx.transactionId).to.be.eq(txHash);
       // });
     });
   });
 
-  describe("readTransaction", () => {
-    const BtcMccConnection = {
-      url: process.env.BTC_URL,
-      username: process.env.BTC_USERNAME,
-      password: process.env.BTC_PASSWORD,
-    } as UtxoMccCreate;
-
-    let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-      transactionCacheSize: 2,
-      blockCacheSize: 2,
-      cleanupChunkSize: 2,
-      activeLimit: 1,
-      clientConfig: BtcMccConnection,
-    };
-
-    const databaseConnectOptions = new DatabaseConnectOptions();
-    databaseConnectOptions.database = process.env.DATABASE_NAME1;
-    databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-    databaseConnectOptions.password = process.env.DATBASE_PASS;
-    const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
-    const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
-    const interlacing = new Interlacing();
-    let utxoBlockProcessor: UtxoBlockProcessor;
-    const tx = TestTxBTC;
-    const txFake = TestTxBTCFake;
-    before(async () => {
-      await dataService.connect();
-      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 12);
-      utxoBlockProcessor = new UtxoBlockProcessor(cachedClient);
-    });
-
-    it("Should not read full transaction utxo", async () => {
-      const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor);
-      expect(fullTx.additionalData.vinouts[0]).to.be.undefined;
-    });
-
-    it("Should read full transaction utxo", async () => {
-      const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor);
-      expect(fullTx.additionalData.vinouts.length).to.be.eq(1);
-    });
-  });
-
   describe("BlockProcessors", () => {
     const databaseConnectOptions = new DatabaseConnectOptions();
-    databaseConnectOptions.database = process.env.DATABASE_NAME1;
-    databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-    databaseConnectOptions.password = process.env.DATBASE_PASS;
     const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
     before(async function () {
@@ -140,97 +91,11 @@ describe.skip(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       expect(BlockProcessor(-1)).to.be.null;
     });
 
-    describe("BTC", function () {
-      const BtcMccConnection = {
-        url: process.env.BTC_URL,
-        username: process.env.BTC_USERNAME,
-        password: process.env.BTC_PASSWORD,
-      } as UtxoMccCreate;
-
-      let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-        transactionCacheSize: 100,
-        blockCacheSize: 2,
-        cleanupChunkSize: 12,
-        activeLimit: 3,
-        clientConfig: BtcMccConnection,
-      };
-
-      const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
-      const interlacing = new Interlacing();
-
-      const blockProcessorConst = BlockProcessor(ChainType.BTC);
-      let blockProcessor = new blockProcessorConst(cachedClient);
-
-      before(async function () {
-        await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
-      });
-
-      it("Should initializeJobs", async function () {
-        const block = TestBlockBTC;
-        const fake = sinon.fake();
-        let res = [];
-        const voidOnSave = async (blockDb, transDb) => {
-          fake(blockDb, transDb);
-          res = transDb;
-          return true;
-        };
-
-        await blockProcessor.initializeJobs(block, voidOnSave);
-        expect(res.length).to.eq(219);
-        expect(fake.callCount).to.eq(1);
-      });
-    });
-
-    describe("DOGE", function () {
-      const DOGEMccConnection = {
-        url: process.env.DOGE_URL,
-        username: process.env.DOGE_USERNAME,
-        password: process.env.DOGE_PASSWORD,
-      } as UtxoMccCreate;
-
-      let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-        transactionCacheSize: 1000,
-        blockCacheSize: 5,
-        cleanupChunkSize: 10,
-        activeLimit: 5,
-        clientConfig: DOGEMccConnection,
-      };
-
-      const cachedClient = new CachedMccClient(ChainType.DOGE, cachedMccClientOptionsFull);
-      const interlacing = new Interlacing();
-
-      const blockProcessorConst = BlockProcessor(ChainType.DOGE);
-      let blockProcessor = new blockProcessorConst(cachedClient);
-
-      before(async function () {
-        await interlacing.initialize(getGlobalLogger(), dataService, ChainType.DOGE, 36000, 10);
-      });
-      after(function () {
-        blockProcessor.stop();
-        blockProcessor.destroy();
-      });
-
-      it("Should initializeJobs", async function () {
-        const block = TestBlockDOGE;
-        const fake = sinon.fake();
-        let res = [];
-        const voidOnSave = async (blockDb, transDb) => {
-          fake(blockDb, transDb);
-          res = transDb;
-          return true;
-        };
-
-        await blockProcessor.initializeJobs(block, voidOnSave);
-        expect(res.length).to.eq(125);
-        expect(fake.callCount).to.eq(1);
-      });
-    });
-
     describe("ALGO", function () {
       const algoCreateConfig = {
         algod: {
-          url: process.env.ALGO_ALGOD_URL || "",
-          token: process.env.ALGO_ALGOD_TOKEN || "",
+          url: "https://node.algoexplorerapi.io/",
+          token: "",
         },
       } as AlgoMccCreate;
 
@@ -275,9 +140,10 @@ describe.skip(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
 
     describe("XRP", function () {
       const XRPMccConnection = {
-        url: process.env.XRP_URL,
-        username: process.env.XRP_USERNAME || "",
-        password: process.env.XRP_PASSWORD || "",
+        url: "https://xrplcluster.com",
+
+        username: "",
+        password: "",
       } as XrpMccCreate;
 
       let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {

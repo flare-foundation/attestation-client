@@ -57,7 +57,7 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
 
     PromiseTimeout.setRetryFailureCallback((label) => {});
 
-    await expect(PromiseTimeout.retry("fail test", testError, 6000, 3, 1000)).to.be.rejectedWith("fail");
+    await expect(PromiseTimeout.retry("fail test", testError, 300, 2, 500)).to.be.rejectedWith("fail");
   });
 
   // Needs further inspection

@@ -7,7 +7,7 @@
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import assert from "assert";
 import { AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
-import { ChainConfiguration, ChainsConfiguration } from "../../lib/chain/ChainConfiguration";
+import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";

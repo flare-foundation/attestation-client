@@ -80,7 +80,9 @@
     "deployTempStateConnector": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/deploy-temp-state-connector.ts -r 'https://coston2-api.flare.network/ext/C/rpc'",
     "deployTempTranStateConnector": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/deploy-temp-state-connector.ts -f tran -r 'https://coston2-api.flare.network/ext/C/rpc'",
     "runFinalizingBot": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/main.ts -a '0xB6fF182DB28C3aD8f0611d59b183BFC40AF5268d' -r 'https://coston2-api.flare.network/ext/C/rpc'",
-    "runFinalizingBotTran": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/main.ts -a '0xd035F05E6d159F7DE00809f8E3bAb809Cd33bACA' -f tran -r 'https://coston2-api.flare.network/ext/C/rpc'"
+    "runFinalizingBotTran": "yarn ts-node -r dotenv/config lib/state-collector-finalizer/main.ts -a '0xd035F05E6d159F7DE00809f8E3bAb809Cd33bACA' -f tran -r 'https://coston2-api.flare.network/ext/C/rpc'",
+    "--------INTEGRATION-TESTS------": "",
+    "test_endtoend_hardhat": "concurrently -r -k --success first \"yarn hardhat node > nul\" \"wait-on http://127.0.0.1:8545 && env FINALIZING_BOT_PRIVATE_KEY=0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122 FINALIZING_BOT_PUBLIC_KEY=0xc783df8a850f42e7f7e57013759c285caa701eb6 yarn ts-node lib/state-collector-finalizer/deploy-temp-state-connector.ts\""
   },
   "dependencies": {
     "@flarenetwork/mcc": "2.0.8",
@@ -154,6 +156,7 @@
     "better-sqlite3": "^8.0.1",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
+    "concurrently": "^7.6.0",
     "eslint": "^8.26.0",
     "eslint-plugin-node": "^11.1.0",
     "fs-extra": "10.1.0",
@@ -172,7 +175,7 @@
     "typedoc": "^0.23.14",
     "typedoc-plugin-merge-modules": "^4.0.1",
     "typescript": "4.6.2",
-    "wait-on": "6.0.1"
+    "wait-on": "^7.0.1"
   },
   "nyc": {
     "extends": "@istanbuljs/nyc-config-typescript",

@@ -20,7 +20,7 @@ export interface EventProcessed {
 
 /**
  * Attestation class for Attestation providers to attest validity or a request.
- * Validity of the attestation is given by verificationData that is provided using {@link ChainNode}
+ * Validity of the attestation is given by verificationData that is provided using {@link SourceManager}
  */
 @Managed()
 export class Attestation {
@@ -42,7 +42,7 @@ export class Attestation {
   exception: any;
 
   // Cut-off times set by attestation client
-  // Set when passed to the relevant ChainNode
+  // Set when passed to the relevant SourceManager
   windowStartTime: number = 0;
   UBPCutoffTime: number = 0;
 
@@ -61,8 +61,8 @@ export class Attestation {
     return this._testRoundId;
   }
 
-  public get sourceHandler() {
-    return this.round?.getSourceHandler(this.data);
+  public get sourceLimiter() {
+    return this.round.getSourceLimiter(this.data);
   }
 
   ///////////////////////////////////////////////////////

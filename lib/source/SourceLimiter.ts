@@ -1,7 +1,7 @@
 import { SourceId } from "../verification/sources/sources";
-import { Attestation, AttestationStatus } from "./Attestation";
-import { AttestationRound } from "./AttestationRound";
-import { SourceHandlerConfig } from "./DynamicAttestationConfig";
+import { Attestation, AttestationStatus } from "../attester/Attestation";
+import { AttestationRound } from "../attester/AttestationRound";
+import { SourceLimiterConfig } from "../attester/DynamicAttestationConfig";
 
 export interface EventValidateAttestation {
   (attestation: Attestation): void;
@@ -10,8 +10,8 @@ export interface EventValidateAttestation {
 /**
  * Handles validation of attestation request for a specific round and on a specific data source
  */
-export class SourceHandler {
-  config: SourceHandlerConfig;
+export class SourceLimiter {
+  config: SourceLimiterConfig;
 
   round: AttestationRound;
 
@@ -21,7 +21,7 @@ export class SourceHandler {
 
   constructor(round: AttestationRound, sourceId: SourceId) {
     this.round = round;
-    this.config = this.round.attestationRoundManager.attestationConfigManager.getSourceHandlerConfig(sourceId, round.roundId);
+    this.config = this.round.attestationRoundManager.attestationConfigManager.getSourceLimiterConfig(sourceId, round.roundId);
   }
 
   /**
@@ -46,8 +46,6 @@ export class SourceHandler {
     }
 
     this.currentRoundWeight += typeConfig!.weight;
-
-    //attestation.onValidateAttestation(attestation);
 
     return true;
   }

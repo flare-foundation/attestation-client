@@ -1,5 +1,5 @@
 import { Managed, toBN } from "@flarenetwork/mcc";
-import { ChainManager } from "../chain/ChainManager";
+import { SourceRouter } from "../source/SourceRouter";
 import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
@@ -13,7 +13,7 @@ import { AttestationRound } from "./AttestationRound";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
 import { AttesterState } from "./AttesterState";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestationConfig";
+import { AttestationConfigManager, SourceLimiterConfig } from "./DynamicAttestationConfig";
 /**
  * Manages a specific attestation round
  */
@@ -21,7 +21,7 @@ import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestat
 export class AttestationRoundManager {
   logger: AttLogger;
   epochSettings: EpochSettings;
-  chainManager: ChainManager;
+  sourceRouter: SourceRouter;
   attestationConfigManager: AttestationConfigManager;
   dbServiceIndexer: DatabaseService;
   dbServiceAttester: DatabaseService;
@@ -37,7 +37,7 @@ export class AttestationRoundManager {
   attesterWeb3: AttesterWeb3;
 
   constructor(
-    chainManager: ChainManager,
+    sourceRouter: SourceRouter,
     config: AttesterClientConfiguration,
     credentials: AttesterCredentials,
     logger: AttLogger,
@@ -49,7 +49,7 @@ export class AttestationRoundManager {
     this.attesterWeb3 = attesterWeb3;
 
     this.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
-    this.chainManager = chainManager;
+    this.sourceRouter = sourceRouter;
     this.attestationConfigManager = new AttestationConfigManager(this);
 
     this.activeEpochId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
@@ -103,8 +103,8 @@ export class AttestationRoundManager {
    * @param name 
    * @returns 
    */
-  getSourceHandlerConfig(name: string): SourceHandlerConfig {
-    return this.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), this.activeEpochId);
+  getSourceLimiterConfig(name: string): SourceLimiterConfig {
+    return this.attestationConfigManager.getSourceLimiterConfig(toSourceId(name), this.activeEpochId);
   }
 
   /**
@@ -253,7 +253,7 @@ export class AttestationRoundManager {
     let roundId = attestation.roundId;
     let sourceId = attestation.data.sourceId;
     const roundStartTime = Math.floor(this.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-    const queryWindowsInSec = this.attestationConfigManager.getSourceHandlerConfig(
+    const queryWindowsInSec = this.attestationConfigManager.getSourceLimiterConfig(
       sourceId,
       roundId
     ).queryWindowInSec;
@@ -270,7 +270,7 @@ export class AttestationRoundManager {
     let roundId = attestation.roundId;
     let sourceId = attestation.data.sourceId;
     const roundStartTime = Math.floor(this.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-    const UBPUnconfirmedWindowInSec = this.attestationConfigManager.getSourceHandlerConfig(
+    const UBPUnconfirmedWindowInSec = this.attestationConfigManager.getSourceLimiterConfig(
       sourceId,
       roundId
     ).UBPUnconfirmedWindowInSec;

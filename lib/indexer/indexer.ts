@@ -2,7 +2,7 @@ import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { EntityTarget } from "typeorm";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
-import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
+import { ChainConfiguration, ChainsConfiguration } from "../source/ChainConfiguration";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";

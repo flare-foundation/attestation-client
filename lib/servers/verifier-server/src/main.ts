@@ -11,13 +11,14 @@ async function bootstrap() {
   const logger = getGlobalLogger("web");
   const configurationService = app.get(VerifierConfigurationService);
 
-  let port = configurationService.wsServerConfiguration.port;
+  const port = configurationService.wsServerConfiguration.port;
   logger.info(`Verifier type: ${configurationService.verifierType}`);
+  
   await app.listen(port, undefined, () =>
     // tslint:disable-next-line:no-console
     // console.log(`Server started listening at http://localhost:${ port }`)
-    logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`));
+    logger.info(`Server started listening at http://localhost:${port}`));
 
-    logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`);
+    logger.info(`Websocket server started listening at ws://localhost:${port}`);
 }
 bootstrap();

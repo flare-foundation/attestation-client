@@ -12,7 +12,7 @@ import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { SourceHandler } from "./SourceHandler";
+import { SourceLimiter } from "../source/SourceLimiter";
 
 export enum AttestationRoundPhase {
   collect,
@@ -63,7 +63,7 @@ export class AttestationRound {
 
   merkleTree!: MerkleTree;
 
-  sourceHandlers = new Map<number, SourceHandler>();
+  sourceLimiters = new Map<number, SourceLimiter>();
 
   constructor(epochId: number, attestationRoundManager: AttestationRoundManager) {
     this.roundId = epochId;
@@ -80,28 +80,28 @@ export class AttestationRound {
     return this.attestationRoundManager.attesterWeb3;
   }
 
-  get chainManager() {
-    return this.attestationRoundManager.chainManager;
+  get sourceRouter() {
+    return this.attestationRoundManager.sourceRouter;
   }
 
   /**
-   * Returns the existing source Handler for the source chain of an attestation or creates a new sourceHandler
+   * Returns the existing source Handler for the source chain of an attestation or creates a new sourceLimiter
    * @param data 
    * @param onValidateAttestation 
    * @returns 
    */
-  getSourceHandler(data: AttestationData): SourceHandler {
-    let sourceHandler = this.sourceHandlers.get(data.sourceId);
+  getSourceLimiter(data: AttestationData): SourceLimiter {
+    let sourceLimiter = this.sourceLimiters.get(data.sourceId);
 
-    if (sourceHandler) {
-      return sourceHandler;
+    if (sourceLimiter) {
+      return sourceLimiter;
     }
 
-    sourceHandler = new SourceHandler(this, data.sourceId);
+    sourceLimiter = new SourceLimiter(this, data.sourceId);
 
-    this.sourceHandlers.set(data.sourceId, sourceHandler);
+    this.sourceLimiters.set(data.sourceId, sourceLimiter);
 
-    return sourceHandler;
+    return sourceLimiter;
   }
 
   /**
@@ -124,8 +124,8 @@ export class AttestationRound {
     this.attestationsMap.set(requestId, attestation);
 
     // start attestation process
-    if (attestation.sourceHandler.canProceedWithValidation(attestation)) {
-      this.chainManager.validateAttestation(attestation.data.sourceId, attestation);
+    if (attestation.sourceLimiter.canProceedWithValidation(attestation)) {
+      this.sourceRouter.validateAttestation(attestation);
     }
     else {
       this.processed(attestation);

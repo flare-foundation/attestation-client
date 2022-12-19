@@ -1,11 +1,13 @@
-import { ChainType, MCC, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
+//tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
+
+import { ChainType, MCC, sleepMs, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../lib/indexer/blockProcessorManager";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { TestBlockXRP, TestBlockXRPAlt } from "../mockData/indexMock";
+import { TestBlockBTC, TestBlockBTCAlt, TestBlockXRP, TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");
@@ -26,31 +28,26 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     }
   });
 
-  describe("XRP", function () {
-    const XRPMccConnection = {
-      url: "https://xrplcluster.com",
-      username: "",
+  describe("BTC", function () {
+    const BtcMccConnection = {
+      url: "https://bitcoin-api.flare.network",
+      username: "public",
       password: "",
-    } as XrpMccCreate;
-
-    const client = new MCC.XRP(XRPMccConnection);
-    let inToCl = new IndexerToClient(client, 1500, 2, 300);
-
-    // const client = new MCC.BTC(BtcMccConnection);
+    } as UtxoMccCreate;
 
     let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
       transactionCacheSize: 2,
       blockCacheSize: 2,
       cleanupChunkSize: 2,
       activeLimit: 1,
-      clientConfig: XRPMccConnection,
+      clientConfig: BtcMccConnection,
     };
 
-    const cachedClient = new CachedMccClient(ChainType.XRP, cachedMccClientOptionsFull);
+    const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
     const indexerToClient = new IndexerToClient(cachedClient.client);
 
-    const databaseConnectOptions = new DatabaseConnectOptions();
-    const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
+    initializeTestGlobalLogger();
+
     let interlacing = new Interlacing();
 
     const settings: IBlockProcessorManagerSettings = {
@@ -62,9 +59,8 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
 
     const fake1 = sinon.fake();
     const fake2 = sinon.fake();
-    let n = 0;
     before(async function () {
-      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.XRP, 3600, 100);
+      await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 100);
       blockProcessorManager = new BlockProcessorManager(getGlobalLogger(), cachedClient, indexerToClient, interlacing, settings, fake1, fake2);
     });
 
@@ -73,26 +69,25 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     });
 
     it("Should processSync ", async function () {
-      const block = TestBlockXRP;
+      const block = TestBlockBTC;
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
-      n = n + 1;
 
       //wait for the processor to do the job !!!NEEDS FIX!!!
       while (!fake1.called) {
         await sleepMs(100);
       }
-      expect(fake1.callCount).to.be.eq(n);
+      expect(fake1.called).to.be.true;
     });
 
     it("Should not processSync twice", async function () {
-      const block = TestBlockXRP;
+      const block = TestBlockBTC;
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
     });
 
     it("Should process completed block", async function () {
-      const block = TestBlockXRPAlt;
+      const block = TestBlockBTC;
       await blockProcessorManager.process(block);
       //wait for the processor to do the job !!!NEEDS FIX!!!
       while (!fake2.called) {
@@ -101,13 +96,29 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       expect(fake2.called).to.be.true;
     });
 
-    it("Should processSyncBlockNumber", async function () {
-      await blockProcessorManager.processSyncBlockNumber(76_468_243);
-      n = n + 1;
+    it("Should process uncompleted block", async function () {
+      const block = TestBlockBTCAlt;
+      expect(fake1.callCount).to.eq(1);
+
+      await blockProcessorManager.process(block);
+      //wait for the processor to do the job !!!NEEDS FIX!!!
+      expect(blockProcessorManager.blockProcessors[0].isActive).to.be.false;
+      expect(blockProcessorManager.blockProcessors.length).to.be.eq(2);
+      expect(blockProcessorManager.blockProcessors[1].isActive).to.be.true;
       while (fake1.callCount < 2) {
         await sleepMs(100);
       }
-      expect(fake1.callCount).to.be.eq(n);
+      expect(fake1.callCount).to.be.eq(2);
+    });
+
+    it("Should processSyncBlockNumber", async function () {
+      await blockProcessorManager.processSyncBlockNumber(12);
+      await blockProcessorManager.processSyncBlockNumber(12);
+      while (fake1.callCount < 3) {
+        await sleepMs(100);
+      }
+      expect(fake1.callCount).to.be.eq(3);
+      expect(blockProcessorManager.blockNumbersInProcessing.size).to.eq(1);
     });
 
     it("Should clearProcessorsUpToBlockNumber #1", function () {
@@ -120,8 +131,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       expect(blockProcessorManager.blockProcessors.length).to.eq(0);
     });
 
-    it("Should onSyncCompleted", async function () {
-      await blockProcessorManager.processSyncBlockNumber(76_468_243);
+    it("Should onSyncCompleted", function () {
       expect(blockProcessorManager.blockNumbersInProcessing.size).to.eq(1);
       blockProcessorManager.onSyncCompleted();
       expect(blockProcessorManager.blockNumbersInProcessing.size).to.eq(0);

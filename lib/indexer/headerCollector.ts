@@ -83,7 +83,7 @@ export class HeaderCollector {
       //     continue;
       //   }
       // }
-      blockPromises.push(async () => this.indexerToClient.getBlockFromClient(`saveBlocksHeaders`, blockNumber)); //we only need headers!!!
+      blockPromises.push(async () => this.indexerToClient.getBlockFromClient(`saveBlocksHeaders`, blockNumber));
     }
 
     let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as IBlock[];

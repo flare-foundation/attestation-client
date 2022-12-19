@@ -269,7 +269,6 @@ export class IndexerSync {
     }
 
     this.indexer.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);
-    this.indexer.headerCollector.updateN(this.indexer.N);
 
     this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);
 

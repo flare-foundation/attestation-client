@@ -7,7 +7,7 @@ import { DBTransactionBase, DBTransactionBTC0 } from "../../lib/entity/indexer/d
 import { afterEach } from "mocha";
 const utils = require("../../lib/utils/utils");
 import sinon from "sinon";
-import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
+import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
 
@@ -25,7 +25,7 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
 
   before(async () => {
     augTx0 = await promAugTxBTC0;
-    augTxAlt0 = await promAugTxBTCALt0;
+    augTxAlt0 = await promAugTxBTCAlt0;
     augTx1 = await promAugTxBTC1;
     augTxAlt1 = await promAugTxBTCAlt1;
 
@@ -60,8 +60,6 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
     }
     sinon.restore();
   });
-
-  // after(async ())
 
   it("Should get active index for empty tables", async () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
@@ -109,6 +107,12 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     let res = interlacing.DBBlockClass;
     expect(res).to.be.eq(DBBlockBTC);
+  });
+
+  it("Should getActiveTransactionWriteTable", async function () {
+    await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
+    const res = interlacing.getActiveTransactionWriteTable();
+    expect(res).to.eq(DBTransactionBTC0);
   });
 
   describe("Tables updates", function () {

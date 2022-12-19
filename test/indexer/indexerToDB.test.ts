@@ -8,7 +8,7 @@ import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCALt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
+import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 const loggers = require("../../lib/utils/logger");
 const sinon = require("sinon");
@@ -19,7 +19,7 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 const assert = chai.assert;
 
-describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
+describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
@@ -35,7 +35,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
 
   before(async () => {
     augTx0 = await promAugTxBTC0;
-    augTxAlt0 = await promAugTxBTCALt0;
+    augTxAlt0 = await promAugTxBTCAlt0;
     augTx1 = await promAugTxBTC1;
     augTxAlt1 = await promAugTxBTCAlt1;
 
@@ -83,16 +83,20 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
   });
 
   it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #2", async function () {
-    const tableName = `btc_transactions0`;
-    await dataService.manager.query(`delete from ${tableName};`);
+    for (let j = 0; j < 10; j++) {
+      let fakeTx = new DBTransactionBTC1();
+      fakeTx.transactionId = `a4ba${j}`;
+      fakeTx.timestamp = j + 1000;
+      fakeTx.blockNumber = 10000 + j;
+      await dataService.manager.save(fakeTx);
+    }
 
-    await dataService.manager.save(augTx1);
-    await dataService.manager.save(augTxAlt1);
+    // await dataService.manager.save(augTxAlt1);
     let res = await indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
-    expect(res).to.be.eq(729410);
+    expect(res).to.be.eq(10000);
   });
 
-  it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #3", async function () {
+  it("Should getBottomDBBlockNumberFromStoredTransactions from non empty databases #3", async function () {
     const tableName = `btc_transactions1`;
     await dataService.manager.query(`delete from ${tableName};`);
 
@@ -102,7 +106,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res).to.be.eq(729410);
   });
 
-  it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #4", async function () {
+  it("Should getBottomDBBlockNumberFromStoredTransactions from non empty databases #4", async function () {
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
       await dataService.manager.query(`delete from ${tableName};`);
@@ -112,18 +116,6 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     await dataService.manager.save(augTxAlt1);
     let res = await indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
     expect(res).to.be.eq(729410);
-  });
-
-  it("Should not saveBottomState with no transaction in DB", async function () {
-    for (let i = 0; i < 2; i++) {
-      const tableName = `btc_transactions${i}`;
-      await dataService.manager.query(`delete from ${tableName};`);
-    }
-
-    const spy = sinon.spy(indexerToDB.logger, "debug");
-
-    await indexerToDB.saveBottomState();
-    assert(spy.called);
   });
 
   it("Should not saveBottomState with no transaction in DB", async function () {
@@ -170,20 +162,20 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res2.length).to.be.eq(0);
   });
 
-  it.skip("Should not drop non existing table", async function () {
-    const spy2 = sinon.spy(loggers, "logException");
+  it("Should not drop non existing table", async function () {
+    const spy2 = sinon.spy(indexerToDB.logger, "error");
     await indexerToDB.dropTable("MissingTable");
     expect(spy2.callCount).to.eq(1);
   });
 
-  it.skip("Should drop a table", async function () {
+  it("Should drop a table", async function () {
     await dataService.manager.save(augTx0);
     await indexerToDB.dropTable("btc_transactions0");
     const res = await dataService.manager.find(DBTransactionBTC0);
     expect(res.length).to.be.eq(0);
   });
 
-  it.skip("Should drop all dropAllChainTables", async function () {
+  it("Should drop all dropAllChainTables", async function () {
     await dataService.manager.save(augTx0);
     await dataService.manager.save(augTxAlt1);
     await dataService.manager.save(AugTestBlockBTC);

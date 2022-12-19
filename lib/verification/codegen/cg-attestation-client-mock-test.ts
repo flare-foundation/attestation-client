@@ -89,18 +89,18 @@ ${genHashCode(definition, "request", "response")}
 function genItForAttestationClientMock(definition: AttestationTypeScheme) {
   return `
 it("'${definition.name}' test", async function () { 
-  let attestationType = AttestationType.${definition.name};
-  let request = { attestationType, sourceId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+  const attestationType = AttestationType.${definition.name};
+  const request = { attestationType, sourceId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
-  let response = getRandomResponseForType(attestationType) as ${DATA_HASH_TYPE_PREFIX}${definition.name};
+  const response = getRandomResponseForType(attestationType) as ${DATA_HASH_TYPE_PREFIX}${definition.name};
   response.stateConnectorRound = STATECONNECTOR_ROUND;
   response.merkleProof = [];
 
-  let responseHex = hexlifyBN(response);
+  const responseHex = hexlifyBN(response);
 
-  let hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
+  const hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
 
-  let dummyHash = web3.utils.randomHex(32);
+  const dummyHash = web3.utils.randomHex(32);
   await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);    
   assert(await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND) === hash);
   assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(CHAIN_ID, responseHex))
@@ -122,7 +122,7 @@ function genItForMerkleTest(definitions: AttestationTypeScheme[]) {
   const verificationCases = definitions.map((definition) => genVerificationCase(definition)).join("");
   return `
 it("Merkle tree test", async function () {
-	let verifications = [];
+	const verifications = [];
 	for(let i = 0; i < NUM_OF_HASHES; i++) {
 		const request = getRandomRequest();
 		const response = getRandomResponseForType(request.attestationType);
@@ -132,14 +132,14 @@ it("Merkle tree test", async function () {
 			hash: dataHash(request, response)
 		})
 	};
-	let hashes = verifications.map(verification => verification.hash);
+	const hashes = verifications.map(verification => verification.hash);
 	const tree = new MerkleTree(hashes);
 	await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, tree.root);
-	for(let verification of verifications) {
+	for(const verification of verifications) {
 		verification.response.stateConnectorRound = STATECONNECTOR_ROUND;
-		let index = tree.sortedHashes.findIndex(hash => hash === verification.hash);
+		const index = tree.sortedHashes.findIndex(hash => hash === verification.hash);
 		verification.response.merkleProof = tree.getProof(index);
-		let responseHex = hexlifyBN(verification.response);
+		const responseHex = hexlifyBN(verification.response);
 		switch(verification.request.attestationType) {
 ${verificationCases}
 			default:

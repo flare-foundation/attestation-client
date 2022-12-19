@@ -1,6 +1,7 @@
 import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { EntityTarget } from "typeorm";
+import { number } from "yargs";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
@@ -51,7 +52,7 @@ export class Indexer {
   indexerSync: IndexerSync;
 
   // N - last processed and saved block
-  N = 0;
+  _N = 0;
 
   // T - chain height
   T = 0;
@@ -150,6 +151,18 @@ export class Indexer {
 
   private mccException(error: any, message: string) {
     logException(error, message);
+  }
+
+  /////////////////////////////////////////////////////////////
+  // Update N
+  /////////////////////////////////////////////////////////////
+
+  get N() {
+    return this._N;
+  }
+  set N(newN: number) {
+    this._N = newN;
+    this.headerCollector.updateN(newN);
   }
 
   /////////////////////////////////////////////////////////////
@@ -328,7 +341,6 @@ export class Indexer {
 
     // increment N if all is ok
     this.N = Np1;
-    this.headerCollector.updateN(this.N);
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
     if (!this.indexerToDB.bottomBlockTime) {
@@ -691,7 +703,6 @@ export class Indexer {
     if (dbStartBlockNumber > 0) {
       this.N = dbStartBlockNumber;
     }
-    this.headerCollector.updateN(this.N);
 
     await this.interlace.initialize(
       this.logger,

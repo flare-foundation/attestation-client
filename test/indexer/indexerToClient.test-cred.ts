@@ -9,19 +9,19 @@ const expect = chai.expect;
 
 //To be eventually mocked
 
-describe(`Indexer to client (${getTestFile(__filename)})`, function () {
+describe(`Indexer to client with credentials(${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
-  describe.skip("BTC", function () {
+  describe("BTC", function () {
     const BtcMccConnection = {
-      url: process.env.BTC_URL || "",
-      username: process.env.BTC_USERNAME || "",
-      password: process.env.BTC_PASSWORD || "",
+      url: "https://bitcoin-api.flare.network",
+      username: "public",
+      password: "",
     } as UtxoMccCreate;
 
     initializeTestGlobalLogger();
 
     const client = new MCC.BTC(BtcMccConnection);
-    let inToCl = new IndexerToClient(client, 1800, 3, 300);
+    let inToCl = new IndexerToClient(client, 1500, 2, 300);
 
     it("Should get block", async function () {
       let res = await inToCl.getBlockFromClient("height", 763418);
@@ -57,53 +57,6 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
     it("Should get block timestamp", async function () {
       let res = await inToCl.getBlockNumberTimestampFromClient(763419);
       expect(res).to.be.eq(1668598940);
-    });
-  });
-
-  describe(`XRP`, function () {
-    const XRPMccConnection = {
-      url: "https://xrplcluster.com",
-      username: "",
-      password: "",
-    } as XrpMccCreate;
-
-    const client = new MCC.XRP(XRPMccConnection);
-    let inToCl = new IndexerToClient(client, 1500, 2, 300);
-
-    it("Should get block", async function () {
-      let res = await inToCl.getBlockFromClient("height", 76_468_242);
-      expect(res.blockHash).to.be.eq("55DBD6F6E00327DB99178A4416643C0BC47DBF1783E305DC70820037F804F3B7");
-    });
-
-    it("Should not get Block", async function () {
-      await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
-    });
-
-    it("Should get block by hash", async function () {
-      const hash = "55DBD6F6E00327DB99178A4416643C0BC47DBF1783E305DC70820037F804F3B7";
-      let res = await inToCl.getBlockFromClientByHash("hash", hash);
-      expect(res.number).to.eq(76_468_242);
-    });
-
-    it("Should get block header by hash", async function () {
-      const hash = "55DBD6F6E00327DB99178A4416643C0BC47DBF1783E305DC70820037F804F3B7";
-      let res = await inToCl.getBlockHeaderFromClientByHash("hash", hash);
-      expect(res.number).to.eq(76_468_242);
-    });
-
-    it("Should get block height", async function () {
-      let res = await inToCl.getBlockHeightFromClient("height");
-      expect(res).to.be.greaterThan(76_468_242);
-    });
-
-    it("Should get bottom block height", async function () {
-      let res = await inToCl.getBottomBlockHeightFromClient("bottom");
-      expect(res).to.be.eq(32570);
-    });
-
-    it("Should get block timestamp", async function () {
-      let res = await inToCl.getBlockNumberTimestampFromClient(76_468_242);
-      expect(res).to.be.eq(1671199631);
     });
   });
 });

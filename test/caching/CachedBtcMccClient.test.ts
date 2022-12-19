@@ -3,7 +3,6 @@ import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/C
 import { ITransaction } from "@flarenetwork/mcc";
 import { expect } from "chai";
 
-//To be put into env. Why does it not work????
 const BtcMccConnection = {
   url: process.env.BTC_URL,
   username: process.env.BTC_USERNAME,

@@ -1,6 +1,7 @@
 import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { EntityTarget } from "typeorm";
+import { number } from "yargs";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
@@ -51,7 +52,7 @@ export class Indexer {
   indexerSync: IndexerSync;
 
   // N - last processed and saved block
-  N = 0;
+  _N = 0;
 
   // T - chain height
   T = 0;
@@ -153,104 +154,28 @@ export class Indexer {
   }
 
   /////////////////////////////////////////////////////////////
+  // Update N
+  /////////////////////////////////////////////////////////////
+
+  get N() {
+    return this._N;
+  }
+  set N(newN: number) {
+    this._N = newN;
+    this.headerCollector.updateN(newN);
+  }
+
+  /////////////////////////////////////////////////////////////
   // Safeguarded client functions
   /////////////////////////////////////////////////////////////
 
   // MOVED TO indexerToClient.ts
-  // /**
-  //  *
-  //  * @param label
-  //  * @param blockNumber
-  //  * @returns
-  //  * @category BaseMethod
-  //  */
-  // public async getBlockFromClient(label: string, blockNumber: number): Promise<IBlock> {
-  //   // todo: implement MCC lite version of getBlock
-  //   const result = await retry(`indexer.getBlockFromClient.${label}`, async () => {
-  //     return await this.cachedClient.client.getBlock(blockNumber);
-  //   });
-  //   if (!result) {
-  //     failureCallback(`indexer.getBlockFromClient.${label} - null block returned`);
-  //   }
-  //   return result;
-  // }
-  // /**
-  //  *
-  //  * @param label
-  //  * @param blockHash
-  //  * @returns
-  //  * @category BaseMethod
-  //  */
-  // public async getBlockFromClientByHash(label: string, blockHash: string): Promise<IBlock> {
-  //   // todo: implement MCC lite version of getBlock
-  //   const result = await retry(`indexer.getBlockFromClientByHash.${label}`, async () => {
-  //     return await this.cachedClient.client.getBlock(blockHash);
-  //   });
-  //   if (!result) {
-  //     failureCallback(`indexer.getBlockFromClientByHash.${label} - null block returned`);
-  //   }
-  //   return result;
-  // }
-  // /**
-  //  *
-  //  * @param label
-  //  * @param blockHash
-  //  * @returns
-  //  * @category BaseMethod
-  //  */
-  // public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<IBlockHeader> {
-  //   // todo: implement MCC lite version of getBlock
-  //   const result = await retry(`indexer.getBlockHeaderFromClientByHash.${label}`, async () => {
-  //     return await this.cachedClient.client.getBlockHeader(blockHash);
-  //   });
-  //   if (!result) {
-  //     failureCallback(`indexer.getBlockHeaderFromClientByHash.${label} - null block returned`);
-  //   }
-  //   return result;
-  // }
-  // public async getBlockHeightFromClient(label: string): Promise<number> {
-  //   return await retry(`indexer.getBlockHeightFromClient.${label}`, async () => {
-  //     return this.cachedClient.client.getBlockHeight();
-  //   });
-  // }
-  // public async getBottomBlockHeightFromClient(label: string): Promise<number> {
-  //   return await retry(`indexer.getBottomBlockHeightFromClient.${label}`, async () => {
-  //     return this.cachedClient.client.getBottomBlockHeight();
-  //   });
-  // }
-  // /**
-  //  *
-  //  * @param blockNumber
-  //  * @returns
-  //  * @category AdvancedMethod
-  //  */
-  // public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
-  //   // todo: get `getBlockLite` FAST version of block read since we only need timestamp
-  //   const block = (await this.indexerToClient.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
-  //   // block cannot be undefined as the above call will fatally fail and terminate app
-  //   return block.unixTimestamp;
-  // }
 
   /////////////////////////////////////////////////////////////
   // misc
   /////////////////////////////////////////////////////////////
 
   // Moved to indexer-utils
-  // /**
-  //  * Prefixes chain name and undercore to the given name
-  //  * @param name chain name
-  //  * @returns
-  //  */
-  // private prefixChainNameTo(name: string) {
-  //   return this.chainConfig.name + "_" + name;
-  // }
-  // /**
-  //  * Returns entry key for N in the database.
-  //  * @returns
-  //  */
-  // private getChainN() {
-  //   return this.prefixChainNameTo("N");
-  // }
 
   /**
    * Returns number of days for syncing from configurations
@@ -267,40 +192,6 @@ export class Indexer {
   /////////////////////////////////////////////////////////////
 
   // Moved to indexer-utils
-  // /**
-  //  * Constructs dbState entity for key-value pair
-  //  * @param name name associated to key
-  //  * @param value value (number)
-  //  * @returns
-  // //  */
-  // public getStateEntry(name: string, value: number): DBState {
-  //   const state = new DBState();
-  //
-  //   state.name = this.prefixChainNameTo(name);
-  //   state.valueNumber = value;
-  //   state.timestamp = getUnixEpochTimestamp();
-  //
-  //   return state;
-  // }
-  // /**
-  //  * Construct dbState entity for key-values entry, that contains string, number and comment values.
-  //  * @param name
-  //  * @param valueString
-  //  * @param valueNum
-  //  * @param comment
-  //  * @returns
-  //  */
-  // public getStateEntryString(name: string, valueString: string, valueNum: number, comment = ""): DBState {
-  //   const state = new DBState();
-  //
-  //   state.name = this.prefixChainNameTo(name);
-  //   state.valueString = valueString;
-  //   state.valueNumber = valueNum;
-  //   state.timestamp = getUnixEpochTimestamp();
-  //   state.comment = comment;
-  //
-  //   return state;
-  // }
 
   /////////////////////////////////////////////////////////////
   // block processor callbacks
@@ -370,7 +261,6 @@ export class Indexer {
   // table interlacing prepare and management
   /////////////////////////////////////////////////////////////
 
-  //???Put this into constructor????
   /**
    * Prepares table entities for transactions (interlaced) and block
    */
@@ -383,18 +273,6 @@ export class Indexer {
   }
 
   // MOVED TO interlacing.ts
-  // /**
-  //  * Returns current active transaction table managed by interlacing
-  //  * @returns
-  //  */
-  // public getActiveTransactionWriteTable(): IDBTransactionBase {
-  //   // we write into table by active index:
-  //   //  0 - table0
-  //   //  1 - table1
-  //
-  //   const index = this.interlace.activeIndex;
-  //   return this.dbTransactionClasses[index];
-  // }
 
   /////////////////////////////////////////////////////////////
   // block save
@@ -463,7 +341,6 @@ export class Indexer {
 
     // increment N if all is ok
     this.N = Np1;
-    this.headerCollector.updateN(this.N);
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
     if (!this.indexerToDB.bottomBlockTime) {
@@ -489,71 +366,12 @@ export class Indexer {
   /////////////////////////////////////////////////////////////
 
   // MOVED TO indexerToDB.ts
-  // /**
-  //  * Saves the bottom block number and timestamp into the state table in the database.
-  //  * The bottom block is the minimal block for confirmed transactions that are currently
-  //  * stored in the interlacing transaction tables.
-  //  */
-  // async saveBottomState() {
-  //   try {
-  //     const bottomBlockNumber = await this.indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
-  //     if (bottomBlockNumber) {
-  //       const bottomBlock = await this.dbService.manager.findOne(this.dbBlockClass, { where: { blockNumber: bottomBlockNumber, confirmed: true } });
-
-  //       this.bottomBlockTime = (bottomBlock as DBBlockBase).timestamp;
-
-  //       this.logger.debug(`block bottom state ${bottomBlockNumber}`);
-  //       const bottomStates = [
-  //         getStateEntry(`Nbottom`, this.chainConfig.name, bottomBlockNumber),
-  //         getStateEntry(`NbottomTime`, this.chainConfig.name, this.bottomBlockTime),
-  //       ];
-  //       await this.dbService.manager.save(bottomStates);
-  //     } else {
-  //       this.logger.debug(`block bottom state is undefined`);
-  //     }
-  //   } catch (error) {
-  //     logException(error, `saving block bottom state`);
-  //   }
-  // }
 
   /////////////////////////////////////////////////////////////
   // get respective DB block number
   /////////////////////////////////////////////////////////////
 
   // MOVED TO indexerToDB.ts
-  // /**
-  //  * @returns Returns last N saved into the database
-  //  */
-  // private async getNfromDB(): Promise<number> {
-  //   const res = await this.dbService.manager.findOne(DBState, { where: { name: getChainN(this.chainConfig.name) } });
-  //
-  //   if (res === undefined || res === null) return 0;
-  //
-  //   return res.valueNumber;
-  // }
-  //
-  // /**
-  //  * Finds minimal block number that appears in interlacing transaction tables
-  //  * @returns
-  //  * NOTE: we assume there is no gaps
-  //  */
-  // public async getBottomDBBlockNumberFromStoredTransactions(): Promise<number> {
-  //   const query0 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[0] as any, "blocks");
-  //   query0.select(`MIN(blocks.blockNumber)`, "min");
-  //   const result0 = await query0.getRawOne();
-
-  //   const query1 = this.dbService.manager.createQueryBuilder(this.dbTransactionClasses[1] as any, "blocks");
-  //   query1.select(`MIN(blocks.blockNumber)`, "min");
-  //   const result1 = await query1.getRawOne();
-
-  //   if (!result0.min && !result1.min) {
-  //     return undefined;
-  //   }
-  //   if (!result0.min) return result1.min;
-  //   if (!result1.min) return result0.min;
-
-  //   return result0.min < result1.min ? result0.min : result1.min;
-  // }
 
   /////////////////////////////////////////////////////////////
   // Block saving management
@@ -688,37 +506,6 @@ export class Indexer {
   }
 
   // MOVED TO indexerToDB.ts
-  // /**
-  //  * Securely drops the table given the name
-  //  * @param name name of the table to be dropped
-  //  * @returns
-  //  */
-  // async dropTable(name: string) {
-  //   try {
-  //     this.logger.info(`dropping table ${name}`);
-  //     const queryRunner = this.dbService.manager.createQueryRunner();
-  //     const table = await queryRunner.getTable(name);
-  //     if (!table) {
-  //       this.logger.error(`unable to find table ${name}`);
-  //       return;
-  //     }
-  //     await queryRunner.dropTable(table);
-  //     await queryRunner.release();
-  //   } catch (error) {
-  //     logException(error, `dropTable`);
-  //   }
-  // }
-  // /**
-  //  * Drops all block and transactions tables for the specified chain
-  //  * @param chain chain name (XRP, LTC, BTC, DOGE, ALGO)
-  //  */
-  // private async dropAllChainTables(chain: string) {
-  //   chain = chain.toLocaleLowerCase();
-
-  //   await this.indexerToDB.dropTable(`${chain}_block`);
-  //   await this.indexerToDB.dropTable(`${chain}_transactions0`);
-  //   await this.indexerToDB.dropTable(`${chain}_transactions1`);
-  // }
 
   /**
    * Updates the status for monitoring
@@ -916,7 +703,6 @@ export class Indexer {
     if (dbStartBlockNumber > 0) {
       this.N = dbStartBlockNumber;
     }
-    this.headerCollector.updateN(this.N);
 
     await this.interlace.initialize(
       this.logger,

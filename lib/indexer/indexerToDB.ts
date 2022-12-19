@@ -139,6 +139,7 @@ export class IndexerToDB {
         return;
       }
       await queryRunner.dropTable(table);
+      await queryRunner.createTable(table);
       await queryRunner.release();
     } catch (error) {
       logException(error, `dropTable`);

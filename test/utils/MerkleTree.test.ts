@@ -58,7 +58,7 @@ describe(`Merkle Tree (${getTestFile(__filename)})`, () => {
     });
 
     it("Should merkle proof work for up to 10 hashes", () => {
-      for (let i = 2; i < 100; i++) {
+      for (let i = 95; i < 100; i++) {
         const hashes = makeHashes(i);
         const tree = new MerkleTree(hashes);
         // console.log(tree);
@@ -72,7 +72,7 @@ describe(`Merkle Tree (${getTestFile(__filename)})`, () => {
     });
 
     it("Should reject insufficient data", () => {
-      for (let i = 1; i < 100; i++) {
+      for (let i = 95; i < 100; i++) {
         let hashes = makeHashes(i);
         const tree = new MerkleTree(hashes);
         assert(!verifyWithMerkleProof(tree.getHash(i), [], tree.root));
@@ -82,7 +82,7 @@ describe(`Merkle Tree (${getTestFile(__filename)})`, () => {
     });
 
     it("Should reject false proof", () => {
-      for (let i = 2; i < 100; i++) {
+      for (let i = 95; i < 100; i++) {
         let hashes1 = makeHashes(i);
         let hashes2 = makeHashes(i);
         const tree1 = new MerkleTree(hashes1);

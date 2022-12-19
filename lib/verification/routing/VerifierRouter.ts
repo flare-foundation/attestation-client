@@ -27,16 +27,13 @@ export const EMPTY_VERIFIER_ROUTE = new VerifierRoute();
 /**
  * A routing class for attestation requests to be routed to verifier servers.
  * It gets configured through type definitions and routing configuration.
- * If supports passing attestation requests to verifier servers as well
- * as local verifications (legacy support).
+ * If supports passing attestation requests to verifier servers.
  */
 export class VerifierRouter {
    credentials: VerifierRouteCredentials;
    // routing map: sourceName -> attestationTypeName -> VerifierRoute
    routeMap: Map<string, Map<string, VerifierRoute>>;
    _initialized = false;
-   // Remote only verification possible
-   _enableLocalVerification = true;
 
    /**
     * Auxilliary function. Returns VerifierRoute for given @param sourceName and @param attestationTypeName
@@ -77,7 +74,7 @@ export class VerifierRouter {
     * configurations are read and set and there are no double setting of a specific configuration for
     * a pair of (sourceName, attestationTypeName)
     */
-   public async initialize(enableLocalVerification = true) {
+   public async initialize() {
       if (this._initialized) {
          throw new Error("Already initialized");
       }
@@ -126,7 +123,6 @@ export class VerifierRouter {
             }
          }
       }
-      this._enableLocalVerification = enableLocalVerification;
       this._initialized = true;
    }
 
@@ -147,7 +143,7 @@ export class VerifierRouter {
    }
 
    /**
-    * Verifies attestation by sending the request to relevant verifier (including local one).
+    * Verifies attestation by sending the request to relevant verifier (including this.sourcerouter. one).
     * @param attestation 
     * @param recheck 
     * @returns 

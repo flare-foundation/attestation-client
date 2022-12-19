@@ -137,7 +137,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   it(`Should verify attestation`, async function () {
     process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
-    await verifierRouter.initialize(false);
+    await verifierRouter.initialize();
 
     let requestXRP = await testPaymentRequest(entityManagerXRP, selectedTransactionXRP, DBBlockXRP, NUMBER_OF_CONFIRMATIONS_XRP, ChainType.XRP);
     const attestationXRP = prepareAttestation(requestXRP, startTime);
@@ -161,7 +161,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   it(`Should fail due to sending wrong route`, async function () {
     process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
-    await verifierRouter.initialize(false);
+    await verifierRouter.initialize();
 
     let confirmationBlock = await selectBlock(entityManagerXRP, DBBlockXRP, BLOCK_CHOICE);
     let requestXRP = await testConfirmedBlockHeightExistsRequest(confirmationBlock, ChainType.XRP);
@@ -175,7 +175,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   it(`Should fail due to verifier not supporting the attestation type`, async function () {
     process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
-    await verifierRouter.initialize(false);
+    await verifierRouter.initialize();
 
     let confirmationBlock = await selectBlock(entityManagerBTC, DBBlockBTC, BLOCK_CHOICE);
     let requestBTC = await testConfirmedBlockHeightExistsRequest(confirmationBlock, ChainType.BTC);

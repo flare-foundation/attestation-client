@@ -2,7 +2,7 @@
 
 import { ChainType, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
-import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
+import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";

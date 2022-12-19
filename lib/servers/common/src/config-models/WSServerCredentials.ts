@@ -1,4 +1,4 @@
-import { ChainConfiguration } from "../../../../chain/ChainConfiguration";
+import { ChainConfiguration } from "../../../../source/ChainConfiguration";
 import { DatabaseConnectOptions } from "../../../../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
 import { ServerUser } from "./ServerUser";

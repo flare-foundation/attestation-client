@@ -7,15 +7,15 @@ import { SourceId, toSourceId } from "../verification/sources/sources";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 
 const fs = require("fs");
-export class SourceHandlerTypeConfig {
+export class SourceLimiterTypeConfig {
   // Weight presents the difficulty of validating the attestation depending on the attestation type and source
   weight!: number;
 }
 
 /**
- * Class providing parameters for handling the limitations (maxTotalRoundWeight, quieryWindowInSec...) of a attestation round for a source
+ * Class providing parameters for handling the limitations (maxTotalRoundWeight, queryWindowInSec...) of a attestation round for a source
  */
-export class SourceHandlerConfig {
+export class SourceLimiterConfig {
   attestationType!: AttestationType;
   source!: SourceId;
 
@@ -26,16 +26,16 @@ export class SourceHandlerConfig {
   queryWindowInSec!: number;
   UBPUnconfirmedWindowInSec!: number;
 
-  attestationTypes = new Map<number, SourceHandlerTypeConfig>();
+  attestationTypes = new Map<number, SourceLimiterTypeConfig>();
 }
 
 /**
- * Class providing SourceHandlerConfig for each source from the startEpoche on??
+ * Class providing SourceLimiterConfig for each source from the startEpoche on??
  */
 export class AttestationConfig {
   startEpoch!: number;
 
-  sourceHandlers = new Map<number, SourceHandlerConfig>();
+  sourceLimiters = new Map<number, SourceLimiterConfig>();
 }
 
 /**
@@ -147,26 +147,26 @@ export class AttestationConfigManager {
     // parse sources
     fileConfig.sources.forEach(
       (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; UBPUnconfirmedWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
-        const sourceHandler = new SourceHandlerConfig();
+        const sourceLimiter = new SourceLimiterConfig();
 
-        sourceHandler.source = toSourceId(source.source);
+        sourceLimiter.source = toSourceId(source.source);
 
-        sourceHandler.maxTotalRoundWeight = source.maxTotalRoundWeight;
-        sourceHandler.numberOfConfirmations = source.numberOfConfirmations;
-        sourceHandler.queryWindowInSec = source.queryWindowInSec;
-        sourceHandler.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
+        sourceLimiter.maxTotalRoundWeight = source.maxTotalRoundWeight;
+        sourceLimiter.numberOfConfirmations = source.numberOfConfirmations;
+        sourceLimiter.queryWindowInSec = source.queryWindowInSec;
+        sourceLimiter.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
 
-        config.sourceHandlers.set(sourceHandler.source, sourceHandler);
+        config.sourceLimiters.set(sourceLimiter.source, sourceLimiter);
 
         // parse attestationTypes
         source.attestationTypes.forEach((attestationType) => {
           const type = (<any>AttestationType)[attestationType.type] as AttestationType;
 
-          const attestationTypeHandler = new SourceHandlerTypeConfig();
+          const attestationTypeHandler = new SourceLimiterTypeConfig();
 
           attestationTypeHandler.weight = attestationType.weight;
 
-          sourceHandler.attestationTypes.set(type, attestationTypeHandler);
+          sourceLimiter.attestationTypes.set(type, attestationTypeHandler);
         });
       }
     );
@@ -197,18 +197,18 @@ export class AttestationConfigManager {
   }
 
   /**
-   * @returns SourceHandlerConfig for a given @param source that is valid for in @param epoch
+   * @returns SourceLimiterConfig for a given @param source that is valid for in @param epoch
    */
-  getSourceHandlerConfig(source: number, epoch: number): SourceHandlerConfig {
+  getSourceLimiterConfig(source: number, epoch: number): SourceLimiterConfig {
     // configs must be ordered by decreasing epoch number
     for (let a = 0; a < this.attestationConfig.length; a++) {
       if (this.attestationConfig[a].startEpoch < epoch) {
-        return this.attestationConfig[a].sourceHandlers.get(source)!;
+        return this.attestationConfig[a].sourceLimiters.get(source)!;
       }
     }
 
     this.logger.error(`DAC for source ${source} epoch ${epoch} does not exist (using default)`);
 
-    return new SourceHandlerConfig();
+    return new SourceLimiterConfig();
   }
 }

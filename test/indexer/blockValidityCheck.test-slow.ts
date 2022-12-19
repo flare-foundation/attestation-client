@@ -3,9 +3,9 @@
 import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
 import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
-import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
 import { Indexer } from "../../lib/indexer/indexer";
+import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getRetryFailureCallback, setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
@@ -191,7 +191,7 @@ describe("Block validity check before processing", () => {
     indexer.blockProcessorManager.settings.validateBlockWaitMs = 1;
 
     const stub1 = sinon.spy(getRetryFailureCallback());
-    indexer.blockProcessorManager.process(invalidBlock);
+    await indexer.blockProcessorManager.process(invalidBlock);
     expect(stub1.callback).to.be.eq("");
   });
 });

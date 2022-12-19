@@ -7,7 +7,7 @@ import { AttestationData } from "../../lib/attester/AttestationData";
 import { AttestationRoundManager } from "../../lib/attester/AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
 import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
-import { ChainManager } from "../../lib/chain/ChainManager";
+import { SourceRouter } from "../../lib/source/SourceRouter";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
@@ -17,8 +17,8 @@ import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 const chai = require("chai");
 const expect = chai.expect;
 
-class MockChainManager extends ChainManager {
-  validateTransaction(sourceId: SourceId, transaction: Attestation) {}
+class MockSourceRouter extends SourceRouter {
+  validateTransaction(sourceId: SourceId, transaction: Attestation) { }
 }
 
 class MockAttesterWeb3 extends AttesterWeb3 {
@@ -26,7 +26,7 @@ class MockAttesterWeb3 extends AttesterWeb3 {
     super(credentials);
   }
 
-  async initialize() {}
+  async initialize() { }
 
   check(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
@@ -78,9 +78,9 @@ describe.skip("Attestation Client", () => {
     const config = new AttesterClientConfiguration();
     const credentials = new AttesterCredentials();
 
-    const chainManager = new MockChainManager(this.logger);
+    const sourceRouter = new MockSourceRouter(this.logger);
     const attesterWeb3 = new MockAttesterWeb3(this.credentials);
-    attestationRoundManager = new AttestationRoundManager(chainManager, config, credentials, logger, attesterWeb3);
+    attestationRoundManager = new AttestationRoundManager(sourceRouter, config, credentials, logger, attesterWeb3);
   });
 
   ////////////////////////////////

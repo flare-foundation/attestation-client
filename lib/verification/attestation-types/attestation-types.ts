@@ -104,7 +104,7 @@ export interface AttestationTypeScheme {
 export interface AttestationRequestOptions {
   roundId: number;
   recheck?: boolean;
-  windowStartTime?: number;  // legacy
+  windowStartTime?: number; 
   UBPCutoffTime?: number;    // legacy
 }
 

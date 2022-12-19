@@ -2,7 +2,7 @@ import { traceManager, TraceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { AttesterClient } from "./attester/AttesterClient";
 import { AttesterClientConfiguration, AttesterCredentials } from "./attester/AttesterClientConfiguration";
-import { ChainsConfiguration } from "./chain/ChainConfiguration";
+import { ChainsConfiguration } from "./source/ChainConfiguration";
 import { readSecureConfig, readSecureCredentials } from "./utils/configSecure";
 import { getGlobalLogger, logException, setLoggerName } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";

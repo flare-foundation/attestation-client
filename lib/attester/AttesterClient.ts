@@ -1,7 +1,7 @@
 import { ChainType, Managed, MCC } from "@flarenetwork/mcc";
-import { ChainsConfiguration } from "../chain/ChainConfiguration";
-import { ChainManager } from "../chain/ChainManager";
-import { ChainNode } from "../chain/ChainNode";
+import { ChainsConfiguration } from "../source/ChainConfiguration";
+import { SourceRouter } from "../source/SourceRouter";
+import { SourceManager } from "../source/SourceManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
@@ -24,7 +24,7 @@ export class AttesterClient {
   logger: AttLogger;
   attestationRoundManager: AttestationRoundManager;
   attesterWeb3: AttesterWeb3;
-  chainManager: ChainManager;
+  sourceRouter: SourceRouter;
   blockCollector!: Web3BlockCollector;
 
   constructor(configuration: AttesterClientConfiguration, credentials: AttesterCredentials, chains: ChainsConfiguration, logger?: AttLogger) {
@@ -37,9 +37,9 @@ export class AttesterClient {
     this.config = configuration;
     this.chainsConfig = chains;
     this.credentials = credentials;
-    this.chainManager = new ChainManager(this.logger);
+    this.sourceRouter = new SourceRouter(this.logger);
     this.attesterWeb3 = new AttesterWeb3(this.credentials);
-    this.attestationRoundManager = new AttestationRoundManager(this.chainManager, this.config, this.credentials, this.logger, this.attesterWeb3);
+    this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.config, this.credentials, this.logger, this.attesterWeb3);
   }
 
   /**
@@ -93,7 +93,7 @@ export class AttesterClient {
     }
   }
 
-  private async initializeChains() {
+  private async initializeSources() {
     this.logger.info("initializing chains");
 
     for (const chain of this.chainsConfig.chains) {
@@ -104,10 +104,10 @@ export class AttesterClient {
         continue;
       }
 
-      const node = new ChainNode(this.attestationRoundManager, chain);
-      await node.initialize();
+      const sourceManager = new SourceManager(this.attestationRoundManager, chain);
+      await sourceManager.initialize();
       this.logger.info(`chain ${chain.name}:#${chainType}`);
-      this.chainManager.addNode(chainType as any as SourceId, node);
+      this.sourceRouter.addSourceManager(chainType as any as SourceId, sourceManager);
     }
   }
 
@@ -199,10 +199,10 @@ export class AttesterClient {
     this.logger.info(`roundManager initialize`);
     await this.attestationRoundManager.initialize();
 
-    // validate configuration chains and create nodes
+    // validate source manager configurations and create source managers
     try {
       this.logger.info(`chains initialize`);
-      await this.initializeChains();
+      await this.initializeSources();
     } catch (error) {
       logException(error, `initializeChains`);
     }

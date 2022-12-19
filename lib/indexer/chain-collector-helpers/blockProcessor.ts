@@ -38,7 +38,6 @@ export function BlockProcessor(chainType: ChainType) {
  */
 @Managed()
 export class UtxoBlockProcessor extends LimitingProcessor {
-
   async initializeJobs(block: IBlock, onSave: onSaveSig) {
     this.block = block as UtxoBlock;
     const txPromises = block.data.tx.map((txObject) => {
@@ -139,7 +138,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
 
     const txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
       return () => {
-        return augmentTransactionAlgo(DBTransactionALGO0, block as AlgoBlock, algoTrans);
+        return augmentTransactionAlgo(block as AlgoBlock, algoTrans);
       };
     });
     const transDb = (await retryMany(
@@ -174,7 +173,7 @@ export class XrpBlockProcessor extends LimitingProcessor {
       const processed = new XrpTransaction(newObj);
 
       return () => {
-        return augmentTransactionXrp(DBTransactionXRP0, block, processed);
+        return augmentTransactionXrp(block, processed);
       };
     });
     const transDb = (await retryMany(

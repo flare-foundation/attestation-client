@@ -11,7 +11,7 @@ import {
   XrpTransaction,
 } from "@flarenetwork/mcc";
 import { stringify } from "safe-stable-stringify";
-import { DBTransactionBase, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { DBTransactionALGO0, DBTransactionBase, DBTransactionXRP0, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { prepareString } from "../../utils/utils";
 
 /**
@@ -45,8 +45,8 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
  * @param txData
  * @returns
  */
-export function augmentTransactionAlgo(dbTransaction: IDBTransactionBase, block: AlgoBlock, txData: AlgoTransaction): DBTransactionBase {
-  const res = augmentTransactionBase(dbTransaction, ChainType.ALGO, block, txData);
+export function augmentTransactionAlgo(block: AlgoBlock, txData: AlgoTransaction): DBTransactionBase {
+  const res = augmentTransactionBase(DBTransactionALGO0, ChainType.ALGO, block, txData);
 
   return res as DBTransactionBase;
 }
@@ -62,7 +62,7 @@ export function augmentTransactionAlgo(dbTransaction: IDBTransactionBase, block:
  * @returns
  */
 export async function augmentTransactionUtxo(
-  dbTransaction: any,
+  dbTransaction: IDBTransactionBase,
   chainType: ChainType,
   block: UtxoBlock,
   txDataPromise: Promise<UtxoTransaction>
@@ -81,8 +81,8 @@ export async function augmentTransactionUtxo(
  * @param txData
  * @returns
  */
-export function augmentTransactionXrp(dbTransaction: IDBTransactionBase, block: XrpBlock, txData: XrpTransaction): DBTransactionBase {
-  const res = augmentTransactionBase(dbTransaction, ChainType.XRP, block, txData);
+export function augmentTransactionXrp(block: XrpBlock, txData: XrpTransaction): DBTransactionBase {
+  const res = augmentTransactionBase(DBTransactionXRP0, ChainType.XRP, block, txData);
 
   return res as DBTransactionBase;
 }

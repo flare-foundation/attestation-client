@@ -100,3 +100,16 @@ export interface AttestationTypeScheme {
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
 }
+
+export interface AttestationRequestOptions {
+  roundId: number;
+  recheck?: boolean;
+  windowStartTime?: number;  // legacy
+  UBPCutoffTime?: number;    // legacy
+}
+
+export interface AttestationRequest {
+  apiKey?: string;
+  request: string;
+  options: AttestationRequestOptions;
+}

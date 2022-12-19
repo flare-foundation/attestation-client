@@ -1,8 +1,12 @@
+import { ChainConfiguration } from "../../../../chain/ChainConfiguration";
+import { DatabaseConnectOptions } from "../../../../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
 import { ServerUser } from "./ServerUser";
 
 export class WSServerCredentials implements IReflection<WSServerCredentials> {
   public apiKeys: ServerUser[] = [];
+  public indexerDatabase = new DatabaseConnectOptions();
+  public chainConfiguration = new ChainConfiguration();
 
   instanciate(): WSServerCredentials {
     return new WSServerCredentials();

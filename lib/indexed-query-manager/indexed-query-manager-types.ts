@@ -1,16 +1,17 @@
 import { ChainType } from "@flarenetwork/mcc";
+import { EntityManager } from "typeorm";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/databaseService";
 
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
-  dbService?: DatabaseService;
+  entityManager: EntityManager;
   numberOfConfirmations: () => number;
   maxValidIndexerDelaySec: number;
   // return windows start time from current epochId
-  windowStartTime: (roundId: number) => number;
-  UBPCutoffTime: (roundId: number) => number;
+  windowStartTime?: (roundId: number) => number;
+  UBPCutoffTime?: (roundId: number) => number;
 }
 
 export interface BlockHeightSample {
@@ -28,6 +29,8 @@ export interface TransactionQueryParams {
   transactionId?: string;
   paymentReference?: string;
   returnQueryBoundaryBlocks?: boolean;
+  windowStartTime?: number;
+  UBPCutoffTime?: number;
 }
 
 export interface BlockQueryParams {
@@ -37,6 +40,8 @@ export interface BlockQueryParams {
   roundId: number;
   confirmed?: boolean;
   returnQueryBoundaryBlocks?: boolean;
+  windowStartTime?: number;
+  UBPCutoffTime?: number;
 }
 
 export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
@@ -67,10 +72,11 @@ export interface UpperBoundaryCheck {
 export interface ConfirmedBlockQueryRequest {
   blockNumber?: number;
   roundId: number;
-  numberOfConfirmations: number;
   upperBoundProof: string; // hash of confirmation block(used for syncing of edge - cases)
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
   returnQueryBoundaryBlocks?: boolean;
+  windowStartTime?: number;
+  UBPCutoffTime?: number;
 }
 
 export interface ConfirmedBlockQueryResponse {
@@ -84,9 +90,10 @@ export interface ConfirmedTransactionQueryRequest {
   // blockNumber: number; // block number for the transaction with `txId
   upperBoundProof: string; // hash of confirmation block(used for syncing of edge - cases)
   roundId: number; // voting round id for check
-  numberOfConfirmations: number;
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
   returnQueryBoundaryBlocks?: boolean;
+  windowStartTime?: number;
+  UBPCutoffTime?: number;
 }
 
 export interface ConfirmedTransactionQueryResponse {
@@ -99,13 +106,14 @@ export interface ConfirmedTransactionQueryResponse {
 export interface ReferencedTransactionsQueryRequest {
   deadlineBlockNumber: number;
   deadlineBlockTimestamp: number;
-  numberOfConfirmations: number;
   paymentReference: string; // payment reference
   // Used to determine overflow block - the first block with blockNumber > endBlock and timestamp > endTime
   // overflowBlockNumber: number;
   upperBoundProof: string; // hash of confirmation block of the overflow block
   roundId: number; // voting round id for check
   type: IndexerQueryType; // FIRST_CHECK` or`RECHECK`
+  windowStartTime?: number;
+  UBPCutoffTime?: number;
 }
 
 export interface ReferencedTransactionsQueryResponse {

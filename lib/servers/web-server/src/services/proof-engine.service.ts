@@ -1,4 +1,3 @@
-import { ServerConfigurationService } from '@atc/common';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import fs from "fs";
@@ -10,6 +9,7 @@ import { ServiceStatus } from '../dtos/ServiceStatus.dto';
 import { SystemStatus } from '../dtos/SystemStatus.dto';
 import { VotingRoundRequest } from '../dtos/VotingRoundRequest.dto';
 import { VotingRoundResult } from '../dtos/VotingRoundResult.dto';
+import { ServerConfigurationService } from './server-configuration.service';
 
 @Injectable()
 export class ProofEngineService {

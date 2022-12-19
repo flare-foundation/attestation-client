@@ -13,11 +13,11 @@ describe(`DatabaseService tests (${getTestFile(__filename)})`, function () {
     await dataService.connect();
   });
 
-  it("should be initialized", function () {
+  it("Should be initialized", function () {
     expect(dataService.dataSource.isInitialized).to.be.true;
   });
 
-  it("should get manager", function () {
+  it("Should get manager", function () {
     const mng = dataService.manager;
     expect(!mng).to.be.false;
   });

@@ -1,0 +1,93 @@
+{
+   "data": {
+      "result": {
+         "Account": "rPd9oB2Kdot9HSsXSeFYpKZUV3vDsBzv73",
+         "Fee": "10",
+         "Flags": 0,
+         "LastLedgerSequence": 33157134,
+         "Sequence": 33669469,
+         "SigningPubKey": "EDB7BF0AAD65FF53AE890FA34B6A6CC2979BA1D4D864BE63DAA726B1ECED0DC29D",
+         "TakerGets": {
+            "currency": "SGB",
+            "issuer": "rBZJzEisyXt2gvRWXLxHftFRkd1vJEpBQP",
+            "value": "2163.35884763452"
+         },
+         "TakerPays": "70911869",
+         "TransactionType": "OfferCreate",
+         "TxnSignature": "F105F33112C171804804304E9AAE61F2E08D5E429F784F387F655A77AE9B0D5ED1AF1DA1F95F52F080AEE93663A3B476E2322619A0CF5E1815203C038DC6C303",
+         "date": 722694951,
+         "hash": "9453224E24F622898BEA59D68D4C62B392DBE9F79E0A884979D4EAAF2242665A",
+         "metaData": {
+            "AffectedNodes": [
+               {
+                  "ModifiedNode": {
+                     "FinalFields": {
+                        "ExchangeRate": "590ba5323241e406",
+                        "Flags": 0,
+                        "RootIndex": "34ECEABE96DC911D402C44C20C0BD65318F33C247784855D590BA5323241E406",
+                        "TakerGetsCurrency": "0000000000000000000000005347420000000000",
+                        "TakerGetsIssuer": "73CD956385DDF242A2A9A685E803DC1A0FA5AEB4",
+                        "TakerPaysCurrency": "0000000000000000000000000000000000000000",
+                        "TakerPaysIssuer": "0000000000000000000000000000000000000000"
+                     },
+                     "LedgerEntryType": "DirectoryNode",
+                     "LedgerIndex": "34ECEABE96DC911D402C44C20C0BD65318F33C247784855D590BA5323241E406"
+                  }
+               },
+               {
+                  "ModifiedNode": {
+                     "FinalFields": {
+                        "Flags": 0,
+                        "IndexPrevious": "82",
+                        "Owner": "rPd9oB2Kdot9HSsXSeFYpKZUV3vDsBzv73",
+                        "RootIndex": "4EE01DEF5D4481A79392A1FF328155CD5958E27C39383B7F837F6843A0EA5BA2"
+                     },
+                     "LedgerEntryType": "DirectoryNode",
+                     "LedgerIndex": "72169E5FD2014860A704D7AA83EF1F67B414A46E6E9D31D3D3369A0A7FCEA691"
+                  }
+               },
+               {
+                  "CreatedNode": {
+                     "LedgerEntryType": "Offer",
+                     "LedgerIndex": "734A3D46AF10828DDC85C947566A639F2EAC05AF72DBBE44DD3A3CE8759418E8",
+                     "NewFields": {
+                        "Account": "rPd9oB2Kdot9HSsXSeFYpKZUV3vDsBzv73",
+                        "BookDirectory": "34ECEABE96DC911D402C44C20C0BD65318F33C247784855D590BA5323241E406",
+                        "OwnerNode": "83",
+                        "Sequence": 33669469,
+                        "TakerGets": {
+                           "currency": "SGB",
+                           "issuer": "rBZJzEisyXt2gvRWXLxHftFRkd1vJEpBQP",
+                           "value": "2163.358847634515"
+                        },
+                        "TakerPays": "70911869"
+                     }
+                  }
+               },
+               {
+                  "ModifiedNode": {
+                     "FinalFields": {
+                        "Account": "rPd9oB2Kdot9HSsXSeFYpKZUV3vDsBzv73",
+                        "Balance": "218622575242",
+                        "Flags": 0,
+                        "OwnerCount": 68,
+                        "Sequence": 33669470
+                     },
+                     "LedgerEntryType": "AccountRoot",
+                     "LedgerIndex": "ACA28F22B951B01783DC00B7841313F1E333AFBBFBCD1D75C57AE9F36456CC0A",
+                     "PreviousFields": {
+                        "Balance": "218622575252",
+                        "OwnerCount": 67,
+                        "Sequence": 33669469
+                     },
+                     "PreviousTxnID": "E71CC90C14FBCD27FD93CFE27748F565C5491864E37B9F0A5E1DD31CF1EBF573",
+                     "PreviousTxnLgrSeq": 33157116
+                  }
+               }
+            ],
+            "TransactionIndex": 1,
+            "TransactionResult": "tesSUCCESS"
+         }
+      }
+   }
+}

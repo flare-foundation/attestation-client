@@ -124,11 +124,11 @@ describe.skip(`Indexer BTC ${getTestFile(__filename)})`, () => {
     expect(indexer.syncTimeDays()).to.be.eq(3);
   });
 
-  it("should not blockSave with wrong height", async function () {
+  it("Should not blockSave with wrong height", async function () {
     await expect(indexer.blockSave(AugTestBlockBTC, [await promAugTxBTC0])).to.be.rejected;
   });
 
-  it("should blockSave with no transactions ", async function () {
+  it("Should blockSave with no transactions ", async function () {
     indexer.N = 729409;
     await indexer.blockSave(AugTestBlockBTC, []);
   });

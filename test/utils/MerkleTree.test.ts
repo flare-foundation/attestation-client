@@ -1,6 +1,6 @@
 import { commitHash, MerkleTree, singleHash, sortedHashPair, verifyWithMerkleProof } from "../../lib/utils/MerkleTree";
 import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { getTestFile } from "../test-utils/test-utils";
 
 const N = 20;

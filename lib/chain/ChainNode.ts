@@ -1,28 +1,20 @@
+import { Managed } from "@flarenetwork/mcc";
 import assert from "assert";
-import { ChainType, Managed, MCC, MccClient } from "@flarenetwork/mcc";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { logException } from "../utils/logger";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
-import { toSourceId } from "../verification/sources/sources";
-import { verifyAttestation, WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
+import { VerifierRouter } from "../verification/routing/VerifierRouter";
+import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 import { ChainConfiguration } from "./ChainConfiguration";
-import { ChainManager } from "./ChainManager";
 
 @Managed()
 export class ChainNode {
-  chainManager: ChainManager;
-
-  chainName: string;
-  chainType: ChainType; //index of chain supported by Flare. Should match chainName
-  client: MccClient;
-
+  attestationRoundManager: AttestationRoundManager;
   // node rate limiting control
   requestTime = 0;
   requestsPerSecond = 0;
@@ -34,63 +26,31 @@ export class ChainNode {
 
   attestationProcessing = new Array<Attestation>();
 
-  indexedQueryManager: IndexedQueryManager;
-
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
-  constructor(chainManager: ChainManager, chainName: string, chainType: ChainType, chainConfiguration: ChainConfiguration) {
-    this.chainName = chainName;
-    this.chainType = chainType;
-    this.chainManager = chainManager;
+  verifierRouter: VerifierRouter;
+
+  constructor(attestationRoundManager: AttestationRoundManager, chainConfiguration: ChainConfiguration) {
+    this.attestationRoundManager = attestationRoundManager;
     this.chainConfig = chainConfiguration;
+  }
 
-    // create chain client
-    this.client = MCC.Client(this.chainType, chainConfiguration.mccCreate);
+  get chainManager() {
+    return this.attestationRoundManager.chainManager;
+  }
 
-    //const confirmations = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig( )
 
-    const options: IndexedQueryManagerOptions = {
-      chainType: chainType,
-      dbService: AttestationRoundManager.dbServiceIndexer,
-      maxValidIndexerDelaySec: chainConfiguration.maxValidIndexerDelaySec,
-
-      numberOfConfirmations: () => {
-        return AttestationRoundManager.getSourceHandlerConfig(chainConfiguration.name).numberOfConfirmations;
-      },
-
-      windowStartTime: (roundId: number) => {
-        const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-        const queryWindowsInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
-          toSourceId(chainConfiguration.name),
-          roundId
-        ).queryWindowInSec;
-        return roundStartTime - queryWindowsInSec;
-      },
-
-      UBPCutoffTime: (roundId: number) => {
-        const roundStartTime = Math.floor(AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-        const UBPUnconfirmedWindowInSec = AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(
-          toSourceId(chainConfiguration.name),
-          roundId
-        ).UBPUnconfirmedWindowInSec;
-        return roundStartTime - UBPUnconfirmedWindowInSec;
-      }
-
-    };
-
-    this.indexedQueryManager = new IndexedQueryManager(options);
+  /**
+   * Initializes ChainNode class (async initializations)
+   */
+  public async initialize() {
+    this.verifierRouter = new VerifierRouter();
+    await this.verifierRouter.initialize();
   }
 
   onSend(inProcessing?: number, inQueue?: number) {
     this.addRequestCount();
-  }
-
-  /**
-   * the number of attestation in process or to be processed
-   */  
-  getLoad(): number {
-    return this.attestationsQueue.length + this.attestationProcessing.length + this.attestationsPriorityQueue.length();
   }
 
   canAddRequests() {
@@ -211,8 +171,7 @@ export class ChainNode {
       testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
-    // TODO - failure simulation
-    verifyAttestation(this.client, attestation, this.indexedQueryManager, attestation.reverification)
+    this.verifierRouter.verifyAttestation(attestation, attestation.reverification)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
 
@@ -221,10 +180,10 @@ export class ChainNode {
 
           attestation.reverification = true;
 
-          // actual time when attesttion will be rechecked
+          // actual time when attestion will be rechecked
           const startTimeMs =
-            AttestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
-            AttestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
+            this.attestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
+            this.attestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
             this.chainConfig.reverificationTimeOffset * 1000;
 
           this.delayQueue(attestation, startTimeMs);
@@ -288,10 +247,7 @@ export class ChainNode {
     arrayRemoveElement(this.attestationProcessing, attestation);
 
     // todo: save transaction data
-
-    if (attestation.onProcessed !== undefined) {
-      attestation.onProcessed(attestation);
-    }
+    attestation.round.processed(attestation);
 
     if (attestation.status !== AttestationStatus.tooLate) {
       // start next transaction
@@ -348,10 +304,10 @@ export class ChainNode {
 
       // check if there is any queued transaction to be processed
       while (this.attestationsQueue.length && this.canProcess()) {
-        const tx = this.attestationsQueue.shift();
+        const attestation = this.attestationsQueue.shift();
 
         // eslint-disable-next-line
-        this.process(tx!);
+        this.process(attestation!);
       }
     } catch (error) {
       logException(error, `ChainNode::startNext`);

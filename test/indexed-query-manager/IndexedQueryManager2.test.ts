@@ -17,17 +17,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
-
-  const options: IndexedQueryManagerOptions = {
-    chainType: ChainType.BTC,
-    dbService: dataService,
-    numberOfConfirmations: () => 5,
-    maxValidIndexerDelaySec: 10,
-    windowStartTime: (roundId: number) => roundId * 5,
-    UBPCutoffTime: (roundId: number) => roundId * 5 + 4,
-  };
-
-  const indexedQueryManager = new IndexedQueryManager(options);
+  let indexedQueryManager: IndexedQueryManager;
 
   let augTx0: DBTransactionBase;
   let augTxAlt0: DBTransactionBase;
@@ -35,6 +25,18 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
   let augTxAlt1: DBTransactionBase;
 
   before(async () => {
+    await dataService.connect();
+
+    const options: IndexedQueryManagerOptions = {
+      entityManager: dataService.manager,
+      chainType: ChainType.BTC,
+      numberOfConfirmations: () => 5,
+      maxValidIndexerDelaySec: 10,
+      windowStartTime: (roundId: number) => roundId * 5,
+      UBPCutoffTime: (roundId: number) => roundId * 5 + 4,
+    };
+    indexedQueryManager = new IndexedQueryManager(options);
+  
     initializeTestGlobalLogger();
     await dataService.connect();
     augTx0 = await promAugTxBTC0;
@@ -151,23 +153,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       expect(blockQueried).to.be.null;
     });
 
-    it("Should setDebugLastConfirmedBlock", async () => {
-      await indexedQueryManager.setDebugLastConfirmedBlock(15);
-      expect(indexedQueryManager.debugLastConfirmedBlock).to.be.equal(15);
-      expect(await indexedQueryManager.getLastConfirmedBlockNumber()).to.be.eq(15);
-      expect((await indexedQueryManager.getLatestBlockTimestamp()).height).to.be.eq(20);
-    });
-
-    it("Should setDebugLastConfirmedBlock for negatives", async () => {
-      await indexedQueryManager.setDebugLastConfirmedBlock(-2);
-      expect(indexedQueryManager.debugLastConfirmedBlock).to.be.eq(14);
-    });
-
-    it("Should un setDebugLastConfirmedBlock", async () => {
-      await indexedQueryManager.setDebugLastConfirmedBlock(null);
-      expect(indexedQueryManager.debugLastConfirmedBlock).to.be.eq(undefined);
-    });
-
     it("Should getFirstConfirmedBlockAfterTime", async () => {
       const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(0);
       expect(firstBlock.blockNumber).to.be.eq(729410);
@@ -198,19 +183,19 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       expect(check).to.be.eq(null);
     });
 
-    it("Should validateForCutoffTime #1", async function () {
-      const block = new UtxoBlock(resBTCBlock);
-      const augBlock = augmentBlock(DBBlockBTC, block);
-      let validation = await indexedQueryManager.validateForCutoffTime(augBlock, 15);
-      expect(validation).to.be.true;
-    });
+    // it("Should validateForCutoffTime #1", async function () {
+    //   const block = new UtxoBlock(resBTCBlock);
+    //   const augBlock = augmentBlock(DBBlockBTC, block);
+    //   let validation = await indexedQueryManager.validateForCutoffTime(augBlock, 15);
+    //   expect(validation).to.be.true;
+    // });
 
-    it("Should validateForCutoffTime #2", async function () {
-      const block = new UtxoBlock(resBTCBlock);
-      const augBlock = augmentBlock(DBBlockBTC, block);
-      let validation = await indexedQueryManager.validateForCutoffTime(augBlock, 1648480395 / 5 + 10);
-      expect(validation).to.be.true;
-    });
+    // it("Should validateForCutoffTime #2", async function () {
+    //   const block = new UtxoBlock(resBTCBlock);
+    //   const augBlock = augmentBlock(DBBlockBTC, block);
+    //   let validation = await indexedQueryManager.validateForCutoffTime(augBlock, 1648480395 / 5 + 10);
+    //   expect(validation).to.be.true;
+    // });
   });
 
   describe("Query transactions", function () {
@@ -219,7 +204,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       await dataService.manager.save(augTxAlt1);
     });
 
-    it("should query transaction", async function () {
+    it("Should query transaction", async function () {
       let transactionQueryParams: TransactionQueryParams = {
         roundId: 5,
         endBlock: 763380,
@@ -229,7 +214,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       expect(res.result.length).to.be.eq(2);
     });
 
-    it("should query transaction with txId", async function () {
+    it("Should query transaction with txId", async function () {
       let transactionQueryParams: TransactionQueryParams = {
         roundId: 5,
         endBlock: 763380,

@@ -29,7 +29,7 @@ const txIds = [
 
 const blockNumbers = [761_687, 761_688, 761_689];
 
-describe("CachedClient", () => {
+describe.skip("CachedClient", () => {
   let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
     transactionCacheSize: 2,
     blockCacheSize: 2,
@@ -60,7 +60,7 @@ describe("CachedClient", () => {
   });
 });
 
-describe("blockCacheSize=0 or other false", () => {
+describe.skip("blockCacheSize=0 or other false", () => {
   let cachedMccClientOptionsFull2: CachedMccClientOptionsFull = {
     transactionCacheSize: 2,
     blockCacheSize: 0,

@@ -9,7 +9,7 @@ const expect = chai.expect;
 
 //To be eventually mocked
 
-describe(`Indexer to client (${getTestFile(__filename)})`, function () {
+describe.skip(`Indexer to client (${getTestFile(__filename)})`, function () {
   const BtcMccConnection = {
     url: process.env.BTC_URL || "",
     username: process.env.BTC_USERNAME || "",
@@ -42,17 +42,17 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
     expect(res.number).to.eq(763419);
   });
 
-  it("should get block height", async function () {
+  it("Should get block height", async function () {
     let res = await inToCl.getBlockHeightFromClient("height");
     expect(res).to.be.greaterThan(763419);
   });
 
-  it("should get bottom block height", async function () {
+  it("Should get bottom block height", async function () {
     let res = await inToCl.getBottomBlockHeightFromClient("bottom");
     expect(res).to.be.eq(0);
   });
 
-  it("should get block timestamp", async function () {
+  it("Should get block timestamp", async function () {
     let res = await inToCl.getBlockNumberTimestampFromClient(763419);
     expect(res).to.be.eq(1668598940);
   });

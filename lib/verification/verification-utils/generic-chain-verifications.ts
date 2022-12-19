@@ -2,7 +2,7 @@ import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x } from "@flarenet
 import Web3 from "web3";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { logException } from "../../utils/logger";
-import { VerificationStatus } from "../attestation-types/attestation-types";
+import { AttestationRequestOptions, VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
 import {
@@ -27,9 +27,7 @@ import {
  * `Payment` attestation type verification function performing synchronized indexer queries
  * @param TransactionClass
  * @param request attestation request
- * @param roundId voting round id
- * @param numberOfConfirmations required number of confirmation
- * @param recheck first query if `false` and second (final) query if `true`
+ * @param requestOptions request options
  * @param iqm IndexedQuery object for the relevant blockchain indexer
  * @param client MCC client for the relevant blockchain
  * @returns Verification response: object containing status and attestation response
@@ -38,18 +36,17 @@ import {
 export async function verifyPayment(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARPayment,
-  roundId: number,
-  numberOfConfirmations: number,
-  recheck: boolean,
+  requestOptions: AttestationRequestOptions,
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<DHPayment>> {
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
     txId: unPrefix0x(request.id),
-    numberOfConfirmations,
     upperBoundProof: request.upperBoundProof,
-    roundId: roundId,
-    type: recheck ? "RECHECK" : "FIRST_CHECK",
+    roundId: requestOptions.roundId,
+    type: requestOptions.recheck ? "RECHECK" : "FIRST_CHECK",
+    windowStartTime: requestOptions.windowStartTime,
+    UBPCutoffTime: requestOptions.UBPCutoffTime,
   });
 
   const status = verifyWorkflowForTransaction(confirmedTransactionResult);
@@ -85,7 +82,7 @@ export async function verifyPayment(
   }
 
   const response = {
-    stateConnectorRound: roundId,
+    stateConnectorRound: requestOptions.roundId,
     blockNumber: toBN(dbTransaction.blockNumber),
     blockTimestamp: toBN(dbTransaction.timestamp),
     transactionHash: prefix0x(dbTransaction.transactionId),
@@ -110,9 +107,7 @@ export async function verifyPayment(
  * `BalanceDecreasingTransaction` attestation type verification function performing synchronized indexer queries
  * @param TransactionClass
  * @param request attestation request
- * @param roundId voting round id
- * @param numberOfConfirmations required number of confirmation
- * @param recheck first query if `false` and second (final) query if `true`
+ * @param requestOptions request options
  * @param iqm IndexedQuery object for the relevant blockchain indexer
  * @param client MCC client for the relevant blockchain
  * @returns Verification response, status and attestation response
@@ -121,18 +116,17 @@ export async function verifyPayment(
 export async function verifyBalanceDecreasingTransaction(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARBalanceDecreasingTransaction,
-  roundId: number,
-  numberOfConfirmations: number,
-  recheck: boolean,
+  requestOptions: AttestationRequestOptions,
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
     txId: unPrefix0x(request.id),
-    numberOfConfirmations,
     upperBoundProof: request.upperBoundProof,
-    roundId: roundId,
-    type: recheck ? "RECHECK" : "FIRST_CHECK",
+    roundId: requestOptions.roundId,
+    type: requestOptions.recheck ? "RECHECK" : "FIRST_CHECK",
+    windowStartTime: requestOptions.windowStartTime,
+    UBPCutoffTime: requestOptions.UBPCutoffTime,
   });
 
   const status = verifyWorkflowForTransaction(confirmedTransactionResult);
@@ -155,7 +149,7 @@ export async function verifyBalanceDecreasingTransaction(
   }
 
   const response = {
-    stateConnectorRound: roundId,
+    stateConnectorRound: requestOptions.roundId,
     blockNumber: toBN(dbTransaction.blockNumber),
     blockTimestamp: toBN(dbTransaction.timestamp),
     transactionHash: prefix0x(dbTransaction.transactionId),
@@ -174,24 +168,21 @@ export async function verifyBalanceDecreasingTransaction(
 /**
  * `ConfirmedBlockHeightExists` attestation type verification function performing synchronized indexer queries
  * @param request attestation request
- * @param roundId voting round id
- * @param numberOfConfirmations required number of confirmation
- * @param recheck first query if `false` and second (final) query if `true`
+ * @param requestOptions request options
  * @param iqm IndexedQuery object for the relevant blockchain indexer
  * @returns Verification response, status and attestation response
  */
 export async function verifyConfirmedBlockHeightExists(
   request: ARConfirmedBlockHeightExists,
-  roundId: number,
-  numberOfConfirmations: number,
-  recheck: boolean,
+  requestOptions: AttestationRequestOptions,
   iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHConfirmedBlockHeightExists>> {
   const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
     upperBoundProof: request.upperBoundProof,
-    numberOfConfirmations,
-    roundId,
-    type: recheck ? "RECHECK" : "FIRST_CHECK",
+    roundId: requestOptions.roundId,
+    type: requestOptions.recheck ? "RECHECK" : "FIRST_CHECK",    
+    windowStartTime: requestOptions.windowStartTime,
+    UBPCutoffTime: requestOptions.UBPCutoffTime,
     returnQueryBoundaryBlocks: true,
   });
 
@@ -209,14 +200,22 @@ export async function verifyConfirmedBlockHeightExists(
     )
   );
 
-  const startTimestamp = iqm.settings.windowStartTime(roundId);
+  let startTimestamp = requestOptions.windowStartTime;
+  if (!startTimestamp && startTimestamp !== 0) {
+    if(iqm.settings.windowStartTime) {
+      startTimestamp = iqm.settings.windowStartTime(requestOptions.roundId);
+    } else {
+      throw new Error("IndexedQueryManager: windowStartTime not configured");
+    }      
+  }
+
   const lowerQueryWindowBlock = await iqm.getFirstConfirmedBlockAfterTime(startTimestamp);
 
   const response = {
-    stateConnectorRound: roundId,
+    stateConnectorRound: requestOptions.roundId,
     blockNumber: toBN(dbBlock.blockNumber),
     blockTimestamp: toBN(dbBlock.timestamp),
-    numberOfConfirmations: toBN(numberOfConfirmations),
+    numberOfConfirmations: toBN(iqm.settings.numberOfConfirmations()),
     averageBlockProductionTimeMs,
     lowestQueryWindowBlockNumber: toBN(lowerQueryWindowBlock.blockNumber),
     lowestQueryWindowBlockTimestamp: toBN(lowerQueryWindowBlock.timestamp),
@@ -232,9 +231,7 @@ export async function verifyConfirmedBlockHeightExists(
  * `ReferencedPaymentNonExistence` attestation type verification function performing synchronized indexer queries
  * @param TransactionClass
  * @param request attestation request
- * @param roundId voting round id
- * @param numberOfConfirmations required number of confirmation
- * @param recheck first query if `false` and second (final) query if `true`
+ * @param requestOptions request options
  * @param iqm IndexedQuery object for the relevant blockchain indexer
  * @param client MCC client for the relevant blockchain
  * @returns Verification response, status and attestation response
@@ -242,20 +239,19 @@ export async function verifyConfirmedBlockHeightExists(
 export async function verifyReferencedPaymentNonExistence(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARReferencedPaymentNonexistence,
-  roundId: number,
-  numberOfConfirmations: number,
-  recheck: boolean,
+  requestOptions: AttestationRequestOptions,
   iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {
   // TODO: check if anything needs to be done with: startBlock >= overflowBlock
   const referencedTransactionsResponse = await iqm.getReferencedTransactions({
     deadlineBlockNumber: numberLikeToNumber(request.deadlineBlockNumber),
     deadlineBlockTimestamp: numberLikeToNumber(request.deadlineTimestamp),
-    numberOfConfirmations,
-    paymentReference: request.paymentReference,
+    paymentReference: unPrefix0x(request.paymentReference),
     upperBoundProof: request.upperBoundProof,
-    roundId,
-    type: recheck ? "RECHECK" : "FIRST_CHECK",
+    roundId: requestOptions.roundId,
+    type: requestOptions.recheck ? "RECHECK" : "FIRST_CHECK",
+    windowStartTime: requestOptions.windowStartTime,
+    UBPCutoffTime: requestOptions.UBPCutoffTime,
   });
 
   const status = verifyWorkflowForReferencedTransactions(referencedTransactionsResponse);
@@ -294,10 +290,10 @@ export async function verifyReferencedPaymentNonExistence(
   }
 
   const response = {
-    stateConnectorRound: roundId,
+    stateConnectorRound: requestOptions.roundId,
     deadlineBlockNumber: request.deadlineBlockNumber,
     deadlineTimestamp: request.deadlineTimestamp,
-    destinationAddressHash: Web3.utils.soliditySha3(request.destinationAddressHash),
+    destinationAddressHash: request.destinationAddressHash,
     paymentReference: prefix0x(request.paymentReference),
     amount: request.amount,
     lowerBoundaryBlockNumber: toBN(lowerBoundaryBlock.blockNumber),

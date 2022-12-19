@@ -1,17 +1,25 @@
+// This should always be on the top of the file, before imports
+process.env.CONFIG_PATH = ".secure.dev";
+process.env.NODE_ENV = "development";
+process.env.VERIFIER_TYPE = "xrp";
+process.env.IN_MEMORY_DB = "1";
+
 import { sleepMs } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { WSServerConfigurationService } from "../../lib/servers/common/src";
-import { WsServerModule } from "../../lib/servers/ws-server/src/ws-server.module";
+import { VerifierConfigurationService } from "../../lib/servers/verifier-server/src/services/verifier-configuration.service";
+import { VerifierServerModule } from "../../lib/servers/verifier-server/src/verifier-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
 import { WsClient } from "../../lib/verification/client/WsClient";
 import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
+import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
+
 const WS_URL = `ws://localhost:9500?apiKey=7890`;
 
 const defaultWsClientOptions: WsClientOptions = new WsClientOptions();
@@ -22,17 +30,16 @@ interface TestData extends IIdentifiable {
   b: string;
 }
 
-describe.skip("Test websocket verifier server ", () => {
+describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
 
   let app: INestApplication;
+  let configurationService: VerifierConfigurationService;
 
   before(async () => {
     initializeTestGlobalLogger();
 
-    process.env.CONFIG_PATH = ".secure.dev";
-    process.env.NODE_ENV = "development";
     const module = await Test.createTestingModule({
-      imports: [WsServerModule],
+      imports: [VerifierServerModule],
       // providers: [WsServerService, WsServerGateway, AuthGuard],
     }).compile();
     app = module.createNestApplication();
@@ -42,14 +49,12 @@ describe.skip("Test websocket verifier server ", () => {
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    const configurationService = app.get(WSServerConfigurationService);
-
+    configurationService = app.get(VerifierConfigurationService);
     let port = configurationService.wsServerConfiguration.port;
-    await app.listen(port, undefined, () =>
-      // tslint:disable-next-line:no-console
-      // console.log(`Server started listening at http://localhost:${ port }`)
-      logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`));
-
+    await app.listen(port, undefined, () => {
+      logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`);
+      logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`)
+    })
     await app.init();
   });
 
@@ -138,37 +143,3 @@ describe.skip("Test websocket verifier server ", () => {
   });
 
 });
-
-
-
-// async function testClient() {
-
-//   const logger = getGlobalLogger();
-
-//   const client = new VerificationClient();
-
-//   logger.info( `connecting to VPWS...` );
-//   try {
-//     await client.connect(`localhost`, `123456`);
-//   }
-//   catch( error ) {
-//     logger.info( `connection failed '${error}'` );
-//     return;
-//   }
-//   logger.info( `connected.` );
-
-
-//   logger.info( `sending verification request` );
-//   try {
-//     const res = await client.verify(242237 ,"0x000300000000000000000000000000066260a797063291d8c476187d0cf1a6e5e0a2a0973b24",true);
-//     logger.info( `processed ${res.status}` );
-//   }
-//   catch( error ) {
-//     logException( error , "" );
-//   }
-
-//   client.disconnect();
-//   logger.info( `done.` );
-// }
-
-// testClient();

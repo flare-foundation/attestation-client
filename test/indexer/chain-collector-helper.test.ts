@@ -36,7 +36,7 @@ const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
 
-describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
+describe.skip(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
   before(async function () {
     initializeTestGlobalLogger();
   });
@@ -108,12 +108,12 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       utxoBlockProcessor = new UtxoBlockProcessor(cachedClient);
     });
 
-    it("should not read full transaction utxo", async () => {
+    it("Should not read full transaction utxo", async () => {
       const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor);
       expect(fullTx.additionalData.vinouts[0]).to.be.undefined;
     });
 
-    it("should read full transaction utxo", async () => {
+    it("Should read full transaction utxo", async () => {
       const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor);
       expect(fullTx.additionalData.vinouts.length).to.be.eq(1);
     });
@@ -136,7 +136,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       sinon.restore();
     });
 
-    it("should return null processor", function () {
+    it("Should return null processor", function () {
       expect(BlockProcessor(-1)).to.be.null;
     });
 

@@ -4,7 +4,7 @@
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import { AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
-import { ChainConfiguration, ChainsConfiguration } from "../../lib/chain/ChainConfiguration";
+import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";

@@ -1,7 +1,7 @@
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import { Indexer } from "../../lib/indexer/indexer";
 import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
+import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
 import { DBTransactionXRP1, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { CachedMccClient } from "../../lib/caching/CachedMccClient";
 import { MockMccClient } from "../../lib/caching/test-utils/MockMccClient";

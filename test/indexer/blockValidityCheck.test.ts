@@ -3,7 +3,7 @@
 import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
 import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
-import { ChainConfiguration } from "../../lib/chain/ChainConfiguration";
+import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
 import { Indexer } from "../../lib/indexer/indexer";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";

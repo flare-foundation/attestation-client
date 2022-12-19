@@ -13,9 +13,9 @@ import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/v
 import { ChainConfiguration } from "./ChainConfiguration";
 
 @Managed()
-export class ChainNode {
+export class SourceManager {
   attestationRoundManager: AttestationRoundManager;
-  // node rate limiting control
+  // source manager rate limiting control
   requestTime = 0;
   requestsPerSecond = 0;
 
@@ -36,13 +36,13 @@ export class ChainNode {
     this.chainConfig = chainConfiguration;
   }
 
-  get chainManager() {
-    return this.attestationRoundManager.chainManager;
+  get sourceRouter() {
+    return this.attestationRoundManager.sourceRouter;
   }
 
 
   /**
-   * Initializes ChainNode class (async initializations)
+   * Initializes SourceManager class (async initializations)
    */
   public async initialize() {
     this.verifierRouter = new VerifierRouter();
@@ -81,7 +81,7 @@ export class ChainNode {
    * @param attestation
    */
   queue(attestation: Attestation) {
-    //this.chainManager.logger.info(`chain ${this.chainName} queue ${attestation.data.id} (${this.attestationQueue.length}++,${this.attestationProcessing.length},${this.transactionsDone.length})`);
+    //this.sourceRouter.logger.info(`chain ${this.chainName} queue ${attestation.data.id} (${this.attestationQueue.length}++,${this.attestationProcessing.length},${this.transactionsDone.length})`);
     attestation.status = AttestationStatus.queued;
     this.attestationsQueue.push(attestation);
   }
@@ -130,7 +130,7 @@ export class ChainNode {
       // setup new timer
       this.delayQueueStartTime = firstStartTime;
       this.delayQueueTimer = setTimeout(() => {
-        this.chainManager.logger.debug(`priority queue timeout`);
+        this.sourceRouter.logger.debug(`priority queue timeout`);
 
         this.startNext();
         this.delayQueueTimer = undefined;
@@ -144,13 +144,13 @@ export class ChainNode {
    * @returns
    */
   async process(attestation: Attestation) {
-    //this.chainManager.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
+    //this.sourceRouter.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
 
     const now = getTimeMilli();
 
     // check if the transaction is too late
     if (now > attestation.round.commitEndTime) {
-      //this.chainManager.logger.error(`chain ${tx.epochId} transaction too late to process`);
+      //this.sourceRouter.logger.error(`chain ${tx.epochId} transaction too late to process`);
 
       attestation.status = AttestationStatus.tooLate;
 
@@ -176,7 +176,7 @@ export class ChainNode {
         attestation.processEndTime = getTimeMilli();
 
         if (verification.status === VerificationStatus.RECHECK_LATER) {
-          //this.chainManager.logger.warning(`reverification ${attestation.data.request}`);
+          //this.sourceRouter.logger.warning(`reverification ${attestation.data.request}`);
 
           attestation.reverification = true;
 
@@ -190,7 +190,7 @@ export class ChainNode {
         } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
           // TODO: handle this case and do not commit
           // TODO: message other clients or what? do not submit? do not submit that source???
-          this.chainManager.logger.error2(`SYSTEM_FAILURE ${attestation.data.request}`);
+          this.sourceRouter.logger.error2(`SYSTEM_FAILURE ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid, verification);
         } else {
           this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
@@ -215,13 +215,13 @@ export class ChainNode {
         // Retries
         attestation.processEndTime = getTimeMilli();
         if (attestation.retry < this.chainConfig.maxFailedRetry) {
-          this.chainManager.logger.warning(`transaction verification error (retry ${attestation.retry})`);
+          this.sourceRouter.logger.warning(`transaction verification error (retry ${attestation.retry})`);
 
           attestation.retry++;
 
           this.delayQueue(attestation, getTimeMilli() + this.chainConfig.delayBeforeRetry * 1000);
         } else {
-          this.chainManager.logger.error2(`transaction verification error ${attestation.data.request}`);
+          this.sourceRouter.logger.error2(`transaction verification error ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid);
         }
       });
@@ -241,7 +241,7 @@ export class ChainNode {
 
     attestation.verificationData = verificationData!;
 
-    //this.chainManager.logger.info(`chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
+    //this.sourceRouter.logger.info(`chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
 
     // move into processed
     arrayRemoveElement(this.attestationProcessing, attestation);
@@ -260,7 +260,7 @@ export class ChainNode {
    * @param attestation
    */
   validate(attestation: Attestation): void {
-    //this.chainManager.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
+    //this.sourceRouter.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
     // check if transaction can be added into processing
     if (this.canProcess()) {
@@ -278,7 +278,7 @@ export class ChainNode {
     try {
       if (!this.canProcess()) {
         if (this.attestationProcessing.length === 0) {
-          this.chainManager.logger.debug(` # startNext heartbeat`);
+          this.sourceRouter.logger.debug(` # startNext heartbeat`);
           setTimeout(() => {
             this.startNext();
           }, 100);
@@ -310,7 +310,7 @@ export class ChainNode {
         this.process(attestation!);
       }
     } catch (error) {
-      logException(error, `ChainNode::startNext`);
+      logException(error, `SourceManager::startNext`);
     }
   }
 }

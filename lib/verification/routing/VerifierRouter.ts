@@ -27,16 +27,13 @@ export const EMPTY_VERIFIER_ROUTE = new VerifierRoute();
 /**
  * A routing class for attestation requests to be routed to verifier servers.
  * It gets configured through type definitions and routing configuration.
- * If supports passing attestation requests to verifier servers as well
- * as local verifications (legacy support).
+ * If supports passing attestation requests to verifier servers.
  */
 export class VerifierRouter {
    credentials: VerifierRouteCredentials;
    // routing map: sourceName -> attestationTypeName -> VerifierRoute
    routeMap: Map<string, Map<string, VerifierRoute>>;
    _initialized = false;
-   // Remote only verification possible
-   _enableLocalVerification = true;
 
    /**
     * Auxilliary function. Returns VerifierRoute for given @param sourceName and @param attestationTypeName
@@ -77,7 +74,7 @@ export class VerifierRouter {
     * configurations are read and set and there are no double setting of a specific configuration for
     * a pair of (sourceName, attestationTypeName)
     */
-   public async initialize(enableLocalVerification = true) {
+   public async initialize() {
       if (this._initialized) {
          throw new Error("Already initialized");
       }
@@ -110,23 +107,39 @@ export class VerifierRouter {
          let sourceName = sourceCred.sourceId;
          for (let attestationCred of sourceCred.routes) {
             let verifierRoute = null;
-            if (attestationCred.url || attestationCred.url.length > 0) {
+            if (attestationCred.url && attestationCred.url.length > 0) {
                verifierRoute = new VerifierRoute(attestationCred.url, attestationCred.apiKey);
             } else if (defaultRoute) {
                verifierRoute = defaultRoute;
             }
+            if (!verifierRoute) {
+               throw new Error(`Empty configuration for source ${sourceName}`);
+            }
             for (let attestationTypeName of attestationCred.attestationTypes) {
                let route = this.getRouteEntry(sourceName, attestationTypeName);
+               if (!route) {
+                  throw new Error(`Non-existent route entry for pair ('${sourceName}','${attestationTypeName}')`);
+               }
                if (route !== EMPTY_VERIFIER_ROUTE) {
                   throw new Error(`Duplicate route entry for pair ('${sourceName}','${attestationTypeName}')`);
                }
-               if (verifierRoute) {
-                  this.setRouteEntry(sourceName, attestationTypeName, verifierRoute);
+               this.setRouteEntry(sourceName, attestationTypeName, verifierRoute);
+            }
+         }
+
+         // Check if everything is configured
+         for (let definition of definitions) {
+            let attestationTypeName = definition.name;
+            for (let source of definition.supportedSources) {
+               let sourceName = getSourceName(source);
+               let tmp = this.routeMap.get(sourceName);
+               if (tmp === EMPTY_VERIFIER_ROUTE) {
+                  throw new Error(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
                }
             }
          }
+
       }
-      this._enableLocalVerification = enableLocalVerification;
       this._initialized = true;
    }
 
@@ -147,7 +160,7 @@ export class VerifierRouter {
    }
 
    /**
-    * Verifies attestation by sending the request to relevant verifier (including local one).
+    * Verifies attestation by sending the request to relevant verifier (including this.sourcerouter. one).
     * @param attestation 
     * @param recheck 
     * @returns 

@@ -35,7 +35,7 @@ export class AttestationData {
     this.logIndex = event.logIndex;
   }
 
-  getHash(): string {
+  getId(): string {
     return this.request;
   }
 }

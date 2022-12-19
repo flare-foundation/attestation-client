@@ -19,7 +19,7 @@ export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
   const responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
   const randomResponse = `
-let response = {
+const response = {
 ${responseFields}      
 } as ${DATA_HASH_TYPE_PREFIX}${definition.name};
 `;
@@ -60,7 +60,7 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
   const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
   const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
-let encoded = web3.eth.abi.encodeParameters(
+const encoded = web3.eth.abi.encodeParameters(
 	[
 		"uint${ATT_BYTES * 8}",\t\t// attestationType
 		"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
@@ -89,18 +89,18 @@ ${genHashCode(definition, "request", "response")}
 function genItForAttestationClientMock(definition: AttestationTypeScheme) {
   return `
 it("'${definition.name}' test", async function () { 
-  let attestationType = AttestationType.${definition.name};
-  let request = { attestationType, sourceId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+  const attestationType = AttestationType.${definition.name};
+  const request = { attestationType, sourceId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
-  let response = getRandomResponseForType(attestationType) as ${DATA_HASH_TYPE_PREFIX}${definition.name};
+  const response = getRandomResponseForType(attestationType) as ${DATA_HASH_TYPE_PREFIX}${definition.name};
   response.stateConnectorRound = STATECONNECTOR_ROUND;
   response.merkleProof = [];
 
-  let responseHex = hexlifyBN(response);
+  const responseHex = hexlifyBN(response);
 
-  let hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
+  const hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
 
-  let dummyHash = web3.utils.randomHex(32);
+  const dummyHash = web3.utils.randomHex(32);
   await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);    
   assert(await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND) === hash);
   assert(await attestationClient.${SOLIDITY_VERIFICATION_FUNCTION_PREFIX}${definition.name}(CHAIN_ID, responseHex))
@@ -122,24 +122,24 @@ function genItForMerkleTest(definitions: AttestationTypeScheme[]) {
   const verificationCases = definitions.map((definition) => genVerificationCase(definition)).join("");
   return `
 it("Merkle tree test", async function () {
-	let verifications = [];
+	const verifications = [];
 	for(let i = 0; i < NUM_OF_HASHES; i++) {
-		let request = getRandomRequest();
-		let response = getRandomResponseForType(request.attestationType);
+		const request = getRandomRequest();
+		const response = getRandomResponseForType(request.attestationType);
 		verifications.push({
 			request,
 			response,
 			hash: dataHash(request, response)
 		})
 	};
-	let hashes = verifications.map(verification => verification.hash);
+	const hashes = verifications.map(verification => verification.hash);
 	const tree = new MerkleTree(hashes);
 	await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, tree.root);
-	for(let verification of verifications) {
+	for(const verification of verifications) {
 		verification.response.stateConnectorRound = STATECONNECTOR_ROUND;
-		let index = tree.sortedHashes.findIndex(hash => hash === verification.hash);
+		const index = tree.sortedHashes.findIndex(hash => hash === verification.hash);
 		verification.response.merkleProof = tree.getProof(index);
-		let responseHex = hexlifyBN(verification.response);
+		const responseHex = hexlifyBN(verification.response);
 		switch(verification.request.attestationType) {
 ${verificationCases}
 			default:
@@ -177,6 +177,7 @@ ${hashFunctionsImports},
 } from "../../lib/verification/generated/attestation-hash-utils";
   
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
+import { getTestFile } from "../test-utils/test-utils";
 
 const AttestationClientSC = artifacts.require("AttestationClientSC");
 const StateConnectorMock = artifacts.require("StateConnectorMock");
@@ -184,7 +185,7 @@ const STATECONNECTOR_ROUND = 1;
 const CHAIN_ID = SourceId.BTC;
 const NUM_OF_HASHES = 100;
 
-describe("Attestestation Client Mock", function () {
+describe(\`Attestestation Client Mock (\$\{getTestFile(__filename)\})\`, function () {
   let attestationClient: AttestationClientSCInstance;
   let stateConnectorMock: StateConnectorMockInstance;
   beforeEach(async () => {

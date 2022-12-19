@@ -20,21 +20,21 @@ import { AttestationConfigManager, SourceHandlerConfig } from "./DynamicAttestat
 @Managed()
 export class AttestationRoundManager {
   logger: AttLogger;
-  static epochSettings: EpochSettings;
-  static chainManager: ChainManager;
-  static attestationConfigManager: AttestationConfigManager;
-  static dbServiceIndexer: DatabaseService;
-  static dbServiceAttester: DatabaseService;
+  epochSettings: EpochSettings;
+  chainManager: ChainManager;
+  attestationConfigManager: AttestationConfigManager;
+  dbServiceIndexer: DatabaseService;
+  dbServiceAttester: DatabaseService;
 
-  static state = new AttesterState();
+  state : AttesterState;
 
-  static startEpochId: number;
-  static activeEpochId: number;
+  startEpochId: number;
+  activeEpochId: number;
 
   rounds = new Map<number, AttestationRound>();
-  static config: AttesterClientConfiguration;
-  static credentials: AttesterCredentials;
-  static attesterWeb3: AttesterWeb3;
+  config: AttesterClientConfiguration;
+  credentials: AttesterCredentials;
+  attesterWeb3: AttesterWeb3;
 
   constructor(
     chainManager: ChainManager,
@@ -43,36 +43,39 @@ export class AttestationRoundManager {
     logger: AttLogger,
     attesterWeb3: AttesterWeb3
   ) {
-    AttestationRoundManager.config = config;
-    AttestationRoundManager.credentials = credentials;
+    this.config = config;
+    this.credentials = credentials;
     this.logger = logger;
-    AttestationRoundManager.attesterWeb3 = attesterWeb3;
+    this.attesterWeb3 = attesterWeb3;
 
-    AttestationRoundManager.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
-    AttestationRoundManager.chainManager = chainManager;
-    AttestationRoundManager.attestationConfigManager = new AttestationConfigManager(config, logger);
+    this.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
+    this.chainManager = chainManager;
+    this.attestationConfigManager = new AttestationConfigManager(this);
 
-    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+    this.activeEpochId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+
   }
 
   /**
    * Initializes attestation round manager
    */
   async initialize(): Promise<void> {
-    await AttestationRoundManager.attestationConfigManager.initialize();
+    await this.attestationConfigManager.initialize();
 
-    AttestationRoundManager.dbServiceIndexer = new DatabaseService(this.logger, AttestationRoundManager.credentials.indexerDatabase, "indexer");
-    await AttestationRoundManager.dbServiceIndexer.connect();
+    this.dbServiceIndexer = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
+    await this.dbServiceIndexer.connect();
 
-    AttestationRoundManager.dbServiceAttester = new DatabaseService(this.logger, AttestationRoundManager.credentials.attesterDatabase, "attester");
-    await AttestationRoundManager.dbServiceAttester.connect();
+    this.dbServiceAttester = new DatabaseService(this.logger, this.credentials.attesterDatabase, "attester");
+    await this.dbServiceAttester.connect();
 
     // update active round again since waitin for DB connection can take time
-    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
-    AttestationRoundManager.startEpochId = AttestationRoundManager.activeEpochId;
+    this.activeEpochId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+    this.startEpochId = this.activeEpochId;
 
     // eslint-disable-next-line    
     this.startRoundUpdate();
+
+    this.state = new AttesterState(this.dbServiceAttester.manager);
   }
 
   /**
@@ -81,12 +84,12 @@ export class AttestationRoundManager {
   async startRoundUpdate(): Promise<void> {
     while (true) {
       try {
-        const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
-        AttestationRoundManager.activeEpochId = epochId;
+        const epochId: number = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+        this.activeEpochId = epochId;
 
         const activeRound = this.getRoundOrCreateIt(epochId);
 
-        await AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
+        await this.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
       } catch (error) {
         logException(error, `startRoundUpdate`);
       }
@@ -100,8 +103,8 @@ export class AttestationRoundManager {
    * @param name 
    * @returns 
    */
-  static getSourceHandlerConfig(name: string): SourceHandlerConfig {
-    return AttestationRoundManager.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), AttestationRoundManager.activeEpochId);
+  getSourceHandlerConfig(name: string): SourceHandlerConfig {
+    return this.attestationConfigManager.getSourceHandlerConfig(toSourceId(name), this.activeEpochId);
   }
 
   /**
@@ -113,16 +116,16 @@ export class AttestationRoundManager {
   getRoundOrCreateIt(epochId: number): AttestationRound {
     // all times are in milliseconds
     const now = getTimeMilli();
-    const epochTimeStart = AttestationRoundManager.epochSettings.getRoundIdTimeStartMs(epochId);
-    const epochCommitTime: number = epochTimeStart + AttestationRoundManager.config.roundDurationSec * 1000;
-    const epochRevealTime: number = epochCommitTime + AttestationRoundManager.config.roundDurationSec * 1000;
-    const epochCompleteTime: number = epochRevealTime + AttestationRoundManager.config.roundDurationSec * 1000;
+    const epochTimeStart = this.epochSettings.getRoundIdTimeStartMs(epochId);
+    const epochCommitTime: number = epochTimeStart + this.config.roundDurationSec * 1000;
+    const epochRevealTime: number = epochCommitTime + this.config.roundDurationSec * 1000;
+    const epochCompleteTime: number = epochRevealTime + this.config.roundDurationSec * 1000;
 
     let activeRound = this.rounds.get(epochId);
 
     // check if attester epoch already exists - if not - create a new one and assign callbacks
     if (activeRound === undefined) {
-      activeRound = new AttestationRound(epochId, this.logger, AttestationRoundManager.attesterWeb3);
+      activeRound = new AttestationRound(epochId, this);
 
       const intervalId = setInterval(() => {
         const now = getTimeMilli();
@@ -159,12 +162,12 @@ export class AttestationRoundManager {
       // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
       setTimeout(() => {
         safeCatch(`setTimeout:commitLimit`, () => activeRound!.commitLimit());
-      }, epochRevealTime - AttestationRoundManager.config.commitTime * 1000 - 1000 - now);
+      }, epochRevealTime - this.config.commitTime * 1000 - 1000 - now);
 
       // trigger reveal
       setTimeout(() => {
         safeCatch(`setTimeout:reveal`, () => activeRound!.reveal());
-      }, epochCompleteTime - AttestationRoundManager.config.commitTime * 1000 - now);
+      }, epochCompleteTime - this.config.commitTime * 1000 - now);
 
       // trigger end of reveal epoch, cycle is completed at this point
       setTimeout(() => {
@@ -175,7 +178,7 @@ export class AttestationRoundManager {
 
       this.cleanup();
 
-      activeRound.commitEndTime = epochRevealTime - AttestationRoundManager.config.commitTime * 1000;
+      activeRound.commitEndTime = epochRevealTime - this.config.commitTime * 1000;
 
       // link rounds
       const prevRound = this.rounds.get(epochId - 1);
@@ -186,7 +189,7 @@ export class AttestationRoundManager {
         // trigger first commit
         setTimeout(() => {
           safeCatch(`setTimeout:firstCommit`, () => activeRound!.firstCommit());
-        }, epochRevealTime - AttestationRoundManager.config.commitTime * 1000 - now);
+        }, epochRevealTime - this.config.commitTime * 1000 - now);
       }
     }
 
@@ -199,11 +202,11 @@ export class AttestationRoundManager {
    * @returns 
    */
   public async attestate(attestationData: AttestationData) {
-    const epochId: number = AttestationRoundManager.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
+    const epochId: number = this.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
 
-    AttestationRoundManager.activeEpochId = AttestationRoundManager.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+    this.activeEpochId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
-    if (epochId < AttestationRoundManager.startEpochId) {
+    if (epochId < this.startEpochId) {
       this.logger.debug(`epoch too low ^Y#${epochId}^^`);
       return;
     }
@@ -213,17 +216,13 @@ export class AttestationRoundManager {
     // create, check and add attestation
     const attestation = await this.createAttestation(activeRound, attestationData);
 
-    if (attestation === undefined) {
-      return;
-    }
-
     activeRound.addAttestation(attestation);
 
-    await AttestationRoundManager.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
+    await this.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
   }
 
   cleanup() {
-    const epochId = AttestationRoundManager.epochSettings.getCurrentEpochId().toNumber();
+    const epochId = this.epochSettings.getCurrentEpochId().toNumber();
 
     // clear old epochs
     if (this.rounds.has(epochId - 10)) {
@@ -231,11 +230,61 @@ export class AttestationRoundManager {
     }
   }
 
-  async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation | undefined> {
+  /**
+   * Creates attestation from the round and data.
+   * @param round 
+   * @param data 
+   * @returns 
+   */
+  async createAttestation(round: AttestationRound, data: AttestationData): Promise<Attestation> {
     // create attestation depending on attestation type
-    return new Attestation(round, data, (attestation: Attestation) => {
-      // chain node validation
-      AttestationRoundManager.chainManager.validateAttestation(data.sourceId, attestation);
-    });
+    const attestation = new Attestation(round, data);
+    this.augmentCutoffTimes(attestation);
+    return attestation;
   }
+
+  /**
+   * Auxillary function to calculate query window start time in no lower bound for block was given.
+   * The time is calculated relative to the `roundId`
+   * @param roundId 
+   * @returns 
+   */
+  private windowStartTime(attestation: Attestation) {
+    let roundId = attestation.roundId;
+    let sourceId = attestation.data.sourceId;
+    const roundStartTime = Math.floor(this.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
+    const queryWindowsInSec = this.attestationConfigManager.getSourceHandlerConfig(
+      sourceId,
+      roundId
+    ).queryWindowInSec;
+    return roundStartTime - queryWindowsInSec;
+  }
+
+  /**
+   * Auxillary function to calculate fork cut-off time.
+   * The time is calculated relative to the `roundId`
+   * @param roundId 
+   * @returns 
+   */
+  private UBPCutoffTime(attestation: Attestation) {
+    let roundId = attestation.roundId;
+    let sourceId = attestation.data.sourceId;
+    const roundStartTime = Math.floor(this.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
+    const UBPUnconfirmedWindowInSec = this.attestationConfigManager.getSourceHandlerConfig(
+      sourceId,
+      roundId
+    ).UBPUnconfirmedWindowInSec;
+    return roundStartTime - UBPUnconfirmedWindowInSec;
+  }
+
+  /**
+   * Adds minimum block timestamp (`windowStartTime`) and fork cut-off time for upper bound proof to the attestation, 
+   * both calculated relative to the `roundId`.
+   * @param attestation 
+   */
+  private augmentCutoffTimes(attestation: Attestation) {
+    attestation.windowStartTime = this.windowStartTime(attestation);
+    attestation.UBPCutoffTime = this.UBPCutoffTime(attestation)
+  }
+
 }

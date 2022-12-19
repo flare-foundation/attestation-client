@@ -1,0 +1,9 @@
+{
+   "port": 9500,
+   "checkAliveIntervalMs": 5000,
+   "sourceId": "BTC",
+   "attestationTypes": [
+      "Payment",
+      "BalanceDecreasingTransaction"
+   ]
+}

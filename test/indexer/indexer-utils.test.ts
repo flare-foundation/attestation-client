@@ -8,7 +8,7 @@ const proxi = require("../../lib/utils/PromiseTimeout");
 
 describe(`Indexer utils (${getTestFile(__filename)})`, function () {
   describe("prepareIndexerTables", function () {
-    it("should throw for invalid chain type", function () {
+    it("Should throw for invalid chain type", function () {
       expect(() => prepareIndexerTables(ChainType.invalid)).to.throw("Invalid chain type");
     });
 
@@ -26,7 +26,7 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
       sinon.restore();
     });
 
-    it("should call function", function () {
+    it("Should call function", function () {
       const promise = sinon.promise() as Promise<any>;
       async function testFunction() {
         return 15;
@@ -38,7 +38,7 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
       });
     });
 
-    it("should exit", function () {
+    it("Should exit", function () {
       sinon.restore();
       const promise = sinon.promise() as Promise<any>;
       async function testFailFunction() {
@@ -55,7 +55,7 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
       return criticalAsync("test", testFailFunction).then(() => expect(stub1.called).to.be.true);
     });
 
-    it("should manage error", function () {
+    it("Should manage error", function () {
       sinon.restore();
       const promise = sinon.promise() as Promise<any>;
       async function testFailFunction() {
@@ -78,14 +78,14 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
   });
 
   describe("Misc utils", function () {
-    it("should getStateEntry", function () {
+    it("Should getStateEntry", function () {
       let res = getStateEntry("first", "second", 14);
       expect(res.name).to.be.eq("second_first");
       expect(res.valueNumber).to.be.eq(14);
       expect(res.timestamp).to.be.greaterThan(10);
     });
 
-    it("should getStateEntryString", function () {
+    it("Should getStateEntryString", function () {
       let res = getStateEntryString("first", "second", "third", 15, "fourth");
       expect(res.name).to.be.eq("second_first");
       expect(res.valueNumber).to.be.eq(15);
@@ -94,7 +94,7 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
       expect(res.comment).to.be.eq("fourth");
     });
 
-    it("should getChainN", function () {
+    it("Should getChainN", function () {
       let res = getChainN("second");
       expect(res).to.be.eq("second_N");
     });

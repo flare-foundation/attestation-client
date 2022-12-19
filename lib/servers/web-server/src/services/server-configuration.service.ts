@@ -2,8 +2,8 @@ import { toBN } from '@flarenetwork/mcc';
 import { Injectable } from '@nestjs/common';
 import { readConfig, readCredentials } from '../../../../utils/config';
 import { EpochSettings } from '../../../../utils/EpochSettings';
-import { ServerConfiguration } from '../config-models/ServerConfiguration';
-import { ServerCredentials } from '../config-models/ServerCredentials';
+import { ServerConfiguration } from '../../../common/src/config-models/ServerConfiguration';
+import { ServerCredentials } from '../../../common/src/config-models/ServerCredentials';
 
 @Injectable()
 export class ServerConfigurationService {

@@ -26,7 +26,7 @@ export function ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(bytes: string
 	if(!bytes) {
 		throw new AttestationRequestParseError("Empty attestation request")
 	}
-	let input = unPrefix0x(bytes);  
+	const input = unPrefix0x(bytes);  
 	if(input.length != ${totalLength}) {
 		throw new AttestationRequestParseError("Incorrectly formatted attestation request")
 	}
@@ -81,7 +81,7 @@ export function genRequestParseFunction(definitions: AttestationTypeScheme[]) {
   const attestationTypeCases = definitions.map((definition) => genParseAttestationTypeCase(definition)).join("");
   return `
 export function ${REQUEST_PARSE_PREFIX_FUNCTION}Request(bytes: string): ${ATTESTATION_TYPE_PREFIX}Type {  
-	let { attestationType } = getAttestationTypeAndSource(bytes);
+	const { attestationType } = getAttestationTypeAndSource(bytes);
 	switch(attestationType) {
 ${attestationTypeCases}
 		default:
@@ -106,7 +106,7 @@ function genGetAttestationTypeAndSource() {
   return `
 export function getAttestationTypeAndSource(bytes: string) {
 	try {
-		let input = unPrefix0x(bytes);
+		const input = unPrefix0x(bytes);
 		if (!bytes || bytes.length < ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}) {
 			throw new AttestationRequestParseError("Cannot read attestation type and source id")
 		}
@@ -133,11 +133,15 @@ export function prefix0x(tx: string) {
 }
 
 export function toHex(x: string | number | BN, padToBytes?: number) {
-	if (padToBytes as any > 0) {
-		return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
+	const hexValue = Web3.utils.toHex(x);
+	if (hexValue.startsWith("-")) {
+	  throw new AttestationRequestParseError("Negative values are not supported in attestation requests");
 	}
-	return Web3.utils.toHex(x);
-}
+	if ((padToBytes as any) > 0) {
+	  return Web3.utils.leftPad(Web3.utils.toHex(x), padToBytes! * 2);
+	}
+	return hexValue;
+ } 
 `;
 }
 

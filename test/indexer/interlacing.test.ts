@@ -63,56 +63,56 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
 
   // after(async ())
 
-  it("should get active index for empty tables", async () => {
+  it("Should get active index for empty tables", async () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(0);
   });
 
-  it("should get active index for non-empty table", async () => {
+  it("Should get active index for non-empty table", async () => {
     await dataService.dataSource.manager.save(augTx1);
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(1);
   });
 
-  it("should reset all", async () => {
+  it("Should reset all", async () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(0);
   });
 
-  it("should get index from later database #1", async () => {
+  it("Should get index from later database #1", async () => {
     await dataService.dataSource.manager.save(augTx0);
     await dataService.dataSource.manager.save(augTxAlt1);
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(1);
   });
 
-  it("should get index from later database #2", async () => {
+  it("Should get index from later database #2", async () => {
     await dataService.dataSource.manager.save(augTx1);
     await dataService.dataSource.manager.save(augTxAlt0);
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     expect(interlacing.activeIndex).to.be.equal(0);
   });
 
-  it("should update initial", async () => {
+  it("Should update initial", async () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     let res = await interlacing.update(1668574798, 763380);
     expect(res).to.be.false;
   });
 
-  it("should get indexer transaction classes", async () => {
+  it("Should get indexer transaction classes", async () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     let res = interlacing.DBTransactionClasses[0];
     expect(res).to.be.eq(DBTransactionBTC0);
   });
 
-  it("should get block indexer tables", async () => {
+  it("Should get block indexer tables", async () => {
     await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
     let res = interlacing.DBBlockClass;
     expect(res).to.be.eq(DBBlockBTC);
   });
 
   describe("Tables updates", function () {
-    it("should update", async () => {
+    it("Should update", async () => {
       await dataService.dataSource.manager.save(augTx0);
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
       let res = await interlacing.update(16685747980, 7633800);
@@ -147,7 +147,7 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
       expect(spy.calledWith(1)).to.be.true;
     });
 
-    it("should not update", async () => {
+    it("Should not update", async () => {
       await dataService.dataSource.manager.save(augTx0);
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
       let res = await interlacing.update(10, 10);

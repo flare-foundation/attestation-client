@@ -1,6 +1,6 @@
 import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
-import { StateConnector } from "../../typechain-web3-v1/StateConnector";
+import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttesterCredentials } from "../attester/AttesterClientConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -61,8 +61,8 @@ class AttestationSpammer {
   web3!: Web3;
   web3_2!: Web3;
   logger!: any;
-  stateConnector!: StateConnector;
-  stateConnector_2!: StateConnector;
+  stateConnector!: StateConnectorOld;
+  stateConnector_2!: StateConnectorOld;
 
   delay: number = args["delay"];
   lastBlockNumber = -1;
@@ -72,6 +72,8 @@ class AttestationSpammer {
 
   indexedQueryManager: IndexedQueryManager;
   definitions: AttestationTypeScheme[];
+  attestationRoundManager: AttestationRoundManager;
+  spammerCredentials: SpammerCredentials;
 
   get numberOfConfirmations(): number {
     // todo: get from chain confing
@@ -97,11 +99,45 @@ class AttestationSpammer {
 
     // Reading configuration
     this.spammerConfig = readConfig(new SpammerConfig(), "spammer");
-    const spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
+    this.spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
 
-    AttestationRoundManager.credentials = new AttesterCredentials();
-    AttestationRoundManager.credentials.web = spammerCredentials.web;
+    // create dummy attestation round manager and assign needed variables
+    this.attestationRoundManager = new AttestationRoundManager(null, null, null, null, null);
+    this.attestationRoundManager.credentials = new AttesterCredentials();
+    this.attestationRoundManager.credentials.web = this.spammerCredentials.web;
 
+    this.logger = getGlobalLogger();
+    this.web3 = getWeb3(this.spammerCredentials.web.rpcUrl) as Web3;
+
+    //let stateConnectorAddress = spammerCredentials.web.stateConnectorContractAddress;
+
+    this.logger.info(`RPC: ${this.spammerCredentials.web.rpcUrl}`);
+    this.logger.info(`Using state connector at: ${this.spammerCredentials.web.stateConnectorContractAddress}`);
+
+    // eslint-disable-next-line
+    getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
+      this.stateConnector = sc;
+    });
+
+    this.web3Functions = new Web3Functions(this.logger, this.web3, this.spammerCredentials.web.accountPrivateKey);
+
+    if (this.spammerCredentials.web2) {
+      this.web3_2 = getWeb3(this.spammerCredentials.web2.rpcUrl) as Web3;
+
+      this.logger.info(`RPC2: ${this.spammerCredentials.web2.rpcUrl}`);
+      this.logger.info(`Using state connector 2 at: ${this.spammerCredentials.web2.stateConnectorContractAddress}`);
+      // eslint-disable-next-line
+      getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web2.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
+        this.stateConnector_2 = sc;
+      });
+
+      this.web3Functions_2 = new Web3Functions(this.logger, this.web3_2, this.spammerCredentials.web2.accountPrivateKey);
+    }
+  }
+
+  async init() {
+    let dbService = new DatabaseService(getGlobalLogger(), this.spammerCredentials.indexerDatabase, "indexer");
+    await dbService.connect();
     const options: IndexedQueryManagerOptions = {
       chainType: this.chainType,
       numberOfConfirmations: () => {
@@ -109,7 +145,7 @@ class AttestationSpammer {
       },
       // todo: get from chain confing
       maxValidIndexerDelaySec: 10, //this.chainAttestationConfig.maxValidIndexerDelaySec,
-      dbService: new DatabaseService(getGlobalLogger(), spammerCredentials.indexerDatabase, "indexer"),
+      entityManager: dbService.manager,
 
       windowStartTime: (roundId: number) => {
         // todo: read this from DAC
@@ -124,38 +160,8 @@ class AttestationSpammer {
 
     } as IndexedQueryManagerOptions;
     this.indexedQueryManager = new IndexedQueryManager(options);
-    this.logger = getGlobalLogger();
-    this.web3 = getWeb3(spammerCredentials.web.rpcUrl) as Web3;
 
-    //let stateConnectorAddress = spammerCredentials.web.stateConnectorContractAddress;
-
-    this.logger.info(`RPC: ${spammerCredentials.web.rpcUrl}`);
-    this.logger.info(`Using state connector at: ${spammerCredentials.web.stateConnectorContractAddress}`);
-
-    // eslint-disable-next-line
-    getWeb3StateConnectorContract(this.web3, spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnector) => {
-      this.stateConnector = sc;
-    });
-
-    this.web3Functions = new Web3Functions(this.logger, this.web3, spammerCredentials.web.accountPrivateKey);
-
-    if (spammerCredentials.web2) {
-      this.web3_2 = getWeb3(spammerCredentials.web2.rpcUrl) as Web3;
-
-      this.logger.info(`RPC2: ${spammerCredentials.web2.rpcUrl}`);
-      this.logger.info(`Using state connector 2 at: ${spammerCredentials.web2.stateConnectorContractAddress}`);
-      // eslint-disable-next-line
-      getWeb3StateConnectorContract(this.web3, spammerCredentials.web2.stateConnectorContractAddress).then((sc: StateConnector) => {
-        this.stateConnector_2 = sc;
-      });
-
-      this.web3Functions_2 = new Web3Functions(this.logger, this.web3_2, spammerCredentials.web2.accountPrivateKey);
-    }
-  }
-
-  async init() {
     await this.initializeStateConnector();
-    await this.indexedQueryManager.dbService.connect();
     this.randomGenerators = await prepareRandomGenerators(this.indexedQueryManager, this.BATCH_SIZE, this.TOP_UP_THRESHOLD);
 
     // eslint-disable-next-line
@@ -175,7 +181,7 @@ class AttestationSpammer {
   }
 
   static sendId = 0;
-  async sendAttestationRequest(stateConnector: StateConnector, request: ARType) {
+  async sendAttestationRequest(stateConnector: StateConnectorOld, request: ARType) {
     // let scheme = this.definitions.find(definition => definition.id === request.attestationType);
     // let requestBytes = encodeRequestBytes(request, scheme);
 
@@ -337,7 +343,7 @@ async function displayStats() {
 }
 
 async function runAllAttestationSpammers() {
-  
+
   // eslint-disable-next-line
   displayStats();
 
@@ -347,7 +353,7 @@ async function runAllAttestationSpammers() {
   await spammer.runSpammer();
 }
 
-setLoggerName( "spammer" );
+setLoggerName("spammer");
 setGlobalLoggerLabel(args.chain)
 
 // (new AttestationSpammer()).runSpammer()

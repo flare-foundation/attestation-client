@@ -70,19 +70,19 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res).to.be.eq(10);
   });
 
-  it("should not getBottomDBBlockNumberFromStoredTransactions from empty database", async function () {
+  it("Should not getBottomDBBlockNumberFromStoredTransactions from empty database", async function () {
     let res = await indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
     expect(res).to.be.undefined;
   });
 
-  it("should getBottomDBBlockNumberFromStoredTransactions from non empty database #1", async function () {
+  it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #1", async function () {
     await dataService.manager.save(augTx0);
     await dataService.manager.save(augTxAlt0);
     let res = await indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
     expect(res).to.be.eq(729410);
   });
 
-  it("should getBottomDBBlockNumberFromStoredTransactions from non empty database #2", async function () {
+  it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #2", async function () {
     const tableName = `btc_transactions0`;
     await dataService.manager.query(`delete from ${tableName};`);
 
@@ -92,7 +92,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res).to.be.eq(729410);
   });
 
-  it("should getBottomDBBlockNumberFromStoredTransactions from non empty database #3", async function () {
+  it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #3", async function () {
     const tableName = `btc_transactions1`;
     await dataService.manager.query(`delete from ${tableName};`);
 
@@ -102,7 +102,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res).to.be.eq(729410);
   });
 
-  it("should getBottomDBBlockNumberFromStoredTransactions from non empty database #4", async function () {
+  it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #4", async function () {
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
       await dataService.manager.query(`delete from ${tableName};`);
@@ -114,7 +114,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res).to.be.eq(729410);
   });
 
-  it("should not saveBottomState with no transaction in DB", async function () {
+  it("Should not saveBottomState with no transaction in DB", async function () {
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
       await dataService.manager.query(`delete from ${tableName};`);
@@ -126,7 +126,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     assert(spy.called);
   });
 
-  it("should not saveBottomState with no transaction in DB", async function () {
+  it("Should not saveBottomState with no transaction in DB", async function () {
     for (let i = 0; i < 2; i++) {
       const tableName = `btc_transactions${i}`;
       await dataService.manager.query(`delete from ${tableName};`);
@@ -138,7 +138,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     assert(spy.called);
   });
 
-  it("should not saveBottomState with no block in DB", async function () {
+  it("Should not saveBottomState with no block in DB", async function () {
     await dataService.manager.save(augTx0);
     await dataService.manager.save(augTxAlt1);
     const tableName = "btc_block";
@@ -152,7 +152,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
   });
 
   //find use cases
-  it("should saveBottomState DB", async function () {
+  it("Should saveBottomState DB", async function () {
     await dataService.manager.save(AugTestBlockBTC);
 
     await indexerToDB.saveBottomState();
@@ -161,7 +161,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res1.valueNumber).to.eq(729410);
   });
 
-  it("should drop all state info", async function () {
+  it("Should drop all state info", async function () {
     // const res1 = await dataService.manager.find(DBState);
 
     await indexerToDB.dropAllStateInfo();
@@ -170,20 +170,20 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res2.length).to.be.eq(0);
   });
 
-  it.skip("should not drop non existing table", async function () {
+  it.skip("Should not drop non existing table", async function () {
     const spy2 = sinon.spy(loggers, "logException");
     await indexerToDB.dropTable("MissingTable");
     expect(spy2.callCount).to.eq(1);
   });
 
-  it.skip("should drop a table", async function () {
+  it.skip("Should drop a table", async function () {
     await dataService.manager.save(augTx0);
     await indexerToDB.dropTable("btc_transactions0");
     const res = await dataService.manager.find(DBTransactionBTC0);
     expect(res.length).to.be.eq(0);
   });
 
-  it.skip("should drop all dropAllChainTables", async function () {
+  it.skip("Should drop all dropAllChainTables", async function () {
     await dataService.manager.save(augTx0);
     await dataService.manager.save(augTxAlt1);
     await dataService.manager.save(AugTestBlockBTC);
@@ -198,7 +198,7 @@ describe(`IndexerToBD (${getTestFile(__filename)})`, function () {
     expect(res3.length).to.be.eq(0);
   });
 
-  it("should writeT", async function () {
+  it("Should writeT", async function () {
     await indexerToDB.writeT(118);
     const res = await dataService.manager.findOne(DBState, { where: { name: "btc_T" } });
     expect(res.valueNumber).to.eq(118);

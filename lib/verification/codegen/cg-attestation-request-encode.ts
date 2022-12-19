@@ -74,7 +74,11 @@ function toUnprefixedBytes(value: any, type: string, size: number, key: string) 
 			bytes = unPrefix0x(toHex(value as number, size));
 			break;
 		case "NumberLike":
-			bytes = unPrefix0x(toHex(value, size));
+			const hexValue = toHex(value, size);
+			if(hexValue.startsWith("-")) {
+				throw new AttestationRequestEncodeError("Negative 'NumberLike' values are not supported in requests");
+			}
+			bytes = unPrefix0x(hexValue);
 			break;
 		case "SourceId":
 			bytes = unPrefix0x(toHex(value as number, size));

@@ -25,14 +25,13 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   randomBlock: DBBlockBase,
   sourceId: SourceId,
   roundId: number,
-  numberOfConfirmations: number,
   enforcedChoice?: RandomConfirmedBlockHeightExistsChoiceType
 ): Promise<ARConfirmedBlockHeightExists | null> {
   if (!randomBlock) {
     return null;
   }
   const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
-    blockNumber: randomBlock.blockNumber + numberOfConfirmations,
+    blockNumber: randomBlock.blockNumber + indexedQueryManager.settings.numberOfConfirmations(),
     roundId,
   });
   if (!confirmationBlockQueryResult?.result) {

@@ -8,7 +8,7 @@
 
 import {
   ARReferencedPaymentNonexistence,
-  Attestation,
+  AttestationRequestOptions,
   BN,
   DHReferencedPaymentNonexistence,
   hashReferencedPaymentNonexistence,
@@ -27,17 +27,15 @@ const web3 = new Web3();
 
 export async function verifyReferencedPaymentNonexistenceLTC(
   client: MCC.LTC,
-  attestation: Attestation,
-  indexer: IndexedQueryManager,
-  recheck = false
+  attestationRequest: string,
+  attestationRequestOptions: AttestationRequestOptions,
+  indexer: IndexedQueryManager
 ): Promise<Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>> {
-  const request = parseRequest(attestation.data.request) as ARReferencedPaymentNonexistence;
-  const roundId = attestation.roundId;
-  const numberOfConfirmations = attestation.numberOfConfirmationBlocks;
+  const request = parseRequest(attestationRequest) as ARReferencedPaymentNonexistence;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyReferencedPaymentNonExistence(LtcTransaction, request, roundId, numberOfConfirmations, recheck, indexer);
+  const result = await verifyReferencedPaymentNonExistence(LtcTransaction, request, attestationRequestOptions, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

@@ -44,6 +44,7 @@ logs
 ## Misc
 nul
 .stateconnector-address
+.tmp-state-connector-address
 .attestation-client-address
 .env.att-client-deploy
 .DS_Store

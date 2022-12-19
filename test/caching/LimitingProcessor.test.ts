@@ -1,4 +1,5 @@
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
+import console from "console";
 import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { DelayedExecution, LimitingProcessor } from "../../lib/caching/LimitingProcessor";
@@ -12,6 +13,7 @@ const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
+const assert = chai.assert;
 
 describe(`Limiting processor (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -93,6 +95,10 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
       limitingProcessor.settings.retry = 4;
     });
 
+    afterEach(() => {
+      sinon.restore();
+    });
+
     it("Should create limitingProcessor", async () => {
       expect(limitingProcessor).to.not.be.undefined;
       expect(limitingProcessor.isActive).to.be.true;
@@ -119,28 +125,65 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
       expect(limitingProcessor.topLevelJobsDoneCounter).to.be.eq(1);
     });
 
-    // fails
-    //Put tasks in queue then run processor and expect it to run tasks
-    it("Should call function and put it into the queue and call it after resume", async function (done) {
+    it("Should call function and put it into the queue and call it after resume", function (done) {
       const preFake1 = sinon.fake();
       const preFake2 = sinon.fake();
-      console.log("tu smo 0");
+
+      //expect limiting processor to be inactive
+      expect(limitingProcessor.isActive).to.eq(false);
+
+      //call two tasks
+      limitingProcessor.call(preFake1).catch((e) => getGlobalLogger().error("Limiting processor call failed"));
       limitingProcessor
-        .call(preFake1)
+        .call(preFake2)
         .then(() => {
-          limitingProcessor.call(preFake2).catch((e) => getGlobalLogger().error("limiting processor failed"));
-          expect(limitingProcessor.queue.size).to.be.eq(1);
+          //expect both of the task to be waiting
+          expect(limitingProcessor.queue.size).to.eq(2);
         })
+        .catch((e) => getGlobalLogger().error("Limiting processor call failed"));
+      //resume the processor
+      limitingProcessor.resume().catch((e) => getGlobalLogger().error("Limiting processor resume failed"));
+
+      //with for the tasks to be done and expect first task to be done first
+      sleepms(100)
         .then(() => {
           expect(preFake1.callCount).to.be.eq(1);
           expect(preFake2.callCount).to.be.eq(1);
+          assert(preFake2.calledAfter(preFake1));
           done();
         })
         .catch((err) => done(err));
-      await limitingProcessor.resume();
     });
 
-    it("Should call and process while running with debug on", function () {
+    it("Should call function and prepand it into the queue and call it after resume", function (done) {
+      const preFake1 = sinon.fake();
+      const preFake2 = sinon.fake();
+
+      limitingProcessor.pause();
+      //expect limiting processor to be inactive
+      expect(limitingProcessor.isActive).to.eq(false);
+
+      //call two tasks
+      limitingProcessor.call(preFake1);
+      limitingProcessor.call(preFake2, true).then(() => {
+        //expect both of the task to be waiting
+        expect(limitingProcessor.queue.size).to.eq(2);
+      });
+      //resume the processor
+      limitingProcessor.resume().catch((e) => getGlobalLogger().error("Limiting processor resume failed"));
+
+      //with for the tasks to be done and expect first task to be done first
+      sleepms(100)
+        .then(() => {
+          expect(preFake1.callCount).to.be.eq(1);
+          expect(preFake2.callCount).to.be.eq(1);
+          assert(preFake1.calledAfter(preFake2));
+          done();
+        })
+        .catch((err) => done(err));
+    });
+
+    it("Should call and process while running with debug on", function (done) {
       expect(limitingProcessor.isCompleted).to.be.false;
 
       limitingProcessor.resume(true).catch((e) => getGlobalLogger().error("Limiting processor resume failed"));
@@ -152,24 +195,30 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
 
       expect(limitingProcessor.isActive).to.be.true;
       limitingProcessor.debugOn();
-      return limitingProcessor
+      limitingProcessor
         .call(firstFake)
         .then(() => limitingProcessor.call(secondFake))
         .then(() => limitingProcessor.call(thirdFake, true))
-        .then(() => sleepms(1000))
-        .then(() => expect(secondFake.callCount).to.be.equal(1))
-        .then(() => expect(firstFake.callCount).to.be.equal(1))
-        .then(() => expect(secondFake.calledAfter(thirdFake)).to.be.false);
+        .then(() => sleepms(300))
+        .then(() => {
+          expect(secondFake.callCount).to.be.equal(1);
+          expect(firstFake.callCount).to.be.equal(1);
+          expect(secondFake.calledAfter(thirdFake)).to.be.false;
+          done();
+        })
+        .catch((err) => done(err));
     });
 
-    // takes long time
-    it.skip("Should ignore undefined tasks", function () {
-      const testTask = null;
-      // const spy = sinon.spy(testTask);
-
-      return limitingProcessor.call(testTask).then(() => {
-        console.log(12);
-      });
+    it("Should ignore undefined tasks", function (done) {
+      const spy = sinon.spy(getGlobalLogger(), "error2");
+      expect(limitingProcessor.isActive).to.eq(true);
+      limitingProcessor.queue.push(null);
+      sleepms(200)
+        .then(() => {
+          assert(spy.calledWith(`LimitingProcessor::continue error: de is undefined`));
+          done();
+        })
+        .catch((err) => done(err));
     });
 
     it("Should destroy queue", async () => {
@@ -193,7 +242,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
     });
 
     // crashes
-    it.skip("Should initializeJobs throw an error", async function () {
+    it("Should initializeJobs throw an error", async function () {
       await expect(limitingProcessor.initializeJobs(null, null)).to.be.rejected;
     });
 

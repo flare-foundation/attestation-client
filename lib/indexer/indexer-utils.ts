@@ -23,7 +23,7 @@ export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
 
 export interface IndexerTablesScheme {
   transactionTable: IDBTransactionBase[];
-  blockTable: IDBBlockBase
+  blockTable: IDBBlockBase;
 }
 
 /**
@@ -65,7 +65,7 @@ export function prepareIndexerTables(type: ChainType): IndexerTablesScheme {
       throw new Error("Invalid chain type");
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
   return {
     transactionTable,
@@ -93,10 +93,9 @@ export async function criticalAsync(label: string, funct: (...args: any[]) => Pr
     logException(error, label);
 
     const onFailure = getRetryFailureCallback();
-    console.log(onFailure);
     if (!onFailure) {
       const logger = getGlobalLogger();
-      if (logger) logger.error2(`application exit`);
+      logger.error2(`application exit`);
       process.exit(2);
     } else {
       onFailure(label);

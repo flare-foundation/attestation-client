@@ -1,14 +1,15 @@
 // // yarn test test/indexer/blockHeaderCollector.test.ts
 
-import { ChainType, MCC, XrpMccCreate } from "@flarenetwork/mcc";
-import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
+import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
-
+import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
+import * as BTCBlockHeaderAlt from "../mockData/BTCBlockHeaderAlt.json";
 import { TestBlockXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
@@ -18,7 +19,7 @@ const expect = chai.expect;
 // const fs = require("fs");
 chai.use(require("chai-as-promised"));
 
-describe(`Header Collector (${getTestFile(__filename)})`, () => {
+describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
 
   const databaseConnectOptions = new DatabaseConnectOptions();
@@ -30,17 +31,19 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     }
   });
 
-  describe("XRP", function () {
-    const XRPMccConnection = {
-      url: "https://xrplcluster.com",
-      username: "",
+  describe(`BTC`, () => {
+    const BtcMccConnection = {
+      url: "https://bitcoin-api.flare.network",
+      username: "public",
       password: "",
-    } as XrpMccCreate;
+    } as UtxoMccCreate;
 
-    const client = new MCC.XRP(XRPMccConnection);
-    let indexerToClient = new IndexerToClient(client, 1500, 2, 300);
+    const client = new MCC.BTC(BtcMccConnection);
+    const indexerToClient = new IndexerToClient(client);
 
-    const indexerToDB = new IndexerToDB(getGlobalLogger(), dataService, ChainType.XRP);
+    //   let interlacing = new Interlacing();
+
+    const indexerToDB = new IndexerToDB(getGlobalLogger(), dataService, ChainType.BTC);
 
     const settings = {
       blockCollectTimeMs: 10,
@@ -51,7 +54,7 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     const headerCollector = new HeaderCollector(getGlobalLogger(), 10, indexerToClient, indexerToDB, settings);
 
     before(async function () {
-      const tableName = "xrp_block";
+      const tableName = "btc_block";
       await dataService.manager.query(`delete from ${tableName};`);
     });
 
@@ -64,34 +67,44 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     });
 
     it("Should saveHeadersOnNewTips ", async function () {
-      const header = TestBlockXRP;
+      const header = new BtcBlockHeader(BTCBlockHeader);
+      const headerAlt = new BtcBlockHeader(BTCBlockHeaderAlt);
 
-      await headerCollector.saveHeadersOnNewTips([header]);
-      let res = await dataService.manager.find(DBBlockXRP);
+      await headerCollector.saveHeadersOnNewTips([header, headerAlt]);
+      let res = await dataService.manager.find(DBBlockBTC);
       expect(res.length).to.eq(1);
     });
 
     it("Should cache when saveHeadersOnNewTips", async function () {
-      const header = TestBlockXRP;
+      const header = new BtcBlockHeader(BTCBlockHeader);
 
       await headerCollector.saveHeadersOnNewTips([header, header]);
-      let res = await dataService.manager.find(DBBlockXRP);
+      let res = await dataService.manager.find(DBBlockBTC);
       expect(res.length).to.be.eq(1);
     });
 
-    //Needs improvement
     it("Should not work with empty list saveHeadersOnNewTips ", async function () {
       await headerCollector.saveHeadersOnNewTips([]);
-      let res = await dataService.manager.find(DBBlockXRP);
+      let res = await dataService.manager.find(DBBlockBTC);
       expect(res.length).to.eq(1);
     });
 
-    it("Should readAndSaveBlocksHeaders", async function () {
-      headerCollector.updateN(76_468_241);
+    it("Should saveHeadersOnNewTips", async function () {
+      headerCollector.updateN(10);
 
-      await headerCollector.readAndSaveBlocksHeaders(76_468_242, 76_468_244);
-      let res = await dataService.manager.findOne(DBBlockXRP, { where: { blockNumber: 76_468_243 } });
-      expect(res.blockHash).eq("D97DBEB5E42F95AB5CF4215A35A8C3E93677730254F0966F3B4F3FDB087584C5");
+      const tips = await client.getBlockTips(10);
+
+      await headerCollector.saveHeadersOnNewTips(tips);
+      let res = await dataService.manager.find(DBBlockBTC);
+      expect(res.length).to.be.above(1);
+    });
+
+    it("Should readAndSaveBlocksHeaders", async function () {
+      headerCollector.updateN(10);
+
+      await headerCollector.readAndSaveBlocksHeaders(11, 12);
+      let res = await dataService.manager.findOne(DBBlockBTC, { where: { blockNumber: 12 } });
+      expect(res.blockHash).eq("0000000027c2488e2510d1acf4369787784fa20ee084c258b58d9fbd43802b5e");
     });
 
     it("Should not readAndSaveBlocksHeaders", async function () {
@@ -104,18 +117,34 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
       await expect(headerCollector.readAndSaveBlocksHeaders(9, 12));
       setRetryFailureCallback(undefined);
       expect(fake.callCount).to.eq(1);
+      sinon.restore();
     });
 
     it("Should runBlockHeaderCollectingRaw", function (done) {
       const spy = sinon.spy(headerCollector.indexerToDB, "writeT");
+      setTimeout(done, 6000);
       headerCollector
         .runBlockHeaderCollecting()
         .then(() => {})
         .catch((e) => getGlobalLogger().error("runBlockHeaderCollecting failed"));
       setTimeout(() => {
-        expect(spy.called).to.be.true;
-        done();
-      }, 1000);
+        expect(spy.called).to.be.true, sinon.restore();
+      }, 2000);
+    });
+
+    it("Should runBlockHeaderCollectingTips", function (done) {
+      const spy1 = sinon.spy(headerCollector.indexerToDB, "writeT");
+      const spy2 = sinon.spy(headerCollector, "saveHeadersOnNewTips");
+      setTimeout(done, 6000);
+      headerCollector
+        .runBlockHeaderCollectingTips()
+        .then(() => {})
+        .catch((e) => getGlobalLogger().error("runBlockHeaderCollectingTips failed"));
+      setTimeout(() => {
+        expect(spy1.called).to.be.true;
+        expect(!spy2.called).to.be.false;
+        sinon.restore();
+      }, 5000);
     });
   });
 });

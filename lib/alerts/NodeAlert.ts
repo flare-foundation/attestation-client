@@ -1,6 +1,6 @@
 import { ChainType, IBlock, ITransaction, MCC } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
-import { ChainConfiguration, ChainsConfiguration } from "../chain/ChainConfiguration";
+import { ChainConfiguration, ChainsConfiguration } from "../source/ChainConfiguration";
 import { readConfig } from "../utils/config";
 import { AttLogger, logException } from "../utils/logger";
 import { AlertBase, AlertRestartConfig, AlertStatus } from "./AlertBase";

@@ -1,6 +1,6 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
-import { ChainsConfiguration } from "./chain/ChainConfiguration";
+import { ChainsConfiguration } from "./source/ChainConfiguration";
 import { Indexer } from "./indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "./indexer/IndexerConfiguration";
 import { readConfig, readCredentials } from "./utils/config";

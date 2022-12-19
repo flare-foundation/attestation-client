@@ -1,3 +1,4 @@
+import fs from "fs";
 import { AbiItem } from "web3-utils";
 import StateConnectorAbi from "../../artifacts/contracts/StateConnectorTemp.sol/StateConnectorTemp.json";
 import StateConnectorTranAbi from "../../artifacts/contracts/StateConnectorTempTran.sol/StateConnectorTempTran.json";
@@ -35,8 +36,7 @@ async function deployTempStateConnector(web3Rpc: string, flavor: string) {
   }
 
   const botWallet = web3.eth.accounts.privateKeyToAccount(botPrivateKey);
-
-  if (botWallet.address !== botPublicKey) {
+  if (botWallet.address.toLowerCase() !== botPublicKey.toLowerCase()) {
     const message = "Private and public key mismatch";
     console.error(message);
     throw new Error(message);
@@ -60,8 +60,8 @@ async function deployTempStateConnector(web3Rpc: string, flavor: string) {
   try {
     const signed = await botWallet.signTransaction(tx);
     const rec = await web3.eth.sendSignedTransaction(signed.rawTransaction);
-
     console.log(rec);
+    fs.writeFileSync(".tmp-state-connector-address", rec.contractAddress);
   } catch (e) {
     console.log("Unsuccessfully round finalization");
     console.log(e);
@@ -69,13 +69,14 @@ async function deployTempStateConnector(web3Rpc: string, flavor: string) {
 }
 
 const { argv } = require("yargs")
-  .scriptName("airdropTransactions")
+  .scriptName("testStateConnector")
   .option("r", {
     alias: "rpc",
     describe: "Rpc url",
     demandOption: "Provide rpc url",
     type: "string",
     nargs: 1,
+    default: "http://127.0.0.1:8545"
   })
   .option("f", {
     alias: "flavor",

@@ -11,6 +11,7 @@ const expect = chai.expect;
 
 describe(`Indexer to client (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
+
   describe.skip("BTC", function () {
     const BtcMccConnection = {
       url: process.env.BTC_URL || "",
@@ -75,7 +76,8 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
       expect(res.blockHash).to.be.eq("55DBD6F6E00327DB99178A4416643C0BC47DBF1783E305DC70820037F804F3B7");
     });
 
-    it("Should not get Block", async function () {
+    // Should be fixed. Produces too long trace
+    it.skip("Should not get Block", async function () {
       await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
     });
 

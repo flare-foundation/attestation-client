@@ -77,7 +77,7 @@ class AttestationSpammer {
 
   get numberOfConfirmations(): number {
     // todo: get from chain confing
-    return 6; //AttestationRoundManager.getSourceHandlerConfig(getSourceName(this.chainType)).numberOfConfirmations;;
+    return 6; //AttestationRoundManager.getSourceLimiterConfig(getSourceName(this.chainType)).numberOfConfirmations;;
   }
 
   spammerConfig: SpammerConfig;

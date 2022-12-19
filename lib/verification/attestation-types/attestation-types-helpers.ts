@@ -173,7 +173,7 @@ export function prefix0xSigned(tx: string) {
   if(tx.startsWith("-")) {
     return "-0x" + tx.slice(1);
   }
-  return tx;
+  return "0x" + tx;
 }
 
 /**

@@ -107,21 +107,38 @@ export class VerifierRouter {
          let sourceName = sourceCred.sourceId;
          for (let attestationCred of sourceCred.routes) {
             let verifierRoute = null;
-            if (attestationCred.url || attestationCred.url.length > 0) {
+            if (attestationCred.url && attestationCred.url.length > 0) {
                verifierRoute = new VerifierRoute(attestationCred.url, attestationCred.apiKey);
             } else if (defaultRoute) {
                verifierRoute = defaultRoute;
             }
+            if (!verifierRoute) {
+               throw new Error(`Empty configuration for source ${sourceName}`);
+            }
             for (let attestationTypeName of attestationCred.attestationTypes) {
                let route = this.getRouteEntry(sourceName, attestationTypeName);
+               if (!route) {
+                  throw new Error(`Non-existent route entry for pair ('${sourceName}','${attestationTypeName}')`);
+               }
                if (route !== EMPTY_VERIFIER_ROUTE) {
                   throw new Error(`Duplicate route entry for pair ('${sourceName}','${attestationTypeName}')`);
                }
-               if (verifierRoute) {
-                  this.setRouteEntry(sourceName, attestationTypeName, verifierRoute);
+               this.setRouteEntry(sourceName, attestationTypeName, verifierRoute);
+            }
+         }
+
+         // Check if everything is configured
+         for (let definition of definitions) {
+            let attestationTypeName = definition.name;
+            for (let source of definition.supportedSources) {
+               let sourceName = getSourceName(source);
+               let tmp = this.routeMap.get(sourceName);
+               if (tmp === EMPTY_VERIFIER_ROUTE) {
+                  throw new Error(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
                }
             }
          }
+
       }
       this._initialized = true;
    }

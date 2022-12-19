@@ -14,13 +14,13 @@ function genItForAttestationParser(definition: AttestationTypeScheme) {
   const sourceIds = definition.supportedSources;
   return `
 it("Should encode and decode for '${definition.name}'", async function () { 
-	for(let sourceId of [${sourceIds}]) {
-		let randomRequest = getRandomRequestForAttestationTypeAndSourceId(${
+	for(const sourceId of [${sourceIds}]) {
+		const randomRequest = getRandomRequestForAttestationTypeAndSourceId(${
     definition.id
   } as AttestationType, sourceId as SourceId) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
-		let bytes = encodeRequest(randomRequest);
-		let parsedRequest = parseRequest(bytes);
+    const bytes = encodeRequest(randomRequest);
+    const parsedRequest = parseRequest(bytes);
 		assert(equalsRequest(randomRequest, parsedRequest));
 	}
 });`;

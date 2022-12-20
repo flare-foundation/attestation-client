@@ -33,18 +33,24 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   const mockMccClient = new MockMccClient();
   indexer.cachedClient = new CachedMccClient(ChainType.XRP, { forcedClient: mockMccClient });
 
-  const fake1 = sinon.fake();
-  const fake2 = sinon.fake();
+  // const fake1 = sinon.fake();
+  // const fake2 = sinon.fake();
 
-  indexer.blockProcessorManager = new BlockProcessorManager(
-    getGlobalLogger(),
-    indexer.cachedClient,
-    indexer.indexerToClient,
-    indexer.interlace,
-    { validateBlockBeforeProcess: false, validateBlockMaxRetry: 2, validateBlockWaitMs: 100 },
-    fake1,
-    fake2
-  );
+  // indexer.blockProcessorManager = new BlockProcessorManager(
+  //   getGlobalLogger(),
+  //   indexer.cachedClient,
+  //   indexer.indexerToClient,
+  //   indexer.interlace,
+  //   { validateBlockBeforeProcess: false, validateBlockMaxRetry: 2, validateBlockWaitMs: 100 },
+  //   fake1,
+  //   fake2
+  // );
+
+  indexer.headerCollector = new HeaderCollector(getGlobalLogger(), 0, indexer.indexerToClient, indexer.indexerToDB, {
+    blockCollectTimeMs: 1000,
+    numberOfConfirmations: 3,
+    blockCollecting: "raw",
+  });
 
   afterEach(function () {
     sinon.restore();

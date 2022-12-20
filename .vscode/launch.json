@@ -564,6 +564,24 @@
                 "test/verification/verifierRouter.test.ts"
             ]
         },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch E2E test",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
+            "env": {
+                "NODE_ENV":"development"
+            },
+            "runtimeArgs": [
+                "test_endtoend"
+            ]
+        },
 
         {
             "type": "node",

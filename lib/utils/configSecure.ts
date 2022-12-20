@@ -1,3 +1,4 @@
+import { readConfigBase } from "./config";
 import { initializeJSONsecure, readJSONsecure } from "./jsonSecure";
 import { getGlobalLogger, logException } from "./logger";
 import { IReflection } from "./reflection";
@@ -8,7 +9,7 @@ const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 /**
  * Read secure credentials file and substitude its variables in the template files.
  * 
- * Function creates configutaion object of `obj` and checks if all class members are set.
+ * Function creates configurtion object of `obj` and checks if all class members are set.
  * Any unset (non optional) members return error.
  * 
  * Instance class (obj) must be inherited from `IReflection`
@@ -18,11 +19,15 @@ const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
  * Use `SECURE_CONFIG_NETWORK` env variables to specify the network.
  * 
  * @param project project name 
- * @param type configuration type (config, cretentials)
+ * @param type configuration type (config, credentials)
  * @param obj configuration object instance
  * @returns 
  */
 async function readSecureConfigBase<T extends IReflection<T>>(project: string, type: string, obj: T = null): Promise<T> {
+    if(process.env.TEST_CREDENTIALS && process.env.NODE_ENV !== "production") {
+        return readConfigBase<T>(project, type, undefined, undefined, obj);
+    }
+
     let path = ``;
 
     if (process.env.SECURE_CONFIG_PATH) {

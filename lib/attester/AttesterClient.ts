@@ -38,7 +38,7 @@ export class AttesterClient {
     this.chainsConfig = chains;
     this.credentials = credentials;
     this.sourceRouter = new SourceRouter(this.logger);
-    this.attesterWeb3 = new AttesterWeb3(this.credentials);
+    this.attesterWeb3 = new AttesterWeb3(this.credentials, this.logger);
     this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.config, this.credentials, this.logger, this.attesterWeb3);
   }
 

@@ -30,6 +30,7 @@ import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
 import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
+import { WSServerCredentials } from "../../lib/servers/common/src";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;
@@ -55,7 +56,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
   before(async () => {
     chainsConfiguration = readConfig(new ChainsConfiguration(), "chains");
-    const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
+    const verifierCredentials = readCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     chainName = getSourceName(SOURCE_ID);
     const indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
@@ -69,7 +70,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
     //NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
 
-    let dbService = (new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"));
+    let dbService = (new DatabaseService(getGlobalLogger(), verifierCredentials.indexerDatabase, "indexer"));
     await dbService.connect()
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,

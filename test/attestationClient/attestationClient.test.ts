@@ -8,7 +8,7 @@ import { AttestationRoundManager } from "../../lib/attester/AttestationRoundMana
 import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
 import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
 import { SourceRouter } from "../../lib/source/SourceRouter";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
 import { SourceId } from "../../lib/verification/sources/sources";
@@ -22,8 +22,8 @@ class MockSourceRouter extends SourceRouter {
 }
 
 class MockAttesterWeb3 extends AttesterWeb3 {
-  constructor(credentials: AttesterCredentials) {
-    super(credentials);
+  constructor(credentials: AttesterCredentials, logger: AttLogger) {
+    super(credentials, logger);
   }
 
   async initialize() { }
@@ -79,7 +79,7 @@ describe.skip("Attestation Client", () => {
     const credentials = new AttesterCredentials();
 
     const sourceRouter = new MockSourceRouter(this.logger);
-    const attesterWeb3 = new MockAttesterWeb3(this.credentials);
+    const attesterWeb3 = new MockAttesterWeb3(this.credentials, logger);
     attestationRoundManager = new AttestationRoundManager(sourceRouter, config, credentials, logger, attesterWeb3);
   });
 

@@ -19,6 +19,7 @@ import { AttestationType } from "../../lib/verification/generated/attestation-ty
 import { SourceId } from "../../lib/verification/sources/sources";
 import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
 import { AttestationClientSCInstance, StateConnectorInstance } from "../../typechain-truffle";
+import { WSServerCredentials } from "../../lib/servers/common/src";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 
@@ -51,7 +52,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     chainName = SourceId[SOURCE_ID];
     const configIndexer = readConfig(new ChainsConfiguration(), "chains");
     chainIndexerConfig = configIndexer.chains.find((item) => item.name === chainName);
-    const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
+    const verifierCredentials = readCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     
     console.log( "***1");    
@@ -62,7 +63,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       rateLimitOptions: chainIndexerConfig.rateLimitOptions,
     });
 
-    const dbService = new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer");
+    const dbService = new DatabaseService(getGlobalLogger(), verifierCredentials.indexerDatabase, "indexer");
     await dbService.connect();
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,

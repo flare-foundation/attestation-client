@@ -33,6 +33,33 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   const mockMccClient = new MockMccClient();
   indexer.cachedClient = new CachedMccClient(ChainType.XRP, { forcedClient: mockMccClient });
 
+  const fake1 = sinon.fake();
+  const fake2 = sinon.fake();
+
+  indexer.blockProcessorManager = new BlockProcessorManager(
+    getGlobalLogger(),
+    indexer.cachedClient,
+    indexer.indexerToClient,
+    indexer.interlace,
+    { validateBlockBeforeProcess: false, validateBlockMaxRetry: 2, validateBlockWaitMs: 100 },
+    fake1,
+    fake2
+  );
+
+  afterEach(function () {
+    sinon.restore();
+  });
+
+  it("Should get N", function () {
+    let res = indexer.N;
+    expect(res).to.eq(0);
+  });
+
+  it("Should update N", function () {
+    indexer.N = 10;
+    expect(indexer.N).to.eq(10);
+  });
+
   it("Should prepare tables", () => {
     expect(indexer.dbBlockClass).to.eq(DBBlockXRP);
     expect(indexer.dbTransactionClasses[1]).to.eq(DBTransactionXRP1);
@@ -111,6 +138,16 @@ describe.skip(`Indexer BTC ${getTestFile(__filename)})`, () => {
 
   afterEach(function () {
     sinon.restore();
+  });
+
+  it("Should get N", function () {
+    let res = indexer.N;
+    expect(res).to.eq(0);
+  });
+
+  it("Should update N", function () {
+    indexer.N = 10;
+    expect(indexer.N).to.eq(10);
   });
 
   it("Should prepare tables", () => {

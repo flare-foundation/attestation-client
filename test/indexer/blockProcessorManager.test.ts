@@ -5,7 +5,7 @@ import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { TestBlockXRP, TestBlockXRPAlt } from "../mockData/indexMock";
+import { TestBlockXRPFake, TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");
@@ -73,7 +73,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     });
 
     it("Should processSync ", async function () {
-      const block = TestBlockXRP;
+      const block = TestBlockXRPFake;
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
       n = n + 1;
@@ -86,7 +86,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     });
 
     it("Should not processSync twice", async function () {
-      const block = TestBlockXRP;
+      const block = TestBlockXRPFake;
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
     });

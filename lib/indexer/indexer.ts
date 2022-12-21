@@ -52,7 +52,7 @@ export class Indexer {
   indexerSync: IndexerSync;
 
   // N - last processed and saved block
-  _N = 0;
+  private _N = 0;
 
   // T - chain height
   T = 0;

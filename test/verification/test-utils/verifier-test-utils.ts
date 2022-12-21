@@ -48,12 +48,12 @@ export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions) 
 
    let appXRP = await bootstrapVerifier("xrp", lastTimestamp, DBBlockXRP, DBTransactionXRP0, logger, options);
    let entityManagerXRP = appXRP.get(getEntityManagerToken("indexerDatabase"));
-   let configXRP = appXRP.get(VerifierConfigurationService);
+   let configXRP = appXRP.get("VERIFIER_CONFIG") as VerifierConfigurationService;
    let selectedTransactionXRP = await selectedReferencedTx(entityManagerXRP, DBTransactionXRP0, options.BLOCK_CHOICE);
 
    let appBTC = await bootstrapVerifier("btc", lastTimestamp, DBBlockBTC, DBTransactionBTC0, logger, options);
    let entityManagerBTC = appBTC.get(getEntityManagerToken("indexerDatabase"));
-   let configBTC = appBTC.get(VerifierConfigurationService);
+   let configBTC = appBTC.get("VERIFIER_CONFIG") as VerifierConfigurationService;
    let selectedTransactionBTC = await selectedReferencedTx(entityManagerBTC, DBTransactionBTC0, options.BLOCK_CHOICE, 5);
 
    let startTime = lastTimestamp - (options.LAST_BLOCK - options.FIRST_BLOCK);
@@ -99,10 +99,10 @@ export async function bootstrapVerifier(
       imports: [VerifierServerModule]
    }).compile();
    app = module.createNestApplication();
-
    app.useWebSocketAdapter(new WsAdapter(app));
-
-   configurationService = app.get(VerifierConfigurationService);
+   await app.init();
+   
+   configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
    entityManager = app.get(getEntityManagerToken("indexerDatabase"));
 
    let port = configurationService.wsServerConfiguration.port;
@@ -110,7 +110,7 @@ export async function bootstrapVerifier(
       logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`);
       logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`)
    })
-   await app.init();
+   
 
    await generateTestIndexerDB(
       chainType,

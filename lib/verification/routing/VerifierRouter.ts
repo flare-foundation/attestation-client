@@ -1,5 +1,5 @@
 import { Attestation } from "../../attester/Attestation";
-import { readCredentials } from "../../utils/config";
+import { readSecureCredentials } from "../../utils/configSecure";
 import { AttestationRequest, AttestationRequestOptions } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
@@ -78,7 +78,7 @@ export class VerifierRouter {
       if (this._initialized) {
          throw new Error("Already initialized");
       }
-      this.credentials = readCredentials(new VerifierRouteCredentials(), "verifier-routes");
+      this.credentials = await readSecureCredentials(new VerifierRouteCredentials(), "verifier-routes");
       const definitions = await readAttestationTypeSchemes();
       this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteCredentials>>();
       // set up all possible routes

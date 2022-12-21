@@ -37,7 +37,7 @@ async function bootstrap() {
   SwaggerModule.setup('api-doc', app, document);
 
   const logger = getGlobalLogger("web");
-  const configurationService = app.get(ServerConfigurationService);
+  const configurationService = app.get("SERVER_CONFIG") as ServerConfigurationService;
 
   let port = configurationService.serverCredentials.port;
   await app.listen(port, () =>

@@ -3,12 +3,12 @@
 // DOTENV=DEV SOURCE_ID=ALGO CONFIG_PATH=.secure.dev NODE_ENV=development yarn hardhat test test/verification/CostonVerification.test-dev.ts --network coston
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
-import { AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
-import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { readConfig, readCredentials } from "../../lib/utils/config";
+import { WSServerCredentials } from "../../lib/servers/common/src";
+import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
+import { readSecureConfig, readSecureCredentials } from "../../lib/utils/configSecure";
 import { DatabaseService } from "../../lib/utils/databaseService";
 import { getGlobalLogger } from "../../lib/utils/logger";
 import { MerkleTree } from "../../lib/utils/MerkleTree";
@@ -19,7 +19,6 @@ import { AttestationType } from "../../lib/verification/generated/attestation-ty
 import { SourceId } from "../../lib/verification/sources/sources";
 import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
 import { AttestationClientSCInstance, StateConnectorInstance } from "../../typechain-truffle";
-import { WSServerCredentials } from "../../lib/servers/common/src";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 
@@ -41,6 +40,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   const AttestationClientSC = artifacts.require("AttestationClientSC");
 
   before(async () => {
+    process.env.TEST_CREDENTIALS = "1"
     stateConnector = await StateConnector.at("0x1000000000000000000000000000000000000001");
     attestationClient = await AttestationClientSC.at("0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf");
     BUFFER_TIMESTAMP_OFFSET = (await stateConnector.BUFFER_TIMESTAMP_OFFSET()).toNumber();
@@ -50,9 +50,9 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     currentBufferNumber = Math.floor((now - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
     console.log(`Current buffer number ${currentBufferNumber}, mod: ${currentBufferNumber % TOTAL_STORED_PROOFS}`);
     chainName = SourceId[SOURCE_ID];
-    const configIndexer = readConfig(new ChainsConfiguration(), "chains");
+    const configIndexer = await readSecureConfig(new ChainsConfiguration(), "chains");
     chainIndexerConfig = configIndexer.chains.find((item) => item.name === chainName);
-    const verifierCredentials = readCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
+    const verifierCredentials = await readSecureCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     
     console.log( "***1");    

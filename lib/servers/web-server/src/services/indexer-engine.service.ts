@@ -1,5 +1,5 @@
 import { ChainType, MCC } from '@flarenetwork/mcc';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { DBBlockBase } from '../../../../entity/indexer/dbBlock';
@@ -13,7 +13,7 @@ import { ServerConfigurationService } from './server-configuration.service';
 export class IndexerEngineService {
 
   constructor(
-    private configService: ServerConfigurationService,
+    @Inject("SERVER_CONFIG") private configService: ServerConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) { }
 

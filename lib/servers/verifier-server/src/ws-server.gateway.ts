@@ -1,4 +1,5 @@
 // import { WSServerConfigurationService } from "@atc/common";
+import { Inject } from "@nestjs/common";
 import {
    ConnectedSocket, MessageBody, OnGatewayConnection,
    OnGatewayDisconnect, OnGatewayInit, SubscribeMessage,
@@ -26,7 +27,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
    connections = new Map<WebSocket, ClientRecord>();
 
    constructor(
-      private config: VerifierConfigurationService,
+      @Inject("VERIFIER_CONFIG") private config: VerifierConfigurationService,
       private commandProcessor: WsCommandProcessorService
    ) {
    }

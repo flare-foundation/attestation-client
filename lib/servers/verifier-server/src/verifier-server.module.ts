@@ -41,14 +41,24 @@ function processorProvider(config: VerifierConfigurationService, manager: Entity
   controllers: [VerifierController],
   providers: [
     {
+      provide: 'VERIFIER_CONFIG',
+      useFactory: async () => {
+        const config = new VerifierConfigurationService();
+        await config.initialize()
+        return config;
+      }
+    },
+    {
       provide: "VERIFIER_PROCESSOR",
       useFactory: async (config: VerifierConfigurationService, manager: EntityManager) => processorProvider(config, manager),
-      inject: [VerifierConfigurationService, { token: getEntityManagerToken("indexerDatabase"), optional: false }]
+      inject: [
+        { token: "VERIFIER_CONFIG", optional: false },
+        { token: getEntityManagerToken("indexerDatabase"), optional: false }
+      ]
     },
     WsCommandProcessorService,
     WsServerGateway,
-    WsCommandProcessorService,
-    VerifierConfigurationService
+    WsCommandProcessorService
   ],
 })
 export class VerifierServerModule { }

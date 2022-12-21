@@ -30,7 +30,7 @@ export class SourceLimiterConfig {
 }
 
 /**
- * Class providing SourceLimiterConfig for each source from the startEpoche on??
+ * Class providing SourceLimiterConfig for each source from the startEpoch on??
  */
 export class AttestationConfig {
   startEpoch!: number;
@@ -177,7 +177,7 @@ export class AttestationConfigManager {
   }
 
   /**
-   * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epoches
+   * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epochs
    */
   orderConfigurations() {
     this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {

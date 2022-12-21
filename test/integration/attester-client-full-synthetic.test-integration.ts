@@ -17,6 +17,7 @@ import { bootstrapTestVerifiers, VerifierBootstrapOptions, VerifierTestSetups } 
 chai.use(chaiAsPromised);
 
 const RPC = "http://127.0.0.1:8545"
+// This setting should match with BUFFER_WINDOW in StateConnectorTempTran.sol
 const BUFFER_WINDOW = 5;
 const CONTRACT_NAME = "StateConnectorTempTran";
 const PRIVATE_KEY = "0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122"
@@ -60,6 +61,8 @@ describe(`Attester client full on synthetic verifier data (${getTestFile(__filen
    let setup: VerifierTestSetups;
 
    before(async () => {
+      // use in-memory databases only
+      process.env.IN_MEMORY_DB = "1";
       let abiPath = await relativeContractABIPathForContractName(CONTRACT_NAME, "artifacts");
       const compileData = JSON.parse(fs.readFileSync(`artifacts/${abiPath}`).toString());
       web3 = getWeb3(RPC) as Web3;
@@ -97,14 +100,15 @@ describe(`Attester client full on synthetic verifier data (${getTestFile(__filen
       setup = await bootstrapTestVerifiers(bootstrapOptions);
 
       process.env.TEST_CREDENTIALS = "1"
+      process.env.CONFIG_PATH = CONFIG_PATH;
       const chains = await readSecureConfig(new ChainsConfiguration(), "chains");
       const config = await readSecureConfig(new AttesterClientConfiguration(), "attester");
       const credentials = await readSecureCredentials(new AttesterCredentials(), "attester");
 
-
+      credentials.web.stateConnectorContractAddress = stateConnectorAddress;
       // Create attester client
       const attesterClient = new AttesterClient(config, credentials, chains);
-      // return await attesterClient.runAttesterClient();
+      await attesterClient.runAttesterClient();
 
    });
 

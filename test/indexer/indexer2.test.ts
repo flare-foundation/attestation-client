@@ -1,4 +1,4 @@
-import { ChainType, MCC, XrpMccCreate } from "@flarenetwork/mcc";
+import { ChainType, XrpMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
@@ -15,6 +15,7 @@ import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
 import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
+import { TestBlockXRPFake } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 const sinon = require("sinon");
@@ -22,7 +23,7 @@ const chai = require("chai");
 const expect = chai.expect;
 chai.use(require("chai-as-promised"));
 
-describe(`indexer end to end tests (${getTestFile(__filename)})`, function () {
+describe(`Indexer end to end tests (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
   setRetryFailureCallback(console.log);
@@ -140,9 +141,13 @@ describe(`indexer end to end tests (${getTestFile(__filename)})`, function () {
     testTx.transactionId = "5BEBD97B6F7CFF8CF1D10B7B851DF044AE3FC29F81B68BE0E01F8051CA314180";
     testTx.timestamp = Date.now();
 
-    await indexer.blockSave(testBlock, [testTx]);
+    const res = await indexer.blockSave(testBlock, [testTx]);
 
+    const resDB = await indexer.dbService.manager.findOne(DBTransactionXRP0, { where: { blockNumber: 2 } });
+
+    expect(res).to.be.true;
     expect(indexer.N).to.eq(2);
+    expect(resDB.transactionId).to.eq("5BEBD97B6F7CFF8CF1D10B7B851DF044AE3FC29F81B68BE0E01F8051CA314180");
   });
 
   it("Should save without transactions", async function () {
@@ -152,8 +157,55 @@ describe(`indexer end to end tests (${getTestFile(__filename)})`, function () {
     testBlock.timestamp = Date.now();
     testBlock.transactions = 0;
 
-    await indexer.blockSave(testBlock, []);
+    const res = await indexer.blockSave(testBlock, []);
 
+    const resDB = await indexer.dbService.manager.findOne(DBTransactionXRP0, { where: { blockNumber: 3 } });
+
+    expect(resDB.transactionType).to.eq("EMPTY_BLOCK_INDICATOR");
+    expect(res).to.be.true;
+    expect(indexer.N).to.eq(3);
+  });
+
+  it("Should execute blockCompleted for block in future", async function () {
+    const testBlock = new DBBlockXRP();
+    testBlock.blockHash = "2DC82E21AC08DD1565246D92E1260297FB8B63D40B8DB64752A8117F6326B5E9";
+    testBlock.blockNumber = 100;
+    testBlock.timestamp = Date.now();
+    testBlock.transactions = 1;
+
+    const testTx = new DBTransactionXRP0();
+    testTx.chainType = ChainType.XRP;
+    testTx.blockNumber = 100;
+    testTx.transactionId = "5BEBD97B6F7CFF8CF1D10B7B851DF044AE3FC29F81B68BE0E01F8051CA314190";
+    testTx.timestamp = Date.now();
+
+    const res = await indexer.blockCompleted(testBlock, [testTx]);
+
+    expect(res).to.be.true;
+    expect(indexer.N).to.eq(3);
+    expect(indexer.preparedBlocks.size).to.eq(1);
+  });
+
+  it("Should execute blockCompleted for next block in line while waiting", async function () {
+    indexer.blockNp1hash = "RIGHTHASH";
+    const testBlock = new DBBlockXRP();
+    testBlock.blockHash = "RIGHTHASH";
+    testBlock.blockNumber = 4;
+    testBlock.timestamp = Date.now();
+    testBlock.transactions = 1;
+
+    const testTx = new DBTransactionXRP0();
+    testTx.chainType = ChainType.XRP;
+    testTx.blockNumber = 4;
+    testTx.transactionId = "5BEBD97B6F7CFF8CF1D10B7B851DF044AE3FC29F81B68BE0E01F8051CA314190";
+    testTx.timestamp = Date.now();
+
+    const stub = sinon.stub(indexer.indexerToClient.client, "getBlock").resolves(TestBlockXRPFake);
+
+    const res = await indexer.blockCompleted(testBlock, [testTx]);
+
+    expect(stub.called).to.be.true;
+    expect(res).to.be.true;
     expect(indexer.N).to.eq(3);
   });
 });

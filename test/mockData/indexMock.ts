@@ -8,7 +8,8 @@ import * as resBTCTxAlt from "../mockData/BTCTxAlt.json";
 import * as resBTCBlockAlt from "../mockData/BTCBlockAlt.json";
 import * as resDOGEBlock from "../mockData/DOGEBlock.json";
 import * as resXRPBlockAlt from "../mockData/XRPBlockAlt.json";
-import * as resXRPBlock from "../mockData/XRPBlockAlt.json";
+import * as resXRPBlock from "../mockData/XRPBlock.json";
+import * as resXRPBlockFake from "../mockData/XRPBlockFake.json";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 
@@ -22,6 +23,7 @@ export const TestBlockDOGE = new UtxoBlock(resDOGEBlock as unknown as IUtxoGetBl
 
 export const TestBlockXRP = new XrpBlock(resXRPBlock as unknown as IXrpGetBlockRes);
 export const TestBlockXRPAlt = new XrpBlock(resXRPBlockAlt as unknown as IXrpGetBlockRes);
+export const TestBlockXRPFake = new XrpBlock(resXRPBlockFake as unknown as IXrpGetBlockRes);
 
 export const AugTestBlockBTC = augmentBlock(DBBlockBTC, TestBlockBTC);
 export const AugTestBlockBTCAlt = augmentBlock(DBBlockBTC, TestBlockBTCAlt);

@@ -37,6 +37,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
 
   before(async () => {
     initializeTestGlobalLogger();
+    process.env.TEST_CREDENTIALS = "1"
 
     const module = await Test.createTestingModule({
       imports: [VerifierServerModule],
@@ -49,7 +50,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    configurationService = app.get(VerifierConfigurationService);
+    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
     let port = configurationService.wsServerConfiguration.port;
     await app.listen(port, undefined, () => {
       logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`);

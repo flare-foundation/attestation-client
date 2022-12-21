@@ -1,5 +1,5 @@
 
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { VerifierConfigurationService } from '../services/verifier-configuration.service';
 
@@ -7,7 +7,7 @@ import { VerifierConfigurationService } from '../services/verifier-configuration
 export class AuthGuard implements CanActivate {
 
    constructor(
-      private config: VerifierConfigurationService
+      @Inject("VERIFIER_CONFIG") private config: VerifierConfigurationService
    ) {
    }
 

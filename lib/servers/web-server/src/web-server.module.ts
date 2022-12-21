@@ -39,6 +39,16 @@ import { createTypeOrmOptions } from './utils/db-config';
     }),
   ],
   controllers: [ProofController, StatusController, IndexerController],
-  providers: [ProofEngineService, IndexerEngineService, ServerConfigurationService],
+  providers: [
+    {
+      provide: 'SERVER_CONFIG',
+      useFactory: async () => {
+        const config = new ServerConfigurationService();
+        await config.initialize()
+        return config;
+      }
+    },
+    ProofEngineService, IndexerEngineService
+  ],
 })
 export class WebServerModule { }

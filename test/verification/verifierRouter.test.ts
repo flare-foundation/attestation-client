@@ -29,16 +29,16 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   let setup: VerifierTestSetups;
   
   before(async () => {
+    process.env.TEST_CREDENTIALS = '1';
     let bootstrapOptions = {
       CONFIG_PATH, FIRST_BLOCK, LAST_BLOCK, LAST_CONFIRMED_BLOCK, TXS_IN_BLOCK, BLOCK_CHOICE
-    } as VerifierBootstrapOptions;
-
+    } as VerifierBootstrapOptions;    
     setup = await bootstrapTestVerifiers(bootstrapOptions);
   });
 
 
   it(`Should verify attestation`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH;
+    process.env.CONFIG_PATH = CONFIG_PATH;    
     const verifierRouter = new VerifierRouter();
     await verifierRouter.initialize();
 

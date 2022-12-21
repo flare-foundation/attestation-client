@@ -62,6 +62,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
     process.env.IN_MEMORY_DB = "1";
     process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
+    process.env.TEST_CREDENTIALS = "1"
 
     initializeTestGlobalLogger();
 
@@ -75,7 +76,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    configurationService = app.get(VerifierConfigurationService);
+    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
     entityManager = app.get("indexerDatabaseEntityManager")
 
     let port = configurationService.wsServerConfiguration.port;

@@ -1,20 +1,21 @@
 import { toBN } from '@flarenetwork/mcc';
-import { Injectable } from '@nestjs/common';
-import { readConfig, readCredentials } from '../../../../utils/config';
+import { readSecureConfig, readSecureCredentials } from '../../../../utils/configSecure';
 import { EpochSettings } from '../../../../utils/EpochSettings';
 import { ServerConfiguration } from '../../../common/src/config-models/ServerConfiguration';
 import { ServerCredentials } from '../../../common/src/config-models/ServerCredentials';
 
-@Injectable()
 export class ServerConfigurationService {
-   serverCredentials: ServerCredentials;
-   serverConfig: ServerConfiguration;
-   epochSettings: EpochSettings;
- 
-   constructor() {
-     this.serverCredentials = readCredentials(new ServerCredentials(), "backend");
-     this.serverConfig = readConfig(new ServerConfiguration(), "backend");
-     this.epochSettings = new EpochSettings(toBN(this.serverConfig.firstEpochStartTime), toBN(this.serverConfig.roundDurationSec));
-   }
- }
- 
+  serverCredentials: ServerCredentials;
+  serverConfig: ServerConfiguration;
+  epochSettings: EpochSettings;
+  _initialized = false;
+  constructor() { }
+
+  async initialize() {
+    if(this._initialized) return;
+    this.serverCredentials = await readSecureCredentials(new ServerCredentials(), "backend");
+    this.serverConfig = await readSecureConfig(new ServerConfiguration(), "backend");
+    this.epochSettings = new EpochSettings(toBN(this.serverConfig.firstEpochStartTime), toBN(this.serverConfig.roundDurationSec));
+    this._initialized = true;
+  }
+}

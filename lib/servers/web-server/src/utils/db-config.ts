@@ -1,10 +1,10 @@
 import { ServerCredentials } from "@atc/common";
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { readCredentials } from "../../../../utils/config";
+import { readSecureCredentials } from "../../../../utils/configSecure";
 import { getGlobalLogger } from "../../../../utils/logger";
 
 export async function createTypeOrmOptions(configKey: string, loggerLabel: string, entities: any[]): Promise<TypeOrmModuleOptions> {
-   const credentials = readCredentials(new ServerCredentials(), "backend")[configKey];
+   const credentials = await readSecureCredentials(new ServerCredentials(), "backend")[configKey];
    let databaseName = credentials.database;
    let logger = getGlobalLogger(loggerLabel);
    logger.info(

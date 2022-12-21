@@ -6,8 +6,6 @@
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import assert from "assert";
-import { AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
-import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
@@ -22,7 +20,9 @@ import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../lib/
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { readConfig, readCredentials } from "../../lib/utils/config";
+import { WSServerCredentials } from "../../lib/servers/common/src";
+import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
+import { readSecureConfig, readSecureCredentials } from "../../lib/utils/configSecure";
 import { DatabaseService } from "../../lib/utils/databaseService";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { getGlobalLogger } from "../../lib/utils/logger";
@@ -30,7 +30,6 @@ import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
 import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
-import { WSServerCredentials } from "../../lib/servers/common/src";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;
@@ -55,8 +54,8 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
-    chainsConfiguration = readConfig(new ChainsConfiguration(), "chains");
-    const verifierCredentials = readCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
+    chainsConfiguration = await readSecureConfig(new ChainsConfiguration(), "chains");
+    const verifierCredentials = await readSecureCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     chainName = getSourceName(SOURCE_ID);
     const indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;

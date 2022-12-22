@@ -95,7 +95,7 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     });
 
     // Should be fixed (too long trace)
-    it.skip("Should not readAndSaveBlocksHeaders", async function () {
+    it("Should not readAndSaveBlocksHeaders", async function () {
       headerCollector.updateN(10);
       let j = "not jet failed";
       const fake = sinon.fake();

@@ -72,6 +72,7 @@ export class HeaderCollector {
     if (fromBlockNumber <= this.N) {
       const onFailure = failureCallback;
       onFailure("saveBlocksHeaders: fromBlock too low");
+      return;
       // this should exit the program
     }
     const blockPromises = [];

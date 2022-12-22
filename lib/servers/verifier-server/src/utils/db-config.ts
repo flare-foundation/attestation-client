@@ -6,7 +6,7 @@ import { readSecureCredentials } from "../../../../utils/configSecure";
 import { getGlobalLogger } from "../../../../utils/logger";
 import { WSServerCredentials } from "../../../common/src";
 
-export async function createTypeOrmOptions(configKey: string, loggerLabel: string): Promise<TypeOrmModuleOptions> {
+export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrmModuleOptions> {
    // Entity definition
    let entities: any = [DBTransactionBase, DBBlockBase, DBState];
 
@@ -34,7 +34,7 @@ export async function createTypeOrmOptions(configKey: string, loggerLabel: strin
 
    if(process.env.IN_MEMORY_DB && process.env.NODE_ENV !== "production") {
       return {
-         name: configKey,
+         //name: "indexerDatabase",
          type: 'better-sqlite3',
          database: ':memory:',
          dropSchema: true,
@@ -46,21 +46,22 @@ export async function createTypeOrmOptions(configKey: string, loggerLabel: strin
    }
 
    // MySQL database, get credentials
-   const credentials = await readSecureCredentials(new WSServerCredentials(), "backend")[configKey];
-   let databaseName = credentials.database;
+   const credentials = await readSecureCredentials(new WSServerCredentials(), `verifier-server/${verifierType}-verifier`);
+   const databaseCredentials = credentials.indexerDatabase;
+   let databaseName = databaseCredentials.database;
    let logger = getGlobalLogger(loggerLabel);
    logger.info(
-      `^Yconnecting to database ^g^K${databaseName}^^ at ${credentials.host} on port ${credentials.port} as ${credentials.username} (^W${process.env.NODE_ENV}^^)`
+      `^Yconnecting to database ^g^K${databaseName}^^ at ${databaseCredentials.host} on port ${databaseCredentials.port} as ${databaseCredentials.username} (^W${process.env.NODE_ENV}^^)`
    );
 
    return {
-      name: databaseName,
+      //name: databaseName,
       type: 'mysql',
-      host: credentials.host,
-      port: credentials.port,
-      username: credentials.username,
-      password: credentials.password,
-      database: credentials.database,
+      host: databaseCredentials.host,
+      port: databaseCredentials.port,
+      username: databaseCredentials.username,
+      password: databaseCredentials.password,
+      database: databaseCredentials.database,
       entities: entities,
       // migrations: [migrations],
       synchronize: true,

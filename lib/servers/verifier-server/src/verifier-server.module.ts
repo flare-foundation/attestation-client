@@ -35,7 +35,7 @@ function processorProvider(config: VerifierConfigurationService, manager: Entity
     CommonModule,
     TypeOrmModule.forRootAsync({
       name: "indexerDatabase",
-      useFactory: async () => createTypeOrmOptions("indexerDatabase", "web"),
+      useFactory: async () => createTypeOrmOptions("web"),
     }),
   ],
   controllers: [VerifierController],

@@ -12,8 +12,8 @@ export class VerifierConfigurationService {
   
   async initialize() {
     if(this._initialized) return;
-    this.wsServerCredentials = await readSecureCredentials(new WSServerCredentials(), `${this.verifierType}-verifier`);
-    this.wsServerConfiguration = await readSecureConfig(new WSServerConfiguration(), `${this.verifierType}-verifier`);
+    this.wsServerCredentials = await readSecureCredentials(new WSServerCredentials(), `verifier-server/${this.verifierType}-verifier`);
+    this.wsServerConfiguration = await readSecureConfig(new WSServerConfiguration(), `verifier-server/${this.verifierType}-verifier`);
     this._initialized = true;
   }
 }

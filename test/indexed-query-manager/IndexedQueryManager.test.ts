@@ -41,7 +41,7 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     process.env.VERIFIER_TYPE = "xrp"
     process.env.IN_MEMORY_DB = "1";
     
-    let dbOptions = await createTypeOrmOptions("indexerDatabase", "test");
+    let dbOptions = await createTypeOrmOptions("test");
     dataSource = new DataSource(dbOptions as DataSourceOptions);
     await dataSource.initialize();
     lastTimestamp = getUnixEpochTimestamp();

@@ -26,10 +26,10 @@ describe(`Test request`, () => {
 
 
   it(`Should verify Payment attestation`, async function () {
-    let port = 9000;
+    let port = 9500;
     const URL = `http://localhost:${port}/query`
-    let request = "XXXXXXX"
-    let roundId = 1;
+    let request = "0x000200000000000000000000002f511e45a195844c4f53ebfcadd6d2b86eaea254143aa03c8a160e894916fc498c1b480b83452b91fa50281bc843f82dc7b1573e58ad19554fe200";
+    let roundId = 396106;
     let now = getUnixEpochTimestamp();
     let startTime = now - 3600*5;
     let attestationRequest = {

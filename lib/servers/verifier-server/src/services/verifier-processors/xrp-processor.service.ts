@@ -1,5 +1,5 @@
 import { ChainType, MCC, XrpMccCreate } from '@flarenetwork/mcc';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { IndexedQueryManagerOptions } from '../../../../../indexed-query-manager/indexed-query-manager-types';
@@ -16,7 +16,7 @@ export class XRPProcessorService extends VerifierProcessor {
   indexedQueryManager: IndexedQueryManager;
 
   constructor(
-    private config: VerifierConfigurationService,
+    @Inject("VERIFIER_CONFIG") private config: VerifierConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
     super();

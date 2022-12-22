@@ -6,8 +6,6 @@
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import assert from "assert";
-import { AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
-import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
@@ -22,7 +20,9 @@ import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../lib/
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { readConfig, readCredentials } from "../../lib/utils/config";
+import { WSServerCredentials } from "../../lib/servers/common/src";
+import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
+import { readSecureConfig, readSecureCredentials } from "../../lib/utils/configSecure";
 import { DatabaseService } from "../../lib/utils/databaseService";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { getGlobalLogger } from "../../lib/utils/logger";
@@ -54,8 +54,8 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
-    chainsConfiguration = readConfig(new ChainsConfiguration(), "chains");
-    const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
+    chainsConfiguration = await readSecureConfig(new ChainsConfiguration(), "chains");
+    const verifierCredentials = await readSecureCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     chainName = getSourceName(SOURCE_ID);
     const indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
@@ -69,7 +69,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
     //NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
 
-    let dbService = (new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"));
+    let dbService = (new DatabaseService(getGlobalLogger(), verifierCredentials.indexerDatabase, "indexer"));
     await dbService.connect()
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,

@@ -1,0 +1,90 @@
+{
+   "startEpoch":150,
+   "sources" :
+   [
+      {
+         "source":"BTC",
+         "numberOfConfirmations":6,
+         "maxTotalRoundWeight": 200,
+         "queryWindowInSec":86400,
+         // (6confirms * 10min*60s/block * 1.5) + 2*60*60s max block variation
+         "UBPUnconfirmedWindowInSec": 12600,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "weight": 1
+            },
+            {
+               "type":"BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type":"ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+      ,
+      {
+         "source":"DOGE",
+         "numberOfConfirmations": 60,
+         "maxTotalRoundWeight": 200,
+         "queryWindowInSec":86400,
+         // (60confirms * 60s/block*1.5) + 70*60s max block variation
+         "UBPUnconfirmedWindowInSec": 9600,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "weight": 1
+            },
+            {
+               "type":"BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type":"ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+      ,
+
+      {
+         "source":"XRP",
+         "numberOfConfirmations": 3,
+         "maxTotalRoundWeight": 200,
+         "queryWindowInSec":86400,
+         // 10 mins buffer for non-forkable chains
+         "UBPUnconfirmedWindowInSec": 600,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "weight": 1
+            },
+            {
+               "type":"BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type":"ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+   ]
+ }

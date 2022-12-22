@@ -32,7 +32,7 @@ export async function createTypeOrmOptions(configKey: string, loggerLabel: strin
          throw new Error(`Wrong verifier type '${verifierType}'`)
    }
 
-   if (process.env.IN_MEMORY_DB) {
+   if(process.env.IN_MEMORY_DB && process.env.NODE_ENV !== "production") {
       return {
          name: configKey,
          type: 'better-sqlite3',

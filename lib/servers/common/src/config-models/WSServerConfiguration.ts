@@ -5,12 +5,6 @@ export class WSServerConfiguration implements IReflection<WSServerConfiguration>
   @optional() port: number = 8088;
   @optional() checkAliveIntervalMs: number = 5000;
 
-  // maxValidIndexerDelaySec
-  // numberOfConfirmations
-  // epochsettings
-  // queryWindowInSec
-  // UBPUnconfirmedWindowInSec
-
   sourceId: string = "";
   attestationTypes: string[] = [];
 

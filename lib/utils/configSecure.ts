@@ -1,3 +1,4 @@
+import { readConfigBase } from "./config";
 import { initializeJSONsecure, readJSONsecure } from "./jsonSecure";
 import { getGlobalLogger, logException } from "./logger";
 import { IReflection } from "./reflection";
@@ -8,7 +9,7 @@ const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 /**
  * Read secure credentials file and substitude its variables in the template files.
  * 
- * Function creates configutaion object of `obj` and checks if all class members are set.
+ * Function creates configurtion object of `obj` and checks if all class members are set.
  * Any unset (non optional) members return error.
  * 
  * Instance class (obj) must be inherited from `IReflection`
@@ -18,11 +19,15 @@ const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
  * Use `SECURE_CONFIG_NETWORK` env variables to specify the network.
  * 
  * @param project project name 
- * @param type configuration type (config, cretentials)
+ * @param type configuration type (config, credentials)
  * @param obj configuration object instance
  * @returns 
  */
 async function readSecureConfigBase<T extends IReflection<T>>(project: string, type: string, obj: T = null): Promise<T> {
+    if(process.env.TEST_CREDENTIALS && process.env.NODE_ENV !== "production") {
+        return readConfigBase<T>(project, type, undefined, undefined, obj);
+    }
+
     let path = ``;
 
     if (process.env.SECURE_CONFIG_PATH) {
@@ -83,46 +88,3 @@ export async function readSecureConfig<T extends IReflection<T>>(obj: T, project
 export async function readSecureCredentials<T extends IReflection<T>>(obj: T, project: string): Promise<T> {
     return await readSecureConfigBase<T>(project, "credentials", obj);
 }
-
-
-/**
- * Helper class for `readSecureConfigBase` to read `config`.
- * @param obj 
- * @param project 
- * @returns 
- */
- export function readSecureConfigSyn<T extends IReflection<T>>(obj: T, project: string): T {
-    let result: T = null;
-    let done = false;
-    readSecureConfigBase<T>(project, "config", obj).then( (T)=>{
-        result = T;
-        done = true;
-    }).catch( (error)=>{
-        logException( error , "readSecureConfigSyn" );
-        done = true;
-    });
-
-    while( !done ) 
-    {
-        //???
-    }
-    return result;
-
-
-    // return readSecureConfigBase<T>(project, "config", obj)
-    // .then(name => {
-    //     return name; 
-    // });
-}
-
-/**
- * Helper class for `readSecureConfigBase` to read `credentials`.
- * [obsolete] This function should be obsolete now. for new project use all configurations in one file and use only `readSecureConfig`.
- * @param obj 
- * @param project 
- * @returns 
- */
-export async function readSecureCredentialsSync<T extends IReflection<T>>(obj: T, project: string): Promise<T> {
-    return await readSecureConfigBase<T>(project, "credentials", obj);
-}
-

@@ -25,7 +25,7 @@ const DEFAULT_DEBUG_CONFIG_PATH = "dev";
  * @param obj configuration object instance
  * @returns 
  */
-function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
+export function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
   let path = `./configs/`;
 
   if (userPath && userPath !== "") {

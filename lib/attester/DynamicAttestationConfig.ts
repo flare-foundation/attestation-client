@@ -32,7 +32,7 @@ export class SourceLimiterConfig {
 }
 
 /**
- * Class providing SourceLimiterConfig for each source from the @param startRoundId on??
+ * Class providing SourceLimiterConfig for each source from the @param startRoundId on.
  */
 export class AttestationConfig {
   startRoundId!: number;
@@ -191,7 +191,7 @@ export class AttestationConfigManager {
   }
 
   /**
-   * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epoches
+   * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epochs
    */
   orderConfigurations() {
     this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {

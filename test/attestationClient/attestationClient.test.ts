@@ -78,8 +78,8 @@ describe.skip("Attestation Client", () => {
     const config = new AttesterClientConfiguration();
     const credentials = new AttesterCredentials();
 
-    const sourceRouter = new MockSourceRouter(this.logger);
-    const attesterWeb3 = new MockAttesterWeb3(this.credentials, this.logger);
+    const sourceRouter = new MockSourceRouter(undefined);
+    const attesterWeb3 = new MockAttesterWeb3(credentials, logger);
     attestationRoundManager = new AttestationRoundManager(sourceRouter, config, credentials, logger, attesterWeb3);
   });
 

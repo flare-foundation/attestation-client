@@ -1,15 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { readConfig, readCredentials } from '../../../../utils/config';
+import { readSecureConfig, readSecureCredentials } from '../../../../utils/configSecure';
 import { WSServerConfiguration, WSServerCredentials } from '../../../common/src/config-models';
 
-@Injectable()
 export class VerifierConfigurationService {
   wsServerCredentials: WSServerCredentials;
   wsServerConfiguration: WSServerConfiguration;
   verifierType = process.env.VERIFIER_TYPE ? process.env.VERIFIER_TYPE : "vpws";
+  _initialized = false;
 
-  constructor() {
-    this.wsServerCredentials = readCredentials(new WSServerCredentials(), `${this.verifierType}-verifier`);
-    this.wsServerConfiguration = readConfig(new WSServerConfiguration(), `${this.verifierType}-verifier`);
+  constructor() { 
+  }
+  
+  async initialize() {
+    if(this._initialized) return;
+    this.wsServerCredentials = await readSecureCredentials(new WSServerCredentials(), `${this.verifierType}-verifier`);
+    this.wsServerConfiguration = await readSecureConfig(new WSServerConfiguration(), `${this.verifierType}-verifier`);
+    this._initialized = true;
   }
 }

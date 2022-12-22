@@ -37,6 +37,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
 
   before(async () => {
     initializeTestGlobalLogger();
+    process.env.TEST_CREDENTIALS = "1"
 
     const module = await Test.createTestingModule({
       imports: [VerifierServerModule],
@@ -49,7 +50,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    configurationService = app.get(VerifierConfigurationService);
+    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
     let port = configurationService.wsServerConfiguration.port;
     await app.listen(port, undefined, () => {
       logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`);
@@ -58,6 +59,11 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     await app.init();
   });
 
+  after(async () => {
+    delete process.env.TEST_CREDENTIALS;
+    await app.close();
+  });
+  
   it(`Should connect `, async () => {
     const client = new WsClient<TestData, TestData>(defaultWsClientOptions);
     await client.connect();
@@ -136,10 +142,6 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     assert(rec2[0].getTime() - rec1[0].getTime() >= checkAliveIntervalMs - 2, "Two pings are not separated enough");
     assert(client.pingPongRecords.size === 0, "Ping pong records not cleared")
     client.disconnect();
-  });
-
-  after(async () => {
-    await app.close();
   });
 
 });

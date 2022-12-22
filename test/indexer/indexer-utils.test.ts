@@ -1,3 +1,5 @@
+// yarn test test/indexer/indexer-utils.test.ts
+
 const sinon = require("sinon");
 import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables } from "../../lib/indexer/indexer-utils";
 import { expect } from "chai";

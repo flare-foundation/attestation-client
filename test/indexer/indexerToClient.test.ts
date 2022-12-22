@@ -1,3 +1,5 @@
+// yarn test test/indexer/indexerToClient.test.ts
+
 import { MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";

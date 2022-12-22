@@ -1,3 +1,5 @@
+// yarn test test/indexer/chain-collector-helper.test.ts
+
 import {
   AlgoMccCreate,
   ChainType,
@@ -21,8 +23,6 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
 import { TestBlockXRP, TestBlockXRPAlt, TestTxXRP } from "../mockData/indexMock";
-import * as resXRPBlock from "../mockData/XRPBlock.json";
-import * as resXRPTx from "../mockData/XRPTx.json";
 
 import { afterEach } from "mocha";
 import sinon from "sinon";

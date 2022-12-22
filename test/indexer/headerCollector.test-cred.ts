@@ -1,4 +1,4 @@
-// // yarn test test/indexer/blockHeaderCollector.test.ts
+//  yarn test test/indexer/blockHeaderCollector.test-cred.ts
 
 import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";

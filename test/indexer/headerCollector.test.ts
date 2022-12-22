@@ -1,4 +1,4 @@
-// // yarn test test/indexer/blockHeaderCollector.test.ts
+// yarn test test/indexer/blockHeaderCollector.test.ts
 
 import { ChainType, MCC, XrpMccCreate } from "@flarenetwork/mcc";
 import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";

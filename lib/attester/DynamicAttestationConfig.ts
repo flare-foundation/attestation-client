@@ -1,12 +1,14 @@
 import { ChainType } from "@flarenetwork/mcc";
+import fs from "fs";
+import { exit } from "process";
 import { readJSON } from "../utils/json";
 import { getGlobalLogger, logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
+import { VerifierRouter } from "../verification/routing/VerifierRouter";
 import { SourceId, toSourceId } from "../verification/sources/sources";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 
-const fs = require("fs");
 export class SourceLimiterTypeConfig {
   // Weight presents the difficulty of validating the attestation depending on the attestation type and source
   weight!: number;
@@ -30,12 +32,21 @@ export class SourceLimiterConfig {
 }
 
 /**
- * Class providing SourceLimiterConfig for each source from the startEpoche on??
+ * Class providing SourceLimiterConfig for each source from the @param startRoundId on??
  */
 export class AttestationConfig {
-  startEpoch!: number;
+  startRoundId!: number;
 
   sourceLimiters = new Map<number, SourceLimiterConfig>();
+
+  verifierRouter = new VerifierRouter();
+
+  isSupported(source: SourceId, type: AttestationType): boolean {
+    const config = this.sourceLimiters.get(source);
+    if (!config) return false;
+    const typeConfig = config.attestationTypes.get(type);
+    return !!typeConfig;
+  }
 }
 
 /**
@@ -87,13 +98,13 @@ export class AttestationConfigManager {
   async initialize() {
     await this.loadAll();
 
-    this.dynamicLoadInitialize();
+    await this.dynamicLoadInitialize();
   }
 
   /**
    * Check for changes in dynamicAttestationConfigurationFolder and loads new files
    */
-  dynamicLoadInitialize() {
+  async dynamicLoadInitialize() {
     try {
       fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
         if (filename && event === "rename") {
@@ -115,7 +126,7 @@ export class AttestationConfigManager {
    */
   async loadAll() {
     try {
-      await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err: number, files: string[]) => {
+      await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err, files: string[]) => {
         if (files) {
           files.forEach((filename) => {
             this.load(this.config.dynamicAttestationConfigurationFolder + filename);
@@ -130,19 +141,22 @@ export class AttestationConfigManager {
     }
   }
 
-  load(filename: string, disregardObsolete = false): boolean {
+  async load(filename: string, disregardObsolete = false): Promise<boolean> {
     this.logger.info(`^GDAC load '${filename}'`);
 
+    // todo: read with config (to get proper type)
     const fileConfig = readJSON<any>(filename, JSONMapParser);
 
-    // check if loading current epoch (or next one)
-    if (fileConfig.startEpoch == this.attestationRoundManager.activeEpochId || fileConfig.startEpoch == this.attestationRoundManager.activeEpochId + 1) {
+    // check if loading current round (or next one)
+    if (fileConfig.startEpoch == this.attestationRoundManager.activeRoundId || fileConfig.startEpoch == this.attestationRoundManager.activeRoundId + 1) {
       this.logger.warning(`DAC almost alive (epoch ${fileConfig.startEpoch})`);
     }
 
     // convert from file structure
     const config = new AttestationConfig();
-    config.startEpoch = fileConfig.startEpoch;
+    config.startRoundId = fileConfig.startEpoch;
+
+    await config.verifierRouter.initialize(config.startRoundId);
 
     // parse sources
     fileConfig.sources.forEach(
@@ -181,34 +195,66 @@ export class AttestationConfigManager {
    */
   orderConfigurations() {
     this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {
-      if (a.startEpoch < b.startEpoch) return 1;
-      if (a.startEpoch > b.startEpoch) return -1;
+      if (a.startRoundId < b.startRoundId) return 1;
+      if (a.startRoundId > b.startRoundId) return -1;
       return 0;
     });
 
     // cleanup
-    for (let a = 1; a < this.attestationConfig.length; a++) {
-      if (this.attestationConfig[a].startEpoch < this.attestationRoundManager.activeEpochId) {
-        this.logger.debug(`DAC cleanup #${a} (epoch ${this.attestationConfig[a].startEpoch})`);
-        this.attestationConfig.slice(a);
+    for (let i = 1; i < this.attestationConfig.length; i++) {
+      if (this.attestationConfig[i].startRoundId < this.attestationRoundManager.activeRoundId) {
+        this.logger.debug(`DAC cleanup #${i} (epoch ${this.attestationConfig[i].startRoundId})`);
+        this.attestationConfig.slice(i);
         return;
       }
     }
   }
 
   /**
-   * @returns SourceLimiterConfig for a given @param source that is valid for in @param epoch
+   * @returns SourceLimiterConfig for a given @param source that is valid for in @param roundId
    */
-  getSourceLimiterConfig(source: number, epoch: number): SourceLimiterConfig {
+  getSourceLimiterConfig(source: number, roundId: number): SourceLimiterConfig {
     // configs must be ordered by decreasing epoch number
-    for (let a = 0; a < this.attestationConfig.length; a++) {
-      if (this.attestationConfig[a].startEpoch < epoch) {
-        return this.attestationConfig[a].sourceLimiters.get(source)!;
+    for (let i = 0; i < this.attestationConfig.length; i++) {
+      if (this.attestationConfig[i].startRoundId < roundId) {
+        return this.attestationConfig[i].sourceLimiters.get(source)!;
       }
     }
 
-    this.logger.error(`DAC for source ${source} epoch ${epoch} does not exist (using default)`);
+    this.logger.error(`DAC for source ${source} epoch ${roundId} does not exist`);
 
-    return new SourceLimiterConfig();
+    return null;
+  }
+
+  /**
+   * @returns AttestationConfig for a given @param roundId
+   */
+  getConfig(roundId: number): AttestationConfig {
+    // configs must be ordered by decreasing epoch number
+    for (let i = 0; i < this.attestationConfig.length; i++) {
+      if (this.attestationConfig[i].startRoundId < roundId) {
+        return this.attestationConfig[i];
+      }
+    }
+
+    this.logger.error(`DAC for roundId ${roundId} does not exist`);
+
+    return null;
+  }
+
+  /**
+   * @returns getVerifierRouter for a given @param roundId
+   */
+  getVerifierRouter(roundId: number): VerifierRouter {
+    // configs must be ordered by decreasing epoch number
+    for (let i = 0; i < this.attestationConfig.length; i++) {
+      if (this.attestationConfig[i].startRoundId < roundId) {
+        return this.attestationConfig[i].verifierRouter;
+      }
+    }
+
+    this.logger.error(`DAC for round id ${roundId} does not exist (using default)`);
+
+    exit(1);
   }
 }

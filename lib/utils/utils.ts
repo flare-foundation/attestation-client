@@ -7,6 +7,9 @@ import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
 
+// used for return after exit(1) so that return is actually called after mocked exit
+export const MOCK_NULL_WHEN_TESTING = null;
+
 /**
  * Removes an element from an array.
  * @param array 

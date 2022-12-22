@@ -2,7 +2,7 @@ import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../../../../entity/indexer/dbBlock";
 import { DBState } from "../../../../entity/indexer/dbState";
 import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from "../../../../entity/indexer/dbTransaction";
-import { readCredentials } from "../../../../utils/config";
+import { readSecureCredentials } from "../../../../utils/configSecure";
 import { getGlobalLogger } from "../../../../utils/logger";
 import { WSServerCredentials } from "../../../common/src";
 
@@ -32,7 +32,7 @@ export async function createTypeOrmOptions(configKey: string, loggerLabel: strin
          throw new Error(`Wrong verifier type '${verifierType}'`)
    }
 
-   if(process.env.IN_MEMORY_DB) {
+   if (process.env.IN_MEMORY_DB) {
       return {
          name: configKey,
          type: 'better-sqlite3',
@@ -41,12 +41,12 @@ export async function createTypeOrmOptions(configKey: string, loggerLabel: strin
          entities: entities,
          synchronize: true,
          migrationsRun: false,
-         logging: false  
+         logging: false
       };
    }
 
    // MySQL database, get credentials
-   const credentials = readCredentials(new WSServerCredentials(), "backend")[configKey];
+   const credentials = await readSecureCredentials(new WSServerCredentials(), "backend")[configKey];
    let databaseName = credentials.database;
    let logger = getGlobalLogger(loggerLabel);
    logger.info(

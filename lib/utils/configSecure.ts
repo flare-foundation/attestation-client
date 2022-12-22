@@ -34,7 +34,7 @@ async function readSecureConfigBase<T extends IReflection<T>>(project: string, t
         getGlobalLogger().warning(`secure configuration path not set. using ^w^K${modePath}^^`);
     }
 
-    let network = "coston";
+    let network = "Coston";
     if (process.env.SECURE_CONFIG_NETWORK) {
         network = `${process.env.SECURE_CONFIG_NETWORK}`;
         getGlobalLogger().debug2(`secure configuration env.SECURE_CONFIG_NETWORK using ^w^K${process.env.SECURE_CONFIG_NETWORK}^^`);
@@ -81,6 +81,48 @@ export async function readSecureConfig<T extends IReflection<T>>(obj: T, project
  * @returns 
  */
 export async function readSecureCredentials<T extends IReflection<T>>(obj: T, project: string): Promise<T> {
+    return await readSecureConfigBase<T>(project, "credentials", obj);
+}
+
+
+/**
+ * Helper class for `readSecureConfigBase` to read `config`.
+ * @param obj 
+ * @param project 
+ * @returns 
+ */
+ export function readSecureConfigSyn<T extends IReflection<T>>(obj: T, project: string): T {
+    let result: T = null;
+    let done = false;
+    readSecureConfigBase<T>(project, "config", obj).then( (T)=>{
+        result = T;
+        done = true;
+    }).catch( (error)=>{
+        logException( error , "readSecureConfigSyn" );
+        done = true;
+    });
+
+    while( !done ) 
+    {
+        //???
+    }
+    return result;
+
+
+    // return readSecureConfigBase<T>(project, "config", obj)
+    // .then(name => {
+    //     return name; 
+    // });
+}
+
+/**
+ * Helper class for `readSecureConfigBase` to read `credentials`.
+ * [obsolete] This function should be obsolete now. for new project use all configurations in one file and use only `readSecureConfig`.
+ * @param obj 
+ * @param project 
+ * @returns 
+ */
+export async function readSecureCredentialsSync<T extends IReflection<T>>(obj: T, project: string): Promise<T> {
     return await readSecureConfigBase<T>(project, "credentials", obj);
 }
 

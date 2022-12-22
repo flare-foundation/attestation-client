@@ -4,15 +4,15 @@ import { stringify } from "safe-stable-stringify";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { criticalAsync } from "../indexer/indexer-utils";
+import { SourceLimiter } from "../source/SourceLimiter";
 import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger, logException } from "../utils/logger";
+import { logException } from "../utils/logger";
 import { commitHash, MerkleTree } from "../utils/MerkleTree";
 import { getCryptoSafeRandom, prepareString } from "../utils/utils";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { SourceLimiter } from "../source/SourceLimiter";
 
 export enum AttestationRoundPhase {
   collect,
@@ -122,6 +122,12 @@ export class AttestationRound {
 
     this.attestations.push(attestation);
     this.attestationsMap.set(requestId, attestation);
+
+    // check if attestation is invalid
+    if (attestation.status === AttestationStatus.failed) {
+      this.processed(attestation);
+      return;
+    }
 
     // start attestation process
     if (attestation.sourceLimiter.canProceedWithValidation(attestation)) {

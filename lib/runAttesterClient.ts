@@ -31,13 +31,12 @@ async function runAttester() {
   setRetryFailureCallback(terminateOnRetryFailure);
 
   // Reading configuration
-  const chains = await readSecureConfig(new ChainsConfiguration(), "chains");
   const config = await readSecureConfig(new AttesterClientConfiguration(), "attester");
   const credentials = await readSecureCredentials(new AttesterCredentials(), "attester");
 
 
   // Create and start Attester Client
-  const attesterClient = new AttesterClient(config, credentials, chains);
+  const attesterClient = new AttesterClient(config, credentials);
   return await attesterClient.runAttesterClient();
 }
 

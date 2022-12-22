@@ -1,7 +1,9 @@
 import { Managed } from "@flarenetwork/mcc";
+import { exit } from "process";
 import { Attestation } from "../attester/Attestation";
-import { AttLogger } from "../utils/logger";
-import { SourceId } from "../verification/sources/sources";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
+import { MOCK_NULL_WHEN_TESTING } from "../utils/utils";
+import { SourceId, toSourceId } from "../verification/sources/sources";
 import { SourceManager } from "./SourceManager";
 
 /**
@@ -11,10 +13,39 @@ import { SourceManager } from "./SourceManager";
 export class SourceRouter {
   sourceManagers = new Map<SourceId, SourceManager>();
 
-  logger: AttLogger;
+  attestationRoundManager: AttestationRoundManager;
 
-  constructor(logger: AttLogger) {
-    this.logger = logger;
+
+  constructor(attestationRoundManager: AttestationRoundManager) {
+    this.attestationRoundManager = attestationRoundManager;
+  }
+
+  get logger() {
+    return this.attestationRoundManager.logger;
+  }
+
+  /**
+   * Initialize existing source manager @param roundId verifier configs and create new verifier sources managers. 
+   * @param roundId 
+   */
+  initializeSources(roundId: number) {
+    const config = this.attestationRoundManager.attestationConfigManager.getConfig(roundId);
+
+    for (let sourceName of config.verifierRouter.routeMap.keys()) {
+      const sourceId = toSourceId(sourceName);
+      let sourceManager = this.sourceManagers.get(sourceId);
+      if (sourceManager) {
+        sourceManager.setConfig(sourceId, roundId);
+        continue;
+      }
+
+      // create new source manager
+      sourceManager = new SourceManager(this.attestationRoundManager);
+      sourceManager.setConfig(sourceId, roundId);
+      this.addSourceManager(sourceId, sourceManager);
+    }
+    
+    // todo: minimal memory optimization would be to delete obsolete source managers.
   }
 
   /**
@@ -35,9 +66,9 @@ export class SourceRouter {
     const sourceManager = this.sourceManagers.get(sourceId);
 
     if (!sourceManager) {
-      this.logger.error(`  ! '${sourceId}: undefined chain'`);
-      //
-      return undefined;
+      this.logger.error(`${sourceId}: critical error, source not defined`);
+      exit(1);
+      return MOCK_NULL_WHEN_TESTING;
     }
 
     return sourceManager.validate(attestation);

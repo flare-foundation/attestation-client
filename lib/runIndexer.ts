@@ -1,9 +1,9 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
-import { ChainsConfiguration } from "./source/ChainConfiguration";
 import { Indexer } from "./indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "./indexer/IndexerConfiguration";
-import { readConfig, readCredentials } from "./utils/config";
+import { ChainsConfiguration } from "./source/ChainConfiguration";
+import { readSecureConfig, readSecureCredentials } from "./utils/configSecure";
 import { DotEnvExt } from "./utils/DotEnvExt";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";
@@ -34,9 +34,9 @@ async function runIndexer() {
   setRetryFailureCallback(terminateOnRetryFailure);
 
   // read configuration
-  const config = readConfig(new IndexerConfiguration(), "indexer");
-  const chains = readConfig(new ChainsConfiguration(), "chains");
-  const credentials = readCredentials(new IndexerCredentials(), "indexer");
+  const config = await readSecureConfig(new IndexerConfiguration(), "indexer");
+  const chains = await readSecureConfig(new ChainsConfiguration(), "chains");
+  const credentials = await readSecureCredentials(new IndexerCredentials(), "indexer");
 
   // create and start indexer
   const indexer = new Indexer(config, chains, credentials, args["chain"]);
@@ -68,7 +68,7 @@ locker.lock()
       });
   })
   .catch(function (err) {
-    getGlobalLogger().error( `unable to start application. ^w${instanceName}^^ is locked` );
+    getGlobalLogger().error(`unable to start application. ^w${instanceName}^^ is locked`);
 
     // Quit the application
     exit(5);

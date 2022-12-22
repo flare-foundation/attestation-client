@@ -1,6 +1,6 @@
 import { AttesterCredentials } from "../attester/AttesterClientConfiguration";
 import { DBState } from "../entity/indexer/dbState";
-import { readCredentials } from "../utils/config";
+import { readSecureCredentials } from "../utils/configSecure";
 import { DatabaseService } from "../utils/databaseService";
 import { AttLogger } from "../utils/logger";
 import { getUnixEpochTimestamp, secToHHMMSS } from "../utils/utils";
@@ -12,19 +12,22 @@ export class IndexerAlert extends AlertBase {
 
   config: AlertConfig;
 
+  logger: AttLogger;
+
   constructor(name: string, logger: AttLogger, config: AlertConfig) {
     super(name, logger, new AlertRestartConfig(config.timeRestart, config.indexerRestart.replace("<name>", name).toLowerCase()));
 
     this.config = config;
-
-    if (!IndexerAlert.dbService) {
-      const credentials = readCredentials(new AttesterCredentials(), "attester");
-
-      IndexerAlert.dbService = new DatabaseService(logger, credentials.indexerDatabase, "indexer");
-    }
+    this.logger = logger;
   }
 
   async initialize() {
+
+    if (!IndexerAlert.dbService) {
+      const credentials = await readSecureCredentials(new AttesterCredentials(), "attester");
+
+      IndexerAlert.dbService = new DatabaseService(this.logger, credentials.indexerDatabase, "indexer");
+    }
     await IndexerAlert.dbService.connect();
   }
 

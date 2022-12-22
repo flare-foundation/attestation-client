@@ -6,7 +6,7 @@ import { BaseEntity } from "../base/BaseEntity";
  * Format for storing transaction data in indexer database
  */
 export class DBTransactionBase extends BaseEntity {
-  @Column() @Index() chainType: ChainType = -1;
+  @Column() @Index() chainType: number = -1;
 
   @Column({ type: "varchar", length: 64 }) @Index() transactionId: string = "";
 

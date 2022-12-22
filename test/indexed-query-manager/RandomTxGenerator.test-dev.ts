@@ -35,7 +35,7 @@ describe("Indexed query manager", () => {
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
-    let dbOptions = await createTypeOrmOptions("indexerDatabase", "test");
+    let dbOptions = await createTypeOrmOptions("test");
     let dataSource = new DataSource(dbOptions as DataSourceOptions);
     await dataSource.initialize();
     await generateTestIndexerDB(

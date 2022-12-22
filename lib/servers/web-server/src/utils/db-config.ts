@@ -12,7 +12,7 @@ export async function createTypeOrmOptions(configKey: string, loggerLabel: strin
    );
 
    return {
-      name: databaseName,
+      //name: databaseName,
       type: 'mysql',
       host: credentials.host,
       port: credentials.port,

@@ -1,6 +1,7 @@
 import BN from "bn.js";
 import Web3 from "web3";
 import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
+import { AttLogger } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -16,20 +17,19 @@ export class AttesterWeb3 {
   web3!: Web3;
   stateConnector!: StateConnectorOld;
   web3Functions!: Web3Functions;
-  
-  constructor(credentials: AttesterCredentials) {
+
+  logger: AttLogger;
+
+  constructor(credentials: AttesterCredentials, logger: AttLogger) {
     // for testing only
     if (process.env.NODE_ENV !== "production" && !credentials) {
       return;
     }
 
     this.credentials = credentials;
+    this.logger = logger;
     this.web3 = getWeb3(credentials.web.rpcUrl) as Web3;
-    this.web3Functions = new Web3Functions(this.logger, this.web3, credentials.web.accountPrivateKey);
-  }
-
-  get logger() {
-    return this.attestationRoundManager.logger;
+    this.web3Functions = new Web3Functions(logger, this.web3, credentials.web.accountPrivateKey);
   }
 
   async initialize(attestationRoundManager: AttestationRoundManager) {

@@ -1,16 +1,17 @@
 import { Managed } from "@flarenetwork/mcc";
 import assert from "assert";
+import { exit } from "process";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
-import { logException } from "../utils/logger";
+import { getGlobalLogger, logException } from "../utils/logger";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
-import { VerifierRouter } from "../verification/routing/VerifierRouter";
+import { VerifierSourceRouteCredentials } from "../verification/routing/configs/VerifierSourceRouteCredentials";
+import { SourceId } from "../verification/sources/sources";
 import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
-import { ChainConfiguration } from "./ChainConfiguration";
 
 @Managed()
 export class SourceManager {
@@ -19,7 +20,7 @@ export class SourceManager {
   requestTime = 0;
   requestsPerSecond = 0;
 
-  chainConfig: ChainConfiguration;
+  verifierSourceConfig: VerifierSourceRouteCredentials;
 
   attestationsQueue = new Array<Attestation>();
   attestationsPriorityQueue = new PriorityQueue<Attestation>();
@@ -29,24 +30,21 @@ export class SourceManager {
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
-  verifierRouter: VerifierRouter;
-
-  constructor(attestationRoundManager: AttestationRoundManager, chainConfiguration: ChainConfiguration) {
+  constructor(attestationRoundManager: AttestationRoundManager) {
     this.attestationRoundManager = attestationRoundManager;
-    this.chainConfig = chainConfiguration;
+  }
+
+  setConfig(sourceId: SourceId, roundId: number)
+  {
+    this.verifierSourceConfig = this.attestationRoundManager.attestationConfigManager.getVerifierRouter( roundId ).credentials.getSourceConfig(sourceId);
+    if( !this.verifierSourceConfig ) {
+      getGlobalLogger().error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
+      exit(1);
+    }
   }
 
   get sourceRouter() {
     return this.attestationRoundManager.sourceRouter;
-  }
-
-
-  /**
-   * Initializes SourceManager class (async initializations)
-   */
-  public async initialize() {
-    this.verifierRouter = new VerifierRouter();
-    await this.verifierRouter.initialize();
   }
 
   onSend(inProcessing?: number, inQueue?: number) {
@@ -58,7 +56,7 @@ export class SourceManager {
 
     if (this.requestTime !== time) return true;
 
-    return this.requestsPerSecond < this.chainConfig.maxRequestsPerSecond;
+    return this.requestsPerSecond < this.verifierSourceConfig.maxRequestsPerSecond;
   }
 
   addRequestCount() {
@@ -73,7 +71,7 @@ export class SourceManager {
   }
 
   canProcess() {
-    return this.canAddRequests() && this.attestationProcessing.length < this.chainConfig.maxProcessingTransactions;
+    return this.canAddRequests() && this.attestationProcessing.length < this.verifierSourceConfig.maxProcessingTransactions;
   }
 
   /**
@@ -171,7 +169,10 @@ export class SourceManager {
       testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
 
-    this.verifierRouter.verifyAttestation(attestation, attestation.reverification)
+    // get verifierRouter from DAC 
+    const verifierRouter = this.attestationRoundManager.attestationConfigManager.getVerifierRouter(attestation.roundId);
+
+    verifierRouter.verifyAttestation(attestation, attestation.reverification)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
 
@@ -184,7 +185,7 @@ export class SourceManager {
           const startTimeMs =
             this.attestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
             this.attestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
-            this.chainConfig.reverificationTimeOffset * 1000;
+            this.verifierSourceConfig.reverificationTimeOffset * 1000;
 
           this.delayQueue(attestation, startTimeMs);
         } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
@@ -214,12 +215,12 @@ export class SourceManager {
 
         // Retries
         attestation.processEndTime = getTimeMilli();
-        if (attestation.retry < this.chainConfig.maxFailedRetry) {
+        if (attestation.retry < this.verifierSourceConfig.maxFailedRetry) {
           this.sourceRouter.logger.warning(`transaction verification error (retry ${attestation.retry})`);
 
           attestation.retry++;
 
-          this.delayQueue(attestation, getTimeMilli() + this.chainConfig.delayBeforeRetry * 1000);
+          this.delayQueue(attestation, getTimeMilli() + this.verifierSourceConfig.delayBeforeRetry * 1000);
         } else {
           this.sourceRouter.logger.error2(`transaction verification error ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid);

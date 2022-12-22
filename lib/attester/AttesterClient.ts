@@ -1,13 +1,10 @@
-import { ChainType, Managed, MCC } from "@flarenetwork/mcc";
-import { ChainsConfiguration } from "../source/ChainConfiguration";
+import { Managed } from "@flarenetwork/mcc";
 import { SourceRouter } from "../source/SourceRouter";
-import { SourceManager } from "../source/SourceManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
-import { SourceId } from "../verification/sources/sources";
 import { AttestationData, AttestationSubmit } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
@@ -19,7 +16,6 @@ import { AttesterWeb3 } from "./AttesterWeb3";
 @Managed()
 export class AttesterClient {
   config: AttesterClientConfiguration;
-  chainsConfig: ChainsConfiguration;
   credentials: AttesterCredentials;
   logger: AttLogger;
   attestationRoundManager: AttestationRoundManager;
@@ -27,7 +23,7 @@ export class AttesterClient {
   sourceRouter: SourceRouter;
   blockCollector!: Web3BlockCollector;
 
-  constructor(configuration: AttesterClientConfiguration, credentials: AttesterCredentials, chains: ChainsConfiguration, logger?: AttLogger) {
+  constructor(configuration: AttesterClientConfiguration, credentials: AttesterCredentials, logger?: AttLogger) {
     if (logger) {
       this.logger = logger;
     } else {
@@ -35,10 +31,9 @@ export class AttesterClient {
     }
 
     this.config = configuration;
-    this.chainsConfig = chains;
     this.credentials = credentials;
-    this.sourceRouter = new SourceRouter(this.logger);
-    this.attesterWeb3 = new AttesterWeb3(this.credentials);
+    this.sourceRouter = new SourceRouter(this.attestationRoundManager);
+    this.attesterWeb3 = new AttesterWeb3(this.credentials, this.logger);
     this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.config, this.credentials, this.logger, this.attesterWeb3);
   }
 
@@ -90,24 +85,6 @@ export class AttesterClient {
 
     if (accountPrivateKey === "" || accountPrivateKey === undefined) {
       this.logger.error(`private key not set`);
-    }
-  }
-
-  private async initializeSources() {
-    this.logger.info("initializing chains");
-
-    for (const chain of this.chainsConfig.chains) {
-      const chainType = MCC.getChainType(chain.name);
-
-      if (chainType === ChainType.invalid) {
-        this.logger.debug(`chain '${chain.name}': undefined chain`);
-        continue;
-      }
-
-      const sourceManager = new SourceManager(this.attestationRoundManager, chain);
-      await sourceManager.initialize();
-      this.logger.info(`chain ${chain.name}:#${chainType}`);
-      this.sourceRouter.addSourceManager(chainType as any as SourceId, sourceManager);
     }
   }
 
@@ -184,7 +161,7 @@ export class AttesterClient {
    * Main entry function
    */
   async runAttesterClient() {
-    const version = "1003";
+    const version = "1.2.0";
 
     this.logger.title(`starting Flare Attestation Client v${version}`);
 
@@ -199,17 +176,9 @@ export class AttesterClient {
     this.logger.info(`roundManager initialize`);
     await this.attestationRoundManager.initialize();
 
-    // validate source manager configurations and create source managers
-    try {
-      this.logger.info(`chains initialize`);
-      await this.initializeSources();
-    } catch (error) {
-      logException(error, `initializeChains`);
-    }
-
     // get block current attestation round
-    const startRoundTime = this.attestationRoundManager.epochSettings.getRoundIdTimeStartMs(this.attestationRoundManager.activeEpochId) / 1000;
-    this.logger.debug(`start round ^Y#${this.attestationRoundManager.activeEpochId}^^ time ${secToHHMMSS(startRoundTime)}`);
+    const startRoundTime = this.attestationRoundManager.epochSettings.getRoundIdTimeStartMs(this.attestationRoundManager.activeRoundId) / 1000;
+    this.logger.debug(`start round ^Y#${this.attestationRoundManager.activeRoundId}^^ time ${secToHHMMSS(startRoundTime)}`);
     const startBlock = await this.getBlockBeforeTime(startRoundTime);
 
     // connect to network block callback

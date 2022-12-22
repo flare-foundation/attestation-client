@@ -1,4 +1,5 @@
 import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection";
+import { getSourceName } from "../../sources/sources";
 import { VerifierSourceRouteCredentials } from "./VerifierSourceRouteCredentials";
 
 export class VerifierRouteCredentials implements IReflection<VerifierRouteCredentials> {
@@ -12,6 +13,16 @@ export class VerifierRouteCredentials implements IReflection<VerifierRouteCreden
     const info = new AdditionalTypeInfo();
     info.arrayMap.set("verifierRoutes", new VerifierSourceRouteCredentials());
     return info;
+  }
+
+  getSourceConfig(sourceId: number) {
+    const sourceName = getSourceName(sourceId);
+    for (let config of this.verifierRoutes) {
+      if (config.sourceId === sourceName) {
+        return config;
+      }
+    }
+    return null;
   }
 }
 

@@ -12,7 +12,7 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
-import { AugTestBlockBTC, promAugTxBTC0, TestBlockXRPAlt, TestBlockXRPFake } from "../mockData/indexMock";
+import { AugTestBlockBTC, promAugTxBTC0, TestBlockXRPAlt, TestBlockXRPFake, TestXRPStatus, TestXRPStatusAlt } from "../mockData/indexMock";
 import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { afterEach } from "mocha";
 import { getTestFile } from "../test-utils/test-utils";
@@ -85,7 +85,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
       });
     });
 
-    describe("Featurs tests", function () {
+    describe("Methods tests", function () {
       setRetryFailureCallback(console.log);
 
       const XRPMccConnection = {
@@ -382,6 +382,28 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
         expect(res).to.be.false;
         expect(indexer.N).to.eq(500);
+      });
+
+      it("Should not be waiting for waitForNodeSynced", async function () {
+        const stub = sinon.stub(indexer.cachedClient.client, "getNodeStatus").resolves(TestXRPStatus);
+
+        // const status = await indexer.cachedClient.client.getNodeStatus();
+        // console.log(status.isSynced);
+
+        const res = await indexer.waitForNodeSynced();
+        expect(res).to.be.false;
+      });
+
+      it("Should be waiting for waitForNodeSynced", async function () {
+        const stub = sinon.stub(indexer.cachedClient.client, "getNodeStatus");
+        stub.onFirstCall().resolves(TestXRPStatusAlt);
+        stub.onSecondCall().resolves(TestXRPStatus);
+
+        // const status = await indexer.cachedClient.client.getNodeStatus();
+        // console.log(status.isSynced);
+
+        const res = await indexer.waitForNodeSynced();
+        expect(res).to.be.true;
       });
     });
   });

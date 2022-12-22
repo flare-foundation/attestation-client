@@ -1,4 +1,14 @@
-import { ChainType, IUtxoGetBlockRes, IXrpGetBlockRes, IXrpGetTransactionRes, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
+import {
+  ChainType,
+  IUtxoGetBlockRes,
+  IXrpGetBlockRes,
+  IXrpGetTransactionRes,
+  UtxoBlock,
+  UtxoTransaction,
+  XrpBlock,
+  XrpNodeStatus,
+  XrpTransaction,
+} from "@flarenetwork/mcc";
 import { DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { augmentTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
@@ -11,6 +21,8 @@ import * as resXRPBlockAlt from "../mockData/XRPBlockAlt.json";
 import * as resXRPBlock from "../mockData/XRPBlock.json";
 import * as resXRPBlockFake from "../mockData/XRPBlockFake.json";
 import * as resXRPTx from "../mockData/XRPTx.json";
+import * as resXRPStatus from "../mockData/XRPStatus.json";
+import * as resXRPStatusAlt from "../mockData/XRPStatusAlt.json";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 
@@ -31,6 +43,8 @@ export const TestBlockXRPFake = new XrpBlock(resXRPBlockFake as unknown as IXrpG
 export const AugTestBlockBTC = augmentBlock(DBBlockBTC, TestBlockBTC);
 export const AugTestBlockBTCAlt = augmentBlock(DBBlockBTC, TestBlockBTCAlt);
 
+export const TestXRPStatus = new XrpNodeStatus(resXRPStatus as any);
+export const TestXRPStatusAlt = new XrpNodeStatus(resXRPStatusAlt as any);
 const waitTx = async (tx) => {
   return tx;
 };

@@ -1,3 +1,5 @@
+// yarn test test/indexer/unconfirmedBlockManager.test.ts
+
 import { DBBlockDOGE } from "../../lib/entity/indexer/dbBlock";
 import { UnconfirmedBlockManager } from "../../lib/indexer/UnconfirmedBlockManager";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";

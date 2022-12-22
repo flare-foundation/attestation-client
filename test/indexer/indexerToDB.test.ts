@@ -1,3 +1,5 @@
+// yarn test test/indexer/indexerToDB.test.ts
+
 import { ChainType } from "@flarenetwork/mcc";
 import { afterEach } from "mocha";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";

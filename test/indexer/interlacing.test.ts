@@ -1,3 +1,5 @@
+// yarn test test/indexer/interlacing.test.ts
+
 import { ChainType } from "@flarenetwork/mcc";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";

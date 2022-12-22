@@ -1,3 +1,5 @@
+// yarn test test/indexer/indexer.test.ts
+
 import { ChainType, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { Indexer } from "../../lib/indexer/indexer";
 import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";

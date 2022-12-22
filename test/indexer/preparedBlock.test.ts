@@ -1,3 +1,5 @@
+// yarn test test/indexer/preparedBlock.test.ts
+
 import { ChainType, UtxoBlock, UtxoTransaction } from "@flarenetwork/mcc";
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { augmentTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";

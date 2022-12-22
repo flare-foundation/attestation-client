@@ -1,3 +1,5 @@
+// yarn test test/caching/LimitingProcessor.test.ts
+
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import console from "console";
 import sinon from "sinon";

@@ -1,33 +1,13 @@
 //tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
 
-import {
-  AlgoMccCreate,
-  ChainType,
-  IXrpGetBlockRes,
-  IXrpGetTransactionRes,
-  UtxoBlock,
-  UtxoMccCreate,
-  UtxoTransaction,
-  XrpBlock,
-  XrpMccCreate,
-  XrpTransaction,
-  xrp_ensure_data,
-} from "@flarenetwork/mcc";
+import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
-import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
-import { augmentTransactionUtxo, augmentTransactionXrp } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
 import { BlockProcessor, UtxoBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
 import { getFullTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/readTransaction";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import * as resBTCBlock from "../mockData/BTCBlock.json";
-import * as resBTCTx from "../mockData/BTCTx.json";
-import { TestBlockBTC, TestBlockDOGE, TestBlockXRP, TestTxBTC, TestTxBTCFake } from "../mockData/indexMock";
-import * as resXRPBlock from "../mockData/XRPBlock.json";
-import * as resXRPTx from "../mockData/XRPTx.json";
+import { TestBlockBTC, TestBlockDOGE, TestTxBTC, TestTxBTCFake } from "../mockData/indexMock";
 
 import { afterEach } from "mocha";
 import sinon from "sinon";
@@ -41,13 +21,13 @@ const expect = chai.expect;
 const BtcMccConnection = {
   url: "https://bitcoin-api.flare.network",
   username: "public",
-  password: "d681co1pe2l3wcj9adrm2orlk0j5r5gr3wghgxt58tvge594co0k1ciljxq9glei",
+  password: "",
 } as UtxoMccCreate;
 
 const DOGEMccConnection = {
   url: "https://dogecoin-api.flare.network",
   username: "public",
-  password: "6r1e5z3w9g6qruvkzkqvz8w67yqrq5js2cmyl2f1cncbp7gpp7tqixqskuub5v70",
+  password: "",
 } as UtxoMccCreate;
 
 describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {

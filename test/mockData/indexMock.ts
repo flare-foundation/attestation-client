@@ -1,4 +1,4 @@
-import { ChainType, IUtxoGetBlockRes, IXrpGetBlockRes, UtxoBlock, UtxoTransaction, XrpBlock } from "@flarenetwork/mcc";
+import { ChainType, IUtxoGetBlockRes, IXrpGetBlockRes, IXrpGetTransactionRes, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
 import { DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { augmentTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
@@ -10,6 +10,7 @@ import * as resDOGEBlock from "../mockData/DOGEBlock.json";
 import * as resXRPBlockAlt from "../mockData/XRPBlockAlt.json";
 import * as resXRPBlock from "../mockData/XRPBlock.json";
 import * as resXRPBlockFake from "../mockData/XRPBlockFake.json";
+import * as resXRPTx from "../mockData/XRPTx.json";
 import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 
@@ -22,6 +23,8 @@ export const TestTxBTCFake = new UtxoTransaction(resBTCTxFake);
 export const TestBlockDOGE = new UtxoBlock(resDOGEBlock as unknown as IUtxoGetBlockRes);
 
 export const TestBlockXRP = new XrpBlock(resXRPBlock as unknown as IXrpGetBlockRes);
+export const TestTxXRP = new XrpTransaction(resXRPTx as unknown as IXrpGetTransactionRes);
+
 export const TestBlockXRPAlt = new XrpBlock(resXRPBlockAlt as unknown as IXrpGetBlockRes);
 export const TestBlockXRPFake = new XrpBlock(resXRPBlockFake as unknown as IXrpGetBlockRes);
 

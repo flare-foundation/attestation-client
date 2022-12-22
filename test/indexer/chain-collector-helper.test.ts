@@ -8,7 +8,6 @@ import {
   XrpBlock,
   XrpMccCreate,
   XrpTransaction,
-  xrp_ensure_data,
 } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
@@ -21,7 +20,7 @@ import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databas
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
-import { TestBlockXRP } from "../mockData/indexMock";
+import { TestBlockXRP, TestBlockXRPAlt, TestTxXRP } from "../mockData/indexMock";
 import * as resXRPBlock from "../mockData/XRPBlock.json";
 import * as resXRPTx from "../mockData/XRPTx.json";
 
@@ -61,12 +60,8 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     it("Should create entity from a transaction for XRP", async () => {
       const txHash = "A8B4D5C887D0881881A0A45ECEB8D250BF53E6CAE9EB72B9D251C590BD9087AB";
       const blockId = 75660711;
-      xrp_ensure_data(resXRPTx);
-      const block = new XrpBlock(resXRPBlock as unknown as IXrpGetBlockRes);
 
-      const tx = new XrpTransaction(resXRPTx as unknown as IXrpGetTransactionRes);
-
-      const augTx = augmentTransactionXrp(block, tx);
+      const augTx = augmentTransactionXrp(TestBlockXRP, TestTxXRP);
       expect(augTx.blockNumber).to.be.eq(blockId);
       expect(augTx.transactionId).to.be.eq(txHash);
       // });
@@ -165,7 +160,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       });
 
       it("Should initializeJobs", async function () {
-        const block = TestBlockXRP;
+        const block = TestBlockXRPAlt;
         const fake = sinon.fake();
         let res = [];
         const voidOnSave = async (blockDb, transDb) => {

@@ -7,8 +7,6 @@ const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
 
-//To be eventually mocked
-
 describe(`Indexer to client with credentials(${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
   describe("BTC", function () {
@@ -18,17 +16,15 @@ describe(`Indexer to client with credentials(${getTestFile(__filename)})`, funct
       password: "",
     } as UtxoMccCreate;
 
-    initializeTestGlobalLogger();
-
     const client = new MCC.BTC(BtcMccConnection);
-    let inToCl = new IndexerToClient(client, 1500, 2, 300);
+    let inToCl = new IndexerToClient(client, 2000, 2, 400);
 
     it("Should get block", async function () {
       let res = await inToCl.getBlockFromClient("height", 763418);
       expect(res.blockHash).to.be.eq("0000000000000000000275e5d4097fb6121787976f42e85310976b34b1e36072");
     });
 
-    it("Should not get Block", async function () {
+    it.skip("Should not get Block", async function () {
       await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
     });
 

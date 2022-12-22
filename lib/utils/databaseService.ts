@@ -47,7 +47,7 @@ export class DatabaseService {
 
     const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
 
-    if (isTestDB) {
+    if (isTestDB || (process.env.IN_MEMORY_DB && process.env.NODE_ENV !== "production")) {
       let connectOptions = {
         name: this.connectionName,
         type: "better-sqlite3",

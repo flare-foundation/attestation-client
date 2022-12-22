@@ -9,7 +9,7 @@ async function bootstrap() {
   app.useWebSocketAdapter(new WsAdapter(app));
 
   const logger = getGlobalLogger("web");
-  const configurationService = app.get(VerifierConfigurationService);
+  const configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
 
   const port = configurationService.wsServerConfiguration.port;
   logger.info(`Verifier type: ${configurationService.verifierType}`);

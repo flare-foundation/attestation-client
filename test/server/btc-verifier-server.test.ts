@@ -55,6 +55,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
     process.env.IN_MEMORY_DB = "1";
     process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
+    process.env.TEST_CREDENTIALS = "1"
 
     initializeTestGlobalLogger();
     const module = await Test.createTestingModule({
@@ -67,7 +68,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    configurationService = app.get(VerifierConfigurationService);
+    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
     entityManager = app.get("indexerDatabaseEntityManager")
 
     let port = configurationService.wsServerConfiguration.port;
@@ -94,6 +95,12 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     selectedTransaction = await selectedReferencedTx(entityManager, DB_TX_TABLE, BLOCK_CHOICE);
   });
 
+  after(async () => {
+    delete process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
+    delete process.env.TEST_CREDENTIALS;
+    await app.close();
+  });
+  
   it(`Should verify Payment attestation`, async function () {
     let inUtxo = firstAddressVin(selectedTransaction);
     let utxo = firstAddressVout(selectedTransaction);
@@ -229,11 +236,6 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let supported = processor.supportedAttestationTypes();
     assert(supported.indexOf("Payment") >= 0, "Payment shoud be supported")
     assert(supported.indexOf("BalanceDecreasingTransaction") >= 0, "BalanceDecreasingTransaction shoud be supported")
-  });
-
-  after(async () => {
-    delete process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
-    await app.close();
   });
 
 });

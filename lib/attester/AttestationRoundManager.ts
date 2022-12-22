@@ -24,7 +24,6 @@ export class AttestationRoundManager {
   epochSettings: EpochSettings;
   sourceRouter: SourceRouter;
   attestationConfigManager: AttestationConfigManager;
-  dbServiceIndexer: DatabaseService;
   dbServiceAttester: DatabaseService;
 
   state: AttesterState;
@@ -62,9 +61,6 @@ export class AttestationRoundManager {
    */
   async initialize(): Promise<void> {
     await this.attestationConfigManager.initialize();
-
-    this.dbServiceIndexer = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
-    await this.dbServiceIndexer.connect();
 
     this.dbServiceAttester = new DatabaseService(this.logger, this.credentials.attesterDatabase, "attester");
     await this.dbServiceAttester.connect();

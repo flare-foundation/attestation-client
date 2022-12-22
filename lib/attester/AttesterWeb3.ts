@@ -8,7 +8,7 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterCredentials } from "./AttesterClientConfiguration";
 
 /**
- * Handles submitions to StateConnector
+ * Handles submissions to StateConnector
  */
 export class AttesterWeb3 {
   attestationRoundManager: AttestationRoundManager;
@@ -39,7 +39,7 @@ export class AttesterWeb3 {
 
   check(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
-      this.logger.error(`invalid BN formating ${bnString}`);
+      this.logger.error(`invalid BN formatting ${bnString}`);
     }
   }
 
@@ -53,12 +53,12 @@ export class AttesterWeb3 {
    *
    * @param commitedMerkleRoot - committed Merkle root (used just for logging)
    * @param commitedMaskedMerkleRoot - committed masked Merkle root
-   * @param commitedRandom - random number of commited round (used just for logging)
+   * @param commitedRandom - random number of committed round (used just for logging)
    *
-   * @param revealedMerkleRoot - revealed merkle root
+   * @param revealedMerkleRoot - revealed Merkle root
    * @param revealedRandom - revealed random
    *
-   * @param verbose - whether loggin is verbose (default true)
+   * @param verbose - whether logging is verbose (default true)
    * @returns
    */
   async submitAttestation(

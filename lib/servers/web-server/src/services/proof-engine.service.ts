@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import fs from "fs";
 import { EntityManager } from 'typeorm';
@@ -14,7 +14,7 @@ import { ServerConfigurationService } from './server-configuration.service';
 @Injectable()
 export class ProofEngineService {
   constructor(
-    private configService: ServerConfigurationService,
+    @Inject("SERVER_CONFIG") private configService: ServerConfigurationService,
     @InjectEntityManager("attesterDatabase") private manager: EntityManager
   ) {}
 

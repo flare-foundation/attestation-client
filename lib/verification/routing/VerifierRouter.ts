@@ -80,13 +80,13 @@ export class VerifierRouter {
     * configurations are read and set and there are no double setting of a specific configuration for
     * a pair of (sourceName, attestationTypeName)
     */
-   public async initialize(startEpoch: number) {
+   public async initialize(startRoundId: number) {
       if (this._initialized) {
          throw new Error("Already initialized");
       }
 
       // initialize by DAC start number      
-      this.credentials = await readSecureCredentials(new VerifierRouteCredentials(), `verifier-routes-${startEpoch}`);
+      this.credentials = await readSecureCredentials(new VerifierRouteCredentials(), `verifier-routes-${startRoundId}`);
       const definitions = await readAttestationTypeSchemes();
       this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteCredentials>>();
       // set up all possible routes

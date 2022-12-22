@@ -4,9 +4,9 @@ import { ITransaction } from "@flarenetwork/mcc";
 import { expect } from "chai";
 
 const BtcMccConnection = {
-  url: process.env.BTC_URL,
-  username: process.env.BTC_USERNAME,
-  password: process.env.BTC_PASSWORD,
+  url: "https://bitcoin-api.flare.network",
+  username: "public",
+  password: "",
 } as UtxoMccCreate;
 
 let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
@@ -28,7 +28,7 @@ const txIds = [
 
 const blockNumbers = [761_687, 761_688, 761_689];
 
-describe.skip("CachedClient", () => {
+describe("CachedClient", () => {
   let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
     transactionCacheSize: 2,
     blockCacheSize: 2,

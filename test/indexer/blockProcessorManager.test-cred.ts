@@ -46,8 +46,6 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
     const indexerToClient = new IndexerToClient(cachedClient.client);
 
-    initializeTestGlobalLogger();
-
     let interlacing = new Interlacing();
 
     const settings: IBlockProcessorManagerSettings = {

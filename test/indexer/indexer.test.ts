@@ -166,6 +166,14 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
       before(async function () {
         await dbService.connect();
         await interlacing.initialize(logger, dbService, ChainType.XRP, 36000, 12);
+
+        for (let i = 0; i < 2; i++) {
+          const tableName = `xrp_transactions${i}`;
+          await dbService.manager.query(`delete from ${tableName};`);
+        }
+        await dbService.manager.query(`delete from xrp_block;`);
+        const tableName = "state";
+        await dbService.manager.query(`delete from ${tableName};`);
       });
 
       afterEach(function () {
@@ -178,6 +186,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
       });
 
       it("Should not save a block with wrong blocknumber", async function () {
+        setRetryFailureCallback(console.log);
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "2DC82E21AC08DD1565246D92E1260297FB8B63D40B8DB64752A8117F6326B5B9";
         testBlock.blockNumber = 5;
@@ -187,8 +196,6 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         expect(res).to.be.false;
         expect(indexer.N).to.eq(1);
       });
-
-      //If you want to save transaction into with empty database it fails
 
       it("Should save with transactions", async function () {
         const testBlock = new DBBlockXRP();

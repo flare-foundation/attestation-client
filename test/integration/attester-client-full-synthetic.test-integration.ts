@@ -7,7 +7,7 @@ import { any } from 'hardhat/internal/core/params/argumentTypes';
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import { AttesterClient } from '../../src/attester/AttesterClient';
-import { AttesterCredentials } from '../../src/attester/AttesterConfiguration';
+import { AttesterConfig } from '../../src/attester/AttesterConfig';
 import { readSecureConfig } from '../../src/utils/configSecure';
 import { getWeb3, relativeContractABIPathForContractName, waitFinalize3Factory } from '../../src/utils/utils';
 import { StateConnectorTempTran } from '../../typechain-web3-v1/StateConnectorTempTran';
@@ -100,11 +100,11 @@ describe(`Attester client full on synthetic verifier data (${getTestFile(__filen
 
       process.env.TEST_CREDENTIALS = "1"
       process.env.CONFIG_PATH = CONFIG_PATH;
-      const credentials = await readSecureConfig(new AttesterCredentials(), "attester");
+      const config = await readSecureConfig(new AttesterConfig(), "attester");
 
-      credentials.web.stateConnectorContractAddress = stateConnectorAddress;
+      config.web.stateConnectorContractAddress = stateConnectorAddress;
       // Create attester client
-      const attesterClient = new AttesterClient(credentials);
+      const attesterClient = new AttesterClient(config);
       await attesterClient.runAttesterClient();
 
    });

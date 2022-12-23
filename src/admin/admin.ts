@@ -1,7 +1,6 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { MonitorBase } from "../monitor/MonitorBase";
 import { MonitorManager } from "../monitor/MonitorManager";
-import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger, setLoggerName } from "../utils/logger";
 import { EServiceStatus } from "../utils/serviced";
 import { sleepms } from "../utils/utils";
@@ -108,9 +107,9 @@ async function admin() {
 
   // initialize alerts
   MonitorBase.restartEnabled = false;
-  const alerts = new MonitorManager();
-  for (const alert of alerts.alerts) {
-    await alert.initialize();
+  const monitorManager = new MonitorManager();
+  for (const alert of monitorManager.monitors) {
+    await alert!.initialize();
   }
 
   let resAlerts = [];
@@ -156,7 +155,7 @@ async function admin() {
   while (!menu.done) {
     // update alerts
     resAlerts = [];
-    for (const alert of alerts.alerts) {
+    for (const alert of monitorManager.monitors) {
       try {
         const resAlert = await alert.check();
 
@@ -169,7 +168,7 @@ async function admin() {
     }
 
     resPerfs = [];
-    for (const alert of alerts.alerts) {
+    for (const alert of monitorManager.monitors) {
       try {
         const resPerf = await alert.perf();
 
@@ -202,8 +201,6 @@ async function admin() {
 async function run() {
   await admin();
 }
-
-DotEnvExt();
 
 setLoggerName( "admin" );
 

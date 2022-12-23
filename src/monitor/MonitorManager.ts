@@ -10,7 +10,7 @@ import { WebserverMonitor } from "./WebserverMonitor";
 import { DatabaseMonitor } from "./DatabaseMonitor";
 import { DockerMonitor } from "./DockerMonitor";
 import { IndexerMonitor } from "./IndexerMonitor";
-import { NodeAlert } from "./NodeMonitor";
+import { NodeMonitor } from "./NodeMonitor";
 import { stringify } from "safe-stable-stringify";
 
 @Managed()
@@ -18,7 +18,7 @@ export class MonitorManager {
   logger: AttLogger;
   config: MonitorConfig;
 
-  alerts: MonitorBase[] = [];
+  monitors: MonitorBase[] = [];
 
   constructor() {
     this.logger = getGlobalLogger();
@@ -26,29 +26,29 @@ export class MonitorManager {
     this.config = readConfig(new MonitorConfig(), "monitor");
 
     for (const node of this.config.nodes) {
-      this.alerts.push(new NodeAlert(node, this.logger, this.config));
+      this.monitors.push(new NodeMonitor(node, this.logger, this.config));
     }
 
     for (const docker of this.config.dockers) {
-      this.alerts.push(new DockerMonitor(docker, this.logger, this.config));
+      this.monitors.push(new DockerMonitor(docker, this.logger, this.config));
     }
 
     for (const indexer of this.config.indexers) {
-      this.alerts.push(new IndexerMonitor(indexer, this.logger, this.config));
+      this.monitors.push(new IndexerMonitor(indexer, this.logger, this.config));
     }
 
     for (const attester of this.config.attesters) {
-      this.alerts.push(
+      this.monitors.push(
         new AttesterMonitor(attester.name, this.logger, attester.mode, attester.path, new MonitorRestartConfig(this.config.timeRestart, attester.restart))
       );
     }
 
     for (const backend of this.config.backends) {
-      this.alerts.push(new WebserverMonitor(backend.name, this.logger, new MonitorRestartConfig(this.config.timeRestart, backend.restart), backend.address));
+      this.monitors.push(new WebserverMonitor(backend.name, this.logger, new MonitorRestartConfig(this.config.timeRestart, backend.restart), backend.address));
     }
 
     for (const database of this.config.databases) {
-      this.alerts.push(new DatabaseMonitor(database.name, this.logger, database.database, database.connection));
+      this.monitors.push(new DatabaseMonitor(database.name, this.logger, database.database, database.connection));
     }
   }
 
@@ -56,7 +56,7 @@ export class MonitorManager {
     traceManager.displayStateOnException = false;
     traceManager.displayRuntimeTrace = false;
 
-    for (const alert of this.alerts) {
+    for (const alert of this.monitors) {
       await alert.initialize();
     }
 
@@ -74,7 +74,7 @@ export class MonitorManager {
         const statusAlerts = [];
         const statusPerfs = [];
 
-        for (const alert of this.alerts) {
+        for (const alert of this.monitors) {
           try {
             const resAlert = await alert.check();
 
@@ -88,7 +88,7 @@ export class MonitorManager {
           }
         }
 
-        for (const alert of this.alerts) {
+        for (const alert of this.monitors) {
           try {
             const resPerfs = await alert.perf();
 

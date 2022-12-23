@@ -1,4 +1,4 @@
-import { AttesterCredentials } from "../attester/AttesterConfiguration";
+import { AttesterConfig } from "../attester/AttesterConfig";
 import { DBState } from "../entity/indexer/dbState";
 import { readSecureConfig } from "../utils/configSecure";
 import { DatabaseService } from "../utils/databaseService";
@@ -24,9 +24,9 @@ export class IndexerMonitor extends MonitorBase {
   async initialize() {
 
     if (!IndexerMonitor.dbService) {
-      const credentials = await readSecureConfig(new AttesterCredentials(), "attester");
+      const config = await readSecureConfig(new AttesterConfig(), "attester");
 
-      IndexerMonitor.dbService = new DatabaseService(this.logger, credentials.indexerDatabase, "indexer");
+      IndexerMonitor.dbService = new DatabaseService(this.logger, config.indexerDatabase, "indexer");
     }
     await IndexerMonitor.dbService.connect();
   }

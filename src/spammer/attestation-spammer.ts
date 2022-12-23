@@ -2,16 +2,15 @@ import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { AttesterCredentials } from "../attester/AttesterConfiguration";
+import { AttesterConfig } from "../attester/AttesterConfig";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
-import { readConfig, readCredentials } from "../utils/config";
+import { readCredentials } from "../utils/config";
 import { DatabaseService } from "../utils/databaseService";
-import { DotEnvExt } from "../utils/DotEnvExt";
 import { getTimeMilli } from "../utils/internetTime";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
@@ -26,18 +25,15 @@ import { SpammerCredentials } from "./SpammerConfiguration";
 
 const fs = require("fs");
 
-//dotenv.config();
-DotEnvExt();
-
 const yargs = require("yargs");
 
 const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
-  .option("credentials", {
+  .option("config", {
     alias: "cred",
     type: "string",
-    description: "Path to credentials json file",
-    default: "./configs/spammer-credentials.json",
+    description: "Path to config json file",
+    default: "./configs/spammer-config.json",
     demand: false,
   })
   .option("rpcLink", { alias: "r", type: "string", description: "RPC to Flare network", default: "http://127.0.0.1:9650/ext/bc/C/rpc" })
@@ -100,8 +96,8 @@ class AttestationSpammer {
 
     // create dummy attestation round manager and assign needed variables
     this.attestationRoundManager = new AttestationRoundManager(null, null, null, null);
-    this.attestationRoundManager.credentials = new AttesterCredentials();
-    this.attestationRoundManager.credentials.web = this.spammerCredentials.web;
+    this.attestationRoundManager.config = new AttesterConfig();
+    this.attestationRoundManager.config.web = this.spammerCredentials.web;
 
     this.logger = getGlobalLogger();
     this.web3 = getWeb3(this.spammerCredentials.web.rpcUrl) as Web3;

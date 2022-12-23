@@ -1,17 +1,17 @@
 import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection";
 import { getSourceName } from "../../sources/sources";
-import { VerifierSourceRouteCredentials } from "./VerifierSourceRouteCredentials";
+import { VerifierSourceRouteConfig } from "./VerifierSourceRouteConfig";
 
-export class VerifierRouteCredentials implements IReflection<VerifierRouteCredentials> {
-  public verifierRoutes: VerifierSourceRouteCredentials[] = [];
+export class VerifierRouteConfig implements IReflection<VerifierRouteConfig> {
+  public verifierRoutes: VerifierSourceRouteConfig[] = [];
 
-  instanciate(): VerifierRouteCredentials {
-    return new VerifierRouteCredentials();
+  instanciate(): VerifierRouteConfig {
+    return new VerifierRouteConfig();
   }
 
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     const info = new AdditionalTypeInfo();
-    info.arrayMap.set("verifierRoutes", new VerifierSourceRouteCredentials());
+    info.arrayMap.set("verifierRoutes", new VerifierSourceRouteConfig());
     return info;
   }
 

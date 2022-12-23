@@ -4,7 +4,7 @@ import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { ChainConfig } from "../../src/source/ChainConfig";
 import { DBTransactionXRP1, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
 import { CachedMccClient } from "../../src/caching/CachedMccClient";
-import { MockMccClient } from "../../src/caching/test-utils/MockMccClient";
+import { MockMccClient } from "../caching/test-utils/MockMccClient";
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { Interlacing } from "../../src/indexer/interlacing";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";

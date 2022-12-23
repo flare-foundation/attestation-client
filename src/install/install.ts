@@ -1,5 +1,4 @@
 import { readJSON } from "../utils/json";
-import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger, logException } from "../utils/logger";
 
 const logger = getGlobalLogger();
@@ -161,8 +160,6 @@ async function run() {
   await prepareInstall("Coston", "coston");
   await prepareInstall("Coston2", "coston2");
 }
-
-DotEnvExt();
 
 console.log(process.argv);
 if (process.argv.length >= 2) {

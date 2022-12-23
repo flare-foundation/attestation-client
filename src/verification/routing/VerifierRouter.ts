@@ -5,8 +5,8 @@ import { readAttestationTypeSchemes } from "../attestation-types/attestation-typ
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
 import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
 import { getSourceName, SourceId } from "../sources/sources";
-import { VerifierAttestationTypeRouteCredentials } from "./configs/VerifierAttestationTypeRouteCredentials";
-import { VerifierRouteCredentials } from "./configs/VerifierRouteCredentials";
+import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
+import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
 
 const axios = require("axios");
 
@@ -30,7 +30,7 @@ export const EMPTY_VERIFIER_ROUTE = new VerifierRoute();
  * If supports passing attestation requests to verifier servers.
  */
 export class VerifierRouter {
-   credentials: VerifierRouteCredentials;
+   config: VerifierRouteConfig;
    // routing map: sourceName -> attestationTypeName -> VerifierRoute
    routeMap: Map<string, Map<string, VerifierRoute>>;
    _initialized = false;
@@ -86,9 +86,9 @@ export class VerifierRouter {
       }
 
       // initialize by DAC start number      
-      this.credentials = await readSecureConfig(new VerifierRouteCredentials(), `verifier-routes-${startRoundId}`);
+      this.config = await readSecureConfig(new VerifierRouteConfig(), `verifier-routes-${startRoundId}`);
       const definitions = await readAttestationTypeSchemes();
-      this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteCredentials>>();
+      this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>();
       // set up all possible routes
       for (let definition of definitions) {
          let attestationTypeName = definition.name;
@@ -96,7 +96,7 @@ export class VerifierRouter {
             let sourceName = getSourceName(source);
             let tmp = this.routeMap.get(sourceName);
             if (!tmp) {
-               tmp = new Map<string, VerifierAttestationTypeRouteCredentials>();
+               tmp = new Map<string, VerifierAttestationTypeRouteConfig>();
             }
             this.routeMap.set(sourceName, tmp);
             if (tmp.get(attestationTypeName)) {
@@ -107,7 +107,7 @@ export class VerifierRouter {
       }
 
       // Check credentials against all possible routes and setup routes form credentials
-      for (let sourceCred of this.credentials.verifierRoutes) {
+      for (let sourceCred of this.config.verifierRoutes) {
          let defaultRoute: VerifierRoute | null = null;
          if (sourceCred.defaultUrl && sourceCred.defaultUrl.length > 0) {
             defaultRoute = new VerifierRoute(sourceCred.defaultUrl, sourceCred.defaultApiKey);

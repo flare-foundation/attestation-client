@@ -11,7 +11,7 @@ import { toSourceId } from "../verification/sources/sources";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
-import { AttesterCredentials } from "./AttesterConfiguration";
+import { AttesterConfig } from "./AttesterConfig";
 import { AttesterState } from "./AttesterState";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager, SourceLimiterConfig } from "./DynamicAttestationConfig";
@@ -32,20 +32,20 @@ export class AttestationRoundManager {
   activeRoundId: number;
 
   rounds = new Map<number, AttestationRound>();
-  credentials: AttesterCredentials;
+  config: AttesterConfig;
   attesterWeb3: AttesterWeb3;
 
   constructor(
     sourceRouter: SourceRouter,
-    credentials: AttesterCredentials,
+    config: AttesterConfig,
     logger: AttLogger,
     attesterWeb3: AttesterWeb3
   ) {
-    this.credentials = credentials;
+    this.config = config;
     this.logger = logger;
     this.attesterWeb3 = attesterWeb3;
 
-    this.epochSettings = new EpochSettings(toBN(credentials.firstEpochStartTime), toBN(credentials.roundDurationSec));
+    this.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
     this.sourceRouter = sourceRouter;
     this.attestationConfigManager = new AttestationConfigManager(this);
 
@@ -59,7 +59,7 @@ export class AttestationRoundManager {
   async initialize(): Promise<void> {
     await this.attestationConfigManager.initialize();
 
-    this.dbServiceAttester = new DatabaseService(this.logger, this.credentials.attesterDatabase, "attester");
+    this.dbServiceAttester = new DatabaseService(this.logger, this.config.attesterDatabase, "attester");
     await this.dbServiceAttester.connect();
 
     // update active round again since waitin for DB connection can take time
@@ -111,9 +111,9 @@ export class AttestationRoundManager {
     // all times are in milliseconds
     const now = getTimeMilli();
     const epochTimeStart = this.epochSettings.getRoundIdTimeStartMs(roundId);
-    const epochCommitTime: number = epochTimeStart + this.credentials.roundDurationSec * 1000;
-    const epochRevealTime: number = epochCommitTime + this.credentials.roundDurationSec * 1000;
-    const epochCompleteTime: number = epochRevealTime + this.credentials.roundDurationSec * 1000;
+    const epochCommitTime: number = epochTimeStart + this.config.roundDurationSec * 1000;
+    const epochRevealTime: number = epochCommitTime + this.config.roundDurationSec * 1000;
+    const epochCompleteTime: number = epochRevealTime + this.config.roundDurationSec * 1000;
 
     let activeRound = this.rounds.get(roundId);
 
@@ -177,12 +177,12 @@ export class AttestationRoundManager {
       // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
       setTimeout(() => {
         safeCatch(`setTimeout:commitLimit`, () => activeRound!.commitLimit());
-      }, epochRevealTime - this.credentials.commitTime * 1000 - 1000 - now);
+      }, epochRevealTime - this.config.commitTime * 1000 - 1000 - now);
 
       // trigger reveal
       setTimeout(() => {
         safeCatch(`setTimeout:reveal`, () => activeRound!.reveal());
-      }, epochCompleteTime - this.credentials.commitTime * 1000 - now);
+      }, epochCompleteTime - this.config.commitTime * 1000 - now);
 
       // trigger end of reveal epoch, cycle is completed at this point
       setTimeout(() => {
@@ -193,7 +193,7 @@ export class AttestationRoundManager {
 
       this.cleanup();
 
-      activeRound.commitEndTime = epochRevealTime - this.credentials.commitTime * 1000;
+      activeRound.commitEndTime = epochRevealTime - this.config.commitTime * 1000;
 
       // link rounds
       const prevRound = this.rounds.get(roundId - 1);
@@ -204,7 +204,7 @@ export class AttestationRoundManager {
         // trigger first commit
         setTimeout(() => {
           safeCatch(`setTimeout:firstCommit`, () => activeRound!.firstCommit());
-        }, epochRevealTime - this.credentials.commitTime * 1000 - now);
+        }, epochRevealTime - this.config.commitTime * 1000 - now);
       }
     }
 

@@ -1,11 +1,11 @@
 const sinon = require("sinon");
-import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables } from "../../lib/indexer/indexer-utils";
+import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables } from "../../src/indexer/indexer-utils";
 import { expect } from "chai";
 import { ChainType } from "@flarenetwork/mcc";
-import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
+import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
-import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-const proxi = require("../../lib/utils/PromiseTimeout");
+import { initializeTestGlobalLogger } from "../../src/utils/logger";
+const proxi = require("../../src/utils/PromiseTimeout");
 
 describe(`Indexer utils (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();

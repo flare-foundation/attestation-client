@@ -2,14 +2,14 @@
 import { ChainType, unPrefix0x } from "@flarenetwork/mcc";
 import { assert } from "chai";
 import { DataSource, DataSourceOptions } from "typeorm";
-import { DBBlockBase, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBase, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { createTypeOrmOptions } from "../../lib/servers/verifier-server/src/utils/db-config";
-import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
-import { SourceId } from "../../lib/verification/sources/sources";
+import { DBBlockBase, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase, DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
+import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { changeTimestampT, generateTestIndexerDB, selectBlock, selectedReferencedTx, snapshotTimestampT, ZERO_PAYMENT_REFERENCE } from "./utils/indexerTestDataGenerator";
 

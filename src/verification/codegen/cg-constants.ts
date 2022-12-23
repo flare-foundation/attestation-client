@@ -1,9 +1,9 @@
 import { Options } from "prettier";
 
-export const GENERATED_ROOT = "lib/verification/generated";
+export const GENERATED_ROOT = "src/verification/generated";
 export const GENERATED_TEST_ROOT = "test/generated";
 export const CONTRACTS_ROOT = "contracts";
-export const VERIFIERS_ROOT = "lib/verification/verifiers";
+export const VERIFIERS_ROOT = "src/verification/verifiers";
 export const SOLIDITY_GENERATED_ROOT = `contracts/generated`;
 export const SOLIDITY_GEN_CONTRACTS_ROOT = `${SOLIDITY_GENERATED_ROOT}/contracts`;
 export const SOLIDITY_GEN_INTERFACES_ROOT = `${SOLIDITY_GENERATED_ROOT}/interface`;

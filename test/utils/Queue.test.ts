@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { Queue } from "../../lib/utils/Queue";
+import { Queue } from "../../src/utils/Queue";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`Queue ${getTestFile(__filename)})`, () => {

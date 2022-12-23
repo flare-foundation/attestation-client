@@ -2,7 +2,7 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "declaration": false,
-    "outDir": "../../../dist/lib/servers/verifier-server"
+    "outDir": "../../../dist/src/servers/verifier-server"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]

@@ -1,6 +1,6 @@
 import { traceManager } from "@flarenetwork/mcc";
-import { getGlobalLogger } from "../../lib/utils/logger";
-import { getRetryFailureCallback, setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
+import { getGlobalLogger } from "../../src/utils/logger";
+import { getRetryFailureCallback, setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
 
 export const TERMINATION_TOKEN = "Mock Application terminated";
 

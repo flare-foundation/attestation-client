@@ -7,7 +7,7 @@ export CONFIGDIR_SECURE_C1=../attestation-suite-config/prepared/coston
 export CONFIGDIR_SECURE_C2=../attestation-suite-config/prepared/coston2
 
 # prepare configurations
-yarn ts-node lib/install/install.ts ../attestation-suite-config/
+yarn ts-node src/install/install.ts ../attestation-suite-config/
 
 # copy configs to all modules
 echo -e "${GREENBOLD}Copy configurations...${NC}"

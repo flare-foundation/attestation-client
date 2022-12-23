@@ -1,6 +1,6 @@
 import { ChainType, IUtxoGetBlockRes, IXrpGetBlockRes, UtxoBlock, UtxoTransaction, XrpBlock } from "@flarenetwork/mcc";
-import { DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
-import { augmentTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
+import { DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
+import { augmentTransactionUtxo } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
 import * as resBTCTxFake from "../mockData/BTCTxFake.json";
@@ -9,8 +9,8 @@ import * as resBTCBlockAlt from "../mockData/BTCBlockAlt.json";
 import * as resDOGEBlock from "../mockData/DOGEBlock.json";
 import * as resXRPBlockAlt from "../mockData/XRPBlockAlt.json";
 import * as resXRPBlock from "../mockData/XRPBlockAlt.json";
-import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
+import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 
 export const TestBlockBTC = new UtxoBlock(resBTCBlock);
 export const TestTxBTC = new UtxoTransaction(resBTCTx);

@@ -2,25 +2,25 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { MerkleTree } from "../../lib/utils/MerkleTree";
-import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { MerkleTree } from "../../src/utils/MerkleTree";
+import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
 import {
   DHPayment,
   DHBalanceDecreasingTransaction,
   DHConfirmedBlockHeightExists,
   DHReferencedPaymentNonexistence,
   DHTrustlineIssuance,
-} from "../../lib/verification/generated/attestation-hash-types";
+} from "../../src/verification/generated/attestation-hash-types";
 import {
   ARPayment,
   ARBalanceDecreasingTransaction,
   ARConfirmedBlockHeightExists,
   ARReferencedPaymentNonexistence,
   ARTrustlineIssuance,
-} from "../../lib/verification/generated/attestation-request-types";
-import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
-import { SourceId } from "../../lib/verification/sources/sources";
-import { getRandomResponseForType, getRandomRequest } from "../../lib/verification/generated/attestation-random-utils";
+} from "../../src/verification/generated/attestation-request-types";
+import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
+import { SourceId } from "../../src/verification/sources/sources";
+import { getRandomResponseForType, getRandomRequest } from "../../src/verification/generated/attestation-random-utils";
 import {
   hashPayment,
   hashBalanceDecreasingTransaction,
@@ -28,7 +28,7 @@ import {
   hashReferencedPaymentNonexistence,
   hashTrustlineIssuance,
   dataHash,
-} from "../../lib/verification/generated/attestation-hash-utils";
+} from "../../src/verification/generated/attestation-hash-utils";
 
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 import { getTestFile } from "../test-utils/test-utils";

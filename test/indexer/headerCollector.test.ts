@@ -1,13 +1,13 @@
 // // yarn test test/indexer/blockHeaderCollector.test.ts
 
 import { ChainType, MCC, XrpMccCreate } from "@flarenetwork/mcc";
-import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { HeaderCollector } from "../../lib/indexer/headerCollector";
-import { IndexerToClient } from "../../lib/indexer/indexerToClient";
-import { IndexerToDB } from "../../lib/indexer/indexerToDB";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
+import { DBBlockXRP } from "../../src/entity/indexer/dbBlock";
+import { HeaderCollector } from "../../src/indexer/headerCollector";
+import { IndexerToClient } from "../../src/indexer/indexerToClient";
+import { IndexerToDB } from "../../src/indexer/indexerToDB";
+import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
 
 import { TestBlockXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";

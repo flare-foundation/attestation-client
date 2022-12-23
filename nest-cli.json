@@ -1,28 +1,28 @@
 {
   "monorepo": true,
-  "root": "lib/servers/verifier-server",
-  "sourceRoot": "lib/servers/verifier-server/src",
+  "root": "src/servers/verifier-server",
+  "sourceRoot": "src/servers/verifier-server/src",
   "compilerOptions": {
     "webpack": true,
-    "tsConfigPath": "lib/servers/verifier-server/tsconfig.app.json"
+    "tsConfigPath": "src/servers/verifier-server/tsconfig.app.json"
   },
   "projects": {
     "verifier-server": {
       "type": "application",
-      "root": "lib/servers/verifier-server",
+      "root": "src/servers/verifier-server",
       "entryFile": "main",
-      "sourceRoot": "lib/servers/verifier-server/src",
+      "sourceRoot": "src/servers/verifier-server/src",
       "compilerOptions": {
-        "tsConfigPath": "lib/servers/verifier-server/tsconfig.app.json"
+        "tsConfigPath": "src/servers/verifier-server/tsconfig.app.json"
       }
     },
     "web-server": {
       "type": "application",
-      "root": "lib/servers/web-server",
+      "root": "src/servers/web-server",
       "entryFile": "main",
-      "sourceRoot": "lib/servers/web-server/src",
+      "sourceRoot": "src/servers/web-server/src",
       "compilerOptions": {
-        "tsConfigPath": "lib/servers/web-server/tsconfig.app.json",
+        "tsConfigPath": "src/servers/web-server/tsconfig.app.json",
         "plugins": [
           {
             "name": "@nestjs/swagger",
@@ -36,11 +36,11 @@
     },
     "common": {
       "type": "library",
-      "root": "lib/servers/common",
+      "root": "src/servers/common",
       "entryFile": "index",
-      "sourceRoot": "lib/servers/common/src",
+      "sourceRoot": "src/servers/common/src",
       "compilerOptions": {
-        "tsConfigPath": "lib/servers/common/tsconfig.lib.json"
+        "tsConfigPath": "src/servers/common/tsconfig.lib.json"
       }
     }
   }

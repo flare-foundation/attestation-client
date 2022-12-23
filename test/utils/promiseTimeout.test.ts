@@ -3,10 +3,10 @@ const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
 const assert = chai.assert;
-import PromiseTimeout = require("../../lib/utils/PromiseTimeout");
+import PromiseTimeout = require("../../src/utils/PromiseTimeout");
 import sinon = require("sinon");
 import { afterEach } from "mocha";
-import loggers = require("../../lib/utils/logger");
+import loggers = require("../../src/utils/logger");
 import { sleepMs } from "@flarenetwork/mcc";
 import { getTestFile } from "../test-utils/test-utils";
 

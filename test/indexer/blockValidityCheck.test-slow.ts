@@ -2,13 +2,13 @@
 
 import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
 import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
-import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
-import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
-import { Indexer } from "../../lib/indexer/indexer";
-import { ChainConfig } from "../../lib/source/ChainConfig";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { getRetryFailureCallback, setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
-import { TestLogger } from "../../lib/utils/testLogger";
+import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
+import { BlockProcessorManager } from "../../src/indexer/blockProcessorManager";
+import { Indexer } from "../../src/indexer/indexer";
+import { ChainConfig } from "../../src/source/ChainConfig";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { getRetryFailureCallback, setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
+import { TestLogger } from "../../src/utils/testLogger";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
 const chai = require("chai");

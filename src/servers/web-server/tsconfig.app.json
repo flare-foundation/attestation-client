@@ -2,7 +2,7 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "declaration": false,
-    "outDir": "../../../dist/lib/servers/web-server"
+    "outDir": "../../../dist/src/servers/web-server"
   },
   "include": ["src/**/*", "../../entity/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]

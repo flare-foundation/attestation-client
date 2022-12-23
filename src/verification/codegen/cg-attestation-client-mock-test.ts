@@ -157,24 +157,24 @@ export function createAttestationClientMockTest(definitions: AttestationTypeSche
 
   const itsForDefinitions = definitions.map((definition) => genItForAttestationClientMock(definition)).join("\n");
   const content = `${DEFAULT_GEN_FILE_HEADER}
-import { MerkleTree } from "../../lib/utils/MerkleTree";
-import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { MerkleTree } from "../../src/utils/MerkleTree";
+import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { 
 ${dhImports} 
-} from "../../lib/verification/generated/attestation-hash-types";
+} from "../../src/verification/generated/attestation-hash-types";
 import { 
 ${arImports} 
-} from "../../lib/verification/generated/attestation-request-types";
-import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
-import { SourceId } from "../../lib/verification/sources/sources";
+} from "../../src/verification/generated/attestation-request-types";
+import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
+import { SourceId } from "../../src/verification/sources/sources";
 import { 
 	getRandomResponseForType, 
 	getRandomRequest,
-} from "../../lib/verification/generated/attestation-random-utils";
+} from "../../src/verification/generated/attestation-random-utils";
 import { 
 ${hashFunctionsImports},
 	dataHash
-} from "../../lib/verification/generated/attestation-hash-utils";
+} from "../../src/verification/generated/attestation-hash-utils";
   
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 import { getTestFile } from "../test-utils/test-utils";

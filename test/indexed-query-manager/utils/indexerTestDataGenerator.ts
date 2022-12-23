@@ -2,15 +2,15 @@ import { ChainType, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
 import fs from "fs";
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
-import { DBBlockBase } from "../../../lib/entity/indexer/dbBlock";
-import { DBState } from "../../../lib/entity/indexer/dbState";
-import { DBTransactionBase } from "../../../lib/entity/indexer/dbTransaction";
-import { getUnixEpochTimestamp } from "../../../lib/utils/utils";
-import { NumberLike } from "../../../lib/verification/attestation-types/attestation-types";
-import { toHex } from "../../../lib/verification/attestation-types/attestation-types-helpers";
-import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../../../lib/verification/generated/attestation-request-types";
-import { AttestationType } from "../../../lib/verification/generated/attestation-types-enum";
-import { getSourceName, SourceId } from "../../../lib/verification/sources/sources";
+import { DBBlockBase } from "../../../src/entity/indexer/dbBlock";
+import { DBState } from "../../../src/entity/indexer/dbState";
+import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
+import { getUnixEpochTimestamp } from "../../../src/utils/utils";
+import { NumberLike } from "../../../src/verification/attestation-types/attestation-types";
+import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
+import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../../../src/verification/generated/attestation-request-types";
+import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
+import { getSourceName, SourceId } from "../../../src/verification/sources/sources";
 
 const TEST_DATA_PATH = 'test/indexed-query-manager/test-data'
 

@@ -5,7 +5,7 @@ import { AttestationTypeScheme, NumberLike, SupportedSolidityType, WeightedRando
 
 const toBN = Web3.utils.toBN;
 
-export const ATT_TYPE_DEFINITIONS_ROOT = "lib/verification/attestation-types";
+export const ATT_TYPE_DEFINITIONS_ROOT = "src/verification/attestation-types";
 
 /**
  * Type mapper from (a subset of) Solidity types to Javascript/Typescript types, specific for

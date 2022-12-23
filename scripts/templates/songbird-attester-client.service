@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/lib/runAttesterClient.js -i songbird
+ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/src/runAttesterClient.js -i songbird
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian

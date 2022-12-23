@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/lib/alerts/alerts.js
+ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/src/alerts/alerts.js
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian

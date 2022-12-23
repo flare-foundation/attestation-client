@@ -1,5 +1,5 @@
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
+import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { ITransaction } from "@flarenetwork/mcc";
 import { expect } from "chai";
 

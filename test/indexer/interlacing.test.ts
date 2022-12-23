@@ -1,14 +1,14 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { expect } from "chai";
-import { DBTransactionBase, DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
+import { DBTransactionBase, DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
 import { afterEach } from "mocha";
-const utils = require("../../lib/utils/utils");
+const utils = require("../../src/utils/utils");
 import sinon from "sinon";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`Interlacing (${getTestFile(__filename)})`, () => {

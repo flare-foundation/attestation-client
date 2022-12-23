@@ -37,8 +37,8 @@ git checkout v0.5.3
 gvm use go1.17.5
 ./scripts/build.sh
 
-cp ../../lib/spammer/flarelocalnode/scdev.json .
-cp ../../lib/spammer/flarelocalnode/launch_localnet_scdev.sh ./scripts
+cp ../../src/spammer/flarelocalnode/scdev.json .
+cp ../../src/spammer/flarelocalnode/launch_localnet_scdev.sh ./scripts
 
 chmod +x ./scripts/launch_localnet_scdev.sh
 

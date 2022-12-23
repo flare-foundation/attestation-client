@@ -1,11 +1,11 @@
 import { ChainType, UtxoBlock, UtxoTransaction } from "@flarenetwork/mcc";
-import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
-import { augmentTransactionUtxo } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
+import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
+import { augmentTransactionUtxo } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
-import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
-import { PreparedBlock } from "../../lib/indexer/preparedBlock";
+import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
+import { PreparedBlock } from "../../src/indexer/preparedBlock";
 import { assert, expect } from "chai";
 import { getTestFile } from "../test-utils/test-utils";
 

@@ -3,10 +3,10 @@
 
 
 import { assert } from "chai";
-import { IndexerConfig } from "../../lib/indexer/IndexerConfig";
-import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { AdditionalTypeInfo, IReflection } from "../../lib/utils/reflection";
-import { isEqualType } from "../../lib/utils/typeReflection";
+import { IndexerConfig } from "../../src/indexer/IndexerConfig";
+import { initializeTestGlobalLogger } from "../../src/utils/logger";
+import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection";
+import { isEqualType } from "../../src/utils/typeReflection";
 import { getTestFile } from "../test-utils/test-utils";
 
 

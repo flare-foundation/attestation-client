@@ -1,16 +1,16 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { afterEach } from "mocha";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
-import { DBState } from "../../lib/entity/indexer/dbState";
-import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
-import { getStateEntry } from "../../lib/indexer/indexer-utils";
-import { IndexerToDB } from "../../lib/indexer/indexerToDB";
-import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
+import { DBState } from "../../src/entity/indexer/dbState";
+import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
+import { getStateEntry } from "../../src/indexer/indexer-utils";
+import { IndexerToDB } from "../../src/indexer/indexerToDB";
+import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
-const loggers = require("../../lib/utils/logger");
+const loggers = require("../../src/utils/logger");
 const sinon = require("sinon");
 
 const chai = require("chai");

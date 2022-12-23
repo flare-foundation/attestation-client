@@ -10,15 +10,15 @@ import {
   XrpTransaction,
   xrp_ensure_data,
 } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
-import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
-import { augmentTransactionUtxo, augmentTransactionXrp } from "../../lib/indexer/chain-collector-helpers/augmentTransaction";
-import { BlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
-import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
+import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
+import { augmentTransactionUtxo, augmentTransactionXrp } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
+import { BlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
+import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseConnectOptions, DatabaseService } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
 import { TestBlockXRP } from "../mockData/indexMock";

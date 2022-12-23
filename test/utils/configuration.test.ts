@@ -3,15 +3,15 @@
 
 import { assert } from "chai";
 import sinon from "sinon";
-import { prepareSecureCredentials } from "../../lib/install/prepareSecureCredentials";
-import { readSecureConfig } from "../../lib/utils/configSecure";
-import { getCredentialsKey, getCredentialsKeyByAddress } from "../../lib/utils/credentialsKey";
-import { decryptString, encryptString } from "../../lib/utils/encrypt";
-import { readJSON, readJSONfromString } from "../../lib/utils/json";
-import { secureMasterConfigs, _clearSecureCredentials, _prepareSecureData } from "../../lib/utils/jsonSecure";
-import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { AdditionalTypeInfo, IReflection } from "../../lib/utils/reflection";
-import { TestLogger } from "../../lib/utils/testLogger";
+import { prepareSecureCredentials } from "../../src/install/prepareSecureCredentials";
+import { readSecureConfig } from "../../src/utils/configSecure";
+import { getCredentialsKey, getCredentialsKeyByAddress } from "../../src/utils/credentialsKey";
+import { decryptString, encryptString } from "../../src/utils/encrypt";
+import { readJSON, readJSONfromString } from "../../src/utils/json";
+import { secureMasterConfigs, _clearSecureCredentials, _prepareSecureData } from "../../src/utils/jsonSecure";
+import { initializeTestGlobalLogger } from "../../src/utils/logger";
+import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection";
+import { TestLogger } from "../../src/utils/testLogger";
 import { getTestFile } from "../test-utils/test-utils";
 
 const password = "t3stPassw0rd";

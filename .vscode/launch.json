@@ -252,7 +252,7 @@
             ],
             "runtimeArgs": [
                 "ts-node",
-                "lib/spammer/attestation-spammer.ts",
+                "src/spammer/attestation-spammer.ts",
                 "-c","XRP",
                 "-l","XRP"             
             ]
@@ -275,7 +275,7 @@
             ],
             "runtimeArgs": [
                 "ts-node",
-                "lib/spammer/attestation-spammer.ts",
+                "src/spammer/attestation-spammer.ts",
                 "-c","BTC",
                 "-l","BTC"             
             ]
@@ -292,7 +292,7 @@
             ],
             "runtimeArgs": [
                 "ts-node",
-                "lib/spammer/attestation-collector.ts",
+                "src/spammer/attestation-collector.ts",
                 "-c","XRP",
                 "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
                 "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
@@ -319,7 +319,7 @@
             ],
             "runtimeArgs": [
                 "ts-node",
-                "lib/spammer/attestation-collector.ts",
+                "src/spammer/attestation-collector.ts",
                 "-c","BTC",
                 "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
                 "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { constantize } from "../../../lib/verification/codegen/cg-utils";
+import { constantize } from "../../../src/verification/codegen/cg-utils";
 import { getTestFile } from "../../test-utils/test-utils";
 
 

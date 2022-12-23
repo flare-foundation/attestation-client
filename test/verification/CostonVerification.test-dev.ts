@@ -3,21 +3,21 @@
 // DOTENV=DEV SOURCE_ID=ALGO CONFIG_PATH=.secure.dev NODE_ENV=development yarn hardhat test test/verification/CostonVerification.test-dev.ts --network coston
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
-import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { createTestAttestationFromRequest } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { VerifierServerConfig } from "../../lib/servers/common/src";
-import { ChainConfig, ListChainConfig } from "../../lib/source/ChainConfig";
-import { readSecureConfig } from "../../lib/utils/configSecure";
-import { DatabaseService } from "../../lib/utils/databaseService";
-import { getGlobalLogger } from "../../lib/utils/logger";
-import { MerkleTree } from "../../lib/utils/MerkleTree";
-import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";
-import { parseRequest } from "../../lib/verification/generated/attestation-request-parse";
-import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
-import { SourceId } from "../../lib/verification/sources/sources";
-import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { createTestAttestationFromRequest } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
+import { VerifierServerConfig } from "../../src/servers/common/src";
+import { ChainConfig, ListChainConfig } from "../../src/source/ChainConfig";
+import { readSecureConfig } from "../../src/utils/configSecure";
+import { DatabaseService } from "../../src/utils/databaseService";
+import { getGlobalLogger } from "../../src/utils/logger";
+import { MerkleTree } from "../../src/utils/MerkleTree";
+import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { parseRequest } from "../../src/verification/generated/attestation-request-parse";
+import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
+import { SourceId } from "../../src/verification/sources/sources";
+import { verifyAttestation } from "../../src/verification/verifiers/verifier_routing";
 import { AttestationClientSCInstance, StateConnectorInstance } from "../../typechain-truffle";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;

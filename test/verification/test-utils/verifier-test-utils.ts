@@ -105,10 +105,10 @@ export async function bootstrapVerifier(
    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
    entityManager = app.get(getEntityManagerToken("indexerDatabase"));
 
-   let port = configurationService.wsServerCredentials.port;
+   let port = configurationService.config.port;
    await app.listen(port, undefined, () => {
-      logger.info(`Server started listening at http://localhost:${configurationService.wsServerCredentials.port}`);
-      logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerCredentials.port}`)
+      logger.info(`Server started listening at http://localhost:${configurationService.config.port}`);
+      logger.info(`Websocket server started listening at ws://localhost:${configurationService.config.port}`)
    })
    
 

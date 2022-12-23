@@ -53,5 +53,5 @@ Example:
 - [Chain configuration](./config-chains.md)
 - [Attester client configuration](./config-attester-client.md)
 - [Indexer configuration](./config-indexer.md)
-- [Backend configuration](config-alerts.md/)
-- [Alerts configuration](./config-backend.md)
+- [Webserver configuration](config-alerts.md/)
+- [Alerts configuration](./config-webserver.md)

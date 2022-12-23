@@ -21,15 +21,15 @@ export class DOGEProcessorService extends VerifierProcessor {
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) {
     super();
-    this.client = new MCC.DOGE(this.config.wsServerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
+    this.client = new MCC.DOGE(this.config.config.chainConfiguration.mccCreate as UtxoMccCreate);
 
     const options: IndexedQueryManagerOptions = {
       chainType: ChainType.DOGE,
       entityManager: this.manager,
-      maxValidIndexerDelaySec: this.config.wsServerCredentials.chainConfiguration.maxValidIndexerDelaySec,
+      maxValidIndexerDelaySec: this.config.config.chainConfiguration.maxValidIndexerDelaySec,
 
       numberOfConfirmations: () => {
-        return this.config.wsServerCredentials.chainConfiguration.numberOfConfirmations;
+        return this.config.config.chainConfiguration.numberOfConfirmations;
       },
     };
 
@@ -49,11 +49,11 @@ export class DOGEProcessorService extends VerifierProcessor {
   }
 
   public supportedAttestationTypes(): string[] {
-    return this.config.wsServerCredentials.attestationTypes;
+    return this.config.config.attestationTypes;
   }
 
   public supportedSource(): string {
-    return this.config.wsServerCredentials.sourceId;
+    return this.config.config.sourceId;
   }
 
 }

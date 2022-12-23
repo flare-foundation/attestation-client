@@ -7,10 +7,10 @@ The Attestation Suite comes with a web server, that enables web service access t
 To run the rest API server locally in development mode, run
 
 ```bash
-yarn devbackend
+yarn devwebserver
 ```
 
-The corresponding config files `backend-config.json` and `backend-credentials.json` should be set in `configs/dev` folder, where a port of the web server is defined as well. The REST API server is also installed as a service, if installation is done using the install procedure on Ubuntu server.
+The corresponding config files `webserver-config.json` and `webserver-credentials.json` should be set in `configs/dev` folder, where a port of the web server is defined as well. The REST API server is also installed as a service, if installation is done using the install procedure on Ubuntu server.
 
 ## Web service routes
 

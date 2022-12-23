@@ -1,0 +1,36 @@
+{
+    "apiKeys": [
+        {
+           "name": "test1",
+           "apiKey": "$(WebApiKey1)"
+        },
+        {
+           "name": "test2",
+           "apiKey": "$(WebApiKey2)"
+        }
+     ],
+
+    "firstEpochStartTime":1636070400,
+    "roundDurationSec": 90,
+    "serviceStatusFilePath": "../attester-status.json",
+    "deploymentName": "Coston",
+
+    "port": $($(Network)WebserverPort),
+
+    "attesterDatabase": {
+        "host": "$(AttesterDatabaseHost)",
+        "port": $(AttesterDatabasePort),
+        "database": "$(AttesterDatabase$(Network))",
+        "username": "$(AttesterReaderUsername$(Network))",
+        "password": "$(AttesterReaderPassword$(Network))"
+    },
+
+    "indexerDatabase": {
+        "host": "$(IndexerDatabaseHost)",
+        "port": $(IndexerDatabasePort),
+        "database": "$(IndexerDatabase)",
+        "username": "$(IndexerReaderUsername)",
+        "password": "$(IndexerReaderPassword)"
+    },
+
+}

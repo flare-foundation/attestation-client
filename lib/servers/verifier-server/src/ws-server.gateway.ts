@@ -35,7 +35,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       let request: IncomingMessage = args[0];
       const parsedUrl = url.parse(request.url, true)
       const apiKey = parsedUrl?.query?.apiKey;
-      let authenticated = this.config.wsServerCredentials.apiKeys.find(x => x.apiKey === apiKey);
+      let authenticated = this.config.config.apiKeys.find(x => x.apiKey === apiKey);
       if (authenticated) {
          this.connections.set(client, {
             id: this.clientId,
@@ -64,7 +64,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       // check if connections are alive
       const interval = setInterval(() => {
          [...this.connections.keys()].forEach(x => x.ping());
-      }, this.config.wsServerCredentials.checkAliveIntervalMs);
+      }, this.config.config.checkAliveIntervalMs);
    }
 
    @SubscribeMessage("message")

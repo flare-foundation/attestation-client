@@ -2,7 +2,7 @@
 
 import { ChainType, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
-import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
+import { ChainConfig } from "../../lib/source/ChainConfig";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
 import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
@@ -199,7 +199,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    indexer.chainConfig = new ChainConfiguration();
+    indexer.chainConfig = new ChainConfig();
     indexer.chainConfig.name = "XRP";
     indexer.prepareTables();
 
@@ -223,7 +223,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    indexer.chainConfig = new ChainConfiguration();
+    indexer.chainConfig = new ChainConfig();
     indexer.chainConfig.name = "ALGO";
     indexer.prepareTables();
 

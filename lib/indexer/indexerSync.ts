@@ -128,7 +128,7 @@ export class IndexerSync {
       const now = Date.now();
 
       // get chain top block
-      if (now > statsTime + this.indexer.credentials.syncUpdateTimeMs) {
+      if (now > statsTime + this.indexer.config.syncUpdateTimeMs) {
         // stats
         statsBlocksPerSec = ((this.indexer.N - statsN) * 1000) / (now - statsTime);
         statsN = this.indexer.N;
@@ -246,7 +246,7 @@ export class IndexerSync {
    * @returns
    */
   public async runSync(dbStartBlockNumber: number) {
-    if (!this.indexer.credentials.syncEnabled) {
+    if (!this.indexer.config.syncEnabled) {
       return;
     }
 

@@ -1,6 +1,6 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
-import { AlertBase } from "../alerts/AlertBase";
-import { AlertsManager } from "../alerts/AlertsManager";
+import { MonitorBase } from "../monitor/MonitorBase";
+import { MonitorManager } from "../monitor/MonitorManager";
 import { DotEnvExt } from "../utils/DotEnvExt";
 import { getGlobalLogger, setLoggerName } from "../utils/logger";
 import { EServiceStatus } from "../utils/serviced";
@@ -28,11 +28,11 @@ async function admin() {
     .parent()
     .addCommand("Coston Attestation Client", "bash ./scripts/deploy-coston-attester")
     .parent()
-    .addCommand("Coston backend", "bash ./scripts/deploy-coston-backend")
+    .addCommand("Coston webserver", "bash ./scripts/deploy-coston-webserver")
     .parent()
     .addCommand("Songbird Attestation Client", "bash ./scripts/deploy-songbird-attester")
     .parent()
-    .addCommand("Songbird backend", "bash ./scripts/deplay-songbird-backend");
+    .addCommand("Songbird webserver", "bash ./scripts/deplay-songbird-webserver");
 
   menu
     .addSubmenu("Services")
@@ -56,11 +56,11 @@ async function admin() {
     .parent()
     .addService("Coston Attestation Client", "coston-attester-client")
     .parent()
-    .addService("Coston backend", "coston-backend")
+    .addService("Coston webserver", "coston-webserver")
     .parent()
     .addService("Songbird Attestation Client", "songbird-attester-client")
     .parent()
-    .addService("Songbird backend", "songbird-backend").parent;
+    .addService("Songbird webserver", "songbird-webserver").parent;
 
   menu
     .addSubmenu("Show log")
@@ -82,11 +82,11 @@ async function admin() {
     .parent()
     .addLog("Coston Attestation Client", "../coston/attester-client/logs/attester-global.log")
     .parent()
-    .addLog("Coston backend", "../coston/backend/logs/attester-global.log")
+    .addLog("Coston webserver", "../coston/webserver/logs/attester-global.log")
     .parent()
     .addLog("Songbird Attestation Client", "../songbird/attester-client/logs/attester-global.log")
     .parent()
-    .addLog("Songbird backend", "../songbird/backend/logs/attester-global.log").parent;
+    .addLog("Songbird webserver", "../songbird/webserver/logs/attester-global.log").parent;
 
   menu
     .addSubmenu("Reset Database")
@@ -107,8 +107,8 @@ async function admin() {
   Menu.startInputRead();
 
   // initialize alerts
-  AlertBase.restartEnabled = false;
-  const alerts = new AlertsManager();
+  MonitorBase.restartEnabled = false;
+  const alerts = new MonitorManager();
   for (const alert of alerts.alerts) {
     await alert.initialize();
   }

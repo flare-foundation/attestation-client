@@ -1,7 +1,7 @@
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import { Indexer } from "../../lib/indexer/indexer";
 import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
+import { ChainConfig } from "../../lib/source/ChainConfig";
 import { DBTransactionXRP1, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { CachedMccClient } from "../../lib/caching/CachedMccClient";
 import { MockMccClient } from "../../lib/caching/test-utils/MockMccClient";
@@ -15,6 +15,7 @@ import { AugTestBlockBTC, promAugTxBTC0 } from "../mockData/indexMock";
 import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { afterEach } from "mocha";
 import { getTestFile } from "../test-utils/test-utils";
+import { IndexerConfig } from "../../lib/indexer/IndexerConfig";
 
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
@@ -25,8 +26,9 @@ const sinon = require("sinon");
 describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   let indexer = new Indexer(null, null, null);
   indexer.chainType = ChainType.XRP;
-  indexer.chainConfig = new ChainConfiguration();
+  indexer.chainConfig = new ChainConfig();
   indexer.chainConfig.name = "XRP";
+  indexer.config = new IndexerConfig();
   indexer.prepareTables();
   const mockMccClient = new MockMccClient();
   indexer.cachedClient = new CachedMccClient(ChainType.XRP, { forcedClient: mockMccClient });
@@ -61,7 +63,7 @@ describe.skip(`Indexer BTC ${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
   let indexer = new Indexer(null, null, null);
   indexer.chainType = ChainType.BTC;
-  indexer.chainConfig = new ChainConfiguration();
+  indexer.chainConfig = new ChainConfig();
   indexer.chainConfig.name = "btc";
   indexer.prepareTables();
   indexer.logger = getGlobalLogger();

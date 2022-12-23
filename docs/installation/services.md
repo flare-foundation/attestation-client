@@ -13,9 +13,9 @@ Service files are in `<installation root>/scripts/templates`:
 - indexer-ltc
 - indexer-xrp
 - songbird-attester-client
-- songbird-backend
+- songbird-webserver
 - coston-attester-client
-- coston-backend
+- coston-webserver
 
 [Here](./service-helpers.md) are some service helpers commands.
 

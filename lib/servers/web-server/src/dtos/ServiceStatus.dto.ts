@@ -1,6 +1,6 @@
-import { AlertStatus, PerformanceInfo } from "../../../../alerts/AlertBase";
+import { MonitorStatus, PerformanceInfo } from "../../../../monitor/MonitorBase";
 
 export interface ServiceStatus {
-  alerts: AlertStatus[];
+  alerts: MonitorStatus[];
   perf: PerformanceInfo[];
 }

@@ -1,10 +1,9 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { Indexer } from "./indexer/indexer";
-import { IndexerCredentials } from "./indexer/IndexerConfiguration";
-import { ChainsConfiguration } from "./source/ChainConfiguration";
-import { readSecureConfig, readSecureCredentials } from "./utils/configSecure";
-import { DotEnvExt } from "./utils/DotEnvExt";
+import { IndexerConfig } from "./indexer/IndexerConfig";
+import { ListChainConfig } from "./source/ChainConfig";
+import { readSecureConfig } from "./utils/configSecure";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 
@@ -34,20 +33,17 @@ async function runIndexer() {
   setRetryFailureCallback(terminateOnRetryFailure);
 
   // read configuration
-  const chains = await readSecureConfig(new ChainsConfiguration(), "chains");
-  const credentials = await readSecureCredentials(new IndexerCredentials(), "indexer");
+  const chains = await readSecureConfig(new ListChainConfig(), "chains");
+  const config = await readSecureConfig(new IndexerConfig(), "indexer");
 
   // create and start indexer
-  const indexer = new Indexer(chains, credentials, args["chain"]);
+  const indexer = new Indexer(config, chains, args["chain"]);
   return await indexer.runIndexer(args);
 }
 
 // set all global loggers to the chain
 setLoggerName("indexer");
 setGlobalLoggerLabel(args["chain"]);
-
-// read .env
-DotEnvExt();
 
 // allow only one instance of the application
 var instanceName = `indexer-${args["chain"]}`;

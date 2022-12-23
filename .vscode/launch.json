@@ -71,7 +71,7 @@
                 "NODE_ENV":"development"
             },
             "runtimeArgs": [
-                "dev"
+                "devattester"
             ]
         },
 
@@ -479,10 +479,10 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "Launch backend",
+            "name": "Launch webserver",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "devbackend"
+                "devwebserver"
             ]
         },
 
@@ -515,7 +515,7 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "Launch Backend2",
+            "name": "Launch Webserver2",
             "runtimeExecutable": "yarn",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",
@@ -527,7 +527,7 @@
                 "NODE_ENV":"development"
             },
             "runtimeArgs": [
-                "devbackend2"
+                "devwebserver2"
             ]
         },
         {
@@ -567,7 +567,7 @@
             },
             "runtimeArgs": [
                 "test",
-                "test/server/xrp-verifier-server.test.ts"
+                "test/server/btc-verifier-server.test.ts"
             ]
         },
         {
@@ -676,7 +676,7 @@
             },
             "runtimeArgs": [
                 "test",
-                "test/choose-subsets/combinators.test.ts"
+                "test/caching/LimitingProcessor.test.ts"
             ]
         },
 

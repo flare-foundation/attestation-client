@@ -20,9 +20,9 @@ import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../lib/
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { WSServerCredentials } from "../../lib/servers/common/src";
-import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
-import { readSecureConfig, readSecureCredentials } from "../../lib/utils/configSecure";
+import { VerifierServerConfig } from "../../lib/servers/common/src";
+import { ChainConfig, ListChainConfig } from "../../lib/source/ChainConfig";
+import { readSecureConfig } from "../../lib/utils/configSecure";
 import { DatabaseService } from "../../lib/utils/databaseService";
 import { DotEnvExt } from "../../lib/utils/DotEnvExt";
 import { getGlobalLogger } from "../../lib/utils/logger";
@@ -46,7 +46,7 @@ DotEnvExt();
 describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let indexedQueryManager: IndexedQueryManager;
   let client: MccClient;
-  let chainsConfiguration: ChainsConfiguration;
+  let chainsConfiguration: ListChainConfig;
   let chainName: string;
   const startTime = 0;
   const cutoffTime = 0; // TODO - set properly
@@ -54,18 +54,18 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
-    chainsConfiguration = await readSecureConfig(new ChainsConfiguration(), "chains");
-    const verifierCredentials = await readSecureCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
+    chainsConfiguration = await readSecureConfig(new ListChainConfig(), "chains");
+    const verifierCredentials = await readSecureConfig(new VerifierServerConfig(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     chainName = getSourceName(SOURCE_ID);
-    const indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
+    const indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfig;
     client = MCC.Client(SOURCE_ID, {
       ...indexerChainConfiguration.mccCreate,
       rateLimitOptions: indexerChainConfiguration.rateLimitOptions,
     });
     //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
-    const attesterClientChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
+    const attesterClientChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfig;
 
     //NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
 

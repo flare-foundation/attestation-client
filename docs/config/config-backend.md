@@ -1,4 +1,4 @@
-# Backend Configuration
+# Webserver Configuration
 
 Indexer configuration is divided in two files:
 

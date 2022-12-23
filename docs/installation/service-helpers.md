@@ -14,10 +14,10 @@ systemctl --user enable indexer-algo.service
 systemctl --user enable indexer-doge.service
 
 systemctl --user enable coston-attester-client.service
-systemctl --user enable coston-backend.service
+systemctl --user enable coston-webserver.service
 
 systemctl --user enable songbird-attester-client.service
-systemctl --user enable songbird-backend.service
+systemctl --user enable songbird-webserver.service
 
 systemctl --user enable attester-alerts
 ```
@@ -32,10 +32,10 @@ systemctl --user stop indexer-algo.service
 systemctl --user stop indexer-doge.service
 
 systemctl --user stop coston-attester-client.service
-systemctl --user stop coston-backend.service
+systemctl --user stop coston-webserver.service
 
 systemctl --user stop songbird-attester-client.service
-systemctl --user stop songbird-backend.service
+systemctl --user stop songbird-webserver.service
 
 systemctl --user stop attester-alerts
 ```
@@ -50,10 +50,10 @@ systemctl --user restart indexer-algo
 systemctl --user restart indexer-doge
 
 systemctl --user restart coston-attester-client
-systemctl --user restart coston-backend
+systemctl --user restart coston-webserver
 
 systemctl --user restart songbird-attester-client
-systemctl --user restart songbird-backend
+systemctl --user restart songbird-webserver
 
 systemctl --user restart attester-alerts
 ```

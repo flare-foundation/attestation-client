@@ -16,6 +16,6 @@ export class AuthGuard implements CanActivate {
    ): boolean | Promise<boolean> | Observable<boolean> {
       const request = context.switchToHttp().getRequest();
       let apiKey = request.body.apiKey;
-      return !!this.config.wsServerCredentials.apiKeys.find(x => x.apiKey === apiKey);
+      return !!this.config.config.apiKeys.find(x => x.apiKey === apiKey);
    }
 }

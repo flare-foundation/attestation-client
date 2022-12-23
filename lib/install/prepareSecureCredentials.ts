@@ -36,7 +36,7 @@ export async function prepareSecureCredentials(credentialsPath: string, password
     let combinedConfigs = new Object();
 
     for (const file of files) {
-        if (path.extname(file).toLowerCase() !== '.json') {
+        if (!file.toLowerCase().endsWith('-credentials.json')) {
             continue;
         }
 

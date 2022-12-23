@@ -117,11 +117,11 @@ systemctl --user enable coston2-spammer-xrp.service
 systemctl --user enable coston2-spammer-algo.service
 systemctl --user enable coston2-spammer-doge.service
 
-systemctl --user enable coston-backend.service
+systemctl --user enable coston-webserver.service
 
 systemctl --user enable songbird-attester-client.service
 systemctl --user enable songbird-spammer.service
-systemctl --user enable songbird-backend.service
+systemctl --user enable songbird-webserver.service
 
 systemctl --user enable attester-alerts
 
@@ -145,11 +145,11 @@ systemctl --user restart coston2-spammer-xrp.service
 systemctl --user restart coston2-spammer-algo.service
 systemctl --user restart coston2-spammer-doge.service
 
-systemctl --user start coston-backend.service
+systemctl --user start coston-webserver.service
 
 systemctl --user start songbird-attester-client.service
 systemctl --user start songbird-spammer.service
-systemctl --user start songbird-backend.service
+systemctl --user start songbird-webserver.service
 
 systemctl --user start attester-alerts
 
@@ -185,11 +185,11 @@ systemctl --user stop coston-spammer-xrp.service
 systemctl --user stop coston-spammer-algo.service
 systemctl --user stop coston-spammer-doge.service
 
-systemctl --user stop coston-backend.service
+systemctl --user stop coston-webserver.service
 
 systemctl --user stop songbird-attester-client.service
 systemctl --user stop songbird-spammer.service
-systemctl --user stop songbird-backend.service
+systemctl --user stop songbird-webserver.service
 
 systemctl --user stop attester-alerts
 
@@ -242,11 +242,11 @@ systemctl --user restart coston-spammer-xrp.service
 systemctl --user restart coston-spammer-algo.service
 systemctl --user restart coston-spammer-doge.service
 
-systemctl --user restart coston-backend
+systemctl --user restart coston-webserver
 
 systemctl --user restart songbird-attester-client
 systemctl --user restart songbird-spammer
-systemctl --user restart songbird-backend
+systemctl --user restart songbird-webserver
 
 systemctl --user restart attester-alerts
 
@@ -277,11 +277,11 @@ journalctl --user -u coston-spammer-xrp -f -n 1000
 journalctl --user -u coston-spammer-doge -f -n 1000
 journalctl --user -u coston-spammer-algo -f -n 1000
 
-journalctl --user -u coston-backend -f -n 1000
+journalctl --user -u coston-webserver -f -n 1000
 
 journalctl --user -u songbird-attester-client -f -n 1000
 journalctl --user -u songbird-spammer -f -n 1000
-journalctl --user -u songbird-backend -f -n 1000
+journalctl --user -u songbird-webserver -f -n 1000
 
 
 journalctl --user -u attester-alerts -f -n 1000
@@ -307,11 +307,11 @@ ctail -f -i coston/spammer/logs/attester-xrp.log
 ctail -f -i coston/spammer/logs/attester-algo.log
 ctail -f -i coston/spammer/logs/attester-doge.log
 
-ctail -f -i coston/backend/logs/attester-global.log
+ctail -f -i coston/webserver/logs/attester-global.log
 
 ctail -f -i songbird/attester-client/logs/attester-global.log
 ctail -f -i songbird/spammer/logs/attester-global.log
-ctail -f -i songbird/backend/logs/attester-global.log
+ctail -f -i songbird/webserver/logs/attester-global.log
 
 ctail -f -i global/alerts/logs/attester-global.log
 ```
@@ -325,11 +325,11 @@ ctail -f -i global/alerts/logs/attester-global.log
 
 ./scripts/deploy-coston-attester
 ./scripts/deploy-coston-spammer
-./scripts/deploy-coston-backend
+./scripts/deploy-coston-webserver
 
 ./scripts/deploy-songbird-attester
 ./scripts/deploy-songbird-spammer
-./scripts/deploy-songbird-backend
+./scripts/deploy-songbird-webserver
 
 ```
 

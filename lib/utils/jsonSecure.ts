@@ -95,9 +95,19 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
     else {
         getGlobalLogger().warning(`secure credentials file not found ^R^w'${credentialsFilename}'`);
         getGlobalLogger().error(`reading non secure credentials`);
-        addSecureCredentials(path.join(credentialsPath, "chains.credentials.json"));
-        addSecureCredentials(path.join(credentialsPath, "networks.credentials.json"));
-        addSecureCredentials(path.join(credentialsPath, "database.credentials.json"));
+
+        // collect all json credential files from source path folder
+        const files = fs.readdirSync(credentialsPath);
+
+        for (const file of files) {
+            if (!file.toLowerCase().endsWith('-credentials.json')) {
+                continue;
+            }
+
+            getGlobalLogger().info(`loading credentials ^R${file}`);
+
+            addSecureCredentials(path.join(credentialsPath, file));
+        }
     }
 }
 

@@ -1,0 +1,57 @@
+{
+   "apiKeys": [
+      {
+         "name": "test1",
+         "apiKey": "$(BTCApiKey1)"
+      },
+      {
+         "name": "test2",
+         "apiKey": "$(BTCApiKey2)"
+      }
+   ],
+   
+   "port": $(BTCVerifierRouterServerPort),
+   "checkAliveIntervalMs": 5000,
+   "sourceId": "BTC",
+   "attestationTypes": [
+      "Payment",
+      "BalanceDecreasingTransaction"
+   ],
+
+   "indexerDatabase": {
+      "hostname": "$(IndexerDatabaseHost)",
+      "port": $(IndexerDatabasePort),
+      "database": "$(IndexerDatabase)",
+      "username": "$(IndexerReaderUsername)",
+      "password": "$(IndexerReaderPassword)"
+   },
+   "chainConfiguration":         {
+      "name": "BTC",
+      "mccCreate" : {
+          "url": "$(BTCURL)",
+          "username": "$(BTCUsername)",
+          "password": "$(BTCPassword)"
+      },
+      "rateLimitOptions": {
+          "maxRPS": 20,
+          "timeoutMs": 15000,
+          "retries": 3
+      },
+      "numberOfConfirmations": 6,
+      "syncReadAhead":10,
+      "blockCollecting":"tips",
+      "minimalStorageHistoryDays":2,
+      "minimalStorageHistoryBlocks":100,
+
+      "maxRequestsPerSecond":80,
+      "maxProcessingTransactions":3000,
+
+      "maxFailedRetry": 1,
+      "delayBeforeRetry": 10,
+
+      "maxValidIndexerDelaySec": 10,
+
+      "reverificationTimeOffset": 10
+
+  }
+}

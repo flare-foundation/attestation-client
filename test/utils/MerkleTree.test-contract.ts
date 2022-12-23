@@ -1,5 +1,5 @@
-import { MerkleTree, verifyWithMerkleProof } from "../../lib/utils/MerkleTree";
-import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { MerkleTree, verifyWithMerkleProof } from "../../src/utils/MerkleTree";
+import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { MerkleInstance } from "../../typechain-truffle";
 import { getTestFile } from "../test-utils/test-utils";
 

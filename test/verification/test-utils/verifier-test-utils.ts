@@ -1,20 +1,20 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { EntityManager } from "typeorm";
-import { VerifierConfigurationService } from "../../../lib/servers/verifier-server/src/services/verifier-configuration.service";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../../lib/utils/logger";
+import { VerifierConfigurationService } from "../../../src/servers/verifier-server/src/services/verifier-configuration.service";
+import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../../src/utils/logger";
 import { Test } from '@nestjs/testing';
-import { VerifierServerModule } from "../../../lib/servers/verifier-server/src/verifier-server.module";
+import { VerifierServerModule } from "../../../src/servers/verifier-server/src/verifier-server.module";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { getEntityManagerToken } from "@nestjs/typeorm";
 import { generateTestIndexerDB, selectedReferencedTx } from "../../indexed-query-manager/utils/indexerTestDataGenerator";
-import { AttestationData } from "../../../lib/attester/AttestationData";
-import { encodeRequest } from "../../../lib/verification/generated/attestation-request-encode";
-import { Attestation } from "../../../lib/attester/Attestation";
-import { ARType } from "../../../lib/verification/generated/attestation-request-types";
-import { DBTransactionBase, DBTransactionBTC0, DBTransactionXRP0 } from "../../../lib/entity/indexer/dbTransaction";
-import { getUnixEpochTimestamp } from "../../../lib/utils/utils";
-import { DBBlockBTC, DBBlockXRP } from "../../../lib/entity/indexer/dbBlock";
+import { AttestationData } from "../../../src/attester/AttestationData";
+import { encodeRequest } from "../../../src/verification/generated/attestation-request-encode";
+import { Attestation } from "../../../src/attester/Attestation";
+import { ARType } from "../../../src/verification/generated/attestation-request-types";
+import { DBTransactionBase, DBTransactionBTC0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
+import { getUnixEpochTimestamp } from "../../../src/utils/utils";
+import { DBBlockBTC, DBBlockXRP } from "../../../src/entity/indexer/dbBlock";
 
 export interface VerifierBootstrapOptions {
    CONFIG_PATH: string;

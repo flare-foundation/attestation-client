@@ -1,13 +1,13 @@
 // yarn test test/indexer/chainCollector.test-dev.ts
 
 import { ChainType, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
-import { ChainConfig } from "../../lib/source/ChainConfig";
-import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
-import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
-import { Indexer } from "../../lib/indexer/indexer";
-import { getGlobalLogger } from "../../lib/utils/logger";
+import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
+import { ChainConfig } from "../../src/source/ChainConfig";
+import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
+import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
+import { Indexer } from "../../src/indexer/indexer";
+import { getGlobalLogger } from "../../src/utils/logger";
 
 const BtcMccConnection = {
   url: "https://bitcoin.flare.network/",

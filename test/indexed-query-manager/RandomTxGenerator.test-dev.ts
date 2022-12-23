@@ -3,16 +3,16 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { assert } from "chai";
 import { DataSource, DataSourceOptions } from "typeorm";
-import { DBBlockBase, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBase, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { createTypeOrmOptions } from "../../lib/servers/verifier-server/src/utils/db-config";
-import { DotEnvExt } from "../../lib/utils/DotEnvExt";
-import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { SourceId } from "../../lib/verification/sources/sources";
+import { DBBlockBase, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase, DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
+import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
+import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
+import { DotEnvExt } from "../../src/utils/DotEnvExt";
+import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { SourceId } from "../../src/verification/sources/sources";
 import { generateTestIndexerDB } from "./utils/indexerTestDataGenerator";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;

@@ -1,5 +1,5 @@
-import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { DatabaseConnectOptions, DatabaseService } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { getTestFile } from "../test-utils/test-utils";
 import { expect } from "chai";
 

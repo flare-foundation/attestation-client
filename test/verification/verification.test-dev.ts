@@ -6,30 +6,30 @@
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import assert from "assert";
-import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
+import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import {
   createTestAttestationFromRequest,
   prepareRandomGenerators,
   TxOrBlockGeneratorType
-} from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { prepareRandomizedRequestPayment } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00001-payment";
-import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00002-balance-decreasing-transaction";
-import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
-import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
-import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { VerifierServerConfig } from "../../lib/servers/common/src";
-import { ChainConfig, ListChainConfig } from "../../lib/source/ChainConfig";
-import { readSecureConfig } from "../../lib/utils/configSecure";
-import { DatabaseService } from "../../lib/utils/databaseService";
-import { DotEnvExt } from "../../lib/utils/DotEnvExt";
-import { getGlobalLogger } from "../../lib/utils/logger";
-import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
-import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
-import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
+} from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
+import { prepareRandomizedRequestPayment } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00001-payment";
+import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00002-balance-decreasing-transaction";
+import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
+import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
+import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
+import { VerifierServerConfig } from "../../src/servers/common/src";
+import { ChainConfig, ListChainConfig } from "../../src/source/ChainConfig";
+import { readSecureConfig } from "../../src/utils/configSecure";
+import { DatabaseService } from "../../src/utils/databaseService";
+import { DotEnvExt } from "../../src/utils/DotEnvExt";
+import { getGlobalLogger } from "../../src/utils/logger";
+import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
+import { getSourceName, SourceId } from "../../src/verification/sources/sources";
+import { verifyAttestation } from "../../src/verification/verifiers/verifier_routing";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;

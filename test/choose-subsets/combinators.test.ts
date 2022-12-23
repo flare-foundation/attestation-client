@@ -2,7 +2,7 @@
 
 import { expect } from "chai";
 import { stringify } from "safe-stable-stringify";
-import { chooseCandidate, countOnes, getSubsetsOfSize, hexStringAnd } from "../../lib/choose-subsets-lib/subsets-lib";
+import { chooseCandidate, countOnes, getSubsetsOfSize, hexStringAnd } from "../../src/choose-subsets-lib/subsets-lib";
 import { getTestFile } from "../test-utils/test-utils";
 
 function arrayEquality(a: any[], b: any[]) {

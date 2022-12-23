@@ -1,10 +1,10 @@
 import { ChainType, MCC, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
-import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../lib/indexer/blockProcessorManager";
-import { IndexerToClient } from "../../lib/indexer/indexerToClient";
-import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
+import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../src/indexer/blockProcessorManager";
+import { IndexerToClient } from "../../src/indexer/indexerToClient";
+import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { TestBlockXRP, TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 

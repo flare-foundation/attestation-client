@@ -1,12 +1,12 @@
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import console from "console";
 import sinon from "sinon";
-import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
-import { DelayedExecution, LimitingProcessor } from "../../lib/caching/LimitingProcessor";
-import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { sleepms } from "../../lib/utils/utils";
+import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
+import { DelayedExecution, LimitingProcessor } from "../../src/caching/LimitingProcessor";
+import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseConnectOptions, DatabaseService } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { sleepms } from "../../src/utils/utils";
 import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");

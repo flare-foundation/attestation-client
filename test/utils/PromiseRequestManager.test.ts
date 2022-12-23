@@ -1,7 +1,7 @@
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { getGlobalLogger } from "../../lib/utils/logger";
-import { IIdentifiable, IIdentifiableResponse, PromiseRequestManager, WsResponseStatus } from "../../lib/utils/PromiseRequestManager";
+import { getGlobalLogger } from "../../src/utils/logger";
+import { IIdentifiable, IIdentifiableResponse, PromiseRequestManager, WsResponseStatus } from "../../src/utils/PromiseRequestManager";
 import { getTestFile } from '../test-utils/test-utils';
 chai.use(chaiAsPromised);
 

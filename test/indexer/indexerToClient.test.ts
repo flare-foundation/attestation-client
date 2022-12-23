@@ -1,6 +1,6 @@
 import { MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
-import { IndexerToClient } from "../../lib/indexer/indexerToClient";
-import { initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { IndexerToClient } from "../../src/indexer/indexerToClient";
+import { initializeTestGlobalLogger } from "../../src/utils/logger";
 import { getTestFile } from "../test-utils/test-utils";
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");

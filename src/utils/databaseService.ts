@@ -43,9 +43,9 @@ export class DatabaseService {
     let path = this.databaseName;
     if (path !== "") path += "/";
 
-    const entities = process.env.NODE_ENV === "development" ? `lib/entity/${path}**/*.ts` : `dist/lib/entity/${path}**/*.js`;
+    const entities = process.env.NODE_ENV === "development" ? `src/entity/${path}**/*.ts` : `dist/src/entity/${path}**/*.js`;
 
-    const migrations = process.env.NODE_ENV === "development" ? `lib/migration/${this.databaseName}*.ts` : `dist/lib/migration/${this.databaseName}*.js`;
+    const migrations = process.env.NODE_ENV === "development" ? `src/migration/${this.databaseName}*.ts` : `dist/src/migration/${this.databaseName}*.js`;
 
     if (isTestDB || (process.env.IN_MEMORY_DB && process.env.NODE_ENV !== "production")) {
       let connectOptions = {

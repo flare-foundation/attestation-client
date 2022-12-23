@@ -2,16 +2,16 @@
 
 import { traceManager } from "@flarenetwork/mcc";
 import BN from "bn.js";
-import { Attestation } from "../../lib/attester/Attestation";
-import { AttestationData } from "../../lib/attester/AttestationData";
-import { AttestationRoundManager } from "../../lib/attester/AttestationRoundManager";
-import { AttesterCredentials } from "../../lib/attester/AttesterConfiguration";
-import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
-import { SourceRouter } from "../../lib/source/SourceRouter";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
-import { TestLogger } from "../../lib/utils/testLogger";
-import { SourceId } from "../../lib/verification/sources/sources";
+import { Attestation } from "../../src/attester/Attestation";
+import { AttestationData } from "../../src/attester/AttestationData";
+import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
+import { AttesterCredentials } from "../../src/attester/AttesterConfiguration";
+import { AttesterWeb3 } from "../../src/attester/AttesterWeb3";
+import { SourceRouter } from "../../src/source/SourceRouter";
+import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
+import { TestLogger } from "../../src/utils/testLogger";
+import { SourceId } from "../../src/verification/sources/sources";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
 const chai = require("chai");

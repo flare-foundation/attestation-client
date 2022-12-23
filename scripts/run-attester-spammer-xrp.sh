@@ -7,5 +7,5 @@ CONFIG_PATH=${1:-./configs/config.json}
 yarn tsc
 
 # Run DataProvider
-#yarn ts-node lib/spammer/attestation-spammer.ts \
-node dist/lib/spammer/attestation-spammer.js
+#yarn ts-node src/spammer/attestation-spammer.ts \
+node dist/src/spammer/attestation-spammer.js

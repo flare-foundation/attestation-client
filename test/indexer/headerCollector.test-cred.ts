@@ -1,13 +1,13 @@
 // // yarn test test/indexer/blockHeaderCollector.test.ts
 
 import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
-import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { HeaderCollector } from "../../lib/indexer/headerCollector";
-import { IndexerToClient } from "../../lib/indexer/indexerToClient";
-import { IndexerToDB } from "../../lib/indexer/indexerToDB";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
+import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
+import { HeaderCollector } from "../../src/indexer/headerCollector";
+import { IndexerToClient } from "../../src/indexer/indexerToClient";
+import { IndexerToDB } from "../../src/indexer/indexerToDB";
+import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
 import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
 import * as BTCBlockHeaderAlt from "../mockData/BTCBlockHeaderAlt.json";
 import { TestBlockXRP } from "../mockData/indexMock";

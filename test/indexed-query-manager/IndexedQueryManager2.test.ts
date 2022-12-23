@@ -1,15 +1,15 @@
-import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../lib/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { ChainType, round, UtxoBlock } from "@flarenetwork/mcc";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { expect } from "chai";
-import { DBState } from "../../lib/entity/indexer/dbState";
+import { DBState } from "../../src/entity/indexer/dbState";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
-import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
+import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import sinon from "sinon";
-import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
+import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 

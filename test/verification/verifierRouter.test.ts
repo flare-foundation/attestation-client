@@ -1,9 +1,9 @@
 import { ChainType, prefix0x } from "@flarenetwork/mcc";
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
-import { VerifierRouter } from "../../lib/verification/routing/VerifierRouter";
+import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
+import { WsClientOptions } from "../../src/verification/client/WsClientOptions";
+import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import { selectBlock, testConfirmedBlockHeightExistsRequest, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "./test-utils/verifier-test-utils";

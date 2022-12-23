@@ -1,8 +1,8 @@
 // This should always be on the top of the file, before imports
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { AttestationRequest } from "../../lib/verification/attestation-types/attestation-types";
+import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { AttestationRequest } from "../../src/verification/attestation-types/attestation-types";
 
 chai.use(chaiAsPromised);
 

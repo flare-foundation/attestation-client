@@ -13,7 +13,7 @@ bash ./scripts/compile.sh
 
 
 # prepare initial credentials
-yarn ts-node lib/install/install-file.ts -i .config.secret.sh -o .config.secret.sh2 -p false
+yarn ts-node src/install/install-file.ts -i .config.secret.sh -o .config.secret.sh2 -p false
 
 source ./scripts/install-check.sh
 
@@ -23,7 +23,7 @@ bash ./scripts/install-services.sh
 
 # prepare configurations
 source ./scripts/initialize-config.sh
-yarn ts-node lib/install/install.ts ../attestation-suite-config/
+yarn ts-node src/install/install.ts ../attestation-suite-config/
 
 # install testnet nodes
 if $INSTALL_NODES_TESTNET; then

@@ -17,7 +17,7 @@ git clone https://git.aflabs.org/Avbreht/$FRONTEND_NAME.git
 
 cd $LOCAL_DIR
 
-yarn ts-node lib/install/install-file.ts -i ./scripts/files/frontend.env -o ../$FRONTEND_NAME/.env
+yarn ts-node src/install/install-file.ts -i ./scripts/files/frontend.env -o ../$FRONTEND_NAME/.env
 
 cd ../$FRONTEND_NAME
 

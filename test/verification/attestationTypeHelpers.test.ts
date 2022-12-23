@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { numberLikeToNumber, randomListElement } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { numberLikeToNumber, randomListElement } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`Attestation Helpers Tests (${getTestFile(__filename)})`, function () {

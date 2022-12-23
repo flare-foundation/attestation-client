@@ -10,12 +10,12 @@ import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { VerifierConfigurationService } from "../../lib/servers/verifier-server/src/services/verifier-configuration.service";
-import { VerifierServerModule } from "../../lib/servers/verifier-server/src/verifier-server.module";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
-import { WsClient } from "../../lib/verification/client/WsClient";
-import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
+import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
+import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { IIdentifiable } from "../../src/utils/PromiseRequestManager";
+import { WsClient } from "../../src/verification/client/WsClient";
+import { WsClientOptions } from "../../src/verification/client/WsClientOptions";
 import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);

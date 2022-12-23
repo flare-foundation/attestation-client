@@ -1,0 +1,52 @@
+{
+   "apiKeys": [
+      {
+         "name": "test1",
+         "apiKey": "$(XRPApiKey1)"
+      },
+      {
+         "name": "test2",
+         "apiKey": "$(XRPApiKey1)"
+      }
+   ],
+
+   "port": $(XRPVerifierRouterServerPort),
+   "checkAliveIntervalMs": 5000,
+   "sourceId": "XRP",
+   "attestationTypes": [
+      "Payment",
+      "BalanceDecreasingTransaction"
+   ],
+
+   "indexerDatabase": {
+      "hostname": "$(IndexerDatabaseHost)",
+      "port": $(IndexerDatabasePort),
+      "database": "$(IndexerDatabase)",
+      "username": "$(IndexerReaderUsername)",
+      "password": "$(IndexerReaderPassword)"
+   },
+   "chainConfiguration": {
+      "name": "XRP",
+      "mccCreate": {
+         "url": "$(XRPURL)",
+         "username": "$(XRPUsername)",
+         "password": "$(XRPPassword)"
+    },
+      "rateLimitOptions": {
+         "maxRPS": 20,
+         "timeoutMs": 30000,
+         "retries": 10
+      },
+      "numberOfConfirmations": 1,
+      "syncReadAhead": 20,
+      "blockCollecting": "raw",
+      "minimalStorageHistoryDays": 2,
+      "minimalStorageHistoryBlocks": 100,
+      "maxRequestsPerSecond": 80,
+      "maxProcessingTransactions": 3000,
+      "maxFailedRetry": 1,
+      "delayBeforeRetry": 10,
+      "maxValidIndexerDelaySec": 10,
+      "reverificationTimeOffset": 10
+   }
+}

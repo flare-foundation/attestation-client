@@ -5,7 +5,7 @@ import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpR
 import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
 import { Indexer } from "../../lib/indexer/indexer";
-import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
+import { ChainConfig } from "../../lib/source/ChainConfig";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getRetryFailureCallback, setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
@@ -110,7 +110,7 @@ describe("Block validity check before processing", () => {
 
     indexer.logger = getGlobalLogger();
     indexer.cachedClient = cachedClient as any;
-    indexer.chainConfig = new ChainConfiguration();
+    indexer.chainConfig = new ChainConfig();
 
     indexer.chainConfig.name = "XRP";
 

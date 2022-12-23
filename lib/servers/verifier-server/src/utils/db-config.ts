@@ -2,9 +2,9 @@ import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from "../../../../entity/indexer/dbBlock";
 import { DBState } from "../../../../entity/indexer/dbState";
 import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from "../../../../entity/indexer/dbTransaction";
-import { readSecureCredentials } from "../../../../utils/configSecure";
+import { readSecureConfig } from "../../../../utils/configSecure";
 import { getGlobalLogger } from "../../../../utils/logger";
-import { WSServerCredentials } from "../../../common/src";
+import { VerifierServerConfig } from "../../../common/src";
 
 export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrmModuleOptions> {
    // Entity definition
@@ -46,7 +46,7 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
    }
 
    // MySQL database, get credentials
-   const credentials = await readSecureCredentials(new WSServerCredentials(), `verifier-server/${verifierType}-verifier`);
+   const credentials = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
    const databaseCredentials = credentials.indexerDatabase;
    let databaseName = databaseCredentials.database;
    let logger = getGlobalLogger(loggerLabel);

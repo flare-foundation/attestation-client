@@ -3,7 +3,7 @@
 
 
 import { assert } from "chai";
-import { IndexerCredentials } from "../../lib/indexer/IndexerConfiguration";
+import { IndexerConfig } from "../../lib/indexer/IndexerConfig";
 import { initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { AdditionalTypeInfo, IReflection } from "../../lib/utils/reflection";
 import { isEqualType } from "../../lib/utils/typeReflection";
@@ -169,7 +169,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
     it(`Invalid test simple class compare`, async () => {
 
         const test = new TestReflection();
-        const test2 = new IndexerCredentials();
+        const test2 = new IndexerConfig();
 
         const res = isEqualType(test.instanciate(), test2);
 

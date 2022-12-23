@@ -36,7 +36,7 @@ Depending on configuration, Alerts will require Attester Client configuration.
 | Name      | Description                             | Default |
 | --------- | --------------------------------------- | ------- |
 | `name`    | Display name                            |         |
-| `address` | Backend URL address to check            |         |
-| `restart` | Command line to restart backend service |         |
+| `address` | Webserver URL address to check            |         |
+| `restart` | Command line to restart Webserver service |         |
 
 [Home](../README.md)/[Configuration general](./config-general.md)

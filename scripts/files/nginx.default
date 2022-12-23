@@ -20,7 +20,7 @@ server {
            add_header  Access-Control-Allow-Origin *;
 
            rewrite /flare/(.*) /$1  break;
-           proxy_pass         http://localhost:$(FlareBackendPort);
+           proxy_pass         http://localhost:$(FlareWebserverPort);
          }
 
          location /songbird/api {
@@ -35,7 +35,7 @@ server {
            add_header  Access-Control-Allow-Origin *;
 
            rewrite /songbird/(.*) /$1  break;
-           proxy_pass         http://localhost:$(SongbirdBackendPort);
+           proxy_pass         http://localhost:$(SongbirdWebserverPort);
          }
 
          location /coston/api {
@@ -50,7 +50,7 @@ server {
            add_header  Access-Control-Allow-Origin *;
 
            rewrite /coston/(.*) /$1  break;
-           proxy_pass         http://localhost:$(CostonBackendPort);
+           proxy_pass         http://localhost:$(CostonWebserverPort);
          }
 
          location /coston2/api {
@@ -65,7 +65,7 @@ server {
            add_header  Access-Control-Allow-Origin *;
 
            rewrite /coston2/(.*) /$1  break;
-           proxy_pass         http://localhost:$(Coston2BackendPort);
+           proxy_pass         http://localhost:$(Coston2WebserverPort);
          }
 
 

@@ -15,22 +15,22 @@ fi
 
 if $INSTALL_FLARE; then
     systemctl --user restart flare-attester-client
-    systemctl --user restart flare-backend
+    systemctl --user restart flare-webserver
 fi
 
 if $INSTALL_SONGBIRD; then
     systemctl --user restart songbird-attester-client
-    systemctl --user restart songbird-backend
+    systemctl --user restart songbird-webserver
 fi
 
 if $INSTALL_COSTON; then
     systemctl --user restart coston-attester-client
-    systemctl --user restart coston-backend
+    systemctl --user restart coston-webserver
 fi
 
 if $INSTALL_COSTON2; then
     systemctl --user restart coston2-attester-client
-    systemctl --user restart coston2-backend
+    systemctl --user restart coston2-webserver
 fi
 
 # systemctl --user restart coston-spammer-btc.service

@@ -5,7 +5,7 @@ const axios = require("axios");
 export async function sendToVerifier(configurationService: VerifierConfigurationService, attestationRequest: AttestationRequest, apiKey?: string) {
    attestationRequest.apiKey = apiKey;
    const resp = await axios.post(
-      `http://localhost:${configurationService.wsServerCredentials.port}/query`,
+      `http://localhost:${configurationService.config.port}/query`,
       attestationRequest
    );
    return resp.data;

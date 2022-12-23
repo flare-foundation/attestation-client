@@ -1,4 +1,4 @@
-# Backend Installation
+# Webserver Installation
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ Installation instructions for all prerequisites are in [general installation](ge
 
 ### Deployment
 
-Backend is installed with the deployment script `./script/deploy-songbird-backend.sh`.
+Webserver is installed with the deployment script `./script/deploy-songbird-webserver.sh`.
 
 Before running the script you need to change your server username and remote server address.
 
@@ -26,17 +26,17 @@ export SERVER=<your server address>
 After these corrections are made run the script:
 
 ``` bash
-./script/deploy-songbird-backend
+./script/deploy-songbird-webserver
 ```
+*obsolete*
+Deployment is performed into folder `/home/<username>/songbird/webserver`.
 
-Deployment is performed into folder `/home/<username>/songbird/backend`.
-
-Logs are in `songbird/backend/logs/attester-global.log`.
+Logs are in `songbird/webserver/logs/attester-global.log`.
 
 Example:
 
 ``` bash
-ctail -f -i songbird/backend/logs/attester-global.log
+ctail -f -i songbird/webserver/logs/attester-global.log
 ```
 
 ### Services
@@ -45,7 +45,7 @@ After the 1st deployment, the service must be installed. Once installed, it will
 
 Backend uses one service:
 
-- songbird-backend
+- songbird-webserver
 
 Check [services](services.md) section for instructions on how to manage services.
 

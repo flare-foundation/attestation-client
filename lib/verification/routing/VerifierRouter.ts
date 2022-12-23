@@ -1,5 +1,5 @@
 import { Attestation } from "../../attester/Attestation";
-import { readSecureCredentials } from "../../utils/configSecure";
+import { readSecureConfig } from "../../utils/configSecure";
 import { AttestationRequest, AttestationRequestOptions } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
@@ -86,7 +86,7 @@ export class VerifierRouter {
       }
 
       // initialize by DAC start number      
-      this.credentials = await readSecureCredentials(new VerifierRouteCredentials(), `verifier-routes-${startRoundId}`);
+      this.credentials = await readSecureConfig(new VerifierRouteCredentials(), `verifier-routes-${startRoundId}`);
       const definitions = await readAttestationTypeSchemes();
       this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteCredentials>>();
       // set up all possible routes

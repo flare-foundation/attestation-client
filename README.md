@@ -6,7 +6,7 @@ The Attestation Client Suite is a set of software modules for handling tasks rel
 
 - Attestation client
 - Chain indexers (BTC, LTC, DOGE, XRP, ALGO)
-- Backend server for attestation client
+- Webserver for attestation client
 - Auxiliary development tools (ctail, spammers, monitoring tools, ...)
 
 The project depends heavily on the [Multi Chain Client library (MCC)](https://github.com/flare-foundation/multi-chain-client) that provides a unified interface to multiple blockchain APIs.

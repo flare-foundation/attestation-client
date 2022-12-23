@@ -4,7 +4,7 @@
 import { assert } from "chai";
 import sinon from "sinon";
 import { prepareSecureCredentials } from "../../lib/install/prepareSecureCredentials";
-import { readSecureConfig, readSecureCredentials } from "../../lib/utils/configSecure";
+import { readSecureConfig } from "../../lib/utils/configSecure";
 import { getCredentialsKey, getCredentialsKeyByAddress } from "../../lib/utils/credentialsKey";
 import { decryptString, encryptString } from "../../lib/utils/encrypt";
 import { readJSON, readJSONfromString } from "../../lib/utils/json";
@@ -155,13 +155,6 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
 
     });
 
-    it(`get credentials key google cloud secret manager`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:projects/746294693511/secrets/test1/versions/latest");
-
-        assert(credentialsPassword === password, `credentials password not correct`);
-
-    });
-
     it(`get credentials key google cloud secret manager invalid name`, async () => {
         const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:invalid name");
 
@@ -188,7 +181,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
     it(`secure credentials read`, async () => {
         let testConfig = new TestConfig();
 
-        const test = await readSecureCredentials(testConfig, "template1");
+        const test = await readSecureConfig(testConfig, "template1");
 
         assert(test.key1 === 1, "incorrect config key");
         assert(test.key2 === 2, "incorrect config key");

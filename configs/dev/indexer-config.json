@@ -1,8 +1,0 @@
-{
-    "syncEnabled": true,
-    "syncTimeDays":0.001,
-
-    "blockCollectTimeMs": 1000,
-
-    "syncUpdateTimeMs": 10000,
-}

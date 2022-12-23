@@ -8,7 +8,7 @@ import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import { AttesterClient } from '../../lib/attester/AttesterClient';
 import { AttesterCredentials } from '../../lib/attester/AttesterConfiguration';
-import { readSecureConfig, readSecureCredentials } from '../../lib/utils/configSecure';
+import { readSecureConfig } from '../../lib/utils/configSecure';
 import { getWeb3, relativeContractABIPathForContractName, waitFinalize3Factory } from '../../lib/utils/utils';
 import { StateConnectorTempTran } from '../../typechain-web3-v1/StateConnectorTempTran';
 import { getTestFile } from "../test-utils/test-utils";
@@ -100,7 +100,7 @@ describe(`Attester client full on synthetic verifier data (${getTestFile(__filen
 
       process.env.TEST_CREDENTIALS = "1"
       process.env.CONFIG_PATH = CONFIG_PATH;
-      const credentials = await readSecureCredentials(new AttesterCredentials(), "attester");
+      const credentials = await readSecureConfig(new AttesterCredentials(), "attester");
 
       credentials.web.stateConnectorContractAddress = stateConnectorAddress;
       // Create attester client

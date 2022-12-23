@@ -15,7 +15,7 @@ export class DatabaseConnectOptions {
   password = "password";
   @optional() synchronize = true;
   @optional() logging = false;
-  @optional() entities = [`lib/entity/**/*.ts`];
+  @optional() entities = undefined;
   @optional() migrations = [];
   @optional() subscribers = [];
 }
@@ -76,7 +76,7 @@ export class DatabaseService {
       } as MysqlConnectionOptions;
 
       this.dataSource = new DataSource(connectOptions);
-      this.logger.debug2(`entity: ${entities}`);
+      this.logger.debug(`entity: ${entities}`);
     }
   }
 

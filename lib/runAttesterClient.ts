@@ -2,7 +2,7 @@ import { traceManager, TraceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { AttesterClient } from "./attester/AttesterClient";
 import { AttesterCredentials } from "./attester/AttesterConfiguration";
-import { readSecureCredentials } from "./utils/configSecure";
+import { readSecureConfig } from "./utils/configSecure";
 import { getGlobalLogger, logException, setLoggerName } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";
 
@@ -10,9 +10,6 @@ const yargs = require("yargs");
 
 const args = yargs
   .option("instance", { alias: "i", type: "string", description: "Instance name", default: "default", demand: false }).argv;
-
-
-
 
 // setup retry terminate callback
 function terminateOnRetryFailure(label: string) {
@@ -30,7 +27,7 @@ async function runAttester() {
   setRetryFailureCallback(terminateOnRetryFailure);
 
   // Reading configuration
-  const credentials = await readSecureCredentials(new AttesterCredentials(), "attester");
+  const credentials = await readSecureConfig(new AttesterCredentials(), "attester");
 
 
   // Create and start Attester Client

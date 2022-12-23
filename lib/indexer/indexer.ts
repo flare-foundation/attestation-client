@@ -3,7 +3,7 @@ import { exit } from "process";
 import { EntityTarget } from "typeorm";
 import { number } from "yargs";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
-import { ChainConfiguration, ChainsConfiguration } from "../source/ChainConfiguration";
+import { ChainConfig, ListChainConfig } from "../source/ChainConfig";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
@@ -14,7 +14,7 @@ import { round, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
 import { criticalAsync, getStateEntry, getStateEntryString, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
-import { IndexerCredentials } from "./IndexerConfiguration";
+import { IndexerConfig } from "./IndexerConfig";
 import { IndexerSync } from "./indexerSync";
 import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
@@ -34,8 +34,8 @@ import { PreparedBlock } from "./preparedBlock";
  */
 @Managed()
 export class Indexer {
-  chainConfig: ChainConfiguration;
-  credentials: IndexerCredentials;
+  chainConfig: ChainConfig;
+  config: IndexerConfig;
   chainType: ChainType;
   cachedClient: CachedMccClient;
   logger!: AttLogger;
@@ -76,16 +76,16 @@ export class Indexer {
 
   interlace = new Interlacing();
 
-  constructor(chainsConfig: ChainsConfiguration, credentials: IndexerCredentials, chainName: string) {
-    if (!credentials) return;
+  constructor(config: IndexerConfig, chainsConfig: ListChainConfig, chainName: string) {
+    if (!config) return;
 
-    this.credentials = credentials;
+    this.config = config;
     this.chainType = MCC.getChainType(chainName);
     this.chainConfig = chainsConfig.chains.find((el) => el.name === chainName)!;
 
     this.logger = getGlobalLogger();
 
-    this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
+    this.dbService = new DatabaseService(this.logger, this.config.indexerDatabase, "indexer");
 
     const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
@@ -125,7 +125,7 @@ export class Indexer {
     );
 
     const headerCollectorSettings = {
-      blockCollectTimeMs: this.credentials.blockCollectTimeMs,
+      blockCollectTimeMs: this.config.blockCollectTimeMs,
       numberOfConfirmations: this.chainConfig.numberOfConfirmations,
       blockCollecting: this.chainConfig.blockCollecting,
     };
@@ -182,7 +182,7 @@ export class Indexer {
   public syncTimeDays(): number {
     // chain syncTimeDays overrides config syncTimeDays
     if (this.chainConfig.syncTimeDays > 0) return this.chainConfig.syncTimeDays;
-    return this.credentials.syncTimeDays;
+    return this.config.syncTimeDays;
   }
 
   /////////////////////////////////////////////////////////////
@@ -743,7 +743,7 @@ export class Indexer {
 
       // check if N + 1 hash is the same
       if (!isNp1Confirmed && !isChangedNp1Hash) {
-        await sleepms(this.credentials.blockCollectTimeMs);
+        await sleepms(this.config.blockCollectTimeMs);
         continue;
       }
 

@@ -1,0 +1,48 @@
+{
+    "version":"1.0.0",
+    // alert update interval
+    "interval":5000,
+    // time in seconds when system status becomes late
+    "timeLate":5,
+    // time in seconds when system status becomes down
+    "timeDown":10,
+    // time in seconds when system is restarted
+    "timeRestart":120,
+    // path where alert status is saved
+    "stateSaveFilename":"../attester-status.json",
+    // indexer alert systems
+    "indexers" : ["ALGO", "BTC", "DOGE", "LTC", "XRP"],
+    // indexer restart command
+    "indexerRestart":"systemctl --user restart indexer-<name>",
+    // attester-client alert systems
+    "attesters" : [
+        {
+            // attester-client name - used for alert display only
+            "name":"Coston2",
+            // attester-client configuration path
+            "path":"../attestation-suite-config/prepared/coston2/",
+            // attester-client restart command
+            "restart":"systemctl --user restart coston2-attester-client"
+        },
+    ],
+    "backends" : [
+        {
+            "name": "Coston2",
+            "address":"http://localhost:$(Coston2WebserverPort)/api/status/services",
+            "restart":"systemctl --user restart coston2-webserver"
+        },
+    ],
+    "databases" : [
+        {
+            "name": "global",
+            "database": "attester",
+            "connection": {
+                "host": "$(AttesterDatabaseHost)",
+                "port": "$(AttesterDatabasePort)",
+                "database": "$(AttesterDatabase$(Network))",
+                "username": "$(AttesterWriterUsername$(Network))",
+                "password": "$(AttesterWriterPassword$(Network))"
+            }            
+        }
+    ]
+}

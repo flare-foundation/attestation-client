@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import fs from "fs";
 import { EntityManager } from 'typeorm';
-import { AlertStatus, PerformanceInfo } from '../../../../alerts/AlertBase';
+import { MonitorStatus, PerformanceInfo } from '../../../../monitor/MonitorBase';
 import { DBAttestationRequest } from '../../../../entity/attester/dbAttestationRequest';
 import { DBVotingRoundResult } from '../../../../entity/attester/dbVotingRoundResult';
 import { ServiceStatus } from '../dtos/ServiceStatus.dto';
@@ -132,7 +132,7 @@ export class ProofEngineService {
     let statuses = JSON.parse(fs.readFileSync(path).toString());
     let perf = (statuses as any).perf;
     return {
-      alerts: (statuses as any).alerts as AlertStatus[],
+      alerts: (statuses as any).alerts as MonitorStatus[],
       perf,
     };
   }
@@ -143,7 +143,7 @@ export class ProofEngineService {
     let statuses = await this.serviceStatus();
 
     let stat = fs.statSync(path);
-    let oneService = (status: AlertStatus) => {
+    let oneService = (status: MonitorStatus) => {
       return `
       <tr>
          <td>${status.type}</td>

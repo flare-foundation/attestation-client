@@ -77,14 +77,3 @@ async function readSecureConfigBase<T extends IReflection<T>>(project: string, t
 export async function readSecureConfig<T extends IReflection<T>>(obj: T, project: string): Promise<T> {
     return await readSecureConfigBase<T>(project, "config", obj);
 }
-
-/**
- * Helper class for `readSecureConfigBase` to read `credentials`.
- * [obsolete] This function should be obsolete now. for new project use all configurations in one file and use only `readSecureConfig`.
- * @param obj 
- * @param project 
- * @returns 
- */
-export async function readSecureCredentials<T extends IReflection<T>>(obj: T, project: string): Promise<T> {
-    return await readSecureConfigBase<T>(project, "credentials", obj);
-}

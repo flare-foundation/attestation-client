@@ -6,9 +6,9 @@ import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { WSServerCredentials } from "../../lib/servers/common/src";
-import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
-import { readSecureConfig, readSecureCredentials } from "../../lib/utils/configSecure";
+import { VerifierServerConfig } from "../../lib/servers/common/src";
+import { ChainConfig, ListChainConfig } from "../../lib/source/ChainConfig";
+import { readSecureConfig } from "../../lib/utils/configSecure";
 import { DatabaseService } from "../../lib/utils/databaseService";
 import { getGlobalLogger } from "../../lib/utils/logger";
 import { MerkleTree } from "../../lib/utils/MerkleTree";
@@ -34,7 +34,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   let indexedQueryManager: IndexedQueryManager;
   let attestationClient: AttestationClientSCInstance;
   let chainName: string;
-  let chainIndexerConfig: ChainConfiguration;
+  let chainIndexerConfig: ChainConfig;
 
   const StateConnector = artifacts.require("StateConnector");
   const AttestationClientSC = artifacts.require("AttestationClientSC");
@@ -50,9 +50,9 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     currentBufferNumber = Math.floor((now - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
     console.log(`Current buffer number ${currentBufferNumber}, mod: ${currentBufferNumber % TOTAL_STORED_PROOFS}`);
     chainName = SourceId[SOURCE_ID];
-    const configIndexer = await readSecureConfig(new ChainsConfiguration(), "chains");
+    const configIndexer = await readSecureConfig(new ListChainConfig(), "chains");
     chainIndexerConfig = configIndexer.chains.find((item) => item.name === chainName);
-    const verifierCredentials = await readSecureCredentials(new WSServerCredentials(), `${SOURCE_ID.toLowerCase()}-verifier`);
+    const verifierCredentials = await readSecureConfig(new VerifierServerConfig(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     
     console.log( "***1");    

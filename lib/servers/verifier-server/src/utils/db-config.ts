@@ -34,7 +34,7 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
 
    if(process.env.IN_MEMORY_DB && process.env.NODE_ENV !== "production") {
       return {
-         //name: "indexerDatabase",
+         name: "indexerDatabase",
          type: 'better-sqlite3',
          database: ':memory:',
          dropSchema: true,
@@ -55,7 +55,7 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
    );
 
    return {
-      //name: databaseName,
+      name: "indexerDatabase",
       type: 'mysql',
       host: databaseCredentials.host,
       port: databaseCredentials.port,

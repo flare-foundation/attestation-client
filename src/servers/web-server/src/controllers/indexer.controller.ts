@@ -1,9 +1,9 @@
-import { ApiResponse, handleApiResponse } from '@atc/common';
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { DBBlockBase } from '../../../../entity/indexer/dbBlock';
 import { DBState } from '../../../../entity/indexer/dbState';
 import { DBTransactionBase } from '../../../../entity/indexer/dbTransaction';
+import { ApiResponse, handleApiResponse } from '../../../common/src';
 import { BlockRange } from '../dtos/BlockRange.dto';
 import { IndexerEngineService } from '../services/indexer-engine.service';
 

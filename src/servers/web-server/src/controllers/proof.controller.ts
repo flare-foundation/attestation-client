@@ -1,10 +1,10 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
-import { ApiResponse, handleApiResponse } from '@atc/common';
 import { SystemStatus } from '../dtos/SystemStatus.dto';
 import { VotingRoundRequest } from '../dtos/VotingRoundRequest.dto';
 import { VotingRoundResult } from '../dtos/VotingRoundResult.dto';
 import { ProofEngineService } from '../services/proof-engine.service';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, handleApiResponse } from '../../../common/src';
 
 @ApiTags('Proof')
 @Controller("api/proof")

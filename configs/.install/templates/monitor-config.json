@@ -9,7 +9,7 @@
     // time in seconds when system is restarted
     "timeRestart":120,
     // path where alert status is saved
-    "stateSaveFilename":"../attester-status.json",
+    "stateSaveFilename":"../monitor-status.json",
     // indexer alert systems
     "indexers" : ["ALGO", "BTC", "DOGE", "LTC", "XRP"],
     // indexer restart command

@@ -1,6 +1,6 @@
-import { ApiResponse, handleApiResponse } from '@atc/common';
 import { Controller, Get, Header } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, handleApiResponse } from '../../../common/src';
 import { ServiceStatus } from '../dtos/ServiceStatus.dto';
 import { ProofEngineService } from '../services/proof-engine.service';
 

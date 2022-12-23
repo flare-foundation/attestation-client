@@ -1,4 +1,3 @@
-import { CommonModule } from '@atc/common';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DBAttestationRequest } from '../../../entity/attester/dbAttestationRequest';
@@ -7,6 +6,7 @@ import { DBVotingRoundResult } from '../../../entity/attester/dbVotingRoundResul
 import { DBBlockALGO, DBBlockBase, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP } from '../../../entity/indexer/dbBlock';
 import { DBState } from '../../../entity/indexer/dbState';
 import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from '../../../entity/indexer/dbTransaction';
+import { CommonModule } from '../../common/src';
 import { IndexerController } from './controllers/indexer.controller';
 import { ProofController } from './controllers/proof.controller';
 import { StatusController } from './controllers/status.controller';

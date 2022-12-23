@@ -16,7 +16,7 @@ export class WebserverConfig implements IReflection<WebserverConfig> {
   @optional() public deploymentName: string = "";  
   
    port: number = 9500;
-   web = new AttesterWebOptions();
+
    attesterDatabase = new DatabaseConnectOptions();
    indexerDatabase = new DatabaseConnectOptions();
  

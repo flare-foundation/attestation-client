@@ -12,7 +12,7 @@
 
     "firstEpochStartTime":1636070400,
     "roundDurationSec": 90,
-    "serviceStatusFilePath": "../attester-status.json",
+    "serviceStatusFilePath": "../monitor-status.json",
     "deploymentName": "Coston",
 
     "port": $($(Network)WebserverPort),

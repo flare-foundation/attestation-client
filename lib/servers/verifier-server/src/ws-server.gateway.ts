@@ -1,4 +1,3 @@
-// import { WSServerConfigurationService } from "@atc/common";
 import { Inject } from "@nestjs/common";
 import {
    ConnectedSocket, MessageBody, OnGatewayConnection,
@@ -65,7 +64,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       // check if connections are alive
       const interval = setInterval(() => {
          [...this.connections.keys()].forEach(x => x.ping());
-      }, this.config.wsServerConfiguration.checkAliveIntervalMs);
+      }, this.config.wsServerCredentials.checkAliveIntervalMs);
    }
 
    @SubscribeMessage("message")

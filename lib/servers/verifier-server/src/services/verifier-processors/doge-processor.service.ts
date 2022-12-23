@@ -49,11 +49,11 @@ export class DOGEProcessorService extends VerifierProcessor {
   }
 
   public supportedAttestationTypes(): string[] {
-    return this.config.wsServerConfiguration.attestationTypes;
+    return this.config.wsServerCredentials.attestationTypes;
   }
 
   public supportedSource(): string {
-    return this.config.wsServerConfiguration.sourceId;
+    return this.config.wsServerCredentials.sourceId;
   }
 
 }

@@ -71,10 +71,10 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
     entityManager = app.get("indexerDatabaseEntityManager")
 
-    let port = configurationService.wsServerConfiguration.port;
+    let port = configurationService.wsServerCredentials.port;
     await app.listen(port, undefined, () => {
-      logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`);
-      logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`)
+      logger.info(`Server started listening at http://localhost:${configurationService.wsServerCredentials.port}`);
+      logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerCredentials.port}`)
     })
     await app.init();
 

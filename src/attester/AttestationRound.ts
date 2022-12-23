@@ -157,7 +157,7 @@ export class AttestationRound {
    * Used in the first round after joining the attestation scheme to commit empty data for commit and reveal of two previous rounds???
    */
   startCommitSubmit() {
-    if (this.attestationRoundManager.credentials.submitCommitFinalize) {
+    if (this.attestationRoundManager.config.submitCommitFinalize) {
       const action = `Finalizing ^Y#${this.roundId - 3}^^`;
 
       // eslint-disable-next-line

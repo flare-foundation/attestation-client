@@ -5,7 +5,7 @@ import BN from "bn.js";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
-import { AttesterCredentials } from "../../src/attester/AttesterConfiguration";
+import { AttesterConfig } from "../../src/attester/AttesterConfig";
 import { AttesterWeb3 } from "../../src/attester/AttesterWeb3";
 import { SourceRouter } from "../../src/source/SourceRouter";
 import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
@@ -22,8 +22,8 @@ class MockSourceRouter extends SourceRouter {
 }
 
 class MockAttesterWeb3 extends AttesterWeb3 {
-  constructor(credentials: AttesterCredentials, logger: AttLogger) {
-    super(credentials, logger);
+  constructor(config: AttesterConfig, logger: AttLogger) {
+    super(config, logger);
   }
 
   async initialize() { }
@@ -75,11 +75,11 @@ describe.skip("Attestation Client", () => {
     const logger = getGlobalLogger();
 
     // Reading configuration
-    const credentials = new AttesterCredentials();
+    const config = new AttesterConfig();
 
     const sourceRouter = new MockSourceRouter(undefined);
-    const attesterWeb3 = new MockAttesterWeb3(credentials, logger);
-    attestationRoundManager = new AttestationRoundManager(sourceRouter, credentials, logger, attesterWeb3);
+    const attesterWeb3 = new MockAttesterWeb3(config, logger);
+    attestationRoundManager = new AttestationRoundManager(sourceRouter, config, logger, attesterWeb3);
   });
 
   ////////////////////////////////

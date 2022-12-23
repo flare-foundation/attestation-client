@@ -6,7 +6,7 @@ import { AttLogger, logException } from "../utils/logger";
 import { MonitorBase, MonitorRestartConfig, MonitorStatus } from "./MonitorBase";
 import { MonitorConfig } from "./MonitorConfiguration";
 
-export class NodeAlert extends MonitorBase {
+export class NodeMonitor extends MonitorBase {
   static chainsConfig: ListChainConfig;
   chainType: ChainType;
 
@@ -16,12 +16,12 @@ export class NodeAlert extends MonitorBase {
   constructor(name: string, logger: AttLogger, config: MonitorConfig) {
     super(name, logger, new MonitorRestartConfig(config.timeRestart, config.indexerRestart.replace("<name>", name).toLowerCase()));
 
-    if (!NodeAlert.chainsConfig) {
-      NodeAlert.chainsConfig = readConfig(new ListChainConfig(), "chains");
+    if (!NodeMonitor.chainsConfig) {
+      NodeMonitor.chainsConfig = readConfig(new ListChainConfig(), "chains");
     }
 
     this.chainType = MCC.getChainType(name);
-    this.chainConfig = NodeAlert.chainsConfig.chains.find((el) => el.name === name)!;
+    this.chainConfig = NodeMonitor.chainsConfig.chains.find((el) => el.name === name)!;
   }
 
   async initialize() {

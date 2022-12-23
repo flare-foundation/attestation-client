@@ -9,7 +9,7 @@ import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
-import { VerifierSourceRouteCredentials } from "../verification/routing/configs/VerifierSourceRouteCredentials";
+import { VerifierSourceRouteConfig } from "../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../verification/sources/sources";
 import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 
@@ -20,7 +20,7 @@ export class SourceManager {
   requestTime = 0;
   requestsPerSecond = 0;
 
-  verifierSourceConfig: VerifierSourceRouteCredentials;
+  verifierSourceConfig: VerifierSourceRouteConfig;
 
   attestationsQueue = new Array<Attestation>();
   attestationsPriorityQueue = new PriorityQueue<Attestation>();
@@ -36,7 +36,7 @@ export class SourceManager {
 
   setConfig(sourceId: SourceId, roundId: number)
   {
-    this.verifierSourceConfig = this.attestationRoundManager.attestationConfigManager.getVerifierRouter( roundId ).credentials.getSourceConfig(sourceId);
+    this.verifierSourceConfig = this.attestationRoundManager.attestationConfigManager.getVerifierRouter( roundId ).config.getSourceConfig(sourceId);
     if( !this.verifierSourceConfig ) {
       getGlobalLogger().error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
       exit(1);
@@ -184,7 +184,7 @@ export class SourceManager {
           // actual time when attestion will be rechecked
           const startTimeMs =
             this.attestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
-            this.attestationRoundManager.attestationConfigManager.credentials.commitTime * 1000 -
+            this.attestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
             this.verifierSourceConfig.reverificationTimeOffset * 1000;
 
           this.delayQueue(attestation, startTimeMs);

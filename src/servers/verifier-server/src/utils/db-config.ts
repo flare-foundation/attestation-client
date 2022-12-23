@@ -45,9 +45,9 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
       };
    }
 
-   // MySQL database, get credentials
-   const credentials = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
-   const databaseCredentials = credentials.indexerDatabase;
+   // MySQL database, get config
+   const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
+   const databaseCredentials = config.indexerDatabase;
    let databaseName = databaseCredentials.database;
    let logger = getGlobalLogger(loggerLabel);
    logger.info(

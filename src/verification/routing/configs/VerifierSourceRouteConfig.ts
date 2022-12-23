@@ -1,8 +1,8 @@
 import { optional } from "@flarenetwork/mcc";
 import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection";
-import { VerifierAttestationTypeRouteCredentials } from "./VerifierAttestationTypeRouteCredentials";
+import { VerifierAttestationTypeRouteConfig } from "./VerifierAttestationTypeRouteConfig";
 
-export class VerifierSourceRouteCredentials implements IReflection<VerifierSourceRouteCredentials> {
+export class VerifierSourceRouteConfig implements IReflection<VerifierSourceRouteConfig> {
   public sourceId: string = "";
   @optional() public defaultUrl: string = "";
   @optional() public defaultApiKey: string = "";
@@ -13,15 +13,15 @@ export class VerifierSourceRouteCredentials implements IReflection<VerifierSourc
   @optional() public delayBeforeRetry: number = 10;
   @optional() public reverificationTimeOffset: number = 10;         
 
-  public routes: VerifierAttestationTypeRouteCredentials[] = [];
+  public routes: VerifierAttestationTypeRouteConfig[] = [];
 
-  instanciate(): VerifierSourceRouteCredentials {
-    return new VerifierSourceRouteCredentials();
+  instanciate(): VerifierSourceRouteConfig {
+    return new VerifierSourceRouteConfig();
   }
 
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     const info = new AdditionalTypeInfo();
-    info.arrayMap.set("routes", new VerifierAttestationTypeRouteCredentials());
+    info.arrayMap.set("routes", new VerifierAttestationTypeRouteConfig());
     return info;
   }
 }

@@ -1,5 +1,5 @@
 import { toBN } from "@flarenetwork/mcc";
-import { AttesterCredentials } from "../attester/AttesterConfiguration";
+import { AttesterConfig } from "../attester/AttesterConfig";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { readSecureConfig } from "../utils/configSecure";
 import { DatabaseService } from "../utils/databaseService";
@@ -20,11 +20,11 @@ export class AttesterMonitor extends MonitorBase {
 
   async initialize() {
 
-    const credentials = await readSecureConfig(new AttesterCredentials(), "attester");
+    const config = await readSecureConfig(new AttesterConfig(), "attester");
 
-    this.dbService = new DatabaseService(this.logger, credentials.attesterDatabase, "attester");
+    this.dbService = new DatabaseService(this.logger, config.attesterDatabase, "attester");
 
-    this.epochSettings = new EpochSettings(toBN(credentials.firstEpochStartTime), toBN(credentials.roundDurationSec));
+    this.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
     await this.dbService.connect();
   }
 

@@ -13,7 +13,7 @@ export class AttesterWebOptions {
   @optional() public refreshEventsMs = 100;
 }
 
-export class AttesterCredentials implements IReflection<AttesterCredentials> {
+export class AttesterConfig implements IReflection<AttesterConfig> {
 
   // start epoch in sec
   public firstEpochStartTime = 1636070400;
@@ -37,7 +37,7 @@ export class AttesterCredentials implements IReflection<AttesterCredentials> {
   public indexerDatabase = new DatabaseConnectOptions();
 
   instanciate() {
-    return new AttesterCredentials();
+    return new AttesterConfig();
   }
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;

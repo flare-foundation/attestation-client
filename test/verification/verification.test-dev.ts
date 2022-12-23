@@ -24,7 +24,6 @@ import { VerifierServerConfig } from "../../src/servers/common/src";
 import { ChainConfig, ListChainConfig } from "../../src/source/ChainConfig";
 import { readSecureConfig } from "../../src/utils/configSecure";
 import { DatabaseService } from "../../src/utils/databaseService";
-import { DotEnvExt } from "../../src/utils/DotEnvExt";
 import { getGlobalLogger } from "../../src/utils/logger";
 import { getUnixEpochTimestamp } from "../../src/utils/utils";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
@@ -41,7 +40,6 @@ console.warn(`This test should run while ${getSourceName(SOURCE_ID)} indexer is 
 console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
 process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
-DotEnvExt();
 
 describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let indexedQueryManager: IndexedQueryManager;

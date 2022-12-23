@@ -62,8 +62,8 @@ export class AttestationConfigManager {
     this.validateEnumNames();
   }
 
-  get credentials() {
-    return this.attestationRoundManager.credentials;
+  get config() {
+    return this.attestationRoundManager.config;
   }
 
   get logger() {
@@ -106,11 +106,11 @@ export class AttestationConfigManager {
    */
   async dynamicLoadInitialize() {
     try {
-      fs.watch(this.credentials.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
+      fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
         if (filename && event === "rename") {
           // todo: check why on the fly report JSON error
           this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
-          if (this.load(this.credentials.dynamicAttestationConfigurationFolder + filename)) {
+          if (this.load(this.config.dynamicAttestationConfigurationFolder + filename)) {
             this.orderConfigurations();
           }
         }
@@ -126,10 +126,10 @@ export class AttestationConfigManager {
    */
   async loadAll() {
     try {
-      await fs.readdir(this.credentials.dynamicAttestationConfigurationFolder, (err, files: string[]) => {
+      await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err, files: string[]) => {
         if (files) {
           files.forEach((filename) => {
-            this.load(this.credentials.dynamicAttestationConfigurationFolder + filename);
+            this.load(this.config.dynamicAttestationConfigurationFolder + filename);
           });
           this.orderConfigurations();
         } else {

@@ -1,7 +1,7 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { expect } from "chai";
 import { CachedMccClient } from "../../src/caching/CachedMccClient";
-import { MockMccClient } from "../../src/caching/test-utils/MockMccClient";
+import { MockMccClient } from "./test-utils/MockMccClient";
 import { initializeTestGlobalLogger } from "../../src/utils/logger";
 import { sleepms } from "../../src/utils/utils";
 import { SourceId } from "../../src/verification/sources/sources";

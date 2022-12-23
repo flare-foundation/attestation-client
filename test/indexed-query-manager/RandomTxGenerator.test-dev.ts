@@ -10,7 +10,6 @@ import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQuer
 import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
 import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
-import { DotEnvExt } from "../../src/utils/DotEnvExt";
 import { getUnixEpochTimestamp } from "../../src/utils/utils";
 import { SourceId } from "../../src/verification/sources/sources";
 import { generateTestIndexerDB } from "./utils/indexerTestDataGenerator";
@@ -28,7 +27,6 @@ process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "xrp"
 process.env.IN_MEMORY_DB = "1";
-DotEnvExt();
 
 describe("Indexed query manager", () => {
   let indexedQueryManager: IndexedQueryManager;

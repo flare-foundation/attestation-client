@@ -1,12 +1,12 @@
 import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection";
 
-export class VerifierAttestationTypeRouteCredentials implements IReflection<VerifierAttestationTypeRouteCredentials> {
+export class VerifierAttestationTypeRouteConfig implements IReflection<VerifierAttestationTypeRouteConfig> {
   public attestationTypes: string[] = [];
   public url: string = "";
   public apiKey: string = "";
 
-  instanciate(): VerifierAttestationTypeRouteCredentials {
-    return new VerifierAttestationTypeRouteCredentials();
+  instanciate(): VerifierAttestationTypeRouteConfig {
+    return new VerifierAttestationTypeRouteConfig();
   }
 
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {

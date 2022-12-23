@@ -1,13 +1,12 @@
 import { Managed } from "@flarenetwork/mcc";
 import { SourceRouter } from "../source/SourceRouter";
-import { DotEnvExt } from "../utils/DotEnvExt";
 import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationData, AttestationSubmit } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { AttesterCredentials } from "./AttesterConfiguration";
+import { AttesterConfig } from "./AttesterConfig";
 import { AttesterWeb3 } from "./AttesterWeb3";
 
 /**
@@ -15,24 +14,24 @@ import { AttesterWeb3 } from "./AttesterWeb3";
  */
 @Managed()
 export class AttesterClient {
-  credentials: AttesterCredentials;
+  config: AttesterConfig;
   logger: AttLogger;
   attestationRoundManager: AttestationRoundManager;
   attesterWeb3: AttesterWeb3;
   sourceRouter: SourceRouter;
   blockCollector!: Web3BlockCollector;
 
-  constructor(credentials: AttesterCredentials, logger?: AttLogger) {
+  constructor(config: AttesterConfig, logger?: AttLogger) {
     if (logger) {
       this.logger = logger;
     } else {
       this.logger = getGlobalLogger();
     }
 
-    this.credentials = credentials;
+    this.config = config;
     this.sourceRouter = new SourceRouter(this.attestationRoundManager);
-    this.attesterWeb3 = new AttesterWeb3(this.credentials, this.logger);
-    this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.credentials, this.logger, this.attesterWeb3);
+    this.attesterWeb3 = new AttesterWeb3(this.config, this.logger);
+    this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.config, this.logger, this.attesterWeb3);
   }
 
   /**
@@ -53,36 +52,6 @@ export class AttesterClient {
       }
 
       blockNumber -= 10;
-    }
-  }
-
-  /**
-   * Initializes configuration for attestation client
-   */
-  private async initializeConfiguration() {
-    // read .env
-    DotEnvExt();
-
-    const configData = "";
-    let accountPrivateKey = "";
-
-    this.logger.info(`configuration`);
-
-    if (process.env.PROJECT_SECRET === undefined) {
-      this.logger.info(`account read from .env`);
-      accountPrivateKey = this.credentials.web.accountPrivateKey as string;
-    } else if (process.env.USE_GCP_SECRET) {
-      this.logger.info(`^Raccount read from secret`);
-      accountPrivateKey = (await fetchSecret(process.env.PROJECT_SECRET as string)) as string;
-    } else {
-      this.logger.info(`^Gaccount read from config`);
-      accountPrivateKey = this.credentials.web.accountPrivateKey as string;
-    }
-
-    this.logger.info(`network RPC URL from conf '${this.credentials.web.rpcUrl}'`);
-
-    if (accountPrivateKey === "" || accountPrivateKey === undefined) {
-      this.logger.error(`private key not set`);
     }
   }
 
@@ -161,15 +130,14 @@ export class AttesterClient {
   async runAttesterClient() {
     const version = "1.2.0";
 
-    this.logger.title(`starting Flare Attestation Client v${version}`);
+    this.logger.title(`starting Attester Client v${version}`);
 
     // create state connector
     this.logger.info(`attesterWeb3 initialize`);
     await this.attesterWeb3.initialize(this.attestationRoundManager);
 
     // process configuration
-    this.logger.info(`configuration initialize`);
-    await this.initializeConfiguration();
+    this.logger.info(`network RPC URL '${this.config.web.rpcUrl}'`);
 
     this.logger.info(`roundManager initialize`);
     await this.attestationRoundManager.initialize();
@@ -182,15 +150,15 @@ export class AttesterClient {
     // connect to network block callback
     this.blockCollector = new Web3BlockCollector(
       this.logger,
-      this.credentials.web.rpcUrl,
-      this.credentials.web.stateConnectorContractAddress,
+      this.config.web.rpcUrl,
+      this.config.web.stateConnectorContractAddress,
       "StateConnector",
       startBlock,
       (event: any) => {
         // eslint-disable-next-line
         this.processEvent(event); // non awaited promise
       },
-      this.credentials.web.refreshEventsMs
+      this.config.web.refreshEventsMs
     );
 
     await this.blockCollector.run();

@@ -5,7 +5,6 @@ import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
 import { DBTransactionXRP1, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { CachedMccClient } from "../../lib/caching/CachedMccClient";
 import { MockMccClient } from "../../lib/caching/test-utils/MockMccClient";
-import { IndexerConfiguration } from "../../lib/indexer/IndexerConfiguration";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
@@ -24,11 +23,10 @@ const expect = chai.expect;
 const sinon = require("sinon");
 
 describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
-  let indexer = new Indexer(null, null, null, null);
+  let indexer = new Indexer(null, null, null);
   indexer.chainType = ChainType.XRP;
   indexer.chainConfig = new ChainConfiguration();
   indexer.chainConfig.name = "XRP";
-  indexer.config = new IndexerConfiguration();
   indexer.prepareTables();
   const mockMccClient = new MockMccClient();
   indexer.cachedClient = new CachedMccClient(ChainType.XRP, { forcedClient: mockMccClient });
@@ -61,11 +59,10 @@ describe.skip(`Indexer BTC ${getTestFile(__filename)})`, () => {
   };
 
   initializeTestGlobalLogger();
-  let indexer = new Indexer(null, null, null, null);
+  let indexer = new Indexer(null, null, null);
   indexer.chainType = ChainType.BTC;
   indexer.chainConfig = new ChainConfiguration();
   indexer.chainConfig.name = "btc";
-  indexer.config = new IndexerConfiguration();
   indexer.prepareTables();
   indexer.logger = getGlobalLogger();
 

@@ -7,7 +7,7 @@ import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationData, AttestationSubmit } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { AttesterClientConfiguration, AttesterCredentials } from "./AttesterClientConfiguration";
+import { AttesterCredentials } from "./AttesterConfiguration";
 import { AttesterWeb3 } from "./AttesterWeb3";
 
 /**
@@ -15,7 +15,6 @@ import { AttesterWeb3 } from "./AttesterWeb3";
  */
 @Managed()
 export class AttesterClient {
-  config: AttesterClientConfiguration;
   credentials: AttesterCredentials;
   logger: AttLogger;
   attestationRoundManager: AttestationRoundManager;
@@ -23,18 +22,17 @@ export class AttesterClient {
   sourceRouter: SourceRouter;
   blockCollector!: Web3BlockCollector;
 
-  constructor(configuration: AttesterClientConfiguration, credentials: AttesterCredentials, logger?: AttLogger) {
+  constructor(credentials: AttesterCredentials, logger?: AttLogger) {
     if (logger) {
       this.logger = logger;
     } else {
       this.logger = getGlobalLogger();
     }
 
-    this.config = configuration;
     this.credentials = credentials;
     this.sourceRouter = new SourceRouter(this.attestationRoundManager);
     this.attesterWeb3 = new AttesterWeb3(this.credentials, this.logger);
-    this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.config, this.credentials, this.logger, this.attesterWeb3);
+    this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.credentials, this.logger, this.attesterWeb3);
   }
 
   /**

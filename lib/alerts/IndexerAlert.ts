@@ -1,4 +1,4 @@
-import { AttesterCredentials } from "../attester/AttesterClientConfiguration";
+import { AttesterCredentials } from "../attester/AttesterConfiguration";
 import { DBState } from "../entity/indexer/dbState";
 import { readSecureCredentials } from "../utils/configSecure";
 import { DatabaseService } from "../utils/databaseService";

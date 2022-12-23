@@ -5,7 +5,7 @@ import BN from "bn.js";
 import { Attestation } from "../../lib/attester/Attestation";
 import { AttestationData } from "../../lib/attester/AttestationData";
 import { AttestationRoundManager } from "../../lib/attester/AttestationRoundManager";
-import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
+import { AttesterCredentials } from "../../lib/attester/AttesterConfiguration";
 import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
 import { SourceRouter } from "../../lib/source/SourceRouter";
 import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
@@ -75,12 +75,11 @@ describe.skip("Attestation Client", () => {
     const logger = getGlobalLogger();
 
     // Reading configuration
-    const config = new AttesterClientConfiguration();
     const credentials = new AttesterCredentials();
 
     const sourceRouter = new MockSourceRouter(undefined);
     const attesterWeb3 = new MockAttesterWeb3(credentials, logger);
-    attestationRoundManager = new AttestationRoundManager(sourceRouter, config, credentials, logger, attesterWeb3);
+    attestationRoundManager = new AttestationRoundManager(sourceRouter, credentials, logger, attesterWeb3);
   });
 
   ////////////////////////////////

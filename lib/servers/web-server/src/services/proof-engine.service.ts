@@ -122,7 +122,7 @@ export class ProofEngineService {
   }
 
   public async serviceStatus(): Promise<ServiceStatus> {
-    let path = this.configService.serverConfig.serviceStatusFilePath;
+    let path = this.configService.serverCredentials.serviceStatusFilePath;
     if (!path) {
       return {
         alerts: [],
@@ -139,7 +139,7 @@ export class ProofEngineService {
 
   public async serviceStatusHtml(): Promise<string> {
     let { currentBufferNumber, latestAvailableRoundId } = await this.systemStatus();
-    let path = this.configService.serverConfig.serviceStatusFilePath;
+    let path = this.configService.serverCredentials.serviceStatusFilePath;
     let statuses = await this.serviceStatus();
 
     let stat = fs.statSync(path);

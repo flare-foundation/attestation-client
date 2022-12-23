@@ -2,7 +2,7 @@ import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { AttesterCredentials } from "../attester/AttesterClientConfiguration";
+import { AttesterCredentials } from "../attester/AttesterConfiguration";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
@@ -22,7 +22,7 @@ import { encodeRequest } from "../verification/generated/attestation-request-enc
 import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";
 import { SourceId } from "../verification/sources/sources";
-import { SpammerConfig, SpammerCredentials } from "./SpammerConfiguration";
+import { SpammerCredentials } from "./SpammerConfiguration";
 
 const fs = require("fs");
 
@@ -80,8 +80,6 @@ class AttestationSpammer {
     return 6; //AttestationRoundManager.getSourceLimiterConfig(getSourceName(this.chainType)).numberOfConfirmations;;
   }
 
-  spammerConfig: SpammerConfig;
-
   BUFFER_TIMESTAMP_OFFSET = 0;
   BUFFER_WINDOW = 1;
 
@@ -98,11 +96,10 @@ class AttestationSpammer {
     this.chainType = MCC.getChainType(args["chain"]);
 
     // Reading configuration
-    this.spammerConfig = readConfig(new SpammerConfig(), "spammer");
     this.spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
 
     // create dummy attestation round manager and assign needed variables
-    this.attestationRoundManager = new AttestationRoundManager(null, null, null, null, null);
+    this.attestationRoundManager = new AttestationRoundManager(null, null, null, null);
     this.attestationRoundManager.credentials = new AttesterCredentials();
     this.attestationRoundManager.credentials.web = this.spammerCredentials.web;
 
@@ -150,12 +147,12 @@ class AttestationSpammer {
       windowStartTime: (roundId: number) => {
         // todo: read this from DAC
         const queryWindowInSec = 86400;
-        return this.spammerConfig.firstEpochStartTime + roundId * this.spammerConfig.roundDurationSec - queryWindowInSec;
+        return this.spammerCredentials.firstEpochStartTime + roundId * this.spammerCredentials.roundDurationSec - queryWindowInSec;
       },
       UBPCutoffTime: (roundId: number) => {
         // todo: read this from DAC
         const UBPCutTime = 60 * 30;
-        return this.spammerConfig.firstEpochStartTime + roundId * this.spammerConfig.roundDurationSec - UBPCutTime;
+        return this.spammerCredentials.firstEpochStartTime + roundId * this.spammerCredentials.roundDurationSec - UBPCutTime;
       },
 
     } as IndexedQueryManagerOptions;

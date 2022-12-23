@@ -5,7 +5,7 @@ import { AttLogger } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { AttesterCredentials } from "./AttesterClientConfiguration";
+import { AttesterCredentials } from "./AttesterConfiguration";
 
 /**
  * Handles submissions to StateConnector

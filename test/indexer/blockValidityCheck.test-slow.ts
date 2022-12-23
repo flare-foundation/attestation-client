@@ -94,7 +94,7 @@ describe("Block validity check before processing", () => {
   beforeEach(async function () {
     TestLogger.clear();
 
-    indexer = new Indexer(null, null, null, null);
+    indexer = new Indexer(null, null, null);
 
     XrpMccClient = new MCC.XRP(XRPMccConnection);
 

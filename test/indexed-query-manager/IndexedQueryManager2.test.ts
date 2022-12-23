@@ -38,7 +38,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     indexedQueryManager = new IndexedQueryManager(options);
 
     initializeTestGlobalLogger();
-    await dataService.connect();
+
     augTx0 = await promAugTxBTC0;
     augTxAlt0 = await promAugTxBTCAlt0;
     augTx1 = await promAugTxBTC1;

@@ -165,7 +165,6 @@ export class CachedMccClient {
   private checkAndCleanup() {
     const fullSettings = this.settings as CachedMccClientOptionsFull;
     if (!fullSettings.cleanupChunkSize) {
-      //???If this is not set no cleanup is attempted???
       return;
     }
     this.cleanupCheckCounter++;
@@ -178,7 +177,6 @@ export class CachedMccClient {
   private cleanup() {
     const fullSettings = this.settings as CachedMccClientOptionsFull;
     if (!fullSettings.blockCacheSize) {
-      //???Why is this here???
       return;
     }
     if (this.blockCleanupQueue.size >= fullSettings.blockCacheSize + fullSettings.cleanupChunkSize) {

@@ -49,7 +49,7 @@ describe("Test process helpers ", () => {
 
   let indexer: Indexer;
   before(async function () {
-    indexer = new Indexer(null, null, null, null);
+    indexer = new Indexer(null, null, null);
 
     traceManager.displayStateOnException = false;
 

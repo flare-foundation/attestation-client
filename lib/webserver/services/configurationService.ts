@@ -1,6 +1,6 @@
 import { toBN } from "@flarenetwork/mcc";
 import { Factory, Singleton } from "typescript-ioc";
-import { AttesterWebOptions } from "../../attester/AttesterClientConfiguration";
+import { AttesterWebOptions } from "../../attester/AttesterConfiguration";
 import { readConfig, readCredentials } from "../../utils/config";
 import { DatabaseConnectOptions } from "../../utils/databaseService";
 import { EpochSettings } from "../../utils/EpochSettings";

@@ -14,7 +14,7 @@ import { round, sleepms } from "../utils/utils";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
 import { criticalAsync, getStateEntry, getStateEntryString, prepareIndexerTables, SECONDS_PER_DAY, SUPPORTED_CHAINS } from "./indexer-utils";
-import { IndexerConfiguration, IndexerCredentials } from "./IndexerConfiguration";
+import { IndexerCredentials } from "./IndexerConfiguration";
 import { IndexerSync } from "./indexerSync";
 import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
@@ -34,7 +34,6 @@ import { PreparedBlock } from "./preparedBlock";
  */
 @Managed()
 export class Indexer {
-  config: IndexerConfiguration;
   chainConfig: ChainConfiguration;
   credentials: IndexerCredentials;
   chainType: ChainType;
@@ -77,10 +76,9 @@ export class Indexer {
 
   interlace = new Interlacing();
 
-  constructor(config: IndexerConfiguration, chainsConfig: ChainsConfiguration, credentials: IndexerCredentials, chainName: string) {
-    if (!config) return;
+  constructor(chainsConfig: ChainsConfiguration, credentials: IndexerCredentials, chainName: string) {
+    if (!credentials) return;
 
-    this.config = config;
     this.credentials = credentials;
     this.chainType = MCC.getChainType(chainName);
     this.chainConfig = chainsConfig.chains.find((el) => el.name === chainName)!;
@@ -127,7 +125,7 @@ export class Indexer {
     );
 
     const headerCollectorSettings = {
-      blockCollectTimeMs: this.config.blockCollectTimeMs,
+      blockCollectTimeMs: this.credentials.blockCollectTimeMs,
       numberOfConfirmations: this.chainConfig.numberOfConfirmations,
       blockCollecting: this.chainConfig.blockCollecting,
     };
@@ -184,7 +182,7 @@ export class Indexer {
   public syncTimeDays(): number {
     // chain syncTimeDays overrides config syncTimeDays
     if (this.chainConfig.syncTimeDays > 0) return this.chainConfig.syncTimeDays;
-    return this.config.syncTimeDays;
+    return this.credentials.syncTimeDays;
   }
 
   /////////////////////////////////////////////////////////////
@@ -745,7 +743,7 @@ export class Indexer {
 
       // check if N + 1 hash is the same
       if (!isNp1Confirmed && !isChangedNp1Hash) {
-        await sleepms(this.config.blockCollectTimeMs);
+        await sleepms(this.credentials.blockCollectTimeMs);
         continue;
       }
 

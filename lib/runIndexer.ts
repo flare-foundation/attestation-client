@@ -1,7 +1,7 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { Indexer } from "./indexer/indexer";
-import { IndexerConfiguration, IndexerCredentials } from "./indexer/IndexerConfiguration";
+import { IndexerCredentials } from "./indexer/IndexerConfiguration";
 import { ChainsConfiguration } from "./source/ChainConfiguration";
 import { readSecureConfig, readSecureCredentials } from "./utils/configSecure";
 import { DotEnvExt } from "./utils/DotEnvExt";
@@ -34,12 +34,11 @@ async function runIndexer() {
   setRetryFailureCallback(terminateOnRetryFailure);
 
   // read configuration
-  const config = await readSecureConfig(new IndexerConfiguration(), "indexer");
   const chains = await readSecureConfig(new ChainsConfiguration(), "chains");
   const credentials = await readSecureCredentials(new IndexerCredentials(), "indexer");
 
   // create and start indexer
-  const indexer = new Indexer(config, chains, credentials, args["chain"]);
+  const indexer = new Indexer(chains, credentials, args["chain"]);
   return await indexer.runIndexer(args);
 }
 

@@ -7,8 +7,7 @@ import { any } from 'hardhat/internal/core/params/argumentTypes';
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import { AttesterClient } from '../../lib/attester/AttesterClient';
-import { AttesterClientConfiguration, AttesterCredentials } from '../../lib/attester/AttesterClientConfiguration';
-import { ChainsConfiguration } from '../../lib/source/ChainConfiguration';
+import { AttesterCredentials } from '../../lib/attester/AttesterConfiguration';
 import { readSecureConfig, readSecureCredentials } from '../../lib/utils/configSecure';
 import { getWeb3, relativeContractABIPathForContractName, waitFinalize3Factory } from '../../lib/utils/utils';
 import { StateConnectorTempTran } from '../../typechain-web3-v1/StateConnectorTempTran';
@@ -101,17 +100,16 @@ describe(`Attester client full on synthetic verifier data (${getTestFile(__filen
 
       process.env.TEST_CREDENTIALS = "1"
       process.env.CONFIG_PATH = CONFIG_PATH;
-      const config = await readSecureConfig(new AttesterClientConfiguration(), "attester");
       const credentials = await readSecureCredentials(new AttesterCredentials(), "attester");
 
       credentials.web.stateConnectorContractAddress = stateConnectorAddress;
       // Create attester client
-      const attesterClient = new AttesterClient(config, credentials);
+      const attesterClient = new AttesterClient(credentials);
       await attesterClient.runAttesterClient();
 
    });
 
-   after( async function () {
+   after(async function () {
       delete process.env.TEST_CREDENTIALS;
    });
 

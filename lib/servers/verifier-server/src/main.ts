@@ -11,7 +11,7 @@ async function bootstrap() {
   const logger = getGlobalLogger("web");
   const configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
 
-  const port = configurationService.wsServerConfiguration.port;
+  const port = configurationService.wsServerCredentials.port;
   logger.info(`Verifier type: ${configurationService.verifierType}`);
   
   await app.listen(port, undefined, () =>

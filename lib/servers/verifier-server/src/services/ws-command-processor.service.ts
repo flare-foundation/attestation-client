@@ -17,7 +17,7 @@ export class WsCommandProcessorService {
   }
 
   // public supportedAttestationTypes(): [] {
-  //   return this.config.wsServerConfiguration.sourceId;
+  //   return this.config.wsServerCredentials.sourceId;
   // }
 
 }

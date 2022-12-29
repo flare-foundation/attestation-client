@@ -22,6 +22,7 @@ import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { IndexerSync } from "../../lib/indexer/indexerSync";
 import { PreparedBlock } from "../../lib/indexer/preparedBlock";
 import { SECONDS_PER_DAY } from "../../lib/indexer/indexer-utils";
+import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
@@ -467,6 +468,42 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
           const res = await indSync.getSyncStartBlockNumber();
 
           expect(res).to.eq(fixedFakeBottomBlockNumber);
+        });
+
+        it("Should getSyncStartBlockNumber #4", async function () {
+          const fakeLatestBlockNumber = 4 * 60 * 24;
+          const FakeBottomBlockNumber = 0;
+
+          const stub1 = sinon
+            .stub(indexer.indexerToClient, "getBlockHeightFromClient")
+            .resolves(fakeLatestBlockNumber + indexer.chainConfig.numberOfConfirmations);
+          const stub2 = sinon.stub(indexer.indexerToClient, "getBottomBlockHeightFromClient").resolves(0);
+          const stub3 = sinon.stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient");
+
+          stub3.callsFake(async (n: number) => n * 60);
+
+          const clock = sinon.useFakeTimers(4000 * SECONDS_PER_DAY);
+
+          const res = await indSync.getSyncStartBlockNumber();
+          expect(res).to.eq(2 * 60 * 24 - 2);
+        });
+
+        it("Should getSyncStartBlockNumber #5", async function () {
+          const fakeLatestBlockNumber = 4 * 60 * 24;
+          const FakeBottomBlockNumber = 2 * 60 * 24;
+
+          const stub1 = sinon
+            .stub(indexer.indexerToClient, "getBlockHeightFromClient")
+            .resolves(fakeLatestBlockNumber + indexer.chainConfig.numberOfConfirmations);
+          const stub2 = sinon.stub(indexer.indexerToClient, "getBottomBlockHeightFromClient").resolves(FakeBottomBlockNumber);
+          const stub3 = sinon.stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient");
+
+          stub3.callsFake(async (n: number) => n * 60);
+
+          const clock = sinon.useFakeTimers(4000 * (SECONDS_PER_DAY + 1));
+
+          const res = await indSync.getSyncStartBlockNumber();
+          expect(res).to.eq(2 * 60 * 24);
         });
       });
     });

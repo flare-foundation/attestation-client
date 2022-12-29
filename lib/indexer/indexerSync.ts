@@ -73,7 +73,7 @@ export class IndexerSync {
       failureCallback(`Bottom block is larger than top block, bottom: ${blockNumberBottom}, top: ${blockNumberTop}`);
     }
 
-    // Returns exact block or 1 block earlier than sync start time
+    // Returns1 block earlier than sync start time (or sometimes block on sync start time) using bisection
     let blockRead = 2;
     while (blockNumberTop > blockNumberBottom + 1) {
       const blockNumberMid = Math.floor((blockNumberTop + blockNumberBottom) / 2);

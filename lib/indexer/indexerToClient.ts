@@ -153,7 +153,7 @@ export class IndexerToClient {
    */
   public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
     // todo: get `getBlockLite` FAST version of block read since we only need timestamp
-    const block = (await this.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
+    const block = (await this.getBlockHeaderFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
     // block cannot be undefined as the above call will fatally fail and terminate app
     return block.unixTimestamp;
   }

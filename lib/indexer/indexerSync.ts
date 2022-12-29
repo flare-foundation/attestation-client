@@ -47,8 +47,8 @@ export class IndexerSync {
       return latestBlockNumber;
     }
 
-    const syncStartTime = getUnixEpochTimestamp() - this.indexer.syncTimeDays() * SECONDS_PER_DAY;
-    const latestBlockTime = await this.indexerToClient.getBlockNumberTimestampFromClient(latestBlockNumber);
+    const syncStartTime = getUnixEpochTimestamp() - this.indexer.syncTimeDays() * SECONDS_PER_DAY; //in seconds
+    const latestBlockTime = await this.indexerToClient.getBlockNumberTimestampFromClient(latestBlockNumber); //in seconds
 
     if (latestBlockTime <= syncStartTime) {
       // This is the case where on blockchain there were no blocks after the sync time

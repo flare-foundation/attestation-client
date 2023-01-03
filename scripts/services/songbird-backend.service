@@ -7,8 +7,7 @@ Restart=always
 # Group=nogroup
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-Environment=CONFIG_PATH=../../attestation-suite-config/prepared/flare
-Environment=LOG_PATH=./logs/flare
+Environment=LOG_PATH=./logs/songbird
 
 WorkingDirectory=/home/ubuntu/attestation-suite/attestation-client
 

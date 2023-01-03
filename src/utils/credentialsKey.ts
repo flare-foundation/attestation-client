@@ -1,10 +1,15 @@
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
+import fs from "fs";
 import { exit } from "process";
 import { getGlobalLogger } from "./logger";
 
 const INVALID_CREDENTIAL_ADDRESS = 501;
 const UNKNOWN_SECRET_PROVIDER = 502;
 const GOOGLE_CLOUD_SECRET_MANAGER_ERROR = 503;
+const ERROR_LOADING_CREDENTIALS_KEY = 504;
+
+
+const DEFAULT_CREDENTIAL_KEY_FILENAME = "../attestation-suite-config/credentials.key";
 
 /**
  * get secret from the Google Cloud Secret Manager Servis
@@ -85,11 +90,38 @@ export async function getCredentialsKeyByAddress(address: string) {
 }
 
 /**
- * get credentials key from `CREDENTIALS_KEY` env variables. 
+ * get raw credentials key from 
+ * (1) `CREDENTIALS_KEY` env
+ * (2) load from `CREDENTIALS_KEY_FILE` env variables file
+ * (3) load from `../attesttation-suite-config/credential.key` 
  * 
  * @returns 
  */
-export async function getCredentialsKey() {
-    return await getCredentialsKeyByAddress(process.env.CREDENTIALS_KEY);
+export function getCredentialsKeyAddress(): string {
+    try {
+        if (process.env.CREDENTIALS_KEY) {
+            getGlobalLogger().debug(`CredentialsKeyAddress using CREDENTIALS_KEY env`);
+            return process.env.CREDENTIALS_KEY;
+        } else if (process.env.CREDENTIALS_KEY_FILE) {
+            getGlobalLogger().debug(`CredentialsKeyAddress using CREDENTIALS_KEY_FILE ('${process.env.CREDENTIALS_KEY_FILE}') env file`);
+            return fs.readFileSync(process.env.CREDENTIALS_KEY_FILE).toString();
+        } else {
+            getGlobalLogger().debug(`CredentialsKeyAddress using default '${DEFAULT_CREDENTIAL_KEY_FILENAME}' file`);
+            return fs.readFileSync(DEFAULT_CREDENTIAL_KEY_FILENAME).toString();
+        }
+    }
+    catch (error) {
+        getGlobalLogger().error(`error loading CredentialsKey`);
+        exit(ERROR_LOADING_CREDENTIALS_KEY);
+    }
+}
+
+/**
+ * get credentials key 
+ * @returns 
+ */
+export async function getCredentialsKey(): Promise<string> {
+
+    return await getCredentialsKeyByAddress(getCredentialsKeyAddress());
 }
 

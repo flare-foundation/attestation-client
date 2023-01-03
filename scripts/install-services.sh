@@ -4,7 +4,7 @@ source ./scripts/install-config.sh
 # copy services
 echo -e "${REDBOLD}[1] ${GREENBOLD}Copying services...${NC}"
 mkdir -p ~/.config/systemd/user
-cp ./scripts/templates/*.service ~/.config/systemd/user
+cp ./scripts/services/*.service ~/.config/systemd/user
 
 # enable services
 echo -e "${REDBOLD}[2] ${GREENBOLD}Installing services...${NC}"

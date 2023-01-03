@@ -5,7 +5,6 @@ import { assert } from "chai";
 import sinon from "sinon";
 import { prepareSecureCredentials } from "../../src/install/prepareSecureCredentials";
 import { readSecureConfig } from "../../src/utils/configSecure";
-import { getCredentialsKey, getCredentialsKeyByAddress } from "../../src/utils/credentialsKey";
 import { decryptString, encryptString } from "../../src/utils/encrypt";
 import { readJSON, readJSONfromString } from "../../src/utils/json";
 import { secureMasterConfigs, _clearSecureCredentials, _prepareSecureData } from "../../src/utils/jsonSecure";
@@ -36,7 +35,7 @@ class TestConfig implements IReflection<TestConfig> {
 
 }
 
-describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
+describe(`Test config utils (${getTestFile(__filename)})`, () => {
 
     before(async () => {
         initializeTestGlobalLogger();
@@ -64,6 +63,10 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
 
     after(() => {
         sinon.restore();
+
+        delete process.env.SECURE_CONFIG_PATH;
+        delete process.env.SECURE_CONFIG_NETWORK;
+        delete process.env.CREDENTIALS_KEY;
     })
 
     // encryption
@@ -136,31 +139,6 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         catch { }
     });
 
-    it(`get credentials invalid format`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("provider:address:invalid");
-
-        assert(exitCode !== 0, `exit not called`);
-    });
-
-    it(`get credentials invalid address`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("unknown:some address");
-
-        assert(exitCode !== 0, `exit not called`);
-    });
-
-    it(`get credentials key direct`, async () => {
-        const credentialsPassword = await getCredentialsKey();
-
-        assert(credentialsPassword === password, `credentials password not correct`);
-
-    });
-
-    it(`get credentials key google cloud secret manager invalid name`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:invalid name");
-
-        assert(exitCode !== 0, `exit not called`);
-    });
-
     it(`prepare secure data`, async () => {
         await prepareSecureCredentials(process.env.SECURE_CONFIG_PATH, process.env.CREDENTIALS_KEY, `${secureConfigPath}credentials.json.secure`);
     });
@@ -177,28 +155,4 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
 
         assert(exitCode === 0, `function must not exit`);
     });
-
-    it(`secure credentials read`, async () => {
-        let testConfig = new TestConfig();
-
-        const test = await readSecureConfig(testConfig, "template1");
-
-        assert(test.key1 === 1, "incorrect config key");
-        assert(test.key2 === 2, "incorrect config key");
-        assert(test.key3 === 3, "incorrect config key");
-        assert(test.key4 === 4, "incorrect config key");
-
-        assert(exitCode === 0, `function must not exit`);
-    });
-
-    it(`test empty credentials at start`, async () => {
-        let testConfig = new TestConfig();
-
-        secureMasterConfigs.push(["dummy", 123]);
-
-        const test = await readSecureConfig(testConfig, "template1");
-
-        assert(exitCode !== 0, `function must exit`);
-    });
-
 })

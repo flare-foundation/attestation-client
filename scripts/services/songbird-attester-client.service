@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/src/spammer/attestation-spammer.js -c ALGO
+ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/src/runAttesterClient.js -i songbird
 Restart=always
 # User=ubuntu
 # Use 'nogroup' group for Ubuntu/Debian
@@ -7,9 +7,7 @@ Restart=always
 # Group=nogroup
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-Environment=CONFIG_PATH=../../attestation-suite-config
-Environment=CONFIG_NETWORK=coston
-Environment=LOG_PATH=./logs/coston
+Environment=LOG_PATH=./logs/songbird
 
 WorkingDirectory=/home/ubuntu/attestation-suite/attestation-client
 

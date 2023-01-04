@@ -86,7 +86,7 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
     });
 
     // Should be fixed. Produces too long trace
-    it.skip("Should not get Block", async function () {
+    it("Should not get Block", async function () {
       await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
     });
 

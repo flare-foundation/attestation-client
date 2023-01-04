@@ -23,6 +23,7 @@ import { IndexerSync } from "../../lib/indexer/indexerSync";
 import { PreparedBlock } from "../../lib/indexer/preparedBlock";
 import { SECONDS_PER_DAY } from "../../lib/indexer/indexer-utils";
 import { getUnixEpochTimestamp } from "../../lib/utils/utils";
+import process from "process";
 
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
@@ -426,84 +427,111 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         const fixedBottomTimeStamp = 1_357_010_470;
 
         // mcc getBlock logs block number
-        it("Should getSyncStartBlockNumber #1", async function () {
-          const stub = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(fixedLatestBlockNumber);
 
-          const store = indexer.chainConfig.blockCollecting;
-          indexer.chainConfig.blockCollecting = "latestBlock";
-          const res = await indSync.getSyncStartBlockNumber();
+        describe("getSyncStartBlockNumber", function () {
+          it("#1", async function () {
+            const stub = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(fixedLatestBlockNumber);
 
-          indexer.chainConfig.blockCollecting = store;
-          expect(res).to.eq(fixedLatestBlockNumber - 6);
+            const store = indexer.chainConfig.blockCollecting;
+            indexer.chainConfig.blockCollecting = "latestBlock";
+            const res = await indSync.getSyncStartBlockNumber();
+
+            indexer.chainConfig.blockCollecting = store;
+            expect(res).to.eq(fixedLatestBlockNumber - 6);
+          });
+
+          it("#2", async function () {
+            const stub1 = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(fixedLatestBlockNumber);
+            const stub2 = sinon
+              .stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient")
+              .withArgs(fixedLatestBlockNumber - 6)
+              .resolves(fixedLatestTimeStamp);
+
+            const clock = sinon.useFakeTimers(fixedLatestTimeStamp * 1000 + 3000 * SECONDS_PER_DAY);
+
+            const res = await indSync.getSyncStartBlockNumber();
+
+            expect(res).to.eq(fixedLatestBlockNumber - 6);
+          });
+
+          it("#3", async function () {
+            const fixedFakeBottomBlockNumber = fixedLatestBlockNumber - 500;
+            const fixedFakeBottomTimeStamp = 725624410 + XRP_UTD;
+
+            const clock = sinon.useFakeTimers(fixedLatestTimeStamp * 1000);
+
+            const stub1 = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(fixedLatestBlockNumber);
+            const stub2 = sinon.stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient");
+
+            stub2.withArgs(fixedLatestBlockNumber - 6).resolves(fixedLatestTimeStamp);
+
+            const stub3 = sinon.stub(indexer.indexerToClient, "getBottomBlockHeightFromClient").resolves(fixedFakeBottomBlockNumber);
+
+            stub2.withArgs(fixedFakeBottomBlockNumber).resolves(fixedFakeBottomTimeStamp);
+            const res = await indSync.getSyncStartBlockNumber();
+
+            expect(res).to.eq(fixedFakeBottomBlockNumber);
+          });
+
+          it("#4", async function () {
+            const fakeLatestBlockNumber = 4 * 60 * 24;
+            const FakeBottomBlockNumber = 0;
+
+            const stub1 = sinon
+              .stub(indexer.indexerToClient, "getBlockHeightFromClient")
+              .resolves(fakeLatestBlockNumber + indexer.chainConfig.numberOfConfirmations);
+            const stub2 = sinon.stub(indexer.indexerToClient, "getBottomBlockHeightFromClient").resolves(0);
+            const stub3 = sinon.stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient");
+
+            stub3.callsFake(async (n: number) => n * 60);
+
+            const clock = sinon.useFakeTimers(4000 * SECONDS_PER_DAY);
+
+            const res = await indSync.getSyncStartBlockNumber();
+            expect(res).to.eq(2 * 60 * 24 - 2);
+          });
+
+          it("#5", async function () {
+            const fakeLatestBlockNumber = 4 * 60 * 24;
+            const FakeBottomBlockNumber = 2 * 60 * 24;
+
+            const stub1 = sinon
+              .stub(indexer.indexerToClient, "getBlockHeightFromClient")
+              .resolves(fakeLatestBlockNumber + indexer.chainConfig.numberOfConfirmations);
+            const stub2 = sinon.stub(indexer.indexerToClient, "getBottomBlockHeightFromClient").resolves(FakeBottomBlockNumber);
+            const stub3 = sinon.stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient");
+
+            stub3.callsFake(async (n: number) => n * 60);
+
+            const clock = sinon.useFakeTimers(4000 * (SECONDS_PER_DAY + 1));
+
+            const res = await indSync.getSyncStartBlockNumber();
+            expect(res).to.eq(2 * 60 * 24);
+          });
         });
 
-        it("Should getSyncStartBlockNumber #2", async function () {
-          const stub1 = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(fixedLatestBlockNumber);
-          const stub2 = sinon
-            .stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient")
-            .withArgs(fixedLatestBlockNumber - 6)
-            .resolves(fixedLatestTimeStamp);
+        describe("runSync", function () {
+          it("should not run if not enabled", async function () {
+            indexer.config.syncEnabled = false;
 
-          const clock = sinon.useFakeTimers(fixedLatestTimeStamp * 1000 + 3000 * SECONDS_PER_DAY);
+            const res = await indSync.runSync(14);
+            indexer.config.syncEnabled = true;
+            expect(res).to.be.undefined;
+          });
 
-          const res = await indSync.getSyncStartBlockNumber();
+          it("should exit", async function () {
+            const stub = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(10);
 
-          expect(res).to.eq(fixedLatestBlockNumber - 6);
-        });
+            const store = indexer.chainConfig.blockCollecting;
+            indexer.chainConfig.blockCollecting = "latestBlock";
+            const res = await indSync.getSyncStartBlockNumber();
 
-        it("Should getSyncStartBlockNumber #3", async function () {
-          const fixedFakeBottomBlockNumber = fixedLatestBlockNumber - 500;
-          const fixedFakeBottomTimeStamp = 725624410 + XRP_UTD;
+            const stub2 = sinon.stub(process, "exit").withArgs(4).throws("nekej");
 
-          const clock = sinon.useFakeTimers(fixedLatestTimeStamp * 1000);
+            await expect(indSync.runSync(1)).to.be.rejectedWith("OutsideError");
 
-          const stub1 = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(fixedLatestBlockNumber);
-          const stub2 = sinon.stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient");
-
-          stub2.withArgs(fixedLatestBlockNumber - 6).resolves(fixedLatestTimeStamp);
-
-          const stub3 = sinon.stub(indexer.indexerToClient, "getBottomBlockHeightFromClient").resolves(fixedFakeBottomBlockNumber);
-
-          stub2.withArgs(fixedFakeBottomBlockNumber).resolves(fixedFakeBottomTimeStamp);
-          const res = await indSync.getSyncStartBlockNumber();
-
-          expect(res).to.eq(fixedFakeBottomBlockNumber);
-        });
-
-        it("Should getSyncStartBlockNumber #4", async function () {
-          const fakeLatestBlockNumber = 4 * 60 * 24;
-          const FakeBottomBlockNumber = 0;
-
-          const stub1 = sinon
-            .stub(indexer.indexerToClient, "getBlockHeightFromClient")
-            .resolves(fakeLatestBlockNumber + indexer.chainConfig.numberOfConfirmations);
-          const stub2 = sinon.stub(indexer.indexerToClient, "getBottomBlockHeightFromClient").resolves(0);
-          const stub3 = sinon.stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient");
-
-          stub3.callsFake(async (n: number) => n * 60);
-
-          const clock = sinon.useFakeTimers(4000 * SECONDS_PER_DAY);
-
-          const res = await indSync.getSyncStartBlockNumber();
-          expect(res).to.eq(2 * 60 * 24 - 2);
-        });
-
-        it("Should getSyncStartBlockNumber #5", async function () {
-          const fakeLatestBlockNumber = 4 * 60 * 24;
-          const FakeBottomBlockNumber = 2 * 60 * 24;
-
-          const stub1 = sinon
-            .stub(indexer.indexerToClient, "getBlockHeightFromClient")
-            .resolves(fakeLatestBlockNumber + indexer.chainConfig.numberOfConfirmations);
-          const stub2 = sinon.stub(indexer.indexerToClient, "getBottomBlockHeightFromClient").resolves(FakeBottomBlockNumber);
-          const stub3 = sinon.stub(indexer.indexerToClient, "getBlockNumberTimestampFromClient");
-
-          stub3.callsFake(async (n: number) => n * 60);
-
-          const clock = sinon.useFakeTimers(4000 * (SECONDS_PER_DAY + 1));
-
-          const res = await indSync.getSyncStartBlockNumber();
-          expect(res).to.eq(2 * 60 * 24);
+            indexer.chainConfig.blockCollecting = store;
+          });
         });
       });
     });

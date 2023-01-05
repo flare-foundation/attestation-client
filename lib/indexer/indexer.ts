@@ -77,7 +77,7 @@ export class Indexer {
 
   interlace = new Interlacing();
 
-  constructor(config: IndexerConfiguration, chainsConfig: ChainsConfiguration, credentials: IndexerCredentials, chainName: string) {
+  constructor(config: IndexerConfiguration, chainsConfig: ChainsConfiguration, credentials: IndexerCredentials, chainName: string, testMode = false) {
     if (!config) return;
 
     this.config = config;
@@ -87,7 +87,7 @@ export class Indexer {
 
     this.logger = getGlobalLogger();
 
-    this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer");
+    this.dbService = new DatabaseService(this.logger, this.credentials.indexerDatabase, "indexer", "", testMode);
 
     const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,

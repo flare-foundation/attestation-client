@@ -139,6 +139,7 @@ export class IndexerSync {
       }
 
       // wait until we save N+1 block
+      // this never happens: lastN=-1, indexer.N>=0
       if (lastN === this.indexer.N) {
         this.logger.debug(`runSyncRaw wait block N=${this.indexer.N} T=${this.indexer.T}`);
         await sleepms(100);
@@ -149,7 +150,7 @@ export class IndexerSync {
       // status
       const dbStatus = getStateEntryString("state", this.indexer.chainConfig.name, "sync", -1);
 
-      const blockLeft = this.indexer.T - this.indexer.N;
+      const blocksLeft = this.indexer.T - this.indexer.N;
 
       if (statsBlocksPerSec > 0) {
         const timeLeft = (this.indexer.T - this.indexer.N) / statsBlocksPerSec;
@@ -157,12 +158,12 @@ export class IndexerSync {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
+          `sync ${this.indexer.N} to ${this.indexer.T}, ${blocksLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
             this.indexer.cachedClient.reqsPs
           })`
         );
       } else {
-        this.logger.debug(`sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (cps: ${this.indexer.cachedClient.reqsPs})`);
+        this.logger.debug(`sync ${this.indexer.N} to ${this.indexer.T}, ${blocksLeft} blocks (cps: ${this.indexer.cachedClient.reqsPs})`);
       }
 
       await retry(`runSyncRaw::saveStatus`, async () => this.indexer.dbService.manager.save(dbStatus));

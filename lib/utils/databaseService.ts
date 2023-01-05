@@ -32,7 +32,7 @@ export class DatabaseService {
 
   private options: DatabaseConnectOptions;
 
-  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "", isTestDB: boolean = false) {
+  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "", isTestDB = false) {
     this.logger = logger;
 
     this.databaseName = databaseName;

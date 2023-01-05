@@ -1,4 +1,4 @@
-// yarn test test/indexer/indexer.test.ts
+// yarn test test/indexer/indexer.test-slow.ts
 
 import { ChainType, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { Indexer } from "../../lib/indexer/indexer";
@@ -22,7 +22,6 @@ import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { IndexerSync } from "../../lib/indexer/indexerSync";
 import { PreparedBlock } from "../../lib/indexer/preparedBlock";
 import { SECONDS_PER_DAY } from "../../lib/indexer/indexer-utils";
-import { getUnixEpochTimestamp } from "../../lib/utils/utils";
 import process from "process";
 
 const chai = require("chai");
@@ -524,9 +523,8 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
             const store = indexer.chainConfig.blockCollecting;
             indexer.chainConfig.blockCollecting = "latestBlock";
-            const res = await indSync.getSyncStartBlockNumber();
 
-            const stub2 = sinon.stub(process, "exit").withArgs(4).throws("nekej");
+            const stub2 = sinon.stub(process, "exit").withArgs(4).throws("This stops exit");
 
             await expect(indSync.runSync(1)).to.be.rejectedWith("OutsideError");
 

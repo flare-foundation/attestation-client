@@ -12,6 +12,16 @@ let networkName = "";
 
 const CREDENTIALS_ERROR = 500;
 
+export function getSecureValue(name: string): string {
+    for (const value of secureMasterConfigs) {
+        if (value[0] === name) {
+            return value[1];
+        }
+    }
+
+    return "undefined";
+}
+
 /**
  * Read credentials from JSON and add it secure master config.
  * @param filename
@@ -117,6 +127,22 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
  */
 export function isInitializedJSONsecure(): boolean {
     return networkName !== "";
+}
+
+/**
+ * Reads file  data from @param filename and process it with secure data.
+ * 
+ * It reads file data and make credentials replacements (check @function _prepareSecureData).
+ * 
+ * @param filename
+ * @param parser 
+ * @param validate 
+ * @returns 
+ */
+export function readFileSecure(filename: string, parser: any = null, validate = false): string {
+    let data = fs.readFileSync(filename).toString();
+
+    return _prepareSecureData(data, filename, networkName)
 }
 
 /**

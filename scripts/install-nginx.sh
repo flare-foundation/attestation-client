@@ -2,8 +2,6 @@
 
 source ./scripts/install-config.sh
 
-source .config.secret.sh2
-
 echo -e "${GREENBOLD}Installing nginX${NC}"
 
 sudo apt install nginx -y

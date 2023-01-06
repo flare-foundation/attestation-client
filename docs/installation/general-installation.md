@@ -55,10 +55,12 @@ cd ~
 mkdir -p attestation-suite
 cd attestation-suite
 
-git clone https://github.com/flare-foundation/attestation-client.git
+#git clone https://github.com/flare-foundation/attestation-client.git
+git clone https://gitlab.com/flarenetwork/attester-client.git
 cd attestation-client
 
-git checkout commit-reveal-fixes-c2
+#git checkout commit-reveal-fixes-c2
+git checkout attester-client-fixes
 
 ```
 

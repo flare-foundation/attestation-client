@@ -139,6 +139,17 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "Launch Install secureCommand",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devinstallsecurecommand"
+            ]
+        },        
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Launch Config Verify",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [

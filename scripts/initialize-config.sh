@@ -30,13 +30,3 @@ echo -e "${GREEN}Installing configurations${NC}"
 
 mkdir -p $CONFIG_DIR
 cp -a configs/.install/. $CONFIG_DIR
-
-
-
-# initial main config update
-source .config.secret.sh2
-
-yarn ts-node src/install/install-file.ts -i ./configs/.install/chains.credentials.json -o ../attestation-suite-config/chains.credentials.json
-yarn ts-node src/install/install-file.ts -i ./configs/.install/database.credentials.json -o ../attestation-suite-config/database.credentials.json
-yarn ts-node src/install/install-file.ts -i ./configs/.install/networks.credentials.json -o ../attestation-suite-config/networks.credentials.json
-

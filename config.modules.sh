@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Important: no spaces before and after = sign!
+
+# Set your hostname
+# This cannot be changed later (easily).
+# Do not use backslash at end !!!
+export HOSTNAME=www.yourhostname.com
+
+# Set your email for certificate expiration notification
+# This cannot be changed later (easily).
+export CERT_EMAIL=spam@google.com
+
 # set true or false for modules to be installed (NO SPACES before and after = sign!)
 
 # prerequisits 

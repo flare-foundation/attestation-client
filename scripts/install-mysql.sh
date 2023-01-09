@@ -24,6 +24,8 @@ then
     #echo -e "${REDBOLD}[3] ${GREENBOLD}Initialize MySQL (install.sql)${NC}"
     #sudo mysql < install.sql
 
+    yarn ts-node src/install/secureUpdateSql.ts
+
     echo -e "${REDBOLD}[4] ${GREENBOLD}Restarting MySQL service${NC}"
     sudo service mysql restart
 

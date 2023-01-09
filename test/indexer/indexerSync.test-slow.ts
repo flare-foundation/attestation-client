@@ -1,4 +1,4 @@
-// yarn test test/indexer/indexerSync.test.ts
+// yarn test test/indexer/indexerSync.test-slow.ts
 
 import { ChainType, XrpMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
@@ -85,7 +85,7 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
       expect(state.valueNumber).to.eq(-1);
     });
 
-    it("Should run indexer sync up to date", async function () {
+    it("Should run indexer sync up", async function () {
       indexer.chainConfig.blockCollecting = "raw";
       indexer.chainConfig.syncReadAhead = 4;
 

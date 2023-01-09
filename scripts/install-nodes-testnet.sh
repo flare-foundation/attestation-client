@@ -19,6 +19,7 @@ git config --global --add safe.directory /opt/connected-chains-docker
 cd $LOCAL_DIR
 yarn ts-node src/install/secureCommand.ts -a installNodesTestnet -f "/opt/connected-chains-docker"
 
+cd /opt/connected-chains-docker
 sudo docker-compose -f docker-compose-testnet.yml up -d
 
 sudo ./algorand-catchup.sh

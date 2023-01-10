@@ -7,7 +7,7 @@
 import fs from "fs";
 import path from "path";
 import { exit } from "process";
-import { getCredentialsKeyByAddress } from "../utils/credentialsKey";
+import { getCredentialsKey } from "../utils/credentialsKey";
 import { encryptString } from "../utils/encrypt";
 import { readJSONfromFile } from "../utils/json";
 import { getGlobalLogger } from "../utils/logger";
@@ -23,7 +23,7 @@ const logger = getGlobalLogger();
 export async function prepareSecureCredentials(credentialsPath: string, passwordAddress: string, output: string) {
     logger.group(`secureCredentials ^r${credentialsPath}`);
 
-    const password = await getCredentialsKeyByAddress(passwordAddress);
+    const password = await getCredentialsKey();
 
     if (password.length < 8) {
         logger.error(`password must be at least 8 characters long`);

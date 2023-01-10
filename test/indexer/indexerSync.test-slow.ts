@@ -22,11 +22,8 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
 
   describe("construction", function () {
-    const XRPMccConnection = {
-      url: "https://xrplcluster.com",
-      username: "",
-      password: "",
-    } as XrpMccCreate;
+    const XRPMccConnection = new XrpMccCreate();
+    XRPMccConnection.url = "https://xrplcluster.com";
 
     let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
       transactionCacheSize: 2,
@@ -36,20 +33,20 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
       clientConfig: XRPMccConnection,
     };
 
-    const cachedClient = new CachedMccClient(ChainType.XRP, cachedMccClientOptionsFull);
+    // const cachedClient = new CachedMccClient(ChainType.XRP, cachedMccClientOptionsFull);
 
     const config = new IndexerConfiguration();
     const credentials = new IndexerCredentials();
     const chainConfig = new ChainConfiguration();
     chainConfig.name = "XRP";
-    chainConfig.mccCreate = new XrpMccCreate();
+    chainConfig.mccCreate = XRPMccConnection;
     const chainsConfig = new ChainsConfiguration();
     chainsConfig.chains.push(chainConfig);
 
     const indexer = new Indexer(config, chainsConfig, credentials, "XRP", true);
 
-    indexer.cachedClient = cachedClient;
-    indexer.indexerToClient.client = cachedClient.client;
+    // indexer.cachedClient = cachedClient;
+    // indexer.indexerToClient.client = cachedClient.client;
 
     before(async function () {
       await indexer.dbService.connect();

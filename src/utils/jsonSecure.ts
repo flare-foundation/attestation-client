@@ -1,3 +1,4 @@
+import { sleepMs } from "@flarenetwork/mcc";
 import fs from "fs";
 import path from "path";
 import { exit } from "process";
@@ -53,8 +54,13 @@ export function _clearSecureCredentials() {
  * @param network 
  * @returns 
  */
+
+let initializing = false;
 export async function initializeJSONsecure<T>(credentialsPath: string, network: string = "", secureCredentialsFilename: string = "credentials.json.secure") {
 
+    while( initializing ) {
+        await sleepMs( 100 );
+    }
     if (isInitializedJSONsecure()) {
         if (network !== "" && network != networkName) {
             getGlobalLogger().error(`only single network application supported`);
@@ -62,6 +68,8 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
         }
         return;
     }
+
+    initializing = true;
 
     networkName = network;
 
@@ -119,6 +127,8 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
             addSecureCredentials(path.join(credentialsPath, file));
         }
     }
+
+    initializing = false;
 }
 
 /**

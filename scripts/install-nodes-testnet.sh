@@ -17,7 +17,7 @@ git config --global --add safe.directory /opt/connected-chains-docker
 #sudo ./install.sh testnet $SECRET_NODES_TESTNET
 
 cd $LOCAL_DIR
-yarn ts-node src/install/secureCommand.ts -a installNodesTestnet -f "/opt/connected-chains-docker"
+yarn ts-node src/install/secureCommand.ts -a installNodesTestNet -f "/opt/connected-chains-docker"
 
 cd /opt/connected-chains-docker
 sudo docker-compose -f docker-compose-testnet.yml up -d

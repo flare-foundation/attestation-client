@@ -5,8 +5,8 @@
          "routes": [
             {
                "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
-               "url": "$(XRPVerifierRouterUrl)",
-               "apiKey": "$(XRPVerifierRouterApiKey)"
+               "url": "$(XRPVerifierRouterClientUrl)",
+               "apiKey": "$(XRPVerifierRouterClientApiKey)"
             }
          ]
       },
@@ -15,8 +15,8 @@
          "routes": [
             {
                "attestationTypes": ["Payment", "BalanceDecreasingTransaction", "ConfirmedBlockHeightExists"],
-               "url": "$(BTCVerifierRouterUrl)",
-               "apiKey": "$(BTCVerifierRouterApiKey)"
+               "url": "$(BTCVerifierRouterClientUrl)",
+               "apiKey": "$(BTCVerifierRouterClientApiKey)"
             }
          ]
       }

@@ -8,7 +8,7 @@ import { DBTransactionLTC0 } from "../../lib/entity/indexer/dbTransaction";
 import { Indexer } from "../../lib/indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "../../lib/indexer/IndexerConfiguration";
 import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
-import { initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getTestFile } from "../test-utils/test-utils";
 
 const sinon = require("sinon");
@@ -25,13 +25,14 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
     const LTCMccConnection = new UtxoMccCreate();
     LTCMccConnection.url = "https://litecoin-api.flare.network";
     LTCMccConnection.username = "public";
-    LTCMccConnection.password = "ntvzi4i1yne499t7vcdjqhhp92m3jvm0bb6dkpr406gkndvuns9sg6th3jd393uc";
+    LTCMccConnection.password = "";
 
     const config = new IndexerConfiguration();
     const credentials = new IndexerCredentials();
     const chainConfig = new ChainConfiguration();
     chainConfig.name = "LTC";
     chainConfig.mccCreate = LTCMccConnection;
+    chainConfig.blockCollecting = "tips";
     const chainsConfig = new ChainsConfiguration();
     chainsConfig.chains.push(chainConfig);
 
@@ -91,6 +92,20 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
       expect(res1.blockNumber).to.eq(2402420);
       expect(res2.blockNumber).to.eq(2402420);
       expect(res3.valueString).to.eq("waiting");
+    });
+
+    it("should run headerCollector", function (done) {
+      indexer.headerCollector.runBlockHeaderCollecting();
+
+      const spy = sinon.spy(indexer.headerCollector.indexerToDB, "writeT");
+      indexer.headerCollector
+        .runBlockHeaderCollecting()
+        .then(() => {})
+        .catch((e) => getGlobalLogger().error("runBlockHeaderCollecting failed"));
+      setTimeout(() => {
+        expect(spy.called).to.be.true;
+        done();
+      }, 1000);
     });
   });
 });

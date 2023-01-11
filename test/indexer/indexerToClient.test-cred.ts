@@ -26,10 +26,6 @@ describe(`Indexer to client with credentials(${getTestFile(__filename)})`, funct
       expect(res.blockHash).to.be.eq("0000000000000000000275e5d4097fb6121787976f42e85310976b34b1e36072");
     });
 
-    it.skip("Should not get Block", async function () {
-      await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
-    });
-
     it("Should get block by hash", async function () {
       const hash = "0000000000000000000337e6d093c2ca249b4a94c1edf25109d140391fcfefff";
       let res = await inToCl.getBlockFromClientByHash("hash", hash);

@@ -18,7 +18,7 @@ const chai = require("chai");
 const expect = chai.expect;
 
 class MockSourceRouter extends SourceRouter {
-  validateTransaction(sourceId: SourceId, transaction: Attestation) { }
+  validateTransaction(sourceId: SourceId, transaction: Attestation) {}
 }
 
 class MockAttesterWeb3 extends AttesterWeb3 {
@@ -26,7 +26,7 @@ class MockAttesterWeb3 extends AttesterWeb3 {
     super(credentials);
   }
 
-  async initialize() { }
+  async initialize() {}
 
   check(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
@@ -56,7 +56,7 @@ class MockAttesterWeb3 extends AttesterWeb3 {
   }
 }
 
-describe.skip("Attestation Client", () => {
+describe("Attestation Client", () => {
   let attestationRoundManager: AttestationRoundManager;
 
   before(async function () {
@@ -105,7 +105,7 @@ describe.skip("Attestation Client", () => {
   ////////////////////////////////
   // Integration tests
   ////////////////////////////////
-  it(`Attestate Valid Request`, async function () {
+  it.skip(`Attestate Valid Request`, async function () {
     const mockEvent = {
       blockNumber: 10,
       logIndex: 1,

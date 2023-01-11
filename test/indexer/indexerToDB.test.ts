@@ -85,6 +85,8 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   });
 
   it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #2", async function () {
+    await dataService.manager.query(`delete from btc_transactions0;`);
+
     for (let j = 0; j < 10; j++) {
       let fakeTx = new DBTransactionBTC1();
       fakeTx.transactionId = `a4ba${j}`;

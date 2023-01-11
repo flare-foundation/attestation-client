@@ -1,14 +1,14 @@
-// yarn test test/indexer/indexerSync.test-cred.ts
+// yarn test test/indexer/indexerSyncLTC.test-cred.ts
 
-import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
+import { UtxoMccCreate } from "@flarenetwork/mcc";
+import { CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
+import { DBBlockLTC } from "../../lib/entity/indexer/dbBlock";
 import { DBState } from "../../lib/entity/indexer/dbState";
+import { DBTransactionLTC0 } from "../../lib/entity/indexer/dbTransaction";
 import { Indexer } from "../../lib/indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "../../lib/indexer/IndexerConfiguration";
 import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
 import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 const sinon = require("sinon");
@@ -18,38 +18,24 @@ chai.use(chaiaspromised);
 const expect = chai.expect;
 const assert = chai.assert;
 
-describe(`Indexer sync BTC ${getTestFile(__filename)})`, () => {
-  // initializeTestGlobalLogger();
+describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
+  initializeTestGlobalLogger();
 
   describe("construction", function () {
-    const BTCMccConnection = {
-      url: "https://bitcoin-api.flare.network",
-      username: "public",
-      password: "",
-    } as UtxoMccCreate;
-
-    let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-      transactionCacheSize: 2,
-      blockCacheSize: 2,
-      cleanupChunkSize: 2,
-      activeLimit: 1,
-      clientConfig: BTCMccConnection,
-    };
-
-    const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
+    const LTCMccConnection = new UtxoMccCreate();
+    LTCMccConnection.url = "https://litecoin-api.flare.network";
+    LTCMccConnection.username = "public";
+    LTCMccConnection.password = "ntvzi4i1yne499t7vcdjqhhp92m3jvm0bb6dkpr406gkndvuns9sg6th3jd393uc";
 
     const config = new IndexerConfiguration();
     const credentials = new IndexerCredentials();
     const chainConfig = new ChainConfiguration();
-    chainConfig.name = "BTC";
-    chainConfig.mccCreate = new UtxoMccCreate();
+    chainConfig.name = "LTC";
+    chainConfig.mccCreate = LTCMccConnection;
     const chainsConfig = new ChainsConfiguration();
     chainsConfig.chains.push(chainConfig);
 
-    const indexer = new Indexer(config, chainsConfig, credentials, "BTC", true);
-
-    indexer.cachedClient = cachedClient;
-    indexer.indexerToClient.client = cachedClient.client;
+    const indexer = new Indexer(config, chainsConfig, credentials, "LTC", true);
 
     before(async function () {
       await indexer.dbService.connect();
@@ -85,20 +71,26 @@ describe(`Indexer sync BTC ${getTestFile(__filename)})`, () => {
       expect(state.valueNumber).to.eq(-1);
     });
 
-    //same as for XRP but does not work!!
-    it.skip("Should run indexer sync up", async function () {
-      indexer.chainConfig.blockCollecting = "raw";
-      indexer.chainConfig.syncReadAhead = 2;
+    it("Should run indexer sync up", async function () {
+      indexer.chainConfig.blockCollecting = "tips";
+      indexer.chainConfig.syncReadAhead = 4;
 
-      // const stub1 = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(771120 + indexer.chainConfig.numberOfConfirmations);
-      const stub2 = sinon.stub(indexer.indexerSync, "getSyncStartBlockNumber").resolves(771129);
-      //   const stub3 = sinon.stub(indexer.indexerToClient, "getBlockFromClient").resolves(TestBlockXRPAlt);
+      const stub1 = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(2402421 + indexer.chainConfig.numberOfConfirmations);
+      const stub2 = sinon.stub(indexer.indexerSync, "getSyncStartBlockNumber").resolves(2402419);
 
       await indexer.indexerSync.runSync(0);
 
-      const res = await indexer.dbService.manager.findOneBy(DBBlockBTC, {});
-      console.log(res, "12321");
-      // expect(res.blockHash).to.eq("00000000000000000002333d6bda0bb1ede8b9007af5b1b1e7b71ac164ad760e");
+      const res1 = await indexer.dbService.manager.findOne(DBBlockLTC, { where: { blockNumber: 2402420 } });
+      const res2 = await indexer.dbService.manager.findOne(DBTransactionLTC0, {
+        where: { transactionId: "42beef0068756c78cade98443dfa9db875d84dba363977d61df2091088efa10f" },
+      });
+      const res3 = await indexer.dbService.manager.findOne(DBState, {
+        where: { comment: "collecting tips" },
+      });
+
+      expect(res1.blockNumber).to.eq(2402420);
+      expect(res2.blockNumber).to.eq(2402420);
+      expect(res3.valueString).to.eq("waiting");
     });
   });
 });

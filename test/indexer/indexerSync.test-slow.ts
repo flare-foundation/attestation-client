@@ -1,14 +1,12 @@
 // yarn test test/indexer/indexerSync.test-slow.ts
 
-import { ChainType, XrpMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
+import { XrpMccCreate } from "@flarenetwork/mcc";
 import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { DBState } from "../../lib/entity/indexer/dbState";
 import { Indexer } from "../../lib/indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "../../lib/indexer/IndexerConfiguration";
 import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
 import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 const sinon = require("sinon");
@@ -25,16 +23,6 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
     const XRPMccConnection = new XrpMccCreate();
     XRPMccConnection.url = "https://xrplcluster.com";
 
-    let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-      transactionCacheSize: 2,
-      blockCacheSize: 2,
-      cleanupChunkSize: 2,
-      activeLimit: 1,
-      clientConfig: XRPMccConnection,
-    };
-
-    // const cachedClient = new CachedMccClient(ChainType.XRP, cachedMccClientOptionsFull);
-
     const config = new IndexerConfiguration();
     const credentials = new IndexerCredentials();
     const chainConfig = new ChainConfiguration();
@@ -44,9 +32,6 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
     chainsConfig.chains.push(chainConfig);
 
     const indexer = new Indexer(config, chainsConfig, credentials, "XRP", true);
-
-    // indexer.cachedClient = cachedClient;
-    // indexer.indexerToClient.client = cachedClient.client;
 
     before(async function () {
       await indexer.dbService.connect();

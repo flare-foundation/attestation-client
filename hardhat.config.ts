@@ -60,18 +60,27 @@ const config: HardhatUserConfig = {
       accounts: accounts.map((x: any) => x.privateKey)
     },
     songbird: {
-      url: process.env.SONGBIRD_RPC || "http://127.0.0.1:9650/ext/bc/C/rpc",
+      url: process.env.SONGBIRD_RPC || "https://songbird-api.flare.network/ext/bc/C/rpc",
+      timeout: 40000,
+      accounts: accounts.map((x: any) => x.privateKey)
+    },
+    flare: {
+      url: process.env.FLARE_RPC || "https://flare-api.flare.network/ext/bc/C/rpc",
       timeout: 40000,
       accounts: accounts.map((x: any) => x.privateKey)
     },
     coston: {
-      url: process.env.COSTON_RPC || "http://127.0.0.1:9650/ext/bc/C/rpc",
+      url: process.env.COSTON_RPC || "https://coston-api.flare.network/ext/bc/C/rpc",
+      timeout: 40000,
+      accounts: accounts.map((x: any) => x.privateKey)
+    },
+    coston2: {
+      url: process.env.COSTON2_RPC || "https://coston2-api.flare.network/ext/bc/C/rpc",
       timeout: 40000,
       accounts: accounts.map((x: any) => x.privateKey)
     },
     hardhat: {
       accounts,
-      initialDate: "2021-01-01",  // no time - get UTC @ 00:00:00
       blockGasLimit: 125000000 // 10x ETH gas
     },
     local: {

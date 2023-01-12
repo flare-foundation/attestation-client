@@ -36,6 +36,7 @@ export class SourceLimiterConfig {
  */
 export class AttestationConfig {
   startRoundId!: number;
+  chooseDeadlineSec: number = 45;
 
   sourceLimiters = new Map<number, SourceLimiterConfig>();
 
@@ -221,10 +222,29 @@ export class AttestationConfigManager {
       }
     }
 
-    this.logger.error(`DAC for source ${source} epoch ${roundId} does not exist`);
+    this.logger.error(`DAC for source ${source} roundId ${roundId} does not exist`);
 
     return null;
   }
+
+  /**
+   * Returns the currently valid DAC configuration for give @param roundId
+   * @param roundId 
+   * @returns 
+   */
+  getAttestationConfig(roundId: number): AttestationConfig {
+    // configs must be ordered by decreasing epoch number
+    for (let i = 0; i < this.attestationConfig.length; i++) {
+      if (this.attestationConfig[i].startRoundId < roundId) {
+        return this.attestationConfig[i];
+      }
+    }
+
+    this.logger.error(`DAC for roundId ${roundId} does not exist`);
+
+    return null;
+  }
+
 
   /**
    * @returns AttestationConfig for a given @param roundId

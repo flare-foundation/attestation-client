@@ -8,16 +8,17 @@
     "dynamicAttestationConfigurationFolder": "./configs/dac/",
     
     // commit time in seconds, actual commit time is: epoch start + epoch duration * 2 - commit time
-    "commitTime":11,
+    "commitTimeSec":-11,
 
-    // reveal time in seconds, actual reveal time is: epoch start + epoch duration * 2 + reveal time
-    "revealTime":80,
+    // commit time in seconds, actual commit time is: epoch start + epoch duration * 2 - bitVote time
+    "bitVoteTimeSec":-11,
 
     "web": {
         "accountPrivateKey": "$($(Network)NetworkPrivateKey)",
         "rpcUrl": "$($(Network)RPC)",
         "stateConnectorContractAddress": "$($(Network)StateConnectorContractAddress)",
         "refreshEventsMs": $($(Network)RefreshEventsMs),
+        "bitVotingContractAddress": $($(Network)BitVotingContractAddress),
     },
     "indexerDatabase": {
         "host": "$(IndexerDatabaseHost)",

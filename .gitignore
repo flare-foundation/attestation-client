@@ -48,6 +48,7 @@ nul
 .attestation-client-address
 .env.att-client-deploy
 .DS_Store
+.env
 
 ## Solidity
 artifacts

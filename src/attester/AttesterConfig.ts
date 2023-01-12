@@ -9,7 +9,8 @@ export class AttesterWebOptions {
   public accountPrivateKey = "";
   public rpcUrl = "";
   public stateConnectorContractAddress = "";
-
+  @optional() public bitVotingContractAddress = "";
+  
   @optional() public refreshEventsMs = 100;
 }
 
@@ -24,9 +25,12 @@ export class AttesterConfig implements IReflection<AttesterConfig> {
   public dynamicAttestationConfigurationFolder = "./configs/prod/dac/";
 
   // in sec
-  public commitTime = 10;
+  public commitTimeSec = -10;
 
-  // additional empty submit at the beggining of commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds)
+  // in sec
+  public bitVoteTimeSec = -10;
+
+  // additional empty submit at the beginning of commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds)
   public submitCommitFinalize = false;
 
 

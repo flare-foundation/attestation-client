@@ -16,6 +16,7 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 
 export enum AttestationRoundPhase {
   collect,
+  choose,
   commit,
   reveal,
   completed,
@@ -23,8 +24,10 @@ export enum AttestationRoundPhase {
 
 export enum AttestationRoundStatus {
   collecting,
-  commiting,
-  comitted,
+  choosing,
+  chosen,
+  committing,
+  committed,
   revealed,
   nothingToCommit,
 
@@ -139,9 +142,21 @@ export class AttestationRound {
   }
 
   /**
+   * Announces the start of the choose phase
+   */
+   async startChoosePhase() {
+    this.logger.group(
+      `round #${this.roundId} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.attestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
+      } req/sec)`
+    );
+    this.status = AttestationRoundPhase.choose;
+  }
+
+
+  /**
    * Announces the start of the commit phase and tries to commit
    */
-  async startCommitEpoch() {
+  async startCommitPhase() {
     this.logger.group(
       `round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.attestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
@@ -183,7 +198,7 @@ export class AttestationRound {
   /**
    * Announces the start of the reveal phase and sets the Round status to reveal
    */
-  startRevealEpoch() {
+  startRevealPhase() {
     this.logger.group(`round #${this.roundId} reveal epoch started [2]`);
     this.status = AttestationRoundPhase.reveal;
   }
@@ -244,7 +259,7 @@ export class AttestationRound {
     );
     return (
       this.attestationsProcessed === this.attestations.length &&
-      this.attestStatus === AttestationRoundStatus.commiting &&
+      this.attestStatus === AttestationRoundStatus.committing &&
       this.status === AttestationRoundPhase.commit
     );
   }
@@ -311,7 +326,7 @@ export class AttestationRound {
       return;
     }
 
-    this.attestStatus = AttestationRoundStatus.commiting;
+    this.attestStatus = AttestationRoundStatus.committing;
 
     // check if there is any valid attestation
     if (validated.length === 0) {
@@ -421,7 +436,7 @@ export class AttestationRound {
 
       if (receipt) {
         this.logger.info(`^G^wcomitted^^ round ^Y#${this.roundId}`);
-        this.attestStatus = AttestationRoundStatus.comitted;
+        this.attestStatus = AttestationRoundStatus.committed;
       } else {
         this.attestStatus = AttestationRoundStatus.error;
       }
@@ -438,12 +453,12 @@ export class AttestationRound {
     }
     if (this.attestStatus === AttestationRoundStatus.nothingToCommit) {
       this.logger.warning(`round #${this.roundId} nothing to commit`);
-    } else if (this.attestStatus !== AttestationRoundStatus.comitted) {
+    } else if (this.attestStatus !== AttestationRoundStatus.committed) {
       switch (this.attestStatus) {
         case AttestationRoundStatus.collecting:
           this.logger.error(`round #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`);
           break;
-        case AttestationRoundStatus.commiting:
+        case AttestationRoundStatus.committing:
           this.logger.error(`round #${this.roundId} cannot reveal (still comitting)`);
           break;
         default:
@@ -473,7 +488,7 @@ export class AttestationRound {
       nextRoundMaskedMerkleRoot = this.nextRound.roundMaskedMerkleRoot;
       nextRoundRandom = this.nextRound.roundRandom;
 
-      this.nextRound.attestStatus = AttestationRoundStatus.comitted;
+      this.nextRound.attestStatus = AttestationRoundStatus.committed;
     }
 
     // eslint-disable-next-line
@@ -487,8 +502,8 @@ export class AttestationRound {
         nextRoundMaskedMerkleRoot,
         nextRoundRandom,
         // reveal
-        this.attestStatus === AttestationRoundStatus.comitted ? this.roundMerkleRoot : toHex(0, 32),
-        this.attestStatus === AttestationRoundStatus.comitted ? this.roundRandom : toHex(0, 32),
+        this.attestStatus === AttestationRoundStatus.committed ? this.roundMerkleRoot : toHex(0, 32),
+        this.attestStatus === AttestationRoundStatus.committed ? this.roundRandom : toHex(0, 32),
       );
 
       if (receipt) {
@@ -499,5 +514,12 @@ export class AttestationRound {
         this.attestStatus = AttestationRoundStatus.error;
       }
     });
+  }
+
+  /**
+   * Calculates verified transactions and submits the bit voting result
+   */
+  async bitVote() {
+
   }
 }

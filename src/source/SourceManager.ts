@@ -184,7 +184,7 @@ export class SourceManager {
           // actual time when attestion will be rechecked
           const startTimeMs =
             this.attestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
-            this.attestationRoundManager.attestationConfigManager.config.commitTime * 1000 -
+            this.attestationRoundManager.attestationConfigManager.config.commitTimeSec * 1000 -
             this.verifierSourceConfig.reverificationTimeOffset * 1000;
 
           this.delayQueue(attestation, startTimeMs);

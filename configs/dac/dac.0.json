@@ -1,6 +1,6 @@
 {
    "startRoundId":0,
-
+   "chooseDeadlineSec": 45,
    "sources" :
    [
       {

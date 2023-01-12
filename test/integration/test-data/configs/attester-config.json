@@ -2,5 +2,5 @@
     "firstEpochStartTime": 1669852800,
     "roundDurationSec": 5,
     "dynamicAttestationConfigurationFolder": "./test/integration/test-data/dac/",
-    "commitTime": 1
+    "commitTimeSec": 1
 }

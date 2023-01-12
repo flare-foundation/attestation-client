@@ -15,6 +15,20 @@ import { AttesterConfig } from "./AttesterConfig";
 import { AttesterState } from "./AttesterState";
 import { AttesterWeb3 } from "./AttesterWeb3";
 import { AttestationConfigManager, SourceLimiterConfig } from "./DynamicAttestationConfig";
+
+export interface AttestationClientDebugCallbacks {
+  onChooseStart?: (roundId: number) => void;
+  onBitVote?: (roundId: number) => void;
+  onCommitStart?: (roundId: number) => void;
+  onCommitSubmission?: (roundId: number) => void;
+  onCommitLimit?: (roundId: number) => void;
+  onRevealStart?: (roundId: number) => void;
+  onReveal?: (roundId: number) => void;
+  onCompleted?: (roundId: number) => void;
+  onFirstCommit?: (roundId: number) => void;
+}
+
+const COMMIT_LIMIT_BUFFER_MS = 1000;
 /**
  * Manages a specific attestation round
  */
@@ -34,6 +48,8 @@ export class AttestationRoundManager {
   rounds = new Map<number, AttestationRound>();
   config: AttesterConfig;
   attesterWeb3: AttesterWeb3;
+
+  debugCallbacks: AttestationClientDebugCallbacks;
 
   constructor(
     sourceRouter: SourceRouter,
@@ -110,10 +126,13 @@ export class AttestationRoundManager {
   getRoundOrCreateIt(roundId: number): AttestationRound {
     // all times are in milliseconds
     const now = getTimeMilli();
-    const epochTimeStart = this.epochSettings.getRoundIdTimeStartMs(roundId);
-    const epochCommitTime: number = epochTimeStart + this.config.roundDurationSec * 1000;
-    const epochRevealTime: number = epochCommitTime + this.config.roundDurationSec * 1000;
-    const epochCompleteTime: number = epochRevealTime + this.config.roundDurationSec * 1000;
+    const chooseWindowDuration = this.attestationConfigManager.getAttestationConfig(roundId).chooseDeadlineSec;
+    const windowDuration = this.config.roundDurationSec * 1000;
+    const roundStartTime = this.epochSettings.getRoundIdTimeStartMs(roundId);
+    const roundChooseStartTime: number = roundStartTime + windowDuration;
+    const roundCommitStartTime: number = roundStartTime + windowDuration + chooseWindowDuration;
+    const roundRevealStartTime: number = roundStartTime + 2 * windowDuration;
+    const roundCompleteTime: number = roundStartTime + 3 * windowDuration;
 
     let activeRound = this.rounds.get(roundId);
 
@@ -144,10 +163,10 @@ export class AttestationRoundManager {
 
       const intervalId = setInterval(() => {
         const now = getTimeMilli();
-        if (now > epochCommitTime) {
+        if (now > roundCommitStartTime) {
           clearInterval(intervalId);
         }
-        const eta = 90 - (now - epochTimeStart) / 1000;
+        const eta = 90 - (now - roundStartTime) / 1000;
         if (eta >= 0) {
           getGlobalLogger().debug(
             `!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.attestationsProcessed}/${activeRound.attestations.length
@@ -157,43 +176,61 @@ export class AttestationRoundManager {
       }, 5000);
 
       // setup commit, reveal and completed callbacks
-      this.logger.info(`^w^Rcollect epoch started^^ round ^Y#${roundId}^^`);
+      this.logger.info(`^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
 
-      // trigger start commit epoch
+      // trigger start choose phase
       setTimeout(() => {
-        safeCatch(`setTimeout:startCommitEpoch`, async () => await activeRound!.startCommitEpoch());
-      }, epochCommitTime - now);
+        this.debugCallbacks?.onChooseStart?.(roundId);
+        safeCatch(`setTimeout:startChoosePhase`, async () => await activeRound!.startChoosePhase());
+      }, roundChooseStartTime - now);
+
+      // trigger sending bit vote result
+      setTimeout(() => {
+        this.debugCallbacks?.onBitVote?.(roundId);
+        safeCatch(`setTimeout:bitVote`, async () => await activeRound!.bitVote());
+      }, roundCommitStartTime + this.config.bitVoteTimeSec - now);
+
+      // trigger start commit phase
+      setTimeout(() => {
+        this.debugCallbacks?.onCommitStart?.(roundId);
+        safeCatch(`setTimeout:startCommitPhase`, async () => await activeRound!.startCommitPhase());
+      }, roundCommitStartTime - now);
 
       // trigger start commit epoch submit
       setTimeout(() => {
-        safeCatch(`setTimeout:startCommitEpoch`, () => activeRound!.startCommitSubmit());
-      }, epochCommitTime - now + 1000);
+        this.debugCallbacks?.onCommitSubmission?.(roundId);
+        safeCatch(`setTimeout:startCommitSubmit`, () => activeRound!.startCommitSubmit());
+      }, roundCommitStartTime - now + 1000);
 
       // trigger start reveal epoch
       setTimeout(() => {
-        safeCatch(`setTimeout:startRevealEpoch`, () => activeRound!.startRevealEpoch());
-      }, epochRevealTime - now);
+        this.debugCallbacks?.onRevealStart?.(roundId);
+        safeCatch(`setTimeout:startRevealEpoch`, () => activeRound!.startRevealPhase());
+      }, roundRevealStartTime - now);
 
       // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
       setTimeout(() => {
+        this.debugCallbacks?.onCommitLimit?.(roundId);
         safeCatch(`setTimeout:commitLimit`, () => activeRound!.commitLimit());
-      }, epochRevealTime - this.config.commitTime * 1000 - 1000 - now);
+      }, roundRevealStartTime + this.config.commitTimeSec * 1000 - COMMIT_LIMIT_BUFFER_MS - now);
 
       // trigger reveal
       setTimeout(() => {
+        this.debugCallbacks?.onReveal?.(roundId);
         safeCatch(`setTimeout:reveal`, () => activeRound!.reveal());
-      }, epochCompleteTime - this.config.commitTime * 1000 - now);
+      }, roundCompleteTime + this.config.commitTimeSec * 1000 - now);
 
       // trigger end of reveal epoch, cycle is completed at this point
       setTimeout(() => {
+        this.debugCallbacks?.onCompleted?.(roundId);
         safeCatch(`setTimeout:completed`, () => activeRound!.completed());
-      }, epochCompleteTime - now);
+      }, roundCompleteTime - now);
 
       this.rounds.set(roundId, activeRound);
 
       this.cleanup();
 
-      activeRound.commitEndTime = epochRevealTime - this.config.commitTime * 1000;
+      activeRound.commitEndTime = roundRevealStartTime + this.config.commitTimeSec * 1000;
 
       // link rounds
       const prevRound = this.rounds.get(roundId - 1);
@@ -203,8 +240,9 @@ export class AttestationRoundManager {
       } else {
         // trigger first commit
         setTimeout(() => {
+          this.debugCallbacks?.onFirstCommit?.(roundId);
           safeCatch(`setTimeout:firstCommit`, () => activeRound!.firstCommit());
-        }, epochRevealTime - this.config.commitTime * 1000 - now);
+        }, roundRevealStartTime + this.config.commitTimeSec * 1000 - now);
       }
     }
 
@@ -311,6 +349,14 @@ export class AttestationRoundManager {
   private augmentCutoffTimes(attestation: Attestation) {
     attestation.windowStartTime = this.windowStartTime(attestation);
     attestation.UBPCutoffTime = this.UBPCutoffTime(attestation)
+  }
+
+  /**
+   * Sets the debug callbacks. Used for testing purposes only.
+   * @param callbacks 
+   */
+  setDebugCallbacks(callbacks: AttestationClientDebugCallbacks) {
+    this.debugCallbacks = callbacks;
   }
 
 }

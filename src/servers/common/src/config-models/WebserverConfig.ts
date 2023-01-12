@@ -1,5 +1,4 @@
 import { optional } from "@flarenetwork/mcc";
-import { AttesterWebOptions } from "../../../../attester/AttesterConfig";
 import { DatabaseConnectOptions } from "../../../../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
 

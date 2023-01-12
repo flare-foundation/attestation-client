@@ -150,7 +150,7 @@ export class IndexerSync {
       // status
       const dbStatus = getStateEntryString("state", this.indexer.chainConfig.name, "sync", -1);
 
-      const blocksLeft = this.indexer.T - this.indexer.N;
+      const blocksLeft = this.indexer.T - this.indexer.N - this.indexer.chainConfig.numberOfConfirmations;
 
       if (statsBlocksPerSec > 0) {
         const timeLeft = (this.indexer.T - this.indexer.N) / statsBlocksPerSec;

@@ -7,6 +7,7 @@ import { Indexer } from "../../lib/indexer/indexer";
 import { IndexerConfiguration, IndexerCredentials } from "../../lib/indexer/IndexerConfiguration";
 import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
 import { initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { BlockXRP612, BlockXRP613, BlockXRP614 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 const sinon = require("sinon");
@@ -73,7 +74,11 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
 
       const stub1 = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(28014614 + indexer.chainConfig.numberOfConfirmations);
       const stub2 = sinon.stub(indexer.indexerSync, "getSyncStartBlockNumber").resolves(28014611);
-      //   const stub3 = sinon.stub(indexer.indexerToClient, "getBlockFromClient").resolves(TestBlockXRPAlt);
+
+      const stub3 = sinon.stub(indexer.indexerToClient.client, "getBlock");
+      stub3.withArgs(28014612).resolves(BlockXRP612);
+      stub3.withArgs(28014613).resolves(BlockXRP613);
+      stub3.withArgs(28014614).resolves(BlockXRP614);
 
       await indexer.indexerSync.runSync(0);
 

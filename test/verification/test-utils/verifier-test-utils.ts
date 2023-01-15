@@ -39,9 +39,11 @@ export interface VerifierTestSetups {
    logger: AttLogger;
 };
 
-export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions)  {
+export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, initTestLogger = true) {
    delete process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
-   initializeTestGlobalLogger();
+   if (initTestLogger) {
+      initializeTestGlobalLogger();
+   }
    const logger = getGlobalLogger("web");
 
    let lastTimestamp = getUnixEpochTimestamp();
@@ -101,7 +103,7 @@ export async function bootstrapVerifier(
    app = module.createNestApplication();
    app.useWebSocketAdapter(new WsAdapter(app));
    await app.init();
-   
+
    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
    entityManager = app.get(getEntityManagerToken("indexerDatabase"));
 
@@ -110,7 +112,7 @@ export async function bootstrapVerifier(
       logger.info(`Server started listening at http://localhost:${configurationService.config.port}`);
       logger.info(`Websocket server started listening at ws://localhost:${configurationService.config.port}`)
    })
-   
+
 
    await generateTestIndexerDB(
       chainType,

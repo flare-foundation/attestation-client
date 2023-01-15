@@ -87,6 +87,9 @@ export class VerifierRouter {
 
       // initialize by DAC start number      
       this.config = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${startRoundId}`);
+      if(!this.config) {
+         throw new Error(`Missing configuration for roundId ${startRoundId}. Verifier routes configuration start round ids should match the ones from DAC`)
+      }
       const definitions = await readAttestationTypeSchemes();
       this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>();
       // set up all possible routes

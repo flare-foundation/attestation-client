@@ -1,31 +1,24 @@
 // yarn test test/attestationClient/attestationClient.test.ts
 
-import { ChainType, prefix0x, traceManager } from "@flarenetwork/mcc";
-import BN from "bn.js";
+import { ChainType, prefix0x, sleepMs, traceManager } from "@flarenetwork/mcc";
 import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { spawn } from "child_process";
 import * as fs from "fs";
 import waitOn from "wait-on";
 import Web3 from "web3";
-import { Attestation } from "../../src/attester/Attestation";
-import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
-import { AttesterConfig } from "../../src/attester/AttesterConfig";
-import { AttesterWeb3 } from "../../src/attester/AttesterWeb3";
 import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
-import { SourceRouter } from "../../src/source/SourceRouter";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
-import { TestLogger } from "../../src/utils/testLogger";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/utils";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
-import { SourceId } from "../../src/verification/sources/sources";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "../verification/test-utils/verifier-test-utils";
-import { deployTestContracts } from "./utils/attestation-client-test-utils";
+import { bootstrapAttestationClient, deployTestContracts } from "./utils/attestation-client-test-utils";
+import sinon from "sinon";
 chai.use(chaiAsPromised);
 
 
@@ -44,73 +37,48 @@ const STATE_CONNECTOR_ADDRESS = "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F";
 const BIT_VOTE_ADDRESS = "0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf";
 const PRIVATE_KEY = "0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122";
 
+// set false to debug with global logger
+const TEST_LOGGER = false;
 
-class MockSourceRouter extends SourceRouter {
-  validateTransaction(sourceId: SourceId, transaction: Attestation) { }
-}
-
-class MockAttesterWeb3 extends AttesterWeb3 {
-  constructor(config: AttesterConfig, logger: AttLogger) {
-    super(config, logger);
-  }
-
-  async initialize() { }
-
-  check(bnString: string) {
-    if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
-      this.logger.error(`invalid BN formating ${bnString}`);
-    }
-  }
-
-  async submitAttestation(
-    action: string,
-    bufferNumber: BN,
-    // commit
-    commitedMerkleRoot: string,
-    commitedMaskedMerkleRoot: string,
-    commitedRandom: string,
-    // reveal
-    revealedMerkleRoot: string,
-    revealedRandom: string,
-
-    verbose = true
-  ) {
-    const roundId = bufferNumber.toNumber() - 1;
-    this.check(commitedMerkleRoot);
-    this.check(commitedMaskedMerkleRoot);
-    this.check(commitedRandom);
-    this.check(revealedMerkleRoot);
-    this.check(revealedRandom);
-  }
-}
 
 describe(`AttestationClient (${getTestFile(__filename)})`, () => {
-  let attestationRoundManager: AttestationRoundManager;
   let setup: VerifierTestSetups;
   let child;
   let web3: Web3;
   before(async function () {
-    initializeTestGlobalLogger();
+    if (TEST_LOGGER) {
+      initializeTestGlobalLogger();
+    }
 
-    setRetryFailureCallback((label: string) => {
-      throw new Error(TERMINATION_TOKEN);
-    });
+
+    // setRetryFailureCallback((label: string) => {
+    //   throw new Error(TERMINATION_TOKEN);
+    // });
 
     traceManager.displayStateOnException = false;
+    sinon.stub(process, 'exit');
+
+    (process.exit as any).callsFake((code) => {
+      console.log(`EXIT`);
+      delete process.env.TEST_CREDENTIALS;
+      child.stdin.pause();
+      child.kill();
+      sinon.restore();
+      process.exit();
+    });
 
     process.env.TEST_CREDENTIALS = '1';
 
     child = spawn("yarn", ["hardhat", "node"], { shell: true });
 
-    await waitOn({ resources: ["http://127.0.0.1:8545"] });
+    await waitOn({ resources: [RPC] });
     await deployTestContracts(RPC, PRIVATE_KEY);
     web3 = getWeb3(RPC);
     let bootstrapOptions = {
-      CONFIG_PATH: CONFIG_PATH_VERIFIER, 
+      CONFIG_PATH: CONFIG_PATH_VERIFIER,
       FIRST_BLOCK, LAST_BLOCK, LAST_CONFIRMED_BLOCK, TXS_IN_BLOCK, BLOCK_CHOICE
     } as VerifierBootstrapOptions;
-    setup = await bootstrapTestVerifiers(bootstrapOptions);
-
+    setup = await bootstrapTestVerifiers(bootstrapOptions, false);
   });
 
   after(async () => {
@@ -119,27 +87,12 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     await setup.BTC.app.close();
     child.stdin.pause();
     child.kill();
+    sinon.restore();
   });
 
   beforeEach(async function () {
-    TestLogger.clear();
+    // TestLogger.clear();
     const logger = getGlobalLogger();
-
-    // // Reading configuration
-    // const config = await readSecureConfig(new AttesterConfig(), "attester");
-
-
-    // // Create and start Attester Client
-    // const attesterClient = new AttesterClient(config);
-    // return await attesterClient.runAttesterClient();
-
-
-    // // Reading configuration
-    // const config = new AttesterConfig();
-
-    // const sourceRouter = new MockSourceRouter(undefined);
-    // const attesterWeb3 = new MockAttesterWeb3(config, logger);
-    // attestationRoundManager = new AttestationRoundManager(sourceRouter, config, logger, attesterWeb3);
   });
 
   it(`Should contracts be deployed on the correct addresses`, async function () {
@@ -155,8 +108,8 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     assert(await bitVoting.methods.BUFFER_WINDOW().call() === "90");
   });
 
-  it(`Should verify attestation`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH_VERIFIER;    
+  it(`Should be able to verify attestations through VerifierRouter`, async function () {
+    process.env.CONFIG_PATH = CONFIG_PATH_VERIFIER;
     const verifierRouter = new VerifierRouter();
     await verifierRouter.initialize(150);
 
@@ -177,13 +130,12 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     assert(respBTC.data.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
   });
 
-  // it(`Test 2`, async function () {
-  //       // let attClient0 = await bootstrapAttestationClient(0);
-  //   // await attClient0.runAttesterClient();
-
-  //   let attClient0 = await bootstrapAttestationClient(0);
-  //   await attClient0.runAttesterClient();
-  //   console.log("RUNN")
-  // });
+  it(`Should bootstrap attestation client`, async function () {
+    process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
+    let attClient0 = await bootstrapAttestationClient(0);
+    await attClient0.runAttesterClient();
+    console.log("RUN");
+    await sleepMs(10000);
+  });
 
 });

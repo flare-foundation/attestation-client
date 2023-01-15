@@ -9,6 +9,7 @@ import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
+import { getSourceConfig } from "../verification/routing/configs/VerifierRouteConfig";
 import { VerifierSourceRouteConfig } from "../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../verification/sources/sources";
 import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
@@ -34,12 +35,15 @@ export class SourceManager {
     this.attestationRoundManager = attestationRoundManager;
   }
 
-  setConfig(sourceId: SourceId, roundId: number)
-  {
-    this.verifierSourceConfig = this.attestationRoundManager.attestationConfigManager.getVerifierRouter( roundId ).config.getSourceConfig(sourceId);
-    if( !this.verifierSourceConfig ) {
+  setConfig(sourceId: SourceId, roundId: number) {
+    let verifierRouteConfig = this.attestationRoundManager.attestationConfigManager.getVerifierRouter(roundId).config;
+    if (verifierRouteConfig) {
+      this.verifierSourceConfig = getSourceConfig(verifierRouteConfig, sourceId);
+    }
+    if (!this.verifierSourceConfig) {
       this.logger.error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
-      exit(1);
+      // We allow for non-complete configuration
+      // exit(1);
     }
   }
 

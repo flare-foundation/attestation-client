@@ -1,4 +1,4 @@
-import { Managed } from "@flarenetwork/mcc";
+import { Managed, sleepMs } from "@flarenetwork/mcc";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
@@ -40,14 +40,22 @@ export class AttesterClient {
     let blockNumber = await this.attesterWeb3.web3Functions.getBlockNumber();
 
     while (true) {
-      const block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
+      try {
+        const block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
 
-      if (block.timestamp < time) {
-        this.logger.debug2(`start block number ${blockNumber} time ${secToHHMMSS(block.timestamp)}`);
-        return blockNumber;
+        if (block.timestamp < time) {
+          this.logger.debug2(`start block number ${blockNumber} time ${secToHHMMSS(block.timestamp)}`);
+          return blockNumber;
+        }
+
+        blockNumber -= 10;
+        if (blockNumber < 0) {
+          return 0;
+        }
+      } catch (e) {
+        this.logger.error(`Error: ${e}`);
+        await sleepMs(10);
       }
-
-      blockNumber -= 10;
     }
   }
 

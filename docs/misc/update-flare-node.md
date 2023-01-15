@@ -1,6 +1,22 @@
 Flare Node Update script
 
 
+```
+bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+sudo apt -y install gcc g++ curl jq
+sudo apt-get install bison -y
+sudo apt-get install make -y
+sudo apt-get install golang-go -y
+sudo npm install gvm -y
+source ~/.profile 
+
+gvm install go1.18.5
+gvm use go1.18.5 --default
+
+
+
+```
+
 
 ```
 cd flare2/go-flare
@@ -9,7 +25,7 @@ cd flare2/go-flare
 Run from folder where you have avalanche git:
 ```
 gvm install go1.18.5
-gvm use go1.18.5
+gvm use go1.18.5 --default
 git pull
 git checkout v0.7.1
 

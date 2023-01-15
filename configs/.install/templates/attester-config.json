@@ -18,7 +18,7 @@
         "rpcUrl": "$($(Network)RPC)",
         "stateConnectorContractAddress": "$($(Network)StateConnectorContractAddress)",
         "refreshEventsMs": $($(Network)RefreshEventsMs),
-        "bitVotingContractAddress": $($(Network)BitVotingContractAddress),
+        "bitVotingContractAddress": "$($(Network)BitVotingContractAddress)",
     },
     "indexerDatabase": {
         "host": "$(IndexerDatabaseHost)",

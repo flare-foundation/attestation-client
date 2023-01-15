@@ -2,8 +2,6 @@
 
 source ./scripts/install-config.sh
 
-source .config.secret.sh2
-
 echo -e "${GREENBOLD}Installing testnet nodes${NC}"
 
 export LOCAL_DIR=$(pwd)
@@ -16,7 +14,12 @@ cd connected-chains-docker/
 git config --global --add safe.directory /opt/connected-chains-docker
 #sudo git checkout testnets
 
-sudo ./install.sh testnet $SECRET_NODES_TESTNET
+#sudo ./install.sh testnet $SECRET_NODES_TESTNET
+
+cd $LOCAL_DIR
+yarn ts-node src/install/secureCommand.ts -a installNodesTestNet -f "/opt/connected-chains-docker"
+
+cd /opt/connected-chains-docker
 sudo docker-compose -f docker-compose-testnet.yml up -d
 
 sudo ./algorand-catchup.sh

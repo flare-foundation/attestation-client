@@ -4,7 +4,7 @@ import { SourceRouter } from "../source/SourceRouter";
 import { DatabaseService } from "../utils/databaseService";
 import { EpochSettings } from "../utils/EpochSettings";
 import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
+import { AttLogger, logException } from "../utils/logger";
 import { safeCatch } from "../utils/PromiseTimeout";
 import { MOCK_NULL_WHEN_TESTING, round, sleepms } from "../utils/utils";
 import { toSourceId } from "../verification/sources/sources";
@@ -42,7 +42,7 @@ export class AttestationRoundManager {
 
   state: AttesterState;
 
-  startEpochId: number;
+  startRoundId: number;
   activeRoundId: number;
 
   rounds = new Map<number, AttestationRound>();
@@ -52,7 +52,6 @@ export class AttestationRoundManager {
   debugCallbacks: AttestationClientDebugCallbacks;
 
   constructor(
-    sourceRouter: SourceRouter,
     config: AttesterConfig,
     logger: AttLogger,
     attesterWeb3: AttesterWeb3
@@ -62,7 +61,7 @@ export class AttestationRoundManager {
     this.attesterWeb3 = attesterWeb3;
 
     this.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
-    this.sourceRouter = sourceRouter;
+    this.sourceRouter = new SourceRouter(this);
     this.attestationConfigManager = new AttestationConfigManager(this);
 
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
@@ -78,9 +77,9 @@ export class AttestationRoundManager {
     this.dbServiceAttester = new DatabaseService(this.logger, this.config.attesterDatabase, "attester");
     await this.dbServiceAttester.connect();
 
-    // update active round again since waitin for DB connection can take time
+    // update active round again since waiting for DB connection can take time
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
-    this.startEpochId = this.activeRoundId;
+    this.startRoundId = this.activeRoundId;
 
     this.state = new AttesterState(this.dbServiceAttester.manager);
 
@@ -168,7 +167,7 @@ export class AttestationRoundManager {
         }
         const eta = 90 - (now - roundStartTime) / 1000;
         if (eta >= 0) {
-          getGlobalLogger().debug(
+          this.logger.debug(
             `!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wtransactions: ${activeRound.attestationsProcessed}/${activeRound.attestations.length
             }  `
           );
@@ -259,7 +258,7 @@ export class AttestationRoundManager {
 
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
-    if (epochId < this.startEpochId) {
+    if (epochId < this.startRoundId) {
       this.logger.debug(`epoch too low ^Y#${epochId}^^`);
       return;
     }

@@ -15,7 +15,6 @@ dist
 # Testing
 test_logs
 accounts.json
-.config.secret.sh2
 
 ## Build generated
 build/

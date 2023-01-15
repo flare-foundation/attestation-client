@@ -2,7 +2,7 @@ import { ChainType } from "@flarenetwork/mcc";
 import fs from "fs";
 import { exit } from "process";
 import { readJSON } from "../utils/json";
-import { getGlobalLogger, logException } from "../utils/logger";
+import { logException } from "../utils/logger";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
@@ -75,19 +75,17 @@ export class AttestationConfigManager {
    * Checks that globally set enumerations of chains in Multi Chain Client and Attestation Client match
    */
   validateEnumNames() {
-    const logger = getGlobalLogger();
-
     for (const value in ChainType) {
       if (typeof ChainType[value] === "number") {
         if (ChainType[value] !== SourceId[value]) {
-          logger.error2(
+          this.logger.error2(
             `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]
             }=${SourceId[value]}`
           );
         }
 
         if (ChainType[ChainType[value] as any] !== SourceId[SourceId[value] as any]) {
-          logger.error2(
+          this.logger.error2(
             `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]
             }=${SourceId[value]}`
           );
@@ -149,13 +147,13 @@ export class AttestationConfigManager {
     const fileConfig = readJSON<any>(filename, JSONMapParser);
 
     // check if loading current round (or next one)
-    if (fileConfig.startEpoch == this.attestationRoundManager.activeRoundId || fileConfig.startEpoch == this.attestationRoundManager.activeRoundId + 1) {
-      this.logger.warning(`DAC almost alive (epoch ${fileConfig.startEpoch})`);
+    if (fileConfig.startRoundId == this.attestationRoundManager.activeRoundId || fileConfig.startRoundId == this.attestationRoundManager.activeRoundId + 1) {
+      this.logger.warning(`DAC almost alive (epoch ${fileConfig.startRoundId})`);
     }
 
     // convert from file structure
     const config = new AttestationConfig();
-    config.startRoundId = fileConfig.startEpoch;
+    config.startRoundId = fileConfig.startRoundId;
 
     await config.verifierRouter.initialize(config.startRoundId);
 
@@ -192,7 +190,7 @@ export class AttestationConfigManager {
   }
 
   /**
-   * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epochs
+   * Sorts attestationConfig based on the startRoundId and clears Configs for the passed rounds
    */
   orderConfigurations() {
     this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {
@@ -204,7 +202,7 @@ export class AttestationConfigManager {
     // cleanup
     for (let i = 1; i < this.attestationConfig.length; i++) {
       if (this.attestationConfig[i].startRoundId < this.attestationRoundManager.activeRoundId) {
-        this.logger.debug(`DAC cleanup #${i} (epoch ${this.attestationConfig[i].startRoundId})`);
+        this.logger.debug(`DAC cleanup #${i} (roundId ${this.attestationConfig[i].startRoundId})`);
         this.attestationConfig.slice(i);
         return;
       }
@@ -215,7 +213,7 @@ export class AttestationConfigManager {
    * @returns SourceLimiterConfig for a given @param source that is valid for in @param roundId
    */
   getSourceLimiterConfig(source: number, roundId: number): SourceLimiterConfig {
-    // configs must be ordered by decreasing epoch number
+    // configs must be ordered by decreasing roundId number
     for (let i = 0; i < this.attestationConfig.length; i++) {
       if (this.attestationConfig[i].startRoundId < roundId) {
         return this.attestationConfig[i].sourceLimiters.get(source)!;
@@ -233,7 +231,7 @@ export class AttestationConfigManager {
    * @returns 
    */
   getAttestationConfig(roundId: number): AttestationConfig {
-    // configs must be ordered by decreasing epoch number
+    // configs must be ordered by decreasing roundId number
     for (let i = 0; i < this.attestationConfig.length; i++) {
       if (this.attestationConfig[i].startRoundId < roundId) {
         return this.attestationConfig[i];
@@ -250,7 +248,7 @@ export class AttestationConfigManager {
    * @returns AttestationConfig for a given @param roundId
    */
   getConfig(roundId: number): AttestationConfig {
-    // configs must be ordered by decreasing epoch number
+    // configs must be ordered by decreasing roundId number
     for (let i = 0; i < this.attestationConfig.length; i++) {
       if (this.attestationConfig[i].startRoundId < roundId) {
         return this.attestationConfig[i];
@@ -266,7 +264,7 @@ export class AttestationConfigManager {
    * @returns getVerifierRouter for a given @param roundId
    */
   getVerifierRouter(roundId: number): VerifierRouter {
-    // configs must be ordered by decreasing epoch number
+    // configs must be ordered by decreasing roundId number
     for (let i = 0; i < this.attestationConfig.length; i++) {
       if (this.attestationConfig[i].startRoundId < roundId) {
         return this.attestationConfig[i].verifierRouter;

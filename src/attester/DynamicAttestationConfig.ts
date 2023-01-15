@@ -9,6 +9,7 @@ import { VerifierRouter } from "../verification/routing/VerifierRouter";
 import { SourceId, toSourceId } from "../verification/sources/sources";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 
+const DAC_REFRESH_TIME_S = 10;
 export class SourceLimiterTypeConfig {
   // Weight presents the difficulty of validating the attestation depending on the attestation type and source
   weight!: number;
@@ -100,20 +101,34 @@ export class AttestationConfigManager {
     await this.dynamicLoadInitialize();
   }
 
+
+  async updateDynamicConfigForFile(event: string, filename: string) {
+    try {
+      if (filename && event === "rename") {
+        // todo: check why on the fly report JSON error
+        this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
+        let result = await this.load(this.config.dynamicAttestationConfigurationFolder + filename);
+        if (result) {
+          this.orderConfigurations();
+        } else {
+          throw new Error(`Problems with loading file ${filename}`)
+        }
+      }
+    } catch (error) {
+      this.logger.exception(error);
+      setTimeout(() => {
+        this.updateDynamicConfigForFile(event, filename);
+      }, DAC_REFRESH_TIME_S * 1000);
+    }
+  }
   /**
    * Check for changes in dynamicAttestationConfigurationFolder and loads new files
    */
   async dynamicLoadInitialize() {
     try {
-      fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
-        if (filename && event === "rename") {
-          // todo: check why on the fly report JSON error
-          this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
-          if (this.load(this.config.dynamicAttestationConfigurationFolder + filename)) {
-            this.orderConfigurations();
-          }
-        }
-      });
+      fs.watch(this.config.dynamicAttestationConfigurationFolder,
+        async (event: string, filename: string) => this.updateDynamicConfigForFile(event, filename)
+      );
     }
     catch (error) {
       this.logger.exception(error);
@@ -125,68 +140,84 @@ export class AttestationConfigManager {
    */
   async loadAll() {
     try {
-      await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err, files: string[]) => {
-        if (files) {
-          files.forEach((filename) => {
-            this.load(this.config.dynamicAttestationConfigurationFolder + filename);
-          });
-          this.orderConfigurations();
-        } else {
-          this.logger.warning(`DAC: no configuration files`);
-        }
-      });
+      let files = fs.readdirSync(this.config.dynamicAttestationConfigurationFolder);
+      if (files && files.length > 0) {
+        const promises = files.map(async (filename: string) => {
+          let result = await this.load(this.config.dynamicAttestationConfigurationFolder + filename);
+          if (!result) {
+            this.logger.error(`Failure while loading ${filename}. Stopping!`);
+            process.exit(1);
+          }
+        });
+        await Promise.all(promises);
+        this.orderConfigurations();
+      } else {
+        this.logger.error(`DAC: no configuration files`);
+        process.exit(1);
+      }
     } catch (error) {
-      logException(error, `loadAll `);
+      logException(error, `loadAll`);
+      process.exit(1);
     }
   }
 
   async load(filename: string, disregardObsolete = false): Promise<boolean> {
-    this.logger.info(`^GDAC load '${filename}'`);
+    let config: AttestationConfig;
+    try {
+      this.logger.info(`^GDAC load '${filename}'`);
 
-    // todo: read with config (to get proper type)
-    const fileConfig = readJSON<any>(filename, JSONMapParser);
+      // todo: read with config (to get proper type)
+      const fileConfig = readJSON<any>(filename, JSONMapParser);
 
-    // check if loading current round (or next one)
-    if (fileConfig.startRoundId == this.attestationRoundManager.activeRoundId || fileConfig.startRoundId == this.attestationRoundManager.activeRoundId + 1) {
-      this.logger.warning(`DAC almost alive (epoch ${fileConfig.startRoundId})`);
-    }
-
-    // convert from file structure
-    const config = new AttestationConfig();
-    config.startRoundId = fileConfig.startRoundId;
-
-    await config.verifierRouter.initialize(config.startRoundId);
-
-    // parse sources
-    fileConfig.sources.forEach(
-      (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; UBPUnconfirmedWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
-        const sourceLimiter = new SourceLimiterConfig();
-
-        sourceLimiter.source = toSourceId(source.source);
-
-        sourceLimiter.maxTotalRoundWeight = source.maxTotalRoundWeight;
-        sourceLimiter.numberOfConfirmations = source.numberOfConfirmations;
-        sourceLimiter.queryWindowInSec = source.queryWindowInSec;
-        sourceLimiter.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
-
-        config.sourceLimiters.set(sourceLimiter.source, sourceLimiter);
-
-        // parse attestationTypes
-        source.attestationTypes.forEach((attestationType) => {
-          const type = (<any>AttestationType)[attestationType.type] as AttestationType;
-
-          const attestationTypeHandler = new SourceLimiterTypeConfig();
-
-          attestationTypeHandler.weight = attestationType.weight;
-
-          sourceLimiter.attestationTypes.set(type, attestationTypeHandler);
-        });
+      // check if loading current round (or next one)
+      if (fileConfig.startRoundId == this.attestationRoundManager.activeRoundId || fileConfig.startRoundId == this.attestationRoundManager.activeRoundId + 1) {
+        this.logger.warning(`DAC almost alive (epoch ${fileConfig.startRoundId})`);
       }
-    );
 
-    this.attestationConfig.push(config);
+      // convert from file structure
+      config = new AttestationConfig();
+      config.startRoundId = fileConfig.startRoundId;
 
-    return true;
+      // This initialization may fail, hence the dac initialization will fail
+      // TODO: make a recovery mechanism
+      await config.verifierRouter.initialize(config.startRoundId);
+
+      // parse sources
+      fileConfig.sources.forEach(
+        (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; UBPUnconfirmedWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
+          const sourceLimiter = new SourceLimiterConfig();
+
+          sourceLimiter.source = toSourceId(source.source);
+
+          sourceLimiter.maxTotalRoundWeight = source.maxTotalRoundWeight;
+          sourceLimiter.numberOfConfirmations = source.numberOfConfirmations;
+          sourceLimiter.queryWindowInSec = source.queryWindowInSec;
+          sourceLimiter.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
+
+          config.sourceLimiters.set(sourceLimiter.source, sourceLimiter);
+
+          // parse attestationTypes
+          source.attestationTypes.forEach((attestationType) => {
+            const type = (<any>AttestationType)[attestationType.type] as AttestationType;
+
+            const attestationTypeHandler = new SourceLimiterTypeConfig();
+
+            attestationTypeHandler.weight = attestationType.weight;
+
+            sourceLimiter.attestationTypes.set(type, attestationTypeHandler);
+          });
+        }
+      );
+
+    } catch (e) {
+      this.logger.error(e);
+      return false;
+    }
+    if (config) {
+      this.attestationConfig.push(config);
+      return true;
+    }
+    return false;
   }
 
   /**

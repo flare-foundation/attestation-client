@@ -585,6 +585,26 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "AC integration test",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
+            "env": {
+                "NODE_ENV":"development"
+            },
+            "runtimeArgs": [
+                "test",
+                "test/attestationClient/AttestationClient.integration-test.ts"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Test indexed query manager",
             "runtimeExecutable": "yarn",
             "outFiles": [
@@ -671,7 +691,6 @@
             "request": "launch",
             "name": "--- SubSets LIB ---",
         },
-
         {
             "type": "node",
             "console": "integratedTerminal",

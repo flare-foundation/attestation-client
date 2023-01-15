@@ -25,13 +25,18 @@ async function Upsert<T>(
 ) {
   const keys: string[] = _.difference(_.keys(obj), opts ? opts.do_not_upsert : []);
 
-  await entityManager
-    .createQueryBuilder()
-    .insert()
-    .into(DBRoundResult)
-    .values(obj)
-    .orUpdate([primary_key], keys)
-    .execute();
+  if (((process.env.IN_MEMORY_DB || process.env.TEST_DB_PATH) && process.env.NODE_ENV !== "production")) {
+    // Some issues with orUpdate on better-sqlite3
+    await entityManager.getRepository(DBRoundResult).save(obj);
+  } else {
+    await entityManager
+      .createQueryBuilder()
+      .insert()
+      .into(DBRoundResult)
+      .values(obj)
+      .orUpdate([primary_key], keys)
+      .execute();
+  }
 }
 
 /**

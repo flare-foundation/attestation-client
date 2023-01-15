@@ -83,10 +83,6 @@ export class AttestationRound {
     return this.attestationRoundManager.attesterWeb3;
   }
 
-  get sourceRouter() {
-    return this.attestationRoundManager.sourceRouter;
-  }
-
   /**
    * Returns the existing source Handler for the source chain of an attestation or creates a new sourceLimiter
    * @param data 
@@ -134,7 +130,7 @@ export class AttestationRound {
 
     // start attestation process
     if (attestation.sourceLimiter.canProceedWithValidation(attestation)) {
-      this.sourceRouter.validateAttestation(attestation);
+      this.attestationRoundManager.sourceRouter.validateAttestation(attestation);
     }
     else {
       this.processed(attestation);

@@ -56,7 +56,7 @@ ec78f34baf7e8b3eb7216d6617bb17dc8215997a677dbbe15c6804a4a75b4678
 ### Drop and delete testnet nodes and containers
 
 ```bash
-sudo docker-compose -f docker-compose-testnet.yml down
+
 sudo docker-compose -f docker-compose-testnet.yml up -d
 
 
@@ -64,10 +64,14 @@ sudo docker-compose -f docker-compose-testnet.yml up -d
 
 sudo docker system df --verbose
 
+
+sudo docker-compose -f docker-compose-testnet.yml down
 sudo docker volume rm $(sudo docker volume ls -q)
 sudo docker image rm $(sudo docker image ls -q)
 sudo docker volume prune
 sudo docker image prune
+
+
 ```
 
 ## Install Attestation Frontend

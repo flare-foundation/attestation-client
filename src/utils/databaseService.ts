@@ -47,11 +47,11 @@ export class DatabaseService {
 
     const migrations = process.env.NODE_ENV === "development" ? `src/migration/${this.databaseName}*.ts` : `dist/src/migration/${this.databaseName}*.js`;
 
-    if (isTestDB || (process.env.IN_MEMORY_DB && process.env.NODE_ENV !== "production")) {
+    if (isTestDB || ((process.env.IN_MEMORY_DB || process.env.TEST_DB_PATH) && process.env.NODE_ENV !== "production")) {
       let connectOptions = {
         name: this.connectionName,
         type: "better-sqlite3",
-        database: ":memory:",
+        database: process.env.TEST_DB_PATH ?? ":memory:",
         dropSchema: true,
         entities: this.options.entities ?? [entities],
         synchronize: true,

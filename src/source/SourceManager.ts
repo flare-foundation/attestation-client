@@ -4,7 +4,7 @@ import { exit } from "process";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { getTimeMilli, getTimeSec } from "../utils/internetTime";
-import { getGlobalLogger, logException } from "../utils/logger";
+import { AttLogger, logException } from "../utils/logger";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
@@ -38,13 +38,13 @@ export class SourceManager {
   {
     this.verifierSourceConfig = this.attestationRoundManager.attestationConfigManager.getVerifierRouter( roundId ).config.getSourceConfig(sourceId);
     if( !this.verifierSourceConfig ) {
-      getGlobalLogger().error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
+      this.logger.error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
       exit(1);
     }
   }
 
-  get sourceRouter() {
-    return this.attestationRoundManager.sourceRouter;
+  get logger(): AttLogger {
+    return this.attestationRoundManager.logger;
   }
 
   onSend(inProcessing?: number, inQueue?: number) {
@@ -79,7 +79,7 @@ export class SourceManager {
    * @param attestation
    */
   queue(attestation: Attestation) {
-    //this.sourceRouter.logger.info(`chain ${this.chainName} queue ${attestation.data.id} (${this.attestationQueue.length}++,${this.attestationProcessing.length},${this.transactionsDone.length})`);
+    //this.logger.info(`chain ${this.chainName} queue ${attestation.data.id} (${this.attestationQueue.length}++,${this.attestationProcessing.length},${this.transactionsDone.length})`);
     attestation.status = AttestationStatus.queued;
     this.attestationsQueue.push(attestation);
   }
@@ -128,7 +128,7 @@ export class SourceManager {
       // setup new timer
       this.delayQueueStartTime = firstStartTime;
       this.delayQueueTimer = setTimeout(() => {
-        this.sourceRouter.logger.debug(`priority queue timeout`);
+        this.logger.debug(`priority queue timeout`);
 
         this.startNext();
         this.delayQueueTimer = undefined;
@@ -142,13 +142,13 @@ export class SourceManager {
    * @returns
    */
   async process(attestation: Attestation) {
-    //this.sourceRouter.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
+    //this.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
 
     const now = getTimeMilli();
 
     // check if the transaction is too late
     if (now > attestation.round.commitEndTime) {
-      //this.sourceRouter.logger.error(`chain ${tx.epochId} transaction too late to process`);
+      //this.logger.error(`chain ${tx.epochId} transaction too late to process`);
 
       attestation.status = AttestationStatus.tooLate;
 
@@ -177,7 +177,7 @@ export class SourceManager {
         attestation.processEndTime = getTimeMilli();
 
         if (verification.status === VerificationStatus.RECHECK_LATER) {
-          //this.sourceRouter.logger.warning(`reverification ${attestation.data.request}`);
+          //this.logger.warning(`reverification ${attestation.data.request}`);
 
           attestation.reverification = true;
 
@@ -191,7 +191,7 @@ export class SourceManager {
         } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
           // TODO: handle this case and do not commit
           // TODO: message other clients or what? do not submit? do not submit that source???
-          this.sourceRouter.logger.error2(`SYSTEM_FAILURE ${attestation.data.request}`);
+          this.logger.error2(`SYSTEM_FAILURE ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid, verification);
         } else {
           this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
@@ -216,13 +216,13 @@ export class SourceManager {
         // Retries
         attestation.processEndTime = getTimeMilli();
         if (attestation.retry < this.verifierSourceConfig.maxFailedRetry) {
-          this.sourceRouter.logger.warning(`transaction verification error (retry ${attestation.retry})`);
+          this.logger.warning(`transaction verification error (retry ${attestation.retry})`);
 
           attestation.retry++;
 
           this.delayQueue(attestation, getTimeMilli() + this.verifierSourceConfig.delayBeforeRetry * 1000);
         } else {
-          this.sourceRouter.logger.error2(`transaction verification error ${attestation.data.request}`);
+          this.logger.error2(`transaction verification error ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid);
         }
       });
@@ -242,7 +242,7 @@ export class SourceManager {
 
     attestation.verificationData = verificationData!;
 
-    //this.sourceRouter.logger.info(`chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
+    //this.logger.info(`chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
 
     // move into processed
     arrayRemoveElement(this.attestationProcessing, attestation);
@@ -261,7 +261,7 @@ export class SourceManager {
    * @param attestation
    */
   validate(attestation: Attestation): void {
-    //this.sourceRouter.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
+    //this.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
     // check if transaction can be added into processing
     if (this.canProcess()) {
@@ -279,7 +279,7 @@ export class SourceManager {
     try {
       if (!this.canProcess()) {
         if (this.attestationProcessing.length === 0) {
-          this.sourceRouter.logger.debug(` # startNext heartbeat`);
+          this.logger.debug(` # startNext heartbeat`);
           setTimeout(() => {
             this.startNext();
           }, 100);

@@ -89,6 +89,20 @@ export async function getCredentialsKeyByAddress(address: string) {
     return await getSecretPasswordByProvider(providerAddress[0], providerAddress[1]);
 }
 
+
+/**
+ * read credential address from file. it uses only first line.
+ * @param filename 
+ * @returns 
+ */
+function readAddressFromFile(filename: string): string {
+    const data = fs.readFileSync(filename).toString();
+
+    const dataLines = data.split(/\r?\n/);
+
+    return dataLines[0];
+}
+
 /**
  * get raw credentials key from 
  * (1) `CREDENTIALS_KEY` env
@@ -104,10 +118,10 @@ export function getCredentialsKeyAddress(): string {
             return process.env.CREDENTIALS_KEY;
         } else if (process.env.CREDENTIALS_KEY_FILE) {
             getGlobalLogger().debug(`CredentialsKeyAddress using CREDENTIALS_KEY_FILE ('${process.env.CREDENTIALS_KEY_FILE}') env file`);
-            return fs.readFileSync(process.env.CREDENTIALS_KEY_FILE).toString();
+            return readAddressFromFile(process.env.CREDENTIALS_KEY_FILE);
         } else {
             getGlobalLogger().debug(`CredentialsKeyAddress using default '${DEFAULT_CREDENTIAL_KEY_FILENAME}' file`);
-            return fs.readFileSync(DEFAULT_CREDENTIAL_KEY_FILENAME).toString();
+            return readAddressFromFile(DEFAULT_CREDENTIAL_KEY_FILENAME);
         }
     }
     catch (error) {
@@ -120,8 +134,7 @@ export function getCredentialsKeyAddress(): string {
  * get credentials key 
  * @returns 
  */
-export async function getCredentialsKey(): Promise<string> {
-
+export async function getCredentialsKey(): Promise<string> {    
     return await getCredentialsKeyByAddress(getCredentialsKeyAddress());
 }
 

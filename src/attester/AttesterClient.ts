@@ -1,6 +1,4 @@
 import { Managed } from "@flarenetwork/mcc";
-import { SourceRouter } from "../source/SourceRouter";
-import { fetchSecret } from "../utils/GoogleSecret";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
@@ -18,7 +16,6 @@ export class AttesterClient {
   logger: AttLogger;
   attestationRoundManager: AttestationRoundManager;
   attesterWeb3: AttesterWeb3;
-  sourceRouter: SourceRouter;
   blockCollector!: Web3BlockCollector;
 
   constructor(config: AttesterConfig, logger?: AttLogger) {
@@ -29,9 +26,8 @@ export class AttesterClient {
     }
 
     this.config = config;
-    this.sourceRouter = new SourceRouter(this.attestationRoundManager);
     this.attesterWeb3 = new AttesterWeb3(this.config, this.logger);
-    this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.config, this.logger, this.attesterWeb3);
+    this.attestationRoundManager = new AttestationRoundManager(this.config, this.logger, this.attesterWeb3);
   }
 
   /**

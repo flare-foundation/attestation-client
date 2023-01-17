@@ -1,6 +1,7 @@
 import BN from "bn.js";
 import glob from "glob";
 import Web3 from "web3";
+import { getGlobalLogger } from "../../utils/logger";
 import { AttestationTypeScheme, NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
 
 const toBN = Web3.utils.toBN;
@@ -31,7 +32,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
       return "string";
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      ((_: never): void => { })(type);
   }
 }
 
@@ -73,7 +74,7 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
       return web3.utils.randomHex(32);
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      ((_: never): void => { })(type);
   }
 }
 
@@ -122,10 +123,11 @@ export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
  * @returns the list of the names of the files matching the attestation type definition naming convention.
  */
 export async function getAttTypesDefinitionFiles(): Promise<string[]> {
-  const pattern = `t-*.${process.env.NODE_ENV === "development" ? "ts" : "js"}`;
+  const dev = process.env.NODE_ENV === "development";
+  const pattern = `t-*.${dev ? "ts" : "js"}`;
 
   return new Promise((resolve, reject) => {
-    glob(pattern, { cwd: ATT_TYPE_DEFINITIONS_ROOT }, (er: any, files: string[] | null) => {
+    glob(pattern, { cwd: (dev ? "" : "dist/") + ATT_TYPE_DEFINITIONS_ROOT }, (er: any, files: string[] | null) => {
       if (er) {
         reject(er);
       } else {
@@ -144,6 +146,9 @@ export async function getAttTypesDefinitionFiles(): Promise<string[]> {
  */
 export async function readAttestationTypeSchemes(): Promise<AttestationTypeScheme[]> {
   const names = await getAttTypesDefinitionFiles();
+
+  getGlobalLogger().debug(`getAttTypesDefinitionFiles ${names}`);
+
   return names.map((name) => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme);
 }
 
@@ -167,10 +172,10 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
  * @returns `0x` prefixed hex string.
  */
 export function prefix0xSigned(tx: string) {
-  if(tx.startsWith("0x") || tx.startsWith("-0x")) {
+  if (tx.startsWith("0x") || tx.startsWith("-0x")) {
     return tx;
   }
-  if(tx.startsWith("-")) {
+  if (tx.startsWith("-")) {
     return "-0x" + tx.slice(1);
   }
   return "0x" + tx;

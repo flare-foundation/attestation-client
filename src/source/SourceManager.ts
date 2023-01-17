@@ -36,7 +36,8 @@ export class SourceManager {
 
   setConfig(sourceId: SourceId, roundId: number)
   {
-    this.verifierSourceConfig = this.attestationRoundManager.attestationConfigManager.getVerifierRouter( roundId ).config.getSourceConfig(sourceId);
+    const route = this.attestationRoundManager.attestationConfigManager.getVerifierRouter( roundId );
+    this.verifierSourceConfig = route.config.getSourceConfig(sourceId);
     if( !this.verifierSourceConfig ) {
       getGlobalLogger().error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
       exit(1);

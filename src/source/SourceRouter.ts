@@ -15,8 +15,11 @@ export class SourceRouter {
 
   attestationRoundManager: AttestationRoundManager;
 
-
-  constructor(attestationRoundManager: AttestationRoundManager) {
+  /**
+   * Initialize attestation round manager
+   * @param attestationRoundManager
+   */
+  initialize(attestationRoundManager: AttestationRoundManager) {
     this.attestationRoundManager = attestationRoundManager;
   }
 

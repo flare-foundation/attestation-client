@@ -54,6 +54,8 @@ async function readSecureConfigBase<T extends IReflection<T>>(project: string, t
     try {
         const res = readJSONsecure<T>(path);
 
+        Object.setPrototypeOf( res , Object.getPrototypeOf(obj) );
+
         const valid = isEqualType(obj.instanciate(), res);
 
         if (valid) {

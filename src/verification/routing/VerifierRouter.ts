@@ -1,5 +1,6 @@
 import { Attestation } from "../../attester/Attestation";
 import { readSecureConfig } from "../../utils/configSecure";
+import { getGlobalLogger } from "../../utils/logger";
 import { AttestationRequest, AttestationRequestOptions } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
@@ -89,6 +90,7 @@ export class VerifierRouter {
       this.config = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${startRoundId}`);
       const definitions = await readAttestationTypeSchemes();
       this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>();
+
       // set up all possible routes
       for (let definition of definitions) {
          let attestationTypeName = definition.name;
@@ -99,13 +101,13 @@ export class VerifierRouter {
                tmp = new Map<string, VerifierAttestationTypeRouteConfig>();
             }
             this.routeMap.set(sourceName, tmp);
+            getGlobalLogger().debug(`initialize.router[${startRoundId}](${sourceName},${attestationTypeName})`);
             if (tmp.get(attestationTypeName)) {
                throw new Error(`Duplicate configuration (${sourceName},${attestationTypeName})`);
             }
             tmp.set(attestationTypeName, EMPTY_VERIFIER_ROUTE);
          }
       }
-
       // Check credentials against all possible routes and setup routes form credentials
       for (let sourceCred of this.config.verifierRoutes) {
          let defaultRoute: VerifierRoute | null = null;

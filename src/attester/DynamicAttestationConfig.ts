@@ -106,11 +106,11 @@ export class AttestationConfigManager {
    */
   async dynamicLoadInitialize() {
     try {
-      fs.watch(this.config.dynamicAttestationConfigurationFolder, (event: string, filename: string) => {
+      fs.watch(this.config.dynamicAttestationConfigurationFolder, async (event: string, filename: string) => {
         if (filename && event === "rename") {
           // todo: check why on the fly report JSON error
           this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
-          if (this.load(this.config.dynamicAttestationConfigurationFolder + filename)) {
+          if (await this.load(this.config.dynamicAttestationConfigurationFolder + filename)) {
             this.orderConfigurations();
           }
         }
@@ -126,11 +126,11 @@ export class AttestationConfigManager {
    */
   async loadAll() {
     try {
-      await fs.readdir(this.config.dynamicAttestationConfigurationFolder, (err, files: string[]) => {
+      await fs.readdir(this.config.dynamicAttestationConfigurationFolder, async (err, files: string[]) => {
         if (files) {
-          files.forEach((filename) => {
-            this.load(this.config.dynamicAttestationConfigurationFolder + filename);
-          });
+          for (const filename of files) {
+            await this.load(this.config.dynamicAttestationConfigurationFolder + filename);
+          };
           this.orderConfigurations();
         } else {
           this.logger.warning(`DAC: no configuration files`);
@@ -141,20 +141,26 @@ export class AttestationConfigManager {
     }
   }
 
-  async load(filename: string, disregardObsolete = false): Promise<boolean> {
+  async load(filename: string): Promise<boolean> {
     this.logger.info(`^GDAC load '${filename}'`);
 
-    // todo: read with config (to get proper type)
+    // // todo: read with config (to get proper type)
+
+    // const config = readJSONfromFile<AttestationConfig>(filename, JSONMapParser);
+
+    // // validate json read object with template class
+    // const valid = isEqualType((new AttestationConfig()).instanciate(), config);
+
     const fileConfig = readJSON<any>(filename, JSONMapParser);
 
     // check if loading current round (or next one)
-    if (fileConfig.startEpoch == this.attestationRoundManager.activeRoundId || fileConfig.startEpoch == this.attestationRoundManager.activeRoundId + 1) {
-      this.logger.warning(`DAC almost alive (epoch ${fileConfig.startEpoch})`);
+    if (fileConfig.startRoundId == this.attestationRoundManager.activeRoundId || fileConfig.startRoundId == this.attestationRoundManager.activeRoundId + 1) {
+      this.logger.warning(`DAC almost alive (epoch ${fileConfig.startRoundId})`);
     }
 
     // convert from file structure
     const config = new AttestationConfig();
-    config.startRoundId = fileConfig.startEpoch;
+    config.startRoundId = fileConfig.startRoundId;
 
     await config.verifierRouter.initialize(config.startRoundId);
 
@@ -191,7 +197,7 @@ export class AttestationConfigManager {
   }
 
   /**
-   * Sorts attestationConfig based on the startEpoch and clears Configs for the passed epochs
+   * Sorts attestationConfig based on the startRoundId and clears Configs for the passed epochs
    */
   orderConfigurations() {
     this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {

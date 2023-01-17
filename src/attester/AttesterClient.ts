@@ -29,9 +29,11 @@ export class AttesterClient {
     }
 
     this.config = config;
-    this.sourceRouter = new SourceRouter(this.attestationRoundManager);
+    this.sourceRouter = new SourceRouter();
     this.attesterWeb3 = new AttesterWeb3(this.config, this.logger);
     this.attestationRoundManager = new AttestationRoundManager(this.sourceRouter, this.config, this.logger, this.attesterWeb3);
+
+    this.sourceRouter.initialize(this.attestationRoundManager);
   }
 
   /**

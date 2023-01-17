@@ -28,7 +28,7 @@ export class AttestationRoundManager {
 
   state: AttesterState;
 
-  startEpochId: number;
+  startRoundId: number;
   activeRoundId: number;
 
   rounds = new Map<number, AttestationRound>();
@@ -64,7 +64,7 @@ export class AttestationRoundManager {
 
     // update active round again since waitin for DB connection can take time
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
-    this.startEpochId = this.activeRoundId;
+    this.startRoundId = this.activeRoundId;
 
     this.state = new AttesterState(this.dbServiceAttester.manager);
 
@@ -221,7 +221,7 @@ export class AttestationRoundManager {
 
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
-    if (epochId < this.startEpochId) {
+    if (epochId < this.startRoundId) {
       this.logger.debug(`epoch too low ^Y#${epochId}^^`);
       return;
     }

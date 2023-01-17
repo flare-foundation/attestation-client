@@ -1,13 +1,14 @@
-//tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
+// yarn test test/indexer/blockProcessorManager.test-cred.ts
+//tests need appropriate api credentials for BTC multi-chain-client to function properly
 
-import { ChainType, MCC, sleepMs, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { ChainType, sleepMs, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../lib/indexer/blockProcessorManager";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { TestBlockBTC, TestBlockBTCAlt, TestBlockXRP, TestBlockXRPAlt } from "../mockData/indexMock";
+import { TestBlockBTC, TestBlockBTCAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");
@@ -71,7 +72,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
 
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+      //wait for the processor to do the job
       while (!fake1.called) {
         await sleepMs(100);
       }
@@ -87,7 +88,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     it("Should process completed block", async function () {
       const block = TestBlockBTC;
       await blockProcessorManager.process(block);
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+
       while (!fake2.called) {
         await sleepMs(100);
       }
@@ -99,7 +100,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       expect(fake1.callCount).to.eq(1);
 
       await blockProcessorManager.process(block);
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+
       expect(blockProcessorManager.blockProcessors[0].isActive).to.be.false;
       expect(blockProcessorManager.blockProcessors.length).to.be.eq(2);
       expect(blockProcessorManager.blockProcessors[1].isActive).to.be.true;

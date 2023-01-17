@@ -1,9 +1,14 @@
+// yarn test test/utils/EpochSettings.test.ts
+
 import { toBN } from "@flarenetwork/mcc";
 import { assert, expect } from "chai";
 import { EpochSettings } from "../../lib/utils/EpochSettings";
+import { initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`EpochSettings (${getTestFile(__filename)})`, () => {
+  initializeTestGlobalLogger();
+
   let epochSettings = new EpochSettings(toBN(15), toBN(80));
   let epochLength = 80000;
   let startTime = 15000;

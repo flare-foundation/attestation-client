@@ -1,4 +1,4 @@
-// yarn test test/indexer/blockHeaderCollector.test.ts
+// yarn test test/indexer/headerCollector.test.ts
 
 import { ChainType, MCC, XrpMccCreate } from "@flarenetwork/mcc";
 import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
@@ -79,7 +79,6 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
       expect(res.length).to.be.eq(1);
     });
 
-    //Needs improvement
     it("Should not work with empty list saveHeadersOnNewTips ", async function () {
       await headerCollector.saveHeadersOnNewTips([]);
       let res = await dataService.manager.find(DBBlockXRP);
@@ -97,7 +96,6 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     // Should be fixed (too long trace)
     it("Should not readAndSaveBlocksHeaders", async function () {
       headerCollector.updateN(10);
-      let j = "not jet failed";
       const fake = sinon.fake();
       setRetryFailureCallback((string) => {
         fake();

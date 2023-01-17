@@ -1,3 +1,5 @@
+// yarn test test/utils/databaseService.test.ts
+
 import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getTestFile } from "../test-utils/test-utils";
@@ -8,7 +10,7 @@ describe(`DatabaseService tests (${getTestFile(__filename)})`, function () {
 
   let dataService: DatabaseService;
   before(async function () {
-    // initializeTestGlobalLogger();
+    initializeTestGlobalLogger();
     dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
     await dataService.connect();
   });

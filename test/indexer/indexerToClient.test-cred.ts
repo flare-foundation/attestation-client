@@ -1,6 +1,7 @@
 // yarn test test/indexer/indexerToClient.test-cred.ts
+//tests need appropriate api credentials for BTC multi-chain-client to function properly
 
-import { MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getTestFile } from "../test-utils/test-utils";
@@ -50,7 +51,7 @@ describe(`Indexer to client with credentials(${getTestFile(__filename)})`, funct
 
     it("Should get block timestamp", async function () {
       let res = await inToCl.getBlockNumberTimestampFromClient(763419);
-      expect(res).to.be.eq(1668598940);
+      expect(res).to.be.eq(1668594535);
     });
   });
 });

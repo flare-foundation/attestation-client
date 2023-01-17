@@ -26,8 +26,6 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
-  let interlacing = new Interlacing();
-
   let augTx0: DBTransactionBase;
   let augTxAlt0: DBTransactionBase;
   let augTx1: DBTransactionBase;
@@ -95,7 +93,6 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
       await dataService.manager.save(fakeTx);
     }
 
-    // await dataService.manager.save(augTxAlt1);
     let res = await indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
     expect(res).to.be.eq(10000);
   });
@@ -147,7 +144,6 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
     assert(spy.called);
   });
 
-  //find use cases
   it("Should saveBottomState DB", async function () {
     await dataService.manager.save(AugTestBlockBTC);
 
@@ -158,8 +154,6 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   });
 
   it("Should drop all state info", async function () {
-    // const res1 = await dataService.manager.find(DBState);
-
     await indexerToDB.dropAllStateInfo();
     const res2 = await dataService.manager.find(DBState);
 

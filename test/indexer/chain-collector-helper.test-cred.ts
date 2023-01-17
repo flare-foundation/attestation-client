@@ -1,3 +1,4 @@
+// yarn test test/indexer/chain-collector-helper.test-cred.ts
 //tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
 
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";

@@ -1,16 +1,6 @@
 // yarn test test/indexer/chain-collector-helper.test.ts
 
-import {
-  AlgoMccCreate,
-  ChainType,
-  IXrpGetBlockRes,
-  IXrpGetTransactionRes,
-  UtxoBlock,
-  UtxoTransaction,
-  XrpBlock,
-  XrpMccCreate,
-  XrpTransaction,
-} from "@flarenetwork/mcc";
+import { AlgoMccCreate, ChainType, UtxoBlock, UtxoTransaction, XrpMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
@@ -35,6 +25,10 @@ const expect = chai.expect;
 
 describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
+
+  afterEach(function () {
+    sinon.restore();
+  });
 
   describe("augmentBlock", () => {
     it("Should create entity for a block", async () => {
@@ -64,7 +58,6 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       const augTx = augmentTransactionXrp(TestBlockXRP, TestTxXRP);
       expect(augTx.blockNumber).to.be.eq(blockId);
       expect(augTx.transactionId).to.be.eq(txHash);
-      // });
     });
   });
 
@@ -73,13 +66,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
     before(async function () {
-      if (!dataService.dataSource.isInitialized) {
-        await dataService.connect();
-      }
-    });
-
-    afterEach(function () {
-      sinon.restore();
+      await dataService.connect();
     });
 
     it("Should return null processor", function () {
@@ -136,9 +123,6 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     describe("XRP", function () {
       const XRPMccConnection = {
         url: "https://xrplcluster.com",
-
-        username: "",
-        password: "",
       } as XrpMccCreate;
 
       let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {

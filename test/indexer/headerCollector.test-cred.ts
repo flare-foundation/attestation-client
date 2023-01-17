@@ -1,7 +1,8 @@
-//  yarn test test/indexer/blockHeaderCollector.test-cred.ts
+// yarn test test/indexer/headerCollector.test-cred.ts
+// tests need appropriate api credentials for BTC multi-chain-client to function properly
 
-import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
-import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
+import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
+import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
@@ -10,13 +11,11 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
 import * as BTCBlockHeaderAlt from "../mockData/BTCBlockHeaderAlt.json";
-import { TestBlockXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 const sinon = require("sinon");
 const chai = require("chai");
 const expect = chai.expect;
-// const fs = require("fs");
 chai.use(require("chai-as-promised"));
 
 describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
@@ -40,8 +39,6 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
 
     const client = new MCC.BTC(BtcMccConnection);
     const indexerToClient = new IndexerToClient(client);
-
-    //   let interlacing = new Interlacing();
 
     const indexerToDB = new IndexerToDB(getGlobalLogger(), dataService, ChainType.BTC);
 

@@ -1,3 +1,5 @@
+// yarn test test/indexer/blockProcessorManager.test.ts
+
 import { ChainType, MCC, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../lib/indexer/blockProcessorManager";
@@ -32,11 +34,6 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       username: "",
       password: "",
     } as XrpMccCreate;
-
-    const client = new MCC.XRP(XRPMccConnection);
-    let inToCl = new IndexerToClient(client, 1500, 2, 300);
-
-    // const client = new MCC.BTC(BtcMccConnection);
 
     let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
       transactionCacheSize: 2,
@@ -78,7 +75,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
       n = n + 1;
 
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+      //wait for the processor to do the job
       while (!fake1.called) {
         await sleepMs(100);
       }
@@ -94,7 +91,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     it("Should process completed block", async function () {
       const block = TestBlockXRPAlt;
       await blockProcessorManager.process(block);
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+      //wait for the processor to do the job
       while (!fake2.called) {
         await sleepMs(100);
       }

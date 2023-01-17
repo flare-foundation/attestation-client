@@ -1,10 +1,10 @@
-// yarn test test/indexer/indexer.test-slow.ts
+// yarn test test/indexer/indexer.test.ts
 
-import { ChainType, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { ChainType, XrpMccCreate } from "@flarenetwork/mcc";
 import { Indexer } from "../../lib/indexer/indexer";
-import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
+import { DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
 import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
-import { DBTransactionXRP1, DBTransactionBTC1, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
+import { DBTransactionXRP1, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { MockMccClient } from "../../lib/caching/test-utils/MockMccClient";
 import { IndexerConfiguration, IndexerCredentials } from "../../lib/indexer/IndexerConfiguration";
@@ -14,7 +14,7 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
 import { BlockProcessorManager } from "../../lib/indexer/blockProcessorManager";
-import { AugTestBlockBTC, promAugTxBTC0, TestBlockXRPAlt, TestBlockXRPFake, TestXRPStatus, TestXRPStatusAlt } from "../mockData/indexMock";
+import { TestBlockXRPAlt, TestBlockXRPFake, TestXRPStatus, TestXRPStatusAlt } from "../mockData/indexMock";
 import { HeaderCollector } from "../../lib/indexer/headerCollector";
 import { afterEach } from "mocha";
 import { getTestFile } from "../test-utils/test-utils";
@@ -94,8 +94,6 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
       const XRPMccConnection = {
         url: "https://xrplcluster.com",
-        username: "",
-        password: "",
       } as XrpMccCreate;
 
       let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
@@ -398,9 +396,6 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
       it("Should not be waiting for waitForNodeSynced", async function () {
         const stub = sinon.stub(indexer.cachedClient.client, "getNodeStatus").resolves(TestXRPStatus);
 
-        // const status = await indexer.cachedClient.client.getNodeStatus();
-        // console.log(status.isSynced);
-
         const res = await indexer.waitForNodeSynced();
         expect(res).to.be.false;
       });
@@ -409,9 +404,6 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         const stub = sinon.stub(indexer.cachedClient.client, "getNodeStatus");
         stub.onFirstCall().resolves(TestXRPStatusAlt);
         stub.onSecondCall().resolves(TestXRPStatus);
-
-        // const status = await indexer.cachedClient.client.getNodeStatus();
-        // console.log(status.isSynced);
 
         const res = await indexer.waitForNodeSynced();
         expect(res).to.be.true;
@@ -422,8 +414,6 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         const XRP_UTD = 946_684_800;
         const fixedLatestBlockNumber = 76_754_962;
         const fixedLatestTimeStamp = XRP_UTD + 725_626_321;
-        const fixedBottomBlockNumber = 32_570;
-        const fixedBottomTimeStamp = 1_357_010_470;
 
         // mcc getBlock logs block number
 

@@ -1,6 +1,6 @@
 // yarn test test/indexer/indexerToClient.test.ts
 
-import { MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { MCC, XrpMccCreate } from "@flarenetwork/mcc";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
@@ -11,8 +11,6 @@ const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
 
-//To be eventually mocked
-
 describe(`Indexer to client (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
@@ -21,8 +19,6 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
   describe(`XRP`, function () {
     const XRPMccConnection = {
       url: "https://xrplcluster.com",
-      username: "",
-      password: "",
     } as XrpMccCreate;
 
     const client = new MCC.XRP(XRPMccConnection);
@@ -38,7 +34,7 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
       expect(res.blockHash).to.be.eq("55DBD6F6E00327DB99178A4416643C0BC47DBF1783E305DC70820037F804F3B7");
     });
 
-    // Should be fixed. Produces too long trace
+    // Produces too long trace
     it("Should not get Block", async function () {
       await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
     });

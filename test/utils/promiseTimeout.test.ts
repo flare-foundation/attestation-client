@@ -1,3 +1,5 @@
+// yarn test test/utils/promiseTimeout.test.ts
+
 const chai = require("chai");
 const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
@@ -25,7 +27,6 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
     setRetryFailureCallback(null);
 
     expect(() => failureCallback("something")).to.throw("FailureCallbackNotSet");
-    // assert(spy.called);
     assert(spy.called);
   });
 
@@ -82,8 +83,6 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
   });
 
   it("Should safeCatch throw", function () {
-    // const fake = sinon.fake.throws(new Error("wrong"));
-
     const stub = sinon.stub(loggers, "logException");
     function fake1() {
       throw new Error("wrong");
@@ -91,7 +90,5 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
 
     safeCatch("something else", fake1);
     assert(stub.calledOnce);
-    // expect(testObject).to.throw;
-    // assert(spy.called);
   });
 });

@@ -44,9 +44,9 @@ export class SourceManager {
     if (!this.verifierSourceConfig) {
       if(process.env.NODE_ENV === "development") {
         // We allow for incomplete routing configs in development
-        this.logger.info(`${roundId}: source config for source ${sourceId} not defined (tolerated in "development" mode)`);          
+        this.logger.info(`${this.label}${roundId}: source config for source ${sourceId} not defined (tolerated in "development" mode)`);          
       } else {
-        this.logger.error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
+        this.logger.error(`${this.label}${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
         exit(1);
       }
     }
@@ -54,6 +54,10 @@ export class SourceManager {
 
   get logger(): AttLogger {
     return this.attestationRoundManager.logger;
+  }
+
+  get label() {
+    return this.attestationRoundManager.label;
   }
 
   onSend(inProcessing?: number, inQueue?: number) {
@@ -137,7 +141,7 @@ export class SourceManager {
       // setup new timer
       this.delayQueueStartTime = firstStartTime;
       this.delayQueueTimer = setTimeout(() => {
-        this.logger.debug(`priority queue timeout`);
+        this.logger.debug(`${this.label}priority queue timeout`);
 
         this.startNext();
         this.delayQueueTimer = undefined;
@@ -200,14 +204,14 @@ export class SourceManager {
         } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
           // TODO: handle this case and do not commit
           // TODO: message other clients or what? do not submit? do not submit that source???
-          this.logger.error2(`SYSTEM_FAILURE ${attestation.data.request}`);
+          this.logger.error2(`${this.label}SYSTEM_FAILURE ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid, verification);
         } else {
           this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
         }
       })
       .catch((error: any) => {
-        logException(error, "verifyAttestation");
+        logException(error, `${this.label}verifyAttestation`);
 
         attestation.exception = error;
 
@@ -228,13 +232,13 @@ export class SourceManager {
         // Retries
         attestation.processEndTime = getTimeMilli();
         if (attestation.retry < this.verifierSourceConfig.maxFailedRetry) {
-          this.logger.warning(`transaction verification error (retry ${attestation.retry})`);
+          this.logger.warning(`${this.label}transaction verification error (retry ${attestation.retry})`);
 
           attestation.retry++;
 
           this.delayQueue(attestation, getTimeMilli() + this.verifierSourceConfig.delayBeforeRetry * 1000);
         } else {
-          this.logger.error2(`transaction verification error ${attestation.data.request}`);
+          this.logger.error2(`${this.label}transaction verification error ${attestation.data.request}`);
           this.processed(attestation, AttestationStatus.invalid);
         }
       });
@@ -291,7 +295,7 @@ export class SourceManager {
     try {
       if (!this.canProcess()) {
         if (this.attestationProcessing.length === 0) {
-          this.logger.debug(` # startNext heartbeat`);
+          this.logger.debug(`${this.label} # startNext heartbeat`);
           setTimeout(() => {
             this.startNext();
           }, 100);
@@ -323,7 +327,7 @@ export class SourceManager {
         this.process(attestation!);
       }
     } catch (error) {
-      logException(error, `SourceManager::startNext`);
+      logException(error, `${this.label}SourceManager::startNext`);
     }
   }
 }

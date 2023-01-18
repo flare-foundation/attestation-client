@@ -17,7 +17,7 @@ contract StateConnectorTempTran {
   // November 5th, 2021
   uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1636070400 seconds;
   // Amount of time a buffer is active before cycling to the next one
-  uint256 public constant BUFFER_WINDOW = 30 seconds;
+  uint256 public constant BUFFER_WINDOW = 10 seconds;
   // {Requests, Votes, Reveals}
   uint256 public constant TOTAL_STORED_BUFFERS = 3;
   // Store a proof for one week
@@ -153,8 +153,8 @@ contract StateConnectorTempTran {
     // TMP S
     if (msg.sender == finalizingBot) {
       totalBuffers = _bufferNumber;
-      merkleRoots[(_bufferNumber - 4) % TOTAL_STORED_PROOFS] = _merkleRoot;
-      emit RoundFinalised(_bufferNumber - 4, _merkleRoot);
+      merkleRoots[(_bufferNumber - 3) % TOTAL_STORED_PROOFS] = _merkleRoot;
+      emit RoundFinalised(_bufferNumber - 3, _merkleRoot);
     }
     // TMP E
   }

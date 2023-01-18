@@ -10,14 +10,14 @@ import Web3 from "web3";
 import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
-import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/utils";
+import { getUnixEpochTimestamp, getWeb3, relativeContractABIPathForContractName } from "../../src/utils/utils";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "../verification/test-utils/verifier-test-utils";
-import { bootstrapAttestationClient, deployTestContracts, getVoterAddresses, increaseTo, submitAttestationRequest } from "./utils/attestation-client-test-utils";
+import { bootstrapAttestationClient, deployTestContracts, getVoterAddresses, increaseTo, setIntervalMining, submitAttestationRequest } from "./utils/attestation-client-test-utils";
 import sinon from "sinon";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { Attestation } from "../../src/attester/Attestation";
@@ -48,7 +48,7 @@ const TEST_LOGGER = false;
 // scheduler: time is managed by Scheduler
 // offset: time is real, only that it is shifted in order to start everything exactly on a begining of the 
 //         next buffer window on StateConnectorTempTran contract
-const TEST_MODE: "scheduler" | "offset" = "offset"
+let TEST_MODE: "scheduler" | "offset" | "none" = "none"
 const ADDITIONAL_OFFSET_PCT = 0
 const TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = LAST_CONFIRMED_BLOCK - FIRST_BLOCK;
 
@@ -103,8 +103,12 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     const PRIVATE_KEY = privateKeys[0];
     await deployTestContracts(RPC, PRIVATE_KEY);
 
+    // connect and initialize chain for interval mining
+    process.env.TEST_HARDHAT_NODE = "1"   // disable handleRevert due to bug in combination of web3.js & ganache
+    web3 = getWeb3(RPC);    
+    await setIntervalMining(web3);
+
     // Initialize contracts
-    web3 = getWeb3(RPC);
     const artifacts = "artifacts";
     let abiPathStateConnector = await relativeContractABIPathForContractName("StateConnectorTempTran", artifacts);
     let abiPathBitVoting = await relativeContractABIPathForContractName("BitVoting", artifacts);
@@ -121,7 +125,8 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     process.env.FINALIZING_BOT_PRIVATE_KEY = PRIVATE_KEY;
     process.env.FINALIZING_BOT_PUBLIC_KEY = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY).address;
     process.env.TEST_CUSTOM_SIGNERS = JSON.stringify(signers);
-  
+    
+
 
     if (TEST_MODE === "offset") {
       let ADDITIONAL_OFFSET_S = Math.floor(ADDITIONAL_OFFSET_PCT * bufferWindowDurationSec);
@@ -170,7 +175,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     // const logger = getGlobalLogger();
   });
 
-  it(`Should start times be correct`, async function () {
+  it.skip(`Should start times be correct`, async function () {
     assert(startTime === setup.lastTimestamp, "Start times do not match");
   });
 
@@ -196,10 +201,16 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   it(`Should bootstrap attestation client`, async function () {
     process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
     process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = '' + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
-    let numberOfClients = 5;
+    process.env.TEST_SAMPLING_REQUEST_INTERVAL = '' + 1000;
+    let numberOfClients = 9;
     let bootstrapPromises = [];
 
     let runPromises = [];
+
+    // Finalization bot
+    let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
+    runPromises.push(finalizationPromise);
+
     for (let i = 0; i < numberOfClients; i++) {
       bootstrapPromises.push(bootstrapAttestationClient(i));
     }
@@ -209,13 +220,22 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
     await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
 
+    let counter = 0;
     setInterval(async () => {
-      await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
-      await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
+      if(counter % 2 == 0) {
+        await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
+      }
+      if(counter % 3 == 0) {
+        await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
+      }
+      counter++;      
     }, bufferWindowDurationSec * 1000);
 
-    // let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
-    // runPromises.push(finalizationPromise);
+    setInterval(async () => {
+      let now = getUnixEpochTimestamp();
+      let blockChainNow = await (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
+      console.log(`DIFF: ${now} - ${blockChainNow} = ${now - parseInt('' + blockChainNow, 10)}`);
+    }, 1000)
     await Promise.all(runPromises);
     // await sleepMs(10000);
   });

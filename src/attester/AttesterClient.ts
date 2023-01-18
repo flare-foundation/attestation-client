@@ -30,6 +30,10 @@ export class AttesterClient {
     this.attestationRoundManager = new AttestationRoundManager(this.config, this.logger, this.attesterWeb3);
   }
 
+  get label() {
+    return this.attestationRoundManager.label;
+  }
+
   /**
    * Returns a block number of a block, which is surely below time.
    * Note that function assumes that the block is not far behind as it is used in a specific context
@@ -109,12 +113,12 @@ export class AttesterClient {
 
           if (commitedRoot) {
             if (commitedRoot === merkleRoot) {
-              this.logger.info(`^e^G^Revent^^^G RoundFinalised ${roundId} ${merkleRoot} (root as commited)`);
+              this.logger.info(`^e^G^Revent^^^G ${this.label}RoundFinalised ${roundId} ${merkleRoot} (root as commited)`);
             } else {
-              this.logger.error(`^e^Revent^^ RoundFinalised ${roundId} ${merkleRoot} (commited root ${commitedRoot})`);
+              this.logger.error(`^e^Revent^^ ${this.label}RoundFinalised ${roundId} ${merkleRoot} (commited root ${commitedRoot})`);
             }
           } else {
-            this.logger.error(`^e^Revent^^ RoundFinalised ${roundId} ${merkleRoot} (root not commited)`);
+            this.logger.error(`^e^Revent^^ ${this.label}RoundFinalised ${roundId} ${merkleRoot} (root not commited)`);
           }
         }
       }

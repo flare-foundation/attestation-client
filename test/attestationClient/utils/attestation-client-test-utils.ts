@@ -187,6 +187,32 @@ export async function increaseTo(web3: Web3, target: string | number | BN) {
    return increase(web3, diff);
 }
 
+//////////////////////////////////////////
+// Mining type control
+//////////////////////////////////////////
+
+export async function setIntervalMining(web3: Web3, interval: number = 1000) {
+   await promisify((web3.currentProvider as any).send.bind(web3.currentProvider))({
+      jsonrpc: '2.0',
+      method: 'evm_setAutomine',
+      params: [false],
+      id: new Date().getTime(),
+   });
+
+   await promisify((web3.currentProvider as any).send.bind(web3.currentProvider))({
+      jsonrpc: '2.0',
+      method: 'evm_setIntervalMining',
+      params: [interval],
+      id: new Date().getTime(),
+   });
+}
+
+
+
+
+//////////////////////////////////////////
+// Misc
+//////////////////////////////////////////
 
 export async function getVoterAddresses(n = 9) {
    let voters = [];

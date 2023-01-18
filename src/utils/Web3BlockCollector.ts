@@ -16,8 +16,9 @@ export class Web3BlockCollector {
   startBlock: number | undefined;
   action: any;
   refreshEventsMs: number;
+  label: string = "";
 
-  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any, refreshEventsMs = 100) {
+  constructor(logger: Logger, url: string, contractAddress: string, contractName: string, startBlock: number | undefined, action: any, refreshEventsMs = 100, label = "") {
     this.logger = logger;
 
     this.web3 = getWeb3(url, this.logger);
@@ -27,6 +28,7 @@ export class Web3BlockCollector {
     this.startBlock = startBlock;
     this.action = action;
     this.refreshEventsMs = refreshEventsMs;
+    this.label = label;
   }
 
   async run() {
@@ -47,7 +49,7 @@ export class Web3BlockCollector {
 
   async processEvents(contractAddress: string, contractName: string, startBlock: number | undefined, action: any) {
     // wait until new block is set
-    this.logger.info(`waiting for network connection...`);
+    this.logger.info(`${this.label}waiting for network connection...`);
     const blockHeight = await this.web3.eth.getBlockNumber();
     this.startingBlockNumber = startBlock ? startBlock : blockHeight;
 
@@ -57,7 +59,7 @@ export class Web3BlockCollector {
         : await getWeb3Contract(this.web3, contractAddress, contractName);
     let processBlock: number = this.startingBlockNumber;
 
-    this.logger.info(`^Rnetwork event processing started ^Y${this.startingBlockNumber} (height ${blockHeight})`);
+    this.logger.info(`${this.label}^Rnetwork event processing started ^Y${this.startingBlockNumber} (height ${blockHeight})`);
 
     while (true) {
       try {
@@ -85,7 +87,7 @@ export class Web3BlockCollector {
         processBlock++;
       } catch (error) {
         // not for reporting 
-        //logException(error, `Web3BlockCollector::procesEvents`);
+        logException(error, `${this.label}Web3BlockCollector::procesEvents`);
       }
     }
   }

@@ -35,7 +35,6 @@ const COMMIT_LIMIT_BUFFER_MS = 1000;
 @Managed()
 export class AttestationRoundManager {
   logger: AttLogger;
-  epochSettings: EpochSettings;
   sourceRouter: SourceRouter;
   attestationConfigManager: AttestationConfigManager;
   dbServiceAttester: DatabaseService;
@@ -43,11 +42,13 @@ export class AttestationRoundManager {
   state: AttesterState;
 
   startRoundId: number;
-  activeRoundId: number;
+  _activeRoundId: number | undefined = undefined;
 
   rounds = new Map<number, AttestationRound>();
   config: AttesterConfig;
   attesterWeb3: AttesterWeb3;
+
+  _initialized = false;
 
   // debugCallbacks: AttestationClientDebugCallbacks;
 
@@ -60,18 +61,38 @@ export class AttestationRoundManager {
     this.logger = logger;
     this.attesterWeb3 = attesterWeb3;
 
-    this.epochSettings = new EpochSettings(toBN(config.firstEpochStartTime), toBN(config.roundDurationSec));
     this.sourceRouter = new SourceRouter(this);
     this.attestationConfigManager = new AttestationConfigManager(this);
+  }
 
-    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+  get activeRoundId(): number {
+    if(this._activeRoundId === undefined) {
+      throw new Error("activeRoundId not defined")
+    }
+    return this._activeRoundId;
+  }
 
+  set activeRoundId(value: number) {
+    this._activeRoundId = value;
+  }
+
+  get epochSettings(): EpochSettings {
+    if(!this.attesterWeb3.epochSettings) {
+      throw new Error("EpochSettings not yet initialized");
+    }
+    return this.attesterWeb3.epochSettings;
   }
 
   /**
    * Initializes attestation round manager
    */
   async initialize(): Promise<void> {
+    if(this._initialized) {
+      throw new Error("AttestationRoundManager can be initialized only once");
+    }
+    // initialize activeRoundId for the first time, before first load of DAC, routings
+    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+
     await this.attestationConfigManager.initialize();
 
     this.dbServiceAttester = new DatabaseService(this.logger, this.config.attesterDatabase, "attester");
@@ -85,6 +106,8 @@ export class AttestationRoundManager {
 
     // eslint-disable-next-line    
     this.startRoundUpdate();
+
+    this._initialized = true;
   }
 
   /**
@@ -132,7 +155,7 @@ export class AttestationRoundManager {
     // all times are in milliseconds
     const now = getTimeMilli();
     const chooseWindowDuration = this.attestationConfigManager.getAttestationConfig(roundId).chooseDeadlineSec;
-    const windowDuration = this.config.roundDurationSec * 1000;
+    const windowDuration = this.attesterWeb3.roundDurationSec * 1000;
     const roundStartTime = this.epochSettings.getRoundIdTimeStartMs(roundId);
     const roundChooseStartTime: number = roundStartTime + windowDuration;
     const roundCommitStartTime: number = roundStartTime + windowDuration + chooseWindowDuration;
@@ -171,7 +194,7 @@ export class AttestationRoundManager {
         if (now > roundCommitStartTime) {
           clearInterval(intervalId);
         }
-        const eta = windowDuration - (now - roundStartTime) / 1000;
+        const eta = (windowDuration - (now - roundStartTime)) / 1000;
         if (eta >= 0) {
           this.logger.debug(
             `!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${activeRound.attestations.length

@@ -332,7 +332,7 @@ export class AttestationRound {
       return;
     }
 
-    this.logger.info(`round #${this.roundId} comitting (${validated.length}/${this.attestations.length} attestation(s))`);
+    this.logger.info(`round #${this.roundId} committing (${validated.length}/${this.attestations.length} attestation(s))`);
 
     const time0 = getTimeMilli();
 

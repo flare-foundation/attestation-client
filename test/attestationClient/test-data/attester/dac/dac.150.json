@@ -7,9 +7,9 @@
          "source":"BTC",
          "numberOfConfirmations":6,
          "maxTotalRoundWeight": 200,
-         "queryWindowInSec":86400,
+         "queryWindowInSec": 400,
          // (6confirms * 10min*60s/block * 1.5) + 2*60*60s max block variation
-         "UBPUnconfirmedWindowInSec": 12600,
+         "UBPUnconfirmedWindowInSec": 400,
          "attestationTypes" :
          [
             {
@@ -35,9 +35,9 @@
          "source":"LTC",
          "numberOfConfirmations":6,
          "maxTotalRoundWeight": 200,
-         "queryWindowInSec":86400,
+         "queryWindowInSec": 400,
          // (6confirms * 2.5min*60s/block * 1.5) + 2*60*60s max block variation
-         "UBPUnconfirmedWindowInSec": 8550,
+         "UBPUnconfirmedWindowInSec": 400,
          "attestationTypes" :
          [
             {
@@ -63,9 +63,9 @@
          "source":"DOGE",
          "numberOfConfirmations": 60,
          "maxTotalRoundWeight": 200,
-         "queryWindowInSec":86400,
+         "queryWindowInSec": 400,
          // (60confirms * 60s/block*1.5) + 70*60s max block variation
-         "UBPUnconfirmedWindowInSec": 9600,
+         "UBPUnconfirmedWindowInSec": 400,
          "attestationTypes" :
          [
             {
@@ -92,9 +92,9 @@
          "source":"XRP",
          "numberOfConfirmations": 3,
          "maxTotalRoundWeight": 200,
-         "queryWindowInSec":86400,
+         "queryWindowInSec": 400,
          // 10 mins buffer for non-forkable chains
-         "UBPUnconfirmedWindowInSec": 600,
+         "UBPUnconfirmedWindowInSec": 400,
          "attestationTypes" :
          [
             {
@@ -121,9 +121,9 @@
          "source":"ALGO",
          "numberOfConfirmations": 3,
          "maxTotalRoundWeight": 200,
-         "queryWindowInSec":86400,
+         "queryWindowInSec": 400,
          // 10 mins buffer for non-forkable chains
-         "UBPUnconfirmedWindowInSec": 600,
+         "UBPUnconfirmedWindowInSec": 400,
          "attestationTypes" :
          [
             {

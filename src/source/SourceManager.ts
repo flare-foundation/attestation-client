@@ -11,6 +11,7 @@ import { Verification, VerificationStatus } from "../verification/attestation-ty
 import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
 import { getSourceConfig } from "../verification/routing/configs/VerifierRouteConfig";
 import { VerifierSourceRouteConfig } from "../verification/routing/configs/VerifierSourceRouteConfig";
+import { InvalidRouteError } from "../verification/routing/VerifierRouter";
 import { SourceId } from "../verification/sources/sources";
 import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 
@@ -214,6 +215,9 @@ export class SourceManager {
           this.processed(attestation, AttestationStatus.invalid);
         }
         if (error instanceof AttestationRequestParseError) {
+          this.processed(attestation, AttestationStatus.invalid);
+        }
+        if (error instanceof InvalidRouteError) {
           this.processed(attestation, AttestationStatus.invalid);
         }
 

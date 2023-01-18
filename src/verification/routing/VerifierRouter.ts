@@ -1,6 +1,8 @@
 import { Attestation } from "../../attester/Attestation";
+import { ApiResponse } from "../../servers/common/src";
 import { readSecureConfig } from "../../utils/configSecure";
-import { AttestationRequest, AttestationRequestOptions } from "../attestation-types/attestation-types";
+import { getUnixEpochTimestamp } from "../../utils/utils";
+import { AttestationRequest, AttestationRequestOptions, Verification } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
 import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
@@ -23,6 +25,20 @@ export class VerifierRoute {
  * Representative of an empty VerifierRoute
  */
 export const EMPTY_VERIFIER_ROUTE = new VerifierRoute();
+
+export class InvalidRouteError extends Error {
+   constructor(message: any) {
+      super(message);
+      this.name = "InvalidRouteError";
+   }
+}
+
+export class ApiResponseError extends Error {
+   constructor(message: any) {
+      super(message);
+      this.name = "ApiResponseError";
+   }
+}
 
 /**
  * A routing class for attestation requests to be routed to verifier servers.
@@ -87,7 +103,7 @@ export class VerifierRouter {
 
       // initialize by DAC start number      
       this.config = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${startRoundId}`);
-      if(!this.config) {
+      if (!this.config) {
          throw new Error(`Missing configuration for roundId ${startRoundId}. Verifier routes configuration start round ids should match the ones from DAC`)
       }
       const definitions = await readAttestationTypeSchemes();
@@ -185,6 +201,8 @@ export class VerifierRouter {
             windowStartTime: attestation.windowStartTime,
             UBPCutoffTime: attestation.UBPCutoffTime,
          } as AttestationRequestOptions;
+         let now = getUnixEpochTimestamp();
+         console.log(`TIMES: now: ${now}, windowStartTime: ${attestationRequestOptions.windowStartTime} (${attestationRequestOptions.windowStartTime - now}), UBPCutoffTime: ${attestationRequestOptions.UBPCutoffTime} (${attestationRequestOptions.UBPCutoffTime - now})`)
          const attestationRequest = {
             apiKey: route.apiKey,
             request: attestation.data.request,
@@ -194,8 +212,12 @@ export class VerifierRouter {
             route.url,
             attestationRequest
          );
-         return resp.data;
+         let apiResponse = resp.data as ApiResponse<Verification<any, any>>;
+         if (apiResponse.status === 'OK') {
+            return apiResponse.data;
+         }
+         throw new ApiResponseError(apiResponse.errorMessage);
       }
-      throw new Error(`Invalid route.`);
+      throw new InvalidRouteError(`Invalid route.`);
    }
 }

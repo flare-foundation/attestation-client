@@ -20,7 +20,7 @@ import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../src/
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
-import { VerifierServerConfig } from "../../src/servers/common/src";
+import { VerifierServerConfig } from "../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
 import { ChainConfig, ListChainConfig } from "../../src/source/ChainConfig";
 import { readSecureConfig } from "../../src/utils/configSecure";
 import { DatabaseService } from "../../src/utils/databaseService";

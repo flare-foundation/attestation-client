@@ -1,11 +1,11 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { readSecureConfig } from "../../../../utils/configSecure";
 import { getGlobalLogger } from "../../../../utils/logger";
-import { WebserverConfig } from "../../../common/src";
+import { WebserverConfig } from "../config-models/WebserverConfig";
 
-export async function createTypeOrmOptions(configKey: "attesterDatabase" | "indexerDatabase", loggerLabel: string, entities: any[]): Promise<TypeOrmModuleOptions> {
+export async function createTypeOrmOptions(loggerLabel: string, entities: any[]): Promise<TypeOrmModuleOptions> {
    const config = await readSecureConfig(new WebserverConfig(), "webserver");
-   const databaseOptions = configKey === "attesterDatabase" ? config.attesterDatabase : config.indexerDatabase;
+   const databaseOptions = config.attesterDatabase;
    let databaseName = databaseOptions.database;
    let logger = getGlobalLogger(loggerLabel);
    logger.info(

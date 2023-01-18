@@ -1,17 +1,22 @@
 import { toBN } from '@flarenetwork/mcc';
 import { readSecureConfig } from '../../../../utils/configSecure';
 import { EpochSettings } from '../../../../utils/EpochSettings';
-import { WebserverConfig } from '../config-models/WebserverConfig';
+import { IndexerServerConfig } from '../config-models/IndexerServerConfig';
 
-export class ServerConfigurationService {
-  serverCredentials: WebserverConfig;
+export class IndexerServerConfigurationService {
+  serverCredentials: IndexerServerConfig;
   epochSettings: EpochSettings;
   _initialized = false;
-  constructor() { }
+  indexerType = process.env.INDEXER_TYPE;
+  constructor() { 
+    if(!this.indexerType) {
+      throw new Error("Env variable INDEXER_TYPE must be set.")
+    }
+  }
 
   async initialize() {
     if(this._initialized) return;
-    this.serverCredentials = await readSecureConfig(new WebserverConfig(), "webserver");
+    this.serverCredentials = await readSecureConfig(new IndexerServerConfig(), `indexer-server/${this.indexerType}-indexer-server`);
     this.epochSettings = new EpochSettings(toBN(this.serverCredentials.firstEpochStartTime), toBN(this.serverCredentials.roundDurationSec));
     this._initialized = true;
   }

@@ -2,7 +2,7 @@ import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../../../../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
 
-export class WebserverConfig implements IReflection<WebserverConfig> {
+export class IndexerServerConfig implements IReflection<IndexerServerConfig> {
 
   public firstEpochStartTime: number = 1636070400;
 
@@ -16,11 +16,10 @@ export class WebserverConfig implements IReflection<WebserverConfig> {
   
    port: number = 9500;
 
-   attesterDatabase = new DatabaseConnectOptions();
    indexerDatabase = new DatabaseConnectOptions();
  
-   instanciate(): WebserverConfig {
-     return new WebserverConfig();
+   instanciate(): IndexerServerConfig {
+     return new IndexerServerConfig();
    }
    getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
      return null;

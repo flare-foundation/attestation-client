@@ -17,11 +17,12 @@
 
     "port": $($(Network)WebserverPort),
 
-    "attesterDatabase": {
-        "host": "$(AttesterDatabaseHost)",
-        "port": $(AttesterDatabasePort),
-        "database": "$(AttesterDatabase$(Network))",
-        "username": "$(AttesterReaderUsername$(Network))",
-        "password": "$(AttesterReaderPassword$(Network))"
+    "indexerDatabase": {
+        "host": "$(IndexerDatabaseHost)",
+        "port": $(IndexerDatabasePort),
+        "database": "$(IndexerDatabase)",
+        "username": "$(IndexerReaderUsername)",
+        "password": "$(IndexerReaderPassword)"
     },
+
 }

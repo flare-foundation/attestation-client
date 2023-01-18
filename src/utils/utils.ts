@@ -52,7 +52,11 @@ export function getWeb3(rpcLink: string, logger?: any): Web3 {
     });
     web3.setProvider(provider);
   }
-  web3.eth.handleRevert = true;
+  if (process.env.TEST_HARDHAT_NODE) {
+    web3.eth.handleRevert = false;
+  } else {
+    web3.eth.handleRevert = true;
+  }
   return web3;
 }
 

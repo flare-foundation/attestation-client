@@ -9,10 +9,10 @@
    "dynamicAttestationConfigurationFolder": "./test/attestationClient/test-data/attester/dac/",
    
    // commit time in seconds, actual commit time is: epoch start + epoch duration * 2 - commit time
-   "commitTimeSec":-12,
+   "commitTimeSec": -2,
 
    // commit time in seconds, actual commit time is: epoch start + epoch duration * 2 - bitVote time
-   "bitVoteTimeSec":-12,
+   "bitVoteTimeSec": -7,
 
    "web": {
        "accountPrivateKey": "0x28d1bfbbafe9d1d4f5a11c3c16ab6bf9084de48d99fbac4058bdfa3c80b29085",

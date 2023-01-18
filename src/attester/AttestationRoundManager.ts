@@ -84,6 +84,14 @@ export class AttestationRoundManager {
     return this.attesterWeb3.epochSettings;
   }
 
+  get label() {
+    let label = ""
+    if(this.config.label != "none") {
+      label = `[${this.config.label}]`;
+    }
+    return label;
+  }
+
   /**
    * Initializes attestation round manager
    */
@@ -124,7 +132,7 @@ export class AttestationRoundManager {
 
         await this.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
       } catch (error) {
-        logException(error, `startRoundUpdate`);
+        logException(error, `${this.label}startRoundUpdate`);
       }
 
       await sleepms(5000);
@@ -171,7 +179,7 @@ export class AttestationRoundManager {
       const config = this.attestationConfigManager.getConfig(roundId);
 
       if (!config) {
-        this.logger.error(`${roundId}: critical error, DAC config for round id not defined`);
+        this.logger.error(`${this.label}${roundId}: critical error, DAC config for round id not defined`);
         exit(1);
         return MOCK_NULL_WHEN_TESTING;
       }
@@ -180,7 +188,7 @@ export class AttestationRoundManager {
       const verifier = this.attestationConfigManager.getVerifierRouter(roundId);
 
       if (!verifier) {
-        this.logger.error(`${roundId}: critical error, verifier route for round id not defined`);
+        this.logger.error(`${this.label}${roundId}: critical error, verifier route for round id not defined`);
         exit(1);
         return MOCK_NULL_WHEN_TESTING;
       }
@@ -198,38 +206,38 @@ export class AttestationRoundManager {
         const eta = (windowDuration - (now - roundStartTime)) / 1000;
         if (eta >= 0) {
           this.logger.debug(
-            `!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${activeRound.attestations.length
+            `${this.label}!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${activeRound.attestations.length
             }  `
           );
         }
-      }, 5000);
+      }, process.env.TEST_SAMPLING_REQUEST_INTERVAL ? parseInt(process.env.TEST_SAMPLING_REQUEST_INTERVAL, 10) : 5000);
 
       // setup commit, reveal and completed callbacks
-      this.logger.info(`^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
+      this.logger.info(`${this.label}^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
 
       // trigger start choose phase
-      this.schedule(`schedule:startChoosePhase`, async () => await activeRound!.startChoosePhase(), roundChooseStartTime - now);
+      this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound!.startChoosePhase(), roundChooseStartTime - now);
 
       // trigger sending bit vote result
-      this.schedule(`schedule:bitVote`, async () => await activeRound!.bitVote(), roundCommitStartTime + this.config.bitVoteTimeSec - now);
+      this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound!.bitVote(), roundCommitStartTime + this.config.bitVoteTimeSec - now);
 
       // trigger start commit phase
-      this.schedule(`schedule:startCommitPhase`, async () => await activeRound!.startCommitPhase(), roundCommitStartTime - now);
+      this.schedule(`${this.label}schedule:startCommitPhase`, async () => await activeRound!.startCommitPhase(), roundCommitStartTime - now);
 
       // trigger start commit epoch submit
-      this.schedule(`schedule:startCommitSubmit`, () => activeRound!.startCommitSubmit(), roundCommitStartTime - now + 1000);
+      this.schedule(`${this.label}schedule:startCommitSubmit`, () => activeRound!.startCommitSubmit(), roundCommitStartTime - now + 1000);
 
       // trigger start reveal epoch
-      this.schedule(`schedule:startRevealEpoch`, () => activeRound!.startRevealPhase(), roundRevealStartTime - now);
+      this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound!.startRevealPhase(), roundRevealStartTime - now);
 
       // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
-      this.schedule(`schedule:commitLimit`, () => activeRound!.commitLimit(), roundRevealStartTime + this.config.commitTimeSec * 1000 - COMMIT_LIMIT_BUFFER_MS - now);
+      this.schedule(`${this.label}schedule:commitLimit`, () => activeRound!.commitLimit(), roundRevealStartTime + this.config.commitTimeSec * 1000 - COMMIT_LIMIT_BUFFER_MS - now);
 
       // trigger reveal
-      this.schedule(`schedule:reveal`, () => activeRound!.reveal(), roundCompleteTime + this.config.commitTimeSec * 1000 - now);
+      this.schedule(`${this.label}schedule:reveal`, () => activeRound!.reveal(), roundCompleteTime + this.config.commitTimeSec * 1000 - now);
 
       // trigger end of reveal epoch, cycle is completed at this point
-      this.schedule(`schedule:completed`, () => activeRound!.completed(), roundCompleteTime - now);
+      this.schedule(`${this.label}schedule:completed`, () => activeRound!.completed(), roundCompleteTime - now);
 
       this.rounds.set(roundId, activeRound);
 
@@ -244,7 +252,7 @@ export class AttestationRoundManager {
         prevRound.nextRound = activeRound;
       } else {
         // trigger first commit
-        this.schedule(`schedule:firstCommit`, () => activeRound!.firstCommit(), roundRevealStartTime + this.config.commitTimeSec * 1000 - now);
+        this.schedule(`${this.label}schedule:firstCommit`, () => activeRound!.firstCommit(), roundRevealStartTime + this.config.commitTimeSec * 1000 - now);
       }
     }
 
@@ -262,7 +270,7 @@ export class AttestationRoundManager {
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
     if (epochId < this.startRoundId) {
-      this.logger.debug(`epoch too low ^Y#${epochId}^^`);
+      this.logger.debug(`${this.label}epoch too low ^Y#${epochId}^^`);
       return;
     }
 

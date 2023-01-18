@@ -62,7 +62,6 @@ const ATTESTATION_CLIENT_SIGNERS = {
     "0x08e8b2Af4874e920de27723576A13d66008Af523",
     "0x5D2f75392DdDa69a2818021dd6a64937904c8352",
   ],
-  31337: process.env.TEST_CUSTOM_SIGNERS ? JSON.parse( process.env.TEST_CUSTOM_SIGNERS) : [],
   0: [
     "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC", // Private key: 56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027
   ],
@@ -79,6 +78,8 @@ function getAttestationSigners(chainId: number): string[] {
       return ATTESTATION_CLIENT_SIGNERS[19];
     case 16:
       return ATTESTATION_CLIENT_SIGNERS[16];
+    case 31337:
+      return process.env.TEST_CUSTOM_SIGNERS ? JSON.parse(process.env.TEST_CUSTOM_SIGNERS) : [];
     default:
       return ATTESTATION_CLIENT_SIGNERS[0];
   }
@@ -87,14 +88,20 @@ function getAttestationSigners(chainId: number): string[] {
 export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" | "tran") {
   const web3 = getWeb3(web3Rpc);
 
+  if (process.env.TEST_HARDHAT_NODE) {
+    // Due to bug in combination with Ganache: https://github.com/web3/web3.js/issues/3742
+    web3.eth.handleRevert = false;
+  }
+
+
   function toBN(inp: string | number) {
     return web3.utils.toBN(inp);
   }
 
   const chainId = await web3.eth.getChainId();
-  const voteThreshold = Math.ceil(getAttestationSigners(chainId).length / 2);
+  const signers = getAttestationSigners(chainId);
+  const voteThreshold = Math.ceil(signers.length / 2);
 
-  // State connector
   // State connector
   const AbiItemForDeploy = flavor === "tran" ? StateConnectorTranAbi : StateConnectorAbi;
 
@@ -156,17 +163,19 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     let merkleRootCandidates = [];
 
     async function getAttestation(currentRound: number, signer: string) {
-        try {
-          let result = await stateConnectorContract.methods.getAttestation(currentRound, signer).call();
-          return result;
-        } catch(e) {
-          console.log(e.reason);
-          return ZERO_ROOT;
-        }
+      try {
+        let result = await stateConnectorContract.methods.getAttestation(currentRound, signer).call();
+        return result;
+      } catch (e) {
+        // console.log(`Signer: ${signer} has no attestation`);
+        return ZERO_ROOT;
+      }
     }
 
-    for (const signer of getAttestationSigners(chainId)) {
+    console.log("VOTES:")
+    for (const signer of signers) {
       let result = await getAttestation(currentRound, signer);
+      console.error(`[${currentRound}]${signer}: ${result}`)
       merkleRootCandidates.push(result);
     }
 
@@ -187,6 +196,10 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
       }
     }
 
+    let tmpBlockNumber = await web3.eth.getBlockNumber();
+    let tmpBlock = await web3.eth.getBlock(tmpBlockNumber);
+
+    console.log(`BEFORE SENDING: currentRound: ${currentRound}, shouldBeForNow: ${Math.floor((now - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber())}, fromBlockTime: ${Math.floor((parseInt('' + tmpBlock.timestamp, 10) - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber())}`)
     const finalizeData = stateConnectorContract.methods.finaliseRound(currentRound, root).encodeABI();
     const tx = {
       from: botWallet.address,

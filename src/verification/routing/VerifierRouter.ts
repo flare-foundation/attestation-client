@@ -3,6 +3,7 @@ import { ApiResponse } from "../../servers/common/src";
 import { readSecureConfig } from "../../utils/configSecure";
 import { getUnixEpochTimestamp } from "../../utils/utils";
 import { AttestationRequest, AttestationRequestOptions, Verification } from "../attestation-types/attestation-types";
+import { AttLogger, getGlobalLogger } from "../../utils/logger";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
 import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
@@ -50,6 +51,7 @@ export class VerifierRouter {
    // routing map: sourceName -> attestationTypeName -> VerifierRoute
    routeMap: Map<string, Map<string, VerifierRoute>>;
    _initialized = false;
+   logger: AttLogger;
 
    /**
     * Auxilliary function. Returns VerifierRoute for given @param sourceName and @param attestationTypeName
@@ -96,11 +98,11 @@ export class VerifierRouter {
     * configurations are read and set and there are no double setting of a specific configuration for
     * a pair of (sourceName, attestationTypeName)
     */
-   public async initialize(startRoundId: number) {
+   public async initialize(startRoundId: number, logger?: AttLogger) {
       if (this._initialized) {
          throw new Error("Already initialized");
       }
-
+      this.logger = logger ?? getGlobalLogger();
       // initialize by DAC start number      
       this.config = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${startRoundId}`);
       if (!this.config) {
@@ -108,6 +110,7 @@ export class VerifierRouter {
       }
       const definitions = await readAttestationTypeSchemes();
       this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>();
+
       // set up all possible routes
       for (let definition of definitions) {
          let attestationTypeName = definition.name;
@@ -118,13 +121,13 @@ export class VerifierRouter {
                tmp = new Map<string, VerifierAttestationTypeRouteConfig>();
             }
             this.routeMap.set(sourceName, tmp);
+            this.logger.debug(`initialize.router[${startRoundId}](${sourceName},${attestationTypeName})`);
             if (tmp.get(attestationTypeName)) {
                throw new Error(`Duplicate configuration (${sourceName},${attestationTypeName})`);
             }
             tmp.set(attestationTypeName, EMPTY_VERIFIER_ROUTE);
          }
       }
-
       // Check credentials against all possible routes and setup routes form credentials
       for (let sourceCred of this.config.verifierRoutes) {
          let defaultRoute: VerifierRoute | null = null;
@@ -202,7 +205,8 @@ export class VerifierRouter {
             UBPCutoffTime: attestation.UBPCutoffTime,
          } as AttestationRequestOptions;
          let now = getUnixEpochTimestamp();
-         console.log(`TIMES: now: ${now}, windowStartTime: ${attestationRequestOptions.windowStartTime} (${attestationRequestOptions.windowStartTime - now}), UBPCutoffTime: ${attestationRequestOptions.UBPCutoffTime} (${attestationRequestOptions.UBPCutoffTime - now})`)
+         
+         this.logger.info(`TIMES: now: ${now}, windowStartTime: ${attestationRequestOptions.windowStartTime} (${attestationRequestOptions.windowStartTime - now}), UBPCutoffTime: ${attestationRequestOptions.UBPCutoffTime} (${attestationRequestOptions.UBPCutoffTime - now})`)
          const attestationRequest = {
             apiKey: route.apiKey,
             request: attestation.data.request,

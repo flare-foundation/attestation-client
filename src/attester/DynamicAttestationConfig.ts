@@ -180,7 +180,7 @@ export class AttestationConfigManager {
 
       // This initialization may fail, hence the dac initialization will fail
       // TODO: make a recovery mechanism
-      await config.verifierRouter.initialize(config.startRoundId);
+      await config.verifierRouter.initialize(config.startRoundId, this.logger);
 
       // parse sources
       fileConfig.sources.forEach(

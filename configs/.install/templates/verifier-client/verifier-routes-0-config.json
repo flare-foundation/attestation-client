@@ -11,6 +11,36 @@
          ]
       },
       {
+         "sourceId": "LTC",
+         "routes": [
+            {
+               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
+               "url": "$(LTCVerifierRouterClientUrl)",
+               "apiKey": "$(LTCVerifierRouterClientApiKey)"
+            }
+         ]
+      },
+      {
+         "sourceId": "DOGE",
+         "routes": [
+            {
+               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
+               "url": "$(DOGEVerifierRouterClientUrl)",
+               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+            }
+         ]
+      },
+      {
+         "sourceId": "ALGO",
+         "routes": [
+            {
+               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
+               "url": "$(ALGOVerifierRouterClientUrl)",
+               "apiKey": "$(ALGOVerifierRouterClientApiKey)"
+            }
+         ]
+      },
+      {
          "sourceId": "BTC",
          "routes": [
             {

@@ -146,9 +146,9 @@ contract StateConnectorTempTran {
   // TMP E
 
   function finaliseRound(uint256 _bufferNumber, bytes32 _merkleRoot) external {
-    require(_bufferNumber > 3);
-    require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
-    require(_bufferNumber > totalBuffers);
+    require(_bufferNumber > 3, "buffer number less than 3");
+    require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW, "wrong buffer number");
+    require(_bufferNumber > totalBuffers, "buffer number too small");
     // The following region can only be called from the golang code
     // TMP S
     if (msg.sender == finalizingBot) {

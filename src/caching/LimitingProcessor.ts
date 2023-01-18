@@ -1,7 +1,7 @@
 import { IBlock, Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
-import { getGlobalLogger, logException } from "../utils/logger";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { Queue } from "../utils/Queue";
 import { sleepms } from "../utils/utils";
 import { CachedMccClient } from "./CachedMccClient";
@@ -46,6 +46,7 @@ export interface LimitingProcessorOptions {
 
   timeout?: number;
   retry?: number;
+  logger?: AttLogger;
 }
 
 /**
@@ -105,10 +106,12 @@ export class LimitingProcessor {
   reportInMs = 1000;
 
   block: IBlock;
+  logger: AttLogger;
 
   constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = client;
+    this.logger = options?.logger ?? getGlobalLogger()
     // eslint-disable-next-line
     criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }
@@ -148,7 +151,7 @@ export class LimitingProcessor {
         // eslint-disable-next-line
         criticalAsync(`LimitingProcessor::continue -> DelayedExecution::run `, () => de.run());
       } else {
-        getGlobalLogger().error2(`LimitingProcessor::continue error: de is undefined`);
+        this.logger.error2(`LimitingProcessor::continue error: de is undefined`);
       }
       this.counter++;
       await sleepms(0);
@@ -159,7 +162,7 @@ export class LimitingProcessor {
    * Pauses the limiting processor
    */
   public pause() {
-    //getGlobalLogger().info( `pause ^W${this.debugLabel}` );
+    //this.logger.info( `pause ^W${this.debugLabel}` );
     this.isActive = false;
     this.debugOff();
   }

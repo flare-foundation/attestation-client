@@ -154,7 +154,6 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
 
     // We need to finalize the round
     let merkleRootCandidates = [];
-    const merkleRootPromises = [];
 
     async function getAttestation(currentRound: number, signer: string) {
         try {
@@ -167,11 +166,9 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     }
 
     for (const signer of getAttestationSigners(chainId)) {
-      merkleRootPromises.push(getAttestation(currentRound, signer));
+      let result = await getAttestation(currentRound, signer);
+      merkleRootCandidates.push(result);
     }
-
-    // Wait for all the promisees to finalize
-    merkleRootCandidates = await Promise.all(merkleRootPromises);
 
     const counter = {};
     for (const finalized of merkleRootCandidates as string[]) {

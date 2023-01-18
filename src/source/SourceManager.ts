@@ -42,9 +42,13 @@ export class SourceManager {
       this.verifierSourceConfig = getSourceConfig(verifierRouteConfig, sourceId);
     }
     if (!this.verifierSourceConfig) {
-      this.logger.error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
-      // We allow for non-complete configuration
-      // exit(1);
+      if(process.env.NODE_ENV === "development") {
+        // We allow for incomplete routing configs in development
+        this.logger.info(`${roundId}: source config for source ${sourceId} not defined (tolerated in "development" mode)`);          
+      } else {
+        this.logger.error(`${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
+        exit(1);
+      }
     }
   }
 

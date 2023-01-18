@@ -15,7 +15,6 @@ export class SourceRouter {
 
   attestationRoundManager: AttestationRoundManager;
 
-
   constructor(attestationRoundManager: AttestationRoundManager) {
     this.attestationRoundManager = attestationRoundManager;
   }

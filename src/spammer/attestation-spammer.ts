@@ -1,6 +1,6 @@
 import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
-import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
+import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttesterConfig } from "../attester/AttesterConfig";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -57,8 +57,8 @@ class AttestationSpammer {
   web3!: Web3;
   web3_2!: Web3;
   logger!: any;
-  stateConnector!: StateConnectorOld;
-  stateConnector_2!: StateConnectorOld;
+  stateConnector!: StateConnector;
+  stateConnector_2!: StateConnector;
 
   delay: number = args["delay"];
   lastBlockNumber = -1;
@@ -108,7 +108,7 @@ class AttestationSpammer {
     this.logger.info(`Using state connector at: ${this.spammerCredentials.web.stateConnectorContractAddress}`);
 
     // eslint-disable-next-line
-    getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
+    getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnector) => {
       this.stateConnector = sc;
     });
 
@@ -120,7 +120,7 @@ class AttestationSpammer {
       this.logger.info(`RPC2: ${this.spammerCredentials.web2.rpcUrl}`);
       this.logger.info(`Using state connector 2 at: ${this.spammerCredentials.web2.stateConnectorContractAddress}`);
       // eslint-disable-next-line
-      getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web2.stateConnectorContractAddress).then((sc: StateConnectorOld) => {
+      getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web2.stateConnectorContractAddress).then((sc: StateConnector) => {
         this.stateConnector_2 = sc;
       });
 
@@ -174,7 +174,7 @@ class AttestationSpammer {
   }
 
   static sendId = 0;
-  async sendAttestationRequest(stateConnector: StateConnectorOld, request: ARType) {
+  async sendAttestationRequest(stateConnector: StateConnector, request: ARType) {
     // let scheme = this.definitions.find(definition => definition.id === request.attestationType);
     // let requestBytes = encodeRequestBytes(request, scheme);
 

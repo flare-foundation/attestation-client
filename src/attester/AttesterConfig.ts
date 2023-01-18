@@ -15,11 +15,12 @@ export class AttesterWebOptions {
 }
 
 export class AttesterConfig implements IReflection<AttesterConfig> {
+  public label = "none";
 
-  // start epoch in sec
+  // start epoch in sec // DEPRECATED should be moved to monitor configs
   public firstEpochStartTime = 1636070400;
 
-  // voting round duration in sec
+  // voting round duration in sec // DEPRECATED should be moved to monitor configs
   public roundDurationSec = 90;
 
   public dynamicAttestationConfigurationFolder = "./configs/prod/dac/";

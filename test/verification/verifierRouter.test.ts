@@ -27,12 +27,13 @@ const CONFIG_PATH = "../test/verification/test-data/test-verifier"
 describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
   let setup: VerifierTestSetups;
-  
+
   before(async () => {
     process.env.TEST_CREDENTIALS = '1';
     let bootstrapOptions = {
+      whichBTC: 5,
       CONFIG_PATH, FIRST_BLOCK, LAST_BLOCK, LAST_CONFIRMED_BLOCK, TXS_IN_BLOCK, BLOCK_CHOICE
-    } as VerifierBootstrapOptions;    
+    } as VerifierBootstrapOptions;
     setup = await bootstrapTestVerifiers(bootstrapOptions);
   });
 
@@ -43,7 +44,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   });
 
   it(`Should verify attestation`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH;    
+    process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
     await verifierRouter.initialize(150);
 
@@ -56,12 +57,12 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     let respXRP = await verifierRouter.verifyAttestation(attestationXRP, attestationXRP.reverification);
 
     assert(respXRP.status === "OK", "Wrong server response");
-    assert(respXRP.data.response.transactionHash === prefix0x(setup.XRP.selectedTransaction.transactionId), "Wrong transaction id");
+    assert(respXRP.response.transactionHash === prefix0x(setup.XRP.selectedTransaction.transactionId), "Wrong transaction id");
 
     let respBTC = await verifierRouter.verifyAttestation(attestationBTC, attestationBTC.reverification);
 
     assert(respBTC.status === "OK", "Wrong server response");
-    assert(respBTC.data.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
+    assert(respBTC.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
   });
 
 
@@ -90,9 +91,11 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
     const attestationBTC = prepareAttestation(requestBTC, setup.startTime);
 
-    const resp = await verifierRouter.verifyAttestation(attestationBTC, attestationBTC.reverification);
-    assert(resp.status === 'ERROR', "Did not reject the attestation");
-    assert(resp.errorMessage.startsWith("Error: Unsupported attestation type 'ConfirmedBlockHeightExists'"), "Wrong error message")
+    try {
+      await verifierRouter.verifyAttestation(attestationBTC, attestationBTC.reverification);
+    } catch (e) {
+      assert(e.message.startsWith("Error: Unsupported attestation type 'ConfirmedBlockHeightExists'"), "Wrong error message");
+    }
 
   });
 

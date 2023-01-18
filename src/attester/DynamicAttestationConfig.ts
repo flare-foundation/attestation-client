@@ -191,7 +191,13 @@ export class AttestationConfigManager {
 
           sourceLimiter.maxTotalRoundWeight = source.maxTotalRoundWeight;
           sourceLimiter.numberOfConfirmations = source.numberOfConfirmations;
-          sourceLimiter.queryWindowInSec = source.queryWindowInSec;
+          if(process.env.NODE_ENV === "development" && process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC) {
+            sourceLimiter.queryWindowInSec = parseInt('' + process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC, 10);
+            this.logger.info(`queryWindowInSec overridden by ${sourceLimiter.queryWindowInSec}`);
+          } else {
+            sourceLimiter.queryWindowInSec = source.queryWindowInSec;
+          }
+          
           sourceLimiter.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
 
           config.sourceLimiters.set(sourceLimiter.source, sourceLimiter);

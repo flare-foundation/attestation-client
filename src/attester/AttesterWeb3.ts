@@ -1,6 +1,9 @@
+import { toBN } from "@flarenetwork/mcc";
 import BN from "bn.js";
 import Web3 from "web3";
-import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
+import { StateConnector } from "../../typechain-web3-v1/StateConnector";
+import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
+import { EpochSettings } from "../utils/EpochSettings";
 import { AttLogger } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
@@ -15,8 +18,11 @@ export class AttesterWeb3 {
   config: AttesterConfig
 
   web3!: Web3;
-  stateConnector!: StateConnectorOld;
+  stateConnector!: StateConnector | StateConnectorTempTran;
   web3Functions!: Web3Functions;
+  epochSettings: EpochSettings;
+  firstEpochStartTime: number;
+  roundDurationSec: number;
 
   logger: AttLogger;
 
@@ -35,6 +41,9 @@ export class AttesterWeb3 {
   async initialize(attestationRoundManager: AttestationRoundManager) {
     this.attestationRoundManager = attestationRoundManager;
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.config.web.stateConnectorContractAddress);
+    this.firstEpochStartTime = parseInt("" + await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
+    this.roundDurationSec = parseInt("" + await this.stateConnector.methods.BUFFER_WINDOW().call(), 10);
+    this.epochSettings = new EpochSettings(toBN(this.firstEpochStartTime), toBN(this.roundDurationSec));
   }
 
   check(bnString: string) {
@@ -78,19 +87,22 @@ export class AttesterWeb3 {
     this.check(commitedMaskedMerkleRoot);
     this.check(revealedRandom);
 
-    const fnToEncode = (this.stateConnector as StateConnectorOld).methods.submitAttestation(bufferNumber, commitedMaskedMerkleRoot, revealedMerkleRoot, revealedRandom);
+    const fnToEncode = (this.stateConnector as StateConnector | StateConnectorTempTran).methods.submitAttestation(bufferNumber, commitedMaskedMerkleRoot, revealedMerkleRoot, revealedRandom);
 
     if (verbose) {
-      this.logger.info(`action .................... : ${action}`);
-      this.logger.info(`bufferNumber .............. : ^e${bufferNumber.toString()}`);
-      this.logger.info(`commitedMaskedMerkleRoot .. : ^e${commitedMaskedMerkleRoot.toString()}`);
-      this.logger.info(`commitedMerkleRoot ........ : ${commitedMerkleRoot.toString()}`);
-      this.logger.info(`commitedRandom ............ : ${commitedRandom.toString()}`);
-      this.logger.info(`revealedMerkleRoot ........ : ^e${revealedMerkleRoot.toString()}`);
-      this.logger.info(`revealedRandom ............ : ^e${revealedRandom.toString()}`);
+      let label = ""
+      if(this.config.label != "none") {
+        label = `[${this.config.label}]`;
+      }
+      this.logger.info(`${label}action .................... : ${action}`);
+      this.logger.info(`${label}bufferNumber .............. : ^e${bufferNumber.toString()}`);
+      this.logger.info(`${label}commitedMaskedMerkleRoot .. : ^e${commitedMaskedMerkleRoot.toString()}`);
+      this.logger.info(`${label}commitedMerkleRoot ........ : ${commitedMerkleRoot.toString()}`);
+      this.logger.info(`${label}commitedRandom ............ : ${commitedRandom.toString()}`);
+      this.logger.info(`${label}revealedMerkleRoot ........ : ^e${revealedMerkleRoot.toString()}`);
+      this.logger.info(`${label}revealedRandom ............ : ^e${revealedRandom.toString()}`);
     }
 
-    //if (process.env.NODE_ENV === "production") {
     if (true) {
 
       const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;

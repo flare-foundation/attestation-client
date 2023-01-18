@@ -2,7 +2,7 @@ import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 import * as fs from "fs";
 import glob from "glob";
 import Web3 from "web3";
-import { StateConnectorOld } from "../../typechain-web3-v1/StateConnectorOld";
+import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { getGlobalLogger } from "./logger";
 
 export const DECIMALS = 5;
@@ -92,12 +92,12 @@ export async function getWeb3Contract(web3: any, address: string, name: string) 
  * @param address Address of the contract
  * @returns StateConnector contract object
  */
-export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnectorOld> {
+export async function getWeb3StateConnectorContract(web3: any, address: string): Promise<StateConnector> {
   let abiPath = "";
   const artifacts = "artifacts";
   try {
-    abiPath = await relativeContractABIPathForContractName("StateConnector", artifacts);
-    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnectorOld;
+    abiPath = await relativeContractABIPathForContractName(process.env.TEST_STATE_CONNECTOR ? "StateConnectorTempTran" : "StateConnector", artifacts);
+    return new web3.eth.Contract(getAbi(`${artifacts}/${abiPath}`), address) as StateConnector;
   } catch (e: any) {
     console.error(`getWeb3Contract error - ABI not found: ${e}`);
   }
@@ -218,8 +218,18 @@ export function etherToValue(web3: Web3, eth: number) {
  * Current unix epoch (in seconds)
  * @returns unix epoch of now
  */
-export function getUnixEpochTimestamp() {
-  return Math.floor(Date.now() / 1000);
+export function getUnixEpochTimestamp(): number {
+  let now = Math.floor(Date.now() / 1000);
+  if (process.env.NODE_ENV === "development") {
+    if (process.env.TEST_OFFSET_TIME) {
+      let offset = parseInt('' + process.env.TEST_OFFSET_TIME, 10);
+      return now + offset;
+    }
+    if (process.env.TEST_SCHEDULER_TIME) {
+      return parseInt('' + process.env.TEST_SCHEDULER_TIME, 10);
+    }
+  }
+  return now;
 }
 
 /**

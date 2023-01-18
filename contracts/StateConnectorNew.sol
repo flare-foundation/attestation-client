@@ -1,10 +1,10 @@
-// (c) 2021, Flare Networks Limited. All rights reserved.
+// (c) 2022, Flare Networks Limited. All rights reserved.
 // Please see the file LICENSE for licensing terms.
 
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
 
-contract StateConnectorOld {
+contract StateConnectorNew {
 
 //====================================================================
 // Data Structures
@@ -15,12 +15,12 @@ contract StateConnectorOld {
 
     // Signalling block.coinbase value
     address public constant SIGNAL_COINBASE = address(0x00000000000000000000000000000000000DEaD1);
-    // November 5th, 2021
-    uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1636070400 seconds;
+    // Thu Dec 01 2022 00:00:00 GMT+0000
+    uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1669852800 seconds;
     // Amount of time a buffer is active before cycling to the next one
-    uint256 public constant BUFFER_WINDOW = 90 seconds;
-    // {Requests, Votes, Reveals}
-    uint256 public constant TOTAL_STORED_BUFFERS = 3;
+    uint256 public constant BUFFER_WINDOW = 60 seconds;
+    // {Requests, Choose, Votes, Reveals}
+    uint256 public constant TOTAL_STORED_BUFFERS = 4;
     // Store a proof for one week
     uint256 public constant TOTAL_STORED_PROOFS = (1 weeks) / BUFFER_WINDOW;
     // Cold wallet address => Hot wallet address
@@ -30,14 +30,15 @@ contract StateConnectorOld {
     // VOTING DATA STRUCTURES
     //=======================
 
-    // Voting round consists of 4 sequential buffer windows: collect, commit, reveal, finalize
-    // Round ID is the buffer number of the window of the collect phase
-    struct Vote { // Struct for Vote in buffer number 'N'
-        // Hash of the Merkle root (+ random number and msg.sender) that contains valid requests from 'Round ID = N-1' 
+    // Voting round consists of 5 sequential buffer windows: collect, choose, commit, reveal, finalize
+    // Round ID is the buffer number of the window of the collect phase 
+    // Struct for Vote in buffer number 'N'
+    struct Vote { 
+        // Hash of the Merkle root (+ random number and msg.sender) that contains valid requests from 'Round ID = N-2' 
         bytes32 commitHash;
-        // Merkle root for 'Round ID = N-2' used for commitHash in buffer number 'N-1'
+        // Merkle root for 'Round ID = N-3' used for commitHash in buffer number 'N-2'
         bytes32 merkleRoot;
-        // Random number for 'Round ID = N-2' used for commitHash in buffer number 'N-1'
+        // Random number for 'Round ID = N-3' used for commitHash in buffer number 'N-2'
         bytes32 randomNumber;
     }
     struct Buffers {
@@ -70,6 +71,15 @@ contract StateConnectorOld {
         bytes data
     );
 
+    event AttestationSubmit(
+        address indexed sender,
+        uint256 indexed bufferNumber,
+        bytes32 commitHash,
+        bytes32 merkleRoot,
+        bytes32 randomNumber,
+        bytes data
+    );
+
     event RoundFinalised(
         uint256 indexed roundId,
         bytes32 merkleRoot
@@ -99,13 +109,15 @@ contract StateConnectorOld {
         uint256 _bufferNumber,
         bytes32 _commitHash,
         bytes32 _merkleRoot,
-        bytes32 _randomNumber
+        bytes32 _randomNumber,
+        bytes calldata _chooseBytes
     ) 
         external returns (
             bool _isInitialBufferSlot
         )
     {
         require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW, "wrong bufferNumber");
+        emit AttestationSubmit(msg.sender,_bufferNumber,_commitHash,_merkleRoot,_randomNumber,_chooseBytes);
         buffers[msg.sender].latestVote = _bufferNumber;
         buffers[msg.sender].votes[_bufferNumber % TOTAL_STORED_BUFFERS] = Vote(
             _commitHash,
@@ -120,6 +132,7 @@ contract StateConnectorOld {
         return false;
     }
 
+    // Called from validator (GO)
     function getAttestation(uint256 _bufferNumber) external view returns (bytes32 _merkleRoot) {
         address attestor = attestorAddressMapping[msg.sender];
         if (attestor == address(0)) {
@@ -134,6 +147,7 @@ contract StateConnectorOld {
         require(commitHash == keccak256(abi.encode(_merkleRoot, randomNumber, attestor)));
     }
 
+    // Called from validator (GO) when first submit attestation comes
     function finaliseRound(uint256 _bufferNumber, bytes32 _merkleRoot) external {
         require(_bufferNumber > 3);
         require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
@@ -141,20 +155,20 @@ contract StateConnectorOld {
         // The following region can only be called from the golang code
         if (msg.sender == block.coinbase && block.coinbase == SIGNAL_COINBASE) {
             totalBuffers = _bufferNumber;
-            merkleRoots[(_bufferNumber - 3) % TOTAL_STORED_PROOFS] = _merkleRoot;
-            emit RoundFinalised(_bufferNumber - 3, _merkleRoot);
+            merkleRoots[(_bufferNumber - 4) % TOTAL_STORED_PROOFS] = _merkleRoot;
+            emit RoundFinalised(_bufferNumber - 4, _merkleRoot);
         }
     }
 
     function lastFinalizedRoundId() external view returns (uint256 _roundId) {
-        require(totalBuffers >= 3, "totalBuffers < 3");
-        return totalBuffers - 3;
+        require(totalBuffers >= 4, "totalBuffers < 4");
+        return totalBuffers - 4;
     }
 
     function merkleRoot(uint256 _roundId) external view returns (bytes32) {
-        require(totalBuffers >= 3, "totalBuffers < 3");
-        require(_roundId <= totalBuffers - 3, "not finalized");
-        require(_roundId < TOTAL_STORED_PROOFS || _roundId > totalBuffers - 3 - TOTAL_STORED_PROOFS, "expired");
+        require(totalBuffers >= 4, "totalBuffers < 4");
+        require(_roundId <= totalBuffers - 4, "not finalized");
+        require(_roundId < TOTAL_STORED_PROOFS || _roundId > totalBuffers - 4 - TOTAL_STORED_PROOFS, "expired");
         return merkleRoots[_roundId % TOTAL_STORED_PROOFS];
     }
 }

@@ -156,7 +156,7 @@ export class AttesterClient {
       this.logger,
       this.config.web.rpcUrl,
       this.config.web.stateConnectorContractAddress,
-      "StateConnector",
+      "StateConnector",  // Independent of the actual contract name. Obtaining the correct contract is handled by `getWeb3StateConnectorContract`
       startBlock,
       (event: any) => {
         // eslint-disable-next-line

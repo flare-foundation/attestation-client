@@ -15,8 +15,12 @@ import { ARType } from "../../../src/verification/generated/attestation-request-
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
 import { getUnixEpochTimestamp } from "../../../src/utils/utils";
 import { DBBlockBTC, DBBlockXRP } from "../../../src/entity/indexer/dbBlock";
+import { option } from "yargs";
 
 export interface VerifierBootstrapOptions {
+   lastTimestamp?: number;
+   whichXRP?: number;
+   whichBTC?: number;
    CONFIG_PATH: string;
    FIRST_BLOCK: number;
    LAST_BLOCK: number;
@@ -46,20 +50,20 @@ export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, 
    }
    const logger = getGlobalLogger("web");
 
-   let lastTimestamp = getUnixEpochTimestamp();
+   let lastTimestamp = options.lastTimestamp ?? getUnixEpochTimestamp();
 
    let appXRP = await bootstrapVerifier("xrp", lastTimestamp, DBBlockXRP, DBTransactionXRP0, logger, options);
    let entityManagerXRP = appXRP.get(getEntityManagerToken("indexerDatabase"));
    let configXRP = appXRP.get("VERIFIER_CONFIG") as VerifierConfigurationService;
-   let selectedTransactionXRP = await selectedReferencedTx(entityManagerXRP, DBTransactionXRP0, options.BLOCK_CHOICE);
+   let selectedTransactionXRP = await selectedReferencedTx(entityManagerXRP, DBTransactionXRP0, options.BLOCK_CHOICE, options.whichXRP ?? 0);
 
    let appBTC = await bootstrapVerifier("btc", lastTimestamp, DBBlockBTC, DBTransactionBTC0, logger, options);
    let entityManagerBTC = appBTC.get(getEntityManagerToken("indexerDatabase"));
    let configBTC = appBTC.get("VERIFIER_CONFIG") as VerifierConfigurationService;
-   let selectedTransactionBTC = await selectedReferencedTx(entityManagerBTC, DBTransactionBTC0, options.BLOCK_CHOICE, 5);
+   let selectedTransactionBTC = await selectedReferencedTx(entityManagerBTC, DBTransactionBTC0, options.BLOCK_CHOICE, options.whichBTC ?? 0);
 
    let startTime = lastTimestamp - (options.LAST_BLOCK - options.FIRST_BLOCK);
-
+   console.log(`BLOCK TIMES: from: ${startTime} to: ${lastTimestamp}`)
    return {
       startTime,
       lastTimestamp,

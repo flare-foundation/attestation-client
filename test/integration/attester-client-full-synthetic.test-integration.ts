@@ -93,6 +93,7 @@ describe(`Attester client full on synthetic verifier data (${getTestFile(__filen
       // VERIFIERS 
 
       let bootstrapOptions = {
+         whichBTC: 5,
          CONFIG_PATH, FIRST_BLOCK, LAST_BLOCK, LAST_CONFIRMED_BLOCK, TXS_IN_BLOCK, BLOCK_CHOICE
       } as VerifierBootstrapOptions;
 

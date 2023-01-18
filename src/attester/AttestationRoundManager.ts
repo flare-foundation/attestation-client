@@ -55,13 +55,14 @@ export class AttestationRoundManager {
   constructor(
     config: AttesterConfig,
     logger: AttLogger,
-    attesterWeb3: AttesterWeb3
+    attesterWeb3: AttesterWeb3,
+    sourceRouter?: SourceRouter
   ) {
     this.config = config;
     this.logger = logger;
     this.attesterWeb3 = attesterWeb3;
 
-    this.sourceRouter = new SourceRouter(this);
+    this.sourceRouter = sourceRouter ?? new SourceRouter(this);
     this.attestationConfigManager = new AttestationConfigManager(this);
   }
 

@@ -18,6 +18,9 @@ const chai = require("chai");
 const expect = chai.expect;
 
 class MockSourceRouter extends SourceRouter {
+  constructor() {
+    super(undefined);
+  }
   validateTransaction(sourceId: SourceId, transaction: Attestation) { }
 }
 
@@ -77,9 +80,11 @@ describe.skip("Attestation Client", () => {
     // Reading configuration
     const config = new AttesterConfig();
 
-    const sourceRouter = new MockSourceRouter(undefined);
     const attesterWeb3 = new MockAttesterWeb3(config, logger);
-    attestationRoundManager = new AttestationRoundManager(sourceRouter, config, logger, attesterWeb3);
+    const sourceRouter = new MockSourceRouter();
+    attestationRoundManager = new AttestationRoundManager(config, logger, attesterWeb3, sourceRouter);
+    // override initially generated source router
+    
   });
 
   ////////////////////////////////

@@ -39,7 +39,6 @@ const CONFIG_PATH_VERIFIER = "../test/attestationClient/test-data/test-verifier"
 const RPC = "http://127.0.0.1:8545";
 const STATE_CONNECTOR_ADDRESS = "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F";
 const BIT_VOTE_ADDRESS = "0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf";
-const PRIVATE_KEY = "0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122";
 const SPAMMER_PRIVATE_KEY = "0x28d1bfbbafe9d1d4f5a11c3c16ab6bf9084de48d99fbac4058bdfa3c80b29087"
 
 // set false to debug with global logger
@@ -213,10 +212,6 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     setInterval(async () => {
       await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
       await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
-    }, bufferWindowDurationSec * 1000);
-
-    setInterval(async () => {
-
     }, bufferWindowDurationSec * 1000);
 
     // let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");

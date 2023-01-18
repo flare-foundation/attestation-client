@@ -39,6 +39,7 @@ export class AttesterConfig implements IReflection<AttesterConfig> {
   // public attesterDatabase = new DatabaseConnectOptions();
   // public indexerDatabase = new DatabaseConnectOptions();
   public attesterDatabase = new DatabaseConnectOptions();
+  // DEPRECATED should be moved to monitor configs
   public indexerDatabase = new DatabaseConnectOptions();
 
   instanciate() {

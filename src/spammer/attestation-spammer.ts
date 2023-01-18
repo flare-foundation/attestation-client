@@ -95,7 +95,7 @@ class AttestationSpammer {
     this.spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
 
     // create dummy attestation round manager and assign needed variables
-    this.attestationRoundManager = new AttestationRoundManager(null, null, null, null);
+    this.attestationRoundManager = new AttestationRoundManager(null, null, null);
     this.attestationRoundManager.config = new AttesterConfig();
     this.attestationRoundManager.config.web = this.spammerCredentials.web;
 

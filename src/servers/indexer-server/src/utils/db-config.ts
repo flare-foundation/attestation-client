@@ -4,15 +4,15 @@ import { DBState } from "../../../../entity/indexer/dbState";
 import { DBTransactionALGO0, DBTransactionALGO1, DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionXRP0, DBTransactionXRP1 } from "../../../../entity/indexer/dbTransaction";
 import { readSecureConfig } from "../../../../utils/configSecure";
 import { getGlobalLogger } from "../../../../utils/logger";
-import { VerifierServerConfig } from "../config-models/VerifierServerConfig";
+import { IndexerServerConfig } from "../config-models/IndexerServerConfig";
 
 export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrmModuleOptions> {
    // Entity definition
    let entities: any = [DBTransactionBase, DBBlockBase, DBState];
 
-   let verifierType = process.env.VERIFIER_TYPE;
+   let indexerType = process.env.INDEXER_TYPE;
 
-   switch (verifierType) {
+   switch (indexerType) {
       case 'btc':
          entities.push(DBBlockBTC, DBTransactionBTC0, DBTransactionBTC1);
          break;
@@ -29,39 +29,26 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
          entities.push(DBBlockALGO, DBTransactionALGO0, DBTransactionALGO1);
          break;
       default:
-         throw new Error(`Wrong verifier type '${verifierType}'`)
+         throw new Error(`Wrong indexer type '${indexerType}'`)
    }
 
-   if(process.env.IN_MEMORY_DB && process.env.NODE_ENV !== "production") {
-      return {
-         name: "indexerDatabase",
-         type: 'better-sqlite3',
-         database: ':memory:',
-         dropSchema: true,
-         entities: entities,
-         synchronize: true,
-         migrationsRun: false,
-         logging: false
-      };
-   }
 
-   // MySQL database, get config
-   const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
-   const databaseCredentials = config.indexerDatabase;
-   let databaseName = databaseCredentials.database;
+   const config = await readSecureConfig(new IndexerServerConfig(),  `indexer-server/${indexerType}-indexer-server`);
+   const databaseOptions = config.indexerDatabase;
+   let databaseName = databaseOptions.database;
    let logger = getGlobalLogger(loggerLabel);
    logger.info(
-      `^Yconnecting to database ^g^K${databaseName}^^ at ${databaseCredentials.host} on port ${databaseCredentials.port} as ${databaseCredentials.username} (^W${process.env.NODE_ENV}^^)`
+      `^Yconnecting to database ^g^K${databaseName}^^ at ${databaseOptions.host} on port ${databaseOptions.port} as ${databaseOptions.username} (^W${process.env.NODE_ENV}^^)`
    );
 
    return {
-      name: "indexerDatabase",
+      //name: databaseName,
       type: 'mysql',
-      host: databaseCredentials.host,
-      port: databaseCredentials.port,
-      username: databaseCredentials.username,
-      password: databaseCredentials.password,
-      database: databaseCredentials.database,
+      host: databaseOptions.host,
+      port: databaseOptions.port,
+      username: databaseOptions.username,
+      password: databaseOptions.password,
+      database: databaseOptions.database,
       entities: entities,
       // migrations: [migrations],
       synchronize: true,
@@ -74,5 +61,3 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
       // autoLoadEntities: true,
    };
 }
-
-

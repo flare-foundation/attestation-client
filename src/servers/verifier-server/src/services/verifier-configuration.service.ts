@@ -1,5 +1,5 @@
 import { readSecureConfig } from '../../../../utils/configSecure';
-import { VerifierServerConfig } from '../../../common/src';
+import { VerifierServerConfig } from '../config-models/VerifierServerConfig';
 
 export class VerifierConfigurationService {
   config: VerifierServerConfig;

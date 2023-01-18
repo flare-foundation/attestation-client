@@ -6,7 +6,7 @@ import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
-import { VerifierServerConfig } from "../../src/servers/common/src";
+import { VerifierServerConfig } from "../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
 import { ChainConfig, ListChainConfig } from "../../src/source/ChainConfig";
 import { readSecureConfig } from "../../src/utils/configSecure";
 import { DatabaseService } from "../../src/utils/databaseService";

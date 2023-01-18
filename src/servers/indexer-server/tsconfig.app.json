@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "outDir": "../../../dist/src/servers/indexer-server"
+  },
+  "include": ["src/**/*", "../../entity/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+}

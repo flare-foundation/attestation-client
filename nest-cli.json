@@ -34,6 +34,25 @@
         ]        
       }
     },
+    "indexer-server": {
+      "type": "application",
+      "root": "src/servers/indexer-server",
+      "entryFile": "main",
+      "sourceRoot": "src/servers/indexer-server/src",
+      "compilerOptions": {
+        "tsConfigPath": "src/servers/indexer-server/tsconfig.app.json",
+        "plugins": [
+          {
+            "name": "@nestjs/swagger",
+            "options": {
+              "classValidatorShim": false,
+              "introspectComments": true
+            }
+          }
+        ]        
+      }
+    },
+
     "common": {
       "type": "library",
       "root": "src/servers/common",

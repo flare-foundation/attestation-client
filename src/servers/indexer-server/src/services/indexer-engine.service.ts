@@ -7,13 +7,13 @@ import { DBState } from '../../../../entity/indexer/dbState';
 import { DBTransactionBase } from '../../../../entity/indexer/dbTransaction';
 import { prepareIndexerTables } from '../../../../indexer/indexer-utils';
 import { BlockRange } from '../dtos/BlockRange.dto';
-import { ServerConfigurationService } from './server-configuration.service';
+import { IndexerServerConfigurationService } from './indexer-server-configuration.service';
 
 @Injectable()
 export class IndexerEngineService {
 
   constructor(
-    @Inject("SERVER_CONFIG") private configService: ServerConfigurationService,
+    @Inject("SERVER_CONFIG") private configService: IndexerServerConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) { }
 

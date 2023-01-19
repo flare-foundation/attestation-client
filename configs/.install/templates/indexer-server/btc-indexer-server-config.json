@@ -2,11 +2,11 @@
     "apiKeys": [
         {
            "name": "test1",
-           "apiKey": "$(WebApiKey1)"
+           "apiKey": "$($(Network)BTCIndexerServerAPIKey1)"
         },
         {
            "name": "test2",
-           "apiKey": "$(WebApiKey2)"
+           "apiKey": "$($(Network)BTCIndexerServerAPIKey2)"
         }
      ],
 
@@ -15,14 +15,14 @@
     "serviceStatusFilePath": "../monitor-status.json",
     "deploymentName": "Coston",
 
-    "port": $($(Network)WebserverPort),
+    "port": $($(Network)BTCIndexerServerPort),
 
     "indexerDatabase": {
-        "host": "$(IndexerDatabaseHost)",
-        "port": $(IndexerDatabasePort),
-        "database": "$(IndexerDatabase)",
-        "username": "$(IndexerReaderUsername)",
-        "password": "$(IndexerReaderPassword)"
+        "host": "$($(Network)BTCIndexerServerDatabaseHost)",
+        "port": $($(Network)BTCIndexerServerDatabasePort),
+        "database": "$($(Network)BTCServerIndexerDatabase)",
+        "username": "$($(Network)BTCServerIndexerReaderUsername)",
+        "password": "$($(Network)BTCServerIndexerReaderPassword)"
     },
 
 }

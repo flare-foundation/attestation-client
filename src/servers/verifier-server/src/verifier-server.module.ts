@@ -12,7 +12,7 @@ import { VerifierProcessor } from './services/verifier-processors/verifier-proce
 import { XRPProcessorService } from './services/verifier-processors/xrp-processor.service';
 import { WsCommandProcessorService } from './services/ws-command-processor.service';
 import { createTypeOrmOptions } from './utils/db-config';
-import { WsServerGateway } from './ws-server.gateway';
+import { WsServerGateway } from './gateways/ws-server.gateway';
 
 function processorProvider(config: VerifierConfigurationService, manager: EntityManager): VerifierProcessor {
   switch (process.env.VERIFIER_TYPE) {

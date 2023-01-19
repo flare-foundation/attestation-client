@@ -1,9 +1,10 @@
 import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../../../../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
+import { ServerUser } from "./ServerUser";
 
 export class IndexerServerConfig implements IReflection<IndexerServerConfig> {
-
+  public apiKeys: ServerUser[] = [];
   public firstEpochStartTime: number = 1636070400;
 
   // voting round duration in sec

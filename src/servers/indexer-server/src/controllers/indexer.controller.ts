@@ -1,14 +1,16 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { DBBlockBase } from '../../../../entity/indexer/dbBlock';
 import { DBState } from '../../../../entity/indexer/dbState';
 import { DBTransactionBase } from '../../../../entity/indexer/dbTransaction';
 import { ApiResponse, handleApiResponse } from '../../../common/src';
 import { BlockRange } from '../dtos/BlockRange.dto';
+import { AuthGuard } from '../guards/auth.guard';
 import { IndexerEngineService } from '../services/indexer-engine.service';
 
 @ApiTags('Indexer')
 @Controller("api/indexer")
+@UseGuards(AuthGuard)
 export class IndexerController {
 
   constructor(private indexerEngine: IndexerEngineService) { }

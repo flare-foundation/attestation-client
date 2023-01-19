@@ -1,6 +1,4 @@
 import { ChainType, MCC, UtxoMccCreate } from '@flarenetwork/mcc';
-import { Inject, Injectable } from '@nestjs/common';
-import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { IndexedQueryManagerOptions } from '../../../../../indexed-query-manager/indexed-query-manager-types';
 import { IndexedQueryManager } from '../../../../../indexed-query-manager/IndexedQueryManager';
@@ -10,15 +8,14 @@ import { verifyDOGE } from '../../../../../verification/verifiers/verifier_routi
 import { VerifierConfigurationService } from '../verifier-configuration.service';
 import { VerifierProcessor } from './verifier-processor';
 
-@Injectable()
 export class DOGEProcessorService extends VerifierProcessor {
   client: MCC.DOGE;
   indexedQueryManager: IndexedQueryManager;
   _initialized = false;
 
   constructor(
-    @Inject("VERIFIER_CONFIG") private config: VerifierConfigurationService,
-    @InjectEntityManager("indexerDatabase") private manager: EntityManager
+    private config: VerifierConfigurationService,
+    private manager: EntityManager
   ) {
     super();
     this.client = new MCC.DOGE(this.config.config.chainConfiguration.mccCreate as UtxoMccCreate);

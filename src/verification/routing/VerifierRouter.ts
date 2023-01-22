@@ -195,18 +195,16 @@ export class VerifierRouter {
     * @param recheck 
     * @returns 
     */
-   public async verifyAttestation(attestation: Attestation, recheck = false) {
+   public async verifyAttestation(attestation: Attestation) {
       let route = this.getRoute(attestation);
       if (route) {
          const attestationRequestOptions = {
-            roundId: attestation.roundId,
-            recheck,
             windowStartTime: attestation.windowStartTime,
-            UBPCutoffTime: attestation.UBPCutoffTime,
          } as AttestationRequestOptions;
-         let now = getUnixEpochTimestamp();
-         
-         this.logger.info(`TIMES: now: ${now}, windowStartTime: ${attestationRequestOptions.windowStartTime} (${attestationRequestOptions.windowStartTime - now}), UBPCutoffTime: ${attestationRequestOptions.UBPCutoffTime} (${attestationRequestOptions.UBPCutoffTime - now})`)
+         if(attestationRequestOptions.windowStartTime !== undefined) {
+            let now = getUnixEpochTimestamp();
+            this.logger.info(`TIMES: now: ${now}, windowStartTime: ${attestationRequestOptions.windowStartTime} (${attestationRequestOptions.windowStartTime - now})`);   
+         }
          const attestationRequest = {
             apiKey: route.apiKey,
             request: attestation.data.request,

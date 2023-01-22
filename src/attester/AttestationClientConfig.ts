@@ -14,7 +14,7 @@ export class AttesterWebOptions {
   @optional() public refreshEventsMs = 100;
 }
 
-export class AttesterConfig implements IReflection<AttesterConfig> {
+export class AttestationClientConfig implements IReflection<AttestationClientConfig> {
   public label = "none";
 
   // start epoch in sec // DEPRECATED should be moved to monitor configs
@@ -43,7 +43,7 @@ export class AttesterConfig implements IReflection<AttesterConfig> {
   public indexerDatabase = new DatabaseConnectOptions();
 
   instanciate() {
-    return new AttesterConfig();
+    return new AttestationClientConfig();
   }
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;

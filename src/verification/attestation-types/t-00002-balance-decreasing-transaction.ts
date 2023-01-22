@@ -1,5 +1,5 @@
 import { SourceId } from "../sources/sources";
-import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, TX_ID_BYTES, UPPER_BOUND_PROOF_BYTES, UTXO_BYTES } from "./attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, MIC_BYTES, SOURCE_ID_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
   id: 2,
@@ -23,11 +23,11 @@ The ID of the underlying chain, see 'SourceId' enum.
 `,
     },
     {
-      key: "upperBoundProof",
-      size: UPPER_BOUND_PROOF_BYTES,
+      key: "messageIntegrityCode",
+      size: MIC_BYTES,
       type: "ByteSequenceLike",
       description: `
-The hash of the confirmation block for an upper query window boundary block.
+The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
 `,
     },
     {

@@ -5,7 +5,7 @@ import BN from "bn.js";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
-import { AttesterConfig } from "../../src/attester/AttesterConfig";
+import { AttestationClientConfig } from "../../src/attester/AttestationClientConfig";
 import { AttesterWeb3 } from "../../src/attester/AttesterWeb3";
 import { SourceRouter } from "../../src/source/SourceRouter";
 import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
@@ -25,7 +25,7 @@ class MockSourceRouter extends SourceRouter {
 }
 
 class MockAttesterWeb3 extends AttesterWeb3 {
-  constructor(config: AttesterConfig, logger: AttLogger) {
+  constructor(config: AttestationClientConfig, logger: AttLogger) {
     super(config, logger);
   }
 
@@ -78,7 +78,7 @@ describe.skip("Attestation Client", () => {
     const logger = getGlobalLogger();
 
     // Reading configuration
-    const config = new AttesterConfig();
+    const config = new AttestationClientConfig();
 
     const attesterWeb3 = new MockAttesterWeb3(config, logger);
     const sourceRouter = new MockSourceRouter();

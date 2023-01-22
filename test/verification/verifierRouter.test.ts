@@ -1,10 +1,10 @@
-import { ChainType, prefix0x } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, prefix0x, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { WsClientOptions } from "../../src/verification/client/WsClientOptions";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
-import { selectBlock, testConfirmedBlockHeightExistsRequest, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
+import { firstAddressVin, firstAddressVout, selectBlock, testConfirmedBlockHeightExistsRequest, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "./test-utils/verifier-test-utils";
 
@@ -22,6 +22,7 @@ const LAST_BLOCK = 203;
 const LAST_CONFIRMED_BLOCK = 200;
 const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
+const BLOCK_QUERY_WINDOW = 90;
 const CONFIG_PATH = "../test/verification/test-data/test-verifier"
 
 describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
@@ -48,18 +49,21 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     const verifierRouter = new VerifierRouter();
     await verifierRouter.initialize(150);
 
-    let requestXRP = await testPaymentRequest(setup.XRP.entityManager, setup.XRP.selectedTransaction, DBBlockXRP, NUMBER_OF_CONFIRMATIONS_XRP, ChainType.XRP);
+    let requestXRP = await testPaymentRequest(setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
     const attestationXRP = prepareAttestation(requestXRP, setup.startTime);
 
-    let requestBTC = await testPaymentRequest(setup.BTC.entityManager, setup.BTC.selectedTransaction, DBBlockBTC, NUMBER_OF_CONFIRMATIONS_BTC, ChainType.BTC);
+    let inUtxo = firstAddressVin(setup.BTC.selectedTransaction);
+    let utxo = firstAddressVout(setup.BTC.selectedTransaction);
+
+    let requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     const attestationBTC = prepareAttestation(requestBTC, setup.startTime);
 
-    let respXRP = await verifierRouter.verifyAttestation(attestationXRP, attestationXRP.reverification);
+    let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
 
     assert(respXRP.status === "OK", "Wrong server response");
     assert(respXRP.response.transactionHash === prefix0x(setup.XRP.selectedTransaction.transactionId), "Wrong transaction id");
 
-    let respBTC = await verifierRouter.verifyAttestation(attestationBTC, attestationBTC.reverification);
+    let respBTC = await verifierRouter.verifyAttestation(attestationBTC);
 
     assert(respBTC.status === "OK", "Wrong server response");
     assert(respBTC.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
@@ -73,11 +77,12 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     await verifierRouter.initialize(150);
 
     let confirmationBlock = await selectBlock(setup.XRP.entityManager, DBBlockXRP, BLOCK_CHOICE);
-    let requestXRP = await testConfirmedBlockHeightExistsRequest(confirmationBlock, ChainType.XRP);
+    let lowerQueryWindowBlock = await selectBlock(setup.XRP.entityManager, DBBlockXRP, FIRST_BLOCK);
+    let requestXRP = await testConfirmedBlockHeightExistsRequest(confirmationBlock, lowerQueryWindowBlock, ChainType.XRP, NUMBER_OF_CONFIRMATIONS_XRP, BLOCK_QUERY_WINDOW);
 
     const attestationXRP = prepareAttestation(requestXRP, setup.startTime);
 
-    await expect(verifierRouter.verifyAttestation(attestationXRP, attestationXRP.reverification)).to.eventually.be.rejectedWith("Invalid route.");
+    await expect(verifierRouter.verifyAttestation(attestationXRP)).to.eventually.be.rejectedWith("Invalid route.");
 
   });
 
@@ -87,12 +92,13 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     await verifierRouter.initialize(150);
 
     let confirmationBlock = await selectBlock(setup.BTC.entityManager, DBBlockBTC, BLOCK_CHOICE);
-    let requestBTC = await testConfirmedBlockHeightExistsRequest(confirmationBlock, ChainType.BTC);
+    let lowerQueryWindowBlock = await selectBlock(setup.BTC.entityManager, DBBlockBTC, FIRST_BLOCK);
+    let requestBTC = await testConfirmedBlockHeightExistsRequest(confirmationBlock, lowerQueryWindowBlock, ChainType.BTC, NUMBER_OF_CONFIRMATIONS_BTC, BLOCK_QUERY_WINDOW);
 
     const attestationBTC = prepareAttestation(requestBTC, setup.startTime);
 
     try {
-      await verifierRouter.verifyAttestation(attestationBTC, attestationBTC.reverification);
+      await verifierRouter.verifyAttestation(attestationBTC);
     } catch (e) {
       assert(e.message.startsWith("Error: Unsupported attestation type 'ConfirmedBlockHeightExists'"), "Wrong error message");
     }

@@ -2,14 +2,7 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import {
-  ARPayment,
-  ARBalanceDecreasingTransaction,
-  ARConfirmedBlockHeightExists,
-  ARReferencedPaymentNonexistence,
-  ARTrustlineIssuance,
-  ARType,
-} from "./attestation-request-types";
+import { ARPayment, ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARReferencedPaymentNonexistence, ARType } from "./attestation-request-types";
 import { toHex, unPrefix0x } from "./attestation-request-parse";
 import { AttestationType } from "./attestation-types-enum";
 
@@ -59,8 +52,8 @@ export function encodePayment(request: ARPayment) {
   if (request.sourceId == null) {
     throw new AttestationRequestEncodeError("Missing 'sourceId'");
   }
-  if (request.upperBoundProof == null) {
-    throw new AttestationRequestEncodeError("Missing 'upperBoundProof'");
+  if (request.messageIntegrityCode == null) {
+    throw new AttestationRequestEncodeError("Missing 'messageIntegrityCode'");
   }
   if (request.id == null) {
     throw new AttestationRequestEncodeError("Missing 'id'");
@@ -74,7 +67,7 @@ export function encodePayment(request: ARPayment) {
   let bytes = "0x";
   bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2, "attestationType");
   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4, "sourceId");
-  bytes += toUnprefixedBytes(request.upperBoundProof, "ByteSequenceLike", 32, "upperBoundProof");
+  bytes += toUnprefixedBytes(request.messageIntegrityCode, "ByteSequenceLike", 32, "messageIntegrityCode");
   bytes += toUnprefixedBytes(request.id, "ByteSequenceLike", 32, "id");
   bytes += toUnprefixedBytes(request.inUtxo, "NumberLike", 1, "inUtxo");
   bytes += toUnprefixedBytes(request.utxo, "NumberLike", 1, "utxo");
@@ -88,8 +81,8 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
   if (request.sourceId == null) {
     throw new AttestationRequestEncodeError("Missing 'sourceId'");
   }
-  if (request.upperBoundProof == null) {
-    throw new AttestationRequestEncodeError("Missing 'upperBoundProof'");
+  if (request.messageIntegrityCode == null) {
+    throw new AttestationRequestEncodeError("Missing 'messageIntegrityCode'");
   }
   if (request.id == null) {
     throw new AttestationRequestEncodeError("Missing 'id'");
@@ -100,7 +93,7 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
   let bytes = "0x";
   bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2, "attestationType");
   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4, "sourceId");
-  bytes += toUnprefixedBytes(request.upperBoundProof, "ByteSequenceLike", 32, "upperBoundProof");
+  bytes += toUnprefixedBytes(request.messageIntegrityCode, "ByteSequenceLike", 32, "messageIntegrityCode");
   bytes += toUnprefixedBytes(request.id, "ByteSequenceLike", 32, "id");
   bytes += toUnprefixedBytes(request.inUtxo, "NumberLike", 1, "inUtxo");
   return bytes;
@@ -113,13 +106,21 @@ export function encodeConfirmedBlockHeightExists(request: ARConfirmedBlockHeight
   if (request.sourceId == null) {
     throw new AttestationRequestEncodeError("Missing 'sourceId'");
   }
-  if (request.upperBoundProof == null) {
-    throw new AttestationRequestEncodeError("Missing 'upperBoundProof'");
+  if (request.messageIntegrityCode == null) {
+    throw new AttestationRequestEncodeError("Missing 'messageIntegrityCode'");
+  }
+  if (request.blockNumber == null) {
+    throw new AttestationRequestEncodeError("Missing 'blockNumber'");
+  }
+  if (request.queryWindow == null) {
+    throw new AttestationRequestEncodeError("Missing 'queryWindow'");
   }
   let bytes = "0x";
   bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2, "attestationType");
   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4, "sourceId");
-  bytes += toUnprefixedBytes(request.upperBoundProof, "ByteSequenceLike", 32, "upperBoundProof");
+  bytes += toUnprefixedBytes(request.messageIntegrityCode, "ByteSequenceLike", 32, "messageIntegrityCode");
+  bytes += toUnprefixedBytes(request.blockNumber, "NumberLike", 4, "blockNumber");
+  bytes += toUnprefixedBytes(request.queryWindow, "NumberLike", 4, "queryWindow");
   return bytes;
 }
 
@@ -130,8 +131,11 @@ export function encodeReferencedPaymentNonexistence(request: ARReferencedPayment
   if (request.sourceId == null) {
     throw new AttestationRequestEncodeError("Missing 'sourceId'");
   }
-  if (request.upperBoundProof == null) {
-    throw new AttestationRequestEncodeError("Missing 'upperBoundProof'");
+  if (request.messageIntegrityCode == null) {
+    throw new AttestationRequestEncodeError("Missing 'messageIntegrityCode'");
+  }
+  if (request.minimalBlockNumber == null) {
+    throw new AttestationRequestEncodeError("Missing 'minimalBlockNumber'");
   }
   if (request.deadlineBlockNumber == null) {
     throw new AttestationRequestEncodeError("Missing 'deadlineBlockNumber'");
@@ -151,33 +155,13 @@ export function encodeReferencedPaymentNonexistence(request: ARReferencedPayment
   let bytes = "0x";
   bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2, "attestationType");
   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4, "sourceId");
-  bytes += toUnprefixedBytes(request.upperBoundProof, "ByteSequenceLike", 32, "upperBoundProof");
+  bytes += toUnprefixedBytes(request.messageIntegrityCode, "ByteSequenceLike", 32, "messageIntegrityCode");
+  bytes += toUnprefixedBytes(request.minimalBlockNumber, "NumberLike", 4, "minimalBlockNumber");
   bytes += toUnprefixedBytes(request.deadlineBlockNumber, "NumberLike", 4, "deadlineBlockNumber");
   bytes += toUnprefixedBytes(request.deadlineTimestamp, "NumberLike", 4, "deadlineTimestamp");
   bytes += toUnprefixedBytes(request.destinationAddressHash, "ByteSequenceLike", 32, "destinationAddressHash");
   bytes += toUnprefixedBytes(request.amount, "NumberLike", 16, "amount");
   bytes += toUnprefixedBytes(request.paymentReference, "ByteSequenceLike", 32, "paymentReference");
-  return bytes;
-}
-
-export function encodeTrustlineIssuance(request: ARTrustlineIssuance) {
-  if (request.attestationType == null) {
-    throw new AttestationRequestEncodeError("Missing 'attestationType'");
-  }
-  if (request.sourceId == null) {
-    throw new AttestationRequestEncodeError("Missing 'sourceId'");
-  }
-  if (request.upperBoundProof == null) {
-    throw new AttestationRequestEncodeError("Missing 'upperBoundProof'");
-  }
-  if (request.issuerAccount == null) {
-    throw new AttestationRequestEncodeError("Missing 'issuerAccount'");
-  }
-  let bytes = "0x";
-  bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2, "attestationType");
-  bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4, "sourceId");
-  bytes += toUnprefixedBytes(request.upperBoundProof, "ByteSequenceLike", 32, "upperBoundProof");
-  bytes += toUnprefixedBytes(request.issuerAccount, "ByteSequenceLike", 20, "issuerAccount");
   return bytes;
 }
 
@@ -191,8 +175,6 @@ export function encodeRequest(request: ARType): string {
       return encodeConfirmedBlockHeightExists(request as ARConfirmedBlockHeightExists);
     case AttestationType.ReferencedPaymentNonexistence:
       return encodeReferencedPaymentNonexistence(request as ARReferencedPaymentNonexistence);
-    case AttestationType.TrustlineIssuance:
-      return encodeTrustlineIssuance(request as ARTrustlineIssuance);
     default:
       throw new AttestationRequestEncodeError("Invalid attestation type");
   }

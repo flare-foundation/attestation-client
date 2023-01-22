@@ -21,21 +21,18 @@ export {
   DHBalanceDecreasingTransaction,
   DHConfirmedBlockHeightExists,
   DHReferencedPaymentNonexistence,
-  DHTrustlineIssuance,
 } from "../../generated/attestation-hash-types";
 export {
   ARPayment,
   ARBalanceDecreasingTransaction,
   ARConfirmedBlockHeightExists,
   ARReferencedPaymentNonexistence,
-  ARTrustlineIssuance,
 } from "../../generated/attestation-request-types";
 export {
   hashPayment,
   hashBalanceDecreasingTransaction,
   hashConfirmedBlockHeightExists,
   hashReferencedPaymentNonexistence,
-  hashTrustlineIssuance,
 } from "../../generated/attestation-hash-utils";
 export { BN };
 export { Web3 };

@@ -1,6 +1,6 @@
 // This should always be on the top of the file, before imports
 
-import { ChainType, prefix0x, toHex } from "@flarenetwork/mcc";
+import { ChainType, prefix0x, toHex, XrpTransaction } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
@@ -16,8 +16,9 @@ import { VerifierServerModule } from "../../src/servers/verifier-server/src/veri
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { IIdentifiable } from "../../src/utils/PromiseRequestManager";
 import { getUnixEpochTimestamp } from "../../src/utils/utils";
-import { AttestationRequest } from "../../src/verification/attestation-types/attestation-types";
+import { AttestationRequest, MIC_SALT } from "../../src/verification/attestation-types/attestation-types";
 import { WsClientOptions } from "../../src/verification/client/WsClientOptions";
+import { hashBalanceDecreasingTransaction, hashConfirmedBlockHeightExists, hashPayment, hashReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-hash-utils";
 import { encodeBalanceDecreasingTransaction, encodeConfirmedBlockHeightExists, encodePayment, encodeReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-encode";
 import { getSourceName } from "../../src/verification/sources/sources";
 import { generateTestIndexerDB, selectBlock, selectedReferencedTx, testBalanceDecreasingTransactionRequest, testConfirmedBlockHeightExistsRequest, testPaymentRequest, testReferencedPaymentNonexistenceRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
@@ -38,14 +39,11 @@ const LAST_CONFIRMED_BLOCK = 200;
 const CHAIN_TYPE = ChainType.XRP;
 const DB_BLOCK_TABLE = DBBlockXRP;
 const DB_TX_TABLE = DBTransactionXRP0;
+const TX_CLASS = XrpTransaction;
 const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
+const BLOCK_QUERY_WINDOW = 40;
 const API_KEY = "123456";
-
-interface TestData extends IIdentifiable {
-  a: number;
-  b: string;
-}
 
 describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__filename)})`, () => {
 
@@ -110,16 +108,13 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   it(`Should verify Payment attestation`, async function () {
-    let request = await testPaymentRequest(entityManager, selectedTransaction, DB_BLOCK_TABLE, NUMBER_OF_CONFIRMATIONS, CHAIN_TYPE);
+    let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE);
     let attestationRequest = {
       request: encodePayment(request),
       options: {
-        roundId: 1,
-        recheck: false,
-        windowStartTime: startTime + 1, // must exist one block with timestamp lower
-        UBPCutoffTime: startTime
       }
     } as AttestationRequest;
+
     let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "OK", "Wrong server response");
@@ -127,18 +122,15 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let response = JSON.parse(selectedTransaction.response);
     assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
     assert(resp.data.response.receivingAddressHash === Web3.utils.soliditySha3(response.data.result.Destination), "Wrong receiving address");
+    assert(request.messageIntegrityCode === hashPayment(request, resp.data.response, MIC_SALT), "MIC does not match")
   });
 
   it(`Should verify Balance Decreasing attestation attestation`, async function () {
-    let request = await testBalanceDecreasingTransactionRequest(entityManager, selectedTransaction, DB_BLOCK_TABLE, NUMBER_OF_CONFIRMATIONS, CHAIN_TYPE);
-    // console.log(request)
+    let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE);
     let attestationRequest = {
       request: encodeBalanceDecreasingTransaction(request),
       options: {
         roundId: 1,
-        recheck: false,
-        windowStartTime: startTime + 1, // must exist one block with timestamp lower
-        UBPCutoffTime: startTime
       }
     } as AttestationRequest;
 
@@ -148,39 +140,49 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
     let response = JSON.parse(selectedTransaction.response);
     assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
+    assert(request.messageIntegrityCode === hashBalanceDecreasingTransaction(request, resp.data.response, MIC_SALT), "MIC does not match")
   });
 
   it(`Should verify Confirmed Block Height Exists attestation`, async function () {
-    let confirmationBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
-    let request = await testConfirmedBlockHeightExistsRequest(confirmationBlock, CHAIN_TYPE);
+    let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
+    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
+    let request = await testConfirmedBlockHeightExistsRequest(confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
     let attestationRequest = {
       request: encodeConfirmedBlockHeightExists(request),
       options: {
         roundId: 1,
-        recheck: false,
-        windowStartTime: startTime + 1, // must exist one block with timestamp lower
-        UBPCutoffTime: startTime
       }
     } as AttestationRequest;
 
     let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "OK", "Wrong server response");
-    assert(resp.data.response.blockNumber === toHex(BLOCK_CHOICE - NUMBER_OF_CONFIRMATIONS + 1), "Wrong block number");
-    assert(resp.data.response.lowestQueryWindowBlockNumber === toHex(101), "Wrong lowest query window block number");
+    assert(resp.data.response.blockNumber === toHex(BLOCK_CHOICE), "Wrong block number");
+    assert(resp.data.response.lowestQueryWindowBlockNumber === toHex(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1), "Wrong lowest query window block number");
+    assert(request.messageIntegrityCode === hashConfirmedBlockHeightExists(request, resp.data.response, MIC_SALT), "MIC does not match")
   });
 
   it(`Should fail to provide Referenced Payment Nonexistence attestation`, async function () {
     let response = JSON.parse(selectedTransaction.response);
-    let request = await testReferencedPaymentNonexistenceRequest(entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, selectedTransaction.timestamp + 2, response.data.result.Destination, parseInt(response.data.result.Amount), prefix0x(selectedTransaction.paymentReference));
+    let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE + 3);
+    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK + 1);
+
+    let request = await testReferencedPaymentNonexistenceRequest(
+      [selectedTransaction],
+      TX_CLASS,
+      firstOverflowBlock,
+      lowerQueryWindowBlock,
+      CHAIN_TYPE,
+      BLOCK_CHOICE + 1,
+      selectedTransaction.timestamp + 2,
+      response.data.result.Destination,
+      prefix0x(selectedTransaction.paymentReference),
+      parseInt(response.data.result.Amount)
+    );
 
     let attestationRequest = {
       request: encodeReferencedPaymentNonexistence(request),
       options: {
-        roundId: 1,
-        recheck: false,
-        windowStartTime: startTime + 1, // must exist one block with timestamp lower
-        UBPCutoffTime: startTime
       }
     } as AttestationRequest;
 
@@ -192,24 +194,37 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
 
   it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
     let response = JSON.parse(selectedTransaction.response);
-    let request = await testReferencedPaymentNonexistenceRequest(entityManager, BLOCK_CHOICE + NUMBER_OF_CONFIRMATIONS + 5, DB_BLOCK_TABLE, CHAIN_TYPE, BLOCK_CHOICE + 1, selectedTransaction.timestamp + 2, response.data.result.Destination, parseInt(response.data.result.Amount) + 1, prefix0x(selectedTransaction.paymentReference));
+
+    let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - 1);
+    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
+
+    let request = await testReferencedPaymentNonexistenceRequest(
+      [],
+      TX_CLASS,
+      firstOverflowBlock,
+      lowerQueryWindowBlock,
+      CHAIN_TYPE,
+      BLOCK_CHOICE - 3,
+      selectedTransaction.timestamp - 2,
+      response.data.result.Destination,
+      prefix0x(selectedTransaction.paymentReference),
+      parseInt(response.data.result.Amount)
+    );
 
     let attestationRequest = {
       request: encodeReferencedPaymentNonexistence(request),
       options: {
         roundId: 1,
-        recheck: false,
-        windowStartTime: startTime + 1, // must exist one block with timestamp lower
-        UBPCutoffTime: startTime
       }
     } as AttestationRequest;
 
     let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
-
+    
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.status === "OK", "Status is not OK");
-    assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE + 3), "Incorrect first overflow block");
-    assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp + 3), "Incorrect first overflow block timestamp");
+    assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE - 1), "Incorrect first overflow block");
+    assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp - 1), "Incorrect first overflow block timestamp");
+    assert(request.messageIntegrityCode === hashReferencedPaymentNonexistence(request, resp.data.response, MIC_SALT), "MIC does not match")
   });
 
 

@@ -9,7 +9,6 @@ import { TDEF as TDEF_payment } from "../../attestation-types/t-00001-payment";
 import { TDEF as TDEF_balance_decreasing_transaction } from "../../attestation-types/t-00002-balance-decreasing-transaction";
 import { TDEF as TDEF_confirmed_block_height_exists } from "../../attestation-types/t-00003-confirmed-block-height-exists";
 import { TDEF as TDEF_referenced_payment_nonexistence } from "../../attestation-types/t-00004-referenced-payment-nonexistence";
-import { TDEF as TDEF_trustline_issuance } from "../../attestation-types/t-00005-trustline-issuance";
 
 export { AttestationRequestOptions } from "../../attestation-types/attestation-types";
 export { RPCInterface, MCC } from "@flarenetwork/mcc";
@@ -22,21 +21,18 @@ export {
   DHBalanceDecreasingTransaction,
   DHConfirmedBlockHeightExists,
   DHReferencedPaymentNonexistence,
-  DHTrustlineIssuance,
 } from "../../generated/attestation-hash-types";
 export {
   ARPayment,
   ARBalanceDecreasingTransaction,
   ARConfirmedBlockHeightExists,
   ARReferencedPaymentNonexistence,
-  ARTrustlineIssuance,
 } from "../../generated/attestation-request-types";
 export {
   hashPayment,
   hashBalanceDecreasingTransaction,
   hashConfirmedBlockHeightExists,
   hashReferencedPaymentNonexistence,
-  hashTrustlineIssuance,
 } from "../../generated/attestation-hash-utils";
 export { BN };
 export { Web3 };
@@ -44,4 +40,3 @@ export { TDEF_payment };
 export { TDEF_balance_decreasing_transaction };
 export { TDEF_confirmed_block_height_exists };
 export { TDEF_referenced_payment_nonexistence };
-export { TDEF_trustline_issuance };

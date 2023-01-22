@@ -5,20 +5,8 @@
 import BN from "bn.js";
 import Web3 from "web3";
 import { randSol } from "../attestation-types/attestation-types-helpers";
-import {
-  ARPayment,
-  ARBalanceDecreasingTransaction,
-  ARConfirmedBlockHeightExists,
-  ARReferencedPaymentNonexistence,
-  ARTrustlineIssuance,
-} from "./attestation-request-types";
-import {
-  DHPayment,
-  DHBalanceDecreasingTransaction,
-  DHConfirmedBlockHeightExists,
-  DHReferencedPaymentNonexistence,
-  DHTrustlineIssuance,
-} from "./attestation-hash-types";
+import { ARPayment, ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARReferencedPaymentNonexistence } from "./attestation-request-types";
+import { DHPayment, DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHReferencedPaymentNonexistence } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
 import { SourceId } from "../sources/sources";
 
@@ -63,7 +51,6 @@ export function randomResponseConfirmedBlockHeightExists() {
     blockNumber: randSol({}, "blockNumber", "uint64") as BN,
     blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN,
     numberOfConfirmations: randSol({}, "numberOfConfirmations", "uint8") as BN,
-    averageBlockProductionTimeMs: randSol({}, "averageBlockProductionTimeMs", "uint64") as BN,
     lowestQueryWindowBlockNumber: randSol({}, "lowestQueryWindowBlockNumber", "uint64") as BN,
     lowestQueryWindowBlockTimestamp: randSol({}, "lowestQueryWindowBlockTimestamp", "uint64") as BN,
   } as DHConfirmedBlockHeightExists;
@@ -86,17 +73,6 @@ export function randomResponseReferencedPaymentNonexistence() {
 
   return response;
 }
-
-export function randomResponseTrustlineIssuance() {
-  const response = {
-    tokenCurrencyCode: randSol({}, "tokenCurrencyCode", "bytes32") as string,
-    tokenValueNominator: randSol({}, "tokenValueNominator", "uint256") as BN,
-    tokenValueDenominator: randSol({}, "tokenValueDenominator", "uint256") as BN,
-    tokenIssuer: randSol({}, "tokenIssuer", "bytes32") as string,
-  } as DHTrustlineIssuance;
-
-  return response;
-}
 //////////////////////////////////////////////////////////////
 // Random attestation requests and resposes. Used for testing.
 //////////////////////////////////////////////////////////////
@@ -115,17 +91,14 @@ export function getRandomResponseForType(attestationType: AttestationType) {
     case AttestationType.ReferencedPaymentNonexistence:
       return randomResponseReferencedPaymentNonexistence();
 
-    case AttestationType.TrustlineIssuance:
-      return randomResponseTrustlineIssuance();
-
     default:
       throw new Error("Wrong attestation type.");
   }
 }
 
 export function getRandomRequest() {
-  const ids = [1, 2, 3, 4, 5];
-  const randomAttestationType: AttestationType = ids[Math.floor(Math.random() * 5)];
+  const ids = [1, 2, 3, 4];
+  const randomAttestationType: AttestationType = ids[Math.floor(Math.random() * 4)];
   let sourceId: SourceId = -1;
   let sourceIds: SourceId[] = [];
   switch (randomAttestationType) {
@@ -145,10 +118,6 @@ export function getRandomRequest() {
       sourceIds = [3, 0, 1, 2, 4];
       sourceId = sourceIds[Math.floor(Math.random() * 5)];
       return { attestationType: randomAttestationType, sourceId } as ARReferencedPaymentNonexistence;
-    case AttestationType.TrustlineIssuance:
-      sourceIds = [3];
-      sourceId = sourceIds[Math.floor(Math.random() * 1)];
-      return { attestationType: randomAttestationType, sourceId } as ARTrustlineIssuance;
     default:
       throw new Error("Invalid attestation type");
   }
@@ -160,7 +129,7 @@ export function getRandomRequestForAttestationTypeAndSourceId(attestationType: A
       return {
         attestationType,
         sourceId,
-        upperBoundProof: Web3.utils.randomHex(32),
+        messageIntegrityCode: Web3.utils.randomHex(32),
         id: Web3.utils.randomHex(32),
         inUtxo: toBN(Web3.utils.randomHex(1)),
         utxo: toBN(Web3.utils.randomHex(1)),
@@ -169,7 +138,7 @@ export function getRandomRequestForAttestationTypeAndSourceId(attestationType: A
       return {
         attestationType,
         sourceId,
-        upperBoundProof: Web3.utils.randomHex(32),
+        messageIntegrityCode: Web3.utils.randomHex(32),
         id: Web3.utils.randomHex(32),
         inUtxo: toBN(Web3.utils.randomHex(1)),
       } as ARBalanceDecreasingTransaction;
@@ -177,26 +146,22 @@ export function getRandomRequestForAttestationTypeAndSourceId(attestationType: A
       return {
         attestationType,
         sourceId,
-        upperBoundProof: Web3.utils.randomHex(32),
+        messageIntegrityCode: Web3.utils.randomHex(32),
+        blockNumber: toBN(Web3.utils.randomHex(4)),
+        queryWindow: toBN(Web3.utils.randomHex(4)),
       } as ARConfirmedBlockHeightExists;
     case AttestationType.ReferencedPaymentNonexistence:
       return {
         attestationType,
         sourceId,
-        upperBoundProof: Web3.utils.randomHex(32),
+        messageIntegrityCode: Web3.utils.randomHex(32),
+        minimalBlockNumber: toBN(Web3.utils.randomHex(4)),
         deadlineBlockNumber: toBN(Web3.utils.randomHex(4)),
         deadlineTimestamp: toBN(Web3.utils.randomHex(4)),
         destinationAddressHash: Web3.utils.randomHex(32),
         amount: toBN(Web3.utils.randomHex(16)),
         paymentReference: Web3.utils.randomHex(32),
       } as ARReferencedPaymentNonexistence;
-    case AttestationType.TrustlineIssuance:
-      return {
-        attestationType,
-        sourceId,
-        upperBoundProof: Web3.utils.randomHex(32),
-        issuerAccount: Web3.utils.randomHex(20),
-      } as ARTrustlineIssuance;
     default:
       throw new Error("Invalid attestation type");
   }

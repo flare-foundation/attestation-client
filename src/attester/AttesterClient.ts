@@ -4,7 +4,7 @@ import { secToHHMMSS } from "../utils/utils";
 import { Web3BlockCollector } from "../utils/Web3BlockCollector";
 import { AttestationData, AttestationSubmit } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { AttesterConfig } from "./AttesterConfig";
+import { AttestationClientConfig } from "./AttestationClientConfig";
 import { AttesterWeb3 } from "./AttesterWeb3";
 
 /**
@@ -12,13 +12,13 @@ import { AttesterWeb3 } from "./AttesterWeb3";
  */
 @Managed()
 export class AttesterClient {
-  config: AttesterConfig;
+  config: AttestationClientConfig;
   logger: AttLogger;
   attestationRoundManager: AttestationRoundManager;
   attesterWeb3: AttesterWeb3;
   blockCollector!: Web3BlockCollector;
 
-  constructor(config: AttesterConfig, logger?: AttLogger) {
+  constructor(config: AttestationClientConfig, logger?: AttLogger) {
     if (logger) {
       this.logger = logger;
     } else {

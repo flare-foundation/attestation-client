@@ -3,18 +3,19 @@ import Web3 from "web3";
 import BN from "bn.js";
 const { promisify } = require('util');
 import { AttesterClient } from "../../../src/attester/AttesterClient";
-import { AttesterConfig } from "../../../src/attester/AttesterConfig";
+import { AttestationClientConfig } from "../../../src/attester/AttestationClientConfig";
 import { readSecureConfig } from "../../../src/utils/configSecure";
 import { getWeb3, relativeContractABIPathForContractName } from "../../../src/utils/utils";
 import { BitVoting } from "../../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../../typechain-web3-v1/StateConnectorTempTran";
 import { readJSONfromFile } from "../../../src/utils/json";
+import { AttLogger } from "../../../src/utils/logger";
 
 // CONFIG_PATH should be set correctly
 export async function bootstrapAttestationClient(n: number): Promise<AttesterClient> {
    process.env.IN_MEMORY_DB = "1";
    // Reading configuration
-   const config = await readSecureConfig(new AttesterConfig(), `attester_${n}`);
+   const config = await readSecureConfig(new AttestationClientConfig(), `attester_${n}`);
 
    // Create and start Attester Client
    return new AttesterClient(config);
@@ -216,15 +217,89 @@ export async function setIntervalMining(web3: Web3, interval: number = 1000) {
 
 export async function getVoterAddresses(n = 9) {
    let voters = [];
-   if(n < 1 || n > 9 || n !== Math.floor(n)) {
+   if (n < 1 || n > 9 || n !== Math.floor(n)) {
       throw new Error(`Value of 'n' should be between 1 and 9, integer`);
    }
    const web3 = new Web3();
-   for(let i = 0; i < n; i++) {
+   for (let i = 0; i < n; i++) {
       // console.log("XXX", fs.readFileSync(`./test/attestationClient/test-data/attester/attester_${i}-config.json`).toString())
       let json = readJSONfromFile<any>(`./test/attestationClient/test-data/attester/attester_${i}-config.json`);
       let account = web3.eth.accounts.privateKeyToAccount(json.web.accountPrivateKey);
       voters.push(account.address);
    }
    return voters;
+}
+
+
+export async function startSimpleSpammer(
+   stateConnector: StateConnectorTempTran,
+   web3: Web3,
+   spammerWallet: any,
+   bufferWindowDurationSec: number,
+   requests: string[],
+   frequencies: number[]
+) {
+
+   for (let request of requests) {
+      await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
+   }
+
+   let counter = 0;
+   setInterval(async () => {
+      for (let [index, request] of requests.entries()) {
+         let mod = frequencies[index] ?? 1;
+         if (counter % mod == 0) {
+            await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
+         }
+      }
+      counter++;
+   }, bufferWindowDurationSec * 1000);
+}
+
+export async function assignAttestationProvider(stateConnector: StateConnectorTempTran, web3: Web3, wallet: any, assignTo?: string) {
+   const data = stateConnector.methods.updateAttestorAddressMapping(assignTo ?? wallet.address).encodeABI();
+   let nonce = await web3.eth.getTransactionCount(wallet.address);
+   let chainId = await web3.eth.getChainId();
+
+   const txStateConnector = {
+      from: wallet.address,
+      to: stateConnector.options.address,
+      gas: "0x" + web3.utils.toBN(1500000).toString(16),
+      gasPrice: "0x" + web3.utils.toBN("25000000000").toString(16),
+      chainId,
+      nonce,
+      data,
+   };
+
+   const signed = await wallet.signTransaction(txStateConnector);
+   return await web3.eth.sendSignedTransaction(signed.rawTransaction);
+
+}
+
+export async function selfAssignAttestationProviders(logger: AttLogger, stateConnector: StateConnectorTempTran, web3: Web3, privateKeys: string[]) {   
+   let promises = [];
+   let wallets = [];
+   for(let privateKey of privateKeys) {
+      const wallet = web3.eth.accounts.privateKeyToAccount(privateKey);
+      wallets.push(wallet);
+      promises.push(assignAttestationProvider(stateConnector, web3, wallet));
+   }
+   await Promise.all(promises);
+   logger.info(`Active voters:`)
+   for(let wallet of wallets) {
+      logger.info(`${wallet.address} -> ${await stateConnector.methods.attestorAddressMapping(wallet.address).call()}`)
+   }
+}
+
+
+export function assertAddressesMatchPrivateKeys(web3: Web3, addresses: string[], privateKeys: string[]) {
+   if(addresses.length != privateKeys.length) {
+      throw new Error("Lengths do not match");
+   }
+   for(let [index, address] of addresses.entries()) {
+      const wallet = web3.eth.accounts.privateKeyToAccount(privateKeys[index]);
+      if(wallet.address.toLowerCase() !== address.toLowerCase()) {
+         throw new Error(`Matching error at index ${index}: ${wallet.address} !== ${address}`);
+      }
+   }
 }

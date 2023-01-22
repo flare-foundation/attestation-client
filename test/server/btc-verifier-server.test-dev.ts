@@ -36,10 +36,6 @@ describe(`Test request`, () => {
       apiKey: "123456",
       request,
       options: {
-        roundId,
-        recheck: false,
-        windowStartTime: startTime + 1, // must exist one block with timestamp lower
-        UBPCutoffTime: startTime
       }
     } as AttestationRequest;
 

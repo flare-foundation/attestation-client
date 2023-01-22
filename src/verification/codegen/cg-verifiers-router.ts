@@ -117,16 +117,13 @@ export class WrongSourceIdError extends Error {
 	}
 }
 
-export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager, recheck = false): Promise<Verification<any, any>>{
+export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager): Promise<Verification<any, any>>{
   return traceFunction(
     _verifyAttestation,
     client,
     attestation.data.request,
     {
-      roundId: attestation.roundId,
-      recheck,
-      windowStartTime: attestation.windowStartTime,
-      UBPCutoffTime: attestation.UBPCutoffTime          
+      windowStartTime: attestation.windowStartTime
     },
     indexer
   );

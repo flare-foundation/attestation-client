@@ -44,7 +44,6 @@ export class Attestation {
   // Cut-off times set by attestation client
   // Set when passed to the relevant SourceManager
   windowStartTime: number = 0;
-  UBPCutoffTime: number = 0;
 
   constructor(round: AttestationRound, data: AttestationData) {
     this.round = round;

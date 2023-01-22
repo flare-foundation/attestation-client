@@ -8,11 +8,13 @@ import { SourceLimiter } from "../source/SourceLimiter";
 import { getTimeMilli } from "../utils/internetTime";
 import { logException } from "../utils/logger";
 import { commitHash, MerkleTree } from "../utils/MerkleTree";
+import { retry } from "../utils/PromiseTimeout";
 import { getCryptoSafeRandom, prepareString } from "../utils/utils";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
+import { GlobalAttestationConfig } from "./DynamicAttestationConfig";
 
 export enum AttestationRoundPhase {
   collect,
@@ -68,11 +70,16 @@ export class AttestationRound {
 
   sourceLimiters = new Map<number, SourceLimiter>();
 
-  constructor(epochId: number, attestationRoundManager: AttestationRoundManager) {
+  activeGlobalConfig: GlobalAttestationConfig;
+  defaultSetAddresses: string[];
+  _initialized = false;
+
+  constructor(epochId: number, activeGlobalConfig: GlobalAttestationConfig, attestationRoundManager: AttestationRoundManager) {
     this.roundId = epochId;
     this.status = AttestationRoundPhase.collect;
     this.attestStatus = AttestationRoundStatus.collecting;
     this.attestationRoundManager = attestationRoundManager;
+    this.activeGlobalConfig = activeGlobalConfig;
   }
 
   get logger() {
@@ -141,6 +148,22 @@ export class AttestationRound {
     }
   }
 
+  
+  async initialize() {
+    if(this._initialized) {
+      return;
+    }    
+    this.defaultSetAddresses = await retry(
+      `${this.label}AttestationRound ${this.roundId} init default set`, 
+      async () => this.attesterWeb3.getAttestorsForAssignors(this.activeGlobalConfig.defaultSetAssignerAddresses)
+    );
+    
+    // this.logger.debug(`${this.label}Round ${this.roundId} initialized with attestation providers`);
+    // for(let [index, address] of this.defaultSetAddresses.entries()) {
+    //   this.logger.debug(`[${index}] ${address}`);
+    // }
+    this._initialized = true;
+  }
   /**
    * Announces the start of the choose phase
    */

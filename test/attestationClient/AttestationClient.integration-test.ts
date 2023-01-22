@@ -1,6 +1,6 @@
 // yarn test test/attestationClient/attestationClient.test.ts
 
-import { ChainType, prefix0x, sleepMs, traceManager } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, prefix0x, sleepMs, traceManager, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { spawn } from "child_process";
@@ -14,14 +14,15 @@ import { getUnixEpochTimestamp, getWeb3, relativeContractABIPathForContractName 
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
-import { testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
+import { firstAddressVin, firstAddressVout, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "../verification/test-utils/verifier-test-utils";
-import { bootstrapAttestationClient, deployTestContracts, getVoterAddresses, increaseTo, setIntervalMining, submitAttestationRequest } from "./utils/attestation-client-test-utils";
+import { assertAddressesMatchPrivateKeys, bootstrapAttestationClient, deployTestContracts, getVoterAddresses, increaseTo, selfAssignAttestationProviders, setIntervalMining, startSimpleSpammer, submitAttestationRequest } from "./utils/attestation-client-test-utils";
 import sinon from "sinon";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { Attestation } from "../../src/attester/Attestation";
 import { runBot } from "../../src/state-collector-finalizer/state-connector-validator-bot";
+import { DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
 chai.use(chaiAsPromised);
 
 
@@ -43,6 +44,8 @@ const SPAMMER_PRIVATE_KEY = "0x28d1bfbbafe9d1d4f5a11c3c16ab6bf9084de48d99fbac405
 
 // set false to debug with global logger
 const TEST_LOGGER = false;
+const NUMBER_OF_CLIENTS = 9;
+
 
 // Testing modes:
 // scheduler: time is managed by Scheduler
@@ -121,13 +124,17 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     bufferTimestampOffsetSec = parseInt(await stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
 
     // Configure finalization bot
-    signers = await getVoterAddresses()
+    signers = await getVoterAddresses(NUMBER_OF_CLIENTS);
+    assertAddressesMatchPrivateKeys(web3, signers, privateKeys.slice(1, 10));
+
     process.env.FINALIZING_BOT_PRIVATE_KEY = PRIVATE_KEY;
     process.env.FINALIZING_BOT_PUBLIC_KEY = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY).address;
     process.env.TEST_CUSTOM_SIGNERS = JSON.stringify(signers);
     
+    // configure attestation provider addresses
+    await selfAssignAttestationProviders(getGlobalLogger(), stateConnector, web3, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));    
 
-
+    
     if (TEST_MODE === "offset") {
       let ADDITIONAL_OFFSET_S = Math.floor(ADDITIONAL_OFFSET_PCT * bufferWindowDurationSec);
       let now = Math.floor(Date.now() / 1000);
@@ -154,10 +161,13 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     setup = await bootstrapTestVerifiers(bootstrapOptions, false);
 
     // Initialize test requests
-    requestXRP = await testPaymentRequest(setup.XRP.entityManager, setup.XRP.selectedTransaction, DBBlockXRP, NUMBER_OF_CONFIRMATIONS_XRP, ChainType.XRP);
+
+    requestXRP = await testPaymentRequest(setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
     attestationXRP = prepareAttestation(requestXRP, setup.startTime);
 
-    requestBTC = await testPaymentRequest(setup.BTC.entityManager, setup.BTC.selectedTransaction, DBBlockBTC, NUMBER_OF_CONFIRMATIONS_BTC, ChainType.BTC);
+    let inUtxo = firstAddressVin(setup.BTC.selectedTransaction);
+    let utxo = firstAddressVout(setup.BTC.selectedTransaction);    
+    requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     attestationBTC = prepareAttestation(requestBTC, setup.startTime);
   });
 
@@ -189,20 +199,19 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     const verifierRouter = new VerifierRouter();
     await verifierRouter.initialize(150);
 
-    let respXRP = await verifierRouter.verifyAttestation(attestationXRP, attestationXRP.reverification);
+    let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
 
     assert(respXRP.response.transactionHash === prefix0x(setup.XRP.selectedTransaction.transactionId), "Wrong transaction id");
 
-    let respBTC = await verifierRouter.verifyAttestation(attestationBTC, attestationBTC.reverification);
+    let respBTC = await verifierRouter.verifyAttestation(attestationBTC);
 
     assert(respBTC.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
   });
 
-  it(`Should bootstrap attestation client`, async function () {
+  it(`Should bootstrap attestation clients`, async function () {
     process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
     process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = '' + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
     process.env.TEST_SAMPLING_REQUEST_INTERVAL = '' + 1000;
-    let numberOfClients = 9;
     let bootstrapPromises = [];
 
     let runPromises = [];
@@ -211,25 +220,26 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
     runPromises.push(finalizationPromise);
 
-    for (let i = 0; i < numberOfClients; i++) {
+    for (let i = 0; i < NUMBER_OF_CLIENTS; i++) {
       bootstrapPromises.push(bootstrapAttestationClient(i));
     }
     let clients = await Promise.all(bootstrapPromises);
     runPromises = clients.map(client => client.runAttesterClient());
 
-    await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
-    await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
+    await startSimpleSpammer(stateConnector, web3, spammerWallet, bufferWindowDurationSec, [attestationXRP.data.request, attestationBTC.data.request], [2, 3]);
+    // await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
+    // await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
 
-    let counter = 0;
-    setInterval(async () => {
-      if(counter % 2 == 0) {
-        await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
-      }
-      if(counter % 3 == 0) {
-        await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
-      }
-      counter++;      
-    }, bufferWindowDurationSec * 1000);
+    // let counter = 0;
+    // setInterval(async () => {
+    //   if(counter % 2 == 0) {
+    //     await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
+    //   }
+    //   if(counter % 3 == 0) {
+    //     await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
+    //   }
+    //   counter++;      
+    // }, bufferWindowDurationSec * 1000);
 
     setInterval(async () => {
       let now = getUnixEpochTimestamp();

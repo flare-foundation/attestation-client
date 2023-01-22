@@ -3,22 +3,8 @@
 //////////////////////////////////////////////////////////////
 
 import Web3 from "web3";
-import {
-  ARPayment,
-  ARBalanceDecreasingTransaction,
-  ARConfirmedBlockHeightExists,
-  ARReferencedPaymentNonexistence,
-  ARTrustlineIssuance,
-  ARType,
-} from "./attestation-request-types";
-import {
-  DHPayment,
-  DHBalanceDecreasingTransaction,
-  DHConfirmedBlockHeightExists,
-  DHReferencedPaymentNonexistence,
-  DHTrustlineIssuance,
-  DHType,
-} from "./attestation-hash-types";
+import { ARPayment, ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARReferencedPaymentNonexistence, ARType } from "./attestation-request-types";
+import { DHPayment, DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHReferencedPaymentNonexistence, DHType } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
 
 const web3 = new Web3();
@@ -27,162 +13,154 @@ const web3 = new Web3();
 // Attestation types.
 //////////////////////////////////////////////////////////////
 
-export function hashPayment(request: ARPayment, response: DHPayment) {
-  const encoded = web3.eth.abi.encodeParameters(
-    [
-      "uint16", // attestationType
-      "uint32", // sourceId
-      "uint64", // blockNumber
-      "uint64", // blockTimestamp
-      "bytes32", // transactionHash
-      "uint8", // inUtxo
-      "uint8", // utxo
-      "bytes32", // sourceAddressHash
-      "bytes32", // receivingAddressHash
-      "int256", // spentAmount
-      "int256", // receivedAmount
-      "bytes32", // paymentReference
-      "bool", // oneToOne
-      "uint8", // status
-    ],
-    [
-      request.attestationType,
-      request.sourceId,
-      response.blockNumber,
-      response.blockTimestamp,
-      response.transactionHash,
-      response.inUtxo,
-      response.utxo,
-      response.sourceAddressHash,
-      response.receivingAddressHash,
-      response.spentAmount,
-      response.receivedAmount,
-      response.paymentReference,
-      response.oneToOne,
-      response.status,
-    ]
-  );
+export function hashPayment(request: ARPayment, response: DHPayment, salt?: string) {
+  const types = [
+    "uint16", // attestationType
+    "uint32", // sourceId
+    "uint64", // blockNumber
+    "uint64", // blockTimestamp
+    "bytes32", // transactionHash
+    "uint8", // inUtxo
+    "uint8", // utxo
+    "bytes32", // sourceAddressHash
+    "bytes32", // receivingAddressHash
+    "int256", // spentAmount
+    "int256", // receivedAmount
+    "bytes32", // paymentReference
+    "bool", // oneToOne
+    "uint8", // status
+  ];
+  const values = [
+    request.attestationType,
+    request.sourceId,
+    response.blockNumber,
+    response.blockTimestamp,
+    response.transactionHash,
+    response.inUtxo,
+    response.utxo,
+    response.sourceAddressHash,
+    response.receivingAddressHash,
+    response.spentAmount,
+    response.receivedAmount,
+    response.paymentReference,
+    response.oneToOne,
+    response.status,
+  ] as any[];
+  if (salt) {
+    types.push("string");
+    values.push(salt);
+  }
+  const encoded = web3.eth.abi.encodeParameters(types, values);
 
   return web3.utils.soliditySha3(encoded)!;
 }
 
-export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTransaction, response: DHBalanceDecreasingTransaction) {
-  const encoded = web3.eth.abi.encodeParameters(
-    [
-      "uint16", // attestationType
-      "uint32", // sourceId
-      "uint64", // blockNumber
-      "uint64", // blockTimestamp
-      "bytes32", // transactionHash
-      "uint8", // inUtxo
-      "bytes32", // sourceAddressHash
-      "int256", // spentAmount
-      "bytes32", // paymentReference
-    ],
-    [
-      request.attestationType,
-      request.sourceId,
-      response.blockNumber,
-      response.blockTimestamp,
-      response.transactionHash,
-      response.inUtxo,
-      response.sourceAddressHash,
-      response.spentAmount,
-      response.paymentReference,
-    ]
-  );
+export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTransaction, response: DHBalanceDecreasingTransaction, salt?: string) {
+  const types = [
+    "uint16", // attestationType
+    "uint32", // sourceId
+    "uint64", // blockNumber
+    "uint64", // blockTimestamp
+    "bytes32", // transactionHash
+    "uint8", // inUtxo
+    "bytes32", // sourceAddressHash
+    "int256", // spentAmount
+    "bytes32", // paymentReference
+  ];
+  const values = [
+    request.attestationType,
+    request.sourceId,
+    response.blockNumber,
+    response.blockTimestamp,
+    response.transactionHash,
+    response.inUtxo,
+    response.sourceAddressHash,
+    response.spentAmount,
+    response.paymentReference,
+  ] as any[];
+  if (salt) {
+    types.push("string");
+    values.push(salt);
+  }
+  const encoded = web3.eth.abi.encodeParameters(types, values);
 
   return web3.utils.soliditySha3(encoded)!;
 }
 
-export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightExists, response: DHConfirmedBlockHeightExists) {
-  const encoded = web3.eth.abi.encodeParameters(
-    [
-      "uint16", // attestationType
-      "uint32", // sourceId
-      "uint64", // blockNumber
-      "uint64", // blockTimestamp
-      "uint8", // numberOfConfirmations
-      "uint64", // averageBlockProductionTimeMs
-      "uint64", // lowestQueryWindowBlockNumber
-      "uint64", // lowestQueryWindowBlockTimestamp
-    ],
-    [
-      request.attestationType,
-      request.sourceId,
-      response.blockNumber,
-      response.blockTimestamp,
-      response.numberOfConfirmations,
-      response.averageBlockProductionTimeMs,
-      response.lowestQueryWindowBlockNumber,
-      response.lowestQueryWindowBlockTimestamp,
-    ]
-  );
+export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightExists, response: DHConfirmedBlockHeightExists, salt?: string) {
+  const types = [
+    "uint16", // attestationType
+    "uint32", // sourceId
+    "uint64", // blockNumber
+    "uint64", // blockTimestamp
+    "uint8", // numberOfConfirmations
+    "uint64", // lowestQueryWindowBlockNumber
+    "uint64", // lowestQueryWindowBlockTimestamp
+  ];
+  const values = [
+    request.attestationType,
+    request.sourceId,
+    response.blockNumber,
+    response.blockTimestamp,
+    response.numberOfConfirmations,
+    response.lowestQueryWindowBlockNumber,
+    response.lowestQueryWindowBlockTimestamp,
+  ] as any[];
+  if (salt) {
+    types.push("string");
+    values.push(salt);
+  }
+  const encoded = web3.eth.abi.encodeParameters(types, values);
 
   return web3.utils.soliditySha3(encoded)!;
 }
 
-export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNonexistence, response: DHReferencedPaymentNonexistence) {
-  const encoded = web3.eth.abi.encodeParameters(
-    [
-      "uint16", // attestationType
-      "uint32", // sourceId
-      "uint64", // deadlineBlockNumber
-      "uint64", // deadlineTimestamp
-      "bytes32", // destinationAddressHash
-      "bytes32", // paymentReference
-      "uint128", // amount
-      "uint64", // lowerBoundaryBlockNumber
-      "uint64", // lowerBoundaryBlockTimestamp
-      "uint64", // firstOverflowBlockNumber
-      "uint64", // firstOverflowBlockTimestamp
-    ],
-    [
-      request.attestationType,
-      request.sourceId,
-      response.deadlineBlockNumber,
-      response.deadlineTimestamp,
-      response.destinationAddressHash,
-      response.paymentReference,
-      response.amount,
-      response.lowerBoundaryBlockNumber,
-      response.lowerBoundaryBlockTimestamp,
-      response.firstOverflowBlockNumber,
-      response.firstOverflowBlockTimestamp,
-    ]
-  );
+export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNonexistence, response: DHReferencedPaymentNonexistence, salt?: string) {
+  const types = [
+    "uint16", // attestationType
+    "uint32", // sourceId
+    "uint64", // deadlineBlockNumber
+    "uint64", // deadlineTimestamp
+    "bytes32", // destinationAddressHash
+    "bytes32", // paymentReference
+    "uint128", // amount
+    "uint64", // lowerBoundaryBlockNumber
+    "uint64", // lowerBoundaryBlockTimestamp
+    "uint64", // firstOverflowBlockNumber
+    "uint64", // firstOverflowBlockTimestamp
+  ];
+  const values = [
+    request.attestationType,
+    request.sourceId,
+    response.deadlineBlockNumber,
+    response.deadlineTimestamp,
+    response.destinationAddressHash,
+    response.paymentReference,
+    response.amount,
+    response.lowerBoundaryBlockNumber,
+    response.lowerBoundaryBlockTimestamp,
+    response.firstOverflowBlockNumber,
+    response.firstOverflowBlockTimestamp,
+  ] as any[];
+  if (salt) {
+    types.push("string");
+    values.push(salt);
+  }
+  const encoded = web3.eth.abi.encodeParameters(types, values);
 
   return web3.utils.soliditySha3(encoded)!;
 }
 
-export function hashTrustlineIssuance(request: ARTrustlineIssuance, response: DHTrustlineIssuance) {
-  const encoded = web3.eth.abi.encodeParameters(
-    [
-      "uint16", // attestationType
-      "uint32", // sourceId
-      "bytes32", // tokenCurrencyCode
-      "uint256", // tokenValueNominator
-      "uint256", // tokenValueDenominator
-      "bytes32", // tokenIssuer
-    ],
-    [request.attestationType, request.sourceId, response.tokenCurrencyCode, response.tokenValueNominator, response.tokenValueDenominator, response.tokenIssuer]
-  );
-
-  return web3.utils.soliditySha3(encoded)!;
-}
-
-export function dataHash(request: ARType, response: DHType) {
+export function dataHash(request: ARType, response: DHType, salt?: string) {
   switch (request.attestationType) {
     case AttestationType.Payment:
-      return hashPayment(request as ARPayment, response as DHPayment);
+      return hashPayment(request as ARPayment, response as DHPayment, salt);
     case AttestationType.BalanceDecreasingTransaction:
-      return hashBalanceDecreasingTransaction(request as ARBalanceDecreasingTransaction, response as DHBalanceDecreasingTransaction);
+      return hashBalanceDecreasingTransaction(request as ARBalanceDecreasingTransaction, response as DHBalanceDecreasingTransaction, salt);
     case AttestationType.ConfirmedBlockHeightExists:
-      return hashConfirmedBlockHeightExists(request as ARConfirmedBlockHeightExists, response as DHConfirmedBlockHeightExists);
+      return hashConfirmedBlockHeightExists(request as ARConfirmedBlockHeightExists, response as DHConfirmedBlockHeightExists, salt);
     case AttestationType.ReferencedPaymentNonexistence:
-      return hashReferencedPaymentNonexistence(request as ARReferencedPaymentNonexistence, response as DHReferencedPaymentNonexistence);
-    case AttestationType.TrustlineIssuance:
-      return hashTrustlineIssuance(request as ARTrustlineIssuance, response as DHTrustlineIssuance);
+      return hashReferencedPaymentNonexistence(request as ARReferencedPaymentNonexistence, response as DHReferencedPaymentNonexistence, salt);
     default:
       throw new Error("Invalid attestation type");
   }

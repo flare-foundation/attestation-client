@@ -7,7 +7,6 @@ export enum AttestationType {
   BalanceDecreasingTransaction = 2,
   ConfirmedBlockHeightExists = 3,
   ReferencedPaymentNonexistence = 4,
-  TrustlineIssuance = 5,
 }
 
 export function getAttestationTypeName(attestationType: number) {

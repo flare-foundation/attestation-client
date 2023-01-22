@@ -72,16 +72,6 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       },
       maxValidIndexerDelaySec: 10,
       entityManager: dbService.manager,
-      windowStartTime: (roundId: number) => {
-        const queryWindowInSec = 86400;
-        return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - queryWindowInSec;
-      },
-      UBPCutoffTime: (roundId: number) => {
-        // todo: read this from DAC
-        const UBPCutTime = 60*30;
-        return BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW - UBPCutTime;
-      },
-
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
   });
@@ -118,7 +108,6 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   it("Specific request check", async () => {
     const request = "0x000100000004d35d367c3abd09d92c956c9e73d73fd9e7da10ba209b807829b7093a9a55f62f145848860e2f9e81c6c21eaeaa0fcbfe2d4876b872c09ea2294e19a965b92c420000";
     const roundId = 366582;
-    const recheck = true;
 
     const parsed = parseRequest(request);
     // console.log(parsed)
@@ -127,7 +116,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     console.log( "***1");    
 
     const att = createTestAttestationFromRequest(parsed, roundId);
-    const result = await verifyAttestation(client, att, indexedQueryManager, recheck);
+    const result = await verifyAttestation(client, att, indexedQueryManager);
 
     console.log(`Status ${result.status}`);
     console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
@@ -137,19 +126,18 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
   it("Specific parsed request check", async () => {
     const roundId = 161893;
-    const recheck = true;
 
     const parsed = {
       attestationType: 1,
       sourceId: 2,
-      upperBoundProof: "0x68c840f6ad2f0531e1ff109a1fc908278e4c7055dd3833b2d07d8aad44551030",
+      messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
       id: "0x851f2660dff77e9e54d220ca6d06071ef951612bfbcacc8a35fe20380bacc384",
       inUtxo: "0x0",
       utxo: "0x0",
     };
 
     const att = createTestAttestationFromRequest(parsed, roundId);
-    const result = await verifyAttestation(client, att, indexedQueryManager, recheck);
+    const result = await verifyAttestation(client, att, indexedQueryManager);
 
     console.log(hexlifyBN(result));
     console.log(`Status ${result.status}`);

@@ -33,7 +33,6 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   }
   const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
     blockNumber: randomTransaction.blockNumber + this.indexedQueryManager.settings.numberOfConfirmations(),
-    roundId,
   });
   if (!confirmationBlockQueryResult?.result) {
     const N = await indexedQueryManager.getLastConfirmedBlockNumber();
@@ -50,12 +49,11 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   }
 
   const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
-  const upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
 
   return {
     attestationType: AttestationType.BalanceDecreasingTransaction,
     sourceId: sourceId,
-    upperBoundProof,
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
     id,
     inUtxo: toBN(0),
   };

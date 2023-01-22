@@ -6,11 +6,14 @@ import { DBBlockBase } from "../../../src/entity/indexer/dbBlock";
 import { DBState } from "../../../src/entity/indexer/dbState";
 import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
 import { getUnixEpochTimestamp } from "../../../src/utils/utils";
-import { NumberLike } from "../../../src/verification/attestation-types/attestation-types";
-import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
+import { MIC_SALT, NumberLike } from "../../../src/verification/attestation-types/attestation-types";
+import { hexlifyBN, toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
+import { hashBalanceDecreasingTransaction, hashConfirmedBlockHeightExists, hashPayment, hashReferencedPaymentNonexistence } from "../../../src/verification/generated/attestation-hash-utils";
 import { ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARPayment, ARReferencedPaymentNonexistence } from "../../../src/verification/generated/attestation-request-types";
 import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
 import { getSourceName, SourceId } from "../../../src/verification/sources/sources";
+import { responseBalanceDecreasingTransaction, responseConfirmedBlockHeightExists, responsePayment, responseReferencedPaymentNonExistence } from "../../../src/verification/verification-utils/generic-chain-verifications";
+import { MccTransactionType } from "../../../src/verification/verification-utils/verification-utils";
 
 const TEST_DATA_PATH = 'test/indexed-query-manager/test-data'
 
@@ -165,7 +168,7 @@ export async function generateTestIndexerDB(
    lastSampleTimestamp?: number
 ) {
    for (let blockNumber = startBlock; blockNumber <= endBlock; blockNumber++) {
-      let timestamp = lastTimestamp - (endBlock - startBlock) + (blockNumber - startBlock);      
+      let timestamp = lastTimestamp - (endBlock - startBlock) + (blockNumber - startBlock);
       let dbBlock = new blockEntity();
       dbBlock.blockHash = testBlockHash(blockNumber);
       dbBlock.blockNumber = blockNumber;
@@ -174,8 +177,8 @@ export async function generateTestIndexerDB(
       dbBlock.confirmed = blockNumber <= lastConfirmedBlock;
       dbBlock.numberOfConfirmations = 0;
       dbBlock.previousBlockHash = testBlockHash(blockNumber - 1);
-      
-      if(dbBlock.confirmed) {
+
+      if (dbBlock.confirmed) {
          let transactions = generateTransactionsForBlock(chainType, blockNumber, timestamp, transactionEntity, transactionsPerBlock);
          await manager.save(transactions);
       }
@@ -245,9 +248,9 @@ export async function selectedReferencedTx(
       .andWhere("transaction.paymentReference != :paymentReference", { paymentReference: ZERO_PAYMENT_REFERENCE })
       .orderBy("transaction.transactionId", "ASC");
    let result = await query2.getMany();
-   if(result.length <= which) {
+   if (result.length <= which) {
       throw new Error("Wrong 'which");
-   } 
+   }
    return result[which] as any as DBTransactionBase;
 }
 
@@ -268,10 +271,10 @@ export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
    for (let i = 0; i < response.data.vout.length; i++) {
       let address = response.data.vout[i].scriptPubKey?.address;
       if (address) {
-         if(appearances.indexOf(address) >= 0) {
+         if (appearances.indexOf(address) >= 0) {
             continue;
          }
-         if(appearances.length === index) {
+         if (appearances.length === index) {
             return i;
          }
          appearances.push(address);
@@ -301,8 +304,8 @@ export function totalDeliveredAmountToAddress(dbTransaction: DBTransactionBase, 
    for (let i = 0; i < response.additionalData.vinouts.length; i++) {
       if (response.additionalData?.vinouts?.[i]?.vinvout?.scriptPubKey?.address === address) {
          let value = response.additionalData?.vinouts?.[i]?.vinvout.value;
-         if (value) {            
-            spent = spent.add(toBN(Math.floor(value*BTC_IN_SATOSHI)));
+         if (value) {
+            spent = spent.add(toBN(Math.floor(value * BTC_IN_SATOSHI)));
          }
       }
    }
@@ -311,7 +314,7 @@ export function totalDeliveredAmountToAddress(dbTransaction: DBTransactionBase, 
       if (response.data.vout[i].scriptPubKey?.address === address) {
          let value = response.data.vout[i].value;
          if (value) {
-            received = received.add(toBN(Math.floor(value*BTC_IN_SATOSHI)));
+            received = received.add(toBN(Math.floor(value * BTC_IN_SATOSHI)));
          }
       }
    }
@@ -319,76 +322,128 @@ export function totalDeliveredAmountToAddress(dbTransaction: DBTransactionBase, 
 }
 
 export async function testPaymentRequest(
-   entityManager: EntityManager,
    dbTransaction: DBTransactionBase,
-   blockClass: any,
-   numberOfConfirmations: number,
+   TransactionClass: new (...args: any[]) => MccTransactionType,
    chainType: ChainType,
    inUtxo: number = 0,
    utxo: number = 0
 ) {
-   let block = await selectBlock(entityManager, blockClass, dbTransaction.blockNumber + numberOfConfirmations);
-   return {
+   const responseData = await responsePayment(
+      dbTransaction,
+      TransactionClass,
+      inUtxo,
+      utxo,
+      undefined
+   );
+
+   const request = {
       attestationType: AttestationType.Payment,
       sourceId: chainType as any as SourceId,
-      upperBoundProof: prefix0x(block.blockHash),
+      messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
       id: prefix0x(dbTransaction.transactionId),
       inUtxo,
       utxo
    } as ARPayment;
+   if (responseData.status === 'OK') {
+      request.messageIntegrityCode = hashPayment(request, responseData.response, MIC_SALT);
+   }
+   return request;
 }
 
 export async function testBalanceDecreasingTransactionRequest(
-   entityManager: EntityManager,
    dbTransaction: DBTransactionBase,
-   blockClass: any,
-   numberOfConfirmations: number,
+   TransactionClass: new (...args: any[]) => MccTransactionType,
    chainType: ChainType,
    inUtxo: number = 0
 ) {
-   let block = await selectBlock(entityManager, blockClass, dbTransaction.blockNumber + numberOfConfirmations);
-   return {
+   const responseData = await responseBalanceDecreasingTransaction(
+      dbTransaction,
+      TransactionClass,
+      inUtxo,
+      undefined
+   );
+
+   const request = {
       attestationType: AttestationType.BalanceDecreasingTransaction,
       sourceId: chainType as any as SourceId,
-      upperBoundProof: prefix0x(block.blockHash),
+      messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
       id: prefix0x(dbTransaction.transactionId),
       inUtxo
    } as ARBalanceDecreasingTransaction;
+   if (responseData.status === 'OK') {
+      request.messageIntegrityCode = hashBalanceDecreasingTransaction(request, responseData.response, MIC_SALT);
+   }
+   return request;
 }
 
 export async function testConfirmedBlockHeightExistsRequest(
-   confirmationBlock: DBBlockBase,
-   chainType: ChainType
+   dbBlock: DBBlockBase,
+   lowerQueryWindowBlock: DBBlockBase,
+   chainType: ChainType,
+   numberOfConfirmations: number,
+   queryWindow: number
 ) {
-   return {
+   const responseData = await responseConfirmedBlockHeightExists(
+      dbBlock,
+      lowerQueryWindowBlock,
+      numberOfConfirmations
+   );
+
+   const request = {
       attestationType: AttestationType.ConfirmedBlockHeightExists,
       sourceId: chainType as any as SourceId,
-      upperBoundProof: prefix0x(confirmationBlock.blockHash),
+      messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      blockNumber: dbBlock.blockNumber,
+      queryWindow
    } as ARConfirmedBlockHeightExists;
+   if (responseData.status === 'OK') {      
+      request.messageIntegrityCode = hashConfirmedBlockHeightExists(request, responseData.response, MIC_SALT);
+   }
+   return request;
 }
 
 export async function testReferencedPaymentNonexistenceRequest(
-   entityManager: EntityManager,
-   upperBoundBlockNumber: number,
-   blockClass: any,
+   dbTransactions: DBTransactionBase[],
+   TransactionClass: new (...args: any[]) => MccTransactionType,
+   firstOverflowBlock: DBBlockBase,
+   lowerBoundaryBlock: DBBlockBase,
    chainType: ChainType,
    deadlineBlockNumber: number,
    deadlineTimestamp: number,
    destinationAddress: string,
-   amount: NumberLike,
    paymentReference: string,
+   amount: NumberLike
 ) {
-   let confirmationBlock = await selectBlock(entityManager, blockClass, upperBoundBlockNumber);
-   return {
+
+   const responseData = await responseReferencedPaymentNonExistence(
+      dbTransactions,
+      TransactionClass,
+      firstOverflowBlock,
+      lowerBoundaryBlock,
+      deadlineBlockNumber,
+      deadlineTimestamp,
+      Web3.utils.soliditySha3(destinationAddress),
+      paymentReference,
+      amount
+   );
+
+   const request = {
       attestationType: AttestationType.ReferencedPaymentNonexistence,
       sourceId: chainType as any as SourceId,
-      upperBoundProof: prefix0x(confirmationBlock.blockHash),
+      minimalBlockNumber: lowerBoundaryBlock.blockNumber,
+      messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
       deadlineBlockNumber,
       deadlineTimestamp,
       destinationAddressHash: Web3.utils.soliditySha3(destinationAddress),
       amount,
       paymentReference
    } as ARReferencedPaymentNonexistence;
+
+   if (responseData.status === 'OK') {
+      request.messageIntegrityCode = hashReferencedPaymentNonexistence(request, responseData.response, MIC_SALT);
+   }
+
+   return request;
 }
 
 

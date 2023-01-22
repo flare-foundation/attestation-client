@@ -32,8 +32,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       chainType: ChainType.BTC,
       numberOfConfirmations: () => 5,
       maxValidIndexerDelaySec: 10,
-      windowStartTime: (roundId: number) => roundId * 5,
-      UBPCutoffTime: (roundId: number) => roundId * 5 + 4,
     };
     indexedQueryManager = new IndexedQueryManager(options);
 
@@ -118,7 +116,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     it("Should query block by hash", async () => {
       const params: BlockQueryParams = {
         hash: resBTCBlock.hash,
-        roundId: 10,
       };
 
       const block = new UtxoBlock(resBTCBlock);
@@ -132,7 +129,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     it("Should query block by id", async () => {
       const params: BlockQueryParams = {
         blockNumber: resBTCBlock.height,
-        roundId: 10,
         confirmed: true,
       };
 
@@ -206,7 +202,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("Should query transaction", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        roundId: 5,
         endBlock: 763380,
       };
 
@@ -216,7 +211,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("Should query transaction with txId", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        roundId: 5,
         endBlock: 763380,
 
         transactionId: "b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225",
@@ -228,7 +222,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("query should not return anything", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        roundId: 5,
         endBlock: 763380,
         paymentReference: "b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225",
       };

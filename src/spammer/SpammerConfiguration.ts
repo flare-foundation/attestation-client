@@ -1,4 +1,4 @@
-import { AttesterWebOptions } from "../attester/AttesterConfig";
+import { AttesterWebOptions } from "../attester/AttestationClientConfig";
 import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 

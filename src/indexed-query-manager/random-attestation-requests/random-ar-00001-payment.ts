@@ -32,7 +32,6 @@ export async function prepareRandomizedRequestPayment(
   }
   const confirmationBlockQueryResponse = await indexedQueryManager.queryBlock({
     blockNumber: randomTransaction.blockNumber + indexedQueryManager.settings.numberOfConfirmations(),
-    roundId,
   });
   if (!confirmationBlockQueryResponse?.result) {
     return null;
@@ -44,11 +43,10 @@ export async function prepareRandomizedRequestPayment(
     return null;
   }
   const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
-  const upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResponse.result.blockHash);
   return {
     attestationType: AttestationType.Payment,
     sourceId: sourceId,
-    upperBoundProof,
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
     id,
     utxo: toBN(0), // TODO: randomize for UTXO chains
     inUtxo: toBN(0), // TODO: randomize for UTXO chains

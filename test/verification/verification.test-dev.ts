@@ -78,13 +78,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       entityManager: dbService.manager,
       maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
       // todo: return epochStartTime - query window length, add query window length into DAC
-      windowStartTime: (roundId: number) => {
-        return startTime;
-      },
-      UBPCutoffTime: (roundId: number) => {
-        // todo: Set when needed for tests
-        return cutoffTime;
-      },
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
     randomGenerators = await prepareRandomGenerators(indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD);
@@ -136,7 +129,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
     const blockQueryRequest = await indexedQueryManager.queryBlock({
       blockNumber: lastBlockNumber - 2,
-      roundId: ROUND_ID,
       confirmed: true,
     });
 

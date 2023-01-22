@@ -1,5 +1,5 @@
 import { toBN } from "@flarenetwork/mcc";
-import { AttesterConfig } from "../attester/AttesterConfig";
+import { AttestationClientConfig } from "../attester/AttestationClientConfig";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { readSecureConfig } from "../utils/configSecure";
 import { DatabaseService } from "../utils/databaseService";
@@ -20,7 +20,7 @@ export class AttesterMonitor extends MonitorBase {
 
   async initialize() {
 
-    const config = await readSecureConfig(new AttesterConfig(), "attester");
+    const config = await readSecureConfig(new AttestationClientConfig(), "attester");
 
     this.dbService = new DatabaseService(this.logger, config.attesterDatabase, "attester");
 

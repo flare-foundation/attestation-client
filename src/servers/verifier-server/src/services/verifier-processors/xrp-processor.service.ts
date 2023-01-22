@@ -38,7 +38,7 @@ export class XRPProcessorService extends VerifierProcessor {
     let response = await verifyXRP(
       this.client,
       attestationRequest.request,
-      attestationRequest.options,
+      attestationRequest.options || {},
       this.indexedQueryManager
     );
     return hexlifyBN(response);

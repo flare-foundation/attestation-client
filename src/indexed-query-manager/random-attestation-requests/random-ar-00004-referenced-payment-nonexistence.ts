@@ -26,7 +26,8 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
   roundId: number,
-  enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType
+  enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType, 
+  queryWindow = 100
 ): Promise<ARReferencedPaymentNonexistence | null> {
   const OVERFLOW_BLOCK_OFFSET = 10;
 
@@ -35,7 +36,6 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   const blockOverflowQueryResult = await indexedQueryManager.queryBlock({
     blockNumber: overflowBlockNum,
     confirmed: true,
-    roundId,
   });
   if (!blockOverflowQueryResult?.result) {
     console.log("No overflow block");
@@ -55,20 +55,17 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   let prevBlockQueryResult = await indexedQueryManager.queryBlock({
     blockNumber: prevBlockIndex,
     confirmed: true,
-    roundId,
   });
   while (prevBlockQueryResult.result.timestamp === blockOverflowQueryResult.result.timestamp) {
     prevBlockIndex--;
     prevBlockQueryResult = await indexedQueryManager.queryBlock({
       blockNumber: prevBlockIndex,
       confirmed: true,
-      roundId,
     });
   }
 
   const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
     blockNumber: overflowBlockNum + indexedQueryManager.settings.numberOfConfirmations(),
-    roundId,
   });
 
   if (!confirmationBlockQueryResult.result) {
@@ -79,14 +76,14 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   const deadlineBlockNumber = toBN(prevBlockQueryResult.result.blockNumber);
   const deadlineTimestamp = toBN(prevBlockQueryResult.result.timestamp);
   const overflowBlock = overflowBlockNum;
-  const upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
   const paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.paymentReference);
   // TODO
   // let destinationAmounts = randomTransaction.
   return {
     attestationType: AttestationType.ReferencedPaymentNonexistence,
     sourceId,
-    upperBoundProof,
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
+    minimalBlockNumber: deadlineBlockNumber.toNumber() - queryWindow,
     deadlineBlockNumber,
     deadlineTimestamp,
     destinationAddressHash: Web3.utils.randomHex(32),

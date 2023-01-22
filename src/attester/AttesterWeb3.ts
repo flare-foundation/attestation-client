@@ -1,32 +1,36 @@
 import { toBN } from "@flarenetwork/mcc";
 import BN from "bn.js";
 import Web3 from "web3";
+import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { EpochSettings } from "../utils/EpochSettings";
 import { AttLogger } from "../utils/logger";
-import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
+import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { AttesterConfig } from "./AttesterConfig";
+import { AttestationClientConfig } from "./AttestationClientConfig";
+import { retry } from "../utils/PromiseTimeout";
 
 /**
- * Handles submissions to StateConnector
+ * Handles submissions to StateConnector and BitVoting contrct
  */
 export class AttesterWeb3 {
   attestationRoundManager: AttestationRoundManager;
-  config: AttesterConfig
+  config: AttestationClientConfig
 
   web3!: Web3;
   stateConnector!: StateConnector | StateConnectorTempTran;
+  bitVoting!: BitVoting;
   web3Functions!: Web3Functions;
   epochSettings: EpochSettings;
   firstEpochStartTime: number;
   roundDurationSec: number;
+  chooseDeadlineSec: number;
 
   logger: AttLogger;
 
-  constructor(config: AttesterConfig, logger: AttLogger) {
+  constructor(config: AttestationClientConfig, logger: AttLogger) {
     // for testing only
     if (process.env.NODE_ENV !== "production" && !config) {
       return;
@@ -41,15 +45,25 @@ export class AttesterWeb3 {
   async initialize(attestationRoundManager: AttestationRoundManager) {
     this.attestationRoundManager = attestationRoundManager;
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.config.web.stateConnectorContractAddress);
+    this.bitVoting = await getWeb3Contract(this.web3, this.config.web.bitVotingContractAddress, "BitVoting") as any as BitVoting;
     this.firstEpochStartTime = parseInt("" + await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
     this.roundDurationSec = parseInt("" + await this.stateConnector.methods.BUFFER_WINDOW().call(), 10);
     this.epochSettings = new EpochSettings(toBN(this.firstEpochStartTime), toBN(this.roundDurationSec));
+    this.chooseDeadlineSec = parseInt("" + await this.bitVoting.methods.BIT_VOTE_DEADLINE().call(), 10);
   }
 
   check(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
       this.logger.error(`invalid BN formatting ${bnString}`);
     }
+  }
+
+  async getAttestorsForAssignors(assignors: string[]): Promise<string[]> {
+    let promises = [];
+    for(let assignor of assignors) {
+      promises.push(this.stateConnector.methods.attestorAddressMapping(assignor).call());
+    }
+    return await Promise.all(promises);
   }
 
   /**
@@ -107,7 +121,7 @@ export class AttesterWeb3 {
 
       const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-      const extReceipt = await this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime);
+      const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () => this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime));
 
       if (extReceipt.receipt) {
         await this.attestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);

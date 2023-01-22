@@ -1,4 +1,4 @@
-import { MccClient, unPrefix0x } from "@flarenetwork/mcc";
+import { MccClient } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
@@ -18,8 +18,7 @@ import {
   ReferencedTransactionsQueryRequest,
   ReferencedTransactionsQueryResponse,
   TransactionQueryParams,
-  TransactionQueryResult,
-  UpperBoundaryCheck
+  TransactionQueryResult
 } from "./indexed-query-manager-types";
 
 // no supported chain produces more than 20 blocks per second
@@ -145,22 +144,17 @@ export class IndexedQueryManager {
   async queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult> {
     let results = [];
 
-    let startTimestamp = params.windowStartTime;
-    if (!startTimestamp && startTimestamp !== 0) {
-      if (this.settings.windowStartTime) {
-        startTimestamp = this.settings.windowStartTime(params.roundId);
-      } else {
-        throw new Error("IndexedQueryManager: windowStartTime not configured");
-      }
-    }
-
-
-
     for (const table of this.transactionTable) {
       let query = this.entityManager
         .createQueryBuilder(table, "transaction")
-        .andWhere("transaction.timestamp >= :timestamp", { timestamp: startTimestamp }) // always query in the window.
-        .andWhere("transaction.blockNumber <= :endBlock", { endBlock: params.endBlock });
+
+      if (params.startBlock) {
+        query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock : params.startBlock });
+      }
+
+      if (params.endBlock) {
+        query = query.andWhere("transaction.blockNumber <= :endBlock", { endBlock: params.endBlock });
+      }
 
       if (params.paymentReference) {
         query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
@@ -174,19 +168,21 @@ export class IndexedQueryManager {
     let lowerQueryWindowBlock: DBBlockBase;
     let upperQueryWindowBlock: DBBlockBase;
 
-    if (params.returnQueryBoundaryBlocks) {
-      lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
-      const upperBlockResult = await this.queryBlock({
-        endBlock: params.endBlock,
-        blockNumber: params.endBlock,
-        roundId: params.roundId,
+    if (params.startBlock !== undefined) {
+      const lowerQueryWindowBlockResult = await this.queryBlock({
+        blockNumber: params.startBlock,
         confirmed: true,
-        windowStartTime: params.windowStartTime,
-        UBPCutoffTime: params.UBPCutoffTime
       });
-      upperQueryWindowBlock = upperBlockResult.result;
+      lowerQueryWindowBlock = lowerQueryWindowBlockResult.result;
     }
 
+    if (params.endBlock !== undefined) {
+      const upperQueryWindowBlockResult = await this.queryBlock({
+        blockNumber: params.endBlock,
+        confirmed: true,
+      });
+      upperQueryWindowBlock = upperQueryWindowBlockResult.result;
+    }
     return {
       result: results as DBTransactionBase[],
       lowerQueryWindowBlock,
@@ -204,22 +200,8 @@ export class IndexedQueryManager {
     if (!params.blockNumber && !params.hash) {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
     }
-
-    let startTimestamp = params.windowStartTime;
-    if (!startTimestamp && startTimestamp !== 0) {
-      if (this.settings.windowStartTime) {
-        startTimestamp = this.settings.windowStartTime(params.roundId);
-      } else {
-        throw new Error("IndexedQueryManager: windowStartTime not configured");
-      }
-    }
-
     let query = this.entityManager
       .createQueryBuilder(this.blockTable, "block")
-      .where("block.timestamp >= :timestamp", { timestamp: startTimestamp });
-    if (params.endBlock) {
-      query = query.andWhere("block.blockNumber <= :endBlock", { endBlock: params.endBlock });
-    }
     if (params.confirmed) {
       query = query.andWhere("block.confirmed = :confirmed", { confirmed: !!params.confirmed });
     }
@@ -230,27 +212,8 @@ export class IndexedQueryManager {
     }
 
     const result = await query.getOne();
-    let lowerQueryWindowBlock: DBBlockBase;
-    let upperQueryWindowBlock: DBBlockBase;
-
-    if (params.returnQueryBoundaryBlocks) {
-      lowerQueryWindowBlock = await this.getFirstConfirmedBlockAfterTime(startTimestamp);
-      const upperBlockResult = await this.queryBlock({
-        endBlock: params.blockNumber,
-        // Depending on what parameter was provided, one of them will be non-empty
-        blockNumber: params.blockNumber,
-        hash: params.hash,
-        roundId: params.roundId,
-        confirmed: true,
-        windowStartTime: params.windowStartTime,
-        UBPCutoffTime: params.UBPCutoffTime
-      });
-      upperQueryWindowBlock = upperBlockResult.result;
-    }
     return {
       result: result ? (result as DBBlockBase) : undefined,
-      lowerQueryWindowBlock,
-      upperQueryWindowBlock,
     };
   }
 
@@ -268,72 +231,26 @@ export class IndexedQueryManager {
     return null;
   }
 
-  /**
-   * Checks for existence of the block with hash `upperBoundProof`.
-   * @param upperBoundProof hash of the upper bound block
-   * @param recheck phase of query (first query or recheck)
-   * @returns search status, and if the upper bound proof block is found it returns the hight (`U`)
-   * that is confirmed by the block, subject to number of confirmations set in the class level.
-   */
-  private async upperBoundaryCheck(upperBoundProof: string, roundId: number, UBPCutoffTime: number, recheck: boolean): Promise<UpperBoundaryCheck> {
-    const confBlock = await this.getBlockByHash(unPrefix0x(upperBoundProof));
-    if (!confBlock) {
-      if (!recheck) {
-        return { status: "RECHECK" };
-      }
-      const upToDate = await this.isIndexerUpToDate();
-      if (!upToDate) {
-        return { status: "SYSTEM_FAILURE" };
-      }
-      return { status: "NO_BOUNDARY" };
-    }
+  // /**
+  //  * Checks whether lower boundary of query range within confirmed transactions is met.
+  //  * For that at least one confirmed block with lower timestamp that lower boundary timestamp
+  //  * must exist in the database.
+  //  * @param roundId
+  //  * @returns
+  //  */
+  // private async lowerBoundaryCheck(roundId: number, windowStartTime?: number): Promise<boolean> {
+  //   // lower boundary timestamp
+  //   let startTimestamp = windowStartTime;
+  //   if (!startTimestamp && startTimestamp !== 0) {
+  //     if (this.settings.windowStartTime) {
+  //       startTimestamp = this.settings.windowStartTime(roundId);
+  //     } else {
+  //       throw new Error("IndexedQueryManager: windowStartTime not configured");
+  //     }
+  //   }
 
-    // UBP block exists
-    const valid = await this.validateForCutoffTime(confBlock, roundId, UBPCutoffTime);
-    if (!valid) {
-      const upToDate = await this.isIndexerUpToDate();
-      if (!upToDate) {
-        return { status: "SYSTEM_FAILURE" };
-      }
-      return { status: "NO_BOUNDARY" };
-    }
-
-    const H = confBlock.blockNumber;
-    const U = H - this.settings.numberOfConfirmations() + 1;
-    const N = await this.getLastConfirmedBlockNumber();
-    if (N < U) {
-      if (!recheck) {
-        return { status: "RECHECK" };
-      }
-      // gap of more than numberOfConfirmations - indexer delay
-      return { status: "SYSTEM_FAILURE" };
-    }
-    return {
-      status: "OK",
-      U,
-    };
-  }
-
-  /**
-   * Checks whether lower boundary of query range within confirmed transactions is met.
-   * For that at least one confirmed block with lower timestamp that lower boundary timestamp
-   * must exist in the database.
-   * @param roundId
-   * @returns
-   */
-  private async lowerBoundaryCheck(roundId: number, windowStartTime?: number): Promise<boolean> {
-    // lower boundary timestamp
-    let startTimestamp = windowStartTime;
-    if (!startTimestamp && startTimestamp !== 0) {
-      if (this.settings.windowStartTime) {
-        startTimestamp = this.settings.windowStartTime(roundId);
-      } else {
-        throw new Error("IndexedQueryManager: windowStartTime not configured");
-      }
-    }
-
-    return await this.hasIndexerConfirmedBlockStrictlyBeforeTime(startTimestamp);
-  }
+  //   return await this.hasIndexerConfirmedBlockStrictlyBeforeTime(startTimestamp);
+  // }
 
   ////////////////////////////////////////////////////////////
   // Confirmed blocks query
@@ -346,31 +263,13 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.roundId, params.UBPCutoffTime, params.type === "RECHECK");
-    if (status != "OK") {
-      return { status };
-    }
     const blockQueryResult = await this.queryBlock({
-      endBlock: U,
-      blockNumber: params.blockNumber ? params.blockNumber : U,
-      roundId: params.roundId,
-      confirmed: true,
-      returnQueryBoundaryBlocks: params.returnQueryBoundaryBlocks,
-      windowStartTime: params.windowStartTime,
-      UBPCutoffTime: params.UBPCutoffTime
+      blockNumber: params.blockNumber,
+      confirmed: true
     });
-    if (!blockQueryResult) {
-      // check lower bound if block was not found. If block was found lower bound is not so important.
-      const lowerCheck = await this.lowerBoundaryCheck(params.roundId, params.windowStartTime);
-      if (!lowerCheck) {
-        return { status: "SYSTEM_FAILURE" };
-      }
-    }
     return {
       status: blockQueryResult ? "OK" : "NOT_EXIST",
-      block: blockQueryResult.result,
-      lowerBoundaryBlock: blockQueryResult.lowerQueryWindowBlock,
-      upperBoundaryBlock: blockQueryResult.upperQueryWindowBlock,
+      block: blockQueryResult?.result
     };
   }
 
@@ -386,30 +285,14 @@ export class IndexedQueryManager {
    * lower and upper boundary blocks, if required by query parameters.
    */
   public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.roundId, params.UBPCutoffTime, params.type === "RECHECK");
-    if (status != "OK") {
-      return { status };
-    }
-    const lowerCheck = await this.lowerBoundaryCheck(params.roundId, params.windowStartTime);
-    if (!lowerCheck) {
-      return { status: "SYSTEM_FAILURE" };
-    }
-
     const transactionsQueryResult = await this.queryTransactions({
-      roundId: params.roundId,
-      endBlock: U,
       transactionId: params.txId,
-      returnQueryBoundaryBlocks: params.returnQueryBoundaryBlocks,
-      windowStartTime: params.windowStartTime,
-      UBPCutoffTime: params.UBPCutoffTime
     } as TransactionQueryParams);
     const transactions = transactionsQueryResult.result;
 
     return {
       status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
       transaction: transactions[0],
-      lowerBoundaryBlock: transactionsQueryResult.lowerQueryWindowBlock,
-      upperBoundaryBlock: transactionsQueryResult.upperQueryWindowBlock,
     };
   }
 
@@ -424,31 +307,25 @@ export class IndexedQueryManager {
    * query parameters.
    */
   public async getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse> {
-    const { status, U } = await this.upperBoundaryCheck(params.upperBoundProof, params.roundId, params.UBPCutoffTime, params.type === "RECHECK");
-    if (status != "OK") {
-      return { status };
-    }
-
-    const lowerCheck = await this.lowerBoundaryCheck(params.roundId, params.windowStartTime);
-    if (!lowerCheck) {
-      return { status: "SYSTEM_FAILURE" };
-    }
-
     const firstOverflowBlock = await this.getFirstConfirmedOverflowBlock(params.deadlineBlockTimestamp, params.deadlineBlockNumber);
-    if (!firstOverflowBlock || firstOverflowBlock.blockNumber > U) {
+    if (!firstOverflowBlock) {
       return {
         status: "NO_OVERFLOW_BLOCK",
       };
     }
 
     const transactionsQueryResult = await this.queryTransactions({
-      roundId: params.roundId,
+      startBlock: params.minimalBlockNumber,
       endBlock: firstOverflowBlock.blockNumber - 1,
       paymentReference: params.paymentReference,
-      returnQueryBoundaryBlocks: true,
-      windowStartTime: params.windowStartTime,
-      UBPCutoffTime: params.UBPCutoffTime
     } as TransactionQueryParams);
+
+    // Too small query window
+    if (!transactionsQueryResult.lowerQueryWindowBlock) {
+      return {
+        status: "DATA_AVAILABILITY_FAILURE"
+      }
+    }
 
     const transactions = transactionsQueryResult.result;
     return {
@@ -484,6 +361,33 @@ export class IndexedQueryManager {
     let result = results[0];
     for (const res of results) {
       if (res.blockNumber < result.blockNumber) {
+        result = res;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Gets the last confirmed block with the timestamp strictly smaller to the given timestamp
+   * @param timestamp
+   * @returns the block, if exists, otherwise `null`
+   */
+  public async getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<DBBlockBase | null> {
+    const query = this.entityManager
+      .createQueryBuilder(this.blockTable, "block")
+      .where("block.confirmed = :confirmed", { confirmed: true })
+      .andWhere("block.timestamp < :timestamp", { timestamp: timestamp })
+      .orderBy("block.timestamp", "DESC")
+      .limit(MAX_BLOCKCHAIN_PRODUCTION);
+
+    const results = (await query.getMany()) as DBBlockBase[];
+
+    if (results.length === 0) return null;
+
+    let result = results[0];
+    for (const res of results) {
+      if (res.blockNumber > result.blockNumber) {
         result = res;
       }
     }
@@ -528,53 +432,5 @@ export class IndexedQueryManager {
       return result as DBBlockBase;
     }
     return null;
-  }
-
-  /**
-   * Validates upper bound proof candidate `confBlock`. We assume confBlock is defined (not null).
-   * If `confBlock.timestamp` is greater or equal then cut-off time for the round `roundId` then
-   * it is always accepted. Otherwise `confBlock` has to be on one of the longest forks.
-   * @param confBlock upper bound proof block to be validated
-   * @param roundId round id for which validation is carried out
-   * @returns true, if validation is successful
-   */
-  public async validateForCutoffTime(confBlock: DBBlockBase, roundId: number, UBPCutoffTime: number) {
-
-    // const cutoffTime = this.settings.UBPCutoffTime(roundId);
-
-    let cutoffTime = UBPCutoffTime;
-    if (!cutoffTime && cutoffTime !== 0) {
-      cutoffTime = this.settings.UBPCutoffTime(roundId);
-    }
-
-
-    if (confBlock.timestamp >= cutoffTime) {
-      return true;
-    }
-    // if the block happens to be confirmed, we assume that it is on the longest/main fork.
-    if (confBlock.confirmed) {
-      return true;
-    }
-    // upper bound proof has to be on one of the longest chains (viewed locally)
-    const query = this.entityManager
-      .createQueryBuilder(this.blockTable, "block")
-      .where("block.blockNumber = :blockNumber", { blockNumber: confBlock.blockNumber });
-    const result = (await query.getMany()) as DBBlockBase[];
-
-    for (const entity of result) {
-      if (entity.confirmed) {
-        // we are handling the case where block was confirmed while we were waiting for the query above
-        if (entity.blockHash === confBlock.blockHash) {
-          return true;
-        }
-        // some other block was confirmed on that height and data upperBoundProof is invalid
-        return false;
-      }
-      // some other block on this height has more confirmations os the upperBoundProof is invalid.
-      if (entity.numberOfConfirmations > confBlock.numberOfConfirmations) {
-        return false;
-      }
-    }
-    return true;
   }
 }

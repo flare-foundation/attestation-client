@@ -25,14 +25,14 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   randomBlock: DBBlockBase,
   sourceId: SourceId,
   roundId: number,
-  enforcedChoice?: RandomConfirmedBlockHeightExistsChoiceType
+  enforcedChoice?: RandomConfirmedBlockHeightExistsChoiceType,
+  queryWindow = 100
 ): Promise<ARConfirmedBlockHeightExists | null> {
   if (!randomBlock) {
     return null;
   }
   const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
     blockNumber: randomBlock.blockNumber + indexedQueryManager.settings.numberOfConfirmations(),
-    roundId,
   });
   if (!confirmationBlockQueryResult?.result) {
     return null;
@@ -47,10 +47,11 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   }
 
   const blockNumber = toBN(randomBlock.blockNumber);
-  const upperBoundProof = choice === "WRONG_DATA_AVAILABILITY_PROOF" ? Web3.utils.randomHex(32) : prefix0x(confirmationBlockQueryResult.result.blockHash);
   return {
     attestationType: AttestationType.ConfirmedBlockHeightExists,
     sourceId,
-    upperBoundProof,
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
+    blockNumber,
+    queryWindow
   };
 }

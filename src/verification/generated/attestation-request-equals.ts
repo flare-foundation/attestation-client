@@ -3,14 +3,7 @@
 //////////////////////////////////////////////////////////////
 
 import Web3 from "web3";
-import {
-  ARPayment,
-  ARBalanceDecreasingTransaction,
-  ARConfirmedBlockHeightExists,
-  ARReferencedPaymentNonexistence,
-  ARTrustlineIssuance,
-  ARType,
-} from "./attestation-request-types";
+import { ARPayment, ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARReferencedPaymentNonexistence, ARType } from "./attestation-request-types";
 import { AttestationType } from "./attestation-types-enum";
 
 const toBN = Web3.utils.toBN;
@@ -47,7 +40,7 @@ export function equalsPayment(request1: ARPayment, request2: ARPayment) {
   if (!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
     return false;
   }
-  if (!assertEqualsByScheme(request1.upperBoundProof, request2.upperBoundProof, "ByteSequenceLike")) {
+  if (!assertEqualsByScheme(request1.messageIntegrityCode, request2.messageIntegrityCode, "ByteSequenceLike")) {
     return false;
   }
   if (!assertEqualsByScheme(request1.id, request2.id, "ByteSequenceLike")) {
@@ -69,7 +62,7 @@ export function equalsBalanceDecreasingTransaction(request1: ARBalanceDecreasing
   if (!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
     return false;
   }
-  if (!assertEqualsByScheme(request1.upperBoundProof, request2.upperBoundProof, "ByteSequenceLike")) {
+  if (!assertEqualsByScheme(request1.messageIntegrityCode, request2.messageIntegrityCode, "ByteSequenceLike")) {
     return false;
   }
   if (!assertEqualsByScheme(request1.id, request2.id, "ByteSequenceLike")) {
@@ -88,7 +81,13 @@ export function equalsConfirmedBlockHeightExists(request1: ARConfirmedBlockHeigh
   if (!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
     return false;
   }
-  if (!assertEqualsByScheme(request1.upperBoundProof, request2.upperBoundProof, "ByteSequenceLike")) {
+  if (!assertEqualsByScheme(request1.messageIntegrityCode, request2.messageIntegrityCode, "ByteSequenceLike")) {
+    return false;
+  }
+  if (!assertEqualsByScheme(request1.blockNumber, request2.blockNumber, "NumberLike")) {
+    return false;
+  }
+  if (!assertEqualsByScheme(request1.queryWindow, request2.queryWindow, "NumberLike")) {
     return false;
   }
   return true;
@@ -101,7 +100,10 @@ export function equalsReferencedPaymentNonexistence(request1: ARReferencedPaymen
   if (!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
     return false;
   }
-  if (!assertEqualsByScheme(request1.upperBoundProof, request2.upperBoundProof, "ByteSequenceLike")) {
+  if (!assertEqualsByScheme(request1.messageIntegrityCode, request2.messageIntegrityCode, "ByteSequenceLike")) {
+    return false;
+  }
+  if (!assertEqualsByScheme(request1.minimalBlockNumber, request2.minimalBlockNumber, "NumberLike")) {
     return false;
   }
   if (!assertEqualsByScheme(request1.deadlineBlockNumber, request2.deadlineBlockNumber, "NumberLike")) {
@@ -122,22 +124,6 @@ export function equalsReferencedPaymentNonexistence(request1: ARReferencedPaymen
   return true;
 }
 
-export function equalsTrustlineIssuance(request1: ARTrustlineIssuance, request2: ARTrustlineIssuance) {
-  if (!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
-    return false;
-  }
-  if (!assertEqualsByScheme(request1.sourceId, request2.sourceId, "SourceId")) {
-    return false;
-  }
-  if (!assertEqualsByScheme(request1.upperBoundProof, request2.upperBoundProof, "ByteSequenceLike")) {
-    return false;
-  }
-  if (!assertEqualsByScheme(request1.issuerAccount, request2.issuerAccount, "ByteSequenceLike")) {
-    return false;
-  }
-  return true;
-}
-
 export function equalsRequest(request1: ARType, request2: ARType): boolean {
   if (request1.attestationType != request2.attestationType) {
     return false;
@@ -151,8 +137,6 @@ export function equalsRequest(request1: ARType, request2: ARType): boolean {
       return equalsConfirmedBlockHeightExists(request1 as ARConfirmedBlockHeightExists, request2 as ARConfirmedBlockHeightExists);
     case AttestationType.ReferencedPaymentNonexistence:
       return equalsReferencedPaymentNonexistence(request1 as ARReferencedPaymentNonexistence, request2 as ARReferencedPaymentNonexistence);
-    case AttestationType.TrustlineIssuance:
-      return equalsTrustlineIssuance(request1 as ARTrustlineIssuance, request2 as ARTrustlineIssuance);
     default:
       throw new AttestationRequestEqualsError("Invalid attestation type");
   }

@@ -7,8 +7,9 @@ import { getTimeMilli, getTimeSec } from "../utils/internetTime";
 import { AttLogger, logException } from "../utils/logger";
 import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
-import { Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
-import { AttestationRequestParseError } from "../verification/generated/attestation-request-parse";
+import { MIC_SALT, Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
+import { dataHash } from "../verification/generated/attestation-hash-utils";
+import { AttestationRequestParseError, parseRequest } from "../verification/generated/attestation-request-parse";
 import { getSourceConfig } from "../verification/routing/configs/VerifierRouteConfig";
 import { VerifierSourceRouteConfig } from "../verification/routing/configs/VerifierSourceRouteConfig";
 import { InvalidRouteError } from "../verification/routing/VerifierRouter";
@@ -42,9 +43,9 @@ export class SourceManager {
       this.verifierSourceConfig = getSourceConfig(verifierRouteConfig, sourceId);
     }
     if (!this.verifierSourceConfig) {
-      if(process.env.NODE_ENV === "development") {
+      if (process.env.NODE_ENV === "development") {
         // We allow for incomplete routing configs in development
-        this.logger.info(`${this.label}${roundId}: source config for source ${sourceId} not defined (tolerated in "development" mode)`);          
+        this.logger.info(`${this.label}${roundId}: source config for source ${sourceId} not defined (tolerated in "development" mode)`);
       } else {
         this.logger.error(`${this.label}${roundId}: critical error, verifier source config for source ${sourceId} not defined`);
         exit(1);
@@ -185,30 +186,44 @@ export class SourceManager {
     // get verifierRouter from DAC 
     const verifierRouter = this.attestationRoundManager.attestationConfigManager.getVerifierRouter(attestation.roundId);
 
-    verifierRouter.verifyAttestation(attestation, attestation.reverification)
+    verifierRouter.verifyAttestation(attestation)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
 
-        if (verification.status === VerificationStatus.RECHECK_LATER) {
-          //this.logger.warning(`reverification ${attestation.data.request}`);
+        // if (verification.status === VerificationStatus.RECHECK_LATER) {
+        //   // Currently this case cannot happen. In future we may process a window of last N rounds
+        //   // and reverifications may happen, but in a different manner.
 
-          attestation.reverification = true;
+        //   // this.logger.warning(`reverification ${attestation.data.request}`);
 
-          // actual time when attestion will be rechecked
-          const startTimeMs =
-            this.attestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
-            this.attestationRoundManager.attestationConfigManager.config.commitTimeSec * 1000 -
-            this.verifierSourceConfig.reverificationTimeOffset * 1000;
+        //   attestation.reverification = true;
 
-          this.delayQueue(attestation, startTimeMs);
-        } else if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
-          // TODO: handle this case and do not commit
-          // TODO: message other clients or what? do not submit? do not submit that source???
-          this.logger.error2(`${this.label}SYSTEM_FAILURE ${attestation.data.request}`);
-          this.processed(attestation, AttestationStatus.invalid, verification);
-        } else {
-          this.processed(attestation, verification.status === VerificationStatus.OK ? AttestationStatus.valid : AttestationStatus.invalid, verification);
+        //   // actual time when attestion will be rechecked
+        //   const startTimeMs =
+        //     this.attestationRoundManager.epochSettings.getRoundIdRevealTimeStartMs(attestation.roundId) -
+        //     this.attestationRoundManager.attestationConfigManager.config.commitTimeSec * 1000 -
+        //     this.verifierSourceConfig.reverificationTimeOffset * 1000;
+
+        //   this.delayQueue(attestation, startTimeMs);
+        // } else 
+
+        let status = verification.status;
+        if (status === VerificationStatus.OK) {
+          const originalRequest = parseRequest(attestation.data.request);
+          const micOk = originalRequest.messageIntegrityCode === dataHash(originalRequest, verification.response, MIC_SALT);
+          if (micOk) {
+            this.processed(attestation, AttestationStatus.valid, verification);
+            return;
+          }
+          this.logger.debug(`${this.label}WRONG MIC for ${attestation.data.request}`);
         }
+
+        if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
+          this.logger.error2(`${this.label}SYSTEM_FAILURE ${attestation.data.request}`);
+        }
+
+        // The verification is invalid or mic does not match
+        this.processed(attestation, AttestationStatus.invalid, verification);
       })
       .catch((error: any) => {
         logException(error, `${this.label}verifyAttestation`);
@@ -257,6 +272,10 @@ export class SourceManager {
     attestation.status = status;
 
     attestation.verificationData = verificationData!;
+    // augument the attestation response with the round id
+    if (attestation.verificationData?.response) {
+      attestation.verificationData.response.stateConnectorRound = attestation.roundId;
+    }
 
     //this.logger.info(`chain ${this.chainName} processed ${tx.data.id} status=${status}  (${this.transactionsQueue.length},${this.transactionsProcessing.length},${this.transactionsDone.length}++)`);
 

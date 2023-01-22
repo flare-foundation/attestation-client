@@ -14,18 +14,21 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
   const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
   const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
-const encoded = web3.eth.abi.encodeParameters(
-	[
-		"uint${ATT_BYTES * 8}",\t\t// attestationType
-		"uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
+const types = [
+  "uint${ATT_BYTES * 8}",\t\t// attestationType
+  "uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
 ${types}
-	],
-	[
-		${defaultRequest}.attestationType,
-		${defaultRequest}.sourceId,
+];
+const values = 	[
+  ${defaultRequest}.attestationType,
+  ${defaultRequest}.sourceId,
 ${values}
-	]
-);   
+] as any[];
+if(salt) {
+  types.push("string");
+  values.push(salt);
+}
+const encoded = web3.eth.abi.encodeParameters(types, values);
 `;
 }
 
@@ -33,7 +36,7 @@ export function genWeb3HashFunction(definition: AttestationTypeScheme) {
   return `
 export function ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}, response: ${DATA_HASH_TYPE_PREFIX}${
     definition.name
-  }) {
+  }, salt?: string) {
 ${genHashCode(definition, "request", "response")}
 	return web3.utils.soliditySha3(encoded)!;
 }
@@ -43,15 +46,17 @@ ${genHashCode(definition, "request", "response")}
 function genDatahashCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
-	return ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request as ${ATTESTATION_TYPE_PREFIX}${definition.name}, response as ${DATA_HASH_TYPE_PREFIX}${
-    definition.name
-  });`;
+	return ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(
+    request as ${ATTESTATION_TYPE_PREFIX}${definition.name}, 
+    response as ${DATA_HASH_TYPE_PREFIX}${definition.name}, 
+    salt
+    );`;
 }
 
 export function genDataHashFunction(definitions: AttestationTypeScheme[]) {
   const datahashCases = definitions.map((definition) => genDatahashCase(definition)).join("");
   return `
-export function dataHash(request: ${ATTESTATION_TYPE_PREFIX}Type, response: ${DATA_HASH_TYPE_PREFIX}Type) {  
+export function dataHash(request: ${ATTESTATION_TYPE_PREFIX}Type, response: ${DATA_HASH_TYPE_PREFIX}Type, salt?: string) {  
 	switch(request.attestationType) {
 ${datahashCases}
 		default:

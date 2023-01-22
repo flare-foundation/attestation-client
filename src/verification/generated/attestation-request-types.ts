@@ -13,8 +13,8 @@ export interface ARPayment {
   // The ID of the underlying chain, see 'SourceId' enum.
   sourceId: SourceId;
 
-  // The hash of the confirmation block for an upper query window boundary block.
-  upperBoundProof: ByteSequenceLike;
+  // The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+  messageIntegrityCode: ByteSequenceLike;
 
   // Transaction hash to search for.
   id: ByteSequenceLike;
@@ -33,8 +33,8 @@ export interface ARBalanceDecreasingTransaction {
   // The ID of the underlying chain, see 'SourceId' enum.
   sourceId: SourceId;
 
-  // The hash of the confirmation block for an upper query window boundary block.
-  upperBoundProof: ByteSequenceLike;
+  // The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+  messageIntegrityCode: ByteSequenceLike;
 
   // Transaction hash to search for.
   id: ByteSequenceLike;
@@ -50,8 +50,14 @@ export interface ARConfirmedBlockHeightExists {
   // The ID of the underlying chain, see SourceId enum.
   sourceId: SourceId;
 
-  // The hash of the confirmation block for an upper query window boundary block.
-  upperBoundProof: ByteSequenceLike;
+  // The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+  messageIntegrityCode: ByteSequenceLike;
+
+  // Block number of the to be proved to be confirmed.
+  blockNumber: NumberLike;
+
+  // Period in seconds considered for sampling block production. The block with number 'lowestQueryWindowBlockNumber' is defined as the last block with the timestamp strictly smaller than 'block.timestamp - productionSamplingPeriod'.
+  queryWindow: NumberLike;
 }
 
 export interface ARReferencedPaymentNonexistence {
@@ -61,13 +67,16 @@ export interface ARReferencedPaymentNonexistence {
   // The ID of the underlying chain, see 'SourceId' enum.
   sourceId: SourceId;
 
-  // The hash of the confirmation block for an upper query window boundary block.
-  upperBoundProof: ByteSequenceLike;
+  // The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+  messageIntegrityCode: ByteSequenceLike;
+
+  // Minimum number of the block for the query window. Equal to 'lowerBoundaryBlockNumber' in response.
+  minimalBlockNumber: NumberLike;
 
   // Maximum number of the block where the transaction is searched for.
   deadlineBlockNumber: NumberLike;
 
-  // Maximum median timestamp of the block where the transaction is searched for.
+  // Maximum timestamp of the block where the transaction is searched for. Search range is determined by the bigger of the last block with 'deadlineTimestamp'.
   deadlineTimestamp: NumberLike;
 
   // Hash of exact address to which the payment was done to.
@@ -79,18 +88,4 @@ export interface ARReferencedPaymentNonexistence {
   // The payment reference to search for.
   paymentReference: ByteSequenceLike;
 }
-
-export interface ARTrustlineIssuance {
-  // Attestation type id for this request, see 'AttestationType' enum.
-  attestationType: AttestationType;
-
-  // The ID of the underlying chain, see 'SourceId' enum.
-  sourceId: SourceId;
-
-  // The hash of the confirmation block for an upper query window boundary block.
-  upperBoundProof: ByteSequenceLike;
-
-  // Ripple account address as bytes.
-  issuerAccount: ByteSequenceLike;
-}
-export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARConfirmedBlockHeightExists | ARReferencedPaymentNonexistence | ARTrustlineIssuance;
+export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARConfirmedBlockHeightExists | ARReferencedPaymentNonexistence;

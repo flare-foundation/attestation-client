@@ -28,7 +28,6 @@ import { verifyReferencedPaymentNonexistenceBTC } from "./BTC/v-00004-referenced
 import { verifyReferencedPaymentNonexistenceLTC } from "./LTC/v-00004-referenced-payment-nonexistence.ltc";
 import { verifyReferencedPaymentNonexistenceDOGE } from "./DOGE/v-00004-referenced-payment-nonexistence.doge";
 import { verifyReferencedPaymentNonexistenceALGO } from "./ALGO/v-00004-referenced-payment-nonexistence.algo";
-import { verifyTrustlineIssuanceXRP } from "./XRP/v-00005-trustline-issuance.xrp";
 
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { Attestation } from "../../attester/Attestation";
@@ -47,21 +46,13 @@ export class WrongSourceIdError extends Error {
   }
 }
 
-export async function verifyAttestation(
-  client: MccClient,
-  attestation: Attestation,
-  indexer: IndexedQueryManager,
-  recheck = false
-): Promise<Verification<any, any>> {
+export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager): Promise<Verification<any, any>> {
   return traceFunction(
     _verifyAttestation,
     client,
     attestation.data.request,
     {
-      roundId: attestation.roundId,
-      recheck,
       windowStartTime: attestation.windowStartTime,
-      UBPCutoffTime: attestation.UBPCutoffTime,
     },
     indexer
   );
@@ -135,13 +126,6 @@ export async function _verifyAttestation(
         default:
           throw new WrongSourceIdError("Wrong source id");
       }
-    case AttestationType.TrustlineIssuance:
-      switch (sourceId) {
-        case SourceId.XRP:
-          return verifyTrustlineIssuanceXRP(client as MCC.XRP, attestationRequest, attestationRequestOptions, indexer);
-        default:
-          throw new WrongSourceIdError("Wrong source id");
-      }
     default:
       throw new WrongAttestationTypeError("Wrong attestation type.");
   }
@@ -168,7 +152,6 @@ export async function verifyBTC(
       return verifyConfirmedBlockHeightExistsBTC(client, attestationRequest, attestationRequestOptions, indexer);
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceBTC(client, attestationRequest, attestationRequestOptions, indexer);
-
     default:
       throw new WrongSourceIdError("Wrong source id");
   }
@@ -195,7 +178,6 @@ export async function verifyLTC(
       return verifyConfirmedBlockHeightExistsLTC(client, attestationRequest, attestationRequestOptions, indexer);
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceLTC(client, attestationRequest, attestationRequestOptions, indexer);
-
     default:
       throw new WrongSourceIdError("Wrong source id");
   }
@@ -222,7 +204,6 @@ export async function verifyDOGE(
       return verifyConfirmedBlockHeightExistsDOGE(client, attestationRequest, attestationRequestOptions, indexer);
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceDOGE(client, attestationRequest, attestationRequestOptions, indexer);
-
     default:
       throw new WrongSourceIdError("Wrong source id");
   }
@@ -249,8 +230,6 @@ export async function verifyXRP(
       return verifyConfirmedBlockHeightExistsXRP(client, attestationRequest, attestationRequestOptions, indexer);
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceXRP(client, attestationRequest, attestationRequestOptions, indexer);
-    case AttestationType.TrustlineIssuance:
-      return verifyTrustlineIssuanceXRP(client, attestationRequest, attestationRequestOptions, indexer);
     default:
       throw new WrongSourceIdError("Wrong source id");
   }
@@ -277,7 +256,6 @@ export async function verifyALGO(
       return verifyConfirmedBlockHeightExistsALGO(client, attestationRequest, attestationRequestOptions, indexer);
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceALGO(client, attestationRequest, attestationRequestOptions, indexer);
-
     default:
       throw new WrongSourceIdError("Wrong source id");
   }

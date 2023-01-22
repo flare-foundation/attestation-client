@@ -13,7 +13,7 @@ export enum VerificationStatus {
   OK = "OK",
 
   // Needs recheck
-  RECHECK_LATER = "RECHECK_LATER",
+  // RECHECK_LATER = "RECHECK_LATER",
 
   // Temporary status during checks
   NEEDS_MORE_CHECKS = "NEEDS_MORE_CHECKS",
@@ -30,17 +30,9 @@ export enum VerificationStatus {
   NON_EXISTENT_BLOCK = "NON_EXISTENT_BLOCK",
   NOT_PAYMENT = "NOT_PAYMENT",
 
-  WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP = "WRONG_OVERFLOW_BLOCK_ENDTIMESTAMP",
-  WRONG_OVERFLOW_BLOCK_ENDTIME = "WRONG_OVERFLOW_BLOCK_ENDTIME",
   REFERENCED_TRANSACTION_EXISTS = "REFERENCED_TRANSACTION_EXISTS",
 
-  NON_EXISTENT_INPUT_UTXO_ADDRESS = "NON_EXISTENT_INPUT_UTXO_ADDRESS",
-  NON_EXISTENT_OUTPUT_UTXO_ADDRESS = "NON_EXISTENT_OUTPUT_UTXO_ADDRESS",
-
   PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR",
-
-  GENERIC_ERROR = "GENERIC_ERROR",
-  EXCEPTION = "EXCEPTION",
 }
 
 /**
@@ -68,9 +60,10 @@ export const SOURCE_ID_BYTES = 4;
 export const UTXO_BYTES = 1;
 export const BLOCKNUMBER_BYTES = 4;
 export const TIMESTAMP_BYTES = 4;
+export const TIME_DURATION_BYTES = 4;
 export const AMOUNT_BYTES = 16;
 export const TX_ID_BYTES = 32;
-export const UPPER_BOUND_PROOF_BYTES = 32;
+export const MIC_BYTES = 32;
 export const SOURCE_ADDRESS_KEY_BYTES = 32;
 export const SOURCE_ADDRESS_CHEKSUM_BYTES = 4;
 export const PAYMENT_REFERENCE_BYTES = 32;
@@ -102,14 +95,16 @@ export interface AttestationTypeScheme {
 }
 
 export interface AttestationRequestOptions {
-  roundId: number;
-  recheck?: boolean;
   windowStartTime?: number; 
-  UBPCutoffTime?: number;    // legacy
 }
 
 export interface AttestationRequest {
   apiKey?: string;
   request: string;
-  options: AttestationRequestOptions;
+  options?: AttestationRequestOptions;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// Message integrity code
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+export const MIC_SALT = "Flare"

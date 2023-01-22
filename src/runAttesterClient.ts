@@ -1,7 +1,7 @@
 import { traceManager, TraceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { AttesterClient } from "./attester/AttesterClient";
-import { AttesterConfig } from "./attester/AttesterConfig";
+import { AttestationClientConfig } from "./attester/AttestationClientConfig";
 import { readSecureConfig } from "./utils/configSecure";
 import { getGlobalLogger, logException, setLoggerName } from "./utils/logger";
 import { setRetryFailureCallback } from "./utils/PromiseTimeout";
@@ -27,7 +27,7 @@ async function runAttester() {
   setRetryFailureCallback(terminateOnRetryFailure);
 
   // Reading configuration
-  const config = await readSecureConfig(new AttesterConfig(), "attester");
+  const config = await readSecureConfig(new AttestationClientConfig(), "attester");
 
 
   // Create and start Attester Client

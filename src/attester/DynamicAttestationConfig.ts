@@ -3,6 +3,7 @@ import fs from "fs";
 import { exit } from "process";
 import { readJSON } from "../utils/json";
 import { logException } from "../utils/logger";
+import { AdditionalTypeInfo } from "../utils/reflection";
 import { JSONMapParser } from "../utils/utils";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
@@ -27,28 +28,35 @@ export class SourceLimiterConfig {
   numberOfConfirmations = 1;
 
   queryWindowInSec!: number;
-  UBPUnconfirmedWindowInSec!: number;
 
   attestationTypes = new Map<number, SourceLimiterTypeConfig>();
 }
 
 /**
  * Class providing SourceLimiterConfig for each source from the @param startRoundId on.
+ * NOTE: If you add any new field, please update function 'load()' accordingly!
  */
-export class AttestationConfig {
+export class GlobalAttestationConfig {
   startRoundId!: number;
-  chooseDeadlineSec: number = 45;
+  defaultSetAssignerAddresses: string [] = []; 
 
   sourceLimiters = new Map<number, SourceLimiterConfig>();
 
   verifierRouter = new VerifierRouter();
 
-  isSupported(source: SourceId, type: AttestationType): boolean {
-    const config = this.sourceLimiters.get(source);
-    if (!config) return false;
-    const typeConfig = config.attestationTypes.get(type);
-    return !!typeConfig;
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+    const info = new AdditionalTypeInfo();
+    info.arrayMap.set("defaultSetAssignerAddresses", "string");
+    return info;
   }
+
+}
+
+export function sourceAndTypeSupported(attestationConfig: GlobalAttestationConfig, source: SourceId, type: AttestationType): boolean {
+  const config = attestationConfig.sourceLimiters.get(source);
+  if (!config) return false;
+  const typeConfig = config.attestationTypes.get(type);
+  return !!typeConfig;
 }
 
 /**
@@ -56,7 +64,7 @@ export class AttestationConfig {
  */
 export class AttestationConfigManager {
   attestationRoundManager: AttestationRoundManager;
-  attestationConfig = new Array<AttestationConfig>();
+  attestationConfig = new Array<GlobalAttestationConfig>();
 
   constructor(attestationRoundManager: AttestationRoundManager) {
     this.attestationRoundManager = attestationRoundManager;
@@ -162,7 +170,7 @@ export class AttestationConfigManager {
   }
 
   async load(filename: string, disregardObsolete = false): Promise<boolean> {
-    let config: AttestationConfig;
+    let config: GlobalAttestationConfig;
     try {
       this.logger.info(`^GDAC load '${filename}'`);
 
@@ -175,8 +183,9 @@ export class AttestationConfigManager {
       }
 
       // convert from file structure
-      config = new AttestationConfig();
+      config = new GlobalAttestationConfig();
       config.startRoundId = fileConfig.startRoundId;
+      config.defaultSetAssignerAddresses = fileConfig.defaultSetAssignerAddresses;
 
       // This initialization may fail, hence the dac initialization will fail
       // TODO: make a recovery mechanism
@@ -184,7 +193,7 @@ export class AttestationConfigManager {
 
       // parse sources
       fileConfig.sources.forEach(
-        (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; UBPUnconfirmedWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
+        (source: { attestationTypes: any[]; source: number; queryWindowInSec: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
           const sourceLimiter = new SourceLimiterConfig();
 
           sourceLimiter.source = toSourceId(source.source);
@@ -198,8 +207,6 @@ export class AttestationConfigManager {
             sourceLimiter.queryWindowInSec = source.queryWindowInSec;
           }
           
-          sourceLimiter.UBPUnconfirmedWindowInSec = source.UBPUnconfirmedWindowInSec;
-
           config.sourceLimiters.set(sourceLimiter.source, sourceLimiter);
 
           // parse attestationTypes
@@ -230,7 +237,7 @@ export class AttestationConfigManager {
    * Sorts attestationConfig based on the startRoundId and clears Configs for the passed rounds
    */
   orderConfigurations() {
-    this.attestationConfig.sort((a: AttestationConfig, b: AttestationConfig) => {
+    this.attestationConfig.sort((a: GlobalAttestationConfig, b: GlobalAttestationConfig) => {
       if (a.startRoundId < b.startRoundId) return 1;
       if (a.startRoundId > b.startRoundId) return -1;
       return 0;
@@ -267,7 +274,7 @@ export class AttestationConfigManager {
    * @param roundId 
    * @returns 
    */
-  getAttestationConfig(roundId: number): AttestationConfig {
+  getAttestationConfig(roundId: number): GlobalAttestationConfig {
     // configs must be ordered by decreasing roundId number
     for (let i = 0; i < this.attestationConfig.length; i++) {
       if (this.attestationConfig[i].startRoundId < roundId) {
@@ -284,7 +291,7 @@ export class AttestationConfigManager {
   /**
    * @returns AttestationConfig for a given @param roundId
    */
-  getConfig(roundId: number): AttestationConfig {
+  getConfig(roundId: number): GlobalAttestationConfig {
     // configs must be ordered by decreasing roundId number
     for (let i = 0; i < this.attestationConfig.length; i++) {
       if (this.attestationConfig[i].startRoundId < roundId) {

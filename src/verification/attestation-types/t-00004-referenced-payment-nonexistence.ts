@@ -3,12 +3,8 @@ import {
   AMOUNT_BYTES,
   AttestationTypeScheme,
   ATT_BYTES,
-  BLOCKNUMBER_BYTES,
-  SOURCE_ID_BYTES,
-  UPPER_BOUND_PROOF_BYTES,
-  PAYMENT_REFERENCE_BYTES,
-  TIMESTAMP_BYTES,
-  TX_ID_BYTES,
+  BLOCKNUMBER_BYTES, MIC_BYTES, PAYMENT_REFERENCE_BYTES, SOURCE_ID_BYTES, TIMESTAMP_BYTES,
+  TX_ID_BYTES
 } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
@@ -33,11 +29,19 @@ The ID of the underlying chain, see 'SourceId' enum.
 `,
     },
     {
-      key: "upperBoundProof",
-      size: UPPER_BOUND_PROOF_BYTES,
+      key: "messageIntegrityCode",
+      size: MIC_BYTES,
       type: "ByteSequenceLike",
       description: `
-The hash of the confirmation block for an upper query window boundary block.
+The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+`,
+    },
+    {
+      key: "minimalBlockNumber",
+      size: BLOCKNUMBER_BYTES,
+      type: "NumberLike",
+      description: `
+Minimum number of the block for the query window. Equal to 'lowerBoundaryBlockNumber' in response.
 `,
     },
     {
@@ -48,13 +52,12 @@ The hash of the confirmation block for an upper query window boundary block.
 Maximum number of the block where the transaction is searched for.
 `,
     },
-
     {
       key: "deadlineTimestamp",
       size: TIMESTAMP_BYTES,
       type: "NumberLike",
       description: `
-Maximum median timestamp of the block where the transaction is searched for.
+Maximum timestamp of the block where the transaction is searched for. Search range is determined by the bigger of the last block with 'deadlineTimestamp'.
 `,
     },
     {
@@ -90,7 +93,6 @@ The payment reference to search for.
 Deadline block number specified in the attestation request.
 `,
     },
-
     {
       key: "deadlineTimestamp",
       type: "uint64",

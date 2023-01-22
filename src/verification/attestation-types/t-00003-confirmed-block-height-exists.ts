@@ -1,5 +1,5 @@
 import { SourceId } from "../sources/sources";
-import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, UPPER_BOUND_PROOF_BYTES } from "./attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, MIC_BYTES, SOURCE_ID_BYTES, TIME_DURATION_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
   id: 3,
@@ -23,13 +23,30 @@ The ID of the underlying chain, see SourceId enum.
 `,
     },
     {
-      key: "upperBoundProof",
-      size: UPPER_BOUND_PROOF_BYTES,
+      key: "messageIntegrityCode",
+      size: MIC_BYTES,
       type: "ByteSequenceLike",
       description: `
-The hash of the confirmation block for an upper query window boundary block.
+The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
 `,
     },
+    {
+      key: "blockNumber",
+      size: BLOCKNUMBER_BYTES,
+      type: "NumberLike",
+      description: `
+Block number of the to be proved to be confirmed.
+`,
+    },
+    {
+      key: "queryWindow",
+      size: TIME_DURATION_BYTES,
+      type: "NumberLike",
+      description: `
+Period in seconds considered for sampling block production. The block with number 'lowestQueryWindowBlockNumber' is defined as the last block with the timestamp strictly smaller than 'block.timestamp - productionSamplingPeriod'.
+`,
+    },
+
   ],
   dataHashDefinition: [
     {
@@ -51,13 +68,6 @@ Timestamp of the confirmed block that was proved to exist.
       type: "uint8",
       description: `
 Number of confirmations for the blockchain.
-`,
-    },
-    {
-      key: "averageBlockProductionTimeMs",
-      type: "uint64",
-      description: `
-Average block production time based on the data in the query window.
 `,
     },
     {

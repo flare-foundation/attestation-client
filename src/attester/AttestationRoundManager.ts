@@ -11,10 +11,10 @@ import { toSourceId } from "../verification/sources/sources";
 import { Attestation, AttestationStatus } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
-import { AttesterConfig } from "./AttesterConfig";
+import { AttestationClientConfig } from "./AttestationClientConfig";
 import { AttesterState } from "./AttesterState";
 import { AttesterWeb3 } from "./AttesterWeb3";
-import { AttestationConfigManager, SourceLimiterConfig } from "./DynamicAttestationConfig";
+import { AttestationConfigManager, sourceAndTypeSupported, SourceLimiterConfig } from "./DynamicAttestationConfig";
 
 // export interface AttestationClientDebugCallbacks {
 //   onChooseStart?: (roundId: number) => void;
@@ -45,7 +45,7 @@ export class AttestationRoundManager {
   _activeRoundId: number | undefined = undefined;
 
   rounds = new Map<number, AttestationRound>();
-  config: AttesterConfig;
+  config: AttestationClientConfig;
   attesterWeb3: AttesterWeb3;
 
   _initialized = false;
@@ -53,7 +53,7 @@ export class AttestationRoundManager {
   // debugCallbacks: AttestationClientDebugCallbacks;
 
   constructor(
-    config: AttesterConfig,
+    config: AttestationClientConfig,
     logger: AttLogger,
     attesterWeb3: AttesterWeb3,
     sourceRouter?: SourceRouter
@@ -129,6 +129,7 @@ export class AttestationRoundManager {
         this.activeRoundId = epochId;
 
         const activeRound = this.getRoundOrCreateIt(epochId);
+        await activeRound.initialize();
 
         await this.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);
       } catch (error) {
@@ -163,7 +164,7 @@ export class AttestationRoundManager {
   getRoundOrCreateIt(roundId: number): AttestationRound {
     // all times are in milliseconds
     const now = getTimeMilli();
-    const chooseWindowDuration = this.attestationConfigManager.getAttestationConfig(roundId).chooseDeadlineSec;
+    const chooseWindowDuration = this.attesterWeb3.chooseDeadlineSec * 1000;
     const windowDuration = this.attesterWeb3.roundDurationSec * 1000;
     const roundStartTime = this.epochSettings.getRoundIdTimeStartMs(roundId);
     const roundChooseStartTime: number = roundStartTime + windowDuration;
@@ -196,7 +197,7 @@ export class AttestationRoundManager {
       this.sourceRouter.initializeSources(roundId);
 
       // create new round
-      activeRound = new AttestationRound(roundId, this);
+      activeRound = new AttestationRound(roundId, config, this);
 
       const intervalId = setInterval(() => {
         const now = getTimeMilli();
@@ -275,6 +276,7 @@ export class AttestationRoundManager {
     }
 
     const activeRound = this.getRoundOrCreateIt(epochId);
+    await activeRound.initialize();
 
     // create, check and add attestation
     const attestation = await this.createAttestation(activeRound, attestationData);
@@ -306,7 +308,8 @@ export class AttestationRoundManager {
     const config = this.attestationConfigManager.getConfig(round.roundId);
     const verifier = this.attestationConfigManager.getVerifierRouter(round.roundId);
 
-    if (!config.isSupported(data.sourceId, data.type) || !verifier.isSupported(data.sourceId, data.type)) {
+    const attestationSupported = sourceAndTypeSupported(config, data.sourceId, data.type); 
+    if (!attestationSupported || !verifier.isSupported(data.sourceId, data.type)) {
       attestation.status = AttestationStatus.failed;
       return attestation;
     }
@@ -334,22 +337,6 @@ export class AttestationRoundManager {
     return roundStartTime - queryWindowsInSec;
   }
 
-  /**
-   * Auxillary function to calculate fork cut-off time.
-   * The time is calculated relative to the `roundId`
-   * @param roundId 
-   * @returns 
-   */
-  private UBPCutoffTime(attestation: Attestation) {
-    let roundId = attestation.roundId;
-    let sourceId = attestation.data.sourceId;
-    const roundStartTime = Math.floor(this.epochSettings.getRoundIdTimeStartMs(roundId) / 1000);
-    const UBPUnconfirmedWindowInSec = this.attestationConfigManager.getSourceLimiterConfig(
-      sourceId,
-      roundId
-    ).UBPUnconfirmedWindowInSec;
-    return roundStartTime - UBPUnconfirmedWindowInSec;
-  }
 
   /**
    * Adds minimum block timestamp (`windowStartTime`) and fork cut-off time for upper bound proof to the attestation, 
@@ -358,7 +345,6 @@ export class AttestationRoundManager {
    */
   private augmentCutoffTimes(attestation: Attestation) {
     attestation.windowStartTime = this.windowStartTime(attestation);
-    attestation.UBPCutoffTime = this.UBPCutoffTime(attestation)
   }
 
   // /**

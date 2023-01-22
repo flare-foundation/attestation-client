@@ -2,7 +2,7 @@ import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
-import { AttesterConfig } from "../attester/AttesterConfig";
+import { AttestationClientConfig } from "../attester/AttestationClientConfig";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
@@ -96,7 +96,7 @@ class AttestationSpammer {
 
     // create dummy attestation round manager and assign needed variables
     this.attestationRoundManager = new AttestationRoundManager(null, null, null);
-    this.attestationRoundManager.config = new AttesterConfig();
+    this.attestationRoundManager.config = new AttestationClientConfig();
     this.attestationRoundManager.config.web = this.spammerCredentials.web;
 
     this.logger = getGlobalLogger();
@@ -139,18 +139,6 @@ class AttestationSpammer {
       // todo: get from chain confing
       maxValidIndexerDelaySec: 10, //this.chainAttestationConfig.maxValidIndexerDelaySec,
       entityManager: dbService.manager,
-
-      windowStartTime: (roundId: number) => {
-        // todo: read this from DAC
-        const queryWindowInSec = 86400;
-        return this.spammerCredentials.firstEpochStartTime + roundId * this.spammerCredentials.roundDurationSec - queryWindowInSec;
-      },
-      UBPCutoffTime: (roundId: number) => {
-        // todo: read this from DAC
-        const UBPCutTime = 60 * 30;
-        return this.spammerCredentials.firstEpochStartTime + roundId * this.spammerCredentials.roundDurationSec - UBPCutTime;
-      },
-
     } as IndexedQueryManagerOptions;
     this.indexedQueryManager = new IndexedQueryManager(options);
 

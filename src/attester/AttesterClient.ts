@@ -1,11 +1,11 @@
 import { Managed, sleepMs } from "@flarenetwork/mcc";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { secToHHMMSS } from "../utils/utils";
-import { Web3BlockCollector } from "../utils/Web3BlockCollector";
+import { FlareDataCollector } from "./FlareDataCollector";
 import { AttestationData, AttestationSubmit } from "./AttestationData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttestationClientConfig } from "./AttestationClientConfig";
-import { AttesterWeb3 } from "./AttesterWeb3";
+import { FlareConnection } from "./FlareConnection";
 
 /**
  * Implementation of the attestation client.
@@ -15,8 +15,8 @@ export class AttesterClient {
   config: AttestationClientConfig;
   logger: AttLogger;
   attestationRoundManager: AttestationRoundManager;
-  attesterWeb3: AttesterWeb3;
-  blockCollector!: Web3BlockCollector;
+  flareConnection: FlareConnection;
+  blockCollector!: FlareDataCollector;
 
   constructor(config: AttestationClientConfig, logger?: AttLogger) {
     if (logger) {
@@ -26,8 +26,8 @@ export class AttesterClient {
     }
 
     this.config = config;
-    this.attesterWeb3 = new AttesterWeb3(this.config, this.logger);
-    this.attestationRoundManager = new AttestationRoundManager(this.config, this.logger, this.attesterWeb3);
+    this.flareConnection = new FlareConnection(this.config, this.logger);
+    this.attestationRoundManager = new AttestationRoundManager(this.config, this.logger, this.flareConnection);
   }
 
   get label() {
@@ -41,11 +41,11 @@ export class AttesterClient {
    * @returns 
    */
   private async getBlockBeforeTime(time: number) {
-    let blockNumber = await this.attesterWeb3.web3Functions.getBlockNumber();
+    let blockNumber = await this.flareConnection.web3Functions.getBlockNumber();
 
     while (true) {
       try {
-        const block = await this.attesterWeb3.web3Functions.getBlock(blockNumber);
+        const block = await this.flareConnection.web3Functions.getBlock(blockNumber);
 
         if (block.timestamp < time) {
           this.logger.debug2(`start block number ${blockNumber} time ${secToHHMMSS(block.timestamp)}`);
@@ -63,11 +63,16 @@ export class AttesterClient {
     }
   }
 
+
+  public async onNextBlockCapture(block: any) {
+      this.attestationRoundManager.onLastFlareNetworkTimestamp(block.timestamp);
+  }
+
   /**
-   * Process network events - this function is triggering updates.
+   * Processes network event - this function is triggering updates.
    * @param event 
    */
-  private async processEvent(event: any) {
+  public async onEventCapture(event: any) {
     try {
       // handle Attestation Request
 
@@ -140,9 +145,9 @@ export class AttesterClient {
 
     this.logger.title(`starting Attester Client v${version}`);
 
-    // create state connector
-    this.logger.info(`attesterWeb3 initialize`);
-    await this.attesterWeb3.initialize(this.attestationRoundManager);
+    // create state connector, bit voting contracts
+    this.logger.info(`flare connection initialization`);
+    await this.flareConnection.initialize(this.attestationRoundManager);
 
     // process configuration
     this.logger.info(`network RPC URL '${this.config.web.rpcUrl}'`);
@@ -156,19 +161,12 @@ export class AttesterClient {
     const startBlock = await this.getBlockBeforeTime(startRoundTime);
 
     // connect to network block callback
-    this.blockCollector = new Web3BlockCollector(
-      this.logger,
-      this.config.web.rpcUrl,
-      this.config.web.stateConnectorContractAddress,
-      "StateConnector",  // Independent of the actual contract name. Obtaining the correct contract is handled by `getWeb3StateConnectorContract`
+    this.blockCollector = new FlareDataCollector(
+      this,
       startBlock,
-      (event: any) => {
-        // eslint-disable-next-line
-        this.processEvent(event); // non awaited promise
-      },
       this.config.web.refreshEventsMs
     );
 
-    await this.blockCollector.run();
+    await this.blockCollector.startCollectingBlocksAndEvents();
   }
 }

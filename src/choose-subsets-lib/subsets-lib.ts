@@ -1,4 +1,3 @@
-import ts from "typescript";
 
 const SUBGROUP_TO_BIG_ERROR = "Groups can ony have subgroups whose size is smaller or equal to original group's size";
 const INVALID_HEX = "Incorrectly formatted hex strings";
@@ -75,14 +74,14 @@ export function hexStringAnd(hex1: string, hex2: string) {
 
 /**
  * Count number of 1 in binary representation of hex string
- * @param hesString hex string
+ * @param hexString hex string
  * @returns number of 1s in bin representation
  */
-export function countOnes(hesString: string) {
-  if (!isValidHexString(hesString)) {
+export function countOnes(hexString: string) {
+  if (!isValidHexString(hexString)) {
     throw new Error(INVALID_HEX);
   }
-  const buf = Buffer.from(unPrefix0x(hesString), "hex");
+  const buf = Buffer.from(unPrefix0x(hexString), "hex");
   return buf.reduce((prev, curr) => {
     let s = 0;
     for (let i = 0; i < 8; i++) {

@@ -15,7 +15,7 @@ import { retry } from "../utils/PromiseTimeout";
 /**
  * Handles submissions to StateConnector and BitVoting contrct
  */
-export class AttesterWeb3 {
+export class FlareConnection {
   attestationRoundManager: AttestationRoundManager;
   config: AttestationClientConfig
 
@@ -42,7 +42,11 @@ export class AttesterWeb3 {
     this.web3Functions = new Web3Functions(logger, this.web3, config.web.accountPrivateKey);
   }
 
-  async initialize(attestationRoundManager: AttestationRoundManager) {
+  public get rpc(): string {
+    return this.config.web.rpcUrl;
+  }
+  
+  public async initialize(attestationRoundManager: AttestationRoundManager) {
     this.attestationRoundManager = attestationRoundManager;
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.config.web.stateConnectorContractAddress);
     this.bitVoting = await getWeb3Contract(this.web3, this.config.web.bitVotingContractAddress, "BitVoting") as any as BitVoting;
@@ -52,18 +56,26 @@ export class AttesterWeb3 {
     this.chooseDeadlineSec = parseInt("" + await this.bitVoting.methods.BIT_VOTE_DEADLINE().call(), 10);
   }
 
-  check(bnString: string) {
+  protected check(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
       this.logger.error(`invalid BN formatting ${bnString}`);
     }
   }
 
-  async getAttestorsForAssignors(assignors: string[]): Promise<string[]> {
+  public async getAttestorsForAssignors(assignors: string[]): Promise<string[]> {
     let promises = [];
     for(let assignor of assignors) {
       promises.push(this.stateConnector.methods.attestorAddressMapping(assignor).call());
     }
     return await Promise.all(promises);
+  }
+
+  public async stateConnectorEvents(fromBlock: number, toBlock: number) {
+    return await this.stateConnector.getPastEvents("allEvents", { fromBlock, toBlock});
+  }
+
+  public async bitVotingEvents(fromBlock: number, toBlock: number) {
+    return await this.bitVoting.getPastEvents("allEvents", { fromBlock, toBlock});
   }
 
   /**

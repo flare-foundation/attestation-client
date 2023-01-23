@@ -1,6 +1,7 @@
 import { Managed, toBN } from "@flarenetwork/mcc";
 import assert from "assert";
 import { stringify } from "safe-stable-stringify";
+import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { criticalAsync } from "../indexer/indexer-utils";
@@ -86,12 +87,21 @@ export class AttestationRound {
     return this.attestationRoundManager.logger;
   }
 
-  get attesterWeb3() {
-    return this.attestationRoundManager.attesterWeb3;
+  get flareConnection() {
+    return this.attestationRoundManager.flareConnection;
   }
 
   get label() {
     return this.attestationRoundManager.label;
+  }
+
+  get bitvoteMask(): string {
+    let bitmask = new BitmaskAccumulator(this.attestations.length);
+    for(let attestation of this.attestations) {
+      bitmask.addBit(attestation.status === AttestationStatus.valid);
+    }
+    let roundHex = toHex(this.roundId).slice(-2).replace("x", "0");
+    return '0x' + roundHex + bitmask.toHex(); 
   }
 
   /**
@@ -127,10 +137,12 @@ export class AttestationRound {
       this.logger.debug3(
         `${this.label}attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
       );
+      // duplicates are discarded
       return;
     }
 
     this.attestations.push(attestation);
+    attestation.setIndex(this.attestations.length - 1);
     this.attestationsMap.set(requestId, attestation);
 
     // check if attestation is invalid
@@ -155,7 +167,7 @@ export class AttestationRound {
     }    
     this.defaultSetAddresses = await retry(
       `${this.label}AttestationRound ${this.roundId} init default set`, 
-      async () => this.attesterWeb3.getAttestorsForAssignors(this.activeGlobalConfig.defaultSetAssignerAddresses)
+      async () => this.flareConnection.getAttestorsForAssignors(this.activeGlobalConfig.defaultSetAssignerAddresses)
     );
     
     // this.logger.debug(`${this.label}Round ${this.roundId} initialized with attestation providers`);
@@ -200,7 +212,7 @@ export class AttestationRound {
 
       // eslint-disable-next-line
       criticalAsync("", async () => {
-        const receipt = await this.attesterWeb3.submitAttestation(
+        const receipt = await this.flareConnection.submitAttestation(
           action,
           // commit index (collect+1)
           toBN(this.roundId + 1),
@@ -394,7 +406,7 @@ export class AttestationRound {
 
     this.roundMerkleRoot = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
-    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.attesterWeb3.web3Functions.account.address);
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.flareConnection.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
     await this.attestationRoundManager.state.saveRound(this, validated.length);
@@ -423,7 +435,7 @@ export class AttestationRound {
     this.roundMerkleRoot = "0x0000000000000000000000000000000000000000000000000000000000000000";
     this.roundRandom = await getCryptoSafeRandom();
 
-    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.attesterWeb3.web3Functions.account.address);
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.flareConnection.web3Functions.account.address);
 
     // after commit state has been calculated add it in state
     await this.attestationRoundManager.state.saveRound(this);
@@ -444,7 +456,7 @@ export class AttestationRound {
 
     // eslint-disable-next-line
     criticalAsync("firstCommit", async () => {
-      const receipt = await this.attesterWeb3.submitAttestation(
+      const receipt = await this.flareConnection.submitAttestation(
         action,
         // commit index (collect+1)
         toBN(this.roundId + 1),
@@ -516,7 +528,7 @@ export class AttestationRound {
 
     // eslint-disable-next-line
     criticalAsync("", async () => {
-      const receipt = await this.attesterWeb3.submitAttestation(
+      const receipt = await this.flareConnection.submitAttestation(
         action,
         // commit index (collect+2)
         toBN(this.roundId + 2),

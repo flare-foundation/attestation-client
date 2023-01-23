@@ -45,11 +45,17 @@ export class Attestation {
   // Set when passed to the relevant SourceManager
   windowStartTime: number = 0;
 
+  // sequential index in attestation round. -1 if not defined.
+  index: number = -1;
+
   constructor(round: AttestationRound, data: AttestationData) {
     this.round = round;
     this.data = data;
   }
 
+  public setIndex(index: number) {
+    this.index = index;
+  }
   /**
    *  Round in which attestation in considered
    */

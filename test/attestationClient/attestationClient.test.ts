@@ -6,7 +6,7 @@ import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
 import { AttestationClientConfig } from "../../src/attester/AttestationClientConfig";
-import { AttesterWeb3 } from "../../src/attester/AttesterWeb3";
+import { FlareConnection } from "../../src/attester/FlareConnection";
 import { SourceRouter } from "../../src/source/SourceRouter";
 import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
@@ -24,14 +24,14 @@ class MockSourceRouter extends SourceRouter {
   validateTransaction(sourceId: SourceId, transaction: Attestation) { }
 }
 
-class MockAttesterWeb3 extends AttesterWeb3 {
+class MockFlareConnection extends FlareConnection {
   constructor(config: AttestationClientConfig, logger: AttLogger) {
     super(config, logger);
   }
 
   async initialize() { }
 
-  check(bnString: string) {
+  protected check(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
       this.logger.error(`invalid BN formating ${bnString}`);
     }
@@ -80,9 +80,9 @@ describe.skip("Attestation Client", () => {
     // Reading configuration
     const config = new AttestationClientConfig();
 
-    const attesterWeb3 = new MockAttesterWeb3(config, logger);
+    const flareConnection = new MockFlareConnection(config, logger);
     const sourceRouter = new MockSourceRouter();
-    attestationRoundManager = new AttestationRoundManager(config, logger, attesterWeb3, sourceRouter);
+    attestationRoundManager = new AttestationRoundManager(config, logger, flareConnection, sourceRouter);
     // override initially generated source router
     
   });

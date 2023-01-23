@@ -13,7 +13,7 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationClientConfig } from "./AttestationClientConfig";
 import { AttesterState } from "./AttesterState";
-import { AttesterWeb3 } from "./AttesterWeb3";
+import { FlareConnection } from "./FlareConnection";
 import { AttestationConfigManager, sourceAndTypeSupported, SourceLimiterConfig } from "./DynamicAttestationConfig";
 
 // export interface AttestationClientDebugCallbacks {
@@ -46,7 +46,7 @@ export class AttestationRoundManager {
 
   rounds = new Map<number, AttestationRound>();
   config: AttestationClientConfig;
-  attesterWeb3: AttesterWeb3;
+  flareConnection: FlareConnection;
 
   _initialized = false;
 
@@ -55,12 +55,12 @@ export class AttestationRoundManager {
   constructor(
     config: AttestationClientConfig,
     logger: AttLogger,
-    attesterWeb3: AttesterWeb3,
+    flareConnection: FlareConnection,
     sourceRouter?: SourceRouter
   ) {
     this.config = config;
     this.logger = logger;
-    this.attesterWeb3 = attesterWeb3;
+    this.flareConnection = flareConnection;
 
     this.sourceRouter = sourceRouter ?? new SourceRouter(this);
     this.attestationConfigManager = new AttestationConfigManager(this);
@@ -78,10 +78,10 @@ export class AttestationRoundManager {
   }
 
   get epochSettings(): EpochSettings {
-    if(!this.attesterWeb3.epochSettings) {
+    if(!this.flareConnection.epochSettings) {
       throw new Error("EpochSettings not yet initialized");
     }
-    return this.attesterWeb3.epochSettings;
+    return this.flareConnection.epochSettings;
   }
 
   get label() {
@@ -95,13 +95,14 @@ export class AttestationRoundManager {
   /**
    * Initializes attestation round manager
    */
-  async initialize(): Promise<void> {
+  public async initialize(): Promise<void> {
     if(this._initialized) {
       throw new Error("AttestationRoundManager can be initialized only once");
     }
     // initialize activeRoundId for the first time, before first load of DAC, routings
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
+    // Load DAC configs
     await this.attestationConfigManager.initialize();
 
     this.dbServiceAttester = new DatabaseService(this.logger, this.config.attesterDatabase, "attester");
@@ -149,6 +150,10 @@ export class AttestationRoundManager {
     return this.attestationConfigManager.getSourceLimiterConfig(toSourceId(name), this.activeRoundId);
   }
 
+  public onLastFlareNetworkTimestamp(timestamp: number) {
+    // TODO
+  }
+
   schedule(label: string, callback: () => void, after: number) {
     setTimeout(() => {
       safeCatch(label, callback);
@@ -164,8 +169,8 @@ export class AttestationRoundManager {
   getRoundOrCreateIt(roundId: number): AttestationRound {
     // all times are in milliseconds
     const now = getTimeMilli();
-    const chooseWindowDuration = this.attesterWeb3.chooseDeadlineSec * 1000;
-    const windowDuration = this.attesterWeb3.roundDurationSec * 1000;
+    const chooseWindowDuration = this.flareConnection.chooseDeadlineSec * 1000;
+    const windowDuration = this.flareConnection.roundDurationSec * 1000;
     const roundStartTime = this.epochSettings.getRoundIdTimeStartMs(roundId);
     const roundChooseStartTime: number = roundStartTime + windowDuration;
     const roundCommitStartTime: number = roundStartTime + windowDuration + chooseWindowDuration;
@@ -278,9 +283,10 @@ export class AttestationRoundManager {
     const activeRound = this.getRoundOrCreateIt(epochId);
     await activeRound.initialize();
 
-    // create, check and add attestation
+    // create, check and add attestation. If attestation is not ok, status is set to 'invalid'
     const attestation = await this.createAttestation(activeRound, attestationData);
 
+    // attestation is added to the list, if non-duplicate. Invalid attestations are markd as processed
     activeRound.addAttestation(attestation);
 
     await this.state.saveRoundComment(activeRound, activeRound.attestationsProcessed);

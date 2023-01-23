@@ -1,11 +1,11 @@
 import { Managed, sleepMs } from "@flarenetwork/mcc";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { secToHHMMSS } from "../utils/utils";
-import { FlareDataCollector } from "./FlareDataCollector";
-import { AttestationData, AttestationSubmit } from "./AttestationData";
-import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttestationClientConfig } from "./AttestationClientConfig";
+import { AttestationData, BitVoteData } from "./AttestationData";
+import { AttestationRoundManager } from "./AttestationRoundManager";
 import { FlareConnection } from "./FlareConnection";
+import { FlareDataCollector } from "./FlareDataCollector";
 
 /**
  * Implementation of the attestation client.
@@ -75,36 +75,33 @@ export class AttesterClient {
   public async onEventCapture(event: any) {
     try {
       // handle Attestation Request
-
       if (event.event === "AttestationRequest") {
-        const attestation = new AttestationData(event);
+        const attestationData = new AttestationData(event);
 
         // eslint-disable-next-line
-        this.attestationRoundManager.attestate(attestation); // non awaited promise
+        this.attestationRoundManager.attestate(attestationData); // non awaited promise
       }
 
     } catch (error) {
-      logException(error, `processEvent(AttestationRequest)`);
+      logException(error, `${this.label}processEvent(AttestationRequest)`);
     }
 
     try {
-      // handle Choose data events 
+      // handle submit attestation event 
+      if (event.event === "BitVote") {
+        const bitVoteEvent = new BitVoteData(event);
 
-      if (event.event === "AttestationSubmit") {
-        const attestationSubmitEvent = new AttestationSubmit(event);
+        this.logger.info(`Bit vote data ${bitVoteEvent.data}`);
 
-        this.logger.info(`Choose data ${attestationSubmitEvent.data}`);
-
+        this.attestationRoundManager.onBitVoteEvent(bitVoteEvent);
         // TODO save events in Attestation Round
       }
-
     } catch (error) {
-      logException(error, `processEvent(AttestationSubmit)`);
+      logException(error, `processEvent(BitVote)`);
     }
 
     try {
       // handle Round Finalization
-
       if (event.event === "RoundFinalised") {
         const roundId = event.returnValues.roundId;
         const merkleRoot = event.returnValues.merkleRoot;
@@ -127,7 +124,6 @@ export class AttesterClient {
           }
         }
       }
-
     } catch (error) {
       logException(error, `processEvent(RoundFinalised)`);
     }

@@ -45,15 +45,20 @@ export class FlareConnection {
   public get rpc(): string {
     return this.config.web.rpcUrl;
   }
-  
+
+  get label(): string {
+    return this.attestationRoundManager.label;
+  }
+
   public async initialize(attestationRoundManager: AttestationRoundManager) {
     this.attestationRoundManager = attestationRoundManager;
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.config.web.stateConnectorContractAddress);
     this.bitVoting = await getWeb3Contract(this.web3, this.config.web.bitVotingContractAddress, "BitVoting") as any as BitVoting;
     this.firstEpochStartTime = parseInt("" + await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
     this.roundDurationSec = parseInt("" + await this.stateConnector.methods.BUFFER_WINDOW().call(), 10);
-    this.epochSettings = new EpochSettings(toBN(this.firstEpochStartTime), toBN(this.roundDurationSec));
     this.chooseDeadlineSec = parseInt("" + await this.bitVoting.methods.BIT_VOTE_DEADLINE().call(), 10);
+    this.epochSettings = new EpochSettings(toBN(this.firstEpochStartTime), toBN(this.roundDurationSec), toBN(this.chooseDeadlineSec));
+    
   }
 
   protected check(bnString: string) {
@@ -64,18 +69,18 @@ export class FlareConnection {
 
   public async getAttestorsForAssignors(assignors: string[]): Promise<string[]> {
     let promises = [];
-    for(let assignor of assignors) {
+    for (let assignor of assignors) {
       promises.push(this.stateConnector.methods.attestorAddressMapping(assignor).call());
     }
     return await Promise.all(promises);
   }
 
   public async stateConnectorEvents(fromBlock: number, toBlock: number) {
-    return await this.stateConnector.getPastEvents("allEvents", { fromBlock, toBlock});
+    return await this.stateConnector.getPastEvents("allEvents", { fromBlock, toBlock });
   }
 
   public async bitVotingEvents(fromBlock: number, toBlock: number) {
-    return await this.bitVoting.getPastEvents("allEvents", { fromBlock, toBlock});
+    return await this.bitVoting.getPastEvents("allEvents", { fromBlock, toBlock });
   }
 
   /**
@@ -96,7 +101,7 @@ export class FlareConnection {
    * @param verbose - whether logging is verbose (default true)
    * @returns
    */
-  async submitAttestation(
+  public async submitAttestation(
     action: string,
     bufferNumber: BN,
     // commit
@@ -116,35 +121,64 @@ export class FlareConnection {
     const fnToEncode = (this.stateConnector as StateConnector | StateConnectorTempTran).methods.submitAttestation(bufferNumber, commitedMaskedMerkleRoot, revealedMerkleRoot, revealedRandom);
 
     if (verbose) {
-      let label = ""
-      if(this.config.label != "none") {
-        label = `[${this.config.label}]`;
-      }
-      this.logger.info(`${label}action .................... : ${action}`);
-      this.logger.info(`${label}bufferNumber .............. : ^e${bufferNumber.toString()}`);
-      this.logger.info(`${label}commitedMaskedMerkleRoot .. : ^e${commitedMaskedMerkleRoot.toString()}`);
-      this.logger.info(`${label}commitedMerkleRoot ........ : ${commitedMerkleRoot.toString()}`);
-      this.logger.info(`${label}commitedRandom ............ : ${commitedRandom.toString()}`);
-      this.logger.info(`${label}revealedMerkleRoot ........ : ^e${revealedMerkleRoot.toString()}`);
-      this.logger.info(`${label}revealedRandom ............ : ^e${revealedRandom.toString()}`);
+      this.logger.info(`${this.label}action .................... : ${action}`);
+      this.logger.info(`${this.label}bufferNumber .............. : ^e${bufferNumber.toString()}`);
+      this.logger.info(`${this.label}commitedMaskedMerkleRoot .. : ^e${commitedMaskedMerkleRoot.toString()}`);
+      this.logger.info(`${this.label}commitedMerkleRoot ........ : ${commitedMerkleRoot.toString()}`);
+      this.logger.info(`${this.label}commitedRandom ............ : ${commitedRandom.toString()}`);
+      this.logger.info(`${this.label}revealedMerkleRoot ........ : ^e${revealedMerkleRoot.toString()}`);
+      this.logger.info(`${this.label}revealedRandom ............ : ^e${revealedRandom.toString()}`);
     }
 
-    if (true) {
+    const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-      const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
+    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () => this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime));
 
-      const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () => this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime));
-
-      if (extReceipt.receipt) {
-        await this.attestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
-        await this.attestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
-      }
-
+    if (extReceipt.receipt) {
+      await this.attestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
+      await this.attestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
       return extReceipt.receipt;
-    } else {
-      this.logger.warning(`signAndFinalize3 skipped in ^edevelopment mode^^`);
-
-      return "devmode";
     }
+    return null;
   }
+
+  /**
+   * Submits bit vote based on already 
+   * @param action 
+   * @param bufferNumber label for recording action in logs
+   * @param bitVote hex string representing bit mask of validated attestations
+   * @param verbose whether logging is verbose (default true)
+   * @returns 
+   */
+  public async submitBitVote(
+    action: string,
+    bufferNumber: BN,
+    bitVote: string,
+    numberOfAttestations: number,
+    numberOfValidatedAttestations: number,
+    duplicateCount: number,
+    verbose = true
+  ) {
+
+    const fnToEncode = this.bitVoting.methods.submitVote(bufferNumber, bitVote);
+
+    if (verbose) {
+      this.logger.info(`${this.label}action .................... : ${action}`);
+      this.logger.info(`${this.label}bufferNumber .............. : ^e${bufferNumber.toString()}`);
+      this.logger.info(`${this.label}bitVote ................... : ^e${bitVote}`);
+      this.logger.info(`${this.label}No. attestations........... : ^e${numberOfValidatedAttestations}/${numberOfAttestations}`);
+      this.logger.info(`${this.label}No. duplicates............. : ^e${duplicateCount}`);
+    }
+
+    const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
+
+    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () => this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime));
+
+    if (extReceipt.receipt) {
+      await this.attestationRoundManager.state.saveRoundBitVoted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash, bitVote);
+    }
+
+    return extReceipt.receipt;
+  }
+
 }

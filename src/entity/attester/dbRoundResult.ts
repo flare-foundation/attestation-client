@@ -13,12 +13,20 @@ export class DBRoundResult {
   @Column({ nullable: true }) finalizedTimestamp: number;
 
   @Column({ nullable: true }) commitTransactionId: string;
-  @Column({ nullable: true }) commitNounce: number;
+  @Column({ nullable: true }) commitNonce: number;
   @Column({ nullable: true }) commitTimestamp: number;
 
   @Column({ nullable: true }) revealTransactionId: string;
-  @Column({ nullable: true }) revealNounce: number;
+  @Column({ nullable: true }) revealNonce: number;
   @Column({ nullable: true }) revealTimestamp: number;
   @Column({ nullable: true }) transactionCount: number;
   @Column({ nullable: true }) validTransactionCount: number;
+
+  @Column({ nullable: true, type: "text" }) bitVote: string;
+  @Column({ nullable: true }) bitVoteTransactionId: string;
+  @Column({ nullable: true }) bitVoteNonce: number;
+  @Column({ nullable: true }) bitVoteTimestamp: number;
+
+  @Column({ nullable: true, type: "text" }) bitVoteResult: string;
+  @Column({ nullable: true }) bitVoteResultTimestamp: number;
 }

@@ -9,7 +9,7 @@ import { safeCatch } from "../utils/PromiseTimeout";
 import { MOCK_NULL_WHEN_TESTING, round, sleepms } from "../utils/utils";
 import { toSourceId } from "../verification/sources/sources";
 import { Attestation, AttestationStatus } from "./Attestation";
-import { AttestationData } from "./AttestationData";
+import { AttestationData, BitVoteData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationClientConfig } from "./AttestationClientConfig";
 import { AttesterState } from "./AttesterState";
@@ -67,7 +67,7 @@ export class AttestationRoundManager {
   }
 
   get activeRoundId(): number {
-    if(this._activeRoundId === undefined) {
+    if (this._activeRoundId === undefined) {
       throw new Error("activeRoundId not defined")
     }
     return this._activeRoundId;
@@ -78,7 +78,7 @@ export class AttestationRoundManager {
   }
 
   get epochSettings(): EpochSettings {
-    if(!this.flareConnection.epochSettings) {
+    if (!this.flareConnection.epochSettings) {
       throw new Error("EpochSettings not yet initialized");
     }
     return this.flareConnection.epochSettings;
@@ -86,7 +86,7 @@ export class AttestationRoundManager {
 
   get label() {
     let label = ""
-    if(this.config.label != "none") {
+    if (this.config.label != "none") {
       label = `[${this.config.label}]`;
     }
     return label;
@@ -96,7 +96,7 @@ export class AttestationRoundManager {
    * Initializes attestation round manager
    */
   public async initialize(): Promise<void> {
-    if(this._initialized) {
+    if (this._initialized) {
       throw new Error("AttestationRoundManager can be initialized only once");
     }
     // initialize activeRoundId for the first time, before first load of DAC, routings
@@ -151,7 +151,20 @@ export class AttestationRoundManager {
   }
 
   public onLastFlareNetworkTimestamp(timestamp: number) {
-    // TODO
+    // TODO - close relevant epoch's choose round, if necessary
+  }
+
+  public onBitVoteEvent(bitVoteData: BitVoteData) {
+    let bufferNumber = this.epochSettings.getEpochIdForBitVoteTimeSec(bitVoteData.timestamp);
+    if (bufferNumber !== undefined) {
+      let roundId = bufferNumber - 1;
+      if(bitVoteData.roundCheck(roundId)) {
+        let round = this.rounds.get(roundId);
+        if (round) {
+          round.registerBitVote(bitVoteData);
+        }  
+      }
+    }
   }
 
   schedule(label: string, callback: () => void, after: number) {
@@ -314,7 +327,7 @@ export class AttestationRoundManager {
     const config = this.attestationConfigManager.getConfig(round.roundId);
     const verifier = this.attestationConfigManager.getVerifierRouter(round.roundId);
 
-    const attestationSupported = sourceAndTypeSupported(config, data.sourceId, data.type); 
+    const attestationSupported = sourceAndTypeSupported(config, data.sourceId, data.type);
     if (!attestationSupported || !verifier.isSupported(data.sourceId, data.type)) {
       attestation.status = AttestationStatus.failed;
       return attestation;

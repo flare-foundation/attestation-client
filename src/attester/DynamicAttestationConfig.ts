@@ -39,7 +39,7 @@ export class SourceLimiterConfig {
 export class GlobalAttestationConfig {
   startRoundId!: number;
   defaultSetAssignerAddresses: string [] = []; 
-
+  consensusSubsetSize: number = 7;
   sourceLimiters = new Map<number, SourceLimiterConfig>();
 
   verifierRouter = new VerifierRouter();

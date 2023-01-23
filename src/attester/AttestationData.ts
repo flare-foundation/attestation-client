@@ -43,26 +43,26 @@ export class AttestationData {
 /**
  * Choose Round data event emitted by attestation providers when they coos which requests can be attested to
  */
-export class AttestationSubmit {
-  // event parameters
+export class BitVoteData {
   sender: string;
-  bufferNumber: BN;
-  commitHash: string;
-  merkleRoot: string;
-  randomNumber: string;
+  timestamp: number;
   data: string;
 
-  // processed data (bytes)
-
-  // TODO add data from typechain (depending on how we read the blocks)
   constructor(event?: any) {
-    if (!event) return;
-
-    this.bufferNumber = toBN(event.returnValues.bufferNumber);
+    if (!event) return; 
     this.sender = event.returnValues.sender;
+    this.timestamp = parseInt(event.returnValues.timestamp, 10);
     this.data = event.returnValues.data;
-    this.commitHash = event.returnValues.commitHash;
-    this.merkleRoot = event.returnValues.merkleRoot;
-    this.randomNumber = event.returnValues.randomNumber;
+  }
+
+  roundCheck(roundId: number): boolean {
+    if(!this.data || this.data.length < 4) return false;
+    return parseInt(this.data.slice(0, 4), 16) === roundId % 256;
+  }
+
+  get bitVote(): string {
+    if(!this.data || this.data.length < 4) return "0x00";
+    return '0x' + this.data.slice(4);
   }
 }
+

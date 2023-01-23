@@ -1,3 +1,22 @@
+/**
+ * Given a string of 0 and 1 it calculates the difference to the first greater or equal
+ * divisor of 8.
+ * @param bitString 
+ * @returns 
+ */
+export function padLength(bitString: string) {
+   return (bitString.length % 8 ? 8 - bitString.length % 8 : 0) + bitString.length;
+}
+
+/**
+ * Pads the string of 0 and 1 with 0s on the right up to the length of the first divisor 
+ * of 8 that is greater or equal to the original length.
+ * @param bitString 
+ * @returns 
+ */
+export function padBitString(bitString: string) {
+   return bitString.padEnd(padLength(bitString), "0");
+}
 
 /**
  * Helper class to manage bit vectors corresponding to arrays of true and false values.
@@ -32,9 +51,9 @@ export class BitmaskAccumulator {
       if (this.count >= this.length) {
          throw new Error("Bitmask too long")
       }
-      if (bit) {         
+      if (bit) {
          this.buffer[this.index] += this.weight;
-      } 
+      }
       if (this.weight === 1) {
          this.weight = 128;
          this.index++;
@@ -42,6 +61,22 @@ export class BitmaskAccumulator {
          this.weight = this.weight >>> 1;
       }
       this.count++;
+   }
+
+   /**
+    * Creates bitmask accumulator from hex string.
+    * @param hexString 
+    */
+   public static fromHex(hexString: string) {
+      let value = hexString;
+      if (hexString.startsWith("0x")) {
+         value = hexString.slice(2);
+      }
+      let bitmask = new BitmaskAccumulator(8);
+      bitmask.buffer = Buffer.from(value, "hex");
+      bitmask.length = (value.length + hexString.length % 2) / 2;
+      bitmask.count = bitmask.length;
+      return bitmask;
    }
 
    /**
@@ -61,21 +96,37 @@ export class BitmaskAccumulator {
          }
       }
       result.length = bitString.length;
-      result.count = this.length;
+      result.count = result.length;
+      return result;
+   }
+
+   /**
+    * Returns the 8-padded string of 0s and 1s representing the bit mask
+    * @returns 
+    */
+   public toBitString() {
+      let result = "";
+      for (let i = 0; i < this.buffer.length; i++) {
+         result += this.buffer[i].toString(2).padStart(8, "0");
+      }
       return result;
    }
 
    public toHex() {
-      return this.buffer.toString("hex");
+      return '0x' + this.buffer.toString("hex");
    }
 
    /**
     * Calculate indices of bits in the bit accumulator, that are 0, but in the @param hexString they are 1.
     * Assumption: @param hexString converted to buffer is of at most length of the bytes in the bit accumulator
-    * @param hexString
+    * @param value
     */
    public missingIndices(hexString: string) {
-      let buffer2 = Buffer.from(hexString, "hex");
+      let value = hexString;
+      if (value.startsWith("0x")) {
+         value = value.slice(2);
+      }
+      let buffer2 = Buffer.from(value, "hex");
       if (buffer2.length > this.buffer.length) {
          throw new Error("Buffer in the accumulator too short");
       }
@@ -96,5 +147,38 @@ export class BitmaskAccumulator {
             indices.push(tmpList[j]);
          }
       }
+      return indices;
+   }
+
+   /**
+    * Returns the sequence of indices implied by the bitmask in the accumulator. The maximal index is 
+    * of @param length - 1.
+    * @param length 
+    */
+   public toIndices(length: number): number[] {
+      let indices = [];
+      for (let i = 0; i < length; i++) {
+         const index = Math.floor(i / 8);
+         const offset = 8 - i % 8 - 1;
+         if ((this.buffer[index] >>> offset) % 2) {
+            indices.push(i)
+         }
+      }
+      return indices;
+   }
+
+   /**
+    * Returns true if there is a 1 bit after index (included)
+    * @param index 
+    * @returns 
+    */
+   public hasActiveBitsBeyond(index: number) {
+      if (index >= this.length) return false;
+      let indexByte = Math.floor(index / 8);
+      for (let i = indexByte + 1; i < this.buffer.length; i++) {
+         if (this.buffer[i] > 0) return true;
+      }
+      let byteValue = (this.buffer[indexByte] << index % 8) % 256;
+      return byteValue > 0;      
    }
 }

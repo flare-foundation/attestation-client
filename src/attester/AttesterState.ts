@@ -88,7 +88,7 @@ export class AttesterState {
    */
   async saveRoundComment(round: AttestationRound, validTransactionCount = 0) {
     const dbRound = new DBRoundResult();
-
+    
     dbRound.roundId = round.roundId;
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
@@ -97,19 +97,52 @@ export class AttesterState {
   }
 
   /**
-   * Stores partial attestation round data (on commit)
+   * Stores bit voting vote if the client voted in choose phase
    * @param roundId
-   * @param nounce
+   * @param nonce
    * @param txid
    */
-  async saveRoundCommited(roundId: number, nounce: number, txid: string) {
+  async saveRoundBitVoted(roundId: number, nonce: number, txid: string, bitVote: string) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = roundId;
+    dbRound.bitVoteTimestamp = getUnixEpochTimestamp();
+    dbRound.bitVoteNonce = nonce;
+    dbRound.bitVoteTransactionId = txid;
+    dbRound.bitVote = bitVote;
 
+    await this.saveOrUpdateRound(dbRound);
+  }
+
+    /**
+   * Stores bit voting result
+   * @param roundId
+   * @param nonce
+   * @param txid
+   */
+    async saveRoundBitVoteResult(roundId: number, bitVoteResult: string) {
+      const dbRound = new DBRoundResult();
+  
+      dbRound.roundId = roundId;
+      dbRound.bitVoteResultTimestamp = getUnixEpochTimestamp();
+      dbRound.bitVoteResult = bitVoteResult;
+  
+      await this.saveOrUpdateRound(dbRound);
+    }
+  
+
+  /**
+   * Stores partial attestation round data (on commit)
+   * @param roundId
+   * @param nonce
+   * @param txid
+   */
+  async saveRoundCommited(roundId: number, nonce: number, txid: string) {
+    const dbRound = new DBRoundResult();
+
+    dbRound.roundId = roundId;
     dbRound.commitTimestamp = getUnixEpochTimestamp();
-
-    dbRound.commitNounce = nounce;
+    dbRound.commitNonce = nonce;
     dbRound.commitTransactionId = txid;
 
     await this.saveOrUpdateRound(dbRound);
@@ -118,17 +151,16 @@ export class AttesterState {
   /**
    *  Stores partial attestation round data (on reveal)
    * @param roundId
-   * @param nounce
+   * @param nonce
    * @param txid
    */
-  async saveRoundRevealed(roundId: number, nounce: number, txid: string) {
+  async saveRoundRevealed(roundId: number, nonce: number, txid: string) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = roundId;
 
     dbRound.revealTimestamp = getUnixEpochTimestamp();
-
-    dbRound.revealNounce = nounce;
+    dbRound.revealNonce = nonce;
     dbRound.revealTransactionId = txid;
 
     await this.saveOrUpdateRound(dbRound);

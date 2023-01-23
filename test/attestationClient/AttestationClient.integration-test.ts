@@ -22,7 +22,6 @@ import sinon from "sinon";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { Attestation } from "../../src/attester/Attestation";
 import { runBot } from "../../src/state-collector-finalizer/state-connector-validator-bot";
-import { DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
 chai.use(chaiAsPromised);
 
 
@@ -227,19 +226,6 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     runPromises = clients.map(client => client.runAttesterClient());
 
     await startSimpleSpammer(stateConnector, web3, spammerWallet, bufferWindowDurationSec, [attestationXRP.data.request, attestationBTC.data.request], [2, 3]);
-    // await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
-    // await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
-
-    // let counter = 0;
-    // setInterval(async () => {
-    //   if(counter % 2 == 0) {
-    //     await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationXRP.data.request);
-    //   }
-    //   if(counter % 3 == 0) {
-    //     await submitAttestationRequest(stateConnector, web3, spammerWallet, attestationBTC.data.request);
-    //   }
-    //   counter++;      
-    // }, bufferWindowDurationSec * 1000);
 
     setInterval(async () => {
       let now = getUnixEpochTimestamp();

@@ -151,7 +151,17 @@ export class AttestationRoundManager {
   }
 
   public onLastFlareNetworkTimestamp(timestamp: number) {
-    // TODO - close relevant epoch's choose round, if necessary
+    let bufferNumber = this.epochSettings.getEpochIdForBitVoteTimeSec(timestamp);
+
+    // undefined returned if we are out of bit vote window - we are in the commit part
+    if(bufferNumber === undefined) {
+      bufferNumber = this.epochSettings.getEpochIdForTimeSec(timestamp);
+      let roundId = bufferNumber - 1;
+      let round = this.rounds.get(roundId);
+      if (round) {
+        round.closeBitVoting();
+      }  
+    }
   }
 
   public onBitVoteEvent(bitVoteData: BitVoteData) {
@@ -184,11 +194,16 @@ export class AttestationRoundManager {
     const now = getTimeMilli();
     const chooseWindowDuration = this.flareConnection.chooseDeadlineSec * 1000;
     const windowDuration = this.flareConnection.roundDurationSec * 1000;
+    const forceCloseBitVotingOffset = this.flareConnection.config.forceCloseBitVotingSec * 1000;
     const roundStartTime = this.epochSettings.getRoundIdTimeStartMs(roundId);
     const roundChooseStartTime: number = roundStartTime + windowDuration;
-    const roundCommitStartTime: number = roundStartTime + windowDuration + chooseWindowDuration;
-    const roundRevealStartTime: number = roundStartTime + 2 * windowDuration;
-    const roundCompleteTime: number = roundStartTime + 3 * windowDuration;
+    const roundForceCloseBitVotingTime: number = roundChooseStartTime + chooseWindowDuration + forceCloseBitVotingOffset;
+    const roundCommitStartTime: number = roundChooseStartTime + chooseWindowDuration;
+    const roundRevealStartTime: number = roundChooseStartTime + windowDuration;
+    const roundCompleteTime: number = roundRevealStartTime + windowDuration;
+
+
+    
 
     let activeRound = this.rounds.get(roundId);
 
@@ -238,7 +253,10 @@ export class AttestationRoundManager {
       this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound!.startChoosePhase(), roundChooseStartTime - now);
 
       // trigger sending bit vote result
-      this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound!.bitVote(), roundCommitStartTime + this.config.bitVoteTimeSec - now);
+      this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound!.bitVote(), roundCommitStartTime + (this.config.bitVoteTimeSec * 1000) - now);
+
+      // trigger forced closing of bit voting and vote count
+      this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound!.closeBitVoting(), roundForceCloseBitVotingTime - now);
 
       // trigger start commit phase
       this.schedule(`${this.label}schedule:startCommitPhase`, async () => await activeRound!.startCommitPhase(), roundCommitStartTime - now);
@@ -249,8 +267,8 @@ export class AttestationRoundManager {
       // trigger start reveal epoch
       this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound!.startRevealPhase(), roundRevealStartTime - now);
 
-      // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
-      this.schedule(`${this.label}schedule:commitLimit`, () => activeRound!.commitLimit(), roundRevealStartTime + this.config.commitTimeSec * 1000 - COMMIT_LIMIT_BUFFER_MS - now);
+      // // trigger end of commit time (if attestations were not done until here then the epoch will not be submitted)
+      // this.schedule(`${this.label}schedule:commitLimit`, () => activeRound!.commitLimit(), roundRevealStartTime + this.config.commitTimeSec * 1000 - COMMIT_LIMIT_BUFFER_MS - now);
 
       // trigger reveal
       this.schedule(`${this.label}schedule:reveal`, () => activeRound!.reveal(), roundCompleteTime + this.config.commitTimeSec * 1000 - now);

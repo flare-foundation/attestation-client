@@ -11,6 +11,8 @@
       "0xfa3bdc8709226da0da13a4d904c8b66f16c3c8ba",
       "0x6c365935ca8710200c7595f0a72eb6023a7706cd"
    ],
+   "consensusSubsetSize": 7,
+
    "sources" :
    [
       {

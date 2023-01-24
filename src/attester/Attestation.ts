@@ -47,6 +47,8 @@ export class Attestation {
 
   // sequential index in attestation round. -1 if not defined.
   index: number = -1;
+  // if the attestation is chosen by bitvote
+  chosen: boolean = false;
 
   constructor(round: AttestationRound, data: AttestationData) {
     this.round = round;

@@ -30,6 +30,11 @@ export class EpochSettings {
     return diff.div(this._epochPeriodMs);
   }
 
+  getEpochIdForTimeSec(timeSec: number): number {
+    const epochId = this.getEpochIdForTime(toBN(timeSec).mul(toBN(1000)));
+    return epochId.toNumber();
+  }
+
   /**
    * Given time @param timeSec in seconds, it determines the epoch of the time and
    * checks if it is within the bit voting deadline. 
@@ -47,6 +52,12 @@ export class EpochSettings {
     }
     return undefined;
   }
+  
+  getOffsetInBufferWindow(timeSec: number) {
+    let epochId = this.getEpochIdForTimeSec(timeSec);
+    return timeSec - Math.round(this._firstEpochStartTimeMs.toNumber()/1000) + epochId * Math.round(this._epochPeriodMs.toNumber()/1000);
+  } 
+
   /**
    * Gets the id of the current epoch. It is the same as the id of the round that is currently in the request phase
    */

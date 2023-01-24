@@ -39,7 +39,10 @@ export class SourceLimiterConfig {
 export class GlobalAttestationConfig {
   startRoundId!: number;
   defaultSetAssignerAddresses: string [] = []; 
-  consensusSubsetSize: number = 7;
+  consensusSubsetSize: number = 1;
+  // !!!NOTE: If you add any new field, please update function 'load()' accordingly!
+
+
   sourceLimiters = new Map<number, SourceLimiterConfig>();
 
   verifierRouter = new VerifierRouter();
@@ -186,6 +189,7 @@ export class AttestationConfigManager {
       config = new GlobalAttestationConfig();
       config.startRoundId = fileConfig.startRoundId;
       config.defaultSetAssignerAddresses = fileConfig.defaultSetAssignerAddresses;
+      config.consensusSubsetSize = fileConfig.consensusSubsetSize;
 
       // This initialization may fail, hence the dac initialization will fail
       // TODO: make a recovery mechanism

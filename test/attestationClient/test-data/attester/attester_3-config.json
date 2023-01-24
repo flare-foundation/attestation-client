@@ -8,11 +8,14 @@
    // DAC - Dynamic Attestation Configuration folder
    "dynamicAttestationConfigurationFolder": "./test/attestationClient/test-data/attester/dac/",
    
-   // commit time in seconds, actual commit time is: epoch start + epoch duration * 2 - commit time
-   "commitTimeSec": -6,
+   // commit time in seconds, actual commit time is: epoch start + 2 * epoch duration + commit time (should be negative)
+   "commitTimeSec": -3,
 
-   // commit time in seconds, actual commit time is: epoch start + epoch duration * 2 - bitVote time
-   "bitVoteTimeSec": -7,
+   // bit vote time in seconds relative to: epoch start + epoch duration + bit vote window + bitVoteTimeSec
+   "bitVoteTimeSec": -3,
+
+   // time to forcebely close bit voting: epoch start + epoch duration + bit vote window + forceCloseBitVotingSec
+   "forceCloseBitVotingSec": 2,
 
    "web": {
        "accountPrivateKey": "0x87630b2d1de0fbd5044eb6891b3d9d98c34c8d310c852f98550ba774480e47cc",

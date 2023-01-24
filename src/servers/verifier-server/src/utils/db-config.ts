@@ -32,7 +32,7 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
          throw new Error(`Wrong verifier type '${verifierType}'`)
    }
 
-   if(process.env.IN_MEMORY_DB && process.env.NODE_ENV !== "production") {
+   if(process.env.IN_MEMORY_DB && process.env.NODE_ENV === "development") {
       return {
          name: "indexerDatabase",
          type: 'better-sqlite3',

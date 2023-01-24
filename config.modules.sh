@@ -18,6 +18,7 @@ export INSTALL_MYSQL=true
 
 # services
 export INSTALL_INDEXER=true
+export INSTALL_VERIFIER=true
 export INSTALL_MONITOR=true
 export INSTALL_FRONTEND=true
 

@@ -31,8 +31,10 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
   // in sec
   public bitVoteTimeSec = -10;
 
+  public forceCloseBitVotingSec = 2;
+
   // additional empty submit at the beginning of commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds)
-  public submitCommitFinalize = false;
+  @optional() public submitCommitFinalize = false;
 
 
   public web = new AttesterWebOptions();

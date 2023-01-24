@@ -16,9 +16,9 @@ contract BitVoting {
     // November 5th, 2021
     uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1636070400 seconds;
     // Amount of time a buffer is active before cycling to the next one
-    uint256 public constant BUFFER_WINDOW = 10 seconds;
+    uint256 public constant BUFFER_WINDOW = 16 seconds;
     // Relative deadline time for bit vote withing buffer window
-    uint256 public constant BIT_VOTE_DEADLINE = 5 seconds;
+    uint256 public constant BIT_VOTE_DEADLINE = 8 seconds;
 
 //====================================================================
 // Events

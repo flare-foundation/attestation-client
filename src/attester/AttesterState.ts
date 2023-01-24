@@ -25,7 +25,7 @@ async function Upsert<T>(
 ) {
   const keys: string[] = _.difference(_.keys(obj), opts ? opts.do_not_upsert : []);
 
-  if (((process.env.IN_MEMORY_DB || process.env.TEST_DB_PATH) && process.env.NODE_ENV !== "production")) {
+  if (((process.env.IN_MEMORY_DB || process.env.TEST_DB_PATH) && process.env.NODE_ENV === "development")) {
     // Some issues with orUpdate on better-sqlite3
     await entityManager.getRepository(DBRoundResult).save(obj);
   } else {

@@ -24,7 +24,7 @@ const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
  * @returns 
  */
 async function readSecureConfigBase<T extends IReflection<T>>(project: string, type: string, obj: T = null): Promise<T> {
-    if(process.env.TEST_CREDENTIALS && process.env.NODE_ENV !== "production") {
+    if(process.env.TEST_CREDENTIALS && process.env.NODE_ENV === "development") {
         return readConfigBase<T>(project, type, undefined, undefined, obj);
     }
 

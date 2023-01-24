@@ -11,6 +11,7 @@ import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttestationClientConfig } from "./AttestationClientConfig";
 import { retry } from "../utils/PromiseTimeout";
+import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 
 /**
  * Handles submissions to StateConnector and BitVoting contrct
@@ -32,7 +33,7 @@ export class FlareConnection {
 
   constructor(config: AttestationClientConfig, logger: AttLogger) {
     // for testing only
-    if (process.env.NODE_ENV !== "production" && !config) {
+    if (process.env.NODE_ENV === "development" && !config) {
       return;
     }
 
@@ -163,16 +164,22 @@ export class FlareConnection {
     const fnToEncode = this.bitVoting.methods.submitVote(bufferNumber, bitVote);
 
     if (verbose) {
+      let hexBitvote = bitVote.slice(4);
+      let bitSequence = "";
+      if(hexBitvote.length > 0) {
+        bitSequence = BitmaskAccumulator.fromHex(hexBitvote).toBitString()
+      }
+
       this.logger.info(`${this.label}action .................... : ${action}`);
       this.logger.info(`${this.label}bufferNumber .............. : ^e${bufferNumber.toString()}`);
-      this.logger.info(`${this.label}bitVote ................... : ^e${bitVote}`);
+      this.logger.info(`${this.label}bitVote ................... : ^e${bitVote} (${bitSequence})`);
       this.logger.info(`${this.label}No. attestations........... : ^e${numberOfValidatedAttestations}/${numberOfAttestations}`);
       this.logger.info(`${this.label}No. duplicates............. : ^e${duplicateCount}`);
     }
 
     const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () => this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime));
+    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () => this.web3Functions.signAndFinalize3(action, this.bitVoting.options.address, fnToEncode, epochEndTime));
 
     if (extReceipt.receipt) {
       await this.attestationRoundManager.state.saveRoundBitVoted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash, bitVote);

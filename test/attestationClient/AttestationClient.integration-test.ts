@@ -44,6 +44,7 @@ const SPAMMER_PRIVATE_KEY = "0x28d1bfbbafe9d1d4f5a11c3c16ab6bf9084de48d99fbac405
 // set false to debug with global logger
 const TEST_LOGGER = false;
 const NUMBER_OF_CLIENTS = 9;
+const IN_PROCESS_CLIENTS = 1
 
 
 // Testing modes:
@@ -56,7 +57,6 @@ const TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = LAST_CONFIRMED_BLOCK - FIRST_BLOCK;
 
 describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   let setup: VerifierTestSetups;
-  let child;
   let web3: Web3;
   let requestXRP: ARPayment;
   let requestBTC: ARPayment;
@@ -70,6 +70,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   let startTime: number;
   let signers: string[] = [];
   let privateKeys: string[] = [];
+  let childProcesses: any[] = [];
 
   before(async function () {
     if (TEST_LOGGER) {
@@ -87,8 +88,10 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     (process.exit as any).callsFake((code) => {
       console.log(`EXIT`);
       delete process.env.TEST_CREDENTIALS;
-      child.stdin.pause();
-      child.kill();
+      for (let child of childProcesses) {
+        child.stdin.pause();
+        child.kill();
+      }
       sinon.restore();
       process.exit();
     });
@@ -96,7 +99,8 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     process.env.TEST_CREDENTIALS = '1';
 
     // Bootstrap hardhat blockchain
-    child = spawn("yarn", ["hardhat", "node"], { shell: true });
+    let child = spawn("yarn", ["hardhat", "node"], { shell: true });
+    childProcesses.push(child);
     await waitOn({ resources: [RPC] });
 
 
@@ -107,7 +111,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
 
     // connect and initialize chain for interval mining
     process.env.TEST_HARDHAT_NODE = "1"   // disable handleRevert due to bug in combination of web3.js & ganache
-    web3 = getWeb3(RPC);    
+    web3 = getWeb3(RPC);
     await setIntervalMining(web3);
 
     // Initialize contracts
@@ -124,16 +128,16 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
 
     // Configure finalization bot
     signers = await getVoterAddresses(NUMBER_OF_CLIENTS);
-    assertAddressesMatchPrivateKeys(web3, signers, privateKeys.slice(1, 10));
+    assertAddressesMatchPrivateKeys(web3, signers, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));
 
     process.env.FINALIZING_BOT_PRIVATE_KEY = PRIVATE_KEY;
     process.env.FINALIZING_BOT_PUBLIC_KEY = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY).address;
     process.env.TEST_CUSTOM_SIGNERS = JSON.stringify(signers);
-    
-    // configure attestation provider addresses
-    await selfAssignAttestationProviders(getGlobalLogger(), stateConnector, web3, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));    
 
-    
+    // configure attestation provider addresses
+    await selfAssignAttestationProviders(getGlobalLogger(), stateConnector, web3, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));
+
+
     if (TEST_MODE === "offset") {
       let ADDITIONAL_OFFSET_S = Math.floor(ADDITIONAL_OFFSET_PCT * bufferWindowDurationSec);
       let now = Math.floor(Date.now() / 1000);
@@ -165,7 +169,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     attestationXRP = prepareAttestation(requestXRP, setup.startTime);
 
     let inUtxo = firstAddressVin(setup.BTC.selectedTransaction);
-    let utxo = firstAddressVout(setup.BTC.selectedTransaction);    
+    let utxo = firstAddressVout(setup.BTC.selectedTransaction);
     requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     attestationBTC = prepareAttestation(requestBTC, setup.startTime);
   });
@@ -174,8 +178,10 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     delete process.env.TEST_CREDENTIALS;
     await setup.XRP.app.close();
     await setup.BTC.app.close();
-    child.stdin.pause();
-    child.kill();
+    for (let child of childProcesses) {
+      child.stdin.pause();
+      child.kill();
+    }
     sinon.restore();
   });
 
@@ -219,11 +225,22 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
     runPromises.push(finalizationPromise);
 
-    for (let i = 0; i < NUMBER_OF_CLIENTS; i++) {
+    for (let i = 0; i < IN_PROCESS_CLIENTS; i++) {
       bootstrapPromises.push(bootstrapAttestationClient(i));
     }
     let clients = await Promise.all(bootstrapPromises);
     runPromises = clients.map(client => client.runAttesterClient());
+
+    let childProcesses = [];
+    for (let i = IN_PROCESS_CLIENTS; i < NUMBER_OF_CLIENTS; i++) {
+      const child = spawn("yarn", [
+        "ts-node", 
+        "test/attestationClient/utils/runTestAttestationClient.ts", 
+        "-n", `${i}`,
+        "-c", "../test/attestationClient/test-data/attester"
+      ], { shell: true });
+      childProcesses.push(child)
+    }
 
     await startSimpleSpammer(stateConnector, web3, spammerWallet, bufferWindowDurationSec, [attestationXRP.data.request, attestationBTC.data.request], [2, 3]);
 

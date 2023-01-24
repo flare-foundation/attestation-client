@@ -2,7 +2,7 @@ import { Managed, toBN } from "@flarenetwork/mcc";
 import assert from "assert";
 import { stringify } from "safe-stable-stringify";
 import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
-import { chooseCandidate } from "../choose-subsets-lib/subsets-lib";
+import { chooseCandidate, prefix0x, unPrefix0x } from "../choose-subsets-lib/subsets-lib";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { criticalAsync } from "../indexer/indexer-utils";
@@ -26,14 +26,15 @@ export enum AttestationRoundPhase {
   completed,
 }
 
+// !!! STATUS ORDER IS IMPORTANT. It is crucial that the round can progress only to later status
+// and not back
 export enum AttestationRoundStatus {
-  collecting,
-  choosing,
-  chosen,
-  committing,
-  committed,
-  revealed,
-  nothingToCommit,
+  collecting,         // initial status
+  bitVotingClosed,    // votes can be calculated
+  chosen,             // bit vote result calculated and available
+  commitDataPrepared, // commit data prepared
+  committed,          // the round was successfully committed and receipt received
+  revealed,           // the round was successfully revealed and receipt received
 
   error,
   processingTimeout,
@@ -53,6 +54,10 @@ export class AttestationRound {
   phase: AttestationRoundPhase = AttestationRoundPhase.collect;
   attestStatus: AttestationRoundStatus;
   roundId: number;
+
+  sourceLimiters = new Map<number, SourceLimiter>();
+  activeGlobalConfig: GlobalAttestationConfig;
+
   commitEndTime!: number;
 
   nextRound!: AttestationRound;
@@ -70,16 +75,18 @@ export class AttestationRound {
 
   merkleTree!: MerkleTree;
 
-  sourceLimiters = new Map<number, SourceLimiter>();
 
-  activeGlobalConfig: GlobalAttestationConfig;
-  defaultSetAddresses: string[];
   duplicateCount: number = 0;
   _initialized = false;
 
+  // default set voter addresses (lowercase)
+  defaultSetAddresses: string[];
+  // default set bit votes map
   bitVoteMap = new Map<string, string>();
-  bitVoteRecord: string;
-  isBitVotingsClosed = false;
+  // a record of my bit vote
+  bitVoteRecord?: string;
+  // a result of bit voting
+  bitVoteResultIndices?: number[] = [];
 
   constructor(epochId: number, activeGlobalConfig: GlobalAttestationConfig, attestationRoundManager: AttestationRoundManager) {
     this.roundId = epochId;
@@ -98,7 +105,8 @@ export class AttestationRound {
   }
 
   get label() {
-    return this.attestationRoundManager.label;
+    let attProviderLabel = this.attestationRoundManager.label;
+    return `#${attProviderLabel} ${this.roundId}:${this.nowRelative}/${this.attestationRoundManager.flareConnection.roundDurationSec} `;
   }
 
   /**
@@ -112,6 +120,12 @@ export class AttestationRound {
     return bitmask;
   }
 
+
+  get nowRelative() {
+    let diff = Date.now() - this.attestationRoundManager.epochSettings.getRoundIdTimeStartMs(this.roundId);
+    return (diff / 1000).toFixed(1);
+  }
+
   /**
    * Returns a hex bit mask of successfully validated transactions, prefixed 
    * with last byte of the round id (roundCheck).
@@ -121,12 +135,21 @@ export class AttestationRound {
     if (!this.bitVoteRecord) {
       throw new Error("Bit vote not yet recorded");
     }
-    let roundHex = toHex(this.roundId).slice(-2).replace("x", "0");
-    return '0x' + roundHex + this.bitVoteRecord;
+    let roundHex = toHex(this.roundId, 1).slice(-2);
+    return prefix0x(roundHex + unPrefix0x(this.bitVoteRecord));
   }
 
-  recordBitVote() {
-    this.bitVoteRecord = this.bitVoteAccumulator.toHex();
+  /**
+   * Closes bit voting.
+   */
+  public async closeBitVoting() {
+    this.logger.info(`${this.label} - closeBitVoting - call`)
+    if (this.attestStatus < AttestationRoundStatus.bitVotingClosed) {
+      this.logger.info(`${this.label} - closeBitVoting - closed`)
+      this.attestStatus = AttestationRoundStatus.bitVotingClosed;
+      this.tryCalculateBitVotingResults();
+      await this.tryPrepareCommitData();
+    }
   }
 
   /**
@@ -146,44 +169,97 @@ export class AttestationRound {
    * Calculates the bit voting result for the round.
    * The result is valid if we are sure that all votes are registered.
    */
-  bitVotingResultIndices(verbose = true): number[] {
+  private bitVotingResultIndices(verbose = true): number[] {
     let votes = []
     for (let address of this.defaultSetAddresses) {
       votes.push(this.bitVoteMap.get(address) ?? "0x00");
     }
     let candidate = chooseCandidate(votes, this.activeGlobalConfig.consensusSubsetSize);
     let bitmask = BitmaskAccumulator.fromHex(candidate);
-    
 
-    if(bitmask.hasActiveBitsBeyond(this.attestations.length)) {
-      this.logger.error(`Local and all indices do not match. Critical error!`);
+
+    if (bitmask.hasActiveBitsBeyond(this.attestations.length)) {
+      this.logger.error(`${this.label}Local and all indices do not match. Critical error!`);
       return [];
+    }
+    if (verbose) {
+      this.logger.info(`${this.label}Bit voting results`)
+      for (let address of this.defaultSetAddresses) {
+        let bitString = BitmaskAccumulator.fromHex(this.bitVoteMap.get(address) ?? "0x00").toBitString();
+        this.logger.info(`${this.label}${address.slice(0, 10)} - ${bitString}`);
+      }
+      this.logger.info(`${this.label}-RESULT[${this.activeGlobalConfig.consensusSubsetSize}] - ${bitmask.toBitString()}`);
     }
     return bitmask.toIndices(this.attestations.length);
   }
 
   /**
-   * Given a voting consensus bitmask in hex it returns the sequence of indices of attestations in the round
-   * that a consensus deems to be valid. Those attestations can/should be rechecked.
-   * The function assumes that @param bitVoteConsensusHex is obtained by joint voting and the
-   * attestation round has observed all the attestation. Hence the length of the @param bitVoteConsensusHex
-   * cannot be longer then the bitmask of the validated attestations (otherwise the critical exception is thrown
-   * and the code is shut down). 
-   * The function also must be called while the round status is one of 'commit', 'reveal' or 'completed'
-   * @param bitVoteConsensusHex 
-   * @returns 
+   * Records bit vote result. May be called several times (retry)
+   * @param verbose - whether verbose logging is used
    */
-  findMissingIndices(bitVoteConsensusHex: string): number[] {
-    try {
-      if ([AttestationRoundPhase.commit, AttestationRoundPhase.reveal, AttestationRoundPhase.completed].indexOf(this.phase) < 0) {
-        throw new Error("findMissingIndices must be called only during phases 'commit' or later")
-      }
-      return this.bitVoteAccumulator.missingIndices(bitVoteConsensusHex);
-    } catch (e) {
-      this.logger.error(`findMissingIndices:critical error: ${e}`);
-      process.exit(1);
+  private tryCalculateBitVotingResults(verbose = true) {
+    this.logger.info(`${this.label} - tryCalculateBitVotingResults - call`)
+    if (this.attestStatus >= AttestationRoundStatus.chosen) {
+      this.logger.error(`${this.label} - tryCalculateBitVotingResults - chosen`);
+      return;
     }
+
+    // vote count can be done only in commit phase when the voting is closed
+    if (this.phase !== AttestationRoundPhase.commit) {
+      this.logger.error(`${this.label} - tryCalculateBitVotingResults - wrong phase '${AttestationRoundPhase[this.phase]}'`);
+      return;
+    }
+    if (this.attestStatus !== AttestationRoundStatus.bitVotingClosed) {
+      this.logger.error(`${this.label} - tryCalculateBitVotingResults - voting closed`);
+      return;
+    }
+
+    const votingResult = this.bitVotingResultIndices();
+    let countRequired = 0;
+    let isError = false;
+    for (let i of votingResult) {
+      if (!this.attestations[i]) {
+        this.logger.error(`${this.label}Bit vote indices do not match the number of attestations in round ${this.roundId}: index ${i}, attestations length ${this.attestations.length}.`);
+        isError = true;
+        break;
+      }
+      if (this.attestations[i].status === AttestationStatus.valid) {
+        countRequired++;
+        this.attestations[i].chosen = true;
+      }
+    }
+    this.logger.info(`${this.label} Choose phase voting result successful. Status ${countRequired}/${votingResult.length}`);
+    if (isError) {
+      this.bitVoteResultIndices = [];
+    } else {
+      this.bitVoteResultIndices = votingResult;
+    }
+    this.attestStatus = AttestationRoundStatus.chosen;
+
   }
+
+  // /**
+  //  * Given a voting consensus bitmask in hex it returns the sequence of indices of attestations in the round
+  //  * that a consensus deems to be valid. Those attestations can/should be rechecked.
+  //  * The function assumes that @param bitVoteConsensusHex is obtained by joint voting and the
+  //  * attestation round has observed all the attestation. Hence the length of the @param bitVoteConsensusHex
+  //  * cannot be longer then the bitmask of the validated attestations (otherwise the critical exception is thrown
+  //  * and the code is shut down). 
+  //  * The function also must be called while the round status is one of 'commit', 'reveal' or 'completed'
+  //  * @param bitVoteConsensusHex 
+  //  * @returns 
+  //  */
+  // findMissingIndices(bitVoteConsensusHex: string): number[] {
+  //   try {
+  //     if ([AttestationRoundPhase.commit, AttestationRoundPhase.reveal, AttestationRoundPhase.completed].indexOf(this.phase) < 0) {
+  //       throw new Error("findMissingIndices must be called only during phases 'commit' or later")
+  //     }
+  //     return this.bitVoteAccumulator.missingIndices(bitVoteConsensusHex);
+  //   } catch (e) {
+  //     this.logger.error(`findMissingIndices:critical error: ${e}`);
+  //     process.exit(1);
+  //   }
+  // }
 
   /**
    * Returns the existing source Handler for the source chain of an attestation or creates a new sourceLimiter
@@ -278,7 +354,7 @@ export class AttestationRound {
    */
   async startChoosePhase() {
     this.logger.group(
-      `${this.label}round #${this.roundId} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.attestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
+      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.attestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -290,13 +366,11 @@ export class AttestationRound {
    */
   async startCommitPhase() {
     this.logger.group(
-      `${this.label}round #${this.roundId} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.attestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
+      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.attestationRoundManager.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
-
-    //
-    await this.tryTriggerCommit(); // In case all requests are already processed
+    await this.tryPrepareCommitData(); // In case all requests are already processed
   }
 
   /**
@@ -331,7 +405,7 @@ export class AttestationRound {
    * Announces the start of the reveal phase and sets the Round status to reveal
    */
   startRevealPhase() {
-    this.logger.group(`${this.label}round #${this.roundId} reveal epoch started [2]`);
+    this.logger.group(`${this.label} - reveal epoch started [2]`);
     this.phase = AttestationRoundPhase.reveal;
   }
 
@@ -339,7 +413,7 @@ export class AttestationRound {
    * Announces the the end of the round and sets the round status to completed
    */
   completed() {
-    this.logger.group(`${this.label}round #${this.roundId} completed`);
+    this.logger.group(`${this.label} - round completed`);
     this.phase = AttestationRoundPhase.completed;
   }
 
@@ -349,50 +423,31 @@ export class AttestationRound {
 
     // eslint-disable-next-line
     criticalAsync("processed", async () => {
-      await this.tryTriggerCommit();
+      this.tryCalculateBitVotingResults();
+      await this.tryPrepareCommitData();
     });
   }
 
-  /**
-   * Commits if all attestations are processed and commit epoch has started
-   */
-  async tryTriggerCommit(): Promise<void> {
-    if (this.attestationsProcessed === this.attestations.length) {
-      if (this.phase === AttestationRoundPhase.commit) {
-        // all transactions were processed and we are in commit epoch
-        this.logger.info(`${this.label}round #${this.roundId} all transactions processed ${this.attestations.length} commiting...`);
-        await this.commit();
-      } else {
-        // all transactions were processed but we are NOT in commit epoch yet
-        //this.logger.info(`round #${this.epochId} all transactions processed ${this.attestations.length} waiting for commit epoch`);
-      }
-    } else {
-      // not all transactions were processed
-      //this.logger.info(`round #${this.epochId} transaction processed ${this.transactionsProcessed}/${this.attestations.length}`);
-    }
-  }
+  // async commitLimit(): Promise<void> {    
+  //   if (this.attestStatus === AttestationRoundStatus.collecting) {
+  //     this.logger.error2(`${this.label}Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
 
-  async commitLimit(): Promise<void> {
-    if (this.attestStatus === AttestationRoundStatus.collecting) {
-      this.logger.error2(`${this.label}Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
-
-      // cancel all attestations
-      this.attestStatus = AttestationRoundStatus.processingTimeout;
-    }
-  }
+  //     // cancel all attestations
+  //     this.attestStatus = AttestationRoundStatus.processingTimeout;
+  //   }
+  // }
 
   /**
-   * Checks if all attestations are processed and if round is in the commit phase
+   * Checks if commit data is ready.
    * @returns
    */
   canCommit(): boolean {
     this.logger.debug(
-      `${this.label}canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch status: ${this.phase}, attest status ${this.attestStatus}`
+      `${this.label}canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${AttestationRoundPhase[this.phase]}', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
     return (
-      this.attestationsProcessed === this.attestations.length &&
-      this.attestStatus === AttestationRoundStatus.committing &&
-      this.phase === AttestationRoundPhase.commit
+      this.phase === AttestationRoundPhase.commit &&
+      this.attestStatus === AttestationRoundStatus.commitDataPrepared
     );
   }
 
@@ -424,17 +479,48 @@ export class AttestationRound {
   }
 
   /**
-   *Starts the commit-reveal scheme and saves the attestation data to database.
+   * Executes calculation of commit data from the commit-reveal scheme and saves the attestation data to database.
+   * This function may be called several times, sometimes too early and retried later. Retrials are handled from outside.
    */
-  async commit() {
+  async tryPrepareCommitData() {
+    this.logger.info(`${this.label} - tryPrepareCommitData - call`)
+    if (this.attestStatus >= AttestationRoundStatus.commitDataPrepared) {
+      this.logger.info(`${this.label} - tryCalculateBitVotingResults - commit already prepared`)
+      return;
+    }
+
+    // check if commit can be performed
+    if (this.phase !== AttestationRoundPhase.commit) {
+      this.logger.info(`${this.label} - tryPrepareCommitData - not commit phase: '${ AttestationRoundPhase[this.phase]}'`);
+      return;
+    }
+
+    if (this.attestStatus !== AttestationRoundStatus.chosen) {
+      this.logger.info(`${this.label} - tryPrepareCommitData - not status 'chosen' ('${AttestationRoundStatus[this.attestStatus]}' instead)`);
+      // this.logger.error(`${this.label}round #${this.roundId} cannot commit yet, bit voting result is not yet calculated.`);
+      return;
+    }
+
     // collect valid attestations and prepare to save all requests
     const dbAttestationRequests = [];
-    const validated = new Array<Attestation>();
-    for (const attestation of this.attestations.values()) {
+    const validated: Attestation[] = [];
+
+    //  check if all attestations required by bit vote result are validated
+    for (let i of this.bitVoteResultIndices) {
+      const attestation = this.attestations[i];
       if (attestation.status === AttestationStatus.valid) {
         validated.push(attestation);
       }
+    }
 
+    // check if one can commit
+    if (validated.length != this.bitVoteResultIndices.length) {
+      this.logger.error(`${this.label}round #${this.roundId} cannot yet commit ${validated.length}/${this.bitVoteResultIndices.length} attestations validated.`);
+      return;
+    }
+
+    // Prepare database entities for result logs
+    for (let attestation of validated) {
       dbAttestationRequests.push(this.prepareDBAttestationRequest(attestation));
     }
 
@@ -448,22 +534,9 @@ export class AttestationRound {
       });
     }
 
-    // check if commit can be performed
-    if (this.phase !== AttestationRoundPhase.commit) {
-      this.logger.error(`${this.label}round #${this.roundId} cannot commit (wrong epoch status ${this.phase})`);
-      return;
-    }
-    if (this.attestStatus !== AttestationRoundStatus.collecting) {
-      this.logger.error(`${this.label}round #${this.roundId} cannot commit (wrong attest status ${this.attestStatus})`);
-      return;
-    }
-
-    this.attestStatus = AttestationRoundStatus.committing;
-
-    // check if there is any valid attestation
     if (validated.length === 0) {
       this.logger.error(`${this.label}round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
-      this.attestStatus = AttestationRoundStatus.nothingToCommit;
+      this.attestStatus = AttestationRoundStatus.commitDataPrepared;
       await this.createEmptyState();
       return;
     }
@@ -504,6 +577,9 @@ export class AttestationRound {
     this.roundMerkleRoot = this.merkleTree.root!;
     this.roundRandom = await getCryptoSafeRandom();
     this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.flareConnection.web3Functions.account.address);
+
+    // mark data is prepared
+    this.attestStatus = AttestationRoundStatus.commitDataPrepared;
 
     // after commit state has been calculated add it in state
     await this.attestationRoundManager.state.saveRound(this, validated.length);
@@ -566,9 +642,12 @@ export class AttestationRound {
         prevRound && prevRound.random ? prevRound.random : toHex(0, 32),
       );
 
+      // count the round as commited, event if receipt did not come back
+
+
       if (receipt) {
-        this.logger.info(`${this.label}^G^wcomitted^^ round ^Y#${this.roundId}`);
         this.attestStatus = AttestationRoundStatus.committed;
+        this.logger.info(`${this.label}^G^wcomitted^^ round ^Y#${this.roundId}`);
       } else {
         this.attestStatus = AttestationRoundStatus.error;
       }
@@ -580,28 +659,17 @@ export class AttestationRound {
    */
   async reveal() {
     if (this.phase !== AttestationRoundPhase.reveal) {
-      this.logger.error(`${this.label}round #${this.roundId} cannot reveal (not in reveal epoch status ${this.phase})`);
+      this.logger.error(`${this.label}round #${this.roundId} cannot reveal (not in reveal epoch status '${AttestationRoundPhase[this.phase]}')`);
       return;
     }
-    if (this.attestStatus === AttestationRoundStatus.nothingToCommit) {
-      this.logger.warning(`${this.label}round #${this.roundId} nothing to commit`);
-    } else if (this.attestStatus !== AttestationRoundStatus.committed) {
-      switch (this.attestStatus) {
-        case AttestationRoundStatus.collecting:
-          this.logger.error(`${this.label}round #${this.roundId} cannot reveal (attestations not processed ${this.attestationsProcessed}/${this.attestations.length})`);
-          break;
-        case AttestationRoundStatus.committing:
-          this.logger.error(`${this.label}round #${this.roundId} cannot reveal (still comitting)`);
-          break;
-        default:
-          this.logger.error(`${this.label}round #${this.roundId} cannot reveal (not commited ${this.attestStatus})`);
-          break;
-      }
 
-      // we should still commit next round
-      //return;
+    // Log unexpected attestation round statuses, but proceed with submitAttestation
+
+    let commitPrepared = this.attestStatus === AttestationRoundStatus.commitDataPrepared || this.attestStatus == AttestationRoundStatus.committed;
+
+    if (!commitPrepared) {
+      this.logger.error(`${this.label}round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${this.attestationsProcessed}/${this.attestations.length}`);
     }
-
 
     // this.logger.info(`^Cround #${this.roundId} reveal`);
 
@@ -619,8 +687,6 @@ export class AttestationRound {
       nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;
       nextRoundMaskedMerkleRoot = this.nextRound.roundMaskedMerkleRoot;
       nextRoundRandom = this.nextRound.roundRandom;
-
-      this.nextRound.attestStatus = AttestationRoundStatus.committed;
     }
 
     // eslint-disable-next-line
@@ -634,15 +700,21 @@ export class AttestationRound {
         nextRoundMaskedMerkleRoot,
         nextRoundRandom,
         // reveal
-        this.attestStatus === AttestationRoundStatus.committed ? this.roundMerkleRoot : toHex(0, 32),
-        this.attestStatus === AttestationRoundStatus.committed ? this.roundRandom : toHex(0, 32),
+        commitPrepared ? this.roundMerkleRoot : toHex(0, 32),
+        commitPrepared ? this.roundRandom : toHex(0, 32),
       );
 
       if (receipt) {
-        this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C submit completed (buffernumber ${this.roundId + 2})`);
+        this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C submit attestation completed (bufferNumber ${this.roundId + 2})`);
+        if (this.nextRound) {
+          this.nextRound.attestStatus = AttestationRoundStatus.committed;
+        }
         this.attestStatus = AttestationRoundStatus.revealed;
       } else {
-        this.logger.info(`${this.label}^Rround ^Y#${this.roundId}^R submit error (buffernumber ${this.roundId + 2}) - no receipt`);
+        this.logger.info(`${this.label}^Rround ^Y#${this.roundId}^R submit error (bufferNumber ${this.roundId + 2}) - no receipt`);
+        if (this.nextRound) {
+          // do not change the status
+        }
         this.attestStatus = AttestationRoundStatus.error;
       }
     });
@@ -652,7 +724,6 @@ export class AttestationRound {
    * Submits the bitmask for validated transaction.
    */
   async bitVote() {
-    return;  // DEBUG first
     // To early. Retry later.
     if (this.phase === AttestationRoundPhase.collect) {
       setTimeout(() => this.bitVote(), 1000);
@@ -660,30 +731,29 @@ export class AttestationRound {
     }
 
     if (this.phase === AttestationRoundPhase.choose) {
-      const action = `${this.label}submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
-      // eslint-disable-next-line
-      const vote = this.bitVoteMaskWithRoundCheck;
-      criticalAsync("", async () => {
+      const action = `${this.label}bit voting for round ^Y#${this.roundId + 1}^^ bufferNumber ${this.roundId + 1}`;
+      this.bitVoteRecord = this.bitVoteAccumulator.toHex(); // make a bitvote snapshot
+
+      // eslint-disable-next-line      
+      criticalAsync("Submit bit vote", async () => {
         const receipt = await this.flareConnection.submitBitVote(
           action,
           toBN(this.roundId + 1),
-          this.bitVoteMaskWithRoundCheck,
+          this.bitVoteMaskWithRoundCheck,  // snapshot
           this.attestations.length,
           this.numberOfValidatedAttestations,
           this.duplicateCount
         );
         if (receipt) {
           this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C bit vote submitted (buffernumber ${this.roundId + 1})`);
-          this.attestStatus = AttestationRoundStatus.chosen;
         } else {
           this.logger.error(`${this.label}^Rround ^Y#${this.roundId}^R bit vote submit error (buffernumber ${this.roundId + 1}) - no receipt`);
-          this.attestStatus = AttestationRoundStatus.error;
         }
       });
       return;
     }
 
     // Bit call called too late, wrong time
-    this.logger.error(`${this.label}^Rround ^Y#${this.roundId}^R: bit vote at wrong time in phase ${this.phase}`)
+    this.logger.error(`${this.label}^Rround ^Y#${this.roundId}^R: bit vote at wrong time in phase ${AttestationRoundPhase[this.phase]}`)
   }
 }

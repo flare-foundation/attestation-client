@@ -19,6 +19,14 @@ if $ENABLE_INDEXER; then
     systemctl --user enable indexer-doge.service
 fi
 
+if $INSTALL_VERIFIER; then
+    systemctl --user enable verifier-xrp.service
+    systemctl --user enable verifier-btc.service
+    systemctl --user enable verifier-ltc.service
+    systemctl --user enable verifier-algo.service
+    systemctl --user enable verifier-doge.service
+fi
+
 if $ENABLE_MONITOR; then
     systemctl --user enable attester-alerts
 fi

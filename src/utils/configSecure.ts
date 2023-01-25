@@ -1,8 +1,10 @@
+import fs from "fs";
 import { readConfigBase } from "./config";
 import { initializeJSONsecure, readJSONsecure } from "./jsonSecure";
 import { getGlobalLogger, logException } from "./logger";
 import { IReflection } from "./reflection";
 import { isEqualType } from "./typeReflection";
+
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
@@ -24,7 +26,7 @@ const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
  * @returns 
  */
 async function readSecureConfigBase<T extends IReflection<T>>(project: string, type: string, obj: T = null): Promise<T> {
-    if(process.env.TEST_CREDENTIALS && process.env.NODE_ENV !== "production") {
+    if (process.env.TEST_CREDENTIALS && process.env.NODE_ENV !== "production") {
         return readConfigBase<T>(project, type, undefined, undefined, obj);
     }
 
@@ -51,10 +53,20 @@ async function readSecureConfigBase<T extends IReflection<T>>(project: string, t
 
     path += `templates/${project}-${type}.json`;
 
+    if (!fs.existsSync(path)) {
+        // if this file does not exists in target folder check if it exists in the template folder
+        let templatepath = `./configs/.install/templates/${project}-${type}.json`;
+
+        if (fs.existsSync(templatepath)) {
+            path = templatepath;
+            getGlobalLogger().debug(`secure configuration loading from ^w^K${path}^^...`);
+        }
+    }
+
     try {
         const res = readJSONsecure<T>(path);
 
-        Object.setPrototypeOf( res , Object.getPrototypeOf(obj) );
+        Object.setPrototypeOf(res, Object.getPrototypeOf(obj));
 
         const valid = isEqualType(obj.instanciate(), res);
 

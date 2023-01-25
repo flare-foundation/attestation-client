@@ -4,14 +4,15 @@ import Web3 from "web3";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
+import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
+import { isValidHexString } from "../choose-subsets-lib/subsets-lib";
 import { EpochSettings } from "../utils/EpochSettings";
 import { AttLogger } from "../utils/logger";
+import { retry } from "../utils/PromiseTimeout";
 import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/utils";
 import { Web3Functions } from "../utils/Web3Functions";
-import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttestationClientConfig } from "./AttestationClientConfig";
-import { retry } from "../utils/PromiseTimeout";
-import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
+import { AttestationRoundManager } from "./AttestationRoundManager";
 
 /**
  * Handles submissions to StateConnector and BitVoting contrct
@@ -59,15 +60,25 @@ export class FlareConnection {
     this.roundDurationSec = parseInt("" + await this.stateConnector.methods.BUFFER_WINDOW().call(), 10);
     this.chooseDeadlineSec = parseInt("" + await this.bitVoting.methods.BIT_VOTE_DEADLINE().call(), 10);
     this.epochSettings = new EpochSettings(toBN(this.firstEpochStartTime), toBN(this.roundDurationSec), toBN(this.chooseDeadlineSec));
-    
   }
 
-  protected check(bnString: string) {
-    if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
-      this.logger.error(`invalid BN formatting ${bnString}`);
+  /**
+   * Logs if hex string is not of the correct form.
+   * @param hexString 
+   */
+  protected checkHex64(hexString: string) {
+    const isValid = isValidHexString(hexString) && hexString.length === 64 + 2;
+    if (!isValid) {
+      this.logger.error(`invalid BN formatting ${hexString}`);
     }
   }
 
+  /**
+   * Returns attestation provider addresses assigned by assignors. Assignors are governance multisig signers
+   * each having a right to assign one member of the default set of attesters.
+   * @param assignors 
+   * @returns 
+   */
   public async getAttestorsForAssignors(assignors: string[]): Promise<string[]> {
     let promises = [];
     for (let assignor of assignors) {
@@ -76,11 +87,27 @@ export class FlareConnection {
     return await Promise.all(promises);
   }
 
+  /**
+   * Returns all events on the StateConnector contract between the blocks (included).
+   * Block range limitations are subject to specific Flare node.
+   * @param fromBlock 
+   * @param toBlock 
+   * @returns 
+   */
   public async stateConnectorEvents(fromBlock: number, toBlock: number) {
+    // TODO: retry logic
     return await this.stateConnector.getPastEvents("allEvents", { fromBlock, toBlock });
   }
 
+  /**
+   * Returns all events on the BitVoting contract between the blocks (included).
+   * Block range limitations are subject to specific Flare node.
+   * @param fromBlock 
+   * @param toBlock 
+   * @returns 
+   */
   public async bitVotingEvents(fromBlock: number, toBlock: number) {
+    // TODO: retry logic
     return await this.bitVoting.getPastEvents("allEvents", { fromBlock, toBlock });
   }
 
@@ -115,9 +142,9 @@ export class FlareConnection {
 
     verbose = true
   ) {
-    this.check(commitedMerkleRoot);
-    this.check(commitedMaskedMerkleRoot);
-    this.check(revealedRandom);
+    this.checkHex64(commitedMerkleRoot);
+    this.checkHex64(commitedMaskedMerkleRoot);
+    this.checkHex64(revealedRandom);
 
     const fnToEncode = (this.stateConnector as StateConnector | StateConnectorTempTran).methods.submitAttestation(bufferNumber, commitedMaskedMerkleRoot, revealedMerkleRoot, revealedRandom);
 
@@ -136,7 +163,7 @@ export class FlareConnection {
     const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () => this.web3Functions.signAndFinalize3(action, this.stateConnector.options.address, fnToEncode, epochEndTime));
 
     if (extReceipt.receipt) {
-      await this.attestationRoundManager.state.saveRoundCommited(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
+      await this.attestationRoundManager.state.saveRoundCommitted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
       await this.attestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
       return extReceipt.receipt;
     }
@@ -166,7 +193,7 @@ export class FlareConnection {
     if (verbose) {
       let hexBitvote = bitVote.slice(4);
       let bitSequence = "";
-      if(hexBitvote.length > 0) {
+      if (hexBitvote.length > 0) {
         bitSequence = BitmaskAccumulator.fromHex(hexBitvote).toBitString()
       }
 

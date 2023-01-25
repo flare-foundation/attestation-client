@@ -21,9 +21,6 @@ import {
   TransactionQueryResult
 } from "./indexed-query-manager-types";
 
-// no supported chain produces more than 20 blocks per second
-const MAX_BLOCKCHAIN_PRODUCTION = 20;
-
 ////////////////////////////////////////////////////////
 // IndexedQueryManger - a class used to carry out
 // queries on the indexer database such that the
@@ -35,8 +32,6 @@ const MAX_BLOCKCHAIN_PRODUCTION = 20;
  */
 export class IndexedQueryManager {
   settings: IndexedQueryManagerOptions;
-  client: MccClient;
-  _entityManager: EntityManager;
 
   //Two transaction table entities `transaction0` and `transaction1`
   transactionTable: IDBTransactionBase[];
@@ -45,16 +40,16 @@ export class IndexedQueryManager {
   blockTable: IDBBlockBase;
 
   constructor(options: IndexedQueryManagerOptions) {
+    // assert existence
     if (!options.entityManager) {
       throw new Error("unsupported without entityManager");
     }
-    this._entityManager = options.entityManager;
     this.settings = options;
     this.prepareTables();
   }
 
   get entityManager(): EntityManager {
-    return this._entityManager;
+    return this.settings.entityManager;
   }
 
   /**
@@ -110,7 +105,7 @@ export class IndexedQueryManager {
     return {
       height: res.valueNumber,
       timestamp: res.timestamp,
-    };
+    } as BlockHeightSample;
   }
 
   /**
@@ -148,12 +143,12 @@ export class IndexedQueryManager {
       let query = this.entityManager
         .createQueryBuilder(table, "transaction")
 
-      if (params.startBlock) {
-        query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock : params.startBlock });
+      if (params.startBlockNumber) {
+        query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock : params.startBlockNumber });
       }
 
-      if (params.endBlock) {
-        query = query.andWhere("transaction.blockNumber <= :endBlock", { endBlock: params.endBlock });
+      if (params.endBlockNumber) {
+        query = query.andWhere("transaction.blockNumber <= :endBlock", { endBlock: params.endBlockNumber });
       }
 
       if (params.paymentReference) {
@@ -168,25 +163,25 @@ export class IndexedQueryManager {
     let lowerQueryWindowBlock: DBBlockBase;
     let upperQueryWindowBlock: DBBlockBase;
 
-    if (params.startBlock !== undefined) {
+    if (params.startBlockNumber !== undefined) {
       const lowerQueryWindowBlockResult = await this.queryBlock({
-        blockNumber: params.startBlock,
+        blockNumber: params.startBlockNumber,
         confirmed: true,
       });
       lowerQueryWindowBlock = lowerQueryWindowBlockResult.result;
     }
 
-    if (params.endBlock !== undefined) {
+    if (params.endBlockNumber !== undefined) {
       const upperQueryWindowBlockResult = await this.queryBlock({
-        blockNumber: params.endBlock,
+        blockNumber: params.endBlockNumber,
         confirmed: true,
       });
       upperQueryWindowBlock = upperQueryWindowBlockResult.result;
     }
     return {
       result: results as DBTransactionBase[],
-      lowerQueryWindowBlock,
-      upperQueryWindowBlock,
+      startBlock: lowerQueryWindowBlock,
+      endBlock: upperQueryWindowBlock,
     };
   }
 
@@ -288,10 +283,10 @@ export class IndexedQueryManager {
     const transactionsQueryResult = await this.queryTransactions({
       transactionId: params.txId,
     } as TransactionQueryParams);
-    const transactions = transactionsQueryResult.result;
+    const transactions = transactionsQueryResult.result || [];
 
     return {
-      status: transactions && transactions.length > 0 ? "OK" : "NOT_EXIST",
+      status: transactions.length > 0 ? "OK" : "NOT_EXIST",
       transaction: transactions[0],
     };
   }
@@ -315,13 +310,13 @@ export class IndexedQueryManager {
     }
 
     const transactionsQueryResult = await this.queryTransactions({
-      startBlock: params.minimalBlockNumber,
-      endBlock: firstOverflowBlock.blockNumber - 1,
+      startBlockNumber: params.minimalBlockNumber,
+      endBlockNumber: firstOverflowBlock.blockNumber - 1,
       paymentReference: params.paymentReference,
     } as TransactionQueryParams);
 
     // Too small query window
-    if (!transactionsQueryResult.lowerQueryWindowBlock) {
+    if (!transactionsQueryResult.startBlock) {
       return {
         status: "DATA_AVAILABILITY_FAILURE"
       }
@@ -332,7 +327,7 @@ export class IndexedQueryManager {
       status: "OK",
       transactions,
       firstOverflowBlock,
-      lowerBoundaryBlock: transactionsQueryResult.lowerQueryWindowBlock,
+      minimalBlock: transactionsQueryResult.startBlock,
     };
   }
 
@@ -351,21 +346,10 @@ export class IndexedQueryManager {
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp >= :timestamp", { timestamp: timestamp })
-      .orderBy("block.timestamp", "ASC")
-      .limit(MAX_BLOCKCHAIN_PRODUCTION);
+      .orderBy("block.blockNumber", "ASC")
+      .limit(1);
 
-    const results = (await query.getMany()) as DBBlockBase[];
-
-    if (results.length === 0) return null;
-
-    let result = results[0];
-    for (const res of results) {
-      if (res.blockNumber < result.blockNumber) {
-        result = res;
-      }
-    }
-
-    return result;
+      return query.getOne();
   }
 
   /**
@@ -378,21 +362,10 @@ export class IndexedQueryManager {
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
       .andWhere("block.timestamp < :timestamp", { timestamp: timestamp })
-      .orderBy("block.timestamp", "DESC")
-      .limit(MAX_BLOCKCHAIN_PRODUCTION);
+      .orderBy("block.blockNumber", "DESC")
+      .limit(1);
 
-    const results = (await query.getMany()) as DBBlockBase[];
-
-    if (results.length === 0) return null;
-
-    let result = results[0];
-    for (const res of results) {
-      if (res.blockNumber > result.blockNumber) {
-        result = res;
-      }
-    }
-
-    return result;
+    return query.getOne();
   }
 
   /**
@@ -427,10 +400,6 @@ export class IndexedQueryManager {
       .orderBy("block.blockNumber", "ASC")
       .limit(1);
 
-    const result = await query.getOne();
-    if (result) {
-      return result as DBBlockBase;
-    }
-    return null;
+    return query.getOne();
   }
 }

@@ -26,8 +26,7 @@ const DB_BLOCK_TABLE = DBBlockXRP;
 const DB_TX_TABLE = DBTransactionXRP0;
 const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
-
-
+const CONFIG_PATH = "../test/indexed-query-manager/test-data"
 
 describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
   let indexedQueryManager: IndexedQueryManager;
@@ -39,7 +38,8 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
 
   before(async () => {
     process.env.VERIFIER_TYPE = "xrp"
-    process.env.TEST_IN_MEMORY_DB = "1";
+    process.env.TEST_CREDENTIALS = "1";
+    process.env.CONFIG_PATH = CONFIG_PATH;
     
     let dbOptions = await createTypeOrmOptions("test");
     dataSource = new DataSource(dbOptions as DataSourceOptions);
@@ -141,7 +141,7 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
       console.log("Probably too little transactions. Run indexer");
     }
     const tmpTransactionsQueryResult = await indexedQueryManager.queryTransactions({
-      endBlock: lastConfirmedBlock,
+      endBlockNumber: lastConfirmedBlock,
       transactionId: selectedReferencedTransaction.transactionId,
     });
     const tmpTransactions = tmpTransactionsQueryResult.result;
@@ -155,8 +155,8 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     }
     const lowerBoundaryBlockNumber = selectedReferencedTransaction.blockNumber - 10
     const tmpTransactionsQueryResult = await indexedQueryManager.queryTransactions({
-      startBlock: lowerBoundaryBlockNumber,
-      endBlock: lastConfirmedBlockNumber,
+      startBlockNumber: lowerBoundaryBlockNumber,
+      endBlockNumber: lastConfirmedBlockNumber,
       paymentReference: selectedReferencedTransaction.paymentReference,
     });
     assert(tmpTransactionsQueryResult.result.length > 0, "No transactions found");
@@ -167,8 +167,8 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
       }
     }
     assert(found, "Transaction not found");    
-    assert(tmpTransactionsQueryResult.lowerQueryWindowBlock?.blockNumber === lowerBoundaryBlockNumber, "Lower bound does not match");
-    assert(tmpTransactionsQueryResult.upperQueryWindowBlock?.blockNumber === lastConfirmedBlockNumber, "Upper bound does not match");
+    assert(tmpTransactionsQueryResult.startBlock?.blockNumber === lowerBoundaryBlockNumber, "Lower bound does not match");
+    assert(tmpTransactionsQueryResult.endBlock?.blockNumber === lastConfirmedBlockNumber, "Upper bound does not match");
   });
 
   it("Should return block by hash", async () => {
@@ -181,21 +181,21 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
 
     // const selectedReferencedTransaction = (await randomGenerators.get(TxOrBlockGeneratorType.TxGeneral).next()) as DBTransactionBase;
     let transactionsQueryResult = await indexedQueryManager.queryTransactions({
-      endBlock: lastConfirmedBlock,
+      endBlockNumber: lastConfirmedBlock,
       transactionId: selectedReferencedTransaction.transactionId,
     });
     assert(transactionsQueryResult.result.length === 1, "Transaction is not returned by query");
 
     const transaction = transactionsQueryResult.result[0];
     transactionsQueryResult = await indexedQueryManager.queryTransactions({
-      startBlock: selectedReferencedTransaction.blockNumber + 1,
-      endBlock: lastConfirmedBlock,      
+      startBlockNumber: selectedReferencedTransaction.blockNumber + 1,
+      endBlockNumber: lastConfirmedBlock,      
       transactionId: selectedReferencedTransaction.transactionId,      
     });
     assert(transactionsQueryResult.result.length === 0, "Does not respect start block");
 
     transactionsQueryResult = await indexedQueryManager.queryTransactions({
-      endBlock: transaction.blockNumber - 1,
+      endBlockNumber: transaction.blockNumber - 1,
       transactionId: selectedReferencedTransaction.transactionId,
     });
     assert(transactionsQueryResult.result.length === 0, "Does not respect endBlock");
@@ -223,7 +223,7 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     assert(resp.status === 'OK', "Wrong status");
     assert(resp.transactions.length === 1, "More than one transaction");
     assert(resp.transactions[0].transactionId === selectedReferencedTransaction.transactionId, "Transaction id does not match");
-    assert(resp.lowerBoundaryBlock.blockNumber === FIRST_BLOCK, "Wrong lower boundary block number");
+    assert(resp.minimalBlock.blockNumber === FIRST_BLOCK, "Wrong lower boundary block number");
     assert(resp.firstOverflowBlock.blockNumber === deadlineBlockNumber + 2, "Wrong first overflow block number");
     assert(resp.firstOverflowBlock.timestamp === deadlineBlockTimestamp + 1, "First overflow block timestamp too small");
   });

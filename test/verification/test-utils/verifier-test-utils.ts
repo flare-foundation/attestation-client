@@ -94,7 +94,6 @@ export async function bootstrapVerifier(
    process.env.CONFIG_PATH = options.CONFIG_PATH;
    process.env.NODE_ENV = "development";
    process.env.VERIFIER_TYPE = verifierType;
-   process.env.TEST_IN_MEMORY_DB = "1";
 
    const chainType = ChainType[verifierType.toUpperCase()]
    let app: INestApplication;

@@ -13,7 +13,6 @@ const args = yargs
 
 export async function bootstrapAttestationClient(n: number, configPath?: string, testDBPath?: string) {
   process.env.NODE_ENV = "development"
-  process.env.TEST_IN_MEMORY_DB = "1";
   process.env.TEST_CREDENTIALS = "1";
   if(configPath) {
     process.env.CONFIG_PATH = configPath;

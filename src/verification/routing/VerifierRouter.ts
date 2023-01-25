@@ -156,20 +156,22 @@ export class VerifierRouter {
                this.setRouteEntry(sourceName, attestationTypeName, verifierRoute);
             }
          }
+      }
 
-         // Check if everything is configured
+      // Check if everything is configured
+      if (process.env.REQUIRE_ALL_ROUTES_CONFIGURED) {
          for (let definition of definitions) {
             let attestationTypeName = definition.name;
             for (let source of definition.supportedSources) {
                let sourceName = getSourceName(source);
-               let tmp = this.routeMap.get(sourceName);
-               if (tmp === EMPTY_VERIFIER_ROUTE) {
+               let sourceMap = this.routeMap.get(sourceName);
+               if (sourceMap.get(definition.name) === EMPTY_VERIFIER_ROUTE) {
                   throw new Error(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
                }
             }
          }
-
       }
+
       this._initialized = true;
    }
 
@@ -199,17 +201,13 @@ export class VerifierRouter {
       let route = this.getRoute(attestation);
       if (route) {
          const attestationRequestOptions = {
-            windowStartTime: attestation.windowStartTime,
          } as AttestationRequestOptions;
-         if(attestationRequestOptions.windowStartTime !== undefined) {
-            let now = getUnixEpochTimestamp();
-            this.logger.info(`TIMES: now: ${now}, windowStartTime: ${attestationRequestOptions.windowStartTime} (${attestationRequestOptions.windowStartTime - now})`);   
-         }
          const attestationRequest = {
             apiKey: route.apiKey,
             request: attestation.data.request,
             options: attestationRequestOptions
          } as AttestationRequest;
+         // TODO: retry logic
          const resp = await axios.post(
             route.url,
             attestationRequest

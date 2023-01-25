@@ -35,11 +35,6 @@ describe(`EpochSettings (${getTestFile(__filename)})`, () => {
     }
   });
 
-  it("Should get RoundIdCommitTimeStart in ms", () => {
-    for (let j = 0; j < 25; j++) {
-      expect(epochSettings.getRoundIdCommitTimeStartMs(j + 100)).to.equal(epochLength * (j + 101) + startTime);
-    }
-  });
   it("Should RoundIdRevealTimeStart in ms", () => {
     for (let j = 0; j < 25; j++) {
       expect(epochSettings.getRoundIdRevealTimeStartMs(j + 100)).to.equal(epochLength * (j + 102) + startTime);

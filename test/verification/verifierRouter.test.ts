@@ -1,4 +1,4 @@
-import { BtcTransaction, ChainType, prefix0x, XrpTransaction } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, prefix0x, sleepMs, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
@@ -64,7 +64,8 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     assert(respXRP.response.transactionHash === prefix0x(setup.XRP.selectedTransaction.transactionId), "Wrong transaction id");
 
     let respBTC = await verifierRouter.verifyAttestation(attestationBTC);
-
+    // console.log("XRP", attestationXRP.data.request, requestXRP)
+    // console.log("BTC", attestationBTC.data.request, requestBTC)
     assert(respBTC.status === "OK", "Wrong server response");
     assert(respBTC.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
   });
@@ -81,7 +82,6 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     let requestXRP = await testConfirmedBlockHeightExistsRequest(confirmationBlock, lowerQueryWindowBlock, ChainType.XRP, NUMBER_OF_CONFIRMATIONS_XRP, BLOCK_QUERY_WINDOW);
 
     const attestationXRP = prepareAttestation(requestXRP, setup.startTime);
-
     await expect(verifierRouter.verifyAttestation(attestationXRP)).to.eventually.be.rejectedWith("Invalid route.");
 
   });
@@ -102,7 +102,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     } catch (e) {
       assert(e.message.startsWith("Error: Unsupported attestation type 'ConfirmedBlockHeightExists'"), "Wrong error message");
     }
-
+    // await sleepMs(10000000)
   });
 
 });

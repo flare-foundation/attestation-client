@@ -57,7 +57,7 @@ export class DatabaseService {
 
     const migrations = process.env.NODE_ENV === "development" ? `src/migration/${this.databaseName}*.ts` : `dist/src/migration/${this.databaseName}*.js`;
 
-    if (process.env.NODE_ENV === "development" && (testDBPath || process.env.TEST_IN_MEMORY_DB || this.options.testSqlite3DBPath)) {
+    if (process.env.NODE_ENV === "development" && (testDBPath || this.options.inMemory || this.options.testSqlite3DBPath)) {
       this.isSqlite3 = true;
 
       let dbPath: string | undefined = undefined;

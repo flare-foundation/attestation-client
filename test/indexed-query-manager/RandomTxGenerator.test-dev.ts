@@ -26,7 +26,7 @@ console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
 process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "xrp"
-process.env.TEST_IN_MEMORY_DB = "1";
+process.env.TEST_CREDENTIALS = "1";
 
 describe("Indexed query manager", () => {
   let indexedQueryManager: IndexedQueryManager;

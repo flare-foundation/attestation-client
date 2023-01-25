@@ -32,21 +32,24 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
          throw new Error(`Wrong verifier type '${verifierType}'`)
    }
 
-   if(process.env.TEST_IN_MEMORY_DB && process.env.NODE_ENV === "development") {
+   const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
+
+   if (process.env.NODE_ENV === "development" && process.env.TEST_CREDENTIALS &&
+      (config.indexerDatabase.inMemory || config.indexerDatabase.testSqlite3DBPath)) {
       return {
          name: "indexerDatabase",
          type: 'better-sqlite3',
-         database: ':memory:',
+         database: config.indexerDatabase.testSqlite3DBPath ?? ":memory:",
          dropSchema: true,
          entities: entities,
          synchronize: true,
          migrationsRun: false,
          logging: false
       };
+
    }
 
    // MySQL database, get config
-   const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
    const databaseCredentials = config.indexerDatabase;
    let databaseName = databaseCredentials.database;
    let logger = getGlobalLogger(loggerLabel);

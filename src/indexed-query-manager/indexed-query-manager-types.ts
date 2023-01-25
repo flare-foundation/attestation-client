@@ -2,7 +2,6 @@ import { ChainType } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
-import { DatabaseService } from "../utils/databaseService";
 
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
@@ -21,8 +20,8 @@ export interface BlockHeightSample {
 ////////////////////////////////////////////////////////
 
 export interface TransactionQueryParams {
-  startBlock?: number;
-  endBlock?: number;
+  startBlockNumber?: number;
+  endBlockNumber?: number;
   transactionId?: string;
   paymentReference?: string;
 }
@@ -37,8 +36,8 @@ export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
 
 export interface TransactionQueryResult {
   result: DBTransactionBase[];
-  lowerQueryWindowBlock?: DBBlockBase;
-  upperQueryWindowBlock?: DBBlockBase;
+  startBlock?: DBBlockBase;
+  endBlock?: DBBlockBase;
 }
 
 export interface BlockQueryResult {
@@ -49,14 +48,14 @@ export interface BlockQueryResult {
 /// Specific query requests and responses
 ////////////////////////////////////////////////////////
 
-export type UpperBoundaryCheckStatus = "OK" | "DATA_AVAILABILITY_FAILURE" | "NO_BOUNDARY" | "SYSTEM_FAILURE";
+export type IndexerQueryStatus = "OK" | "DATA_AVAILABILITY_FAILURE" | "NO_BOUNDARY" | "SYSTEM_FAILURE";
 
 export interface ConfirmedBlockQueryRequest {
   blockNumber: number;
 }
 
 export interface ConfirmedBlockQueryResponse {
-  status: UpperBoundaryCheckStatus | "NOT_EXIST";
+  status: IndexerQueryStatus | "NOT_EXIST";
   block?: DBBlockBase;
 }
 export interface ConfirmedTransactionQueryRequest {
@@ -64,7 +63,7 @@ export interface ConfirmedTransactionQueryRequest {
 }
 
 export interface ConfirmedTransactionQueryResponse {
-  status: UpperBoundaryCheckStatus | "NOT_EXIST";
+  status: IndexerQueryStatus | "NOT_EXIST";
   transaction?: DBTransactionBase;
 }
 
@@ -76,8 +75,8 @@ export interface ReferencedTransactionsQueryRequest {
 }
 
 export interface ReferencedTransactionsQueryResponse {
-  status: UpperBoundaryCheckStatus | "NO_OVERFLOW_BLOCK";
+  status: IndexerQueryStatus | "NO_OVERFLOW_BLOCK";
   transactions?: DBTransactionBase[];
   firstOverflowBlock?: DBBlockBase;
-  lowerBoundaryBlock?: DBBlockBase;
+  minimalBlock?: DBBlockBase;
 }

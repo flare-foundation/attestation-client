@@ -1,8 +1,8 @@
+import { stringify } from "safe-stable-stringify";
 import Web3 from "web3";
 import { getTimeMilli } from "./internetTime";
 import { AttLogger, logException } from "./logger";
 import { getUnixEpochTimestamp, getWeb3Wallet, sleepms, waitFinalize3Factory } from "./utils";
-import { stringify } from "safe-stable-stringify";
 
 export const DEFAULT_GAS = "2500000";
 export const DEFAULT_GAS_PRICE = "300000000000";
@@ -12,18 +12,16 @@ export interface ExtendedReceipt {
   nonce?: number;
 }
 
+/**
+ * Helper class for signing transactions and calling specific queries on Flare blockchain. 
+ */
 export class Web3Functions {
   logger: AttLogger;
 
   web3: Web3;
   account: any;
-  provider: any;
 
   waitFinalize3: any;
-
-  nonce: number | undefined; // if undefined, we retrieve it from blockchain, otherwise we use it
-
-  //submissionQueue = new Array<()=>any>();
 
   nextIndex = 0;
   currentIndex = 0;
@@ -32,25 +30,24 @@ export class Web3Functions {
 
   constructor(logger: AttLogger, web3: Web3, privateKey: string) {
     this.logger = logger;
-
     this.web3 = web3;
-
     this.account = getWeb3Wallet(this.web3, privateKey);
-
     this.waitFinalize3 = waitFinalize3Factory(this.web3);
   }
 
-  async getNonce(): Promise<string> {
-    this.nonce = await this.web3.eth.getTransactionCount(this.account.address);
-
-    return this.nonce + ""; // string returned
+  private async getNonce(): Promise<number> {
+    // TODO: retry logic
+    let nonce = await this.web3.eth.getTransactionCount(this.account.address);
+    return parseInt(nonce + "");
   }
 
   public async getBlock(blockNumber: number): Promise<any> {
+    // TODO: retry logic
     return await this.web3.eth.getBlock(blockNumber);
   }
 
   public async getBlockNumber(): Promise<number> {
+    // TODO: retry logic
     return await this.web3.eth.getBlockNumber();
   }
 
@@ -70,23 +67,19 @@ export class Web3Functions {
     try {
       const waitIndex = this.nextIndex;
       this.nextIndex += 1;
-
       const time0 = getTimeMilli();
 
       if (waitIndex !== this.currentIndex) {
         if (!quiet) {
           this.logger.debug2(`sign ${label} wait #${waitIndex}/${this.currentIndex}`);
         }
-
         while (waitIndex !== this.currentIndex) {
           if (timeEnd) {
             if (getUnixEpochTimestamp() > timeEnd) {
               this.logger.error2(`sign ${label} timeout #${waitIndex}`);
-
               return {};
             }
           }
-
           await sleepms(100);
         }
       }
@@ -96,7 +89,6 @@ export class Web3Functions {
       }
 
       const res = await this._signAndFinalize3(label, toAddress, fnToEncode, gas, gasPrice);
-
       const time1 = getTimeMilli();
 
       if (!quiet) {
@@ -115,7 +107,7 @@ export class Web3Functions {
 
   async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any, gas: string = DEFAULT_GAS, gasPrice: string = DEFAULT_GAS_PRICE): Promise<any> {
     try {
-      const nonce = parseInt(await this.getNonce());
+      const nonce = await this.getNonce();
       const tx = {
         from: this.account.address,
         to: toAddress,
@@ -135,7 +127,6 @@ export class Web3Functions {
         } else {
           try {
             const result = await fnToEncode.call({ from: this.account.address });
-
             throw Error("unlikely to happen: " + stringify(result));
           } catch (revertReason) {
             this.logger.error2(`${label}, nonce sent: ${nonce}, revert reason: ${revertReason}`);

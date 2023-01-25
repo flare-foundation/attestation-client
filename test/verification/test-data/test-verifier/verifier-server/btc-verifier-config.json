@@ -20,7 +20,8 @@
       "port": 3337,
       "database": "indexer",
       "username": "indexReader",
-      "password": "password"
+      "password": "password",
+      "inMemory": true
    },
    "chainConfiguration":         {
       "name": "BTC",

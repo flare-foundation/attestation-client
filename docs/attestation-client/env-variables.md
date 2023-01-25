@@ -9,6 +9,7 @@
 - `CREDENTIALS_KEY` -
 - `CREDENTIALS_KEY_FILE` -
 - `LOG_LEVEL` -
+- `REQUIRE_ALL_ROUTES_CONFIGURED`
 
 ## Test environment variables
 

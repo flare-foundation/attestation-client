@@ -202,7 +202,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("Should query transaction", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        endBlock: 763380,
+        endBlockNumber: 763380,
       };
 
       let res = await indexedQueryManager.queryTransactions(transactionQueryParams);
@@ -211,7 +211,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("Should query transaction with txId", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        endBlock: 763380,
+        endBlockNumber: 763380,
 
         transactionId: "b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225",
       };
@@ -222,7 +222,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("query should not return anything", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        endBlock: 763380,
+        endBlockNumber: 763380,
         paymentReference: "b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225",
       };
 

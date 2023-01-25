@@ -1,4 +1,4 @@
-import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
+import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x, ZERO_BYTES_32 } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
@@ -238,11 +238,15 @@ export async function verifyConfirmedBlockHeightExists(
     return { status };
   }
 
-
   const dbBlock = confirmedBlockQueryResult.block;
 
   const lowerQueryWindowBlock = await iqm.getLastConfirmedBlockStrictlyBeforeTime(dbBlock.timestamp - toBN(request.queryWindow).toNumber());
 
+  if (!lowerQueryWindowBlock) {
+    return {
+      status: VerificationStatus.NON_EXISTENT_MINIMAL_BLOCK
+    }
+  }
   return await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.settings.numberOfConfirmations());
 }
 
@@ -273,9 +277,14 @@ export async function responseReferencedPaymentNonExistence(
 
   // Check transactions for a matching
   for (const dbTransaction of dbTransactions) {
-    const parsedData = JSON.parse(dbTransaction.response);
-    const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
-
+    let fullTxData;
+    try {
+      const parsedData = JSON.parse(dbTransaction.response);
+      fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
+    } catch (e) {
+      return { status: VerificationStatus.SYSTEM_FAILURE }
+    }
+  
     // In account based case this loop goes through only once.
     for (let outUtxo = 0; outUtxo < fullTxData.receivingAddresses.length; outUtxo++) {
       const address = fullTxData.receivingAddresses[outUtxo];
@@ -320,7 +329,6 @@ export async function responseReferencedPaymentNonExistence(
  * @param request attestation request
  * @param requestOptions request options
  * @param iqm IndexedQuery object for the relevant blockchain indexer
- * @param client MCC client for the relevant blockchain
  * @returns Verification response, status and attestation response
  */
 export async function verifyReferencedPaymentNonExistence(
@@ -331,6 +339,11 @@ export async function verifyReferencedPaymentNonExistence(
 ): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {
   // TODO: check if anything needs to be done with: startBlock >= overflowBlock
   // DANGER: How to handle this if there are a lot of transactions with same payment reference in the interval?
+
+  if(unPrefix0x(request.paymentReference) === unPrefix0x(ZERO_BYTES_32)) {
+    return {status: VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED}
+  }
+
   const referencedTransactionsResponse = await iqm.getReferencedTransactions({
     minimalBlockNumber: numberLikeToNumber(request.minimalBlockNumber),
     deadlineBlockNumber: numberLikeToNumber(request.deadlineBlockNumber),
@@ -346,7 +359,7 @@ export async function verifyReferencedPaymentNonExistence(
   // From here on these exist, dbTransactions can be an empty list.
   const dbTransactions = referencedTransactionsResponse.transactions;
   const firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
-  const lowerBoundaryBlock = referencedTransactionsResponse.lowerBoundaryBlock;
+  const lowerBoundaryBlock = referencedTransactionsResponse.minimalBlock;
 
   return await responseReferencedPaymentNonExistence(
     dbTransactions,

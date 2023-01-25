@@ -17,10 +17,11 @@
       "BalanceDecreasingTransaction"
    ],   
    "indexerDatabase": {
-      "port": 3337,
-      "database": "indexer",
-      "username": "indexReader",
-      "password": "another.Passw0rd!"
+      "port": 3307,
+      "database": "",
+      "username": "",
+      "password": "",
+      "inMemory": true
    },
    "chainConfiguration": {
       "name": "XRP",

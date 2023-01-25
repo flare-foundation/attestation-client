@@ -30,13 +30,15 @@
        "port": 1000,
        "database": "indexer",
        "username": "",
-       "password": ""
+       "password": "",
+       "inMemory": true
    },
    "attesterDatabase": {
        "host": "",
        "port": 1000,
        "database": "attester",
        "username": "",
-       "password": ""
+       "password": "",
+       "inMemory": true
    }
 }

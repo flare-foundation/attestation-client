@@ -58,7 +58,6 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
     process.env.NODE_ENV = "development";
     process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
-    process.env.TEST_IN_MEMORY_DB = "1";
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     process.env.TEST_CREDENTIALS = "1"
 
@@ -219,7 +218,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     } as AttestationRequest;
 
     let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
-    
+
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.status === "OK", "Status is not OK");
     assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE - 1), "Incorrect first overflow block");

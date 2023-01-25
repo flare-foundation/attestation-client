@@ -143,7 +143,7 @@ export class AttesterState {
    * @param nonce
    * @param txid
    */
-  async saveRoundCommited(roundId: number, nonce: number, txid: string) {
+  async saveRoundCommitted(roundId: number, nonce: number, txid: string) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = roundId;
@@ -164,7 +164,6 @@ export class AttesterState {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = roundId;
-
     dbRound.revealTimestamp = getUnixEpochTimestamp();
     dbRound.revealNonce = nonce;
     dbRound.revealTransactionId = txid;
@@ -179,11 +178,8 @@ export class AttesterState {
    */
   async getRound(roundId: number): Promise<DBRoundResult> {
     const dbRound = await this.entityManager.findOne(DBRoundResult, { where: { roundId: roundId } });
-
     if (dbRound) return dbRound;
-
     getGlobalLogger().warning(`state ^R#${roundId}^^ not found`);
-
     return undefined;
   }
 }

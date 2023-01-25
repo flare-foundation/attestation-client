@@ -1,4 +1,5 @@
 import BN from "bn.js";
+import { ARType } from "../generated/attestation-request-types";
 import { SourceId } from "../sources/sources";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,13 +25,14 @@ export enum VerificationStatus {
   // Error fields
   NOT_CONFIRMED = "NOT_CONFIRMED",
 
-  WRONG_DATA_AVAILABILITY_PROOF = "WRONG_DATA_AVAILABILITY_PROOF",
-
   NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",
   NON_EXISTENT_BLOCK = "NON_EXISTENT_BLOCK",
   NOT_PAYMENT = "NOT_PAYMENT",
 
+  NON_EXISTENT_MINIMAL_BLOCK = "NON_EXISTENT_MINIMAL_BLOCK",
+
   REFERENCED_TRANSACTION_EXISTS = "REFERENCED_TRANSACTION_EXISTS",
+  ZERO_PAYMENT_REFERENCE_UNSUPPORTED = "ZERO_PAYMENT_REFERENCE_UNSUPPORTED",
 
   PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR",
 }
@@ -102,6 +104,11 @@ export interface AttestationRequest {
   apiKey?: string;
   request: string;
   options?: AttestationRequestOptions;
+}
+
+export interface PrepareRequest {
+  apiKey?: string;
+  request: ARType;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
   // voting round duration in sec // DEPRECATED should be moved to monitor configs
   public roundDurationSec = 90;
 
-  public dynamicAttestationConfigurationFolder = "./configs/prod/dac/";
+  public dynamicAttestationConfigurationFolder = "./configs/dac/";
 
   // in sec
   public commitTimeSec = -10;

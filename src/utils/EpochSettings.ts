@@ -80,16 +80,9 @@ export class EpochSettings {
   }
 
   /**
-   * Gets the start time of the commit phase of the round in milliseconds
-   */
-  getRoundIdCommitTimeStartMs(id: BN | number): number {
-    return this.getRoundIdTimeStartMs(id) + this._epochPeriodMs.toNumber();
-  }
-
-  /**
    * Gets the start time of the Reveal phase of the round in milliseconds
    */
   getRoundIdRevealTimeStartMs(id: number): number {
-    return this.getRoundIdCommitTimeStartMs(id) + this._epochPeriodMs.toNumber();
+    return this.getEpochIdTimeEndMs(id) + this._epochPeriodMs.toNumber();
   }
 }

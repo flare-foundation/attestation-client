@@ -31,7 +31,7 @@ class MockFlareConnection extends FlareConnection {
 
   async initialize() { }
 
-  protected check(bnString: string) {
+  protected checkHex64(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
       this.logger.error(`invalid BN formating ${bnString}`);
     }
@@ -51,11 +51,11 @@ class MockFlareConnection extends FlareConnection {
     verbose = true
   ) {
     const roundId = bufferNumber.toNumber() - 1;
-    this.check(commitedMerkleRoot);
-    this.check(commitedMaskedMerkleRoot);
-    this.check(commitedRandom);
-    this.check(revealedMerkleRoot);
-    this.check(revealedRandom);
+    this.checkHex64(commitedMerkleRoot);
+    this.checkHex64(commitedMaskedMerkleRoot);
+    this.checkHex64(commitedRandom);
+    this.checkHex64(revealedMerkleRoot);
+    this.checkHex64(revealedRandom);
   }
 }
 

@@ -61,7 +61,7 @@ describe(`Attester client full on synthetic verifier data (${getTestFile(__filen
 
    before(async () => {
       // use in-memory databases only
-      process.env.IN_MEMORY_DB = "1";
+      process.env.TEST_IN_MEMORY_DB = "1";
       let abiPath = await relativeContractABIPathForContractName(CONTRACT_NAME, "artifacts");
       const compileData = JSON.parse(fs.readFileSync(`artifacts/${abiPath}`).toString());
       web3 = getWeb3(RPC) as Web3;

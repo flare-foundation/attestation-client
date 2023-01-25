@@ -6,6 +6,7 @@ import { AttestationRound } from "./AttestationRound";
 
 import _ from "lodash";
 import { EntityManager } from "typeorm";
+import { DatabaseService } from "../utils/databaseService";
 
 /**
  * Update or insert new state.
@@ -19,13 +20,14 @@ async function Upsert<T>(
   obj: T,
   primary_key: string,
   opts?: {
-    key_naming_transform: (k: string) => string;
-    do_not_upsert: string[];
+    key_naming_transform?: (k: string) => string;
+    do_not_upsert?: string[];
+    isSqlite3?: boolean;
   }
 ) {
-  const keys: string[] = _.difference(_.keys(obj), opts ? opts.do_not_upsert : []);
+  const keys: string[] = _.difference(_.keys(obj), opts?.do_not_upsert ?? []);
 
-  if (((process.env.IN_MEMORY_DB || process.env.TEST_DB_PATH) && process.env.NODE_ENV === "development")) {
+  if (process.env.NODE_ENV === "development" && opts?.isSqlite3) {
     // Some issues with orUpdate on better-sqlite3
     await entityManager.getRepository(DBRoundResult).save(obj);
   } else {
@@ -45,16 +47,20 @@ async function Upsert<T>(
  */
 export class AttesterState {
 
-  entityManager: EntityManager;
+  databaseService: DatabaseService;
 
-  constructor(entityManager: EntityManager) {
-    this.entityManager = entityManager;
+  constructor(databaseService: DatabaseService) {
+    this.databaseService = databaseService;
+  }
+
+  get entityManager(): EntityManager {
+    return this.databaseService.manager;
   }
 
   private async saveOrUpdateRound(dbRound: DBRoundResult) {
     await retry(`saveOrUpdateRound #${dbRound.roundId}`, async () => {
       try {
-        await Upsert(this.entityManager, dbRound, "roundId");
+        await Upsert(this.entityManager, dbRound, "roundId", { isSqlite3: this.databaseService.isSqlite3 });
         //await transaction.save( DBRoundResult, dbRound );
       } catch (error) {
         logException(error, `saveOrUpdateRound.save(${dbRound.roundId})`);
@@ -88,7 +94,7 @@ export class AttesterState {
    */
   async saveRoundComment(round: AttestationRound, validTransactionCount = 0) {
     const dbRound = new DBRoundResult();
-    
+
     dbRound.roundId = round.roundId;
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
@@ -114,22 +120,22 @@ export class AttesterState {
     await this.saveOrUpdateRound(dbRound);
   }
 
-    /**
-   * Stores bit voting result
-   * @param roundId
-   * @param nonce
-   * @param txid
-   */
-    async saveRoundBitVoteResult(roundId: number, bitVoteResult: string) {
-      const dbRound = new DBRoundResult();
-  
-      dbRound.roundId = roundId;
-      dbRound.bitVoteResultTimestamp = getUnixEpochTimestamp();
-      dbRound.bitVoteResult = bitVoteResult;
-  
-      await this.saveOrUpdateRound(dbRound);
-    }
-  
+  /**
+ * Stores bit voting result
+ * @param roundId
+ * @param nonce
+ * @param txid
+ */
+  async saveRoundBitVoteResult(roundId: number, bitVoteResult: string) {
+    const dbRound = new DBRoundResult();
+
+    dbRound.roundId = roundId;
+    dbRound.bitVoteResultTimestamp = getUnixEpochTimestamp();
+    dbRound.bitVoteResult = bitVoteResult;
+
+    await this.saveOrUpdateRound(dbRound);
+  }
+
 
   /**
    * Stores partial attestation round data (on commit)

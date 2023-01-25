@@ -18,6 +18,8 @@ export class DatabaseConnectOptions {
   @optional() entities = undefined;
   @optional() migrations = [];
   @optional() subscribers = [];
+  @optional() inMemory = false;
+  @optional() testSqlite3DBPath: string | undefined = undefined;
 }
 
 /**
@@ -32,7 +34,15 @@ export class DatabaseService {
 
   private options: DatabaseConnectOptions;
 
-  public constructor(logger: AttLogger, options: DatabaseConnectOptions, databaseName = "", connectionName = "", isTestDB: boolean = false) {
+  isSqlite3 = false;
+
+  public constructor(
+    logger: AttLogger,
+    options: DatabaseConnectOptions,
+    databaseName = "",
+    connectionName = "",
+    testDBPath: boolean | string = false  // if boolean, then in-memory better-sqlite3 DB is used. If string then it is considered as a path to .db file. Can be used only for testing.
+  ) {
     this.logger = logger;
 
     this.databaseName = databaseName;
@@ -47,11 +57,19 @@ export class DatabaseService {
 
     const migrations = process.env.NODE_ENV === "development" ? `src/migration/${this.databaseName}*.ts` : `dist/src/migration/${this.databaseName}*.js`;
 
-    if (isTestDB || ((process.env.IN_MEMORY_DB || process.env.TEST_DB_PATH) && process.env.NODE_ENV === "development")) {
+    if (process.env.NODE_ENV === "development" && (testDBPath || process.env.TEST_IN_MEMORY_DB || this.options.testSqlite3DBPath)) {
+      this.isSqlite3 = true;
+
+      let dbPath: string | undefined = undefined;
+      if(testDBPath && typeof testDBPath === "string") {
+        dbPath = testDBPath;
+      } else if(this.options.testSqlite3DBPath) {
+        dbPath = this.options.testSqlite3DBPath;
+      }
       let connectOptions = {
         name: this.connectionName,
         type: "better-sqlite3",
-        database: process.env.TEST_DB_PATH ?? ":memory:",
+        database: dbPath ?? ":memory:",
         dropSchema: true,
         entities: this.options.entities ?? [entities],
         synchronize: true,

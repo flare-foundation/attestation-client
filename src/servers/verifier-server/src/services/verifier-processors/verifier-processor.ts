@@ -9,7 +9,7 @@ export abstract class VerifierProcessor {
   public abstract supportedSource(): string;
 
   public assertIsSupported(attestationRequest: AttestationRequest) {
-    if (process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST) {
+    if (process.env.NODE_ENV === "development" && process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST) {
       return;
     }
     let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest.request);

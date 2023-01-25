@@ -112,7 +112,7 @@ export class AttestationRoundManager {
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
     this.startRoundId = this.activeRoundId;
 
-    this.state = new AttesterState(this.dbServiceAttester.manager);
+    this.state = new AttesterState(this.dbServiceAttester);
 
     // eslint-disable-next-line    
     this.startRoundUpdate();

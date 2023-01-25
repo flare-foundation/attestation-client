@@ -2,6 +2,7 @@ import { execSync } from "child_process";
 import { exit } from "process";
 import { initializeJSONsecure, readFileSecure } from "../utils/jsonSecure";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
+import { sleepms } from "../utils/utils";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
@@ -14,20 +15,51 @@ async function run() {
 
     const { exec } = require("child_process");
 
+    // wait for database
+    let connected = false;
+    for(let retry=0; retry<60; retry++)
+    {
+        try {
+            const command = `mysql -h database -u root -p${process.env.MYSQL_ROOT_PASSWORD} -e ";"`;
+
+            getGlobalLogger().debug(command);
+
+            execSync(command, { windowsHide: true, encoding: "buffer" });
+
+            connected = true;
+
+            break;
+        }
+        catch (error) { 
+            getGlobalLogger().exception(error);
+        }
+
+        await sleepms( 1000 );
+    }
+
+    if( !connected )
+    {
+        getGlobalLogger().error( `unable to connect to database`);
+        return;
+    }
+
+
     for (var line of installLines) {
         try {
-            const command = `sudo mysql -e "${line}"`;
+            const command = `mysql -h database -u root -p${process.env.MYSQL_ROOT_PASSWORD} -e "${line}"`;
 
             getGlobalLogger().debug(command);
 
             execSync(command, { windowsHide: true, encoding: "buffer" });
         }
-        catch (error) { }
+        catch (error) { 
+
+        }
     }
 
     for (var line of updateLines) {
         try {
-            const command = `sudo mysql -e "${line}"`;
+            const command = `mysql -h database -u root -p${process.env.MYSQL_ROOT_PASSWORD} -e "${line}"`;
 
             getGlobalLogger().debug(command);
             execSync(command, { windowsHide: true, encoding: "buffer" });

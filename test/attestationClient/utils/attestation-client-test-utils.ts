@@ -13,7 +13,7 @@ import { AttLogger } from "../../../src/utils/logger";
 
 // CONFIG_PATH should be set correctly
 export async function bootstrapAttestationClient(n: number): Promise<AttesterClient> {
-   process.env.IN_MEMORY_DB = "1";
+   process.env.TEST_IN_MEMORY_DB = "1";
    // Reading configuration
    const config = await readSecureConfig(new AttestationClientConfig(), `attester_${n}`);
 

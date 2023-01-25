@@ -138,18 +138,18 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     await selfAssignAttestationProviders(getGlobalLogger(), stateConnector, web3, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));
 
 
-    if (TEST_MODE === "offset") {
-      let ADDITIONAL_OFFSET_S = Math.floor(ADDITIONAL_OFFSET_PCT * bufferWindowDurationSec);
-      let now = Math.floor(Date.now() / 1000);
-      let nextBufferNumber = Math.ceil((now - bufferTimestampOffsetSec) / bufferWindowDurationSec) + 1; // add one more bufferWindow
-      startTime = bufferTimestampOffsetSec + nextBufferNumber * bufferWindowDurationSec;
-      let offset = startTime - now + ADDITIONAL_OFFSET_S;
-      process.env.TEST_OFFSET_TIME = '' + offset;
-      let lastBlockBefore = await web3.eth.getBlock(await web3.eth.getBlockNumber());
-      await increaseTo(web3, startTime);
-      let lastBlock = await web3.eth.getBlock(await web3.eth.getBlockNumber());
-      console.log(`Moving for offset ${offset}: blockNumber: ${lastBlockBefore.number} -> ${lastBlock.number}, timestamp: ${lastBlockBefore.timestamp} -> ${lastBlock.timestamp} `);
-    }
+    // if (TEST_MODE === "offset") {
+    //   let ADDITIONAL_OFFSET_S = Math.floor(ADDITIONAL_OFFSET_PCT * bufferWindowDurationSec);
+    //   let now = Math.floor(Date.now() / 1000);
+    //   let nextBufferNumber = Math.ceil((now - bufferTimestampOffsetSec) / bufferWindowDurationSec) + 1; // add one more bufferWindow
+    //   startTime = bufferTimestampOffsetSec + nextBufferNumber * bufferWindowDurationSec;
+    //   let offset = startTime - now + ADDITIONAL_OFFSET_S;
+    //   process.env.TEST_OFFSET_TIME = '' + offset;
+    //   let lastBlockBefore = await web3.eth.getBlock(await web3.eth.getBlockNumber());
+    //   await increaseTo(web3, startTime);
+    //   let lastBlock = await web3.eth.getBlock(await web3.eth.getBlockNumber());
+    //   console.log(`Moving for offset ${offset}: blockNumber: ${lastBlockBefore.number} -> ${lastBlock.number}, timestamp: ${lastBlockBefore.timestamp} -> ${lastBlock.timestamp} `);
+    // }
 
 
     // Spammer wallet

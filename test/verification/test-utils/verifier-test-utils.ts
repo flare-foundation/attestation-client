@@ -44,7 +44,7 @@ export interface VerifierTestSetups {
 };
 
 export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, initTestLogger = true) {
-   delete process.env.IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
+   delete process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
    if (initTestLogger) {
       initializeTestGlobalLogger();
    }
@@ -94,7 +94,7 @@ export async function bootstrapVerifier(
    process.env.CONFIG_PATH = options.CONFIG_PATH;
    process.env.NODE_ENV = "development";
    process.env.VERIFIER_TYPE = verifierType;
-   process.env.IN_MEMORY_DB = "1";
+   process.env.TEST_IN_MEMORY_DB = "1";
 
    const chainType = ChainType[verifierType.toUpperCase()]
    let app: INestApplication;

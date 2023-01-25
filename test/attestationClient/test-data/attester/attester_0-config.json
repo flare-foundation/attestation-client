@@ -37,6 +37,7 @@
        "port": 1000,
        "database": "attester",
        "username": "",
-       "password": ""
+       "password": "",
+       "inMemory": true
    }
 }

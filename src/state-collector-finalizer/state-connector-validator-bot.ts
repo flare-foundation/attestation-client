@@ -214,7 +214,7 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
       const signed = await botWallet.signTransaction(tx);
       const rec = await web3.eth.sendSignedTransaction(signed.rawTransaction);
     } catch (e) {
-      console.log("Unsuccessfully round finalization");
+      console.log("Unsuccessful round finalization");
       console.log(e);
     }
 

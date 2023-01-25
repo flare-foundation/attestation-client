@@ -16,7 +16,7 @@ export class AttesterClient {
   logger: AttLogger;
   attestationRoundManager: AttestationRoundManager;
   flareConnection: FlareConnection;
-  blockCollector!: FlareDataCollector;
+  flareDataCollector!: FlareDataCollector;
 
   constructor(config: AttestationClientConfig, logger?: AttLogger) {
     if (logger) {
@@ -64,12 +64,16 @@ export class AttesterClient {
   }
 
 
+  /**
+   * Callback for notification from data collector that a new block has been detected on (Flare) chain
+   * @param block 
+   */
   public async onNextBlockCapture(block: any) {
       this.attestationRoundManager.onLastFlareNetworkTimestamp(block.timestamp);
   }
 
   /**
-   * Processes network event - this function is triggering updates.
+   * Processes flare network event - this function is triggering updates.
    * @param event 
    */
   public async onEventCapture(event: any) {
@@ -87,21 +91,20 @@ export class AttesterClient {
     }
 
     try {
-      // handle submit attestation event 
+      // handle bit vote event 
       if (event.event === "BitVote") {
         const bitVoteEvent = new BitVoteData(event);
 
         this.logger.info(`Bit vote data ${bitVoteEvent.data}`);
 
         this.attestationRoundManager.onBitVoteEvent(bitVoteEvent);
-        // TODO save events in Attestation Round
       }
     } catch (error) {
       logException(error, `processEvent(BitVote)`);
     }
 
     try {
-      // handle Round Finalization
+      // handle round finalization event
       if (event.event === "RoundFinalised") {
         const roundId = event.returnValues.roundId;
         const merkleRoot = event.returnValues.merkleRoot;
@@ -157,12 +160,12 @@ export class AttesterClient {
     const startBlock = await this.getBlockBeforeTime(startRoundTime);
 
     // connect to network block callback
-    this.blockCollector = new FlareDataCollector(
+    this.flareDataCollector = new FlareDataCollector(
       this,
       startBlock,
       this.config.web.refreshEventsMs
     );
 
-    await this.blockCollector.startCollectingBlocksAndEvents();
+    await this.flareDataCollector.startCollectingBlocksAndEvents();
   }
 }

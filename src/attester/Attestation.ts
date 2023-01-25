@@ -19,22 +19,35 @@ export interface EventProcessed {
 }
 
 /**
- * Attestation class for Attestation providers to attest validity or a request.
- * Validity of the attestation is given by verificationData that is provided using {@link SourceManager}
+ * Attestation class is class holding the state of an attestation throughout whole life-cycle, which includes:
+ * - reading attestation request event data into the class, thus initializing
+ * - scheduling it to the correct voting round
+ * - various statuses and results obtained during verification and submission.
+ * 
+ * Attestation request events are obtained by {@link AttesterClient}, passed to {@link AttestationRoundManager} and further to 
+ * {@link AttestationRound} for a specific voting round, where a list of all attestation round in the sequence of appearance is kept and processed (passed to verifiers, responses checked, etc.)
  */
 @Managed()
 export class Attestation {
-  round: AttestationRound;
-
-  status: AttestationStatus = AttestationStatus.invalid;
-
-  processStartTime = 0;
-  processEndTime = 0;
-
   // Data about event of attestation request
   data: AttestationData;
+  // sequential index in attestation round. -1 if not defined.
+  index: number = -1;
+  // if the attestation is chosen by bit voting in the 'choose' phase
+  chosen: boolean = false;
 
+  // the voting round of the attestation
+  round: AttestationRound;
+
+  // validation result
+  status: AttestationStatus = AttestationStatus.invalid;
+
+  // verification result
   verificationData!: Verification<any, any>;
+
+  // processing stats
+  processStartTime = 0;
+  processEndTime = 0;
 
   // how many time was attestation retried
   retry = 0;
@@ -42,13 +55,7 @@ export class Attestation {
   exception: any;
 
   // Cut-off times set by attestation client
-  // Set when passed to the relevant SourceManager
   windowStartTime: number = 0;
-
-  // sequential index in attestation round. -1 if not defined.
-  index: number = -1;
-  // if the attestation is chosen by bitvote
-  chosen: boolean = false;
 
   constructor(round: AttestationRound, data: AttestationData) {
     this.round = round;
@@ -58,8 +65,9 @@ export class Attestation {
   public setIndex(index: number) {
     this.index = index;
   }
+
   /**
-   *  Round in which attestation in considered
+   *  Round in which the attestation is considered
    */
   public get roundId() {
     if (this._testRoundId == null) {
@@ -68,6 +76,9 @@ export class Attestation {
     return this._testRoundId;
   }
 
+  /**
+   * Returns source limiter for 
+   */
   public get sourceLimiter() {
     return this.round.getSourceLimiter(this.data);
   }

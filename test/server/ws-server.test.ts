@@ -2,7 +2,7 @@
 process.env.CONFIG_PATH = ".secure.dev";
 process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "xrp";
-process.env.IN_MEMORY_DB = "1";
+process.env.TEST_IN_MEMORY_DB = "1";
 
 import { sleepMs } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";

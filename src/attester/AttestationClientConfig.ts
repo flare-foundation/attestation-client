@@ -3,7 +3,7 @@ import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
 
 /**
- * Class that stores configuration of an attestation client
+ * Blockchain connection configuration class for an attestation client
  */
 export class AttesterWebOptions {
   public accountPrivateKey = "";
@@ -38,15 +38,15 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
 
 
   public web = new AttesterWebOptions();
-  // public attesterDatabase = new DatabaseConnectOptions();
-  // public indexerDatabase = new DatabaseConnectOptions();
   public attesterDatabase = new DatabaseConnectOptions();
+
   // DEPRECATED should be moved to monitor configs
   public indexerDatabase = new DatabaseConnectOptions();
 
   instanciate() {
     return new AttestationClientConfig();
   }
+  
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }

@@ -585,7 +585,7 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "AC integration test",
+            "name": "AC e2e test",
             "runtimeExecutable": "yarn",
             "outFiles": [
                 "${workspaceFolder}/**/*.js",

@@ -201,7 +201,6 @@ export class VerifierRouter {
          const attestationRequestOptions = {
          } as AttestationRequestOptions;
          const attestationRequest = {
-            apiKey: route.apiKey,
             request: attestation.data.request,
             options: attestationRequestOptions
          } as AttestationRequest;

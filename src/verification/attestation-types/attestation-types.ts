@@ -101,7 +101,6 @@ export interface AttestationRequestOptions {
 }
 
 export interface AttestationRequest {
-  apiKey?: string;
   request: string;
   options?: AttestationRequestOptions;
 }

@@ -1,17 +1,20 @@
 // This should always be on the top of the file, before imports
+import axios from "axios";
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { getUnixEpochTimestamp } from "../../src/utils/utils";
 import { AttestationRequest } from "../../src/verification/attestation-types/attestation-types";
 
 chai.use(chaiAsPromised);
 
-const axios = require("axios");
-
-async function sendToVerifier(url: string, attestationRequest: AttestationRequest) {
+async function sendToVerifier(url: string, attestationRequest: AttestationRequest, apiKey: string) {
   const resp = await axios.post(
     url,
-    attestationRequest
+    attestationRequest,
+    {
+      headers: {
+        "x-api-key": apiKey
+      }
+    }
   );
   return resp.data;
 }
@@ -29,17 +32,13 @@ describe(`Test request`, () => {
     let port = 9500;
     const URL = `http://localhost:${port}/query`
     let request = "0x000200000000000000000000002f5e45a195844c4f53ebfcadd6d2b86eaea254143aa03c8a160e894916fc498c1b480b83452b91fa50281bc843f82dc7b1573e58ad19554fe200";
-    let roundId = 396106;
-    let now = getUnixEpochTimestamp();
-    let startTime = now - 3600*5;
     let attestationRequest = {
-      apiKey: "123456",
       request,
       options: {
       }
     } as AttestationRequest;
 
-    let resp = await sendToVerifier(URL, attestationRequest);
+    let resp = await sendToVerifier(URL, attestationRequest, "123456");
     console.log(resp)
 
   });

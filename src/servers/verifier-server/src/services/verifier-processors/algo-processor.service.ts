@@ -38,7 +38,6 @@ export class AlgoProcessorService extends VerifierProcessor {
     let response = await verifyALGO(
       this.client,
       attestationRequest.request,
-      attestationRequest.options || {},
       this.indexedQueryManager
     );
     return hexlifyBN(response);

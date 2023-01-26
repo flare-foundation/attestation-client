@@ -121,7 +121,7 @@ describe.skip("Attestation Client", () => {
 
     const attestation = new AttestationData(mockEvent);
 
-    await attestationRoundManager.attestate(attestation);
+    await attestationRoundManager.onAttestationRequest(attestation);
 
     expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
   });

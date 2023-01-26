@@ -34,16 +34,16 @@ export class SourceRouter {
       const sourceId = toSourceId(sourceName);
       let sourceManager = this.sourceManagers.get(sourceId);
       if (sourceManager) {
-        sourceManager.setConfig(sourceId, roundId);
+        sourceManager.refreshVerifierSourceConfig(roundId);
         continue;
       }
 
       // create new source manager
-      sourceManager = new SourceManager(this.attestationRoundManager);
-      sourceManager.setConfig(sourceId, roundId);
+      sourceManager = new SourceManager(this.attestationRoundManager, sourceId);
+      sourceManager.refreshVerifierSourceConfig(roundId);
       this.addSourceManager(sourceId, sourceManager);
     }
-    
+
     // todo: minimal memory optimization would be to delete obsolete source managers.
   }
 
@@ -60,7 +60,7 @@ export class SourceRouter {
    * @param attestation 
    * @returns 
    */
-  validateAttestation(attestation: Attestation) {
+  validateAttestationRequest(attestation: Attestation) {
     let sourceId = attestation.data.sourceId;
     const sourceManager = this.sourceManagers.get(sourceId);
 
@@ -70,6 +70,6 @@ export class SourceRouter {
       return MOCK_NULL_WHEN_TESTING;
     }
 
-    return sourceManager.validate(attestation);
+    return sourceManager.validateAttestationRequest(attestation);
   }
 }

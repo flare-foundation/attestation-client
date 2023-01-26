@@ -38,7 +38,6 @@ export class LTCProcessorService extends VerifierProcessor {
     let response = await verifyLTC(
       this.client,
       attestationRequest.request,
-      attestationRequest.options || {},
       this.indexedQueryManager
     );
     return hexlifyBN(response);

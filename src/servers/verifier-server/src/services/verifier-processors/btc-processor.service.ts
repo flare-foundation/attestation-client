@@ -39,7 +39,6 @@ export class BTCProcessorService extends VerifierProcessor{
     let response = await verifyBTC(
       this.client,
       attestationRequest.request,
-      attestationRequest.options || {},
       this.indexedQueryManager
     );
     return hexlifyBN(response);

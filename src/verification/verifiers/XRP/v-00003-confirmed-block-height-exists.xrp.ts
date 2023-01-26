@@ -8,7 +8,6 @@
 
 import {
   ARConfirmedBlockHeightExists,
-  AttestationRequestOptions,
   BN,
   DHConfirmedBlockHeightExists,
   hashConfirmedBlockHeightExists,
@@ -27,14 +26,13 @@ const web3 = new Web3();
 export async function verifyConfirmedBlockHeightExistsXRP(
   client: MCC.XRP,
   attestationRequest: string,
-  attestationRequestOptions: AttestationRequestOptions,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>> {
   const request = parseRequest(attestationRequest) as ARConfirmedBlockHeightExists;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyConfirmedBlockHeightExists(request, attestationRequestOptions, indexer);
+  const result = await verifyConfirmedBlockHeightExists(request, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

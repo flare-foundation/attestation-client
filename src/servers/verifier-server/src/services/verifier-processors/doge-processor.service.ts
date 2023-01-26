@@ -39,7 +39,6 @@ export class DOGEProcessorService extends VerifierProcessor {
     let response = await verifyDOGE(
       this.client,
       attestationRequest.request,
-      attestationRequest.options || {},
       this.indexedQueryManager
     );
     return hexlifyBN(response);

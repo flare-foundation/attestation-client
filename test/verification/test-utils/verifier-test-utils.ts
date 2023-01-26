@@ -61,7 +61,7 @@ export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, 
    if (initTestLogger) {
       initializeTestGlobalLogger();
    }
-   const logger = getGlobalLogger("web");
+   const logger = getGlobalLogger("verifiers");
 
    if (!fs.existsSync(TEST_DB_DIR)) {
       fs.mkdirSync(TEST_DB_DIR, { recursive: true });
@@ -179,6 +179,5 @@ export function prepareAttestation(request: ARType, startTime: number): Attestat
    data.sourceId = request.sourceId;
    data.request = encodeRequest(request);
    const attestation = new Attestation(undefined, data);
-   // attestation.windowStartTime = startTime + 1;
    return attestation;
 }

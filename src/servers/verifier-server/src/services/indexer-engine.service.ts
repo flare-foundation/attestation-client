@@ -1,19 +1,17 @@
-import { ChainType, MCC } from '@flarenetwork/mcc';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { DBBlockBase } from '../../../../entity/indexer/dbBlock';
 import { DBState } from '../../../../entity/indexer/dbState';
 import { DBTransactionBase } from '../../../../entity/indexer/dbTransaction';
-import { prepareIndexerTables } from '../../../../indexer/indexer-utils';
 import { BlockRange } from '../dtos/BlockRange.dto';
-import { IndexerServerConfigurationService } from './indexer-server-configuration.service';
+import { VerifierConfigurationService } from './verifier-configuration.service';
 
 @Injectable()
 export class IndexerEngineService {
 
   constructor(
-    @Inject("SERVER_CONFIG") private configService: IndexerServerConfigurationService,
+    @Inject("VERIFIER_CONFIG") private configService: VerifierConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
   ) { }
 
@@ -25,14 +23,9 @@ export class IndexerEngineService {
     return res;
   }
 
-  public async getBlockRange(chain: string): Promise<BlockRange | null> {
-    let chainType = MCC.getChainType(chain);
-    if (chainType === ChainType.invalid) {
-      throw new Error(`Unsupported chain '${chain}'`);
-    }
+  public async getBlockRange(): Promise<BlockRange | null> {
     let results: any[] = [];
-    let { transactionTable } = prepareIndexerTables(chainType);
-    for (let table of transactionTable) {
+    for (let table of this.configService.transactionTable) {
       let maxQuery = this.manager
         .createQueryBuilder(table as any, "transaction")
         .select("MAX(transaction.blockNumber)", "max")
@@ -51,14 +44,9 @@ export class IndexerEngineService {
     return null;
   }
 
-  public async getBlockTransactions(chain: string, blockNumber: number): Promise<DBTransactionBase[]> {
-    let chainType = MCC.getChainType(chain);
-    if (chainType === ChainType.invalid) {
-      throw new Error(`Unsupported chain '${chain}'`);
-    }
+  public async getBlockTransactions(blockNumber: number): Promise<DBTransactionBase[]> {
     let results: any[] = [];
-    let { transactionTable } = prepareIndexerTables(chainType);
-    for (let table of transactionTable) {
+    for (let table of this.configService.transactionTable) {
       let query = this.manager
         .createQueryBuilder(table as any, "transaction")
         .andWhere("transaction.blockNumber = :blockNumber", { blockNumber });
@@ -72,14 +60,9 @@ export class IndexerEngineService {
     }) as DBTransactionBase[];
   }
 
-  public async getTransaction(chain: string, txHash: string): Promise<DBTransactionBase> | null {
-    let chainType = MCC.getChainType(chain);
-    if (chainType === ChainType.invalid) {
-      throw new Error(`Unsupported chain '${chain}'`);
-    }
+  public async getTransaction(txHash: string): Promise<DBTransactionBase> | null {
     let results: any[] = [];
-    let { transactionTable } = prepareIndexerTables(chainType);
-    for (let table of transactionTable) {
+    for (let table of this.configService.transactionTable) {
       let query = this.manager
         .createQueryBuilder(table as any, "transaction")
         .andWhere("transaction.transactionId = :txHash", { txHash });
@@ -96,40 +79,25 @@ export class IndexerEngineService {
     return null;
   }
 
-  public async getBlock(chain: string, blockHash: string): Promise<DBBlockBase> {
-    let chainType = MCC.getChainType(chain);
-    if (chainType === ChainType.invalid) {
-      throw new Error(`Unsupported chain '${chain}'`);
-    }
-    let { blockTable } = prepareIndexerTables(chainType);
+  public async getBlock(blockHash: string): Promise<DBBlockBase> {
     let query = this.manager
-      .createQueryBuilder(blockTable as any, "block")
+      .createQueryBuilder(this.configService.blockTable as any, "block")
       .andWhere("block.blockHash = :blockHash", { blockHash });
     let result = await query.getOne() as DBBlockBase;
     return result;
   }
 
-  public async getBlockAt(chain: string, blockNumber: number): Promise<DBBlockBase> {
-    let chainType = MCC.getChainType(chain);
-    if (chainType === ChainType.invalid) {
-      throw new Error(`Unsupported chain '${chain}'`);
-    }
-    let { blockTable } = prepareIndexerTables(chainType);
+  public async getBlockAt(blockNumber: number): Promise<DBBlockBase> {
     let query = this.manager
-      .createQueryBuilder(blockTable as any, "block")
+      .createQueryBuilder(this.configService.blockTable as any, "block")
       .andWhere("block.blockNumber = :blockNumber", { blockNumber });
     let result = await query.getOne() as DBBlockBase;
     return result;
   }
 
-  public async getBlockHeight(chain: string): Promise<number> | null {
-    let chainType = MCC.getChainType(chain);
-    if (chainType === ChainType.invalid) {
-      throw new Error(`Unsupported chain '${chain}'`);
-    }
-    let { blockTable } = prepareIndexerTables(chainType);
+  public async getBlockHeight(): Promise<number> | null {
     let query = this.manager
-      .createQueryBuilder(blockTable as any, "block")
+      .createQueryBuilder(this.configService.blockTable as any, "block")
       .orderBy("block.blockNumber", "DESC")
       .limit(1);
     let result = await query.getOne() as DBBlockBase;
@@ -139,27 +107,18 @@ export class IndexerEngineService {
     return null;
   }
 
-  public async getTransactionBlock(chain: string, txHash: string): Promise<DBBlockBase> | null {
-    let chainType = MCC.getChainType(chain)
-    if (chainType === ChainType.invalid) {
-      throw new Error(`Unsupported chain '${chain}'`)
-    }
-    const tx = await this.getTransaction(chain, txHash);
+  public async getTransactionBlock(txHash: string): Promise<DBBlockBase> | null {
+    const tx = await this.getTransaction(txHash);
     if (tx) {
-        const block = await this.getBlockAt(chain, tx.blockNumber);
+        const block = await this.getBlockAt(tx.blockNumber);
         return block;
       }
       return null;
     }
 
-    public async getTransactionsWithPaymentReference(chain: string, reference: string): Promise<DBTransactionBase[]> {
-      let chainType = MCC.getChainType(chain);
-      if (chainType === ChainType.invalid) {
-        throw new Error(`Unsupported chain '${chain}'`);
-      }
+    public async getTransactionsWithPaymentReference(reference: string): Promise<DBTransactionBase[]> {
       let results: any[] = [];
-      let { transactionTable } = prepareIndexerTables(chainType);
-      for (let table of transactionTable) {
+      for (let table of this.configService.transactionTable) {
         let query = this.manager
           .createQueryBuilder(table as any, "transaction")
           .andWhere("transaction.paymentReference = :reference", { reference });
@@ -174,14 +133,9 @@ export class IndexerEngineService {
     }
 
 
-    public async transactionsWithinTimestampRange(chain: string, from: number, to: number): Promise<DBTransactionBase[]> {
-      let chainType = MCC.getChainType(chain);
-      if (chainType === ChainType.invalid) {
-        throw new Error(`Unsupported chain '${chain}'`);
-      }
+    public async transactionsWithinTimestampRange(from: number, to: number): Promise<DBTransactionBase[]> {
       let results: any[] = [];
-      let { transactionTable } = prepareIndexerTables(chainType);
-      for (let table of transactionTable) {
+      for (let table of this.configService.transactionTable) {
         let query = this.manager
           .createQueryBuilder(table as any, "transaction")
           .andWhere("transaction.timestamp >= :from", { from })
@@ -196,14 +150,9 @@ export class IndexerEngineService {
       }) as DBTransactionBase[];
     }
 
-    public async blocksWithinTimestampRange(chain: string, from: number, to: number): Promise<DBBlockBase[]> {
-      let chainType = MCC.getChainType(chain);
-      if (chainType === ChainType.invalid) {
-        throw new Error(`Unsupported chain '${chain}'`);
-      }
-      let { blockTable } = prepareIndexerTables(chainType);
+    public async blocksWithinTimestampRange(from: number, to: number): Promise<DBBlockBase[]> {
       let query = this.manager
-        .createQueryBuilder(blockTable as any, "block")
+        .createQueryBuilder(this.configService.blockTable as any, "block")
         .andWhere("block.timestamp >= :from", { from })
         .andWhere("block.timestamp < :to", { to });
       let result = await query.getMany() as DBBlockBase[];

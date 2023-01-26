@@ -169,7 +169,7 @@ export class AttestationRound {
    * Calculates the bit voting result for the round.
    * The result is valid if we are sure that all votes are registered.
    */
-  private bitVotingResultIndices(verbose = true): number[] {
+  private bitVotingResult(verbose = true): BitmaskAccumulator | undefined {
     let votes = []
     for (let address of this.defaultSetAddresses) {
       votes.push(this.bitVoteMap.get(address) ?? "0x00");
@@ -180,7 +180,7 @@ export class AttestationRound {
 
     if (bitmask.hasActiveBitsBeyond(this.attestations.length)) {
       this.logger.error(`${this.label}Local and all indices do not match. Critical error!`);
-      return [];
+      return undefined;
     }
     if (verbose) {
       this.logger.info(`${this.label}Bit voting results`)
@@ -190,7 +190,7 @@ export class AttestationRound {
       }
       this.logger.info(`${this.label}-RESULT[${this.activeGlobalConfig.consensusSubsetSize}] - ${bitmask.toBitString()}`);
     }
-    return bitmask.toIndices(this.attestations.length);
+    return bitmask;
   }
 
   /**
@@ -214,10 +214,11 @@ export class AttestationRound {
       return;
     }
 
-    const votingResult = this.bitVotingResultIndices();
+    const votingResult = this.bitVotingResult();
+    const votingResultIndices = votingResult ? votingResult.toIndices(this.attestations.length) : [];
     let countRequired = 0;
     let isError = false;
-    for (let i of votingResult) {
+    for (let i of votingResultIndices) {
       if (!this.attestations[i]) {
         this.logger.error(`${this.label}Bit vote indices do not match the number of attestations in round ${this.roundId}: index ${i}, attestations length ${this.attestations.length}.`);
         isError = true;
@@ -232,10 +233,15 @@ export class AttestationRound {
     if (isError) {
       this.bitVoteResultIndices = [];
     } else {
-      this.bitVoteResultIndices = votingResult;
+      this.bitVoteResultIndices = votingResultIndices;
     }
     this.attestStatus = AttestationRoundStatus.chosen;
 
+    // eslint-disable-next-line
+    criticalAsync("", async () => {
+      await this.attestationRoundManager.state.saveRoundBitVoteResult(this.roundId, votingResult.toHex());
+    })
+    
   }
 
   // /**

@@ -35,11 +35,11 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
    const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
 
    if (process.env.NODE_ENV === "development" && process.env.TEST_CREDENTIALS &&
-      (config.indexerDatabase.inMemory || config.indexerDatabase.testSqlite3DBPath)) {
+      (config.indexerDatabase.inMemory || config.indexerDatabase.testSqlite3DBPath !== "")) {
       return {
          name: "indexerDatabase",
          type: 'better-sqlite3',
-         database: config.indexerDatabase.testSqlite3DBPath ?? ":memory:",
+         database: config.indexerDatabase.testSqlite3DBPath !== "" ? config.indexerDatabase.testSqlite3DBPath : ":memory:",
          dropSchema: true,
          entities: entities,
          synchronize: true,

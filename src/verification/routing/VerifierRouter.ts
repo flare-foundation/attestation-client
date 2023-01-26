@@ -1,17 +1,15 @@
+import axios from "axios";
 import { Attestation } from "../../attester/Attestation";
 import { ApiResponse } from "../../servers/common/src";
 import { readSecureConfig } from "../../utils/configSecure";
-import { getUnixEpochTimestamp } from "../../utils/utils";
-import { AttestationRequest, AttestationRequestOptions, Verification } from "../attestation-types/attestation-types";
 import { AttLogger, getGlobalLogger } from "../../utils/logger";
+import { AttestationRequest, AttestationRequestOptions, Verification } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
 import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
 import { getSourceName, SourceId } from "../sources/sources";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
-
-const axios = require("axios");
 
 export class VerifierRoute {
    url?: string;
@@ -210,7 +208,12 @@ export class VerifierRouter {
          // TODO: retry logic
          const resp = await axios.post(
             route.url,
-            attestationRequest
+            attestationRequest,
+            {
+               headers: {
+                  "x-api-key": route.apiKey
+               }
+            }
          );
          let apiResponse = resp.data as ApiResponse<Verification<any, any>>;
          if (apiResponse.status === 'OK') {

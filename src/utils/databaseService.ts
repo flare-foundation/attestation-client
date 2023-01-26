@@ -19,7 +19,7 @@ export class DatabaseConnectOptions {
   @optional() migrations = [];
   @optional() subscribers = [];
   @optional() inMemory = false;
-  @optional() testSqlite3DBPath: string | undefined = undefined;
+  @optional() testSqlite3DBPath = "";
 }
 
 /**
@@ -57,13 +57,13 @@ export class DatabaseService {
 
     const migrations = process.env.NODE_ENV === "development" ? `src/migration/${this.databaseName}*.ts` : `dist/src/migration/${this.databaseName}*.js`;
 
-    if (process.env.NODE_ENV === "development" && (testDBPath || this.options.inMemory || this.options.testSqlite3DBPath)) {
+    if (process.env.NODE_ENV === "development" && (testDBPath || this.options.inMemory || this.options.testSqlite3DBPath !== "")) {
       this.isSqlite3 = true;
 
       let dbPath: string | undefined = undefined;
       if(testDBPath && typeof testDBPath === "string") {
         dbPath = testDBPath;
-      } else if(this.options.testSqlite3DBPath) {
+      } else if(this.options.testSqlite3DBPath !== "") {
         dbPath = this.options.testSqlite3DBPath;
       }
       let connectOptions = {

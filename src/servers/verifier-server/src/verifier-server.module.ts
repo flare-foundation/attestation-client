@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
 import { getEntityManagerToken, TypeOrmModule } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { CommonModule } from '../../common/src';
-import { VerifierConfigurationService } from './services/verifier-configuration.service';
+import { HeaderApiKeyStrategy } from './auth/auth-header-api-key.strategy';
+import { IndexerController } from './controllers/indexer.controller';
 import { VerifierController } from './controllers/verifier.controller';
+import { WsServerGateway } from './gateways/ws-server.gateway';
+import { IndexerEngineService } from './services/indexer-engine.service';
+import { VerifierConfigurationService } from './services/verifier-configuration.service';
 import { AlgoProcessorService } from './services/verifier-processors/algo-processor.service';
 import { BTCProcessorService } from './services/verifier-processors/btc-processor.service';
 import { DOGEProcessorService } from './services/verifier-processors/doge-processor.service';
@@ -12,7 +17,6 @@ import { VerifierProcessor } from './services/verifier-processors/verifier-proce
 import { XRPProcessorService } from './services/verifier-processors/xrp-processor.service';
 import { WsCommandProcessorService } from './services/ws-command-processor.service';
 import { createTypeOrmOptions } from './utils/db-config';
-import { WsServerGateway } from './gateways/ws-server.gateway';
 
 function processorProvider(config: VerifierConfigurationService, manager: EntityManager): VerifierProcessor {
   switch (process.env.VERIFIER_TYPE) {
@@ -33,12 +37,13 @@ function processorProvider(config: VerifierConfigurationService, manager: Entity
 @Module({
   imports: [
     CommonModule,
+    PassportModule,
     TypeOrmModule.forRootAsync({
       name: "indexerDatabase",
       useFactory: async () => createTypeOrmOptions("web"),
     }),
   ],
-  controllers: [VerifierController],
+  controllers: [VerifierController, IndexerController],
   providers: [
     {
       provide: 'VERIFIER_CONFIG',
@@ -58,7 +63,9 @@ function processorProvider(config: VerifierConfigurationService, manager: Entity
     },
     WsCommandProcessorService,
     WsServerGateway,
-    WsCommandProcessorService
+    WsCommandProcessorService,
+    IndexerEngineService,
+    HeaderApiKeyStrategy
   ],
 })
 export class VerifierServerModule { }

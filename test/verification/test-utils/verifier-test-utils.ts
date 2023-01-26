@@ -1,26 +1,34 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
-import { EntityManager } from "typeorm";
-import { VerifierConfigurationService } from "../../../src/servers/verifier-server/src/services/verifier-configuration.service";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../../src/utils/logger";
-import { Test } from '@nestjs/testing';
-import { VerifierServerModule } from "../../../src/servers/verifier-server/src/verifier-server.module";
 import { WsAdapter } from "@nestjs/platform-ws";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { Test } from '@nestjs/testing';
 import { getEntityManagerToken } from "@nestjs/typeorm";
-import { generateTestIndexerDB, selectedReferencedTx } from "../../indexed-query-manager/utils/indexerTestDataGenerator";
-import { AttestationData } from "../../../src/attester/AttestationData";
-import { encodeRequest } from "../../../src/verification/generated/attestation-request-encode";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import fs from "fs";
+import helmet from "helmet";
+import rimraf from "rimraf";
+import { EntityManager } from "typeorm";
 import { Attestation } from "../../../src/attester/Attestation";
-import { ARType } from "../../../src/verification/generated/attestation-request-types";
-import { DBTransactionBase, DBTransactionBTC0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
-import { getUnixEpochTimestamp } from "../../../src/utils/utils";
+import { AttestationData } from "../../../src/attester/AttestationData";
 import { DBBlockBTC, DBBlockXRP } from "../../../src/entity/indexer/dbBlock";
-import { option } from "yargs";
+import { DBTransactionBase, DBTransactionBTC0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
+import { VerifierConfigurationService } from "../../../src/servers/verifier-server/src/services/verifier-configuration.service";
+import { VerifierServerModule } from "../../../src/servers/verifier-server/src/verifier-server.module";
+import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../../src/utils/logger";
+import { getUnixEpochTimestamp } from "../../../src/utils/utils";
+import { encodeRequest } from "../../../src/verification/generated/attestation-request-encode";
+import { ARType } from "../../../src/verification/generated/attestation-request-types";
+import { generateTestIndexerDB, selectedReferencedTx } from "../../indexed-query-manager/utils/indexerTestDataGenerator";
 
+const TEST_DB_DIR = "./db"
 export interface VerifierBootstrapOptions {
    lastTimestamp?: number;
    whichXRP?: number;
    whichBTC?: number;
+   xrpDBFname?: string;  
+   btcDBFname?: string;  
    CONFIG_PATH: string;
    FIRST_BLOCK: number;
    LAST_BLOCK: number;
@@ -43,6 +51,11 @@ export interface VerifierTestSetups {
    logger: AttLogger;
 };
 
+
+export function clearTestDatabases(folder = TEST_DB_DIR) {
+   rimraf(`${TEST_DB_DIR}/*`, () => null);
+}
+
 export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, initTestLogger = true) {
    delete process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
    if (initTestLogger) {
@@ -50,6 +63,10 @@ export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, 
    }
    const logger = getGlobalLogger("web");
 
+   if (!fs.existsSync(TEST_DB_DIR)) {
+      fs.mkdirSync(TEST_DB_DIR, { recursive: true });
+   }
+   
    let lastTimestamp = options.lastTimestamp ?? getUnixEpochTimestamp();
 
    let appXRP = await bootstrapVerifier("xrp", lastTimestamp, DBBlockXRP, DBTransactionXRP0, logger, options);
@@ -105,6 +122,30 @@ export async function bootstrapVerifier(
    }).compile();
    app = module.createNestApplication();
    app.useWebSocketAdapter(new WsAdapter(app));
+
+   app.use(helmet());
+   // app.use(compression()); // Compress all routes
+ 
+   app.use(cookieParser());
+   app.use(bodyParser.json({ limit: "50mb" }));
+   // Use body parser to read sent json payloads
+   app.use(
+     bodyParser.urlencoded({
+       limit: "1mb",
+       extended: true,
+       parameterLimit: 50000,
+     })
+   );
+ 
+   const config = new DocumentBuilder()
+     .setTitle('Verifier and indexer server')
+     .setDescription('Verifier and indexer server over an indexer database.')
+     .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' }, 'X-API-KEY')
+     .setVersion('1.0')
+     .build();
+   const document = SwaggerModule.createDocument(app, config);
+   SwaggerModule.setup('api-doc', app, document);
+
    await app.init();
 
    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;

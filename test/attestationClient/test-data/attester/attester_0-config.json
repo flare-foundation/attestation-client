@@ -39,6 +39,7 @@
        "database": "attester",
        "username": "",
        "password": "",
-       "inMemory": true
+       "inMemory": true,
+       "testSqlite3DBPath": "./db/attester_0.db"
    }
 }

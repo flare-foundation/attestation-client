@@ -21,7 +21,8 @@
       "database": "",
       "username": "",
       "password": "",
-      "inMemory": true
+      "inMemory": true,
+      "testSqlite3DBPath": "./db/xrp-verifer.db"
    },
    "chainConfiguration": {
       "name": "XRP",

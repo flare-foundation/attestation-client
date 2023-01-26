@@ -16,7 +16,7 @@ import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { firstAddressVin, firstAddressVout, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
-import { bootstrapTestVerifiers, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "../verification/test-utils/verifier-test-utils";
+import { bootstrapTestVerifiers, clearTestDatabases, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "../verification/test-utils/verifier-test-utils";
 import { assertAddressesMatchPrivateKeys, bootstrapAttestationClient, deployTestContracts, getVoterAddresses, increaseTo, selfAssignAttestationProviders, setIntervalMining, startSimpleSpammer, submitAttestationRequest } from "./utils/attestation-client-test-utils";
 import sinon from "sinon";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
@@ -76,8 +76,9 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     if (TEST_LOGGER) {
       initializeTestGlobalLogger();
     }
-
-
+    // clear all test databases in './db/' folder
+    clearTestDatabases();
+    
     // setRetryFailureCallback((label: string) => {
     //   throw new Error(TERMINATION_TOKEN);
     // });

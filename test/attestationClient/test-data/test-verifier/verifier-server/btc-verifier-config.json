@@ -21,9 +21,10 @@
       "database": "indexer",
       "username": "indexReader",
       "password": "password",
-      "inMemory": true
+      "inMemory": true,
+      "testSqlite3DBPath": "./db/btc-verifer.db"
    },
-   "chainConfiguration":         {
+   "chainConfiguration": {
       "name": "BTC",
       "mccCreate" : {
           "url": "https://bitcoin.flare.network/",

@@ -1,16 +1,19 @@
 import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { DBBlockBase } from '../../../../entity/indexer/dbBlock';
 import { DBState } from '../../../../entity/indexer/dbState';
 import { DBTransactionBase } from '../../../../entity/indexer/dbTransaction';
 import { ApiResponse, handleApiResponse } from '../../../common/src';
 import { BlockRange } from '../dtos/BlockRange.dto';
-import { AuthGuard } from '../guards/auth.guard';
+// import { AuthGuard } from '../guards/auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { IndexerEngineService } from '../services/indexer-engine.service';
+// @ApiSecurity('X-API-KEY', ['X-API-KEY'])
 
 @ApiTags('Indexer')
 @Controller("api/indexer")
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard('api-key'))
+@ApiSecurity('X-API-KEY')
 export class IndexerController {
 
   constructor(private indexerEngine: IndexerEngineService) { }
@@ -20,83 +23,73 @@ export class IndexerController {
     return handleApiResponse(this.indexerEngine.getStateSetting());
   }
 
-  @Get("chain/:chain/block-range")
+  @Get("block-range")
   public async blockRange(
-    @Param('chain') chain: string
   ): Promise<ApiResponse<BlockRange | null>> {
-    return handleApiResponse(this.indexerEngine.getBlockRange(chain));
+    return handleApiResponse(this.indexerEngine.getBlockRange());
   }
 
-  @Get("chain/:chain/transactions-in-block/:blockNumber")
+  @Get("transactions-in-block/:blockNumber")
   public async transactionsInBlock(
-    @Param('chain') chain: string,
     @Param('blockNumber', new ParseIntPipe()) blockNumber: number
   ): Promise<ApiResponse<DBTransactionBase[]>> {
-    return handleApiResponse(this.indexerEngine.getBlockTransactions(chain, blockNumber));
+    return handleApiResponse(this.indexerEngine.getBlockTransactions(blockNumber));
   }
 
-  @Get("chain/:chain/transaction/:txHash")
+  @Get("transaction/:txHash")
   public async transaction(
-    @Param('chain') chain: string,
     @Param('txHash') txHash: string
   ): Promise<ApiResponse<DBTransactionBase>> {
-    return handleApiResponse(this.indexerEngine.getTransaction(chain, txHash));
+    return handleApiResponse(this.indexerEngine.getTransaction(txHash));
   }
 
-  @Get("chain/:chain/block/:blockHash")
+  @Get("block/:blockHash")
   public async block(
-    @Param('chain') chain: string,
     @Param('blockHash') blockHash: string
   ): Promise<ApiResponse<DBBlockBase>> {
-    return handleApiResponse(this.indexerEngine.getBlock(chain, blockHash));
+    return handleApiResponse(this.indexerEngine.getBlock(blockHash));
   }
 
-  @Get("chain/:chain/block-at/:blockNumber")
+  @Get("block-at/:blockNumber")
   public async blockAt(
-    @Param('chain') chain: string,
     @Param('blockNumber', new ParseIntPipe()) blockNumber: number
   ): Promise<ApiResponse<DBBlockBase>> {
-    return handleApiResponse(this.indexerEngine.getBlockAt(chain, blockNumber));
+    return handleApiResponse(this.indexerEngine.getBlockAt(blockNumber));
   }
 
-  @Get("chain/:chain/block-height")
+  @Get("block-height")
   public async blockHeight(
-    @Param('chain') chain: string,
   ): Promise<ApiResponse<number>> {
-    return handleApiResponse(this.indexerEngine.getBlockHeight(chain));
+    return handleApiResponse(this.indexerEngine.getBlockHeight());
   }
 
-  @Get("chain/:chain/transaction-block/:txHash")
+  @Get("transaction-block/:txHash")
   public async transactionBlock(
-    @Param('chain') chain: string,
     @Param('txHash') txHash: string
   ): Promise<ApiResponse<DBBlockBase>> {
-    return handleApiResponse(this.indexerEngine.getTransactionBlock(chain, txHash));
+    return handleApiResponse(this.indexerEngine.getTransactionBlock(txHash));
   }
 
-  @Get("chain/:chain/transactions/payment-reference/:reference")
+  @Get("transactions/payment-reference/:reference")
   public async transactionsWithPaymentReference(
-    @Param('chain') chain: string,
     @Param('reference') reference: string
   ): Promise<ApiResponse<DBTransactionBase[]>> {
-    return handleApiResponse(this.indexerEngine.getTransactionsWithPaymentReference(chain, reference));
+    return handleApiResponse(this.indexerEngine.getTransactionsWithPaymentReference(reference));
   }
   
-  @Get("chain/:chain/transactions/from/:from/to/:to")
+  @Get("transactions/from/:from/to/:to")
   public async transactionsWithinTimestampRange(
-    @Param('chain') chain: string,
     @Param('from') from: number,
     @Param('to') to: number
   ): Promise<ApiResponse<DBTransactionBase[]>> {
-    return handleApiResponse(this.indexerEngine.transactionsWithinTimestampRange(chain, from, to));
+    return handleApiResponse(this.indexerEngine.transactionsWithinTimestampRange(from, to));
   }
 
-  @Get("chain/:chain/blocks/from/:from/to/:to")
+  @Get("blocks/from/:from/to/:to")
   public async blocksWithinTimestampRange(
-    @Param('chain') chain: string,
     @Param('from') from: number,
     @Param('to') to: number
   ): Promise<ApiResponse<DBBlockBase[]>> {
-    return handleApiResponse(this.indexerEngine.blocksWithinTimestampRange(chain, from, to));
+    return handleApiResponse(this.indexerEngine.blocksWithinTimestampRange(from, to));
   }
 }

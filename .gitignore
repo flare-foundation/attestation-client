@@ -40,6 +40,9 @@ yarn-error.log
 logs
 *.log
 
+## test databases
+db
+
 ## Misc
 nul
 .stateconnector-address

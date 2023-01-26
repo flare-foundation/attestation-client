@@ -1,19 +1,7 @@
 {
-    "apiKeys": [
-        {
-           "name": "test1",
-           "apiKey": "$(WebApiKey1)"
-        },
-        {
-           "name": "test2",
-           "apiKey": "$(WebApiKey2)"
-        }
-     ],
-
     "firstEpochStartTime":1636070400,
     "roundDurationSec": 90,
     "serviceStatusFilePath": "../monitor-status.json",
-    "deploymentName": "Coston",
 
     "port": $($(Network)WebserverPort),
 

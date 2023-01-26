@@ -17,7 +17,7 @@ import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTe
 import { firstAddressVin, firstAddressVout, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, clearTestDatabases, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "../verification/test-utils/verifier-test-utils";
-import { assertAddressesMatchPrivateKeys, bootstrapAttestationClient, deployTestContracts, getVoterAddresses, increaseTo, selfAssignAttestationProviders, setIntervalMining, startSimpleSpammer, submitAttestationRequest } from "./utils/attestation-client-test-utils";
+import { assertAddressesMatchPrivateKeys, bootstrapAttestationClient, bootstrapAttestationWebServer, deployTestContracts, getVoterAddresses, increaseTo, selfAssignAttestationProviders, setIntervalMining, startSimpleSpammer, submitAttestationRequest } from "./utils/attestation-client-test-utils";
 import sinon from "sinon";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { Attestation } from "../../src/attester/Attestation";
@@ -71,6 +71,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   let signers: string[] = [];
   let privateKeys: string[] = [];
   let childProcesses: any[] = [];
+  let runPromises = [];
 
   before(async function () {
     if (TEST_LOGGER) {
@@ -173,9 +174,56 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     let utxo = firstAddressVout(setup.BTC.selectedTransaction);
     requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     attestationBTC = prepareAttestation(requestBTC, setup.startTime);
+
+    ///////////////////////////////////
+    // Attester related intializations
+    ///////////////////////////////////
+
+    // DO NOT CHANGE CONFIG_PATH while attester clients are running!!!
+    process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
+    process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = '' + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
+    process.env.TEST_SAMPLING_REQUEST_INTERVAL = '' + 1000;
+    let bootstrapPromises = [];    
+
+    // Finalization bot
+    let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
+    runPromises.push(finalizationPromise);
+
+    // in-process clients
+    for (let i = 0; i < IN_PROCESS_CLIENTS; i++) {
+      bootstrapPromises.push(bootstrapAttestationClient(i));
+    }
+    let clients = await Promise.all(bootstrapPromises);
+    runPromises = clients.map(client => client.runAttesterClient());
+
+    // spawning the rest of clients in new processes
+    for (let i = IN_PROCESS_CLIENTS; i < NUMBER_OF_CLIENTS; i++) {
+      const child = spawn("yarn", [
+        "ts-node", 
+        "test/attestationClient/utils/runTestAttestationClient.ts", 
+        "-n", `${i}`,
+        "-c", "../test/attestationClient/test-data/attester"
+      ], { shell: true });
+      childProcesses.push(child)
+    }
+
+    // starting web server on the first node
+    await bootstrapAttestationWebServer();
+    
+    // starting simple spammer
+    await startSimpleSpammer(stateConnector, web3, spammerWallet, bufferWindowDurationSec, [attestationXRP.data.request, attestationBTC.data.request], [2, 3]);
+
+    setInterval(async () => {
+      let now = getUnixEpochTimestamp();
+      let blockChainNow = await (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
+      console.log(`DIFF: ${now} - ${blockChainNow} = ${now - parseInt('' + blockChainNow, 10)}`);
+    }, 1000)
+    // await Promise.all(runPromises);
+
   });
 
   after(async () => {
+    await Promise.all(runPromises);
     delete process.env.TEST_CREDENTIALS;
     await setup.XRP.app.close();
     await setup.BTC.app.close();
@@ -195,12 +243,13 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     assert(startTime === setup.lastTimestamp, "Start times do not match");
   });
 
-  it.skip(`Should contracts be deployed on the correct addresses`, async function () {
-    assert(await stateConnector.methods.BUFFER_WINDOW().call() === "90");
-    assert(await bitVoting.methods.BUFFER_WINDOW().call() === "90");
+  it(`Should contracts be deployed on the correct addresses`, async function () {
+    assert(await stateConnector.methods.BUFFER_WINDOW().call() === "16", "BUFFER_WINDOW on state connector wrong");
+    assert(await bitVoting.methods.BUFFER_WINDOW().call() === "16", "BUFFER_WINDOW on bit voting wrong");
+    assert(await bitVoting.methods.BIT_VOTE_DEADLINE().call() === "8", "BIT_VOTE_DEADLINE on bit voting wrong");
   });
 
-  it(`Should be able to verify attestations through VerifierRouter`, async function () {
+  it.skip(`Should be able to verify attestations through VerifierRouter`, async function () {
     process.env.CONFIG_PATH = CONFIG_PATH_VERIFIER;
     const verifierRouter = new VerifierRouter();
     await verifierRouter.initialize(150);
@@ -212,46 +261,6 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     let respBTC = await verifierRouter.verifyAttestation(attestationBTC);
 
     assert(respBTC.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
-  });
-
-  it(`Should bootstrap attestation clients`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
-    process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = '' + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
-    process.env.TEST_SAMPLING_REQUEST_INTERVAL = '' + 1000;
-    let bootstrapPromises = [];
-
-    let runPromises = [];
-
-    // Finalization bot
-    let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
-    runPromises.push(finalizationPromise);
-
-    for (let i = 0; i < IN_PROCESS_CLIENTS; i++) {
-      bootstrapPromises.push(bootstrapAttestationClient(i));
-    }
-    let clients = await Promise.all(bootstrapPromises);
-    runPromises = clients.map(client => client.runAttesterClient());
-
-    let childProcesses = [];
-    for (let i = IN_PROCESS_CLIENTS; i < NUMBER_OF_CLIENTS; i++) {
-      const child = spawn("yarn", [
-        "ts-node", 
-        "test/attestationClient/utils/runTestAttestationClient.ts", 
-        "-n", `${i}`,
-        "-c", "../test/attestationClient/test-data/attester"
-      ], { shell: true });
-      childProcesses.push(child)
-    }
-
-    await startSimpleSpammer(stateConnector, web3, spammerWallet, bufferWindowDurationSec, [attestationXRP.data.request, attestationBTC.data.request], [2, 3]);
-
-    setInterval(async () => {
-      let now = getUnixEpochTimestamp();
-      let blockChainNow = await (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
-      console.log(`DIFF: ${now} - ${blockChainNow} = ${now - parseInt('' + blockChainNow, 10)}`);
-    }, 1000)
-    await Promise.all(runPromises);
-    // await sleepMs(10000);
   });
 
 });

@@ -11,8 +11,6 @@ export class WebserverConfig implements IReflection<WebserverConfig> {
 
   // path to service status file on server
   @optional() public serviceStatusFilePath: string = "";
-
-  @optional() public deploymentName: string = "";  
   
    port: number = 9500;
 

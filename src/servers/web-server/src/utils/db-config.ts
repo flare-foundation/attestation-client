@@ -5,6 +5,23 @@ import { WebserverConfig } from "../config-models/WebserverConfig";
 
 export async function createTypeOrmOptions(loggerLabel: string, entities: any[]): Promise<TypeOrmModuleOptions> {
    const config = await readSecureConfig(new WebserverConfig(), "webserver");
+
+   if (process.env.NODE_ENV === "development" && process.env.TEST_CREDENTIALS &&
+      (config.attesterDatabase.inMemory || config.attesterDatabase.testSqlite3DBPath !== "")) {
+      return {
+         name: "attesterDatabase",
+         type: 'better-sqlite3',
+         database: config.attesterDatabase.testSqlite3DBPath !== "" ? config.attesterDatabase.testSqlite3DBPath : ":memory:",
+         dropSchema: true,
+         entities: entities,
+         synchronize: true,
+         migrationsRun: false,
+         logging: false
+      };
+
+   }
+
+   // MySQL database, get config
    const databaseOptions = config.attesterDatabase;
    let databaseName = databaseOptions.database;
    let logger = getGlobalLogger(loggerLabel);

@@ -597,7 +597,7 @@
             },
             "runtimeArgs": [
                 "test",
-                "test/attestationClient/AttestationClient.integration-test.ts"
+                "test/attestationClient/AttestationClient.e2e-test.ts"
             ]
         },
 

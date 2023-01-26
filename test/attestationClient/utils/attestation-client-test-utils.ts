@@ -9,7 +9,17 @@ import { getWeb3, relativeContractABIPathForContractName } from "../../../src/ut
 import { BitVoting } from "../../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../../typechain-web3-v1/StateConnectorTempTran";
 import { readJSONfromFile } from "../../../src/utils/json";
-import { AttLogger } from "../../../src/utils/logger";
+import { AttLogger, getGlobalLogger } from "../../../src/utils/logger";
+import { INestApplication } from "@nestjs/common";
+import { ServerConfigurationService } from "../../../src/servers/web-server/src/services/server-configuration.service";
+import { WebServerModule } from "../../../src/servers/web-server/src/web-server.module";
+import { NestFactory } from "@nestjs/core";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
+import { EntityManager } from "typeorm";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { Test } from "@nestjs/testing";
 
 // CONFIG_PATH should be set correctly
 export async function bootstrapAttestationClient(n: number): Promise<AttesterClient> {
@@ -107,6 +117,60 @@ export async function submitAttestationRequest(stateConnector: StateConnectorTem
 }
 // process.env.TEST_CREDENTIALS = "1"
 // process.env.CONFIG_PATH = CONFIG_PATH;
+
+
+export async function bootstrapAttestationWebServer(
+   externalLogger?: AttLogger
+): Promise<INestApplication> {
+   // assumes process.env.CONFIG_PATH that is already set for attester client.
+   // Do not try to change it here!
+
+   const logger = externalLogger ?? getGlobalLogger("web");
+   const module = await Test.createTestingModule({
+      imports: [WebServerModule]
+   }).compile();
+   let app: INestApplication = module.createNestApplication();
+
+   let configurationService: ServerConfigurationService;
+
+   app.use(
+      helmet({
+         contentSecurityPolicy: false,
+      })
+   );
+   // app.use(compression()); // Compress all routes
+
+   app.use(cookieParser());
+   app.use(bodyParser.json({ limit: "50mb" }));
+   // Use body parser to read sent json payloads
+   app.use(
+      bodyParser.urlencoded({
+         limit: "50mb",
+         extended: true,
+         parameterLimit: 50000,
+      })
+   );
+
+   const config = new DocumentBuilder()
+      .setTitle('Attestation Client Public Server')
+      .setDescription('Public server for attestation client providing data about attestations by round, and attestation status metrics.')
+      .setVersion('1.0')
+      .build();
+   const document = SwaggerModule.createDocument(app, config);
+   SwaggerModule.setup('api-doc', app, document);
+
+   await app.init();
+
+   configurationService = app.get("SERVER_CONFIG") as ServerConfigurationService;
+
+   let port = configurationService.serverCredentials.port;
+   await app.listen(port, undefined, () =>
+      // tslint:disable-next-line:no-console
+      // console.log(`Server started listening at http://localhost:${ port }`)
+      logger.info(`Server started listening at http://localhost:${configurationService.serverCredentials.port}`));
+
+   return app;
+}
 
 
 ////////////////////////////////////////////////////////////////
@@ -276,29 +340,29 @@ export async function assignAttestationProvider(stateConnector: StateConnectorTe
 
 }
 
-export async function selfAssignAttestationProviders(logger: AttLogger, stateConnector: StateConnectorTempTran, web3: Web3, privateKeys: string[]) {   
+export async function selfAssignAttestationProviders(logger: AttLogger, stateConnector: StateConnectorTempTran, web3: Web3, privateKeys: string[]) {
    let promises = [];
    let wallets = [];
-   for(let privateKey of privateKeys) {
+   for (let privateKey of privateKeys) {
       const wallet = web3.eth.accounts.privateKeyToAccount(privateKey);
       wallets.push(wallet);
       promises.push(assignAttestationProvider(stateConnector, web3, wallet));
    }
    await Promise.all(promises);
    logger.info(`Active voters:`)
-   for(let wallet of wallets) {
+   for (let wallet of wallets) {
       logger.info(`${wallet.address} -> ${await stateConnector.methods.attestorAddressMapping(wallet.address).call()}`)
    }
 }
 
 
 export function assertAddressesMatchPrivateKeys(web3: Web3, addresses: string[], privateKeys: string[]) {
-   if(addresses.length != privateKeys.length) {
+   if (addresses.length != privateKeys.length) {
       throw new Error("Lengths do not match");
    }
-   for(let [index, address] of addresses.entries()) {
+   for (let [index, address] of addresses.entries()) {
       const wallet = web3.eth.accounts.privateKeyToAccount(privateKeys[index]);
-      if(wallet.address.toLowerCase() !== address.toLowerCase()) {
+      if (wallet.address.toLowerCase() !== address.toLowerCase()) {
          throw new Error(`Matching error at index ${index}: ${wallet.address} !== ${address}`);
       }
    }

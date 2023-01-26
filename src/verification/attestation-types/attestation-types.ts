@@ -95,14 +95,8 @@ export interface AttestationTypeScheme {
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
 }
-
-export interface AttestationRequestOptions {
-  windowStartTime?: number; 
-}
-
 export interface AttestationRequest {
   request: string;
-  options?: AttestationRequestOptions;
 }
 
 export interface PrepareRequest {

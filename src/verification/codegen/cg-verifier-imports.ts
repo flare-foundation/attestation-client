@@ -43,7 +43,6 @@ import BN from "bn.js";
 import Web3 from "web3";
 export { Attestation } from "../../../attester/Attestation";
 ${tdefImports}
-export { AttestationRequestOptions } from "../../attestation-types/attestation-types";
 export { RPCInterface, MCC } from "@flarenetwork/mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
 export { Verification, VerificationStatus } from "../../attestation-types/attestation-types";

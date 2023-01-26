@@ -14,9 +14,10 @@ import { retry } from "../utils/PromiseTimeout";
 import { getCryptoSafeRandom, prepareString } from "../utils/utils";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation, AttestationStatus } from "./Attestation";
-import { AttestationData, BitVoteData } from "./AttestationData";
+import { AttestationData } from "./AttestationData";
+import { BitVoteData } from "./BitVoteData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
-import { GlobalAttestationConfig } from "./DynamicAttestationConfig";
+import { GlobalAttestationConfig } from "./GlobalAttestationConfig";
 
 export enum AttestationRoundPhase {
   collect,
@@ -33,6 +34,7 @@ export enum AttestationRoundStatus {
   bitVotingClosed,    // votes can be calculated
   chosen,             // bit vote result calculated and available
   commitDataPrepared, // commit data prepared
+
   committed,          // the round was successfully committed and receipt received
   revealed,           // the round was successfully revealed and receipt received
 
@@ -238,8 +240,8 @@ export class AttestationRound {
     this.attestStatus = AttestationRoundStatus.chosen;
 
     // eslint-disable-next-line
-    criticalAsync("", async () => {
-      await this.attestationRoundManager.state.saveRoundBitVoteResult(this.roundId, votingResult.toHex());
+    criticalAsync("saveRoundBitVoteResult", async () => {
+      return await this.attestationRoundManager.state.saveRoundBitVoteResult(this.roundId, votingResult.toHex());
     })
     
   }
@@ -317,7 +319,7 @@ export class AttestationRound {
 
     // start attestation process
     if (attestation.sourceLimiter.canProceedWithValidation(attestation)) {
-      this.attestationRoundManager.sourceRouter.validateAttestation(attestation);
+      this.attestationRoundManager.sourceRouter.validateAttestationRequest(attestation);
     }
     else {
       this.processed(attestation);
@@ -388,7 +390,7 @@ export class AttestationRound {
       const action = `Finalizing ^Y#${this.roundId - 3}^^`;
 
       // eslint-disable-next-line
-      criticalAsync("", async () => {
+      criticalAsync("startCommitSubmit", async () => {
         const receipt = await this.flareConnection.submitAttestation(
           action,
           // commit index (collect+1)

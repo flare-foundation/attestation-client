@@ -15,9 +15,7 @@
    [
       {
          "source":"BTC",
-         "numberOfConfirmations":6,
          "maxTotalRoundWeight": 200,
-         "queryWindowInSec":86400,
          "attestationTypes" :
          [
             {
@@ -41,9 +39,7 @@
       ,
       {
          "source":"DOGE",
-         "numberOfConfirmations": 60,
          "maxTotalRoundWeight": 200,
-         "queryWindowInSec":86400,
          "attestationTypes" :
          [
             {
@@ -65,12 +61,9 @@
          ]
       }
       ,
-
       {
          "source":"XRP",
-         "numberOfConfirmations": 3,
          "maxTotalRoundWeight": 200,
-         "queryWindowInSec":86400,
          "attestationTypes" :
          [
             {

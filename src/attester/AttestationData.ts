@@ -9,16 +9,16 @@ import { SourceId } from "../verification/sources/sources";
  */
 export class AttestationData {
   // event parameters
-  type!: AttestationType;
-  sourceId!: SourceId;
-  timeStamp!: BN;
-  request!: string;
+  type: AttestationType;
+  sourceId: SourceId;
+  timeStamp: BN;
+  request: string;
 
   // block parameters
-  blockNumber!: BN;
-  logIndex!: number;
+  blockNumber: BN;
+  logIndex: number;
 
-  constructor(event?: any) {
+  constructor(event?: any) {    
     if (!event) return;
 
     this.timeStamp = toBN(event.returnValues.timestamp);
@@ -40,29 +40,4 @@ export class AttestationData {
   }
 }
 
-/**
- * Choose Round data event emitted by attestation providers when they coos which requests can be attested to
- */
-export class BitVoteData {
-  sender: string;
-  timestamp: number;
-  data: string;
-
-  constructor(event?: any) {
-    if (!event) return; 
-    this.sender = event.returnValues.sender;
-    this.timestamp = parseInt(event.returnValues.timestamp, 10);
-    this.data = event.returnValues.data;
-  }
-
-  roundCheck(roundId: number): boolean {
-    if(!this.data || this.data.length < 4) return false;
-    return parseInt(this.data.slice(0, 4), 16) === roundId % 256;
-  }
-
-  get bitVote(): string {
-    if(!this.data || this.data.length < 4) return "0x00";
-    return '0x' + this.data.slice(4);
-  }
-}
 

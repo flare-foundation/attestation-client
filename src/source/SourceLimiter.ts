@@ -1,7 +1,7 @@
 import { SourceId } from "../verification/sources/sources";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
 import { AttestationRound } from "../attester/AttestationRound";
-import { SourceLimiterConfig } from "../attester/DynamicAttestationConfig";
+import { SourceLimiterConfig } from "../attester/GlobalAttestationConfig";
 
 export interface EventValidateAttestation {
   (attestation: Attestation): void;
@@ -15,13 +15,16 @@ export class SourceLimiter {
 
   round: AttestationRound;
 
-
   // Rate limit weight counter
   currentRoundWeight = 0;
 
   constructor(round: AttestationRound, sourceId: SourceId) {
     this.round = round;
     this.config = this.round.attestationRoundManager.attestationConfigManager.getSourceLimiterConfig(sourceId, round.roundId);
+  }
+
+  get sourceId(): SourceId {
+    return this.config.source
   }
 
   /**
@@ -40,7 +43,6 @@ export class SourceLimiter {
 
     if (!typeConfig) {
       this.round.logger.error2(`missing source ${attestation.data.sourceId} config for attestation type (${attestation.data.type})`);
-
       attestation.status = AttestationStatus.error;
       return false;
     }

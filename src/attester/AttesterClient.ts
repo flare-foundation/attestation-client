@@ -2,10 +2,12 @@ import { Managed, sleepMs } from "@flarenetwork/mcc";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
 import { secToHHMMSS } from "../utils/utils";
 import { AttestationClientConfig } from "./AttestationClientConfig";
-import { AttestationData, BitVoteData } from "./AttestationData";
+import { AttestationData } from "./AttestationData";
+import { BitVoteData } from "./BitVoteData";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { FlareConnection } from "./FlareConnection";
 import { FlareDataCollector } from "./FlareDataCollector";
+import { criticalAsync } from "../indexer/indexer-utils";
 
 /**
  * Implementation of the attestation client.
@@ -35,24 +37,23 @@ export class AttesterClient {
   }
 
   /**
-   * Returns a block number of a block, which is surely below time.
+   * Returns a block number of a block, which is surely below time, or returns the first block on the blockchain.
    * Note that function assumes that the block is not far behind as it is used in a specific context
    * @param time 
+   * @param step 
    * @returns 
    */
-  private async getBlockBeforeTime(time: number) {
+  private async getBlockBeforeTime(time: number, step: number = 10) {
     let blockNumber = await this.flareConnection.web3Functions.getBlockNumber();
 
     while (true) {
       try {
         const block = await this.flareConnection.web3Functions.getBlock(blockNumber);
-
         if (block.timestamp < time) {
           this.logger.debug2(`start block number ${blockNumber} time ${secToHHMMSS(block.timestamp)}`);
           return blockNumber;
         }
-
-        blockNumber -= 10;
+        blockNumber -= step;
         if (blockNumber < 0) {
           return 0;
         }
@@ -63,13 +64,12 @@ export class AttesterClient {
     }
   }
 
-
   /**
    * Callback for notification from data collector that a new block has been detected on (Flare) chain
    * @param block 
    */
   public async onNextBlockCapture(block: any) {
-      this.attestationRoundManager.onLastFlareNetworkTimestamp(block.timestamp);
+    this.attestationRoundManager.onLastFlareNetworkTimestamp(block.timestamp);
   }
 
   /**
@@ -83,24 +83,25 @@ export class AttesterClient {
         const attestationData = new AttestationData(event);
 
         // eslint-disable-next-line
-        this.attestationRoundManager.attestate(attestationData); // non awaited promise
+        criticalAsync("onAttestationRequest",
+          () => this.attestationRoundManager.onAttestationRequest(attestationData)
+        );
       }
-
     } catch (error) {
-      logException(error, `${this.label}processEvent(AttestationRequest)`);
+      // attestation request is non-parsable. It is ignored      
+      logException(error, `${this.label}processEvent(AttestationRequest) - unparsable attestation request`);
     }
 
     try {
       // handle bit vote event 
       if (event.event === "BitVote") {
         const bitVoteEvent = new BitVoteData(event);
-
         this.logger.info(`Bit vote data ${bitVoteEvent.data}`);
-
         this.attestationRoundManager.onBitVoteEvent(bitVoteEvent);
       }
     } catch (error) {
-      logException(error, `processEvent(BitVote)`);
+      // bit vote cannot be parsed. It is ignored
+      logException(error, `processEvent(BitVote) - unparsable bitvote`);
     }
 
     try {
@@ -108,14 +109,11 @@ export class AttesterClient {
       if (event.event === "RoundFinalised") {
         const roundId = event.returnValues.roundId;
         const merkleRoot = event.returnValues.merkleRoot;
-
         if (!roundId || Number.isNaN(roundId)) {
           this.logger.error(`invalid RoundFinalized buffer number`);
-        }
-        else {
+        } else {
           const dbState = await this.attestationRoundManager.state.getRound(roundId);
           const commitedRoot = dbState ? dbState.merkleRoot : undefined;
-
           if (commitedRoot) {
             if (commitedRoot === merkleRoot) {
               this.logger.info(`^e^G^Revent^^^G ${this.label}RoundFinalised ${roundId} ${merkleRoot} (root as commited)`);
@@ -140,9 +138,8 @@ export class AttesterClient {
    * Main entry function
    */
   async runAttesterClient() {
-    const version = "1.2.0";
-
-    this.logger.title(`starting Attester Client v${version}`);
+    // const version = "1.2.0";
+    // this.logger.title(`starting Attester Client v${version}`);
 
     // create state connector, bit voting contracts
     this.logger.info(`flare connection initialization`);

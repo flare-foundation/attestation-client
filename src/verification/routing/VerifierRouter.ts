@@ -3,7 +3,7 @@ import { Attestation } from "../../attester/Attestation";
 import { ApiResponse } from "../../servers/common/src";
 import { readSecureConfig } from "../../utils/configSecure";
 import { AttLogger, getGlobalLogger } from "../../utils/logger";
-import { AttestationRequest, AttestationRequestOptions, Verification } from "../attestation-types/attestation-types";
+import { AttestationRequest, Verification } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
 import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
@@ -198,11 +198,8 @@ export class VerifierRouter {
    public async verifyAttestation(attestation: Attestation) {
       let route = this.getRoute(attestation);
       if (route) {
-         const attestationRequestOptions = {
-         } as AttestationRequestOptions;
          const attestationRequest = {
-            request: attestation.data.request,
-            options: attestationRequestOptions
+            request: attestation.data.request
          } as AttestationRequest;
          // TODO: retry logic
          const resp = await axios.post(

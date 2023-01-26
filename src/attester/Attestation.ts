@@ -4,18 +4,14 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 
 export enum AttestationStatus {
-  queued,
-  processing,
-  failed,
-  valid,
-  invalid,
-  tooLate,
-  overLimit,
-  error,
-}
-
-export interface EventProcessed {
-  (tx: Attestation): void;
+  queued,        // attestation put in queue due to rate limiting
+  processing,    // attestation in processin
+  failed,        // attestation failed before processing
+  valid,         // confirmed by verifier
+  invalid,       // rejected by verifier
+  tooLate,       // verified after deadline (commit)
+  overLimit,     // goes over total weight per round limit 
+  error,         // configuration error (critical)
 }
 
 /**
@@ -33,7 +29,7 @@ export class Attestation {
   data: AttestationData;
   // sequential index in attestation round. -1 if not defined.
   index: number = -1;
-  // if the attestation is chosen by bit voting in the 'choose' phase
+  // if the attestation is chosen by bit voting result in the 'choose' phase
   chosen: boolean = false;
 
   // the voting round of the attestation
@@ -42,7 +38,7 @@ export class Attestation {
   // validation result
   status: AttestationStatus = AttestationStatus.invalid;
 
-  // verification result
+  // verification result (response by verifier)
   verificationData!: Verification<any, any>;
 
   // processing stats
@@ -54,14 +50,15 @@ export class Attestation {
   reverification = false;
   exception: any;
 
-  // Cut-off times set by attestation client
-  windowStartTime: number = 0;
-
   constructor(round: AttestationRound, data: AttestationData) {
     this.round = round;
     this.data = data;
   }
 
+  /**
+   * Sets index in the round.
+   * @param index 
+   */
   public setIndex(index: number) {
     this.index = index;
   }
@@ -70,8 +67,8 @@ export class Attestation {
    *  Round in which the attestation is considered
    */
   public get roundId() {
-    if (this._testRoundId == null) {
-      return this.round?.roundId;
+    if (this._testRoundId === undefined) {
+      return this.round.roundId;
     }
     return this._testRoundId;
   }

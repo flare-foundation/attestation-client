@@ -4,7 +4,7 @@ import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { logException } from "../../utils/logger";
-import { AttestationRequestOptions, NumberLike, VerificationStatus } from "../attestation-types/attestation-types";
+import { NumberLike, VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
 import {
@@ -100,7 +100,6 @@ export async function responsePayment(
 export async function verifyPayment(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARPayment,
-  requestOptions: AttestationRequestOptions,
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<DHPayment>> {
@@ -173,7 +172,6 @@ export async function responseBalanceDecreasingTransaction(
 export async function verifyBalanceDecreasingTransaction(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARBalanceDecreasingTransaction,
-  requestOptions: AttestationRequestOptions,
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
@@ -226,7 +224,6 @@ export async function responseConfirmedBlockHeightExists(
  */
 export async function verifyConfirmedBlockHeightExists(
   request: ARConfirmedBlockHeightExists,
-  requestOptions: AttestationRequestOptions,
   iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHConfirmedBlockHeightExists>> {
   const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
@@ -334,7 +331,6 @@ export async function responseReferencedPaymentNonExistence(
 export async function verifyReferencedPaymentNonExistence(
   TransactionClass: new (...args: any[]) => MccTransactionType,
   request: ARReferencedPaymentNonexistence,
-  requestOptions: AttestationRequestOptions,
   iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {
   // TODO: check if anything needs to be done with: startBlock >= overflowBlock

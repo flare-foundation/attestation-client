@@ -8,7 +8,6 @@
 
 import {
   ARBalanceDecreasingTransaction,
-  AttestationRequestOptions,
   BN,
   DHBalanceDecreasingTransaction,
   hashBalanceDecreasingTransaction,
@@ -28,14 +27,13 @@ const web3 = new Web3();
 export async function verifyBalanceDecreasingTransactionALGO(
   client: MCC.ALGO,
   attestationRequest: string,
-  attestationRequestOptions: AttestationRequestOptions,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
   const request = parseRequest(attestationRequest) as ARBalanceDecreasingTransaction;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
-  const result = await verifyBalanceDecreasingTransaction(AlgoTransaction, request, attestationRequestOptions, indexer);
+  const result = await verifyBalanceDecreasingTransaction(AlgoTransaction, request, indexer);
   if (result.status != VerificationStatus.OK) {
     return { status: result.status };
   }

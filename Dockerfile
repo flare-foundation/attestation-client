@@ -1,3 +1,7 @@
+# docker build -t attestation-suite .
+# docker-compose -f docker-compose-indexer-btc.yaml up
+
+
 FROM node:16
 WORKDIR /app/attestation-client
 COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "yarn.lock", "./"]

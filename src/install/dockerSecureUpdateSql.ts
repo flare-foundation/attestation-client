@@ -15,22 +15,76 @@ async function run() {
 
     const { exec } = require("child_process");
 
+
+    // get secure DatabaseRootPassword
+    const secureRootPassword = getSecureValue(`DatabaseRootPassword`);
+
+    // wait for database
+    let connected = false;
+
+    let password = "";
+
+    for (let retry = 0; retry < 60; retry++) {
+        try {
+
+            const secureLogin = (retry & 1) === 0;
+
+            password = secureLogin ? secureRootPassword : process.env.MYSQL_ROOT_PASSWORD;
+
+            const command = `mysql -h database -u root -p${password} -e ";"`;
+
+            getGlobalLogger().debug(command);
+
+            execSync(command, { windowsHide: true, encoding: "buffer" });
+
+            connected = true;
+
+            if (secureLogin) {
+                getGlobalLogger().info(`mysql connected with secure password`);
+
+                if (!process.env.UPDATE_MYSQL) {
+                    getGlobalLogger().info(`mysql already setup. exiting.`);
+                    getGlobalLogger().debug(`(use env UPDATE_MYSQL=1 to force update)`);
+                    return;
+                }
+
+                getGlobalLogger().debug(`force update (UPDATE_MYSQL exists)`);
+            }
+            else {
+                getGlobalLogger().info(`mysql connected with ENV password`);
+            }
+
+            break;
+        }
+        catch (error) {
+            getGlobalLogger().exception(error);
+        }
+
+        await sleepms(1000);
+    }
+
+    if (!connected) {
+        getGlobalLogger().error(`unable to connect to database`);
+        return;
+    }
+
+
     for (var line of installLines) {
         try {
-            const command = `sudo mysql -e "${line}"`;
+            const command = `mysql -h database -u root -p${password} -e "${line}"`;
 
             getGlobalLogger().debug(command);
 
             execSync(command, { windowsHide: true, encoding: "buffer" });
         }
-        catch (error) { 
+        catch (error) {
 
         }
     }
 
     for (var line of updateLines) {
         try {
-            const command = `sudo mysql -e "${line}"`;
+            const command = `mysql -h database -u root -p${password} -e "${line}"`;
 
             getGlobalLogger().debug(command);
             execSync(command, { windowsHide: true, encoding: "buffer" });

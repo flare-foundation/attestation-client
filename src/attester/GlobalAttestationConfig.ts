@@ -9,6 +9,7 @@ export class SourceLimiterTypeConfig {
   weight!: number;
 }
 
+
 /**
  * Class providing parameters for handling the limitations (maxTotalRoundWeight, ...) of a attestation round for a source
  */

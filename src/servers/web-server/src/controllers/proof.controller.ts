@@ -6,7 +6,7 @@ import { ProofEngineService } from "../services/proof-engine.service";
 import { ApiTags } from "@nestjs/swagger";
 import { ApiResponse, handleApiResponse } from "../../../common/src";
 
-export interface specificProofRequest {
+export interface SpecificProofRequest {
   roundId: number;
   callData: string;
 }
@@ -19,7 +19,7 @@ export class ProofController {
   @Get("votes-for-round/:roundId")
   public async votesForRound(@Param("roundId", new ParseIntPipe()) roundId: number): Promise<ApiResponse<VotingRoundResult[]>> {
     try {
-      let result = await this.proofEngine.getProofForRound(roundId);
+      let result = await this.proofEngine.getVoteResultsForRound(roundId);
       if (result) {
         return new ApiResponse<VotingRoundResult[]>(result);
       }
@@ -29,8 +29,8 @@ export class ProofController {
     }
   }
 
-  @Post("getSpecificProof")
-  public async getSpecificProofController(@Body() roundRequest: specificProofRequest): Promise<ApiResponse<VotingRoundResult>> {
+  @Post("get-specific-proof")
+  public async getSpecificProofController(@Body() roundRequest: SpecificProofRequest): Promise<ApiResponse<VotingRoundResult>> {
     try {
       let result = await this.proofEngine.getSpecificProofForRound(roundRequest.roundId, roundRequest.callData);
       if (result) {

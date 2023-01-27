@@ -3,29 +3,29 @@ version: "3.9"
 #name: attestation-suite-indexer-btc
 
 services: 
-  indexer:
+  attestation-client:
     image: attestation-suite
     volumes:
       - ./../credentials:/app/attestation-suite-config
     environment:
       MYSQL_ROOT_PASSWORD: "test123"
     command:
-      "./docker/scripts/indexer-btc.sh"
+      "./docker/scripts/attestation-client.sh"
     depends_on:
       - database
 
-  verification-server:
+  webserver:
     image: attestation-suite
     volumes:
       - ./../credentials:/app/attestation-suite-config
     environment:
       MYSQL_ROOT_PASSWORD: "test123"
     command:
-      "./docker/scripts/verification-server-btc.sh"
+      "./docker/scripts/webserver.sh"
+    ports:
+      - "127.0.0.1:8080:3000" # http server      
     depends_on:
       - database
-    ports:
-      - "9500:9000"  # btc 9500   
 
   database:
     image: mysql:8-debian

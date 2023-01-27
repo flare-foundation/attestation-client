@@ -34,6 +34,6 @@ setLoggerName(`test-attester-${args["n"]}`);
 bootstrapAttestationClient(args["n"], args["configPath"], args["testDBPath"])
 .then(() => {})
 .catch((error) => {
-  logException(error, `runIndexer`);
+  logException(error, `runTestAttestationClient`);
   process.exit(1);
 });

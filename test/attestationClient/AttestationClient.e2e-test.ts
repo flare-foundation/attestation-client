@@ -45,6 +45,7 @@ const TEST_LOGGER = false;
 const NUMBER_OF_CLIENTS = 9;
 const IN_PROCESS_CLIENTS = 1
 const NUMBER_OF_FAILING_CLIENTS = 0;
+const WEB_SERVER_IN_OTHER_PROCESS = false;
 
 
 // Testing modes:
@@ -207,8 +208,18 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
       childProcesses.push(child)
     }
 
-    // starting web server on the first node
-    await bootstrapAttestationWebServer();
+    // // starting web server on the first node
+    // if (WEB_SERVER_IN_OTHER_PROCESS) {
+    //   const child = spawn("yarn", [
+    //     "ts-node",
+    //     "test/attestationClient/utils/runTestWebServer.ts",
+    //   ], { shell: true });
+    //   console.log("XXXXXX - server")
+    //   childProcesses.push(child);
+    // } else {
+      await bootstrapAttestationWebServer();
+    // }
+
 
     // starting simple spammer
     await startSimpleSpammer(stateConnector, web3, spammerWallet, bufferWindowDurationSec, [attestationXRP.data.request, attestationBTC.data.request], [2, 3]);

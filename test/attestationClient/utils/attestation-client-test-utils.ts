@@ -305,7 +305,11 @@ export async function startSimpleSpammer(
 ) {
 
    for (let request of requests) {
-      await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
+      try {
+         await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
+      } catch (e) {
+         console.log(e)
+      }
    }
 
    let counter = 0;
@@ -313,11 +317,12 @@ export async function startSimpleSpammer(
       for (let [index, request] of requests.entries()) {
          let mod = frequencies[index] ?? 1;
          if (counter % mod == 0) {
+            console.log("Spam sent!!!")
             await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
          }
       }
       counter++;
-   }, bufferWindowDurationSec * 1000);
+   }, bufferWindowDurationSec * 1000 / 2);
 }
 
 export async function assignAttestationProvider(stateConnector: StateConnectorTempTran, web3: Web3, wallet: any, assignTo?: string) {

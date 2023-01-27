@@ -1,4 +1,4 @@
-import { AttestationRequest, MIC_SALT, Verification } from "../../../../../verification/attestation-types/attestation-types";
+import { AttestationRequest, MIC_SALT, Verification, VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import { hashPayment } from "../../../../../verification/generated/attestation-hash-utils";
 import { encodeRequest } from "../../../../../verification/generated/attestation-request-encode";
 import { getAttestationTypeAndSource } from "../../../../../verification/generated/attestation-request-parse";
@@ -16,12 +16,20 @@ export abstract class VerifierProcessor {
 
   public async getMessageIntegrityCheck(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
+    if (data.status !== VerificationStatus.OK) {
+      // TODO: This should be made more stable
+      return data.status
+    }
     const integrity = hashPayment(data.request, data.response, MIC_SALT);
     return integrity;
   }
 
   public async getAttestationData(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
+    if (data.status !== VerificationStatus.OK) {
+      // TODO: This should be made more stable
+      return data.status
+    }
     const integrity = hashPayment(data.request, data.response, MIC_SALT);
     request.messageIntegrityCode = integrity;
     return encodeRequest(request);

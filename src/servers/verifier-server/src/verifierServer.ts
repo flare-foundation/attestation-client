@@ -27,8 +27,8 @@ export async function runVerifierServer() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Indexer Server')
-    .setDescription('Indexer server over a database on verifier server.')
+    .setTitle(`Verifier and indexer server (${process.env.VERIFIER_TYPE?.toUpperCase()})`)
+    .setDescription('Verifier and indexer server over an indexer database.')
     .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' }, 'X-API-KEY')
     .setVersion('1.0')
     .build();

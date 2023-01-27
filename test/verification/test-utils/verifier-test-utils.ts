@@ -138,7 +138,7 @@ export async function bootstrapVerifier(
    );
  
    const config = new DocumentBuilder()
-     .setTitle('Verifier and indexer server')
+     .setTitle(`Verifier and indexer server (${process.env.VERIFIER_TYPE?.toUpperCase()})`)
      .setDescription('Verifier and indexer server over an indexer database.')
      .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' }, 'X-API-KEY')
      .setVersion('1.0')

@@ -1,3 +1,6 @@
+
+ALTER USER 'root'@'%' IDENTIFIED BY '$(DatabaseRootPassword)';
+
 ALTER USER '$(IndexerWriterUsername)'@'$(DatabaseWriteAccessSource)' IDENTIFIED BY '$(IndexerWriterPassword)';
 
 ALTER USER '$(IndexerReaderUsername)'@'%' IDENTIFIED BY '$(IndexerReaderPassword)';

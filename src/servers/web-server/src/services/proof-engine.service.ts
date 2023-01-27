@@ -1,15 +1,17 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { InjectEntityManager } from '@nestjs/typeorm';
+import { Inject, Injectable } from "@nestjs/common";
+import { InjectEntityManager } from "@nestjs/typeorm";
 import fs from "fs";
-import { EntityManager } from 'typeorm';
-import { MonitorStatus, PerformanceInfo } from '../../../../monitor/MonitorBase';
-import { DBAttestationRequest } from '../../../../entity/attester/dbAttestationRequest';
-import { DBVotingRoundResult } from '../../../../entity/attester/dbVotingRoundResult';
-import { ServiceStatus } from '../dtos/ServiceStatus.dto';
-import { SystemStatus } from '../dtos/SystemStatus.dto';
-import { VotingRoundRequest } from '../dtos/VotingRoundRequest.dto';
-import { VotingRoundResult } from '../dtos/VotingRoundResult.dto';
-import { ServerConfigurationService } from './server-configuration.service';
+import { EntityManager } from "typeorm";
+import { MonitorStatus, PerformanceInfo } from "../../../../monitor/MonitorBase";
+import { DBAttestationRequest } from "../../../../entity/attester/dbAttestationRequest";
+import { DBVotingRoundResult } from "../../../../entity/attester/dbVotingRoundResult";
+import { ServiceStatus } from "../dtos/ServiceStatus.dto";
+import { SystemStatus } from "../dtos/SystemStatus.dto";
+import { VotingRoundRequest } from "../dtos/VotingRoundRequest.dto";
+import { VotingRoundResult } from "../dtos/VotingRoundResult.dto";
+import { ServerConfigurationService } from "./server-configuration.service";
+import { encodeRequest } from "../../../../verification/generated/attestation-request-encode";
+import { unPrefix0x } from "@flarenetwork/mcc";
 
 @Injectable()
 export class ProofEngineService {
@@ -32,9 +34,7 @@ export class ProofEngineService {
       return null;
     }
 
-    let query = this.manager
-      .createQueryBuilder(DBVotingRoundResult, "voting_round_result")
-      .andWhere("voting_round_result.roundId = :roundId", { roundId });
+    let query = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").andWhere("voting_round_result.roundId = :roundId", { roundId });
     let result = await query.getMany();
     result.forEach((item) => {
       item.request = JSON.parse(item.request);
@@ -53,6 +53,18 @@ export class ProofEngineService {
     return finalResult;
   }
 
+  public async getSpecificProofForRound(roundId: number, callData: string): Promise<VotingRoundResult | null> {
+    const roundData = await this.getProofForRound(roundId);
+
+    for (const proof of roundData) {
+      const proofCalldata = encodeRequest(proof.request);
+      if (unPrefix0x(proofCalldata) === unPrefix0x(callData)) {
+        return proof;
+      }
+    }
+    return null;
+  }
+
   public async getRequestsForRound(roundId: number): Promise<VotingRoundRequest[] | null> {
     if (this.requestCache[roundId]) {
       return this.requestCache[roundId];
@@ -68,7 +80,7 @@ export class ProofEngineService {
       .select("attestation_request.requestBytes", "requestBytes")
       .addSelect("attestation_request.verificationStatus", "verificationStatus")
       .addSelect("attestation_request.attestationStatus", "attestationStatus")
-      .addSelect("attestation_request.exceptionError", "exceptionError")
+      .addSelect("attestation_request.exceptionError", "exceptionError");
 
     let result = await query.getRawMany();
 
@@ -101,9 +113,7 @@ export class ProofEngineService {
   }
 
   private async maxRoundId() {
-    let maxQuery = this.manager
-      .createQueryBuilder(DBVotingRoundResult, "voting_round_result")
-      .select("MAX(voting_round_result.roundId)", "max");
+    let maxQuery = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").select("MAX(voting_round_result.roundId)", "max");
     let res = await maxQuery.getRawOne();
     return res?.max;
   }

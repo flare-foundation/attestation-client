@@ -103,8 +103,6 @@ export class DatabaseService {
       `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
     );
     if (!this.dataSource.isInitialized) {
-      // TODO: retry logic
-
       await this.dataSource.initialize();
     }
   }

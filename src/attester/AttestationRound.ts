@@ -2,7 +2,7 @@ import { Managed, toBN } from "@flarenetwork/mcc";
 import assert from "assert";
 import { stringify } from "safe-stable-stringify";
 import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
-import { chooseCandidate, prefix0x, unPrefix0x } from "../choose-subsets-lib/subsets-lib";
+import { chooseCandidate, countOnes, prefix0x, unPrefix0x } from "../choose-subsets-lib/subsets-lib";
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { criticalAsync } from "../indexer/indexer-utils";
@@ -42,6 +42,8 @@ export enum AttestationRoundStatus {
   processingTimeout,
 }
 
+
+const NO_VOTE = "0x00"
 // terminology
 // att/sec
 // call/sec
@@ -174,23 +176,56 @@ export class AttestationRound {
   private bitVotingResult(verbose = true): BitmaskAccumulator | undefined {
     let votes = []
     for (let address of this.defaultSetAddresses) {
-      votes.push(this.bitVoteMap.get(address) ?? "0x00");
+      votes.push(this.bitVoteMap.get(address) ?? NO_VOTE);
     }
-    let candidate = chooseCandidate(votes, this.activeGlobalConfig.consensusSubsetSize);
-    let bitmask = BitmaskAccumulator.fromHex(candidate);
 
+    if (verbose) {
+      this.logger.info(`${this.label}Bit voting results`)
+      for (let address of this.defaultSetAddresses) {
+        let bitString = BitmaskAccumulator.fromHex(this.bitVoteMap.get(address) ?? NO_VOTE).toBitString();
+        this.logger.info(`${this.label}${address.slice(0, 10)} - ${bitString}`);
+      }
+    }
+
+    // Start with consensus subset size. If no votes are in intersection
+    let bitmask: BitmaskAccumulator | undefined = undefined;
+    let minVoters = Math.ceil(this.activeGlobalConfig.defaultSetAssignerAddresses.length / 2);
+
+    // check if majority of voters did not vote (empty result)
+    let nonZeroVotes = votes.filter(vote => vote.replaceAll("0", "") !== "x").length;
+    if (nonZeroVotes < minVoters) {
+      this.logger.info(`${this.label} Less then minimal number of voters voted ${nonZeroVotes}, required >= ${minVoters}`);
+      return new BitmaskAccumulator(this.attestations.length);
+    }
+
+    let foundNonzeroVote = false;
+    // find first nonzero vote on subsets of sizes consensusSubsetSize, ..., minVoters
+    for (let size = this.activeGlobalConfig.consensusSubsetSize; size >= minVoters; size--) {
+      let candidate = chooseCandidate(votes, size);
+      let numberOfOnes = countOnes(candidate);
+      if (numberOfOnes > 0) {
+        foundNonzeroVote = true;
+        bitmask = BitmaskAccumulator.fromHex(candidate);
+        if (size != this.activeGlobalConfig.consensusSubsetSize) {
+          this.logger.info(`${this.label} - vote successful with lower consensus threshold ${size}/${this.activeGlobalConfig.consensusSubsetSize}`)
+        }
+        break;
+      }
+      this.logger.info(`${this.label} - unsuccessful vote count for threshold ${size}/${this.defaultSetAddresses.length}`)
+    }
+
+    if (!foundNonzeroVote) {
+      this.logger.info(`${this.label} Non-conclusive vote. Non zero voters: ${nonZeroVotes}, required >= ${minVoters}`);
+      return new BitmaskAccumulator(this.attestations.length);
+    }
 
     if (bitmask.hasActiveBitsBeyond(this.attestations.length)) {
       this.logger.error(`${this.label}Local and all indices do not match. Critical error!`);
       return undefined;
     }
+
     if (verbose) {
-      this.logger.info(`${this.label}Bit voting results`)
-      for (let address of this.defaultSetAddresses) {
-        let bitString = BitmaskAccumulator.fromHex(this.bitVoteMap.get(address) ?? "0x00").toBitString();
-        this.logger.info(`${this.label}${address.slice(0, 10)} - ${bitString}`);
-      }
-      this.logger.info(`${this.label}-RESULT[${this.activeGlobalConfig.consensusSubsetSize}] - ${bitmask.toBitString()}`);
+      this.logger.info(`${this.label}-RESULT[${this.activeGlobalConfig.consensusSubsetSize}] - ${bitmask?.toBitString()}`);
     }
     return bitmask;
   }
@@ -243,7 +278,7 @@ export class AttestationRound {
     criticalAsync("saveRoundBitVoteResult", async () => {
       return await this.attestationRoundManager.state.saveRoundBitVoteResult(this.roundId, votingResult.toHex());
     })
-    
+
   }
 
   // /**
@@ -499,7 +534,7 @@ export class AttestationRound {
 
     // check if commit can be performed
     if (this.phase !== AttestationRoundPhase.commit) {
-      this.logger.info(`${this.label} - tryPrepareCommitData - not commit phase: '${ AttestationRoundPhase[this.phase]}'`);
+      this.logger.info(`${this.label} - tryPrepareCommitData - not commit phase: '${AttestationRoundPhase[this.phase]}'`);
       return;
     }
 

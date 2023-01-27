@@ -1,8 +1,8 @@
 import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
-import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { AttestationClientConfig } from "../attester/AttestationClientConfig";
+import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
@@ -14,7 +14,7 @@ import { DatabaseService } from "../utils/databaseService";
 import { getTimeMilli } from "../utils/internetTime";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
-import { DEFAULT_GAS, DEFAULT_GAS_PRICE, Web3Functions } from "../utils/Web3Functions";
+import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
 import { encodeRequest } from "../verification/generated/attestation-request-encode";
@@ -112,7 +112,7 @@ class AttestationSpammer {
       this.stateConnector = sc;
     });
 
-    this.web3Functions = new Web3Functions(this.logger, this.web3, this.spammerCredentials.web.accountPrivateKey);
+    this.web3Functions = new Web3Functions(this.logger, this.web3, this.spammerCredentials.web);
 
     if (this.spammerCredentials.web2) {
       this.web3_2 = getWeb3(this.spammerCredentials.web2.rpcUrl) as Web3;
@@ -124,7 +124,7 @@ class AttestationSpammer {
         this.stateConnector_2 = sc;
       });
 
-      this.web3Functions_2 = new Web3Functions(this.logger, this.web3_2, this.spammerCredentials.web2.accountPrivateKey);
+      this.web3Functions_2 = new Web3Functions(this.logger, this.web3_2, this.spammerCredentials.web2);
     }
   }
 
@@ -174,13 +174,11 @@ class AttestationSpammer {
     const fnToEncode = stateConnector.methods.requestAttestations(requestBytes);
     AttestationSpammer.sendId++;
     //console.time(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
-    const receipt = await this.web3Functions.signAndFinalize3(
+    const receipt = await this.web3Functions.signAndFinalize3Sequenced(
       `request attestation #${AttestationSpammer.sendCount}`,
       this.stateConnector.options.address,
       fnToEncode,
       getTimeMilli() + 5000,
-      DEFAULT_GAS,
-      DEFAULT_GAS_PRICE,
       false
     );
     //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
@@ -189,13 +187,11 @@ class AttestationSpammer {
     }
 
     if (this.web3Functions_2) {
-      const receipt2 = await this.web3Functions_2.signAndFinalize3(
+      const receipt2 = await this.web3Functions_2.signAndFinalize3Sequenced(
         `request attestation 2 #${AttestationSpammer.sendCount}`,
         this.stateConnector_2.options.address,
         fnToEncode,
         getTimeMilli() + 5000,
-        DEFAULT_GAS,
-        DEFAULT_GAS_PRICE,
         false
       );
       //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)

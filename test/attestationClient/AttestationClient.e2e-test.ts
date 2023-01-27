@@ -7,7 +7,6 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import waitOn from "wait-on";
 import Web3 from "web3";
-import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
 import { getUnixEpochTimestamp, getWeb3, relativeContractABIPathForContractName } from "../../src/utils/utils";
@@ -45,14 +44,15 @@ const SPAMMER_PRIVATE_KEY = "0x28d1bfbbafe9d1d4f5a11c3c16ab6bf9084de48d99fbac405
 const TEST_LOGGER = false;
 const NUMBER_OF_CLIENTS = 9;
 const IN_PROCESS_CLIENTS = 1
+const NUMBER_OF_FAILING_CLIENTS = 0;
 
 
 // Testing modes:
 // scheduler: time is managed by Scheduler
-// offset: time is real, only that it is shifted in order to start everything exactly on a begining of the 
+// offset: time is real, only that it is shifted in order to start everything exactly on a beginning of the 
 //         next buffer window on StateConnectorTempTran contract
-let TEST_MODE: "scheduler" | "offset" | "none" = "none"
-const ADDITIONAL_OFFSET_PCT = 0
+// let TEST_MODE: "scheduler" | "offset" | "none" = "none"
+// const ADDITIONAL_OFFSET_PCT = 0
 const TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = LAST_CONFIRMED_BLOCK - FIRST_BLOCK;
 
 describe(`AttestationClient (${getTestFile(__filename)})`, () => {
@@ -79,7 +79,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     }
     // clear all test databases in './db/' folder
     clearTestDatabases();
-    
+
     // setRetryFailureCallback((label: string) => {
     //   throw new Error(TERMINATION_TOKEN);
     // });
@@ -183,7 +183,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
     process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = '' + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
     process.env.TEST_SAMPLING_REQUEST_INTERVAL = '' + 1000;
-    let bootstrapPromises = [];    
+    let bootstrapPromises = [];
 
     // Finalization bot
     let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
@@ -197,10 +197,10 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     runPromises = clients.map(client => client.runAttesterClient());
 
     // spawning the rest of clients in new processes
-    for (let i = IN_PROCESS_CLIENTS; i < NUMBER_OF_CLIENTS; i++) {
+    for (let i = IN_PROCESS_CLIENTS; i < NUMBER_OF_CLIENTS - NUMBER_OF_FAILING_CLIENTS; i++) {
       const child = spawn("yarn", [
-        "ts-node", 
-        "test/attestationClient/utils/runTestAttestationClient.ts", 
+        "ts-node",
+        "test/attestationClient/utils/runTestAttestationClient.ts",
         "-n", `${i}`,
         "-c", "../test/attestationClient/test-data/attester"
       ], { shell: true });
@@ -209,7 +209,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
 
     // starting web server on the first node
     await bootstrapAttestationWebServer();
-    
+
     // starting simple spammer
     await startSimpleSpammer(stateConnector, web3, spammerWallet, bufferWindowDurationSec, [attestationXRP.data.request, attestationBTC.data.request], [2, 3]);
 

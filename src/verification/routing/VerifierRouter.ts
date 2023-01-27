@@ -3,6 +3,7 @@ import { Attestation } from "../../attester/Attestation";
 import { ApiResponse } from "../../servers/common/src";
 import { readSecureConfig } from "../../utils/configSecure";
 import { AttLogger, getGlobalLogger } from "../../utils/logger";
+import { retry } from "../../utils/PromiseTimeout";
 import { AttestationRequest, Verification } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
@@ -201,16 +202,20 @@ export class VerifierRouter {
          const attestationRequest = {
             request: attestation.data.request
          } as AttestationRequest;
-         // TODO: retry logic
-         const resp = await axios.post(
-            route.url,
-            attestationRequest,
-            {
-               headers: {
-                  "x-api-key": route.apiKey
+         
+         const resp = await retry(
+            `VerifierRouter::verifyAttestation`,
+            async () => axios.post(
+               route.url,
+               attestationRequest,
+               {
+                  headers: {
+                     "x-api-key": route.apiKey
+                  }
                }
-            }
+            )
          );
+
          let apiResponse = resp.data as ApiResponse<Verification<any, any>>;
          if (apiResponse.status === 'OK') {
             return apiResponse.data;

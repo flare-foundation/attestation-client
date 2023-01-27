@@ -5,16 +5,12 @@ import { VotingRoundResult } from "../dtos/VotingRoundResult.dto";
 import { ProofEngineService } from "../services/proof-engine.service";
 import { ApiTags } from "@nestjs/swagger";
 import { ApiResponse, handleApiResponse } from "../../../common/src";
-
-export interface SpecificProofRequest {
-  roundId: number;
-  callData: string;
-}
+import { SpecificProofRequest } from "../dtos/SpecificProofRequest.dto";
 
 @ApiTags("Proof")
 @Controller("api/proof")
 export class ProofController {
-  constructor(private proofEngine: ProofEngineService) {}
+  constructor(private proofEngine: ProofEngineService) { }
 
   @Get("votes-for-round/:roundId")
   public async votesForRound(@Param("roundId", new ParseIntPipe()) roundId: number): Promise<ApiResponse<VotingRoundResult[]>> {

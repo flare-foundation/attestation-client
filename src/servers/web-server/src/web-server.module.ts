@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DBAttestationRequest } from '../../../entity/attester/dbAttestationRequest';
-import { DBRoundResult } from '../../../entity/attester/dbRoundResult';
-import { DBVotingRoundResult } from '../../../entity/attester/dbVotingRoundResult';
+import { attesterEntities } from '../../../utils/databaseEntities';
 import { CommonModule } from '../../common/src';
 import { ProofController } from './controllers/proof.controller';
 import { StatusController } from './controllers/status.controller';
@@ -15,9 +13,7 @@ import { createTypeOrmOptions } from './utils/db-config';
     CommonModule,
     TypeOrmModule.forRootAsync({
       name: "attesterDatabase",
-      useFactory: async () => createTypeOrmOptions("web", [
-        DBAttestationRequest, DBRoundResult, DBVotingRoundResult
-      ]),
+      useFactory: async () => createTypeOrmOptions("web", attesterEntities()),
     }),
   ],
   controllers: [ProofController, StatusController],

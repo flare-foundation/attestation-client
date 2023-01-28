@@ -31,14 +31,6 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   if (!randomTransaction) {
     return null;
   }
-  const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
-    blockNumber: randomTransaction.blockNumber + this.indexedQueryManager.settings.numberOfConfirmations(),
-  });
-  if (!confirmationBlockQueryResult?.result) {
-    const N = await indexedQueryManager.getLastConfirmedBlockNumber();
-    console.log("No confirmation block", randomTransaction.blockNumber, N, indexedQueryManager.settings.numberOfConfirmations(), roundId);
-    return null;
-  }
 
   const choice = enforcedChoice
     ? RANDOM_OPTIONS_BALANCE_DECREASING_TRANSACTION.find((x) => x.name === enforcedChoice)
@@ -56,5 +48,5 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
     id,
     inUtxo: toBN(0),
-  };
+  } as ARBalanceDecreasingTransaction;
 }

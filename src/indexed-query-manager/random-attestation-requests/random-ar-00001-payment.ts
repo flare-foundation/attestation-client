@@ -30,12 +30,6 @@ export async function prepareRandomizedRequestPayment(
   if (!randomTransaction) {
     return null;
   }
-  const confirmationBlockQueryResponse = await indexedQueryManager.queryBlock({
-    blockNumber: randomTransaction.blockNumber + indexedQueryManager.settings.numberOfConfirmations(),
-  });
-  if (!confirmationBlockQueryResponse?.result) {
-    return null;
-  }
 
   const choice = enforcedChoice ? RANDOM_OPTIONS_PAYMENT.find((x) => x.name === enforcedChoice) : randomWeightedChoice(RANDOM_OPTIONS_PAYMENT);
 
@@ -50,5 +44,5 @@ export async function prepareRandomizedRequestPayment(
     id,
     utxo: toBN(0), // TODO: randomize for UTXO chains
     inUtxo: toBN(0), // TODO: randomize for UTXO chains
-  };
+  } as ARPayment;
 }

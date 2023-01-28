@@ -13,7 +13,7 @@ export class DatabaseConnectOptions {
   database = "database";
   username = "username";
   password = "password";
-  @optional() synchronize = true;
+  @optional() synchronize = true; 
   @optional() logging = false;
   @optional() entities = undefined;
   @optional() migrations = [];
@@ -88,8 +88,8 @@ export class DatabaseService {
         password: this.options.password,
         database: this.options.database,
         entities: this.options.entities ?? [entities],
-        migrations: this.options.migrations ?? [migrations],
-        synchronize: this.options.synchronize ?? true,
+        // migrations: this.options.migrations ?? [migrations],
+        synchronize: this.options.synchronize ?? false,
         logging: this.options.logging ?? false,
       } as MysqlConnectionOptions;
 

@@ -1,15 +1,16 @@
 {
    "startRoundId": 150,
+   // Coston2 assigners
    "defaultSetAssignerAddresses": [
-      "0xead9c93b79ae7c1591b1fb5323bd777e86e150d4",
-      "0xe5904695748fe4a84b40b3fc79de2277660bd1d3",
-      "0x92561f28ec438ee9831d00d1d59fbdc981b762b2",
-      "0x2ffd013aaa7b5a7da93336c2251075202b33fb2b",
-      "0x9fc9c2dfba3b6cf204c37a5f690619772b926e39",
-      "0xfbc51a9582d031f2ceaad3959256596c5d3a5468",
-      "0x84fae3d3cba24a97817b2a18c2421d462dbbce9f",
-      "0xfa3bdc8709226da0da13a4d904c8b66f16c3c8ba",
-      "0x6c365935ca8710200c7595f0a72eb6023a7706cd"
+      "0x30e4b4542b4aAf615838B113f14c46dE1469212e",
+      "0x3519E14183252794aaA52aA824f34482ef44cE1d",
+      "0xb445857476181ec378Ec453ab3d122183CfC3b78",
+      "0x6D755cd7A61A9DCFc96FaE0f927C3a73bE986ce4",
+      "0xdC0fD24846303D58d2D66AA8820be2685735dBd2",
+      "0x3F52c41c0500a4f018A38c9f8273b254aD7e2FCc",
+      "0xdA6d6aA9F1f770c279c5DA0C71f4DC1142A70d5D",
+      "0x3d895D00d2802120D39d4D2554F7ef09d6845E99",
+      "0xc36141CFBe5Af6eB2F8b21550Ccd457DA7FaF3C6"
    ],
    "sources": [
       {

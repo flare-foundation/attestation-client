@@ -51,6 +51,11 @@ export class VerifierRouter {
    routeMap: Map<string, Map<string, VerifierRoute>>;
    _initialized = false;
    logger: AttLogger;
+   forcePrepareRoute = false;
+
+   constructor(forcePrepareRoute?: boolean) {
+      this.forcePrepareRoute = forcePrepareRoute;
+   }
 
    /**
     * Auxilliary function. Returns VerifierRoute for given @param sourceName and @param attestationTypeName
@@ -97,13 +102,13 @@ export class VerifierRouter {
     * configurations are read and set and there are no double setting of a specific configuration for
     * a pair of (sourceName, attestationTypeName)
     */
-   public async initialize(startRoundId: number, logger?: AttLogger) {
+   public async initialize(startRoundId: number, logger?: AttLogger, configPathOverride?: string) {
       if (this._initialized) {
          throw new Error("Already initialized");
       }
       this.logger = logger ?? getGlobalLogger();
       // initialize by DAC start number      
-      this.config = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${startRoundId}`);
+      this.config = await readSecureConfig(new VerifierRouteConfig(), configPathOverride ?? `verifier-client/verifier-routes-${startRoundId}`);
       if (!this.config) {
          throw new Error(`Missing configuration for roundId ${startRoundId}. Verifier routes configuration start round ids should match the ones from DAC`)
       }
@@ -190,6 +195,13 @@ export class VerifierRouter {
       return route;
    }
 
+   private transformRoute(route: string) {
+      if(this.forcePrepareRoute) {
+         if(route.endsWith("/")) return `${route}prepare`;
+         return `${route}/prepare`
+      }
+      return route;
+   }
    /**
     * Verifies attestation by sending the request to relevant verifier (including this.sourcerouter. one).
     * @param attestation 
@@ -206,7 +218,7 @@ export class VerifierRouter {
          const resp = await retry(
             `VerifierRouter::verifyAttestation`,
             async () => axios.post(
-               route.url,
+               this.transformRoute(route.url),
                attestationRequest,
                {
                   headers: {

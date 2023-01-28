@@ -9,6 +9,14 @@ if $ENABLE_INDEXER; then
     systemctl --user restart indexer-doge
 fi
 
+if $INSTALL_VERIFIER; then
+    systemctl --user restart verifier-xrp
+    systemctl --user restart verifier-btc
+    systemctl --user restart verifier-ltc
+    systemctl --user restart verifier-algo
+    systemctl --user restart verifier-doge
+fi
+
 if $ENABLE_MONITOR; then
     systemctl --user restart attester-alerts
 fi

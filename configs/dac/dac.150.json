@@ -1,5 +1,6 @@
 {
    "startRoundId": 150,
+   // Coston2 assigners
    "defaultSetAssignerAddresses": [
       "0x30e4b4542b4aAf615838B113f14c46dE1469212e",
       "0x3519E14183252794aaA52aA824f34482ef44cE1d",

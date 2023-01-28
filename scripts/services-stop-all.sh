@@ -17,8 +17,6 @@ if $INSTALL_VERIFIER; then
     systemctl --user stop verifier-doge
 fi
 
-
-
 if $ENABLE_MONITOR; then
     systemctl --user stop attester-alerts
 fi

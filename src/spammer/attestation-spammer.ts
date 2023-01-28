@@ -10,6 +10,7 @@ import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManage
 import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
 import { readCredentials } from "../utils/config";
+import { indexerEntities } from "../utils/databaseEntities";
 import { DatabaseService } from "../utils/databaseService";
 import { getTimeMilli } from "../utils/internetTime";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
@@ -20,6 +21,7 @@ import { readAttestationTypeSchemes } from "../verification/attestation-types/at
 import { encodeRequest } from "../verification/generated/attestation-request-encode";
 import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";
+import { VerifierRouter } from "../verification/routing/VerifierRouter";
 import { SourceId } from "../verification/sources/sources";
 import { SpammerCredentials } from "./SpammerConfiguration";
 
@@ -29,28 +31,11 @@ const yargs = require("yargs");
 
 const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
-  .option("config", {
-    alias: "cred",
-    type: "string",
-    description: "Path to config json file",
-    default: "./configs/spammer-config.json",
-    demand: false,
-  })
-  .option("rpcLink", { alias: "r", type: "string", description: "RPC to Flare network", default: "http://127.0.0.1:9650/ext/bc/C/rpc" })
-  .option("abiPath", {
-    alias: "a",
-    type: "string",
-    description: "Path to abi JSON file",
-    default: "artifacts/contracts/StateConnector.sol/StateConnector.json",
-  })
-  .option("contractAddress", { alias: "t", type: "string", description: "Address of the deployed contract" })
-  .option("range", { alias: "w", type: "number", description: "Random block range", default: 1000 })
-  .option("nonceResetCount", { alias: "e", type: "number", description: "Reset nonce period", default: 10 })
   .option("delay", { alias: "d", type: "number", description: "Delay between sending transactions from the same block", default: 500 })
-  .option("accountsFile", { alias: "k", type: "string", description: "Private key accounts file", default: "test-1020-accounts.json" })
-  .option("startAccountId", { alias: "b", type: "number", description: "Start account id", default: 0 })
-  .option("numberOfAccounts", { alias: "o", type: "number", description: "Number of accounts", default: 1 })
-  .option("loggerLabel", { alias: "l", type: "string", description: "Logger label", default: "" }).argv;
+  .option("loggerLabel", { alias: "l", type: "string", description: "Logger label", default: "" })
+  .option("testCred", { alias: "t", type: "boolean", description: "Logger label" })
+  .option("configPath", { alias: "f", type: "string", description: "Config path"})
+  .argv;
 
 class AttestationSpammer {
   chainType!: ChainType;
@@ -72,7 +57,7 @@ class AttestationSpammer {
   spammerCredentials: SpammerCredentials;
 
   get numberOfConfirmations(): number {
-    // todo: get from chain confing
+    // todo: get from chain config
     return 6; //AttestationRoundManager.getSourceLimiterConfig(getSourceName(this.chainType)).numberOfConfirmations;;
   }
 
@@ -83,6 +68,7 @@ class AttestationSpammer {
   TOP_UP_THRESHOLD = 0.25;
 
   id: string;
+  verifierRouter: VerifierRouter;
 
   randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
@@ -92,12 +78,14 @@ class AttestationSpammer {
     this.chainType = MCC.getChainType(args["chain"]);
 
     // Reading configuration
-    this.spammerCredentials = readCredentials(new SpammerCredentials(), "spammer");
+    this.spammerCredentials = readCredentials(new SpammerCredentials(), `spammer/spammer`);
 
     // create dummy attestation round manager and assign needed variables
     this.attestationRoundManager = new AttestationRoundManager(null, null, null);
     this.attestationRoundManager.config = new AttestationClientConfig();
     this.attestationRoundManager.config.web = this.spammerCredentials.web;
+
+    this.verifierRouter = new VerifierRouter();
 
     this.logger = getGlobalLogger();
     this.web3 = getWeb3(this.spammerCredentials.web.rpcUrl) as Web3;
@@ -114,7 +102,7 @@ class AttestationSpammer {
 
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.spammerCredentials.web);
 
-    if (this.spammerCredentials.web2) {
+    if (this.spammerCredentials.web2?.accountPrivateKey !== "") {
       this.web3_2 = getWeb3(this.spammerCredentials.web2.rpcUrl) as Web3;
 
       this.logger.info(`RPC2: ${this.spammerCredentials.web2.rpcUrl}`);
@@ -129,7 +117,7 @@ class AttestationSpammer {
   }
 
   async init() {
-    let dbService = new DatabaseService(getGlobalLogger(), this.spammerCredentials.indexerDatabase, "indexer");
+    let dbService = new DatabaseService(getGlobalLogger(), {...this.spammerCredentials.indexerDatabase, entities: indexerEntities(args["chain"])}, "indexer");
     await dbService.connect();
     const options: IndexedQueryManagerOptions = {
       chainType: this.chainType,
@@ -154,6 +142,8 @@ class AttestationSpammer {
     if (this.web3Functions_2) {
       this.logger.info(`Sending from address2 ${this.web3Functions_2.account.address}`);
     }
+
+    this.verifierRouter.initialize(0, this.logger, `spammer`)
   }
 
   getCurrentRound() {
@@ -333,7 +323,15 @@ async function runAllAttestationSpammers() {
 setLoggerName("spammer");
 setGlobalLoggerLabel(args.chain)
 
-// (new AttestationSpammer()).runSpammer()
+if(args.testCred) {
+  process.env.TEST_CREDENTIALS = "1"
+  process.env.NODE_ENV="development"
+}
+
+if(args.configPath) {
+  process.env.CONFIG_PATH = args.configPath
+}
+
 runAllAttestationSpammers()
   .then(() => process.exit(0))
   .catch((error) => {

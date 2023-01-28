@@ -20,6 +20,7 @@
     "node": ">=12.0.0"
   },
   "scripts": {
+    "prebuild": "rimraf dist",
     "build": "yarn tsc",
     "-------LINT------": "",
     "lint": "yarn prettier -w 'src/**/*.{ts,tsx}' --config ./package.json",

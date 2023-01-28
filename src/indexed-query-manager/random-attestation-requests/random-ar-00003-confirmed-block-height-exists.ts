@@ -31,12 +31,6 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   if (!randomBlock) {
     return null;
   }
-  const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
-    blockNumber: randomBlock.blockNumber + indexedQueryManager.settings.numberOfConfirmations(),
-  });
-  if (!confirmationBlockQueryResult?.result) {
-    return null;
-  }
 
   const choice = enforcedChoice
     ? RANDOM_OPTIONS_CONFIRMED_BLOCK_HEIGHT_EXISTS.find((x) => x.name === enforcedChoice)
@@ -53,5 +47,5 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
     blockNumber,
     queryWindow
-  };
+  } as ARConfirmedBlockHeightExists;
 }

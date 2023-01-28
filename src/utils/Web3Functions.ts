@@ -33,6 +33,7 @@ export class Web3Functions {
     this.web3Options = web3Options;
     this.web3 = web3;
     this.account = getWeb3Wallet(this.web3, this.web3Options.accountPrivateKey);
+    this.logger.info(`Sending from address ${this.account.address}`);
     this.waitFinalize3 = waitFinalize3Factory(this.web3);
   }
 

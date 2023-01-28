@@ -87,7 +87,13 @@ export async function fetchRandomTransactions(iqm: IndexedQueryManager, batchSiz
   let result: DBTransactionBase[] = [];
   let maxReps = 10;
   while (result.length === 0) {
-    const tableId = Math.round(Math.random());
+    let tableId = 0;
+    if (process.env.TEST_CREDENTIALS) {
+      tableId = 0;
+    } else {
+      tableId = Math.round(Math.random());
+    }
+
     const table = iqm.transactionTable[tableId];
 
     const maxQuery = iqm.entityManager.createQueryBuilder(table, "transaction").select("MAX(transaction.id)", "max");
@@ -132,11 +138,11 @@ export async function fetchRandomConfirmedBlocks(iqm: IndexedQueryManager, batch
   if (startTime) {
     query = query.andWhere("block.timestamp >= :startTime", { startTime });
   }
-  if(iqm.entityManager.connection.options.database === ":memory:") {
-    query = query.orderBy("RANDOM()").limit(batchSize);  
+  if (process.env.NODE_ENV === "development" && iqm.entityManager.connection.options.type == "better-sqlite3") {
+    query = query.orderBy("RANDOM()").limit(batchSize);
   } else {
     query = query.orderBy("RAND()").limit(batchSize);
   }
-  
+
   return (await query.getMany()) as DBBlockBase[];
 }

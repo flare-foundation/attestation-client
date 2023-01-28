@@ -18,6 +18,7 @@ import { FlareConnection } from "./FlareConnection";
 import { sourceAndTypeSupported, SourceLimiterConfig } from "./GlobalAttestationConfig";
 import { AttestationConfigManager } from "./AttestationConfigManager";
 import { criticalAsync } from "../indexer/indexer-utils";
+import { attesterEntities } from "../utils/databaseEntities";
 
 /**
  * Manages a specific attestation round
@@ -95,7 +96,11 @@ export class AttestationRoundManager {
     // Load DAC configs
     await this.attestationConfigManager.initialize();
 
-    this.dbServiceAttester = new DatabaseService(this.logger, this.config.attesterDatabase, "attester");
+    this.dbServiceAttester = new DatabaseService(this.logger, {
+      ...this.config.attesterDatabase,
+      entities: attesterEntities(),
+      synchronize: true
+    }, "attester");
     await this.dbServiceAttester.connect();
 
     // update active round again since waiting for DB connection can take time
@@ -195,7 +200,7 @@ export class AttestationRoundManager {
           }  `
         );
       }
-    }, process.env.TEST_SAMPLING_REQUEST_INTERVAL ? parseInt(process.env.TEST_SAMPLING_REQUEST_INTERVAL, 10) : 5000);  
+    }, process.env.TEST_SAMPLING_REQUEST_INTERVAL ? parseInt(process.env.TEST_SAMPLING_REQUEST_INTERVAL, 10) : 5000);
   }
 
 

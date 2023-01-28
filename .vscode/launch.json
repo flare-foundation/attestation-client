@@ -295,6 +295,29 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "Attester spammer BTC - testing",
+            "env": {
+            },
+            "envFile": "${workspaceFolder}/.deploy.env",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/flare-mcc/**"
+            ],
+            "runtimeArgs": [
+                "ts-node",
+                "src/spammer/attestation-spammer.ts",
+                "-c","BTC",
+                "-l","BTC",
+                "-t",
+                "-f", "../test/attestationClient/test-data/spammer/btc"           
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Attester collector XRP",
             "runtimeExecutable": "yarn",
             "outFiles": [

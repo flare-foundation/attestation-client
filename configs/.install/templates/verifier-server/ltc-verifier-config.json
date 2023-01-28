@@ -1,0 +1,50 @@
+{
+   "apiKeys": [
+      {
+         "name": "test1",
+         "apiKey": "$(LTCApiKey1)"
+      },
+      {
+         "name": "test2",
+         "apiKey": "$(LTCApiKey1)"
+      }
+   ],
+
+   "port": $(LTCVerifierRouterServerPort),
+   "checkAliveIntervalMs": 5000,
+   "sourceId": "LTC",
+   "attestationTypes": [
+      "Payment",
+      "BalanceDecreasingTransaction",
+      "ConfirmedBlockHeightExists",
+      "ReferencedPaymentNonexistence"
+   ],
+   "indexerDatabase":         {
+      "name": "LTC",
+      "mccCreate" : {
+          "url": "$(LTCURL)",
+          "username": "$(LTCUsername)",
+          "password": "$(LTCPassword)"
+      },
+      "rateLimitOptions": {
+          "maxRPS": 20,
+          "timeoutMs": 5000,
+          "retries": 3
+      },
+      "numberOfConfirmations": 6,
+      "syncReadAhead":30,
+      "blockCollecting":"tips",
+      "minimalStorageHistoryDays":2,
+      "minimalStorageHistoryBlocks":100,
+
+      "maxRequestsPerSecond":80,
+      "maxProcessingTransactions":3000,
+
+      "maxFailedRetry": 1,
+      "delayBeforeRetry": 10,
+
+      "maxValidIndexerDelaySec": 10,
+
+      "reverificationTimeOffset": 10
+  }
+}

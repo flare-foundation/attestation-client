@@ -9,15 +9,15 @@
          "apiKey": "$(XRPApiKey1)"
       }
    ],
-
    "port": $(XRPVerifierRouterServerPort),
    "checkAliveIntervalMs": 5000,
    "sourceId": "XRP",
    "attestationTypes": [
       "Payment",
-      "BalanceDecreasingTransaction"
+      "BalanceDecreasingTransaction",
+      "ConfirmedBlockHeightExists",
+      "ReferencedPaymentNonexistence"
    ],
-
    "indexerDatabase": {
       "hostname": "$(IndexerDatabaseHost)",
       "port": $(IndexerDatabasePort),
@@ -26,12 +26,15 @@
       "password": "$(IndexerReaderPassword)"
    },
    "chainConfiguration": {
+      // chain name. allowed names are XRP, BTC, LTC, ALGO, DOGE
       "name": "XRP",
+      // MCC create options
       "mccCreate": {
-         "url": "$(XRPURL)",
+         "url": "$(XRLURL)",
          "username": "$(XRPUsername)",
-         "password": "$(XRPPassword)"
-    },
+         "password": "$(XRPPassword)",
+      },
+      // rate limiting options
       "rateLimitOptions": {
          "maxRPS": 20,
          "timeoutMs": 30000,

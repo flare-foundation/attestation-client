@@ -1,0 +1,11 @@
+{
+    "BTCVerifierRouterClientUrl": "http://localhost:9500/query",
+
+    "LTCVerifierRouterClientUrl": "http://localhost:9502/query",
+
+    "ALGOVerifierRouterClientUrl": "http://localhost:9503/query",
+
+    "DOGEVerifierRouterClientUrl": "http://localhost:9504/query",
+
+    "XRPVerifierRouterClientUrl": "http://localhost:9501/query",
+}

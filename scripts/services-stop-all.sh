@@ -9,6 +9,16 @@ if $ENABLE_INDEXER; then
     systemctl --user stop indexer-doge.service
 fi
 
+if $INSTALL_VERIFIER; then
+    systemctl --user stop verifier-xrp
+    systemctl --user stop verifier-btc
+    systemctl --user stop verifier-ltc
+    systemctl --user stop verifier-algo
+    systemctl --user stop verifier-doge
+fi
+
+
+
 if $ENABLE_MONITOR; then
     systemctl --user stop attester-alerts
 fi

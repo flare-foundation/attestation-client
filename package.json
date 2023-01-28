@@ -40,7 +40,7 @@
     "-------DEV-MAIN------": "",
     "devindexer": "env NODE_ENV=development yarn ts-node src/runIndexer.ts",
     "devverifierserver": "env NODE_ENV=development VERIFIER_TYPE=btc yarn ts-node src/runVerifierServer.ts",
-    "devattester": "env SECURE_CONFIG_NETWORK=Coston2 NODE_ENV=development CREDENTIALS_KEY=direct:t3stPassw0rd yarn ts-node src/runAttesterClient.ts",
+    "devattester": "env SECURE_CONFIG_NETWORK=Coston2 NODE_ENV=development CREDENTIALS_KEY=direct:t3stPassw0rd yarn ts-node src/runAttestationClient.ts",
     "devwebserver": "env NODE_ENV=development yarn ts-node src/runWebserver.ts",
     "-------DEV-RUNNERS------": "",
     "prewatch-and-run": "npm-run-all typechain-web3-v1",

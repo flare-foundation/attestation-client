@@ -2,16 +2,16 @@
    "apiKeys": [
       {
          "name": "test1",
-         "apiKey": "$(BTCApiKey1)"
+         "apiKey": "$(DOGEApiKey1)"
       },
       {
          "name": "test2",
-         "apiKey": "$(BTCApiKey2)"
+         "apiKey": "$(DOGEApiKey1)"
       }
    ],
-   "port": $(BTCVerifierRouterServerPort),
+   "port": $(DOGEVerifierRouterServerPort),
    "checkAliveIntervalMs": 5000,
-   "sourceId": "BTC",
+   "sourceId": "DOGE",
    "attestationTypes": [
       "Payment",
       "BalanceDecreasingTransaction",
@@ -26,15 +26,15 @@
       "password": "$(IndexerReaderPassword)"
    },
    "chainConfiguration": {
-      "name": "BTC",
+      "name": "DOGE",
       "mccCreate": {
-         "url": "$(BTCURL)",
-         "username": "$(BTCUsername)",
-         "password": "$(BTCPassword)"
+         "url": "$(DOGEURL)",
+         "username": "$(DOGEUsername)",
+         "password": "$(DOGEPassword)"
       },
       "rateLimitOptions": {
-         "maxRPS": 20,
-         "timeoutMs": 15000,
+         "maxRPS": 30,
+         "timeoutMs": 5000,
          "retries": 3
       },
       "numberOfConfirmations": 6,

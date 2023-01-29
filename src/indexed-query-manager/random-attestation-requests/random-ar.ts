@@ -2,6 +2,7 @@ import { Attestation } from "../../attester/Attestation";
 import { AttestationData } from "../../attester/AttestationData";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { AttLogger } from "../../utils/logger";
 import { getUnixEpochTimestamp } from "../../utils/utils";
 import { encodeRequest } from "../../verification/generated/attestation-request-encode";
 import { ARType } from "../../verification/generated/attestation-request-types";
@@ -20,11 +21,10 @@ import { fetchRandomConfirmedBlocks, fetchRandomTransactions, RandomDBIterator }
 /////////////////////////////////////////////////////////////////
 
 export async function getRandomAttestationRequest(
+  logger: AttLogger,
   randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>,
   indexedQueryManager: IndexedQueryManager,
-  sourceId: SourceId,
-  roundId: number,
-  numberOfConfirmations: number
+  sourceId: SourceId
 ) {
   const { attestationType, generator } = randomGeneratorChoiceWithAttestationType(randomGenerators);
   if (generator.size <= 0) {
@@ -35,22 +35,32 @@ export async function getRandomAttestationRequest(
 
   switch (attestationType) {
     case AttestationType.Payment:
-      return prepareRandomizedRequestPayment(indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, roundId);
+      return prepareRandomizedRequestPayment(
+        logger,
+        indexedQueryManager,
+        txOrBlock as DBTransactionBase,
+        sourceId
+      );
     case AttestationType.BalanceDecreasingTransaction:
       return prepareRandomizedRequestBalanceDecreasingTransaction(
+        logger,
         indexedQueryManager,
         txOrBlock as DBTransactionBase,
-        sourceId,
-        roundId
+        sourceId
       );
     case AttestationType.ConfirmedBlockHeightExists:
-      return prepareRandomizedRequestConfirmedBlockHeightExists(indexedQueryManager, txOrBlock as DBBlockBase, sourceId, roundId);
+      return prepareRandomizedRequestConfirmedBlockHeightExists(
+        logger,
+        indexedQueryManager,
+        txOrBlock as DBBlockBase,
+        sourceId,
+      );
     case AttestationType.ReferencedPaymentNonexistence:
       return prepareRandomizedRequestReferencedPaymentNonexistence(
+        logger,
         indexedQueryManager,
         txOrBlock as DBTransactionBase,
         sourceId,
-        roundId
       );
     default:
       throw new Error("Invalid attestation type");

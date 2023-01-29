@@ -1,30 +1,34 @@
 import { prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
-import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { AttLogger } from "../../utils/logger";
+import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
+import { hashPayment } from "../../verification/generated/attestation-hash-utils";
 import { ARPayment } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
+import { verifyAttestation } from "../../verification/verifiers/verifier_routing";
 import { IndexedQueryManager } from "../IndexedQueryManager";
+import { createTestAttestationFromRequest } from "./random-ar";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
 // attestation type Payment
 /////////////////////////////////////////////////////////////////
 
-export type RandomPaymentChoiceType = "CORRECT" | "WRONG_DATA_AVAILABILITY_PROOF" | "NON_EXISTENT_TX_ID";
+export type RandomPaymentChoiceType = "CORRECT" | "WRONG_MIC" | "NON_EXISTENT_TX_ID";
 const RANDOM_OPTIONS_PAYMENT = [
   { name: "CORRECT", weight: 10 },
-  { name: "WRONG_DATA_AVAILABILITY_PROOF", weight: 1 },
+  { name: "WRONG_MIC", weight: 1 },
   { name: "NON_EXISTENT_TX_ID", weight: 1 },
 ] as WeightedRandomChoice<RandomPaymentChoiceType>[];
 
 export async function prepareRandomizedRequestPayment(
+  logger: AttLogger,
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
-  roundId: number,
   enforcedChoice?: RandomPaymentChoiceType
 ): Promise<ARPayment | null> {
   if (!randomTransaction) {
@@ -37,7 +41,7 @@ export async function prepareRandomizedRequestPayment(
     return null;
   }
   const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
-  return {
+  const request = {
     attestationType: AttestationType.Payment,
     sourceId: sourceId,
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
@@ -45,4 +49,20 @@ export async function prepareRandomizedRequestPayment(
     utxo: toBN(0), // TODO: randomize for UTXO chains
     inUtxo: toBN(0), // TODO: randomize for UTXO chains
   } as ARPayment;
+  if(choice === 'WRONG_MIC') {
+      return request;
+  }
+  let attestation = createTestAttestationFromRequest(request, 0);
+  try {
+    let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
+    // augment with message integrity code
+    if (response.status === 'OK') {
+      request.messageIntegrityCode = hashPayment(request, response.response, MIC_SALT);
+      logger.info(`Request augmented correctly (Payment)`);
+      return request;
+    }
+  } catch (e) {
+    logger.info(`Attestation verification failed: ${e}`);
+  }
+  return null;
 }

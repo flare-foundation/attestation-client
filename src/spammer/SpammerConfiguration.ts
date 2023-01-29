@@ -1,3 +1,4 @@
+import { optional } from "@flarenetwork/mcc";
 import { AttesterWebOptions } from "../attester/AttestationClientConfig";
 import { DatabaseConnectOptions } from "../utils/databaseService";
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
@@ -9,8 +10,10 @@ export class SpammerCredentials implements IReflection<SpammerCredentials> {
   // voting round duration in sec
   public roundDurationSec = 90;
 
+  public numberOfConfirmations: number = 6;
+  
   web = new AttesterWebOptions();
-  web2 = new AttesterWebOptions();
+  @optional() web2 = new AttesterWebOptions();
 
   indexerDatabase = new DatabaseConnectOptions();
 

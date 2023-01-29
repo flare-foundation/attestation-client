@@ -1,6 +1,7 @@
 import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
+import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { AttestationClientConfig } from "../attester/AttestationClientConfig";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
@@ -10,6 +11,7 @@ import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManage
 import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
 import { readCredentials } from "../utils/config";
+import { readSecureConfig } from "../utils/configSecure";
 import { indexerEntities } from "../utils/databaseEntities";
 import { DatabaseService } from "../utils/databaseService";
 import { getTimeMilli } from "../utils/internetTime";
@@ -34,7 +36,7 @@ const args = yargs
   .option("delay", { alias: "d", type: "number", description: "Delay between sending transactions from the same block", default: 500 })
   .option("loggerLabel", { alias: "l", type: "string", description: "Logger label", default: "" })
   .option("testCred", { alias: "t", type: "boolean", description: "Logger label" })
-  .option("configPath", { alias: "f", type: "string", description: "Config path"})
+  .option("configPath", { alias: "f", type: "string", description: "Config path" })
   .argv;
 
 class AttestationSpammer {
@@ -42,8 +44,8 @@ class AttestationSpammer {
   web3!: Web3;
   web3_2!: Web3;
   logger!: any;
-  stateConnector!: StateConnector;
-  stateConnector_2!: StateConnector;
+  stateConnector!: StateConnector | StateConnectorTempTran;
+  stateConnector_2!: StateConnector | StateConnectorTempTran;
 
   delay: number = args["delay"];
   lastBlockNumber = -1;
@@ -53,12 +55,11 @@ class AttestationSpammer {
 
   indexedQueryManager: IndexedQueryManager;
   definitions: AttestationTypeScheme[];
-  attestationRoundManager: AttestationRoundManager;
+  // attestationRoundManager: AttestationRoundManager;
   spammerCredentials: SpammerCredentials;
 
   get numberOfConfirmations(): number {
-    // todo: get from chain config
-    return 6; //AttestationRoundManager.getSourceLimiterConfig(getSourceName(this.chainType)).numberOfConfirmations;;
+    return this.spammerCredentials.numberOfConfirmations;
   }
 
   BUFFER_TIMESTAMP_OFFSET = 0;
@@ -68,7 +69,6 @@ class AttestationSpammer {
   TOP_UP_THRESHOLD = 0.25;
 
   id: string;
-  verifierRouter: VerifierRouter;
 
   randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
@@ -76,49 +76,43 @@ class AttestationSpammer {
     this.id = "default";
     this.logEvents = true;
     this.chainType = MCC.getChainType(args["chain"]);
+  }
 
+  async init() {
     // Reading configuration
-    this.spammerCredentials = readCredentials(new SpammerCredentials(), `spammer/spammer`);
-
-    // create dummy attestation round manager and assign needed variables
-    this.attestationRoundManager = new AttestationRoundManager(null, null, null);
-    this.attestationRoundManager.config = new AttestationClientConfig();
-    this.attestationRoundManager.config.web = this.spammerCredentials.web;
-
-    this.verifierRouter = new VerifierRouter();
+    this.spammerCredentials = await readSecureConfig(new SpammerCredentials(), `spammer/${args["chain"]}-spammer`);
 
     this.logger = getGlobalLogger();
     this.web3 = getWeb3(this.spammerCredentials.web.rpcUrl) as Web3;
 
-    //let stateConnectorAddress = spammerCredentials.web.stateConnectorContractAddress;
-
     this.logger.info(`RPC: ${this.spammerCredentials.web.rpcUrl}`);
     this.logger.info(`Using state connector at: ${this.spammerCredentials.web.stateConnectorContractAddress}`);
 
-    // eslint-disable-next-line
-    getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web.stateConnectorContractAddress).then((sc: StateConnector) => {
-      this.stateConnector = sc;
-    });
-
+    this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web.stateConnectorContractAddress);
     this.web3Functions = new Web3Functions(this.logger, this.web3, this.spammerCredentials.web);
 
-    if (this.spammerCredentials.web2?.accountPrivateKey !== "") {
+    if (this.spammerCredentials.web2 && this.spammerCredentials.web2.accountPrivateKey !== "") {
       this.web3_2 = getWeb3(this.spammerCredentials.web2.rpcUrl) as Web3;
 
       this.logger.info(`RPC2: ${this.spammerCredentials.web2.rpcUrl}`);
       this.logger.info(`Using state connector 2 at: ${this.spammerCredentials.web2.stateConnectorContractAddress}`);
       // eslint-disable-next-line
-      getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web2.stateConnectorContractAddress).then((sc: StateConnector) => {
-        this.stateConnector_2 = sc;
-      });
-
+      this.stateConnector_2 = await getWeb3StateConnectorContract(this.web3, this.spammerCredentials.web2.stateConnectorContractAddress);
       this.web3Functions_2 = new Web3Functions(this.logger, this.web3_2, this.spammerCredentials.web2);
     }
-  }
 
-  async init() {
-    let dbService = new DatabaseService(getGlobalLogger(), {...this.spammerCredentials.indexerDatabase, entities: indexerEntities(args["chain"])}, "indexer");
+    let dbService = new DatabaseService(
+      getGlobalLogger(),
+      {
+        ...this.spammerCredentials.indexerDatabase,
+        entities: indexerEntities(args["chain"]),
+        dropSchema: false,
+        synchronize: false
+      },
+      "indexer"
+    );
     await dbService.connect();
+
     const options: IndexedQueryManagerOptions = {
       chainType: this.chainType,
       numberOfConfirmations: () => {
@@ -143,7 +137,6 @@ class AttestationSpammer {
       this.logger.info(`Sending from address2 ${this.web3Functions_2.account.address}`);
     }
 
-    this.verifierRouter.initialize(0, this.logger, `spammer`)
   }
 
   getCurrentRound() {
@@ -152,7 +145,7 @@ class AttestationSpammer {
   }
 
   static sendId = 0;
-  async sendAttestationRequest(stateConnector: StateConnector, request: ARType) {
+  async sendAttestationRequest(stateConnector: StateConnector | StateConnectorTempTran, request: ARType) {
     // let scheme = this.definitions.find(definition => definition.id === request.attestationType);
     // let requestBytes = encodeRequestBytes(request, scheme);
 
@@ -195,10 +188,6 @@ class AttestationSpammer {
   }
 
   async initializeStateConnector() {
-    while (!this.stateConnector) {
-      await sleepMs(100);
-    }
-
     this.BUFFER_TIMESTAMP_OFFSET = parseInt(await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
     this.BUFFER_WINDOW = parseInt(await this.stateConnector.methods.BUFFER_WINDOW().call(), 10);
   }
@@ -260,26 +249,24 @@ class AttestationSpammer {
   static sendCount = 0;
 
   async runSpammer() {
-    let attRequest: ARType | undefined;
     while (true) {
       try {
         AttestationSpammer.sendCount++;
         // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
 
-        const roundId = this.getCurrentRound();
-
         const attRequest = await getRandomAttestationRequest(
+          this.logger,
           this.randomGenerators,
           this.indexedQueryManager,
-          this.chainType as number as SourceId,
-          roundId,
-          this.numberOfConfirmations
+          this.chainType as number as SourceId
         );
 
         if (attRequest) {
-          this.sendAttestationRequest(this.stateConnector, attRequest).catch((e) => {
-            logException("runSpammer::sendAttestationRequest", e);
-          });
+          try {
+            await this.sendAttestationRequest(this.stateConnector, attRequest)
+          } catch (e0) {
+            logException("runSpammer::sendAttestationRequest", e0);
+          }
         } else {
           this.logger.info("NO random attestation request");
         }
@@ -323,12 +310,12 @@ async function runAllAttestationSpammers() {
 setLoggerName("spammer");
 setGlobalLoggerLabel(args.chain)
 
-if(args.testCred) {
+if (args.testCred) {
   process.env.TEST_CREDENTIALS = "1"
-  process.env.NODE_ENV="development"
+  process.env.NODE_ENV = "development"
 }
 
-if(args.configPath) {
+if (args.configPath) {
   process.env.CONFIG_PATH = args.configPath
 }
 

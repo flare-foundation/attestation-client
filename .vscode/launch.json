@@ -310,7 +310,7 @@
                 "-c","BTC",
                 "-l","BTC",
                 "-t",
-                "-f", "../test/attestationClient/test-data/spammer/btc"           
+                "-f", "../test/attestationClient/test-data"           
             ]
         },
 

@@ -13,13 +13,14 @@ export class DatabaseConnectOptions {
   database = "database";
   username = "username";
   password = "password";
-  @optional() synchronize = true; 
+  @optional() synchronize; 
   @optional() logging = false;
   @optional() entities = undefined;
   @optional() migrations = [];
   @optional() subscribers = [];
   @optional() inMemory = false;
   @optional() testSqlite3DBPath = "";
+  @optional() dropSchema;
 }
 
 /**
@@ -70,9 +71,9 @@ export class DatabaseService {
         name: this.connectionName,
         type: "better-sqlite3",
         database: dbPath ?? ":memory:",
-        dropSchema: true,
+        dropSchema: this.options.dropSchema !== undefined ? this.options.dropSchema : true,
         entities: this.options.entities ?? [entities],
-        synchronize: true,
+        synchronize: this.options.synchronize !== undefined ? this.options.synchronize : true,
         migrationsRun: false,
         logging: false,
       } as DataSourceOptions;

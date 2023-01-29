@@ -1,12 +1,11 @@
 {
     // epoch start time in unix time
-    "firstEpochStartTime":1636070400,
-    
+    "firstEpochStartTime": 1636070400,
     // epoch duration in seconds
     "roundDurationSec": 90,
-
+    "numberOfConfirmations": 3,
     "web": {
-        "accountPrivateKey": "$($(Network)NetworkPrivateKey)",
+        "accountPrivateKey": "$($(Network)ALGOSpammerPrivateKey)",
         "rpcUrl": "$($(Network)RPC)",
         "stateConnectorContractAddress": "$($(Network)StateConnectorContractAddress)"
     },

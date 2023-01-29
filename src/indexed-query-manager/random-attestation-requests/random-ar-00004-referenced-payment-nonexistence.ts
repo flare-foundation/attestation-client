@@ -1,32 +1,36 @@
 import { prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
-import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { AttLogger } from "../../utils/logger";
+import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
+import { hashReferencedPaymentNonexistence } from "../../verification/generated/attestation-hash-utils";
 import { ARReferencedPaymentNonexistence } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
+import { verifyAttestation } from "../../verification/verifiers/verifier_routing";
 import { IndexedQueryManager } from "../IndexedQueryManager";
+import { createTestAttestationFromRequest } from "./random-ar";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
 // attestation type ReferencedPaymentNonexistence
 /////////////////////////////////////////////////////////////////
 
-export type RandomReferencedPaymentNonexistenceChoiceType = "CORRECT" | "EXISTS" | "WRONG_DATA_AVAILABILITY_PROOF";
+export type RandomReferencedPaymentNonexistenceChoiceType = "CORRECT" | "EXISTS" | "WRONG_MIC";
 
 const RANDOM_OPTIONS_REFERENCED_PAYMENT_NONEXISTENCE = [
   { name: "CORRECT", weight: 10 },
   { name: "EXISTS", weight: 1 },
-  { name: "WRONG_DATA_AVAILABILITY_PROOF", weight: 1 },
+  { name: "WRONG_MIC", weight: 1 },
 ] as WeightedRandomChoice<RandomReferencedPaymentNonexistenceChoiceType>[];
 
 export async function prepareRandomizedRequestReferencedPaymentNonexistence(
+  logger: AttLogger,
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
-  roundId: number,
-  enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType, 
+  enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType,
   queryWindow = 100
 ): Promise<ARReferencedPaymentNonexistence | null> {
   const OVERFLOW_BLOCK_OFFSET = 10;
@@ -64,30 +68,46 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
     });
   }
 
-  const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
-    blockNumber: overflowBlockNum + indexedQueryManager.settings.numberOfConfirmations(),
-  });
+  // const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
+  //   blockNumber: overflowBlockNum + indexedQueryManager.settings.numberOfConfirmations(),
+  // });
 
-  if (!confirmationBlockQueryResult.result) {
-    console.log("No confirmation block");
-    return null;
-  }
+  // if (!confirmationBlockQueryResult.result) {
+  //   console.log("No confirmation block");
+  //   return null;
+  // }
 
   const deadlineBlockNumber = toBN(prevBlockQueryResult.result.blockNumber);
   const deadlineTimestamp = toBN(prevBlockQueryResult.result.timestamp);
-  const overflowBlock = overflowBlockNum;
   const paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.paymentReference);
   // TODO
   // let destinationAmounts = randomTransaction.
-  return {
+  const request = {
     attestationType: AttestationType.ReferencedPaymentNonexistence,
     sourceId,
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
     minimalBlockNumber: deadlineBlockNumber.toNumber() - queryWindow,
     deadlineBlockNumber,
     deadlineTimestamp,
-    destinationAddressHash: Web3.utils.randomHex(32),
-    amount: toBN(Web3.utils.randomHex(16)),
+    destinationAddressHash: Web3.utils.randomHex(32),  // TODO: "CORRECT" does not work here
+    amount: toBN(Web3.utils.randomHex(16)),            // TODO: "CORRECT" does not work here
     paymentReference,
   };
+  if (choice === 'WRONG_MIC') {
+    return request;
+  }
+  let attestation = createTestAttestationFromRequest(request, 0);
+  try {
+    let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
+    // augment with message integrity code
+    if (response.status === 'OK') {
+      request.messageIntegrityCode = hashReferencedPaymentNonexistence(request, response.response, MIC_SALT);
+      logger.info(`Request augmented correctly (ReferencePaymentNonexistence)`);
+      return request;
+    }
+  } catch (e) {
+    logger.info(`Attestation verification failed: ${e}`);
+  }
+  return null;
+
 }

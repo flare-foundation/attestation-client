@@ -80,7 +80,7 @@ class AttestationSpammer {
 
   async init() {
     // Reading configuration
-    this.spammerCredentials = await readSecureConfig(new SpammerCredentials(), `spammer/${args["chain"]}-spammer`);
+    this.spammerCredentials = await readSecureConfig(new SpammerCredentials(), `spammer/${args["chain"].toLowerCase()}-spammer`);
 
     this.logger = getGlobalLogger();
     this.web3 = getWeb3(this.spammerCredentials.web.rpcUrl) as Web3;

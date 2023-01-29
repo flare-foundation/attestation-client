@@ -90,6 +90,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     }
 
     const request = await prepareRandomizedRequestPayment(
+      getGlobalLogger(),
       indexedQueryManager,
       randomTransaction as DBTransactionBase,
       SOURCE_ID,
@@ -109,6 +110,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     }
 
     const request = await prepareRandomizedRequestBalanceDecreasingTransaction(
+      getGlobalLogger(),
       indexedQueryManager,
       randomTransaction as DBTransactionBase,
       SOURCE_ID,
@@ -131,6 +133,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     });
 
     const request = await prepareRandomizedRequestConfirmedBlockHeightExists(
+      getGlobalLogger(),
       indexedQueryManager,
       blockQueryRequest.result,
       SOURCE_ID,
@@ -161,6 +164,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       }
 
       const request = await prepareRandomizedRequestReferencedPaymentNonexistence(
+        getGlobalLogger(),
         indexedQueryManager,
         randomTransaction as DBTransactionBase,
         SOURCE_ID,

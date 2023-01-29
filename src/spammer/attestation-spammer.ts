@@ -199,11 +199,11 @@ class AttestationSpammer {
         this.lastBlockNumber = await this.web3.eth.getBlockNumber();
         // if(this.lastBlockNumber > last) {
         //   this.logger.info(`Last block: ${this.lastBlockNumber}`)
-        // }
-        await sleepMs(200);
+        // }        
       } catch (e) {
         this.logger.info(`Error: ${e}`);
       }
+      await sleepMs(200);
     }
   }
 

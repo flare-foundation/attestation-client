@@ -8,4 +8,4 @@ yarn ts-node src/spammer/attestation-spammer.ts \
     -d 5 \
     -l BTC \
     -t \
-    -f ../test/attestationClient/test-data/spammer/btc
+    -f ../test/attestationClient/test-data

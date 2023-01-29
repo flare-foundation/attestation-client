@@ -93,7 +93,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       indexedQueryManager,
       randomTransaction as DBTransactionBase,
       SOURCE_ID,
-      ROUND_ID,
       "CORRECT"
     );
 
@@ -113,7 +112,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       indexedQueryManager,
       randomTransaction as DBTransactionBase,
       SOURCE_ID,
-      ROUND_ID,
       "CORRECT"
     );
 
@@ -136,7 +134,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       indexedQueryManager,
       blockQueryRequest.result,
       SOURCE_ID,
-      ROUND_ID,
       "CORRECT"
     );
 
@@ -167,7 +164,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
         indexedQueryManager,
         randomTransaction as DBTransactionBase,
         SOURCE_ID,
-        ROUND_ID,
         "CORRECT"
       );
 

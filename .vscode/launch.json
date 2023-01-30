@@ -74,6 +74,27 @@
                 "devattester"
             ]
         },
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Attester Coston 2 Local",
+            "runtimeExecutable": "yarn",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
+            ],
+            "env": {
+                "SECURE_CONFIG_NETWORK": "Coston2",
+                "NODE_ENV":"development"
+            },
+            "runtimeArgs": [
+                "ts-node",
+                "src/runAttestationClient.ts",
+                "-i", "coston2"
+            ]
+        },
 
         {
             "type": "node",

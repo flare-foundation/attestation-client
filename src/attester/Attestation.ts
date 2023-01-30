@@ -4,8 +4,10 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 
 export enum AttestationStatus {
+  ///// IN PROCESSING STATUSES ///////
   queued,        // attestation put in queue due to rate limiting
-  processing,    // attestation in processin
+  processing,    // attestation in processing
+  ///// FINAL STATUSES //////
   failed,        // attestation failed before processing
   valid,         // confirmed by verifier
   invalid,       // rejected by verifier

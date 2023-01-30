@@ -261,16 +261,25 @@ export class AttestationRound {
         isError = true;
         break;
       }
-      if (this.attestations[i].status === AttestationStatus.valid) {
+      let status = this.attestations[i].status;
+      if (status === AttestationStatus.valid) {
         countRequired++;
         this.attestations[i].chosen = true;
+      } else if (status !== AttestationStatus.queued && status != AttestationStatus.processing) {
+        this.logger.info(`${this.label}Unable to provide at least one required attestation.`);
+        isError = true;
+        break;
       }
     }
-    this.logger.info(`${this.label} Choose phase voting result successful. Status ${countRequired}/${votingResult.length}`);
     if (isError) {
       this.bitVoteResultIndices = [];
     } else {
+      if (countRequired != votingResultIndices.length) {
+        this.logger.info(`${this.label} Choose phase voting not successful yet. Status ${countRequired}/${votingResultIndices.length}`);
+        return;
+      }
       this.bitVoteResultIndices = votingResultIndices;
+      this.logger.info(`${this.label} Choose phase voting result successful. Status ${countRequired}/${votingResultIndices.length}`);
     }
     this.attestStatus = AttestationRoundStatus.chosen;
 

@@ -443,8 +443,7 @@ export class AttestationRound {
           toHex(0, 32),
           toHex(0, 32),
           toHex(0, 32),
-          toHex(0, 32),
-          false
+          toHex(0, 32)
         );
         if (receipt) {
           this.logger.info(`${this.label}^G^wfinalized^^ round ^Y#${this.roundId - 3}`);

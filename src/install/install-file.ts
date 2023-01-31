@@ -1,6 +1,9 @@
+import fs from "fs";
+import * as path from 'path';
 import { readJSON } from "../utils/json";
 import { getGlobalLogger } from "../utils/logger";
 import { getCryptoSafeRandom } from "../utils/utils";
+import { replaceAllVars } from "./utils";
 
 const yargs = require("yargs");
 
@@ -18,7 +21,6 @@ const args = yargs
   .option("withConfig", { alias: "w", type: "array", description: "replace-With", default: "", demand: false })
   .option("inputFilename", { alias: "i", type: "string", description: "input filename", default: "", demand: true })
   .option("outputFilename", { alias: "o", type: "string", description: "output filename", default: "", demand: true })
-
   .argv;
 
 
@@ -26,16 +28,7 @@ const logger = getGlobalLogger();
 
 let errorResult = 0;
 
-function replaceAll(source: string, from: string, to: string): string {
-  while (1) {
-    const newSource = source.replace(`$(${from})`, to);
-    if (newSource === source) return source;
-    source = newSource;
-  }
-}
-
 async function generatePasswords(source: string, length = 32) {
-
   const search = `$(GENERATE_RANDOM_PASSWORD_${length})`;
 
   if (source.indexOf(search) === -1) {
@@ -43,22 +36,17 @@ async function generatePasswords(source: string, length = 32) {
   }
 
   while (true) {
-    const password = (await getCryptoSafeRandom(length)).substring(2,length+2);
-
+    const password = (await getCryptoSafeRandom(length)).substring(2, length + 2);
     const newSource = source.replace(search, password);
     if (newSource === source) return source;
     source = newSource;
   }
 }
 
-const fs = require("fs");
-
 const configs = [];
 function readConfig(filename: string) {
   const config = readJSON<any>(filename, null, true);
-
   for (const key of Object.keys(config)) {
-
     configs.push([key, config[key]]);
   }
 }
@@ -66,8 +54,7 @@ function readConfig(filename: string) {
 function addEnv(name: string) {
   if (!process.env[name]) {
     configs.push([name, ""]);
-  }
-  else {
+  } else {
     configs.push([name, process.env[name]]);
   }
 }
@@ -75,13 +62,11 @@ function addEnv(name: string) {
 
 async function processFile(inputFilename: string, outputFilename: string, chain: string) {
   logger.info(`processing ^G${inputFilename}^^ (${outputFilename})`);
-
   let data = fs.readFileSync(inputFilename).toString();
-
-  data = replaceAll(data, `Network`, chain);
+  data = replaceAllVars(data, `Network`, chain);
 
   for (const config of configs) {
-    data = replaceAll(data, config[0], config[1]);
+    data = replaceAllVars(data, config[0], config[1]);
   }
 
   data = await generatePasswords(data, 16);
@@ -93,7 +78,6 @@ async function processFile(inputFilename: string, outputFilename: string, chain:
 
   if (leftVariables) {
     const leftVariablesNoDup = leftVariables.filter((item, index) => leftVariables.indexOf(item) === index);
-
     for (const left of leftVariablesNoDup) {
       getGlobalLogger().error(`      file ^w${inputFilename}^^ (chain ^E${chain}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
       errorResult = 2;
@@ -109,8 +93,6 @@ async function run() {
   if (args.processConfig) {
     if (process.env.JSON_CONFIG_PATH) {
       const files = fs.readdirSync(process.env.JSON_CONFIG_PATH);
-
-      const path = require('path');
 
       for (const file of files) {
         if (path.extname(file).toLowerCase() !== '.json') {

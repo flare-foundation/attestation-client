@@ -3,120 +3,104 @@ import { exit } from "process";
 import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/jsonSecure";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
 import { sleepms } from "../utils/utils";
+import { muteMySQLPasswords } from "./utils";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
+const yargs = require("yargs");
+
+const args = yargs
+    .option("defaultSecureConfigPath", { alias: "p", type: "string", description: "start folder", default: DEFAULT_SECURE_CONFIG_PATH, demand: false })
+    .option("network", { alias: "n", type: "string", description: "network", default: "Coston", demand: false }).argv;
+
 async function run() {
+    const logger = getGlobalLogger();
     // read configuration
-    await initializeJSONsecure(DEFAULT_SECURE_CONFIG_PATH, "Coston");
+    await initializeJSONsecure(args["defaultSecureConfigPath"], args["network"]);
 
     const installLines = readFileSecure("configs/.install/templates/sql/install.sql").split(/\r?\n/);
     const updateLines = readFileSecure("configs/.install/templates/sql/update.sql").split(/\r?\n/);
-
-    const { exec } = require("child_process");
-
 
     // get secure DatabaseRootPassword
     const secureRootPassword = getSecureValue(`DatabaseRootPassword`);
 
     // wait for database
     let connected = false;
-
     let password = "";
 
     for (let retry = 0; retry < 60; retry++) {
         try {
-
             const secureLogin = (retry & 1) === 0;
-
             password = secureLogin ? secureRootPassword : process.env.MYSQL_ROOT_PASSWORD;
-
             const command = `mysql -h database -u root -p${password} -e ";"`;
-
-            getGlobalLogger().debug(command);
-
+            logger.debug(muteMySQLPasswords(command));
             execSync(command, { windowsHide: true, encoding: "buffer" });
-
             connected = true;
-
             if (secureLogin) {
-                getGlobalLogger().info(`mysql connected with secure password`);
-
+                logger.info(`mysql connected with secure password`);
                 if (!process.env.UPDATE_MYSQL) {
-                    getGlobalLogger().info(`mysql already setup. exiting.`);
-                    getGlobalLogger().debug(`(use env UPDATE_MYSQL=1 to force update)`);
+                    logger.info(`mysql already setup. exiting.`);
+                    logger.debug(`(use env UPDATE_MYSQL=1 to force update)`);
                     return;
                 }
-
-                getGlobalLogger().debug(`force update (UPDATE_MYSQL exists)`);
+                logger.debug(`force update (UPDATE_MYSQL exists)`);
+            } else {
+                logger.info(`mysql connected with ENV password`);
             }
-            else {
-                getGlobalLogger().info(`mysql connected with ENV password`);
-            }
-
             break;
+        } catch (error) {
+            logger.exception(muteMySQLPasswords(error));
         }
-        catch (error) {
-            getGlobalLogger().exception(error);
-        }
-
         await sleepms(1000);
     }
 
     if (!connected) {
-        getGlobalLogger().error(`unable to connect to database`);
+        logger.error(`unable to connect to database`);
         return;
     }
-
 
     for (var line of installLines) {
         try {
             const command = `mysql -h database -u root -p${password} -e "${line}"`;
-
-            getGlobalLogger().debug(command);
-
+            logger.debug(muteMySQLPasswords(command));
             execSync(command, { windowsHide: true, encoding: "buffer" });
-        }
-        catch (error) {
-
+        } catch (error) {
+            logger.error(`Error while running SQL install script ${muteMySQLPasswords(error)}`);
         }
     }
 
     for (var line of updateLines) {
         try {
             const command = `mysql -h database -u root -p${password} -e "${line}"`;
-
-            getGlobalLogger().debug(command);
+            logger.debug(muteMySQLPasswords(command));
             execSync(command, { windowsHide: true, encoding: "buffer" });
+        } catch (error) {
+            logger.error(`Error while running SQL update script ${muteMySQLPasswords(error)}`);
         }
-        catch (error) { }
     }
 }
 
 // set all global loggers to the chain
-setLoggerName("secureUpdateSql");
-setGlobalLoggerLabel("secureUpdateSql");
+const instanceName = `secureUpdateSql`;
+
+setLoggerName(instanceName);
+setGlobalLoggerLabel(instanceName);
 
 // allow only one instance of the application
-var instanceName = `secureUpdateSql`;
 
-var SingleInstance = require('single-instance');
-var locker = new SingleInstance(instanceName);
+const SingleInstance = require('single-instance');
+const locker = new SingleInstance(instanceName);
 
 locker.lock()
     .then(function () {
-
-        // indexer entry point
         run()
             .then(() => process.exit(0))
             .catch((error) => {
                 logException(error, `secureUpdateSql`);
                 process.exit(1);
             });
-    })
-    .catch(function (err) {
+    }).catch(function (err) {
         getGlobalLogger().error(`unable to start application. ^w${instanceName}^^ is locked`);
-
         // Quit the application
         exit(2);
     })

@@ -29,4 +29,4 @@ fi
 echo -e "${GREEN}Installing configurations${NC}" 
 
 mkdir -p $CONFIG_DIR
-cp -a configs/.install/. $CONFIG_DIR
+cp -d configs/.install/. $CONFIG_DIR

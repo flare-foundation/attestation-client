@@ -56,11 +56,11 @@ mkdir -p attestation-suite
 cd attestation-suite
 
 #git clone https://github.com/flare-foundation/attestation-client.git
-git clone https://gitlab.com/flarenetwork/attester-client.git
+git clone https://gitlab.com/flarenetwork/attestation-client.git
 cd attestation-client
 
 #git checkout commit-reveal-fixes-c2
-git checkout attester-client-fixes
+git checkout bit-voting
 
 ```
 
@@ -83,7 +83,53 @@ nano .config.secret.sh
 ```
 
 ---
-### 3) Install
+### 3) Credentials
+Credentials are stored in `../attestation-suite-config` folder to be persistent while updating the repo.
+
+To initialy create credentials use next command:
+```
+./scripts/initialize-config.sh
+```
+
+Modify credential files:
+- chains.credentials.json 
+```
+nano ~/attestation-suite/attestation-suite-config/chains.credentials.json
+```
+- database.json
+```
+nano ~/attestation-suite/attestation-suite-config/database.credentials.json
+```
+- networks.credential.json
+```
+nano ~/attestation-suite/attestation-suite-config/networks.credentials.json
+```
+
+Update credentials key in file `credentials.key`.
+
+Use:
+ - `direct:password` for direct password.
+ - `GoogleCloudSecretManager:address` for Google Cloud Secret manager
+
+ After all credentials and `credentials.key` are set use next script to encode credentials:
+ ```
+ yarn ts-node src/install/secureCredentials.ts
+ ```
+
+ This scrip creates encrypted `credentials.json.secure` file where all credentials from `*-credentials.json` files.
+
+ ---
+For deployment on Attesttaion Suite machine only:
+- `credentials.json.secure`
+- `credentials.key`
+files are needed (in `../attestation-suite-config/` folder). 
+
+ ---
+ It is strongly suggested to do this credentials on some super secure machine, and to use GoogleCloudSecretManager.
+
+
+---
+### 4) Install
 After the configuration is setup run the main installer
 ```
 ./scripts/install.sh
@@ -98,18 +144,7 @@ Settings that cannot be changed are:
 
 
 Setup configuration files are in folder `../attestation-suite-config/`:
-- chains.credentials.json 
-```
-nano ~/attestation-suite/attestation-suite-config/chains.credentials.json
-```
-- database.json
-```
-nano ~/attestation-suite/attestation-suite-config/database.credentials.json
-```
-- networks.credential.json
-```
-nano ~/attestation-suite/attestation-suite-config/networks.credentials.json
-```
+
 
 To update changes in configuration run:
 ```

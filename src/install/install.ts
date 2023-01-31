@@ -1,5 +1,7 @@
+import fs from "fs";
 import { readJSON } from "../utils/json";
 import { getGlobalLogger, logException } from "../utils/logger";
+import { replaceAllVars } from "./utils";
 
 const logger = getGlobalLogger();
 
@@ -7,25 +9,13 @@ let path = "configs/.install/";
 
 let errorResult = 0;
 
-function replaceAll(source: string, from: string, to: string): string {
-  while (1) {
-    const newSource = source.replace(`$(${from})`, to);
-    if (newSource === source) return source;
-    source = newSource;
-  }
-}
-
 async function prepareInstall(name: string, chain: string, first = false) {
   logger.group(`${chain}`);
 
   // replace all keywords from credentials .json files from source dir files and make replacements and copy into target dir
-  const fs = require("fs");
-
   const credentialsDir = `${path}/`;
-
   const sourceDir = `${path}/templates`;
   const targetDir = `${path}/prepared/${chain}`;
-
   const templateDir = `configs/.install`;
 
   let configs = [];
@@ -35,8 +25,7 @@ async function prepareInstall(name: string, chain: string, first = false) {
       readJSON<any>(`${credentialsDir}/database.credentials.json`, null, true),
       readJSON<any>(`${credentialsDir}/networks.credentials.json`, null, true),
     ];
-  }
-  catch (error) {
+  } catch (error) {
     logException(error, `prepareInstall '${name}' chain '${chain}'`);
     errorResult = 1;
     return;
@@ -49,8 +38,7 @@ async function prepareInstall(name: string, chain: string, first = false) {
       readJSON<any>(`${templateDir}/database.credentials.json`, null, true),
       readJSON<any>(`${templateDir}/networks.credentials.json`, null, true),
     ];
-  }
-  catch (error) {
+  } catch (error) {
     logException(error, `prepareInstall '${name}' chain '${chain}' (templates)`);
     errorResult = 1;
     return;
@@ -63,12 +51,9 @@ async function prepareInstall(name: string, chain: string, first = false) {
 
   for (const temp of templates) {
     for (const tempKey of Object.keys(temp)) {
-
       let found = 0;
-
       for (const config of configs) {
         for (const configKey of Object.keys(config)) {
-
           if (tempKey === configKey) {
             found++;
           }
@@ -77,16 +62,15 @@ async function prepareInstall(name: string, chain: string, first = false) {
 
       if (found === 0) {
         if (first) {
-          getGlobalLogger().debug(`      key '${tempKey}' not found in user configuration. used default from templates (value '${temp[tempKey]}')`);
+          logger.debug(`      key '${tempKey}' not found in user configuration. used default from templates (value '${temp[tempKey]}')`);
         }
-
         missing++;
         fromTemplates[tempKey] = temp[tempKey];
       }
 
       if (found > 1) {
         if (first) {
-          getGlobalLogger().warning(`      key '${tempKey}' multiple definitions found (check configuration)`);
+          logger.warning(`      key '${tempKey}' multiple definitions found (check configuration)`);
         }
       }
     }
@@ -95,7 +79,7 @@ async function prepareInstall(name: string, chain: string, first = false) {
   // add missing settings
   if (missing > 0) {
     if (first) {
-      getGlobalLogger().warning(`      using ${missing} keys from templates`);
+      logger.warning(`      using ${missing} keys from templates`);
     }
     configs.push(fromTemplates);
   }
@@ -111,14 +95,13 @@ async function prepareInstall(name: string, chain: string, first = false) {
 
   for (const file of files) {
     logger.info(`   ${file}`);
-
     let data = fs.readFileSync(`${sourceDir}/${file}`).toString();
 
-    data = replaceAll(data, `Network`, name);
+    data = replaceAllVars(data, `Network`, name);
 
     for (const config of configs) {
       for (const key of Object.keys(config)) {
-        data = replaceAll(data, key, config[key]);
+        data = replaceAllVars(data, key, config[key]);
       }
     }
 
@@ -140,7 +123,7 @@ async function prepareInstall(name: string, chain: string, first = false) {
 
 const fromEnv = [];
 function addEnv(name: string) {
-  if( !process.env[name] ) return;
+  if (!process.env[name]) return;
 
   fromEnv[name] = process.env[name];
 }

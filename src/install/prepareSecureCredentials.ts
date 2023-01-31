@@ -12,8 +12,6 @@ import { encryptString } from "../utils/encrypt";
 import { readJSONfromFile } from "../utils/json";
 import { getGlobalLogger } from "../utils/logger";
 
-const logger = getGlobalLogger();
-
 /**
  * Combine all `.json` files from @param credentialsPath, encrypts them with password from @param passwordAddress and save all in a file @param output.
  * @param credentialsPath 
@@ -21,6 +19,7 @@ const logger = getGlobalLogger();
  * @param output 
  */
 export async function prepareSecureCredentials(credentialsPath: string, passwordAddress: string, output: string) {
+    const logger = getGlobalLogger();
     logger.group(`secureCredentials ^r${credentialsPath}`);
 
     const password = await getCredentialsKey();
@@ -32,18 +31,14 @@ export async function prepareSecureCredentials(credentialsPath: string, password
 
     // collect all json credential files from source path folder
     const files = fs.readdirSync(credentialsPath);
-
     let combinedConfigs = new Object();
-
     for (const file of files) {
         if (!file.toLowerCase().endsWith('-credentials.json')) {
             continue;
         }
-
         logger.info(`  loading credentials ^R${file}`);
 
         const filename = path.join(credentialsPath, file);
-
         const config = readJSONfromFile<any>(filename, null, true);
 
         for (const key of Object.keys(config)) {
@@ -57,10 +52,7 @@ export async function prepareSecureCredentials(credentialsPath: string, password
 
     // encrypt and save credentials
     const combinedConfigString = JSON.stringify(combinedConfigs);
-
     const encryptedConfig = encryptString(password, combinedConfigString);
-
     fs.writeFileSync(output, encryptedConfig, "utf8");
-
     logger.info(`secure credentials saved in ^G${output}`);
 }

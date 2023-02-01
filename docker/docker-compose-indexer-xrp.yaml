@@ -5,8 +5,8 @@ services:
     image: attestation-suite
     volumes:
       - ../credentials:/app/attestation-suite-config
-    container_name: indexer-btc-indexer
-    command: indexer btc
+    container_name: indexer-xrp-indexer
+    command: indexer xrp
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: test123
@@ -17,8 +17,8 @@ services:
     image: attestation-suite
     volumes:
       - ../credentials:/app/attestation-suite-config
-    container_name: indexer-btc-verification-server
-    command: verification-server btc
+    container_name: indexer-xrp-verification-server
+    command: verification-server xrp
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: test123
@@ -29,7 +29,7 @@ services:
 
   database:
     image: mysql:8-debian
-    container_name: indexer-btc-database
+    container_name: indexer-xrp-database
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: test123
@@ -40,15 +40,20 @@ services:
     #   - ./mysql-initdb/:/docker-entrypoint-initdb.d
     #   - ./mysql-data/:/var/lib/mysql
 
-  bitcoin-node:
-    image: flarefoundation/bitcoin:23.0
+  ripple-node:
+    image: flarefoundation/rippled:1.9.4
     restart: unless-stopped
     ports:
-      - 18332:18332
-      - 18333:18333
+      - ${BIND_IP}:15005:5005   # port_rpc_admin_local
+      - ${BIND_IP}:16006:6006   # port_ws_admin_local
+      - ${BIND_IP}:11235:51235 # port_peer
+      - ${BIND_IP}:11234:51234 # port_rpc_public
+      - ${BIND_IP}:11233:51233 # port_ws_public
+      - ${BIND_IP}:10051:50051 # port_grpc
     volumes:
-      - bitcoin-testnet-data:/opt/bitcoin/.bitcoin/db
-      - ../node-configs/testnet/bitcoin/bitcoin.conf:/opt/bitcoin/.bitcoin/bitcoin.conf
+      - ripple-testnet-data:/opt/ripple/.ripple/db
+      - ../node-configs/testnet/ripple/rippled.conf:/opt/ripple/.ripple/rippled.conf
+      - ../node-configs/testnet/validators.txt:/opt/ripple/.ripple/validators.txt
 
 volumes:
-  bitcoin-testnet-data:
+  ripple-testnet-data:

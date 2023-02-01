@@ -5,6 +5,7 @@ import { TestLogger } from "./testLogger";
 import { round } from "./utils";
 
 const level = process.env.LOG_LEVEL || "info";
+const silent = (process.env.LOG_SILENT === 'true')
 
 const Reset = "\x1b[0m";
 const Bright = "\x1b[1m";
@@ -261,6 +262,7 @@ function createLogger(label?: string, test = false): AttLogger {
         filename: logFilename,
       }),
     ],
+    silent: silent,
   }) as AttLogger;
 }
 

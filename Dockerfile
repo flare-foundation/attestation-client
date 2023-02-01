@@ -15,9 +15,14 @@ apt-get update && \
 apt-get -y install mysql-client && \
 yarn install --frozen-lockfile
 COPY . .
-RUN yarn c && yarn build  
+RUN yarn c && yarn build
 EXPOSE 3000
 RUN chown -R node /app/attestation-client
 USER node
+
+ENV PATH="${PATH}:/app/attestation-client/docker/scripts"
 ENV NODE_ENV=production
-CMD ["./docker/script/indexer-btc.sh"]
+
+ENTRYPOINT [ "/app/attestation-client/docker/scripts/entrypoint.sh" ]
+CMD [ "indexer" ]
+

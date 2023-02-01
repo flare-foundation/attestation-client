@@ -11,6 +11,8 @@ const logger = getGlobalLogger();
 
 const yargs = require("yargs");
 
+const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
+
 // command line 
 // -a passwordAddress : password address (direct:password, GoogleCloudSecretManager:address)
 // optional:
@@ -18,7 +20,7 @@ const yargs = require("yargs");
 // -o output filename: output path
 
 const args = yargs
-    .option("path", { alias: "p", type: "string", description: "credentials path", default: "../attestation-suite-config/", demand: false })
+    .option("path", { alias: "p", type: "string", description: "credentials path", default: DEFAULT_SECURE_CONFIG_PATH, demand: false })
     .option("output", { alias: "o", type: "string", description: "credentials path", default: "credentials.json.secure", demand: false })
     .option("passwordAddress", { alias: "a", type: "string", description: "encryption password address", default: "direct:password", demand: true }).argv;
 

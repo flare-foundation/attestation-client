@@ -1,7 +1,6 @@
-import { SourceId } from "../verification/sources/sources";
 import { Attestation, AttestationStatus } from "../attester/Attestation";
-import { AttestationRound } from "../attester/AttestationRound";
 import { SourceLimiterConfig } from "../attester/GlobalAttestationConfig";
+import { AttLogger } from "../utils/logger";
 
 export interface EventValidateAttestation {
   (attestation: Attestation): void;
@@ -13,18 +12,15 @@ export interface EventValidateAttestation {
 export class SourceLimiter {
   config: SourceLimiterConfig;
 
-  round: AttestationRound;
+  logger: AttLogger;
 
   // Rate limit weight counter
   currentRoundWeight = 0;
 
-  constructor(round: AttestationRound, sourceId: SourceId) {
-    this.round = round;
-    this.config = this.round.attestationRoundManager.attestationConfigManager.getSourceLimiterConfig(sourceId, round.roundId);
-  }
-
-  get sourceId(): SourceId {
-    return this.config.source
+  constructor(config: SourceLimiterConfig, logger: AttLogger) {
+    this.logger = logger;
+    this.config = config;
+    // this.config = this.round.attestationRoundManager.attestationConfigManager.getSourceLimiterConfig(sourceId, round.roundId);
   }
 
   /**
@@ -42,7 +38,7 @@ export class SourceLimiter {
     const typeConfig = this.config.attestationTypes.get(attestation.data.type);
 
     if (!typeConfig) {
-      this.round.logger.error2(`missing source ${attestation.data.sourceId} config for attestation type (${attestation.data.type})`);
+      this.logger.error2(`missing source ${attestation.data.sourceId} config for attestation type (${attestation.data.type})`);
       attestation.status = AttestationStatus.error;
       return false;
     }

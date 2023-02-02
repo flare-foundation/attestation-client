@@ -23,8 +23,8 @@ export class AttestationConfigManager {
     this.validateEnumNames();
   }
 
-  public get config() {
-    return this.attestationRoundManager.config;
+  public get attesterConfig() {
+    return this.attestationRoundManager.attestationClientConfig;
   }
 
   public get logger() {
@@ -58,12 +58,6 @@ export class AttestationConfigManager {
    * @returns SourceLimiterConfig for a given @param source that is valid for in @param roundId
    */
   public getSourceLimiterConfig(source: number, roundId: number): SourceLimiterConfig {
-    // configs must be ordered by decreasing roundId number
-    for (let i = 0; i < this.attestationConfig.length; i++) {
-      if (this.attestationConfig[i].startRoundId < roundId) {
-        return this.attestationConfig[i].sourceLimiters.get(source)!;
-      }
-    }
     let config = this.getConfig(roundId);
     if (config) {
       return config.sourceLimiters.get(source);
@@ -71,7 +65,6 @@ export class AttestationConfigManager {
     this.logger.error(`DAC for source ${source} roundId ${roundId} does not exist`);
     return null;
   }
-
 
   /**
    * @returns getVerifierRouter for a given @param roundId
@@ -93,13 +86,17 @@ export class AttestationConfigManager {
       if (typeof ChainType[value] === "number") {
         if (ChainType[value] !== SourceId[value]) {
           this.logger.error2(
-            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]}=${SourceId[value]}`
+            `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
+              SourceId[SourceId[value] as any]
+            }=${SourceId[value]}`
           );
         }
 
         if (ChainType[ChainType[value] as any] !== SourceId[SourceId[value] as any]) {
           this.logger.error2(
-            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]}=${SourceId[value]}`
+            `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
+              SourceId[SourceId[value] as any]
+            }=${SourceId[value]}`
           );
         }
       }
@@ -116,7 +113,7 @@ export class AttestationConfigManager {
       if (filename && event === "rename") {
         // todo: check why on the fly report JSON error
         this.logger.debug(`DAC directory watch '${filename}' (event ${event})`);
-        let result = await this.load(this.config.dynamicAttestationConfigurationFolder + filename);
+        let result = await this.load(this.attesterConfig.dynamicAttestationConfigurationFolder + filename);
         if (result) {
           this.orderConfigurations();
         } else {
@@ -137,7 +134,7 @@ export class AttestationConfigManager {
    */
   private async initializeChangeWatcher() {
     try {
-      fs.watch(this.config.dynamicAttestationConfigurationFolder,
+      fs.watch(this.attesterConfig.dynamicAttestationConfigurationFolder,
         async (event: string, filename: string) => this.updateDynamicConfigForFile(event, filename)
       );
     }
@@ -151,10 +148,10 @@ export class AttestationConfigManager {
    */
   private async loadAll() {
     try {
-      let files = fs.readdirSync(this.config.dynamicAttestationConfigurationFolder);
+      let files = fs.readdirSync(this.attesterConfig.dynamicAttestationConfigurationFolder);
       if (files && files.length > 0) {
         const promises = files.map(async (filename: string) => {
-          let result = await this.load(this.config.dynamicAttestationConfigurationFolder + filename);
+          let result = await this.load(this.attesterConfig.dynamicAttestationConfigurationFolder + filename);
           if (!result) {
             this.logger.error(`Failure while loading ${filename}. Stopping!`);
             process.exit(1);

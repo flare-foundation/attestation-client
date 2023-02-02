@@ -10,12 +10,10 @@ import { PriorityQueue } from "../utils/priorityQueue";
 import { arrayRemoveElement } from "../utils/utils";
 import { MIC_SALT, Verification, VerificationStatus } from "../verification/attestation-types/attestation-types";
 import { dataHash } from "../verification/generated/attestation-hash-utils";
-import { AttestationRequestParseError, parseRequest } from "../verification/generated/attestation-request-parse";
+import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { getSourceConfig } from "../verification/routing/configs/VerifierRouteConfig";
 import { VerifierSourceRouteConfig } from "../verification/routing/configs/VerifierSourceRouteConfig";
-import { InvalidRouteError } from "../verification/routing/VerifierRouter";
 import { SourceId } from "../verification/sources/sources";
-import { WrongAttestationTypeError, WrongSourceIdError } from "../verification/verifiers/verifier_routing";
 
 @Managed()
 export class SourceManager {
@@ -34,8 +32,6 @@ export class SourceManager {
 
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
-
-
 
   constructor(attestationRoundManager: AttestationRoundManager, sourceId: SourceId) {
     this.attestationRoundManager = attestationRoundManager;
@@ -171,7 +167,7 @@ export class SourceManager {
     const now = getTimeMilli();
 
     // check if the transaction is too late
-    if (now > attestation.round.commitEndTime) {
+    if (now > this.attestationRoundManager.rounds.get(attestation.roundId).commitEndTimeMs) {
       //this.logger.error(`chain ${tx.epochId} transaction too late to process`);
       attestation.status = AttestationStatus.tooLate;
       this.processed(attestation, AttestationStatus.tooLate);
@@ -196,12 +192,13 @@ export class SourceManager {
     // assert
     if (!verifierRouter) {
       // This should not happen as this is checked already on AttestationRound creation
-      this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.round}`);
+      this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.roundId}`);
       exit(1);
     }
 
     this.increaseRequestCount();
-    verifierRouter.verifyAttestation(attestation)
+    verifierRouter
+      .verifyAttestation(attestation)
       .then((verification: Verification<any, any>) => {
         attestation.processEndTime = getTimeMilli();
         let status = verification.status;
@@ -253,7 +250,7 @@ export class SourceManager {
     status: AttestationStatus,
     verificationData?: Verification<any, any>
   ) {
-    assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid vefificationData`);
+    assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid verificationData`);
 
     // set status
     attestation.status = status;
@@ -265,10 +262,10 @@ export class SourceManager {
     }
 
     // move into processed
-    this.attestationProcessing.delete(attestation)
+    this.attestationProcessing.delete(attestation);
 
     // todo: save transaction data
-    attestation.round.processed(attestation);
+    this.attestationRoundManager.rounds.get(attestation.roundId).processed(attestation);
 
     if (attestation.status !== AttestationStatus.tooLate) {
       // start next transaction

@@ -112,7 +112,7 @@ export class AttesterClient {
         if (!roundId || Number.isNaN(roundId)) {
           this.logger.error(`invalid RoundFinalized buffer number`);
         } else {
-          const dbState = await this.attestationRoundManager.state.getRound(roundId);
+          const dbState = await this.attestationRoundManager.attesterState.getRound(roundId);
           const commitedRoot = dbState ? dbState.merkleRoot : undefined;
           if (commitedRoot) {
             if (commitedRoot === merkleRoot) {
@@ -150,6 +150,8 @@ export class AttesterClient {
 
     this.logger.info(`roundManager initialize`);
     await this.attestationRoundManager.initialize();
+
+    this.flareConnection.setStateManager(this.attestationRoundManager.attesterState);
 
     // get block current attestation round
     const startRoundTime = this.attestationRoundManager.epochSettings.getRoundIdTimeStartMs(this.attestationRoundManager.activeRoundId) / 1000;

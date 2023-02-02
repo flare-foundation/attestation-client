@@ -35,7 +35,8 @@ export class Attestation {
   chosen: boolean = false;
 
   // the voting round of the attestation
-  round: AttestationRound;
+
+  private _roundId: number;
 
   // validation result
   status: AttestationStatus = AttestationStatus.invalid;
@@ -52,8 +53,8 @@ export class Attestation {
   reverification = false;
   exception: any;
 
-  constructor(round: AttestationRound, data: AttestationData) {
-    this.round = round;
+  constructor(roundId: number, data: AttestationData) {
+    this._roundId = roundId;
     this.data = data;
   }
 
@@ -70,16 +71,9 @@ export class Attestation {
    */
   public get roundId() {
     if (this._testRoundId === undefined) {
-      return this.round.roundId;
+      return this._roundId;
     }
     return this._testRoundId;
-  }
-
-  /**
-   * Returns source limiter for 
-   */
-  public get sourceLimiter() {
-    return this.round.getSourceLimiter(this.data);
   }
 
   ///////////////////////////////////////////////////////
@@ -91,5 +85,4 @@ export class Attestation {
   setTestRoundId(roundId: number | undefined) {
     this._testRoundId = roundId;
   }
-
 }

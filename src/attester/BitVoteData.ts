@@ -1,7 +1,7 @@
 import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 
 /**
- * Choose Round data event emitted by attestation providers when they coos which requests can be attested to
+ * Choose Round data event emitted by attestation providers when they choose which requests can be attested to
  */
 export class BitVoteData {
   sender: string;
@@ -9,13 +9,12 @@ export class BitVoteData {
   data: string;
 
   constructor(event?: any) {
-    if (!event)
-      return;
+    if (!event) return;
     this.sender = event.returnValues.sender;
     this.timestamp = parseInt(event.returnValues.timestamp, 10);
     this.data = event.returnValues.data;
-    if(!this.data || unPrefix0x(this.data).length < 2) {
-      throw new Error("Incorrect bit vote")
+    if (!this.data || unPrefix0x(this.data).length < 2) {
+      throw new Error("Incorrect bit vote");
     }
   }
 

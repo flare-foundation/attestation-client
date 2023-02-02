@@ -1,5 +1,4 @@
 # General Installation
-
 ## Supported systems
 
 The Attestation Suite has been tested on the following platforms:
@@ -116,7 +115,7 @@ Use:
  yarn ts-node src/install/secureCredentials.ts
  ```
 
- This scrip creates encrypted `credentials.json.secure` file where all credentials from `*-credentials.json` files.
+ This script creates encrypted `credentials.json.secure` file where all credentials from `*-credentials.json` files.
 
  ---
 For deployment on Attesttaion Suite machine only:

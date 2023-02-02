@@ -13,14 +13,14 @@ import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../util
 import { Web3Functions } from "../utils/Web3Functions";
 import { AttestationClientConfig } from "./AttestationClientConfig";
 import { AttestationRoundManager } from "./AttestationRoundManager";
+import { AttesterState } from "./AttesterState";
 
 /**
- * Handles submissions to StateConnector and BitVoting contrct
+ * Handles submissions to StateConnector and BitVoting contract
  */
 export class FlareConnection {
-  attestationRoundManager: AttestationRoundManager;
-  config: AttestationClientConfig
-
+  attestationClientConfig: AttestationClientConfig;
+  attesterState: AttesterState;
   web3!: Web3;
   stateConnector!: StateConnector | StateConnectorTempTran;
   bitVoting!: BitVoting;
@@ -38,30 +38,41 @@ export class FlareConnection {
       return;
     }
 
-    this.config = config;
+    this.attestationClientConfig = config;
     this.logger = logger;
     this.web3 = getWeb3(config.web.rpcUrl) as Web3;
     this.web3Functions = new Web3Functions(logger, this.web3, config.web);
   }
 
   public get rpc(): string {
-    return this.config.web.rpcUrl;
+    return this.attestationClientConfig.web.rpcUrl;
   }
 
-  get label(): string {
-    return this.attestationRoundManager.label;
+  get label() {
+    let label = "";
+    if (this.attestationClientConfig.label != "none") {
+      label = `[${this.attestationClientConfig.label}]`;
+    }
+    return label;
   }
 
   public async initialize(attestationRoundManager: AttestationRoundManager) {
-    this.attestationRoundManager = attestationRoundManager;
-    this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.config.web.stateConnectorContractAddress);
-    this.bitVoting = await getWeb3Contract(this.web3, this.config.web.bitVotingContractAddress, "BitVoting") as any as BitVoting;
-    this.firstEpochStartTime = parseInt("" + await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
-    this.roundDurationSec = parseInt("" + await this.stateConnector.methods.BUFFER_WINDOW().call(), 10);
-    this.chooseDeadlineSec = parseInt("" + await this.bitVoting.methods.BIT_VOTE_DEADLINE().call(), 10);
+    this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.attestationClientConfig.web.stateConnectorContractAddress);
+    this.bitVoting = (await getWeb3Contract(this.web3, this.attestationClientConfig.web.bitVotingContractAddress, "BitVoting")) as any as BitVoting;
+    this.firstEpochStartTime = parseInt("" + (await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call()), 10);
+    this.roundDurationSec = parseInt("" + (await this.stateConnector.methods.BUFFER_WINDOW().call()), 10);
+    this.chooseDeadlineSec = parseInt("" + (await this.bitVoting.methods.BIT_VOTE_DEADLINE().call()), 10);
     this.epochSettings = new EpochSettings(toBN(this.firstEpochStartTime), toBN(this.roundDurationSec), toBN(this.chooseDeadlineSec));
   }
 
+  /**
+   * Set attestation client state manager
+   * @param attesterState 
+   */
+  public setStateManager(attesterState: AttesterState) {
+    this.attesterState = attesterState;
+  }
+  
   /**
    * Logs if hex string is not of the correct form.
    * @param hexString 
@@ -150,7 +161,12 @@ export class FlareConnection {
     this.checkHex64(commitedMaskedMerkleRoot);
     this.checkHex64(revealedRandom);
 
-    const fnToEncode = (this.stateConnector as StateConnector | StateConnectorTempTran).methods.submitAttestation(bufferNumber, commitedMaskedMerkleRoot, revealedMerkleRoot, revealedRandom);
+    const fnToEncode = (this.stateConnector as StateConnector | StateConnectorTempTran).methods.submitAttestation(
+      bufferNumber,
+      commitedMaskedMerkleRoot,
+      revealedMerkleRoot,
+      revealedRandom
+    );
 
     if (verbose) {
       this.logger.info(`${this.label}action .................... : ${action}`);
@@ -162,7 +178,7 @@ export class FlareConnection {
       this.logger.info(`${this.label}revealedRandom ............ : ^e${revealedRandom.toString()}`);
     }
 
-    const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
+    const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
     const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`,
       async () => this.web3Functions.signAndFinalize3Sequenced(
@@ -174,8 +190,8 @@ export class FlareConnection {
     );
 
     if (extReceipt.receipt) {
-      await this.attestationRoundManager.state.saveRoundCommitted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
-      await this.attestationRoundManager.state.saveRoundRevealed(bufferNumber.toNumber() - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
+      await this.attesterState.saveRoundCommitted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
+      await this.attesterState.saveRoundRevealed(bufferNumber.toNumber() - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
       return extReceipt.receipt;
     }
     return null;
@@ -205,7 +221,7 @@ export class FlareConnection {
       let hexBitvote = bitVote.slice(4);
       let bitSequence = "";
       if (hexBitvote.length > 0) {
-        bitSequence = BitmaskAccumulator.fromHex(hexBitvote).toBitString()
+        bitSequence = BitmaskAccumulator.fromHex(hexBitvote).toBitString();
       }
 
       this.logger.info(`${this.label}action .................... : ${action}`);
@@ -215,7 +231,7 @@ export class FlareConnection {
       this.logger.info(`${this.label}No. duplicates............. : ^e${duplicateCount}`);
     }
 
-    const epochEndTime = this.attestationRoundManager.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
+    const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
     const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`,
       async () => this.web3Functions.signAndFinalize3Sequenced(
@@ -227,7 +243,7 @@ export class FlareConnection {
     );
 
     if (extReceipt.receipt) {
-      await this.attestationRoundManager.state.saveRoundBitVoted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash, bitVote);
+      await this.attesterState.saveRoundBitVoted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash, bitVote);
     }
 
     return extReceipt.receipt;

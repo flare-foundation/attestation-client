@@ -1,6 +1,6 @@
 import { IBlock } from "@flarenetwork/mcc";
 import { DBBlockBase, IDBBlockBase } from "../../entity/indexer/dbBlock";
-import { prepareString } from "../../utils/utils";
+import { prepareString } from "../../utils/helpers/utils";
 
 /**
  * Creates database entity for a confirmed block

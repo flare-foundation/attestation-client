@@ -12,8 +12,8 @@ import { DBTransactionBTC0, DBTransactionXRP0 } from "../../src/entity/indexer/d
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
 import { VerifierProcessor } from "../../src/servers/verifier-server/src/services/verifier-processors/verifier-processor";
 import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
-import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { AttestationRequest, MIC_SALT } from "../../src/verification/attestation-types/attestation-types";
 import { WsClientOptions } from "../../src/verification/client/WsClientOptions";
 import { hashBalanceDecreasingTransaction, hashConfirmedBlockHeightExists, hashPayment, hashReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-hash-utils";

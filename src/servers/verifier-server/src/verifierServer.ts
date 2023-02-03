@@ -4,7 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import { getGlobalLogger } from '../../../utils/logger';
+import { getGlobalLogger } from '../../../utils/logging/logger';
 import { VerifierConfigurationService } from './services/verifier-configuration.service';
 import { VerifierServerModule } from './verifier-server.module';
 

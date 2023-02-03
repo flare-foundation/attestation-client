@@ -1,5 +1,6 @@
-import { ColorConsole, getGlobalLogger, logException } from "../utils/logger";
-import { sleepms } from "../utils/utils";
+import { getGlobalLogger, logException } from "../utils/logging/logger";
+import { ColorConsole } from "../utils/logging/ColorConsole";
+import { sleepms } from "../utils/helpers/utils";
 import { Menu } from "./menu";
 import { MenuItemBase } from "./menuItemBase";
 

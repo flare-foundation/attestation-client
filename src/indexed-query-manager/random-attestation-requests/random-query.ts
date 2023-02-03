@@ -1,7 +1,7 @@
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
-import { logException } from "../../utils/logger";
-import { sleepms } from "../../utils/utils";
+import { logException } from "../../utils/logging/logger";
+import { sleepms } from "../../utils/helpers/utils";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 export class RandomDBIterator<T> {

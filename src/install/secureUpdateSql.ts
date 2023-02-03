@@ -1,8 +1,8 @@
 import { execSync } from "child_process";
 import { exit } from "process";
-import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/jsonSecure";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
-import { sleepms } from "../utils/utils";
+import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/config/jsonSecure";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
+import { sleepms } from "../utils/helpers/utils";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 

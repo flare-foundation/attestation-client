@@ -1,6 +1,6 @@
 import { optional } from "@flarenetwork/mcc";
-import { DatabaseConnectOptions } from "../../../../utils/databaseService";
-import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
+import { DatabaseConnectOptions } from "../../../../utils/database/DatabaseConnectOptions";
+import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection/reflection";
 
 export class WebserverConfig implements IReflection<WebserverConfig> {
 

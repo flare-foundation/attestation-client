@@ -1,33 +1,36 @@
 import { Managed, toBN } from "@flarenetwork/mcc";
 import { exit } from "process";
-import { SourceRouter } from "../source/SourceRouter";
-import { DatabaseService } from "../utils/databaseService";
-import { EpochSettings } from "../utils/EpochSettings";
-import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger, logException } from "../utils/logger";
-import { safeCatch } from "../utils/PromiseTimeout";
-import { MOCK_NULL_WHEN_TESTING, round, sleepms } from "../utils/utils";
-import { toSourceId } from "../verification/sources/sources";
-import { Attestation, AttestationStatus } from "./Attestation";
-import { AttestationData } from "./AttestationData";
-import { BitVoteData } from "./BitVoteData";
-import { AttestationRound } from "./AttestationRound";
-import { AttestationClientConfig } from "./AttestationClientConfig";
-import { AttesterState } from "./AttesterState";
-import { FlareConnection } from "./FlareConnection";
-import { sourceAndTypeSupported, SourceLimiterConfig } from "./GlobalAttestationConfig";
-import { AttestationConfigManager } from "./AttestationConfigManager";
 import { criticalAsync } from "../indexer/indexer-utils";
-import { attesterEntities } from "../utils/databaseEntities";
+import { EpochSettings } from "../utils/data-structures/EpochSettings";
+import { attesterEntities } from "../utils/database/databaseEntities";
+import { DatabaseService } from "../utils/database/DatabaseService";
+import { getTimeMilli } from "../utils/helpers/internetTime";
+import { safeCatch } from "../utils/helpers/promiseTimeout";
+import { MOCK_NULL_WHEN_TESTING, round, sleepms } from "../utils/helpers/utils";
+import { AttLogger, logException } from "../utils/logging/logger";
+import { toSourceId } from "../verification/sources/sources";
+import { Attestation } from "./Attestation";
+import { AttestationData } from "./AttestationData";
+import { AttestationRound } from "./AttestationRound";
+import { AttesterState } from "./AttesterState";
+import { BitVoteData } from "./BitVoteData";
+import { AttestationClientConfig } from "./configs/AttestationClientConfig";
+import { sourceAndTypeSupported } from "./configs/GlobalAttestationConfig";
+import { SourceLimiterConfig } from "./configs/SourceLimiterConfig";
+import { FlareConnection } from "./FlareConnection";
+import { GlobalConfigManager } from "./GlobalConfigManager";
+import { SourceRouter } from "./source/SourceRouter";
+import { AttestationStatus } from "./types/AttestationStatus";
 
 /**
- * Manages a specific attestation round
+ * Manages attestation rounds (AttestationRound). This includes initiating them, scheduling actions and passing attestations to 
+ * attestation rounds for further processing.
  */
 @Managed()
 export class AttestationRoundManager {
   logger: AttLogger;
   sourceRouter: SourceRouter;
-  attestationConfigManager: AttestationConfigManager;
+  globalConfigManager: GlobalConfigManager;
   dbServiceAttester: DatabaseService;
 
   attesterState: AttesterState;
@@ -54,7 +57,7 @@ export class AttestationRoundManager {
     this.flareConnection = flareConnection;
 
     this.sourceRouter = sourceRouter ?? new SourceRouter(this);
-    this.attestationConfigManager = new AttestationConfigManager(this);
+    this.globalConfigManager = new GlobalConfigManager(this);
   }
 
   get activeRoundId(): number {
@@ -94,7 +97,7 @@ export class AttestationRoundManager {
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
     // Load DAC configs
-    await this.attestationConfigManager.initialize();
+    await this.globalConfigManager.initialize();
 
     this.dbServiceAttester = new DatabaseService(
       this.logger,
@@ -148,7 +151,7 @@ export class AttestationRoundManager {
    * @returns 
    */
   getSourceLimiterConfig(name: string): SourceLimiterConfig {
-    return this.attestationConfigManager.getSourceLimiterConfig(toSourceId(name), this.activeRoundId);
+    return this.globalConfigManager.getSourceLimiterConfig(toSourceId(name), this.activeRoundId);
   }
 
   public onLastFlareNetworkTimestamp(timestamp: number) {
@@ -225,7 +228,7 @@ export class AttestationRoundManager {
     }
 
     // check if DAC exists for this round id
-    const globalConfig = this.attestationConfigManager.getConfig(roundId);
+    const globalConfig = this.globalConfigManager.getConfig(roundId);
 
     if (!globalConfig) {
       this.logger.error(`${this.label}${roundId}: critical error, DAC config for round id not defined`);
@@ -234,7 +237,7 @@ export class AttestationRoundManager {
     }
 
     // check if verifier router exists for this round id. 
-    const verifier = this.attestationConfigManager.getVerifierRouter(roundId);
+    const verifier = this.globalConfigManager.getVerifierRouter(roundId);
 
     // If no verifier, round cannot be evaluated - critical error.
     if (!verifier) {
@@ -350,8 +353,8 @@ export class AttestationRoundManager {
   createAttestation(roundId: number, data: AttestationData): Attestation {
     const attestation = new Attestation(roundId, data);
 
-    const config = this.attestationConfigManager.getConfig(roundId);
-    const verifier = this.attestationConfigManager.getVerifierRouter(roundId);
+    const config = this.globalConfigManager.getConfig(roundId);
+    const verifier = this.globalConfigManager.getVerifierRouter(roundId);
     if (!config || !verifier) {
       // this should not happen
       attestation.status = AttestationStatus.failed;

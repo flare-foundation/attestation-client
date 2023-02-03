@@ -6,7 +6,7 @@ import { EntityManager } from "typeorm";
 import { DBAttestationRequest } from "../../../../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../../../../entity/attester/dbVotingRoundResult";
 import { MonitorStatus, PerformanceInfo } from "../../../../monitor/MonitorBase";
-import { MerkleTree } from "../../../../utils/MerkleTree";
+import { MerkleTree } from "../../../../utils/data-structures/MerkleTree";
 import { encodeRequest } from "../../../../verification/generated/attestation-request-encode";
 import { ServiceStatus } from "../dtos/ServiceStatus.dto";
 import { SystemStatus } from "../dtos/SystemStatus.dto";

@@ -1,8 +1,7 @@
 import { Managed, traceManager } from "@flarenetwork/mcc";
-import { readConfig } from "../utils/config";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
-import { Terminal } from "../utils/terminal";
-import { sleepms } from "../utils/utils";
+import { readConfig } from "../utils/config/config";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
+import { sleepms } from "../utils/helpers/utils";
 import { MonitorBase, MonitorRestartConfig } from "./MonitorBase";
 import { MonitorConfig } from "./MonitorConfiguration";
 import { AttesterMonitor } from "./AttestationMonitor";
@@ -12,6 +11,7 @@ import { DockerMonitor } from "./DockerMonitor";
 import { IndexerMonitor } from "./IndexerMonitor";
 import { NodeMonitor } from "./NodeMonitor";
 import { stringify } from "safe-stable-stringify";
+import { Terminal } from "../utils/monitoring/Terminal";
 
 @Managed()
 export class MonitorManager {

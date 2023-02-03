@@ -1,8 +1,9 @@
 import stringify from 'safe-stable-stringify';
 import WebSocket, { Event } from 'ws';
-import { AttLogger, getGlobalLogger } from '../../utils/logger';
-import { IIdentifiable, PromiseRequestManager } from '../../utils/PromiseRequestManager';
-import { sleepms } from '../../utils/utils';
+import { AttLogger, getGlobalLogger } from '../../utils/logging/logger';
+import { PromiseRequestManager } from '../../utils/helpers/PromiseRequestManager';
+import { IIdentifiable } from "../../utils/helpers/promiseRequestTypes";
+import { sleepms } from '../../utils/helpers/utils';
 import { WsClientOptions } from './WsClientOptions';
 
 const WS_POLLING_INTERVAL = 100; // ms

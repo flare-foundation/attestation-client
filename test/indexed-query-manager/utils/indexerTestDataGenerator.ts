@@ -5,7 +5,7 @@ import Web3 from "web3";
 import { DBBlockBase } from "../../../src/entity/indexer/dbBlock";
 import { DBState } from "../../../src/entity/indexer/dbState";
 import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
-import { getUnixEpochTimestamp } from "../../../src/utils/utils";
+import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
 import { MIC_SALT, NumberLike } from "../../../src/verification/attestation-types/attestation-types";
 import { hexlifyBN, toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
 import { hashBalanceDecreasingTransaction, hashConfirmedBlockHeightExists, hashPayment, hashReferencedPaymentNonexistence } from "../../../src/verification/generated/attestation-hash-utils";

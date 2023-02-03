@@ -3,12 +3,12 @@ const chaiaspromised = require("chai-as-promised");
 chai.use(chaiaspromised);
 const expect = chai.expect;
 const assert = chai.assert;
-import PromiseTimeout = require("../../src/utils/PromiseTimeout");
 import sinon = require("sinon");
 import { afterEach } from "mocha";
-import loggers = require("../../src/utils/logger");
+import loggers = require("../../src/utils/logging/logger");
 import { sleepMs } from "@flarenetwork/mcc";
 import { getTestFile } from "../test-utils/test-utils";
+import { failureCallback, getRetryFailureCallback, retry, safeCatch, setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 
 chai.should();
 describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
@@ -19,24 +19,24 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
 
   it("Should execute on null failureCallback", function () {
     const spy = sinon.spy(loggers, "getGlobalLogger");
-    PromiseTimeout.setRetryFailureCallback(null);
+    setRetryFailureCallback(null);
 
-    expect(() => PromiseTimeout.failureCallback("something")).to.throw("FailureCallbackNotSet");
+    expect(() => failureCallback("something")).to.throw("FailureCallbackNotSet");
     // assert(spy.called);
     assert(spy.called);
   });
 
   it("Should setRetryFailureCallback", function () {
     const fake = sinon.fake();
-    PromiseTimeout.setRetryFailureCallback(fake);
-    PromiseTimeout.failureCallback("something");
+    setRetryFailureCallback(fake);
+    failureCallback("something");
     assert(fake.calledWith("something"));
   });
 
   it("Should getRetryFailureCallback", function () {
     const fake = sinon.fake();
-    PromiseTimeout.setRetryFailureCallback(fake);
-    let result = PromiseTimeout.getRetryFailureCallback();
+    setRetryFailureCallback(fake);
+    let result = getRetryFailureCallback();
     expect(result).to.be.deep.eq(fake);
   });
 
@@ -45,7 +45,7 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
     fake.onFirstCall().throws("wait");
     fake.onSecondCall().returns(3);
 
-    let res = await PromiseTimeout.retry("fake", fake, 6000, 3, 1000);
+    let res = await retry("fake", fake, 6000, 3, 1000);
     expect(res).to.eq(3);
   });
 
@@ -55,9 +55,9 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
       throw "fail";
     }
 
-    PromiseTimeout.setRetryFailureCallback((label) => {});
+    setRetryFailureCallback((label) => {});
 
-    await expect(PromiseTimeout.retry("fail test", testError, 300, 2, 500)).to.be.rejectedWith("fail");
+    await expect(retry("fail test", testError, 300, 2, 500)).to.be.rejectedWith("fail");
   });
 
   // Needs further inspection
@@ -67,14 +67,14 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
       return 12;
     }
 
-    PromiseTimeout.setRetryFailureCallback((label) => {});
+    setRetryFailureCallback((label) => {});
 
-    await expect(PromiseTimeout.retry("sleep test", testError, 2, 2, 2)).to.be.rejected;
+    await expect(retry("sleep test", testError, 2, 2, 2)).to.be.rejected;
   });
 
   it("Should safeCatch execute", function () {
     const fake = sinon.fake();
-    PromiseTimeout.safeCatch("something alse", fake);
+    safeCatch("something alse", fake);
     assert(fake.called);
   });
 
@@ -86,7 +86,7 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
       throw new Error("wrong");
     }
 
-    PromiseTimeout.safeCatch("something else", fake1);
+    safeCatch("something else", fake1);
     assert(stub.calledOnce);
     // expect(testObject).to.throw;
     // assert(spy.called);

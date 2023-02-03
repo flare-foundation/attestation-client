@@ -2,10 +2,10 @@ import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { Indexer } from "./indexer/indexer";
 import { IndexerConfig } from "./indexer/IndexerConfig";
-import { ListChainConfig } from "./source/ChainConfig";
-import { readSecureConfig } from "./utils/configSecure";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logger";
-import { setRetryFailureCallback } from "./utils/PromiseTimeout";
+import { ListChainConfig } from "./attester/configs/ChainConfig";
+import { readSecureConfig } from "./utils/config/configSecure";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logging/logger";
+import { setRetryFailureCallback } from "./utils/helpers/promiseTimeout";
 
 const yargs = require("yargs");
 

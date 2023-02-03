@@ -1,7 +1,7 @@
 import { BlockHeaderBase, IBlock, IBlockHeader, IBlockTip, Managed } from "@flarenetwork/mcc";
-import { AttLogger } from "../utils/logger";
-import { failureCallback, retry, retryMany } from "../utils/PromiseTimeout";
-import { sleepms } from "../utils/utils";
+import { failureCallback, retry, retryMany } from "../utils/helpers/promiseTimeout";
+import { sleepms } from "../utils/helpers/utils";
+import { AttLogger } from "../utils/logging/logger";
 import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
 import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";

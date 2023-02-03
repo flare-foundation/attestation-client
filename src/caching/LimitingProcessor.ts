@@ -1,9 +1,9 @@
 import { IBlock, Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
-import { Queue } from "../utils/Queue";
-import { sleepms } from "../utils/utils";
+import { Queue } from "../utils/data-structures/Queue";
+import { sleepms } from "../utils/helpers/utils";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { CachedMccClient } from "./CachedMccClient";
 
 /**

@@ -1,7 +1,8 @@
 import { DBBlockDOGE } from "../../src/entity/indexer/dbBlock";
 import { UnconfirmedBlockManager } from "../../src/indexer/UnconfirmedBlockManager";
-import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");

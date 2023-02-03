@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { getTimeSec, getTimeMilli } from "../../src/utils/internetTime";
+import { getTimeSec, getTimeMilli } from "../../src/utils/helpers/internetTime";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`Internet time (${getTestFile(__filename)})`, () => {

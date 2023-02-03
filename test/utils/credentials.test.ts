@@ -3,11 +3,11 @@
 
 import { assert } from "chai";
 import sinon from "sinon";
-import { readSecureConfig } from "../../src/utils/configSecure";
-import { getCredentialsKey, getCredentialsKeyAddress, getCredentialsKeyByAddress } from "../../src/utils/credentialsKey";
-import { secureMasterConfigs, _clearSecureCredentials } from "../../src/utils/jsonSecure";
-import { initializeTestGlobalLogger } from "../../src/utils/logger";
-import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { getCredentialsKey, getCredentialsKeyAddress, getCredentialsKeyByAddress } from "../../src/utils/config/credentialsKey";
+import { secureMasterConfigs, _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
+import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
 import { getTestFile } from "../test-utils/test-utils";
 
 const TEST_PASSWORD = "t3stPassw0rd";

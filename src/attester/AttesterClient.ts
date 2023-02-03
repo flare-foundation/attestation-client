@@ -1,7 +1,7 @@
 import { Managed, sleepMs } from "@flarenetwork/mcc";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logger";
-import { secToHHMMSS } from "../utils/utils";
-import { AttestationClientConfig } from "./AttestationClientConfig";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
+import { secToHHMMSS } from "../utils/helpers/utils";
+import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 import { AttestationData } from "./AttestationData";
 import { BitVoteData } from "./BitVoteData";
 import { AttestationRoundManager } from "./AttestationRoundManager";

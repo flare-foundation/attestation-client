@@ -1,7 +1,7 @@
 import { optional } from "@flarenetwork/mcc";
-import { AttesterWebOptions } from "../attester/AttestationClientConfig";
-import { DatabaseConnectOptions } from "../utils/databaseService";
-import { AdditionalTypeInfo, IReflection } from "../utils/reflection";
+import { AttesterWebOptions } from "../attester/configs/AttesterWebOptions";
+import { DatabaseConnectOptions } from "../utils/database/DatabaseConnectOptions";
+import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection";
 
 export class SpammerCredentials implements IReflection<SpammerCredentials> {
 

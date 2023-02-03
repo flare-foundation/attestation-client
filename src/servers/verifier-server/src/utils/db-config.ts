@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { readSecureConfig } from "../../../../utils/configSecure";
-import { indexerEntities } from "../../../../utils/databaseEntities";
-import { getGlobalLogger } from "../../../../utils/logger";
+import { readSecureConfig } from "../../../../utils/config/configSecure";
+import { indexerEntities } from "../../../../utils/database/databaseEntities";
+import { getGlobalLogger } from "../../../../utils/logging/logger";
 import { VerifierServerConfig } from "../config-models/VerifierServerConfig";
 
 export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrmModuleOptions> {

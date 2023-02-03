@@ -2,7 +2,7 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { MerkleTree } from "../../src/utils/MerkleTree";
+import { MerkleTree } from "../../src/utils/data-structures/MerkleTree";
 import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
 import {
   DHPayment,

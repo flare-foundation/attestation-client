@@ -6,48 +6,25 @@ import { chooseCandidate, countOnes, prefix0x, unPrefix0x } from "../choose-subs
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { criticalAsync } from "../indexer/indexer-utils";
-import { SourceLimiter } from "../source/SourceLimiter";
-import { SourceRouter } from "../source/SourceRouter";
-import { EpochSettings } from "../utils/EpochSettings";
-import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger, logException } from "../utils/logger";
-import { commitHash, MerkleTree } from "../utils/MerkleTree";
-import { retry } from "../utils/PromiseTimeout";
-import { getCryptoSafeRandom, prepareString } from "../utils/utils";
+import { EpochSettings } from "../utils/data-structures/EpochSettings";
+import { commitHash, MerkleTree } from "../utils/data-structures/MerkleTree";
+import { getTimeMilli } from "../utils/helpers/internetTime";
+import { retry } from "../utils/helpers/promiseTimeout";
+import { getCryptoSafeRandom, prepareString } from "../utils/helpers/utils";
+import { AttLogger, logException } from "../utils/logging/logger";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
-import { Attestation, AttestationStatus } from "./Attestation";
-import { AttestationClientConfig } from "./AttestationClientConfig";
+import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttesterState } from "./AttesterState";
 import { BitVoteData } from "./BitVoteData";
+import { AttestationClientConfig } from "./configs/AttestationClientConfig";
+import { GlobalAttestationConfig } from "./configs/GlobalAttestationConfig";
 import { FlareConnection } from "./FlareConnection";
-import { GlobalAttestationConfig } from "./GlobalAttestationConfig";
+import { SourceLimiter } from "./source/SourceLimiter";
+import { SourceRouter } from "./source/SourceRouter";
+import { AttestationRoundPhase, AttestationRoundStatus, NO_VOTE } from "./types/AttestationRoundEnums";
+import { AttestationStatus } from "./types/AttestationStatus";
 
-export enum AttestationRoundPhase {
-  collect,
-  choose,
-  commit,
-  reveal,
-  completed,
-}
-
-// !!! STATUS ORDER IS IMPORTANT. It is crucial that the round can progress only to later status
-// and not back
-export enum AttestationRoundStatus {
-  collecting,         // initial status
-  bitVotingClosed,    // votes can be calculated
-  chosen,             // bit vote result calculated and available
-  commitDataPrepared, // commit data prepared
-
-  committed,          // the round was successfully committed and receipt received
-  revealed,           // the round was successfully revealed and receipt received
-
-  error,
-  processingTimeout,
-}
-
-
-const NO_VOTE = "0x00"
 // terminology
 // att/sec
 // call/sec

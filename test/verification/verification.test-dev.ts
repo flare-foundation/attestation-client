@@ -21,14 +21,14 @@ import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../src/in
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
 import { VerifierServerConfig } from "../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
-import { ChainConfig, ListChainConfig } from "../../src/source/ChainConfig";
-import { readSecureConfig } from "../../src/utils/configSecure";
-import { DatabaseService } from "../../src/utils/databaseService";
-import { getGlobalLogger } from "../../src/utils/logger";
-import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { getGlobalLogger } from "../../src/utils/logging/logger";
+import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../src/verification/sources/sources";
 import { verifyAttestation } from "../../src/verification/verifiers/verifier_routing";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;

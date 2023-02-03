@@ -1,9 +1,9 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { MonitorBase } from "../monitor/MonitorBase";
 import { MonitorManager } from "../monitor/MonitorManager";
-import { getGlobalLogger, setLoggerName } from "../utils/logger";
-import { EServiceStatus } from "../utils/serviced";
-import { sleepms } from "../utils/utils";
+import { getGlobalLogger, setLoggerName } from "../utils/logging/logger";
+import { EServiceStatus } from "../utils/monitoring/EServiceStatus";
+import { sleepms } from "../utils/helpers/utils";
 import { Menu } from "./menu";
 import { MenuItemCommand } from "./menuItemCommand";
 import { MenuItemLog } from "./menuItemLog";

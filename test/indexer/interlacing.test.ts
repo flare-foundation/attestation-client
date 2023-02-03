@@ -1,15 +1,16 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { Interlacing } from "../../src/indexer/interlacing";
-import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
 import { expect } from "chai";
-import { DBTransactionBase, DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
 import { afterEach } from "mocha";
-const utils = require("../../src/utils/utils");
 import sinon from "sinon";
-import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase, DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
+import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
+const utils = require("../../src/utils/utils");
 
 describe(`Interlacing (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

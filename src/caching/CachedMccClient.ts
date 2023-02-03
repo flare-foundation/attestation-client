@@ -1,7 +1,7 @@
 import { AlgoMccCreate, ChainType, IBlock, ITransaction, Managed, MCC, ReadRpcInterface, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { criticalAsync } from "../indexer/indexer-utils";
-import { retry } from "../utils/PromiseTimeout";
-import { Queue } from "../utils/Queue";
+import { Queue } from "../utils/data-structures/Queue";
+import { retry } from "../utils/helpers/promiseTimeout";
 
 /**
  * Interface for setting the capacities for CachedMccClinet:

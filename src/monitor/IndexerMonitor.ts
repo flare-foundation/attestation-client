@@ -1,9 +1,9 @@
-import { AttestationClientConfig } from "../attester/AttestationClientConfig";
+import { AttestationClientConfig } from "../attester/configs/AttestationClientConfig";
 import { DBState } from "../entity/indexer/dbState";
-import { readSecureConfig } from "../utils/configSecure";
-import { DatabaseService } from "../utils/databaseService";
-import { AttLogger } from "../utils/logger";
-import { getUnixEpochTimestamp, secToHHMMSS } from "../utils/utils";
+import { readSecureConfig } from "../utils/config/configSecure";
+import { DatabaseService } from "../utils/database/DatabaseService";
+import { getUnixEpochTimestamp, secToHHMMSS } from "../utils/helpers/utils";
+import { AttLogger } from "../utils/logging/logger";
 import { MonitorBase, MonitorRestartConfig, MonitorStatus } from "./MonitorBase";
 import { MonitorConfig } from "./MonitorConfiguration";
 

@@ -4,9 +4,10 @@ import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { DelayedExecution, LimitingProcessor } from "../../src/caching/LimitingProcessor";
 import { Interlacing } from "../../src/indexer/interlacing";
-import { DatabaseConnectOptions, DatabaseService } from "../../src/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
-import { sleepms } from "../../src/utils/utils";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { sleepms } from "../../src/utils/helpers/utils";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 
 const chai = require("chai");

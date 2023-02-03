@@ -1,4 +1,4 @@
-import { logException } from "../utils/logger";
+import { logException } from "../utils/logging/logger";
 import { Menu } from "./menu";
 
 export class MenuItemBase {

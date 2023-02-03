@@ -3,16 +3,16 @@
 // DOTENV=DEV SOURCE_ID=ALGO CONFIG_PATH=.secure.dev NODE_ENV=development yarn hardhat test test/verification/CostonVerification.test-dev.ts --network coston
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
+import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
 import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
 import { VerifierServerConfig } from "../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
-import { ChainConfig, ListChainConfig } from "../../src/source/ChainConfig";
-import { readSecureConfig } from "../../src/utils/configSecure";
-import { DatabaseService } from "../../src/utils/databaseService";
-import { getGlobalLogger } from "../../src/utils/logger";
-import { MerkleTree } from "../../src/utils/MerkleTree";
-import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { MerkleTree } from "../../src/utils/data-structures/MerkleTree";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
+import { getGlobalLogger } from "../../src/utils/logging/logger";
 import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { parseRequest } from "../../src/verification/generated/attestation-request-parse";
 import { AttestationType } from "../../src/verification/generated/attestation-types-enum";

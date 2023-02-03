@@ -4,9 +4,9 @@
 
 import { assert } from "chai";
 import { IndexerConfig } from "../../src/indexer/IndexerConfig";
-import { initializeTestGlobalLogger } from "../../src/utils/logger";
-import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection";
-import { isEqualType } from "../../src/utils/typeReflection";
+import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
+import { isEqualType } from "../../src/utils/reflection/typeReflection";
 import { getTestFile } from "../test-utils/test-utils";
 
 

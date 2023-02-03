@@ -1,5 +1,5 @@
-import { AttLogger } from "../utils/logger";
-import { getUnixEpochTimestamp } from "../utils/utils";
+import { AttLogger } from "../utils/logging/logger";
+import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 import { MonitorBase, MonitorRestartConfig, MonitorStatus } from "./MonitorBase";
 
 export class WebserverMonitor extends MonitorBase {

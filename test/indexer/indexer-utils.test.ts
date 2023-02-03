@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
-import { initializeTestGlobalLogger } from "../../src/utils/logger";
+import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 const proxi = require("../../src/utils/PromiseTimeout");
 
 describe(`Indexer utils (${getTestFile(__filename)})`, function () {

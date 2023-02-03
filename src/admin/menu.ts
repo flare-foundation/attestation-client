@@ -1,6 +1,6 @@
-import { getGlobalLogger } from "../utils/logger";
-import { Terminal } from "../utils/terminal";
-import { sleepms } from "../utils/utils";
+import { sleepms } from "../utils/helpers/utils";
+import { getGlobalLogger } from "../utils/logging/logger";
+import { Terminal } from "../utils/monitoring/Terminal";
 import { MenuItem } from "./menuItem";
 import { MenuItemBase } from "./menuItemBase";
 import { MenuItemCommand } from "./menuItemCommand";
@@ -14,7 +14,7 @@ export class Menu {
 
   done = false;
 
-  onDisplay = () => {};
+  onDisplay = () => { };
 
   constructor() {
     this.root = new MenuItemBase("", null);

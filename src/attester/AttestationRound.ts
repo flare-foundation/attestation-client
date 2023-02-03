@@ -13,6 +13,7 @@ import { retry } from "../utils/helpers/promiseTimeout";
 import { getCryptoSafeRandom, prepareString } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
+import { SourceId } from "../verification/sources/sources";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttesterState } from "./AttesterState";
@@ -46,11 +47,10 @@ export class AttestationRound {
 
   sourceRouter: SourceRouter;
 
-  sourceLimiters = new Map<number, SourceLimiter>();
+  sourceLimiters = new Map<SourceId, SourceLimiter>();
   activeGlobalConfig: GlobalAttestationConfig;
   attestationClientConfig: AttestationClientConfig;
-  submitCommitFinalize: boolean;
-  
+
   epochSettings: EpochSettings;
 
   nextRound!: AttestationRound;
@@ -103,7 +103,7 @@ export class AttestationRound {
   }
 
   get label() {
-    let _label = ""
+    let _label = "";
     if (this.attestationClientConfig.label != "none") {
       _label = `[${this.attestationClientConfig.label}]`;
     }
@@ -121,7 +121,7 @@ export class AttestationRound {
   get windowDurationMs() {
     return this.flareConnection.roundDurationSec * 1000;
   }
-  
+
   get forceCloseBitVotingOffsetMs() {
     return this.attestationClientConfig.forceCloseBitVotingSec * 1000;
   }
@@ -148,11 +148,10 @@ export class AttestationRound {
   get commitEndTimeMs() {
     return this.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000;
   }
-  
+
   get roundCompleteTimeMs() {
     return this.roundRevealStartTimeMs + this.windowDurationMs;
   }
-
 
   /**
    * Returns bitmask accumulator based on validity of attestations.
@@ -171,7 +170,7 @@ export class AttestationRound {
   }
 
   /**
-   * Returns a hex bit mask of successfully validated transactions, prefixed 
+   * Returns a hex bit mask of successfully validated transactions, prefixed
    * with last byte of the round id (roundCheck).
    * Used to vote on BitVote contract, if the provider is in the default set.
    */
@@ -333,9 +332,9 @@ export class AttestationRound {
 
   /**
    * Returns the existing source Handler for the source chain of an attestation or creates a new sourceLimiter
-   * @param data 
-   * @param onValidateAttestation 
-   * @returns 
+   * @param data
+   * @param onValidateAttestation
+   * @returns
    */
   getSourceLimiter(data: AttestationData): SourceLimiter {
     let sourceLimiter = this.sourceLimiters.get(data.sourceId);
@@ -387,11 +386,11 @@ export class AttestationRound {
   }
 
   /**
-   * Registers bit vote event. If the vote is from one of the default attestors, the vote is 
+   * Registers bit vote event. If the vote is from one of the default attestors, the vote is
    * registered.
-   * We assume that the timestamp of the event matches the round id and events round Id check is 
+   * We assume that the timestamp of the event matches the round id and events round Id check is
    * also matching.
-   * @param bitVoteData Bit vote event data 
+   * @param bitVoteData Bit vote event data
    */
   registerBitVote(bitVoteData: BitVoteData) {
     let address = bitVoteData.sender.toLocaleLowerCase();
@@ -404,9 +403,8 @@ export class AttestationRound {
     if (this._initialized) {
       return;
     }
-    this.defaultSetAddresses = await retry(
-      `${this.label}AttestationRound ${this.roundId} init default set`,
-      async () => this.flareConnection.getAttestorsForAssignors(this.activeGlobalConfig.defaultSetAssignerAddresses)
+    this.defaultSetAddresses = await retry(`${this.label}AttestationRound ${this.roundId} init default set`, async () =>
+      this.flareConnection.getAttestorsForAssignors(this.activeGlobalConfig.defaultSetAssignerAddresses)
     );
 
     this.defaultSetAddresses = this.defaultSetAddresses.map((address) => address.toLowerCase());
@@ -496,7 +494,7 @@ export class AttestationRound {
     });
   }
 
-  // async commitLimit(): Promise<void> {    
+  // async commitLimit(): Promise<void> {
   //   if (this.attestStatus === AttestationRoundStatus.collecting) {
   //     this.logger.error2(`${this.label}Round #${this.roundId} processing timeout (${this.attestationsProcessed}/${this.attestations.length} attestation(s))`);
 
@@ -515,10 +513,7 @@ export class AttestationRound {
         AttestationRoundPhase[this.phase]
       }', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
-    return (
-      this.phase === AttestationRoundPhase.commit &&
-      this.attestStatus === AttestationRoundStatus.commitDataPrepared
-    );
+    return this.phase === AttestationRoundPhase.commit && this.attestStatus === AttestationRoundStatus.commitDataPrepared;
   }
 
   /**
@@ -810,7 +805,7 @@ export class AttestationRound {
       const action = `${this.label}bit voting for round ^Y#${this.roundId + 1}^^ bufferNumber ${this.roundId + 1}`;
       this.bitVoteRecord = this.bitVoteAccumulator.toHex(); // make a bitvote snapshot
 
-      // eslint-disable-next-line      
+      // eslint-disable-next-line
       criticalAsync("Submit bit vote", async () => {
         const receipt = await this.flareConnection.submitBitVote(
           action,

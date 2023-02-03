@@ -1,9 +1,12 @@
-import { DatabaseService } from "../utils/database/DatabaseService";
+import fs from "fs";
+import * as os from "os";
 import { DatabaseConnectOptions } from "../utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../utils/database/DatabaseService";
 import { getTimeMilli } from "../utils/helpers/internetTime";
 import { round } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { MonitorBase, PerformanceInfo } from "./MonitorBase";
+import * as nodeDiskInfo from "node-disk-info";
 
 export class DatabaseMonitor extends MonitorBase {
   dbService: DatabaseService;
@@ -44,9 +47,6 @@ export class DatabaseMonitor extends MonitorBase {
       }
     }
 
-    const os = require("os");
-    const fs = require("fs");
-
     const now = getTimeMilli();
     const cpus = os.cpus();
 
@@ -67,7 +67,6 @@ export class DatabaseMonitor extends MonitorBase {
     resArray.push(new PerformanceInfo(`system.memory`, "available", availableMemory, "MB", `${round((availableMemory * 100) / totalMemory, 1)}% available`));
 
     // update disk information
-    const nodeDiskInfo = require("node-disk-info");
     if (now > this.diskCheckTime) {
       nodeDiskInfo
         .getDiskInfo()

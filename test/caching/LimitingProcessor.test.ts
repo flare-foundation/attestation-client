@@ -9,12 +9,10 @@ import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnect
 import { sleepms } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
+import chai, { expect, assert } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const assert = chai.assert;
+chai.use(chaiAsPromised);
 
 describe(`Limiting processor (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();

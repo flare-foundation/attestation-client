@@ -1,8 +1,7 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
+import * as yargs from "yargs";
 import { runVerifierServer } from "./servers/verifier-server/src/verifierServer";
 import { getGlobalLogger, setLoggerName } from "./utils/logging/logger";
-
-const yargs = require("yargs");
 
 const args = yargs
   .option("chain", { alias: "a", type: "string", description: "Chain", default: "", demand: false }).argv;

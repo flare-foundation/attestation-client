@@ -10,7 +10,7 @@ import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnect
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
-const utils = require("../../src/utils/utils");
+import * as utils from "../../src/utils/helpers/utils";
 
 describe(`Interlacing (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

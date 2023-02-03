@@ -1,5 +1,8 @@
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { afterEach } from "mocha";
+import sinon from "sinon";
 import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { CachedMccClient } from "../../src/caching/CachedMccClient";
 import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
@@ -11,18 +14,14 @@ import { IndexerConfig } from "../../src/indexer/IndexerConfig";
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { IndexerToDB } from "../../src/indexer/indexerToDB";
 import { Interlacing } from "../../src/indexer/interlacing";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { MockMccClient } from "../caching/test-utils/MockMccClient";
 import { AugTestBlockBTC, promAugTxBTC0 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const sinon = require("sinon");
+chai.use(chaiAsPromised);
 
 describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   let indexer = new Indexer(null, null, null);

@@ -1,10 +1,7 @@
-import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/config/jsonSecure";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
-
+import * as yargs from "yargs";
+import { getSecureValue, initializeJSONsecure } from "../utils/config/jsonSecure";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
-
-const yargs = require("yargs");
 
 const args = yargs
     .option("defaultSecureConfigPath", { alias: "p", type: "string", description: "start folder", default: DEFAULT_SECURE_CONFIG_PATH, demand: false })

@@ -1,13 +1,12 @@
 import { execSync } from "child_process";
 import { exit } from "process";
+import * as yargs from "yargs";
 import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/config/jsonSecure";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { sleepms } from "../utils/helpers/utils";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { muteMySQLPasswords } from "./utils";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
-
-const yargs = require("yargs");
 
 const args = yargs
     .option("defaultSecureConfigPath", { alias: "p", type: "string", description: "start folder", default: DEFAULT_SECURE_CONFIG_PATH, demand: false })

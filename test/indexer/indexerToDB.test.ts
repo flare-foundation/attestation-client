@@ -11,14 +11,12 @@ import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnect
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
-const loggers = require("../../src/utils/logger");
-const sinon = require("sinon");
+import sinon from "sinon";
+import * as loggers from "../../src/utils/logging/logger";
+import chai, { expect, assert } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const assert = chai.assert;
+chai.use(chaiAsPromised);
 
 describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();

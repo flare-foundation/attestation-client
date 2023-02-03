@@ -1,17 +1,15 @@
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const assert = chai.assert;
-import sinon = require("sinon");
-import { afterEach } from "mocha";
-import loggers = require("../../src/utils/logging/logger");
 import { sleepMs } from "@flarenetwork/mcc";
-import { getTestFile } from "../test-utils/test-utils";
+import chai, { assert, expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { afterEach } from "mocha";
+import sinon from "sinon";
 import { failureCallback, getRetryFailureCallback, retry, safeCatch, setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
+import * as loggers from "../../src/utils/logging/logger";
+import { getTestFile } from "../test-utils/test-utils";
 
+chai.use(chaiAsPromised);
 chai.should();
-describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
+describe(`promiseTimeout  ${getTestFile(__filename)})`, function () {
   loggers.initializeTestGlobalLogger();
   afterEach(function () {
     sinon.restore();

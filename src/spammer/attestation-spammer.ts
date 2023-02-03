@@ -1,35 +1,28 @@
 import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
+import * as yargs from "yargs";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
-import { AttestationClientConfig } from "../attester/configs/AttestationClientConfig";
-import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
-import { readCredentials } from "../utils/config/config";
 import { readSecureConfig } from "../utils/config/configSecure";
 import { indexerEntities } from "../utils/database/databaseEntities";
+import { DatabaseService } from "../utils/database/DatabaseService";
 import { getTimeMilli } from "../utils/helpers/internetTime";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/utils";
 import { Web3Functions } from "../utils/helpers/Web3Functions";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
 import { encodeRequest } from "../verification/generated/attestation-request-encode";
 import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";
-import { VerifierRouter } from "../verification/routing/VerifierRouter";
 import { SourceId } from "../verification/sources/sources";
 import { SpammerCredentials } from "./SpammerConfiguration";
-import { DatabaseService } from "../utils/database/DatabaseService";
-
-const fs = require("fs");
-
-const yargs = require("yargs");
 
 const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
@@ -288,7 +281,7 @@ async function displayStats() {
     await sleepMs(period);
 
     try {
-      logger.info(`${args.loggerLabel} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
+      logger.info(`${args["loggerLabel"]} ${(AttestationSpammer.sendCount * 1000) / period} req/sec`);
       AttestationSpammer.sendCount = 0;
     } catch (error) {
       logException(error, `displayStats`);
@@ -308,15 +301,15 @@ async function runAllAttestationSpammers() {
 }
 
 setLoggerName("spammer");
-setGlobalLoggerLabel(args.chain)
+setGlobalLoggerLabel(args["chain"])
 
-if (args.testCred) {
+if (args["testCred"]) {
   process.env.TEST_CREDENTIALS = "1"
   process.env.NODE_ENV = "development"
 }
 
-if (args.configPath) {
-  process.env.CONFIG_PATH = args.configPath
+if (args["configPath"]) {
+  process.env.CONFIG_PATH = args["configPath"]
 }
 
 runAllAttestationSpammers()

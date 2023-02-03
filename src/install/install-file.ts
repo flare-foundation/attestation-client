@@ -1,11 +1,10 @@
 import fs from "fs";
 import * as path from 'path';
-import { getGlobalLogger } from "../utils/logging/logger";
-import { getCryptoSafeRandom } from "../utils/helpers/utils";
-import { replaceAllVars } from "./utils";
+import * as yargs from "yargs";
 import { readJSON } from "../utils/config/json";
-
-const yargs = require("yargs");
+import { getCryptoSafeRandom } from "../utils/helpers/utils";
+import { getGlobalLogger } from "../utils/logging/logger";
+import { replaceAllVars } from "./utils";
 
 // command line 
 // -j filename : json config file
@@ -90,7 +89,7 @@ async function processFile(inputFilename: string, outputFilename: string, chain:
 async function run() {
 
   // read config from env specified folder
-  if (args.processConfig) {
+  if (args["processConfig"]) {
     if (process.env.JSON_CONFIG_PATH) {
       const files = fs.readdirSync(process.env.JSON_CONFIG_PATH);
 

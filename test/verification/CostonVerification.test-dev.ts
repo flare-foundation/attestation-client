@@ -3,6 +3,7 @@
 // DOTENV=DEV SOURCE_ID=ALGO CONFIG_PATH=.secure.dev NODE_ENV=development yarn hardhat test test/verification/CostonVerification.test-dev.ts --network coston
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
+import axios from "axios";
 import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
 import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
@@ -21,8 +22,6 @@ import { verifyAttestation } from "../../src/verification/verifiers/verifier_rou
 import { AttestationClientSCInstance, StateConnectorInstance } from "../../typechain-truffle";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
-
-const axios = require("axios");
 
 describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   let currentBufferNumber = 0;

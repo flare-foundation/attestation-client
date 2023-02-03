@@ -1,8 +1,8 @@
 import { ChainType, MCC } from "@flarenetwork/mcc";
-import { Docker, DockerInfo } from "../utils/Docker";
-import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger } from "../utils/logger";
-import { round } from "../utils/utils";
+import { Docker, DockerInfo } from "../utils/monitoring/Docker";
+import { getTimeMilli } from "../utils/helpers/internetTime";
+import { AttLogger } from "../utils/logging/logger";
+import { round } from "../utils/helpers/utils";
 import { MonitorBase, MonitorRestartConfig, MonitorStatus, PerformanceInfo } from "./MonitorBase";
 import { MonitorConfig } from "./MonitorConfiguration";
 

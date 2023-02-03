@@ -6,8 +6,9 @@ import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../s
 import { getStateEntry } from "../../src/indexer/indexer-utils";
 import { IndexerToDB } from "../../src/indexer/indexerToDB";
 import { Interlacing } from "../../src/indexer/interlacing";
-import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 const loggers = require("../../src/utils/logger");

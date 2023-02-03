@@ -1,9 +1,9 @@
 import fs from "fs";
 import * as path from 'path';
-import { readJSON } from "../utils/json";
-import { getGlobalLogger } from "../utils/logger";
-import { getCryptoSafeRandom } from "../utils/utils";
+import { getGlobalLogger } from "../utils/logging/logger";
+import { getCryptoSafeRandom } from "../utils/helpers/utils";
 import { replaceAllVars } from "./utils";
+import { readJSON } from "../utils/config/json";
 
 const yargs = require("yargs");
 

@@ -1,4 +1,4 @@
-import { logException } from "../../../src/utils/logger";
+import { logException } from "../../../src/utils/logging/logger";
 import { bootstrapAttestationWebServer } from "./attestation-client-test-utils";
 
 

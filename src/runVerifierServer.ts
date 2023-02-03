@@ -1,6 +1,6 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { runVerifierServer } from "./servers/verifier-server/src/verifierServer";
-import { getGlobalLogger, setLoggerName } from "./utils/logger";
+import { getGlobalLogger, setLoggerName } from "./utils/logging/logger";
 
 const yargs = require("yargs");
 
@@ -13,15 +13,12 @@ TraceManager.enabled = false;
 
 setLoggerName("verifierServer");
 
-if( args["chain"] )
-{
-    process.env.VERIFIER_TYPE=args["chain"];
-    //
-    getGlobalLogger().debug(`chain ${process.env.VERIFIER_TYPE} (set with command line)`);    
+if (args["chain"]) {
+  process.env.VERIFIER_TYPE = args["chain"];
+  getGlobalLogger().debug(`chain ${process.env.VERIFIER_TYPE} (set with command line)`);
 }
-else
-{
-    getGlobalLogger().debug(`chain ${process.env.VERIFIER_TYPE} (set with env)`);    
+else {
+  getGlobalLogger().debug(`chain ${process.env.VERIFIER_TYPE} (set with env)`);
 }
 
 // eslint-disable-next-line

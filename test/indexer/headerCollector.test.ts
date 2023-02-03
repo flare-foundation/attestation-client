@@ -5,9 +5,10 @@ import { DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { HeaderCollector } from "../../src/indexer/headerCollector";
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { IndexerToDB } from "../../src/indexer/indexerToDB";
-import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
-import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 
 import { TestBlockXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";

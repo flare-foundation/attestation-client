@@ -6,14 +6,14 @@ import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 import { isValidHexString } from "../choose-subsets-lib/subsets-lib";
-import { EpochSettings } from "../utils/EpochSettings";
-import { AttLogger } from "../utils/logger";
-import { retry } from "../utils/PromiseTimeout";
-import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/utils";
-import { Web3Functions } from "../utils/Web3Functions";
-import { AttestationClientConfig } from "./AttestationClientConfig";
+import { EpochSettings } from "../utils/data-structures/EpochSettings";
+import { retry } from "../utils/helpers/promiseTimeout";
+import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/helpers/utils";
+import { Web3Functions } from "../utils/helpers/Web3Functions";
+import { AttLogger } from "../utils/logging/logger";
 import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterState } from "./AttesterState";
+import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 
 /**
  * Handles submissions to StateConnector and BitVoting contract
@@ -72,7 +72,7 @@ export class FlareConnection {
   public setStateManager(attesterState: AttesterState) {
     this.attesterState = attesterState;
   }
-  
+
   /**
    * Logs if hex string is not of the correct form.
    * @param hexString 

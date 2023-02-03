@@ -1,25 +1,23 @@
-import * as fs from "fs";
-import Web3 from "web3";
-import BN from "bn.js";
-const { promisify } = require('util');
-import { AttesterClient } from "../../../src/attester/AttesterClient";
-import { AttestationClientConfig } from "../../../src/attester/AttestationClientConfig";
-import { readSecureConfig } from "../../../src/utils/configSecure";
-import { getWeb3, relativeContractABIPathForContractName } from "../../../src/utils/utils";
-import { BitVoting } from "../../../typechain-web3-v1/BitVoting";
-import { StateConnectorTempTran } from "../../../typechain-web3-v1/StateConnectorTempTran";
-import { readJSONfromFile } from "../../../src/utils/json";
-import { AttLogger, getGlobalLogger } from "../../../src/utils/logger";
 import { INestApplication } from "@nestjs/common";
-import { ServerConfigurationService } from "../../../src/servers/web-server/src/services/server-configuration.service";
-import { WebServerModule } from "../../../src/servers/web-server/src/web-server.module";
-import { NestFactory } from "@nestjs/core";
-import helmet from "helmet";
-import cookieParser from "cookie-parser";
-import bodyParser from "body-parser";
-import { EntityManager } from "typeorm";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { Test } from "@nestjs/testing";
+import BN from "bn.js";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import * as fs from "fs";
+import helmet from "helmet";
+import Web3 from "web3";
+import { AttesterClient } from "../../../src/attester/AttesterClient";
+import { AttestationClientConfig } from "../../../src/attester/configs/AttestationClientConfig";
+import { ServerConfigurationService } from "../../../src/servers/web-server/src/services/server-configuration.service";
+import { WebServerModule } from "../../../src/servers/web-server/src/web-server.module";
+import { readSecureConfig } from "../../../src/utils/config/configSecure";
+import { readJSONfromFile } from "../../../src/utils/config/json";
+import { getWeb3, relativeContractABIPathForContractName } from "../../../src/utils/helpers/utils";
+import { AttLogger, getGlobalLogger } from "../../../src/utils/logging/logger";
+import { BitVoting } from "../../../typechain-web3-v1/BitVoting";
+import { StateConnectorTempTran } from "../../../typechain-web3-v1/StateConnectorTempTran";
+const { promisify } = require('util');
 
 // CONFIG_PATH should be set correctly
 export async function bootstrapAttestationClient(n: number): Promise<AttesterClient> {

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { PriorityQueue } from "../../src/utils/priorityQueue";
+import { PriorityQueue } from "../../src/utils/data-structures/PriorityQueue";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`PriorityQueue, (${getTestFile(__filename)})`, () => {

@@ -1,4 +1,4 @@
-import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection";
+import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection/reflection";
 
 export class VerifierAttestationTypeRouteConfig implements IReflection<VerifierAttestationTypeRouteConfig> {
   public attestationTypes: string[] = [];

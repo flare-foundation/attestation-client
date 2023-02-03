@@ -1,8 +1,8 @@
 import { IBlockTip, Managed } from "@flarenetwork/mcc";
 import { exit } from "process";
-import { AttLogger } from "../utils/logger";
-import { failureCallback, retry } from "../utils/PromiseTimeout";
-import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/utils";
+import { failureCallback, retry } from "../utils/helpers/promiseTimeout";
+import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/helpers/utils";
+import { AttLogger } from "../utils/logging/logger";
 import { Indexer } from "./indexer";
 import { criticalAsync, getStateEntryString, SECONDS_PER_DAY } from "./indexer-utils";
 import { IndexerToClient } from "./indexerToClient";
@@ -157,8 +157,7 @@ export class IndexerSync {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
-            this.indexer.cachedClient.reqsPs
+          `sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.indexer.cachedClient.reqsPs
           })`
         );
       } else {
@@ -166,7 +165,6 @@ export class IndexerSync {
       }
 
       await retry(`runSyncRaw::saveStatus`, async () => this.indexer.dbService.manager.save(dbStatus));
-
       // check if syncing has ended
       if (this.indexer.N >= this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) {
         this.logger.group("SyncRaw completed");

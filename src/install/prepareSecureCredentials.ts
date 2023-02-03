@@ -7,10 +7,10 @@
 import fs from "fs";
 import path from "path";
 import { exit } from "process";
-import { getCredentialsKey } from "../utils/credentialsKey";
-import { encryptString } from "../utils/encrypt";
-import { readJSONfromFile } from "../utils/json";
-import { getGlobalLogger } from "../utils/logger";
+import { getCredentialsKey } from "../utils/config/credentialsKey";
+import { readJSONfromFile } from "../utils/config/json";
+import { getGlobalLogger } from "../utils/logging/logger";
+import { encryptString } from "../utils/security/encrypt";
 
 /**
  * Combine all `.json` files from @param credentialsPath, encrypts them with password from @param passwordAddress and save all in a file @param output.

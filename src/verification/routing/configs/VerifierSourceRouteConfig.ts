@@ -1,5 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
-import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection";
+import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection/reflection";
 import { VerifierAttestationTypeRouteConfig } from "./VerifierAttestationTypeRouteConfig";
 
 export class VerifierSourceRouteConfig implements IReflection<VerifierSourceRouteConfig> {

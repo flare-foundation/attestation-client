@@ -1,10 +1,10 @@
 import { toBN } from "@flarenetwork/mcc";
-import { AttestationClientConfig } from "../attester/AttestationClientConfig";
+import { AttestationClientConfig } from "../attester/configs/AttestationClientConfig";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
-import { readSecureConfig } from "../utils/configSecure";
-import { DatabaseService } from "../utils/databaseService";
-import { EpochSettings } from "../utils/EpochSettings";
-import { AttLogger } from "../utils/logger";
+import { readSecureConfig } from "../utils/config/configSecure";
+import { EpochSettings } from "../utils/data-structures/EpochSettings";
+import { DatabaseService } from "../utils/database/DatabaseService";
+import { AttLogger } from "../utils/logging/logger";
 import { MonitorBase, MonitorRestartConfig, MonitorStatus } from "./MonitorBase";
 
 export class AttesterMonitor extends MonitorBase {

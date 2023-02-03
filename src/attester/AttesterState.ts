@@ -1,12 +1,12 @@
 import { retry } from "@flarenetwork/mcc";
 import { DBRoundResult } from "../entity/attester/dbRoundResult";
-import { getGlobalLogger, logException } from "../utils/logger";
-import { getUnixEpochTimestamp } from "../utils/utils";
+import { getGlobalLogger, logException } from "../utils/logging/logger";
+import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 import { AttestationRound } from "./AttestationRound";
-
 import _ from "lodash";
 import { EntityManager } from "typeorm";
-import { DatabaseService } from "../utils/databaseService";
+import { DatabaseService } from "../utils/database/DatabaseService";
+
 
 /**
  * Update or insert new state.

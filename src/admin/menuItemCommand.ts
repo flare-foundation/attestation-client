@@ -1,5 +1,5 @@
-import { getGlobalLogger } from "../utils/logger";
-import { sleepms } from "../utils/utils";
+import { getGlobalLogger } from "../utils/logging/logger";
+import { sleepms } from "../utils/helpers/utils";
 import { MenuItemBase } from "./menuItemBase";
 
 export class MenuItemCommand extends MenuItemBase {

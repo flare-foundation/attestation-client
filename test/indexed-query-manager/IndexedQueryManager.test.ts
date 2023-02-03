@@ -7,7 +7,7 @@ import { DBTransactionBase, DBTransactionXRP0 } from "../../src/entity/indexer/d
 import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
-import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";

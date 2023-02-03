@@ -1,5 +1,5 @@
-import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/jsonSecure";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
+import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/config/jsonSecure";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";

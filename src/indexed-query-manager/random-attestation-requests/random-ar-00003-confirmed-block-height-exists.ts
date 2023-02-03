@@ -1,7 +1,7 @@
 import { prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
-import { AttLogger } from "../../utils/logger";
+import { AttLogger } from "../../utils/logging/logger";
 import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
 import { hashConfirmedBlockHeightExists } from "../../verification/generated/attestation-hash-utils";

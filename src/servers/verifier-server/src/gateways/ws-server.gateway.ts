@@ -7,7 +7,7 @@ import {
 import { IncomingMessage } from "http";
 import * as url from "url";
 import WebSocket, { Server } from 'ws';
-import { AttLogger, getGlobalLogger } from "../../../../utils/logger";
+import { AttLogger, getGlobalLogger } from "../../../../utils/logging/logger";
 import { VerifierConfigurationService } from "../services/verifier-configuration.service";
 import { WsCommandProcessorService } from "../services/ws-command-processor.service";
 

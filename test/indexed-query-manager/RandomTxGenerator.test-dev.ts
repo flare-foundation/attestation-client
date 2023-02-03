@@ -10,7 +10,7 @@ import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQuer
 import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
 import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
-import { getUnixEpochTimestamp } from "../../src/utils/utils";
+import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { SourceId } from "../../src/verification/sources/sources";
 import { generateTestIndexerDB } from "./utils/indexerTestDataGenerator";
 

@@ -1,26 +1,25 @@
 // yarn test test/attestationClient/attestationClient.test.ts
 
-import { BtcTransaction, ChainType, prefix0x, sleepMs, traceManager, XrpTransaction } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, prefix0x, traceManager, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { spawn } from "child_process";
 import * as fs from "fs";
+import sinon from "sinon";
 import waitOn from "wait-on";
 import Web3 from "web3";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
-import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
-import { getUnixEpochTimestamp, getWeb3, relativeContractABIPathForContractName } from "../../src/utils/utils";
+import { Attestation } from "../../src/attester/Attestation";
+import { runBot } from "../../src/state-collector-finalizer/state-connector-validator-bot";
+import { getUnixEpochTimestamp, getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/utils";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { firstAddressVin, firstAddressVout, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
-import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
+import { getTestFile } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, clearTestDatabases, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "../verification/test-utils/verifier-test-utils";
-import { assertAddressesMatchPrivateKeys, bootstrapAttestationClient, bootstrapAttestationWebServer, deployTestContracts, getVoterAddresses, increaseTo, selfAssignAttestationProviders, setIntervalMining, startSimpleSpammer, submitAttestationRequest } from "./utils/attestation-client-test-utils";
-import sinon from "sinon";
-import { ARPayment } from "../../src/verification/generated/attestation-request-types";
-import { Attestation } from "../../src/attester/Attestation";
-import { runBot } from "../../src/state-collector-finalizer/state-connector-validator-bot";
+import { assertAddressesMatchPrivateKeys, bootstrapAttestationClient, bootstrapAttestationWebServer, deployTestContracts, getVoterAddresses, selfAssignAttestationProviders, setIntervalMining, startSimpleSpammer } from "./utils/attestation-client-test-utils";
 chai.use(chaiAsPromised);
 
 

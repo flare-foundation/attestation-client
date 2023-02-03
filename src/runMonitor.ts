@@ -1,5 +1,5 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
-import { setLoggerName } from "./utils/logger";
+import { setLoggerName } from "./utils/logging/logger";
 import { MonitorManager } from "./monitor/MonitorManager";
 
 traceManager.displayStateOnException = false;
@@ -8,7 +8,7 @@ TraceManager.enabled = false;
 
 const monitorManager = new MonitorManager();
 
-setLoggerName( "monitor" );
+setLoggerName("monitor");
 
 // eslint-disable-next-line
 monitorManager.runMonitor();

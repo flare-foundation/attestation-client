@@ -1,5 +1,5 @@
-import { AttLogger, logException } from "../utils/logger";
-import { sleepms } from "../utils/utils";
+import { AttLogger, logException } from "../utils/logging/logger";
+import { sleepms } from "../utils/helpers/utils";
 import { AttesterClient } from "./AttesterClient";
 import { FlareConnection } from "./FlareConnection";
 

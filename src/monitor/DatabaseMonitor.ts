@@ -1,7 +1,8 @@
-import { DatabaseConnectOptions, DatabaseService } from "../utils/databaseService";
-import { getTimeMilli } from "../utils/internetTime";
-import { AttLogger, logException } from "../utils/logger";
-import { round } from "../utils/utils";
+import { DatabaseService } from "../utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../utils/database/DatabaseConnectOptions";
+import { getTimeMilli } from "../utils/helpers/internetTime";
+import { round } from "../utils/helpers/utils";
+import { AttLogger, logException } from "../utils/logging/logger";
 import { MonitorBase, PerformanceInfo } from "./MonitorBase";
 
 export class DatabaseMonitor extends MonitorBase {

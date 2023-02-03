@@ -1,6 +1,6 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { readSecureConfig } from "../../../../utils/configSecure";
-import { getGlobalLogger } from "../../../../utils/logger";
+import { readSecureConfig } from "../../../../utils/config/configSecure";
+import { getGlobalLogger } from "../../../../utils/logging/logger";
 import { WebserverConfig } from "../config-models/WebserverConfig";
 
 export async function createTypeOrmOptions(loggerLabel: string, entities: any[]): Promise<TypeOrmModuleOptions> {

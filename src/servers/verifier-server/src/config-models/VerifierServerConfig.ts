@@ -1,7 +1,7 @@
 import { optional } from "@flarenetwork/mcc";
-import { ChainConfig } from "../../../../source/ChainConfig";
-import { DatabaseConnectOptions } from "../../../../utils/databaseService";
-import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection";
+import { ChainConfig } from "../../../../attester/configs/ChainConfig";
+import { DatabaseConnectOptions } from "../../../../utils/database/DatabaseConnectOptions";
+import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection/reflection";
 import { ServerUser } from "./ServerUser";
 
 export class VerifierServerConfig implements IReflection<VerifierServerConfig> {
@@ -14,7 +14,7 @@ export class VerifierServerConfig implements IReflection<VerifierServerConfig> {
 
   sourceId: string = "";
   attestationTypes: string[] = [];
-
+ 
 
   instanciate(): VerifierServerConfig {
     return new VerifierServerConfig();

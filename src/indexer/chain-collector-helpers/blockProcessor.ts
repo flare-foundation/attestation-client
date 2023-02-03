@@ -1,8 +1,9 @@
 import { AlgoBlock, ChainType, IBlock, Managed, traceFunction, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction, XRP_UTD } from "@flarenetwork/mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBBlockALGO, DBBlockDOGE, DBBlockXRP } from "../../entity/indexer/dbBlock";
-import { DBTransactionALGO0, DBTransactionBase, DBTransactionDOGE0, DBTransactionXRP0 } from "../../entity/indexer/dbTransaction";
-import { retryMany } from "../../utils/PromiseTimeout";
+import { DBTransactionBase, DBTransactionDOGE0 } from "../../entity/indexer/dbTransaction";
+import { retryMany } from "../../utils/helpers/promiseTimeout";
+
 import { criticalAsync, prepareIndexerTables } from "../indexer-utils";
 import { augmentBlock } from "./augmentBlock";
 import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";

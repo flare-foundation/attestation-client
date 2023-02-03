@@ -3,8 +3,8 @@ import StateConnectorTranAbi from "../../artifacts/contracts/StateConnectorTempT
 import { sleepMs } from "@flarenetwork/mcc";
 import { AbiItem } from "web3-utils";
 
-import { getTimeSec } from "../utils/internetTime";
-import { getWeb3 } from "../utils/utils";
+import { getTimeSec } from "../utils/helpers/internetTime";
+import { getWeb3 } from "../utils/helpers/utils";
 import { StateConnectorTemp } from "../../typechain-web3-v1/StateConnectorTemp";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 

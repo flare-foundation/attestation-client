@@ -1,7 +1,7 @@
 import BN from "bn.js";
 import glob from "glob";
 import Web3 from "web3";
-import { getGlobalLogger } from "../../utils/logger";
+import { getGlobalLogger } from "../../utils/logging/logger";
 import { AttestationTypeScheme, NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
 
 const toBN = Web3.utils.toBN;

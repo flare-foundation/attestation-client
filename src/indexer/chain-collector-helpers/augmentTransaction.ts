@@ -12,7 +12,7 @@ import {
 } from "@flarenetwork/mcc";
 import { stringify } from "safe-stable-stringify";
 import { DBTransactionALGO0, DBTransactionBase, DBTransactionXRP0, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
-import { prepareString } from "../../utils/utils";
+import { prepareString } from "../../utils/helpers/utils";
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.

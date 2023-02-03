@@ -2,19 +2,7 @@ import { Managed } from "@flarenetwork/mcc";
 import { Verification } from "../verification/attestation-types/attestation-types";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
-
-export enum AttestationStatus {
-  ///// IN PROCESSING STATUSES ///////
-  queued,        // attestation put in queue due to rate limiting
-  processing,    // attestation in processing
-  ///// FINAL STATUSES //////
-  failed,        // attestation failed before processing
-  valid,         // confirmed by verifier
-  invalid,       // rejected by verifier
-  tooLate,       // verified after deadline (commit)
-  overLimit,     // goes over total weight per round limit 
-  error,         // configuration error (critical)
-}
+import { AttestationStatus } from "./types/AttestationStatus";
 
 /**
  * Attestation class is class holding the state of an attestation throughout whole life-cycle, which includes:

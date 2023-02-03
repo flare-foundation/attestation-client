@@ -2,12 +2,12 @@
 
 import { ChainType, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
-import { ChainConfig } from "../../src/source/ChainConfig";
+import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
 import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { Indexer } from "../../src/indexer/indexer";
-import { getGlobalLogger } from "../../src/utils/logger";
+import { getGlobalLogger } from "../../src/utils/logging/logger";
 
 const BtcMccConnection = {
   url: "https://bitcoin.flare.network/",

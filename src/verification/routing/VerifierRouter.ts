@@ -1,9 +1,9 @@
 import axios from "axios";
 import { Attestation } from "../../attester/Attestation";
 import { ApiResponse } from "../../servers/common/src";
-import { readSecureConfig } from "../../utils/configSecure";
-import { AttLogger, getGlobalLogger } from "../../utils/logger";
-import { retry } from "../../utils/PromiseTimeout";
+import { readSecureConfig } from "../../utils/config/configSecure";
+import { retry } from "../../utils/helpers/promiseTimeout";
+import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { AttestationRequest, Verification } from "../attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
 import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";

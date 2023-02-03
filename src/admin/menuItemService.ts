@@ -1,4 +1,5 @@
-import { EServiceStatus, ServiceStatus } from "../utils/serviced";
+import { ServiceStatus } from "../utils/monitoring/ServiceStatus";
+import { EServiceStatus } from "../utils/monitoring/EServiceStatus";
 import { MenuItemBase } from "./menuItemBase";
 import { MenuItemCommand } from "./menuItemCommand";
 

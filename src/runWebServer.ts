@@ -1,6 +1,6 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { runWebserver } from "./servers/web-server/src/webserver";
-import { setLoggerName } from "./utils/logger";
+import { setLoggerName } from "./utils/logging/logger";
 
 traceManager.displayStateOnException = false;
 traceManager.displayRuntimeTrace = false;

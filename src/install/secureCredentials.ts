@@ -4,7 +4,7 @@
 // `credentials.json.secure` contains all keys in all .json files in `path` folder (non recursive).
 // this file should be copied into target config path.
 
-import { getGlobalLogger } from "../utils/logger";
+import { getGlobalLogger } from "../utils/logging/logger";
 import { prepareSecureCredentials } from "./prepareSecureCredentials";
 
 const logger = getGlobalLogger();

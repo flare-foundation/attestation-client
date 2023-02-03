@@ -1,10 +1,10 @@
 import { traceManager, TraceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { AttesterClient } from "./attester/AttesterClient";
-import { AttestationClientConfig } from "./attester/AttestationClientConfig";
-import { readSecureConfig } from "./utils/configSecure";
-import { getGlobalLogger, logException, setLoggerName } from "./utils/logger";
-import { setRetryFailureCallback } from "./utils/PromiseTimeout";
+import { AttestationClientConfig } from "./attester/configs/AttestationClientConfig";
+import { readSecureConfig } from "./utils/config/configSecure";
+import { setRetryFailureCallback } from "./utils/helpers/promiseTimeout";
+import { getGlobalLogger, logException, setLoggerName } from "./utils/logging/logger";
 
 const yargs = require("yargs");
 

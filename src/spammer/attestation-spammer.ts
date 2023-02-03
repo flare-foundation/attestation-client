@@ -2,7 +2,7 @@ import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
-import { AttestationClientConfig } from "../attester/AttestationClientConfig";
+import { AttestationClientConfig } from "../attester/configs/AttestationClientConfig";
 import { AttestationRoundManager } from "../attester/AttestationRoundManager";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
@@ -10,14 +10,13 @@ import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-que
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
-import { readCredentials } from "../utils/config";
-import { readSecureConfig } from "../utils/configSecure";
-import { indexerEntities } from "../utils/databaseEntities";
-import { DatabaseService } from "../utils/databaseService";
-import { getTimeMilli } from "../utils/internetTime";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logger";
-import { getWeb3, getWeb3StateConnectorContract } from "../utils/utils";
-import { Web3Functions } from "../utils/Web3Functions";
+import { readCredentials } from "../utils/config/config";
+import { readSecureConfig } from "../utils/config/configSecure";
+import { indexerEntities } from "../utils/database/databaseEntities";
+import { getTimeMilli } from "../utils/helpers/internetTime";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
+import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/utils";
+import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
 import { encodeRequest } from "../verification/generated/attestation-request-encode";
@@ -26,6 +25,7 @@ import { ARType } from "../verification/generated/attestation-request-types";
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
 import { SourceId } from "../verification/sources/sources";
 import { SpammerCredentials } from "./SpammerConfiguration";
+import { DatabaseService } from "../utils/database/DatabaseService";
 
 const fs = require("fs");
 

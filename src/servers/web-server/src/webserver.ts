@@ -3,7 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import { getGlobalLogger } from '../../../utils/logger';
+import { getGlobalLogger } from '../../../utils/logging/logger';
 import { ServerConfigurationService } from './services/server-configuration.service';
 import { WebServerModule } from './web-server.module';
 

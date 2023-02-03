@@ -2,7 +2,7 @@ import { ChainType, MCC } from '@flarenetwork/mcc';
 import { IDBBlockBase } from '../../../../entity/indexer/dbBlock';
 import { IDBTransactionBase } from '../../../../entity/indexer/dbTransaction';
 import { prepareIndexerTables } from '../../../../indexer/indexer-utils';
-import { readSecureConfig } from '../../../../utils/configSecure';
+import { readSecureConfig } from '../../../../utils/config/configSecure';
 import { VerifierServerConfig } from '../config-models/VerifierServerConfig';
 
 export class VerifierConfigurationService {

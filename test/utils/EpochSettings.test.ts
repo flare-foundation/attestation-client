@@ -1,6 +1,6 @@
 import { toBN } from "@flarenetwork/mcc";
 import { assert, expect } from "chai";
-import { EpochSettings } from "../../src/utils/EpochSettings";
+import { EpochSettings } from "../../src/utils/data-structures/EpochSettings";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`EpochSettings (${getTestFile(__filename)})`, () => {

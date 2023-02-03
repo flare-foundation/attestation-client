@@ -5,12 +5,12 @@ import BN from "bn.js";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
-import { AttestationClientConfig } from "../../src/attester/AttestationClientConfig";
+import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
 import { FlareConnection } from "../../src/attester/FlareConnection";
-import { SourceRouter } from "../../src/source/SourceRouter";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
-import { setRetryFailureCallback } from "../../src/utils/PromiseTimeout";
-import { TestLogger } from "../../src/utils/testLogger";
+import { SourceRouter } from "../../src/attester/source/SourceRouter";
+import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
+import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { TestLogger } from "../../src/utils/logging/testLogger";
 import { SourceId } from "../../src/verification/sources/sources";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 

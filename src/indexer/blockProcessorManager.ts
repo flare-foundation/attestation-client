@@ -1,8 +1,8 @@
 import { IBlock, Managed, sleepMs } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
-import { AttLogger } from "../utils/logger";
-import { failureCallback } from "../utils/PromiseTimeout";
+import { failureCallback } from "../utils/helpers/promiseTimeout";
+import { AttLogger } from "../utils/logging/logger";
 import { BlockProcessor } from "./chain-collector-helpers/blockProcessor";
 import { criticalAsync } from "./indexer-utils";
 import { IndexerToClient } from "./indexerToClient";

@@ -1,7 +1,7 @@
-import { AttestationClientConfig } from "../../../src/attester/AttestationClientConfig";
+import { AttestationClientConfig } from "../../../src/attester/configs/AttestationClientConfig";
 import { AttesterClient } from "../../../src/attester/AttesterClient";
-import { readSecureConfig } from "../../../src/utils/configSecure";
-import { logException, setLoggerName } from "../../../src/utils/logger";
+import { readSecureConfig } from "../../../src/utils/config/configSecure";
+import { logException, setLoggerName } from "../../../src/utils/logging/logger";
 
 const yargs = require("yargs");
 

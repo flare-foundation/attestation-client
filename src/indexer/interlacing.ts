@@ -1,10 +1,10 @@
 import { ChainType, Managed } from "@flarenetwork/mcc";
-import { DatabaseService } from "../utils/databaseService";
-import { AttLogger } from "../utils/logger";
-import { sleepms } from "../utils/utils";
+import { AttLogger } from "../utils/logging/logger";
+import { sleepms } from "../utils/helpers/utils";
 import { IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
 import { IDBBlockBase } from "../entity/indexer/dbBlock";
+import { DatabaseService } from "../utils/database/DatabaseService";
 
 /**
  * Manages table double buffering for transactions (DBTransactionBase)

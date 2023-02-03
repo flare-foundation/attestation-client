@@ -1,6 +1,6 @@
 import { Managed } from "@flarenetwork/mcc";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
-import { DatabaseService } from "../utils/databaseService";
+import { DatabaseService } from "../utils/database/DatabaseService";
 
 /**
  * Manages counting of confirmations on unconfirmed blocks on the top of the chain as

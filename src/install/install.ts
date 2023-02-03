@@ -1,6 +1,6 @@
 import fs from "fs";
-import { readJSON } from "../utils/json";
-import { getGlobalLogger, logException } from "../utils/logger";
+import { readJSON } from "../utils/config/json";
+import { getGlobalLogger, logException } from "../utils/logging/logger";
 import { replaceAllVars } from "./utils";
 
 const logger = getGlobalLogger();

@@ -2,7 +2,6 @@ import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockALGO, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import {
-  IDBTransactionBase,
   DBTransactionALGO0,
   DBTransactionALGO1,
   DBTransactionBTC0,
@@ -12,11 +11,11 @@ import {
   DBTransactionLTC0,
   DBTransactionLTC1,
   DBTransactionXRP0,
-  DBTransactionXRP1,
+  DBTransactionXRP1, IDBTransactionBase
 } from "../entity/indexer/dbTransaction";
-import { getGlobalLogger, logException } from "../utils/logger";
-import { getRetryFailureCallback } from "../utils/PromiseTimeout";
-import { getUnixEpochTimestamp } from "../utils/utils";
+import { getRetryFailureCallback } from "../utils/helpers/promiseTimeout";
+import { getUnixEpochTimestamp } from "../utils/helpers/utils";
+import { getGlobalLogger, logException } from "../utils/logging/logger";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
 export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];

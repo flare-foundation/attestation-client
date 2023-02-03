@@ -1,8 +1,8 @@
 import { ChainType, IBlock, ITransaction, MCC } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
-import { ChainConfig, ListChainConfig } from "../source/ChainConfig";
-import { readConfig } from "../utils/config";
-import { AttLogger, logException } from "../utils/logger";
+import { ChainConfig, ListChainConfig } from "../attester/configs/ChainConfig";
+import { readConfig } from "../utils/config/config";
+import { AttLogger, logException } from "../utils/logging/logger";
 import { MonitorBase, MonitorRestartConfig, MonitorStatus } from "./MonitorBase";
 import { MonitorConfig } from "./MonitorConfiguration";
 

@@ -1,6 +1,6 @@
 import { Managed } from "@flarenetwork/mcc";
-import { AttLogger, logException } from "../utils/logger";
-import { getUnixEpochTimestamp } from "../utils/utils";
+import { AttLogger, logException } from "../utils/logging/logger";
+import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 
 export class MonitorStatus {
   type = "unknown";

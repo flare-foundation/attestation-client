@@ -1,6 +1,6 @@
 import { IBlock, IBlockHeader, Managed, ReadRpcInterface } from "@flarenetwork/mcc";
-// import { CachedMccClient } from "../caching/CachedMccClient";
-import { DEFAULT_BACK_OFF_TIME, DEFAULT_RETRY, DEFAULT_TIMEOUT, failureCallback, retry } from "../utils/PromiseTimeout";
+import { DEFAULT_BACK_OFF_TIME, DEFAULT_RETRY, DEFAULT_TIMEOUT, failureCallback, retry } from "../utils/helpers/promiseTimeout";
+
 
 /**
  * Class that manages interactions of indexer with CachedClient

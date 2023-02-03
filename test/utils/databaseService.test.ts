@@ -1,7 +1,8 @@
-import { DatabaseConnectOptions, DatabaseService } from "../../src/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 import { expect } from "chai";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 
 describe(`DatabaseService tests (${getTestFile(__filename)})`, function () {
   const databaseConnectOptions = new DatabaseConnectOptions();

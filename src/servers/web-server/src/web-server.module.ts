@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { attesterEntities } from '../../../utils/databaseEntities';
+import { attesterEntities } from '../../../utils/database/databaseEntities';
 import { CommonModule } from '../../common/src';
 import { ProofController } from './controllers/proof.controller';
 import { StatusController } from './controllers/status.controller';

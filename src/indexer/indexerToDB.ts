@@ -2,9 +2,9 @@ import { ChainType, Managed } from "@flarenetwork/mcc";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { IDBTransactionBase } from "../entity/indexer/dbTransaction";
-import { DatabaseService } from "../utils/databaseService";
-import { AttLogger, logException } from "../utils/logger";
-import { retry } from "../utils/PromiseTimeout";
+import { DatabaseService } from "../utils/database/DatabaseService";
+import { retry } from "../utils/helpers/promiseTimeout";
+import { AttLogger, logException } from "../utils/logging/logger";
 import { getChainN, getStateEntry, prepareIndexerTables } from "./indexer-utils";
 
 /**
@@ -79,7 +79,6 @@ export class IndexerToDB {
   public async writeT(T: number) {
     // every update save last T
     const stateTcheckTime = getStateEntry("T", this.chainName, T);
-
     await retry(`writeT`, async () => await this.dbService.manager.save(stateTcheckTime));
   }
 

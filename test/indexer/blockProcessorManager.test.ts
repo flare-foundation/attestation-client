@@ -3,8 +3,9 @@ import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/C
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../src/indexer/blockProcessorManager";
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { Interlacing } from "../../src/indexer/interlacing";
-import { DatabaseService, DatabaseConnectOptions } from "../../src/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logger";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestBlockXRP, TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 

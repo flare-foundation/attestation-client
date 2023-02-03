@@ -1,4 +1,4 @@
-import { commitHash, MerkleTree, singleHash, sortedHashPair, verifyWithMerkleProof } from "../../src/utils/MerkleTree";
+import { commitHash, MerkleTree, singleHash, sortedHashPair, verifyWithMerkleProof } from "../../src/utils/data-structures/MerkleTree";
 import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { assert, expect } from "chai";
 import { getTestFile } from "../test-utils/test-utils";

@@ -3,7 +3,7 @@ import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
-import { logException } from "../../utils/logger";
+import { logException } from "../../utils/logging/logger";
 import { NumberLike, VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";

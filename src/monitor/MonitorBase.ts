@@ -1,6 +1,7 @@
 import { Managed } from "@flarenetwork/mcc";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { getUnixEpochTimestamp } from "../utils/helpers/utils";
+import { exec } from "child_process";
 
 export class MonitorStatus {
   type = "unknown";
@@ -107,11 +108,9 @@ export class MonitorBase {
       return;
     }
 
-    const { exec } = require("child_process");
-
     exec(command, (error, stdout, stderr) => {
       if (error) {
-        logException(`exec '${command}'`, error);
+        logException(`exec '${command}'`, error + '');
         return;
       }
       if (stderr) {

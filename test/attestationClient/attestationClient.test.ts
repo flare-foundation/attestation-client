@@ -2,6 +2,7 @@
 
 import { traceManager } from "@flarenetwork/mcc";
 import BN from "bn.js";
+import { expect } from 'chai';
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
@@ -13,9 +14,6 @@ import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../sr
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { SourceId } from "../../src/verification/sources/sources";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
-
-const chai = require("chai");
-const expect = chai.expect;
 
 class MockSourceRouter extends SourceRouter {
   constructor() {

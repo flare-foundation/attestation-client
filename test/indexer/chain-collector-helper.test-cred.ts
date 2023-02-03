@@ -3,23 +3,21 @@
 import {
   ChainType, UtxoMccCreate
 } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { afterEach } from "mocha";
+import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { BlockProcessor, UtxoBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { getFullTransactionUtxo } from "../../src/indexer/chain-collector-helpers/readTransaction";
 import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestBlockBTC, TestBlockDOGE, TestTxBTC, TestTxBTCFake } from "../mockData/indexMock";
-
-import { afterEach } from "mocha";
-import sinon from "sinon";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 const BtcMccConnection = {
   url: "https://bitcoin-api.flare.network",

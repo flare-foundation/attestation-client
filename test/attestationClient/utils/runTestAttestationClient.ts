@@ -2,8 +2,7 @@ import { AttestationClientConfig } from "../../../src/attester/configs/Attestati
 import { AttesterClient } from "../../../src/attester/AttesterClient";
 import { readSecureConfig } from "../../../src/utils/config/configSecure";
 import { logException, setLoggerName } from "../../../src/utils/logging/logger";
-
-const yargs = require("yargs");
+import * as yargs from "yargs";
 
 const args = yargs
   .option("n", { alias: "n", type: "number", description: "Instance label", demand: true })

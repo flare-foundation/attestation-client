@@ -9,15 +9,13 @@ import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-
 import { TestBlockXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
+import sinon from "sinon";
+import chai, { expect, assert } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-const sinon = require("sinon");
-const chai = require("chai");
-const expect = chai.expect;
-// const fs = require("fs");
-chai.use(require("chai-as-promised"));
+chai.use(chaiAsPromised);
 
 describe(`Header Collector (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

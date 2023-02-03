@@ -2,6 +2,9 @@
 
 import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
 import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinon from "sinon";
 import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
 import { BlockProcessorManager } from "../../src/indexer/blockProcessorManager";
@@ -11,11 +14,7 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/log
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const sinon = require("sinon");
+chai.use(chaiAsPromised);
 
 const XRPMccConnection = {
   url: "https://xrplcluster.com",
@@ -192,6 +191,6 @@ describe("Block validity check before processing", () => {
 
     const stub1 = sinon.spy(getRetryFailureCallback());
     await indexer.blockProcessorManager.process(invalidBlock);
-    expect(stub1.callback).to.be.eq("");
+    expect((stub1 as any).callback).to.be.eq("");
   });
 });

@@ -1,11 +1,11 @@
-const sinon = require("sinon");
 import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables } from "../../src/indexer/indexer-utils";
 import { expect } from "chai";
 import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-const proxi = require("../../src/utils/PromiseTimeout");
+import * as proxi from "../../src/utils/helpers/promiseTimeout" 
+import sinon from "sinon";
 
 describe(`Indexer utils (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -50,7 +50,7 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
       const fake = sinon.fake();
 
       // var fake = sinon.fake(testFailFunction);
-      var stub1 = sinon.stub(process, "exit").returns(null);
+      var stub1 = sinon.stub(process, "exit").returns(null as never);
       var stub2 = sinon.stub(proxi, "getRetryFailureCallback").returns(null);
 
       // stub2.callsFake(pro);

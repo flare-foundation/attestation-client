@@ -10,6 +10,10 @@ import {
   XrpTransaction,
   xrp_ensure_data
 } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { afterEach } from "mocha";
+import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
@@ -17,23 +21,17 @@ import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentB
 import { augmentTransactionUtxo, augmentTransactionXrp } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
 import { BlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
 import { TestBlockXRP } from "../mockData/indexMock";
 import * as resXRPBlock from "../mockData/XRPBlock.json";
 import * as resXRPTx from "../mockData/XRPTx.json";
-
-import { afterEach } from "mocha";
-import sinon from "sinon";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

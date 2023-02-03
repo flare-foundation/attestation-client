@@ -13,11 +13,9 @@ import { DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
 import { VerifierProcessor } from "../../src/servers/verifier-server/src/services/verifier-processors/verifier-processor";
 import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { IIdentifiable } from "../../src/utils/helpers/promiseRequestTypes";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AttestationRequest, MIC_SALT } from "../../src/verification/attestation-types/attestation-types";
-import { WsClientOptions } from "../../src/verification/client/WsClientOptions";
 import { hashBalanceDecreasingTransaction, hashConfirmedBlockHeightExists, hashPayment, hashReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-hash-utils";
 import { encodeBalanceDecreasingTransaction, encodeConfirmedBlockHeightExists, encodePayment, encodeReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-encode";
 import { getSourceName } from "../../src/verification/sources/sources";
@@ -26,11 +24,6 @@ import { getTestFile } from "../test-utils/test-utils";
 import { sendToVerifier } from "./utils/server-test-utils";
 
 chai.use(chaiAsPromised);
-
-const WS_URL = `ws://localhost:9500?apiKey=7890`;
-
-const defaultWsClientOptions: WsClientOptions = new WsClientOptions();
-defaultWsClientOptions.url = WS_URL;
 
 const NUMBER_OF_CONFIRMATIONS = 1;
 const FIRST_BLOCK = 100;

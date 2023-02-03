@@ -6,8 +6,7 @@ import { ListChainConfig } from "./attester/configs/ChainConfig";
 import { readSecureConfig } from "./utils/config/configSecure";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logging/logger";
 import { setRetryFailureCallback } from "./utils/helpers/promiseTimeout";
-
-const yargs = require("yargs");
+import * as yargs from "yargs";
 
 const args = yargs
   .option("reset", { alias: "r", type: "string", description: "Reset commands", default: true, demand: false })

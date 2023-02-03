@@ -1,6 +1,7 @@
 import { AttLogger } from "../utils/logging/logger";
 import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 import { MonitorBase, MonitorRestartConfig, MonitorStatus } from "./MonitorBase";
+import * as http from "http";
 
 export class WebserverMonitor extends MonitorBase {
   address: string;
@@ -14,8 +15,6 @@ export class WebserverMonitor extends MonitorBase {
   async initialize() {}
 
   async checkWebsite(url) {
-    const http = require("http");
-
     return new Promise((resolve, reject) => {
       http
         .get(url, function (res) {

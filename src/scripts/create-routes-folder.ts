@@ -1,7 +1,6 @@
-import dotenv from "dotenv";
+import fs from "fs";
 
 function createRoutesFolder() {
-  const fs = require("fs");
   const dir = "routes";
 
   if (!fs.existsSync(dir)) {

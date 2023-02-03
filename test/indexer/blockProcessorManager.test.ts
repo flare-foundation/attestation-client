@@ -1,19 +1,18 @@
 import { ChainType, MCC, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../src/indexer/blockProcessorManager";
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { Interlacing } from "../../src/indexer/interlacing";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestBlockXRP, TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const sinon = require("sinon");
+chai.use(chaiAsPromised);
 
 describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();

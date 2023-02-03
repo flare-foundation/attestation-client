@@ -1,11 +1,11 @@
 import { MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
+
+chai.use(chaiAsPromised);
 
 //To be eventually mocked
 

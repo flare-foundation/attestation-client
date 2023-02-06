@@ -1,3 +1,5 @@
+// yarn test test/caching/CachedBtcMccClient.test-cred.ts
+
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { ITransaction } from "@flarenetwork/mcc";

@@ -5,9 +5,10 @@ import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { getTestFile } from "../test-utils/test-utils";
-const chai = require("chai");
-const sinon = require("sinon");
-const chaiaspromised = require("chai-as-promised");
+
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
 

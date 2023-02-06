@@ -13,10 +13,11 @@ import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
 import * as BTCBlockHeaderAlt from "../mockData/BTCBlockHeaderAlt.json";
 import { getTestFile } from "../test-utils/test-utils";
 
-const sinon = require("sinon");
-const chai = require("chai");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
+chai.use(chaiaspromised);
 const expect = chai.expect;
-chai.use(require("chai-as-promised"));
 
 describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

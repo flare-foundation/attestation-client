@@ -9,13 +9,12 @@ import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { TestBlockBTC, TestBlockDOGE, TestTxBTC, TestTxBTCFake } from "../mockData/indexMock";
-
 import { afterEach } from "mocha";
-import sinon from "sinon";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
 

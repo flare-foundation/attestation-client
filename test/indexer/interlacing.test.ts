@@ -12,7 +12,7 @@ import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from
 import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const utils = require("../../lib/utils/utils");
+import * as utils from "../../lib/utils/utils";
 
 describe(`Interlacing (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

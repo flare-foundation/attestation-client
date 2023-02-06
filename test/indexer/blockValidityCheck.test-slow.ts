@@ -11,11 +11,11 @@ import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestLogger } from "../../lib/utils/testLogger";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const sinon = require("sinon");
 
 const XRPMccConnection = {
   url: "https://xrplcluster.com",

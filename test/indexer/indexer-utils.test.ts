@@ -1,13 +1,17 @@
 // yarn test test/indexer/indexer-utils.test.ts
 
-const sinon = require("sinon");
 import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables } from "../../lib/indexer/indexer-utils";
-import { expect } from "chai";
 import { ChainType } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
 import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-const proxi = require("../../lib/utils/PromiseTimeout");
+import * as proxi from "../../lib/utils/PromiseTimeout";
+
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
+chai.use(chaiaspromised);
+const expect = chai.expect;
 
 describe(`Indexer utils (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -47,7 +51,7 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
         throw 12;
       }
 
-      var stub1 = sinon.stub(process, "exit").returns(null);
+      var stub1 = sinon.stub(process, "exit");
       var stub2 = sinon.stub(proxi, "getRetryFailureCallback").returns(null);
 
       return criticalAsync("test", testFailFunction).then(() => expect(stub1.called).to.be.true);

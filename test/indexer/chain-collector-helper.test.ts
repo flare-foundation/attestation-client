@@ -13,13 +13,11 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
 import { TestBlockXRP, TestBlockXRPAlt, TestTxXRP } from "../mockData/indexMock";
-
-import { afterEach } from "mocha";
-import sinon from "sinon";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
 

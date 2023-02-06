@@ -1,6 +1,6 @@
 // yarn test test/indexer/blockProcessorManager.test.ts
 
-import { ChainType, MCC, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
+import { ChainType, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../lib/indexer/blockProcessorManager";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
@@ -10,11 +10,11 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { TestBlockXRPFake, TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const sinon = require("sinon");
 
 describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();

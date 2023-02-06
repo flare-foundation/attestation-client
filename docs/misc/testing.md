@@ -2,7 +2,7 @@
 
 We test attestation client on multiple levels split intu multiple sections.
 
-All of the scripts associated with testing are a part of `-------TESTS---------` section in package.json.
+All of the scripts associated with testing are collected in `-------TESTS---------` section in package.json.
 
 - Some tests are run in hardhat environment to test smart contracts and their interaction with network (`.test-contract.ts`)
 - Others are run with mocha. They are split into three groups: regular tests (`.test.ts`), slower tests (`.test-slow.ts`) and tests that need some additional credentials(`.test-cred.ts`).

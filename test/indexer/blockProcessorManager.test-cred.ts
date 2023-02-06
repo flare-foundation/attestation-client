@@ -1,4 +1,5 @@
-//tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
+// yarn test test/indexer/blockProcessorManager.test-cred.ts
+//tests need appropriate api credentials for BTC multi-chain-client to function properly
 
 import { ChainType, sleepMs, UtxoMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from 'chai';
@@ -46,8 +47,6 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
     const indexerToClient = new IndexerToClient(cachedClient.client);
 
-    initializeTestGlobalLogger();
-
     let interlacing = new Interlacing();
 
     const settings: IBlockProcessorManagerSettings = {
@@ -73,7 +72,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
 
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+      //wait for the processor to do the job
       while (!fake1.called) {
         await sleepMs(100);
       }
@@ -89,7 +88,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     it("Should process completed block", async function () {
       const block = TestBlockBTC;
       await blockProcessorManager.process(block);
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+
       while (!fake2.called) {
         await sleepMs(100);
       }
@@ -101,7 +100,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       expect(fake1.callCount).to.eq(1);
 
       await blockProcessorManager.process(block);
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+
       expect(blockProcessorManager.blockProcessors[0].isActive).to.be.false;
       expect(blockProcessorManager.blockProcessors.length).to.be.eq(2);
       expect(blockProcessorManager.blockProcessors[1].isActive).to.be.true;

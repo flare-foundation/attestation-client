@@ -1,3 +1,5 @@
+// yarn test test/utils/priorityQueue.test.ts
+
 import { assert } from "chai";
 import { PriorityQueue } from "../../src/utils/data-structures/PriorityQueue";
 import { getTestFile } from "../test-utils/test-utils";

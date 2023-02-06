@@ -1,4 +1,5 @@
-// // yarn test test/indexer/blockHeaderCollector.test.ts
+// yarn test test/indexer/headerCollector.test-cred.ts
+// tests need appropriate api credentials for BTC multi-chain-client to function properly
 
 import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from 'chai';
@@ -39,8 +40,6 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
 
     const client = new MCC.BTC(BtcMccConnection);
     const indexerToClient = new IndexerToClient(client);
-
-    //   let interlacing = new Interlacing();
 
     const indexerToDB = new IndexerToDB(getGlobalLogger(), dataService, ChainType.BTC);
 

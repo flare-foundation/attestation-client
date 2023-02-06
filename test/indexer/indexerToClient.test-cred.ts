@@ -5,8 +5,9 @@ import { MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import { IndexerToClient } from "../../lib/indexer/indexerToClient";
 import { initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getTestFile } from "../test-utils/test-utils";
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+
+import chai from "chai";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
 
@@ -20,7 +21,7 @@ describe(`Indexer to client with credentials(${getTestFile(__filename)})`, funct
     } as UtxoMccCreate;
 
     const client = new MCC.BTC(BtcMccConnection);
-    let inToCl = new IndexerToClient(client, 2000, 2, 400);
+    let inToCl = new IndexerToClient(client, 10000, 2, 2000);
 
     it("Should get block", async function () {
       let res = await inToCl.getBlockFromClient("height", 763418);

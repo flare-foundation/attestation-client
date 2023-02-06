@@ -11,10 +11,10 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { BlockHeaderLTC, BlockLTC420, BlockLTC421 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const readTx = require("../../lib/indexer/chain-collector-helpers/readTransaction");
-const sinon = require("sinon");
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import * as readTx from "../../lib/indexer/chain-collector-helpers/readTransaction";
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
 

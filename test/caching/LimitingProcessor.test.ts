@@ -2,7 +2,6 @@
 
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import console from "console";
-import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../lib/caching/CachedMccClient";
 import { DelayedExecution, LimitingProcessor } from "../../lib/caching/LimitingProcessor";
 import { Interlacing } from "../../lib/indexer/interlacing";
@@ -11,11 +10,11 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { sleepms } from "../../lib/utils/utils";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const assert = chai.assert;
 
 describe(`Limiting processor (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -151,7 +150,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
         .then(() => {
           expect(preFake1.callCount).to.be.eq(1);
           expect(preFake2.callCount).to.be.eq(1);
-          assert(preFake2.calledAfter(preFake1));
+          expect(preFake2.calledAfter(preFake1)).to.be.true;
           done();
         })
         .catch((err) => done(err));
@@ -179,7 +178,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
         .then(() => {
           expect(preFake1.callCount).to.be.eq(1);
           expect(preFake2.callCount).to.be.eq(1);
-          assert(preFake1.calledAfter(preFake2));
+          expect(preFake1.calledAfter(preFake2)).to.be.true;
           done();
         })
         .catch((err) => done(err));
@@ -217,7 +216,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
       limitingProcessor.queue.push(null);
       sleepms(200)
         .then(() => {
-          assert(spy.calledWith(`LimitingProcessor::continue error: de is undefined`));
+          expect(spy.calledWith(`LimitingProcessor::continue error: de is undefined`)).to.be.true;
           done();
         })
         .catch((err) => done(err));

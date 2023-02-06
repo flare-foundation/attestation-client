@@ -11,11 +11,11 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/log
 import { TestBlockBTC, TestBlockBTCAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const sinon = require("sinon");
 
 describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();

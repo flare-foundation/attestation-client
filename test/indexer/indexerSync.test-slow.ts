@@ -10,12 +10,11 @@ import { initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { BlockXRP612, BlockXRP613, BlockXRP614 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const sinon = require("sinon");
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const assert = chai.assert;
 
 describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

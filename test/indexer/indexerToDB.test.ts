@@ -7,19 +7,18 @@ import { DBState } from "../../lib/entity/indexer/dbState";
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../lib/entity/indexer/dbTransaction";
 import { getStateEntry } from "../../lib/indexer/indexer-utils";
 import { IndexerToDB } from "../../lib/indexer/indexerToDB";
-import { Interlacing } from "../../lib/indexer/interlacing";
 import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
-const loggers = require("../../lib/utils/logger");
-const sinon = require("sinon");
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import * as loggers from "../../lib/utils/logger";
+
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const assert = chai.assert;
 
 describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -128,7 +127,7 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
     const spy = sinon.spy(indexerToDB.logger, "debug");
 
     await indexerToDB.saveBottomState();
-    assert(spy.called);
+    expect(spy.called).to.be.true;
   });
 
   it("Should not saveBottomState with no block in DB", async function () {
@@ -141,7 +140,7 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
 
     await indexerToDB.saveBottomState();
 
-    assert(spy.called);
+    expect(spy.called).to.be.true;
   });
 
   it("Should saveBottomState DB", async function () {

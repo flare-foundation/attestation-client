@@ -1,15 +1,13 @@
 // yarn test test/utils/promiseTimeout.test.ts
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const assert = chai.assert;
-import sinon = require("sinon");
+import chai from "chai";
+import sinon from "sinon";
 import loggers = require("../../lib/utils/logger");
 import { sleepMs } from "@flarenetwork/mcc";
 import { getTestFile } from "../test-utils/test-utils";
 import { retry, failureCallback, getRetryFailureCallback, safeCatch, setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
+
+const expect = chai.expect;
 
 chai.should();
 describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
@@ -27,14 +25,14 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
     setRetryFailureCallback(null);
 
     expect(() => failureCallback("something")).to.throw("FailureCallbackNotSet");
-    assert(spy.called);
+    expect(spy.called).to.be.true;
   });
 
   it("Should setRetryFailureCallback", function () {
     const fake = sinon.fake();
     setRetryFailureCallback(fake);
     failureCallback("something");
-    assert(fake.calledWith("something"));
+    expect(fake.calledWith("something"));
   });
 
   it("Should getRetryFailureCallback", function () {
@@ -79,7 +77,7 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
   it("Should safeCatch execute", function () {
     const fake = sinon.fake();
     safeCatch("something alse", fake);
-    assert(fake.called);
+    expect(fake.called).to.be.true;
   });
 
   it("Should safeCatch throw", function () {
@@ -89,6 +87,6 @@ describe(`PromiseTimeout  ${getTestFile(__filename)})`, function () {
     }
 
     safeCatch("something else", fake1);
-    assert(stub.calledOnce);
+    expect(stub.calledOnce).to.be.true;
   });
 });

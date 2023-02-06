@@ -12,11 +12,11 @@ import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
 import { TestBlockXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const sinon = require("sinon");
-const chai = require("chai");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
+chai.use(chaiaspromised);
 const expect = chai.expect;
-// const fs = require("fs");
-chai.use(require("chai-as-promised"));
 
 describe(`Header Collector (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

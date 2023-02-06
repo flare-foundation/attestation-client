@@ -24,11 +24,11 @@ import { PreparedBlock } from "../../lib/indexer/preparedBlock";
 import { SECONDS_PER_DAY } from "../../lib/indexer/indexer-utils";
 import process from "process";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import sinon from "sinon";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
-const sinon = require("sinon");
 
 describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();

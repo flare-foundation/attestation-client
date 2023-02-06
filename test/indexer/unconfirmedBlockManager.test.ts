@@ -6,8 +6,8 @@ import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databas
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
+import chai from "chai";
+import chaiaspromised from "chai-as-promised";
 chai.use(chaiaspromised);
 const expect = chai.expect;
 

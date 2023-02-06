@@ -14,7 +14,9 @@ import { TestLogger } from "../../lib/utils/testLogger";
 import { SourceId } from "../../lib/verification/sources/sources";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
-const chai = require("chai");
+import chai from "chai";
+import chaiaspromised from "chai-as-promised";
+chai.use(chaiaspromised);
 const expect = chai.expect;
 
 class MockSourceRouter extends SourceRouter {

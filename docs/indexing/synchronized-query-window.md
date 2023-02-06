@@ -1,3 +1,5 @@
+#NOT RELEVANT ANYMORE
+
 # Synchronized query window
 
 The main purpose of the indexer is to ensure that attestation providers will have the same view on the data that is being queried.
@@ -5,15 +7,15 @@ In particular, this means that for each query the attestation providers make for
 
 ## Lower query window boundary
 
-For each attestation round `roundId` a timestamp of the start of its `collect` phase is a well-defined value that can be calculated from the parameters on `StateConnector` contract, specifically `BUFFER_TIMESTAMP_OFFSET`  and `BUFFER_WINDOW`, as:
+For each attestation round `roundId` a timestamp of the start of its `collect` phase is a well-defined value that can be calculated from the parameters on `StateConnector` contract, specifically `BUFFER_TIMESTAMP_OFFSET` and `BUFFER_WINDOW`, as:
 
-``` text
+```text
 startTime(roundId) = BUFFER_TIMESTAMP_OFFSET + roundId * BUFFER_WINDOW,
 ```
 
 Where all units are seconds. Given a query window duration `queryWindowInSec`, we get:
 
-``` text
+```text
 startQueryTime(roundId) = startTime(roundId) - queryWindowInSec
 ```
 
@@ -55,24 +57,26 @@ On the other hand, the former case may be further divided into two cases:
 The main idea for reaching a synchronized upper boundary is the following. If an attestation request is valid (can be confirmed), then the confirmation block with the hash `upperBoundProof` must exist, such a block has been mined and the proposer must have seen it. Except in the case of "selfish mining" as described below, such a block is either being distributed or has been already distributed throughout the blockchain peer nodes. Hence, an attestation provider should just wait for say 30s from the end of the `collect` phase in which the associated request was sent, and it should receive it with very high probability. So the correct behavior that always works with high probability is: if you already have the block with the hash `upperBoundProof`, you are safe to make a query and proceed with other checks for confirming/rejecting the attestation request. On the other hand, if you do not have such a block, wait 30s and then retry. In case the provided `upperBoundProof` is wrong, nobody will find a block with such a hash in the database, hence everybody will reject the attestation request due to a wrong `upperBoundProof`.
 
 There is a case of a so called "selfish mining", where a miner keeps block for himself to mine the next block and then sends it to others later, gaining some edge over others, but also possibly risking of losing the advantage, since miners may start mining on other blocks of the same height. In this case, one could use the delayed blocks to attack the attestation system by carefully timed sending, thus introducing non-clear-cut decision requests. Near the top of the chain such a scenario is highly improbable and hard to produce, even for a single case, but basically impossible to repeat consistently, unless on a blockchain is undergoing 50%+ attack. But if we would accept `upperBoundProof` on any fork on any depth that implies 6 confirmations (e.g. for Bitcoin) of some block, this allows for two types of attacks:
+
 - Some nodes may delete very old forks so it is unclear whether a particular node would see it or not.
 - Malicious attackers could decide to mine a fork deep in the chain. To mine such forks miners have a lot of time, much more than 10 min average for competing with top chain blocks (in case of Bitcoin). The attacker could mine in a longer time several such forks in the past and then use them to disrupt the system for several rounds in a sequence, just by sending the blocks into the networks at inconvenient times while simultaneously sending requests with `upperBoundProofs` hashes of those blocks.
 
 Hence it is crucial to somehow limit the ability to use old forks. For that have implemented the following mechanism:
+
 - For each chain we have added an additional parameter `UBPUnconfirmedWindowInSec`.
-- For each `roundId` we take the start time `start(roundId)` timestamp on Flare. 
+- For each `roundId` we take the start time `start(roundId)` timestamp on Flare.
 - We calculate `cutoffTime(roundId) = start(roundId) - UBPUnconfirmedWindowInSec`. This value is the same for every attestation provider.
 - If the timestamp of the block with the hash `upperBoundProof` is greater or equal `cutoffTime(roundId)`, then it can be used as a valid `upperBoundProof`. That means that it can be on any fork.
 - If the timestamp of the block with hash `upperBoundProof` is strictly smaller than the `cutoffTime(roundId)`, then the `upperBoundProof` is valid only if it is on one of the longest forks.
 
 ### Bitcoin upper bound proof settings
 
-In particular this means that if we set `UBPUnconfirmedWindowInSec` to 3.5 hours on Bitcoin we can be pretty sure that `upperBoundProof` is valid only if the block is already confirmed. Setting `UBPUnconfirmedWindowInSec` even higher makes this probability even higher while setting it lower reduces this probability. For example, if we for the purpose of discussion for a moment omit 2h variability of timestamp with Bitcoin and we set `UBPUnconfirmedWindowInSec` to 40 minutes, then we could have several choices for `upperBoundProof` right below the cutoff time only if there were competing forks of length 5, which is rare. But due to high variability of timestamp on Bitcoin, 3.5 hours seems surely enough with 2h variability and 1.5 hours for confirmations (with 0.5 hours buffer). Based on further analysis of historical data this could be lowered. Namely the higher value of `UBPUnconfirmedWindowInSec`, more time attackers have for mining old forks which can be used for attacks as described above. 
+In particular this means that if we set `UBPUnconfirmedWindowInSec` to 3.5 hours on Bitcoin we can be pretty sure that `upperBoundProof` is valid only if the block is already confirmed. Setting `UBPUnconfirmedWindowInSec` even higher makes this probability even higher while setting it lower reduces this probability. For example, if we for the purpose of discussion for a moment omit 2h variability of timestamp with Bitcoin and we set `UBPUnconfirmedWindowInSec` to 40 minutes, then we could have several choices for `upperBoundProof` right below the cutoff time only if there were competing forks of length 5, which is rare. But due to high variability of timestamp on Bitcoin, 3.5 hours seems surely enough with 2h variability and 1.5 hours for confirmations (with 0.5 hours buffer). Based on further analysis of historical data this could be lowered. Namely the higher value of `UBPUnconfirmedWindowInSec`, more time attackers have for mining old forks which can be used for attacks as described above.
 
 Our estimation of risks for the 3.5h window on Bitcoin is as follows. We know that 100% of hash power on the Bitcoin network produces on average 1 block in 10 minutes. Given 3.5 hours (on average 21 blocks), then 100/21 ~ 5% of total hash power could be used to produce one fork block in 3.5 hours. So with 5% of the total hash rate we could disrupt one of 140 rounds that happen in 3.5 hours. With 50% of hash rate one could disrupt every 14th round. Note also that it is not easy to exactly time the Selfish miner attack and in general one would need to send 2 blocks to ensure that no set of distinct Merkle tree voters has 50%. Just for Bitcoin in isolation and the effort required to be used for attacking instead for mining on Bitcoin and possibly getting rewards, makes this attack of very low probability and rather low impact (sporadic round fails).
 Note also that we support three proof of work chains (BTC, LTC, DOGE) which can be all used simultaneously for similar attacks implying that the probabilities add as we add more chains. At the momemnt, we do not plan to add any PoW chain soon.
 
-## Two step query 
+## Two step query
 
 The proper query procedure can be thus summarized in terms of a 2-step procedure.
 

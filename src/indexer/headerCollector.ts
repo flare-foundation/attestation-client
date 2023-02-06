@@ -72,6 +72,7 @@ export class HeaderCollector {
     if (fromBlockNumber <= this.N) {
       const onFailure = failureCallback;
       onFailure("saveBlocksHeaders: fromBlock too low");
+      return;
       // this should exit the program
     }
     const blockPromises = [];
@@ -83,10 +84,10 @@ export class HeaderCollector {
       //     continue;
       //   }
       // }
-      blockPromises.push(async () => this.indexerToClient.getBlockFromClient(`saveBlocksHeaders`, blockNumber));
+      blockPromises.push(async () => this.indexerToClient.getBlockHeaderFromClient(`saveBlocksHeaders`, blockNumber));
     }
 
-    let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as IBlock[];
+    let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as IBlockHeader[];
     blocks = blocks.filter((block) => !this.isBlockCached(block));
     await this.saveHeadersOnNewTips(blocks);
   }

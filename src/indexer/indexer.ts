@@ -50,7 +50,7 @@ export class Indexer {
   indexerSync: IndexerSync;
 
   // N - last processed and saved block
-  _N = 0;
+  private _N = 0;
 
   // T - chain height
   T = 0;
@@ -75,7 +75,7 @@ export class Indexer {
 
   interlace = new Interlacing();
 
-  constructor(config: IndexerConfig, chainsConfig: ListChainConfig, chainName: string) {
+  constructor(config: IndexerConfig, chainsConfig: ListChainConfig, chainName: string, testMode = false) {
     if (!config) return;
 
     this.config = config;
@@ -85,9 +85,9 @@ export class Indexer {
     this.logger = getGlobalLogger();
 
     this.dbService = new DatabaseService(this.logger, {
-      ...this.config.indexerDatabase, 
+      ...this.config.indexerDatabase,
       synchronize: true
-    } , "indexer");
+    }, "indexer", "", testMode);
 
     const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
@@ -307,7 +307,7 @@ export class Indexer {
 
     // create transaction and save everything with retry (terminate app on failure)
     await retry(`blockSave N=${Np1}`, async () => {
-      await this.dbService.manager.transaction(async (transaction) => {
+      await this.dbService.manager.transaction(async (tx) => {
         // save state N, T and T_CHECK_TIME
         const stateEntries = [getStateEntry("N", this.chainConfig.name, Np1), getStateEntry("T", this.chainConfig.name, this.T)];
 
@@ -319,7 +319,7 @@ export class Indexer {
             Object.setPrototypeOf(tx, Object.getPrototypeOf(dummy));
           }
 
-          await transaction.save(transactions);
+          await tx.save(transactions);
         } else {
           // save dummy transaction to keep transaction table block continuity
           this.logger.debug(`block ${block.blockNumber} no transactions (dummy tx added)`);
@@ -330,11 +330,11 @@ export class Indexer {
           dummyTx.blockNumber = block.blockNumber;
           dummyTx.transactionType = "EMPTY_BLOCK_INDICATOR";
 
-          await transaction.save(dummyTx);
+          await tx.save(dummyTx);
         }
 
-        await transaction.save(block);
-        await transaction.save(stateEntries);
+        await tx.save(block);
+        await tx.save(stateEntries);
       });
       return true;
     });

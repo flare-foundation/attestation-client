@@ -1,4 +1,4 @@
-import { ChainType, MCC, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
+import { ChainType, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from "sinon";
@@ -9,7 +9,7 @@ import { Interlacing } from "../../src/indexer/interlacing";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { TestBlockXRP, TestBlockXRPAlt } from "../mockData/indexMock";
+import { TestBlockXRPAlt, TestBlockXRPFake } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
@@ -32,11 +32,6 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       username: "",
       password: "",
     } as XrpMccCreate;
-
-    const client = new MCC.XRP(XRPMccConnection);
-    let inToCl = new IndexerToClient(client, 1500, 2, 300);
-
-    // const client = new MCC.BTC(BtcMccConnection);
 
     let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
       transactionCacheSize: 2,
@@ -73,12 +68,12 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     });
 
     it("Should processSync ", async function () {
-      const block = TestBlockXRP;
+      const block = TestBlockXRPFake;
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
       n = n + 1;
 
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+      //wait for the processor to do the job
       while (!fake1.called) {
         await sleepMs(100);
       }
@@ -86,7 +81,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     });
 
     it("Should not processSync twice", async function () {
-      const block = TestBlockXRP;
+      const block = TestBlockXRPFake;
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
     });
@@ -94,7 +89,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     it("Should process completed block", async function () {
       const block = TestBlockXRPAlt;
       await blockProcessorManager.process(block);
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+      //wait for the processor to do the job
       while (!fake2.called) {
         await sleepMs(100);
       }

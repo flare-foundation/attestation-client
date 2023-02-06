@@ -54,7 +54,6 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     entity.confirmed = false;
     entity.transactions = 10;
     entity.previousBlockHash = "15";
-    // entity.numberOfConfirmations = 0;
 
     unconfirmedBlockManager.addNewBlock(entity);
     expect(unconfirmedBlockManager.blockHashToEntity.size).to.eq(9);
@@ -69,7 +68,6 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     entity.confirmed = true;
     entity.transactions = 10;
     entity.previousBlockHash = "16";
-    // entity.numberOfConfirmations = 0;
 
     unconfirmedBlockManager.addNewBlock(entity);
     expect(unconfirmedBlockManager.blockHashToEntity.get("16").numberOfConfirmations).to.eq(1);
@@ -85,7 +83,6 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     entity.confirmed = true;
     entity.transactions = 10;
     entity.previousBlockHash = "16";
-    // entity.numberOfConfirmations = 0;
 
     unconfirmedBlockManager.addNewBlock(entity);
     expect(unconfirmedBlockManager.blockHashToEntity.get("16").numberOfConfirmations).to.eq(1);

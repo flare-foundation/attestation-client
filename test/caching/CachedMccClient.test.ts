@@ -1,20 +1,29 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { expect } from "chai";
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
+import sinon from "sinon";
 import { CachedMccClient } from "../../src/caching/CachedMccClient";
 import { sleepms } from "../../src/utils/helpers/utils";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { SourceId } from "../../src/verification/sources/sources";
+import { TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 import { MockMccClient } from "./test-utils/MockMccClient";
+chai.use(chaiAsPromised);
+
 
 const CHAIN_ID = SourceId.XRP;
 
-describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
+describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
   let mockMccClient: MockMccClient;
   beforeEach(async () => {
     mockMccClient = new MockMccClient();
+  });
+
+  afterEach(function () {
+    sinon.restore();
   });
 
   it("Mcc Client Mock returns a transaction", async function () {
@@ -105,6 +114,19 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
     await cachedMccClient.getBlock(randomBlockHash);
     await cachedMccClient.getBlock(randomBlockHash);
     expect(cachedMccClient.blockCleanupQueue.size).to.equal(1);
+  });
+
+  it("Block by number is cached", async function () {
+    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, { forcedClient: mockMccClient });
+
+    const stub = sinon.stub(cachedMccClient.client, "getBlock").resolves(TestBlockXRPAlt);
+
+    const block = await cachedMccClient.getBlock(28014612);
+
+    const hash = "08E71799B2DDEE48F12A62626508D8F879E67FB2AB90FECECE4BC82650DA7D04";
+    const cachedblock = cachedMccClient.blockCache.get(hash);
+
+    expect(!cachedblock).to.be.false;
   });
 
   it("Block cache is properly cleaned", async function () {

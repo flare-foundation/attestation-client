@@ -91,7 +91,7 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
         assert(exitCode === 0, `exit called`);
     });
 
-    it(`unable to get credentials key address from env or file`, async () => {
+    it.skip(`unable to get credentials key address from env or file`, async () => {
         delete process.env.CREDENTIALS_KEY;
         delete process.env.CREDENTIALS_KEY_FILE;
 

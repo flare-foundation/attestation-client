@@ -1,29 +1,29 @@
+// yarn test test/indexer/indexerToDB.test.ts
+
 import { ChainType } from "@flarenetwork/mcc";
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { afterEach } from "mocha";
+import sinon from "sinon";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBState } from "../../src/entity/indexer/dbState";
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
 import { getStateEntry } from "../../src/indexer/indexer-utils";
 import { IndexerToDB } from "../../src/indexer/indexerToDB";
-import { Interlacing } from "../../src/indexer/interlacing";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import * as loggers from "../../src/utils/logging/logger";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AugTestBlockBTC, promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
-import sinon from "sinon";
-import * as loggers from "../../src/utils/logging/logger";
-import chai, { expect, assert } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 chai.use(chaiAsPromised);
+
 
 describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
-
-  let interlacing = new Interlacing();
 
   let augTx0: DBTransactionBase;
   let augTxAlt0: DBTransactionBase;
@@ -82,6 +82,8 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   });
 
   it("Should getBottomDBBlockNumberFromStoredTransactions from non empty database #2", async function () {
+    await dataService.manager.query(`delete from btc_transactions0;`);
+
     for (let j = 0; j < 10; j++) {
       let fakeTx = new DBTransactionBTC1();
       fakeTx.transactionId = `a4ba${j}`;
@@ -90,7 +92,6 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
       await dataService.manager.save(fakeTx);
     }
 
-    // await dataService.manager.save(augTxAlt1);
     let res = await indexerToDB.getBottomDBBlockNumberFromStoredTransactions();
     expect(res).to.be.eq(10000);
   });
@@ -126,7 +127,7 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
     const spy = sinon.spy(indexerToDB.logger, "debug");
 
     await indexerToDB.saveBottomState();
-    assert(spy.called);
+    expect(spy.called).to.be.true;
   });
 
   it("Should not saveBottomState with no block in DB", async function () {
@@ -139,10 +140,9 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
 
     await indexerToDB.saveBottomState();
 
-    assert(spy.called);
+    expect(spy.called).to.be.true;
   });
 
-  //find use cases
   it("Should saveBottomState DB", async function () {
     await dataService.manager.save(AugTestBlockBTC);
 
@@ -153,8 +153,6 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   });
 
   it("Should drop all state info", async function () {
-    // const res1 = await dataService.manager.find(DBState);
-
     await indexerToDB.dropAllStateInfo();
     const res2 = await dataService.manager.find(DBState);
 

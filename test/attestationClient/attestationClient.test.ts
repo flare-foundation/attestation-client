@@ -2,7 +2,8 @@
 
 import { traceManager } from "@flarenetwork/mcc";
 import BN from "bn.js";
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
+import chaiAsPromised from "chai-as-promised";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
@@ -14,6 +15,7 @@ import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../sr
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { SourceId } from "../../src/verification/sources/sources";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
+chai.use(chaiAsPromised);
 
 class MockSourceRouter extends SourceRouter {
   constructor() {
@@ -27,7 +29,7 @@ class MockFlareConnection extends FlareConnection {
     super(config, logger);
   }
 
-  async initialize() { }
+  async initialize() {}
 
   protected checkHex64(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
@@ -57,7 +59,7 @@ class MockFlareConnection extends FlareConnection {
   }
 }
 
-describe.skip("Attestation Client", () => {
+describe("Attestation Client", () => {
   let attestationRoundManager: AttestationRoundManager;
 
   before(async function () {
@@ -107,7 +109,7 @@ describe.skip("Attestation Client", () => {
   ////////////////////////////////
   // Integration tests
   ////////////////////////////////
-  it(`Attestate Valid Request`, async function () {
+  it.skip(`Attestate Valid Request`, async function () {
     const mockEvent = {
       blockNumber: 10,
       logIndex: 1,

@@ -1,3 +1,4 @@
+// yarn test test/indexer/chain-collector-helper.test-cred.ts
 //tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
 
 import {
@@ -22,13 +23,13 @@ chai.use(chaiAsPromised);
 const BtcMccConnection = {
   url: "https://bitcoin-api.flare.network",
   username: "public",
-  password: "d681co1pe2l3wcj9adrm2orlk0j5r5gr3wghgxt58tvge594co0k1ciljxq9glei",
+  password: "",
 } as UtxoMccCreate;
 
 const DOGEMccConnection = {
   url: "https://dogecoin-api.flare.network",
   username: "public",
-  password: "6r1e5z3w9g6qruvkzkqvz8w67yqrq5js2cmyl2f1cncbp7gpp7tqixqskuub5v70",
+  password: "",
 } as UtxoMccCreate;
 
 describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {

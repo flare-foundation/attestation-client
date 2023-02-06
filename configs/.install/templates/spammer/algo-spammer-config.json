@@ -5,9 +5,9 @@
     "roundDurationSec": 90,
     "numberOfConfirmations": 3,
     "web": {
-        "accountPrivateKey": "$($(Network)ALGOSpammerPrivateKey)",
-        "rpcUrl": "$($(Network)RPC)",
-        "stateConnectorContractAddress": "$($(Network)StateConnectorContractAddress)"
+        "accountPrivateKey": "$(ALGOSpammerPrivateKey)",
+        "rpcUrl": "$(RPC)",
+        "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
     },
     "indexerDatabase": {
         "host": "$(IndexerDatabaseHost)",

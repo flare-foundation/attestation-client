@@ -19,11 +19,11 @@
    "submitCommitFinalize": false,
    
     "web": {
-        "accountPrivateKey": "$($(Network)NetworkPrivateKey)",
-        "rpcUrl": "$($(Network)RPC)",
-        "stateConnectorContractAddress": "$($(Network)StateConnectorContractAddress)",
-        "refreshEventsMs": $($(Network)RefreshEventsMs),
-        "bitVotingContractAddress": "$($(Network)BitVotingContractAddress)",
+        "accountPrivateKey": "$(NetworkPrivateKey)",
+        "rpcUrl": "$(RPC)",
+        "stateConnectorContractAddress": "$(StateConnectorContractAddress)",
+        "refreshEventsMs": $(RefreshEventsMs),
+        "bitVotingContractAddress": "$(BitVotingContractAddress)",
         //"gasLimit": "2500000",
         //"gasPrice": "300000000000",
     },
@@ -37,8 +37,8 @@
     "attesterDatabase": {
         "host": "$(AttesterDatabaseHost)",
         "port": $(AttesterDatabasePort),
-        "database": "$(AttesterDatabase$(Network))",
-        "username": "$(AttesterWriterUsername$(Network))",
-        "password": "$(AttesterWriterPassword$(Network))"
+        "database": "$(AttesterDatabase)",
+        "username": "$(AttesterWriterUsername)",
+        "password": "$(AttesterWriterPassword)"
     }
 }

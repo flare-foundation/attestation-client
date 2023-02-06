@@ -39,9 +39,9 @@
             "connection": {
                 "host": "$(AttesterDatabaseHost)",
                 "port": "$(AttesterDatabasePort)",
-                "database": "$(AttesterDatabase$(Network))",
-                "username": "$(AttesterWriterUsername$(Network))",
-                "password": "$(AttesterWriterPassword$(Network))"
+                "database": "$(AttesterDatabase)",
+                "username": "$(AttesterWriterUsername)",
+                "password": "$(AttesterWriterPassword)"
             }            
         }
     ]

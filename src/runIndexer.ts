@@ -33,7 +33,7 @@ async function runIndexer() {
 
   // read configuration
   const chains = await readSecureConfig(new ListChainConfig(), "chains");
-  const config = await readSecureConfig(new IndexerConfig(), "indexer");
+  const config = await readSecureConfig(new IndexerConfig(), `indexer/${args["chain"].toLowerCase()}-indexer`);
 
   // create and start indexer
   const indexer = new Indexer(config, chains, args["chain"].toUpperCase());

@@ -22,7 +22,10 @@ const logger = getGlobalLogger();
 
 function collectKeysFromFile(filename: string): string[] {
     try {
-        const data = fs.readFileSync(path.join(DEFAULT_CONFIGURATION_PATH, `templates`, filename)).toString();
+        let data = fs.readFileSync(path.join(DEFAULT_CONFIGURATION_PATH, `templates`, filename)).toString();
+
+        // remove all comments
+        data = data.replace(/((["'])(?:\\[\s\S]|.)*?\2|\/(?![*\/])(?:\\.|\[(?:\\.|.)\]|.)*?\/)|\/\/.*?$|\/\*[\s\S]*?\*\//gm, "$1");
 
         const dataKeys = data.match(/\$\(([^\)]+)\)/g);
 
@@ -72,9 +75,11 @@ async function prepareConfiguration(configuration: Configuration) {
 
     const secureStorageRoot = `prepare.secure`;
     const secureStorage = path.join(secureStorageRoot, configuration.name);
+    const secureTemplates = path.join(secureStorage, `templates`);
 
     createDirectory(secureStorageRoot);
     createDirectory(secureStorage);
+    createDirectory(secureTemplates);
 
     const outputCredentials = path.join(secureStorage, `credentials.json.secure`);
     const outputKey = path.join(secureStorage, `credentials.key`);
@@ -90,6 +95,17 @@ async function prepareConfiguration(configuration: Configuration) {
     fs.writeFileSync(outputKey, configuration.credentials, "utf8");
 
     logger.info(`secure credentials saved in ^G${outputCredentials}`);
+
+    logger.info(`copying template files...`);
+    // copy template files
+    for (const file of configuration.files) {
+        logger.info(`   ^W${file}`);
+        const targetFilename = path.join(secureTemplates, file);
+        createDirectory(path.dirname(targetFilename))
+        fs.copyFileSync(
+            path.join(DEFAULT_CONFIGURATION_PATH, `templates`, file),
+            targetFilename);
+    }
 }
 
 let credentialKeys = new Object();

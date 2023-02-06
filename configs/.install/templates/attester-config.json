@@ -27,13 +27,13 @@
         //"gasLimit": "2500000",
         //"gasPrice": "300000000000",
     },
-    "indexerDatabase": {
-        "host": "$(IndexerDatabaseHost)",
-        "port": $(IndexerDatabasePort),
-        "database": "$(IndexerDatabase)",
-        "username": "$(IndexerReaderUsername)",
-        "password": "$(IndexerReaderPassword)"
-    },
+    // "indexerDatabase": {
+    //     "host": "$(IndexerDatabaseHost)",
+    //     "port": $(IndexerDatabasePort),
+    //     "database": "$(IndexerDatabase)",
+    //     "username": "$(IndexerReaderUsername)",
+    //     "password": "$(IndexerReaderPassword)"
+    // },
     "attesterDatabase": {
         "host": "$(AttesterDatabaseHost)",
         "port": $(AttesterDatabasePort),

@@ -27,7 +27,7 @@ The ID of the underlying chain, see SourceId enum.
       size: MIC_BYTES,
       type: "ByteSequenceLike",
       description: `
-The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
 `,
     },
     {
@@ -35,7 +35,7 @@ The hash of the expected attestation response appended by string 'flare'. Used t
       size: BLOCKNUMBER_BYTES,
       type: "NumberLike",
       description: `
-Block number of the to be proved to be confirmed.
+Block number to be proved to be confirmed.
 `,
     },
     {
@@ -43,7 +43,7 @@ Block number of the to be proved to be confirmed.
       size: TIME_DURATION_BYTES,
       type: "NumberLike",
       description: `
-Period in seconds considered for sampling block production. The block with number 'lowestQueryWindowBlockNumber' is defined as the last block with the timestamp strictly smaller than 'block.timestamp - productionSamplingPeriod'.
+Period in seconds considered for sampling block production. The block with number 'lowestQueryWindowBlockNumber' in the attestation response is defined as the last block with the timestamp strictly smaller than 'block.timestamp - queryWindow'.
 `,
     },
 

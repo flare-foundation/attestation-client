@@ -3,7 +3,7 @@
 chain="$1"
 config_dir="$2"
 
-docker compose -f docker-compose-indexer-$chain.yaml -p indexer-$chain up -d indexer database verification-server
+docker-compose -f docker-compose-indexer-$chain.yaml -p indexer-$chain up -d indexer database verification-server
 
 if [[ "$chain" != "xrp" ]]; then
 	while [[ -z "$password" ]]; do
@@ -18,4 +18,4 @@ if [[ "$chain" != "xrp" ]]; then
 	cd -
 fi
 
-docker compose -f docker-compose-indexer-$chain.yaml -p indexer-$chain up -d
+docker-compose -f docker-compose-indexer-$chain.yaml -p indexer-$chain up -d

@@ -58,7 +58,7 @@ bufferNumber(T) = (T - BUFFER_TIMESTAMP_OFFSET)/BUFFER_WINDOW
 
 The caller of the function `submitAttestation` must call it with the `bufferNumber` corresponding to the time of the call, otherwise the call is rejected.
 
-The relation between the voting round id and the `bufferNumber` is defined as follows. The first voting round (`roundId = 0`) starts its `collect` phase in the voting window with `bufferNumber = 0`. Therefore, the `bufferNumber` corresponds to the voting window of the `collect` phase of the voting round with the same index (`roundId`). The `commit` phase of the round with a given `roundId` is in the voting window with the `bufferNumber` equal to `roundId + 1`, the `reveal` phase is in the voting window with the `bufferNumber` equal to `roundId + 2` and the `count` phase is in the voting window with the `bufferNumber` equal to `roundId + 3`.
+The relation between the voting round id and the `bufferNumber` is defined as follows. The first voting round (`roundId = 0`) starts its `collect` phase in the voting window with `bufferNumber = 0`. Therefore, the `bufferNumber` corresponds to the voting window of the `collect` phase of the voting round with the same index (`roundId`). The `choose` and `commit` phases of the round with a given `roundId` are in the voting window with the `bufferNumber` equal to `roundId + 1`, the `reveal` phase is in the voting window with the `bufferNumber` equal to `roundId + 2` and the `count` phase is in the voting window with the `bufferNumber` equal to `roundId + 3`.
 
 Accordingly, calling `submitAttestation` in a given voting window with the `bufferNumber`, implies we are sending commit data for `roundId` equal `bufferNumber - 1` and the reveal data for the `roundId` equal `bufferNumber - 2`.
 
@@ -66,7 +66,7 @@ Accordingly, calling `submitAttestation` in a given voting window with the `buff
 
 In `count` phase, `StateConnector` verifies `commit data` against `reveal data` and counts appetencies of Merkle roots. If one Merkle root is submitted by more than 50% of attesters, `StateConnector` emits it as `the confirmed Merkle root` of the voting round. To help reach the consensus we provide [BitVoting](./bit-voting.md)
 
-As of current implementation, the confirmed Merkle root is accessible by looking up into the public array `merkleRoots` in the contract, which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720, a week of proofs). Note also that the proof for a given voting round `roundId`is stored at the index `(roundId + 2) % TOTAL_STORED_PROOFS`.
+As of current implementation, the confirmed Merkle root is accessible by looking up into the public array `merkleRoots` in the contract, which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720, a week of proofs). Note also that the proof for a given voting round `roundId`is stored at the index `roundId % TOTAL_STORED_PROOFS`.
 
 ## State Connector contract deployments
 

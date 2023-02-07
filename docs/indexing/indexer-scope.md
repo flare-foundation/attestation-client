@@ -34,6 +34,6 @@ For transactions, we store:
 
 The transactions table contains confirmed transactions only. Transactions from the same confirmed block are stored to the indexer database in an atomic manner. Note that block-related data like `blockNumber` and `timestamp` may differ if read from the `response` field, since in some chains transactions are indexed in advance, where they are not yet in the correct block.
 
-Next: [Synchronized query window](./synchronized-query-window.md)
+Next: [Indexer optimizations](./indexer-optimizations.md)
 
 [Back to Home](../README.md)

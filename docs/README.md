@@ -17,7 +17,6 @@
   - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md)
 - [Indexer](./indexing/indexer.md)
   - [Scope of indexing](./indexing/indexer-scope.md)
-  - [Synchronized query window](./indexing/synchronized-query-window.md)
   - [Optimizations](./indexing/indexer-optimizations.md)
 - [Verification system](./verfication/verification.md)
   - [Code generation](./verfication/code-generation.md)

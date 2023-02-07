@@ -1,0 +1,51 @@
+{
+    // enabled sync
+    "syncEnabled": true,
+    
+    // how many days back to sync (decimals are supported)
+    "syncTimeDays":2,
+
+    // how much time to speep between block collection
+    "blockCollectTimeMs": 1000,
+
+    // while syncing every how many milliseconds to get new top block number 
+    "syncUpdateTimeMs": 10000,
+
+    "indexerDatabase" : {
+        "host": "$(DOGEIndexerDatabaseHost)",
+        "port": $(DOGEIndexerDatabasePort),
+        "database": "$(DOGEIndexerDatabase)",
+        "username": "$(DOGEIndexerWriterUsername)",
+        "password": "$(DOGEIndexerWriterPassword)"
+    },
+
+    "chainConfiguration" : {
+        "name": "DOGE",
+        "mccCreate" : {
+            "url": "$(DOGEURL)",
+            "username": "$(DOGEUsername)",
+            "password": "$(DOGEPassword)"
+        },
+        "rateLimitOptions": {
+            "maxRPS": 30,
+            "timeoutMs": 5000,
+            "retries": 3
+        },
+        "numberOfConfirmations": 6,
+        "syncReadAhead":10,
+        "blockCollecting":"tips",
+        "minimalStorageHistoryDays":2,
+        "minimalStorageHistoryBlocks":100,
+
+        "maxRequestsPerSecond":80,
+        "maxProcessingTransactions":3000,
+
+        "maxFailedRetry": 1,
+        "delayBeforeRetry": 10,
+
+        "maxValidIndexerDelaySec": 10,
+
+        "reverificationTimeOffset": 10
+    }
+
+}

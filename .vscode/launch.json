@@ -171,6 +171,17 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "Launch Install secureConfigurations",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "ts-node" , "src/install/secureConfigurations.ts"
+            ]
+        },        
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Launch Config Verify",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [

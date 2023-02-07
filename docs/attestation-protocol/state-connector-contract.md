@@ -81,6 +81,6 @@ Both contracts have as the start timestamp set the Unix epoch `BUFFER_TIMESTAMP_
 
 Note, these are older contracts with less secure (non-copy-proof) commit reveal scheme, that are subject to change soon. The official version of the new copy-proof `StateConnector` contract is expected to be deployed soon and will reside on the address `0x1000000000000000000000000000000000000001`
 
-Next: [Merkle tree and Merkle proof](./merkle-tree.md)
+Next: [Bit voting](./bit-voting.md)
 
 [Back to home](../README.md)

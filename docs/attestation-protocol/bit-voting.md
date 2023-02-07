@@ -23,3 +23,10 @@ Currently, `StateConnector` has a default set of 9 attestation providers. We nee
 ## Message integrity checks
 
 While bit voting in choose phase ensures agreement on which attestation should be put in the Merkle tree, there is no insurance that all attestation providers will be able to build the same Merkle tree and thus obtain the same Merkle root to vote with. Namely, attestation providers could (usually due to a bug in code) have issues with consistency of the data obtained from the data source or issues of calculating the has of the relevant data, before putting it into the Merkle tree. For that reason, each attestation request contains the **message integrity code**. This is the hash of the attestation response and the string `"Flare"`. Each (non-malicious) requester should already know, what the attestation response should be - they are just requesting the Attestation protocol to confirm the data in a decentralized and secure way (by voting of attestation providers). Hence they provide the message integrity check. Upon making the query to the data source, the attestation provider appends to its own response the string `"Flare"` and calculates the hash. Only if this hash matches the message integrity code provided in the attestation request, the attestation response is considered valid and can be considerd for inclusion into the Merkle tree. Bit voting in combination of message integrity codes make the attestation protocol much more robust to attacks that could arise from misbehaviour of a subset of attetstation providers or bugs in attestation code.
+
+## BitVoting contract deployments
+
+- https://songbird-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64
+- https://flare-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64
+- https://coston-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64
+- https://coston2-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64

@@ -68,12 +68,14 @@ In `count` phase, `StateConnector` verifies `commit data` against `reveal data` 
 
 As of current implementation, the confirmed Merkle root is accessible by looking up into the public array `merkleRoots` in the contract, which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720, a week of proofs). Note also that the proof for a given voting round `roundId`is stored at the index `(roundId + 2) % TOTAL_STORED_PROOFS`.
 
-## Songbird and Coston deployments
+## State Connector contract deployments
 
 The currently deployed `StateConnector` contracts on Songbird and Coston networks are available here:
 
-- https://songbird-explorer.flare.network/address/0x3A1b3220527aBA427d1e13e4b4c48c31460B4d91/transactions
-- https://coston-explorer.flare.network/address/0x947c76694491d3fD67a73688003c4d36C8780A97/transactions
+- https://songbird-explorer.flare.network/address/0x0c13aDA1C7143Cf0a0795FFaB93eEBb6FAD6e4e3
+- https://flare-explorer.flare.network/address/0x1000000000000000000000000000000000000001
+- https://coston-explorer.flare.network/address/0x0c13aDA1C7143Cf0a0795FFaB93eEBb6FAD6e4e3
+- https://coston2-explorer.flare.network/address/0x1000000000000000000000000000000000000001
 
 Both contracts have as the start timestamp set the Unix epoch `BUFFER_TIMESTAMP_OFFSET = 1636070400` (November 5th, 2021) and `BUFFER_WINDOW = 90`.
 

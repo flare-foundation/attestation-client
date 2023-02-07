@@ -3,44 +3,50 @@
     [
         {
             "name":"btc-indexer",
-            "credentials":"direct:t3stPassw0rd!",
+            "credentials":"direct:t3stPassw0rd!1",
             "files":["indexer/btc-indexer-config.json"],
         }
         ,
         {
             "name":"doge-indexer",
-            "credentials":"direct:t3stPassw0rd!",
+            "credentials":"direct:t3stPassw0rd!2",
             "files":["indexer/doge-indexer-config.json"],
         }
         ,
         {
             "name":"xrp-indexer",
-            "credentials":"direct:t3stPassw0rd!",
+            "credentials":"direct:t3stPassw0rd!3",
             "files":["indexer/xrp-indexer-config.json"],
         }
         ,
         {
             "name":"btc-verifier",
-            "credentials":"direct:t3stPassw0rd!",
+            "credentials":"direct:t3stPassw0rd!4",
             "files":["verifier-server/btc-verifier-config.json"],
         }
         ,
         {
             "name":"doge-verifier",
-            "credentials":"direct:t3stPassw0rd!",
+            "credentials":"direct:t3stPassw0rd!5",
             "files":["verifier-server/doge-verifier-config.json"],
         }
         ,
         {
             "name":"xrp-verifier",
-            "credentials":"direct:t3stPassw0rd!",
+            "credentials":"direct:t3stPassw0rd!6",
             "files":["verifier-server/xrp-verifier-config.json"],
         }
         ,
         {
             "name":"attester-client",
-            "credentials":"direct:t3stPassw0rd!",
+            "credentials":"direct:t3stPassw0rd!7",
             "files":["attester-config.json"],
+        }
+        ,
+        {
+            "name":"webserver",
+            "credentials":"direct:t3stPassw0rd!8",
+            "files":["webserver-config.json"],
         }
     ]
 }

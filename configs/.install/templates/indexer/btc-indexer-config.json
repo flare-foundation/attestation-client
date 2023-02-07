@@ -17,5 +17,34 @@
         "database": "$(BTCIndexerDatabase)",
         "username": "$(BTCIndexerWriterUsername)",
         "password": "$(BTCIndexerWriterPassword)"
-    }
+    },
+
+    "chainConfiguration" : {
+        "name": "BTC",
+        "mccCreate" : {
+            "url": "$(BTCURL)",
+            "username": "$(BTCUsername)",
+            "password": "$(BTCPassword)"
+        },
+        "rateLimitOptions": {
+            "maxRPS": 20,
+            "timeoutMs": 15000,
+            "retries": 3
+        },
+        "numberOfConfirmations": 6,
+        "syncReadAhead":10,
+        "blockCollecting":"tips",
+        "minimalStorageHistoryDays":2,
+        "minimalStorageHistoryBlocks":100,
+
+        "maxRequestsPerSecond":80,
+        "maxProcessingTransactions":3000,
+
+        "maxFailedRetry": 1,
+        "delayBeforeRetry": 10,
+
+        "maxValidIndexerDelaySec": 10,
+
+        "reverificationTimeOffset": 10
+    },
 }

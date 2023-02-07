@@ -19,7 +19,7 @@
       "ReferencedPaymentNonexistence"
    ],
    "indexerDatabase": {
-      "hostname": "$(BTCIndexerDatabaseHost)",
+      "host": "$(BTCIndexerDatabaseHost)",
       "port": $(BTCIndexerDatabasePort),
       "database": "$(BTCIndexerDatabase)",
       "username": "$(BTCIndexerReaderUsername)",

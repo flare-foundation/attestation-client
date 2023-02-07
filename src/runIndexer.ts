@@ -32,11 +32,10 @@ async function runIndexer() {
   setRetryFailureCallback(terminateOnRetryFailure);
 
   // read configuration
-  const chains = await readSecureConfig(new ListChainConfig(), "chains");
   const config = await readSecureConfig(new IndexerConfig(), `indexer/${args["chain"].toLowerCase()}-indexer`);
 
   // create and start indexer
-  const indexer = new Indexer(config, chains, args["chain"].toUpperCase());
+  const indexer = new Indexer(config, args["chain"].toUpperCase());
   return await indexer.runIndexer(args);
 }
 

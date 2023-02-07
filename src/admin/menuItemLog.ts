@@ -1,6 +1,8 @@
-import { getGlobalLogger, logException } from "../utils/logging/logger";
-import { ColorConsole } from "../utils/logging/ColorConsole";
+import fs from "fs";
+import { Tail } from "tail";
 import { sleepms } from "../utils/helpers/utils";
+import { ColorConsole } from "../utils/logging/ColorConsole";
+import { getGlobalLogger, logException } from "../utils/logging/logger";
 import { Menu } from "./menu";
 import { MenuItemBase } from "./menuItemBase";
 
@@ -46,7 +48,6 @@ export class MenuItemLog extends MenuItemBase {
     //console.log(lines);
     //console.log(follow);
 
-    const fs = require("fs");
     const es = require('event-stream');
 
     const colorConsole = new ColorConsole();
@@ -86,7 +87,7 @@ export class MenuItemLog extends MenuItemBase {
               resolve(null);
             })
           );
-      } );
+      });
 
       for (let i = 0; i < textLines.length; i++) {
         displayLine(colorConsole, textLines[i]);
@@ -94,8 +95,6 @@ export class MenuItemLog extends MenuItemBase {
     }
 
     if (follow) {
-      const Tail = require("tail").Tail;
-
       const tail = new Tail(filename);
 
       tail.on("line", function (data) {

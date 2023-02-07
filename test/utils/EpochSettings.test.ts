@@ -1,3 +1,5 @@
+// yarn test test/utils/EpochSettings.test.ts
+
 import { toBN } from "@flarenetwork/mcc";
 import { assert, expect } from "chai";
 import { EpochSettings } from "../../src/utils/data-structures/EpochSettings";

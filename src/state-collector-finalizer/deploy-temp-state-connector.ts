@@ -1,5 +1,6 @@
 import fs from "fs";
 import { AbiItem } from "web3-utils";
+import * as yargs from "yargs";
 import StateConnectorAbi from "../../artifacts/contracts/StateConnectorTemp.sol/StateConnectorTemp.json";
 import StateConnectorTranAbi from "../../artifacts/contracts/StateConnectorTempTran.sol/StateConnectorTempTran.json";
 import { StateConnectorTemp } from "../../typechain-web3-v1/StateConnectorTemp";
@@ -68,7 +69,7 @@ async function deployTempStateConnector(web3Rpc: string, flavor: string) {
   }
 }
 
-const { argv } = require("yargs")
+const args = yargs
   .scriptName("testStateConnector")
   .option("r", {
     alias: "rpc",
@@ -85,9 +86,10 @@ const { argv } = require("yargs")
     choices: ["temp", "tran"],
     type: "string",
     nargs: 1,
-  });
+  })
+  .argv;
 
-const { rpc, flavor } = argv;
+const { rpc, flavor } = args as any;
 
 deployTempStateConnector(rpc, flavor)
   .then(() => process.exit(0))

@@ -1,15 +1,12 @@
 import {
   AlgoMccCreate,
-  ChainType,
-  IXrpGetBlockRes,
-  IXrpGetTransactionRes,
-  UtxoBlock,
-  UtxoTransaction,
-  XrpBlock,
-  XrpMccCreate,
-  XrpTransaction,
-  xrp_ensure_data
+  ChainType, UtxoBlock,
+  UtxoTransaction, XrpMccCreate
 } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { afterEach } from "mocha";
+import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
@@ -17,26 +14,22 @@ import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentB
 import { augmentTransactionUtxo, augmentTransactionXrp } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
 import { BlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
-import { TestBlockXRP } from "../mockData/indexMock";
-import * as resXRPBlock from "../mockData/XRPBlock.json";
-import * as resXRPTx from "../mockData/XRPTx.json";
-
-import { afterEach } from "mocha";
-import sinon from "sinon";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { TestBlockXRP, TestBlockXRPAlt, TestTxXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
+
+  afterEach(function () {
+    sinon.restore();
+  });
 
   describe("augmentBlock", () => {
     it("Should create entity for a block", async () => {
@@ -62,15 +55,10 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     it("Should create entity from a transaction for XRP", async () => {
       const txHash = "A8B4D5C887D0881881A0A45ECEB8D250BF53E6CAE9EB72B9D251C590BD9087AB";
       const blockId = 75660711;
-      xrp_ensure_data(resXRPTx);
-      const block = new XrpBlock(resXRPBlock as unknown as IXrpGetBlockRes);
 
-      const tx = new XrpTransaction(resXRPTx as unknown as IXrpGetTransactionRes);
-
-      const augTx = augmentTransactionXrp(block, tx);
+      const augTx = augmentTransactionXrp(TestBlockXRP, TestTxXRP);
       expect(augTx.blockNumber).to.be.eq(blockId);
       expect(augTx.transactionId).to.be.eq(txHash);
-      // });
     });
   });
 
@@ -79,13 +67,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
 
     before(async function () {
-      if (!dataService.dataSource.isInitialized) {
-        await dataService.connect();
-      }
-    });
-
-    afterEach(function () {
-      sinon.restore();
+      await dataService.connect();
     });
 
     it("Should return null processor", function () {
@@ -142,9 +124,6 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     describe("XRP", function () {
       const XRPMccConnection = {
         url: "https://xrplcluster.com",
-
-        username: "",
-        password: "",
       } as XrpMccCreate;
 
       let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
@@ -166,7 +145,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       });
 
       it("Should initializeJobs", async function () {
-        const block = TestBlockXRP;
+        const block = TestBlockXRPAlt;
         const fake = sinon.fake();
         let res = [];
         const voidOnSave = async (blockDb, transDb) => {

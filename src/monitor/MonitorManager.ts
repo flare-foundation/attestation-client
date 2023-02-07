@@ -1,17 +1,18 @@
 import { Managed, traceManager } from "@flarenetwork/mcc";
+import fs from "fs";
+import { stringify } from "safe-stable-stringify";
 import { readConfig } from "../utils/config/config";
-import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { sleepms } from "../utils/helpers/utils";
-import { MonitorBase, MonitorRestartConfig } from "./MonitorBase";
-import { MonitorConfig } from "./MonitorConfiguration";
+import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
+import { Terminal } from "../utils/monitoring/Terminal";
 import { AttesterMonitor } from "./AttestationMonitor";
-import { WebserverMonitor } from "./WebserverMonitor";
 import { DatabaseMonitor } from "./DatabaseMonitor";
 import { DockerMonitor } from "./DockerMonitor";
 import { IndexerMonitor } from "./IndexerMonitor";
+import { MonitorBase, MonitorRestartConfig } from "./MonitorBase";
+import { MonitorConfig } from "./MonitorConfiguration";
 import { NodeMonitor } from "./NodeMonitor";
-import { stringify } from "safe-stable-stringify";
-import { Terminal } from "../utils/monitoring/Terminal";
+import { WebserverMonitor } from "./WebserverMonitor";
 
 @Managed()
 export class MonitorManager {
@@ -105,7 +106,6 @@ export class MonitorManager {
 
         if (this.config.stateSaveFilename) {
           try {
-            const fs = require("fs");
             fs.writeFile(this.config.stateSaveFilename, stringify({ alerts: statusAlerts, perf: statusPerfs }), function (err) {
               if (err) {
                 this.logger.error(err);

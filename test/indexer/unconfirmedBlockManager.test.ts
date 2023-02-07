@@ -1,14 +1,13 @@
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { DBBlockDOGE } from "../../src/entity/indexer/dbBlock";
 import { UnconfirmedBlockManager } from "../../src/indexer/UnconfirmedBlockManager";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -55,7 +54,6 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     entity.confirmed = false;
     entity.transactions = 10;
     entity.previousBlockHash = "15";
-    // entity.numberOfConfirmations = 0;
 
     unconfirmedBlockManager.addNewBlock(entity);
     expect(unconfirmedBlockManager.blockHashToEntity.size).to.eq(9);
@@ -70,7 +68,6 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     entity.confirmed = true;
     entity.transactions = 10;
     entity.previousBlockHash = "16";
-    // entity.numberOfConfirmations = 0;
 
     unconfirmedBlockManager.addNewBlock(entity);
     expect(unconfirmedBlockManager.blockHashToEntity.get("16").numberOfConfirmations).to.eq(1);
@@ -86,7 +83,6 @@ describe(`UnconfirmedBlockManager (${getTestFile(__filename)})`, function () {
     entity.confirmed = true;
     entity.transactions = 10;
     entity.previousBlockHash = "16";
-    // entity.numberOfConfirmations = 0;
 
     unconfirmedBlockManager.addNewBlock(entity);
     expect(unconfirmedBlockManager.blockHashToEntity.get("16").numberOfConfirmations).to.eq(1);

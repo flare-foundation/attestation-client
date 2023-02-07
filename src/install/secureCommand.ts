@@ -1,11 +1,10 @@
 import { execSync } from "child_process";
 import { exit } from "process";
+import * as yargs from "yargs";
 import { getSecureValue, initializeJSONsecure } from "../utils/config/jsonSecure";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
-
-const yargs = require("yargs");
 
 // command line 
 // -a action : command action 

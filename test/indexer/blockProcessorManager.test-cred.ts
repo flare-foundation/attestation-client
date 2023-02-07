@@ -1,21 +1,21 @@
-//tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
+// yarn test test/indexer/blockProcessorManager.test-cred.ts
+//tests need appropriate api credentials for BTC multi-chain-client to function properly
 
 import { ChainType, sleepMs, UtxoMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../src/indexer/blockProcessorManager";
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { Interlacing } from "../../src/indexer/interlacing";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestBlockBTC, TestBlockBTCAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const sinon = require("sinon");
+chai.use(chaiAsPromised);
 
 describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -47,8 +47,6 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
     const indexerToClient = new IndexerToClient(cachedClient.client);
 
-    initializeTestGlobalLogger();
-
     let interlacing = new Interlacing();
 
     const settings: IBlockProcessorManagerSettings = {
@@ -74,7 +72,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       await blockProcessorManager.processSync(block);
       expect(blockProcessorManager.blockProcessors.length).to.eq(1);
 
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+      //wait for the processor to do the job
       while (!fake1.called) {
         await sleepMs(100);
       }
@@ -90,7 +88,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
     it("Should process completed block", async function () {
       const block = TestBlockBTC;
       await blockProcessorManager.process(block);
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+
       while (!fake2.called) {
         await sleepMs(100);
       }
@@ -102,7 +100,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
       expect(fake1.callCount).to.eq(1);
 
       await blockProcessorManager.process(block);
-      //wait for the processor to do the job !!!NEEDS FIX!!!
+
       expect(blockProcessorManager.blockProcessors[0].isActive).to.be.false;
       expect(blockProcessorManager.blockProcessors.length).to.be.eq(2);
       expect(blockProcessorManager.blockProcessors[1].isActive).to.be.true;

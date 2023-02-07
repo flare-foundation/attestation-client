@@ -5,8 +5,7 @@ import { AttestationClientConfig } from "./attester/configs/AttestationClientCon
 import { readSecureConfig } from "./utils/config/configSecure";
 import { setRetryFailureCallback } from "./utils/helpers/promiseTimeout";
 import { getGlobalLogger, logException, setLoggerName } from "./utils/logging/logger";
-
-const yargs = require("yargs");
+import * as yargs from "yargs";
 
 const args = yargs
   .option("instance", { alias: "i", type: "string", description: "Instance name", default: "default", demand: false }).argv;

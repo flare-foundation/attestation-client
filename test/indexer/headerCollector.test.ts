@@ -1,23 +1,21 @@
-// // yarn test test/indexer/blockHeaderCollector.test.ts
+// yarn test test/indexer/headerCollector.test.ts
 
 import { ChainType, MCC, XrpMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinon from "sinon";
 import { DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { HeaderCollector } from "../../src/indexer/headerCollector";
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { IndexerToDB } from "../../src/indexer/indexerToDB";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-
 import { TestBlockXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const sinon = require("sinon");
-const chai = require("chai");
-const expect = chai.expect;
-// const fs = require("fs");
-chai.use(require("chai-as-promised"));
+chai.use(chaiAsPromised);
 
 describe(`Header Collector (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
@@ -80,7 +78,6 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
       expect(res.length).to.be.eq(1);
     });
 
-    //Needs improvement
     it("Should not work with empty list saveHeadersOnNewTips ", async function () {
       await headerCollector.saveHeadersOnNewTips([]);
       let res = await dataService.manager.find(DBBlockXRP);
@@ -96,9 +93,8 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     });
 
     // Should be fixed (too long trace)
-    it.skip("Should not readAndSaveBlocksHeaders", async function () {
+    it("Should not readAndSaveBlocksHeaders", async function () {
       headerCollector.updateN(10);
-      let j = "not jet failed";
       const fake = sinon.fake();
       setRetryFailureCallback((string) => {
         fake();

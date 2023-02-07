@@ -1,6 +1,7 @@
 import { runBot } from "./state-connector-validator-bot";
+import * as yargs from "yargs";
 
-const { argv } = require("yargs")
+const args = yargs
   .scriptName("airdropTransactions")
   .option("a", {
     alias: "state-connector-address",
@@ -23,9 +24,10 @@ const { argv } = require("yargs")
     choices: ["temp", "tran"],
     type: "string",
     nargs: 1,
-  });
+  })
+  .argv
 
-const { stateConnectorAddress, rpc, flavor } = argv;
+const { stateConnectorAddress, rpc, flavor } = args as any;
 
 runBot(stateConnectorAddress, rpc, flavor)
   .then(() => process.exit(0))

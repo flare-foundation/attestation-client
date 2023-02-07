@@ -4,14 +4,13 @@
 // `credentials.json.secure` contains all keys in all .json files in `path` folder (non recursive).
 // this file should be copied into target config path.
 
+import * as yargs from "yargs";
 import { getGlobalLogger } from "../utils/logging/logger";
 import { prepareSecureCredentials } from "./prepareSecureCredentials";
 
+const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 const logger = getGlobalLogger();
 
-const yargs = require("yargs");
-
-const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
 // command line 
 // -a passwordAddress : password address (direct:password, GoogleCloudSecretManager:address)

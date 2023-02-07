@@ -13,8 +13,8 @@ import { VerifierConfigurationService } from "../../src/servers/verifier-server/
 import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { IIdentifiable } from "../../src/utils/helpers/promiseRequestTypes";
-import { WsClient } from "../../src/verification/client/WsClient";
-import { WsClientOptions } from "../../src/verification/client/WsClientOptions";
+import { WsClient } from "../../src/verification/experimental/client/WsClient";
+import { WsClientOptions } from "../../src/verification/experimental/client/WsClientOptions";
 import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);

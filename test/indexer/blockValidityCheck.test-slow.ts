@@ -1,21 +1,20 @@
-// yarn test test/indexer/blockValidityCheck.test.ts
+// yarn test test/indexer/blockValidityCheck.test-slow.ts
 
 import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
 import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinon from "sinon";
 import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
 import { BlockProcessorManager } from "../../src/indexer/blockProcessorManager";
 import { Indexer } from "../../src/indexer/indexer";
-import { getRetryFailureCallback, setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
+import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
 
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
-const sinon = require("sinon");
+chai.use(chaiAsPromised);
 
 const XRPMccConnection = {
   url: "https://xrplcluster.com",
@@ -175,7 +174,8 @@ describe("Block validity check before processing", () => {
     expect(TestLogger.exists("waiting on block 70015100 to be valid"), "invalid block should not be detected").to.eq(false);
   });
 
-  it.skip(`Block processor manager for always in-valid XRP block`, async function () {
+  //to be checked again
+  it(`Block processor manager for always in-valid XRP block`, async function () {
     const XrpMccClient = new MockXRPImplementation(XRPMccConnection);
 
     indexer.logger = getGlobalLogger();
@@ -190,8 +190,12 @@ describe("Block validity check before processing", () => {
     indexer.blockProcessorManager.settings.validateBlockBeforeProcess = true;
     indexer.blockProcessorManager.settings.validateBlockWaitMs = 1;
 
-    const stub1 = sinon.spy(getRetryFailureCallback());
-    await indexer.blockProcessorManager.process(invalidBlock);
-    expect(stub1.callback).to.be.eq("");
+    const fake = sinon.fake.throws("Error");
+
+    setRetryFailureCallback(fake);
+    // const stub1 = sinon.stub(getRetryFailureCallback()).rejects;
+    await expect(indexer.blockProcessorManager.process(invalidBlock)).to.be.rejected;
+
+    expect(fake.callCount).to.be.eq(1);
   });
 });

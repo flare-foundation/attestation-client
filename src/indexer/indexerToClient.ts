@@ -47,6 +47,31 @@ export class IndexerToClient {
   /**
    *
    * @param label
+   * @param blockNumber
+   * @returns
+   * @category BaseMethod
+   */
+  public async getBlockHeaderFromClient(label: string, blockNumber: number): Promise<IBlockHeader> {
+    // todo: implement MCC lite version of getBlock
+    let thisreference = this;
+    const result = await retry(
+      `indexerToClient.getBlockHeaderFromClient.${label}`,
+      async () => {
+        return await this.client.getBlockHeader(blockNumber);
+      },
+      thisreference.timeoutTime,
+      thisreference.numRetry,
+      thisreference.backOffTime
+    );
+    if (!result) {
+      failureCallback(`indexerToClient.getBlockHeaderFromClient.${label} - null block returned`);
+    }
+    return result;
+  }
+
+  /**
+   *
+   * @param label
    * @param blockHash
    * @returns
    * @category BaseMethod
@@ -128,7 +153,7 @@ export class IndexerToClient {
    */
   public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
     // todo: get `getBlockLite` FAST version of block read since we only need timestamp
-    const block = (await this.getBlockFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
+    const block = (await this.getBlockHeaderFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
     // block cannot be undefined as the above call will fatally fail and terminate app
     return block.unixTimestamp;
   }

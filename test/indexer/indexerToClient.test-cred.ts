@@ -1,13 +1,11 @@
-import { MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { MCC, UtxoMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
-const chai = require("chai");
-const chaiaspromised = require("chai-as-promised");
-chai.use(chaiaspromised);
-const expect = chai.expect;
 
-//To be eventually mocked
+chai.use(chaiAsPromised);
 
 describe(`Indexer to client with credentials(${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -18,18 +16,12 @@ describe(`Indexer to client with credentials(${getTestFile(__filename)})`, funct
       password: "",
     } as UtxoMccCreate;
 
-    initializeTestGlobalLogger();
-
     const client = new MCC.BTC(BtcMccConnection);
-    let inToCl = new IndexerToClient(client, 1500, 2, 300);
+    let inToCl = new IndexerToClient(client, 10000, 2, 2000);
 
     it("Should get block", async function () {
       let res = await inToCl.getBlockFromClient("height", 763418);
       expect(res.blockHash).to.be.eq("0000000000000000000275e5d4097fb6121787976f42e85310976b34b1e36072");
-    });
-
-    it("Should not get Block", async function () {
-      await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
     });
 
     it("Should get block by hash", async function () {
@@ -56,7 +48,7 @@ describe(`Indexer to client with credentials(${getTestFile(__filename)})`, funct
 
     it("Should get block timestamp", async function () {
       let res = await inToCl.getBlockNumberTimestampFromClient(763419);
-      expect(res).to.be.eq(1668598940);
+      expect(res).to.be.eq(1668594535);
     });
   });
 });

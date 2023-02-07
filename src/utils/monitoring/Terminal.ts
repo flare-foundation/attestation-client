@@ -1,10 +1,9 @@
-const _readline = require("readline");
+import * as _readline from "readline";
 
 // low-level terminal interactions
 export class Terminal {
   stream: any;
   linewrap: boolean;
-
   dx: number;
   dy: number;
 

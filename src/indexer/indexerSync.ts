@@ -47,8 +47,8 @@ export class IndexerSync {
       return latestBlockNumber;
     }
 
-    const syncStartTime = getUnixEpochTimestamp() - this.indexer.syncTimeDays() * SECONDS_PER_DAY;
-    const latestBlockTime = await this.indexerToClient.getBlockNumberTimestampFromClient(latestBlockNumber);
+    const syncStartTime = getUnixEpochTimestamp() - this.indexer.syncTimeDays() * SECONDS_PER_DAY; //in seconds
+    const latestBlockTime = await this.indexerToClient.getBlockNumberTimestampFromClient(latestBlockNumber); //in seconds
 
     if (latestBlockTime <= syncStartTime) {
       // This is the case where on blockchain there were no blocks after the sync time
@@ -73,7 +73,7 @@ export class IndexerSync {
       failureCallback(`Bottom block is larger than top block, bottom: ${blockNumberBottom}, top: ${blockNumberTop}`);
     }
 
-    // Returns exact block or 1 block earlier than sync start time
+    // Returns1 block earlier than sync start time (or sometimes block on sync start time) using bisection
     let blockRead = 2;
     while (blockNumberTop > blockNumberBottom + 1) {
       const blockNumberMid = Math.floor((blockNumberTop + blockNumberBottom) / 2);
@@ -139,6 +139,7 @@ export class IndexerSync {
       }
 
       // wait until we save N+1 block
+      // this never happens: lastN=-1, indexer.N>=0
       if (lastN === this.indexer.N) {
         this.logger.debug(`runSyncRaw wait block N=${this.indexer.N} T=${this.indexer.T}`);
         await sleepms(100);
@@ -149,7 +150,7 @@ export class IndexerSync {
       // status
       const dbStatus = getStateEntryString("state", this.indexer.chainConfig.name, "sync", -1);
 
-      const blockLeft = this.indexer.T - this.indexer.N;
+      const blocksLeft = this.indexer.T - this.indexer.N - this.indexer.chainConfig.numberOfConfirmations;
 
       if (statsBlocksPerSec > 0) {
         const timeLeft = (this.indexer.T - this.indexer.N) / statsBlocksPerSec;
@@ -157,11 +158,12 @@ export class IndexerSync {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.indexer.cachedClient.reqsPs
+          `sync ${this.indexer.N} to ${this.indexer.T}, ${blocksLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
+            this.indexer.cachedClient.reqsPs
           })`
         );
       } else {
-        this.logger.debug(`sync ${this.indexer.N} to ${this.indexer.T}, ${blockLeft} blocks (cps: ${this.indexer.cachedClient.reqsPs})`);
+        this.logger.debug(`sync ${this.indexer.N} to ${this.indexer.T}, ${blocksLeft} blocks (cps: ${this.indexer.cachedClient.reqsPs})`);
       }
 
       await retry(`runSyncRaw::saveStatus`, async () => this.indexer.dbService.manager.save(dbStatus));

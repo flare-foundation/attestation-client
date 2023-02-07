@@ -1,6 +1,7 @@
 import { getGlobalLogger } from "../utils/logging/logger";
 import { sleepms } from "../utils/helpers/utils";
 import { MenuItemBase } from "./menuItemBase";
+import { exec } from "child_process";
 
 export class MenuItemCommand extends MenuItemBase {
   command: string;
@@ -19,7 +20,6 @@ export class MenuItemCommand extends MenuItemBase {
 
     let done = false;
 
-    const { exec } = require("child_process");
     const execObj = exec(this.command);
 
     execObj.stdout.on("data", function (data) {

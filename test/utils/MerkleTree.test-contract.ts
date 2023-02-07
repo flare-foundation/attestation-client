@@ -21,7 +21,6 @@ describe(`Merkle Tree (${getTestFile(__filename)})`, () => {
         const hashes = makeHashes(i);
 
         const tree = new MerkleTree(hashes);
-        // console.log(i, tree.hashCount)
         for (let j = 0; j < tree.hashCount; j++) {
           const proof = tree.getProof(j);
           const leaf = tree.getHash(j);

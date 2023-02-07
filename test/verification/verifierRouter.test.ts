@@ -1,19 +1,13 @@
-import { BtcTransaction, ChainType, prefix0x, sleepMs, XrpTransaction } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, prefix0x, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
-import { WsClientOptions } from "../../src/verification/client/WsClientOptions";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import { firstAddressVin, firstAddressVout, selectBlock, testConfirmedBlockHeightExistsRequest, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "./test-utils/verifier-test-utils";
 
 chai.use(chaiAsPromised);
-
-const WS_URL = `ws://localhost:9500?apiKey=7890`;
-
-const defaultWsClientOptions: WsClientOptions = new WsClientOptions();
-defaultWsClientOptions.url = WS_URL;
 
 const NUMBER_OF_CONFIRMATIONS_XRP = 1;
 const NUMBER_OF_CONFIRMATIONS_BTC = 6;

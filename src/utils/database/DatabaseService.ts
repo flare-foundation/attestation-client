@@ -42,9 +42,9 @@ export class DatabaseService {
       this.isSqlite3 = true;
 
       let dbPath: string | undefined = undefined;
-      if(testDBPath && typeof testDBPath === "string") {
+      if (testDBPath && typeof testDBPath === "string") {
         dbPath = testDBPath;
-      } else if(this.options.testSqlite3DBPath !== "") {
+      } else if (this.options.testSqlite3DBPath !== "") {
         dbPath = this.options.testSqlite3DBPath;
       }
       let connectOptions = {

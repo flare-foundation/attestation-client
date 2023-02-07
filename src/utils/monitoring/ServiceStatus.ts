@@ -1,3 +1,4 @@
+import { exec } from "child_process";
 import { logException } from "../logging/logger";
 import { EServiceStatus } from "./EServiceStatus";
 
@@ -15,7 +16,6 @@ export class ServiceStatus {
 
   async getStatus(): Promise<EServiceStatus> {
     try {
-      const { exec } = require("child_process");
       const command = `systemctl --user status ${this.name}`;
 
       let response = "";

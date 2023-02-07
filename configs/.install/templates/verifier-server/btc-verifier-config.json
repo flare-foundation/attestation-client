@@ -19,11 +19,11 @@
       "ReferencedPaymentNonexistence"
    ],
    "indexerDatabase": {
-      "hostname": "$(IndexerDatabaseHost)",
-      "port": $(IndexerDatabasePort),
-      "database": "$(IndexerDatabase)",
-      "username": "$(IndexerReaderUsername)",
-      "password": "$(IndexerReaderPassword)"
+      "hostname": "$(BTCIndexerDatabaseHost)",
+      "port": $(BTCIndexerDatabasePort),
+      "database": "$(BTCIndexerDatabase)",
+      "username": "$(BTCIndexerReaderUsername)",
+      "password": "$(BTCIndexerReaderPassword)"
    },
    "chainConfiguration": {
       "name": "BTC",

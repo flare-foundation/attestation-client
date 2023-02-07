@@ -19,11 +19,11 @@
       "ReferencedPaymentNonexistence"
    ],
    "indexerDatabase": {
-      "hostname": "$(IndexerDatabaseHost)",
-      "port": $(IndexerDatabasePort),
-      "database": "$(IndexerDatabase)",
-      "username": "$(IndexerReaderUsername)",
-      "password": "$(IndexerReaderPassword)"
+      "hostname": "$(DOGEIndexerDatabaseHost)",
+      "port": $(DOGEIndexerDatabasePort),
+      "database": "$(DOGEIndexerDatabase)",
+      "username": "$(DOGEIndexerReaderUsername)",
+      "password": "$(DOGEIndexerReaderPassword)"
    },
    "chainConfiguration": {
       "name": "DOGE",

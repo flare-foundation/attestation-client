@@ -75,12 +75,12 @@ export class Indexer {
 
   interlace = new Interlacing();
 
-  constructor(config: IndexerConfig, chainsConfig: ListChainConfig, chainName: string, testMode = false) {
+  constructor(config: IndexerConfig, chainName: string, testMode = false) {
     if (!config) return;
 
     this.config = config;
     this.chainType = MCC.getChainType(chainName);
-    this.chainConfig = chainsConfig.chains.find((el) => el.name === chainName)!;
+    this.chainConfig = config.chainConfiguration;
 
     this.logger = getGlobalLogger();
 

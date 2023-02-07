@@ -1,0 +1,56 @@
+{
+    // enabled sync
+    "syncEnabled": true,
+    
+    // how many days back to sync (decimals are supported)
+    "syncTimeDays":2,
+
+    // how much time to speep between block collection
+    "blockCollectTimeMs": 1000,
+
+    // while syncing every how many milliseconds to get new top block number 
+    "syncUpdateTimeMs": 10000,
+
+    "indexerDatabase" : {
+        "host": "$(XRPIndexerDatabaseHost)",
+        "port": $(XRPIndexerDatabasePort),
+        "database": "$(XRPIndexerDatabase)",
+        "username": "$(XRPIndexerWriterUsername)",
+        "password": "$(XRPIndexerWriterPassword)"
+    },
+
+    "chainConfiguration" : {
+        // chain name. allowed names are XRP, BTC, LTC, ALGO, DOGE
+        "name": "XRP",
+        // MCC create options
+        "mccCreate" : {
+            "url": "$(XRLURL)",
+            "username":"$(XRPUsername)",
+            "password":"$(XRPPassword)",
+        },
+
+        // rate limiting options
+        "rateLimitOptions": {
+            "maxRPS": 20,
+            "timeoutMs": 30000,
+            "retries": 10
+        },
+        "numberOfConfirmations": 1,
+
+        "syncReadAhead":20,
+
+        "blockCollecting":"raw",
+        "minimalStorageHistoryDays":2,
+        "minimalStorageHistoryBlocks":100,
+
+        "maxRequestsPerSecond":80,
+        "maxProcessingTransactions":3000,
+
+        "maxFailedRetry": 1,
+        "delayBeforeRetry": 10,
+
+        "maxValidIndexerDelaySec": 10,
+
+        "reverificationTimeOffset": 10
+    }
+}

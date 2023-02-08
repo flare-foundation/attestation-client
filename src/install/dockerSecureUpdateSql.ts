@@ -1,7 +1,8 @@
 import { execSync } from "child_process";
+import fs from "fs";
 import { exit } from "process";
 import * as yargs from "yargs";
-import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/config/jsonSecure";
+import { getSecureValue, initializeJSONsecure, _prepareSecureData } from "../utils/config/jsonSecure";
 import { sleepms } from "../utils/helpers/utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { muteMySQLPasswords } from "./utils";
@@ -9,16 +10,24 @@ import { muteMySQLPasswords } from "./utils";
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
 const args = yargs
-    .option("defaultSecureConfigPath", { alias: "p", type: "string", description: "start folder", default: DEFAULT_SECURE_CONFIG_PATH, demand: false })
-    .option("network", { alias: "n", type: "string", description: "network", default: "Coston", demand: false }).argv;
+    .option("defaultSecureConfigPath", { alias: "p", type: "string", description: "default secure config path", default: DEFAULT_SECURE_CONFIG_PATH, demand: false })
+    .option("input", { alias: "i", type: "string", description: "input file", default: DEFAULT_SECURE_CONFIG_PATH, demand: true })
+    .option("chain", { alias: "n", type: "string", description: "node name", default: "", demand: false })
+    .option("network", { alias: "e", type: "string", description: "network", default: "Coston", demand: false }).argv;
 
 async function run() {
     const logger = getGlobalLogger();
+
+    const inputFile = args["input"];
+    const nodeName = args["chain"].toUpperCase();
+
     // read configuration
     await initializeJSONsecure(args["defaultSecureConfigPath"], args["network"]);
 
-    const installLines = readFileSecure("configs/.install/templates/sql/install.sql").split(/\r?\n/);
-    const updateLines = readFileSecure("configs/.install/templates/sql/update.sql").split(/\r?\n/);
+    const inputFilename = `configs/.install/templates/sql/${inputFile}.sql`;
+
+    const data = fs.readFileSync(inputFilename).toString();
+    const scriptLines = _prepareSecureData(data, inputFilename, nodeName, `Chain`).split(/\r?\n/);
 
     // get secure DatabaseRootPassword
     const secureRootPassword = getSecureValue(`DatabaseRootPassword`);
@@ -32,7 +41,9 @@ async function run() {
             const secureLogin = (retry & 1) === 0;
             password = secureLogin ? secureRootPassword : process.env.MYSQL_ROOT_PASSWORD;
             const command = `mysql -h database -u root -p${password} -e ";"`;
-            logger.debug(muteMySQLPasswords(command));
+            //logger.debug(muteMySQLPasswords(command));
+            logger.debug(`connecting to database ${retry}`);
+
             execSync(command, { windowsHide: true, encoding: "buffer" });
             connected = true;
             if (secureLogin) {
@@ -48,8 +59,10 @@ async function run() {
             }
             break;
         } catch (error) {
-            logger.exception(muteMySQLPasswords(error));
+            logger.error(`unable to connect to database`);
+            //logger.exception(muteMySQLPasswords(error.message));
         }
+        // if login failed - wait a bit for the database docker
         await sleepms(1000);
     }
 
@@ -58,24 +71,16 @@ async function run() {
         return;
     }
 
-    for (var line of installLines) {
+    let lineNumber = 1;
+    for (var line of scriptLines) {
         try {
             const command = `mysql -h database -u root -p${password} -e "${line}"`;
-            logger.debug(muteMySQLPasswords(command));
+            //logger.debug(muteMySQLPasswords(command));
             execSync(command, { windowsHide: true, encoding: "buffer" });
         } catch (error) {
-            logger.error(`Error while running SQL install script ${muteMySQLPasswords(error)}`);
+            logger.error(`Error in line: ${lineNumber} while running SQL install script ^w${muteMySQLPasswords(error.message)}`);
         }
-    }
-
-    for (var line of updateLines) {
-        try {
-            const command = `mysql -h database -u root -p${password} -e "${line}"`;
-            logger.debug(muteMySQLPasswords(command));
-            execSync(command, { windowsHide: true, encoding: "buffer" });
-        } catch (error) {
-            logger.error(`Error while running SQL update script ${muteMySQLPasswords(error)}`);
-        }
+        lineNumber++;
     }
 }
 

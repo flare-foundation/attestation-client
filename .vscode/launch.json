@@ -182,6 +182,17 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
+            "name": "Launch Install dockerSecureUpdateSql",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "ts-node" , "src/install/dockerSecureUpdateSql.ts", "-i", "prepareIndexer", "-n", "BTC"
+            ]
+        },        
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
             "name": "Launch Config Verify",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [

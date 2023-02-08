@@ -173,9 +173,9 @@ export function readJSONsecure<T>(filename: string, parser: any = null, validate
  * @param chain 
  * @returns 
  */
-export function _prepareSecureData(data: string, inputFilename: string, chain: string): string {
+export function _prepareSecureData(data: string, inputFilename: string, chain: string, chainSearch='Network'): string {
     const logger = getGlobalLogger();
-    data = replaceAll(data, `Network`, chain);
+    data = replaceAll(data, chainSearch, chain);
     for (const config of secureMasterConfigs) {
         data = replaceAll(data, config[0], config[1]);
     }

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-NODE_ENV=development yarn ts-node src/install/dockerSecureUpdateSql.ts
+NODE_ENV=development yarn ts-node src/install/dockerSecureUpdateSql.ts -i prepareAttestationClient
 
 exec node dist/src/runAttestationClient.js

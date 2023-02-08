@@ -19,6 +19,8 @@ function terminateOnRetryFailure(label: string) {
 }
 
 async function runIndexer() {
+  getGlobalLogger().info( `^gstarting Indexer ^r${args["chain"].toLowerCase()}`);
+  
   // setup debug trace
   TraceManager.enabled = false;
   traceManager.displayRuntimeTrace = false;

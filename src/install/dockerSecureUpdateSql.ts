@@ -5,7 +5,6 @@ import * as yargs from "yargs";
 import { getSecureValue, initializeJSONsecure, _prepareSecureData } from "../utils/config/jsonSecure";
 import { sleepms } from "../utils/helpers/utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
-import { muteMySQLPasswords } from "./utils";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
@@ -20,6 +19,13 @@ async function run() {
 
     const inputFile = args["input"];
     const nodeName = args["chain"].toUpperCase();
+
+    if (nodeName != "") {
+        logger.info(`^gstarting MYSQL script ^r${inputFile}^g for node ^r${nodeName}`);
+    }
+    else {
+        logger.info(`^gstarting MYSQL script ^r${inputFile}^^`);
+    }
 
     // read configuration
     await initializeJSONsecure(args["defaultSecureConfigPath"], args["network"]);
@@ -44,7 +50,7 @@ async function run() {
             //logger.debug(muteMySQLPasswords(command));
             logger.debug(`connecting to database ${retry}`);
 
-            execSync(command, { windowsHide: true, encoding: "buffer" });
+            execSync(command, { windowsHide: true, encoding: "buffer", stdio: 'ignore'});
             connected = true;
             if (secureLogin) {
                 logger.info(`mysql connected with secure password`);
@@ -59,7 +65,7 @@ async function run() {
             }
             break;
         } catch (error) {
-            logger.error(`unable to connect to database`);
+            logger.error(`unable to connect to database (waiting)`);
             //logger.exception(muteMySQLPasswords(error.message));
         }
         // if login failed - wait a bit for the database docker
@@ -71,17 +77,28 @@ async function run() {
         return;
     }
 
+    logger.info(`^gconnected to database`);
+    logger.info(`running script`);
+
     let lineNumber = 1;
     for (var line of scriptLines) {
         try {
+            if (line.trim() === "") continue;
+
             const command = `mysql -h database -u root -p${password} -e "${line}"`;
-            //logger.debug(muteMySQLPasswords(command));
-            execSync(command, { windowsHide: true, encoding: "buffer" });
+            execSync(command, { windowsHide: true, encoding: "buffer" , stdio: 'ignore'});
+
+            // check is root password changed
+            if (line.startsWith("ALTER USER 'root'@")) {
+                logger.debug(`line ${lineNumber}: change to root password`);
+                password = secureRootPassword;
+            }
         } catch (error) {
-            logger.error(`Error in line: ${lineNumber} while running SQL install script ^w${muteMySQLPasswords(error.message)}`);
+            logger.error(`Error in line: ${lineNumber}`);
         }
         lineNumber++;
     }
+    logger.info(`^gMYSQL script completed`);
 }
 
 // set all global loggers to the chain

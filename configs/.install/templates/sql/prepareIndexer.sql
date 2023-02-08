@@ -7,11 +7,13 @@ CREATE USER '$($(Chain)IndexerReaderUsername)'@'%' IDENTIFIED BY '$($(Chain)Inde
 GRANT SELECT ON $($(Chain)IndexerDatabase).* TO '$($(Chain)IndexerReaderUsername)'@'%';
 
 
-ALTER USER 'root'@'%' IDENTIFIED BY '$(DatabaseRootPassword)';
-
 ALTER USER '$($(Chain)IndexerWriterUsername)'@'$(DatabaseWriteAccessSource)' IDENTIFIED BY '$($(Chain)IndexerWriterPassword)';
 
 ALTER USER '$($(Chain)IndexerReaderUsername)'@'%' IDENTIFIED BY '$($(Chain)IndexerReaderPassword)';
 
+
+FLUSH PRIVILEGES;
+
+ALTER USER 'root'@'%' IDENTIFIED BY '$(DatabaseRootPassword)';
 
 FLUSH PRIVILEGES;

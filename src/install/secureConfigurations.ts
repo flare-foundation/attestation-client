@@ -28,6 +28,7 @@ const outputPath = args["output"];
 interface Configuration {
     name: string;
     files: [];
+    keys:[];
     credentials: string;
 }
 
@@ -79,6 +80,20 @@ async function prepareConfiguration(configuration: Configuration) {
         const keys = collectKeysFromTemplateFile(file);
 
         for (const key of keys) {
+            if (credentialKeys[key] === undefined) {
+                logger.error(`ERROR: key ^w${key}^^ not found in credentials`)
+                continue;
+            }
+            objectKeys[key] = credentialKeys[key];
+
+            keysUsed.set(key, keysUsed.get(key) + 1);
+        }
+    }
+
+    if( configuration.keys ) {
+        logger.info(`adding configurations keys`)
+
+        for (const key of configuration.keys) {
             if (credentialKeys[key] === undefined) {
                 logger.error(`ERROR: key ^w${key}^^ not found in credentials`)
                 continue;

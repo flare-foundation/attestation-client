@@ -4,7 +4,7 @@ services:
   attestation-client:
     image: attestation-suite
     volumes:
-      - ../credentials/attester-client:/app/attestation-suite-config
+      - ../credentials.prepared/attester-client:/app/attestation-suite-config
     container_name: attestation-client-client
     command: attestation-client
     restart: unless-stopped
@@ -16,7 +16,7 @@ services:
   webserver:
     image: attestation-suite
     volumes:
-      - ../credentials/webserver:/app/attester-suite-config
+      - ../credentials.prepared/webserver:/app/attestation-suite-config
     container_name: attestation-client-webserver
     command: webserver
     restart: unless-stopped

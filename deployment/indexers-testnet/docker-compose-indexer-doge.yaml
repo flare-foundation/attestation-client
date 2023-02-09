@@ -4,7 +4,7 @@ services:
   indexer:
     image: attestation-suite
     volumes:
-      - ../credentials/doge-indexer-verifier:/app/attestation-suite-config
+      - ../credentials.prepared/doge-indexer-verifier:/app/attestation-suite-config
     container_name: indexer-doge-indexer
     command: indexer doge
     restart: unless-stopped
@@ -16,13 +16,12 @@ services:
   verification-server:
     image: attestation-suite
     volumes:
-      - ../credentials/doge-indexer-verifier:/app/attestation-suite-config
+      - ../credentials.prepared/doge-indexer-verifier:/app/attestation-suite-config
     container_name: indexer-doge-verification-server
     command: verification-server doge
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: test123
-      APP_BASE_PATH: /verifier/doge
     depends_on:
       - database
     ports:

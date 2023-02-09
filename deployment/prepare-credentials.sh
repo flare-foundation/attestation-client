@@ -1,8 +1,12 @@
 #!/bin/bash
 
-sudo docker run \
-    -v /home/ubuntu/attestation-suite/attestation-client/deployment/credentials2:/app/attestation-suite-config \
-    -v /home/ubuntu/attestation-suite/attestation-client/deployment/credentials2:/app/credentials \
+mkdir -p credentials.prepared
+
+WORKING_DIR="$(pwd)"
+
+docker run -u root --rm \
+    -v $WORKING_DIR/credentials:/app/attestation-suite-config \
+    -v $WORKING_DIR/credentials.prepared:/app/credentials \
     attestation-suite \
     yarn ts-node src/install/secureConfigurations.ts -o ../credentials
 

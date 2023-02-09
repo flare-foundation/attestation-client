@@ -66,8 +66,8 @@ typechain-web3-v1
 .node/
 
 # deployment nodes
-bitcoin.conf
-dogecoin.conf
+deployment/node-configs/testnet/bitcoin/bitcoin.conf
+deployment/node-configs/testnet/dogecoin/dogecoin.conf
 
 # local configs
 # .indexer.remote.dev.read.env

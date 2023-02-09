@@ -16,7 +16,7 @@ export class DBTransactionBase extends BaseEntity {
 
   @Column({ type: "varchar", length: 64 }) @Index() paymentReference: string = "";
 
-  @Column({ type: "longtext" }) response: string = "";
+  @Column({ type: process.env.NODE_ENV === "development" ? "text" : "longtext" }) response: string = "";
 
   @Column() @Index() isNativePayment: boolean = false;
 

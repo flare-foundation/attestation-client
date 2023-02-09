@@ -33,7 +33,7 @@ async function run() {
 }
 
 run()
-    .then(() => process.exit(1))
+    .then(() => process.exit(0))
     .catch((error) => {
         logger.error(error);
         process.exit(1);

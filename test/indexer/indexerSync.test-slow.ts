@@ -4,7 +4,7 @@ import { XrpMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
+import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { DBState } from "../../src/entity/indexer/dbState";
 import { Indexer } from "../../src/indexer/indexer";
@@ -25,10 +25,10 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
     const chainConfig = new ChainConfig();
     chainConfig.name = "XRP";
     chainConfig.mccCreate = XRPMccConnection;
-    const chainsConfig = new ListChainConfig();
-    chainsConfig.chains.push(chainConfig);
 
-    const indexer = new Indexer(config, chainsConfig, "XRP", true);
+    config.chainConfiguration = chainConfig;
+
+    const indexer = new Indexer(config, "XRP", true);
 
     before(async function () {
       await indexer.dbService.connect();

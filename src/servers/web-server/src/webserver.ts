@@ -42,8 +42,8 @@ export async function runWebserver() {
   const configurationService = app.get("SERVER_CONFIG") as ServerConfigurationService;
 
   let port = configurationService.serverCredentials.port;
-  await app.listen(port, () =>
+  await app.listen(port, "0.0.0.0", () =>
     // tslint:disable-next-line:no-console
     // console.log(`Server started listening at http://localhost:${ port }`)
-    logger.info(`Server started listening at http://localhost:${configurationService.serverCredentials.port}`));
+    logger.info(`Server started listening at http://0.0.0.0:${configurationService.serverCredentials.port}`));
 }

@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { afterEach } from "mocha";
 import process from "process";
 import sinon from "sinon";
-import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
+import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionXRP0, DBTransactionXRP1 } from "../../src/entity/indexer/dbTransaction";
@@ -72,14 +72,12 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   describe(`Indexer integration-ish tests`, function () {
     describe("construction", function () {
       const config = new IndexerConfig();
-      const chainConfig = new ChainConfig();
-      chainConfig.name = "XRP";
-      chainConfig.mccCreate = new XrpMccCreate();
-      const chainsConfig = new ListChainConfig();
-      chainsConfig.chains.push(chainConfig);
+      config.chainConfiguration = new ChainConfig();
+      config.chainConfiguration.name = "XRP";
+      config.chainConfiguration.mccCreate = new XrpMccCreate();
 
       it("Should construct indexer", function () {
-        const indexer = new Indexer(config, chainsConfig, "XRP");
+        const indexer = new Indexer(config, "XRP");
         expect(!indexer).to.be.false;
       });
     });
@@ -140,7 +138,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         fake2
       );
 
-      const indexer = new Indexer(null, null, null, null);
+      const indexer = new Indexer(null, null, null);
       indexer.config = config;
       indexer.chainConfig = chainConfig;
       indexer.chainType = ChainType.XRP;

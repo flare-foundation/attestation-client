@@ -26,7 +26,7 @@ class MockSourceRouter extends SourceRouter {
 
 class MockFlareConnection extends FlareConnection {
   constructor(config: AttestationClientConfig, logger: AttLogger) {
-    super(config, logger);
+    super(config, logger, false);
   }
 
   async initialize() {}

@@ -10,6 +10,7 @@
 - `CREDENTIALS_KEY_FILE` -
 - `LOG_LEVEL` -
 - `REQUIRE_ALL_ROUTES_CONFIGURED`
+- `APP_BASE_PATH` - base path for application (base route prefix)
 
 ## Test environment variables
 

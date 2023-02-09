@@ -33,7 +33,7 @@ The ID of the underlying chain, see 'SourceId' enum.
       size: MIC_BYTES,
       type: "ByteSequenceLike",
       description: `
-The hash of the expected attestation response appended by string 'flare'. Used to verify consistency of attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
 `,
     },
     {
@@ -57,7 +57,7 @@ Maximum number of the block where the transaction is searched for.
       size: TIMESTAMP_BYTES,
       type: "NumberLike",
       description: `
-Maximum timestamp of the block where the transaction is searched for. Search range is determined by the bigger of the last block with 'deadlineTimestamp'.
+Maximum timestamp of the block where the transaction is searched for. Search range is determined by the bigger of the 'deadlineBlockNumber' and the last block with 'deadlineTimestamp'.
 `,
     },
     {
@@ -125,15 +125,14 @@ The amount searched for.
       key: "lowerBoundaryBlockNumber",
       type: "uint64",
       description: `
-The first confirmed block that gets checked.
-It is the lowest block in the synchronized query window.
+The first confirmed block that gets checked. It is exactly 'minimalBlockNumber' from the request.
 `,
     },
     {
       key: "lowerBoundaryBlockTimestamp",
       type: "uint64",
       description: `
-Timestamp of the lowerBoundaryBlockNumber.
+Timestamp of the 'lowerBoundaryBlockNumber'.
 `,
     },
     {

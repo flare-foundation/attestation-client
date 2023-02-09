@@ -28,13 +28,15 @@ export async function runWebserver() {
     })
   );
 
+  app.setGlobalPrefix(process.env.APP_BASE_PATH ?? '');
   const config = new DocumentBuilder()
     .setTitle('Attestation Client Public Server')
+    .setBasePath(process.env.APP_BASE_PATH ?? '')
     .setDescription('Public server for attestation client providing data about attestations by round, and attestation status metrics.')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-doc', app, document);
+  SwaggerModule.setup(`${process.env.APP_BASE_PATH ? process.env.APP_BASE_PATH + '/' : ''}api-doc`, app, document);
 
   const logger = getGlobalLogger("web");
   const configurationService = app.get("SERVER_CONFIG") as ServerConfigurationService;

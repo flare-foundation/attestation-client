@@ -502,6 +502,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
             expect(res).to.be.undefined;
           });
 
+          // problems in test:coverage-full
           it("should exit", async function () {
             const stub = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(10);
 
@@ -513,6 +514,8 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
             await expect(indSync.runSync(1)).to.be.rejectedWith("OutsideError");
 
             indexer.chainConfig.blockCollecting = store;
+
+            stub2.restore();
           });
         });
       });

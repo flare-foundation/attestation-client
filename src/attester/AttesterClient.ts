@@ -143,7 +143,7 @@ export class AttesterClient {
 
     // create state connector, bit voting contracts
     this.logger.info(`flare connection initialization`);
-    await this.flareConnection.initialize(this.attestationRoundManager);
+    await this.flareConnection.initialize();
 
     // process configuration
     this.logger.info(`network RPC URL '${this.config.web.rpcUrl}'`);

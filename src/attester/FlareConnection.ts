@@ -56,7 +56,7 @@ export class FlareConnection {
     return label;
   }
 
-  public async initialize(attestationRoundManager: AttestationRoundManager) {
+  public async initialize() {
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.attestationClientConfig.web.stateConnectorContractAddress);
     this.bitVoting = (await getWeb3Contract(this.web3, this.attestationClientConfig.web.bitVotingContractAddress, "BitVoting")) as any as BitVoting;
     this.firstEpochStartTime = parseInt("" + (await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call()), 10);

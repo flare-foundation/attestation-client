@@ -1,3 +1,4 @@
+import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
 
 export class SourceLimiterTypeConfig {
@@ -8,9 +9,8 @@ export class SourceLimiterTypeConfig {
  * Class providing parameters for handling the limitations (maxTotalRoundWeight, ...) of a attestation round for a source
  */
 
-
 export class SourceLimiterConfig {
   source!: SourceId;
   maxTotalRoundWeight!: number;
-  attestationTypes = new Map<number, SourceLimiterTypeConfig>();
+  attestationTypes = new Map<AttestationType, SourceLimiterTypeConfig>();
 }

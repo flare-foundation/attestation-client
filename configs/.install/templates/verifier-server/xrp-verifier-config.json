@@ -19,7 +19,7 @@
       "ReferencedPaymentNonexistence"
    ],
    "indexerDatabase": {
-      "hostname": "$(XRPIndexerDatabaseHost)",
+      "host": "$(XRPIndexerDatabaseHost)",
       "port": $(XRPIndexerDatabasePort),
       "database": "$(XRPIndexerDatabase)",
       "username": "$(XRPIndexerReaderUsername)",

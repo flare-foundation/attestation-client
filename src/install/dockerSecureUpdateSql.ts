@@ -5,6 +5,7 @@ import * as yargs from "yargs";
 import { getSecureValue, initializeJSONsecure, _prepareSecureData } from "../utils/config/jsonSecure";
 import { sleepms } from "../utils/helpers/utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
+import { muteMySQLPasswords } from "./utils";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 

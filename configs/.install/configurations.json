@@ -2,50 +2,36 @@
     "configurations":
     [
         {
-            "name":"btc-indexer",
+            "name":"btc-indexer-verifier",
             "credentials":"direct:t3stPassw0rd!1",
-            "files":["indexer/btc-indexer-config.json"],
+                        "keys":["DatabaseRootPassword","DatabaseWriteAccessSource"],
+            "files":["indexer/btc-indexer-config.json","verifier-server/btc-verifier-config.json"],
         }
         ,
         {
-            "name":"doge-indexer",
+            "name":"doge-indexer-verifier",
             "credentials":"direct:t3stPassw0rd!2",
-            "files":["indexer/doge-indexer-config.json"],
+                        "keys":["DatabaseRootPassword","DatabaseWriteAccessSource"],
+            "files":["indexer/doge-indexer-config.json","verifier-server/doge-verifier-config.json"],
         }
         ,
         {
-            "name":"xrp-indexer",
+            "name":"xrp-indexer-verifier",
             "credentials":"direct:t3stPassw0rd!3",
-            "files":["indexer/xrp-indexer-config.json"],
-        }
-        ,
-        {
-            "name":"btc-verifier",
-            "credentials":"direct:t3stPassw0rd!4",
-            "files":["verifier-server/btc-verifier-config.json"],
-        }
-        ,
-        {
-            "name":"doge-verifier",
-            "credentials":"direct:t3stPassw0rd!5",
-            "files":["verifier-server/doge-verifier-config.json"],
-        }
-        ,
-        {
-            "name":"xrp-verifier",
-            "credentials":"direct:t3stPassw0rd!6",
-            "files":["verifier-server/xrp-verifier-config.json"],
+                        "keys":["DatabaseRootPassword","DatabaseWriteAccessSource"],
+            "files":["indexer/xrp-indexer-config.json","verifier-server/xrp-verifier-config.json"],
         }
         ,
         {
             "name":"attester-client",
             "credentials":"direct:t3stPassw0rd!7",
-            "files":["attester-config.json"],
+            "files":["attester-config.json","sql/prepareAttestationClient.sql","verifier-client/verifier-routes-0-config.json"],
         }
         ,
         {
             "name":"webserver",
             "credentials":"direct:t3stPassw0rd!8",
+                        "keys":["DatabaseRootPassword","DatabaseWriteAccessSource"],
             "files":["webserver-config.json"],
         }
     ]

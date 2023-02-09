@@ -22,6 +22,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: test123
+      APP_BASE_PATH: /verifier/btc
     depends_on:
       - database
     ports:

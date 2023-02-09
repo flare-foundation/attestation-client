@@ -109,6 +109,9 @@ temp
 # dockerication mapping test folder 
 credentials
 
+# deployment
+deployment
+
 # tests
 test/utils/test-data/config/credentials.json.secure
 

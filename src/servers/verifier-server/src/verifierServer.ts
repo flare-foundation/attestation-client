@@ -43,10 +43,10 @@ export async function runVerifierServer() {
   const port = configurationService.config.port;
   logger.info(`Verifier type: ${configurationService.verifierType}`);
 
-  await app.listen(port, undefined, () =>
+  await app.listen(port, "0.0.0.0", () =>
     // tslint:disable-next-line:no-console
     // console.log(`Server started listening at http://localhost:${ port }`)
-    logger.info(`Server started listening at http://localhost:${port}`));
+    logger.info(`Server started listening at http://0.0.0.0:${port}`));
 
-  logger.info(`Websocket server started listening at ws://localhost:${port}`);
+  logger.info(`Websocket server started listening at ws://0.0.0.0:${port}`);
 }

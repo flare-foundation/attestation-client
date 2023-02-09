@@ -5,9 +5,9 @@
     "roundDurationSec": 90,
     "numberOfConfirmations": 1,
     "web": {
-        "accountPrivateKey": "$($(Network)XRPSpammerPrivateKey)",
-        "rpcUrl": "$($(Network)RPC)",
-        "stateConnectorContractAddress": "$($(Network)StateConnectorContractAddress)"
+        "accountPrivateKey": "$(XRPSpammerPrivateKey)",
+        "rpcUrl": "$(RPC)",
+        "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
     },
     "indexerDatabase": {
         "host": "$(IndexerDatabaseHost)",

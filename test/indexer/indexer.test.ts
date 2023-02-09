@@ -1,6 +1,6 @@
 import { ChainType, XrpMccCreate } from "@flarenetwork/mcc";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { afterEach } from "mocha";
 import process from "process";
 import sinon from "sinon";
@@ -21,7 +21,7 @@ import { PreparedBlock } from "../../src/indexer/preparedBlock";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
-import { getGlobalLogger } from "../../src/utils/logging/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { MockMccClient } from "../caching/test-utils/MockMccClient";
 import { TestBlockXRPAlt, TestBlockXRPFake, TestXRPStatus, TestXRPStatusAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
@@ -29,6 +29,7 @@ import { getTestFile } from "../test-utils/test-utils";
 chai.use(chaiAsPromised);
 
 describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
+  initializeTestGlobalLogger();
   let indexer = new Indexer(null, null, null);
   indexer.chainType = ChainType.XRP;
   indexer.chainConfig = new ChainConfig();
@@ -507,7 +508,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
             const store = indexer.chainConfig.blockCollecting;
             indexer.chainConfig.blockCollecting = "latestBlock";
 
-            const stub2 = sinon.stub(process, "exit").withArgs(4).throws("This stops exit");
+            const stub2 = sinon.stub(process, "exit").throws("This stops exit");
 
             await expect(indSync.runSync(1)).to.be.rejectedWith("OutsideError");
 

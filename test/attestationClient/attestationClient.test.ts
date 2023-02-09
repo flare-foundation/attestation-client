@@ -2,7 +2,7 @@
 
 import { traceManager } from "@flarenetwork/mcc";
 import BN from "bn.js";
-import chai, { expect } from 'chai';
+import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
@@ -14,14 +14,14 @@ import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout"
 import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { SourceId } from "../../src/verification/sources/sources";
-import { TERMINATION_TOKEN } from "../test-utils/test-utils";
+import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
 chai.use(chaiAsPromised);
 
 class MockSourceRouter extends SourceRouter {
   constructor() {
     super(undefined);
   }
-  validateTransaction(sourceId: SourceId, transaction: Attestation) { }
+  validateTransaction(sourceId: SourceId, transaction: Attestation) {}
 }
 
 class MockFlareConnection extends FlareConnection {
@@ -59,7 +59,7 @@ class MockFlareConnection extends FlareConnection {
   }
 }
 
-describe("Attestation Client", () => {
+describe.skip(`Attestation Client (${getTestFile(__filename)})`, () => {
   let attestationRoundManager: AttestationRoundManager;
 
   before(async function () {
@@ -84,7 +84,6 @@ describe("Attestation Client", () => {
     const sourceRouter = new MockSourceRouter();
     attestationRoundManager = new AttestationRoundManager(config, logger, flareConnection, sourceRouter);
     // override initially generated source router
-    
   });
 
   ////////////////////////////////

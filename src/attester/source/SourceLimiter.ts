@@ -16,7 +16,7 @@ export class SourceLimiter {
   logger: AttLogger;
 
   // Rate limit weight counter
-  currentRoundWeight = 0;
+  private currentRoundWeight = 0;
 
   constructor(config: SourceLimiterConfig, logger: AttLogger) {
     this.logger = logger;
@@ -27,7 +27,7 @@ export class SourceLimiter {
   /**
    * Checks for rate limit by weighted call limitations.
    * All attestations over the rate limit are rejected with attestation status 'overLimit'.
-   * @param attestation 
+   * @param attestation
    * @returns true if validations should be performed.
    */
   canProceedWithValidation(attestation: Attestation): boolean {

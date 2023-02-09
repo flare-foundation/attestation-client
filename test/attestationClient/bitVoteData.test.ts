@@ -18,7 +18,7 @@ describe(`bitVote Data (${getTestFile(__filename)})`, function () {
   });
 
   it("Should roundCheck", function () {
-    const res = bitVoteData.roundCheck(5);
+    const res = bitVoteData.roundCheck(261);
     assert(res);
   });
 });

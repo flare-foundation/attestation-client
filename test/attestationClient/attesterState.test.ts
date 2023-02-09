@@ -15,6 +15,10 @@ describe(`Attester State (${getTestFile(__filename)})`, function () {
 
   const attesterState = new AttesterState(dataService);
 
+  before(async function () {
+    await dataService.connect();
+  });
+
   it("Should construct AttesterState", function () {
     assert(attesterState);
   });
@@ -24,14 +28,47 @@ describe(`Attester State (${getTestFile(__filename)})`, function () {
     assert(res);
   });
 
-  describe.skip("bitVotes", function () {
+  describe("bitVotes", function () {
     it("Should save voted bit vote", async function () {
       const state = new DBRoundResult();
       state.roundId = 1434;
-      await attesterState.saveRoundBitVoted(15, 1724398, "0xfaketx", "0xfakevote");
-      await attesterState.entityManager.getRepository(DBRoundResult).save(state);
-      const res = await attesterState.entityManager.getRepository(DBRoundResult).findOne({});
-      expect(res.bitVote).to.eq("0xfakevote");
+      await attesterState.saveRoundBitVoted(15, 1724398, "0xfakeTx", "0xfakeVote");
+      const res = await attesterState.entityManager.findOne(DBRoundResult, { where: {} });
+      expect(res.bitVote).to.eq("0xfakeVote");
+    });
+
+    it("Should saveRoundBitVoteResult", async function () {
+      const state = new DBRoundResult();
+      state.roundId = 1434;
+      await attesterState.saveRoundBitVoteResult(15, "0xfakeVoteWin");
+      const res = await attesterState.entityManager.findOne(DBRoundResult, { where: {} });
+      expect(res.bitVoteResult).to.eq("0xfakeVoteWin");
+    });
+
+    it("Should saveRoundCommitted vote", async function () {
+      const state = new DBRoundResult();
+      state.roundId = 1434;
+      await attesterState.saveRoundCommitted(15, 1724398, "0xfakeTxId");
+      const res = await attesterState.entityManager.findOne(DBRoundResult, { where: {} });
+      expect(res.commitTransactionId).to.eq("0xfakeTxId");
+    });
+
+    it("Should saveRoundRevealed vote", async function () {
+      const state = new DBRoundResult();
+      state.roundId = 1434;
+      await attesterState.saveRoundRevealed(15, 1724398, "0xfakeTxIdRev");
+      const res = await attesterState.entityManager.findOne(DBRoundResult, { where: {} });
+      expect(res.revealTransactionId).to.eq("0xfakeTxIdRev");
+    });
+
+    it("Should getRound results", async function () {
+      const res = await attesterState.getRound(15);
+      expect(res.bitVote).to.eq("0xfakeVote");
+    });
+
+    it("Should not getRound results", async function () {
+      const res = await attesterState.getRound(16);
+      expect(res).to.be.undefined;
     });
   });
 });

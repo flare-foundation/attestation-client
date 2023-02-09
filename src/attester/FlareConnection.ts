@@ -32,7 +32,7 @@ export class FlareConnection {
 
   logger: AttLogger;
 
-  constructor(config: AttestationClientConfig, logger: AttLogger) {
+  constructor(config: AttestationClientConfig, logger: AttLogger, initWeb3 = true) {
     // for testing only
     if (process.env.NODE_ENV === "development" && !config) {
       return;
@@ -40,8 +40,10 @@ export class FlareConnection {
 
     this.attestationClientConfig = config;
     this.logger = logger;
-    this.web3 = getWeb3(config.web.rpcUrl) as Web3;
-    this.web3Functions = new Web3Functions(logger, this.web3, config.web);
+    if (initWeb3) {
+      this.web3 = getWeb3(config.web.rpcUrl) as Web3;
+      this.web3Functions = new Web3Functions(logger, this.web3, config.web);
+    }
   }
 
   public get rpc(): string {

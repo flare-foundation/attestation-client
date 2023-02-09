@@ -4,7 +4,7 @@ services:
   indexer:
     image: attestation-suite
     volumes:
-      - ../credentials/btc-indexer-verifier:/app/attestation-suite-config
+      - ../credentials.prepared/btc-indexer-verifier:/app/attestation-suite-config
     container_name: indexer-btc-indexer
     command: indexer btc
     restart: unless-stopped
@@ -16,17 +16,16 @@ services:
   verification-server:
     image: attestation-suite
     volumes:
-      - ../credentials/btc-indexer-verifier:/app/attestation-suite-config
+      - ../credentials.prepared/btc-indexer-verifier:/app/attestation-suite-config
     container_name: indexer-btc-verification-server
     command: verification-server btc
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: test123
-      APP_BASE_PATH: /verifier/btc
     depends_on:
       - database
     ports:
-      - 9501:9500
+      - 9500:9500
 
   database:
     image: mysql:8-debian

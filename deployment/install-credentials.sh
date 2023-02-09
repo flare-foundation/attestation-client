@@ -1,16 +1,22 @@
 #!/bin/bash
 
+mkdir -p credentials
 
-# yarn ts-node src/install/install.ts ../attestation-suite-config/
+WORKING_DIR="$(pwd)"
+USER_UID=$(id -u)
+USER_GID=$(id -g)
 
-mkdir -p credentials2
-
-sudo docker run \
-    -v /home/ubuntu/attestation-suite/attestation-client/deployment/credentials2:/app/attestation-client/credentials \
+docker run -u root --rm \
+    -v $WORKING_DIR/credentials:/app/attestation-client/credentials \
     attestation-suite \
     yarn ts-node src/install/installCredentials.ts 
 
-sudo docker run \
-    -v /home/ubuntu/attestation-suite/attestation-client/deployment/credentials2:/app/attestation-client/credentials \
+docker run -u root --rm \
+    -v $WORKING_DIR/credentials:/app/attestation-client/credentials \
     attestation-suite \
-    cp configs/.install/configurations.json credentials/. 
+    cp configs/.install/configurations.json credentials/
+
+docker run -u root --rm \
+    -v $WORKING_DIR/credentials:/app/attestation-client/credentials \
+    attestation-suite \
+    chown -R $USER_UID:$USER_GID credentials

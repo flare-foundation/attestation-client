@@ -112,6 +112,10 @@ credentials
 # deployment
 deployment
 
+# deployment nodes
+bitcoin.conf
+dogecoin.conf
+
 # tests
 test/utils/test-data/config/credentials.json.secure
 

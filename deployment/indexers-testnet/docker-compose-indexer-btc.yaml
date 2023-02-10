@@ -21,6 +21,7 @@ services:
     command: verification-server btc
     restart: unless-stopped
     environment:
+      APP_BASE_PATH: /verifier/btc
       MYSQL_ROOT_PASSWORD: test123
     depends_on:
       - database

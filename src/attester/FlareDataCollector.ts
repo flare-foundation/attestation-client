@@ -3,11 +3,12 @@ import { sleepms } from "../utils/helpers/utils";
 import { AttesterClient } from "./AttesterClient";
 import { FlareConnection } from "./FlareConnection";
 
+/**
+ * Collects events and blocks from Flare chain.
+ */
 export class FlareDataCollector {
-
   attesterClient: AttesterClient;
   startBlock: number | undefined;
-
 
   refreshEventsMs: number;
   label: string = "";
@@ -24,16 +25,28 @@ export class FlareDataCollector {
     this.label = label;
   }
 
-  get flareConnection(): FlareConnection {
+  /**
+   * Returns the reference to the flare connection object.
+   */
+  private get flareConnection(): FlareConnection {
     return this.attesterClient.attestationRoundManager.flareConnection;
   }
 
-  get logger(): AttLogger {
+  /**
+   * Returns the reference to the logger, provided by AttesterClient.
+   */
+  private get logger(): AttLogger {
     return this.attesterClient.logger;
   }
 
   // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
-  eventComparator(a: any, b: any): number {
+  /**
+   * Comparator for event objects
+   * @param a 
+   * @param b 
+   * @returns 
+   */
+  private eventComparator(a: any, b: any): number {
     if (a.blockNumber < b.blockNumber) return -1;
     if (a.blockNumber > b.blockNumber) return 1;
 

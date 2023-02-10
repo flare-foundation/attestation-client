@@ -9,7 +9,7 @@ import { AbiItem } from "web3-utils";
 import { AttesterClient } from '../../src/attester/AttesterClient';
 import { AttestationClientConfig } from '../../src/attester/configs/AttestationClientConfig';
 import { readSecureConfig } from '../../src/utils/config/configSecure';
-import { getWeb3, relativeContractABIPathForContractName, waitFinalize3Factory } from '../../src/utils/helpers/utils';
+import { getWeb3, relativeContractABIPathForContractName, waitFinalize3Factory } from "../../src/utils/helpers/web3-utils";
 import { StateConnectorTempTran } from '../../typechain-web3-v1/StateConnectorTempTran';
 import { getTestFile } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, VerifierBootstrapOptions, VerifierTestSetups } from '../verification/test-utils/verifier-test-utils';

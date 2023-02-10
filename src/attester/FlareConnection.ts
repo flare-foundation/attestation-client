@@ -8,7 +8,7 @@ import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 import { isValidHexString } from "../choose-subsets-lib/subsets-lib";
 import { EpochSettings } from "../utils/data-structures/EpochSettings";
 import { retry } from "../utils/helpers/promiseTimeout";
-import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/helpers/utils";
+import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { AttLogger } from "../utils/logging/logger";
 import { AttestationRoundManager } from "./AttestationRoundManager";

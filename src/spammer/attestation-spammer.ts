@@ -13,7 +13,7 @@ import { readSecureConfig } from "../utils/config/configSecure";
 import { indexerEntities } from "../utils/database/databaseEntities";
 import { DatabaseService } from "../utils/database/DatabaseService";
 import { getTimeMilli } from "../utils/helpers/internetTime";
-import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/utils";
+import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";

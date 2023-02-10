@@ -6,6 +6,12 @@ import { DBState } from "../../entity/indexer/dbState";
 import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1, DBTransactionLTC0, DBTransactionLTC1, DBTransactionDOGE0, DBTransactionDOGE1, DBTransactionXRP0, DBTransactionXRP1, DBTransactionALGO0, DBTransactionALGO1 } from "../../entity/indexer/dbTransaction";
 
 
+/**
+ * Given a chain name it returns the list of entities (classes) that are relevant for this chain in the 
+ * indexer database.
+ * @param chain 
+ * @returns 
+ */
 export function indexerEntities(chain: string) {
    let entities: any = [DBTransactionBase, DBBlockBase, DBState];
    switch (chain.toLowerCase()) {
@@ -30,6 +36,10 @@ export function indexerEntities(chain: string) {
    return entities;
 }
 
+/**
+ * Returns the list of entities (classes) for the attestation client database.
+ * @returns 
+ */
 export function attesterEntities() {
    return [
       DBAttestationRequest, DBRoundResult, DBVotingRoundResult

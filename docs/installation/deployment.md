@@ -66,6 +66,24 @@ To begin with installation you need to first setup credentials.
 
 ### 3) Update credentials 
 
+
+In file `credentials/configurations.json` are keys used to encrypt the credentials.
+
+Update all `key` variables.
+
+Use:
+ - `direct:password` for direct password.
+ - `GoogleCloudSecretManager:address` for Google Cloud Secret manager
+
+---
+NOTE: It is higly recommended to NOT USE direct passwords for production. 
+---
+
+
+Update `NetworkPrivateKey` variable in `credentials/network-credentials.json`.
+
+Update `<Chain>VerifierRouterClientUrl` variables in `credentials/verifier-client-credentials.json`. The url must be external IP or the machine where the verification servers are hosted. 
+
 ---
 ### 3) Prepare credentials
 After credentials have been setup they must be prepared.
@@ -76,31 +94,10 @@ This is done with the next script:
 ```
 
 This script creates secure credentials in folder `credentials.prepared`.
-Folders from this folder are mapped into dockers.  
-
-
-Update credentials key in file `credentials.key`.
-
-Use:
- - `direct:password` for direct password.
- - `GoogleCloudSecretManager:address` for Google Cloud Secret manager
-
- After all credentials and `credentials.key` are set use next script to encode credentials:
- ```
- yarn ts-node src/install/secureCredentials.ts
- ```
-
- This script creates encrypted `credentials.json.secure` file where all credentials from `*-credentials.json` files.
-
- ---
-For deployment on Attesttaion Suite machine only:
+For every configuration it encrypted configuration and credentials key prepares:
 - `credentials.json.secure`
 - `credentials.key`
-files are needed (in `../attestation-suite-config/` folder). 
-
- ---
- It is strongly suggested to do this credentials on some super secure machine, and to use GoogleCloudSecretManager.
-
+- all additional config files specified in `configurations.json`
 
 ---
 ### 4) Install

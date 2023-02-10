@@ -1,0 +1,23 @@
+
+
+services:
+  nginx:
+    image: nginx:1.23
+    container_name: nginx
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ../nginx-config/default-init.conf:/etc/nginx/conf.d/default.conf
+      - nginx-letsencrypt-certs:/etc/letsencrypt/
+      - nginx-letsencrypt-www:/var/www/certbot/
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - nginx-letsencrypt-certs:/etc/letsencrypt/
+      - nginx-letsencrypt-www:/var/www/certbot/
+
+
+volumes:
+  nginx-letsencrypt-certs:
+  nginx-letsencrypt-www:

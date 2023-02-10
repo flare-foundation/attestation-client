@@ -202,17 +202,18 @@
       "src/indexed-query-manager/random-attestation-requests/**/*.*",
       "src/install/**/*.*",
       "src/servers/web-server/src/dtos/**/*.*",
+      "src/servers/verifier-server/src/dto/**/*.*",
       "src/spammer/**/*.*",
       "src/verification/codegen/**/*.*",
-      "src/webserver/**/*.*",
       "src/indexed-query-manager/indexed-query-manager-types.ts",
       "src/entity/**/*.*",
-      "src/utils/instanciate.ts",
       "src/scripts/**/*.*",
       "src/state-collector-finalizer/**/*.*",
       "src/run*.ts",
       "src/monitor/**/*.*",
-      "src/**/main.ts"
+      "src/**/main.ts",
+      "src/utils/monitoring/**/*.*",
+      "src/attester/experimental/**/*.*"
     ],
     "reporter": [
       "html",

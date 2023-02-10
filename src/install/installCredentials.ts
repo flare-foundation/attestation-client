@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import * as yargs from "yargs";
-import { getCryptoSafeRandom } from "../utils/helpers/utils";
+import { getCryptoSafeRandom } from "../utils/helpers/crypto-utils";
 import { getGlobalLogger } from "../utils/logging/logger";
 
 const args = yargs

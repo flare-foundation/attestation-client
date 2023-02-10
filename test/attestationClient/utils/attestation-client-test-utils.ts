@@ -13,7 +13,7 @@ import { ServerConfigurationService } from "../../../src/servers/web-server/src/
 import { WebServerModule } from "../../../src/servers/web-server/src/web-server.module";
 import { readSecureConfig } from "../../../src/utils/config/configSecure";
 import { readJSONfromFile } from "../../../src/utils/config/json";
-import { getWeb3, relativeContractABIPathForContractName } from "../../../src/utils/helpers/utils";
+import { getWeb3, relativeContractABIPathForContractName } from "../../../src/utils/helpers/web3-utils";
 import { AttLogger, getGlobalLogger } from "../../../src/utils/logging/logger";
 import { BitVoting } from "../../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../../typechain-web3-v1/StateConnectorTempTran";

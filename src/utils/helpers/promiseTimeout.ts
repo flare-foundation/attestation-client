@@ -88,9 +88,16 @@ export async function retryMany(
   return Promise.all(functs.map((funct) => retry(label, funct, timeoutTime, numRetries, backOffTime)));
 }
 
-export function safeCatch<T>(label: string, funct: any) {
+/**
+ * Catches an error of a (possibly) async function call and logs it.
+ * The care is taken that exception is not thrown out.
+ * Use this with care.
+ * @param label 
+ * @param funct 
+ */
+export async function catchErrorAndJustLog<T>(label: string, funct: any) {
   try {
-    funct();
+    await funct();
   } catch (error) {
     logException(error, label);
   }

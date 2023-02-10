@@ -8,6 +8,7 @@ import { AttestationRoundManager } from "./AttestationRoundManager";
 import { FlareConnection } from "./FlareConnection";
 import { FlareDataCollector } from "./FlareDataCollector";
 import { criticalAsync } from "../indexer/indexer-utils";
+import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 
 /**
  * Implementation of the attestation client.
@@ -80,6 +81,7 @@ export class AttesterClient {
     try {
       // handle Attestation Request
       if (event.event === "AttestationRequest") {
+        // if attestation request is not well formatted, exception is thrown (event is ignored)
         const attestationData = new AttestationData(event);
 
         // eslint-disable-next-line
@@ -89,7 +91,7 @@ export class AttesterClient {
       }
     } catch (error) {
       // attestation request is non-parsable. It is ignored      
-      logException(error, `${this.label}processEvent(AttestationRequest) - unparsable attestation request`);
+      logException(error, `${this.label}processEvent(AttestationRequest) - unparsable attestation request: ${(event as AttestationRequest)?.returnValues?.data}`);
     }
 
     try {

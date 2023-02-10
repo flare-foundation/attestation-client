@@ -1,23 +1,16 @@
 {
     // epoch start time in unix time
-    "firstEpochStartTime":1636070400,
+    "firstEpochStartTime": 1636070400,
     // epoch duration in seconds
     "roundDurationSec": 90,
-
     // DAC - Dynamic Attestation Configuration folder
     "dynamicAttestationConfigurationFolder": "./configs/dac/",
-    
-   // commit time in seconds, actual commit time is: epoch start + 2 * epoch duration + commit time (should be negative)
-   "commitTimeSec": -10,
-
-   // bit vote time in seconds relative to: epoch start + epoch duration + bit vote window + bitVoteTimeSec
-   "bitVoteTimeSec": -10,
-
-   // time to forcebely close bit voting: epoch start + epoch duration + bit vote window + forceCloseBitVotingSec
-   "forceCloseBitVotingSec": 10,
-
-   "submitCommitFinalize": false,
-   
+    // commit time in seconds, actual commit time is: epoch start + 2 * epoch duration + commit time (should be negative)
+    "commitTimeSec": -10,
+    // bit vote time in seconds relative to: epoch start + epoch duration + bit vote window + bitVoteTimeSec
+    "bitVoteTimeSec": -10,
+    // time to forcebely close bit voting: epoch start + epoch duration + bit vote window + forceCloseBitVotingSec
+    "forceCloseBitVotingSec": 10,
     "web": {
         "accountPrivateKey": "$(NetworkPrivateKey)",
         "rpcUrl": "$(RPC)",
@@ -27,13 +20,6 @@
         //"gasLimit": "2500000",
         //"gasPrice": "300000000000",
     },
-    // "indexerDatabase": {
-    //     "host": "$(IndexerDatabaseHost)",
-    //     "port": $(IndexerDatabasePort),
-    //     "database": "$(IndexerDatabase)",
-    //     "username": "$(IndexerReaderUsername)",
-    //     "password": "$(IndexerReaderPassword)"
-    // },
     "attesterDatabase": {
         "host": "$(AttesterDatabaseHost)",
         "port": $(AttesterDatabasePort),

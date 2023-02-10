@@ -1,5 +1,6 @@
 import { toBN } from "@flarenetwork/mcc";
 import BN from "bn.js";
+import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 import { getAttestationTypeAndSource } from "../verification/generated/attestation-request-parse";
 import { AttestationType } from "../verification/generated/attestation-types-enum";
 import { SourceId } from "../verification/sources/sources";
@@ -18,15 +19,16 @@ export class AttestationData {
   blockNumber: BN;
   logIndex: number;
 
-  constructor(event?: any) {    
+  constructor(event?: AttestationRequest) {
     if (!event) return;
 
     this.timeStamp = toBN(event.returnValues.timestamp);
     this.request = event.returnValues.data;
 
+    // if error at parsing, exception is thrown
     const { attestationType, sourceId } = getAttestationTypeAndSource(this.request);
 
-    // if parsing is not successful, null is set for both values
+    // values are parsed. Note that these may not be valid attestation types
     this.type = attestationType;
     this.sourceId = sourceId;
 

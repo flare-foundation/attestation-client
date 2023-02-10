@@ -1,4 +1,5 @@
 import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
+import { BitVote } from "../../typechain-web3-v1/BitVoting";
 
 /**
  * Choose Round data event emitted by attestation providers when they choose which requests can be attested to
@@ -8,7 +9,7 @@ export class BitVoteData {
   timestamp: number;
   data: string;
 
-  constructor(event?: any) {
+  constructor(event?: BitVote) {
     if (!event) return;
     this.sender = event.returnValues.sender;
     this.timestamp = parseInt(event.returnValues.timestamp, 10);

@@ -5,7 +5,7 @@ import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { afterEach } from "mocha";
 import sinon from "sinon";
-import { failureCallback, getRetryFailureCallback, retry, safeCatch, setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
+import { failureCallback, getRetryFailureCallback, retry, catchErrorAndJustLog, setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 import * as loggers from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 
@@ -78,7 +78,7 @@ describe(`promiseTimeout  ${getTestFile(__filename)})`, function () {
 
   it("Should safeCatch execute", function () {
     const fake = sinon.fake();
-    safeCatch("something alse", fake);
+    catchErrorAndJustLog("something alse", fake);
     expect(fake.called).to.be.true;
   });
 
@@ -88,7 +88,7 @@ describe(`promiseTimeout  ${getTestFile(__filename)})`, function () {
       throw new Error("wrong");
     }
 
-    safeCatch("something else", fake1);
+    catchErrorAndJustLog("something else", fake1);
     expect(stub.calledOnce).to.be.true;
   });
 });

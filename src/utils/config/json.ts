@@ -2,7 +2,6 @@ import { parser as theParser } from 'clarinet';
 import fs from "fs";
 import { getGlobalLogger } from '../logging/logger';
 
-
 /**
    * Extract a detailed JSON parse error 
    * using https://github.com/dscape/clarinet
@@ -68,7 +67,6 @@ export function readJSONfromString<T>(data: string, parser: any = null, validate
 
   if (validate) {
     const validateRes = getJSONParseError(data);
-
     if (validateRes) {
       getGlobalLogger().error(`readJSON error ^r^W${validateRes.message}^^ file ^e${filename}^w@${validateRes.line}^^ (snippet ^w^K${validateRes.snippet}^^)`);
       throw new Error(`error parsing json file ${filename}@${validateRes.line}: ${validateRes.message}`);
@@ -76,7 +74,6 @@ export function readJSONfromString<T>(data: string, parser: any = null, validate
   }
 
   const res = JSON.parse(data, parser) as T;
-
   return res;
 }
 
@@ -90,7 +87,6 @@ export function readJSONfromString<T>(data: string, parser: any = null, validate
  */
 export function readJSONfromFile<T>(filename: string, parser: any = null, validate = false): T {
   let data = fs.readFileSync(filename).toString();
-
   return readJSONfromString<T>(data, parser, validate, filename);
 }
 

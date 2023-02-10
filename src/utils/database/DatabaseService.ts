@@ -4,7 +4,9 @@ import { AttLogger } from "../logging/logger";
 import { DatabaseConnectOptions } from "./DatabaseConnectOptions";
 
 /**
- * DatabaseService for storing the attestation data and indexer data
+ * DatabaseService class for managing the connection to a database.  It creates TypeORM connection and provides relevant entity manager class.
+ * It supports two databases, MySQL and better-sqlite3. The latter is 
+ * used for testing purposes only.
  */
 export class DatabaseService {
   private logger!: AttLogger;
@@ -15,7 +17,7 @@ export class DatabaseService {
 
   private options: DatabaseConnectOptions;
 
-  isSqlite3 = false;
+  private _isSqlite3 = false;
 
   public constructor(
     logger: AttLogger,
@@ -36,10 +38,8 @@ export class DatabaseService {
 
     const entities = process.env.NODE_ENV === "development" ? `src/entity/${path}**/*.ts` : `dist/src/entity/${path}**/*.js`;
 
-    const migrations = process.env.NODE_ENV === "development" ? `src/migration/${this.databaseName}*.ts` : `dist/src/migration/${this.databaseName}*.js`;
-
     if (process.env.NODE_ENV === "development" && (testDBPath || this.options.inMemory || this.options.testSqlite3DBPath !== "")) {
-      this.isSqlite3 = true;
+      this._isSqlite3 = true;
 
       let dbPath: string | undefined = undefined;
       if (testDBPath && typeof testDBPath === "string") {
@@ -69,7 +69,6 @@ export class DatabaseService {
         password: this.options.password,
         database: this.options.database,
         entities: this.options.entities ?? [entities],
-        // migrations: this.options.migrations ?? [migrations],
         synchronize: this.options.synchronize ?? false,
         logging: this.options.logging ?? false,
       } as MysqlConnectionOptions;
@@ -79,6 +78,9 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Initializes the database connection.
+   */
   public async connect() {
     this.logger.info(
       `^Yconnecting to database ^g^K${this.options.database}^^ at ${this.options.host} on port ${this.options.port} as ${this.options.username} (^W${process.env.NODE_ENV}^^)`
@@ -88,6 +90,17 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Returns true if the database used is Sqlite3 (better-sqlite3).
+   */
+  get isSqlite3() {
+    return this._isSqlite3
+  }
+
+  /**
+   * Returns entity manager class if it exists.
+   * Otherwise exception is thrown.
+   */
   public get manager() {
     if (this.dataSource.manager) return this.dataSource.manager;
     throw Error(`no database connection ${this.databaseName}`);

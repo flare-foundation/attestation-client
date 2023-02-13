@@ -9,6 +9,8 @@ Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
 Environment=LOG_PATH=./logs/coston2
 Environment=SECURE_CONFIG_NETWORK=Coston2
+Environment=SECURE_CONFIG_PATH=credentials.prepared/webserver
+
 
 WorkingDirectory=/home/ubuntu/attestation-suite/attestation-client
 

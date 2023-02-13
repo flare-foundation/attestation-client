@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./scripts/install-config.sh
+source ./scripts/install-credentials.sh
 
 # install dependencies and compile 1st (needed to crate initial credentials)
 source ./scripts/install-dependencies.sh

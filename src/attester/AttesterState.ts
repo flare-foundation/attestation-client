@@ -1,11 +1,11 @@
 import { retry } from "@flarenetwork/mcc";
-import { DBRoundResult } from "../entity/attester/dbRoundResult";
-import { getGlobalLogger, logException } from "../utils/logging/logger";
-import { getUnixEpochTimestamp } from "../utils/helpers/utils";
-import { AttestationRound } from "./AttestationRound";
 import _ from "lodash";
 import { EntityManager } from "typeorm";
+import { DBRoundResult } from "../entity/attester/dbRoundResult";
 import { DatabaseService } from "../utils/database/DatabaseService";
+import { getUnixEpochTimestamp } from "../utils/helpers/utils";
+import { getGlobalLogger, logException } from "../utils/logging/logger";
+import { AttestationRound } from "./AttestationRound";
 
 
 /**
@@ -27,10 +27,10 @@ async function Upsert<T>(
 ) {
   const keys: string[] = _.difference(_.keys(obj), opts?.do_not_upsert ?? []);
 
-  if (process.env.NODE_ENV === "development" && opts?.isSqlite3) {
-    // Some issues with orUpdate on better-sqlite3
+  if (!process.env.UBUNTU_MYSQL) {
     await entityManager.getRepository(DBRoundResult).save(obj);
   } else {
+    // ubuntu MYSQL .save sometimes fails 
     await entityManager
       .createQueryBuilder()
       .insert()

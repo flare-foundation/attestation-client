@@ -10,6 +10,7 @@ Environment=NODE_ENV=production
 Environment=LOG_PATH=./logs/coston
 Environment=SECURE_CONFIG_NETWORK=Coston
 
+
 WorkingDirectory=/home/ubuntu/attestation-suite/attestation-client/
 
 [Install]

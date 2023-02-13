@@ -103,5 +103,6 @@ test/utils/test-data/config/credentials.json.secure
 
 # dockerication mapping test folder 
 credentials
+credentials.prepared
 prepare.secure
 

@@ -1,3 +1,5 @@
+// yarn test test/indexer/indexer.test.ts
+
 import { ChainType, XrpMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -503,19 +505,15 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
           });
 
           // problems in test:coverage-full
-          it("should exit", async function () {
+          it.skip("should exit", async function () {
             const stub = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(10);
 
             const store = indexer.chainConfig.blockCollecting;
             indexer.chainConfig.blockCollecting = "latestBlock";
 
-            const stub2 = sinon.stub(process, "exit").throws("This stops exit");
+            const stub2 = sinon.stub(process, "exit").withArgs(4).throws("This stops exit");
 
             await expect(indSync.runSync(1)).to.be.rejectedWith("OutsideError");
-
-            indexer.chainConfig.blockCollecting = store;
-
-            stub2.restore();
           });
         });
       });

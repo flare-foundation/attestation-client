@@ -266,11 +266,7 @@ export class AttestationRoundManager {
     this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound!.startChoosePhase(), activeRound.roundChooseStartTimeMs - now);
 
     // trigger sending bit vote result
-    this.schedule(
-      `${this.label}schedule:bitVote`,
-      async () => await activeRound!.bitVote(),
-      activeRound.roundCommitStartTimeMs + this.attestationClientConfig.bitVoteTimeSec * 1000 - now
-    );
+    this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound!.bitVote(), activeRound.roundBitVoteTimeMs - now);
 
     // trigger forced closing of bit voting and vote count
     this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound!.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);

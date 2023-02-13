@@ -23,7 +23,7 @@ import { SourceRouter } from "./source/SourceRouter";
 import { AttestationStatus } from "./types/AttestationStatus";
 
 /**
- * Manages attestation rounds (AttestationRound). This includes initiating them, scheduling actions and passing attestations to 
+ * Manages attestation rounds (AttestationRound). This includes initiating them, scheduling actions and passing attestations to
  * attestation rounds for further processing.
  */
 @Managed()
@@ -46,29 +46,25 @@ export class AttestationRoundManager {
 
   // debugCallbacks: AttestationClientDebugCallbacks;
 
-  constructor(
-    config: AttestationClientConfig,
-    logger: AttLogger,
-    flareConnection: FlareConnection,
-    sourceRouter?: SourceRouter
-  ) {
+  constructor(config: AttestationClientConfig, logger: AttLogger, flareConnection: FlareConnection, sourceRouter?: SourceRouter) {
     this.attestationClientConfig = config;
     this.logger = logger;
     this.flareConnection = flareConnection;
 
     this.sourceRouter = sourceRouter ?? new SourceRouter(this);
-    this.globalConfigManager = new GlobalConfigManager(this);
+    this.globalConfigManager = new GlobalConfigManager(this.attestationClientConfig, this.activeRoundId, this.logger);
   }
 
   get activeRoundId(): number {
     if (this._activeRoundId === undefined) {
-      throw new Error("activeRoundId not defined")
+      throw new Error("activeRoundId not defined");
     }
     return this._activeRoundId;
   }
 
   set activeRoundId(value: number) {
     this._activeRoundId = value;
+    this.globalConfigManager.activeRoundId = value;
   }
 
   get epochSettings(): EpochSettings {
@@ -79,7 +75,7 @@ export class AttestationRoundManager {
   }
 
   get label() {
-    let label = ""
+    let label = "";
     if (this.attestationClientConfig.label != "none") {
       label = `[${this.attestationClientConfig.label}]`;
     }
@@ -102,8 +98,8 @@ export class AttestationRoundManager {
     this.dbServiceAttester = new DatabaseService(
       this.logger,
       {
-      ...this.attestationClientConfig.attesterDatabase,
-      entities: attesterEntities(),
+        ...this.attestationClientConfig.attesterDatabase,
+        entities: attesterEntities(),
         synchronize: true,
       },
       "attester"
@@ -116,7 +112,7 @@ export class AttestationRoundManager {
 
     this.attesterState = new AttesterState(this.dbServiceAttester);
 
-    // eslint-disable-next-line    
+    // eslint-disable-next-line
     criticalAsync("startRoundUpdate", async () => {
       await this.startRoundUpdate();
     });
@@ -147,8 +143,8 @@ export class AttestationRoundManager {
 
   /**
    * Gets the source handler configuration for a given @param name
-   * @param name 
-   * @returns 
+   * @param name
+   * @returns
    */
   getSourceLimiterConfig(name: string): SourceLimiterConfig {
     return this.globalConfigManager.getSourceLimiterConfig(toSourceId(name), this.activeRoundId);
@@ -183,8 +179,8 @@ export class AttestationRoundManager {
 
   /**
    * Schedules a callback for delayed time
-   * @param label 
-   * @param callback 
+   * @param label
+   * @param callback
    * @param after - delayed time in ms
    */
   schedule(label: string, callback: () => void, after: number) {
@@ -196,18 +192,18 @@ export class AttestationRoundManager {
   private initRoundSampler(activeRound: AttestationRound, roundStartTime: number, windowDuration: number, roundCommitStartTime: number) {
     const intervalId = setInterval(
       () => {
-      const now = getTimeMilli();
-      if (now > roundCommitStartTime) {
-        clearInterval(intervalId);
-      }
-      const eta = (windowDuration - (now - roundStartTime)) / 1000;
-      if (eta >= 0) {
-        this.logger.debug(
+        const now = getTimeMilli();
+        if (now > roundCommitStartTime) {
+          clearInterval(intervalId);
+        }
+        const eta = (windowDuration - (now - roundStartTime)) / 1000;
+        if (eta >= 0) {
+          this.logger.debug(
             `${this.label}!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${
               activeRound.attestations.length
-          }  `
-        );
-      }
+            }  `
+          );
+        }
       },
       process.env.TEST_SAMPLING_REQUEST_INTERVAL ? parseInt(process.env.TEST_SAMPLING_REQUEST_INTERVAL, 10) : 5000
     );
@@ -216,7 +212,7 @@ export class AttestationRoundManager {
   /**
    * Gets the attestation round for a given @param epochId.
    * If the attestation round does not exist, it gets created, initialized and registered.
-   * @param roundId 
+   * @param roundId
    * @returns attestation round for given @param roundId
    */
   getRoundOrCreateIt(roundId: number): AttestationRound {
@@ -236,7 +232,7 @@ export class AttestationRoundManager {
       return MOCK_NULL_WHEN_TESTING;
     }
 
-    // check if verifier router exists for this round id. 
+    // check if verifier router exists for this round id.
     const verifier = this.globalConfigManager.getVerifierRouter(roundId);
 
     // If no verifier, round cannot be evaluated - critical error.
@@ -270,7 +266,11 @@ export class AttestationRoundManager {
     this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound!.startChoosePhase(), activeRound.roundChooseStartTimeMs - now);
 
     // trigger sending bit vote result
-    this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound!.bitVote(), activeRound.roundCommitStartTimeMs + (this.attestationClientConfig.bitVoteTimeSec * 1000) - now);
+    this.schedule(
+      `${this.label}schedule:bitVote`,
+      async () => await activeRound!.bitVote(),
+      activeRound.roundCommitStartTimeMs + this.attestationClientConfig.bitVoteTimeSec * 1000 - now
+    );
 
     // trigger forced closing of bit voting and vote count
     this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound!.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
@@ -285,7 +285,11 @@ export class AttestationRoundManager {
     this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound!.startRevealPhase(), activeRound.roundRevealStartTimeMs - now);
 
     // trigger reveal
-    this.schedule(`${this.label}schedule:reveal`, () => activeRound!.reveal(), activeRound.roundCompleteTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now);
+    this.schedule(
+      `${this.label}schedule:reveal`,
+      () => activeRound!.reveal(),
+      activeRound.roundCompleteTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
+    );
 
     // trigger end of reveal epoch, cycle is completed at this point
     this.schedule(`${this.label}schedule:completed`, () => activeRound!.completed(), activeRound.roundCompleteTimeMs - now);
@@ -300,7 +304,11 @@ export class AttestationRoundManager {
       prevRound.nextRound = activeRound;
     } else {
       // trigger first commit
-      this.schedule(`${this.label}schedule:firstCommit`, () => activeRound!.firstCommit(), activeRound.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now);
+      this.schedule(
+        `${this.label}schedule:firstCommit`,
+        () => activeRound!.firstCommit(),
+        activeRound.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
+      );
     }
 
     return activeRound;
@@ -309,8 +317,8 @@ export class AttestationRoundManager {
   /**
    * Accepts the attestation request event.
    * Creates an attestation from attestation data and adds it to the active round
-   * @param attestationData 
-   * @returns 
+   * @param attestationData
+   * @returns
    */
   public async onAttestationRequest(attestationData: AttestationData) {
     const epochId: number = this.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
@@ -345,10 +353,10 @@ export class AttestationRoundManager {
 
   /**
    * Creates attestation from the round and data.
-   * If no verifier router exist for the 
+   * If no verifier router exist for the
    * @param roundId
-   * @param data 
-   * @returns 
+   * @param data
+   * @returns
    */
   createAttestation(roundId: number, data: AttestationData): Attestation {
     const attestation = new Attestation(roundId, data);

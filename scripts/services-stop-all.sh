@@ -4,16 +4,12 @@ source ./scripts/install-config.sh
 if $ENABLE_INDEXER; then
     systemctl --user stop indexer-xrp.service
     systemctl --user stop indexer-btc.service
-    systemctl --user stop indexer-ltc.service
-    systemctl --user stop indexer-algo.service
     systemctl --user stop indexer-doge.service
 fi
 
 if $INSTALL_VERIFIER; then
     systemctl --user stop verifier-xrp
     systemctl --user stop verifier-btc
-    systemctl --user stop verifier-ltc
-    systemctl --user stop verifier-algo
     systemctl --user stop verifier-doge
 fi
 

@@ -4,25 +4,29 @@ import { getTimeSec } from "../helpers/internetTime";
 
 /**
  * Class for storing the settings of epochs. Current length of an epoch is 90 seconds.
- * For the connection between rounds and epoches see Attestation-protocol.md
+ * For the connection between rounds and epochs see Attestation-protocol.md
  * Values for construction must be given in seconds.
  */
 export class EpochSettings {
   private _firstEpochStartTimeMs: BN;
-  private _epochPeriodMs: BN; 
-  private _bitVoteWindowDurationMs?: BN; 
+  private _epochPeriodMs: BN;
+  private _bitVoteWindowDurationMs?: BN;
 
   // all values are in seconds
   constructor(_firstEpochStartTimeSec: BN, _epochPeriodSec: BN, _bitVoteWindowDurationSec?: BN) {
     this._firstEpochStartTimeMs = _firstEpochStartTimeSec.mul(toBN(1000));
     this._epochPeriodMs = _epochPeriodSec.mul(toBN(1000));
-    if(_bitVoteWindowDurationSec !== undefined) {
+    if (_bitVoteWindowDurationSec !== undefined) {
       this._bitVoteWindowDurationMs = _bitVoteWindowDurationSec.mul(toBN(1000));
     }
   }
 
   getEpochLengthMs(): BN {
     return this._epochPeriodMs;
+  }
+
+  getBitWoteDurationMs(): BN {
+    return this._bitVoteWindowDurationMs;
   }
 
   getEpochIdForTime(timeInMillis: BN): BN {
@@ -37,26 +41,26 @@ export class EpochSettings {
 
   /**
    * Given time @param timeSec in seconds, it determines the epoch of the time and
-   * checks if it is within the bit voting deadline. 
-   * @param timeSec 
+   * checks if it is within the bit voting deadline.
+   * @param timeSec
    * @returns If the time is within the bit voting deadline, the epoch id is returned.
    * Otherwise 'undefined' is returned.
    */
   getEpochIdForBitVoteTimeSec(timeSec: number): number | undefined {
     let timeMs = toBN(timeSec).mul(toBN(1000));
     let epochId = this.getEpochIdForTime(timeMs);
-    let epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs))
+    let epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs));
     let offset = timeMs.sub(epochStartTime);
-    if(offset.lte(this._bitVoteWindowDurationMs)) {
+    if (offset.lte(this._bitVoteWindowDurationMs)) {
       return epochId.toNumber();
     }
     return undefined;
   }
-  
+
   getOffsetInBufferWindow(timeSec: number) {
     let epochId = this.getEpochIdForTimeSec(timeSec);
-    return timeSec - Math.round(this._firstEpochStartTimeMs.toNumber()/1000) + epochId * Math.round(this._epochPeriodMs.toNumber()/1000);
-  } 
+    return timeSec - Math.round(this._firstEpochStartTimeMs.toNumber() / 1000) + epochId * Math.round(this._epochPeriodMs.toNumber() / 1000);
+  }
 
   /**
    * Gets the id of the current epoch. It is the same as the id of the round that is currently in the request phase

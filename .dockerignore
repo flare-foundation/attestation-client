@@ -108,6 +108,7 @@ temp
 
 # dockerication mapping test folder 
 credentials
+credentials.prepared
 
 # deployment
 deployment

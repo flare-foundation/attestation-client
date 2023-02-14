@@ -6,7 +6,6 @@ import { AttestationRound } from "../../src/attester/AttestationRound";
 import { AttesterState } from "../../src/attester/AttesterState";
 import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
 import { GlobalAttestationConfig } from "../../src/attester/configs/GlobalAttestationConfig";
-import { FlareConnection } from "../../src/attester/FlareConnection";
 import { GlobalConfigManager } from "../../src/attester/GlobalConfigManager";
 import { EpochSettings } from "../../src/utils/data-structures/EpochSettings";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
@@ -16,6 +15,7 @@ import { getTestFile } from "../test-utils/test-utils";
 import sinon from "sinon";
 import { creatBlankBitVoteEvent } from "./utils/createEvents";
 import { BitVoteData } from "../../src/attester/BitVoteData";
+import { MockFlareConnection } from "./utils/mockFlareConnect";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -31,7 +31,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   const epochSettings = new EpochSettings(toBN(123), toBN(90), toBN(45));
   const attesterState = new AttesterState(dbService);
 
-  let flareConnection: FlareConnection;
+  let flareConnection = new MockFlareConnection(attestationClientConfig, getGlobalLogger());
 
   let activeGlobalConfig: GlobalAttestationConfig;
 

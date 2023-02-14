@@ -26,24 +26,27 @@ export async function runVerifierServer() {
     })
   );
 
+  app.setGlobalPrefix(process.env.APP_BASE_PATH ?? '');
   const config = new DocumentBuilder()
     .setTitle(`Verifier and indexer server (${process.env.VERIFIER_TYPE?.toUpperCase()})`)
     .setDescription('Verifier and indexer server over an indexer database.')
+    .setBasePath(process.env.APP_BASE_PATH ?? '')
     .addApiKey({ type: 'apiKey', name: 'X-API-KEY', in: 'header' }, 'X-API-KEY')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-doc', app, document);
+  SwaggerModule.setup(`${process.env.APP_BASE_PATH ? process.env.APP_BASE_PATH + '/' : ''}api-doc`, app, document);
+
   const logger = getGlobalLogger("web");
   const configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
 
   const port = configurationService.config.port;
   logger.info(`Verifier type: ${configurationService.verifierType}`);
 
-  await app.listen(port, undefined, () =>
+  await app.listen(port, "0.0.0.0", () =>
     // tslint:disable-next-line:no-console
     // console.log(`Server started listening at http://localhost:${ port }`)
-    logger.info(`Server started listening at http://localhost:${port}`));
+    logger.info(`Server started listening at http://0.0.0.0:${port}`));
 
-  logger.info(`Websocket server started listening at ws://localhost:${port}`);
+  logger.info(`Websocket server started listening at ws://0.0.0.0:${port}`);
 }

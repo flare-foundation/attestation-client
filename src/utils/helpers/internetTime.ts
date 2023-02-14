@@ -6,6 +6,7 @@ const timeSync = 0;
  */
 export function getTimeMilli() {
   const now = new Date().getTime();
+  // Test purposes only
   if (process.env.NODE_ENV === "development") {
     if (process.env.TEST_OFFSET_TIME) {
       let offset = parseInt('' + process.env.TEST_OFFSET_TIME, 10);

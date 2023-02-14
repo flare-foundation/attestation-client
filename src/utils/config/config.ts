@@ -18,6 +18,7 @@ const DEFAULT_DEBUG_CONFIG_PATH = "dev";
  * 
  * `NODE_ENV` env variables controls default path (if mode or path modifiers are not used).
  * 
+ * NOTE: used for un-encrypted credential and test purposes only!
  * @param project project name 
  * @param type configuration type (config, cretentials)
  * @param mode additional path mode modifier
@@ -64,7 +65,8 @@ export function readConfigBase<T extends IReflection<T>>(project: string, type: 
 }
 
 /**
- * Helper class for `readConfigBase` to read `config`.
+ * Typed helper wrapper for for `readConfigBase` to read `config`.
+ * NOTE: Reads un-encrypted configuration. To be used only for testing!
  * @param obj 
  * @param project 
  * @param mode 
@@ -73,16 +75,4 @@ export function readConfigBase<T extends IReflection<T>>(project: string, type: 
  */
 export function readConfig<T extends IReflection<T>>(obj: T, project: string, mode: string = undefined, userPath: string = undefined): T {
   return readConfigBase<T>(project, "config", mode, userPath, obj);
-}
-
-/**
- * Helper class for `readConfigBase` to read `credentials`.
- * @param obj 
- * @param project 
- * @param mode 
- * @param userPath 
- * @returns 
- */
-export function readCredentials<T extends IReflection<T>>(obj: T, project: string, mode: string = undefined, userPath: string = undefined): T {
-  return readConfigBase<T>(project, "credentials", mode, userPath, obj);
 }

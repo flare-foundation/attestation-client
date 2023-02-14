@@ -1,9 +1,11 @@
-import BN from "bn.js";
 import { toBN } from "@flarenetwork/mcc";
+import BN from "bn.js";
 import { getTimeSec } from "../helpers/internetTime";
 
 /**
  * Class for storing the settings of epochs. Current length of an epoch is 90 seconds.
+ * Contains data about voting epochs on the StateConnector and BitVoting contracts.
+ * Data is usually initialized externally and read from both smart contracts.
  * For the connection between rounds and epochs see Attestation-protocol.md
  * Values for construction must be given in seconds.
  */
@@ -21,20 +23,38 @@ export class EpochSettings {
     }
   }
 
-  getEpochLengthMs(): BN {
+  /**
+   * Epoch length in milliseconds.
+   * @returns
+   */
+  public getEpochLengthMs(): BN {
     return this._epochPeriodMs;
   }
 
-  getBitWoteDurationMs(): BN {
-    return this._bitVoteWindowDurationMs;
+  public getBitVoteDurationMs(): BN {
+    if (this._bitVoteWindowDurationMs) {
+      return this._bitVoteWindowDurationMs;
+    }
+
+    return toBN(0);
   }
 
-  getEpochIdForTime(timeInMillis: BN): BN {
+  /**
+   * Returns epochId for time given in miliseconds (Unix epoch).
+   * @param timeInMillis
+   * @returns
+   */
+  public getEpochIdForTime(timeInMillis: BN): BN {
     const diff: BN = timeInMillis.sub(this._firstEpochStartTimeMs);
     return diff.div(this._epochPeriodMs);
   }
 
-  getEpochIdForTimeSec(timeSec: number): number {
+  /**
+   * Returns epochId for time given in seconds (Unix epoch).
+   * @param timeSec
+   * @returns
+   */
+  public getEpochIdForTimeSec(timeSec: number): number {
     const epochId = this.getEpochIdForTime(toBN(timeSec).mul(toBN(1000)));
     return epochId.toNumber();
   }
@@ -46,7 +66,7 @@ export class EpochSettings {
    * @returns If the time is within the bit voting deadline, the epoch id is returned.
    * Otherwise 'undefined' is returned.
    */
-  getEpochIdForBitVoteTimeSec(timeSec: number): number | undefined {
+  public getEpochIdForBitVoteTimeSec(timeSec: number): number | undefined {
     let timeMs = toBN(timeSec).mul(toBN(1000));
     let epochId = this.getEpochIdForTime(timeMs);
     let epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs));
@@ -65,28 +85,28 @@ export class EpochSettings {
   /**
    * Gets the id of the current epoch. It is the same as the id of the round that is currently in the request phase
    */
-  getCurrentEpochId(): BN {
+  public getCurrentEpochId(): BN {
     return this.getEpochIdForTime(toBN(getTimeSec() * 1000));
   }
 
   /**
    * Gets the start time of the round in milliseconds. The round starts in the request phase.
    */
-  getRoundIdTimeStartMs(id: BN | number): number {
+  public getRoundIdTimeStartMs(id: BN | number): number {
     return this._firstEpochStartTimeMs.add(toBN(id).mul(this._epochPeriodMs)).toNumber(); // + this._epochPeriod.toNumber();
   }
 
   /**
    * Gets the end time of the epoch in milliseconds
    */
-  getEpochIdTimeEndMs(id: BN | number): number {
+  public getEpochIdTimeEndMs(id: BN | number): number {
     return this.getRoundIdTimeStartMs(id) + this._epochPeriodMs.toNumber();
   }
 
   /**
    * Gets the start time of the Reveal phase of the round in milliseconds
    */
-  getRoundIdRevealTimeStartMs(id: number): number {
+  public getRoundIdRevealTimeStartMs(id: number): number {
     return this.getEpochIdTimeEndMs(id) + this._epochPeriodMs.toNumber();
   }
 }

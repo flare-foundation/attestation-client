@@ -19,11 +19,11 @@
       "ReferencedPaymentNonexistence"
    ],
    "indexerDatabase": {
-      "hostname": "$(IndexerDatabaseHost)",
-      "port": $(IndexerDatabasePort),
-      "database": "$(IndexerDatabase)",
-      "username": "$(IndexerReaderUsername)",
-      "password": "$(IndexerReaderPassword)"
+      "host": "$(XRPIndexerDatabaseHost)",
+      "port": $(XRPIndexerDatabasePort),
+      "database": "$(XRPIndexerDatabase)",
+      "username": "$(XRPIndexerReaderUsername)",
+      "password": "$(XRPIndexerReaderPassword)"
    },
    "chainConfiguration": {
       // chain name. allowed names are XRP, BTC, LTC, ALGO, DOGE
@@ -31,8 +31,8 @@
       // MCC create options
       "mccCreate": {
          "url": "$(XRLURL)",
-         "username": "$(XRPUsername)",
-         "password": "$(XRPPassword)",
+         "username": "",
+         "password": "",
       },
       // rate limiting options
       "rateLimitOptions": {

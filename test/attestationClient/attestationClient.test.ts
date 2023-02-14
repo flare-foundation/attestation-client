@@ -26,7 +26,7 @@ class MockSourceRouter extends SourceRouter {
 
 class MockFlareConnection extends FlareConnection {
   constructor(config: AttestationClientConfig, logger: AttLogger) {
-    super(config, logger);
+    super(config, logger, false);
   }
 
   async initialize() {}
@@ -99,7 +99,7 @@ describe.skip(`Attestation Client (${getTestFile(__filename)})`, () => {
       },
     };
 
-    const attestation = new AttestationData(mockEvent);
+    const attestation = new AttestationData(mockEvent as any);
 
     expect(attestation.sourceId, "attestation.sourceId should be 1434319303").to.eq(1434319303);
     expect(attestation.type, "attestation.type should be 23821").to.eq(23821);
@@ -118,7 +118,7 @@ describe.skip(`Attestation Client (${getTestFile(__filename)})`, () => {
       },
     };
 
-    const attestation = new AttestationData(mockEvent);
+    const attestation = new AttestationData(mockEvent as any);
 
     await attestationRoundManager.onAttestationRequest(attestation);
 

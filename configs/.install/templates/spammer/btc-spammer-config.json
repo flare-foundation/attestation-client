@@ -5,9 +5,9 @@
     "roundDurationSec": 90,
     "numberOfConfirmations": 6,
     "web": {
-        "accountPrivateKey": "$($(Network)BTCSpammerPrivateKey)",
-        "rpcUrl": "$($(Network)RPC)",
-        "stateConnectorContractAddress": "$($(Network)StateConnectorContractAddress)"
+        "accountPrivateKey": "$(BTCSpammerPrivateKey)",
+        "rpcUrl": "$(RPC)",
+        "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
     },
     "indexerDatabase": {
         "host": "$(IndexerDatabaseHost)",

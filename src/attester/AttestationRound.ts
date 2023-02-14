@@ -8,11 +8,13 @@ import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { EpochSettings } from "../utils/data-structures/EpochSettings";
 import { commitHash, MerkleTree } from "../utils/data-structures/MerkleTree";
+import { getCryptoSafeRandom } from "../utils/helpers/crypto-utils";
 import { getTimeMilli } from "../utils/helpers/internetTime";
 import { retry } from "../utils/helpers/promiseTimeout";
-import { getCryptoSafeRandom, prepareString } from "../utils/helpers/utils";
+import { prepareString } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
+import { SourceId } from "../verification/sources/sources";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttesterState } from "./AttesterState";
@@ -43,10 +45,9 @@ export class AttestationRound {
   flareConnection: FlareConnection;
 
   attesterState: AttesterState;
-
   sourceRouter: SourceRouter;
 
-  sourceLimiters = new Map<number, SourceLimiter>();
+  sourceLimiters = new Map<SourceId, SourceLimiter>();
   activeGlobalConfig: GlobalAttestationConfig;
   attestationClientConfig: AttestationClientConfig;
   submitCommitFinalize: boolean;
@@ -83,12 +84,12 @@ export class AttestationRound {
   constructor(
     epochId: number,
     activeGlobalConfig: GlobalAttestationConfig,
-    epochSettings: EpochSettings,
     logger: AttLogger,
     flareConnection: FlareConnection,
     attesterState: AttesterState,
     sourceRouter: SourceRouter,
-    attestationClientConfig: AttestationClientConfig
+    attestationClientConfig: AttestationClientConfig,
+    epochSettings: EpochSettings
   ) {
     this.roundId = epochId;
     this.phase = AttestationRoundPhase.collect;
@@ -97,9 +98,9 @@ export class AttestationRound {
     this.logger = logger;
     this.flareConnection = flareConnection;
     this.attesterState = attesterState;
-    this.epochSettings = epochSettings;
     this.sourceRouter = sourceRouter;
     this.attestationClientConfig = attestationClientConfig;
+    this.epochSettings = epochSettings;
   }
 
   get label() {
@@ -115,7 +116,7 @@ export class AttestationRound {
   }
 
   get chooseWindowDurationMs() {
-    return this.epochSettings.getBitWoteDurationMs().toNumber();
+    return this.epochSettings.getBitVoteDurationMs().toNumber();
   }
 
   get windowDurationMs() {
@@ -169,7 +170,7 @@ export class AttestationRound {
   }
 
   get nowRelative() {
-    let diff = Date.now() - this.epochSettings.getRoundIdTimeStartMs(this.roundId);
+    let diff = Date.now() - this.flareConnection.epochSettings.getRoundIdTimeStartMs(this.roundId);
     return (diff / 1000).toFixed(1);
   }
 
@@ -425,7 +426,7 @@ export class AttestationRound {
   async startChoosePhase() {
     this.logger.group(
       `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.epochSettings.getEpochLengthMs().toNumber()
+        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -437,38 +438,11 @@ export class AttestationRound {
   async startCommitPhase() {
     this.logger.group(
       `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.epochSettings.getEpochLengthMs().toNumber()
+        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
     await this.tryPrepareCommitData(); // In case all requests are already processed
-  }
-
-  /**
-   * Empty commit.
-   * Used in the first round after joining the attestation scheme to commit empty data for commit and reveal of two previous rounds???
-   */
-  startCommitSubmit() {
-    if (this.attestationClientConfig.submitCommitFinalize) {
-      const action = `Finalizing ^Y#${this.roundId - 3}^^`;
-
-      // eslint-disable-next-line
-      criticalAsync("startCommitSubmit", async () => {
-        const receipt = await this.flareConnection.submitAttestation(
-          action,
-          // commit index (collect+1)
-          toBN(this.roundId + 1),
-          toHex(0, 32),
-          toHex(0, 32),
-          toHex(0, 32),
-          toHex(0, 32),
-          toHex(0, 32)
-        );
-        if (receipt) {
-          this.logger.info(`${this.label}^G^wfinalized^^ round ^Y#${this.roundId - 3}`);
-        }
-      });
-    }
   }
 
   /**
@@ -664,7 +638,7 @@ export class AttestationRound {
 
     // calculate remaining time in epoch
     const now = getTimeMilli();
-    const epochCommitEndTime = this.epochSettings.getRoundIdRevealTimeStartMs(this.roundId);
+    const epochCommitEndTime = this.flareConnection.epochSettings.getRoundIdRevealTimeStartMs(this.roundId);
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
@@ -736,9 +710,10 @@ export class AttestationRound {
 
     // Log unexpected attestation round statuses, but proceed with submitAttestation
 
-    let commitPrepared = this.attestStatus === AttestationRoundStatus.commitDataPrepared || this.attestStatus == AttestationRoundStatus.committed;
+    // commit data prepared or data already committed
+    let commitPreparedOrCommitted = this.attestStatus === AttestationRoundStatus.commitDataPrepared || this.attestStatus === AttestationRoundStatus.committed;
 
-    if (!commitPrepared) {
+    if (!commitPreparedOrCommitted) {
       this.logger.error(
         `${this.label}round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${
           this.attestationsProcessed
@@ -775,8 +750,8 @@ export class AttestationRound {
         nextRoundMaskedMerkleRoot,
         nextRoundRandom,
         // reveal
-        commitPrepared ? this.roundMerkleRoot : toHex(0, 32),
-        commitPrepared ? this.roundRandom : toHex(0, 32)
+        commitPreparedOrCommitted ? this.roundMerkleRoot : toHex(0, 32),
+        commitPreparedOrCommitted ? this.roundRandom : toHex(0, 32)
       );
 
       if (receipt) {

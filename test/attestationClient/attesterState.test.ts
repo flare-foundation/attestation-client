@@ -42,12 +42,12 @@ describe(`Attester State (${getTestFile(__filename)})`, function () {
 
     it("Should save comment", async function () {
       let round = new AttestationRound(21, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
-      round.roundRandom = "2002";
+      round.roundRandom = "2001";
       round.roundMerkleRoot = "0x000000fakealt";
       round.roundMaskedMerkleRoot = "0x00000moreFakealt";
       await attesterState.saveRoundComment(round);
       const res = await attesterState.entityManager.findOne(DBRoundResult, { where: { roundId: 21 } });
-      expect(res.random).to.eq("2002");
+      expect(res.transactionCount).to.eq(0);
     });
   });
 

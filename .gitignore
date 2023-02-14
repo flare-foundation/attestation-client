@@ -65,6 +65,10 @@ typechain-web3-v1
 # local node
 .node/
 
+# deployment nodes
+deployment/node-configs/testnet/bitcoin/bitcoin.conf
+deployment/node-configs/testnet/dogecoin/dogecoin.conf
+
 # local configs
 # .indexer.remote.dev.read.env
 # .indexer.remote.dev.write.env
@@ -99,4 +103,6 @@ test/utils/test-data/config/credentials.json.secure
 
 # dockerication mapping test folder 
 credentials
+credentials.prepared
+prepare.secure
 

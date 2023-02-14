@@ -2,7 +2,7 @@ import fs from "fs";
 import * as path from 'path';
 import * as yargs from "yargs";
 import { readJSON } from "../utils/config/json";
-import { getCryptoSafeRandom } from "../utils/helpers/utils";
+import { getCryptoSafeRandom } from "../utils/helpers/crypto-utils";
 import { getGlobalLogger } from "../utils/logging/logger";
 import { replaceAllVars } from "./utils";
 

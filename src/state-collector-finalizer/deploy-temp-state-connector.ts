@@ -5,7 +5,7 @@ import StateConnectorAbi from "../../artifacts/contracts/StateConnectorTemp.sol/
 import StateConnectorTranAbi from "../../artifacts/contracts/StateConnectorTempTran.sol/StateConnectorTempTran.json";
 import { StateConnectorTemp } from "../../typechain-web3-v1/StateConnectorTemp";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
-import { getWeb3 } from "../utils/helpers/utils";
+import { getWeb3 } from "../utils/helpers/web3-utils";
 
 async function deployTempStateConnector(web3Rpc: string, flavor: string) {
   const web3 = getWeb3(web3Rpc);

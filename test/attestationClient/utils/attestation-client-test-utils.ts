@@ -13,7 +13,7 @@ import { ServerConfigurationService } from "../../../src/servers/web-server/src/
 import { WebServerModule } from "../../../src/servers/web-server/src/web-server.module";
 import { readSecureConfig } from "../../../src/utils/config/configSecure";
 import { readJSONfromFile } from "../../../src/utils/config/json";
-import { getWeb3, relativeContractABIPathForContractName } from "../../../src/utils/helpers/utils";
+import { getWeb3, relativeContractABIPathForContractName } from "../../../src/utils/helpers/web3-utils";
 import { AttLogger, getGlobalLogger } from "../../../src/utils/logging/logger";
 import { BitVoting } from "../../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../../typechain-web3-v1/StateConnectorTempTran";
@@ -149,13 +149,15 @@ export async function bootstrapAttestationWebServer(
       })
    );
 
+   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? '');
    const config = new DocumentBuilder()
       .setTitle('Attestation Client Public Server')
       .setDescription('Public server for attestation client providing data about attestations by round, and attestation status metrics.')
+      .setBasePath(process.env.APP_BASE_PATH ?? '')
       .setVersion('1.0')
       .build();
    const document = SwaggerModule.createDocument(app, config);
-   SwaggerModule.setup('api-doc', app, document);
+   SwaggerModule.setup(`${process.env.APP_BASE_PATH ? process.env.APP_BASE_PATH + '/' : ''}api-doc`, app, document);
 
    await app.init();
 

@@ -1,4 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
+import { ChainConfig } from "../attester/configs/ChainConfig";
 import { DatabaseConnectOptions } from "../utils/database/DatabaseConnectOptions";
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection";
 
@@ -11,6 +12,8 @@ export class IndexerConfig implements IReflection<IndexerConfig> {
   @optional() public syncUpdateTimeMs = 10000;
 
   indexerDatabase = new DatabaseConnectOptions();
+
+  chainConfiguration = new ChainConfig();
 
   instanciate() {
     return new IndexerConfig();

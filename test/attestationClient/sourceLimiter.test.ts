@@ -4,9 +4,10 @@ import { AttestationData } from "../../src/attester/AttestationData";
 import { SourceLimiterConfig, SourceLimiterTypeConfig } from "../../src/attester/configs/SourceLimiterConfig";
 import { SourceLimiter } from "../../src/attester/source/SourceLimiter";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { encodePayment, encodeReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-encode";
-import { ARPayment, ARReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-types";
+import { encodeReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-encode";
+import { ARReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-types";
 import { getTestFile } from "../test-utils/test-utils";
+import { createBlankAtRequestEvent } from "./utils/createEvents";
 
 describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -22,16 +23,7 @@ describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
 
   const sourceLimiter = new SourceLimiter(config, getGlobalLogger());
 
-  const arPayment: ARPayment = { attestationType: 1, sourceId: 3, inUtxo: 0, utxo: 0, id: "fakeID", messageIntegrityCode: "fakeMIC" };
-  const reqData = encodePayment(arPayment);
-  const event = {
-    blockNumber: 10,
-    logIndex: 1,
-    returnValues: {
-      timestamp: 123,
-      data: reqData,
-    },
-  };
+  const event = createBlankAtRequestEvent(1, 3, "0xFakeMIC", "123", "0xfakeId");
   const attData = new AttestationData(event);
   const attestation = new Attestation(14, attData);
 
@@ -47,14 +39,7 @@ describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
     paymentReference: "0xfakeref",
   };
   const reqData2 = encodeReferencedPaymentNonexistence(arRef);
-  const event2 = {
-    blockNumber: 4,
-    logIndex: 1,
-    returnValues: {
-      timestamp: 123,
-      data: reqData2,
-    },
-  };
+  const event2 = createBlankAtRequestEvent(4, 3, "0xFakeMIC", "123", "0xfakeId");
   const attData2 = new AttestationData(event2);
   const attestation2 = new Attestation(15, attData2);
 

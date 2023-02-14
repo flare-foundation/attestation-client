@@ -19,11 +19,11 @@
       "ReferencedPaymentNonexistence"
    ],
    "indexerDatabase": {
-      "hostname": "$(IndexerDatabaseHost)",
-      "port": $(IndexerDatabasePort),
-      "database": "$(IndexerDatabase)",
-      "username": "$(IndexerReaderUsername)",
-      "password": "$(IndexerReaderPassword)"
+      "host": "$(ALGOIndexerDatabaseHost)",
+      "port": $(ALGOIndexerDatabasePort),
+      "database": "$(ALGOIndexerDatabase)",
+      "username": "$(ALGOIndexerReaderUsername)",
+      "password": "$(ALGOIndexerReaderPassword)"
    },
    "chainConfiguration": {
       "name": "ALGO",

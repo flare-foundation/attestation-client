@@ -34,6 +34,6 @@
     "./test"
   ],
   "files": [
-    "./hardhat.config.ts", "src/attester/types/AttestationStatus.ts", "src/attester/configs/AttesterWebOptions.ts", "src/attester/types/AttestationRoundEnums.ts", "src/attester/configs/SourceLimiterConfig.ts", "./src/utils/database/DatabaseConnectOptions.ts", "./src/utils/logging/ColorConsole.ts", "./src/utils/helpers/PromiseRequestsHandler.ts", "src/utils/helpers/promiseRequestTypes.ts", "./src/utils/monitoring/EServiceStatus.ts"
+    "./hardhat.config.ts"
   ]
 }

@@ -5,9 +5,9 @@
     "roundDurationSec": 90,
     "numberOfConfirmations": 6,
     "web": {
-        "accountPrivateKey": "$($(Network)DOGESpammerPrivateKey)",
-        "rpcUrl": "$($(Network)RPC)",
-        "stateConnectorContractAddress": "$($(Network)StateConnectorContractAddress)"
+        "accountPrivateKey": "$(DOGESpammerPrivateKey)",
+        "rpcUrl": "$(RPC)",
+        "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
     },
     "indexerDatabase": {
         "host": "$(IndexerDatabaseHost)",

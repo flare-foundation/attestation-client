@@ -14,7 +14,7 @@ if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
 
    ./install.sh  
 else
-  echo "Invalid network: $NETWORK"
+  echo "Invalid network: '$NETWORK'"
 fi
 
 

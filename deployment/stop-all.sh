@@ -1,13 +1,21 @@
 #!/bin/bash
 
-cd indexers-testnet
+NETWORK="$1"
 
-docker-compose -f docker-compose-indexer-xrp.yaml -p indexer-xrp down
-docker-compose -f docker-compose-indexer-btc.yaml -p indexer-btc down 
-docker-compose -f docker-compose-indexer-doge.yaml -p indexer-doge down 
+if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
+   echo "Stopping all dockers for: $NETWORK"
+   cd indexers-$NETWORK
 
-cd ../attestation-client
+   docker-compose -f docker-compose-indexer-xrp.yaml -p indexer-xrp down
+   docker-compose -f docker-compose-indexer-btc.yaml -p indexer-btc down 
+   docker-compose -f docker-compose-indexer-doge.yaml -p indexer-doge down 
 
-docker-compose -f docker-compose-attestation-client.yaml down
+   cd ../attestation-client
 
-cd ..
+   docker-compose -f docker-compose-attestation-client.yaml down
+
+   cd ..
+
+else
+  echo "Invalid network: '$NETWORK'"
+fi

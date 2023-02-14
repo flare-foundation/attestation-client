@@ -75,7 +75,7 @@ export class AttestationRound {
   _initialized = false;
 
   // default set voter addresses (lowercase)
-  defaultSetAddresses: string[];
+  defaultSetAddresses: string[] = [];
 
   // bit votes map for the default set of voters
   bitVoteMap = new Map<string, string>();

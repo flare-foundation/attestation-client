@@ -13,6 +13,9 @@ import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnect
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
+import sinon from "sinon";
+import { creatBlankBitVoteEvent } from "./utils/createEvents";
+import { BitVoteData } from "../../src/attester/BitVoteData";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -40,6 +43,8 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     await dbService.connect();
 
     round = new AttestationRound(160, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, undefined, attestationClientConfig, epochSettings);
+
+    round.defaultSetAddresses.push("0xfakedefault");
   });
 
   it("Should construct attestation round", function () {
@@ -79,5 +84,22 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
     const roundCompleteTimeMs = round.roundCompleteTimeMs;
     expect(roundCompleteTimeMs, "roundCompleteTimeMs").to.eq(123 * 1000 + 163 * 90 * 1000);
+  });
+
+  it("Should not register bitVote for non-default set", function () {
+    const event = creatBlankBitVoteEvent("0x05fakeBitVote");
+    const bitVoteData = new BitVoteData(event);
+
+    round.registerBitVote(bitVoteData);
+    expect(round.bitVoteMap.keys.length).to.eq(0);
+  });
+
+  it("Should  register bitVote for non-default set", function () {
+    const event = creatBlankBitVoteEvent("0x05fakeBitVote");
+    event.returnValues.sender = "0xfakeDefault";
+    const bitVoteData = new BitVoteData(event);
+
+    round.registerBitVote(bitVoteData);
+    expect(round.bitVoteMap.get("0xfakedefault")).to.eq("0xfakeBitVote");
   });
 });

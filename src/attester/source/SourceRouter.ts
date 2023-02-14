@@ -55,12 +55,12 @@ export class SourceRouter {
   }
 
   /**
-   * Starts attestation validation for given @param sourceId
+   * Starts attestation request verification for given @param sourceId
    * @param sourceId 
    * @param attestation 
    * @returns 
    */
-  validateAttestationRequest(attestation: Attestation) {
+  verifyAttestationRequest(attestation: Attestation) {
     let sourceId = attestation.data.sourceId;
     const sourceManager = this.sourceManagers.get(sourceId);
 
@@ -70,6 +70,6 @@ export class SourceRouter {
       return MOCK_NULL_WHEN_TESTING;
     }
 
-    return sourceManager.validateAttestationRequest(attestation);
+    return sourceManager.verifyAttestationRequest(attestation);
   }
 }

@@ -18,30 +18,38 @@ export class PriorityQueue<T> {
   hasRight = (index: number) => this.right(index) < this.heap.length;
   parent = (index: number) => Math.floor((index - 1) / 2);
 
+  /**
+   * Returns `true`if the queue is empty.
+   * @returns 
+   */
   isEmpty(): boolean {
     return this.heap.length == 0;
   }
 
   /**
-   * returns the value of the first element in queue
+   * Returns the value of the first element in queue.
    */
   peek(): T | null {
     return this.heap.length == 0 ? null : this.heap[0].value;
   }
 
   /**
-   * returns the value of the first element in queue
+   * Returns the value of the first element in queue.
    */
   peekKey(): number | null {
     return this.heap.length == 0 ? null : this.heap[0].key;
   }
 
+  /**
+   * Returns the length of the queue.
+   * @returns 
+   */
   length(): number {
     return this.heap.length;
   }
 
   /**
-   * Swaps elements at index a and b
+   * Swaps elements at index @param a and @param b
    * @param a
    * @param b
    */
@@ -52,7 +60,7 @@ export class PriorityQueue<T> {
   };
 
   /**
-  * Adds an elements to priority Queue and puts it at the right place according to the priority
+  * Adds an elements to priority Queue and puts it at the right place according to the priority.
   * @param item
   * @param priority
   */
@@ -69,7 +77,7 @@ export class PriorityQueue<T> {
   }
 
   /**
-   * Removes and returnes the first element from the queue and sorts the rest
+   * Removes and returns the first element from the queue and sorts the rest
    * @param item
    * @param priority
    */

@@ -19,16 +19,16 @@ import { AttestationStatus } from "../types/AttestationStatus";
 @Managed()
 export class SourceManager {
   attestationRoundManager: AttestationRoundManager;
-  // source manager rate limiting control
+  // rate limiting control
   requestTime = 0;
   requestsPerSecond = 0;
 
   sourceId: SourceId;
   verifierSourceConfig: VerifierSourceRouteConfig;
 
+  // queues
   attestationsQueue = new Array<Attestation>();
   attestationsPriorityQueue = new PriorityQueue<Attestation>();
-
   attestationProcessing = new Set<Attestation>();
 
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
@@ -40,7 +40,7 @@ export class SourceManager {
   }
 
   /**
-   * Refreshes verifier source configuration for attestation round.
+   * Refreshes verifier source configuration for given roundId.
    * @param sourceId 
    * @param roundId 
    */
@@ -54,22 +54,32 @@ export class SourceManager {
     // verifierRouteConfig does not exist
     if (process.env.NODE_ENV === "development") {
       // We allow for incomplete routing configs in development
-      this.logger.info(`${this.label}${roundId}: source config for source ${this.sourceId} not defined (tolerated in "development" mode)`);
+      this.logger.info(`${this.label}${roundId}: verifier config for source ${this.sourceId} not defined (tolerated in "development" mode)`);
     } else {
       this.logger.error(`${this.label}${roundId}: critical error, verifier source config for source ${this.sourceId} not defined`);
       exit(1);
     }
   }
 
+  /**
+   * Returns logger.
+   */
   public get logger(): AttLogger {
     return this.attestationRoundManager.logger;
   }
 
+  /**
+   * Returns attestation client label for logging.
+   */
   public get label() {
     return this.attestationRoundManager.label;
   }
 
-  private canAddRequests() {
+  /**
+   * Returns `true` if new attestation requests can be added for processing (subject to rate limit).
+   * @returns 
+   */
+  private canProcessRequestsInThisSecond() {
     const time = getTimeSec();
     // second shifted, new quota
     if (this.requestTime !== time) return true;
@@ -78,7 +88,7 @@ export class SourceManager {
   }
 
   /**
-   * Increases sent request count
+   * Increases sent request count. Used for managing rate limits.
    */
   private increaseRequestCount() {
     const time = getTimeSec();
@@ -91,15 +101,20 @@ export class SourceManager {
     }
   }
 
-  private canProcess() {
-    return this.canAddRequests() && this.attestationProcessing.size < this.verifierSourceConfig.maxProcessingTransactions;
+  /**
+   * Returns true if an additional request can be processed. It checks whether rate limit is achieved for current second
+   * and if maximal number of transactions that can be processed simultaneously is achieved.
+   * @returns 
+   */
+  private canProcessNextAttestation() {
+    return this.canProcessRequestsInThisSecond() && this.attestationProcessing.size < this.verifierSourceConfig.maxProcessingTransactions;
   }
 
   /**
    * Adds the attestation into processing queue waiting for verification
    * @param attestation
    */
-  private queue(attestation: Attestation) {
+  private enQueue(attestation: Attestation) {
     //this.logger.info(`chain ${this.chainName} queue ${attestation.data.id} (${this.attestationQueue.length}++,${this.attestationProcessing.length},${this.transactionsDone.length})`);
     attestation.status = AttestationStatus.queued;
     this.attestationsQueue.push(attestation);
@@ -111,7 +126,7 @@ export class SourceManager {
    * @param attestation 
    * @param startTime delay time in sec
    */
-  delayQueue(attestation: Attestation, startTime: number) {
+  private enQueueDelayed(attestation: Attestation, startTime: number) {
     switch (attestation.status) {
       case AttestationStatus.queued:
         arrayRemoveElement(this.attestationsQueue, attestation);
@@ -122,14 +137,14 @@ export class SourceManager {
     }
 
     this.attestationsPriorityQueue.push(attestation, startTime);
-
     this.updateDelayQueueTimer();
   }
 
-  updateDelayQueueTimer(): void {
+
+  private updateDelayQueueTimer(): void {
     if (this.attestationsPriorityQueue.length() == 0) return;
 
-    // set time to first time in queue
+    // set time to the first time in queue
     const firstStartTime = this.attestationsPriorityQueue.peekKey()!;
 
     // if start time has passed then just call startNext (no timeout is needed)
@@ -162,7 +177,7 @@ export class SourceManager {
    * @param attestation
    * @returns
    */
-  async process(attestation: Attestation) {
+  private async process(attestation: Attestation) {
     //this.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
 
     const now = getTimeMilli();
@@ -171,7 +186,7 @@ export class SourceManager {
     if (now > this.attestationRoundManager.rounds.get(attestation.roundId).commitEndTimeMs) {
       //this.logger.error(`chain ${tx.epochId} transaction too late to process`);
       attestation.status = AttestationStatus.tooLate;
-      this.processed(attestation, AttestationStatus.tooLate);
+      this.onProcessed(attestation, AttestationStatus.tooLate);
       return;
     }
 
@@ -208,7 +223,7 @@ export class SourceManager {
           const originalRequest = parseRequest(attestation.data.request);
           const micOk = originalRequest.messageIntegrityCode === dataHash(originalRequest, verification.response, MIC_SALT);
           if (micOk) {
-            this.processed(attestation, AttestationStatus.valid, verification);
+            this.onProcessed(attestation, AttestationStatus.valid, verification);
             return;
           }
           this.logger.debug(`${this.label}WRONG MIC for ${attestation.data.request}`);
@@ -219,7 +234,7 @@ export class SourceManager {
         }
 
         // The verification is invalid or mic does not match
-        this.processed(attestation, AttestationStatus.invalid, verification);
+        this.onProcessed(attestation, AttestationStatus.invalid, verification);
       })
       .catch((error: any) => {
         // Exception happens on API errors, both the ones that return status ERROR and ones that fail.
@@ -232,21 +247,22 @@ export class SourceManager {
         if (attestation.retry < this.verifierSourceConfig.maxFailedRetry) {
           this.logger.warning(`${this.label}transaction verification error (retry ${attestation.retry})`);
           attestation.retry++;
-          this.delayQueue(attestation, getTimeMilli() + this.verifierSourceConfig.delayBeforeRetry * 1000);
+          this.enQueueDelayed(attestation, getTimeMilli() + this.verifierSourceConfig.delayBeforeRetry * 1000);
         } else {
           this.logger.error2(`${this.label}transaction verification error ${attestation.data.request}`);
-          this.processed(attestation, AttestationStatus.invalid);
+          this.onProcessed(attestation, AttestationStatus.invalid);
         }
       });
   }
 
   /**
+   * A callback to be called when an attestation is processed. 
    * Sets the Attestation status and adds verificationData to the attestation
    * @param attestation
    * @param status
    * @param verificationData
    */
-  private processed(
+  private onProcessed(
     attestation: Attestation,
     status: AttestationStatus,
     verificationData?: Verification<any, any>
@@ -265,8 +281,8 @@ export class SourceManager {
     // move into processed
     this.attestationProcessing.delete(attestation);
 
-    // todo: save transaction data
-    this.attestationRoundManager.rounds.get(attestation.roundId).processed(attestation);
+    // signal a new attestation was processed
+    this.attestationRoundManager.rounds.get(attestation.roundId).onAttestationProcessed(attestation);
 
     if (attestation.status !== AttestationStatus.tooLate) {
       // start next transaction
@@ -275,18 +291,19 @@ export class SourceManager {
   }
 
   /**
-   *If possible the attestation is processed, otherwise it is added the queue
+   * Verifies the attestation request.
+   * If possible the attestation is processed, otherwise it is added the queue.
    * @param attestation
    */
-  public validateAttestationRequest(attestation: Attestation): void {
+  public verifyAttestationRequest(attestation: Attestation): void {   
     //this.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
     // check if transaction can be added into processing
-    if (this.canProcess()) {
+    if (this.canProcessNextAttestation()) {
       // eslint-disable-next-line
       criticalAsync(`SourceManager::validate::process`, () => this.process(attestation));
     } else {
-      this.queue(attestation);
+      this.enQueue(attestation);
     }
   }
 
@@ -294,9 +311,9 @@ export class SourceManager {
    * Processes the next attestation in the priority queue if expected startTime 
    * of is reached otherwise the next attestation in the queue
    */
-  startNext(): void {
+  private startNext(): void {
     try {
-      if (!this.canProcess()) {
+      if (!this.canProcessNextAttestation()) {
         if (this.attestationProcessing.size === 0) {
           this.logger.debug(`${this.label} # startNext heartbeat`);
           setTimeout(() => {
@@ -309,7 +326,7 @@ export class SourceManager {
       }
 
       // check if there is queued priority transaction to be processed
-      while (this.attestationsPriorityQueue.length() && this.canProcess()) {
+      while (this.attestationsPriorityQueue.length() && this.canProcessNextAttestation()) {
         // check if queue start time is reached
         const startTime = this.attestationsPriorityQueue.peekKey()!;
         if (getTimeMilli() < startTime) break;
@@ -323,7 +340,7 @@ export class SourceManager {
       }
 
       // check if there is any queued transaction to be processed
-      while (this.attestationsQueue.length && this.canProcess()) {
+      while (this.attestationsQueue.length && this.canProcessNextAttestation()) {
         const attestation = this.attestationsQueue.shift();
 
         // eslint-disable-next-line

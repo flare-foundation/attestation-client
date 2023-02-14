@@ -302,29 +302,29 @@ export class AttestationRoundManager {
     this.logger.info(`${this.label}^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
 
     // trigger start choose phase
-    this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound.startChoosePhase(), activeRound.roundChooseStartTimeMs - now);
+    this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound.onChoosePhaseStart(), activeRound.roundChooseStartTimeMs - now);
 
     // trigger sending bit vote result
-    this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound!.bitVote(), activeRound.roundBitVoteTimeMs - now);
+    this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundBitVoteTimeMs - now);
 
     // trigger forced closing of bit voting and vote count
     this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
 
     // trigger start commit phase
-    this.schedule(`${this.label}schedule:startCommitPhase`, async () => await activeRound.startCommitPhase(), activeRound.roundCommitStartTimeMs - now);
+    this.schedule(`${this.label}schedule:startCommitPhase`, async () => await activeRound.onCommitPhaseStart(), activeRound.roundCommitStartTimeMs - now);
 
     // trigger start reveal epoch
-    this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound.startRevealPhase(), activeRound.roundRevealStartTimeMs - now);
+    this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), activeRound.roundRevealStartTimeMs - now);
 
     // trigger reveal. Here most of submitAttestation calls to StateConnector happen
     this.schedule(
-      `${this.label}schedule:reveal`,
-      () => activeRound.reveal(),
+      `${this.label}schedule:submitAttestation`,
+      () => activeRound.onSubmitAttestation(),
       activeRound.roundCompleteTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
     );
 
     // trigger end of reveal epoch, cycle is completed at this point
-    this.schedule(`${this.label}schedule:completed`, () => activeRound.completed(), activeRound.roundCompleteTimeMs - now);
+    this.schedule(`${this.label}schedule:completed`, () => activeRound.onFinalisePhaseStart(), activeRound.roundCompleteTimeMs - now);
 
     this.rounds.set(roundId, activeRound);
     this.cleanup();
@@ -338,7 +338,7 @@ export class AttestationRoundManager {
       // trigger first commit
       this.schedule(
         `${this.label}schedule:firstCommit`,
-        () => activeRound!.firstCommit(),
+        () => activeRound!.onFirstCommit(),
         activeRound.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
       );
     }

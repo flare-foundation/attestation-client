@@ -1,20 +1,20 @@
 import { Managed } from "@flarenetwork/mcc";
 import assert from "assert";
 import { exit } from "process";
-import { Attestation } from "../Attestation";
-import { AttestationStatus } from "../types/AttestationStatus";
-import { AttestationRoundManager } from "../AttestationRoundManager";
 import { criticalAsync } from "../../indexer/indexer-utils";
+import { PriorityQueue } from "../../utils/data-structures/PriorityQueue";
 import { getTimeMilli, getTimeSec } from "../../utils/helpers/internetTime";
-import { AttLogger, logException } from "../../utils/logging/logger";
 import { arrayRemoveElement } from "../../utils/helpers/utils";
+import { AttLogger, logException } from "../../utils/logging/logger";
 import { MIC_SALT, Verification, VerificationStatus } from "../../verification/attestation-types/attestation-types";
 import { dataHash } from "../../verification/generated/attestation-hash-utils";
 import { parseRequest } from "../../verification/generated/attestation-request-parse";
 import { getSourceConfig } from "../../verification/routing/configs/VerifierRouteConfig";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../../verification/sources/sources";
-import { PriorityQueue } from "../../utils/data-structures/PriorityQueue";
+import { Attestation } from "../Attestation";
+import { AttestationRoundManager } from "../AttestationRoundManager";
+import { AttestationStatus } from "../types/AttestationStatus";
 
 @Managed()
 export class SourceManager {

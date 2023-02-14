@@ -44,7 +44,7 @@ export class SourceRouter {
       this.addSourceManager(sourceId, sourceManager);
     }
 
-    // todo: minimal memory optimization would be to delete obsolete source managers.
+    // FUTURE OPTIMIZATION: delete obsolete source managers.
   }
 
   /**

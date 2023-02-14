@@ -4,7 +4,7 @@ services:
   attestation-client:
     image: attestation-suite
     volumes:
-      - ../../credentials:/app/attestation-suite-config
+      - ../credentials.prepared/attester-client:/app/attestation-suite-config
     container_name: attestation-client-client
     command: attestation-client
     restart: unless-stopped
@@ -16,7 +16,7 @@ services:
   webserver:
     image: attestation-suite
     volumes:
-      - ../../credentials:/app/attestation-suite-config
+      - ../credentials.prepared/webserver:/app/attestation-suite-config
     container_name: attestation-client-webserver
     command: webserver
     restart: unless-stopped
@@ -33,7 +33,12 @@ services:
       MYSQL_ROOT_PASSWORD: test123
     cap_add:
       - SYS_NICE
-    # volumes:
+    ports:
+      - 13306:3306
+    volumes:
     #   - ./mysql-conf.d/:/etc/mysql/conf.d
     #   - ./mysql-initdb/:/docker-entrypoint-initdb.d
-    #   - ./mysql-data/:/var/lib/mysql
+      - attestation-client-db:/var/lib/mysql
+
+volumes:
+  attestation-client-db:

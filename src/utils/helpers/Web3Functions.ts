@@ -4,7 +4,8 @@ import { AttesterWebOptions } from "../../attester/configs/AttesterWebOptions";
 import { getTimeMilli } from "./internetTime";
 import { AttLogger, logException } from "../logging/logger";
 import { retry } from "./promiseTimeout";
-import { getUnixEpochTimestamp, getWeb3Wallet, sleepms, waitFinalize3Factory } from "./utils";
+import { getUnixEpochTimestamp, sleepms } from "./utils";
+import { getWeb3Wallet, waitFinalize3Factory } from "./web3-utils";
 
 export const DEFAULT_GAS = "2500000";
 export const DEFAULT_GAS_PRICE = "300000000000";

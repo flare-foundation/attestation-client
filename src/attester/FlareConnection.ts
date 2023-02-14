@@ -8,7 +8,7 @@ import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 import { isValidHexString } from "../choose-subsets-lib/subsets-lib";
 import { EpochSettings } from "../utils/data-structures/EpochSettings";
 import { retry } from "../utils/helpers/promiseTimeout";
-import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/helpers/utils";
+import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { AttLogger } from "../utils/logging/logger";
 import { AttestationRoundManager } from "./AttestationRoundManager";
@@ -32,7 +32,7 @@ export class FlareConnection {
 
   logger: AttLogger;
 
-  constructor(config: AttestationClientConfig, logger: AttLogger) {
+  constructor(config: AttestationClientConfig, logger: AttLogger, initWeb3 = true) {
     // for testing only
     if (process.env.NODE_ENV === "development" && !config) {
       return;
@@ -40,8 +40,10 @@ export class FlareConnection {
 
     this.attestationClientConfig = config;
     this.logger = logger;
-    this.web3 = getWeb3(config.web.rpcUrl) as Web3;
-    this.web3Functions = new Web3Functions(logger, this.web3, config.web);
+    if (initWeb3) {
+      this.web3 = getWeb3(config.web.rpcUrl) as Web3;
+      this.web3Functions = new Web3Functions(logger, this.web3, config.web);
+    }
   }
 
   public get rpc(): string {
@@ -56,7 +58,7 @@ export class FlareConnection {
     return label;
   }
 
-  public async initialize(attestationRoundManager: AttestationRoundManager) {
+  public async initialize() {
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.attestationClientConfig.web.stateConnectorContractAddress);
     this.bitVoting = (await getWeb3Contract(this.web3, this.attestationClientConfig.web.bitVotingContractAddress, "BitVoting")) as any as BitVoting;
     this.firstEpochStartTime = parseInt("" + (await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call()), 10);

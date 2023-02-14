@@ -1,28 +1,18 @@
 import { expect, assert } from "chai";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { encodePayment } from "../../src/verification/generated/attestation-request-encode";
-import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { getTestFile } from "../test-utils/test-utils";
+import { createBlankAtRequestEvent } from "../attestationClient/utils/createEvents";
 
 describe(`Attestation Data (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
-  const arPayment: ARPayment = { attestationType: 1, sourceId: 3, inUtxo: 0, utxo: 0, id: "fakeID", messageIntegrityCode: "fakeMIC" };
+  const event = createBlankAtRequestEvent(1, 3, "0xfakeId", "123", "0xFakeMIC");
 
-  const reqData = encodePayment(arPayment);
-
-  const event = {
-    blockNumber: 10,
-    logIndex: 1,
-    returnValues: {
-      timestamp: 123,
-      data: reqData,
-    },
-  };
-  const attData = new AttestationData(event);
+  let attData: AttestationData;
 
   it("Should construct Attestation Data", function () {
+    attData = new AttestationData(event);
     assert(attData);
   });
 

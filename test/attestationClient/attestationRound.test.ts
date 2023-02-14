@@ -39,7 +39,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     activeGlobalConfig = globalConfigManager.getConfig(160);
     await dbService.connect();
 
-    round = new AttestationRound(160, activeGlobalConfig, epochSettings, getGlobalLogger(), flareConnection, attesterState, undefined, attestationClientConfig);
+    round = new AttestationRound(160, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, undefined, attestationClientConfig, epochSettings);
   });
 
   it("Should construct attestation round", function () {

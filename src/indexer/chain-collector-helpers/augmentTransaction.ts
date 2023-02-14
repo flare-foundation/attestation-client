@@ -32,7 +32,10 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
   txEntity.transactionType = txData.type;
   txEntity.isNativePayment = txData.isNativePayment;
   txEntity.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
-  txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
+  //txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
+  
+  // use full response size
+  txEntity.response = stringify({ data: txData.data, additionalData: txData.additionalData });
 
   return txEntity;
 }

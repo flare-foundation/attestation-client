@@ -30,10 +30,10 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
     chainConfig.name = "LTC";
     chainConfig.mccCreate = LTCMccConnection;
     chainConfig.blockCollecting = "tips";
-    const chainsConfig = new ListChainConfig();
-    chainsConfig.chains.push(chainConfig);
 
-    const indexer = new Indexer(config, chainsConfig, "LTC", true);
+    config.chainConfiguration=chainConfig;
+
+    const indexer = new Indexer(config, "LTC", true);
 
     before(async function () {
       await indexer.dbService.connect();

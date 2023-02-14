@@ -3,13 +3,13 @@
     "roundDurationSec": 90,
     "serviceStatusFilePath": "../monitor-status.json",
 
-    "port": $($(Network)WebserverPort),
+    "port": $(WebserverPort),
 
     "attesterDatabase": {
         "host": "$(AttesterDatabaseHost)",
         "port": $(AttesterDatabasePort),
-        "database": "$(AttesterDatabase$(Network))",
-        "username": "$(AttesterReaderUsername$(Network))",
-        "password": "$(AttesterReaderPassword$(Network))"
+        "database": "$(AttesterDatabase)",
+        "username": "$(AttesterReaderUsername)",
+        "password": "$(AttesterReaderPassword)"
     },
 }

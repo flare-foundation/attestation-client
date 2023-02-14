@@ -9,8 +9,8 @@ import { AttestationStatus } from "./types/AttestationStatus";
  * - reading attestation request event data into the class, thus initializing
  * - scheduling it to the correct voting round
  * - various statuses and results obtained during verification and submission.
- * 
- * Attestation request events are obtained by {@link AttesterClient}, passed to {@link AttestationRoundManager} and further to 
+ *
+ * Attestation request events are obtained by {@link AttesterClient}, passed to {@link AttestationRoundManager} and further to
  * {@link AttestationRound} for a specific voting round, where a list of all attestation round in the sequence of appearance is kept and processed (passed to verifiers, responses checked, etc.)
  */
 @Managed()
@@ -23,7 +23,7 @@ export class Attestation {
   chosen: boolean = false;
 
   // the voting round of the attestation
-
+  round!: AttestationRound;
   private _roundId: number;
 
   // validation result
@@ -48,7 +48,7 @@ export class Attestation {
 
   /**
    * Sets index in the round.
-   * @param index 
+   * @param index
    */
   public setIndex(index: number) {
     this.index = index;

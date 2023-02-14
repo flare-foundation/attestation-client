@@ -14,11 +14,14 @@ import { VerifierSourceRouteConfig } from "../../verification/routing/configs/Ve
 import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";
 import { AttestationRoundManager } from "../AttestationRoundManager";
+import { GlobalConfigManager } from "../GlobalConfigManager";
 import { AttestationStatus } from "../types/AttestationStatus";
 
 @Managed()
 export class SourceManager {
   attestationRoundManager: AttestationRoundManager;
+
+  globalConfigManager: GlobalConfigManager;
   // rate limiting control
   requestTime = 0;
   requestsPerSecond = 0;
@@ -34,19 +37,19 @@ export class SourceManager {
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
-  constructor(attestationRoundManager: AttestationRoundManager, sourceId: SourceId) {
-    this.attestationRoundManager = attestationRoundManager;
+  constructor(globalConfigManager: GlobalConfigManager, sourceId: SourceId) {
+    this.globalConfigManager = globalConfigManager;
     this.sourceId = sourceId;
   }
 
   /**
    * Refreshes verifier source configuration for given roundId.
-   * @param sourceId 
-   * @param roundId 
+   * @param sourceId
+   * @param roundId
    */
   public refreshVerifierSourceConfig(roundId: number) {
     // obtain config from verifier router active for roundId
-    let verifierRouteConfig = this.attestationRoundManager.globalConfigManager.getVerifierRouter(roundId)?.config;
+    let verifierRouteConfig = this.globalConfigManager.getVerifierRouter(roundId)?.config;
     if (verifierRouteConfig) {
       this.verifierSourceConfig = getSourceConfig(verifierRouteConfig, this.sourceId);
       return;
@@ -65,19 +68,22 @@ export class SourceManager {
    * Returns logger.
    */
   public get logger(): AttLogger {
-    return this.attestationRoundManager.logger;
+    return this.globalConfigManager.logger;
   }
 
   /**
    * Returns attestation client label for logging.
    */
   public get label() {
-    return this.attestationRoundManager.label;
+    let label = "";
+    if (this.globalConfigManager.attestationClientConfig.label != "none") {
+      label = `[${this.globalConfigManager.attestationClientConfig.label}]`;
+    }
+    return label;
   }
-
   /**
    * Returns `true` if new attestation requests can be added for processing (subject to rate limit).
-   * @returns 
+   * @returns
    */
   private canProcessRequestsInThisSecond() {
     const time = getTimeSec();
@@ -104,7 +110,7 @@ export class SourceManager {
   /**
    * Returns true if an additional request can be processed. It checks whether rate limit is achieved for current second
    * and if maximal number of transactions that can be processed simultaneously is achieved.
-   * @returns 
+   * @returns
    */
   private canProcessNextAttestation() {
     return this.canProcessRequestsInThisSecond() && this.attestationProcessing.size < this.verifierSourceConfig.maxProcessingTransactions;
@@ -123,7 +129,7 @@ export class SourceManager {
   /**
    * Puts attestation from processing queue into into delay queue priority queue
    * It makes sure there is a mechanism that will run startNext if nothing is in process
-   * @param attestation 
+   * @param attestation
    * @param startTime delay time in sec
    */
   private enQueueDelayed(attestation: Attestation, startTime: number) {
@@ -139,7 +145,6 @@ export class SourceManager {
     this.attestationsPriorityQueue.push(attestation, startTime);
     this.updateDelayQueueTimer();
   }
-
 
   private updateDelayQueueTimer(): void {
     if (this.attestationsPriorityQueue.length() == 0) return;
@@ -183,7 +188,7 @@ export class SourceManager {
     const now = getTimeMilli();
 
     // check if the transaction is too late
-    if (now > this.attestationRoundManager.rounds.get(attestation.roundId).commitEndTimeMs) {
+    if (now > attestation.round.commitEndTimeMs) {
       //this.logger.error(`chain ${tx.epochId} transaction too late to process`);
       attestation.status = AttestationStatus.tooLate;
       this.onProcessed(attestation, AttestationStatus.tooLate);
@@ -203,7 +208,7 @@ export class SourceManager {
     }
 
     // get relevant verifierRouter for attestation from global configs
-    const verifierRouter = this.attestationRoundManager.globalConfigManager.getVerifierRouter(attestation.roundId);
+    const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
 
     // assert
     if (!verifierRouter) {
@@ -256,23 +261,19 @@ export class SourceManager {
   }
 
   /**
-   * A callback to be called when an attestation is processed. 
+   * A callback to be called when an attestation is processed.
    * Sets the Attestation status and adds verificationData to the attestation
    * @param attestation
    * @param status
    * @param verificationData
    */
-  private onProcessed(
-    attestation: Attestation,
-    status: AttestationStatus,
-    verificationData?: Verification<any, any>
-  ) {
+  private onProcessed(attestation: Attestation, status: AttestationStatus, verificationData?: Verification<any, any>) {
     assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid verificationData`);
 
     // set status
     attestation.status = status;
     attestation.verificationData = verificationData!;
-    
+
     // augument the attestation response with the round id
     if (attestation.verificationData?.response) {
       attestation.verificationData.response.stateConnectorRound = attestation.roundId;
@@ -282,7 +283,7 @@ export class SourceManager {
     this.attestationProcessing.delete(attestation);
 
     // signal a new attestation was processed
-    this.attestationRoundManager.rounds.get(attestation.roundId).onAttestationProcessed(attestation);
+    attestation.round.onAttestationProcessed(attestation);
 
     if (attestation.status !== AttestationStatus.tooLate) {
       // start next transaction
@@ -295,7 +296,7 @@ export class SourceManager {
    * If possible the attestation is processed, otherwise it is added the queue.
    * @param attestation
    */
-  public verifyAttestationRequest(attestation: Attestation): void {   
+  public verifyAttestationRequest(attestation: Attestation): void {
     //this.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
     // check if transaction can be added into processing
@@ -308,7 +309,7 @@ export class SourceManager {
   }
 
   /**
-   * Processes the next attestation in the priority queue if expected startTime 
+   * Processes the next attestation in the priority queue if expected startTime
    * of is reached otherwise the next attestation in the queue
    */
   private startNext(): void {

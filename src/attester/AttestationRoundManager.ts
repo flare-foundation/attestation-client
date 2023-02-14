@@ -50,7 +50,7 @@ export class AttestationRoundManager {
     this.logger = logger;
     this.flareConnection = flareConnection;
 
-    this.sourceRouter = sourceRouter ?? new SourceRouter(this);
+    this.sourceRouter = sourceRouter ?? new SourceRouter(this.globalConfigManager);
     this.globalConfigManager = new GlobalConfigManager(this.attestationClientConfig, this.activeRoundId, this.logger);
   }
 
@@ -366,9 +366,9 @@ export class AttestationRoundManager {
     await attestationRound.initialize();
 
     // create, check and add attestation. If attestation is not ok, status is set to 'invalid'
-    const attestation = await this.createAttestation(epochId, attestationData);
+    const attestation = this.createAttestation(epochId, attestationData);
 
-    // attestation is added to the list, if non-duplicate. Invalid attestations are markd as processed
+    // attestation is added to the list, if non-duplicate. Invalid attestations are marked as processed a pointer to the round is added to the attestation
     attestationRound.addAttestation(attestation);
 
     // update database log for number of attestations
@@ -394,7 +394,7 @@ export class AttestationRoundManager {
    * @param data
    * @returns
    */
-  private createAttestation(roundId: number, data: AttestationData): Attestation {
+  private createAttestation(roundId: number, data: AttestationData) {
     const attestation = new Attestation(roundId, data);
 
     const globalConfig = this.globalConfigManager.getConfig(roundId);

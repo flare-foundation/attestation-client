@@ -1,5 +1,6 @@
 import { Managed, toBN } from "@flarenetwork/mcc";
 import assert from "assert";
+import { exit } from "process";
 import { stringify } from "safe-stable-stringify";
 import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 import { chooseCandidate, countOnes, prefix0x, unPrefix0x } from "../choose-subsets-lib/subsets-lib";
@@ -11,7 +12,7 @@ import { commitHash, MerkleTree } from "../utils/data-structures/MerkleTree";
 import { getCryptoSafeRandom } from "../utils/helpers/crypto-utils";
 import { getTimeMilli } from "../utils/helpers/internetTime";
 import { retry } from "../utils/helpers/promiseTimeout";
-import { prepareString } from "../utils/helpers/utils";
+import { MOCK_NULL_WHEN_TESTING, prepareString } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { SourceId } from "../verification/sources/sources";
@@ -210,7 +211,7 @@ export class AttestationRound {
    * Returns current time relative to the start of round in seconds (decimal value rounded to 1st decimal).
    */
   private get nowRelative() {
-    let diff = Date.now() - this.flareConnection.epochSettings.getRoundIdTimeStartMs(this.roundId);
+    let diff = Date.now() - this.epochSettings.getRoundIdTimeStartMs(this.roundId);
     return (diff / 1000).toFixed(1);
   }
 
@@ -414,6 +415,7 @@ export class AttestationRound {
     }
 
     this.attestations.push(attestation);
+    attestation.round = this;
     attestation.setIndex(this.attestations.length - 1);
     this.attestationsMap.set(requestId, attestation);
 
@@ -425,7 +427,16 @@ export class AttestationRound {
 
     // start attestation process
     if (this.getSourceLimiter(attestation.data).canProceedWithValidation(attestation)) {
-      this.sourceRouter.verifyAttestationRequest(attestation);
+      const sourceManager = this.sourceRouter.getSourceManager(attestation.data.sourceId);
+
+      if (!sourceManager) {
+        this.logger.error(`${attestation.data.sourceId}: critical error, source not defined`);
+        exit(1);
+        return MOCK_NULL_WHEN_TESTING;
+      }
+
+      sourceManager.verifyAttestationRequest(attestation);
+      return;
     } else {
       this.onAttestationProcessed(attestation);
     }
@@ -618,7 +629,7 @@ export class AttestationRound {
 
     // calculate remaining time in epoch
     const now = getTimeMilli();
-    const epochCommitEndTime = this.flareConnection.epochSettings.getRoundIdRevealTimeStartMs(this.roundId);
+    const epochCommitEndTime = this.epochSettings.getRoundIdRevealTimeStartMs(this.roundId);
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
@@ -654,7 +665,7 @@ export class AttestationRound {
   public async onChoosePhaseStart() {
     this.logger.group(
       `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+        (this.attestations.length * 1000) / this.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -666,7 +677,7 @@ export class AttestationRound {
   public async onCommitPhaseStart() {
     this.logger.group(
       `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+        (this.attestations.length * 1000) / this.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;

@@ -1,11 +1,18 @@
 #!/bin/bash
 
-cd indexers-testnet
+NETWORK="$1"
 
-./uninstall.sh xrp
-./uninstall.sh btc
-./uninstall.sh doge
+if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
+   echo "Uninstalling dockers for: $NETWORK"
+   cd indexers-$NETWORK
 
-cd ../attestation-client
+   ./uninstall.sh xrp
+   ./uninstall.sh btc
+   ./uninstall.sh doge
 
-./uninstall.sh
+   cd ../attestation-client
+
+   ./uninstall.sh
+else
+  echo "Invalid network: '$NETWORK'"
+fi

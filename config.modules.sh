@@ -20,7 +20,7 @@ export INSTALL_MYSQL=true
 export INSTALL_INDEXER=true
 export INSTALL_VERIFIER=true
 export INSTALL_MONITOR=true
-export INSTALL_FRONTEND=true
+export INSTALL_FRONTEND=false
 
 # nodes
 export INSTALL_NODES_TESTNET=true

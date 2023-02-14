@@ -4,7 +4,7 @@ export enum AttestationRoundPhase {
   choose,
   commit,
   reveal,
-  completed
+  finalise
 }
 
 // !!! STATUS ORDER IS IMPORTANT. It is crucial that the round can progress only to later status

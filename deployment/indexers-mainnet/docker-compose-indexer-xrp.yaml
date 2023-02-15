@@ -56,6 +56,17 @@ services:
       - ../node-configs/mainnet/ripple/rippled.conf:/opt/ripple/.ripple/rippled.conf
       - ../node-configs/mainnet/ripple/validators.txt:/opt/ripple/.ripple/validators.txt
 
+  spammer:
+    image: attestation-suite
+    profiles: ["spammer"]
+    volumes:
+      - ../credentials.prepared/xrp-indexer-verifier:/app/attestation-suite-config
+    container_name: indexer-xrp-spammer
+    command: spammer XRP
+    restart: unless-stopped
+    depends_on:
+      - indexer
+
 volumes:
   ripple-mainnet-data:
   indexer-xrp-db:

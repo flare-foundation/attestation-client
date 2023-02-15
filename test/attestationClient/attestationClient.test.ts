@@ -3,6 +3,7 @@
 import { traceManager } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
+import { get } from "http";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
@@ -18,7 +19,7 @@ chai.use(chaiAsPromised);
 
 class MockSourceRouter extends SourceRouter {
   constructor() {
-    super(undefined);
+    super(undefined, getGlobalLogger());
   }
   validateTransaction(sourceId: SourceId, transaction: Attestation) {}
 }

@@ -50,7 +50,7 @@ export class AttestationRoundManager {
     this.logger = logger;
     this.flareConnection = flareConnection;
 
-    this.sourceRouter = sourceRouter ?? new SourceRouter(this.globalConfigManager);
+    this.sourceRouter = sourceRouter ?? new SourceRouter(this.globalConfigManager, logger);
     this.globalConfigManager = new GlobalConfigManager(this.attestationClientConfig, this.activeRoundId, this.logger);
   }
 
@@ -272,13 +272,6 @@ export class AttestationRoundManager {
 
     // check if verifier router exists for this round id.
     const verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
-
-    // If no verifier, round cannot be evaluated - critical error.
-    if (!verifierRouter) {
-      this.logger.error(`${this.label}${roundId}: critical error, verifier router for round id not defined`);
-      exit(1);
-      return MOCK_NULL_WHEN_TESTING;
-    }
 
     // Update sources to the latest global configs and verifier router configs
     // We are sure at this point, that relevant verifier router exists

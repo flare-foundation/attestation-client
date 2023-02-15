@@ -75,11 +75,7 @@ export class SourceManager {
    * Returns attestation client label for logging.
    */
   public get label() {
-    let label = "";
-    if (this.globalConfigManager.attestationClientConfig.label != "none") {
-      label = `[${this.globalConfigManager.attestationClientConfig.label}]`;
-    }
-    return label;
+    return this.globalConfigManager.label;
   }
   /**
    * Returns `true` if new attestation requests can be added for processing (subject to rate limit).
@@ -209,13 +205,6 @@ export class SourceManager {
 
     // get relevant verifierRouter for attestation from global configs
     const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
-
-    // assert
-    if (!verifierRouter) {
-      // This should not happen as this is checked already on AttestationRound creation
-      this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.roundId}`);
-      exit(1);
-    }
 
     this.increaseRequestCount();
     verifierRouter

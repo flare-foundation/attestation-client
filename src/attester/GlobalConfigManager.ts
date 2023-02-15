@@ -46,6 +46,17 @@ export class GlobalConfigManager {
   }
 
   /**
+   * Returns attestation client label for logging.
+   */
+  public get label() {
+    let label = "";
+    if (this.attestationClientConfig.label != "none") {
+      label = `[${this.attestationClientConfig.label}]`;
+    }
+    return label;
+  }
+
+  /**
    * Reads and configurations and initializes attestation round manager
    */
   public async initialize() {
@@ -83,12 +94,18 @@ export class GlobalConfigManager {
    * @returns getVerifierRouter for a given @param roundId
    */
   public getVerifierRouter(roundId: number): VerifierRouter {
-    let config = this.getConfig(roundId);
-    if (config) {
-      return config.verifierRouter;
+    const config = this.getConfig(roundId);
+    if (!config) {
+      this.logger.error(`DAC for round id ${roundId} does not exist (using default)`);
+      exit(1);
     }
-    this.logger.error(`DAC for round id ${roundId} does not exist (using default)`);
-    exit(1);
+    const verifierRouter = config.verifierRouter;
+    if (!verifierRouter) {
+      //we probably want to check if verifierRouter is initialized
+      this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${roundId}`);
+      exit(1);
+    }
+    return verifierRouter;
   }
 
   /**

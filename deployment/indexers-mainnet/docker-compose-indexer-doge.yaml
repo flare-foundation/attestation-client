@@ -57,10 +57,8 @@ services:
     volumes:
       - ../credentials.prepared/doge-indexer-spammer:/app/attestation-suite-config
     container_name: indexer-doge-spammer
-    command: spammer DOGE
+    command: spammer DOGE 10000
     restart: unless-stopped
-    depends_on:
-      - indexer
 
 volumes:
   dogecoin-mainnet-data:

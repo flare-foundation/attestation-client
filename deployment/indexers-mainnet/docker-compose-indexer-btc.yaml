@@ -57,10 +57,8 @@ services:
     volumes:
       - ../credentials.prepared/btc-indexer-verifier:/app/attestation-suite-config
     container_name: indexer-btc-spammer
-    command: spammer BTC
+    command: spammer BTC 10000
     restart: unless-stopped
-    depends_on:
-      - indexer
 
 volumes:
   bitcoin-mainnet-data:

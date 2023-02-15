@@ -62,10 +62,8 @@ services:
     volumes:
       - ../credentials.prepared/xrp-indexer-verifier:/app/attestation-suite-config
     container_name: indexer-xrp-spammer
-    command: spammer XRP
+    command: spammer XRP 10000
     restart: unless-stopped
-    depends_on:
-      - indexer
 
 volumes:
   ripple-mainnet-data:

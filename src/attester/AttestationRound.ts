@@ -429,12 +429,6 @@ export class AttestationRound {
     if (this.getSourceLimiter(attestation.data).canProceedWithValidation(attestation)) {
       const sourceManager = this.sourceRouter.getSourceManager(attestation.data.sourceId);
 
-      if (!sourceManager) {
-        this.logger.error(`${attestation.data.sourceId}: critical error, source not defined`);
-        exit(1);
-        return MOCK_NULL_WHEN_TESTING;
-      }
-
       sourceManager.verifyAttestationRequest(attestation);
       return;
     } else {

@@ -51,6 +51,17 @@ services:
       - bitcoin-mainnet-data:/opt/bitcoin/.bitcoin/db
       - ../node-configs/mainnet/bitcoin/bitcoin.conf:/opt/bitcoin/.bitcoin/bitcoin.conf
 
+  spammer:
+    image: attestation-suite
+    profiles: ["spammer"]
+    volumes:
+      - ../credentials.prepared/btc-indexer-verifier:/app/attestation-suite-config
+    container_name: indexer-btc-spammer
+    command: spammer BTC
+    restart: unless-stopped
+    depends_on:
+      - indexer
+
 volumes:
   bitcoin-mainnet-data:
   indexer-btc-db:

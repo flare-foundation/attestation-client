@@ -51,6 +51,17 @@ services:
       - dogecoin-mainnet-data:/opt/dogecoin/.dogecoin/db
       - ../node-configs/mainnet/dogecoin/dogecoin.conf:/opt/dogecoin/.dogecoin/dogecoin.conf
 
+  spammer:
+    image: attestation-suite
+    profiles: ["spammer"]
+    volumes:
+      - ../credentials.prepared/doge-indexer-spammer:/app/attestation-suite-config
+    container_name: indexer-doge-spammer
+    command: spammer DOGE
+    restart: unless-stopped
+    depends_on:
+      - indexer
+
 volumes:
   dogecoin-mainnet-data:
   indexer-doge-db:

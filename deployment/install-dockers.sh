@@ -1,11 +1,22 @@
 #!/bin/bash
 
-cd indexers-testnet
+NETWORK="$1"
 
-./install.sh xrp ../node-configs/testnet/ripple/
-./install.sh btc ../node-configs/testnet/bitcoin/
-./install.sh doge ../node-configs/testnet/dogecoin/
+if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
+   echo "Installing dockers for: $NETWORK"
+   cd indexers-$NETWORK
 
-cd ../attestation-client
+   ./install.sh xrp ../node-configs/$NETWORK/ripple/
+   ./install.sh btc ../node-configs/$NETWORK/bitcoin/
+   ./install.sh doge ../node-configs/$NETWORK/dogecoin/
 
-./install.sh
+   cd ../attestation-client
+
+   ./install.sh  
+else
+  echo "Invalid network: '$NETWORK'"
+fi
+
+
+
+

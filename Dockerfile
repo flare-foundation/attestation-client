@@ -17,7 +17,8 @@ yarn install --frozen-lockfile
 COPY . .
 RUN yarn c && yarn build
 EXPOSE 3000
-RUN chown -R node /app/attestation-client
+# RUN chown -R node /app/attestation-client
+RUN mkdir -p /app/attestation-client/logs && chown -R node /app/attestation-client/logs
 USER node
 
 ENV PATH="${PATH}:/app/attestation-client/docker/scripts"

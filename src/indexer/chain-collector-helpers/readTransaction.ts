@@ -20,8 +20,8 @@ export async function getFullTransactionUtxo(
 ): Promise<UtxoTransaction> {
   processor.registerTopLevelJob();
   // only for transactions with reference all input transactions are processed
-  //if (blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase") {
-  if (blockTransaction.type !== "coinbase") {
+  if (blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase") {
+  // if (blockTransaction.type !== "coinbase") {   // too slow indexing!!!
     blockTransaction.synchronizeAdditionalData();
 
     const txPromises = blockTransaction.data.vin.map((vin: IUtxoVinTransaction, index: number) => {

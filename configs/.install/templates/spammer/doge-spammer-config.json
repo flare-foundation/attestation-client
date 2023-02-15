@@ -10,10 +10,10 @@
         "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
     },
     "indexerDatabase": {
-        "host": "$(IndexerDatabaseHost)",
-        "port": $(IndexerDatabasePort),
-        "database": "$(IndexerDatabase)",
-        "username": "$(IndexerWriterUsername)",
-        "password": "$(IndexerWriterPassword)"
+        "host": "$(DOGEIndexerDatabaseHost)",
+        "port": $(DOGEIndexerDatabasePort),
+        "database": "$(DOGEIndexerDatabase)",
+        "username": "$(DOGEIndexerReaderUsername)",
+        "password": "$(DOGEIndexerReaderPassword)"
     }
 }

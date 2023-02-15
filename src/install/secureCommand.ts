@@ -11,6 +11,7 @@ const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 const args = yargs
     .option("action", { alias: "a", type: "string", description: "command action", default: "", demand: true })
     .option("folder", { alias: "f", type: "string", description: "start folder", default: "", demand: false })
+    .option("credentials", { alias: "c", type: "string", description: "credentials folder", default: DEFAULT_SECURE_CONFIG_PATH, demand: false })
     .option("network", { alias: "n", type: "string", description: "network", default: "Coston", demand: false }).argv;
 
 async function run() {
@@ -20,7 +21,7 @@ async function run() {
     const network = args["network"];
 
     // read configuration
-    await initializeJSONsecure(DEFAULT_SECURE_CONFIG_PATH, network);
+    await initializeJSONsecure(args["credentials"], network);
 
     logger.info(`network: '${network}'`)
 

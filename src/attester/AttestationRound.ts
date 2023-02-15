@@ -464,10 +464,10 @@ export class AttestationRound {
 
     this.defaultSetAddresses = this.defaultSetAddresses.map((address) => address.toLowerCase());
 
-    // this.logger.debug(`${this.label}Round ${this.roundId} initialized with attestation providers`);
-    // for(let [index, address] of this.defaultSetAddresses.entries()) {
-    //   this.logger.debug(`[${index}] ${address}`);
-    // }
+    this.logger.debug(`${this.label}Round ${this.roundId} initialized with attestation providers`);
+    for(let [index, address] of this.defaultSetAddresses.entries()) {
+      this.logger.debug(`[${index}] ${this.activeGlobalConfig.defaultSetAssignerAddresses[index]} --> ${address}`);
+    }
     this._initialized = true;
   }
 

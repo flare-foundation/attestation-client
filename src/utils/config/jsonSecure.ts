@@ -8,14 +8,14 @@ import { getGlobalLogger } from "../logging/logger";
 import { decryptString } from "../security/encrypt";
 
 // We assume that one app run has only one network credentials.
-export let secureMasterConfigs = [];
-let networkName = "";
+export let SECURE_MASTER_CONFIGS = [];
+let NETWORK_NAME = "";
 let initializing = false;
 
 const CREDENTIALS_ERROR = 500;
 
 export function getSecureValue(name: string): string {
-    for (const value of secureMasterConfigs) {
+    for (const value of SECURE_MASTER_CONFIGS) {
         if (value[0] === name) {
             return value[1];
         }
@@ -30,7 +30,7 @@ export function getSecureValue(name: string): string {
 function addSecureCredentials<T>(filename: string) {
     const config = readJSONfromFile<any>(filename, null, true);
     for (const key of Object.keys(config)) {
-        secureMasterConfigs.push([key, config[key]]);
+        SECURE_MASTER_CONFIGS.push([key, config[key]]);
     }
 }
 
@@ -39,8 +39,8 @@ function addSecureCredentials<T>(filename: string) {
  * For testing purposes.
  */
 export function _clearSecureCredentials() {
-    networkName = "";
-    secureMasterConfigs = [];
+    NETWORK_NAME = "";
+    SECURE_MASTER_CONFIGS = [];
 }
 
 /**
@@ -60,7 +60,7 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
         await sleepMs(100);
     }
     if (isInitializedJSONsecure()) {
-        if (network !== "" && network != networkName) {
+        if (network !== "" && network != NETWORK_NAME) {
             logger.error(`only single network application supported`);
             exit(CREDENTIALS_ERROR);
         }
@@ -68,10 +68,10 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
     }
 
     initializing = true;
-    networkName = network;
+    NETWORK_NAME = network;
 
     // check that no keys exist
-    if (Object.keys(secureMasterConfigs).length > 0) {
+    if (Object.keys(SECURE_MASTER_CONFIGS).length > 0) {
         logger.error(`secure master config not empty`);
         exit(CREDENTIALS_ERROR);
 
@@ -91,11 +91,11 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
         try {
             const config = readJSONfromString<any>(data, null, false);
             for (const key of Object.keys(config)) {
-                if (secureMasterConfigs[key]) {
+                if (SECURE_MASTER_CONFIGS[key]) {
                     logger.error(`duplicate key '${key}' from '${credentialsFilename}'`);
                     exit(CREDENTIALS_ERROR);
                 }
-                secureMasterConfigs.push([key, config[key]]);
+                SECURE_MASTER_CONFIGS.push([key, config[key]]);
             }
         } catch (error) {
             logger.error(`error decrypting credentials ^R^w${credentialsFilename}`);
@@ -123,7 +123,7 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
  * @returns true if secure JSON is initialized
  */
 export function isInitializedJSONsecure(): boolean {
-    return networkName !== "";
+    return NETWORK_NAME !== "";
 }
 
 /**
@@ -138,7 +138,7 @@ export function isInitializedJSONsecure(): boolean {
  */
 export function readFileSecure(filename: string, parser: any = null, validate = false): string {
     let data = fs.readFileSync(filename).toString();
-    return _prepareSecureData(data, filename, networkName)
+    return _prepareSecureData(data, filename, NETWORK_NAME)
 }
 
 /**
@@ -156,7 +156,7 @@ export function readJSONsecure<T>(filename: string, parser: any = null, validate
         return readJSONfromFile(filename, parser, validate);
     }
     let data = fs.readFileSync(filename).toString();
-    data = _prepareSecureData(data, filename, networkName)
+    data = _prepareSecureData(data, filename, NETWORK_NAME)
     return readJSONfromString<T>(data, parser, validate, filename);
 }
 
@@ -170,13 +170,13 @@ export function readJSONsecure<T>(filename: string, parser: any = null, validate
  * 
  * @param data 
  * @param inputFilename 
- * @param chain 
+ * @param network 
  * @returns 
  */
-export function _prepareSecureData(data: string, inputFilename: string, chain: string, chainSearch='Network'): string {
+export function _prepareSecureData(data: string, inputFilename: string, network: string, searchStub='Network'): string {
     const logger = getGlobalLogger();
-    data = replaceAll(data, chainSearch, chain);
-    for (const config of secureMasterConfigs) {
+    data = replaceAll(data, searchStub, network);
+    for (const config of SECURE_MASTER_CONFIGS) {
         data = replaceAll(data, config[0], config[1]);
     }
     // check if any instance of `$(` is left - indicating some values were not defined
@@ -184,7 +184,7 @@ export function _prepareSecureData(data: string, inputFilename: string, chain: s
     if (leftVariables) {
         const leftVariablesNoDup = leftVariables.filter((item, index) => leftVariables.indexOf(item) === index);
         for (const left of leftVariablesNoDup) {
-            logger.error(`file ^w${inputFilename}^^ (chain ^E${chain}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
+            logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
         }
     }
     return data;

@@ -40,7 +40,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         //TestLogger.setDisplay(1);
 
         process.env.SECURE_CONFIG_PATH = secureConfigPath;
-        process.env.SECURE_CONFIG_NETWORK = `TestNetwork`;
+        process.env.FLARE_NETWORK = `TestNetwork`;
         process.env.CREDENTIALS_KEY = `direct:${password}`;
 
         sinon.stub(process, 'exit');

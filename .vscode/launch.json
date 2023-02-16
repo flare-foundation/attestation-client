@@ -86,7 +86,7 @@
                 "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
             ],
             "env": {
-                "SECURE_CONFIG_NETWORK": "Coston2",
+                "FLARE_NETWORK": "Coston2",
                 "NODE_ENV":"development"
             },
             "runtimeArgs": [

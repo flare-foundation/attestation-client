@@ -18,7 +18,7 @@ const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
  * 
  * Use `SECURE_CONFIG_PATH` env variable to set configuration path if non standard (`../attestation-suite-config`). note that path in this function is absolute (different usage as with the `readConfigBase` function).
  * 
- * Use `SECURE_CONFIG_NETWORK` env variables to specify the network.
+ * Use `FLARE_NETWORK` env variables to specify the network (coston, coston2, flare, songbird).
  * 
  * @param project project name 
  * @param type configuration type (config, credentials)
@@ -40,10 +40,10 @@ async function readSecureConfigBase<T extends IReflection<T>>(project: string, t
         getGlobalLogger().warning(`secure configuration path not set. using ^w^K${modePath}^^`);
     }
 
-    let network = "Coston";
-    if (process.env.SECURE_CONFIG_NETWORK) {
-        network = `${process.env.SECURE_CONFIG_NETWORK}`;
-        getGlobalLogger().debug2(`secure configuration env.SECURE_CONFIG_NETWORK using ^w^K${process.env.SECURE_CONFIG_NETWORK}^^`);
+    let network = "coston2";
+    if (process.env.FLARE_NETWORK) {
+        network = `${process.env.FLARE_NETWORK}`;
+        getGlobalLogger().debug2(`secure configuration env.FLARE_NETWORK using ^w^K${process.env.FLARE_NETWORK}^^`);
     } else {
         getGlobalLogger().warning(`secure configuration network not set. using network ^w^K${network}^^`);
     }

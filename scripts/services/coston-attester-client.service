@@ -8,7 +8,7 @@ Restart=always
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
 Environment=LOG_PATH=./logs/coston
-Environment=SECURE_CONFIG_NETWORK=Coston
+Environment=FLARE_NETWORK=coston
 
 
 WorkingDirectory=/home/ubuntu/attestation-suite/attestation-client/

@@ -1,0 +1,84 @@
+{
+   "startRoundId": 150,
+   // Flare assigners
+   "defaultSetAssignerAddresses": [
+      "0x0988Cf4828F4e4eD0cE7c07467E70e19095Ee152",
+      "0x6BC7DCa62010D418eB72CCdc58561e00C5868Ef1",
+      "0xE34Bb361536610a9DCcEa5292262e36AfF65c06c",
+      "0x8A3D627D86A81F5D21683F4963565C63DB5e1309",
+      "0x2D3e7e4b19bDc920fd9C57BD3072A31F5a59FeC8",
+      "0x6455dC38fdF739b6fE021b30C7D9672C1c6DEb5c",
+      "0x49893c5Dfc035F4eE4E46faC014f6D4bC80F7f92",
+      "0x08e8b2Af4874e920de27723576A13d66008Af523",
+      "0x5D2f75392DdDa69a2818021dd6a64937904c8352"
+   ],
+   "consensusSubsetSize": 7,
+   "sources": [
+      {
+         "source": "BTC",
+         "maxTotalRoundWeight": 200,
+         "attestationTypes": [
+            {
+               "type": "Payment",
+               "weight": 1
+            },
+            {
+               "type": "BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type": "ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type": "ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      },
+      {
+         "source": "DOGE",
+         "maxTotalRoundWeight": 200,
+         "attestationTypes": [
+            {
+               "type": "Payment",
+               "weight": 1
+            },
+            {
+               "type": "BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type": "ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type": "ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      },
+      {
+         "source": "XRP",
+         "maxTotalRoundWeight": 200,
+         "attestationTypes": [
+            {
+               "type": "Payment",
+               "weight": 1
+            },
+            {
+               "type": "BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type": "ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type": "ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+   ]
+}

@@ -5,7 +5,7 @@ import { assert } from "chai";
 import sinon from "sinon";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { getCredentialsKey, getCredentialsKeyAddress, getCredentialsKeyByAddress } from "../../src/utils/config/credentialsKey";
-import { secureMasterConfigs, _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
+import { SECURE_MASTER_CONFIGS, _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
 import { getTestFile } from "../test-utils/test-utils";
@@ -53,7 +53,7 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
 
     beforeEach(async () => {
         process.env.SECURE_CONFIG_PATH = SECURE_CONFIG_PATH;
-        process.env.SECURE_CONFIG_NETWORK = `TestNetwork`;
+        process.env.FLARE_NETWORK = `TestNetwork`;
         process.env.CREDENTIALS_KEY = CREDENTIALS_KEY;
 
         exitCode = 0;
@@ -66,7 +66,7 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
 
         delete process.env.CREDENTIALS_KEY_FILE;
         delete process.env.SECURE_CONFIG_PATH;
-        delete process.env.SECURE_CONFIG_NETWORK;
+        delete process.env.FLARE_NETWORK;
         delete process.env.CREDENTIALS_KEY;
     })
 
@@ -141,7 +141,7 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
     it(`test empty credentials at start`, async () => {
         let testConfig = new TestConfig();
 
-        secureMasterConfigs.push(["dummy", 123]);
+        SECURE_MASTER_CONFIGS.push(["dummy", 123]);
 
         const test = await readSecureConfig(testConfig, "template1");
 

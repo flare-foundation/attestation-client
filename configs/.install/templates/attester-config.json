@@ -4,7 +4,7 @@
     // epoch duration in seconds
     "roundDurationSec": 90,
     // DAC - Dynamic Attestation Configuration folder
-    "dynamicAttestationConfigurationFolder": "./configs/dac/",
+    "dynamicAttestationConfigurationFolder": "./configs/dac/$(Network)/",
     // commit time in seconds, actual commit time is: epoch start + 2 * epoch duration + commit time (should be negative)
     "commitTimeSec": -10,
     // bit vote time in seconds relative to: epoch start + epoch duration + bit vote window + bitVoteTimeSec

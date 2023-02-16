@@ -10,6 +10,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: test123
+      FLARE_NETWORK: songbird
     depends_on:
       - database
 

@@ -6,7 +6,7 @@ import sinon from "sinon";
 import { prepareSecureCredentials } from "../../src/install/prepareSecureCredentials";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { readJSON, readJSONfromString } from "../../src/utils/config/json";
-import { secureMasterConfigs, _clearSecureCredentials, _prepareSecureData } from "../../src/utils/config/jsonSecure";
+import { SECURE_MASTER_CONFIGS, _clearSecureCredentials, _prepareSecureData } from "../../src/utils/config/jsonSecure";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
@@ -45,7 +45,7 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
         //TestLogger.setDisplay(1);
 
         process.env.SECURE_CONFIG_PATH = secureConfigPath;
-        process.env.SECURE_CONFIG_NETWORK = `TestNetwork`;
+        process.env.FLARE_NETWORK = `TestNetwork`;
         process.env.CREDENTIALS_KEY = `direct:${password}`;
 
         sinon.stub(process, 'exit');
@@ -66,7 +66,7 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
         sinon.restore();
 
         delete process.env.SECURE_CONFIG_PATH;
-        delete process.env.SECURE_CONFIG_NETWORK;
+        delete process.env.FLARE_NETWORK;
         delete process.env.CREDENTIALS_KEY;
     })
 
@@ -85,8 +85,8 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
     // secure config
 
     it(`test prepare secure data`, async () => {
-        secureMasterConfigs.push(["test1", "value1"]);
-        secureMasterConfigs.push(["test2", 2]);
+        SECURE_MASTER_CONFIGS.push(["test1", "value1"]);
+        SECURE_MASTER_CONFIGS.push(["test2", 2]);
 
         const prepared = _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)"}`, "", "TestNetwork");
 
@@ -94,8 +94,8 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
     });
 
     it(`test prepare secure data value left error`, async () => {
-        secureMasterConfigs.push(["test1", "value1"]);
-        secureMasterConfigs.push(["test2", 2]);
+        SECURE_MASTER_CONFIGS.push(["test1", "value1"]);
+        SECURE_MASTER_CONFIGS.push(["test2", 2]);
 
         const prepared = _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)", "test3"=$(test3)}`, "", "TestNetwork");
 
@@ -103,7 +103,7 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
     });
 
     it(`test prepare secure data with network`, async () => {
-        secureMasterConfigs.push(["TestNetworkPassword", "123"]);
+        SECURE_MASTER_CONFIGS.push(["TestNetworkPassword", "123"]);
 
         const prepared = _prepareSecureData(`{"Password"="$($(Network)Password)"}`, "", "TestNetwork");
 

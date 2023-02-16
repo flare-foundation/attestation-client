@@ -4,19 +4,14 @@
          "sourceId": "XRP",
          "routes": [
             {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction",
+                  "ConfirmedBlockHeightExists",
+                  "ReferencedPaymentNonexistence"
+               ],
                "url": "$(XRPVerifierRouterClientUrl)",
                "apiKey": "$(XRPVerifierRouterClientApiKey)"
-            }
-         ]
-      },
-      {
-         "sourceId": "LTC",
-         "routes": [
-            {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
-               "url": "$(LTCVerifierRouterClientUrl)",
-               "apiKey": "$(LTCVerifierRouterClientApiKey)"
             }
          ]
       },
@@ -24,19 +19,14 @@
          "sourceId": "DOGE",
          "routes": [
             {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction",
+                  "ConfirmedBlockHeightExists",
+                  "ReferencedPaymentNonexistence"
+               ],
                "url": "$(DOGEVerifierRouterClientUrl)",
                "apiKey": "$(DOGEVerifierRouterClientApiKey)"
-            }
-         ]
-      },
-      {
-         "sourceId": "ALGO",
-         "routes": [
-            {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
-               "url": "$(ALGOVerifierRouterClientUrl)",
-               "apiKey": "$(ALGOVerifierRouterClientApiKey)"
             }
          ]
       },
@@ -44,11 +34,16 @@
          "sourceId": "BTC",
          "routes": [
             {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction", "ConfirmedBlockHeightExists"],
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction",
+                  "ConfirmedBlockHeightExists",
+                  "ReferencedPaymentNonexistence"
+               ],
                "url": "$(BTCVerifierRouterClientUrl)",
                "apiKey": "$(BTCVerifierRouterClientApiKey)"
             }
          ]
       }
-  ]
+   ]
 }

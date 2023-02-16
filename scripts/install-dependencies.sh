@@ -21,3 +21,6 @@ sudo npm install --global yarn -y
 
 source ~/.profile 
 
+# docker
+sudo apt install docker.io
+

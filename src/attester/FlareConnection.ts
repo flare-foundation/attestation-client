@@ -11,7 +11,6 @@ import { retry } from "../utils/helpers/promiseTimeout";
 import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { AttLogger } from "../utils/logging/logger";
-import { AttestationRoundManager } from "./AttestationRoundManager";
 import { AttesterState } from "./AttesterState";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 
@@ -26,9 +25,6 @@ export class FlareConnection {
   bitVoting!: BitVoting;
   web3Functions!: Web3Functions;
   epochSettings: EpochSettings;
-  firstEpochStartTime: number;
-  roundDurationSec: number;
-  chooseDeadlineSec: number;
 
   logger: AttLogger;
 
@@ -61,10 +57,10 @@ export class FlareConnection {
   public async initialize() {
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.attestationClientConfig.web.stateConnectorContractAddress);
     this.bitVoting = (await getWeb3Contract(this.web3, this.attestationClientConfig.web.bitVotingContractAddress, "BitVoting")) as any as BitVoting;
-    this.firstEpochStartTime = parseInt("" + (await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call()), 10);
-    this.roundDurationSec = parseInt("" + (await this.stateConnector.methods.BUFFER_WINDOW().call()), 10);
-    this.chooseDeadlineSec = parseInt("" + (await this.bitVoting.methods.BIT_VOTE_DEADLINE().call()), 10);
-    this.epochSettings = new EpochSettings(toBN(this.firstEpochStartTime), toBN(this.roundDurationSec), toBN(this.chooseDeadlineSec));
+    const firstEpochStartTime = parseInt("" + (await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call()), 10);
+    const roundDurationSec = parseInt("" + (await this.stateConnector.methods.BUFFER_WINDOW().call()), 10);
+    const chooseDeadlineSec = parseInt("" + (await this.bitVoting.methods.BIT_VOTE_DEADLINE().call()), 10);
+    this.epochSettings = new EpochSettings(toBN(firstEpochStartTime), toBN(roundDurationSec), toBN(chooseDeadlineSec));
   }
 
   /**
@@ -250,5 +246,4 @@ export class FlareConnection {
 
     return extReceipt.receipt;
   }
-
 }

@@ -11,11 +11,11 @@ export const DAC_REFRESH_TIME_S = 10;
  */
 export class GlobalAttestationConfig {
   startRoundId!: number;
-  defaultSetAssignerAddresses: string [] = []; 
+  defaultSetAssignerAddresses: string[] = [];
   consensusSubsetSize: number = 1;
   // !!!NOTE: If you add any new field, please update function 'load()' accordingly!
 
-  sourceLimiters = new Map<number, SourceLimiterConfig>();
+  sourceLimiters = new Map<SourceId, SourceLimiterConfig>();
   verifierRouter = new VerifierRouter();
 
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
@@ -25,12 +25,9 @@ export class GlobalAttestationConfig {
   }
 }
 
-
 export function sourceAndTypeSupported(attestationConfig: GlobalAttestationConfig, source: SourceId, type: AttestationType): boolean {
   const config = attestationConfig.sourceLimiters.get(source);
   if (!config) return false;
   const typeConfig = config.attestationTypes.get(type);
   return !!typeConfig;
 }
-
-

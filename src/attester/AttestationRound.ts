@@ -26,17 +26,13 @@ import { SourceRouter } from "./source/SourceRouter";
 import { AttestationRoundPhase, AttestationRoundStatus, NO_VOTE } from "./types/AttestationRoundEnums";
 import { AttestationStatus } from "./types/AttestationStatus";
 
-// terminology
-// att/sec
-// call/sec
-// call/att
+const ZERO_HASH = toHex(0, 32);
 
 /**
  * Manages a specific attestation round, specifically the data in the commit-reveal scheme.
  */
 @Managed()
 export class AttestationRound {
-
   phase: AttestationRoundPhase = AttestationRoundPhase.collect;
   attestStatus: AttestationRoundStatus;
   roundId: number;
@@ -57,6 +53,7 @@ export class AttestationRound {
   // adjacent rounds
   nextRound: AttestationRound;
   prevRound: AttestationRound;
+  private isEmpty = false;
 
   // attestations
   attestations = new Array<Attestation>();
@@ -73,7 +70,7 @@ export class AttestationRound {
   _initialized = false;
 
   // default set voter addresses (lowercase)
-  defaultSetAddresses: string[];
+  defaultSetAddresses: string[] = [];
 
   // bit votes map for the default set of voters
   bitVoteMap = new Map<string, string>();
@@ -110,21 +107,21 @@ export class AttestationRound {
     if (this.attestationClientConfig.label != "none") {
       _label = `[${this.attestationClientConfig.label}]`;
     }
-    return `#${_label} ${this.roundId}:${this.nowRelative}/${this.flareConnection.roundDurationSec} `;
+    return `#${_label} ${this.roundId}:${this.nowRelative}/${Math.floor(this.windowDurationMs / 1000)} `;
   }
 
   /**
    * Returns choose epoch duration in milliseconds.
    */
   public get chooseWindowDurationMs() {
-    return this.flareConnection.chooseDeadlineSec * 1000;
+    return this.flareConnection.epochSettings.getBitVoteDurationMs().toNumber();
   }
 
   /**
    * Returns voting window duration in milliseconds.
    */
   public get windowDurationMs() {
-    return this.flareConnection.roundDurationSec * 1000;
+    return this.flareConnection.epochSettings.getEpochLengthMs().toNumber();
   }
 
   /**
@@ -148,6 +145,13 @@ export class AttestationRound {
     return this.roundStartTimeMs + this.windowDurationMs;
   }
 
+  /**
+   * Returns the time of sending of bit vote
+   */
+  get roundBitVoteTimeMs() {
+    return this.roundChooseStartTimeMs + this.chooseWindowDurationMs + this.attestationClientConfig.bitVoteTimeSec * 1000;
+  }
+  
   /**
    * Returns time of forcing the bit voting close for the round (Unix epoch time in ms).
    * This is the time at which we assume we have received all the bit-votes.
@@ -241,7 +245,6 @@ export class AttestationRound {
       await this.tryPrepareCommitData();
     }
   }
-
 
   /**
    * Calculates the bit voting result for the round.
@@ -366,9 +369,8 @@ export class AttestationRound {
   }
 
   /**
-   * Returns the existing source Handler for the source chain of an attestation or creates a new sourceLimiter
+   * Returns the existing source limter for the source chain of an attestation or creates a new sourceLimiter
    * @param data
-   * @param onValidateAttestation
    * @returns
    */
   getSourceLimiter(data: AttestationData): SourceLimiter {
@@ -404,6 +406,7 @@ export class AttestationRound {
     }
 
     this.attestations.push(attestation);
+    attestation.round = this;
     attestation.setIndex(this.attestations.length - 1);
     this.attestationsMap.set(requestId, attestation);
 
@@ -415,7 +418,10 @@ export class AttestationRound {
 
     // start attestation process
     if (this.getSourceLimiter(attestation.data).canProceedWithValidation(attestation)) {
-      this.sourceRouter.verifyAttestationRequest(attestation);
+      const sourceManager = this.sourceRouter.getSourceManager(attestation.data.sourceId);
+
+      sourceManager.verifyAttestationRequest(attestation);
+      return;
     } else {
       this.onAttestationProcessed(attestation);
     }
@@ -450,7 +456,7 @@ export class AttestationRound {
     this.defaultSetAddresses = this.defaultSetAddresses.map((address) => address.toLowerCase());
 
     this.logger.debug(`${this.label}Round ${this.roundId} initialized with attestation providers`);
-    for(let [index, address] of this.defaultSetAddresses.entries()) {
+    for (let [index, address] of this.defaultSetAddresses.entries()) {
       this.logger.debug(`[${index}] ${this.activeGlobalConfig.defaultSetAssignerAddresses[index]} --> ${address}`);
     }
     this._initialized = true;
@@ -462,7 +468,8 @@ export class AttestationRound {
    */
   private canCommit(): boolean {
     this.logger.debug(
-      `${this.label}canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${AttestationRoundPhase[this.phase]
+      `${this.label}canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
+        AttestationRoundPhase[this.phase]
       }', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
     return this.phase === AttestationRoundPhase.commit && this.attestStatus === AttestationRoundStatus.commitDataPrepared;
@@ -623,11 +630,10 @@ export class AttestationRound {
   private async makeEmptyRound() {
     this.logger.debug2(`${this.label}create empty state for #${this.roundId}`);
 
-    this.roundMerkleRoot = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    this.roundMerkleRoot = ZERO_HASH;
     this.roundRandom = await getCryptoSafeRandom();
-
     this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.flareConnection.web3Functions.account.address);
-
+    this.isEmpty = true;
     // after commit state has been calculated add it in state
     await this.attesterState.saveRound(this);
   }
@@ -714,8 +720,8 @@ export class AttestationRound {
         this.roundMaskedMerkleRoot,
         this.roundRandom,
         // reveal
-        prevRound && prevRound.merkleRoot ? prevRound.merkleRoot : toHex(0, 32),
-        prevRound && prevRound.random ? prevRound.random : toHex(0, 32)
+        prevRound && prevRound.merkleRoot ? prevRound.merkleRoot : ZERO_HASH,
+        prevRound && prevRound.random ? prevRound.random : ZERO_HASH
       );
 
       // count the round as commited, event if receipt did not come back
@@ -730,7 +736,29 @@ export class AttestationRound {
   }
 
   /**
-   * Sends reveal data for this round and commit data for next round.
+   * Returns whether the submitAttestation call should be made.
+   * @returns 
+   */
+  private shouldSubmitAttestation() {
+    //     ? | 1 | 0 | 0 | 0 | 0 | 0 |  - requests  
+    //       | ? | *0| *1| *2| *3|      - submissions in reveal phase
+    // 0  Col|Com|Rev|
+    // 1      Col|Com|Rev|
+    // 2          Col|Com|Rev|
+    // 3              Col|Com|Rev|
+    // 4                  Col|Com|Rev|
+    //
+    // *0 - must submit - next round (1) non-empty
+    // *1 - must submit - this round (1) non-empty
+    // *2 - must submit - previous round (1) non-empty - must trigger finalization
+    // *3 - no submission: this (3), next (4) and previous (2) round are empty
+
+    if(this.isEmpty && this.prevRound?.isEmpty && this.nextRound?.isEmpty) return false;
+    return true;
+  }
+
+  /**
+   * Submits attestation data, the reveal data for this round and the commit data for the next round.
    */
   public async onSubmitAttestation() {
     if (this.phase !== AttestationRoundPhase.reveal) {
@@ -738,12 +766,11 @@ export class AttestationRound {
       return;
     }
 
-    // Log unexpected attestation round statuses, but proceed with submitAttestation
-
     // commit data prepared or data already committed
     let commitPreparedOrCommitted = this.attestStatus === AttestationRoundStatus.commitDataPrepared || this.attestStatus === AttestationRoundStatus.committed;
 
     if (!commitPreparedOrCommitted) {
+      // Log unexpected attestation round statuses, but proceed with submitAttestation
       this.logger.error(
         `${this.label}round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${this.attestationsProcessed
         }/${this.attestations.length}`
@@ -752,9 +779,9 @@ export class AttestationRound {
 
     // this.logger.info(`^Cround #${this.roundId} reveal`);
 
-    let nextRoundMerkleRoot = toHex(toBN(0), 32);
-    let nextRoundMaskedMerkleRoot = toHex(toBN(0), 32);
-    let nextRoundRandom = toHex(toBN(0), 32);
+    let nextRoundMerkleRoot = ZERO_HASH;
+    let nextRoundMaskedMerkleRoot = ZERO_HASH;
+    let nextRoundRandom = ZERO_HASH;
 
     const action = `${this.label}submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
@@ -768,6 +795,11 @@ export class AttestationRound {
       nextRoundRandom = this.nextRound.roundRandom;
     }
 
+    if (!this.shouldSubmitAttestation()) {
+      this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C, bufferNumber ${this.roundId + 2}) - submit attestation skipped.`);
+      return;
+    }
+
     // eslint-disable-next-line
     criticalAsync("", async () => {
       const receipt = await this.flareConnection.submitAttestation(
@@ -779,8 +811,8 @@ export class AttestationRound {
         nextRoundMaskedMerkleRoot,
         nextRoundRandom,
         // reveal
-        commitPreparedOrCommitted ? this.roundMerkleRoot : toHex(0, 32),
-        commitPreparedOrCommitted ? this.roundRandom : toHex(0, 32)
+        commitPreparedOrCommitted ? this.roundMerkleRoot : ZERO_HASH,
+        commitPreparedOrCommitted ? this.roundRandom : ZERO_HASH
       );
 
       if (receipt) {

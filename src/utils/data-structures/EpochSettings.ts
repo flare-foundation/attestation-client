@@ -3,6 +3,7 @@ import BN from "bn.js";
 import { getTimeSec } from "../helpers/internetTime";
 
 /**
+ * Class for storing the settings of epochs. Current length of an epoch is 90 seconds.
  * Contains data about voting epochs on the StateConnector and BitVoting contracts. 
  * Data is usually initialized externally and red from both smart contracts.
  * For the connection between rounds and epochs see Attestation-protocol.md
@@ -28,6 +29,17 @@ export class EpochSettings {
    */
   public getEpochLengthMs(): BN {
     return this._epochPeriodMs;
+  }
+
+  /**
+   * Bitvote window duration.
+   * @returns 
+   */
+  public getBitVoteDurationMs(): BN {
+    if (this._bitVoteWindowDurationMs) {
+      return this._bitVoteWindowDurationMs;
+    }
+    return toBN(0);
   }
 
   /**
@@ -60,7 +72,7 @@ export class EpochSettings {
   public getEpochIdForBitVoteTimeSec(timeSec: number): number | undefined {
     let timeMs = toBN(timeSec).mul(toBN(1000));
     let epochId = this.getEpochIdForTime(timeMs);
-    let epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs))
+    let epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs));
     let offset = timeMs.sub(epochStartTime);
     if (offset.lte(this._bitVoteWindowDurationMs)) {
       return epochId.toNumber();

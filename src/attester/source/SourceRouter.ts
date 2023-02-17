@@ -1,9 +1,9 @@
 import { Managed } from "@flarenetwork/mcc";
 import { exit } from "process";
-import { Attestation } from "../Attestation";
-import { AttestationRoundManager } from "../AttestationRoundManager";
 import { MOCK_NULL_WHEN_TESTING } from "../../utils/helpers/utils";
+import { AttLogger } from "../../utils/logging/logger";
 import { SourceId, toSourceId } from "../../verification/sources/sources";
+import { GlobalConfigManager } from "../GlobalConfigManager";
 import { SourceManager } from "./SourceManager";
 
 /**
@@ -13,14 +13,12 @@ import { SourceManager } from "./SourceManager";
 export class SourceRouter {
   sourceManagers = new Map<SourceId, SourceManager>();
 
-  attestationRoundManager: AttestationRoundManager;
+  globalConfigManager: GlobalConfigManager;
+  logger: AttLogger;
 
-  constructor(attestationRoundManager: AttestationRoundManager) {
-    this.attestationRoundManager = attestationRoundManager;
-  }
-
-  get logger() {
-    return this.attestationRoundManager.logger;
+  constructor(globalConfigManager: GlobalConfigManager, logger: AttLogger) {
+    this.globalConfigManager = globalConfigManager;
+    this.logger = logger;
   }
 
   /**
@@ -28,7 +26,7 @@ export class SourceRouter {
    * @param roundId 
    */
   initializeSources(roundId: number) {
-    const config = this.attestationRoundManager.globalConfigManager.getConfig(roundId);
+    const config = this.globalConfigManager.getConfig(roundId);
 
     for (let sourceName of config.verifierRouter.routeMap.keys()) {
       const sourceId = toSourceId(sourceName);
@@ -39,7 +37,7 @@ export class SourceRouter {
       }
 
       // create new source manager
-      sourceManager = new SourceManager(this.attestationRoundManager, sourceId);
+      sourceManager = new SourceManager(this.globalConfigManager, sourceId);
       sourceManager.refreshVerifierSourceConfig(roundId);
       this.addSourceManager(sourceId, sourceManager);
     }
@@ -55,21 +53,17 @@ export class SourceRouter {
   }
 
   /**
-   * Starts attestation request verification for given @param sourceId
+   * Returns source manager for given source 
    * @param sourceId 
-   * @param attestation 
    * @returns 
    */
-  verifyAttestationRequest(attestation: Attestation) {
-    let sourceId = attestation.data.sourceId;
+  getSourceManager(sourceId: SourceId): SourceManager {
     const sourceManager = this.sourceManagers.get(sourceId);
-
     if (!sourceManager) {
       this.logger.error(`${sourceId}: critical error, source not defined`);
       exit(1);
       return MOCK_NULL_WHEN_TESTING;
     }
-
-    return sourceManager.verifyAttestationRequest(attestation);
+    return sourceManager;
   }
 }

@@ -16,7 +16,7 @@ export class SourceLimiter {
   logger: AttLogger;
 
   // Rate limit weight counter
-  currentRoundWeight = 0;
+  private currentRoundWeight = 0;
 
   constructor(config: SourceLimiterConfig, logger: AttLogger) {
     this.logger = logger;

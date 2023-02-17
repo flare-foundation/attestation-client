@@ -13,12 +13,12 @@ import { getSourceConfig } from "../../verification/routing/configs/VerifierRout
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";
-import { AttestationRoundManager } from "../AttestationRoundManager";
+import { GlobalConfigManager } from "../GlobalConfigManager";
 import { AttestationStatus } from "../types/AttestationStatus";
 
 @Managed()
 export class SourceManager {
-  attestationRoundManager: AttestationRoundManager;
+  globalConfigManager: GlobalConfigManager;
   // rate limiting control
   requestTime = 0;
   requestsPerSecond = 0;
@@ -34,8 +34,8 @@ export class SourceManager {
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
-  constructor(attestationRoundManager: AttestationRoundManager, sourceId: SourceId) {
-    this.attestationRoundManager = attestationRoundManager;
+  constructor(globalConfigManager: GlobalConfigManager, sourceId: SourceId) {
+    this.globalConfigManager = globalConfigManager;
     this.sourceId = sourceId;
   }
 
@@ -46,7 +46,7 @@ export class SourceManager {
    */
   public refreshVerifierSourceConfig(roundId: number) {
     // obtain config from verifier router active for roundId
-    let verifierRouteConfig = this.attestationRoundManager.globalConfigManager.getVerifierRouter(roundId)?.config;
+    let verifierRouteConfig = this.globalConfigManager.getVerifierRouter(roundId)?.config;
     if (verifierRouteConfig) {
       this.verifierSourceConfig = getSourceConfig(verifierRouteConfig, this.sourceId);
       return;
@@ -65,16 +65,16 @@ export class SourceManager {
    * Returns logger.
    */
   public get logger(): AttLogger {
-    return this.attestationRoundManager.logger;
+    return this.globalConfigManager.logger;
   }
 
   /**
    * Returns attestation client label for logging.
    */
   public get label() {
-    return this.attestationRoundManager.label;
+    return this.globalConfigManager.label;
   }
-
+  
   /**
    * Returns `true` if new attestation requests can be added for processing (subject to rate limit).
    * @returns 
@@ -140,7 +140,6 @@ export class SourceManager {
     this.updateDelayQueueTimer();
   }
 
-
   private updateDelayQueueTimer(): void {
     if (this.attestationsPriorityQueue.length() == 0) return;
 
@@ -183,7 +182,7 @@ export class SourceManager {
     const now = getTimeMilli();
 
     // check if the transaction is too late
-    if (now > this.attestationRoundManager.rounds.get(attestation.roundId).commitEndTimeMs) {
+    if (now > attestation.round.commitEndTimeMs) {
       //this.logger.error(`chain ${tx.epochId} transaction too late to process`);
       attestation.status = AttestationStatus.tooLate;
       this.onProcessed(attestation, AttestationStatus.tooLate);
@@ -203,7 +202,7 @@ export class SourceManager {
     }
 
     // get relevant verifierRouter for attestation from global configs
-    const verifierRouter = this.attestationRoundManager.globalConfigManager.getVerifierRouter(attestation.roundId);
+    const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
 
     // assert
     if (!verifierRouter) {
@@ -282,7 +281,7 @@ export class SourceManager {
     this.attestationProcessing.delete(attestation);
 
     // signal a new attestation was processed
-    this.attestationRoundManager.rounds.get(attestation.roundId).onAttestationProcessed(attestation);
+    attestation.round.onAttestationProcessed(attestation);
 
     if (attestation.status !== AttestationStatus.tooLate) {
       // start next transaction

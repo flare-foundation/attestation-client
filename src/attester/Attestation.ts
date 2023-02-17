@@ -23,7 +23,7 @@ export class Attestation {
   chosen: boolean = false;
 
   // the voting round of the attestation
-
+  round!: AttestationRound;
   private _roundId: number;
 
   // validation result

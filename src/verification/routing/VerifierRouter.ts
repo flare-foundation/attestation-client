@@ -102,7 +102,9 @@ export class VerifierRouter {
     * configurations are read and set and there are no double setting of a specific configuration for
     * a pair of (sourceName, attestationTypeName)
     */
-   public async initialize(startRoundId: number, logger?: AttLogger, configPathOverride?: string) {
+  public async initialize(startRoundId: number, logger?: AttLogger, configPathOverride?: string, mockTest = false) {
+    if (mockTest) return;
+
       if (this._initialized) {
          throw new Error("Already initialized");
       }
@@ -110,7 +112,7 @@ export class VerifierRouter {
       // initialize by DAC start number      
       this.config = await readSecureConfig(new VerifierRouteConfig(), configPathOverride ?? `verifier-client/verifier-routes-${startRoundId}`);
       if (!this.config) {
-         throw new Error(`Missing configuration for roundId ${startRoundId}. Verifier routes configuration start round ids should match the ones from DAC`)
+      throw new Error(`Missing configuration for roundId ${startRoundId}. Verifier routes configuration start round ids should match the ones from DAC`);
       }
       const definitions = await readAttestationTypeSchemes();
       this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>();
@@ -188,7 +190,7 @@ export class VerifierRouter {
       let { attestationType, sourceId } = getAttestationTypeAndSource(attestation.data.request);
       let attestationTypeName = getAttestationTypeName(attestationType);
       let sourceName = getSourceName(sourceId);
-      let route = this.getRouteEntry(sourceName, attestationTypeName)
+    let route = this.getRouteEntry(sourceName, attestationTypeName);
       if (route === EMPTY_VERIFIER_ROUTE) {
          return null;
       }
@@ -196,9 +198,9 @@ export class VerifierRouter {
    }
 
    private transformRoute(route: string) {
-      if(this.forcePrepareRoute) {
-         if(route.endsWith("/")) return `${route}prepare`;
-         return `${route}/prepare`
+    if (this.forcePrepareRoute) {
+      if (route.endsWith("/")) return `${route}prepare`;
+      return `${route}/prepare`;
       }
       return route;
    }
@@ -229,7 +231,7 @@ export class VerifierRouter {
          );
 
          let apiResponse = resp.data as ApiResponse<Verification<any, any>>;
-         if (apiResponse.status === 'OK') {
+      if (apiResponse.status === "OK") {
             return apiResponse.data;
          }
          throw new ApiResponseError(apiResponse.errorMessage);

@@ -55,8 +55,8 @@ export class AttestationRoundManager {
     this.logger = logger;
     this.flareConnection = flareConnection;
 
-    this.sourceRouter = sourceRouter ?? new SourceRouter(this);
-    this.globalConfigManager = new GlobalConfigManager(this);
+    this.globalConfigManager = new GlobalConfigManager(this.attestationClientConfig, this.logger);
+    this.sourceRouter = sourceRouter ?? new SourceRouter(this.globalConfigManager, logger);
   }
 
   /**
@@ -66,7 +66,7 @@ export class AttestationRoundManager {
     if (this._activeRoundId === undefined) {
       // this should never happen - the first initialization of activeRoundId should 
       // be earlier then the first call to the getter.
-      throw new Error("activeRoundId not defined")
+      throw new Error("activeRoundId not defined");
     }
     return this._activeRoundId;
   }
@@ -76,6 +76,7 @@ export class AttestationRoundManager {
    */
   public set activeRoundId(value: number) {
     this._activeRoundId = value;
+    this.globalConfigManager.activeRoundId = value;
   }
 
   /**
@@ -93,7 +94,7 @@ export class AttestationRoundManager {
    * Returns logging label
    */
   public get label() {
-    let label = ""
+    let label = "";
     if (this.attestationClientConfig.label != "none") {
       label = `[${this.attestationClientConfig.label}]`;
     }
@@ -241,7 +242,8 @@ export class AttestationRoundManager {
         const eta = (windowDurationMs - (now - roundStartTimeMs)) / 1000;
         if (eta >= 0) {
           this.logger.debug(
-            `${this.label}!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${activeRound.attestations.length
+            `${this.label}!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${
+              activeRound.attestations.length
             }  `
           );
         }
@@ -277,6 +279,7 @@ export class AttestationRoundManager {
     const verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
 
     // If no verifier, round cannot be evaluated - critical error.
+    // TODO: we should check if it is defined!
     if (!verifierRouter) {
       this.logger.error(`${this.label}${roundId}: critical error, verifier router for round id not defined`);
       exit(1);
@@ -307,7 +310,7 @@ export class AttestationRoundManager {
     this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound.onChoosePhaseStart(), activeRound.roundChooseStartTimeMs - now);
 
     // trigger sending bit vote result
-    this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundCommitStartTimeMs + (this.attestationClientConfig.bitVoteTimeSec * 1000) - now);
+    this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundBitVoteTimeMs - now);
 
     // trigger forced closing of bit voting and vote count
     this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
@@ -319,7 +322,11 @@ export class AttestationRoundManager {
     this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), activeRound.roundRevealStartTimeMs - now);
 
     // trigger reveal. Here most of submitAttestation calls to StateConnector happen
-    this.schedule(`${this.label}schedule:submitAttestation`, () => activeRound.onSubmitAttestation(), activeRound.roundCompleteTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now);
+    this.schedule(
+      `${this.label}schedule:submitAttestation`,
+      () => activeRound.onSubmitAttestation(),
+      activeRound.roundCompleteTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
+    );
 
     // trigger end of reveal epoch, cycle is completed at this point
     this.schedule(`${this.label}schedule:completed`, () => activeRound.onFinalisePhaseStart(), activeRound.roundCompleteTimeMs - now);
@@ -334,7 +341,11 @@ export class AttestationRoundManager {
       prevRound.nextRound = activeRound;
     } else {
       // trigger first commit
-      this.schedule(`${this.label}schedule:firstCommit`, () => activeRound!.onFirstCommit(), activeRound.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now);
+      this.schedule(
+        `${this.label}schedule:firstCommit`,
+        () => activeRound!.onFirstCommit(),
+        activeRound.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
+      );
     }
 
     return activeRound;
@@ -360,9 +371,9 @@ export class AttestationRoundManager {
     await attestationRound.initialize();
 
     // create, check and add attestation. If attestation is not ok, status is set to 'invalid'
-    const attestation = await this.createAttestation(epochId, attestationData);
+    const attestation = this.createAttestation(epochId, attestationData);
 
-    // attestation is added to the list, if non-duplicate. Invalid attestations are markd as processed
+    // attestation is added to the list, if non-duplicate. Invalid attestations are marked as processed a pointer to the round is added to the attestation
     attestationRound.addAttestation(attestation);
 
     // update database log for number of attestations

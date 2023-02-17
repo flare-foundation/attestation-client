@@ -41,5 +41,3 @@ export class AttestationData {
     return this.request;
   }
 }
-
-

@@ -1,22 +1,16 @@
 {
    "verifierRoutes": [
       {
-         "sourceId": "XRP",
+         "sourceId": "BTC",
          "routes": [
             {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
-               "url": "$(XRPVerifierRouterClientUrl)",
-               "apiKey": "$(XRPVerifierRouterClientApiKey)"
-            }
-         ]
-      },
-      {
-         "sourceId": "LTC",
-         "routes": [
-            {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
-               "url": "$(LTCVerifierRouterClientUrl)",
-               "apiKey": "$(LTCVerifierRouterClientApiKey)"
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction",
+                  "ConfirmedBlockHeightExists"
+               ],
+               "url": "$(BTCVerifierRouterClientUrl)",
+               "apiKey": "$(BTCVerifierRouterClientApiKey)"
             }
          ]
       },
@@ -24,31 +18,27 @@
          "sourceId": "DOGE",
          "routes": [
             {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction"
+               ],
                "url": "$(DOGEVerifierRouterClientUrl)",
                "apiKey": "$(DOGEVerifierRouterClientApiKey)"
             }
          ]
       },
       {
-         "sourceId": "ALGO",
+         "sourceId": "XRP",
          "routes": [
             {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
-               "url": "$(ALGOVerifierRouterClientUrl)",
-               "apiKey": "$(ALGOVerifierRouterClientApiKey)"
-            }
-         ]
-      },
-      {
-         "sourceId": "BTC",
-         "routes": [
-            {
-               "attestationTypes": ["Payment", "BalanceDecreasingTransaction", "ConfirmedBlockHeightExists"],
-               "url": "$(BTCVerifierRouterClientUrl)",
-               "apiKey": "$(BTCVerifierRouterClientApiKey)"
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction"
+               ],
+               "url": "$(XRPVerifierRouterClientUrl)",
+               "apiKey": "$(XRPVerifierRouterClientApiKey)"
             }
          ]
       }
-  ]
+   ]
 }

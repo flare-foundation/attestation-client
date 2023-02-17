@@ -1,4 +1,5 @@
 {
+    // DEPRECATED
     "version":"1.0.0",
     // alert update interval
     "interval":5000,

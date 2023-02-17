@@ -115,7 +115,7 @@ export class AttestationRound {
     if (this.attestationClientConfig.label != "none") {
       _label = `[${this.attestationClientConfig.label}]`;
     }
-    return `#${_label} ${this.roundId}:${this.nowRelative}/${this.flareConnection.roundDurationSec} `;
+    return `#${_label} ${this.roundId}:${this.nowRelative}/${Math.floor(this.windowDurationMs / 1000)} `;
   }
 
   /**

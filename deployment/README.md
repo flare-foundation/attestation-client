@@ -1,8 +1,8 @@
-# Attestation-Suite Instalation
+# Attestation Suite installation
 
 ## Hardware requirements
 
-Recomended hardware requirements for running Attestation-Suite only are:
+Recommended hardware requirements for running Attestation Suite only are:
 - CPU: 4 cores @ 2.2GHz
 - DISK: 50 GB SSD disk
 - MEMORY: 4 GB
@@ -23,7 +23,7 @@ The deployment includes:
 - cloning Attestation-Suite deployment repository from gitlab
 - preparing credentials
 - deploying docker containers for 
-    - nodes
+    - blockchain nodes
         - bitcoin
         - dogecoin
         - ripple
@@ -34,18 +34,19 @@ The deployment includes:
     - attestation client
     - nginx
 
-Estimated time: `15min`
+Estimated time: `15min`.
 
 ## Prerequisites 
 
 - A machine(s) with `docker` and `docker-compose` installed. 
-- A user being in `docker` group.
-- Docker folder should be set to a mount that has sufficient amount of disk space (docker volumes are used).
+- A a deployment user being in `docker` group.
+- Docker folder should be set to a mount that has sufficient amount of disk space for docker volumes. The installation creates several docker volumes.
 
-Note that the secure installation should have Step 1 (credential configs generation) carried out on a separate secure machine
-and then have credential configurations copied to the deployment machine.
 
 ## Step 1 - Credential configs generation
+
+Note that the secure installation should have Step 1 carried out on a separate secure machine
+and then have credential configurations copied to a deployment machine.
 
 ### 1.1 Download Attestation-Suite repository
 
@@ -57,7 +58,8 @@ cd attestation-suite
 git clone https://gitlab.com/flarenetwork/attestation-client.git
 cd attestation-client
 
-git checkout bit-voting
+# use relevant branch or tag
+# git checkout bit-voting
 
 ```
 
@@ -68,7 +70,7 @@ Run
 docker build -t attestation-suite .
 ```
 
-### 1.3 Initialize credentials credentials
+### 1.3 Initialize credentials
 
 Go to the `deployment` folder. All deployment data, encrypted credentials and scripts for running are available here.
 
@@ -82,7 +84,7 @@ Initialize credentials first.
 ./initialize-credentials.sh
 ```
 
-This creates the subfolder `credentials`. 
+This creates the sub folder `credentials`. 
 
 ### 1.4 Update credentials 
 
@@ -93,8 +95,19 @@ Use:
  - `direct:<key>` to specify the key directly in place of `<key>`.
  - `GoogleCloudSecretManager:<path>` to specify the secret Google Cloud Secret Manager path in place of `<path>`
 
-Beside the `configuration.json` file, the `credentials` folder contains several credential configuration files of the form `******-credentials.json`.
-Update these files with relevant credentials. Note that some credentials/passwords are randomly generated with a secure random password generator. You may change those to suit your needs.
+Beside the `configuration.json` file, the `credentials` folder contains several credential configuration files of the form `<******>-credentials.json`.
+Update these files with relevant credentials. Note that some credentials/passwords are randomly generated with a secure random password generator. You may change those to suit your needs. 
+
+Some of the more important settings and credentials include:
+- in `networks-credentials.json`:
+   - `NetworkPrivateKey` - set `0x`-prefixed private key from which attestation client will be submitting attestations to Flare network.
+   - `StateConnectorContractAddress` - the `StateConnector` contract address on the specific network. 
+- In `verifier-client-credentials.json` - instead od `localhost` use the IP address of the host machine. On Linux Ubuntu one can get it by running 
+```bash
+ip addr show docker0 | grep -Po 'inet \K[\d.]+'
+```
+- in `verifier-server-credentials.json` - Set API keys for supported external blockchains (currently BTC, DOGE and XRP). Default templates are configured 
+for two API keys. 
 
 ### 1.5 Prepare credentials
 
@@ -104,7 +117,7 @@ After credentials have been set up they must be prepared for deployment.
 ./prepare-credentials.sh
 ```
 
-This script creates secure credential configs in the subfolder `credentials.prepared` which
+This script creates secure credential configs in the sub folder `credentials.prepared` which
 contains sub folders that are to be mounted to specific docker containers on the deployment machine.
 
 Each sub folder (docker credentials mount) contains the following:
@@ -126,7 +139,7 @@ If the installation is done on different deployment machine then the credential 
 ### 2.2 - Installing
 Run the installation from the `deployment` folder:
 ``` bash
-./install-dockers.sh
+./install-dockers.sh mainnet
 ```
 
 This will install all services using several docker compose files. On the first run it will configure block chain nodes and database instances according to the credentials and configurations.
@@ -136,12 +149,12 @@ This will install all services using several docker compose files. On the first 
 Once Attestation Suite is installed one can change credentials as follows:
 - stop the containers
 ``` bash
-./stop-all.sh
+./stop-all.sh mainnet
 ```
 - carry out steps 1.4 and 1.5 on a secure machine nad step 2.1 (copy `credentials.prepare` folder to the deployment machine).
 - start all services
 ``` bash
-./start-all.sh
+./start-all.sh mainnet
 ```
 
 Updating can be done on specific containers only. In this case only specific containers are stopped, steps 1.4, 1.5 are carried out on updated configs, but only changed secure credential configs are copied to the deployment machine into the folders mounted to the specific containers. Those containers are then restarted. Stopping and starting is carried out using `docker-compose` and handy scripts in `deployment` folder.

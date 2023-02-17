@@ -13,7 +13,7 @@ import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 import sinon from "sinon";
-import { creatBlankBitVoteEvent } from "./utils/createEvents";
+import { createBlankBitVoteEvent } from "./utils/createEvents";
 import { BitVoteData } from "../../src/attester/BitVoteData";
 import { MockFlareConnection } from "./utils/mockFlareConnect";
 
@@ -87,7 +87,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   });
 
   it("Should not register bitVote for non-default set", function () {
-    const event = creatBlankBitVoteEvent("0x05fakeBitVote");
+    const event = createBlankBitVoteEvent("0x05fakeBitVote");
     const bitVoteData = new BitVoteData(event);
 
     round.registerBitVote(bitVoteData);
@@ -95,7 +95,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   });
 
   it("Should  register bitVote for non-default set", function () {
-    const event = creatBlankBitVoteEvent("0x05fakeBitVote");
+    const event = createBlankBitVoteEvent("0x05fakeBitVote");
     event.returnValues.sender = "0xfakeDefault";
     const bitVoteData = new BitVoteData(event);
 

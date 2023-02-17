@@ -58,7 +58,7 @@ export function createBlankAtRequestEvent(
   return request;
 }
 
-export function creatBlankBitVoteEvent(vote: string): BitVote {
+export function createBlankBitVoteEvent(vote: string): BitVote {
   const returnData = {
     sender: "0xfakeVoter",
     timestamp: "1234",

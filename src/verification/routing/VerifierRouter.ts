@@ -154,7 +154,7 @@ export class VerifierRouter {
         for (let attestationTypeName of attestationCred.attestationTypes) {
           let route = this.getRouteEntry(sourceName, attestationTypeName);
           if (!route) {
-            throw new Error(`Non-existent route entry for pair ('${sourceName}','${attestationTypeName}')`);
+            throw new Error(`Non-existent route entry for pair ('${sourceName}','${attestationTypeName}')`); //We want to set it, why do we care if it does not exist yet?
           }
           if (route !== EMPTY_VERIFIER_ROUTE) {
             throw new Error(`Duplicate route entry for pair ('${sourceName}','${attestationTypeName}')`);

@@ -1,7 +1,7 @@
 {
    "verifierRoutes": [
       {
-         "sourceId": "XRP",
+         "sourceId": "BTC",
          "routes": [
             {
                "attestationTypes": [
@@ -10,8 +10,8 @@
                   "ConfirmedBlockHeightExists",
                   "ReferencedPaymentNonexistence"
                ],
-               "url": "$(XRPVerifierRouterClientUrl)",
-               "apiKey": "$(XRPVerifierRouterClientApiKey)"
+               "url": "$(BTCVerifierRouterClientUrl)",
+               "apiKey": "$(BTCVerifierRouterClientApiKey)"
             }
          ]
       },
@@ -31,7 +31,7 @@
          ]
       },
       {
-         "sourceId": "BTC",
+         "sourceId": "XRP",
          "routes": [
             {
                "attestationTypes": [
@@ -40,8 +40,8 @@
                   "ConfirmedBlockHeightExists",
                   "ReferencedPaymentNonexistence"
                ],
-               "url": "$(BTCVerifierRouterClientUrl)",
-               "apiKey": "$(BTCVerifierRouterClientApiKey)"
+               "url": "$(XRPVerifierRouterClientUrl)",
+               "apiKey": "$(XRPVerifierRouterClientApiKey)"
             }
          ]
       }

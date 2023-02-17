@@ -25,9 +25,6 @@ export class FlareConnection {
   bitVoting!: BitVoting;
   web3Functions!: Web3Functions;
   epochSettings: EpochSettings;
-  firstEpochStartTime: number;
-  roundDurationSec: number;
-  chooseDeadlineSec: number;
 
   logger: AttLogger;
 
@@ -60,10 +57,10 @@ export class FlareConnection {
   public async initialize() {
     this.stateConnector = await getWeb3StateConnectorContract(this.web3, this.attestationClientConfig.web.stateConnectorContractAddress);
     this.bitVoting = (await getWeb3Contract(this.web3, this.attestationClientConfig.web.bitVotingContractAddress, "BitVoting")) as any as BitVoting;
-    this.firstEpochStartTime = parseInt("" + (await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call()), 10);
-    this.roundDurationSec = parseInt("" + (await this.stateConnector.methods.BUFFER_WINDOW().call()), 10);
-    this.chooseDeadlineSec = parseInt("" + (await this.bitVoting.methods.BIT_VOTE_DEADLINE().call()), 10);
-    this.epochSettings = new EpochSettings(toBN(this.firstEpochStartTime), toBN(this.roundDurationSec), toBN(this.chooseDeadlineSec));
+    const firstEpochStartTime = parseInt("" + (await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call()), 10);
+    const roundDurationSec = parseInt("" + (await this.stateConnector.methods.BUFFER_WINDOW().call()), 10);
+    const chooseDeadlineSec = parseInt("" + (await this.bitVoting.methods.BIT_VOTE_DEADLINE().call()), 10);
+    this.epochSettings = new EpochSettings(toBN(firstEpochStartTime), toBN(roundDurationSec), toBN(chooseDeadlineSec));
   }
 
   /**

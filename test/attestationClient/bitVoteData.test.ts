@@ -1,12 +1,12 @@
 import { expect, assert } from "chai";
 import { BitVoteData } from "../../src/attester/BitVoteData";
 import { getTestFile } from "../test-utils/test-utils";
-import { creatBlankBitVoteEvent } from "./utils/createEvents";
+import { createBlankBitVoteEvent } from "./utils/createEvents";
 
 describe(`bitVote Data (${getTestFile(__filename)})`, function () {
   const bitVote = "0x05fakeBitVote";
 
-  const event = creatBlankBitVoteEvent(bitVote);
+  const event = createBlankBitVoteEvent(bitVote);
 
   const bitVoteData = new BitVoteData(event);
 

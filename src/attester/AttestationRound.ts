@@ -377,9 +377,8 @@ export class AttestationRound {
   }
 
   /**
-   * Returns the existing source Handler for the source chain of an attestation or creates a new sourceLimiter
+   * Returns the existing source Limiter for the source chain of an attestation or creates a new sourceLimiter
    * @param data
-   * @param onValidateAttestation
    * @returns
    */
   getSourceLimiter(data: AttestationData): SourceLimiter {
@@ -465,7 +464,7 @@ export class AttestationRound {
     this.defaultSetAddresses = this.defaultSetAddresses.map((address) => address.toLowerCase());
 
     this.logger.debug(`${this.label}Round ${this.roundId} initialized with attestation providers`);
-    for(let [index, address] of this.defaultSetAddresses.entries()) {
+    for (let [index, address] of this.defaultSetAddresses.entries()) {
       this.logger.debug(`[${index}] ${this.activeGlobalConfig.defaultSetAssignerAddresses[index]} --> ${address}`);
     }
     this._initialized = true;

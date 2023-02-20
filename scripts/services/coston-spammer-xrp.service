@@ -1,0 +1,16 @@
+[Service]
+ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/src/spammer/attestation-spammer.js -c XRP
+Restart=always
+# User=ubuntu
+# Use 'nogroup' group for Ubuntu/Debian
+# use 'nobody' group for Fedora
+# Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+Environment=LOG_PATH=./logs/coston
+Environment=FLARE_NETWORK=coston
+
+WorkingDirectory=/home/ubuntu/attestation-suite/attestation-client
+
+[Install]
+WantedBy=multi-user.target

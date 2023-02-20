@@ -14,7 +14,7 @@ Depending on configuration, Alerts will require Attester Client configuration.
 | `timeLate`          | Time in seconds when system status becomes late                                            | 5                                         |
 | `timeDown`          | Time in seconds when system status becomes down                                            | 10                                        |
 | `timeRestart`       | Time in seconds when system is restarted                                                   | 120                                       |
-| `stateSaveFilename` | Path where alert status is saved                                                           | "../attester-status.json"                 |
+| `stateSaveFilename` | Path where alert status is saved                                                           | "../monitor-status.json"                 |
 | `indexers`          | **ARRAY** indexer alert systems. Supported systems are "ALGO", "BTC", "DOGE", "LTC", "XRP" |                                           |
 | `indexerRestart`    | Indexer restart command                                                                    | `systemctl --user restart indexer-<name>` |
 | `attesters`         | **ARRAY** [Attester Client Alert Config](#attester-client-alert-configuration)             |                                           |
@@ -36,7 +36,7 @@ Depending on configuration, Alerts will require Attester Client configuration.
 | Name      | Description                             | Default |
 | --------- | --------------------------------------- | ------- |
 | `name`    | Display name                            |         |
-| `address` | Backend URL address to check            |         |
-| `restart` | Command line to restart backend service |         |
+| `address` | Webserver URL address to check            |         |
+| `restart` | Command line to restart Webserver service |         |
 
 [Home](../README.md)/[Configuration general](./config-general.md)

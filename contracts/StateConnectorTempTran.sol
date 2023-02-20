@@ -17,7 +17,7 @@ contract StateConnectorTempTran {
   // November 5th, 2021
   uint256 public constant BUFFER_TIMESTAMP_OFFSET = 1636070400 seconds;
   // Amount of time a buffer is active before cycling to the next one
-  uint256 public constant BUFFER_WINDOW = 90 seconds;
+  uint256 public constant BUFFER_WINDOW = 16 seconds;
   // {Requests, Votes, Reveals}
   uint256 public constant TOTAL_STORED_BUFFERS = 3;
   // Store a proof for one week
@@ -69,9 +69,16 @@ contract StateConnectorTempTran {
   // Events
   //====================================================================
 
-  event AttestationRequest(address sender, uint256 timestamp, bytes data);
+  event AttestationRequest(
+    address sender, 
+    uint256 timestamp, 
+    bytes data
+  );
 
-  event RoundFinalised(uint256 indexed roundId, bytes32 merkleRoot);
+  event RoundFinalised(
+    uint256 indexed roundId, 
+    bytes32 merkleRoot
+  );
 
   //====================================================================
   // Constructor
@@ -101,10 +108,18 @@ contract StateConnectorTempTran {
     bytes32 _commitHash,
     bytes32 _merkleRoot,
     bytes32 _randomNumber
-  ) external returns (bool _isInitialBufferSlot) {
+  ) 
+  external returns (
+    bool _isInitialBufferSlot
+  ) 
+  {
     require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW, "wrong bufferNumber");
     buffers[msg.sender].latestVote = _bufferNumber;
-    buffers[msg.sender].votes[_bufferNumber % TOTAL_STORED_BUFFERS] = Vote(_commitHash, _merkleRoot, _randomNumber);
+    buffers[msg.sender].votes[_bufferNumber % TOTAL_STORED_BUFFERS] = Vote(
+      _commitHash,
+      _merkleRoot,
+      _randomNumber
+    );
     // Determine if this is the first attestation submitted in a new buffer round.
     // If so, the golang code will automatically finalise the previous round using finaliseRound()
     if (_bufferNumber > totalBuffers) {
@@ -131,15 +146,15 @@ contract StateConnectorTempTran {
   // TMP E
 
   function finaliseRound(uint256 _bufferNumber, bytes32 _merkleRoot) external {
-    require(_bufferNumber > 3);
-    require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
-    require(_bufferNumber > totalBuffers);
+    require(_bufferNumber > 3, "buffer number less than 3");
+    require(_bufferNumber == (block.timestamp - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW, "wrong buffer number");
+    require(_bufferNumber > totalBuffers, "buffer number too small");
     // The following region can only be called from the golang code
     // TMP S
     if (msg.sender == finalizingBot) {
       totalBuffers = _bufferNumber;
-      merkleRoots[(_bufferNumber - 4) % TOTAL_STORED_PROOFS] = _merkleRoot;
-      emit RoundFinalised(_bufferNumber - 4, _merkleRoot);
+      merkleRoots[(_bufferNumber - 3) % TOTAL_STORED_PROOFS] = _merkleRoot;
+      emit RoundFinalised(_bufferNumber - 3, _merkleRoot);
     }
     // TMP E
   }

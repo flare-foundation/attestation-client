@@ -1,0 +1,140 @@
+{
+   "startRoundId":150,
+   "defaultSetAssignerAddresses": [
+      "0xead9c93b79ae7c1591b1fb5323bd777e86e150d4",
+      "0xe5904695748fe4a84b40b3fc79de2277660bd1d3",
+      "0x92561f28ec438ee9831d00d1d59fbdc981b762b2",
+      "0x2ffd013aaa7b5a7da93336c2251075202b33fb2b",
+      "0x9fc9c2dfba3b6cf204c37a5f690619772b926e39",
+      "0xfbc51a9582d031f2ceaad3959256596c5d3a5468",
+      "0x84fae3d3cba24a97817b2a18c2421d462dbbce9f",
+      "0xfa3bdc8709226da0da13a4d904c8b66f16c3c8ba",
+      "0x6c365935ca8710200c7595f0a72eb6023a7706cd"
+   ],
+   "consensusSubsetSize": 7,
+
+   "sources" :
+   [
+      {
+         "source":"BTC",
+         "maxTotalRoundWeight": 200,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "weight": 1
+            },
+            {
+               "type":"BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type":"ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+      ,
+      {
+         "source":"LTC",
+         "maxTotalRoundWeight": 200,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "weight": 1
+            },
+            {
+               "type":"BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type":"ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+      ,
+      {
+         "source":"DOGE",
+         "maxTotalRoundWeight": 200,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "weight": 1
+            },
+            {
+               "type":"BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type":"ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+      ,
+
+      {
+         "source":"XRP",
+         "maxTotalRoundWeight": 200,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "weight": 1
+            },
+            {
+               "type":"BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type":"ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+      ,
+
+      {
+         "source":"ALGO",
+         "maxTotalRoundWeight": 200,
+         "attestationTypes" :
+         [
+            {
+               "type":"Payment",
+               "weight": 1
+            },
+            {
+               "type":"BalanceDecreasingTransaction",
+               "weight": 3
+            },
+            {
+               "type":"ConfirmedBlockHeightExists",
+               "weight": 1
+            },
+            {
+               "type":"ReferencedPaymentNonexistence",
+               "weight": 1
+            }
+         ]
+      }
+   ]
+ }

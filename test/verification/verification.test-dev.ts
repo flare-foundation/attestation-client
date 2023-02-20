@@ -6,30 +6,29 @@
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import assert from "assert";
-import { AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
-import { ChainConfiguration, ChainsConfiguration } from "../../lib/source/ChainConfiguration";
-import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
+import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import {
   createTestAttestationFromRequest,
   prepareRandomGenerators,
   TxOrBlockGeneratorType
-} from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { prepareRandomizedRequestPayment } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00001-payment";
-import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00002-balance-decreasing-transaction";
-import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
-import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
-import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { readConfig, readCredentials } from "../../lib/utils/config";
-import { DatabaseService } from "../../lib/utils/databaseService";
-import { DotEnvExt } from "../../lib/utils/DotEnvExt";
-import { getGlobalLogger } from "../../lib/utils/logger";
-import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { VerificationStatus } from "../../lib/verification/attestation-types/attestation-types";
-import { getSourceName, SourceId } from "../../lib/verification/sources/sources";
-import { verifyAttestation } from "../../lib/verification/verifiers/verifier_routing";
+} from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
+import { prepareRandomizedRequestPayment } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00001-payment";
+import { prepareRandomizedRequestBalanceDecreasingTransaction } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00002-balance-decreasing-transaction";
+import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00003-confirmed-block-height-exists";
+import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
+import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
+import { VerifierServerConfig } from "../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
+import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { getGlobalLogger } from "../../src/utils/logging/logger";
+import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
+import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
+import { getSourceName, SourceId } from "../../src/verification/sources/sources";
+import { verifyAttestation } from "../../src/verification/verifiers/verifier_routing";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;
@@ -41,12 +40,11 @@ console.warn(`This test should run while ${getSourceName(SOURCE_ID)} indexer is 
 console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
 process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
-DotEnvExt();
 
 describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let indexedQueryManager: IndexedQueryManager;
   let client: MccClient;
-  let chainsConfiguration: ChainsConfiguration;
+  let chainsConfiguration: ListChainConfig;
   let chainName: string;
   const startTime = 0;
   const cutoffTime = 0; // TODO - set properly
@@ -54,22 +52,22 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
-    chainsConfiguration = readConfig(new ChainsConfiguration(), "chains");
-    const attesterCredentials = readCredentials(new AttesterCredentials(), "attester");
+    chainsConfiguration = await readSecureConfig(new ListChainConfig(), "chains");
+    const verifierCredentials = await readSecureConfig(new VerifierServerConfig(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     chainName = getSourceName(SOURCE_ID);
-    const indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
+    const indexerChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfig;
     client = MCC.Client(SOURCE_ID, {
       ...indexerChainConfiguration.mccCreate,
       rateLimitOptions: indexerChainConfiguration.rateLimitOptions,
     });
     //  startTime = Math.floor(Date.now()/1000) - HISTORY_WINDOW;
 
-    const attesterClientChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfiguration;
+    const attesterClientChainConfiguration = chainsConfiguration.chains.find((chain) => chain.name === chainName) as ChainConfig;
 
     //NUMBER_OF_CONFIRMATIONS = attesterClientChainConfiguration.numberOfConfirmations;
 
-    let dbService = (new DatabaseService(getGlobalLogger(), attesterCredentials.indexerDatabase, "indexer"));
+    let dbService = (new DatabaseService(getGlobalLogger(), verifierCredentials.indexerDatabase, "indexer"));
     await dbService.connect()
     const options: IndexedQueryManagerOptions = {
       chainType: SOURCE_ID as ChainType,
@@ -80,13 +78,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       entityManager: dbService.manager,
       maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
       // todo: return epochStartTime - query window length, add query window length into DAC
-      windowStartTime: (roundId: number) => {
-        return startTime;
-      },
-      UBPCutoffTime: (roundId: number) => {
-        // todo: Set when needed for tests
-        return cutoffTime;
-      },
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
     randomGenerators = await prepareRandomGenerators(indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD);
@@ -99,10 +90,10 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     }
 
     const request = await prepareRandomizedRequestPayment(
+      getGlobalLogger(),
       indexedQueryManager,
       randomTransaction as DBTransactionBase,
       SOURCE_ID,
-      ROUND_ID,
       "CORRECT"
     );
 
@@ -119,10 +110,10 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     }
 
     const request = await prepareRandomizedRequestBalanceDecreasingTransaction(
+      getGlobalLogger(),
       indexedQueryManager,
       randomTransaction as DBTransactionBase,
       SOURCE_ID,
-      ROUND_ID,
       "CORRECT"
     );
 
@@ -138,15 +129,14 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
 
     const blockQueryRequest = await indexedQueryManager.queryBlock({
       blockNumber: lastBlockNumber - 2,
-      roundId: ROUND_ID,
       confirmed: true,
     });
 
     const request = await prepareRandomizedRequestConfirmedBlockHeightExists(
+      getGlobalLogger(),
       indexedQueryManager,
       blockQueryRequest.result,
       SOURCE_ID,
-      ROUND_ID,
       "CORRECT"
     );
 
@@ -174,10 +164,10 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       }
 
       const request = await prepareRandomizedRequestReferencedPaymentNonexistence(
+        getGlobalLogger(),
         indexedQueryManager,
         randomTransaction as DBTransactionBase,
         SOURCE_ID,
-        ROUND_ID,
         "CORRECT"
       );
 

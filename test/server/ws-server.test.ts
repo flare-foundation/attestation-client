@@ -1,8 +1,7 @@
 // This should always be on the top of the file, before imports
-process.env.CONFIG_PATH = ".secure.dev";
+process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
 process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "xrp";
-process.env.IN_MEMORY_DB = "1";
 
 import { sleepMs } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
@@ -10,12 +9,12 @@ import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from '@nestjs/testing';
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { VerifierConfigurationService } from "../../lib/servers/verifier-server/src/services/verifier-configuration.service";
-import { VerifierServerModule } from "../../lib/servers/verifier-server/src/verifier-server.module";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { IIdentifiable } from "../../lib/utils/PromiseRequestManager";
-import { WsClient } from "../../lib/verification/client/WsClient";
-import { WsClientOptions } from "../../lib/verification/client/WsClientOptions";
+import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
+import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { IIdentifiable } from "../../src/utils/helpers/promiseRequestTypes";
+import { WsClient } from "../../src/verification/experimental/client/WsClient";
+import { WsClientOptions } from "../../src/verification/experimental/client/WsClientOptions";
 import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
@@ -37,6 +36,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
 
   before(async () => {
     initializeTestGlobalLogger();
+    process.env.TEST_CREDENTIALS = "1"
 
     const module = await Test.createTestingModule({
       imports: [VerifierServerModule],
@@ -49,15 +49,20 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     // unique test logger
     const logger = getGlobalLogger("web");
 
-    configurationService = app.get(VerifierConfigurationService);
-    let port = configurationService.wsServerConfiguration.port;
+    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
+    let port = configurationService.config.port;
     await app.listen(port, undefined, () => {
-      logger.info(`Server started listening at http://localhost:${configurationService.wsServerConfiguration.port}`);
-      logger.info(`Websocket server started listening at ws://localhost:${configurationService.wsServerConfiguration.port}`)
+      logger.info(`Server started listening at http://localhost:${configurationService.config.port}`);
+      logger.info(`Websocket server started listening at ws://localhost:${configurationService.config.port}`)
     })
     await app.init();
   });
 
+  after(async () => {
+    delete process.env.TEST_CREDENTIALS;
+    await app.close();
+  });
+  
   it(`Should connect `, async () => {
     const client = new WsClient<TestData, TestData>(defaultWsClientOptions);
     await client.connect();
@@ -136,10 +141,6 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     assert(rec2[0].getTime() - rec1[0].getTime() >= checkAliveIntervalMs - 2, "Two pings are not separated enough");
     assert(client.pingPongRecords.size === 0, "Ping pong records not cleared")
     client.disconnect();
-  });
-
-  after(async () => {
-    await app.close();
   });
 
 });

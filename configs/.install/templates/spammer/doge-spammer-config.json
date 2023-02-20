@@ -1,0 +1,19 @@
+{
+    // epoch start time in unix time
+    "firstEpochStartTime": 1636070400,
+    // epoch duration in seconds
+    "roundDurationSec": 90,
+    "numberOfConfirmations": 6,
+    "web": {
+        "accountPrivateKey": "$(DOGESpammerPrivateKey)",
+        "rpcUrl": "$(RPC)",
+        "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
+    },
+    "indexerDatabase": {
+        "host": "$(DOGEIndexerDatabaseHost)",
+        "port": $(DOGEIndexerDatabasePort),
+        "database": "$(DOGEIndexerDatabase)",
+        "username": "$(DOGEIndexerReaderUsername)",
+        "password": "$(DOGEIndexerReaderPassword)"
+    }
+}

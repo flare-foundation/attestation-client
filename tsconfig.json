@@ -13,10 +13,10 @@
         "node_modules/*"
       ],
       "@atc/common": [
-        "lib/servers/common/src"
+        "src/servers/common/src"
       ],
       "@atc/common/*": [
-        "lib/servers/common/src/*"
+        "src/servers/common/src/*"
       ]
     },
     "esModuleInterop": true,
@@ -27,7 +27,7 @@
     "resolveJsonModule": true
   },
   "include": [
-    "lib/**/*",
+    "src/**/*",
     "./typechain-web3-v1",
     "./typechain-web3-v1-new",
     "./typechain-truffle",

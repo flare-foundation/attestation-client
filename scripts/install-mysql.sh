@@ -12,33 +12,23 @@ source ~/.profile
 echo -e "${GREENBOLD}Installing Attestation Suite remote MySQL${NC}"
 
 # check if MySQL setup file exists 
-if [ -f "install.sql" ] 
-then
-    # mysql
-    echo -e "${REDBOLD}[1] ${GREENBOLD}Installing ${REDBOLD}mysql${NC}"
-    sudo apt install mysql-server -y
+# mysql
+echo -e "${REDBOLD}[1] ${GREENBOLD}Installing ${REDBOLD}mysql${NC}"
+sudo apt install mysql-server -y
 
-    echo -e "${REDBOLD}[2] ${GREENBOLD}Change MySQL bind addres to allow remote access${NC}"
-    sudo sed -i 's/^\s*bind-address\s*=\s*127.0.0.1/bind-address            = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
+#echo -e "${REDBOLD}[2] ${GREENBOLD}Change MySQL bind addres to allow remote access${NC}"
+#sudo sed -i 's/^\s*bind-address\s*=\s*127.0.0.1/bind-address            = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
 
+#echo -e "${REDBOLD}[3] ${GREENBOLD}Initialize MySQL (install.sql)${NC}"
+#sudo mysql < install.sql
 
-    echo -e "${REDBOLD}[3] ${GREENBOLD}Initialize MySQL (install.sql)${NC}"
-    sudo mysql < install.sql
+yarn ts-node src/install/secureUpdateSql.ts
 
-    echo -e "${REDBOLD}[4] ${GREENBOLD}Restarting MySQL service${NC}"
-    sudo service mysql restart
-
-else
-    # display error and help
-    echo -e "${REDBOLD}ERROR: setup file ${WHITEBOLD}install.sql${REDBOLD} file not found. Installation failed${NC}" 
-    echo -e "Copy MySQL install file ${WHITEBOLD}install.sql${NC} from Attestation Suite server settings folder:${NC}" 
-    echo -e "   ~/attestation-suite/attestation-suite-config/prepared/coston/install.sql${NC}" 
+echo -e "${REDBOLD}[4] ${GREENBOLD}Restarting MySQL service${NC}"
+sudo service mysql restart
 
 
-    echo -e "From Attestation Suite server use this command:"
-
-    # get public IP to display help command line
-    export MYIP=$(curl -s https://ipinfo.io/ip);
-    echo -e "   ${WHITEBOLD}scp ~/attestation-suite/attestation-suite-config/prepared/coston/install.sql ubuntu@${MYIP}:/${NC}"
-
-fi
+env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/attester-client/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareAttestationClient -p credentials.prepared/attester-client/
+env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/btc-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/btc-indexer-verifier/ -n BTC
+env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/xrp-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/xrp-indexer-verifier/ -n XRP
+env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/doge-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/doge-indexer-verifier/ -n DOGE

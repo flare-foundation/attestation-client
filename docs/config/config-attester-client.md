@@ -16,7 +16,7 @@ Additionally, the Attester Client requires `chain-config.json` for chain configu
 | `firstEpochStartTime`                   | Epoch start time in UNIX time                                                                 | 1636070400       |
 | `roundDurationSec`                      | Epoch duration in seconds                                                                     | 90               |
 | `dynamicAttestationConfigurationFolder` | DAC - Dynamic Attestation Configuration folder                                                | "./configs/dac/" |
-| `commitTime`                            | Commit time in seconds, actual commit time is: epoch start + epoch duration * 2 - commit time | 11               |
+| `commitTimeSec                          | Commit time in seconds, actual commit time is: epoch start + epoch duration * 2 - commit time | 11               |
 | `revealTime`                            | Reveal time in seconds, actual reveal time is: epoch start + epoch duration * 2 + reveal time | 80               |
 | `submitCommitFinalize`                  | Additional empty submit at the beggining of a commit round to prompt round-2 finalize (should only be done on official AC, it burns additional funds) | false            |
 

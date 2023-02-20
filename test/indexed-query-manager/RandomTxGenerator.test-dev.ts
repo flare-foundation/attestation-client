@@ -3,16 +3,15 @@
 import { ChainType } from "@flarenetwork/mcc";
 import { assert } from "chai";
 import { DataSource, DataSourceOptions } from "typeorm";
-import { DBBlockBase, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBase, DBTransactionXRP0 } from "../../lib/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../../lib/indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../lib/indexed-query-manager/random-attestation-requests/random-ar";
-import { RandomDBIterator } from "../../lib/indexed-query-manager/random-attestation-requests/random-query";
-import { createTypeOrmOptions } from "../../lib/servers/verifier-server/src/utils/db-config";
-import { DotEnvExt } from "../../lib/utils/DotEnvExt";
-import { getUnixEpochTimestamp } from "../../lib/utils/utils";
-import { SourceId } from "../../lib/verification/sources/sources";
+import { DBBlockBase, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase, DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
+import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
+import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
+import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
+import { SourceId } from "../../src/verification/sources/sources";
 import { generateTestIndexerDB } from "./utils/indexerTestDataGenerator";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
@@ -27,15 +26,14 @@ console.warn(`Overriding DOTENV=DEV, NODE_ENV=development`);
 process.env.DOTENV = "DEV";
 process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "xrp"
-process.env.IN_MEMORY_DB = "1";
-DotEnvExt();
+process.env.TEST_CREDENTIALS = "1";
 
 describe("Indexed query manager", () => {
   let indexedQueryManager: IndexedQueryManager;
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
-    let dbOptions = await createTypeOrmOptions("indexerDatabase", "test");
+    let dbOptions = await createTypeOrmOptions("test");
     let dataSource = new DataSource(dbOptions as DataSourceOptions);
     await dataSource.initialize();
     await generateTestIndexerDB(

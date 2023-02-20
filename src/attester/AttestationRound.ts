@@ -104,12 +104,12 @@ export class AttestationRound {
   /**
    * Returns an attestation client label for logging.
    */
-  private get label() {
+  get label() {
     let _label = "";
     if (this.attestationClientConfig.label != "none") {
       _label = `[${this.attestationClientConfig.label}]`;
     }
-    return `#${_label} ${this.roundId}:${this.nowRelative}/${Math.floor(this.windowDurationMs / 1000)} `;
+    return `#${_label} ${this.roundId}:${this.nowRelative}/${Math.floor(this.windowDurationMs / 1000)}`;
   }
 
   /**
@@ -193,7 +193,7 @@ export class AttestationRound {
   /**
    * Returns bitmask accumulator based on validity of attestations.
    */
-  private get bitVoteAccumulator(): BitmaskAccumulator {
+  get bitVoteAccumulator(): BitmaskAccumulator {
     let bitmask = new BitmaskAccumulator(this.attestations.length);
     for (let attestation of this.attestations) {
       bitmask.addBit(attestation.status === AttestationStatus.valid);

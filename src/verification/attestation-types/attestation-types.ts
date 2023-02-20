@@ -1,5 +1,4 @@
 import BN from "bn.js";
-import { ARType } from "../generated/attestation-request-types";
 import { SourceId } from "../sources/sources";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

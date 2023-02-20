@@ -1,11 +1,11 @@
-const sinon = require("sinon");
-import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables } from "../../lib/indexer/indexer-utils";
-import { expect } from "chai";
 import { ChainType } from "@flarenetwork/mcc";
-import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
+import { expect } from "chai";
+import sinon from "sinon";
+import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
+import { criticalAsync, getChainN, getStateEntry, getStateEntryString, prepareIndexerTables } from "../../src/indexer/indexer-utils";
+import * as proxi from "../../src/utils/helpers/promiseTimeout";
+import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
-import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-const proxi = require("../../lib/utils/PromiseTimeout");
 
 describe(`Indexer utils (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -30,7 +30,6 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
     });
 
     it("Should call function", function () {
-      const promise = sinon.promise() as Promise<any>;
       async function testFunction() {
         return 15;
       }
@@ -42,37 +41,26 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
     });
 
     it("Should exit", function () {
-      sinon.restore();
-      const promise = sinon.promise() as Promise<any>;
       async function testFailFunction() {
         throw 12;
       }
-      const fake = sinon.fake();
 
-      // var fake = sinon.fake(testFailFunction);
-      var stub1 = sinon.stub(process, "exit").returns(null);
+      var stub1 = sinon.stub(process, "exit");
       var stub2 = sinon.stub(proxi, "getRetryFailureCallback").returns(null);
-
-      // stub2.callsFake(pro);
 
       return criticalAsync("test", testFailFunction).then(() => expect(stub1.called).to.be.true);
     });
 
     it("Should manage error", function () {
       sinon.restore();
-      const promise = sinon.promise() as Promise<any>;
+
       async function testFailFunction() {
         throw 12;
       }
-      const fake = sinon.fake();
 
       function fakeOnFailur(str: string) {}
 
-      // var fake = sinon.fake(testFailFunction);
-      // var stub1 = sinon.stub(process, "exit").returns(2);
       var stub2 = sinon.stub(proxi, "getRetryFailureCallback").returns(fakeOnFailur);
-
-      // stub2.callsFake(pro);
 
       return criticalAsync("test", testFailFunction).then(() => {
         expect(stub2.called).to.be.true;

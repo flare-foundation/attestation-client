@@ -1,15 +1,19 @@
+// yarn test test/indexer/interlacing.test.ts
+
 import { ChainType } from "@flarenetwork/mcc";
-import { Interlacing } from "../../lib/indexer/interlacing";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
 import { expect } from "chai";
-import { DBTransactionBase, DBTransactionBTC0 } from "../../lib/entity/indexer/dbTransaction";
 import { afterEach } from "mocha";
-const utils = require("../../lib/utils/utils");
 import sinon from "sinon";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase, DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
+import { Interlacing } from "../../src/indexer/interlacing";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import * as utils from "../../src/utils/helpers/utils";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import { getTestFile } from "../test-utils/test-utils";
+
 
 describe(`Interlacing (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
@@ -48,9 +52,6 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
       await dataService.dataSource.destroy();
     }
     await dataService.connect();
-
-    // await dataService.manager.save(augTx1);
-    // await interlacing.initialize(globalTestLogger, dataService, ChainType.BTC, 3600, 10);
   });
 
   afterEach(async () => {
@@ -156,7 +157,6 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
       let res = await interlacing.update(10, 10);
       expect(res).to.be.false;
-      // expect(interlacing.activeIndex).to.be.equal(0);
     });
   });
 });

@@ -1,0 +1,15 @@
+{
+    "firstEpochStartTime":1636070400,
+    "roundDurationSec": 90,
+    "serviceStatusFilePath": "../monitor-status.json",
+
+    "port": $(WebserverPort),
+
+    "attesterDatabase": {
+        "host": "$(AttesterDatabaseHost)",
+        "port": $(AttesterDatabasePort),
+        "database": "$(AttesterDatabase)",
+        "username": "$(AttesterReaderUsername)",
+        "password": "$(AttesterReaderPassword)"
+    },
+}

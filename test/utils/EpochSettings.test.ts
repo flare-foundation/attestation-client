@@ -1,10 +1,15 @@
+// yarn test test/utils/EpochSettings.test.ts
+
 import { toBN } from "@flarenetwork/mcc";
 import { assert, expect } from "chai";
-import { EpochSettings } from "../../lib/utils/EpochSettings";
+import { EpochSettings } from "../../src/utils/data-structures/EpochSettings";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`EpochSettings (${getTestFile(__filename)})`, () => {
-  let epochSettings = new EpochSettings(toBN(15), toBN(80));
+  const START_TIME_SEC = 15;
+  const EPOCH_DURATION = 80;
+  const BIT_VOTE_DEADLINE = 40;
+  let epochSettings = new EpochSettings(toBN(START_TIME_SEC), toBN(EPOCH_DURATION), toBN(BIT_VOTE_DEADLINE));
   let epochLength = 80000;
   let startTime = 15000;
 
@@ -32,14 +37,18 @@ describe(`EpochSettings (${getTestFile(__filename)})`, () => {
     }
   });
 
-  it("Should get RoundIdCommitTimeStart in ms", () => {
-    for (let j = 0; j < 25; j++) {
-      expect(epochSettings.getRoundIdCommitTimeStartMs(j + 100)).to.equal(epochLength * (j + 101) + startTime);
-    }
-  });
   it("Should RoundIdRevealTimeStart in ms", () => {
     for (let j = 0; j < 25; j++) {
       expect(epochSettings.getRoundIdRevealTimeStartMs(j + 100)).to.equal(epochLength * (j + 102) + startTime);
     }
   });
+
+  it("Should correctly return epochId for voting deadline", () => {
+    let epochId = 10;
+    let calculatedEpochId0 = epochSettings.getEpochIdForBitVoteTimeSec(START_TIME_SEC + epochId * EPOCH_DURATION + Math.floor(BIT_VOTE_DEADLINE * 0.5));
+    let calculatedEpochId1 = epochSettings.getEpochIdForBitVoteTimeSec(START_TIME_SEC + epochId * EPOCH_DURATION + Math.floor(BIT_VOTE_DEADLINE * 1.5));
+    expect(calculatedEpochId0).to.equal(epochId);
+    expect(calculatedEpochId1).to.be.undefined;
+  });
+
 });

@@ -1,0 +1,70 @@
+
+
+services:
+  indexer:
+    image: attestation-suite
+    volumes:
+      - ../credentials.prepared/xrp-indexer-verifier:/app/attestation-suite-config
+    container_name: indexer-xrp-indexer
+    command: indexer xrp
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: test123
+    depends_on:
+      - database
+
+  verification-server:
+    image: attestation-suite
+    volumes:
+      - ../credentials.prepared/xrp-indexer-verifier:/app/attestation-suite-config
+    container_name: indexer-xrp-verification-server
+    command: verification-server xrp
+    restart: unless-stopped
+    environment:
+      APP_BASE_PATH: /verifier/xrp
+      MYSQL_ROOT_PASSWORD: test123
+    depends_on:
+      - database
+    ports:
+      - 9501:9500
+
+  database:
+    image: mysql:8-debian
+    container_name: indexer-xrp-database
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: test123
+    cap_add:
+      - SYS_NICE
+    volumes:
+    #   - ./mysql-conf.d/:/etc/mysql/conf.d
+    #   - ./mysql-initdb/:/docker-entrypoint-initdb.d
+      - indexer-xrp-db:/var/lib/mysql
+
+  ripple-node:
+    image: flarefoundation/rippled:1.9.4
+    restart: unless-stopped
+    ports:
+      - 15005:5005   # port_rpc_admin_local
+      - 16006:6006   # port_ws_admin_local
+      - 11235:51235 # port_peer
+      - 11234:51234 # port_rpc_public
+      - 11233:51233 # port_ws_public
+      - 10051:50051 # port_grpc
+    volumes:
+      - ripple-testnet-data:/opt/ripple/.ripple/db
+      - ../node-configs/testnet/ripple/rippled.conf:/opt/ripple/.ripple/rippled.conf
+      - ../node-configs/testnet/ripple/validators.txt:/opt/ripple/.ripple/validators.txt
+
+  spammer:
+    image: attestation-suite
+    profiles: ["spammer"]
+    volumes:
+      - ../credentials.prepared/xrp-indexer-verifier:/app/attestation-suite-config
+    container_name: indexer-xrp-spammer
+    command: spammer XRP 10000
+    restart: unless-stopped
+
+volumes:
+  ripple-testnet-data:
+  indexer-xrp-db:

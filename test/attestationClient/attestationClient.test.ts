@@ -2,33 +2,36 @@
 
 import { traceManager } from "@flarenetwork/mcc";
 import BN from "bn.js";
-import { Attestation } from "../../lib/attester/Attestation";
-import { AttestationData } from "../../lib/attester/AttestationData";
-import { AttestationRoundManager } from "../../lib/attester/AttestationRoundManager";
-import { AttesterClientConfiguration, AttesterCredentials } from "../../lib/attester/AttesterClientConfiguration";
-import { AttesterWeb3 } from "../../lib/attester/AttesterWeb3";
-import { SourceRouter } from "../../lib/source/SourceRouter";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
-import { TestLogger } from "../../lib/utils/testLogger";
-import { SourceId } from "../../lib/verification/sources/sources";
+import chai, { expect } from 'chai';
+import chaiAsPromised from "chai-as-promised";
+import { Attestation } from "../../src/attester/Attestation";
+import { AttestationData } from "../../src/attester/AttestationData";
+import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
+import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
+import { FlareConnection } from "../../src/attester/FlareConnection";
+import { SourceRouter } from "../../src/attester/source/SourceRouter";
+import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
+import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { TestLogger } from "../../src/utils/logging/testLogger";
+import { SourceId } from "../../src/verification/sources/sources";
 import { TERMINATION_TOKEN } from "../test-utils/test-utils";
-
-const chai = require("chai");
-const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 class MockSourceRouter extends SourceRouter {
+  constructor() {
+    super(undefined, getGlobalLogger());
+  }
   validateTransaction(sourceId: SourceId, transaction: Attestation) { }
 }
 
-class MockAttesterWeb3 extends AttesterWeb3 {
-  constructor(credentials: AttesterCredentials) {
-    super(credentials);
+class MockFlareConnection extends FlareConnection {
+  constructor(config: AttestationClientConfig, logger: AttLogger) {
+    super(config, logger, false);
   }
 
-  async initialize() { }
+  async initialize() {}
 
-  check(bnString: string) {
+  protected checkHex64(bnString: string) {
     if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
       this.logger.error(`invalid BN formating ${bnString}`);
     }
@@ -48,15 +51,15 @@ class MockAttesterWeb3 extends AttesterWeb3 {
     verbose = true
   ) {
     const roundId = bufferNumber.toNumber() - 1;
-    this.check(commitedMerkleRoot);
-    this.check(commitedMaskedMerkleRoot);
-    this.check(commitedRandom);
-    this.check(revealedMerkleRoot);
-    this.check(revealedRandom);
+    this.checkHex64(commitedMerkleRoot);
+    this.checkHex64(commitedMaskedMerkleRoot);
+    this.checkHex64(commitedRandom);
+    this.checkHex64(revealedMerkleRoot);
+    this.checkHex64(revealedRandom);
   }
 }
 
-describe.skip("Attestation Client", () => {
+describe("Attestation Client", () => {
   let attestationRoundManager: AttestationRoundManager;
 
   before(async function () {
@@ -75,12 +78,13 @@ describe.skip("Attestation Client", () => {
     const logger = getGlobalLogger();
 
     // Reading configuration
-    const config = new AttesterClientConfiguration();
-    const credentials = new AttesterCredentials();
+    const config = new AttestationClientConfig();
 
-    const sourceRouter = new MockSourceRouter(this.logger);
-    const attesterWeb3 = new MockAttesterWeb3(this.credentials);
-    attestationRoundManager = new AttestationRoundManager(sourceRouter, config, credentials, logger, attesterWeb3);
+    const flareConnection = new MockFlareConnection(config, logger);
+    const sourceRouter = new MockSourceRouter();
+    attestationRoundManager = new AttestationRoundManager(config, logger, flareConnection, sourceRouter);
+    // override initially generated source router
+    
   });
 
   ////////////////////////////////
@@ -96,7 +100,7 @@ describe.skip("Attestation Client", () => {
       },
     };
 
-    const attestation = new AttestationData(mockEvent);
+    const attestation = new AttestationData(mockEvent as any);
 
     expect(attestation.sourceId, "attestation.sourceId should be 1434319303").to.eq(1434319303);
     expect(attestation.type, "attestation.type should be 23821").to.eq(23821);
@@ -105,7 +109,7 @@ describe.skip("Attestation Client", () => {
   ////////////////////////////////
   // Integration tests
   ////////////////////////////////
-  it(`Attestate Valid Request`, async function () {
+  it.skip(`Attestate Valid Request`, async function () {
     const mockEvent = {
       blockNumber: 10,
       logIndex: 1,
@@ -115,9 +119,9 @@ describe.skip("Attestation Client", () => {
       },
     };
 
-    const attestation = new AttestationData(mockEvent);
+    const attestation = new AttestationData(mockEvent as any);
 
-    await attestationRoundManager.attestate(attestation);
+    await attestationRoundManager.onAttestationRequest(attestation);
 
     expect(TestLogger.exists("waiting on block 70015100 to be valid"), "block should be valid at start").to.eq(false);
   });

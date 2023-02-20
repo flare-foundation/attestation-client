@@ -16,7 +16,6 @@ abstract contract AttestationClientBase is IAttestationClient {
     uint16 public constant BALANCE_DECREASING_TRANSACTION = 2;
     uint16 public constant CONFIRMED_BLOCK_HEIGHT_EXISTS = 3;
     uint16 public constant REFERENCED_PAYMENT_NONEXISTENCE = 4;
-    uint16 public constant TRUSTLINE_ISSUANCE = 5;
 
     function verifyPayment(uint32 _chainId, Payment calldata _data) external view override returns (bool _proved) {
         return _verifyMerkleProof(_data.merkleProof, merkleRootForRound(_data.stateConnectorRound), _hashPayment(_chainId, _data));
@@ -32,10 +31,6 @@ abstract contract AttestationClientBase is IAttestationClient {
 
     function verifyReferencedPaymentNonexistence(uint32 _chainId, ReferencedPaymentNonexistence calldata _data) external view override returns (bool _proved) {
         return _verifyMerkleProof(_data.merkleProof, merkleRootForRound(_data.stateConnectorRound), _hashReferencedPaymentNonexistence(_chainId, _data));
-    }
-
-    function verifyTrustlineIssuance(uint32 _chainId, TrustlineIssuance calldata _data) external view override returns (bool _proved) {
-        return _verifyMerkleProof(_data.merkleProof, merkleRootForRound(_data.stateConnectorRound), _hashTrustlineIssuance(_chainId, _data));
     }
 
     function merkleRootForRound(uint256 _stateConnectorRound) public view virtual returns (bytes32 _merkleRoot);
@@ -86,7 +81,6 @@ abstract contract AttestationClientBase is IAttestationClient {
                     _data.blockNumber,
                     _data.blockTimestamp,
                     _data.numberOfConfirmations,
-                    _data.averageBlockProductionTimeMs,
                     _data.lowestQueryWindowBlockNumber,
                     _data.lowestQueryWindowBlockTimestamp
                 )
@@ -110,13 +104,6 @@ abstract contract AttestationClientBase is IAttestationClient {
                     ),
                     abi.encode(_data.lowerBoundaryBlockTimestamp, _data.firstOverflowBlockNumber, _data.firstOverflowBlockTimestamp)
                 )
-            );
-    }
-
-    function _hashTrustlineIssuance(uint32 _chainId, TrustlineIssuance calldata _data) private pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(TRUSTLINE_ISSUANCE, _chainId, _data.tokenCurrencyCode, _data.tokenValueNominator, _data.tokenValueDenominator, _data.tokenIssuer)
             );
     }
 

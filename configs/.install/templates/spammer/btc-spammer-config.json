@@ -1,0 +1,19 @@
+{
+    // epoch start time in unix time
+    "firstEpochStartTime": 1636070400,
+    // epoch duration in seconds
+    "roundDurationSec": 90,
+    "numberOfConfirmations": 6,
+    "web": {
+        "accountPrivateKey": "$(BTCSpammerPrivateKey)",
+        "rpcUrl": "$(RPC)",
+        "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
+    },
+    "indexerDatabase": {
+        "host": "$(BTCIndexerDatabaseHost)",
+        "port": $(BTCIndexerDatabasePort),
+        "database": "$(BTCIndexerDatabase)",
+        "username": "$(BTCIndexerReaderUsername)",
+        "password": "$(BTCIndexerReaderPassword)"
+    }
+}

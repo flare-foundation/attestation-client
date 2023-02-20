@@ -1,15 +1,16 @@
-import { IndexedQueryManager } from "../../lib/indexed-query-manager/IndexedQueryManager";
-import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../lib/indexed-query-manager/indexed-query-manager-types";
-import { ChainType, round, UtxoBlock } from "@flarenetwork/mcc";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
+import { ChainType, UtxoBlock } from "@flarenetwork/mcc";
 import { expect } from "chai";
-import { DBState } from "../../lib/entity/indexer/dbState";
-import * as resBTCBlock from "../mockData/BTCBlock.json";
-import { augmentBlock } from "../../lib/indexer/chain-collector-helpers/augmentBlock";
-import { DBBlockBTC } from "../../lib/entity/indexer/dbBlock";
 import sinon from "sinon";
-import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
+import { DBState } from "../../src/entity/indexer/dbState";
+import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
+import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import * as resBTCBlock from "../mockData/BTCBlock.json";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
@@ -32,13 +33,11 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       chainType: ChainType.BTC,
       numberOfConfirmations: () => 5,
       maxValidIndexerDelaySec: 10,
-      windowStartTime: (roundId: number) => roundId * 5,
-      UBPCutoffTime: (roundId: number) => roundId * 5 + 4,
     };
     indexedQueryManager = new IndexedQueryManager(options);
 
     initializeTestGlobalLogger();
-    await dataService.connect();
+
     augTx0 = await promAugTxBTC0;
     augTxAlt0 = await promAugTxBTCAlt0;
     augTx1 = await promAugTxBTC1;
@@ -118,7 +117,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     it("Should query block by hash", async () => {
       const params: BlockQueryParams = {
         hash: resBTCBlock.hash,
-        roundId: 10,
       };
 
       const block = new UtxoBlock(resBTCBlock);
@@ -132,7 +130,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     it("Should query block by id", async () => {
       const params: BlockQueryParams = {
         blockNumber: resBTCBlock.height,
-        roundId: 10,
         confirmed: true,
       };
 
@@ -206,8 +203,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("Should query transaction", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        roundId: 5,
-        endBlock: 763380,
+        endBlockNumber: 763380,
       };
 
       let res = await indexedQueryManager.queryTransactions(transactionQueryParams);
@@ -216,8 +212,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("Should query transaction with txId", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        roundId: 5,
-        endBlock: 763380,
+        endBlockNumber: 763380,
 
         transactionId: "b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225",
       };
@@ -228,8 +223,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     it("query should not return anything", async function () {
       let transactionQueryParams: TransactionQueryParams = {
-        roundId: 5,
-        endBlock: 763380,
+        endBlockNumber: 763380,
         paymentReference: "b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225",
       };
 

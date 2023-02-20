@@ -1,5 +1,7 @@
+// yarn test test/utils/Queue.test.ts
+
 import { assert, expect } from "chai";
-import { Queue } from "../../lib/utils/Queue";
+import { Queue } from "../../src/utils/data-structures/Queue";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`Queue ${getTestFile(__filename)})`, () => {

@@ -1,5 +1,5 @@
-import { MerkleTree, verifyWithMerkleProof } from "../../lib/utils/MerkleTree";
-import { toHex } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { MerkleTree, verifyWithMerkleProof } from "../../src/utils/data-structures/MerkleTree";
+import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { MerkleInstance } from "../../typechain-truffle";
 import { getTestFile } from "../test-utils/test-utils";
 
@@ -21,7 +21,6 @@ describe(`Merkle Tree (${getTestFile(__filename)})`, () => {
         const hashes = makeHashes(i);
 
         const tree = new MerkleTree(hashes);
-        // console.log(i, tree.hashCount)
         for (let j = 0; j < tree.hashCount; j++) {
           const proof = tree.getProof(j);
           const leaf = tree.getHash(j);

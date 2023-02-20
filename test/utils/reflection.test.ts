@@ -3,10 +3,10 @@
 
 
 import { assert } from "chai";
-import { IndexerCredentials } from "../../lib/indexer/IndexerConfiguration";
-import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { AdditionalTypeInfo, IReflection } from "../../lib/utils/reflection";
-import { isEqualType } from "../../lib/utils/typeReflection";
+import { IndexerConfig } from "../../src/indexer/IndexerConfig";
+import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
+import { isEqualType } from "../../src/utils/reflection/typeReflection";
 import { getTestFile } from "../test-utils/test-utils";
 
 
@@ -169,7 +169,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
     it(`Invalid test simple class compare`, async () => {
 
         const test = new TestReflection();
-        const test2 = new IndexerCredentials();
+        const test2 = new IndexerConfig();
 
         const res = isEqualType(test.instanciate(), test2);
 

@@ -1,14 +1,15 @@
-import { DatabaseConnectOptions, DatabaseService } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { getTestFile } from "../test-utils/test-utils";
 import { expect } from "chai";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { getTestFile } from "../test-utils/test-utils";
 
 describe(`DatabaseService tests (${getTestFile(__filename)})`, function () {
   const databaseConnectOptions = new DatabaseConnectOptions();
 
   let dataService: DatabaseService;
   before(async function () {
-    // initializeTestGlobalLogger();
+    initializeTestGlobalLogger();
     dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
     await dataService.connect();
   });

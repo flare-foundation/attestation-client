@@ -1,23 +1,23 @@
-// // yarn test test/indexer/blockHeaderCollector.test.ts
+// yarn test test/indexer/headerCollector.test-cred.ts
+// tests need appropriate api credentials for BTC multi-chain-client to function properly
 
-import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
-import { DBBlockBTC, DBBlockXRP } from "../../lib/entity/indexer/dbBlock";
-import { HeaderCollector } from "../../lib/indexer/headerCollector";
-import { IndexerToClient } from "../../lib/indexer/indexerToClient";
-import { IndexerToDB } from "../../lib/indexer/indexerToDB";
-import { DatabaseService, DatabaseConnectOptions } from "../../lib/utils/databaseService";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { setRetryFailureCallback } from "../../lib/utils/PromiseTimeout";
+import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinon from "sinon";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
+import { HeaderCollector } from "../../src/indexer/headerCollector";
+import { IndexerToClient } from "../../src/indexer/indexerToClient";
+import { IndexerToDB } from "../../src/indexer/indexerToDB";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
+import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import * as BTCBlockHeader from "../mockData/BTCBlockHeader.json";
 import * as BTCBlockHeaderAlt from "../mockData/BTCBlockHeaderAlt.json";
-import { TestBlockXRP } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
-const sinon = require("sinon");
-const chai = require("chai");
-const expect = chai.expect;
-// const fs = require("fs");
-chai.use(require("chai-as-promised"));
+chai.use(chaiAsPromised);
 
 describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
@@ -40,8 +40,6 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
 
     const client = new MCC.BTC(BtcMccConnection);
     const indexerToClient = new IndexerToClient(client);
-
-    //   let interlacing = new Interlacing();
 
     const indexerToDB = new IndexerToDB(getGlobalLogger(), dataService, ChainType.BTC);
 

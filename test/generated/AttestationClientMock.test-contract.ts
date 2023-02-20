@@ -2,33 +2,30 @@
 // This file is auto generated. Do not edit.
 //////////////////////////////////////////////////////////////
 
-import { MerkleTree } from "../../lib/utils/MerkleTree";
-import { hexlifyBN } from "../../lib/verification/attestation-types/attestation-types-helpers";
+import { MerkleTree } from "../../src/utils/data-structures/MerkleTree";
+import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
 import {
   DHPayment,
   DHBalanceDecreasingTransaction,
   DHConfirmedBlockHeightExists,
   DHReferencedPaymentNonexistence,
-  DHTrustlineIssuance,
-} from "../../lib/verification/generated/attestation-hash-types";
+} from "../../src/verification/generated/attestation-hash-types";
 import {
   ARPayment,
   ARBalanceDecreasingTransaction,
   ARConfirmedBlockHeightExists,
   ARReferencedPaymentNonexistence,
-  ARTrustlineIssuance,
-} from "../../lib/verification/generated/attestation-request-types";
-import { AttestationType } from "../../lib/verification/generated/attestation-types-enum";
-import { SourceId } from "../../lib/verification/sources/sources";
-import { getRandomResponseForType, getRandomRequest } from "../../lib/verification/generated/attestation-random-utils";
+} from "../../src/verification/generated/attestation-request-types";
+import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
+import { SourceId } from "../../src/verification/sources/sources";
+import { getRandomResponseForType, getRandomRequest } from "../../src/verification/generated/attestation-random-utils";
 import {
   hashPayment,
   hashBalanceDecreasingTransaction,
   hashConfirmedBlockHeightExists,
   hashReferencedPaymentNonexistence,
-  hashTrustlineIssuance,
   dataHash,
-} from "../../lib/verification/generated/attestation-hash-utils";
+} from "../../src/verification/generated/attestation-hash-utils";
 
 import { AttestationClientSCInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 import { getTestFile } from "../test-utils/test-utils";
@@ -131,27 +128,6 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
     assert((await attestationClient.verifyReferencedPaymentNonexistence(CHAIN_ID, responseHex)) === false);
   });
 
-  it("'TrustlineIssuance' test", async function () {
-    const attestationType = AttestationType.TrustlineIssuance;
-    const request = { attestationType, sourceId: CHAIN_ID } as ARTrustlineIssuance;
-
-    const response = getRandomResponseForType(attestationType) as DHTrustlineIssuance;
-    response.stateConnectorRound = STATECONNECTOR_ROUND;
-    response.merkleProof = [];
-
-    const responseHex = hexlifyBN(response);
-
-    const hash = hashTrustlineIssuance(request, response);
-
-    const dummyHash = web3.utils.randomHex(32);
-    await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
-    assert((await stateConnectorMock.merkleRoots(STATECONNECTOR_ROUND)) === hash);
-    assert(await attestationClient.verifyTrustlineIssuance(CHAIN_ID, responseHex));
-
-    await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, dummyHash);
-    assert((await attestationClient.verifyTrustlineIssuance(CHAIN_ID, responseHex)) === false);
-  });
-
   it("Merkle tree test", async function () {
     const verifications = [];
     for (let i = 0; i < NUM_OF_HASHES; i++) {
@@ -183,9 +159,6 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
           break;
         case AttestationType.ReferencedPaymentNonexistence:
           assert(await attestationClient.verifyReferencedPaymentNonexistence(verification.request.sourceId, responseHex));
-          break;
-        case AttestationType.TrustlineIssuance:
-          assert(await attestationClient.verifyTrustlineIssuance(verification.request.sourceId, responseHex));
           break;
         default:
           throw new Error("Wrong attestation type");

@@ -1,0 +1,44 @@
+{
+   "verifierRoutes": [
+      {
+         "sourceId": "BTC",
+         "routes": [
+            {
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction",
+                  "ConfirmedBlockHeightExists"
+               ],
+               "url": "$(BTCVerifierRouterClientUrl)",
+               "apiKey": "$(BTCVerifierRouterClientApiKey)"
+            }
+         ]
+      },
+      {
+         "sourceId": "DOGE",
+         "routes": [
+            {
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction"
+               ],
+               "url": "$(DOGEVerifierRouterClientUrl)",
+               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+            }
+         ]
+      },
+      {
+         "sourceId": "XRP",
+         "routes": [
+            {
+               "attestationTypes": [
+                  "Payment",
+                  "BalanceDecreasingTransaction"
+               ],
+               "url": "$(XRPVerifierRouterClientUrl)",
+               "apiKey": "$(XRPVerifierRouterClientApiKey)"
+            }
+         ]
+      }
+   ]
+}

@@ -1,0 +1,19 @@
+{
+    // epoch start time in unix time
+    "firstEpochStartTime": 1636070400,
+    // epoch duration in seconds
+    "roundDurationSec": 90,
+    "numberOfConfirmations": 1,
+    "web": {
+        "accountPrivateKey": "$(XRPSpammerPrivateKey)",
+        "rpcUrl": "$(RPC)",
+        "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
+    },
+    "indexerDatabase": {
+        "host": "$(XRPIndexerDatabaseHost)",
+        "port": $(XRPIndexerDatabasePort),
+        "database": "$(XRPIndexerDatabase)",
+        "username": "$(XRPIndexerReaderUsername)",
+        "password": "$(XRPIndexerReaderPassword)"
+    }
+}

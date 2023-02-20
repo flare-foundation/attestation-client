@@ -3,15 +3,15 @@
 
 import { assert } from "chai";
 import sinon from "sinon";
-import { prepareSecureCredentials } from "../../lib/install/prepareSecureCredentials";
-import { readSecureConfig, readSecureCredentials } from "../../lib/utils/configSecure";
-import { getCredentialsKey, getCredentialsKeyByAddress } from "../../lib/utils/credentialsKey";
-import { decryptString, encryptString } from "../../lib/utils/encrypt";
-import { readJSON, readJSONfromString } from "../../lib/utils/json";
-import { secureMasterConfigs, _clearSecureCredentials, _prepareSecureData } from "../../lib/utils/jsonSecure";
-import { initializeTestGlobalLogger } from "../../lib/utils/logger";
-import { AdditionalTypeInfo, IReflection } from "../../lib/utils/reflection";
-import { TestLogger } from "../../lib/utils/testLogger";
+import { prepareSecureCredentials } from "../../src/install/prepareSecureCredentials";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { readJSON, readJSONfromString } from "../../src/utils/config/json";
+import { SECURE_MASTER_CONFIGS, _clearSecureCredentials, _prepareSecureData } from "../../src/utils/config/jsonSecure";
+import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { TestLogger } from "../../src/utils/logging/testLogger";
+import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
+import { decryptString, encryptString } from "../../src/utils/security/encrypt";
+
 import { getTestFile } from "../test-utils/test-utils";
 
 const password = "t3stPassw0rd";
@@ -36,7 +36,7 @@ class TestConfig implements IReflection<TestConfig> {
 
 }
 
-describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
+describe(`Test config utils (${getTestFile(__filename)})`, () => {
 
     before(async () => {
         initializeTestGlobalLogger();
@@ -45,7 +45,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         //TestLogger.setDisplay(1);
 
         process.env.SECURE_CONFIG_PATH = secureConfigPath;
-        process.env.SECURE_CONFIG_NETWORK = `TestNetwork`;
+        process.env.FLARE_NETWORK = `TestNetwork`;
         process.env.CREDENTIALS_KEY = `direct:${password}`;
 
         sinon.stub(process, 'exit');
@@ -64,6 +64,10 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
 
     after(() => {
         sinon.restore();
+
+        delete process.env.SECURE_CONFIG_PATH;
+        delete process.env.FLARE_NETWORK;
+        delete process.env.CREDENTIALS_KEY;
     })
 
     // encryption
@@ -81,8 +85,8 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
     // secure config
 
     it(`test prepare secure data`, async () => {
-        secureMasterConfigs.push(["test1", "value1"]);
-        secureMasterConfigs.push(["test2", 2]);
+        SECURE_MASTER_CONFIGS.push(["test1", "value1"]);
+        SECURE_MASTER_CONFIGS.push(["test2", 2]);
 
         const prepared = _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)"}`, "", "TestNetwork");
 
@@ -90,8 +94,8 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
     });
 
     it(`test prepare secure data value left error`, async () => {
-        secureMasterConfigs.push(["test1", "value1"]);
-        secureMasterConfigs.push(["test2", 2]);
+        SECURE_MASTER_CONFIGS.push(["test1", "value1"]);
+        SECURE_MASTER_CONFIGS.push(["test2", 2]);
 
         const prepared = _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)", "test3"=$(test3)}`, "", "TestNetwork");
 
@@ -99,7 +103,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
     });
 
     it(`test prepare secure data with network`, async () => {
-        secureMasterConfigs.push(["TestNetworkPassword", "123"]);
+        SECURE_MASTER_CONFIGS.push(["TestNetworkPassword", "123"]);
 
         const prepared = _prepareSecureData(`{"Password"="$($(Network)Password)"}`, "", "TestNetwork");
 
@@ -136,38 +140,6 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
         catch { }
     });
 
-    it(`get credentials invalid format`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("provider:address:invalid");
-
-        assert(exitCode !== 0, `exit not called`);
-    });
-
-    it(`get credentials invalid address`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("unknown:some address");
-
-        assert(exitCode !== 0, `exit not called`);
-    });
-
-    it(`get credentials key direct`, async () => {
-        const credentialsPassword = await getCredentialsKey();
-
-        assert(credentialsPassword === password, `credentials password not correct`);
-
-    });
-
-    it(`get credentials key google cloud secret manager`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:projects/746294693511/secrets/test1/versions/latest");
-
-        assert(credentialsPassword === password, `credentials password not correct`);
-
-    });
-
-    it(`get credentials key google cloud secret manager invalid name`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:invalid name");
-
-        assert(exitCode !== 0, `exit not called`);
-    });
-
     it(`prepare secure data`, async () => {
         await prepareSecureCredentials(process.env.SECURE_CONFIG_PATH, process.env.CREDENTIALS_KEY, `${secureConfigPath}credentials.json.secure`);
     });
@@ -184,28 +156,4 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
 
         assert(exitCode === 0, `function must not exit`);
     });
-
-    it(`secure credentials read`, async () => {
-        let testConfig = new TestConfig();
-
-        const test = await readSecureCredentials(testConfig, "template1");
-
-        assert(test.key1 === 1, "incorrect config key");
-        assert(test.key2 === 2, "incorrect config key");
-        assert(test.key3 === 3, "incorrect config key");
-        assert(test.key4 === 4, "incorrect config key");
-
-        assert(exitCode === 0, `function must not exit`);
-    });
-
-    it(`test empty credentials at start`, async () => {
-        let testConfig = new TestConfig();
-
-        secureMasterConfigs.push(["dummy", 123]);
-
-        const test = await readSecureConfig(testConfig, "template1");
-
-        assert(exitCode !== 0, `function must exit`);
-    });
-
 })

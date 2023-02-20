@@ -1,13 +1,13 @@
 // yarn test test/indexer/chainCollector.test-dev.ts
 
 import { ChainType, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptions } from "../../lib/caching/CachedMccClient";
-import { ChainConfiguration } from "../../lib/source/ChainConfiguration";
-import { DBBlockBase } from "../../lib/entity/indexer/dbBlock";
-import { DBTransactionBase } from "../../lib/entity/indexer/dbTransaction";
-import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../lib/indexer/chain-collector-helpers/blockProcessor";
-import { Indexer } from "../../lib/indexer/indexer";
-import { getGlobalLogger } from "../../lib/utils/logger";
+import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
+import { ChainConfig } from "../../src/attester/configs/ChainConfig";
+import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
+import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
+import { Indexer } from "../../src/indexer/indexer";
+import { getGlobalLogger } from "../../src/utils/logging/logger";
 
 const BtcMccConnection = {
   url: "https://bitcoin.flare.network/",
@@ -49,7 +49,7 @@ describe("Test process helpers ", () => {
 
   let indexer: Indexer;
   before(async function () {
-    indexer = new Indexer(null, null, null, null);
+    indexer = new Indexer(null, null, null);
 
     traceManager.displayStateOnException = false;
 
@@ -199,7 +199,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.XRP, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    indexer.chainConfig = new ChainConfiguration();
+    indexer.chainConfig = new ChainConfig();
     indexer.chainConfig.name = "XRP";
     indexer.prepareTables();
 
@@ -223,7 +223,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    indexer.chainConfig = new ChainConfiguration();
+    indexer.chainConfig = new ChainConfig();
     indexer.chainConfig.name = "ALGO";
     indexer.prepareTables();
 

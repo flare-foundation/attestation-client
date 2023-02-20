@@ -1,0 +1,19 @@
+[Service]
+ExecStart=/home/ubuntu/.nvm/versions/node/v16.17.1/bin/node /home/ubuntu/attestation-suite/attestation-client/dist/src/runAttestationClient.js  -i coston2
+Restart=always
+# User=ubuntu
+# Use 'nogroup' group for Ubuntu/Debian
+# use 'nobody' group for Fedora
+# Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+Environment=LOG_PATH=./logs/coston2
+Environment=FLARE_NETWORK=coston2
+Environment=SECURE_CONFIG_PATH=credentials.prepared/attester-client
+Environment=CREDENTIALS_KEY_FILE=credentials.prepared/attester-client/credentials.key
+
+
+WorkingDirectory=/home/ubuntu/attestation-suite/attestation-client
+
+[Install]
+WantedBy=multi-user.target

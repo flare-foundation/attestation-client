@@ -31,7 +31,7 @@ describe(`Attester State (${getTestFile(__filename)})`, function () {
 
   describe("save round", function () {
     it("Should save round", async function () {
-      let round = new AttestationRound(20, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+      let round = new AttestationRound(20, undefined, undefined, undefined, undefined, undefined, undefined);
       round.roundRandom = "2001";
       round.roundMerkleRoot = "0x000000fake";
       round.roundMaskedMerkleRoot = "0x00000moreFake";
@@ -41,7 +41,7 @@ describe(`Attester State (${getTestFile(__filename)})`, function () {
     });
 
     it("Should save comment", async function () {
-      let round = new AttestationRound(21, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+      let round = new AttestationRound(21, undefined, undefined, undefined, undefined, undefined, undefined);
       round.roundRandom = "2001";
       round.roundMerkleRoot = "0x000000fakealt";
       round.roundMaskedMerkleRoot = "0x00000moreFakealt";

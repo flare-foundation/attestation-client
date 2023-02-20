@@ -3,22 +3,37 @@
 import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
 import { expect, assert } from "chai";
 import { GlobalConfigManager } from "../../src/attester/GlobalConfigManager";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { getGlobalLogger, initializeTestGlobalLogger, setLoggerName } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 import sinon from "sinon";
 import { sourceAndTypeSupported } from "../../src/attester/configs/GlobalAttestationConfig";
+import { before } from "mocha";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
 
 describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
-  const attestationClientConfig = new AttestationClientConfig();
+  let globalConfigManager: GlobalConfigManager;
 
-  const globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
-  globalConfigManager.testing = true;
+  before(async function () {
+    const CONFIG_PATH_ATTESTER = "../test/attestationClient/test-data/attester";
+    process.env.TEST_CREDENTIALS = "1";
+    process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
+
+    const attestationClientConfig = await readSecureConfig(new AttestationClientConfig(), `attester_1`);
+    globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
+    globalConfigManager.activeRoundId = 160;
+  });
 
   afterEach(function () {
     sinon.restore();
   });
+
+  after(function () {
+    delete process.env.TEST_CREDENTIALS;
+    delete process.env.CONFIG_PATH;
+  });
+
   it("Should construct GlobalConfigManager", function () {
     assert(globalConfigManager);
   });
@@ -66,7 +81,7 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
     assert(stub.called);
   });
 
-  describe("globalAttestationConfig", function () {
+  describe("Global Attestation Config", function () {
     it("should verify supported types", function () {
       const res = sourceAndTypeSupported(globalConfigManager.attestationConfigs[0], 2, 3);
       assert(res);

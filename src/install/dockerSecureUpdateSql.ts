@@ -12,6 +12,7 @@ const args = yargs
     .option("defaultSecureConfigPath", { alias: "p", type: "string", description: "default secure config path", default: DEFAULT_SECURE_CONFIG_PATH, demand: false })
     .option("input", { alias: "i", type: "string", description: "input file", default: DEFAULT_SECURE_CONFIG_PATH, demand: true })
     .option("chain", { alias: "n", type: "string", description: "node name", default: "", demand: false })
+    .option("sudo", { alias: "s", type: "boolean", description: "sudo mysql mode", default: false, demand: false })
     .option("network", { alias: "e", type: "string", description: "network", default: "Coston", demand: false }).argv;
 
 async function run() {
@@ -19,6 +20,7 @@ async function run() {
 
     const inputFile = args["input"];
     const nodeName = args["chain"].toUpperCase();
+    const sudo = args["sudo"];
 
     if (nodeName != "") {
         logger.info(`^gstarting MYSQL script ^r${inputFile}^g for node ^r${nodeName}`);
@@ -46,7 +48,9 @@ async function run() {
         try {
             const secureLogin = (retry & 1) === 0;
             password = secureLogin ? secureRootPassword : process.env.MYSQL_ROOT_PASSWORD;
-            const command = `mysql -h database -u root -p${password} -e ";"`;
+            const command = 
+                sudo ? `sudo mysql -e ";"` : `mysql -h database -u root -p${password} -e ";"`;
+
             //logger.debug(muteMySQLPasswords(command));
             logger.debug(`connecting to database ${retry}`);
 
@@ -85,7 +89,8 @@ async function run() {
         try {
             if (line.trim() === "") continue;
 
-            const command = `mysql -h database -u root -p${password} -e "${line}"`;
+            const command = ( sudo ?`sudo mysql ` : `mysql -h database -u root -p${password}` ) + `-e "${line}"`;
+            
             execSync(command, { windowsHide: true, encoding: "buffer" , stdio: 'ignore'});
 
             // check is root password changed

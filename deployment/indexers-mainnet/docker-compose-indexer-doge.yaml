@@ -55,7 +55,7 @@ services:
     image: attestation-suite
     profiles: ["spammer"]
     volumes:
-      - ../credentials.prepared/doge-indexer-spammer:/app/attestation-suite-config
+      - ../credentials.prepared/doge-indexer-verifier:/app/attestation-suite-config
     container_name: indexer-doge-spammer
     command: spammer DOGE 10000
     restart: unless-stopped

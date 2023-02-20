@@ -4,7 +4,7 @@ import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflecti
 import { AttesterWebOptions } from "./AttesterWebOptions";
 
 /**
- * Attestation client configuration object. JSON configurations are read directly into this 
+ * Attestation client configuration object. JSON configurations are read directly into this
  * object where existence of the keys is matched to the members in the class.
  */
 export class AttestationClientConfig implements IReflection<AttestationClientConfig> {
@@ -27,14 +27,14 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
   public roundDurationSec = 90;
 
   /**
-   * Path to (dynamic) global configurations folder. It can be described relative to 
+   * Path to (dynamic) global configurations folder. It can be described relative to
    * the working directory.
    */
   public dynamicAttestationConfigurationFolder = "./configs/dac/";
 
   /**
    * Attestation submission time in seconds, relative to the end of the `commit` phase. Usually
-   * a negative value. 
+   * a negative value.
    */
   public commitTimeSec = -10;
 
@@ -48,11 +48,11 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
    * Time to close bit voting round for counting in seconds, relative to the end of the `choose`
    * phase. On chain timestamps for valid bit votes must be within the `choose` phase. Attestation
    * client time and chain time may not be in sync and may be shifted for several seconds since
-   * miners can use slightly shifted time. To obtain all the bit votes in `choose` phase one has to be 
-   * sure that the end time of the `choose` phase on chain has passed, hence a block with strictly 
+   * miners can use slightly shifted time. To obtain all the bit votes in `choose` phase one has to be
+   * sure that the end time of the `choose` phase on chain has passed, hence a block with strictly
    * later time then the end of the `choose` epoch must be mined. But if there is not enough traffic
    * on the blockchain, this block may appear too late. This setting decides the time when the attestation
-   * client forcedly decides that all votes should be available. The setting is relative to the end 
+   * client forcedly decides that all votes should be available. The setting is relative to the end
    * of the `choose` phase and is usually few seconds.
    */
   public forceCloseBitVotingSec = 2;

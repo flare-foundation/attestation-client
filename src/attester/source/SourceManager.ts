@@ -13,14 +13,11 @@ import { getSourceConfig } from "../../verification/routing/configs/VerifierRout
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";
-import { AttestationRoundManager } from "../AttestationRoundManager";
 import { GlobalConfigManager } from "../GlobalConfigManager";
 import { AttestationStatus } from "../types/AttestationStatus";
 
 @Managed()
 export class SourceManager {
-  attestationRoundManager: AttestationRoundManager;
-
   globalConfigManager: GlobalConfigManager;
   // rate limiting control
   requestTime = 0;
@@ -77,6 +74,7 @@ export class SourceManager {
   public get label() {
     return this.globalConfigManager.label;
   }
+
   /**
    * Returns `true` if new attestation requests can be added for processing (subject to rate limit).
    * @returns
@@ -205,6 +203,13 @@ export class SourceManager {
 
     // get relevant verifierRouter for attestation from global configs
     const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
+
+    // assert
+    if (!verifierRouter) {
+      // This should not happen as this is checked already on AttestationRound creation
+      this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.roundId}`);
+      exit(1);
+    }
 
     this.increaseRequestCount();
     verifierRouter

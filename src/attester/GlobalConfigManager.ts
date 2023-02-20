@@ -26,10 +26,9 @@ export class GlobalConfigManager {
 
   testing = false;
 
-  constructor(attestationClientConfig: AttestationClientConfig, activeRoundId: number, logger: AttLogger) {
+  constructor(attestationClientConfig: AttestationClientConfig, logger: AttLogger) {
     this.logger = logger;
     this.attestationClientConfig = attestationClientConfig;
-    this.activeRoundId = activeRoundId;
     this.validateEnumNames();
   }
 
@@ -41,7 +40,12 @@ export class GlobalConfigManager {
     this._activeRoundId = number;
   }
 
-  get activeRoundId() {
+  public get activeRoundId(): number {
+    if (this._activeRoundId === undefined) {
+      // this should never happen - the first initialization of activeRoundId should
+      // be earlier then the first call to the getter.
+      throw new Error("activeRoundId not defined");
+    }
     return this._activeRoundId;
   }
 
@@ -98,12 +102,14 @@ export class GlobalConfigManager {
     if (!config) {
       this.logger.error(`DAC for round id ${roundId} does not exist (using default)`);
       exit(1);
+      return; // for testing
     }
     const verifierRouter = config.verifierRouter;
     if (!verifierRouter) {
       //we probably want to check if verifierRouter is initialized
       this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${roundId}`);
       exit(1);
+      return; // for testing
     }
     return verifierRouter;
   }
@@ -182,6 +188,7 @@ export class GlobalConfigManager {
         const promises = files.map(async (filename: string) => {
           let result = await this.load(this.attesterConfig.dynamicAttestationConfigurationFolder + filename);
           if (!result) {
+            console.log(12234);
             this.logger.error(`Failure while loading ${filename}. Stopping!`);
             process.exit(1);
           }
@@ -225,7 +232,7 @@ export class GlobalConfigManager {
 
       // This initialization may fail, hence the dac initialization will fail
       // TODO: make a recovery mechanism
-      await config.verifierRouter.initialize(config.startRoundId, this.logger, "", this.testing);
+      await config.verifierRouter.initialize(config.startRoundId, this.logger, undefined, this.testing);
 
       // parse sources
       fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {

@@ -15,20 +15,22 @@ import { getTestFile } from "../test-utils/test-utils";
 import sinon from "sinon";
 import { createBlankBitVoteEvent } from "./utils/createEvents";
 import { BitVoteData } from "../../src/attester/BitVoteData";
-import { MockFlareConnection } from "./utils/mockFlareConnect";
+import { MockFlareConnection } from "./utils/mockClasses";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
   const attestationClientConfig = new AttestationClientConfig();
 
+  attestationClientConfig.dynamicAttestationConfigurationFolder = "./test/attestationClient/test-data/attester/dac/";
+
   const globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
   globalConfigManager.testing = true;
+  globalConfigManager.activeRoundId = 160;
 
   const dbConnectOptions = new DatabaseConnectOptions();
   const dbService = new DatabaseService(getGlobalLogger(), dbConnectOptions, "", "", true);
 
-  const epochSettings = new EpochSettings(toBN(123), toBN(90), toBN(45));
   const attesterState = new AttesterState(dbService);
 
   let flareConnection = new MockFlareConnection(attestationClientConfig, getGlobalLogger());
@@ -42,7 +44,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     activeGlobalConfig = globalConfigManager.getConfig(160);
     await dbService.connect();
 
-    round = new AttestationRound(160, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, undefined, attestationClientConfig, epochSettings);
+    round = new AttestationRound(160, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, undefined, attestationClientConfig);
 
     round.defaultSetAddresses.push("0xfakedefault");
   });
@@ -94,7 +96,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     expect(round.bitVoteMap.keys.length).to.eq(0);
   });
 
-  it("Should  register bitVote for non-default set", function () {
+  it("Should register bitVote for non-default set", function () {
     const event = createBlankBitVoteEvent("0x05fakeBitVote");
     event.returnValues.sender = "0xfakeDefault";
     const bitVoteData = new BitVoteData(event);

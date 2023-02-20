@@ -4,13 +4,17 @@ import { AttLogger } from "../../../src/utils/logging/logger";
 import BN from "bn.js";
 import { EpochSettings } from "../../../src/utils/data-structures/EpochSettings";
 import { toBN } from "web3-utils";
+import { SourceRouter } from "../../../src/attester/source/SourceRouter";
+import { VerifierRouter } from "../../../src/verification/routing/VerifierRouter";
+import { Attestation } from "../../../src/attester/Attestation";
+import { Verification, VerificationStatus } from "../../../src/verification/attestation-types/attestation-types";
 
 export class MockFlareConnection extends FlareConnection {
   constructor(config: AttestationClientConfig, logger: AttLogger) {
     super(config, logger, false);
   }
 
-  epochSettings = new EpochSettings(toBN(100), toBN(90), toBN(45));
+  epochSettings = new EpochSettings(toBN(123), toBN(90), toBN(45));
 
   pastEventsStateConnector: any[] = [];
   pastEventsBitVote: any[] = [];
@@ -79,5 +83,14 @@ export class MockFlareConnection extends FlareConnection {
 
   public addDefaultAddress(addresses: string[]) {
     this.defaultSetAddresses.push(...addresses);
+  }
+}
+
+export class MockSourceRouter extends SourceRouter {}
+
+export class MockVerifierRouter extends VerifierRouter {
+  public async verifyAttestation(attestation: Attestation): Promise<Verification<any, any>> {
+    let res: Verification<any, any> = { status: VerificationStatus.OK };
+    return res;
   }
 }

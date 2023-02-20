@@ -1,25 +1,27 @@
 // yarn test test/attestationClient/attestationClient.test.ts
 
 import { traceManager } from "@flarenetwork/mcc";
-import chai, { expect } from "chai";
+import chai, { expect, assert } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { get } from "http";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
+import { AttesterClient } from "../../src/attester/AttesterClient";
 import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
 import { SourceRouter } from "../../src/attester/source/SourceRouter";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
-import { MockFlareConnection } from "./utils/mockFlareConnect";
+import { MockFlareConnection } from "./utils/mockClasses";
 chai.use(chaiAsPromised);
 
 class MockSourceRouter extends SourceRouter {
   constructor() {
-    super(undefined, getGlobalLogger());
+    super(undefined);
   }
   validateTransaction(sourceId: SourceId, transaction: Attestation) {}
 }

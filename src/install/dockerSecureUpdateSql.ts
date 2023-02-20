@@ -22,6 +22,7 @@ async function run() {
     const nodeName = args["chain"].toUpperCase();
     const sudo = args["sudo"];
 
+
     if (nodeName != "") {
         logger.info(`^gstarting MYSQL script ^r${inputFile}^g for node ^r${nodeName}`);
     }
@@ -29,6 +30,12 @@ async function run() {
         logger.info(`^gstarting MYSQL script ^r${inputFile}^^`);
     }
 
+
+    if( sudo )
+    {
+        logger.debug(`sudo mode`);
+    }
+    
     // read configuration
     await initializeJSONsecure(args["defaultSecureConfigPath"], args["network"]);
 
@@ -90,6 +97,12 @@ async function run() {
             if (line.trim() === "") continue;
 
             const command = ( sudo ?`sudo mysql ` : `mysql -h database -u root -p${password}` ) + `-e "${line}"`;
+
+            // check is root password changed
+            if (sudo && line.startsWith("ALTER USER 'root'@")) {
+                logger.debug(`change to root password skipped in sudo mode`);
+                continue;
+            }
             
             execSync(command, { windowsHide: true, encoding: "buffer" , stdio: 'ignore'});
 

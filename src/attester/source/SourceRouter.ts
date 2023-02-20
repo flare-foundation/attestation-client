@@ -1,10 +1,10 @@
 import { Managed } from "@flarenetwork/mcc";
-import { SourceId, toSourceId } from "../../verification/sources/sources";
-import { SourceManager } from "./SourceManager";
-import { GlobalConfigManager } from "../GlobalConfigManager";
-import { MOCK_NULL_WHEN_TESTING } from "../../utils/helpers/utils";
 import { exit } from "process";
+import { MOCK_NULL_WHEN_TESTING } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
+import { SourceId, toSourceId } from "../../verification/sources/sources";
+import { GlobalConfigManager } from "../GlobalConfigManager";
+import { SourceManager } from "./SourceManager";
 
 /**
  * Class that stores the assignments of a SourceManager to each chain type
@@ -16,9 +16,9 @@ export class SourceRouter {
   globalConfigManager: GlobalConfigManager;
   logger: AttLogger;
 
-  constructor(globalConfigManager: GlobalConfigManager, logger: AttLogger) {
+  constructor(globalConfigManager: GlobalConfigManager) {
     this.globalConfigManager = globalConfigManager;
-    this.logger = logger;
+    this.logger = globalConfigManager.logger;
   }
 
   /**
@@ -52,14 +52,18 @@ export class SourceRouter {
     this.sourceManagers.set(sourceId, sourceManager);
   }
 
+  /**
+   * Returns source manager for given source
+   * @param sourceId
+   * @returns
+   */
   getSourceManager(sourceId: SourceId): SourceManager {
     const sourceManager = this.sourceManagers.get(sourceId);
     if (!sourceManager) {
       this.logger.error(`${sourceId}: critical error, source not defined`);
       exit(1);
-      return MOCK_NULL_WHEN_TESTING;
+      return; //for testing
     }
-
     return sourceManager;
   }
 }

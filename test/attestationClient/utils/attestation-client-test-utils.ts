@@ -294,16 +294,29 @@ export async function getVoterAddresses(n = 9) {
    return voters;
 }
 
-
 export async function startSimpleSpammer(
+   logger: AttLogger,
    stateConnector: StateConnectorTempTran,
    web3: Web3,
    spammerWallet: any,
    bufferWindowDurationSec: number,
    requests: string[],
-   frequencies: number[]
+   frequencies: number[],
+   spammerGaps: number[][],
 ) {
 
+   function inGap(value: number, gap: number[]) {
+      return gap.length === 2 && value >= gap[0] && value <= gap[1];
+   }
+
+   function inGaps(value: number, gaps: number[][]) {
+      for (let gap of gaps) {
+         if (inGap(value, gap)) return true;
+      }
+      return false;
+   }
+
+   // Alway send the 0 spam round;
    for (let request of requests) {
       try {
          await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
@@ -312,17 +325,35 @@ export async function startSimpleSpammer(
       }
    }
 
-   let counter = 0;
+   // spam round counter
+   let counter = 1;
    setInterval(async () => {
+      // Skip round in gap 
+      if (inGaps(counter, spammerGaps)) {
+         logger.error(`Spam round ${counter}: SKIPPED`);
+         counter++;
+         return;
+      }
+
+      let sendCount = 0;
+      let promises = [];
       for (let [index, request] of requests.entries()) {
-         let mod = frequencies[index] ?? 1;
-         if (counter % mod == 0) {
-            console.log("Spam sent!!!")
-            await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
+         let send = false;
+         if (spammerGaps.length > 0) {
+            send = !inGaps(counter, spammerGaps);
+         } else { // send according to frequencies
+            let mod = frequencies[index] ?? 1;
+            send = counter % mod == 0
+         }
+         if (send) {
+            sendCount++;
+            promises.push(submitAttestationRequest(stateConnector, web3, spammerWallet, request));
          }
       }
+      logger.error(`^Spam round ${counter}: sent ${sendCount}`);
       counter++;
-   }, bufferWindowDurationSec * 1000 / 2);
+      await Promise.all(promises);
+   }, bufferWindowDurationSec * 1000);
 }
 
 export async function assignAttestationProvider(stateConnector: StateConnectorTempTran, web3: Web3, wallet: any, assignTo?: string) {

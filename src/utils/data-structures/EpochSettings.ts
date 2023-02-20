@@ -31,11 +31,14 @@ export class EpochSettings {
     return this._epochPeriodMs;
   }
 
+  /**
+   * Bitvote window duration.
+   * @returns
+   */
   public getBitVoteDurationMs(): BN {
     if (this._bitVoteWindowDurationMs) {
       return this._bitVoteWindowDurationMs;
     }
-
     return toBN(0);
   }
 

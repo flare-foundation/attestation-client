@@ -22,7 +22,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
   const attestationClientConfig = new AttestationClientConfig();
 
-  const globalConfigManager = new GlobalConfigManager(attestationClientConfig, 150, getGlobalLogger());
+  const globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
   globalConfigManager.testing = true;
 
   const dbConnectOptions = new DatabaseConnectOptions();

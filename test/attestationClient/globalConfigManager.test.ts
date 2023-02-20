@@ -6,8 +6,6 @@ import { GlobalConfigManager } from "../../src/attester/GlobalConfigManager";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 import sinon from "sinon";
-import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
-import { initialize } from "passport";
 import { sourceAndTypeSupported } from "../../src/attester/configs/GlobalAttestationConfig";
 
 describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
@@ -15,7 +13,7 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
 
   const attestationClientConfig = new AttestationClientConfig();
 
-  const globalConfigManager = new GlobalConfigManager(attestationClientConfig, 150, getGlobalLogger());
+  const globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
   globalConfigManager.testing = true;
 
   afterEach(function () {

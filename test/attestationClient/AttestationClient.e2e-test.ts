@@ -46,7 +46,8 @@ const NUMBER_OF_CLIENTS = 9;
 const IN_PROCESS_CLIENTS = 1
 const NUMBER_OF_FAILING_CLIENTS = 0;
 const WEB_SERVER_IN_OTHER_PROCESS = false;
-
+const SPAMMER_GAPS = [[4, 8], [10, 11]];
+const SPAMMER_FREQUENCIES = [2, 3];
 
 // Testing modes:
 // scheduler: time is managed by Scheduler
@@ -217,12 +218,13 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     //   console.log("XXXXXX - server")
     //   childProcesses.push(child);
     // } else {
-      await bootstrapAttestationWebServer();
+    await bootstrapAttestationWebServer();
     // }
 
 
-    // starting simple spammer
-    await startSimpleSpammer(stateConnector, web3, spammerWallet, bufferWindowDurationSec, [attestationXRP.data.request, attestationBTC.data.request], [2, 3]);
+    // starting simple spammer    
+    await startSimpleSpammer(getGlobalLogger(), stateConnector, web3, spammerWallet, bufferWindowDurationSec, 
+      [attestationXRP.data.request, attestationBTC.data.request], SPAMMER_FREQUENCIES, SPAMMER_GAPS);
 
     setInterval(async () => {
       let now = getUnixEpochTimestamp();

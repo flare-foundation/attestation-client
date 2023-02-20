@@ -51,6 +51,15 @@ services:
       - dogecoin-testnet-data:/opt/dogecoin/.dogecoin/db
       - ../node-configs/testnet/dogecoin/dogecoin.conf:/opt/dogecoin/.dogecoin/dogecoin.conf
 
+  spammer:
+    image: attestation-suite
+    profiles: ["spammer"]
+    volumes:
+      - ../credentials.prepared/doge-indexer-verifier:/app/attestation-suite-config
+    container_name: indexer-doge-spammer
+    command: spammer DOGE 10000
+    restart: unless-stopped
+
 volumes:
   dogecoin-testnet-data:
   indexer-doge-db:

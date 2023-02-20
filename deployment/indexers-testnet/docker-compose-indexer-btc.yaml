@@ -51,6 +51,15 @@ services:
       - bitcoin-testnet-data:/opt/bitcoin/.bitcoin/db
       - ../node-configs/testnet/bitcoin/bitcoin.conf:/opt/bitcoin/.bitcoin/bitcoin.conf
 
+  spammer:
+    image: attestation-suite
+    profiles: ["spammer"]
+    volumes:
+      - ../credentials.prepared/btc-indexer-verifier:/app/attestation-suite-config
+    container_name: indexer-btc-spammer
+    command: spammer BTC 10000
+    restart: unless-stopped
+
 volumes:
   bitcoin-testnet-data:
   indexer-btc-db:

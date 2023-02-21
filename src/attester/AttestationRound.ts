@@ -214,7 +214,7 @@ export class AttestationRound {
    * with last byte of the round id (roundCheck).
    * Used to vote on BitVote contract, if the provider is in the default set.
    */
-  private get bitVoteMaskWithRoundCheck(): string {
+  get bitVoteMaskWithRoundCheck(): string {
     if (!this.bitVoteRecord) {
       throw new Error("Bit vote not yet recorded");
     }
@@ -252,7 +252,7 @@ export class AttestationRound {
    * Calculates the bit voting result for the round.
    * The result is valid if we are sure that all votes are registered.
    */
-  private calculateBitVotingResult(verbose = true): BitmaskAccumulator | undefined {
+  calculateBitVotingResult(verbose = true): BitmaskAccumulator | undefined {
     let votes = [];
     for (let address of this.defaultSetAddresses) {
       votes.push(this.bitVoteMap.get(address) ?? NO_VOTE);
@@ -313,7 +313,7 @@ export class AttestationRound {
    * Records bit vote result. May be called several times (retry)
    * @param verbose - whether verbose logging is used
    */
-  private tryCalculateBitVotingResults(verbose = true) {
+  tryCalculateBitVotingResults(verbose = true) {
     this.logger.info(`${this.label} - tryCalculateBitVotingResults - call`);
     if (this.attestStatus >= AttestationRoundStatus.chosen) {
       this.logger.error(`${this.label} - tryCalculateBitVotingResults - chosen`);

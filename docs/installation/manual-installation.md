@@ -12,19 +12,41 @@ cd attestation-client
 git checkout manual-install
 ```
 
-- initialize credentials: command `./scripts/install-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again)
+- install dependencies: command `./scripts/install-dependencies.sh`
+
+- login again
+
+- compile project: command `./scripts/compile.sh`
+
+- initialize credentials: command `./scripts/install-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again) 
+- copy configurations: command `cp configs/.install/configurations.json credentials/`
+
 - update credentials keys
-    - `credentials/network-credentials.json`
+    - `credentials/networks-credentials.json`
         - `PrivateKey` insert your private key
+        - add key `Network` with value `coston2`
     - `credentials/chain-credentials.json`
-        - `BTCURL` to `http://localhost:11234`
+        - `BTCURL` to `http://localhost:18332`
         - `XRLURL` to `http://localhost:11234` 
         - `DOGEURL` to `http://localhost:44555`
         - make sure all but XRPPasswords are the same
     - `credentials/database-credentials.json`
         - all `*DatabaseHost` must be `localhost`
+        - all `database`, `username` must be preponed with chain name. Example:
+        ```
+        "BTCIndexerDatabase":"btc_indexer",
+        "BTCIndexerWriterUsername":"btc_indexerWriter",
+        "BTCIndexerReaderUsername":"btc_indexerReader",
+        ```
+    - `credentials/verifier-server-credentials.json` change like this:
+    ```
+    "XRPVerifierRouterServerPort": "9501",
+    "DOGEVerifierRouterServerPort": "9504",    
+    ```
 - update credentials passwords in `credentials/configurations.json` (all keys `credentials`)
 - prepare credentials: command `./scripts/prepare-credentials.sh` 
     - use this command whenever you change something in credentials (and restart services after)
 
 - install: command `./scripts/install.sh`
+
+- restart all services: command `./scripts/services-restart-all.sh`

@@ -22,7 +22,7 @@ fi
 
 # enable local mysql
 if $INSTALL_MYSQL; then
-    source ./scripts/install-local-mysql.sh
+    source ./scripts/install-mysql.sh
 fi
 
 # install frontend

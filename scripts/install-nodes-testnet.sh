@@ -14,10 +14,8 @@ cd connected-chains-docker/
 git config --global --add safe.directory /opt/connected-chains-docker
 #sudo git checkout testnets
 
-#sudo ./install.sh testnet $SECRET_NODES_TESTNET
-
 cd $LOCAL_DIR
-yarn ts-node src/install/secureCommand.ts -a installNodesTestNet -f "/opt/connected-chains-docker" -c credentials.prepared/btc-indexer-verifier
+env CREDENTIALS_KEY_FILE=credentials.prepared/btc-indexer-verifier/credentials.key yarn ts-node src/install/secureCommand.ts -a installNodesTestNet -f "/opt/connected-chains-docker" -c credentials.prepared/btc-indexer-verifier
 
 cd /opt/connected-chains-docker
 sudo docker-compose -f docker-compose-testnet.yml up -d

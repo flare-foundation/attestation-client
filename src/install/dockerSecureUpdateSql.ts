@@ -96,7 +96,7 @@ async function run() {
         try {
             if (line.trim() === "") continue;
 
-            const command = ( sudo ?`sudo mysql ` : `mysql -h database -u root -p${password}` ) + `-e "${line}"`;
+            const command = ( sudo ?`sudo mysql ` : `mysql -h database -u root -p${password} ` ) + `-e "${line}"`;
 
             // check is root password changed
             if (sudo && line.startsWith("ALTER USER 'root'@")) {

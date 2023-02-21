@@ -845,6 +845,11 @@ export class AttestationRound {
       const action = `${this.label}bit voting for round ^Y#${this.roundId + 1}^^ bufferNumber ${this.roundId + 1}`;
       this.bitVoteRecord = this.bitVoteAccumulator.toHex(); // make a bitvote snapshot
 
+      // Do not send a bitvote if only zeros
+      if(this.bitVoteMaskWithRoundCheck.slice(4).replace(/0/g, "").length === 0) {
+        this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C bit vote skipped - nothing to vote (buffernumber ${this.roundId + 1})`);
+        return;
+      }
       // eslint-disable-next-line
       criticalAsync("Submit bit vote", async () => {
         const receipt = await this.flareConnection.submitBitVote(

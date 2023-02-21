@@ -1,8 +1,5 @@
 #!/bin/bash
-source ./scripts/install-credentials.sh
-
-# install dependencies and compile 1st (needed to crate initial credentials)
-source ./scripts/install-dependencies.sh
+#source ./scripts/install-credentials.sh
 
 source ~/.profile 
 source ~/.nvm/nvm.sh
@@ -10,11 +7,6 @@ source ~/.nvm/nvm.sh
 # compile
 echo -e "${REDBOLD}[3] ${GREENBOLD}Compile...${NC}"
 bash ./scripts/compile.sh
-
-# prepare initial credentials
-#yarn ts-node src/install/install-file.ts -i .config.secret.sh -o .config.secret.sh2 -p false
-
-#source ./scripts/install-check.sh
 
 # install services
 sudo loginctl enable-linger ubuntu

@@ -2,6 +2,7 @@ import { Managed, traceManager } from "@flarenetwork/mcc";
 import fs from "fs";
 import { stringify } from "safe-stable-stringify";
 import { readConfig } from "../utils/config/config";
+import { readSecureConfig } from "../utils/config/configSecure";
 import { sleepms } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { Terminal } from "../utils/monitoring/Terminal";
@@ -12,6 +13,7 @@ import { IndexerMonitor } from "./IndexerMonitor";
 import { MonitorBase, MonitorRestartConfig } from "./MonitorBase";
 import { MonitorConfig } from "./MonitorConfiguration";
 import { NodeMonitor } from "./NodeMonitor";
+import { SystemMonitor } from "./SystemMonitor";
 import { WebserverMonitor } from "./WebserverMonitor";
 
 @Managed()
@@ -21,44 +23,50 @@ export class MonitorManager {
 
   monitors: MonitorBase[] = [];
 
-  constructor() {
+  async initialize() {
     this.logger = getGlobalLogger();
 
-    this.config = readConfig(new MonitorConfig(), "monitor");
+    this.config = await readSecureConfig(new MonitorConfig(), "monitor");
 
     for (const node of this.config.nodes) {
-      this.monitors.push(new NodeMonitor(node, this.logger, this.config));
+      this.monitors.push(new SystemMonitor(node, this.logger));
     }
 
-    for (const docker of this.config.dockers) {
-      this.monitors.push(new DockerMonitor(docker, this.logger, this.config));
-    }
+    // for (const node of this.config.nodes) {
+    //   this.monitors.push(new NodeMonitor(node, this.logger, this.config));
+    // }
 
-    for (const indexer of this.config.indexers) {
-      this.monitors.push(new IndexerMonitor(indexer, this.logger, this.config));
-    }
+    // for (const docker of this.config.dockers) {
+    //   this.monitors.push(new DockerMonitor(docker, this.logger, this.config));
+    // }
 
-    for (const attester of this.config.attesters) {
-      this.monitors.push(
-        new AttesterMonitor(attester.name, this.logger, attester.mode, attester.path, new MonitorRestartConfig(this.config.timeRestart, attester.restart))
-      );
-    }
+    // for (const indexer of this.config.indexers) {
+    //   this.monitors.push(new IndexerMonitor(indexer, this.logger, this.config));
+    // }
 
-    for (const backend of this.config.backends) {
-      this.monitors.push(new WebserverMonitor(backend.name, this.logger, new MonitorRestartConfig(this.config.timeRestart, backend.restart), backend.address));
-    }
+    // for (const attester of this.config.attesters) {
+    //   this.monitors.push(
+    //     new AttesterMonitor(attester.name, this.logger, attester.mode, attester.path, new MonitorRestartConfig(this.config.timeRestart, attester.restart))
+    //   );
+    // }
 
-    for (const database of this.config.databases) {
-      this.monitors.push(new DatabaseMonitor(database.name, this.logger, database.database, database.connection));
-    }
+    // for (const backend of this.config.backends) {
+    //   this.monitors.push(new WebserverMonitor(backend.name, this.logger, new MonitorRestartConfig(this.config.timeRestart, backend.restart), backend.address));
+    // }
+
+    // for (const database of this.config.databases) {
+    //   this.monitors.push(new DatabaseMonitor(database.name, this.logger, database.database, database.connection));
+    // }
   }
 
   async runMonitor() {
     traceManager.displayStateOnException = false;
     traceManager.displayRuntimeTrace = false;
 
-    for (const alert of this.monitors) {
-      await alert.initialize();
+    await this.initialize();
+
+    for (const monitor of this.monitors) {
+      await monitor.initialize();
     }
 
     const terminal = new Terminal(process.stderr);
@@ -75,9 +83,9 @@ export class MonitorManager {
         const statusAlerts = [];
         const statusPerfs = [];
 
-        for (const alert of this.monitors) {
+        for (const monitor of this.monitors) {
           try {
-            const resAlert = await alert.check();
+            const resAlert = await monitor.check();
 
             if (!resAlert) continue;
 
@@ -85,13 +93,13 @@ export class MonitorManager {
 
             resAlert.displayStatus(this.logger);
           } catch (error) {
-            logException(error, `alert ${alert.name}`);
+            logException(error, `alert ${monitor.name}`);
           }
         }
 
-        for (const alert of this.monitors) {
+        for (const monitor of this.monitors) {
           try {
-            const resPerfs = await alert.perf();
+            const resPerfs = await monitor.perf();
 
             if (!resPerfs) continue;
 
@@ -100,7 +108,7 @@ export class MonitorManager {
               perf.displayStatus(this.logger);
             }
           } catch (error) {
-            logException(error, `perf ${alert.name}`);
+            logException(error, `perf ${monitor.name}`);
           }
         }
 

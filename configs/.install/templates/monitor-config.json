@@ -1,6 +1,4 @@
 {
-    // DEPRECATED
-    "version":"1.0.0",
     // alert update interval
     "interval":5000,
     // time in seconds when system status becomes late

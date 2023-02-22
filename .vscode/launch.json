@@ -205,10 +205,10 @@
             "type": "node",
             "console": "integratedTerminal",
             "request": "launch",
-            "name": "Launch Alerts",
+            "name": "Launch Monitor",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "devalerts"
+                "devmonitor"
             ]
         },
 

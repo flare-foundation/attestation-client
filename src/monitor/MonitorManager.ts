@@ -1,62 +1,48 @@
 import { Managed, traceManager } from "@flarenetwork/mcc";
 import fs from "fs";
 import { stringify } from "safe-stable-stringify";
-import { readConfig } from "../utils/config/config";
 import { readSecureConfig } from "../utils/config/configSecure";
 import { sleepms } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { Terminal } from "../utils/monitoring/Terminal";
-import { AttesterMonitor } from "./AttestationMonitor";
-import { DatabaseMonitor } from "./DatabaseMonitor";
-import { DockerMonitor } from "./DockerMonitor";
-import { IndexerMonitor } from "./IndexerMonitor";
-import { MonitorBase, MonitorRestartConfig } from "./MonitorBase";
+import { MonitorBase } from "./MonitorBase";
+import { MonitorConfigBase } from "./MonitorConfigBase";
 import { MonitorConfig } from "./MonitorConfiguration";
-import { NodeMonitor } from "./NodeMonitor";
-import { SystemMonitor } from "./SystemMonitor";
-import { WebserverMonitor } from "./WebserverMonitor";
+import { SystemMonitor } from "./monitors/SystemMonitor";
 
 @Managed()
 export class MonitorManager {
   logger: AttLogger;
   config: MonitorConfig;
+  monitors: MonitorBase<MonitorConfigBase>[] = [];
 
-  monitors: MonitorBase[] = [];
+  initializeMonitors<T extends MonitorConfigBase>(name: string, monitors: T[]) {
+    for (const monitor of monitors) {
+      this.logger.debug(`initializing: ${name} ${monitor.name} ${monitor.disabled ? "^rdisabled^^" : ""}`);
+      if (monitor.disabled) continue;
+
+      this.monitors.push(monitor.createMonitor(monitor, this.config, this.logger));
+    }
+  }
 
   async initialize() {
     this.logger = getGlobalLogger();
 
+    process.env.SECURE_CONFIG_PATH = "deployment/credentials";
+
     this.config = await readSecureConfig(new MonitorConfig(), "monitor");
 
-    for (const node of this.config.nodes) {
-      this.monitors.push(new SystemMonitor(node, this.logger));
+    if (this.config.system) {
+      this.logger.debug("initializing: SystemMonitor");
+      this.monitors.push(new SystemMonitor(new MonitorConfigBase(), this.config, this.logger));
     }
 
-    // for (const node of this.config.nodes) {
-    //   this.monitors.push(new NodeMonitor(node, this.logger, this.config));
-    // }
-
-    // for (const docker of this.config.dockers) {
-    //   this.monitors.push(new DockerMonitor(docker, this.logger, this.config));
-    // }
-
-    // for (const indexer of this.config.indexers) {
-    //   this.monitors.push(new IndexerMonitor(indexer, this.logger, this.config));
-    // }
-
-    // for (const attester of this.config.attesters) {
-    //   this.monitors.push(
-    //     new AttesterMonitor(attester.name, this.logger, attester.mode, attester.path, new MonitorRestartConfig(this.config.timeRestart, attester.restart))
-    //   );
-    // }
-
-    // for (const backend of this.config.backends) {
-    //   this.monitors.push(new WebserverMonitor(backend.name, this.logger, new MonitorRestartConfig(this.config.timeRestart, backend.restart), backend.address));
-    // }
-
-    // for (const database of this.config.databases) {
-    //   this.monitors.push(new DatabaseMonitor(database.name, this.logger, database.database, database.connection));
-    // }
+    this.initializeMonitors("DockerMonitor", this.config.dockers);
+    this.initializeMonitors("NodeMonitor", this.config.nodes);
+    this.initializeMonitors("IndexerMonitor", this.config.indexers);
+    this.initializeMonitors("AttesterMonitor", this.config.attesters);
+    this.initializeMonitors("UrlMonitor", this.config.backends);
+    this.initializeMonitors("DatabaseMonitor", this.config.databases);
   }
 
   async runMonitor() {

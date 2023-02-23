@@ -40,6 +40,8 @@ services:
     #   - ./mysql-conf.d/:/etc/mysql/conf.d
     #   - ./mysql-initdb/:/docker-entrypoint-initdb.d
       - indexer-xrp-db:/var/lib/mysql
+    ports:
+      - 23308:3306
 
   ripple-node:
     image: flarefoundation/rippled:1.9.4

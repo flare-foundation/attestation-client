@@ -26,3 +26,9 @@ yarn ts-node src/install/secureUpdateSql.ts
 
 echo -e "${REDBOLD}[4] ${GREENBOLD}Restarting MySQL service${NC}"
 sudo service mysql restart
+
+
+env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/attester-client/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareAttestationClient -p credentials.prepared/attester-client/
+env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/btc-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/btc-indexer-verifier/ -n BTC
+env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/xrp-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/xrp-indexer-verifier/ -n XRP
+env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/doge-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/doge-indexer-verifier/ -n DOGE

@@ -139,6 +139,11 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
     }
   }
 
+  // apply type
+  if( !checkType && valid ) {
+    Object.setPrototypeOf(A, Object.getPrototypeOf(B));
+  }
+
   return valid;
 }
 

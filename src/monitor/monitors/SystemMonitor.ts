@@ -1,30 +1,27 @@
 import fs from "fs";
 import * as nodeDiskInfo from "node-disk-info";
 import * as os from "os";
-import { getTimeMilli } from "../utils/helpers/internetTime";
-import { round } from "../utils/helpers/utils";
-import { AttLogger, logException } from "../utils/logging/logger";
-import { MonitorBase, PerformanceInfo } from "./MonitorBase";
+import { getTimeMilli } from "../../utils/helpers/internetTime";
+import { round } from "../../utils/helpers/utils";
+import { logException } from "../../utils/logging/logger";
+import { MonitorBase, PerformanceInfo } from "../MonitorBase";
+import { MonitorConfigBase } from "../MonitorConfigBase";
 
-export class SystemMonitor extends MonitorBase {
-
-  constructor(name: string, logger: AttLogger) {
-    super(name, logger, null);
-  }
-
-  async initialize()
-  {
-  }
-
-  async check() {
-    return null;
-  }
+export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
 
   cpuUsed = 0;
   cpuTime = 0;
 
   disks = null;
   diskCheckTime = 0;
+
+  async initialize() {
+    this.config.name = "system";
+  }
+
+  async check() {
+    return null;
+  }
 
   async perf(): Promise<PerformanceInfo[]> {
     const resArray = [];

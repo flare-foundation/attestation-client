@@ -11,7 +11,7 @@ import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 import sinon from "sinon";
-import { createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
+import { createAttestationVerificationPair, createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
 import { BitVoteData } from "../../src/attester/BitVoteData";
 import { MockFlareConnection } from "./utils/mockClasses";
 import { Attestation } from "../../src/attester/Attestation";
@@ -20,9 +20,11 @@ import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { SourceRouter } from "../../src/attester/source/SourceRouter";
 import { AttestationRoundPhase, AttestationRoundStatus } from "../../src/attester/types/AttestationRoundEnums";
+import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
+import { sleepms } from "../../src/utils/helpers/utils";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
-  initializeTestGlobalLogger();
+  // initializeTestGlobalLogger();
 
   let round: AttestationRound;
 
@@ -52,6 +54,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
     let flareConnection = new MockFlareConnection(attestationClientConfig, getGlobalLogger());
 
+    sourceRouter.initializeSources(160);
     round = new AttestationRound(160, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, sourceRouter, attestationClientConfig);
 
     round.defaultSetAddresses.push("0xfakedefault");
@@ -183,6 +186,19 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         assert(!round.attestations[j].chosen);
       }
       expect(round.attestStatus).to.eq(AttestationRoundStatus.chosen);
+    });
+  });
+
+  describe.only("verification", function () {
+    it("should process attestation", async function () {
+      const { attestation, verification } = createAttestationVerificationPair(160, 1, true, VerificationStatus.OK);
+
+      const stub = sinon.stub(round.activeGlobalConfig.verifierRouter, "verifyAttestation").withArgs(attestation).resolves(verification);
+
+      round.addAttestation(attestation);
+
+      await sleepms(10000);
+      console.log(attestation.status);
     });
   });
 });

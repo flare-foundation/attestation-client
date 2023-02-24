@@ -188,7 +188,6 @@ export class GlobalConfigManager {
         const promises = files.map(async (filename: string) => {
           let result = await this.load(this.attesterConfig.dynamicAttestationConfigurationFolder + filename);
           if (!result) {
-            console.log(12234);
             this.logger.error(`Failure while loading ${filename}. Stopping!`);
             process.exit(1);
           }

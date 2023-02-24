@@ -90,7 +90,7 @@ export function createBlankBitVoteEvent(vote: string): BitVote {
   return bitVote;
 }
 
-export function createAttestationVerificationPair(round: number, logIndex: number, micOk: boolean, status: VerificationStatus) {
+export function createAttestationVerificationPair(reqId: string, round: number, logIndex: number, micOk: boolean, status: VerificationStatus) {
   const id = Web3.utils.randomHex(32);
   const sender = Web3.utils.randomHex(32);
 
@@ -98,7 +98,7 @@ export function createAttestationVerificationPair(round: number, logIndex: numbe
     attestationType: AttestationType.Payment,
     sourceId: SourceId.XRP,
     messageIntegrityCode: "",
-    id: "123",
+    id: reqId,
     inUtxo: "",
     utxo: "",
   };

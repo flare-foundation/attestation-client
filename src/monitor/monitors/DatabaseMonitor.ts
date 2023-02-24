@@ -22,6 +22,9 @@ export class MonitorDatabaseConfig extends MonitorConfigBase implements IReflect
     return null;
   }
 
+
+  getName(){return "DatabaseMonitor";}
+
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new DatabaseMonitor(<MonitorDatabaseConfig>config, baseConfig, logger);
   }

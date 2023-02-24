@@ -10,6 +10,8 @@ export class MonitorNodeConfig extends MonitorConfigBase {
   username = "";
   password = "";
 
+  getName(){return "NodeMonitor";}
+
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new NodeMonitor(<MonitorNodeConfig>config, baseConfig, logger);
   }

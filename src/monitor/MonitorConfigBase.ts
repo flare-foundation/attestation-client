@@ -10,5 +10,6 @@ export class MonitorConfigBase {
   @optional() restart = "";
   @optional() timeRestart = 15;
 
+  getName?(): string;
   createMonitor?(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger): MonitorBase<MonitorConfigBase>;
 }

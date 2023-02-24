@@ -9,6 +9,8 @@ import { MonitorConfigBase } from "../MonitorConfigBase";
 export class MonitorIndexerConfig extends MonitorConfigBase {
   database = "";
 
+  getName(){return "IndexerMonitor";}
+
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new IndexerMonitor(<MonitorIndexerConfig>config, baseConfig, logger);
   }

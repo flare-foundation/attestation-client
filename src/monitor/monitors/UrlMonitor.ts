@@ -9,6 +9,8 @@ export class MonitorUrlConfig extends MonitorConfigBase {
   address = "";
   restart = "";
 
+  getName(){return "UrlMonitor";}
+
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new UrlMonitor(<MonitorUrlConfig>config, baseConfig, logger);
   }

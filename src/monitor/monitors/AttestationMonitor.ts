@@ -13,6 +13,8 @@ export class MonitorAttestationConfig extends MonitorConfigBase {
   firstEpochStartTime: number;
   roundDurationSec: number;
 
+  getName(){return "AttesterMonitor";}
+
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new AttesterMonitor(<MonitorAttestationConfig>config, baseConfig, logger);
   }

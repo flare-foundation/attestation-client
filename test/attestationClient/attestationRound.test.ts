@@ -24,7 +24,7 @@ import { VerificationStatus } from "../../src/verification/attestation-types/att
 import { sleepms } from "../../src/utils/helpers/utils";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
-  // initializeTestGlobalLogger();
+  initializeTestGlobalLogger();
 
   let round: AttestationRound;
 
@@ -54,10 +54,9 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
     let flareConnection = new MockFlareConnection(attestationClientConfig, getGlobalLogger());
 
+    flareConnection.addDefaultAddress(["0x1fakeaddress"]);
     sourceRouter.initializeSources(160);
     round = new AttestationRound(160, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, sourceRouter, attestationClientConfig);
-
-    round.defaultSetAddresses.push("0xfakedefault");
   });
 
   afterEach(function () {
@@ -66,6 +65,13 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
   it("Should construct attestation round", function () {
     assert(round);
+  });
+
+  it("Should initialize round", async function () {
+    await round.initialize();
+
+    assert(round._initialized);
+    expect(round.defaultSetAddresses.length).to.eq(1);
   });
 
   it("Should get round times", function () {
@@ -110,8 +116,6 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     expect(res).to.equal("#[1] 160:8477.1/90");
   });
 
-  it("Should add attestation", function () {});
-
   describe("BitVote registering", function () {
     it("Should not register bitVote for non-default set", function () {
       const event = createBlankBitVoteEvent("0x05fakeBitVote");
@@ -122,6 +126,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     });
 
     it("Should register bitVote for non-default set", function () {
+      round.defaultSetAddresses.push("0xfakedefault");
       const event = createBlankBitVoteEvent("0x05fakeBitVote");
       event.returnValues.sender = "0xfakeDefault";
       const bitVoteData = new BitVoteData(event);
@@ -186,19 +191,6 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         assert(!round.attestations[j].chosen);
       }
       expect(round.attestStatus).to.eq(AttestationRoundStatus.chosen);
-    });
-  });
-
-  describe.only("verification", function () {
-    it("should process attestation", async function () {
-      const { attestation, verification } = createAttestationVerificationPair(160, 1, true, VerificationStatus.OK);
-
-      const stub = sinon.stub(round.activeGlobalConfig.verifierRouter, "verifyAttestation").withArgs(attestation).resolves(verification);
-
-      round.addAttestation(attestation);
-
-      await sleepms(10000);
-      console.log(attestation.status);
     });
   });
 });

@@ -307,11 +307,11 @@ export class AttestationRoundManager {
     // trigger sending bit vote result
     this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundBitVoteTimeMs - now);
 
-    // trigger forced closing of bit voting and vote count
-    this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
-
     // trigger start commit phase
     this.schedule(`${this.label}schedule:startCommitPhase`, async () => await activeRound.onCommitPhaseStart(), activeRound.roundCommitStartTimeMs - now);
+
+    // trigger forced closing of bit voting and vote count
+    this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
 
     // trigger start reveal epoch
     this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), activeRound.roundRevealStartTimeMs - now);

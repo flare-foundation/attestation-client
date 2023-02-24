@@ -8,10 +8,11 @@ import { SourceRouter } from "../../../src/attester/source/SourceRouter";
 import { VerifierRouter } from "../../../src/verification/routing/VerifierRouter";
 import { Attestation } from "../../../src/attester/Attestation";
 import { Verification, VerificationStatus } from "../../../src/verification/attestation-types/attestation-types";
+import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 
 export class MockFlareConnection extends FlareConnection {
-  constructor(config: AttestationClientConfig, logger: AttLogger) {
-    super(config, logger, false);
+  constructor(config: AttestationClientConfig, logger: AttLogger, initWeb3 = false) {
+    super(config, logger, initWeb3);
   }
 
   epochSettings = new EpochSettings(toBN(123), toBN(90), toBN(45));
@@ -19,6 +20,9 @@ export class MockFlareConnection extends FlareConnection {
   pastEventsStateConnector: any[] = [];
   pastEventsBitVote: any[] = [];
   defaultSetAddresses: string[] = [];
+
+  bitVotes: string[] = [];
+  roots: string[] = [];
 
   async initialize() {}
 
@@ -59,6 +63,9 @@ export class MockFlareConnection extends FlareConnection {
     this.checkHex64(commitedRandom);
     this.checkHex64(revealedMerkleRoot);
     this.checkHex64(revealedRandom);
+    this.roots.push(commitedMaskedMerkleRoot);
+
+    return "valid";
   }
 
   public async submitBitVote(
@@ -70,6 +77,7 @@ export class MockFlareConnection extends FlareConnection {
     duplicateCount: number,
     verbose = true
   ) {
+    this.bitVotes.push(prefix0x(unPrefix0x(bitVote).slice(2)));
     return "valid";
   }
 

@@ -17,7 +17,6 @@ import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { sleepms } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { Verification, VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
-import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createAttestationVerificationPair } from "./utils/createEvents";
@@ -70,6 +69,11 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
   afterEach(function () {
     sinon.restore();
+  });
+
+  after(function () {
+    delete process.env.TEST_CREDENTIALS;
+    delete process.env.CONFIG_PATH;
   });
 
   describe("verification", function () {

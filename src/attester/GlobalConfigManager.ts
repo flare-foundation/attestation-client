@@ -260,7 +260,6 @@ export class GlobalConfigManager {
     return false;
   }
 
-  // Should we keep the configuration that is active, i.e., slice(i-1)
   /**
    * Sorts attestationConfig based on the startRoundId and clears Configs for the passed rounds
    */
@@ -269,13 +268,13 @@ export class GlobalConfigManager {
       if (a.startRoundId < b.startRoundId) return 1;
       if (a.startRoundId > b.startRoundId) return -1;
       return 0;
-    });
+    }); //order from configs that start in later round to configs that start in earlier rounds
 
-    // cleanup
+    // cleanup (the first config that has startRoundId smaller than activeRoundId is active config)
     for (let i = 1; i < this.attestationConfigs.length; i++) {
-      if (this.attestationConfigs[i].startRoundId < this.activeRoundId) {
+      if (this.attestationConfigs[i - 1].startRoundId < this.activeRoundId) {
         this.logger.debug(`DAC cleanup #${i} (roundId ${this.attestationConfigs[i].startRoundId})`);
-        this.attestationConfigs.splice(i);
+        this.attestationConfigs.splice(i); //remove all configs that are older than activeRoundId;
         return;
       }
     }

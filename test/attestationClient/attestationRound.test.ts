@@ -11,7 +11,7 @@ import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 import sinon from "sinon";
-import { createAttestationVerificationPair, createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
+import { createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
 import { BitVoteData } from "../../src/attester/BitVoteData";
 import { MockFlareConnection } from "./utils/mockClasses";
 import { Attestation } from "../../src/attester/Attestation";
@@ -20,8 +20,6 @@ import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { SourceRouter } from "../../src/attester/source/SourceRouter";
 import { AttestationRoundPhase, AttestationRoundStatus } from "../../src/attester/types/AttestationRoundEnums";
-import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
-import { sleepms } from "../../src/utils/helpers/utils";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -68,6 +66,13 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   });
 
   it("Should initialize round", async function () {
+    await round.initialize();
+
+    assert(round._initialized);
+    expect(round.defaultSetAddresses.length).to.eq(1);
+  });
+
+  it("Should not initialize round twice ", async function () {
     await round.initialize();
 
     assert(round._initialized);
@@ -137,6 +142,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   });
 
   describe("Bit Voting", function () {
+    it("Should mask nonexisting bitVote", function () {
+      expect(() => round.bitVoteMaskWithRoundCheck).to.throw("OutsideError");
+    });
+
     it("Should create empty bitVote", function () {
       const vote = round.bitVoteAccumulator;
       expect(vote.length).to.eq(0);
@@ -180,6 +189,29 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
       expect(res.toIndices(round.attestations.length)).to.deep.eq([0, 1, 2, 3, 4, 5]);
     });
 
+    it("Should not tryCalculateBitVotingResults after chosen status", function () {
+      round.attestStatus = AttestationRoundStatus.chosen;
+      round.tryCalculateBitVotingResults();
+      for (let j = 0; j < 6; j++) {
+        assert(!round.attestations[j].chosen);
+      }
+      for (let j = 6; j < 9; j++) {
+        assert(!round.attestations[j].chosen);
+      }
+    });
+
+    it("Should not tryCalculateBitVotingResults bitVoting is not closed", function () {
+      round.phase = AttestationRoundPhase.commit;
+      round.attestStatus = AttestationRoundStatus.collecting;
+      round.tryCalculateBitVotingResults();
+      for (let j = 0; j < 6; j++) {
+        assert(!round.attestations[j].chosen);
+      }
+      for (let j = 6; j < 9; j++) {
+        assert(!round.attestations[j].chosen);
+      }
+    });
+
     it("Should tryCalculateBitVotingResults", function () {
       round.phase = AttestationRoundPhase.commit;
       round.attestStatus = AttestationRoundStatus.bitVotingClosed;
@@ -191,6 +223,32 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         assert(!round.attestations[j].chosen);
       }
       expect(round.attestStatus).to.eq(AttestationRoundStatus.chosen);
+    });
+
+    it("Should calculate bitVote with more then half zero votes", function () {
+      round.defaultSetAddresses.splice(0);
+      for (let j = 0; j < 9; j++) {
+        const address = `0xfakeaddress${j}`;
+        round.defaultSetAddresses.push(address);
+        round.attestations.splice(0);
+        for (let i = 1; i < 10; i++) {
+          const event = createBlankAtRequestEvent(1, 2, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const attestation = new Attestation(160, new AttestationData(event));
+          attestation.index = i - 1;
+          attestation.status = AttestationStatus.overLimit;
+          round.attestations.push(attestation);
+        }
+
+        round.bitVoteRecord = round.bitVoteAccumulator.toHex();
+        const bitVoteMasked = round.bitVoteMaskWithRoundCheck;
+        const vote = createBlankBitVoteEvent(bitVoteMasked);
+        vote.returnValues.sender = address;
+
+        const data = new BitVoteData(vote);
+        round.registerBitVote(data);
+      }
+      const res = round.calculateBitVotingResult();
+      expect(res.toIndices(round.attestations.length)).to.deep.eq([]);
     });
   });
 });

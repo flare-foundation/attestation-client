@@ -14,6 +14,7 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
   let globalConfigManager: GlobalConfigManager;
+  let globalConfigManager2: GlobalConfigManager;
 
   before(async function () {
     const CONFIG_PATH_ATTESTER = "../test/attestationClient/test-data/attester";
@@ -23,6 +24,10 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
     const attestationClientConfig = await readSecureConfig(new AttestationClientConfig(), `attester_1`);
     globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
     globalConfigManager.activeRoundId = 160;
+
+    const attestationClientConfig2 = await readSecureConfig(new AttestationClientConfig(), `attester_2`);
+    globalConfigManager2 = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
+    globalConfigManager2.activeRoundId = 5;
   });
 
   afterEach(function () {
@@ -40,7 +45,9 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
 
   it("Should initialize", async function () {
     await globalConfigManager.initialize();
-    expect(globalConfigManager.attestationConfigs.length).to.be.greaterThanOrEqual(1);
+    await globalConfigManager2.initialize();
+    expect(globalConfigManager.attestationConfigs.length).to.be.equal(1);
+    expect(globalConfigManager2.attestationConfigs.length).to.be.equal(2);
     expect(globalConfigManager.attestationConfigs[0].startRoundId).to.eq(150);
   });
 

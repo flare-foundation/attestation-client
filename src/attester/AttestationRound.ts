@@ -802,6 +802,7 @@ export class AttestationRound {
 
     if (!this.shouldSubmitAttestation()) {
       this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C, bufferNumber ${this.roundId + 2}) - submit attestation skipped.`);
+      this.attestStatus = AttestationRoundStatus.revealed; //ADD NEW STATUS???
       return;
     }
 

@@ -26,6 +26,8 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
   let round: AttestationRound;
 
+  let roundAlt: AttestationRound;
+
   let attestationClientConfig: AttestationClientConfig;
 
   const dbConnectOptions = new DatabaseConnectOptions();
@@ -55,6 +57,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     flareConnection.addDefaultAddress(["0x1fakeaddress"]);
     sourceRouter.initializeSources(160);
     round = new AttestationRound(160, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, sourceRouter, attestationClientConfig);
+
+    roundAlt = new AttestationRound(180, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, sourceRouter, attestationClientConfig);
+
+    await roundAlt.initialize();
   });
 
   afterEach(function () {
@@ -187,6 +193,32 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
       }
       const res = round.calculateBitVotingResult();
       expect(res.toIndices(round.attestations.length)).to.deep.eq([0, 1, 2, 3, 4, 5]);
+    });
+
+    it("Should calculate inconclusive bitVote", function () {
+      roundAlt.defaultSetAddresses.splice(0);
+      for (let j = 0; j < 9; j++) {
+        const address = `0xfakeaddress${j}`;
+        roundAlt.defaultSetAddresses.push(address);
+        roundAlt.attestations.splice(0);
+        for (let i = 1; i < 10; i++) {
+          const event = createBlankAtRequestEvent(1, 2, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const attestation = new Attestation(180, new AttestationData(event));
+          attestation.index = i - 1;
+          attestation.status = i == j ? AttestationStatus.valid : AttestationStatus.overLimit;
+          roundAlt.attestations.push(attestation);
+        }
+
+        roundAlt.bitVoteRecord = roundAlt.bitVoteAccumulator.toHex();
+        const bitVoteMasked = roundAlt.bitVoteMaskWithRoundCheck;
+        const vote = createBlankBitVoteEvent(bitVoteMasked);
+        vote.returnValues.sender = address;
+
+        const data = new BitVoteData(vote);
+        roundAlt.registerBitVote(data);
+      }
+      const res = roundAlt.calculateBitVotingResult();
+      expect(res.toIndices(roundAlt.attestations.length)).to.deep.eq([]);
     });
 
     it("Should not tryCalculateBitVotingResults after chosen status", function () {

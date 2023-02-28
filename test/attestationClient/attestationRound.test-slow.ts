@@ -218,7 +218,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       expect(flareConnection.bitVotes.length).to.equal(1);
     });
 
-    it("Should close bitVoting (without received bitvotes)", async function () {
+    it("Should close bitVoting", async function () {
       //Add fake bitVotes -  all the same
 
       for (const address of fakeAddresses) {

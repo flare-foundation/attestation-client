@@ -257,7 +257,7 @@ export class AttestationRound {
     }
 
     if (verbose) {
-      this.logger.info(`${this.label}Bit voting results`);
+      this.logger.info(`${this.label} Bit voting results`);
       for (let address of this.defaultSetAddresses) {
         let bitString = BitmaskAccumulator.fromHex(this.bitVoteMap.get(address) ?? NO_VOTE).toBitString();
         this.logger.info(`${this.label}${address.slice(0, 10)} - ${bitString}`);
@@ -398,7 +398,7 @@ export class AttestationRound {
 
     if (duplicate) {
       this.logger.debug3(
-        `${this.label}attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
+        `${this.label} attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
       );
       this.duplicateCount++;
       // duplicates are discarded
@@ -454,7 +454,7 @@ export class AttestationRound {
 
     this.defaultSetAddresses = this.defaultSetAddresses.map((address) => address.toLowerCase());
 
-    this.logger.debug(`${this.label}Round ${this.roundId} initialized with attestation providers`);
+    this.logger.debug(`${this.label} Round ${this.roundId} initialized with attestation providers`);
     for (let [index, address] of this.defaultSetAddresses.entries()) {
       this.logger.debug(`[${index}] ${this.activeGlobalConfig.defaultSetAssignerAddresses[index]} --> ${address}`);
     }
@@ -618,7 +618,7 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `${this.label}^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
+      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
         time1 - time0
       }ms M:${time2 - time1}ms)`
     );
@@ -732,7 +732,7 @@ export class AttestationRound {
 
       if (receipt) {
         this.attestStatus = AttestationRoundStatus.committed;
-        this.logger.info(`${this.label}^G^wcomitted^^ round ^Y#${this.roundId}`);
+        this.logger.info(`${this.label} ^G^wcomitted^^ round ^Y#${this.roundId}`);
       } else {
         this.attestStatus = AttestationRoundStatus.error;
       }
@@ -801,7 +801,7 @@ export class AttestationRound {
     }
 
     if (!this.shouldSubmitAttestation()) {
-      this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C, bufferNumber ${this.roundId + 2}) - submit attestation skipped.`);
+      this.logger.info(`${this.label} ^Cround ^Y#${this.roundId}^C, bufferNumber ${this.roundId + 2}) - submit attestation skipped.`);
       this.attestStatus = AttestationRoundStatus.revealed; //ADD NEW STATUS???
       return;
     }
@@ -822,13 +822,13 @@ export class AttestationRound {
       );
 
       if (receipt) {
-        this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C submit attestation completed (bufferNumber ${this.roundId + 2})`);
+        this.logger.info(`${this.label} ^Cround ^Y#${this.roundId}^C submit attestation completed (bufferNumber ${this.roundId + 2})`);
         if (this.nextRound) {
           this.nextRound.attestStatus = AttestationRoundStatus.committed;
         }
         this.attestStatus = AttestationRoundStatus.revealed;
       } else {
-        this.logger.info(`${this.label}^Rround ^Y#${this.roundId}^R submit error (bufferNumber ${this.roundId + 2}) - no receipt`);
+        this.logger.info(`${this.label} ^Rround ^Y#${this.roundId}^R submit error (bufferNumber ${this.roundId + 2}) - no receipt`);
         if (this.nextRound) {
           // do not change the status
         }
@@ -853,7 +853,7 @@ export class AttestationRound {
 
       // Do not send a bitvote if only zeros
       if (this.bitVoteMaskWithRoundCheck.slice(4).replace(/0/g, "").length === 0) {
-        this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C bit vote skipped - nothing to vote (buffernumber ${this.roundId + 1})`);
+        this.logger.info(`${this.label} ^Cround ^Y#${this.roundId}^C bit vote skipped - nothing to vote (buffernumber ${this.roundId + 1})`);
         return;
       }
       // eslint-disable-next-line
@@ -867,9 +867,9 @@ export class AttestationRound {
           this.duplicateCount
         );
         if (receipt) {
-          this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C bit vote submitted (buffernumber ${this.roundId + 1})`);
+          this.logger.info(`${this.label} ^Cround ^Y#${this.roundId}^C bit vote submitted (buffernumber ${this.roundId + 1})`);
         } else {
-          this.logger.error(`${this.label}^Rround ^Y#${this.roundId}^R bit vote submit error (buffernumber ${this.roundId + 1}) - no receipt`);
+          this.logger.error(`${this.label} ^Rround ^Y#${this.roundId}^R bit vote submit error (buffernumber ${this.roundId + 1}) - no receipt`);
         }
       });
       return;

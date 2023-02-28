@@ -150,7 +150,7 @@ export class AttestationRoundManager {
 
         await this.attesterState.saveRoundComment(activeRound, activeRound.attestationsProcessed);
       } catch (error) {
-        logException(error, `${this.label}startRoundUpdate`);
+        logException(error, `${this.label} startRoundUpdate`);
       }
       // FUTURE OPTIMIZATION: put this into config. Now ok for 90s voting rounds.
       await sleepms(5000);
@@ -299,32 +299,32 @@ export class AttestationRoundManager {
     this.initRoundSampler(activeRound, activeRound.roundStartTimeMs, activeRound.windowDurationMs, activeRound.roundCommitStartTimeMs);
 
     // Schedule callbacks
-    this.logger.info(`${this.label}^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
+    this.logger.info(`${this.label} ^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
 
     // trigger start choose phase
-    this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound.onChoosePhaseStart(), activeRound.roundChooseStartTimeMs - now);
+    this.schedule(`${this.label} schedule:startChoosePhase`, async () => await activeRound.onChoosePhaseStart(), activeRound.roundChooseStartTimeMs - now);
 
     // trigger sending bit vote result
-    this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundBitVoteTimeMs - now);
+    this.schedule(`${this.label} schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundBitVoteTimeMs - now);
 
     // trigger start commit phase
-    this.schedule(`${this.label}schedule:startCommitPhase`, async () => await activeRound.onCommitPhaseStart(), activeRound.roundCommitStartTimeMs - now);
+    this.schedule(`${this.label} schedule:startCommitPhase`, async () => await activeRound.onCommitPhaseStart(), activeRound.roundCommitStartTimeMs - now);
 
     // trigger forced closing of bit voting and vote count
-    this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
+    this.schedule(`${this.label} schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
 
     // trigger start reveal epoch
-    this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), activeRound.roundRevealStartTimeMs - now);
+    this.schedule(`${this.label} schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), activeRound.roundRevealStartTimeMs - now);
 
     // trigger reveal. Here most of submitAttestation calls to StateConnector happen
     this.schedule(
-      `${this.label}schedule:submitAttestation`,
+      `${this.label} schedule:submitAttestation`,
       () => activeRound.onSubmitAttestation(),
       activeRound.roundCompleteTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
     );
 
     // trigger end of reveal epoch, cycle is completed at this point
-    this.schedule(`${this.label}schedule:completed`, () => activeRound.onFinalisePhaseStart(), activeRound.roundCompleteTimeMs - now);
+    this.schedule(`${this.label} schedule:completed`, () => activeRound.onFinalisePhaseStart(), activeRound.roundCompleteTimeMs - now);
 
     this.rounds.set(roundId, activeRound);
     this.cleanup();
@@ -337,7 +337,7 @@ export class AttestationRoundManager {
     } else {
       // trigger first commit
       this.schedule(
-        `${this.label}schedule:firstCommit`,
+        `${this.label} schedule:firstCommit`,
         () => activeRound!.onFirstCommit(),
         activeRound.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
       );
@@ -358,7 +358,7 @@ export class AttestationRoundManager {
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
     if (epochId < this.startRoundId) {
-      this.logger.debug(`${this.label}epoch too low ^Y#${epochId}^^`);
+      this.logger.debug(`${this.label} epoch too low ^Y#${epochId}^^`);
       return;
     }
 
@@ -402,7 +402,7 @@ export class AttestationRoundManager {
     if (!globalConfig || !verifier) {
       // this should not happen
       attestation.status = AttestationStatus.failed;
-      this.logger.error(`${this.label}Assert: both global config and verifier router for round should exist. Critical error`);
+      this.logger.error(`${this.label} Assert: both global config and verifier router for round should exist. Critical error`);
       process.exit(1);
     }
     const attestationSupported = sourceAndTypeSupported(globalConfig, data.sourceId, data.type);

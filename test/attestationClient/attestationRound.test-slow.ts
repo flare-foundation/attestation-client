@@ -17,6 +17,7 @@ import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { sleepms } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { Verification, VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
+import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createAttestationVerificationPair } from "./utils/createEvents";
@@ -27,7 +28,10 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
   let round: AttestationRound;
 
-  let attestationClientConfig: AttestationClientConfig;
+  let fakeEmptyRound: AttestationRound;
+
+  let fakeEmptyRoundAlt: AttestationRound;
+  let fakeEmptyRoundFin: AttestationRound;
 
   const dbConnectOptions = new DatabaseConnectOptions();
   const dbService = new DatabaseService(getGlobalLogger(), dbConnectOptions, "", "", true);
@@ -64,7 +68,31 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     sourceRouter.initializeSources(161);
     round = new AttestationRound(161, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, sourceRouter, attestationClientConfig);
 
-    round.initialize();
+    await round.initialize();
+
+    fakeEmptyRound = new AttestationRound(1670, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, sourceRouter, attestationClientConfig);
+    fakeEmptyRoundAlt = new AttestationRound(
+      1672,
+      activeGlobalConfig,
+      getGlobalLogger(),
+      flareConnection,
+      attesterState,
+      sourceRouter,
+      attestationClientConfig
+    );
+    fakeEmptyRoundFin = new AttestationRound(
+      1671,
+      activeGlobalConfig,
+      getGlobalLogger(),
+      flareConnection,
+      attesterState,
+      sourceRouter,
+      attestationClientConfig
+    );
+
+    await round.initialize();
+    await fakeEmptyRound.initialize();
+    await fakeEmptyRoundAlt.initialize();
   });
 
   afterEach(function () {
@@ -203,6 +231,13 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
       assert(round.attestations[0].chosen);
     });
+  });
+
+  describe("Commits", function () {
+    it("Should prepare commit data twice", async function () {
+      round.attestStatus = AttestationRoundStatus.commitDataPrepared;
+      await round.tryPrepareCommitData();
+    });
 
     it("Should commit (first)", async function () {
       await round.onFirstCommit();
@@ -217,5 +252,44 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       expect(flareConnection.roots.length).to.eq(2);
       expect(round.attestStatus).to.eq(AttestationRoundStatus.revealed);
     });
+  });
+
+  describe("Make empty round", function () {
+    it("Should create empty round if no valid attestation", async function () {
+      fakeEmptyRound.attestStatus = AttestationRoundStatus.bitVotingClosed;
+      fakeEmptyRound.phase = AttestationRoundPhase.commit;
+
+      fakeEmptyRound.tryCalculateBitVotingResults();
+
+      await fakeEmptyRound.tryPrepareCommitData();
+
+      expect(fakeEmptyRound.roundMerkleRoot).to.eq(toHex(0, 32));
+    });
+
+    it("Should commit empty round if can't commit", async function () {
+      await fakeEmptyRoundAlt.onFirstCommit();
+      expect(fakeEmptyRoundAlt.roundMerkleRoot).to.equal(toHex(0, 32));
+    });
+
+    it("Should not commit consecutive empty round", async function () {
+      fakeEmptyRoundFin.attestStatus = AttestationRoundStatus.bitVotingClosed;
+      fakeEmptyRoundFin.phase = AttestationRoundPhase.commit;
+
+      fakeEmptyRoundFin.tryCalculateBitVotingResults();
+
+      await fakeEmptyRoundFin.tryPrepareCommitData();
+      fakeEmptyRoundFin.phase = AttestationRoundPhase.reveal;
+
+      fakeEmptyRoundFin.prevRound = fakeEmptyRound;
+      fakeEmptyRoundFin.nextRound = fakeEmptyRoundAlt;
+
+      await fakeEmptyRoundFin.onSubmitAttestation();
+      expect(fakeEmptyRoundFin.attestStatus).to.equal(AttestationRoundStatus.revealed);
+    });
+  });
+
+  it("Should announce round finalization", function () {
+    round.onFinalisePhaseStart();
+    expect(round.phase).to.eq(AttestationRoundPhase.finalise);
   });
 });

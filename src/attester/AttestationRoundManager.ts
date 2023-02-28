@@ -265,7 +265,7 @@ export class AttestationRoundManager {
     const globalConfig = this.globalConfigManager.getConfig(roundId);
 
     if (!globalConfig) {
-      this.logger.error(`${this.label}${roundId}: critical error, global config for round id not defined`);
+      this.logger.error(`${this.label}: critical error, global config for round #${roundId} not defined`);
       exit(1);
       return MOCK_NULL_WHEN_TESTING;
     }
@@ -276,7 +276,7 @@ export class AttestationRoundManager {
     // If no verifier, round cannot be evaluated - critical error.
     // TODO: we should check if it is defined!
     if (!verifierRouter) {
-      this.logger.error(`${this.label}${roundId}: critical error, verifier router for round id not defined`);
+      this.logger.error(`${this.label}: critical error, verifier router for round #${roundId} not defined`);
       exit(1);
       return MOCK_NULL_WHEN_TESTING;
     }

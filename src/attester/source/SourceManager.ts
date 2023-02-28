@@ -163,7 +163,7 @@ export class SourceManager {
       // setup new timer
       this.delayQueueStartTime = firstStartTime;
       this.delayQueueTimer = setTimeout(() => {
-        this.logger.debug(`${this.label}priority queue timeout`);
+        this.logger.debug(`${this.label} priority queue timeout`);
 
         this.startNext();
         this.delayQueueTimer = undefined;
@@ -207,7 +207,7 @@ export class SourceManager {
     // assert
     if (!verifierRouter) {
       // This should not happen as this is checked already on AttestationRound creation
-      this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.roundId}`);
+      this.logger.error(`${this.label} Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.roundId}`);
       exit(1);
     }
 
@@ -225,11 +225,11 @@ export class SourceManager {
             this.onProcessed(attestation, AttestationStatus.valid, verification);
             return;
           }
-          this.logger.debug(`${this.label}WRONG MIC for ${attestation.data.request}`);
+          this.logger.debug(`${this.label} WRONG MIC for ${attestation.data.request}`);
         }
 
         if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
-          this.logger.error2(`${this.label}SYSTEM_FAILURE ${attestation.data.request}`);
+          this.logger.error2(`${this.label} SYSTEM_FAILURE ${attestation.data.request}`);
         }
 
         // The verification is invalid or mic does not match
@@ -238,17 +238,17 @@ export class SourceManager {
       .catch((error: any) => {
         // Exception happens on API errors, both the ones that return status ERROR and ones that fail.
         // In both cases the default direction is retry
-        logException(error, `${this.label}verifyAttestation ${error}`);
+        logException(error, `${this.label} verifyAttestation ${error}`);
         attestation.exception = error;
 
         // Retries
         attestation.processEndTime = getTimeMilli();
         if (attestation.retry < this.verifierSourceConfig.maxFailedRetry) {
-          this.logger.warning(`${this.label}transaction verification error (retry ${attestation.retry})`);
+          this.logger.warning(`${this.label} transaction verification error (retry ${attestation.retry})`);
           attestation.retry++;
           this.enQueueDelayed(attestation, getTimeMilli() + this.verifierSourceConfig.delayBeforeRetry * 1000);
         } else {
-          this.logger.error2(`${this.label}transaction verification error ${attestation.data.request}`);
+          this.logger.error2(`${this.label} transaction verification error ${attestation.data.request}`);
           this.onProcessed(attestation, AttestationStatus.invalid);
         }
       });
@@ -342,7 +342,7 @@ export class SourceManager {
         criticalAsync(`SourceManager::startNext::process-2`, () => this.process(attestation!));
       }
     } catch (error) {
-      logException(error, `${this.label}SourceManager::startNext`);
+      logException(error, `${this.label} SourceManager::startNext`);
     }
   }
 }

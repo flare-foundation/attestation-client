@@ -297,7 +297,7 @@ export class AttestationRound {
     }
 
     if (bitmask.hasActiveBitsBeyond(this.attestations.length)) {
-      this.logger.error(`${this.label}Local and all indices do not match. Critical error!`);
+      this.logger.error(`${this.label} Local and all indices do not match. Critical error!`);
       return undefined;
     }
 
@@ -448,7 +448,7 @@ export class AttestationRound {
     if (this._initialized) {
       return;
     }
-    this.defaultSetAddresses = await retry(`${this.label}AttestationRound ${this.roundId} init default set`, async () =>
+    this.defaultSetAddresses = await retry(`${this.label} AttestationRound ${this.roundId} init default set`, async () =>
       this.flareConnection.getAttestorsForAssignors(this.activeGlobalConfig.defaultSetAssignerAddresses)
     );
 
@@ -467,7 +467,7 @@ export class AttestationRound {
    */
   private canCommit(): boolean {
     this.logger.debug(
-      `${this.label}canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
+      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
         AttestationRoundPhase[this.phase]
       }', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
@@ -876,6 +876,6 @@ export class AttestationRound {
     }
 
     // Bit call called too late, wrong time
-    this.logger.error(`${this.label}^Rround ^Y#${this.roundId}^R: bit vote at wrong time in phase ${AttestationRoundPhase[this.phase]}`);
+    this.logger.error(`${this.label} ^Rround ^Y#${this.roundId}^R: bit vote at wrong time in phase ${AttestationRoundPhase[this.phase]}`);
   }
 }

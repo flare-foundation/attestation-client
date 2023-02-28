@@ -107,7 +107,7 @@ export class GlobalConfigManager {
     const verifierRouter = config.verifierRouter;
     if (!verifierRouter) {
       //we probably want to check if verifierRouter is initialized
-      this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${roundId}`);
+      this.logger.error(`${this.label} Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${roundId}`);
       exit(1);
       return; // for testing
     }

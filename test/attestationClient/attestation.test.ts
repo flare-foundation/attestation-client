@@ -2,8 +2,6 @@ import { expect, assert } from "chai";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { encodePayment } from "../../src/verification/generated/attestation-request-encode";
-import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { getTestFile } from "../test-utils/test-utils";
 import { createBlankAtRequestEvent } from "./utils/createEvents";
 

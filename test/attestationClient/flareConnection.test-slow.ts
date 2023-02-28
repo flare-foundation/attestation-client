@@ -9,7 +9,7 @@ import chai, { expect, assert } from "chai";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { AttesterState } from "../../src/attester/AttesterState";
-import { clearTestDatabases, VerifierTestSetups } from "../verification/test-utils/verifier-test-utils";
+import { clearTestDatabases } from "../verification/test-utils/verifier-test-utils";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { traceManager } from "@flarenetwork/mcc";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
@@ -26,7 +26,6 @@ import {
 } from "./utils/attestation-client-test-utils";
 import { spawn } from "child_process";
 import Web3 from "web3";
-import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { AttesterClient } from "../../src/attester/AttesterClient";
 

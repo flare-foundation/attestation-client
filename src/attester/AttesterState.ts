@@ -7,13 +7,12 @@ import _ from "lodash";
 import { EntityManager } from "typeorm";
 import { DatabaseService } from "../utils/database/DatabaseService";
 
-
 /**
  * Update or insert new state.
- * @param entityManager 
- * @param obj 
- * @param primary_key 
- * @param opts 
+ * @param entityManager
+ * @param obj
+ * @param primary_key
+ * @param opts
  */
 async function Upsert<T>(
   entityManager: EntityManager,
@@ -27,17 +26,11 @@ async function Upsert<T>(
 ) {
   const keys: string[] = _.difference(_.keys(obj), opts?.do_not_upsert ?? []);
 
-  if (process.env.NODE_ENV === "development" && opts?.isSqlite3) {
-    // Some issues with orUpdate on better-sqlite3
+  if (!process.env.UBUNTU_MYSQL) {
     await entityManager.getRepository(DBRoundResult).save(obj);
   } else {
-    await entityManager
-      .createQueryBuilder()
-      .insert()
-      .into(DBRoundResult)
-      .values(obj)
-      .orUpdate([primary_key], keys)
-      .execute();
+    // ubuntu MYSQL .save sometimes fails
+    await entityManager.createQueryBuilder().insert().into(DBRoundResult).values(obj).orUpdate([primary_key], keys).execute();
   }
 }
 
@@ -46,7 +39,6 @@ async function Upsert<T>(
  * in regard to specific round.
  */
 export class AttesterState {
-
   databaseService: DatabaseService;
 
   constructor(databaseService: DatabaseService) {
@@ -121,11 +113,11 @@ export class AttesterState {
   }
 
   /**
- * Stores bit voting result
- * @param roundId
- * @param nonce
- * @param txid
- */
+   * Stores bit voting result
+   * @param roundId
+   * @param nonce
+   * @param txid
+   */
   async saveRoundBitVoteResult(roundId: number, bitVoteResult: string) {
     const dbRound = new DBRoundResult();
 
@@ -135,7 +127,6 @@ export class AttesterState {
 
     await this.saveOrUpdateRound(dbRound);
   }
-
 
   /**
    * Stores partial attestation round data (on commit)

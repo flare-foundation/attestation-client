@@ -4,7 +4,7 @@ import { getTimeSec } from "../helpers/internetTime";
 
 /**
  * Class for storing the settings of epochs. Current length of an epoch is 90 seconds.
- * Contains data about voting epochs on the StateConnector and BitVoting contracts. 
+ * Contains data about voting epochs on the StateConnector and BitVoting contracts.
  * Data is usually initialized externally and red from both smart contracts.
  * For the connection between rounds and epochs see Attestation-protocol.md
  * Values for construction must be given in seconds.
@@ -25,7 +25,7 @@ export class EpochSettings {
 
   /**
    * Epoch length in milliseconds.
-   * @returns 
+   * @returns
    */
   public getEpochLengthMs(): BN {
     return this._epochPeriodMs;
@@ -33,7 +33,7 @@ export class EpochSettings {
 
   /**
    * Bitvote window duration.
-   * @returns 
+   * @returns
    */
   public getBitVoteDurationMs(): BN {
     if (this._bitVoteWindowDurationMs) {
@@ -44,8 +44,8 @@ export class EpochSettings {
 
   /**
    * Returns epochId for time given in miliseconds (Unix epoch).
-   * @param timeInMillis 
-   * @returns 
+   * @param timeInMillis
+   * @returns
    */
   public getEpochIdForTime(timeInMillis: BN): BN {
     const diff: BN = timeInMillis.sub(this._firstEpochStartTimeMs);
@@ -54,8 +54,8 @@ export class EpochSettings {
 
   /**
    * Returns epochId for time given in seconds (Unix epoch).
-   * @param timeSec 
-   * @returns 
+   * @param timeSec
+   * @returns
    */
   public getEpochIdForTimeSec(timeSec: number): number {
     const epochId = this.getEpochIdForTime(toBN(timeSec).mul(toBN(1000)));
@@ -64,8 +64,8 @@ export class EpochSettings {
 
   /**
    * Given time @param timeSec in seconds, it determines the epoch of the time and
-   * checks if it is within the bit voting deadline. 
-   * @param timeSec 
+   * checks if it is within the bit voting deadline.
+   * @param timeSec
    * @returns If the time is within the bit voting deadline, the epoch id is returned.
    * Otherwise 'undefined' is returned.
    */

@@ -22,8 +22,8 @@ export class ChainConfig implements IReflection<ChainConfig> {
 
   @optional() public reverificationTimeOffset = 10;
 
-  @optional() public maxFailedRetry = 1;
-  @optional() public delayBeforeRetry = 10;
+  @optional() public maxFailedRetries = 1;
+  @optional() public delayBeforeRetryMs = 1000;
 
   @optional() public syncTimeDays = 0;
 

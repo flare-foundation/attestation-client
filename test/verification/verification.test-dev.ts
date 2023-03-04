@@ -77,7 +77,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       // TODO: connect the database
       entityManager: dbService.manager,
       maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
-      // todo: return epochStartTime - query window length, add query window length into DAC
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
     randomGenerators = await prepareRandomGenerators(indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD);

@@ -151,7 +151,7 @@ export class AttestationRound {
   get roundBitVoteTimeMs() {
     return this.roundChooseStartTimeMs + this.chooseWindowDurationMs + this.attestationClientConfig.bitVoteTimeSec * 1000;
   }
-  
+
   /**
    * Returns time of forcing the bit voting close for the round (Unix epoch time in ms).
    * This is the time at which we assume we have received all the bit-votes.
@@ -379,7 +379,7 @@ export class AttestationRound {
     if (sourceLimiter) {
       return sourceLimiter;
     }
-    const config = this.activeGlobalConfig.sourceLimiters.get(data.sourceId);
+    const config = this.activeGlobalConfig.sourcesMap.get(data.sourceId);
     sourceLimiter = new SourceLimiter(config, this.logger);
 
     this.sourceLimiters.set(data.sourceId, sourceLimiter);
@@ -442,8 +442,8 @@ export class AttestationRound {
   }
 
   /**
-   * Initializes the round id. 
-   * @returns 
+   * Initializes the round id.
+   * @returns
    */
   public async initialize() {
     if (this._initialized) {
@@ -618,13 +618,14 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `${this.label}^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0
+      `${this.label}^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
+        time1 - time0
       }ms M:${time2 - time1}ms)`
     );
   }
 
   /**
-   * Sets the round as the empty round. Empty round is a round in which there is nothing to commit or 
+   * Sets the round as the empty round. Empty round is a round in which there is nothing to commit or
    * the vote is not possible to calculate due to some reason.
    */
   private async makeEmptyRound() {
@@ -647,7 +648,8 @@ export class AttestationRound {
    */
   public async onChoosePhaseStart() {
     this.logger.group(
-      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
+        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -658,7 +660,8 @@ export class AttestationRound {
    */
   public async onCommitPhaseStart() {
     this.logger.group(
-      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
+        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
@@ -683,7 +686,7 @@ export class AttestationRound {
 
   /**
    * Callback triggered for every attestation when it is processed.
-   * @param attestation 
+   * @param attestation
    */
   public onAttestationProcessed(attestation: Attestation): void {
     this.attestationsProcessed++;
@@ -737,10 +740,10 @@ export class AttestationRound {
 
   /**
    * Returns whether the submitAttestation call should be made.
-   * @returns 
+   * @returns
    */
   private shouldSubmitAttestation() {
-    //     ? | 1 | 0 | 0 | 0 | 0 | 0 |  - requests  
+    //     ? | 1 | 0 | 0 | 0 | 0 | 0 |  - requests
     //       | ? | *0| *1| *2| *3|      - submissions in reveal phase
     // 0  Col|Com|Rev|
     // 1      Col|Com|Rev|
@@ -753,7 +756,7 @@ export class AttestationRound {
     // *2 - must submit - previous round (1) non-empty - must trigger finalization
     // *3 - no submission: this (3), next (4) and previous (2) round are empty
 
-    if(this.isEmpty && this.prevRound?.isEmpty && this.nextRound?.isEmpty) return false;
+    if (this.isEmpty && this.prevRound?.isEmpty && this.nextRound?.isEmpty) return false;
     return true;
   }
 
@@ -772,7 +775,8 @@ export class AttestationRound {
     if (!commitPreparedOrCommitted) {
       // Log unexpected attestation round statuses, but proceed with submitAttestation
       this.logger.error(
-        `${this.label}round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${this.attestationsProcessed
+        `${this.label}round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${
+          this.attestationsProcessed
         }/${this.attestations.length}`
       );
     }
@@ -846,7 +850,7 @@ export class AttestationRound {
       this.bitVoteRecord = this.bitVoteAccumulator.toHex(); // make a bitvote snapshot
 
       // Do not send a bitvote if only zeros
-      if(this.bitVoteMaskWithRoundCheck.slice(4).replace(/0/g, "").length === 0) {
+      if (this.bitVoteMaskWithRoundCheck.slice(4).replace(/0/g, "").length === 0) {
         this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C bit vote skipped - nothing to vote (buffernumber ${this.roundId + 1})`);
         return;
       }

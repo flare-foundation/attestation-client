@@ -40,8 +40,8 @@
         "maxRequestsPerSecond":80,
         "maxProcessingTransactions":3000,
 
-        "maxFailedRetry": 1,
-        "delayBeforeRetry": 10,
+        "maxFailedRetries": 1,
+        "delayBeforeRetryMs": 10000,
 
         "maxValidIndexerDelaySec": 10,
 

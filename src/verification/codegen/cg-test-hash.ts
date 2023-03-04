@@ -1,5 +1,5 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { DEFAULT_GEN_FILE_HEADER, HASH_TEST_FILE, PRETTIER_SETTINGS, PRETTIER_SETTINGS_SOL, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 
@@ -75,6 +75,6 @@ export function createHashTestSolidityFile(definitions: AttestationTypeScheme[])
     fs.mkdirSync(SOLIDITY_GEN_CONTRACTS_ROOT, { recursive: true });
   }
 
-  const prettyContent = prettier.format(content, PRETTIER_SETTINGS_SOL)
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS_SOL);
   fs.writeFileSync(`${SOLIDITY_GEN_CONTRACTS_ROOT}/${HASH_TEST_FILE}`, prettyContent, "utf8");
 }

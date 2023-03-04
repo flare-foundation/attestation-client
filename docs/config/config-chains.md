@@ -16,8 +16,8 @@ Chains configuration file contains all external chain configuration.
 | `minimalStorageHistoryBlocks` |                                                                         | 100     |
 | `maxRequestsPerSecond`        |                                                                         | 80      |
 | `maxProcessingTransactions`   |                                                                         | 3000    |
-| `maxFailedRetry`              |                                                                         | 1       |
-| `delayBeforeRetry`            |                                                                         | 10      |
+| `maxFailedRetries`              |                                                                         | 1       |
+| `delayBeforeRetryMs`            |                                                                         | 10      |
 | `maxValidIndexerDelaySec`     |                                                                         | 10      |
 | `reverificationTimeOffset`    |                                                                         | 10      |
 | `syncTimeDays`                | Per chain sync time override. Used if not 0.                            | 0       |

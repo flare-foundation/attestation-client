@@ -16,7 +16,7 @@ export interface ExtendedReceipt {
 }
 
 /**
- * Helper class for signing transactions and calling specific queries on Flare blockchain. 
+ * Helper class for signing transactions and calling specific queries on Flare blockchain.
  */
 export class Web3Functions {
   logger: AttLogger;
@@ -73,8 +73,8 @@ export class Web3Functions {
    * @param toAddress - signing (sender) address
    * @param fnToEncode - web3 function call
    * @param timeEnd - deadline for waiting to receive the transaction receipt
-   * @param verbose 
-   * @returns 
+   * @param verbose
+   * @returns
    */
   public async signAndFinalize3Sequenced(
     label: string,
@@ -130,7 +130,7 @@ export class Web3Functions {
    * @param label - logging label
    * @param toAddress - signing (sender) address
    * @param fnToEncode - web3 function call
-   * @returns 
+   * @returns
    */
   private async _signAndFinalize3(
     label: string,

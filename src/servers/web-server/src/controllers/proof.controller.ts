@@ -10,7 +10,7 @@ import { SpecificProofRequest } from "../dtos/SpecificProofRequest.dto";
 @ApiTags("Proof")
 @Controller("api/proof")
 export class ProofController {
-  constructor(private proofEngine: ProofEngineService) { }
+  constructor(private proofEngine: ProofEngineService) {}
 
   @Get("votes-for-round/:roundId")
   public async votesForRound(@Param("roundId", new ParseIntPipe()) roundId: number): Promise<ApiResponse<VotingRoundResult[]>> {

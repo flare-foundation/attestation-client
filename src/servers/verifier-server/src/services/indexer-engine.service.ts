@@ -1,24 +1,21 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { InjectEntityManager } from '@nestjs/typeorm';
-import { EntityManager } from 'typeorm';
-import { DBBlockBase } from '../../../../entity/indexer/dbBlock';
-import { DBState } from '../../../../entity/indexer/dbState';
-import { DBTransactionBase } from '../../../../entity/indexer/dbTransaction';
-import { BlockRange } from '../dtos/BlockRange.dto';
-import { VerifierConfigurationService } from './verifier-configuration.service';
+import { Inject, Injectable } from "@nestjs/common";
+import { InjectEntityManager } from "@nestjs/typeorm";
+import { EntityManager } from "typeorm";
+import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
+import { DBState } from "../../../../entity/indexer/dbState";
+import { DBTransactionBase } from "../../../../entity/indexer/dbTransaction";
+import { BlockRange } from "../dtos/BlockRange.dto";
+import { VerifierConfigurationService } from "./verifier-configuration.service";
 
 @Injectable()
 export class IndexerEngineService {
-
   constructor(
     @Inject("VERIFIER_CONFIG") private configService: VerifierConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
-  ) { }
-
+  ) {}
 
   public async getStateSetting() {
-    let stateQuery = this.manager
-      .createQueryBuilder(DBState, "state");
+    let stateQuery = this.manager.createQueryBuilder(DBState, "state");
     let res = await stateQuery.getMany();
     return res;
   }
@@ -37,9 +34,9 @@ export class IndexerEngineService {
     }
     if (results.length) {
       return {
-        first: Math.min(...results.map(r => r.min as number)),
-        last: Math.max(...results.map(r => r.max as number)),
-      }
+        first: Math.min(...results.map((r) => r.min as number)),
+        last: Math.max(...results.map((r) => r.max as number)),
+      };
     }
     return null;
   }
@@ -52,7 +49,7 @@ export class IndexerEngineService {
         .andWhere("transaction.blockNumber = :blockNumber", { blockNumber });
       results = results.concat(await query.getMany());
     }
-    return results.map(res => {
+    return results.map((res) => {
       if (res.response) {
         res.response = JSON.parse(res.response);
       }
@@ -100,7 +97,7 @@ export class IndexerEngineService {
       .createQueryBuilder(this.configService.blockTable as any, "block")
       .orderBy("block.blockNumber", "DESC")
       .limit(1);
-    let result = await query.getOne() as DBBlockBase;
+    let result = (await query.getOne()) as DBBlockBase;
     if (result) {
       return result.blockNumber;
     }
@@ -110,53 +107,51 @@ export class IndexerEngineService {
   public async getTransactionBlock(txHash: string): Promise<DBBlockBase> | null {
     const tx = await this.getTransaction(txHash);
     if (tx) {
-        const block = await this.getBlockAt(tx.blockNumber);
-        return block;
-      }
-      return null;
+      const block = await this.getBlockAt(tx.blockNumber);
+      return block;
     }
+    return null;
+  }
 
-    public async getTransactionsWithPaymentReference(reference: string): Promise<DBTransactionBase[]> {
-      let results: any[] = [];
-      for (let table of this.configService.transactionTable) {
+  public async getTransactionsWithPaymentReference(reference: string): Promise<DBTransactionBase[]> {
+    let results: any[] = [];
+    for (let table of this.configService.transactionTable) {
         let query = this.manager
           .createQueryBuilder(table as any, "transaction")
           .andWhere("transaction.paymentReference = :reference", { reference });
-        results = results.concat(await query.getMany());
+      results = results.concat(await query.getMany());
+    }
+    return results.map((res) => {
+      if (res.response) {
+        res.response = JSON.parse(res.response);
       }
-      return results.map(res => {
-        if (res.response) {
-          res.response = JSON.parse(res.response);
-        }
-        return res;
-      }) as DBTransactionBase[];
-    }
-
-
-    public async transactionsWithinTimestampRange(from: number, to: number): Promise<DBTransactionBase[]> {
-      let results: any[] = [];
-      for (let table of this.configService.transactionTable) {
-        let query = this.manager
-          .createQueryBuilder(table as any, "transaction")
-          .andWhere("transaction.timestamp >= :from", { from })
-          .andWhere("transaction.timestamp < :to", { to });
-        results = results.concat(await query.getMany());
-      }
-      return results.map(res => {
-        if (res.response) {
-          res.response = JSON.parse(res.response);
-        }
-        return res;
-      }) as DBTransactionBase[];
-    }
-
-    public async blocksWithinTimestampRange(from: number, to: number): Promise<DBBlockBase[]> {
-      let query = this.manager
-        .createQueryBuilder(this.configService.blockTable as any, "block")
-        .andWhere("block.timestamp >= :from", { from })
-        .andWhere("block.timestamp < :to", { to });
-      let result = await query.getMany() as DBBlockBase[];
-      return result;
-    }
-    
+      return res;
+    }) as DBTransactionBase[];
   }
+
+  public async transactionsWithinTimestampRange(from: number, to: number): Promise<DBTransactionBase[]> {
+    let results: any[] = [];
+    for (let table of this.configService.transactionTable) {
+      let query = this.manager
+        .createQueryBuilder(table as any, "transaction")
+        .andWhere("transaction.timestamp >= :from", { from })
+        .andWhere("transaction.timestamp < :to", { to });
+      results = results.concat(await query.getMany());
+    }
+    return results.map((res) => {
+      if (res.response) {
+        res.response = JSON.parse(res.response);
+      }
+      return res;
+    }) as DBTransactionBase[];
+  }
+
+  public async blocksWithinTimestampRange(from: number, to: number): Promise<DBBlockBase[]> {
+    let query = this.manager
+      .createQueryBuilder(this.configService.blockTable as any, "block")
+      .andWhere("block.timestamp >= :from", { from })
+      .andWhere("block.timestamp < :to", { to });
+    let result = (await query.getMany()) as DBBlockBase[];
+    return result;
+  }
+}

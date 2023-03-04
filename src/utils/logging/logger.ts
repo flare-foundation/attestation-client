@@ -3,7 +3,7 @@ import { ColorConsole } from "./ColorConsole";
 import { TestLogger } from "./testLogger";
 
 const level = process.env.LOG_LEVEL || "info";
-const silent = (process.env.LOG_SILENT === 'true')
+const silent = process.env.LOG_SILENT === "true";
 
 export const Reset = "\x1b[0m";
 const Bright = "\x1b[1m";
@@ -187,8 +187,8 @@ export function getGlobalLogger(label?: string): AttLogger {
   return logger;
 }
 
-export function logException(error: any, comment: string) {
-  const logger = getGlobalLogger();
+export function logException(error: any, comment: string, attLogger?: AttLogger) {
+  const logger = attLogger ?? getGlobalLogger();
 
   logger.error2(`${comment} ${error}`);
   if (error.stack) {

@@ -13,12 +13,7 @@ export class FlareDataCollector {
   refreshEventsMs: number;
   label: string = "";
 
-  constructor(
-    attesterClient: AttesterClient,
-    startBlock?: number,
-    refreshEventsMs = 100,
-    label = ""
-  ) {
+  constructor(attesterClient: AttesterClient, startBlock?: number, refreshEventsMs = 100, label = "") {
     this.attesterClient = attesterClient;
     this.startBlock = startBlock;
     this.refreshEventsMs = refreshEventsMs;
@@ -42,9 +37,9 @@ export class FlareDataCollector {
   // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
   /**
    * Comparator for event objects
-   * @param a 
-   * @param b 
-   * @returns 
+   * @param a
+   * @param b
+   * @returns
    */
   private eventComparator(a: any, b: any): number {
     if (a.blockNumber < b.blockNumber) return -1;
@@ -101,7 +96,7 @@ export class FlareDataCollector {
         this.attesterClient.onNextBlockCapture(block);
         nextBlockNumberToProcess++;
       } catch (error) {
-        // not for reporting 
+        // not for reporting
         logException(error, `${this.label}Web3BlockCollector::processEvents`);
       }
     }

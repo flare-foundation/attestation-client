@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
+process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
 process.env.NODE_ENV = "development";
 process.env.VERIFIER_TYPE = "xrp";
 

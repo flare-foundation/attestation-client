@@ -7,13 +7,12 @@ import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 import { getGlobalLogger, logException } from "../utils/logging/logger";
 import { AttestationRound } from "./AttestationRound";
 
-
 /**
  * Update or insert new state.
- * @param entityManager 
- * @param obj 
- * @param primary_key 
- * @param opts 
+ * @param entityManager
+ * @param obj
+ * @param primary_key
+ * @param opts
  */
 async function Upsert<T>(
   entityManager: EntityManager,
@@ -30,7 +29,7 @@ async function Upsert<T>(
   if (!process.env.UBUNTU_MYSQL) {
     await entityManager.getRepository(DBRoundResult).save(obj);
   } else {
-    // ubuntu MYSQL .save sometimes fails 
+    // ubuntu MYSQL .save sometimes fails
     await entityManager
       .createQueryBuilder()
       .insert()
@@ -46,7 +45,6 @@ async function Upsert<T>(
  * in regard to specific round.
  */
 export class AttesterState {
-
   databaseService: DatabaseService;
 
   constructor(databaseService: DatabaseService) {
@@ -121,11 +119,11 @@ export class AttesterState {
   }
 
   /**
- * Stores bit voting result
- * @param roundId
- * @param nonce
- * @param txid
- */
+   * Stores bit voting result
+   * @param roundId
+   * @param nonce
+   * @param txid
+   */
   async saveRoundBitVoteResult(roundId: number, bitVoteResult: string) {
     const dbRound = new DBRoundResult();
 
@@ -135,7 +133,6 @@ export class AttesterState {
 
     await this.saveOrUpdateRound(dbRound);
   }
-
 
   /**
    * Stores partial attestation round data (on commit)

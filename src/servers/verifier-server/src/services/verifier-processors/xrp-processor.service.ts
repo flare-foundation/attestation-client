@@ -12,10 +12,7 @@ export class XRPProcessorService extends VerifierProcessor {
   client: MCC.XRP;
   indexedQueryManager: IndexedQueryManager;
 
-  constructor(
-    private config: VerifierConfigurationService,
-    private manager: EntityManager
-  ) {
+  constructor(private config: VerifierConfigurationService, private manager: EntityManager) {
     super();
     this.client = new MCC.XRP(this.config.config.chainConfiguration.mccCreate as XrpMccCreate);
 
@@ -34,11 +31,7 @@ export class XRPProcessorService extends VerifierProcessor {
 
   public async verify(attestationRequest: AttestationRequest) {
     this.assertIsSupported(attestationRequest);
-    let response = await verifyXRP(
-      this.client,
-      attestationRequest.request,
-      this.indexedQueryManager
-    );
+    let response = await verifyXRP(this.client, attestationRequest.request, this.indexedQueryManager);
     return hexlifyBN(response);
   }
 

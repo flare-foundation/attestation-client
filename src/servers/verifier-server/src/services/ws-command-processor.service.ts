@@ -3,10 +3,7 @@ import { VerifierConfigurationService } from "./verifier-configuration.service";
 
 @Injectable()
 export class WsCommandProcessorService {
-
-  constructor(
-    @Inject("VERIFIER_CONFIG") private config: VerifierConfigurationService,
-  ) { }
+  constructor(@Inject("VERIFIER_CONFIG") private config: VerifierConfigurationService) {}
 
   public mirrorResponse(data: any) {
     let response = {

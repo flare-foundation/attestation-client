@@ -110,7 +110,7 @@ export interface AttLogger extends winston.Logger {
 }
 
 function createLogger(label?: string, test = false): AttLogger {
-  var logPath = "./logs/";
+  let logPath = "./logs/";
 
   if (process.env.LOG_PATH) {
     logPath = `${process.env.LOG_PATH}/`;
@@ -142,7 +142,7 @@ function createLogger(label?: string, test = false): AttLogger {
         filename: logFilename,
       }),
     ],
-    silent: silent,
+    silent,
   }) as AttLogger;
 }
 
@@ -156,7 +156,7 @@ export function setGlobalLoggerLabel(label: string) {
 
 export function initializeTestGlobalLogger() {
   if (globalLogger.size || globalTestLogger) {
-    //console.error("initializeTestGlobalLogger must be called before any logger is created");
+    // console.error("initializeTestGlobalLogger must be called before any logger is created");
     // process.exit(3);
   }
 

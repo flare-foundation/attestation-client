@@ -45,10 +45,10 @@ export function prepareString(text: string, maxLength: number, reportOverflow: s
  * @returns unix epoch of now
  */
 export function getUnixEpochTimestamp(): number {
-  let now = Math.floor(Date.now() / 1000);
+  const now = Math.floor(Date.now() / 1000);
   if (process.env.NODE_ENV === "development") {
     if (process.env.TEST_OFFSET_TIME) {
-      let offset = parseInt("" + process.env.TEST_OFFSET_TIME, 10);
+      const offset = parseInt("" + process.env.TEST_OFFSET_TIME, 10);
       return now + offset;
     }
     if (process.env.TEST_SCHEDULER_TIME) {

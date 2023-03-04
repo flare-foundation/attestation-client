@@ -29,11 +29,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   clientId = 0;
   connections = new Map<WebSocket, ClientRecord>();
 
-   constructor(
-      @Inject("VERIFIER_CONFIG") private config: VerifierConfigurationService,
-      private commandProcessor: WsCommandProcessorService
-   ) {
-   }
+  constructor(@Inject("VERIFIER_CONFIG") private config: VerifierConfigurationService, private commandProcessor: WsCommandProcessorService) {}
 
   handleConnection(client: WebSocket, ...args: any[]) {
     let request: IncomingMessage = args[0];
@@ -72,10 +68,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   }
 
   @SubscribeMessage("message")
-   handleMessage(
-      @MessageBody() data: string,
-      @ConnectedSocket() client: WebSocket,
-   ): string {
+  handleMessage(@MessageBody() data: string, @ConnectedSocket() client: WebSocket): string {
     let rec = this.connections.get(client);
     this.logger.info(`Message from client: '${rec.id}', user '${rec.name}'`);
     return JSON.stringify({
@@ -85,10 +78,7 @@ export class WsServerGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   }
 
   @SubscribeMessage("mirror")
-   handleMirrorMessage(
-      @MessageBody() data: any,
-      @ConnectedSocket() client: WebSocket,
-   ) {
+  handleMirrorMessage(@MessageBody() data: any, @ConnectedSocket() client: WebSocket) {
     return this.commandProcessor.mirrorResponse(data);
   }
 

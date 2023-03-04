@@ -24,7 +24,7 @@ import {
  * @returns
  */
 export function indexerEntities(chain: string) {
-  let entities: any = [DBTransactionBase, DBBlockBase, DBState];
+  const entities: any = [DBTransactionBase, DBBlockBase, DBState];
   switch (chain.toLowerCase()) {
     case "btc":
       entities.push(DBBlockBTC, DBTransactionBTC0, DBTransactionBTC1);

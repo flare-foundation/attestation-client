@@ -12,10 +12,7 @@ export class BTCProcessorService extends VerifierProcessor {
   client: MCC.BTC;
   indexedQueryManager: IndexedQueryManager;
 
-  constructor(
-    private config: VerifierConfigurationService,
-    private manager: EntityManager
-  ) {
+  constructor(private config: VerifierConfigurationService, private manager: EntityManager) {
     super();
     this.client = new MCC.BTC(this.config.config.chainConfiguration.mccCreate as UtxoMccCreate);
 
@@ -34,11 +31,7 @@ export class BTCProcessorService extends VerifierProcessor {
 
   public async verify(attestationRequest: AttestationRequest) {
     this.assertIsSupported(attestationRequest);
-    let response = await verifyBTC(
-      this.client,
-      attestationRequest.request,
-      this.indexedQueryManager
-    );
+    let response = await verifyBTC(this.client, attestationRequest.request, this.indexedQueryManager);
     return hexlifyBN(response);
   }
 

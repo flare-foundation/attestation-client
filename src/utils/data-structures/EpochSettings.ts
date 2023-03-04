@@ -70,10 +70,10 @@ export class EpochSettings {
    * Otherwise 'undefined' is returned.
    */
   public getEpochIdForBitVoteTimeSec(timeSec: number): number | undefined {
-    let timeMs = toBN(timeSec).mul(toBN(1000));
-    let epochId = this.getEpochIdForTime(timeMs);
-    let epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs));
-    let offset = timeMs.sub(epochStartTime);
+    const timeMs = toBN(timeSec).mul(toBN(1000));
+    const epochId = this.getEpochIdForTime(timeMs);
+    const epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs));
+    const offset = timeMs.sub(epochStartTime);
     if (offset.lte(this._bitVoteWindowDurationMs)) {
       return epochId.toNumber();
     }

@@ -44,9 +44,7 @@ export class IndexerEngineService {
   public async getBlockTransactions(blockNumber: number): Promise<DBTransactionBase[]> {
     let results: any[] = [];
     for (let table of this.configService.transactionTable) {
-      let query = this.manager
-        .createQueryBuilder(table as any, "transaction")
-        .andWhere("transaction.blockNumber = :blockNumber", { blockNumber });
+      let query = this.manager.createQueryBuilder(table as any, "transaction").andWhere("transaction.blockNumber = :blockNumber", { blockNumber });
       results = results.concat(await query.getMany());
     }
     return results.map((res) => {
@@ -60,9 +58,7 @@ export class IndexerEngineService {
   public async getTransaction(txHash: string): Promise<DBTransactionBase> | null {
     let results: any[] = [];
     for (let table of this.configService.transactionTable) {
-      let query = this.manager
-        .createQueryBuilder(table as any, "transaction")
-        .andWhere("transaction.transactionId = :txHash", { txHash });
+      let query = this.manager.createQueryBuilder(table as any, "transaction").andWhere("transaction.transactionId = :txHash", { txHash });
       results = results.concat(await query.getOne());
     }
     for (let res of results) {
@@ -77,18 +73,14 @@ export class IndexerEngineService {
   }
 
   public async getBlock(blockHash: string): Promise<DBBlockBase> {
-    let query = this.manager
-      .createQueryBuilder(this.configService.blockTable as any, "block")
-      .andWhere("block.blockHash = :blockHash", { blockHash });
-    let result = await query.getOne() as DBBlockBase;
+    let query = this.manager.createQueryBuilder(this.configService.blockTable as any, "block").andWhere("block.blockHash = :blockHash", { blockHash });
+    let result = (await query.getOne()) as DBBlockBase;
     return result;
   }
 
   public async getBlockAt(blockNumber: number): Promise<DBBlockBase> {
-    let query = this.manager
-      .createQueryBuilder(this.configService.blockTable as any, "block")
-      .andWhere("block.blockNumber = :blockNumber", { blockNumber });
-    let result = await query.getOne() as DBBlockBase;
+    let query = this.manager.createQueryBuilder(this.configService.blockTable as any, "block").andWhere("block.blockNumber = :blockNumber", { blockNumber });
+    let result = (await query.getOne()) as DBBlockBase;
     return result;
   }
 
@@ -116,9 +108,7 @@ export class IndexerEngineService {
   public async getTransactionsWithPaymentReference(reference: string): Promise<DBTransactionBase[]> {
     let results: any[] = [];
     for (let table of this.configService.transactionTable) {
-        let query = this.manager
-          .createQueryBuilder(table as any, "transaction")
-          .andWhere("transaction.paymentReference = :reference", { reference });
+      let query = this.manager.createQueryBuilder(table as any, "transaction").andWhere("transaction.paymentReference = :reference", { reference });
       results = results.concat(await query.getMany());
     }
     return results.map((res) => {

@@ -23,7 +23,7 @@ export class SourceManager {
   requestsPerSecond = 0;
 
   sourceId: SourceId;
-  
+
   // queues
   attestationsQueue = new Array<Attestation>();
   attestationsPriorityQueue = new PriorityQueue<Attestation>();

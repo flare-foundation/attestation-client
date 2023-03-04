@@ -72,7 +72,7 @@ export class BitmaskAccumulator {
     if (hexString.startsWith("0x")) {
       value = hexString.slice(2);
     }
-    let bitmask = new BitmaskAccumulator(8);
+    const bitmask = new BitmaskAccumulator(8);
     bitmask.buffer = Buffer.from(value, "hex");
     bitmask.length = (value.length + (hexString.length % 2)) / 2;
     bitmask.count = bitmask.length;
@@ -85,7 +85,7 @@ export class BitmaskAccumulator {
    * @param bitString
    */
   public static fromBitString(bitString: string) {
-    let result = new BitmaskAccumulator(bitString.length);
+    const result = new BitmaskAccumulator(bitString.length);
     for (let i = 0; i < bitString.length; i++) {
       if (bitString[i] === "1") {
         result.addBit(true);
@@ -126,15 +126,15 @@ export class BitmaskAccumulator {
     if (value.startsWith("0x")) {
       value = value.slice(2);
     }
-    let buffer2 = Buffer.from(value, "hex");
+    const buffer2 = Buffer.from(value, "hex");
     if (buffer2.length > this.buffer.length) {
       throw new Error("Buffer in the accumulator too short");
     }
-    let indices = [];
+    const indices = [];
     for (let i = 0; i < buffer2.length; i++) {
       let byte1 = this.buffer[i];
       let byte2 = buffer2[i];
-      let tmpList = [];
+      const tmpList = [];
       for (let pos = 7; pos >= 0; pos--) {
         const isMissing = !(byte1 % 2) && byte2 % 2;
         if (isMissing) {
@@ -156,7 +156,7 @@ export class BitmaskAccumulator {
    * @param length
    */
   public toIndices(length: number): number[] {
-    let indices = [];
+    const indices = [];
     for (let i = 0; i < length; i++) {
       const index = Math.floor(i / 8);
       const offset = 8 - (i % 8) - 1;
@@ -174,11 +174,11 @@ export class BitmaskAccumulator {
    */
   public hasActiveBitsBeyond(index: number) {
     if (index >= this.length) return false;
-    let indexByte = Math.floor(index / 8);
+    const indexByte = Math.floor(index / 8);
     for (let i = indexByte + 1; i < this.buffer.length; i++) {
       if (this.buffer[i] > 0) return true;
     }
-    let byteValue = (this.buffer[indexByte] << index % 8) % 256;
+    const byteValue = (this.buffer[indexByte] << index % 8) % 256;
     return byteValue > 0;
   }
 }

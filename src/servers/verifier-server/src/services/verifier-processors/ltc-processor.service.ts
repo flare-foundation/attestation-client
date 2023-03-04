@@ -12,10 +12,7 @@ export class LTCProcessorService extends VerifierProcessor {
   client: MCC.LTC;
   indexedQueryManager: IndexedQueryManager;
 
-  constructor(
-    private config: VerifierConfigurationService,
-    private manager: EntityManager
-  ) {
+  constructor(private config: VerifierConfigurationService, private manager: EntityManager) {
     super();
     this.client = new MCC.LTC(this.config.config.chainConfiguration.mccCreate as UtxoMccCreate);
 
@@ -34,11 +31,7 @@ export class LTCProcessorService extends VerifierProcessor {
 
   public async verify(attestationRequest: AttestationRequest) {
     this.assertIsSupported(attestationRequest);
-    let response = await verifyLTC(
-      this.client,
-      attestationRequest.request,
-      this.indexedQueryManager
-    );
+    let response = await verifyLTC(this.client, attestationRequest.request, this.indexedQueryManager);
     return hexlifyBN(response);
   }
 

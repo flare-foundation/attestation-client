@@ -29,7 +29,7 @@ export class GlobalAttestationConfig implements IReflection<GlobalAttestationCon
   }
 
   initialize() {
-    for (let sourceConfig of this.sources) {
+    for (const sourceConfig of this.sources) {
       sourceConfig.initialize();
       this.sourcesMap.set(sourceConfig.sourceId, sourceConfig);
     }

@@ -11,7 +11,6 @@ import { VerifierRouteConfig } from "../verification/routing/configs/VerifierRou
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 import { GlobalAttestationConfig } from "./configs/GlobalAttestationConfig";
-import { SourceConfig } from "./configs/SourceConfig";
 
 const VERIFIER_CONFIG_FILE_RE = /^verifier-routes-(\d+)-config.json$/;
 const GLOBAL_CONFIG_FILE_RE = /^global-(\d+)-config.json$/;
@@ -216,7 +215,7 @@ export class GlobalConfigManager {
         router = new VerifierRouter();
         router.initialize(config, definitions);
         this.hashToVerifierRouter.set(hash, router);
-        this.logger.info(`New config for round ${config.startRoundId} loaded.`)
+        this.logger.info(`New config for round ${config.startRoundId} loaded.`);
       }
       return {
         config,

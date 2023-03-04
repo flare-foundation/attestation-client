@@ -9,7 +9,7 @@ export function getTimeMilli() {
   // Test purposes only
   if (process.env.NODE_ENV === "development") {
     if (process.env.TEST_OFFSET_TIME) {
-      let offset = parseInt("" + process.env.TEST_OFFSET_TIME, 10);
+      const offset = parseInt("" + process.env.TEST_OFFSET_TIME, 10);
       return now + offset * 1000;
     }
     if (process.env.TEST_SCHEDULER_TIME) {

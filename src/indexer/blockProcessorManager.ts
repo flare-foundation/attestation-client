@@ -128,7 +128,9 @@ export class BlockProcessorManager {
 
     // terminate app on exception
     // eslint-disable-next-line
-    criticalAsync(`process -> BlockProcessorManager(${block.number})::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
+    criticalAsync(`process -> BlockProcessorManager(${block.number})::processor.initializeJobs exception:`, () =>
+      processor.initializeJobs(validatedBlock, this.completeCallback)
+    );
   }
 
   /**
@@ -150,7 +152,9 @@ export class BlockProcessorManager {
 
     // terminate app on exception
     // eslint-disable-next-line
-    criticalAsync(`process -> BlockProcessorManager(${block.number})::processor.initializeJobs exception:`, () => processor.initializeJobs(validatedBlock, this.completeCallback));
+    criticalAsync(`process -> BlockProcessorManager(${block.number})::processor.initializeJobs exception:`, () =>
+      processor.initializeJobs(validatedBlock, this.completeCallback)
+    );
   }
 
   /**

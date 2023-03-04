@@ -22,23 +22,22 @@ export class SourceRouter {
   }
 
   /**
-   * Initialize existing source manager @param roundId verifier configs and create new verifier sources managers. 
-   * @param roundId 
+   * Initialize existing source manager @param roundId verifier configs and create new verifier sources managers.
+   * @param roundId
    */
-  initializeSources(roundId: number) {
-    const config = this.globalConfigManager.getConfig(roundId);
-
-    for (let sourceName of config.verifierRouter.routeMap.keys()) {
+  initializeSourcesForRound(roundId: number) {
+    let verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
+    for (let sourceName of verifierRouter.routeMap.keys()) {
       const sourceId = toSourceId(sourceName);
       let sourceManager = this.sourceManagers.get(sourceId);
       if (sourceManager) {
-        sourceManager.refreshVerifierSourceConfig(roundId);
+        sourceManager.refreshLatestRoundId(roundId);
         continue;
       }
 
       // create new source manager
       sourceManager = new SourceManager(this.globalConfigManager, sourceId);
-      sourceManager.refreshVerifierSourceConfig(roundId);
+      sourceManager.refreshLatestRoundId(roundId);
       this.addSourceManager(sourceId, sourceManager);
     }
 
@@ -53,9 +52,9 @@ export class SourceRouter {
   }
 
   /**
-   * Returns source manager for given source 
-   * @param sourceId 
-   * @returns 
+   * Returns source manager for given source
+   * @param sourceId
+   * @returns
    */
   getSourceManager(sourceId: SourceId): SourceManager {
     const sourceManager = this.sourceManagers.get(sourceId);

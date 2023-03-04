@@ -48,18 +48,18 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   const request = {
     attestationType: AttestationType.ConfirmedBlockHeightExists,
     sourceId,
-    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
     blockNumber,
-    queryWindow
+    queryWindow,
   } as ARConfirmedBlockHeightExists;
-  if (choice === 'WRONG_MIC') {
+  if (choice === "WRONG_MIC") {
     return request;
   }
   let attestation = createTestAttestationFromRequest(request, 0);
   try {
     let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
     // augment with message integrity code
-    if (response.status === 'OK') {
+    if (response.status === "OK") {
       request.messageIntegrityCode = hashConfirmedBlockHeightExists(request, response.response, MIC_SALT);
       logger.info(`Request augmented correctly (ConfirmedBlockHeightExists)`);
       return request;
@@ -68,5 +68,4 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
     logger.info(`Attestation verification failed: ${e}`);
   }
   return null;
-
 }

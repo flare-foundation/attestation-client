@@ -21,7 +21,7 @@ const { promisify } = require('util');
 
 // CONFIG_PATH should be set correctly
 export async function bootstrapAttestationClient(n: number): Promise<AttesterClient> {
-   process.env.TEST_CREDENTIALS = "1";
+   // process.env.TEST_CREDENTIALS = "1"; 
    // Reading configuration
    const config = await readSecureConfig(new AttestationClientConfig(), `attester_${n}`);
 
@@ -113,9 +113,6 @@ export async function submitAttestationRequest(stateConnector: StateConnectorTem
    const signed = await wallet.signTransaction(txStateConnector);
    return await web3.eth.sendSignedTransaction(signed.rawTransaction);
 }
-// process.env.TEST_CREDENTIALS = "1"
-// process.env.CONFIG_PATH = CONFIG_PATH;
-
 
 export async function bootstrapAttestationWebServer(
    externalLogger?: AttLogger
@@ -287,7 +284,7 @@ export async function getVoterAddresses(n = 9) {
    const web3 = new Web3();
    for (let i = 0; i < n; i++) {
       // console.log("XXX", fs.readFileSync(`./test/attestationClient/test-data/attester/attester_${i}-config.json`).toString())
-      let json = readJSONfromFile<any>(`./test/attestationClient/test-data/attester/attester_${i}-config.json`);
+      let json = readJSONfromFile<any>(`./test/attestationClient/test-data/templates/attester_${i}-config.json`);
       let account = web3.eth.accounts.privateKeyToAccount(json.web.accountPrivateKey);
       voters.push(account.address);
    }

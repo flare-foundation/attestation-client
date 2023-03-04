@@ -111,7 +111,7 @@ export class LimitingProcessor {
   constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = client;
-    this.logger = options?.logger ?? getGlobalLogger()
+    this.logger = options?.logger ?? getGlobalLogger();
     // eslint-disable-next-line
     criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }
@@ -190,8 +190,9 @@ export class LimitingProcessor {
       `${(this.debugLabel ? this.debugLabel : "").padEnd(10)}  calls/s: ${this.client.reqsPs.toString().padStart(3)}   retries/s: ${this.client.retriesPs
         .toString()
         .padStart(3)}   inProcessing: ${this.client.inProcessing.toString().padStart(3)}   inQueue: ${this.client.inQueue
-          .toString()
-          .padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}   topLevelJobs: ${this.topLevelJobsDoneCounter
+        .toString()
+        .padStart(3)}   canAccept: ${this.client.canAccept.toString().padStart(5)}   queue len: ${this.queue.size.toString().padStart(7)}   topLevelJobs: ${
+        this.topLevelJobsDoneCounter
       }/${this.topLevelJobsCounter}`
     );
   }

@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { VerifierConfigurationService } from './verifier-configuration.service';
+import { Inject, Injectable } from "@nestjs/common";
+import { VerifierConfigurationService } from "./verifier-configuration.service";
 
 @Injectable()
 export class WsCommandProcessorService {
@@ -11,7 +11,7 @@ export class WsCommandProcessorService {
   public mirrorResponse(data: any) {
     let response = {
       status: "OK",
-      data
+      data,
     };
     return response;
   }
@@ -19,5 +19,4 @@ export class WsCommandProcessorService {
   // public supportedAttestationTypes(): [] {
   //   return this.config.wsServerCredentials.sourceId;
   // }
-
 }

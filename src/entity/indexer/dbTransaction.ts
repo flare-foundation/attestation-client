@@ -1,4 +1,4 @@
-  import { ChainType } from "@flarenetwork/mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 import { BaseEntity } from "../base/BaseEntity";
 

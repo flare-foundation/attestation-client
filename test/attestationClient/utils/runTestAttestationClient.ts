@@ -14,7 +14,7 @@ export async function bootstrapAttestationClient(n: number, configPath?: string,
   process.env.NODE_ENV = "development"
   process.env.TEST_CREDENTIALS = "1";
   if(configPath) {
-    process.env.CONFIG_PATH = configPath;
+    process.env.SECURE_CONFIG_PATH = configPath;
   }
   if(testDBPath) {
     process.env.TEST_DB_PATH = testDBPath;

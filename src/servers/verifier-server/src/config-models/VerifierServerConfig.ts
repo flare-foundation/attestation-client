@@ -14,7 +14,6 @@ export class VerifierServerConfig implements IReflection<VerifierServerConfig> {
 
   sourceId: string = "";
   attestationTypes: string[] = [];
- 
 
   instanciate(): VerifierServerConfig {
     return new VerifierServerConfig();
@@ -26,5 +25,4 @@ export class VerifierServerConfig implements IReflection<VerifierServerConfig> {
     info.arrayMap.set("attestationTypes", "string");
     return info;
   }
-
 }

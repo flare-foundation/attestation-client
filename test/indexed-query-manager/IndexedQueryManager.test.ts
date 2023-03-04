@@ -26,7 +26,7 @@ const DB_BLOCK_TABLE = DBBlockXRP;
 const DB_TX_TABLE = DBTransactionXRP0;
 const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
-const CONFIG_PATH = "../test/indexed-query-manager/test-data"
+const SECURE_CONFIG_PATH = "./test/indexed-query-manager/test-data"
 
 describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
   let indexedQueryManager: IndexedQueryManager;
@@ -39,7 +39,7 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
   before(async () => {
     process.env.VERIFIER_TYPE = "xrp"
     process.env.TEST_CREDENTIALS = "1";
-    process.env.CONFIG_PATH = CONFIG_PATH;
+    process.env.SECURE_CONFIG_PATH = SECURE_CONFIG_PATH;
     
     let dbOptions = await createTypeOrmOptions("test");
     dataSource = new DataSource(dbOptions as DataSourceOptions);

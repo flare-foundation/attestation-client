@@ -1,12 +1,12 @@
 import fs from "fs";
-import * as path from 'path';
+import * as path from "path";
 import * as yargs from "yargs";
 import { readJSON } from "../utils/config/json";
 import { getCryptoSafeRandom } from "../utils/helpers/crypto-utils";
 import { getGlobalLogger } from "../utils/logging/logger";
 import { replaceAllVars } from "./utils";
 
-// command line 
+// command line
 // -j filename : json config file
 // -c name : chain name
 // -r replace-with
@@ -19,9 +19,7 @@ const args = yargs
   .option("replaceConfig", { alias: "r", type: "array", description: "Replace-with", default: "", demand: false })
   .option("withConfig", { alias: "w", type: "array", description: "replace-With", default: "", demand: false })
   .option("inputFilename", { alias: "i", type: "string", description: "input filename", default: "", demand: true })
-  .option("outputFilename", { alias: "o", type: "string", description: "output filename", default: "", demand: true })
-  .argv;
-
+  .option("outputFilename", { alias: "o", type: "string", description: "output filename", default: "", demand: true }).argv;
 
 const logger = getGlobalLogger();
 
@@ -58,7 +56,6 @@ function addEnv(name: string) {
   }
 }
 
-
 async function processFile(inputFilename: string, outputFilename: string, chain: string) {
   logger.info(`processing ^G${inputFilename}^^ (${outputFilename})`);
   let data = fs.readFileSync(inputFilename).toString();
@@ -87,14 +84,13 @@ async function processFile(inputFilename: string, outputFilename: string, chain:
 }
 
 async function run() {
-
   // read config from env specified folder
   if (args["processConfig"]) {
     if (process.env.JSON_CONFIG_PATH) {
       const files = fs.readdirSync(process.env.JSON_CONFIG_PATH);
 
       for (const file of files) {
-        if (path.extname(file).toLowerCase() !== '.json') {
+        if (path.extname(file).toLowerCase() !== ".json") {
           continue;
         }
 
@@ -115,7 +111,7 @@ async function run() {
   addEnv("SECRET_NODES_TESTNET");
   addEnv("SECRET_NODES_MAINNET");
 
-  // add command prompt 
+  // add command prompt
   const replace = args["replaceConfig"];
   const withthis = args["withConfig"];
 

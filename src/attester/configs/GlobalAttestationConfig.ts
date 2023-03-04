@@ -1,33 +1,44 @@
-import { AdditionalTypeInfo } from "../../utils/reflection/reflection";
+import { optional } from "@flarenetwork/mcc";
+import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflection";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
-import { VerifierRouter } from "../../verification/routing/VerifierRouter";
 import { SourceId } from "../../verification/sources/sources";
-import { SourceLimiterConfig } from "./SourceLimiterConfig";
+import { SourceConfig } from "./SourceConfig";
 
 export const DAC_REFRESH_TIME_S = 10;
 /**
  * Class providing SourceLimiterConfig for each source from the @param startRoundId on.
  * NOTE: If you add any new field, please update function 'load()' accordingly!
  */
-export class GlobalAttestationConfig {
-  startRoundId!: number;
+export class GlobalAttestationConfig implements IReflection<GlobalAttestationConfig> {
+  startRoundId: number;
   defaultSetAssignerAddresses: string[] = [];
   consensusSubsetSize: number = 1;
-  // !!!NOTE: If you add any new field, please update function 'load()' accordingly!
+  sources: SourceConfig[] = [];
 
-  sourceLimiters = new Map<SourceId, SourceLimiterConfig>();
-  verifierRouter = new VerifierRouter();
+  @optional() sourcesMap = new Map<SourceId, SourceConfig>();
 
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     const info = new AdditionalTypeInfo();
     info.arrayMap.set("defaultSetAssignerAddresses", "string");
+    info.arrayMap.set("sources", new SourceConfig());
     return info;
   }
-}
 
-export function sourceAndTypeSupported(attestationConfig: GlobalAttestationConfig, source: SourceId, type: AttestationType): boolean {
-  const config = attestationConfig.sourceLimiters.get(source);
-  if (!config) return false;
-  const typeConfig = config.attestationTypes.get(type);
-  return !!typeConfig;
+  instanciate(): GlobalAttestationConfig {
+    return new GlobalAttestationConfig();
+  }
+
+  initialize() {
+    for (let sourceConfig of this.sources) {
+      sourceConfig.initialize();
+      this.sourcesMap.set(sourceConfig.sourceId, sourceConfig);
+    }
+  }
+
+  public sourceAndTypeSupported(sourceId: SourceId, type: AttestationType): boolean {
+    const config = this.sourcesMap.get(sourceId);
+    if (!config) return false;
+    const typeConfig = config.attestationTypesMap.get(type);
+    return !!typeConfig;
+  }
 }

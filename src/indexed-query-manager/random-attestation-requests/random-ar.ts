@@ -135,7 +135,7 @@ export function prepareGenerator(
       );
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
 

@@ -5,7 +5,7 @@ import { DatabaseConnectOptions } from "./DatabaseConnectOptions";
 
 /**
  * DatabaseService class for managing the connection to a database.  It creates TypeORM connection and provides relevant entity manager class.
- * It supports two databases, MySQL and better-sqlite3. The latter is 
+ * It supports two databases, MySQL and better-sqlite3. The latter is
  * used for testing purposes only.
  */
 export class DatabaseService {
@@ -24,7 +24,7 @@ export class DatabaseService {
     options: DatabaseConnectOptions,
     databaseName = "",
     connectionName = "",
-    testDBPath: boolean | string = false  // if boolean, then in-memory better-sqlite3 DB is used. If string then it is considered as a path to .db file. Can be used only for testing.
+    testDBPath: boolean | string = false // if boolean, then in-memory better-sqlite3 DB is used. If string then it is considered as a path to .db file. Can be used only for testing.
   ) {
     this.logger = logger;
 
@@ -94,7 +94,7 @@ export class DatabaseService {
    * Returns true if the database used is Sqlite3 (better-sqlite3).
    */
   get isSqlite3() {
-    return this._isSqlite3
+    return this._isSqlite3;
   }
 
   /**

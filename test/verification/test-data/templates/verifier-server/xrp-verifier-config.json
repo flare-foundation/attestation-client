@@ -1,0 +1,48 @@
+{
+   "apiKeys": [
+      {
+         "name": "test1",
+         "apiKey": "123456"
+      },
+      {
+         "name": "test2",
+         "apiKey": "7890"
+      }
+   ],
+   "port": 9501,
+   "checkAliveIntervalMs": 5000,
+   "sourceId": "XRP",
+   "attestationTypes": [
+      "Payment",
+      "BalanceDecreasingTransaction"
+   ],   
+   "indexerDatabase": {
+      "port": 3306,
+      "database": "",
+      "username": "",
+      "password": "",
+      "inMemory": true
+   },
+   "chainConfiguration": {
+      "name": "XRP",
+      "mccCreate": {
+         "url": "https://s.altnet.rippletest.net:51234/"
+      },
+      "rateLimitOptions": {
+         "maxRPS": 20,
+         "timeoutMs": 30000,
+         "retries": 10
+      },
+      "numberOfConfirmations": 1,
+      "syncReadAhead": 20,
+      "blockCollecting": "raw",
+      "minimalStorageHistoryDays": 2,
+      "minimalStorageHistoryBlocks": 100,
+      "maxRequestsPerSecond": 80,
+      "maxProcessingTransactions": 3000,
+      "maxFailedRetries": 1,
+      "delayBeforeRetryMs": 10000,
+      "maxValidIndexerDelaySec": 10,
+      "reverificationTimeOffset": 10
+   }
+}

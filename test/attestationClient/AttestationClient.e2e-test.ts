@@ -36,8 +36,6 @@ const LAST_BLOCK = LAST_CONFIRMED_BLOCK + 3;
 const BLOCK_CHOICE = 950;
 const TXS_IN_BLOCK = 10;
 
-const CONFIG_PATH_ATTESTER = "../test/attestationClient/test-data/attester"
-const CONFIG_PATH_VERIFIER = "../test/attestationClient/test-data/test-verifier"
 const SECURE_CONFIG_PATH = "./test/attestationClient/test-data"
 
 const RPC = "http://127.0.0.1:8545";
@@ -172,7 +170,6 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     // Initialize verifiers    
     let bootstrapOptions = {
       lastTimestamp: startTime,
-      CONFIG_PATH: CONFIG_PATH_VERIFIER,
       FIRST_BLOCK, LAST_BLOCK, LAST_CONFIRMED_BLOCK, TXS_IN_BLOCK, BLOCK_CHOICE
     } as VerifierBootstrapOptions;
     setup = await bootstrapTestVerifiers(bootstrapOptions, false);
@@ -198,8 +195,6 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     // Attester related intializations
     ///////////////////////////////////
 
-    // DO NOT CHANGE CONFIG_PATH while attester clients are running!!!
-    process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
     process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = '' + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
     process.env.TEST_SAMPLING_REQUEST_INTERVAL = '' + 1000;
     let bootstrapPromises = [];
@@ -221,7 +216,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
         "ts-node",
         "test/attestationClient/utils/runTestAttestationClient.ts",
         "-n", `${i}`,
-        "-c", "../test/attestationClient/test-data/attester"
+        "-c", "./test/attestationClient/test-data"
       ], { shell: true });
       childProcesses.push(child)
     }
@@ -282,7 +277,6 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   });
 
   it.skip(`Should be able to verify attestations through VerifierRouter`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH_VERIFIER;
     const verifierRouter = new VerifierRouter();
     let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
     await verifierRouter.initialize(verifierConfig, definitions);

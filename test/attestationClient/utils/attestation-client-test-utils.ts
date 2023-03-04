@@ -19,7 +19,9 @@ import { BitVoting } from "../../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../../typechain-web3-v1/StateConnectorTempTran";
 const { promisify } = require('util');
 
-// CONFIG_PATH should be set correctly
+// SECURE_CONFIG_PATH should be set correctly
+// Also, it should be set:
+// process.env.TEST_CREDENTIALS = "1";
 export async function bootstrapAttestationClient(n: number): Promise<AttesterClient> {
    // process.env.TEST_CREDENTIALS = "1"; 
    // Reading configuration
@@ -117,7 +119,7 @@ export async function submitAttestationRequest(stateConnector: StateConnectorTem
 export async function bootstrapAttestationWebServer(
    externalLogger?: AttLogger
 ): Promise<INestApplication> {
-   // assumes process.env.CONFIG_PATH that is already set for attester client.
+   // assumes process.env.SECURE_CONFIG_PATH that is already set for attester client.
    // Do not try to change it here!
 
    const logger = externalLogger ?? getGlobalLogger("web");

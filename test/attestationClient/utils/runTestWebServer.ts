@@ -3,8 +3,10 @@ import { bootstrapAttestationWebServer } from "./attestation-client-test-utils";
 
 
 process.env.NODE_ENV = "development"
+// Should be set from outside:
 // process.env.TEST_CREDENTIALS = "1";
-// process.env.CONFIG_PATH = "../test/attestationClient/test-data/attester";
+// the correct:
+// process.env.CONFIG_PATH
 
 bootstrapAttestationWebServer()
 .then(() => {})

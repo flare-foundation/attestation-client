@@ -35,33 +35,13 @@ export async function getRandomAttestationRequest(
 
   switch (attestationType) {
     case AttestationType.Payment:
-      return prepareRandomizedRequestPayment(
-        logger,
-        indexedQueryManager,
-        txOrBlock as DBTransactionBase,
-        sourceId
-      );
+      return prepareRandomizedRequestPayment(logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId);
     case AttestationType.BalanceDecreasingTransaction:
-      return prepareRandomizedRequestBalanceDecreasingTransaction(
-        logger,
-        indexedQueryManager,
-        txOrBlock as DBTransactionBase,
-        sourceId
-      );
+      return prepareRandomizedRequestBalanceDecreasingTransaction(logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId);
     case AttestationType.ConfirmedBlockHeightExists:
-      return prepareRandomizedRequestConfirmedBlockHeightExists(
-        logger,
-        indexedQueryManager,
-        txOrBlock as DBBlockBase,
-        sourceId,
-      );
+      return prepareRandomizedRequestConfirmedBlockHeightExists(logger, indexedQueryManager, txOrBlock as DBBlockBase, sourceId);
     case AttestationType.ReferencedPaymentNonexistence:
-      return prepareRandomizedRequestReferencedPaymentNonexistence(
-        logger,
-        indexedQueryManager,
-        txOrBlock as DBTransactionBase,
-        sourceId,
-      );
+      return prepareRandomizedRequestReferencedPaymentNonexistence(logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId);
     default:
       throw new Error("Invalid attestation type");
   }
@@ -135,7 +115,7 @@ export function prepareGenerator(
       );
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
 

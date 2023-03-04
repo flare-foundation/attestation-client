@@ -1,13 +1,14 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
-  ATT_REQ_PARSER_TEST_FILE, DATA_HASH_TYPE_PREFIX,
+  ATT_REQ_PARSER_TEST_FILE,
+  DATA_HASH_TYPE_PREFIX,
   DEFAULT_GEN_FILE_HEADER,
   GENERATED_TEST_ROOT,
   PRETTIER_SETTINGS,
-  WEB3_HASH_PREFIX_FUNCTION
+  WEB3_HASH_PREFIX_FUNCTION,
 } from "./cg-constants";
 
 function genItForAttestationParser(definition: AttestationTypeScheme) {
@@ -15,9 +16,7 @@ function genItForAttestationParser(definition: AttestationTypeScheme) {
   return `
 it("Should encode and decode for '${definition.name}'", async function () { 
 	for(const sourceId of [${sourceIds}]) {
-		const randomRequest = getRandomRequestForAttestationTypeAndSourceId(${
-    definition.id
-  } as AttestationType, sourceId as SourceId) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+		const randomRequest = getRandomRequestForAttestationTypeAndSourceId(${definition.id} as AttestationType, sourceId as SourceId) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
     const bytes = encodeRequest(randomRequest);
     const parsedRequest = parseRequest(bytes);

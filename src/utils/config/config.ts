@@ -8,25 +8,31 @@ const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
 /**
  * Read config file with all the parameters.
- * 
+ *
  * Function creates configuration object of @param obj and checks if all class members are set.
  * Any unset (non optional) members return error.
- * 
+ *
  * Instance class @param obj must be inherited from `IReflection`.
- * 
+ *
  * use `CONFIG_PATH` env variable to set configuration path. note that path start location is rooted in `<app_root>/.config/` folder.
- * 
+ *
  * `NODE_ENV` env variables controls default path (if mode or path modifiers are not used).
- * 
+ *
  * NOTE: used for un-encrypted credential and test purposes only!
- * @param project project name 
+ * @param project project name
  * @param type configuration type (config, cretentials)
  * @param mode additional path mode modifier
  * @param userPath user path selector
  * @param obj configuration object instance
- * @returns 
+ * @returns
  */
-export function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
+export function readConfigBase<T extends IReflection<T>>(
+  project: string,
+  type: string,
+  mode: string = undefined,
+  userPath: string = undefined,
+  obj: T = null
+): T {
   let path = `./configs/`;
 
   if (userPath && userPath !== "") {
@@ -67,11 +73,11 @@ export function readConfigBase<T extends IReflection<T>>(project: string, type: 
 /**
  * Typed helper wrapper for for `readConfigBase` to read `config`.
  * NOTE: Reads un-encrypted configuration. To be used only for testing!
- * @param obj 
- * @param project 
- * @param mode 
- * @param userPath 
- * @returns 
+ * @param obj
+ * @param project
+ * @param mode
+ * @param userPath
+ * @returns
  */
 export function readConfig<T extends IReflection<T>>(obj: T, project: string, mode: string = undefined, userPath: string = undefined): T {
   return readConfigBase<T>(project, "config", mode, userPath, obj);

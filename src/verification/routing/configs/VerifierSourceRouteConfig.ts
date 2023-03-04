@@ -11,7 +11,7 @@ export class VerifierSourceRouteConfig implements IReflection<VerifierSourceRout
   @optional() public maxProcessingTransactions: number = 3000;
   @optional() public maxFailedRetry: number = 1;
   @optional() public delayBeforeRetry: number = 10;
-  @optional() public reverificationTimeOffset: number = 10;         
+  @optional() public reverificationTimeOffset: number = 10;
 
   public routes: VerifierAttestationTypeRouteConfig[] = [];
 

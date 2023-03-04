@@ -1,5 +1,5 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../sources/sources";
 import { DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS, VERIFIERS_ROOT, VERIFIERS_ROUTING_FILE } from "./cg-constants";
@@ -7,7 +7,7 @@ import { trimStartNewline } from "./cg-utils";
 import { genVerifier, verifierFile, verifierFolder, verifierFunctionName } from "./cg-verifiers";
 
 function genAttestationCaseForSource(definition: AttestationTypeScheme, sourceId: number) {
-  if (definition.supportedSources.find(x => x === sourceId) !== undefined) {
+  if (definition.supportedSources.find((x) => x === sourceId) !== undefined) {
     const result = `
     case AttestationType.${definition.name}:
       return ${verifierFunctionName(definition, sourceId)}(client, attestationRequest, indexer);`;
@@ -15,7 +15,6 @@ function genAttestationCaseForSource(definition: AttestationTypeScheme, sourceId
   }
   return "";
 }
-
 
 function genVerifiersForSourceId(definitions: AttestationTypeScheme[], sourceId: number) {
   const sourceCases = definitions.map((definition) => genAttestationCaseForSource(definition, sourceId)).join("\n");
@@ -38,20 +37,19 @@ export async function verify${sourceName}(
           throw new WrongSourceIdError("Wrong source id");
   }
 }
-`
+`;
   return trimStartNewline(result);
 }
 
 function genVerifiersForSources(definitions: AttestationTypeScheme[]) {
-   let sources = new Set<SourceId>();
-   definitions.forEach(definition => {
-    definition.supportedSources.forEach(source => sources.add(source));
-   })
-   let sourceList = [...sources];
-   sourceList.sort();
-   return sourceList.map((sourceId) => genVerifiersForSourceId(definitions, sourceId)).join("\n");
+  let sources = new Set<SourceId>();
+  definitions.forEach((definition) => {
+    definition.supportedSources.forEach((source) => sources.add(source));
+  });
+  let sourceList = [...sources];
+  sourceList.sort();
+  return sourceList.map((sourceId) => genVerifiersForSourceId(definitions, sourceId)).join("\n");
 }
-
 
 function genDefinitionCases(definition: AttestationTypeScheme) {
   const sourceCases = definition.supportedSources.map((sourceId) => genSourceCase(definition, sourceId)).join("\n");
@@ -75,7 +73,7 @@ case SourceId.${getSourceName(sourceId)}:
 export function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
   let routerImports = "";
   const attestationTypeCases = definitions.map((definition) => genDefinitionCases(definition)).join("\n");
-  const verifiersForSources = genVerifiersForSources(definitions); 
+  const verifiersForSources = genVerifiersForSources(definitions);
 
   for (const definition of definitions) {
     for (const sourceId of definition.supportedSources) {
@@ -85,7 +83,7 @@ export function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
         fs.mkdirSync(folder, { recursive: true });
       }
       const verifierContent = genVerifier(definition, sourceId, folder);
-      const prettyContent = prettier.format(verifierContent, PRETTIER_SETTINGS)
+      const prettyContent = prettier.format(verifierContent, PRETTIER_SETTINGS);
       fs.writeFileSync(`${verifierFile(definition, sourceId, folder)}`, prettyContent, "utf8");
       routerImports += `import {${verifierFunctionName(definition, sourceId)}} from "${verifierFile(definition, sourceId, relFolder, false)}"\n`;
     }

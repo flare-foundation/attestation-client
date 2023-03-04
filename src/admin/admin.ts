@@ -162,9 +162,7 @@ async function admin() {
         if (!resAlert) continue;
 
         resAlerts.push(resAlert);
-      }
-      catch (error) {
-      }
+      } catch (error) {}
     }
 
     resPerfs = [];
@@ -177,9 +175,7 @@ async function admin() {
         for (const i of resPerf) {
           resPerfs.push(i);
         }
-      }
-      catch (error) {
-      }
+      } catch (error) {}
     }
 
     // update menu
@@ -202,7 +198,7 @@ async function run() {
   await admin();
 }
 
-setLoggerName( "admin" );
+setLoggerName("admin");
 
 run()
   .then(() => process.exit(0))

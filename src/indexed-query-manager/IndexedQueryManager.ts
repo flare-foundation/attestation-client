@@ -18,7 +18,7 @@ import {
   ReferencedTransactionsQueryRequest,
   ReferencedTransactionsQueryResponse,
   TransactionQueryParams,
-  TransactionQueryResult
+  TransactionQueryResult,
 } from "./indexed-query-manager-types";
 
 ////////////////////////////////////////////////////////
@@ -140,11 +140,10 @@ export class IndexedQueryManager {
     let results = [];
 
     for (const table of this.transactionTable) {
-      let query = this.entityManager
-        .createQueryBuilder(table, "transaction")
+      let query = this.entityManager.createQueryBuilder(table, "transaction");
 
       if (params.startBlockNumber) {
-        query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock : params.startBlockNumber });
+        query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock: params.startBlockNumber });
       }
 
       if (params.endBlockNumber) {
@@ -195,8 +194,7 @@ export class IndexedQueryManager {
     if (!params.blockNumber && !params.hash) {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
     }
-    let query = this.entityManager
-      .createQueryBuilder(this.blockTable, "block")
+    let query = this.entityManager.createQueryBuilder(this.blockTable, "block");
     if (params.confirmed) {
       query = query.andWhere("block.confirmed = :confirmed", { confirmed: !!params.confirmed });
     }
@@ -260,11 +258,11 @@ export class IndexedQueryManager {
   public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
     const blockQueryResult = await this.queryBlock({
       blockNumber: params.blockNumber,
-      confirmed: true
+      confirmed: true,
     });
     return {
       status: blockQueryResult ? "OK" : "NOT_EXIST",
-      block: blockQueryResult?.result
+      block: blockQueryResult?.result,
     };
   }
 
@@ -318,8 +316,8 @@ export class IndexedQueryManager {
     // Too small query window
     if (!transactionsQueryResult.startBlock) {
       return {
-        status: "DATA_AVAILABILITY_FAILURE"
-      }
+        status: "DATA_AVAILABILITY_FAILURE",
+      };
     }
 
     const transactions = transactionsQueryResult.result;
@@ -349,7 +347,7 @@ export class IndexedQueryManager {
       .orderBy("block.blockNumber", "ASC")
       .limit(1);
 
-      return query.getOne();
+    return query.getOne();
   }
 
   /**

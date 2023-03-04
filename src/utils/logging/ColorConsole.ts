@@ -3,7 +3,6 @@ import { round } from "../helpers/utils";
 import { Terminal } from "../monitoring/Terminal";
 import { BgWhite, FgBlack, BgGray, BgRed, FgWhite, FgRed, FgYellow, FgBlue, BgBlue, Reset, processColors } from "./logger";
 
-
 export class ColorConsole extends Transport {
   instance = 0;
 
@@ -110,7 +109,7 @@ export class ColorConsole extends Transport {
           //            |           |
           // "2022-01-10T13:13:07.712Z"
           console.log(BgGray + FgBlack + info.timestamp.substring(11, 11 + 11) + Reset + mem + ` ` + color + processColors(text, color) + Reset);
-        } catch { }
+        } catch {}
       }
     }
 

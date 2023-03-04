@@ -30,13 +30,7 @@ async function Upsert<T>(
     await entityManager.getRepository(DBRoundResult).save(obj);
   } else {
     // ubuntu MYSQL .save sometimes fails
-    await entityManager
-      .createQueryBuilder()
-      .insert()
-      .into(DBRoundResult)
-      .values(obj)
-      .orUpdate([primary_key], keys)
-      .execute();
+    await entityManager.createQueryBuilder().insert().into(DBRoundResult).values(obj).orUpdate([primary_key], keys).execute();
   }
 }
 
@@ -59,7 +53,7 @@ export class AttesterState {
     await retry(`saveOrUpdateRound #${dbRound.roundId}`, async () => {
       try {
         await Upsert(this.entityManager, dbRound, "roundId", { isSqlite3: this.databaseService.isSqlite3 });
-        //await transaction.save( DBRoundResult, dbRound );
+        // await transaction.save( DBRoundResult, dbRound );
       } catch (error) {
         logException(error, `saveOrUpdateRound.save(${dbRound.roundId})`);
       }
@@ -174,7 +168,7 @@ export class AttesterState {
    * @returns
    */
   async getRound(roundId: number): Promise<DBRoundResult> {
-    const dbRound = await this.entityManager.findOne(DBRoundResult, { where: { roundId: roundId } });
+    const dbRound = await this.entityManager.findOne(DBRoundResult, { where: { roundId } });
     if (dbRound) return dbRound;
     getGlobalLogger().warning(`state ^R#${roundId}^^ not found`);
     return undefined;

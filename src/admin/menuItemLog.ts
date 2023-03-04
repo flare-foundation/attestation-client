@@ -48,7 +48,7 @@ export class MenuItemLog extends MenuItemBase {
     //console.log(lines);
     //console.log(follow);
 
-    const es = require('event-stream');
+    const es = require("event-stream");
 
     const colorConsole = new ColorConsole();
 
@@ -62,30 +62,31 @@ export class MenuItemLog extends MenuItemBase {
     //   }
     // }
 
-
     if (lines > 0) {
       const textLines = [];
 
       const read = await new Promise((resolve, reject) => {
-
-        const s = fs.createReadStream(filename)
+        const s = fs
+          .createReadStream(filename)
           .pipe(es.split())
-          .pipe(es.mapSync(function (line) {
-            s.pause();
-            textLines.push(line);
-            if (textLines.length > lines) {
-              textLines.shift();
-            }
-            s.resume();
-          })
-            .on('error', function (err) {
-              console.log('Error while reading file.', err);
-              reject();
-            })
-            .on('end', function () {
-              console.log('Read entire file.')
-              resolve(null);
-            })
+          .pipe(
+            es
+              .mapSync(function (line) {
+                s.pause();
+                textLines.push(line);
+                if (textLines.length > lines) {
+                  textLines.shift();
+                }
+                s.resume();
+              })
+              .on("error", function (err) {
+                console.log("Error while reading file.", err);
+                reject();
+              })
+              .on("end", function () {
+                console.log("Read entire file.");
+                resolve(null);
+              })
           );
       });
 

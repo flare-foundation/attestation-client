@@ -42,7 +42,5 @@ export async function runWebserver() {
   const configurationService = app.get("SERVER_CONFIG") as ServerConfigurationService;
 
   let port = configurationService.serverCredentials.port;
-  await app.listen(port, "0.0.0.0", () =>
-    logger.info(`Server started listening at http://0.0.0.0:${configurationService.serverCredentials.port}`)
-  );
+  await app.listen(port, "0.0.0.0", () => logger.info(`Server started listening at http://0.0.0.0:${configurationService.serverCredentials.port}`));
 }

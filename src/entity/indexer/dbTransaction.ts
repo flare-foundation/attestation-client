@@ -23,9 +23,7 @@ export class DBTransactionBase extends BaseEntity {
   @Column({ type: "varchar", length: 64 }) @Index() transactionType: string = "";
 }
 
-export interface IDBTransactionBase {
-  new (): DBTransactionBase;
-}
+export type IDBTransactionBase = new () => DBTransactionBase;
 
 @Entity({ name: "xrp_transactions0" })
 export class DBTransactionXRP0 extends DBTransactionBase {}

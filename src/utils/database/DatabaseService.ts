@@ -41,13 +41,13 @@ export class DatabaseService {
     if (process.env.NODE_ENV === "development" && (testDBPath || this.options.inMemory || this.options.testSqlite3DBPath !== "")) {
       this._isSqlite3 = true;
 
-      let dbPath: string | undefined = undefined;
+      let dbPath: string | undefined;
       if (testDBPath && typeof testDBPath === "string") {
         dbPath = testDBPath;
       } else if (this.options.testSqlite3DBPath !== "") {
         dbPath = this.options.testSqlite3DBPath;
       }
-      let connectOptions = {
+      const connectOptions = {
         name: this.connectionName,
         type: "better-sqlite3",
         database: dbPath ?? ":memory:",
@@ -60,7 +60,7 @@ export class DatabaseService {
       this.dataSource = new DataSource(connectOptions);
       this.logger.debug2(`entity: ${entities}`);
     } else {
-      let connectOptions = {
+      const connectOptions = {
         name: this.connectionName,
         type: "mysql",
         host: this.options.host,

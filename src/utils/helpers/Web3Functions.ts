@@ -48,7 +48,7 @@ export class Web3Functions {
 
   private async getNonce(): Promise<number> {
     return retry(`Web3Function::getNonce`, async () => {
-      let nonce = await this.web3.eth.getTransactionCount(this.account.address);
+      const nonce = await this.web3.eth.getTransactionCount(this.account.address);
       return parseInt(nonce + "");
     });
   }
@@ -76,13 +76,7 @@ export class Web3Functions {
    * @param verbose
    * @returns
    */
-  public async signAndFinalize3Sequenced(
-    label: string,
-    toAddress: string,
-    fnToEncode: any,
-    timeEnd?: number,
-    verbose = true
-  ): Promise<ExtendedReceipt> {
+  public async signAndFinalize3Sequenced(label: string, toAddress: string, fnToEncode: any, timeEnd?: number, verbose = true): Promise<ExtendedReceipt> {
     try {
       const waitIndex = this.nextIndex;
       this.nextIndex += 1;
@@ -132,11 +126,7 @@ export class Web3Functions {
    * @param fnToEncode - web3 function call
    * @returns
    */
-  private async _signAndFinalize3(
-    label: string,
-    toAddress: string,
-    fnToEncode: any,
-  ): Promise<any> {
+  private async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any): Promise<any> {
     try {
       const nonce = await this.getNonce();
       const tx = {

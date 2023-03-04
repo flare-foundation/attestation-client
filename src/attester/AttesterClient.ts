@@ -85,13 +85,14 @@ export class AttesterClient {
         const attestationData = new AttestationData(event);
 
         // eslint-disable-next-line
-        criticalAsync("onAttestationRequest",
-          () => this.attestationRoundManager.onAttestationRequest(attestationData)
-        );
+        criticalAsync("onAttestationRequest", () => this.attestationRoundManager.onAttestationRequest(attestationData));
       }
     } catch (error) {
       // attestation request is non-parsable. It is ignored
-      logException(error, `${this.label}processEvent(AttestationRequest) - unparsable attestation request: ${(event as AttestationRequest)?.returnValues?.data}`);
+      logException(
+        error,
+        `${this.label}processEvent(AttestationRequest) - unparsable attestation request: ${(event as AttestationRequest)?.returnValues?.data}`
+      );
     }
 
     try {
@@ -161,11 +162,7 @@ export class AttesterClient {
     const startBlock = await this.getBlockBeforeTime(startRoundTime);
 
     // connect to network block callback
-    this.flareDataCollector = new FlareDataCollector(
-      this,
-      startBlock,
-      this.config.web.refreshEventsMs
-    );
+    this.flareDataCollector = new FlareDataCollector(this, startBlock, this.config.web.refreshEventsMs);
 
     await this.flareDataCollector.startCollectingBlocksAndEvents();
   }

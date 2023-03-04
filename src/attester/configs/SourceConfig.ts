@@ -34,7 +34,7 @@ export class SourceConfig implements IReflection<SourceConfig> {
       throw new Error(`Unsupported source id '${this.source}'`);
     }
     this.attestationTypes.forEach((attestationTypeConfig) => {
-      let type = (<any>AttestationType)[attestationTypeConfig.type] as AttestationType;
+      const type = (AttestationType as any)[attestationTypeConfig.type] as AttestationType;
       if (type === undefined) {
         throw new Error(`Unsupported attestation type: '${attestationTypeConfig.type}' for source '${this.source}'`);
       }

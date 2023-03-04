@@ -8,14 +8,12 @@ import { getTimeMilli } from "../utils/helpers/internetTime";
 import { catchErrorAndJustLog } from "../utils/helpers/promiseTimeout";
 import { MOCK_NULL_WHEN_TESTING, round, sleepms } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
-import { toSourceId } from "../verification/sources/sources";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttesterState } from "./AttesterState";
 import { BitVoteData } from "./BitVoteData";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
-import { SourceConfig } from "./configs/SourceConfig";
 import { FlareConnection } from "./FlareConnection";
 import { GlobalConfigManager } from "./GlobalConfigManager";
 import { SourceRouter } from "./source/SourceRouter";
@@ -44,18 +42,13 @@ export class AttestationRoundManager {
 
   private _initialized = false;
 
-  constructor(
-    config: AttestationClientConfig,
-    logger: AttLogger,
-    flareConnection: FlareConnection,
-    sourceRouter?: SourceRouter
-  ) {
+  constructor(config: AttestationClientConfig, logger: AttLogger, flareConnection: FlareConnection, sourceRouter?: SourceRouter) {
     this.attestationClientConfig = config;
     this.logger = logger;
     this.flareConnection = flareConnection;
 
     this.globalConfigManager = new GlobalConfigManager(this.attestationClientConfig, this.logger);
-    this.sourceRouter = sourceRouter ?? new SourceRouter(this.globalConfigManager, logger);
+    this.sourceRouter = sourceRouter ?? new SourceRouter(this.globalConfigManager);
   }
 
   /**

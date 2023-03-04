@@ -111,7 +111,7 @@ export class LimitingProcessor {
   constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
     this.settings = options || LimitingProcessor.defaultLimitingProcessorOptions;
     this.client = client;
-    this.logger = options?.logger ?? getGlobalLogger();
+    this.logger = options?.logger ?? getGlobalLogger()
     // eslint-disable-next-line
     criticalAsync(`LimitingProcessor::constructor -> LimitingProcessor::continue exception: `, () => this.start());
   }

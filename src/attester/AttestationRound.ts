@@ -191,7 +191,7 @@ export class AttestationRound {
   /**
    * Returns bitmask accumulator based on validity of attestations.
    */
-  private get bitVoteAccumulator(): BitmaskAccumulator {
+  get bitVoteAccumulator(): BitmaskAccumulator {
     let bitmask = new BitmaskAccumulator(this.attestations.length);
     for (let attestation of this.attestations) {
       bitmask.addBit(attestation.status === AttestationStatus.valid);
@@ -212,7 +212,7 @@ export class AttestationRound {
    * with last byte of the round id (roundCheck).
    * Used to vote on BitVote contract, if the provider is in the default set.
    */
-  private get bitVoteMaskWithRoundCheck(): string {
+  get bitVoteMaskWithRoundCheck(): string {
     if (!this.bitVoteRecord) {
       throw new Error("Bit vote not yet recorded");
     }
@@ -250,14 +250,14 @@ export class AttestationRound {
    * Calculates the bit voting result for the round.
    * The result is valid if we are sure that all votes are registered.
    */
-  private calculateBitVotingResult(verbose = true): BitmaskAccumulator | undefined {
+  calculateBitVotingResult(verbose = true): BitmaskAccumulator | undefined {
     let votes = [];
     for (let address of this.defaultSetAddresses) {
       votes.push(this.bitVoteMap.get(address) ?? NO_VOTE);
     }
 
     if (verbose) {
-      this.logger.info(`${this.label}Bit voting results`);
+      this.logger.info(`${this.label} Bit voting results`);
       for (let address of this.defaultSetAddresses) {
         let bitString = BitmaskAccumulator.fromHex(this.bitVoteMap.get(address) ?? NO_VOTE).toBitString();
         this.logger.info(`${this.label}${address.slice(0, 10)} - ${bitString}`);
@@ -297,7 +297,7 @@ export class AttestationRound {
     }
 
     if (bitmask.hasActiveBitsBeyond(this.attestations.length)) {
-      this.logger.error(`${this.label}Local and all indices do not match. Critical error!`);
+      this.logger.error(`${this.label} Local and all indices do not match. Critical error!`);
       return undefined;
     }
 
@@ -311,7 +311,7 @@ export class AttestationRound {
    * Records bit vote result. May be called several times (retry)
    * @param verbose - whether verbose logging is used
    */
-  private tryCalculateBitVotingResults(verbose = true) {
+  tryCalculateBitVotingResults(verbose = true) {
     this.logger.info(`${this.label} - tryCalculateBitVotingResults - call`);
     if (this.attestStatus >= AttestationRoundStatus.chosen) {
       this.logger.error(`${this.label} - tryCalculateBitVotingResults - chosen`);
@@ -335,7 +335,7 @@ export class AttestationRound {
     for (let i of votingResultIndices) {
       if (!this.attestations[i]) {
         this.logger.error(
-          `${this.label}Bit vote indices do not match the number of attestations in round ${this.roundId}: index ${i}, attestations length ${this.attestations.length}.`
+          `${this.label} Bit vote indices do not match the number of attestations in round ${this.roundId}: index ${i}, attestations length ${this.attestations.length}.`
         );
         isError = true;
         break;
@@ -345,7 +345,7 @@ export class AttestationRound {
         countRequired++;
         this.attestations[i].chosen = true;
       } else if (status !== AttestationStatus.queued && status != AttestationStatus.processing) {
-        this.logger.info(`${this.label}Unable to provide at least one required attestation.`);
+        this.logger.info(`${this.label} Unable to provide at least one required attestation.`);
         isError = true;
         break;
       }
@@ -369,7 +369,7 @@ export class AttestationRound {
   }
 
   /**
-   * Returns the existing source limter for the source chain of an attestation or creates a new sourceLimiter
+   * Returns the existing source limiter for the source chain of an attestation or creates a new sourceLimiter
    * @param data
    * @returns
    */
@@ -398,7 +398,7 @@ export class AttestationRound {
 
     if (duplicate) {
       this.logger.debug3(
-        `${this.label}attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
+        `${this.label} attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
       );
       this.duplicateCount++;
       // duplicates are discarded
@@ -449,13 +449,13 @@ export class AttestationRound {
     if (this._initialized) {
       return;
     }
-    this.defaultSetAddresses = await retry(`${this.label}AttestationRound ${this.roundId} init default set`, async () =>
+    this.defaultSetAddresses = await retry(`${this.label} AttestationRound ${this.roundId} init default set`, async () =>
       this.flareConnection.getAttestorsForAssignors(this.activeGlobalConfig.defaultSetAssignerAddresses)
     );
 
     this.defaultSetAddresses = this.defaultSetAddresses.map((address) => address.toLowerCase());
 
-    this.logger.debug(`${this.label}Round ${this.roundId} initialized with attestation providers`);
+    this.logger.debug(`${this.label} Round ${this.roundId} initialized with attestation providers`);
     for (let [index, address] of this.defaultSetAddresses.entries()) {
       this.logger.debug(`[${index}] ${this.activeGlobalConfig.defaultSetAssignerAddresses[index]} --> ${address}`);
     }
@@ -468,7 +468,7 @@ export class AttestationRound {
    */
   private canCommit(): boolean {
     this.logger.debug(
-      `${this.label}canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
+      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
         AttestationRoundPhase[this.phase]
       }', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
@@ -504,7 +504,7 @@ export class AttestationRound {
   public async tryPrepareCommitData() {
     this.logger.info(`${this.label} - tryPrepareCommitData - call`);
     if (this.attestStatus >= AttestationRoundStatus.commitDataPrepared) {
-      this.logger.info(`${this.label} - tryCalculateBitVotingResults - commit already prepared`);
+      this.logger.info(`${this.label} - tryPrepareCommitData - commit already prepared`);
       return;
     }
 
@@ -535,7 +535,7 @@ export class AttestationRound {
     // check if one can commit
     if (validated.length != this.bitVoteResultIndices.length) {
       this.logger.error(
-        `${this.label}round #${this.roundId} cannot yet commit ${validated.length}/${this.bitVoteResultIndices.length} attestations validated.`
+        `${this.label} round #${this.roundId} cannot yet commit ${validated.length}/${this.bitVoteResultIndices.length} attestations validated.`
       );
       return;
     }
@@ -556,13 +556,13 @@ export class AttestationRound {
     }
 
     if (validated.length === 0) {
-      this.logger.error(`${this.label}round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
+      this.logger.error(`${this.label} round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
       this.attestStatus = AttestationRoundStatus.commitDataPrepared;
       await this.makeEmptyRound();
       return;
     }
 
-    this.logger.info(`${this.label}round #${this.roundId} committing (${validated.length}/${this.attestations.length} attestation(s))`);
+    this.logger.info(`${this.label} round #${this.roundId} committing (${validated.length}/${this.attestations.length} attestation(s))`);
 
     const time0 = getTimeMilli();
 
@@ -587,7 +587,7 @@ export class AttestationRound {
     try {
       await this.attesterState.entityManager.save(dbVoteResults);
     } catch (error) {
-      logException(error, `${this.label}AttestationRound::commit save DB`);
+      logException(error, `${this.label} AttestationRound::commit save DB`);
     }
 
     const time1 = getTimeMilli();
@@ -618,7 +618,7 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `${this.label}^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
+      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
         time1 - time0
       }ms M:${time2 - time1}ms)`
     );
@@ -629,7 +629,7 @@ export class AttestationRound {
    * the vote is not possible to calculate due to some reason.
    */
   private async makeEmptyRound() {
-    this.logger.debug2(`${this.label}create empty state for #${this.roundId}`);
+    this.logger.debug2(`${this.label} create empty state for #${this.roundId}`);
 
     this.roundMerkleRoot = ZERO_HASH;
     this.roundRandom = await getCryptoSafeRandom();
@@ -708,7 +708,7 @@ export class AttestationRound {
       await this.makeEmptyRound();
     }
 
-    const action = `${this.label}Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
+    const action = `${this.label} Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
 
     const prevRound = await this.attesterState.getRound(this.roundId - 1);
 
@@ -731,7 +731,7 @@ export class AttestationRound {
 
       if (receipt) {
         this.attestStatus = AttestationRoundStatus.committed;
-        this.logger.info(`${this.label}^G^wcomitted^^ round ^Y#${this.roundId}`);
+        this.logger.info(`${this.label} ^G^wcomitted^^ round ^Y#${this.roundId}`);
       } else {
         this.attestStatus = AttestationRoundStatus.error;
       }
@@ -765,7 +765,7 @@ export class AttestationRound {
    */
   public async onSubmitAttestation() {
     if (this.phase !== AttestationRoundPhase.reveal) {
-      this.logger.error(`${this.label}round #${this.roundId} cannot reveal (not in reveal epoch status '${AttestationRoundPhase[this.phase]}')`);
+      this.logger.error(`${this.label} round #${this.roundId} cannot reveal (not in reveal epoch status '${AttestationRoundPhase[this.phase]}')`);
       return;
     }
 
@@ -775,7 +775,7 @@ export class AttestationRound {
     if (!commitPreparedOrCommitted) {
       // Log unexpected attestation round statuses, but proceed with submitAttestation
       this.logger.error(
-        `${this.label}round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${
+        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${
           this.attestationsProcessed
         }/${this.attestations.length}`
       );
@@ -787,7 +787,7 @@ export class AttestationRound {
     let nextRoundMaskedMerkleRoot = ZERO_HASH;
     let nextRoundRandom = ZERO_HASH;
 
-    const action = `${this.label}submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
+    const action = `${this.label} submitting ^Y#${this.roundId + 1}^^ revealing ^Y#${this.roundId}^^ bufferNumber ${this.roundId + 2}`;
 
     if (this.nextRound) {
       if (!this.nextRound.canCommit()) {
@@ -800,7 +800,8 @@ export class AttestationRound {
     }
 
     if (!this.shouldSubmitAttestation()) {
-      this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C, bufferNumber ${this.roundId + 2}) - submit attestation skipped.`);
+      this.logger.info(`${this.label} ^Cround ^Y#${this.roundId}^C, bufferNumber ${this.roundId + 2}) - submit attestation skipped.`);
+      this.attestStatus = AttestationRoundStatus.revealed; //ADD NEW STATUS???
       return;
     }
 
@@ -820,13 +821,13 @@ export class AttestationRound {
       );
 
       if (receipt) {
-        this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C submit attestation completed (bufferNumber ${this.roundId + 2})`);
+        this.logger.info(`${this.label} ^Cround ^Y#${this.roundId}^C submit attestation completed (bufferNumber ${this.roundId + 2})`);
         if (this.nextRound) {
           this.nextRound.attestStatus = AttestationRoundStatus.committed;
         }
         this.attestStatus = AttestationRoundStatus.revealed;
       } else {
-        this.logger.info(`${this.label}^Rround ^Y#${this.roundId}^R submit error (bufferNumber ${this.roundId + 2}) - no receipt`);
+        this.logger.info(`${this.label} ^Rround ^Y#${this.roundId}^R submit error (bufferNumber ${this.roundId + 2}) - no receipt`);
         if (this.nextRound) {
           // do not change the status
         }
@@ -846,12 +847,12 @@ export class AttestationRound {
     }
 
     if (this.phase === AttestationRoundPhase.choose) {
-      const action = `${this.label}bit voting for round ^Y#${this.roundId + 1}^^ bufferNumber ${this.roundId + 1}`;
+      const action = `${this.label} bit voting for round ^Y#${this.roundId + 1}^^ bufferNumber ${this.roundId + 1}`;
       this.bitVoteRecord = this.bitVoteAccumulator.toHex(); // make a bitvote snapshot
 
       // Do not send a bitvote if only zeros
       if (this.bitVoteMaskWithRoundCheck.slice(4).replace(/0/g, "").length === 0) {
-        this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C bit vote skipped - nothing to vote (buffernumber ${this.roundId + 1})`);
+        this.logger.info(`${this.label} ^Cround ^Y#${this.roundId}^C bit vote skipped - nothing to vote (buffernumber ${this.roundId + 1})`);
         return;
       }
       // eslint-disable-next-line
@@ -865,15 +866,15 @@ export class AttestationRound {
           this.duplicateCount
         );
         if (receipt) {
-          this.logger.info(`${this.label}^Cround ^Y#${this.roundId}^C bit vote submitted (buffernumber ${this.roundId + 1})`);
+          this.logger.info(`${this.label} ^Cround ^Y#${this.roundId}^C bit vote submitted (buffernumber ${this.roundId + 1})`);
         } else {
-          this.logger.error(`${this.label}^Rround ^Y#${this.roundId}^R bit vote submit error (buffernumber ${this.roundId + 1}) - no receipt`);
+          this.logger.error(`${this.label} ^Rround ^Y#${this.roundId}^R bit vote submit error (buffernumber ${this.roundId + 1}) - no receipt`);
         }
       });
       return;
     }
 
     // Bit call called too late, wrong time
-    this.logger.error(`${this.label}^Rround ^Y#${this.roundId}^R: bit vote at wrong time in phase ${AttestationRoundPhase[this.phase]}`);
+    this.logger.error(`${this.label} ^Rround ^Y#${this.roundId}^R: bit vote at wrong time in phase ${AttestationRoundPhase[this.phase]}`);
   }
 }

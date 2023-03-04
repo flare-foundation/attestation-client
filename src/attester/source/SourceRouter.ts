@@ -16,9 +16,9 @@ export class SourceRouter {
   globalConfigManager: GlobalConfigManager;
   logger: AttLogger;
 
-  constructor(globalConfigManager: GlobalConfigManager, logger: AttLogger) {
+  constructor(globalConfigManager: GlobalConfigManager) {
     this.globalConfigManager = globalConfigManager;
-    this.logger = logger;
+    this.logger = globalConfigManager.logger;
   }
 
   /**

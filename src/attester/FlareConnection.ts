@@ -89,8 +89,8 @@ export class FlareConnection {
    * @returns
    */
   public async getAttestorsForAssignors(assignors: string[]): Promise<string[]> {
-    let promises = [];
-    for (let assignor of assignors) {
+    const promises = [];
+    for (const assignor of assignors) {
       promises.push(this.stateConnector.methods.attestorAddressMapping(assignor).call());
     }
     return await Promise.all(promises);
@@ -104,10 +104,7 @@ export class FlareConnection {
    * @returns
    */
   public async stateConnectorEvents(fromBlock: number, toBlock: number) {
-    return await retry(
-      `FlareConnection::stateConnectorEvents`,
-      async () => this.stateConnector.getPastEvents("allEvents", { fromBlock, toBlock })
-    );
+    return await retry(`FlareConnection::stateConnectorEvents`, async () => this.stateConnector.getPastEvents("allEvents", { fromBlock, toBlock }));
   }
 
   /**
@@ -118,10 +115,7 @@ export class FlareConnection {
    * @returns
    */
   public async bitVotingEvents(fromBlock: number, toBlock: number) {
-    return await retry(
-      `FlareConnection::bitVotingEvents`,
-      async () => this.bitVoting.getPastEvents("allEvents", { fromBlock, toBlock })
-    );
+    return await retry(`FlareConnection::bitVotingEvents`, async () => this.bitVoting.getPastEvents("allEvents", { fromBlock, toBlock }));
   }
 
   /**
@@ -178,13 +172,8 @@ export class FlareConnection {
 
     const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`,
-      async () => this.web3Functions.signAndFinalize3Sequenced(
-        action,
-        this.stateConnector.options.address,
-        fnToEncode,
-        epochEndTime
-      )
+    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () =>
+      this.web3Functions.signAndFinalize3Sequenced(action, this.stateConnector.options.address, fnToEncode, epochEndTime)
     );
 
     if (extReceipt.receipt) {
@@ -215,7 +204,7 @@ export class FlareConnection {
     const fnToEncode = this.bitVoting.methods.submitVote(bufferNumber, bitVote);
 
     if (verbose) {
-      let hexBitvote = bitVote.slice(4);
+      const hexBitvote = bitVote.slice(4);
       let bitSequence = "";
       if (hexBitvote.length > 0) {
         bitSequence = BitmaskAccumulator.fromHex(hexBitvote).toBitString();
@@ -230,13 +219,8 @@ export class FlareConnection {
 
     const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`,
-      async () => this.web3Functions.signAndFinalize3Sequenced(
-        action,
-        this.bitVoting.options.address,
-        fnToEncode,
-        epochEndTime
-      )
+    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () =>
+      this.web3Functions.signAndFinalize3Sequenced(action, this.bitVoting.options.address, fnToEncode, epochEndTime)
     );
 
     if (extReceipt.receipt) {

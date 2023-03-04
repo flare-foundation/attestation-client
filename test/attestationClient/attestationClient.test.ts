@@ -19,7 +19,7 @@ chai.use(chaiAsPromised);
 
 class MockSourceRouter extends SourceRouter {
   constructor() {
-    super(undefined, getGlobalLogger());
+    super(undefined);
   }
   validateTransaction(sourceId: SourceId, transaction: Attestation) { }
 }

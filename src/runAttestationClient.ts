@@ -7,8 +7,7 @@ import { setRetryFailureCallback } from "./utils/helpers/promiseTimeout";
 import { getGlobalLogger, logException, setLoggerName } from "./utils/logging/logger";
 import * as yargs from "yargs";
 
-const args = yargs
-  .option("instance", { alias: "i", type: "string", description: "Instance name", default: "default", demand: false }).argv;
+const args = yargs.option("instance", { alias: "i", type: "string", description: "Instance name", default: "default", demand: false }).argv;
 
 // setup retry terminate callback
 function terminateOnRetryFailure(label: string) {
@@ -28,7 +27,6 @@ async function runAttester() {
   // Reading configuration
   const config = await readSecureConfig(new AttestationClientConfig(), "attester");
 
-
   // Create and start Attester Client
   const attesterClient = new AttesterClient(config);
   return await attesterClient.runAttesterClient();
@@ -36,14 +34,14 @@ async function runAttester() {
 
 setLoggerName("attestation-client");
 
-
 // allow only one instance of the application
 var instanceName = `attestation-client-${args["instance"]}`;
 
-var SingleInstance = require('single-instance');
+var SingleInstance = require("single-instance");
 var locker = new SingleInstance(instanceName);
 
-locker.lock()
+locker
+  .lock()
   .then(function () {
     // indexer entry point
     runAttester()
@@ -58,4 +56,4 @@ locker.lock()
 
     // Quit the application
     exit(5);
-  })
+  });

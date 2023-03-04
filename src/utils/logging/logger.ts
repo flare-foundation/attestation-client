@@ -3,7 +3,7 @@ import { ColorConsole } from "./ColorConsole";
 import { TestLogger } from "./testLogger";
 
 const level = process.env.LOG_LEVEL || "info";
-const silent = (process.env.LOG_SILENT === 'true')
+const silent = process.env.LOG_SILENT === "true";
 
 export const Reset = "\x1b[0m";
 const Bright = "\x1b[1m";

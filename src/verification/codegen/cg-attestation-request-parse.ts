@@ -1,12 +1,13 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
-  ATT_REQUEST_PARSE_FILE, DEFAULT_GEN_FILE_HEADER,
+  ATT_REQUEST_PARSE_FILE,
+  DEFAULT_GEN_FILE_HEADER,
   PRETTIER_SETTINGS,
   REQUEST_PARSE_FUNCTIONS_HEADER,
-  REQUEST_PARSE_PREFIX_FUNCTION
+  REQUEST_PARSE_PREFIX_FUNCTION,
 } from "./cg-constants";
 
 export function genRequestParseFunctionForDefinition(definition: AttestationTypeScheme) {

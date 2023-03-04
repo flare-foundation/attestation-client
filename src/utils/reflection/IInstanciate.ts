@@ -1,3 +1,3 @@
 export interface IInstanciate<T> {
-   instanciate(): T;
+  instanciate(): T;
 }

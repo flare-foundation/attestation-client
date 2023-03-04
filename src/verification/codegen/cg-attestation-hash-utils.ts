@@ -1,13 +1,14 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
-  ATT_HASH_UTILS_FILE, DATA_HASH_TYPE_PREFIX,
+  ATT_HASH_UTILS_FILE,
+  DATA_HASH_TYPE_PREFIX,
   DEFAULT_GEN_FILE_HEADER,
   PRETTIER_SETTINGS,
   WEB3_HASH_FUNCTIONS_HEADER,
-  WEB3_HASH_PREFIX_FUNCTION
+  WEB3_HASH_PREFIX_FUNCTION,
 } from "./cg-constants";
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {

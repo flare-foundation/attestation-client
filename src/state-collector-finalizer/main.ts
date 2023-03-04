@@ -24,8 +24,7 @@ const args = yargs
     choices: ["temp", "tran"],
     type: "string",
     nargs: 1,
-  })
-  .argv
+  }).argv;
 
 const { stateConnectorAddress, rpc, flavor } = args as any;
 

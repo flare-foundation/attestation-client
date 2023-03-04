@@ -18,7 +18,7 @@ export abstract class VerifierProcessor {
     const data = await this.verify({ request: encodeRequest(request) });
     if (data.status !== VerificationStatus.OK) {
       // TODO: This should be made more stable
-      return data.status
+      return data.status;
     }
     const integrity = hashPayment(data.request, data.response, MIC_SALT);
     return integrity;
@@ -28,7 +28,7 @@ export abstract class VerifierProcessor {
     const data = await this.verify({ request: encodeRequest(request) });
     if (data.status !== VerificationStatus.OK) {
       // TODO: This should be made more stable
-      return data.status
+      return data.status;
     }
     const integrity = hashPayment(data.request, data.response, MIC_SALT);
     request.messageIntegrityCode = integrity;

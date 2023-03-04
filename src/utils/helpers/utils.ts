@@ -1,12 +1,12 @@
- import { getGlobalLogger } from "../logging/logger";
+import { getGlobalLogger } from "../logging/logger";
 
 // used for return after exit(1) so that return is actually called after mocked exit
 export const MOCK_NULL_WHEN_TESTING = null;
 
 /**
  * Removes an element from an array.
- * @param array 
- * @param element 
+ * @param array
+ * @param element
  */
 export function arrayRemoveElement(array: Array<any>, element: any) {
   const index = array.indexOf(element, 0);
@@ -46,11 +46,11 @@ export function getUnixEpochTimestamp(): number {
   let now = Math.floor(Date.now() / 1000);
   if (process.env.NODE_ENV === "development") {
     if (process.env.TEST_OFFSET_TIME) {
-      let offset = parseInt('' + process.env.TEST_OFFSET_TIME, 10);
+      let offset = parseInt("" + process.env.TEST_OFFSET_TIME, 10);
       return now + offset;
     }
     if (process.env.TEST_SCHEDULER_TIME) {
-      return parseInt('' + process.env.TEST_SCHEDULER_TIME, 10);
+      return parseInt("" + process.env.TEST_SCHEDULER_TIME, 10);
     }
   }
   return now;
@@ -72,7 +72,7 @@ export async function sleepms(milliseconds: number) {
  * Time formatter
  * @param time given time as a number (unix epoch in seconds)
  * @param secDecimals decimals to round seconds
- * @returns 
+ * @returns
  */
 export function secToHHMMSS(time: number, secDecimals = 0) {
   const days = Math.floor(time / (3600 * 24));
@@ -99,7 +99,7 @@ export function secToHHMMSS(time: number, secDecimals = 0) {
  * Rounds a number to a given number of decimals
  * @param x given number
  * @param decimal decimals to round
- * @returns 
+ * @returns
  */
 export function round(x: number, decimal = 0) {
   if (decimal === 0) return Math.round(x);
@@ -107,11 +107,11 @@ export function round(x: number, decimal = 0) {
   return Math.round(x * dec10) / dec10;
 }
 
-// 
+//
 /**
  * Helper for parsing Maps.
  * Use in JSON.parse( x , JSONMapParser ) to load Map saved with above function
- * @param key not used, just for compatibility 
+ * @param key not used, just for compatibility
  * @param value the map to be parsed
  * @returns the Map parsed from JSON.
  */
@@ -124,34 +124,28 @@ export function JSONMapParser(key: any, value: any) {
   return value;
 }
 
-
-
 /**
  * Print out TypeORM query with parameters.
  * Test or debug purposes only.
- * @param query 
+ * @param query
  */
 export function queryPrint(query: any) {
   let [sql, params] = query.getQueryAndParameters();
   params.forEach((value) => {
-    if (typeof value === 'string') {
-      sql = sql.replace('?', `"${value}"`);
+    if (typeof value === "string") {
+      sql = sql.replace("?", `"${value}"`);
     }
-    if (typeof value === 'object') {
+    if (typeof value === "object") {
       if (Array.isArray(value)) {
-        sql = sql.replace(
-          '?',
-          value.map((element) => (typeof element === 'string' ? `"${element}"` : element)).join(','),
-        );
+        sql = sql.replace("?", value.map((element) => (typeof element === "string" ? `"${element}"` : element)).join(","));
       } else {
-        sql = sql.replace('?', value);
+        sql = sql.replace("?", value);
       }
     }
-    if (['number', 'boolean'].includes(typeof value)) {
-      sql = sql.replace('?', value.toString());
+    if (["number", "boolean"].includes(typeof value)) {
+      sql = sql.replace("?", value.toString());
     }
   });
 
   console.log(sql);
 }
-

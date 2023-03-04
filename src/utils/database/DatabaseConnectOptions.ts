@@ -46,7 +46,7 @@ export class DatabaseConnectOptions {
   @optional() logging = false;
 
   /**
-   * The list of Entity objects. It is not meant to be obtained from .json files as the members 
+   * The list of Entity objects. It is not meant to be obtained from .json files as the members
    * of the list are TypeORM entity classes.
    */
   @optional() entities = undefined;

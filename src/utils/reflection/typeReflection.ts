@@ -1,9 +1,8 @@
 import { getOptionalKeys } from "@flarenetwork/mcc";
 import { getGlobalLogger } from "../logging/logger";
 
-
 /**
- * @param object 
+ * @param object
  * @returns Returns @param object constructor name for object of type `object` and `typeof` for all the rest.
  */
 function getType(object: any) {
@@ -18,14 +17,14 @@ function getType(object: any) {
 
 /**
  * Checks if `A` and `B` have unique members.
- * 
- * @param parent 
- * @param A 
- * @param B 
- * @param notFound 
- * @param optionalNotFound 
- * @param checkType 
- * @returns 
+ *
+ * @param parent
+ * @param A
+ * @param B
+ * @param notFound
+ * @param optionalNotFound
+ * @param checkType
+ * @returns
  */
 function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, optionalNotFound: string, checkType: boolean): boolean {
   let valid = true;
@@ -142,14 +141,13 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
   return valid;
 }
 
-
 /**
  * Checks if object `A` has same members as object `B`.
- * 
- * @param A 
- * @param B 
- * @param parent 
- * @returns 
+ *
+ * @param A
+ * @param B
+ * @param parent
+ * @returns
  */
 export function isEqualType(A: any, B: any, parent = ""): boolean {
   const testAB = isEqualTypeUni(parent, A, B, "missing propery", "property using default value", true);

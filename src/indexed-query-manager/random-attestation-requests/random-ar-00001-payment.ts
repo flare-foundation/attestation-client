@@ -44,19 +44,19 @@ export async function prepareRandomizedRequestPayment(
   const request = {
     attestationType: AttestationType.Payment,
     sourceId: sourceId,
-    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
     id,
     utxo: toBN(0), // TODO: randomize for UTXO chains
     inUtxo: toBN(0), // TODO: randomize for UTXO chains
   } as ARPayment;
-  if(choice === 'WRONG_MIC') {
-      return request;
+  if (choice === "WRONG_MIC") {
+    return request;
   }
   let attestation = createTestAttestationFromRequest(request, 0);
   try {
     let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
     // augment with message integrity code
-    if (response.status === 'OK') {
+    if (response.status === "OK") {
       request.messageIntegrityCode = hashPayment(request, response.response, MIC_SALT);
       logger.info(`Request augmented correctly (Payment)`);
       return request;

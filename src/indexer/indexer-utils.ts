@@ -11,7 +11,8 @@ import {
   DBTransactionLTC0,
   DBTransactionLTC1,
   DBTransactionXRP0,
-  DBTransactionXRP1, IDBTransactionBase
+  DBTransactionXRP1,
+  IDBTransactionBase,
 } from "../entity/indexer/dbTransaction";
 import { getRetryFailureCallback } from "../utils/helpers/promiseTimeout";
 import { getUnixEpochTimestamp } from "../utils/helpers/utils";

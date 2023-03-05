@@ -1,4 +1,3 @@
-
 export enum AttestationStatus {
   ///// IN PROCESSING STATUSES ///////
   queued,
@@ -10,5 +9,5 @@ export enum AttestationStatus {
   invalid,
   tooLate,
   overLimit,
-  error
+  error,
 }

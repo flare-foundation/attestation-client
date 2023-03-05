@@ -1,4 +1,3 @@
-
 const SUBGROUP_TO_BIG_ERROR = "Groups can ony have subgroups whose size is smaller or equal to original group's size";
 const INVALID_HEX = "Incorrectly formatted hex strings";
 
@@ -17,7 +16,7 @@ export function prefix0x(tx: string) {
   if (!tx) {
     return "0x0";
   } else if (tx.startsWith("0x") || tx.startsWith("0X") || tx.startsWith("-0x") || tx.startsWith("-0X")) {
-    return tx
+    return tx;
   }
   return "0x" + tx;
 }
@@ -26,7 +25,7 @@ export function isPrefixed0x(tx: string) {
   if (!tx) {
     return false;
   } else if (tx.startsWith("0x") || tx.startsWith("0X") || tx.startsWith("-0x") || tx.startsWith("-0X")) {
-    return true
+    return true;
   }
   return false;
 }

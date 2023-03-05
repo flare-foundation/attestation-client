@@ -82,5 +82,5 @@ export const PRETTIER_SETTINGS_SOL: Options = {
   tabWidth: 4,
   printWidth: 160,
   semi: true,
-  singleQuote: false
+  singleQuote: false,
 };

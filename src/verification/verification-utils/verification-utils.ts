@@ -19,7 +19,6 @@ export interface VerificationResponse<T> {
 //////////////////////////////////////////////////
 
 export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryResponse) {
-
   if (result.status === "NOT_EXIST" || result.status === "NO_BOUNDARY" || !result.transaction) {
     return VerificationStatus.NON_EXISTENT_TRANSACTION;
   }
@@ -32,7 +31,6 @@ export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryRe
 }
 
 export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse) {
-
   if (result.status === "NOT_EXIST" || result.status === "NO_BOUNDARY" || !result.block) {
     return VerificationStatus.NON_EXISTENT_BLOCK;
   }
@@ -45,7 +43,6 @@ export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse) {
 }
 
 export function verifyWorkflowForReferencedTransactions(result: ReferencedTransactionsQueryResponse) {
-
   if (result.status === "NO_OVERFLOW_BLOCK" || result.status === "NO_BOUNDARY" || !result.firstOverflowBlock) {
     return VerificationStatus.NON_EXISTENT_BLOCK;
   }

@@ -19,7 +19,6 @@ export class AttesterMonitor extends MonitorBase {
   }
 
   async initialize() {
-
     const config = await readSecureConfig(new AttestationClientConfig(), "attester");
 
     this.dbService = new DatabaseService(this.logger, config.attesterDatabase, "attester");

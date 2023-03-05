@@ -1,5 +1,5 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATT_HASH_TYPES_FILE, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";

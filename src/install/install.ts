@@ -129,7 +129,6 @@ function addEnv(name: string) {
 }
 
 async function run() {
-
   addEnv("HOSTNAME");
   addEnv("SECRET_FLARE");
   addEnv("SECRET_SONGBIRD");

@@ -19,8 +19,8 @@ function terminateOnRetryFailure(label: string) {
 }
 
 async function runIndexer() {
-  getGlobalLogger().info( `^gstarting Indexer ^r${args["chain"].toLowerCase()}`);
-  
+  getGlobalLogger().info(`^gstarting Indexer ^r${args["chain"].toLowerCase()}`);
+
   // setup debug trace
   TraceManager.enabled = false;
   traceManager.displayRuntimeTrace = false;
@@ -48,12 +48,12 @@ setGlobalLoggerLabel(args["chain"]);
 // allow only one instance of the application
 var instanceName = `indexer-${args["chain"]}`;
 
-var SingleInstance = require('single-instance');
+var SingleInstance = require("single-instance");
 var locker = new SingleInstance(instanceName);
 
-locker.lock()
+locker
+  .lock()
   .then(function () {
-
     // indexer entry point
     runIndexer()
       .then(() => process.exit(0))
@@ -67,6 +67,4 @@ locker.lock()
 
     // Quit the application
     exit(5);
-  })
-
-
+  });

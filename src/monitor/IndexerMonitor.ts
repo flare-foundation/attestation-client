@@ -22,7 +22,6 @@ export class IndexerMonitor extends MonitorBase {
   }
 
   async initialize() {
-
     if (!IndexerMonitor.dbService) {
       const config = await readSecureConfig(new AttestationClientConfig(), "attester");
 

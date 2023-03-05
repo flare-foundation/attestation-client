@@ -3,6 +3,7 @@ import { getSourceName } from "../../sources/sources";
 import { VerifierSourceRouteConfig } from "./VerifierSourceRouteConfig";
 
 export class VerifierRouteConfig implements IReflection<VerifierRouteConfig> {
+  public startRoundId: number;
   public verifierRoutes: VerifierSourceRouteConfig[] = [];
 
   instanciate(): VerifierRouteConfig {
@@ -14,19 +15,20 @@ export class VerifierRouteConfig implements IReflection<VerifierRouteConfig> {
     info.arrayMap.set("verifierRoutes", new VerifierSourceRouteConfig());
     return info;
   }
-}
 
-export function getSourceConfig(verifierRouteConfig: VerifierRouteConfig, sourceId: number) {
-  const sourceName = getSourceName(sourceId);
-  for (let config of verifierRouteConfig.verifierRoutes) {
-    if (config.sourceId === sourceName) {
-      return config;
+  getSourceConfig(sourceId: number): VerifierSourceRouteConfig | undefined {
+    const sourceName = getSourceName(sourceId);
+    for (let config of this.verifierRoutes) {
+      if (config.sourceId === sourceName) {
+        return config;
+      }
     }
+    return;
   }
-  return null;
 }
 
 // {
+//    startRoundId: 1,
 //    verifierRoutes: [
 //       {
 //          sourceId: "XRP",

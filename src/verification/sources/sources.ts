@@ -33,7 +33,7 @@ export function toSourceId(id: any): SourceId {
 
   const sourceId = SourceId[id];
 
-  if (sourceId == null) return SourceId.invalid;
+  if (sourceId === undefined) return SourceId.invalid;
 
   return sourceId as any as SourceId;
 }

@@ -85,22 +85,22 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   const request = {
     attestationType: AttestationType.ReferencedPaymentNonexistence,
     sourceId,
-    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
     minimalBlockNumber: deadlineBlockNumber.toNumber() - queryWindow,
     deadlineBlockNumber,
     deadlineTimestamp,
-    destinationAddressHash: Web3.utils.randomHex(32),  // TODO: "CORRECT" does not work here
-    amount: toBN(Web3.utils.randomHex(16)),            // TODO: "CORRECT" does not work here
+    destinationAddressHash: Web3.utils.randomHex(32), // TODO: "CORRECT" does not work here
+    amount: toBN(Web3.utils.randomHex(16)), // TODO: "CORRECT" does not work here
     paymentReference,
   };
-  if (choice === 'WRONG_MIC') {
+  if (choice === "WRONG_MIC") {
     return request;
   }
   let attestation = createTestAttestationFromRequest(request, 0);
   try {
     let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
     // augment with message integrity code
-    if (response.status === 'OK') {
+    if (response.status === "OK") {
       request.messageIntegrityCode = hashReferencedPaymentNonexistence(request, response.response, MIC_SALT);
       logger.info(`Request augmented correctly (ReferencePaymentNonexistence)`);
       return request;
@@ -109,5 +109,4 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
     logger.info(`Attestation verification failed: ${e}`);
   }
   return null;
-
 }

@@ -7,13 +7,12 @@ import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 import { getGlobalLogger, logException } from "../utils/logging/logger";
 import { AttestationRound } from "./AttestationRound";
 
-
 /**
  * Update or insert new state.
- * @param entityManager 
- * @param obj 
- * @param primary_key 
- * @param opts 
+ * @param entityManager
+ * @param obj
+ * @param primary_key
+ * @param opts
  */
 async function Upsert<T>(
   entityManager: EntityManager,
@@ -30,14 +29,8 @@ async function Upsert<T>(
   if (!process.env.UBUNTU_MYSQL) {
     await entityManager.getRepository(DBRoundResult).save(obj);
   } else {
-    // ubuntu MYSQL .save sometimes fails 
-    await entityManager
-      .createQueryBuilder()
-      .insert()
-      .into(DBRoundResult)
-      .values(obj)
-      .orUpdate([primary_key], keys)
-      .execute();
+    // ubuntu MYSQL .save sometimes fails
+    await entityManager.createQueryBuilder().insert().into(DBRoundResult).values(obj).orUpdate([primary_key], keys).execute();
   }
 }
 
@@ -46,7 +39,6 @@ async function Upsert<T>(
  * in regard to specific round.
  */
 export class AttesterState {
-
   databaseService: DatabaseService;
 
   constructor(databaseService: DatabaseService) {
@@ -61,7 +53,7 @@ export class AttesterState {
     await retry(`saveOrUpdateRound #${dbRound.roundId}`, async () => {
       try {
         await Upsert(this.entityManager, dbRound, "roundId", { isSqlite3: this.databaseService.isSqlite3 });
-        //await transaction.save( DBRoundResult, dbRound );
+        // await transaction.save( DBRoundResult, dbRound );
       } catch (error) {
         logException(error, `saveOrUpdateRound.save(${dbRound.roundId})`);
       }
@@ -121,11 +113,11 @@ export class AttesterState {
   }
 
   /**
- * Stores bit voting result
- * @param roundId
- * @param nonce
- * @param txid
- */
+   * Stores bit voting result
+   * @param roundId
+   * @param nonce
+   * @param txid
+   */
   async saveRoundBitVoteResult(roundId: number, bitVoteResult: string) {
     const dbRound = new DBRoundResult();
 
@@ -135,7 +127,6 @@ export class AttesterState {
 
     await this.saveOrUpdateRound(dbRound);
   }
-
 
   /**
    * Stores partial attestation round data (on commit)
@@ -177,7 +168,7 @@ export class AttesterState {
    * @returns
    */
   async getRound(roundId: number): Promise<DBRoundResult> {
-    const dbRound = await this.entityManager.findOne(DBRoundResult, { where: { roundId: roundId } });
+    const dbRound = await this.entityManager.findOne(DBRoundResult, { where: { roundId } });
     if (dbRound) return dbRound;
     getGlobalLogger().warning(`state ^R#${roundId}^^ not found`);
     return undefined;

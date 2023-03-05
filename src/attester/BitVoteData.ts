@@ -21,8 +21,8 @@ export class BitVoteData {
 
   /**
    * Checks if round check byte of data matches the round.
-   * @param roundId 
-   * @returns 
+   * @param roundId
+   * @returns
    */
   roundCheck(roundId: number): boolean {
     if (!this.data || unPrefix0x(this.data).length < 2) {

@@ -14,7 +14,7 @@ export class Menu {
 
   done = false;
 
-  onDisplay = () => { };
+  onDisplay = () => {};
 
   constructor() {
     this.root = new MenuItemBase("", null);

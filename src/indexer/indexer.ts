@@ -84,10 +84,16 @@ export class Indexer {
 
     this.logger = getGlobalLogger();
 
-    this.dbService = new DatabaseService(this.logger, {
-      ...this.config.indexerDatabase,
-      synchronize: true
-    }, "indexer", "", testMode);
+    this.dbService = new DatabaseService(
+      this.logger,
+      {
+        ...this.config.indexerDatabase,
+        synchronize: true,
+      },
+      "indexer",
+      "",
+      testMode
+    );
 
     const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,

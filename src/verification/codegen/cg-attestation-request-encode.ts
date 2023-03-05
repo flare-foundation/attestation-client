@@ -1,12 +1,13 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
-  ATT_REQUEST_ENCODE_FILE, DEFAULT_GEN_FILE_HEADER,
+  ATT_REQUEST_ENCODE_FILE,
+  DEFAULT_GEN_FILE_HEADER,
   PRETTIER_SETTINGS,
   REQUEST_ENCODE_FUNCTIONS_HEADER,
-  REQUEST_ENCODE_PREFIX_FUNCTION
+  REQUEST_ENCODE_PREFIX_FUNCTION,
 } from "./cg-constants";
 
 function genEncodeException() {

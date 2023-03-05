@@ -14,7 +14,7 @@ export class DBAttestationRequest extends BaseEntity {
   @Column({ type: "text" }) request: string = "";
   @Column() verificationStatus: string = "";
   // nullable due to migration
-  @Column({nullable: true}) attestationStatus: string;
+  @Column({ nullable: true }) attestationStatus: string;
   @Column({ type: "text" }) response: string = "";
   @Column() exceptionError: string = "";
   @Column() hashData: string = "";

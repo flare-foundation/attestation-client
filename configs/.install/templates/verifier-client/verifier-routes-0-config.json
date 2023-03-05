@@ -1,4 +1,5 @@
 {
+   "startRoundId": 0,
    "verifierRoutes": [
       {
          "sourceId": "BTC",

@@ -4,7 +4,6 @@ import { DatabaseConnectOptions } from "../utils/database/DatabaseConnectOptions
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection";
 
 export class IndexerConfig implements IReflection<IndexerConfig> {
-
   @optional() public syncEnabled = true;
   @optional() public syncTimeDays = 2;
   @optional() public blockCollectTimeMs = 1000;

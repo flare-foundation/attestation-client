@@ -102,12 +102,12 @@ export class AttestationRound {
   /**
    * Returns an attestation client label for logging.
    */
-  private get label() {
+  get label() {
     let _label = "";
     if (this.attestationClientConfig.label != "none") {
       _label = `[${this.attestationClientConfig.label}]`;
     }
-    return `#${_label} ${this.roundId}:${this.nowRelative}/${Math.floor(this.windowDurationMs / 1000)} `;
+    return `#${_label} ${this.roundId}:${this.nowRelative}/${Math.floor(this.windowDurationMs / 1000)}`;
   }
 
   /**
@@ -134,7 +134,7 @@ export class AttestationRound {
   /**
    * Returns the start time of the round in millisecond (Unix epoch time in ms).
    */
-  public get roundStartTimeMs() {
+  get roundStartTimeMs() {
     return this.flareConnection.epochSettings.getRoundIdTimeStartMs(this.roundId);
   }
 
@@ -404,7 +404,6 @@ export class AttestationRound {
       // duplicates are discarded
       return;
     }
-
     this.attestations.push(attestation);
     attestation.round = this;
     attestation.setIndex(this.attestations.length - 1);
@@ -511,6 +510,7 @@ export class AttestationRound {
     // check if commit can be performed
     if (this.phase !== AttestationRoundPhase.commit) {
       this.logger.info(`${this.label} - tryPrepareCommitData - not commit phase: '${AttestationRoundPhase[this.phase]}'`);
+
       return;
     }
 
@@ -665,6 +665,7 @@ export class AttestationRound {
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
+    // this.tryCalculateBitVotingResults(); they appear together elsewhere
     await this.tryPrepareCommitData(); // In case all requests are already processed
   }
 

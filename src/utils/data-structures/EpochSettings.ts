@@ -5,7 +5,7 @@ import { getTimeSec } from "../helpers/internetTime";
 /**
  * Class for storing the settings of epochs. Current length of an epoch is 90 seconds.
  * Contains data about voting epochs on the StateConnector and BitVoting contracts.
- * Data is usually initialized externally and red from both smart contracts.
+ * Data is usually initialized externally and read from both smart contracts.
  * For the connection between rounds and epochs see Attestation-protocol.md
  * Values for construction must be given in seconds.
  */
@@ -22,6 +22,31 @@ export class EpochSettings {
       this._bitVoteWindowDurationMs = _bitVoteWindowDurationSec.mul(toBN(1000));
     }
   }
+
+  /**
+   * 
+   * @returns Start time of the first epoch in seconds
+   */
+  public firstEpochStartTimeSec() {
+    return this._firstEpochStartTimeMs.div(toBN(1000)).toNumber();
+  }
+
+  /**
+   * 
+   * @returns Epoch duration in seconds
+   */
+  public epochPeriodSec() {
+    return this._epochPeriodMs.div(toBN(1000)).toNumber();
+  }
+
+  /**
+   * 
+   * @returns Bitvote window duration in seconds
+   */
+  public bitVoteWindowDurationSec() {
+    return this._bitVoteWindowDurationMs.div(toBN(1000)).toNumber();
+  }
+
 
   /**
    * Epoch length in milliseconds.
@@ -78,6 +103,11 @@ export class EpochSettings {
       return epochId.toNumber();
     }
     return undefined;
+  }
+
+  getOffsetInBufferWindow(timeSec: number) {
+    let epochId = this.getEpochIdForTimeSec(timeSec);
+    return timeSec - Math.round(this._firstEpochStartTimeMs.toNumber() / 1000) + epochId * Math.round(this._epochPeriodMs.toNumber() / 1000);
   }
 
   /**

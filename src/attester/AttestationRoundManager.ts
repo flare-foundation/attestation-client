@@ -253,7 +253,7 @@ export class AttestationRoundManager {
     const globalConfig = this.globalConfigManager.getConfig(roundId);
 
     if (!globalConfig) {
-      this.logger.error(`${this.label}${roundId}: critical error, global config for round id not defined`);
+      this.logger.error(`${this.label}: critical error, global config for round #${roundId} not defined`);
       exit(1);
       return MOCK_NULL_WHEN_TESTING;
     }
@@ -346,7 +346,7 @@ export class AttestationRoundManager {
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
     if (epochId < this.startRoundId) {
-      this.logger.debug(`${this.label}epoch too low ^Y#${epochId}^^`);
+      this.logger.debug(`${this.label} epoch too low ^Y#${epochId}^^`);
       return;
     }
 
@@ -382,7 +382,7 @@ export class AttestationRoundManager {
    * @param data
    * @returns
    */
-  private createAttestation(roundId: number, data: AttestationData): Attestation {
+  private createAttestation(roundId: number, data: AttestationData) {
     const attestation = new Attestation(roundId, data);
 
     const globalConfig = this.globalConfigManager.getConfig(roundId);
@@ -390,7 +390,7 @@ export class AttestationRoundManager {
     if (!globalConfig || !verifier) {
       // this should not happen
       attestation.status = AttestationStatus.failed;
-      this.logger.error(`${this.label}Assert: both global config and verifier router for round should exist. Critical error`);
+      this.logger.error(`${this.label} Assert: both global config and verifier router for round should exist. Critical error`);
       process.exit(1);
     }
     const attestationSupported = globalConfig.sourceAndTypeSupported(data.sourceId, data.type);

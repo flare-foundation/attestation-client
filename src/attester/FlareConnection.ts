@@ -161,18 +161,18 @@ export class FlareConnection {
     );
 
     if (verbose) {
-      this.logger.info(`${this.label}action .................... : ${action}`);
-      this.logger.info(`${this.label}bufferNumber .............. : ^e${bufferNumber.toString()}`);
-      this.logger.info(`${this.label}commitedMaskedMerkleRoot .. : ^e${commitedMaskedMerkleRoot.toString()}`);
-      this.logger.info(`${this.label}commitedMerkleRoot ........ : ${commitedMerkleRoot.toString()}`);
-      this.logger.info(`${this.label}commitedRandom ............ : ${commitedRandom.toString()}`);
-      this.logger.info(`${this.label}revealedMerkleRoot ........ : ^e${revealedMerkleRoot.toString()}`);
-      this.logger.info(`${this.label}revealedRandom ............ : ^e${revealedRandom.toString()}`);
+      this.logger.info(`${this.label} action .................... : ${action}`);
+      this.logger.info(`${this.label} bufferNumber .............. : ^e${bufferNumber.toString()}`);
+      this.logger.info(`${this.label} commitedMaskedMerkleRoot .. : ^e${commitedMaskedMerkleRoot.toString()}`);
+      this.logger.info(`${this.label} commitedMerkleRoot ........ : ${commitedMerkleRoot.toString()}`);
+      this.logger.info(`${this.label} commitedRandom ............ : ${commitedRandom.toString()}`);
+      this.logger.info(`${this.label} revealedMerkleRoot ........ : ^e${revealedMerkleRoot.toString()}`);
+      this.logger.info(`${this.label} revealedRandom ............ : ^e${revealedRandom.toString()}`);
     }
 
     const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () =>
+    const extReceipt = await retry(`${this.logger} submitAttestation signAndFinalize3`, async () =>
       this.web3Functions.signAndFinalize3Sequenced(action, this.stateConnector.options.address, fnToEncode, epochEndTime)
     );
 
@@ -210,16 +210,16 @@ export class FlareConnection {
         bitSequence = BitmaskAccumulator.fromHex(hexBitvote).toBitString();
       }
 
-      this.logger.info(`${this.label}action .................... : ${action}`);
-      this.logger.info(`${this.label}bufferNumber .............. : ^e${bufferNumber.toString()}`);
-      this.logger.info(`${this.label}bitVote ................... : ^e${bitVote} (${bitSequence})`);
-      this.logger.info(`${this.label}No. attestations........... : ^e${numberOfValidatedAttestations}/${numberOfAttestations}`);
-      this.logger.info(`${this.label}No. duplicates............. : ^e${duplicateCount}`);
+      this.logger.info(`${this.label} action .................... : ${action}`);
+      this.logger.info(`${this.label} bufferNumber .............. : ^e${bufferNumber.toString()}`);
+      this.logger.info(`${this.label} bitVote ................... : ^e${bitVote} (${bitSequence})`);
+      this.logger.info(`${this.label} No. attestations........... : ^e${numberOfValidatedAttestations}/${numberOfAttestations}`);
+      this.logger.info(`${this.label} No. duplicates............. : ^e${duplicateCount}`);
     }
 
     const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-    const extReceipt = await retry(`${this.logger}submitAttestation signAndFinalize3`, async () =>
+    const extReceipt = await retry(`${this.logger} submitAttestation signAndFinalize3`, async () =>
       this.web3Functions.signAndFinalize3Sequenced(action, this.bitVoting.options.address, fnToEncode, epochEndTime)
     );
 

@@ -76,7 +76,7 @@
     "atest": "env NODE_ENV=development yarn hardhat run scripts/generateAttestationRequest.ts --network local",
     "-------NEST---------": "",
     "devverifierbtc2": "env NODE_ENV=development VERIFIER_TYPE=btc yarn nest start verifier-server --debug --watch",
-    "devwebserver_nest": "env CONFIG_PATH=.secure.dev NODE_ENV=development yarn nest start web-server --debug --watch",    
+    "devwebserver_nest": "env CONFIG_PATH=.secure.dev NODE_ENV=development yarn nest start web-server --debug --watch",
     "-------BACKEND-------": "",
     "preroutes": "ts-node lib/scripts/create-routes-folder.ts",
     "routes": "yarn tsoa routes && yarn tsoa spec",

@@ -53,7 +53,7 @@ export class FlareDataCollector {
 
   public async startCollectingBlocksAndEvents() {
     // wait until new block is set
-    this.logger.info(`${this.label}waiting for network connection...`);
+    this.logger.info(`${this.label} waiting for network connection...`);
     const blockHeight = await this.flareConnection.web3Functions.getBlockNumber();
     if (this.startBlock === undefined) {
       this.startBlock = blockHeight;
@@ -61,7 +61,7 @@ export class FlareDataCollector {
 
     let nextBlockNumberToProcess: number = this.startBlock;
 
-    this.logger.info(`${this.label}^Rnetwork event processing started ^Y${this.startBlock} (height ${blockHeight})`);
+    this.logger.info(`${this.label} ^Rnetwork event processing started ^Y${this.startBlock} (height ${blockHeight})`);
 
     while (true) {
       try {
@@ -97,7 +97,7 @@ export class FlareDataCollector {
         nextBlockNumberToProcess++;
       } catch (error) {
         // not for reporting
-        logException(error, `${this.label}Web3BlockCollector::processEvents`);
+        logException(error, `${this.label} Web3BlockCollector::processEvents`);
       }
     }
   }

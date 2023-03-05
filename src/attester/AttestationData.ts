@@ -1,5 +1,5 @@
-import { toBN } from "@flarenetwork/mcc";
 import BN from "bn.js";
+import { toBN } from "web3-utils";
 import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 import { getAttestationTypeAndSource } from "../verification/generated/attestation-request-parse";
 import { AttestationType } from "../verification/generated/attestation-types-enum";

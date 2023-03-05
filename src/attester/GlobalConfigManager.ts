@@ -131,7 +131,7 @@ export class GlobalConfigManager {
    */
   public getVerifierRouter(roundId: number): VerifierRouter {
     let result = this.getVerifierRouterWithConfig(roundId);
-    return result.router;
+    return result?.router;    // ? is needed for testing, when undefined is returned
   }
 
   /**
@@ -155,6 +155,7 @@ export class GlobalConfigManager {
           `${this.label} Round id (${roundId}) too low for the first global config (round: ${this.verifierRoutersWithConfig[0].config.startRoundId})`
         );
         process.exit(1);
+        return; // Don't delete needed for testing
       }
       return this.verifierRoutersWithConfig[0];
     }
@@ -182,6 +183,7 @@ export class GlobalConfigManager {
     }
 
     this.globalAttestationConfigs = await Promise.all(promises);
+    
     this.sortGlobalConfigs();
   }
 
@@ -215,7 +217,7 @@ export class GlobalConfigManager {
         router = new VerifierRouter();
         router.initialize(config, definitions);
         this.hashToVerifierRouter.set(hash, router);
-        this.logger.info(`New config for round ${config.startRoundId} loaded.`);
+        this.logger.info(`New config for round ${config.startRoundId} loaded.`)
       }
       return {
         config,
@@ -308,9 +310,9 @@ export class GlobalConfigManager {
    * Sorts attestationConfig based on the startRoundId
    */
   private sortGlobalConfigs() {
-    this.globalAttestationConfigs.sort((a: GlobalAttestationConfig, b: GlobalAttestationConfig) => {
-      if (a.startRoundId < b.startRoundId) return 1;
-      if (a.startRoundId > b.startRoundId) return -1;
+    this.globalAttestationConfigs.sort((a: GlobalAttestationConfig, b: GlobalAttestationConfig) => {      
+      if (a.startRoundId < b.startRoundId) return -1;
+      if (a.startRoundId > b.startRoundId) return 1;
       return 0;
     });
   }
@@ -320,49 +322,9 @@ export class GlobalConfigManager {
    */
   private sortVerifierRouteConfigs(verifierRoutersWithConfig: VerifierRouterWithConfig[]) {
     verifierRoutersWithConfig.sort((a: VerifierRouterWithConfig, b: VerifierRouterWithConfig) => {
-      if (a.config.startRoundId < b.config.startRoundId) return 1;
-      if (a.config.startRoundId > b.config.startRoundId) return -1;
+      if (a.config.startRoundId < b.config.startRoundId) return -1;
+      if (a.config.startRoundId > b.config.startRoundId) return 1;
       return 0;
     });
   }
 }
-
-// let config: GlobalAttestationConfig;
-
-// this.logger.info(`^GDAC load '${filename}'`);
-
-// // todo: read with config (to get proper type)
-// const fileConfig = readJSON<any>(filename, JSONMapParser);
-
-// // check if loading current round (or next one)
-// if (fileConfig.startRoundId == this.activeRoundId || fileConfig.startRoundId == this.activeRoundId + 1) {
-//   this.logger.warning(`DAC almost alive (epoch ${fileConfig.startRoundId})`);
-// } //logging
-
-// // convert from file structure
-// config = new GlobalAttestationConfig();
-// config.startRoundId = fileConfig.startRoundId;
-// config.defaultSetAssignerAddresses = fileConfig.defaultSetAssignerAddresses;
-// config.consensusSubsetSize = fileConfig.consensusSubsetSize;
-
-// // This initialization may fail, hence the dac initialization will fail
-// // TODO: make a recovery mechanism
-// // await config.verifierRouter.initialize(config.startRoundId, this.logger, undefined, this.testing);
-
-// // parse sources
-// fileConfig.sources.forEach((source: { attestationTypes: any[]; source: number; numberOfConfirmations: number; maxTotalRoundWeight: number }) => {
-//   const sourceLimiterConfig = new SourceConfig();
-
-//   sourceLimiterConfig.source = toSourceId(source.source);
-//   sourceLimiterConfig.maxTotalRoundWeight = source.maxTotalRoundWeight;
-//   config.sourceLimiters.set(sourceLimiterConfig.source, sourceLimiterConfig);
-
-//   // parse attestationTypes
-//   source.attestationTypes.forEach((attestationType) => {
-//     const type = (<any>AttestationType)[attestationType.type] as AttestationType;
-//     const attestationTypeHandler = new AttestationTypeConfig();
-//     attestationTypeHandler.weight = attestationType.weight;
-//     sourceLimiterConfig.attestationTypes.set(type, attestationTypeHandler);
-//   });
-// });
-// return config

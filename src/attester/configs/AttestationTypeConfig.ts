@@ -5,7 +5,7 @@ import { AttestationType } from "../../verification/generated/attestation-types-
  * Class defining attestation type for a source in global configuration
  */
 export class AttestationTypeConfig implements IReflection<AttestationTypeConfig> {
-  type: AttestationType;
+  type: string;
   // Weight presents the difficulty of validating the attestation depending on the attestation type and source
   weight: number = 0;
 

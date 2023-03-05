@@ -65,7 +65,7 @@ export class SourceRouter {
     if (!sourceManager) {
       this.logger.error(`${sourceId}: critical error, source not defined`);
       exit(1);
-      return MOCK_NULL_WHEN_TESTING;
+      return; //for testing
     }
     return sourceManager;
   }

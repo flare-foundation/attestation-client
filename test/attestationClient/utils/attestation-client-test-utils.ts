@@ -285,7 +285,6 @@ export async function getVoterAddresses(n = 9) {
    }
    const web3 = new Web3();
    for (let i = 0; i < n; i++) {
-      // console.log("XXX", fs.readFileSync(`./test/attestationClient/test-data/attester/attester_${i}-config.json`).toString())
       let json = readJSONfromFile<any>(`./test/attestationClient/test-data/templates/attester_${i}-config.json`);
       let account = web3.eth.accounts.privateKeyToAccount(json.web.accountPrivateKey);
       voters.push(account.address);

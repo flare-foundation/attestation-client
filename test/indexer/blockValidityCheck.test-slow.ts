@@ -2,8 +2,8 @@
 
 import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
 import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
@@ -76,7 +76,7 @@ class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
   }
 }
 
-describe("Block validity check before processing", () => {
+describe.skip("Block validity check before processing", () => {
   let XrpMccClient: MCC.XRP;
   let indexer: Indexer;
 

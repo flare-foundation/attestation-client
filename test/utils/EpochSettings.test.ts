@@ -51,4 +51,15 @@ describe(`EpochSettings (${getTestFile(__filename)})`, () => {
     expect(calculatedEpochId1).to.be.undefined;
   });
 
+  it("Should get getBitVoteDurationMs", function () {
+    const res = epochSettings.getBitVoteDurationMs();
+    expect(res.toNumber()).to.eq(40000);
+  });
+
+  it("Should not get getBitVoteDurationMs", function () {
+    let epochSettings2 = new EpochSettings(toBN(START_TIME_SEC), toBN(EPOCH_DURATION));
+
+    const res = epochSettings2.getBitVoteDurationMs();
+    expect(res.toNumber()).to.eq(0);
+  });
 });

@@ -1,15 +1,14 @@
 import { execSync } from "child_process";
 import { exit } from "process";
-import { getSecureValue, initializeJSONsecure, readFileSecure } from "../utils/config/jsonSecure";
+import { initializeJSONsecure, readFileSecure } from "../utils/config/jsonSecure";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
-import { sleepms } from "../utils/helpers/utils";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
 async function run() {
   const logger = getGlobalLogger();
   // read configuration
-  await initializeJSONsecure(DEFAULT_SECURE_CONFIG_PATH, "Coston");
+  await initializeJSONsecure(DEFAULT_SECURE_CONFIG_PATH, process.env.FLARE_NETWORK ?? "Coston");
 
   const installLines = readFileSecure("configs/.install/templates/sql/install.sql").split(/\r?\n/);
   const updateLines = readFileSecure("configs/.install/templates/sql/update.sql").split(/\r?\n/);

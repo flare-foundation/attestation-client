@@ -503,7 +503,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
           });
 
           // problems in test:coverage-full
-          it.skip("should exit", async function () {
+          it("should exit", async function () {
             const stub = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(10);
 
             const store = indexer.chainConfig.blockCollecting;

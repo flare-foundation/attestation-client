@@ -3,9 +3,9 @@
 
 import { assert } from "chai";
 import sinon from "sinon";
-import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { getSecureConfigRootPath, readSecureConfig } from "../../src/utils/config/configSecure";
 import { getCredentialsKey, getCredentialsKeyAddress, getCredentialsKeyByAddress } from "../../src/utils/config/credentialsKey";
-import { SECURE_MASTER_CONFIGS, _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
+import { initializeJSONsecure, SECURE_MASTER_CONFIGS, _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
 import { getTestFile } from "../test-utils/test-utils";
@@ -16,138 +16,132 @@ const SECURE_CONFIG_PATH = "test/utils/test-data/config/";
 
 const CREDENTIALS_KEY = `direct:${TEST_PASSWORD}`;
 
-
 let exitCode = 0;
 
 class TestConfig implements IReflection<TestConfig> {
-    key1: number = 0;
-    key2: number = 0;
-    key3: number = 0;
-    key4: number = 0;
+  key1: number = 0;
+  key2: number = 0;
+  key3: number = 0;
+  key4: number = 0;
 
-    instanciate() {
-        return new TestConfig();
-    }
+  instanciate() {
+    return new TestConfig();
+  }
 
-    getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
-        return null;
-    }
-
+  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
+    return null;
+  }
 }
 
 describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
+  before(async () => {
+    initializeTestGlobalLogger();
 
-    before(async () => {
-        initializeTestGlobalLogger();
+    // Enable Test Logger display
+    //TestLogger.setDisplay(1);
 
-        // Enable Test Logger display
-        //TestLogger.setDisplay(1);
+    sinon.stub(process, "exit");
 
-        sinon.stub(process, 'exit');
-
-        (process.exit as any).callsFake((code) => {
-            exitCode = code;
-        });
-
+    (process.exit as any).callsFake((code) => {
+      exitCode = code;
     });
+  });
 
-    beforeEach(async () => {
-        process.env.SECURE_CONFIG_PATH = SECURE_CONFIG_PATH;
-        process.env.FLARE_NETWORK = `TestNetwork`;
-        process.env.CREDENTIALS_KEY = CREDENTIALS_KEY;
+  beforeEach(async () => {
+    process.env.SECURE_CONFIG_PATH = SECURE_CONFIG_PATH;
+    process.env.FLARE_NETWORK = `TestNetwork`;
+    process.env.CREDENTIALS_KEY = CREDENTIALS_KEY;
 
-        exitCode = 0;
+    exitCode = 0;
 
-        _clearSecureCredentials();
-    });
+    _clearSecureCredentials();
+  });
 
-    after(() => {
-        sinon.restore();
-        _clearSecureCredentials();
-        delete process.env.CREDENTIALS_KEY_FILE;
-        delete process.env.SECURE_CONFIG_PATH;
-        delete process.env.FLARE_NETWORK;
-        delete process.env.CREDENTIALS_KEY;
-    })
+  after(() => {
+    sinon.restore();
+    _clearSecureCredentials();
+    delete process.env.CREDENTIALS_KEY_FILE;
+    delete process.env.SECURE_CONFIG_PATH;
+    delete process.env.FLARE_NETWORK;
+    delete process.env.CREDENTIALS_KEY;
+  });
 
-    // credentials
+  // credentials
 
-    it(`get credentials key address from env`, async () => {
-        const credentialsPassword = await getCredentialsKeyAddress();
+  it(`get credentials key address from env`, async () => {
+    const credentialsPassword = await getCredentialsKeyAddress();
 
-        assert(credentialsPassword == CREDENTIALS_KEY, "Credentials key not correct");
+    assert(credentialsPassword == CREDENTIALS_KEY, "Credentials key not correct");
 
-        assert(exitCode === 0, `exit called`);
-    });
+    assert(exitCode === 0, `exit called`);
+  });
 
-    it(`get credentials key address from file`, async () => {
-        delete process.env.CREDENTIALS_KEY;
-        process.env.CREDENTIALS_KEY_FILE = "test/utils/test-data/credentials.key";
+  it(`get credentials key address from file`, async () => {
+    delete process.env.CREDENTIALS_KEY;
+    process.env.CREDENTIALS_KEY_FILE = "test/utils/test-data/credentials.key";
 
-        const credentialsPassword = await getCredentialsKeyAddress();
+    const credentialsPassword = await getCredentialsKeyAddress();
 
-        assert(credentialsPassword == `test:address`, "Credentials key not correct");
+    assert(credentialsPassword == `test:address`, "Credentials key not correct");
 
-        assert(exitCode === 0, `exit called`);
-    });
+    assert(exitCode === 0, `exit called`);
+  });
 
-    it.skip(`unable to get credentials key address from env or file`, async () => {
-        delete process.env.CREDENTIALS_KEY;
-        delete process.env.CREDENTIALS_KEY_FILE;
+  it(`unable to get credentials key address from env or file`, async () => {
+    delete process.env.CREDENTIALS_KEY;
+    delete process.env.CREDENTIALS_KEY_FILE;
 
-        const credentialsPassword = await getCredentialsKeyAddress();
+    const credentialsPassword = await getCredentialsKeyAddress();
 
-        assert(exitCode !== 0, `should exit since there is no credentials key address`);
-    });
+    assert(exitCode !== 0, `should exit since there is no credentials key address`);
+  });
 
-    it(`get credentials invalid format`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("provider:address:invalid");
+  it(`get credentials invalid format`, async () => {
+    const credentialsPassword = await getCredentialsKeyByAddress("provider:address:invalid");
 
-        assert(exitCode !== 0, `exit not called`);
-    });
+    assert(exitCode !== 0, `exit not called`);
+  });
 
-    it(`get credentials invalid address`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("unknown:some address");
+  it(`get credentials invalid address`, async () => {
+    const credentialsPassword = await getCredentialsKeyByAddress("unknown:some address");
 
-        assert(exitCode !== 0, `exit not called`);
-    });
+    assert(exitCode !== 0, `exit not called`);
+  });
 
-    it(`get credentials key direct`, async () => {
-        const credentialsPassword = await getCredentialsKey();
+  it(`get credentials key direct`, async () => {
+    const credentialsPassword = await getCredentialsKey();
 
-        assert(credentialsPassword === TEST_PASSWORD, `credentials password not correct`);
+    assert(credentialsPassword === TEST_PASSWORD, `credentials password not correct`);
+  });
 
-    });
+  it(`get credentials key google cloud secret manager invalid name`, async () => {
+    const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:invalid name");
 
-    it(`get credentials key google cloud secret manager invalid name`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:invalid name");
+    assert(exitCode !== 0, `exit not called`);
+  });
 
-        assert(exitCode !== 0, `exit not called`);
-    });
+  it(`secure credentials read`, async () => {
+    let testConfig = new TestConfig();
 
-    it(`secure credentials read`, async () => {
-        let testConfig = new TestConfig();
+    const test = await readSecureConfig(testConfig, "template1");
 
-        const test = await readSecureConfig(testConfig, "template1");
+    assert(test.key1 === 1, "incorrect config key");
+    assert(test.key2 === 2, "incorrect config key");
+    assert(test.key3 === 3, "incorrect config key");
+    assert(test.key4 === 4, "incorrect config key");
 
-        assert(test.key1 === 1, "incorrect config key");
-        assert(test.key2 === 2, "incorrect config key");
-        assert(test.key3 === 3, "incorrect config key");
-        assert(test.key4 === 4, "incorrect config key");
+    assert(exitCode === 0, `function must not exit`);
+  });
 
-        assert(exitCode === 0, `function must not exit`);
-    });
+  // For some reason this one causes VerifierRouter.test.ts to stuck
+  // To be investigated
+  it(`test empty credentials at start`, async () => {
+    let testConfig = new TestConfig();
 
-    // For some reason this one causes VerifierRouter.test.ts to stuck
-    // To be investigated
-    it.skip(`test empty credentials at start`, async () => {
-        let testConfig = new TestConfig();
+    SECURE_MASTER_CONFIGS.push(["dummy", 123]);
 
-        SECURE_MASTER_CONFIGS.push(["dummy", 123]);
+    const test = await initializeJSONsecure(getSecureConfigRootPath(), process.env.FLARE_NETWORK);
 
-        const test = await readSecureConfig(testConfig, "template1");
-
-        assert(exitCode !== 0, `function must exit`);
-    });
-
-})
+    assert(exitCode == 500, `function must exit`);
+  });
+});

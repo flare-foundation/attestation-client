@@ -76,6 +76,7 @@ export async function initializeJSONsecure<T>(credentialsPath: string, network: 
     exit(CREDENTIALS_ERROR);
 
     // when testing exit is stubbed to save value and continue
+    initializing = false;
     return null;
   }
 

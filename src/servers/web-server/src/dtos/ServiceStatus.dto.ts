@@ -1,6 +1,6 @@
 import { MonitorStatus, PerformanceInfo } from "../../../../monitor/MonitorBase";
 
-export interface ServiceStatus {
+export class ServiceStatus {
   alerts: MonitorStatus[];
   perf: PerformanceInfo[];
 }

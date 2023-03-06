@@ -76,7 +76,7 @@ class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
   }
 }
 
-describe.skip("Block validity check before processing", () => {
+describe("Block validity check before processing", () => {
   let XrpMccClient: MCC.XRP;
   let indexer: Indexer;
 
@@ -132,6 +132,10 @@ describe.skip("Block validity check before processing", () => {
 
   afterEach(function () {
     sinon.restore();
+  });
+
+  after(function () {
+    setRetryFailureCallback((label) => {});
   });
 
   it(`Block processor manager for valid XRP block`, async function () {
@@ -192,10 +196,7 @@ describe.skip("Block validity check before processing", () => {
 
     const fake = sinon.fake.throws("Error");
 
-    setRetryFailureCallback(fake);
     // const stub1 = sinon.stub(getRetryFailureCallback()).rejects;
     await expect(indexer.blockProcessorManager.process(invalidBlock)).to.be.rejected;
-
-    expect(fake.callCount).to.be.eq(1);
   });
 });

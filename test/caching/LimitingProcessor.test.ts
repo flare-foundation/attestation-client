@@ -1,8 +1,8 @@
 // yarn test test/caching/LimitingProcessor.test.ts
 
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import console from "console";
 import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
@@ -242,7 +242,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
     });
 
     // crashes
-    it.skip("Should initializeJobs throw an error", async function () {
+    it("Should initializeJobs throw an error", async function () {
       await expect(limitingProcessor.initializeJobs(null, null)).to.be.rejected;
     });
 

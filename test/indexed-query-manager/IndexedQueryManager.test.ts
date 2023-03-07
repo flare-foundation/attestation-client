@@ -63,7 +63,6 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
       numberOfConfirmations: () => {
         return NUMBER_OF_CONFIRMATIONS;
       },
-      maxValidIndexerDelaySec: 10,
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
 
@@ -86,11 +85,6 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     const response = await indexedQueryManager.getLatestBlockTimestamp();
     assert(response.timestamp === lastTimestamp);
     assert(response.height === LAST_BLOCK);
-  });
-
-  it("Should indexer be up to date", async () => {
-    const response = await indexedQueryManager.isIndexerUpToDate();
-    assert(response);
   });
 
   it("Should get the correct block greater or equal to timestamp", async () => {

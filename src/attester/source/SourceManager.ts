@@ -39,30 +39,45 @@ export class SourceManager {
     this.sourceId = sourceId;
   }
 
+  /**
+   * Returns verifer source config for the latest round id, that is initialized on the SourceManager.
+   */
   get verifierSourceConfig(): VerifierSourceRouteConfig | undefined {
     const config = this.globalConfigManager.getVerifierRouter(this.latestRoundId).config;
     if (!config) return;
     return config.getSourceConfig(this.sourceId);
   }
 
+  /**
+   * Returns max number of requests per second.
+   */
   get maxRequestsPerSecond(): number {
     const config = this.verifierSourceConfig;
     if (!config) return Infinity; // requests will be rejected anyway, since there is no routing
     return config.maxRequestsPerSecond;
   }
 
+  /**
+   * Maximal number of transactions that can be in processing simultaneously.
+   */
   get maxProcessingTransactions(): number {
     const config = this.verifierSourceConfig;
     if (!config) return Infinity; // requests will be rejected anyway, since there is no routing
     return config.maxProcessingTransactions;
   }
 
+  /**
+   * Returns max number of failed retries before terminating the application process.
+   */
   get maxFailedRetries(): number {
     const config = this.verifierSourceConfig;
     if (!config) return 3; // requests will be rejected anyway, since there is no routing
     return config.maxFailedRetries;
   }
 
+  /**
+   * Retruns delay before retrying in ms.
+   */
   get delayBeforeRetryMs(): number {
     const config = this.verifierSourceConfig;
     if (!config) return 100; // requests will be rejected anyway, since there is no routing

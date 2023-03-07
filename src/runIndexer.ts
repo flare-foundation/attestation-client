@@ -1,12 +1,11 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
+import * as yargs from "yargs";
 import { Indexer } from "./indexer/indexer";
 import { IndexerConfig } from "./indexer/IndexerConfig";
-import { ListChainConfig } from "./attester/configs/ChainConfig";
 import { readSecureConfig } from "./utils/config/configSecure";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logging/logger";
 import { setRetryFailureCallback } from "./utils/helpers/promiseTimeout";
-import * as yargs from "yargs";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logging/logger";
 
 const args = yargs
   .option("reset", { alias: "r", type: "string", description: "Reset commands", default: true, demand: false })

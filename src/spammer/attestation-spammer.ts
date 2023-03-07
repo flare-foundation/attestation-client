@@ -110,8 +110,6 @@ class AttestationSpammer {
       numberOfConfirmations: () => {
         return this.numberOfConfirmations;
       },
-      // todo: get from chain confing
-      maxValidIndexerDelaySec: 10, //this.chainAttestationConfig.maxValidIndexerDelaySec,
       entityManager: dbService.manager,
     } as IndexedQueryManagerOptions;
     this.indexedQueryManager = new IndexedQueryManager(options);

@@ -1,29 +1,40 @@
 # Attestation client
 
 Attestation client is a central service run by an attestation provider. Its main roles include:
-- monitoring Flare blockchain for attestation requests and collecting them from `StateConnector` smart contract,
+- monitoring a Flare blockchain for attestation requests and collecting them from `StateConnector` smart contract,
 - scheduling attestation requests to the rounds and forwarding them to the verifier servers,
 - collecting the verifications/rejections from verifier servers,
 - participating in bit-voting on `BitVoting` smart contract,
-- assembling the merkle tree from bit-voted and verified requests,
+- assembling the Merkle tree from bit-voted and verified requests,
 - carrying out the attestation protocol voting.
 
 The implementation of the attestation client includes several important classes.
-The top level class [AttesterClient](../../src/attester/AttesterClient.ts) runs all sub modules.
+The top level class [`AttesterClient`](../../src/attester/AttesterClient.ts) runs all sub modules.
  
-The application listens to the events emitted by `StateConnector` and `BitVoting` contract. Collection of events is managed by [FlareDataCollector](../../src/attester/FlareDataCollector.ts). There are three types of events: attestation requests, bit-votes, and events that signalize the finalisation of a voting round.
+The application listens to the events emitted by `StateConnector` and `BitVoting` contracts. Collection of events is managed by [`FlareDataCollector`](../../src/attester/FlareDataCollector.ts). There are three types of events: attestation requests, bit-votes, and events that signalize the finalisation of a voting round.
 
-Attestation request is read and parsed into class [Attestation](../../src/attester/Attestation.ts) that is assigned to an [AttestationRound](../../src/attester/AttestationRound.ts) according to the roundId determined by the [`block.timestamp`](./../end-users/state-connector-usage.md#round-id-of-the-attestation-request). `Attestation` is then passed to [SourceManager](../../src/attester/source/SourceManager.ts). `SourceManager` communicates with external verifiers in order to obtain responses for attestation requests. Based on those responses the values of [AttestationStatus](../../src/attester/types/AttestationStatus.ts) and [Verification](../../src/verification/attestation-types/attestation-types.ts) within `Attestation` are set. The attestations in a given round are sorted by the order of arrival (duplicates omitted) and marked by `1` if AttestationStatus is `valid` an `0` otherwise. If the attestation client runs as a part of a default set, marks are collected into bit vector (bit-vote) and sent to `BitVoting` contract before the end of the choose round.
+Attestation request event is parsed into [`AttestationData`](../../src/attester/AttestationData.ts) object. This object is packed into class [Attestation](../../src/attester/Attestation.ts), that manages the attestation the life-cycle data (attestation status, round assignments, verifications, processing status data). Each `Attestation` is assigned to an [AttestationRound](../../src/attester/AttestationRound.ts) according to the `roundId` determined by the [`block.timestamp`](./../end-users/state-connector-usage.md#round-id-of-the-attestation-request). Based on the attestation type `Attestation` is passed to [SourceManager](../../src/attester/source/SourceManager.ts). Choosing the correct `SourceManager` is done by using [`SourceRouter`](../../src/attester/source/SourceRouter.ts). In the process the `Attestation` is checked against [`SourceLimiter`](../../src/attester/source/SourceLimiter.ts) and possibly rejected if the rate limit for the attestation type in the specific round is achieved. By using [`VerifierRouter`](../../src/verification/routing/VerifierRouter.ts) the relevant `SourceManager` communicates with external verifiers in order to obtain responses for attestation requests. Based on those responses the [AttestationStatus](../../src/attester/types/AttestationStatus.ts) and [Verification](../../src/verification/attestation-types/attestation-types.ts) within `Attestation` are set. 
 
-`BitVote` event emitted by each bit-vote sent by attestation clients is read and parsed into [BitVoteData](../../src/attester/BitVoteData.ts) that is assigned to an attestation round according to the timestamps. After bit-votes of all attesters in the default set are collected (after the end of choose phase), the result of bit voting is calculated and attestation that were chosen are marked for inclusion into the Merkle tree.
+Managing attestation rounds is done by [AttestationRoundManager](../../src/attester/AttestationRoundManager.ts). This includes creating attestation rounds (`AttestationRound`), routing attestation requests (`Attestation`) to the correct attestation rounds (`AttestationRound`), time scheduling of actions in the life-cycle of each attestation round and overall initialization and config management. 
+
+[AttestationRound](../../src/attester/AttestationRound.ts) manages the attestation round life-cycle and implements the actions carried out during the life-cycle. The life-cycle consists of phases `collect`, `choose`, `commit`, `reveal` and `finalise` and the phase is indicated by [`AttestationRoundPhase`](../../src/attester/types/AttestationRoundEnums.ts). The processing progress (a kind of milestones) is indicated by [`AttestationRoundStatus`](../../src/attester/types/AttestationRoundEnums.ts). The most important milestones include:
+
+- `bitVotingClosed` - choose phase is finished and at least one block with bigger timestamp is mined or enough time has passed,
+- `chosen` - bit voting result is calculated,
+- `commitDataPrepared` - commit data (Merkle tree) calculated based on bit voting result.
+
+`AttestationRound` also implements all the actions to be executed during the life-cycle of the attestation round, like calculating bit-vote, bit-voting, calculating bit-vote result, assembling commit data, submitting vote and revealing vote.
+
+The attestations in a given round (`AttestationRound`) are sorted by the order of arrival (duplicates omitted) in the list inside `AttestationRound`. 
+As they are processed (validated) they are marked by `1` if `AttestationStatus` is `valid` an `0` otherwise. If the attestation client runs as a part of a default set, marks are collected into a bit vector (bit-vote) and sent to `BitVoting` contract before the end of the `choose` phase (see [Bit voting](../attestation-protocol/bit-voting.md)).
+
+`BitVote` event emitted on `BitVoting` contract by each bit-vote sent by attestation clients is read and parsed into [BitVoteData](../../src/attester/BitVoteData.ts) that is assigned to an attestation round according to the timestamps. After bit-votes of all attesters in the default set are collected (after the end of `choose` phase), the result of bit voting is calculated and attestations that were chosen are marked for inclusion into the Merkle tree.
 
 Hashes of verifications of all attestations that are valid and chosen are collected, sorted and assembled into a Merkle tree. The Merkle root is masked with a random number. Near the end of the commit phase, masked Merkle root is submitted to `StateConnector` together with the revealed Merkle root and the random number of the previous round. Attestation requests that are valid and chosen are stored in the database to provide Merkle proofs that enable a use of the valid request on the blockchain.
 
 On the round finalization event (triggered by the validator while counting the votes) the committed Merkle root is checked against the majority Merkle root just for logging purposes.
 
-Functions that manage submissions to `StateConnector` and `BitVoting` are in [FlareConnection](../../src/attester/FlareConnection.ts).
-
-Managing attestation rounds is done by [AttestationRoundManager](../../src/attester/AttestationRoundManager.ts). This includes creating attestation rounds, routing requests to the correct attestation rounds, time scheduling of actions in the life-cycle of each attestation round, overall initialization and config management.
+Functions that carry out submissions to `StateConnector` and `BitVoting` are in [FlareConnection](../../src/attester/FlareConnection.ts).
 
 Next: [Configurations](./attestation-configs.md)
 

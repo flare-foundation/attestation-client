@@ -13,7 +13,7 @@ import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/web3-utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AttestationTypeScheme } from "../../src/verification/attestation-types/attestation-types";
-import { readAttestationTypeSchemes } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { readAttestationTypeSchemes, toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
@@ -286,10 +286,19 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
     const client = clients[0];
 
     console.log("Wait for one attestation round");
-    await sleepMs(50000);
+    await sleepMs(65000);
+    const activeRound = client.attestationRoundManager.activeRoundId;
+
+    const res1 = await client.flareConnection.attesterState.getRound(activeRound - 2);
+
+    // const res2 = await client.flareConnection.attesterState.getRound(activeRound - 2);
+    //console.log(res1);
+    //console.log(res2);
 
     assert(client);
     assert(client.flareDataCollector);
     expect(client.attestationRoundManager.rounds.size).to.be.greaterThanOrEqual(3);
+    expect(res1.commitNonce, "commitNonce").to.eq(5);
+    expect(res1.merkleRoot, "root").to.not.eq(toHex(0, 32));
   });
 });

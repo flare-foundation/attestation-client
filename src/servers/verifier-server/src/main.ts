@@ -1,3 +1,3 @@
 import { runVerifierServer } from "./verifierServer";
 
-runVerifierServer();
+void runVerifierServer();

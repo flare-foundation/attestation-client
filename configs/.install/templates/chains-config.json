@@ -25,16 +25,6 @@
             "blockCollecting":"raw",
             "minimalStorageHistoryDays":2,
             "minimalStorageHistoryBlocks":100,
-
-            "maxRequestsPerSecond":80,
-            "maxProcessingTransactions":3000,
-
-            "maxFailedRetries": 1,
-            "delayBeforeRetryMs": 10000,
-
-            "maxValidIndexerDelaySec": 10,
-
-            "reverificationTimeOffset": 10
         },
         {
             "name": "BTC",
@@ -53,17 +43,6 @@
             "blockCollecting":"tips",
             "minimalStorageHistoryDays":2,
             "minimalStorageHistoryBlocks":100,
-
-            "maxRequestsPerSecond":80,
-            "maxProcessingTransactions":3000,
-
-            "maxFailedRetries": 1,
-            "delayBeforeRetryMs": 10000,
-
-            "maxValidIndexerDelaySec": 10,
-
-            "reverificationTimeOffset": 10
-
         },
         {
             "name": "LTC",
@@ -82,16 +61,6 @@
             "blockCollecting":"tips",
             "minimalStorageHistoryDays":2,
             "minimalStorageHistoryBlocks":100,
-
-            "maxRequestsPerSecond":80,
-            "maxProcessingTransactions":3000,
-
-            "maxFailedRetries": 1,
-            "delayBeforeRetryMs": 10000,
-
-            "maxValidIndexerDelaySec": 10,
-
-            "reverificationTimeOffset": 10
         },
         {
             "name": "ALGO",
@@ -110,17 +79,7 @@
             "syncReadAhead":30,
             "blockCollecting":"raw",
             "minimalStorageHistoryDays":2,
-            "minimalStorageHistoryBlocks":100 ,
-
-            "maxRequestsPerSecond":80,
-            "maxProcessingTransactions":3000,
-
-            "maxFailedRetries": 1,
-            "delayBeforeRetryMs": 10000,
-
-            "maxValidIndexerDelaySec": 10,
-
-            "reverificationTimeOffset": 10
+            "minimalStorageHistoryBlocks":100,
         },
         {
             "name": "DOGE",
@@ -139,16 +98,6 @@
             "blockCollecting":"tips",
             "minimalStorageHistoryDays":2,
             "minimalStorageHistoryBlocks":100,
-
-            "maxRequestsPerSecond":80,
-            "maxProcessingTransactions":3000,
-
-            "maxFailedRetries": 1,
-            "delayBeforeRetryMs": 10000,
-
-            "maxValidIndexerDelaySec": 10,
-
-            "reverificationTimeOffset": 10
         }
 
     ]

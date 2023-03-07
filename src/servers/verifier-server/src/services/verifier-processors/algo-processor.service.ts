@@ -19,8 +19,6 @@ export class AlgoProcessorService extends VerifierProcessor {
     const options: IndexedQueryManagerOptions = {
       chainType: ChainType.ALGO,
       entityManager: this.manager,
-      maxValidIndexerDelaySec: this.config.config.chainConfiguration.maxValidIndexerDelaySec,
-
       numberOfConfirmations: () => {
         return this.config.config.chainConfiguration.numberOfConfirmations;
       },

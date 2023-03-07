@@ -4,7 +4,7 @@ import { UtxoBlockTip, UtxoMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
+import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { DBBlockLTC } from "../../src/entity/indexer/dbBlock";
 import { DBState } from "../../src/entity/indexer/dbState";
 import { DBTransactionLTC0 } from "../../src/entity/indexer/dbTransaction";

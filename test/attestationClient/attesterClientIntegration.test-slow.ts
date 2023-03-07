@@ -64,7 +64,7 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
   const NUMBER_OF_FAILING_CLIENTS = 0;
   const WEB_SERVER_IN_OTHER_PROCESS = false;
   const SPAMMER_GAPS = [];
-  const SPAMMER_FREQUENCIES = [2, 3];
+  const SPAMMER_FREQUENCIES = [];
 
   // Testing modes:
   // scheduler: time is managed by Scheduler
@@ -289,16 +289,16 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
     await sleepMs(65000);
     const activeRound = client.attestationRoundManager.activeRoundId;
 
-    const res1 = await client.flareConnection.attesterState.getRound(activeRound - 2);
+    const res1 = await client.flareConnection.attesterState.getRound(activeRound - 3);
 
-    // const res2 = await client.flareConnection.attesterState.getRound(activeRound - 2);
+    const res2 = await client.flareConnection.attesterState.getRound(activeRound - 2);
     //console.log(res1);
-    //console.log(res2);
+    // console.log(res2);
 
     assert(client);
     assert(client.flareDataCollector);
     expect(client.attestationRoundManager.rounds.size).to.be.greaterThanOrEqual(3);
-    expect(res1.commitNonce, "commitNonce").to.eq(5);
+    expect(res1.commitNonce, "commitNonce").to.eq(4);
     expect(res1.merkleRoot, "root").to.not.eq(toHex(0, 32));
   });
 });

@@ -7,9 +7,12 @@ import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/s
 import { ApiResponseWrapper, ApiResStatusEnum, handleApiResponse } from "../../../common/src";
 import { SpecificProofRequest } from "../dtos/SpecificProofRequest.dto";
 import { ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
+import { ARTypeArray } from "../../../../verification/generated/attestation-request-types";
+import { DHTypeArray } from "../../../../verification/generated/attestation-hash-types";
 
 @ApiTags("Proof")
 @Controller("api/proof")
+@ApiExtraModels(...ARTypeArray, ...DHTypeArray)
 export class ProofController {
   constructor(private proofEngine: ProofEngineService) {}
 

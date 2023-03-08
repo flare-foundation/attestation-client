@@ -93,7 +93,6 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     web3.eth.handleRevert = false;
   }
 
-
   function toBN(inp: string | number) {
     return web3.utils.toBN(inp);
   }
@@ -172,10 +171,10 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
       }
     }
 
-    console.log("VOTES:")
+    console.log("VOTES:");
     for (const signer of signers) {
       let result = await getAttestation(currentRound, signer);
-      console.error(`[${currentRound}]${signer}: ${result}`)
+      console.error(`[${currentRound}]${signer}: ${result}`);
       merkleRootCandidates.push(result);
     }
 
@@ -199,7 +198,11 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     let tmpBlockNumber = await web3.eth.getBlockNumber();
     let tmpBlock = await web3.eth.getBlock(tmpBlockNumber);
 
-    console.log(`BEFORE SENDING: currentRound: ${currentRound}, shouldBeForNow: ${Math.floor((now - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber())}, fromBlockTime: ${Math.floor((parseInt('' + tmpBlock.timestamp, 10) - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber())}`)
+    console.log(
+      `BEFORE SENDING: currentRound: ${currentRound}, shouldBeForNow: ${Math.floor(
+        (now - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber()
+      )}, fromBlockTime: ${Math.floor((parseInt("" + tmpBlock.timestamp, 10) - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber())}`
+    );
     const finalizeData = stateConnectorContract.methods.finaliseRound(currentRound, root).encodeABI();
     const tx = {
       from: botWallet.address,

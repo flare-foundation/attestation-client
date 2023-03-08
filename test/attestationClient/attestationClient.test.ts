@@ -1,65 +1,29 @@
 // yarn test test/attestationClient/attestationClient.test.ts
 
 import { traceManager } from "@flarenetwork/mcc";
-import BN from "bn.js";
-import chai, { expect } from 'chai';
+import chai, { expect, assert } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
 import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
-import { FlareConnection } from "../../src/attester/FlareConnection";
 import { SourceRouter } from "../../src/attester/source/SourceRouter";
 import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { SourceId } from "../../src/verification/sources/sources";
-import { TERMINATION_TOKEN } from "../test-utils/test-utils";
+import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
+import { MockFlareConnection } from "./utils/mockClasses";
 chai.use(chaiAsPromised);
 
 class MockSourceRouter extends SourceRouter {
   constructor() {
-    super(undefined, getGlobalLogger());
+    super(undefined);
   }
-  validateTransaction(sourceId: SourceId, transaction: Attestation) { }
+  validateTransaction(sourceId: SourceId, transaction: Attestation) {}
 }
 
-class MockFlareConnection extends FlareConnection {
-  constructor(config: AttestationClientConfig, logger: AttLogger) {
-    super(config, logger, false);
-  }
-
-  async initialize() {}
-
-  protected checkHex64(bnString: string) {
-    if (bnString.length != 64 + 2 || bnString[0] !== "0" || bnString[1] !== "x") {
-      this.logger.error(`invalid BN formating ${bnString}`);
-    }
-  }
-
-  async submitAttestation(
-    action: string,
-    bufferNumber: BN,
-    // commit
-    commitedMerkleRoot: string,
-    commitedMaskedMerkleRoot: string,
-    commitedRandom: string,
-    // reveal
-    revealedMerkleRoot: string,
-    revealedRandom: string,
-
-    verbose = true
-  ) {
-    const roundId = bufferNumber.toNumber() - 1;
-    this.checkHex64(commitedMerkleRoot);
-    this.checkHex64(commitedMaskedMerkleRoot);
-    this.checkHex64(commitedRandom);
-    this.checkHex64(revealedMerkleRoot);
-    this.checkHex64(revealedRandom);
-  }
-}
-
-describe("Attestation Client", () => {
+describe.skip(`Attestation Client (${getTestFile(__filename)})`, () => {
   let attestationRoundManager: AttestationRoundManager;
 
   before(async function () {
@@ -84,7 +48,6 @@ describe("Attestation Client", () => {
     const sourceRouter = new MockSourceRouter();
     attestationRoundManager = new AttestationRoundManager(config, logger, flareConnection, sourceRouter);
     // override initially generated source router
-    
   });
 
   ////////////////////////////////

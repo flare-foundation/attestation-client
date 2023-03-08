@@ -1,0 +1,44 @@
+{
+   "apiKeys": [
+      {
+         "name": "test1",
+         "apiKey": "123456"
+      },
+      {
+         "name": "test2",
+         "apiKey": "7890"
+      }
+   ],
+   "port": 9500,
+   "checkAliveIntervalMs": 5000,
+   "sourceId": "BTC",
+   "attestationTypes": [
+      "Payment",
+      "BalanceDecreasingTransaction"
+   ],   
+   "indexerDatabase": {
+      "port": 3337,
+      "database": "indexer",
+      "username": "indexReader",
+      "password": "password",
+      "inMemory": true
+   },
+   "chainConfiguration":         {
+      "name": "BTC",
+      "mccCreate" : {
+          "url": "https://bitcoin.flare.network/",
+          "username": "flareadmin",
+          "password": "password"
+      },
+      "rateLimitOptions": {
+          "maxRPS": 20,
+          "timeoutMs": 15000,
+          "retries": 3
+      },
+      "numberOfConfirmations": 6,
+      "syncReadAhead":10,
+      "blockCollecting":"tips",
+      "minimalStorageHistoryDays":2,
+      "minimalStorageHistoryBlocks":100,
+  }
+}

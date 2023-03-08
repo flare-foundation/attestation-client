@@ -3,7 +3,7 @@ import { ColorConsole } from "./ColorConsole";
 import { TestLogger } from "./testLogger";
 
 const level = process.env.LOG_LEVEL || "info";
-const silent = (process.env.LOG_SILENT === 'true')
+const silent = process.env.LOG_SILENT === "true";
 
 export const Reset = "\x1b[0m";
 const Bright = "\x1b[1m";
@@ -110,7 +110,7 @@ export interface AttLogger extends winston.Logger {
 }
 
 function createLogger(label?: string, test = false): AttLogger {
-  var logPath = "./logs/";
+  let logPath = "./logs/";
 
   if (process.env.LOG_PATH) {
     logPath = `${process.env.LOG_PATH}/`;
@@ -142,7 +142,7 @@ function createLogger(label?: string, test = false): AttLogger {
         filename: logFilename,
       }),
     ],
-    silent: silent,
+    silent,
   }) as AttLogger;
 }
 
@@ -156,7 +156,7 @@ export function setGlobalLoggerLabel(label: string) {
 
 export function initializeTestGlobalLogger() {
   if (globalLogger.size || globalTestLogger) {
-    //console.error("initializeTestGlobalLogger must be called before any logger is created");
+    // console.error("initializeTestGlobalLogger must be called before any logger is created");
     // process.exit(3);
   }
 
@@ -187,8 +187,8 @@ export function getGlobalLogger(label?: string): AttLogger {
   return logger;
 }
 
-export function logException(error: any, comment: string) {
-  const logger = getGlobalLogger();
+export function logException(error: any, comment: string, attLogger?: AttLogger) {
+  const logger = attLogger ?? getGlobalLogger();
 
   logger.error2(`${comment} ${error}`);
   if (error.stack) {

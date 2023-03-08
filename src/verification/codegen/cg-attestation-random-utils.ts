@@ -1,14 +1,15 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import Web3 from "web3";
 import { AttestationTypeScheme, ATT_BYTES, DataHashScheme, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import {
   ATTESTATION_TYPE_PREFIX,
-  ATT_RANDOM_UTILS_FILE, DATA_HASH_TYPE_PREFIX,
+  ATT_RANDOM_UTILS_FILE,
+  DATA_HASH_TYPE_PREFIX,
   DEFAULT_GEN_FILE_HEADER,
   PRETTIER_SETTINGS,
-  RANDOM_RESPONSE_HEADER
+  RANDOM_RESPONSE_HEADER,
 } from "./cg-constants";
 import { trimStartNewline } from "./cg-utils";
 

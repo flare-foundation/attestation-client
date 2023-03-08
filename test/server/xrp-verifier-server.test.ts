@@ -48,7 +48,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   let selectedTransaction: DBTransactionXRP0;
 
   before(async () => {
-    process.env.CONFIG_PATH = "../test/server/test-data/test-verifier";
+    process.env.SECURE_CONFIG_PATH = "./test/server/test-data"
     process.env.NODE_ENV = "development";
     process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";

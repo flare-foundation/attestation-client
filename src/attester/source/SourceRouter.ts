@@ -16,29 +16,32 @@ export class SourceRouter {
   globalConfigManager: GlobalConfigManager;
   logger: AttLogger;
 
-  constructor(globalConfigManager: GlobalConfigManager, logger: AttLogger) {
+  constructor(globalConfigManager: GlobalConfigManager) {
     this.globalConfigManager = globalConfigManager;
-    this.logger = logger;
+    this.logger = globalConfigManager.logger;
   }
 
   /**
-   * Initialize existing source manager @param roundId verifier configs and create new verifier sources managers. 
-   * @param roundId 
+   * Initialize existing source manager @param roundId verifier configs and create new verifier sources managers.
+   * @param roundId
    */
-  initializeSources(roundId: number) {
-    const config = this.globalConfigManager.getConfig(roundId);
-
-    for (let sourceName of config.verifierRouter.routeMap.keys()) {
+  initializeSourcesForRound(roundId: number) {
+    let verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
+    for (let sourceName of verifierRouter.routeMap.keys()) {
       const sourceId = toSourceId(sourceName);
+      if(sourceId === SourceId.invalid) {
+        this.logger.error(`Invalid source id. This should never happen! Terminating!`);
+        process.exit(1);
+      }
       let sourceManager = this.sourceManagers.get(sourceId);
       if (sourceManager) {
-        sourceManager.refreshVerifierSourceConfig(roundId);
+        sourceManager.refreshLatestRoundId(roundId);
         continue;
       }
 
       // create new source manager
       sourceManager = new SourceManager(this.globalConfigManager, sourceId);
-      sourceManager.refreshVerifierSourceConfig(roundId);
+      sourceManager.refreshLatestRoundId(roundId);
       this.addSourceManager(sourceId, sourceManager);
     }
 
@@ -53,16 +56,16 @@ export class SourceRouter {
   }
 
   /**
-   * Returns source manager for given source 
-   * @param sourceId 
-   * @returns 
+   * Returns source manager for given source
+   * @param sourceId
+   * @returns
    */
   getSourceManager(sourceId: SourceId): SourceManager {
     const sourceManager = this.sourceManagers.get(sourceId);
     if (!sourceManager) {
       this.logger.error(`${sourceId}: critical error, source not defined`);
       exit(1);
-      return MOCK_NULL_WHEN_TESTING;
+      return; //for testing
     }
     return sourceManager;
   }

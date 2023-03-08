@@ -45,11 +45,5 @@
       "blockCollecting": "raw",
       "minimalStorageHistoryDays": 2,
       "minimalStorageHistoryBlocks": 100,
-      "maxRequestsPerSecond": 80,
-      "maxProcessingTransactions": 3000,
-      "maxFailedRetry": 1,
-      "delayBeforeRetry": 10,
-      "maxValidIndexerDelaySec": 10,
-      "reverificationTimeOffset": 10
    }
 }

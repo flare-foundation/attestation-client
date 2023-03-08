@@ -5,7 +5,7 @@ import { Column, Entity, Index, PrimaryColumn } from "typeorm";
  */
 @Entity({ name: "round_result" })
 export class DBRoundResult {
-  //extends BaseEntity {
+  // extends BaseEntity {
   @PrimaryColumn() roundId: number = 0;
   @Column({ nullable: true }) @Index() merkleRoot: string;
   @Column({ nullable: true }) @Index() maskedMerkleRoot: string;

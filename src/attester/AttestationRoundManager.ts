@@ -8,22 +8,19 @@ import { getTimeMilli } from "../utils/helpers/internetTime";
 import { catchErrorAndJustLog } from "../utils/helpers/promiseTimeout";
 import { MOCK_NULL_WHEN_TESTING, round, sleepms } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
-import { toSourceId } from "../verification/sources/sources";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttesterState } from "./AttesterState";
 import { BitVoteData } from "./BitVoteData";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
-import { sourceAndTypeSupported } from "./configs/GlobalAttestationConfig";
-import { SourceLimiterConfig } from "./configs/SourceLimiterConfig";
 import { FlareConnection } from "./FlareConnection";
 import { GlobalConfigManager } from "./GlobalConfigManager";
 import { SourceRouter } from "./source/SourceRouter";
 import { AttestationStatus } from "./types/AttestationStatus";
 
 /**
- * Manages attestation rounds (AttestationRound). This includes initiating them, scheduling actions and passing attestations to 
+ * Manages attestation rounds (AttestationRound). This includes initiating them, scheduling actions and passing attestations to
  * attestation rounds for further processing.
  */
 @Managed()
@@ -45,18 +42,13 @@ export class AttestationRoundManager {
 
   private _initialized = false;
 
-  constructor(
-    config: AttestationClientConfig,
-    logger: AttLogger,
-    flareConnection: FlareConnection,
-    sourceRouter?: SourceRouter
-  ) {
+  constructor(config: AttestationClientConfig, logger: AttLogger, flareConnection: FlareConnection, sourceRouter?: SourceRouter) {
     this.attestationClientConfig = config;
     this.logger = logger;
     this.flareConnection = flareConnection;
 
     this.globalConfigManager = new GlobalConfigManager(this.attestationClientConfig, this.logger);
-    this.sourceRouter = sourceRouter ?? new SourceRouter(this.globalConfigManager, logger);
+    this.sourceRouter = sourceRouter ?? new SourceRouter(this.globalConfigManager);
   }
 
   /**
@@ -64,7 +56,7 @@ export class AttestationRoundManager {
    */
   public get activeRoundId(): number {
     if (this._activeRoundId === undefined) {
-      // this should never happen - the first initialization of activeRoundId should 
+      // this should never happen - the first initialization of activeRoundId should
       // be earlier then the first call to the getter.
       throw new Error("activeRoundId not defined");
     }
@@ -108,7 +100,7 @@ export class AttestationRoundManager {
     if (this._initialized) {
       throw new Error("AttestationRoundManager can be initialized only once");
     }
-    // initialize activeRoundId for the first time, before first load of DAC, routings
+    // initialize activeRoundId for the first time, before first load of global configuration, verifer routing configurations
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
     // loads global configurations and initializes them for further refreshes/updates
@@ -132,7 +124,7 @@ export class AttestationRoundManager {
 
     this.attesterState = new AttesterState(this.dbServiceAttester);
 
-    // eslint-disable-next-line    
+    // eslint-disable-next-line
     criticalAsync("startRoundUpdate", async () => {
       await this.startRoundUpdate();
     });
@@ -155,7 +147,7 @@ export class AttestationRoundManager {
 
         await this.attesterState.saveRoundComment(activeRound, activeRound.attestationsProcessed);
       } catch (error) {
-        logException(error, `${this.label}startRoundUpdate`);
+        logException(error, `${this.label} startRoundUpdate`);
       }
       // FUTURE OPTIMIZATION: put this into config. Now ok for 90s voting rounds.
       await sleepms(5000);
@@ -163,21 +155,12 @@ export class AttestationRoundManager {
   }
 
   /**
-   * Gets the source handler configuration for a given @param name
-   * @param name 
-   * @returns 
-   */
-  private getSourceLimiterConfig(name: string): SourceLimiterConfig {
-    return this.globalConfigManager.getSourceLimiterConfig(toSourceId(name), this.activeRoundId);
-  }
-
-  /**
    * A callback for actions on appearance of the new timestamp on blockchain.
-   * In particular, t closes the bit voting if the timestamp passes the end 
+   * In particular, t closes the bit voting if the timestamp passes the end
    * of choose phase.
    * Works with the assumption that timestamps come from block progression so
    * they are called in a non-decreasing sequence.
-   * @param timestamp 
+   * @param timestamp
    */
   public onLastFlareNetworkTimestamp(timestamp: number) {
     let bufferNumber = this.epochSettings.getEpochIdForBitVoteTimeSec(timestamp);
@@ -191,7 +174,7 @@ export class AttestationRoundManager {
         round.closeBitVoting();
       }
     }
-    // FUTURE OPTIMIZATION: for consistency checking reasons we should assert that the sequence of calls 
+    // FUTURE OPTIMIZATION: for consistency checking reasons we should assert that the sequence of calls
     // has increasing timestamps.
   }
 
@@ -215,8 +198,8 @@ export class AttestationRoundManager {
 
   /**
    * Schedules a callback for delayed time
-   * @param label 
-   * @param callback 
+   * @param label
+   * @param callback
    * @param after - delayed time in ms
    */
   private schedule(label: string, callback: () => void, after: number) {
@@ -227,10 +210,10 @@ export class AttestationRoundManager {
 
   /**
    * Initializes round state sampling timer which logs the current state of processing of attestations periodically.
-   * @param activeRound 
-   * @param roundStartTimeMs 
-   * @param windowDurationMs 
-   * @param roundCommitStartTimeMs 
+   * @param activeRound
+   * @param roundStartTimeMs
+   * @param windowDurationMs
+   * @param roundCommitStartTimeMs
    */
   private initRoundSampler(activeRound: AttestationRound, roundStartTimeMs: number, windowDurationMs: number, roundCommitStartTimeMs: number) {
     const intervalId = setInterval(
@@ -255,7 +238,7 @@ export class AttestationRoundManager {
   /**
    * Gets the attestation round for a given @param epochId.
    * If the attestation round does not exist, it gets created, initialized and registered.
-   * @param roundId 
+   * @param roundId
    * @returns attestation round for given @param roundId
    */
   private getRoundOrCreateIt(roundId: number): AttestationRound {
@@ -270,25 +253,25 @@ export class AttestationRoundManager {
     const globalConfig = this.globalConfigManager.getConfig(roundId);
 
     if (!globalConfig) {
-      this.logger.error(`${this.label}${roundId}: critical error, global config for round id not defined`);
+      this.logger.error(`${this.label}: critical error, global config for round #${roundId} not defined`);
       exit(1);
       return MOCK_NULL_WHEN_TESTING;
     }
 
-    // check if verifier router exists for this round id. 
+    // check if verifier router exists for this round id.
     const verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
 
     // If no verifier, round cannot be evaluated - critical error.
     // TODO: we should check if it is defined!
     if (!verifierRouter) {
-      this.logger.error(`${this.label}${roundId}: critical error, verifier router for round id not defined`);
+      this.logger.error(`${this.label}${roundId}: critical error, verifier router for round #${roundId} not defined`);
       exit(1);
       return MOCK_NULL_WHEN_TESTING;
     }
 
     // Update sources to the latest global configs and verifier router configs
     // We are sure at this point, that relevant verifier router exists
-    this.sourceRouter.initializeSources(roundId);
+    this.sourceRouter.initializeSourcesForRound(roundId);
 
     // create new round
     activeRound = new AttestationRound(
@@ -304,32 +287,32 @@ export class AttestationRoundManager {
     this.initRoundSampler(activeRound, activeRound.roundStartTimeMs, activeRound.windowDurationMs, activeRound.roundCommitStartTimeMs);
 
     // Schedule callbacks
-    this.logger.info(`${this.label}^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
+    this.logger.info(`${this.label} ^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
 
     // trigger start choose phase
-    this.schedule(`${this.label}schedule:startChoosePhase`, async () => await activeRound.onChoosePhaseStart(), activeRound.roundChooseStartTimeMs - now);
+    this.schedule(`${this.label} schedule:startChoosePhase`, async () => await activeRound.onChoosePhaseStart(), activeRound.roundChooseStartTimeMs - now);
 
     // trigger sending bit vote result
-    this.schedule(`${this.label}schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundBitVoteTimeMs - now);
-
-    // trigger forced closing of bit voting and vote count
-    this.schedule(`${this.label}schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
+    this.schedule(`${this.label} schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundBitVoteTimeMs - now);
 
     // trigger start commit phase
-    this.schedule(`${this.label}schedule:startCommitPhase`, async () => await activeRound.onCommitPhaseStart(), activeRound.roundCommitStartTimeMs - now);
+    this.schedule(`${this.label} schedule:startCommitPhase`, async () => await activeRound.onCommitPhaseStart(), activeRound.roundCommitStartTimeMs - now);
+
+    // trigger forced closing of bit voting and vote count
+    this.schedule(`${this.label} schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
 
     // trigger start reveal epoch
-    this.schedule(`${this.label}schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), activeRound.roundRevealStartTimeMs - now);
+    this.schedule(`${this.label} schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), activeRound.roundRevealStartTimeMs - now);
 
     // trigger reveal. Here most of submitAttestation calls to StateConnector happen
     this.schedule(
-      `${this.label}schedule:submitAttestation`,
+      `${this.label} schedule:submitAttestation`,
       () => activeRound.onSubmitAttestation(),
       activeRound.roundCompleteTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
     );
 
     // trigger end of reveal epoch, cycle is completed at this point
-    this.schedule(`${this.label}schedule:completed`, () => activeRound.onFinalisePhaseStart(), activeRound.roundCompleteTimeMs - now);
+    this.schedule(`${this.label} schedule:completed`, () => activeRound.onFinalisePhaseStart(), activeRound.roundCompleteTimeMs - now);
 
     this.rounds.set(roundId, activeRound);
     this.cleanup();
@@ -342,7 +325,7 @@ export class AttestationRoundManager {
     } else {
       // trigger first commit
       this.schedule(
-        `${this.label}schedule:firstCommit`,
+        `${this.label} schedule:firstCommit`,
         () => activeRound!.onFirstCommit(),
         activeRound.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
       );
@@ -354,8 +337,8 @@ export class AttestationRoundManager {
   /**
    * Accepts the attestation request event.
    * Creates an attestation from attestation data and adds it to the active round
-   * @param attestationData 
-   * @returns 
+   * @param attestationData
+   * @returns
    */
   public async onAttestationRequest(attestationData: AttestationData) {
     const epochId: number = this.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
@@ -363,7 +346,7 @@ export class AttestationRoundManager {
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
 
     if (epochId < this.startRoundId) {
-      this.logger.debug(`${this.label}epoch too low ^Y#${epochId}^^`);
+      this.logger.debug(`${this.label} epoch too low ^Y#${epochId}^^`);
       return;
     }
 
@@ -394,12 +377,12 @@ export class AttestationRoundManager {
 
   /**
    * Creates attestation from the round and data.
-   * If no verifier router exist for the 
+   * If no verifier router exist for the
    * @param roundId
-   * @param data 
-   * @returns 
+   * @param data
+   * @returns
    */
-  private createAttestation(roundId: number, data: AttestationData): Attestation {
+  private createAttestation(roundId: number, data: AttestationData) {
     const attestation = new Attestation(roundId, data);
 
     const globalConfig = this.globalConfigManager.getConfig(roundId);
@@ -407,11 +390,12 @@ export class AttestationRoundManager {
     if (!globalConfig || !verifier) {
       // this should not happen
       attestation.status = AttestationStatus.failed;
-      this.logger.error(`${this.label}Assert: both global config and verifier router for round should exist. Critical error`);
+      this.logger.error(`${this.label} Assert: both global config and verifier router for round should exist. Critical error`);
       process.exit(1);
     }
-    const attestationSupported = sourceAndTypeSupported(globalConfig, data.sourceId, data.type);
+    const attestationSupported = globalConfig.sourceAndTypeSupported(data.sourceId, data.type);
     if (!attestationSupported || !verifier.isSupported(data.sourceId, data.type)) {
+      this.logger.error(`${this.label}Attestation type for source ${data.sourceId} and type ${data.type} not supported for request: ${data.request}`);
       attestation.status = AttestationStatus.failed;
     }
     return attestation;

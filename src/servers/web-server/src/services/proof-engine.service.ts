@@ -19,7 +19,7 @@ export class ProofEngineService {
   constructor(
     @Inject("SERVER_CONFIG") private configService: ServerConfigurationService,
     @InjectEntityManager("attesterDatabase") private manager: EntityManager
-  ) { }
+  ) {}
 
   // never expiring cache. Once round data are finalized, they do not change.
   // cache expires only on process restart.
@@ -38,7 +38,7 @@ export class ProofEngineService {
     const query = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").andWhere("voting_round_result.roundId = :roundId", { roundId });
     const results = await query.getMany();
 
-    const tree = new MerkleTree(results.map(result => result.hash));
+    const tree = new MerkleTree(results.map((result) => result.hash));
     const hashMap = new Map<string, string[]>();
     for (let j = 0; j < tree.hashCount; j++) {
       const proof = tree.getProof(j);
@@ -54,9 +54,7 @@ export class ProofEngineService {
       const hash = res.hash;
       const roundId = res.roundId;
       const merkleProof = hashMap.get(hash);
-      finalResult.push(
-        { roundId, hash, requestBytes, request, response, merkleProof } as VotingRoundResult
-      )
+      finalResult.push({ roundId, hash, requestBytes, request, response, merkleProof } as VotingRoundResult);
     }
 
     // cache once finalized

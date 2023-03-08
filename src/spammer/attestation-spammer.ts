@@ -29,8 +29,7 @@ const args = yargs
   .option("delay", { alias: "d", type: "number", description: "Delay between sending transactions from the same block", default: 500 })
   .option("loggerLabel", { alias: "l", type: "string", description: "Logger label", default: "" })
   .option("testCred", { alias: "t", type: "boolean", description: "Logger label" })
-  .option("configPath", { alias: "f", type: "string", description: "Config path" })
-  .argv;
+  .option("configPath", { alias: "f", type: "string", description: "Config path" }).argv;
 
 class AttestationSpammer {
   chainType!: ChainType;
@@ -100,7 +99,7 @@ class AttestationSpammer {
         ...this.spammerCredentials.indexerDatabase,
         entities: indexerEntities(args["chain"]),
         dropSchema: false,
-        synchronize: false
+        synchronize: false,
       },
       "indexer"
     );
@@ -111,8 +110,6 @@ class AttestationSpammer {
       numberOfConfirmations: () => {
         return this.numberOfConfirmations;
       },
-      // todo: get from chain confing
-      maxValidIndexerDelaySec: 10, //this.chainAttestationConfig.maxValidIndexerDelaySec,
       entityManager: dbService.manager,
     } as IndexedQueryManagerOptions;
     this.indexedQueryManager = new IndexedQueryManager(options);
@@ -129,7 +126,6 @@ class AttestationSpammer {
     if (this.web3Functions_2) {
       this.logger.info(`Sending from address2 ${this.web3Functions_2.account.address}`);
     }
-
   }
 
   getCurrentRound() {
@@ -174,7 +170,6 @@ class AttestationSpammer {
       if (receipt2) {
         this.logger.info(`Attestation 2 sent`);
       }
-
     }
 
     return receipt;
@@ -192,7 +187,7 @@ class AttestationSpammer {
         this.lastBlockNumber = await this.web3.eth.getBlockNumber();
         // if(this.lastBlockNumber > last) {
         //   this.logger.info(`Last block: ${this.lastBlockNumber}`)
-        // }        
+        // }
       } catch (e) {
         this.logger.info(`Error: ${e}`);
       }
@@ -256,7 +251,7 @@ class AttestationSpammer {
 
         if (attRequest) {
           try {
-            await this.sendAttestationRequest(this.stateConnector, attRequest)
+            await this.sendAttestationRequest(this.stateConnector, attRequest);
           } catch (e0) {
             logException("runSpammer::sendAttestationRequest", e0);
           }
@@ -290,7 +285,6 @@ async function displayStats() {
 }
 
 async function runAllAttestationSpammers() {
-
   // eslint-disable-next-line
   displayStats();
 
@@ -301,15 +295,15 @@ async function runAllAttestationSpammers() {
 }
 
 setLoggerName("spammer");
-setGlobalLoggerLabel(args["chain"])
+setGlobalLoggerLabel(args["chain"]);
 
 if (args["testCred"]) {
-  process.env.TEST_CREDENTIALS = "1"
-  process.env.NODE_ENV = "development"
+  process.env.TEST_CREDENTIALS = "1";
+  process.env.NODE_ENV = "development";
 }
 
 if (args["configPath"]) {
-  process.env.CONFIG_PATH = args["configPath"]
+  process.env.SECURE_CONFIG_PATH = args["configPath"];
 }
 
 runAllAttestationSpammers()

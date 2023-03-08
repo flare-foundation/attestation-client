@@ -1,5 +1,5 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { SourceId } from "../sources/sources";
 import {
@@ -9,9 +9,9 @@ import {
   DEFAULT_GEN_FILE_HEADER,
   PRETTIER_SETTINGS,
   VERIFIERS_ROOT,
-  WEB3_HASH_PREFIX_FUNCTION
+  WEB3_HASH_PREFIX_FUNCTION,
 } from "./cg-constants";
-import { dashCapitalized, definitionFile,  } from "./cg-utils";
+import { dashCapitalized, definitionFile } from "./cg-utils";
 import { verifierFolder } from "./cg-verifiers";
 
 export function createVerifiersImportFileForSource(definitions: AttestationTypeScheme[], sourceId: SourceId) {
@@ -61,7 +61,7 @@ export { BN };
 export { Web3 };
 ${tdefExports}
 `;
-  const prettyContent = prettier.format(content, PRETTIER_SETTINGS)
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
   fs.writeFileSync(`${verifierFolder(sourceId, VERIFIERS_ROOT)}/0imports.ts`, prettyContent, "utf8");
 }
 

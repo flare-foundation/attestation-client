@@ -2,6 +2,10 @@ import { BtcTransaction, ChainType, prefix0x, XrpTransaction } from "@flarenetwo
 import chai, { assert, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { AttestationTypeScheme } from "../../src/verification/attestation-types/attestation-types";
+import { readAttestationTypeSchemes } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { VerifierRouteConfig } from "../../src/verification/routing/configs/VerifierRouteConfig";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import { firstAddressVin, firstAddressVout, selectBlock, testConfirmedBlockHeightExistsRequest, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
@@ -17,19 +21,22 @@ const LAST_CONFIRMED_BLOCK = 200;
 const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
 const BLOCK_QUERY_WINDOW = 90;
-const CONFIG_PATH = "../test/verification/test-data/test-verifier"
 
 describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
   let setup: VerifierTestSetups;
-
+  let definitions: AttestationTypeScheme[];
+  
   before(async () => {
     process.env.TEST_CREDENTIALS = '1';
+    process.env.SECURE_CONFIG_PATH = "./test/verification/test-data";
+    
     let bootstrapOptions = {
       whichBTC: 5,
-      CONFIG_PATH, FIRST_BLOCK, LAST_BLOCK, LAST_CONFIRMED_BLOCK, TXS_IN_BLOCK, BLOCK_CHOICE
+      FIRST_BLOCK, LAST_BLOCK, LAST_CONFIRMED_BLOCK, TXS_IN_BLOCK, BLOCK_CHOICE
     } as VerifierBootstrapOptions;
     setup = await bootstrapTestVerifiers(bootstrapOptions);
+    definitions = await readAttestationTypeSchemes();
   });
 
   after(async () => {
@@ -39,9 +46,9 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   });
 
   it(`Should verify attestation`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
-    await verifierRouter.initialize(150);
+    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
+    await verifierRouter.initialize(verifierConfig, definitions);
 
     let requestXRP = await testPaymentRequest(setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
     const attestationXRP = prepareAttestation(requestXRP, setup.startTime);
@@ -67,9 +74,10 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
 
   it(`Should fail due to sending wrong route`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
-    await verifierRouter.initialize(150);
+    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
+    await verifierRouter.initialize(verifierConfig, definitions);
+
 
     let confirmationBlock = await selectBlock(setup.XRP.entityManager, DBBlockXRP, BLOCK_CHOICE);
     let lowerQueryWindowBlock = await selectBlock(setup.XRP.entityManager, DBBlockXRP, FIRST_BLOCK);
@@ -81,9 +89,10 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
   });
 
   it(`Should fail due to verifier not supporting the attestation type`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH;
     const verifierRouter = new VerifierRouter();
-    await verifierRouter.initialize(150);
+    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
+    await verifierRouter.initialize(verifierConfig, definitions);
+
 
     let confirmationBlock = await selectBlock(setup.BTC.entityManager, DBBlockBTC, BLOCK_CHOICE);
     let lowerQueryWindowBlock = await selectBlock(setup.BTC.entityManager, DBBlockBTC, FIRST_BLOCK);

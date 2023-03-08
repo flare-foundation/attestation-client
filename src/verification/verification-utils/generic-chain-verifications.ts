@@ -11,14 +11,14 @@ import {
   ARBalanceDecreasingTransaction,
   ARConfirmedBlockHeightExists,
   ARPayment,
-  ARReferencedPaymentNonexistence
+  ARReferencedPaymentNonexistence,
 } from "../generated/attestation-request-types";
 import {
   MccTransactionType,
   VerificationResponse,
   verifyWorkflowForBlock,
   verifyWorkflowForReferencedTransactions,
-  verifyWorkflowForTransaction
+  verifyWorkflowForTransaction,
 } from "./verification-utils";
 
 //////////////////////////////////////////////////
@@ -27,19 +27,19 @@ import {
 
 /**
  * Auxillary function for assembling attestation response for 'Payment' attestation type.
- * @param dbTransaction 
- * @param TransactionClass 
- * @param inUtxo 
- * @param utxo 
- * @param client 
- * @returns 
+ * @param dbTransaction
+ * @param TransactionClass
+ * @param inUtxo
+ * @param utxo
+ * @param client
+ * @returns
  */
 export async function responsePayment(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => MccTransactionType,
   inUtxo: NumberLike,
   utxo: NumberLike,
-  client?: MccClient,
+  client?: MccClient
 ) {
   let parsedData: any;
   try {
@@ -85,7 +85,6 @@ export async function responsePayment(
     status: VerificationStatus.OK,
     response,
   };
-
 }
 
 /**
@@ -117,18 +116,18 @@ export async function verifyPayment(
 }
 
 /**
- * Auxillary function for assembling attestation response for 'BlanceDecreasingTransaction' attestation type. 
- * @param dbTransaction 
- * @param TransactionClass 
- * @param inUtxo 
- * @param client 
- * @returns 
+ * Auxillary function for assembling attestation response for 'BlanceDecreasingTransaction' attestation type.
+ * @param dbTransaction
+ * @param TransactionClass
+ * @param inUtxo
+ * @param client
+ * @returns
  */
 export async function responseBalanceDecreasingTransaction(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => MccTransactionType,
   inUtxo: NumberLike,
-  client?: MccClient,
+  client?: MccClient
 ) {
   const parsedData = JSON.parse(dbTransaction.response);
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
@@ -189,17 +188,13 @@ export async function verifyBalanceDecreasingTransaction(
 }
 
 /**
- * Auxillary function for assembling attestation response for 'ConfirmedBlockHeightExists' attestation type. 
- * @param dbBlock 
- * @param lowerQueryWindowBlock 
- * @param numberOfConfirmations 
- * @returns 
+ * Auxillary function for assembling attestation response for 'ConfirmedBlockHeightExists' attestation type.
+ * @param dbBlock
+ * @param lowerQueryWindowBlock
+ * @param numberOfConfirmations
+ * @returns
  */
-export async function responseConfirmedBlockHeightExists(
-  dbBlock: DBBlockBase,
-  lowerQueryWindowBlock: DBBlockBase,
-  numberOfConfirmations: number,
-) {
+export async function responseConfirmedBlockHeightExists(dbBlock: DBBlockBase, lowerQueryWindowBlock: DBBlockBase, numberOfConfirmations: number) {
   const response = {
     blockNumber: toBN(dbBlock.blockNumber),
     blockTimestamp: toBN(dbBlock.timestamp),
@@ -212,7 +207,6 @@ export async function responseConfirmedBlockHeightExists(
     status: VerificationStatus.OK,
     response,
   };
-
 }
 
 /**
@@ -241,24 +235,24 @@ export async function verifyConfirmedBlockHeightExists(
 
   if (!lowerQueryWindowBlock) {
     return {
-      status: VerificationStatus.NON_EXISTENT_MINIMAL_BLOCK
-    }
+      status: VerificationStatus.NON_EXISTENT_MINIMAL_BLOCK,
+    };
   }
   return await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.settings.numberOfConfirmations());
 }
 
 /**
  * Auxillary function for assembling attestation response for 'ConfirmedBlockHeightExists' attestation type.
- * @param dbTransactions 
- * @param TransactionClass 
- * @param firstOverflowBlock 
- * @param lowerBoundaryBlock 
- * @param deadlineBlockNumber 
- * @param deadlineTimestamp 
- * @param destinationAddressHash 
- * @param paymentReference 
- * @param amount 
- * @returns 
+ * @param dbTransactions
+ * @param TransactionClass
+ * @param firstOverflowBlock
+ * @param lowerBoundaryBlock
+ * @param deadlineBlockNumber
+ * @param deadlineTimestamp
+ * @param destinationAddressHash
+ * @param paymentReference
+ * @param amount
+ * @returns
  */
 export async function responseReferencedPaymentNonExistence(
   dbTransactions: DBTransactionBase[],
@@ -271,7 +265,6 @@ export async function responseReferencedPaymentNonExistence(
   paymentReference: string,
   amount: NumberLike
 ) {
-
   // Check transactions for a matching
   for (const dbTransaction of dbTransactions) {
     let fullTxData;
@@ -279,9 +272,9 @@ export async function responseReferencedPaymentNonExistence(
       const parsedData = JSON.parse(dbTransaction.response);
       fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
     } catch (e) {
-      return { status: VerificationStatus.SYSTEM_FAILURE }
+      return { status: VerificationStatus.SYSTEM_FAILURE };
     }
-  
+
     // In account based case this loop goes through only once.
     for (let outUtxo = 0; outUtxo < fullTxData.receivingAddresses.length; outUtxo++) {
       const address = fullTxData.receivingAddresses[outUtxo];
@@ -336,8 +329,8 @@ export async function verifyReferencedPaymentNonExistence(
   // TODO: check if anything needs to be done with: startBlock >= overflowBlock
   // DANGER: How to handle this if there are a lot of transactions with same payment reference in the interval?
 
-  if(unPrefix0x(request.paymentReference) === unPrefix0x(ZERO_BYTES_32)) {
-    return {status: VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED}
+  if (unPrefix0x(request.paymentReference) === unPrefix0x(ZERO_BYTES_32)) {
+    return { status: VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED };
   }
 
   const referencedTransactionsResponse = await iqm.getReferencedTransactions({

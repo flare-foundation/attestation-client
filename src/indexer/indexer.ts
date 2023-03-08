@@ -1,7 +1,7 @@
 import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { EntityTarget } from "typeorm";
-import { ChainConfig, ListChainConfig } from "../attester/configs/ChainConfig";
+import { ChainConfig } from "../attester/configs/ChainConfig";
 import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
@@ -84,10 +84,16 @@ export class Indexer {
 
     this.logger = getGlobalLogger();
 
-    this.dbService = new DatabaseService(this.logger, {
-      ...this.config.indexerDatabase,
-      synchronize: true
-    }, "indexer", "", testMode);
+    this.dbService = new DatabaseService(
+      this.logger,
+      {
+        ...this.config.indexerDatabase,
+        synchronize: true,
+      },
+      "indexer",
+      "",
+      testMode
+    );
 
     const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,

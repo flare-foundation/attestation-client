@@ -108,10 +108,9 @@ interface IAttestationClient {
         bytes32 paymentReference;
         // The amount searched for.
         uint128 amount;
-        // The first confirmed block that gets checked.
-        // It is the lowest block in the synchronized query window.
+        // The first confirmed block that gets checked. It is exactly 'minimalBlockNumber' from the request.
         uint64 lowerBoundaryBlockNumber;
-        // Timestamp of the lowerBoundaryBlockNumber.
+        // Timestamp of the 'lowerBoundaryBlockNumber'.
         uint64 lowerBoundaryBlockTimestamp;
         // The first (lowest) confirmed block with 'timestamp > deadlineTimestamp'
         // and 'blockNumber  > deadlineBlockNumber'.

@@ -7,7 +7,6 @@ export interface IndexedQueryManagerOptions {
   chainType: ChainType;
   entityManager: EntityManager;
   numberOfConfirmations: () => number;
-  maxValidIndexerDelaySec: number;
 }
 
 export interface BlockHeightSample {

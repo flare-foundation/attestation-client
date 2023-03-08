@@ -1,12 +1,13 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
-  ATT_REQUEST_EQUALS_FILE, DEFAULT_GEN_FILE_HEADER,
+  ATT_REQUEST_EQUALS_FILE,
+  DEFAULT_GEN_FILE_HEADER,
   PRETTIER_SETTINGS,
   REQUEST_ENCODE_FUNCTIONS_HEADER,
-  REQUEST_EQUALS_PREFIX_FUNCTION
+  REQUEST_EQUALS_PREFIX_FUNCTION,
 } from "./cg-constants";
 
 function genEqualsException() {
@@ -32,9 +33,7 @@ export function genRequestEqualsFunctionForDefinition(definition: AttestationTyp
   const checks = checkList.join("\n");
 
   return `
-export function ${REQUEST_EQUALS_PREFIX_FUNCTION}${definition.name}(request1: ${ATTESTATION_TYPE_PREFIX}${
-    definition.name
-  }, request2: ${ATTESTATION_TYPE_PREFIX}${definition.name}) {
+export function ${REQUEST_EQUALS_PREFIX_FUNCTION}${definition.name}(request1: ${ATTESTATION_TYPE_PREFIX}${definition.name}, request2: ${ATTESTATION_TYPE_PREFIX}${definition.name}) {
 ${checks}
 	return true;
 }
@@ -44,9 +43,7 @@ ${checks}
 function genEqualsAttestationTypeCase(definition: AttestationTypeScheme) {
   return `
 case AttestationType.${definition.name}:
-	return ${REQUEST_EQUALS_PREFIX_FUNCTION}${definition.name}(request1 as ${ATTESTATION_TYPE_PREFIX}${
-    definition.name
-  }, request2 as ${ATTESTATION_TYPE_PREFIX}${definition.name});`;
+	return ${REQUEST_EQUALS_PREFIX_FUNCTION}${definition.name}(request1 as ${ATTESTATION_TYPE_PREFIX}${definition.name}, request2 as ${ATTESTATION_TYPE_PREFIX}${definition.name});`;
 }
 
 export function genRequestEqualsFunction(definitions: AttestationTypeScheme[]) {

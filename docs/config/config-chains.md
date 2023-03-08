@@ -14,12 +14,6 @@ Chains configuration file contains all external chain configuration.
 | `blockCollecting`             | Block collection mode (`raw`, `rawUnforkable`, `tips`).                 | "raw"   |
 | `minimalStorageHistoryDays`   |                                                                         | 2       |
 | `minimalStorageHistoryBlocks` |                                                                         | 100     |
-| `maxRequestsPerSecond`        |                                                                         | 80      |
-| `maxProcessingTransactions`   |                                                                         | 3000    |
-| `maxFailedRetry`              |                                                                         | 1       |
-| `delayBeforeRetry`            |                                                                         | 10      |
-| `maxValidIndexerDelaySec`     |                                                                         | 10      |
-| `reverificationTimeOffset`    |                                                                         | 10      |
 | `syncTimeDays`                | Per chain sync time override. Used if not 0.                            | 0       |
 | `validateBlockBeforeProcess`  | Validate block before processing it (used for XRP).                     | false   |
 | `validateBlockWaitMs`         | Wait time in ms before re-validating block.                             | 500     |

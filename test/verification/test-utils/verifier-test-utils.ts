@@ -29,7 +29,6 @@ export interface VerifierBootstrapOptions {
    whichBTC?: number;
    xrpDBFname?: string;  
    btcDBFname?: string;  
-   CONFIG_PATH: string;
    FIRST_BLOCK: number;
    LAST_BLOCK: number;
    LAST_CONFIRMED_BLOCK: number;
@@ -108,7 +107,6 @@ export async function bootstrapVerifier(
    logger: AttLogger,
    options: VerifierBootstrapOptions
 ): Promise<INestApplication> {
-   process.env.CONFIG_PATH = options.CONFIG_PATH;
    process.env.NODE_ENV = "development";
    process.env.VERIFIER_TYPE = verifierType;
 
@@ -152,13 +150,12 @@ export async function bootstrapVerifier(
 
    configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
    entityManager = app.get(getEntityManagerToken("indexerDatabase"));
-
+   
    let port = configurationService.config.port;
    await app.listen(port, undefined, () => {
       logger.info(`Server started listening at http://localhost:${configurationService.config.port}`);
       logger.info(`Websocket server started listening at ws://localhost:${configurationService.config.port}`)
    })
-
 
    await generateTestIndexerDB(
       chainType,

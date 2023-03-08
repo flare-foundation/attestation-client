@@ -9,7 +9,6 @@ import { AttLogger, logException } from "../../utils/logging/logger";
 import { MIC_SALT, Verification, VerificationStatus } from "../../verification/attestation-types/attestation-types";
 import { dataHash } from "../../verification/generated/attestation-hash-utils";
 import { parseRequest } from "../../verification/generated/attestation-request-parse";
-import { getSourceConfig } from "../../verification/routing/configs/VerifierRouteConfig";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";
@@ -24,7 +23,6 @@ export class SourceManager {
   requestsPerSecond = 0;
 
   sourceId: SourceId;
-  verifierSourceConfig: VerifierSourceRouteConfig;
 
   // queues
   attestationsQueue = new Array<Attestation>();
@@ -34,31 +32,65 @@ export class SourceManager {
   delayQueueTimer: NodeJS.Timeout | undefined = undefined;
   delayQueueStartTime = 0;
 
+  latestRoundId = 0;
+
   constructor(globalConfigManager: GlobalConfigManager, sourceId: SourceId) {
     this.globalConfigManager = globalConfigManager;
     this.sourceId = sourceId;
   }
 
   /**
-   * Refreshes verifier source configuration for given roundId.
-   * @param sourceId 
-   * @param roundId 
+   * Returns verifer source config for the latest round id, that is initialized on the SourceManager.
    */
-  public refreshVerifierSourceConfig(roundId: number) {
-    // obtain config from verifier router active for roundId
-    let verifierRouteConfig = this.globalConfigManager.getVerifierRouter(roundId)?.config;
-    if (verifierRouteConfig) {
-      this.verifierSourceConfig = getSourceConfig(verifierRouteConfig, this.sourceId);
-      return;
-    }
-    // verifierRouteConfig does not exist
-    if (process.env.NODE_ENV === "development") {
-      // We allow for incomplete routing configs in development
-      this.logger.info(`${this.label}${roundId}: verifier config for source ${this.sourceId} not defined (tolerated in "development" mode)`);
-    } else {
-      this.logger.error(`${this.label}${roundId}: critical error, verifier source config for source ${this.sourceId} not defined`);
-      exit(1);
-    }
+  get verifierSourceConfig(): VerifierSourceRouteConfig | undefined {
+    const config = this.globalConfigManager.getVerifierRouter(this.latestRoundId).config;
+    if (!config) return;
+    return config.getSourceConfig(this.sourceId);
+  }
+
+  /**
+   * Returns max number of requests per second.
+   */
+  get maxRequestsPerSecond(): number {
+    const config = this.verifierSourceConfig;
+    if (!config) return Infinity; // requests will be rejected anyway, since there is no routing
+    return config.maxRequestsPerSecond;
+  }
+
+  /**
+   * Maximal number of transactions that can be in processing simultaneously.
+   */
+  get maxProcessingTransactions(): number {
+    const config = this.verifierSourceConfig;
+    if (!config) return Infinity; // requests will be rejected anyway, since there is no routing
+    return config.maxProcessingTransactions;
+  }
+
+  /**
+   * Returns max number of failed retries before terminating the application process.
+   */
+  get maxFailedRetries(): number {
+    const config = this.verifierSourceConfig;
+    if (!config) return 3; // requests will be rejected anyway, since there is no routing
+    return config.maxFailedRetries;
+  }
+
+  /**
+   * Retruns delay before retrying in ms.
+   */
+  get delayBeforeRetryMs(): number {
+    const config = this.verifierSourceConfig;
+    if (!config) return 100; // requests will be rejected anyway, since there is no routing
+    return config.delayBeforeRetryMs;
+  }
+  /**
+   * Refreshes verifier source configuration for given roundId.
+   * @param sourceId
+   * @param roundId
+   */
+  public refreshLatestRoundId(roundId: number) {
+    if (this.latestRoundId > roundId) return;
+    this.latestRoundId = roundId;
   }
 
   /**
@@ -74,17 +106,17 @@ export class SourceManager {
   public get label() {
     return this.globalConfigManager.label;
   }
-  
+
   /**
    * Returns `true` if new attestation requests can be added for processing (subject to rate limit).
-   * @returns 
+   * @returns
    */
   private canProcessRequestsInThisSecond() {
     const time = getTimeSec();
     // second shifted, new quota
     if (this.requestTime !== time) return true;
     // still the same quota, count requests
-    return this.requestsPerSecond < this.verifierSourceConfig.maxRequestsPerSecond;
+    return this.requestsPerSecond < this.maxRequestsPerSecond;
   }
 
   /**
@@ -104,10 +136,10 @@ export class SourceManager {
   /**
    * Returns true if an additional request can be processed. It checks whether rate limit is achieved for current second
    * and if maximal number of transactions that can be processed simultaneously is achieved.
-   * @returns 
+   * @returns
    */
   private canProcessNextAttestation() {
-    return this.canProcessRequestsInThisSecond() && this.attestationProcessing.size < this.verifierSourceConfig.maxProcessingTransactions;
+    return this.canProcessRequestsInThisSecond() && this.attestationProcessing.size < this.maxProcessingTransactions;
   }
 
   /**
@@ -123,7 +155,7 @@ export class SourceManager {
   /**
    * Puts attestation from processing queue into into delay queue priority queue
    * It makes sure there is a mechanism that will run startNext if nothing is in process
-   * @param attestation 
+   * @param attestation
    * @param startTime delay time in sec
    */
   private enQueueDelayed(attestation: Attestation, startTime: number) {
@@ -163,7 +195,7 @@ export class SourceManager {
       // setup new timer
       this.delayQueueStartTime = firstStartTime;
       this.delayQueueTimer = setTimeout(() => {
-        this.logger.debug(`${this.label}priority queue timeout`);
+        this.logger.debug(`${this.label} priority queue timeout`);
 
         this.startNext();
         this.delayQueueTimer = undefined;
@@ -179,12 +211,21 @@ export class SourceManager {
   private async process(attestation: Attestation) {
     //this.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
 
+    const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
+    // Check if active verifier supports attestation
+
+    // Check again, if verifier supports the attestation type
+    if (!verifierRouter || !verifierRouter.isSupported(attestation.data.sourceId, attestation.data.type)) {
+      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' and type '${attestation.data.type}'`);
+      this.onProcessed(attestation, AttestationStatus.failed);
+      return;
+    }
+
     const now = getTimeMilli();
 
     // check if the transaction is too late
     if (now > attestation.round.commitEndTimeMs) {
-      //this.logger.error(`chain ${tx.epochId} transaction too late to process`);
-      attestation.status = AttestationStatus.tooLate;
+      this.logger.info(`Attestation ${attestation.data.request} too late to process`);
       this.onProcessed(attestation, AttestationStatus.tooLate);
       return;
     }
@@ -200,14 +241,10 @@ export class SourceManager {
     if (process.env.TEST_FAIL) {
       testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
     }
-
-    // get relevant verifierRouter for attestation from global configs
-    const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
-
     // assert
     if (!verifierRouter) {
       // This should not happen as this is checked already on AttestationRound creation
-      this.logger.error(`${this.label}Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.roundId}`);
+      this.logger.error(`${this.label} Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.roundId}`);
       exit(1);
     }
 
@@ -225,11 +262,11 @@ export class SourceManager {
             this.onProcessed(attestation, AttestationStatus.valid, verification);
             return;
           }
-          this.logger.debug(`${this.label}WRONG MIC for ${attestation.data.request}`);
+          this.logger.debug(`${this.label} WRONG MIC for ${attestation.data.request}`);
         }
 
         if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
-          this.logger.error2(`${this.label}SYSTEM_FAILURE ${attestation.data.request}`);
+          this.logger.error2(`${this.label} SYSTEM_FAILURE ${attestation.data.request}`);
         }
 
         // The verification is invalid or mic does not match
@@ -238,40 +275,36 @@ export class SourceManager {
       .catch((error: any) => {
         // Exception happens on API errors, both the ones that return status ERROR and ones that fail.
         // In both cases the default direction is retry
-        logException(error, `${this.label}verifyAttestation ${error}`);
+        logException(error, `${this.label} verifyAttestation ${error}`);
         attestation.exception = error;
 
         // Retries
         attestation.processEndTime = getTimeMilli();
-        if (attestation.retry < this.verifierSourceConfig.maxFailedRetry) {
+        if (attestation.retry < this.maxFailedRetries) {
           this.logger.warning(`${this.label}transaction verification error (retry ${attestation.retry})`);
           attestation.retry++;
-          this.enQueueDelayed(attestation, getTimeMilli() + this.verifierSourceConfig.delayBeforeRetry * 1000);
+          this.enQueueDelayed(attestation, getTimeMilli() + this.delayBeforeRetryMs);
         } else {
-          this.logger.error2(`${this.label}transaction verification error ${attestation.data.request}`);
+          this.logger.error2(`${this.label} transaction verification error ${attestation.data.request}`);
           this.onProcessed(attestation, AttestationStatus.invalid);
         }
       });
   }
 
   /**
-   * A callback to be called when an attestation is processed. 
+   * A callback to be called when an attestation is processed.
    * Sets the Attestation status and adds verificationData to the attestation
    * @param attestation
    * @param status
    * @param verificationData
    */
-  private onProcessed(
-    attestation: Attestation,
-    status: AttestationStatus,
-    verificationData?: Verification<any, any>
-  ) {
+  private onProcessed(attestation: Attestation, status: AttestationStatus, verificationData?: Verification<any, any>) {
     assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid verificationData`);
 
     // set status
     attestation.status = status;
     attestation.verificationData = verificationData!;
-    
+
     // augument the attestation response with the round id
     if (attestation.verificationData?.response) {
       attestation.verificationData.response.stateConnectorRound = attestation.roundId;
@@ -294,7 +327,7 @@ export class SourceManager {
    * If possible the attestation is processed, otherwise it is added the queue.
    * @param attestation
    */
-  public verifyAttestationRequest(attestation: Attestation): void {   
+  public verifyAttestationRequest(attestation: Attestation): void {
     //this.logger.info(`chain ${this.chainName} validate ${transaction.data.getHash()}`);
 
     // check if transaction can be added into processing
@@ -307,7 +340,7 @@ export class SourceManager {
   }
 
   /**
-   * Processes the next attestation in the priority queue if expected startTime 
+   * Processes the next attestation in the priority queue if expected startTime
    * of is reached otherwise the next attestation in the queue
    */
   private startNext(): void {
@@ -346,7 +379,7 @@ export class SourceManager {
         criticalAsync(`SourceManager::startNext::process-2`, () => this.process(attestation!));
       }
     } catch (error) {
-      logException(error, `${this.label}SourceManager::startNext`);
+      logException(error, `${this.label} SourceManager::startNext`);
     }
   }
 }

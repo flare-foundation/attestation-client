@@ -20,7 +20,7 @@ export class PriorityQueue<T> {
 
   /**
    * Returns `true`if the queue is empty.
-   * @returns 
+   * @returns
    */
   isEmpty(): boolean {
     return this.heap.length == 0;
@@ -42,7 +42,7 @@ export class PriorityQueue<T> {
 
   /**
    * Returns the length of the queue.
-   * @returns 
+   * @returns
    */
   length(): number {
     return this.heap.length;
@@ -57,13 +57,13 @@ export class PriorityQueue<T> {
     const tmp = this.heap[a];
     this.heap[a] = this.heap[b];
     this.heap[b] = tmp;
-  };
+  }
 
   /**
-  * Adds an elements to priority Queue and puts it at the right place according to the priority.
-  * @param item
-  * @param priority
-  */
+   * Adds an elements to priority Queue and puts it at the right place according to the priority.
+   * @param item
+   * @param priority
+   */
   push(item: T, priority: number): void {
     this.heap.push({ key: priority, value: item });
 

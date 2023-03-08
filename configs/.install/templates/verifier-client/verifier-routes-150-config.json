@@ -1,4 +1,6 @@
 {
+   // See documentation of class `VerifierRouteConfig` in `src/verification/routing/configs/VerifierRouteConfig.ts`
+   "startRoundId": 150,
    "verifierRoutes": [
       {
          "sourceId": "BTC",

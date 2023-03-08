@@ -1,27 +1,25 @@
 {
-    // enabled sync
+    // See the documentation for class `IndexerConfig` in `src/indexer`
+    // Enable chain back syncing. Default `true`
     "syncEnabled": true,
-    
-    // how many days back to sync (decimals are supported)
-    "syncTimeDays":2,
-
-    // how much time to speep between block collection
+    // How many days back to sync (decimals are supported). Default 2
+    "syncTimeDays": 2,
+    // How much time in ms to wait before checking for new block. Default 1000
     "blockCollectTimeMs": 1000,
-
-    // while syncing every how many milliseconds to get new top block number 
+    // How much time to wait before checking for a new block while syncing. Default 10000
     "syncUpdateTimeMs": 10000,
-
-    "indexerDatabase" : {
+    // Indexer database connection parameters. See documentation for class `DatabaseConnectOptions` in `src/utils/database`
+    "indexerDatabase": {
         "host": "$(DOGEIndexerDatabaseHost)",
         "port": $(DOGEIndexerDatabasePort),
         "database": "$(DOGEIndexerDatabase)",
         "username": "$(DOGEIndexerWriterUsername)",
         "password": "$(DOGEIndexerWriterPassword)"
     },
-
-    "chainConfiguration" : {
-        "name": "DOGE",
-        "mccCreate" : {
+    // See documentation for class `ChainConfig` in `src/attester/configs`
+    "chainConfiguration": {
+        "name": "BTC",
+        "mccCreate": {
             "url": "$(DOGEURL)",
             "username": "$(DOGEUsername)",
             "password": "$(DOGEPassword)"
@@ -32,20 +30,9 @@
             "retries": 3
         },
         "numberOfConfirmations": 6,
-        "syncReadAhead":10,
-        "blockCollecting":"tips",
-        "minimalStorageHistoryDays":2,
-        "minimalStorageHistoryBlocks":100,
-
-        "maxRequestsPerSecond":80,
-        "maxProcessingTransactions":3000,
-
-        "maxFailedRetry": 1,
-        "delayBeforeRetry": 10,
-
-        "maxValidIndexerDelaySec": 10,
-
-        "reverificationTimeOffset": 10
+        "syncReadAhead": 10,
+        "blockCollecting": "tips",
+        "minimalStorageHistoryDays": 2,
+        "minimalStorageHistoryBlocks": 100,
     }
-
 }

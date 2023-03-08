@@ -32,7 +32,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
       return "string";
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
 
@@ -74,7 +74,7 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
       return web3.utils.randomHex(32);
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
 
@@ -210,4 +210,3 @@ export function hexlifyBN(obj: any): any {
   }
   return obj;
 }
-

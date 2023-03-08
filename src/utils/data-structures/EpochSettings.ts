@@ -4,8 +4,8 @@ import { getTimeSec } from "../helpers/internetTime";
 
 /**
  * Class for storing the settings of epochs. Current length of an epoch is 90 seconds.
- * Contains data about voting epochs on the StateConnector and BitVoting contracts. 
- * Data is usually initialized externally and red from both smart contracts.
+ * Contains data about voting epochs on the StateConnector and BitVoting contracts.
+ * Data is usually initialized externally and read from both smart contracts.
  * For the connection between rounds and epochs see Attestation-protocol.md
  * Values for construction must be given in seconds.
  */
@@ -24,8 +24,32 @@ export class EpochSettings {
   }
 
   /**
+   *
+   * @returns Start time of the first epoch in seconds
+   */
+  public firstEpochStartTimeSec() {
+    return this._firstEpochStartTimeMs.div(toBN(1000)).toNumber();
+  }
+
+  /**
+   *
+   * @returns Epoch duration in seconds
+   */
+  public epochPeriodSec() {
+    return this._epochPeriodMs.div(toBN(1000)).toNumber();
+  }
+
+  /**
+   *
+   * @returns Bitvote window duration in seconds
+   */
+  public bitVoteWindowDurationSec() {
+    return this._bitVoteWindowDurationMs.div(toBN(1000)).toNumber();
+  }
+
+  /**
    * Epoch length in milliseconds.
-   * @returns 
+   * @returns
    */
   public getEpochLengthMs(): BN {
     return this._epochPeriodMs;
@@ -33,7 +57,7 @@ export class EpochSettings {
 
   /**
    * Bitvote window duration.
-   * @returns 
+   * @returns
    */
   public getBitVoteDurationMs(): BN {
     if (this._bitVoteWindowDurationMs) {
@@ -44,8 +68,8 @@ export class EpochSettings {
 
   /**
    * Returns epochId for time given in miliseconds (Unix epoch).
-   * @param timeInMillis 
-   * @returns 
+   * @param timeInMillis
+   * @returns
    */
   public getEpochIdForTime(timeInMillis: BN): BN {
     const diff: BN = timeInMillis.sub(this._firstEpochStartTimeMs);
@@ -54,8 +78,8 @@ export class EpochSettings {
 
   /**
    * Returns epochId for time given in seconds (Unix epoch).
-   * @param timeSec 
-   * @returns 
+   * @param timeSec
+   * @returns
    */
   public getEpochIdForTimeSec(timeSec: number): number {
     const epochId = this.getEpochIdForTime(toBN(timeSec).mul(toBN(1000)));
@@ -64,20 +88,25 @@ export class EpochSettings {
 
   /**
    * Given time @param timeSec in seconds, it determines the epoch of the time and
-   * checks if it is within the bit voting deadline. 
-   * @param timeSec 
+   * checks if it is within the bit voting deadline.
+   * @param timeSec
    * @returns If the time is within the bit voting deadline, the epoch id is returned.
    * Otherwise 'undefined' is returned.
    */
   public getEpochIdForBitVoteTimeSec(timeSec: number): number | undefined {
-    let timeMs = toBN(timeSec).mul(toBN(1000));
-    let epochId = this.getEpochIdForTime(timeMs);
-    let epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs));
-    let offset = timeMs.sub(epochStartTime);
+    const timeMs = toBN(timeSec).mul(toBN(1000));
+    const epochId = this.getEpochIdForTime(timeMs);
+    const epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs));
+    const offset = timeMs.sub(epochStartTime);
     if (offset.lte(this._bitVoteWindowDurationMs)) {
       return epochId.toNumber();
     }
     return undefined;
+  }
+
+  getOffsetInBufferWindow(timeSec: number) {
+    let epochId = this.getEpochIdForTimeSec(timeSec);
+    return timeSec - Math.round(this._firstEpochStartTimeMs.toNumber() / 1000) + epochId * Math.round(this._epochPeriodMs.toNumber() / 1000);
   }
 
   /**

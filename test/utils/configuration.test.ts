@@ -64,7 +64,7 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
 
     after(() => {
         sinon.restore();
-
+        _clearSecureCredentials();
         delete process.env.SECURE_CONFIG_PATH;
         delete process.env.FLARE_NETWORK;
         delete process.env.CREDENTIALS_KEY;

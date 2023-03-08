@@ -1,32 +1,17 @@
 import { optional } from "@flarenetwork/mcc";
-import { DatabaseConnectOptions } from "../utils/database/DatabaseConnectOptions";
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection";
+import { MonitorAttestationConfig } from "./monitors/AttestationMonitor";
+import { MonitorDatabaseConfig } from "./monitors/DatabaseMonitor";
+import { MonitorDockerConfig } from "./monitors/DockerMonitor";
+import { MonitorIndexerConfig } from "./monitors/IndexerMonitor";
+import { MonitorNodeConfig } from "./monitors/NodeMonitor";
+import { MonitorUrlConfig } from "./monitors/UrlMonitor";
 
-class MonitorAttestationConfig {
-  name = "";
-  @optional() mode = "dev";
-  @optional() path: "";
-  restart = "";
-}
-
-class MonitorWebserverConfig {
-  name = "";
-  address = "";
-  restart = "";
-}
-
-class MonitorDatabaseConfig implements IReflection<MonitorDatabaseConfig> {
-  name = "";
-  @optional() database = "attester";
-  connection = new DatabaseConnectOptions();
-
-  instanciate() {
-    return new MonitorDatabaseConfig();
-  }
-
-  getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
-    return null;
-  }
+export class PrometheusConfig {
+  @optional() pushGatewayEnabled = false;
+  @optional() pushGatewayUrl = "http://127.0.0.1:9091";
+  @optional() monitorServerEnabled = false;
+  @optional() monitorServerPort = 3010;
 }
 
 export class MonitorConfig implements IReflection<MonitorConfig> {
@@ -35,16 +20,18 @@ export class MonitorConfig implements IReflection<MonitorConfig> {
   @optional() timeLate = 5;
   @optional() timeDown = 10;
   @optional() timeRestart = 20;
-  stateSaveFilename = "";
-  indexerRestart = "";
 
-  @optional() indexers = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
-  @optional() nodes = ["ALGO", "BTC", "DOGE", "LTC", "XRP"];
-  @optional() dockers = ["algorand", "bitcoin", "dogecoin", "litecoin", "ripple"];
+  prometheus = new PrometheusConfig();
 
-  @optional() attesters = [];
-  @optional() backends = [];
-  @optional() databases = [];
+  @optional() system = false;
+
+  @optional() indexers: Array<MonitorIndexerConfig> = [];
+  @optional() nodes: Array<MonitorNodeConfig> = [];
+  @optional() dockers: Array<MonitorDockerConfig> = [];
+
+  @optional() attesters: Array<MonitorAttestationConfig> = [];
+  @optional() backends: Array<MonitorUrlConfig> = [];
+  @optional() databases: Array<MonitorDatabaseConfig> = [];
 
   instanciate() {
     return new MonitorConfig();
@@ -53,12 +40,11 @@ export class MonitorConfig implements IReflection<MonitorConfig> {
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     const res = new AdditionalTypeInfo();
 
-    res.arrayMap.set("indexers", "string");
-    res.arrayMap.set("nodes", "string");
-    res.arrayMap.set("dockers", "string");
-
+    res.arrayMap.set("dockers", new MonitorDockerConfig());
+    res.arrayMap.set("indexers", new MonitorIndexerConfig());
     res.arrayMap.set("attesters", new MonitorAttestationConfig());
-    res.arrayMap.set("backends", new MonitorWebserverConfig());
+    res.arrayMap.set("nodes", new MonitorNodeConfig());
+    res.arrayMap.set("backends", new MonitorUrlConfig());
     res.arrayMap.set("databases", new MonitorDatabaseConfig());
 
     return res;

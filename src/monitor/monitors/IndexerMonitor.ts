@@ -2,14 +2,14 @@ import { DBState } from "../../entity/indexer/dbState";
 import { DatabaseService } from "../../utils/database/DatabaseService";
 import { getUnixEpochTimestamp, secToHHMMSS } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
-import { MonitorBase, MonitorStatus } from "../MonitorBase";
-import { MonitorConfig } from "../MonitorConfiguration";
+import { MonitorBase, MonitorStatus, PerformanceInfo } from "../MonitorBase";
 import { MonitorConfigBase } from "../MonitorConfigBase";
+import { MonitorConfig } from "../MonitorConfiguration";
 
 export class MonitorIndexerConfig extends MonitorConfigBase {
   database = "";
 
-  getName(){return "IndexerMonitor";}
+  getName() { return "IndexerMonitor"; }
 
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new IndexerMonitor(<MonitorIndexerConfig>config, baseConfig, logger);
@@ -18,6 +18,9 @@ export class MonitorIndexerConfig extends MonitorConfigBase {
 
 export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
   dbService: DatabaseService;
+
+  lastState: DBState;
+  lastStateBottom: DBState;
 
   statusError: string;
 
@@ -40,7 +43,32 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
   }
 
   async perf() {
-    return null;
+    if (!this.lastState || !this.lastState.valueString) {
+      return null;
+    }
+
+    const resArray = [];
+
+    const now = getUnixEpochTimestamp();
+    const late = now - this.lastState.timestamp;
+
+    const N = this.lastState.comment.match(/N=([0-9]+)/);
+    const T = this.lastState.comment.match(/T=([0-9]+)/);
+
+    resArray.push(new PerformanceInfo(`indexer.${this.name}`, `late`, +late, "sec"));
+    if (N) {
+      resArray.push(new PerformanceInfo(`indexer.${this.name}`, `T`, +T[1], "block"));
+    }
+
+    if (T) {
+      resArray.push(new PerformanceInfo(`indexer.${this.name}`, `N`, +N[1], "block"));
+    }
+
+    if( this.lastStateBottom ) {
+      resArray.push(new PerformanceInfo(`indexer.${this.name}`, `Nbottom`, this.lastStateBottom.valueNumber, "block"));
+    }
+
+    return resArray;
   }
 
   async check(): Promise<MonitorStatus> {
@@ -57,8 +85,13 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
 
     if (!resState || !resState.valueString) {
       res.state = "state data not available";
+      this.lastState = null;
       return res;
     }
+
+    this.lastStateBottom = await this.dbService.manager.findOne(DBState, { where: { name: `${this.name}_Nbottom` } });
+
+    this.lastState = resState;
 
     const now = getUnixEpochTimestamp();
 

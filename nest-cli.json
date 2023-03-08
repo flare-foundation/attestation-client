@@ -34,6 +34,24 @@
         ]        
       }
     },
+    "monitor-server": {
+      "type": "application",
+      "root": "src/servers/monitor-server",
+      "entryFile": "main",
+      "sourceRoot": "src/servers/monitor-server/src",
+      "compilerOptions": {
+        "tsConfigPath": "src/servers/monitor-server/tsconfig.app.json",
+        "plugins": [
+          {
+            "name": "@nestjs/swagger",
+            "options": {
+              "classValidatorShim": false,
+              "introspectComments": true
+            }
+          }
+        ]        
+      }
+    },
     "common": {
       "type": "library",
       "root": "src/servers/common",

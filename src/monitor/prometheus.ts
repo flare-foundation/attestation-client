@@ -49,6 +49,14 @@ export class Prometheus {
     }
 
     /**
+     * Get all registered Prometheus metrics.
+     * @returns 
+     */
+    async getMetrics() : Promise<string> {
+        return await this.register.metrics();
+    }
+
+    /**
      * Set gauge data, create and register it if not exists.
      * @param name
      * @param comment 
@@ -58,6 +66,7 @@ export class Prometheus {
     setGauge(name: string, comment: string, labels: string, value: number) {
         try {
             const cleanName = name.toLowerCase().replaceAll("-", "_").replaceAll(".", "_").replaceAll("/", "_").replaceAll(" ", "").replaceAll("%","percent");
+            const cleanLabels = labels.toLowerCase().replaceAll("-", "_").replaceAll(".", "_").replaceAll("/", "_").replaceAll(" ", "").replaceAll("%","percent");
 
             let gauge = <Gauge>this.metrics.get(cleanName);
 
@@ -68,7 +77,7 @@ export class Prometheus {
                     name: cleanName,
                     help: comment,
                     registers: [this.register],
-                    labelNames: labels ? [labels] : [],
+                    labelNames: cleanLabels ? [cleanLabels] : [],
                 });
                 this.register.registerMetric(gauge);
 
@@ -81,4 +90,5 @@ export class Prometheus {
             logException(`registerGauge`, error);
         }
     }
+   
 }

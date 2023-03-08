@@ -3,7 +3,7 @@ import { DBRoundResult } from "../../entity/attester/dbRoundResult";
 import { EpochSettings } from "../../utils/data-structures/EpochSettings";
 import { DatabaseService } from "../../utils/database/DatabaseService";
 import { AttLogger } from "../../utils/logging/logger";
-import { MonitorBase, MonitorStatus } from "../MonitorBase";
+import { MonitorBase, MonitorStatus, PerformanceInfo } from "../MonitorBase";
 import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
@@ -23,6 +23,8 @@ export class MonitorAttestationConfig extends MonitorConfigBase {
 export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
   dbService: DatabaseService;
   epochSettings: EpochSettings;
+
+  lastState: DBRoundResult[];
 
   logger: AttLogger;
 
@@ -48,8 +50,27 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
   }
 
   async perf() {
-    return null;
+    if (!this.lastState ) {
+      return null;
+    }
+
+    const resArray = [];
+
+    const transactions = this.lastState[0].transactionCount;
+    const validTransactions = this.lastState[0].validTransactionCount;
+
+    const activeRound = this.epochSettings.getCurrentEpochId().toNumber();
+    const dbRound = this.lastState[0].roundId;
+
+    resArray.push(new PerformanceInfo(`attester.${this.name}`, `collected`, transactions, "tx"));
+    resArray.push(new PerformanceInfo(`attester.${this.name}`, `valid`, validTransactions, "tx"));
+
+    resArray.push(new PerformanceInfo(`attester.${this.name}`, `active`, activeRound, "round"));
+    resArray.push(new PerformanceInfo(`attester.${this.name}`, `saved`, dbRound, "round"));
+
+    return resArray;
   }
+
 
   async check(): Promise<MonitorStatus> {
     const res = new MonitorStatus();
@@ -59,6 +80,7 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
 
     if (this.statusError) {
       res.state = this.statusError;
+      this.lastState=null;
       return res;
     }
 
@@ -74,6 +96,8 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
       transactions = dbRes[0].transactionCount;
       validTransactions = dbRes[0].validTransactionCount;
     }
+
+    this.lastState = dbRes;
 
     res.state = `running`;
 

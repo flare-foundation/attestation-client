@@ -1,5 +1,5 @@
 {
-    // alert update interval
+    // monitor interval
     "interval":5000,
     // time in seconds when system status becomes late
     "timeLate":5,
@@ -7,8 +7,11 @@
     "timeDown":10,
     // time in seconds when system is restarted
     "timeRestart":120,
-    // path where alert status is saved
-    "stateSaveFilename":"../monitor-status.json",
+
+    // Prometheus settings
+    "prometheus":{
+        "monitorServerEnabled":"true",
+    },
 
     // monitor system
     "system": "true",

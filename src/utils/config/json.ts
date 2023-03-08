@@ -15,9 +15,10 @@ function getJSONParseError(json) {
 
   // generate a detailed error using the parser's state
   function makeError(e) {
-    let currentNL = 0,
-      nextNL = json.indexOf("\n"),
-      line = 1;
+    let currentNL = 0;
+    let nextNL = json.indexOf("\n");
+    let line = 1;
+
     while (line < parser.line) {
       currentNL = nextNL;
       nextNL = json.indexOf("\n", currentNL + 1);

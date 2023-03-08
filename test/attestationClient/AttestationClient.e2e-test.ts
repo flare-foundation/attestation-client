@@ -10,10 +10,14 @@ import waitOn from "wait-on";
 import Web3 from "web3";
 import { Attestation } from "../../src/attester/Attestation";
 import { runBot } from "../../src/state-collector-finalizer/state-connector-validator-bot";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/web3-utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { AttestationTypeScheme } from "../../src/verification/attestation-types/attestation-types";
+import { readAttestationTypeSchemes } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
+import { VerifierRouteConfig } from "../../src/verification/routing/configs/VerifierRouteConfig";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
@@ -32,8 +36,7 @@ const LAST_BLOCK = LAST_CONFIRMED_BLOCK + 3;
 const BLOCK_CHOICE = 950;
 const TXS_IN_BLOCK = 10;
 
-const CONFIG_PATH_ATTESTER = "../test/attestationClient/test-data/attester"
-const CONFIG_PATH_VERIFIER = "../test/attestationClient/test-data/test-verifier"
+const SECURE_CONFIG_PATH = "./test/attestationClient/test-data"
 
 const RPC = "http://127.0.0.1:8545";
 const STATE_CONNECTOR_ADDRESS = "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F";
@@ -74,8 +77,11 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   let privateKeys: string[] = [];
   let childProcesses: any[] = [];
   let runPromises = [];
+  let definitions: AttestationTypeScheme[];
 
   before(async function () {
+    definitions = await readAttestationTypeSchemes();
+
     if (TEST_LOGGER) {
       initializeTestGlobalLogger();
     }
@@ -100,7 +106,9 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
       process.exit();
     });
 
+    process.env.SECURE_CONFIG_PATH = SECURE_CONFIG_PATH;
     process.env.TEST_CREDENTIALS = '1';
+    // delete process.env.TEST_CREDENTIALS;
 
     // Bootstrap hardhat blockchain
     let child = spawn("yarn", ["hardhat", "node"], { shell: true });
@@ -162,10 +170,16 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     // Initialize verifiers    
     let bootstrapOptions = {
       lastTimestamp: startTime,
-      CONFIG_PATH: CONFIG_PATH_VERIFIER,
       FIRST_BLOCK, LAST_BLOCK, LAST_CONFIRMED_BLOCK, TXS_IN_BLOCK, BLOCK_CHOICE
     } as VerifierBootstrapOptions;
     setup = await bootstrapTestVerifiers(bootstrapOptions, false);
+
+    // console.log("XXX")
+    // let a = 1/1;
+    // if (a === 1) {
+    //   process.exit(1);
+    // }
+
 
     // Initialize test requests
 
@@ -181,8 +195,6 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     // Attester related intializations
     ///////////////////////////////////
 
-    // DO NOT CHANGE CONFIG_PATH while attester clients are running!!!
-    process.env.CONFIG_PATH = CONFIG_PATH_ATTESTER;
     process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = '' + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
     process.env.TEST_SAMPLING_REQUEST_INTERVAL = '' + 1000;
     let bootstrapPromises = [];
@@ -204,7 +216,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
         "ts-node",
         "test/attestationClient/utils/runTestAttestationClient.ts",
         "-n", `${i}`,
-        "-c", "../test/attestationClient/test-data/attester"
+        "-c", "./test/attestationClient/test-data"
       ], { shell: true });
       childProcesses.push(child)
     }
@@ -223,13 +235,15 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
 
 
     // starting simple spammer    
-    await startSimpleSpammer(getGlobalLogger(), stateConnector, web3, spammerWallet, bufferWindowDurationSec, 
+    await startSimpleSpammer(getGlobalLogger(), stateConnector, web3, spammerWallet, bufferWindowDurationSec,
       [attestationXRP.data.request, attestationBTC.data.request], SPAMMER_FREQUENCIES, SPAMMER_GAPS);
 
     setInterval(async () => {
       let now = getUnixEpochTimestamp();
       let blockChainNow = await (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
-      console.log(`DIFF: ${now} - ${blockChainNow} = ${now - parseInt('' + blockChainNow, 10)}`);
+      if (process.env.NODE_ENV === "development") {
+        console.log(`DIFF: ${now} - ${blockChainNow} = ${now - parseInt('' + blockChainNow, 10)}`);
+      }
     }, 1000)
     // await Promise.all(runPromises);
 
@@ -263,9 +277,9 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   });
 
   it.skip(`Should be able to verify attestations through VerifierRouter`, async function () {
-    process.env.CONFIG_PATH = CONFIG_PATH_VERIFIER;
     const verifierRouter = new VerifierRouter();
-    await verifierRouter.initialize(150);
+    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
+    await verifierRouter.initialize(verifierConfig, definitions);
 
     let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
 

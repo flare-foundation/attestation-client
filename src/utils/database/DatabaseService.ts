@@ -5,7 +5,7 @@ import { DatabaseConnectOptions } from "./DatabaseConnectOptions";
 
 /**
  * DatabaseService class for managing the connection to a database.  It creates TypeORM connection and provides relevant entity manager class.
- * It supports two databases, MySQL and better-sqlite3. The latter is 
+ * It supports two databases, MySQL and better-sqlite3. The latter is
  * used for testing purposes only.
  */
 export class DatabaseService {
@@ -24,7 +24,7 @@ export class DatabaseService {
     options: DatabaseConnectOptions,
     databaseName = "",
     connectionName = "",
-    testDBPath: boolean | string = false  // if boolean, then in-memory better-sqlite3 DB is used. If string then it is considered as a path to .db file. Can be used only for testing.
+    testDBPath: boolean | string = false // if boolean, then in-memory better-sqlite3 DB is used. If string then it is considered as a path to .db file. Can be used only for testing.
   ) {
     this.logger = logger;
 
@@ -41,13 +41,13 @@ export class DatabaseService {
     if (process.env.NODE_ENV === "development" && (testDBPath || this.options.inMemory || this.options.testSqlite3DBPath !== "")) {
       this._isSqlite3 = true;
 
-      let dbPath: string | undefined = undefined;
+      let dbPath: string | undefined;
       if (testDBPath && typeof testDBPath === "string") {
         dbPath = testDBPath;
       } else if (this.options.testSqlite3DBPath !== "") {
         dbPath = this.options.testSqlite3DBPath;
       }
-      let connectOptions = {
+      const connectOptions = {
         name: this.connectionName,
         type: "better-sqlite3",
         database: dbPath ?? ":memory:",
@@ -60,7 +60,7 @@ export class DatabaseService {
       this.dataSource = new DataSource(connectOptions);
       this.logger.debug2(`entity: ${entities}`);
     } else {
-      let connectOptions = {
+      const connectOptions = {
         name: this.connectionName,
         type: "mysql",
         host: this.options.host,
@@ -94,7 +94,7 @@ export class DatabaseService {
    * Returns true if the database used is Sqlite3 (better-sqlite3).
    */
   get isSqlite3() {
-    return this._isSqlite3
+    return this._isSqlite3;
   }
 
   /**

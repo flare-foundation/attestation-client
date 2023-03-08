@@ -1,11 +1,9 @@
 // yarn test test/indexer/chain-collector-helper.test-cred.ts
 //tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
 
-import {
-  ChainType, UtxoMccCreate
-} from "@flarenetwork/mcc";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { afterEach } from "mocha";
 import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
@@ -45,9 +43,6 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     };
 
     const databaseConnectOptions = new DatabaseConnectOptions();
-    databaseConnectOptions.database = process.env.DATABASE_NAME1;
-    databaseConnectOptions.username = process.env.DATABASE_USERNAME;
-    databaseConnectOptions.password = process.env.DATBASE_PASS;
     const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
     const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
     const interlacing = new Interlacing();

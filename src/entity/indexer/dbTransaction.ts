@@ -1,4 +1,4 @@
-  import { ChainType } from "@flarenetwork/mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 import { BaseEntity } from "../base/BaseEntity";
 
@@ -23,9 +23,7 @@ export class DBTransactionBase extends BaseEntity {
   @Column({ type: "varchar", length: 64 }) @Index() transactionType: string = "";
 }
 
-export interface IDBTransactionBase {
-  new (): DBTransactionBase;
-}
+export type IDBTransactionBase = new () => DBTransactionBase;
 
 @Entity({ name: "xrp_transactions0" })
 export class DBTransactionXRP0 extends DBTransactionBase {}

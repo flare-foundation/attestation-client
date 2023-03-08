@@ -32,9 +32,7 @@ export class DBBlockBase {
   previousBlockHash: string;
 }
 
-export interface IDBBlockBase {
-  new (): DBBlockBase;
-}
+export type IDBBlockBase = new () => DBBlockBase;
 
 @Entity({ name: "btc_block" })
 export class DBBlockBTC extends DBBlockBase {}

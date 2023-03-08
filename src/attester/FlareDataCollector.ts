@@ -13,12 +13,7 @@ export class FlareDataCollector {
   refreshEventsMs: number;
   label: string = "";
 
-  constructor(
-    attesterClient: AttesterClient,
-    startBlock?: number,
-    refreshEventsMs = 100,
-    label = ""
-  ) {
+  constructor(attesterClient: AttesterClient, startBlock?: number, refreshEventsMs = 100, label = "") {
     this.attesterClient = attesterClient;
     this.startBlock = startBlock;
     this.refreshEventsMs = refreshEventsMs;
@@ -42,9 +37,9 @@ export class FlareDataCollector {
   // https://web3js.readthedocs.io/en/v1.2.11/web3-eth-contract.html?highlight=getPastEvents#contract-events-return
   /**
    * Comparator for event objects
-   * @param a 
-   * @param b 
-   * @returns 
+   * @param a
+   * @param b
+   * @returns
    */
   private eventComparator(a: any, b: any): number {
     if (a.blockNumber < b.blockNumber) return -1;
@@ -58,7 +53,7 @@ export class FlareDataCollector {
 
   public async startCollectingBlocksAndEvents() {
     // wait until new block is set
-    this.logger.info(`${this.label}waiting for network connection...`);
+    this.logger.info(`${this.label} waiting for network connection...`);
     const blockHeight = await this.flareConnection.web3Functions.getBlockNumber();
     if (this.startBlock === undefined) {
       this.startBlock = blockHeight;
@@ -66,7 +61,7 @@ export class FlareDataCollector {
 
     let nextBlockNumberToProcess: number = this.startBlock;
 
-    this.logger.info(`${this.label}^Rnetwork event processing started ^Y${this.startBlock} (height ${blockHeight})`);
+    this.logger.info(`${this.label} ^Rnetwork event processing started ^Y${this.startBlock} (height ${blockHeight})`);
 
     while (true) {
       try {
@@ -101,8 +96,8 @@ export class FlareDataCollector {
         this.attesterClient.onNextBlockCapture(block);
         nextBlockNumberToProcess++;
       } catch (error) {
-        // not for reporting 
-        logException(error, `${this.label}Web3BlockCollector::processEvents`);
+        // not for reporting
+        logException(error, `${this.label} Web3BlockCollector::processEvents`);
       }
     }
   }

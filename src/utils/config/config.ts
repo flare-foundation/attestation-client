@@ -1,4 +1,4 @@
-import { getGlobalLogger, logException } from "../logging/logger";
+import { AttLogger, getGlobalLogger, logException } from "../logging/logger";
 import { IReflection } from "../reflection/reflection";
 import { isEqualType } from "../reflection/typeReflection";
 import { readJSONfromFile } from "./json";
@@ -8,26 +8,34 @@ const DEFAULT_DEBUG_CONFIG_PATH = "dev";
 
 /**
  * Read config file with all the parameters.
- * 
+ *
  * Function creates configuration object of @param obj and checks if all class members are set.
  * Any unset (non optional) members return error.
- * 
+ *
  * Instance class @param obj must be inherited from `IReflection`.
- * 
+ *
  * use `CONFIG_PATH` env variable to set configuration path. note that path start location is rooted in `<app_root>/.config/` folder.
- * 
+ *
  * `NODE_ENV` env variables controls default path (if mode or path modifiers are not used).
- * 
+ *
  * NOTE: used for un-encrypted credential and test purposes only!
- * @param project project name 
+ * @param project project name
  * @param type configuration type (config, cretentials)
  * @param mode additional path mode modifier
  * @param userPath user path selector
  * @param obj configuration object instance
- * @returns 
+ * @returns
  */
-export function readConfigBase<T extends IReflection<T>>(project: string, type: string, mode: string = undefined, userPath: string = undefined, obj: T = null): T {
+export function readConfigBase<T extends IReflection<T>>(
+  project: string,
+  type: string,
+  mode: string = undefined,
+  userPath: string = undefined,
+  obj: T = null,
+  attLogger: AttLogger = null
+): T {
   let path = `./configs/`;
+  const logger = attLogger ?? getGlobalLogger();
 
   if (userPath && userPath !== "") {
     path = userPath;
@@ -36,11 +44,11 @@ export function readConfigBase<T extends IReflection<T>>(project: string, type: 
       path += `${mode}/`;
     } else if (process.env.CONFIG_PATH) {
       path += `${process.env.CONFIG_PATH}/`;
-      getGlobalLogger().debug2(`configuration env.CONFIG_PATH using ^w^K${process.env.CONFIG_PATH}^^`);
+      logger.debug2(`configuration env.CONFIG_PATH using ^w^K${process.env.CONFIG_PATH}^^`);
     } else {
       const modePath = process.env.NODE_ENV === "development" ? DEFAULT_DEBUG_CONFIG_PATH : DEFAULT_CONFIG_PATH;
       path += `${modePath}/`;
-      getGlobalLogger().warning(`configuration path not set. using ^w^K${modePath}^^`);
+      logger.warning(`configuration path not set. using ^w^K${modePath}^^`);
     }
   }
 
@@ -53,9 +61,9 @@ export function readConfigBase<T extends IReflection<T>>(project: string, type: 
     const valid = isEqualType(obj.instanciate(), res);
 
     if (valid) {
-      getGlobalLogger().info(`^g^W ${project} ^^ ^Gconfiguration ^K^w${path}^^ loaded`);
+      logger.info(`^g^W ${project} ^^ ^Gconfiguration ^K^w${path}^^ loaded`);
     } else {
-      getGlobalLogger().error2(` ${project}  configuration ^K^w${path}^^ has errors`);
+      logger.error2(` ${project}  configuration ^K^w${path}^^ has errors`);
     }
 
     return res;
@@ -67,12 +75,18 @@ export function readConfigBase<T extends IReflection<T>>(project: string, type: 
 /**
  * Typed helper wrapper for for `readConfigBase` to read `config`.
  * NOTE: Reads un-encrypted configuration. To be used only for testing!
- * @param obj 
- * @param project 
- * @param mode 
- * @param userPath 
- * @returns 
+ * @param obj
+ * @param project
+ * @param mode
+ * @param userPath
+ * @returns
  */
-export function readConfig<T extends IReflection<T>>(obj: T, project: string, mode: string = undefined, userPath: string = undefined): T {
-  return readConfigBase<T>(project, "config", mode, userPath, obj);
+export function readConfig<T extends IReflection<T>>(
+  obj: T,
+  project: string,
+  mode: string = undefined,
+  userPath: string = undefined,
+  logger: AttLogger = null
+): T {
+  return readConfigBase<T>(project, "config", mode, userPath, obj, logger);
 }

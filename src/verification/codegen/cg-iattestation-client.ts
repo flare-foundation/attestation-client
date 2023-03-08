@@ -1,10 +1,12 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import {
   DEFAULT_GEN_FILE_HEADER,
-  I_ATTESTATION_CLIENT_FILE, PRETTIER_SETTINGS_SOL, SOLIDITY_GEN_INTERFACES_ROOT,
-  SOLIDITY_VERIFICATION_FUNCTION_PREFIX
+  I_ATTESTATION_CLIENT_FILE,
+  PRETTIER_SETTINGS_SOL,
+  SOLIDITY_GEN_INTERFACES_ROOT,
+  SOLIDITY_VERIFICATION_FUNCTION_PREFIX,
 } from "./cg-constants";
 import { commentText } from "./cg-utils";
 
@@ -40,9 +42,7 @@ function genProofVerificationFunctionSignatures(definition: AttestationTypeSchem
 
 function getSolidityIAttestationClient(definitions: AttestationTypeScheme[]) {
   const structs = definitions.map((definition) => genProofStructs(definition)).join("");
-  const verifyProofFunctionSignatures = definitions
-    .map((definition) => genProofVerificationFunctionSignatures(definition))
-    .join("\n\n");
+  const verifyProofFunctionSignatures = definitions.map((definition) => genProofVerificationFunctionSignatures(definition)).join("\n\n");
   const proofVerificationComment = `
 When verifying state connector proofs, the data verified will be
 \`keccak256(abi.encode(attestationType, _chainId, all _data fields except merkleProof, stateConnectorRound))\`
@@ -70,6 +70,6 @@ ${getSolidityIAttestationClient(definitions)}`;
     fs.mkdirSync(SOLIDITY_GEN_INTERFACES_ROOT, { recursive: true });
   }
 
-  const prettyContent = prettier.format(content, PRETTIER_SETTINGS_SOL)
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS_SOL);
   fs.writeFileSync(`${SOLIDITY_GEN_INTERFACES_ROOT}/${I_ATTESTATION_CLIENT_FILE}`, prettyContent, "utf8");
 }

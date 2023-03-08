@@ -1,55 +1,75 @@
+/**
+ * - Add prometheus server
+ * - Add indexer bottom top - block count
+ * - Add indexer bottom top - sec count
+ * - comment classes
+ */
+
 import { Managed, traceManager } from "@flarenetwork/mcc";
-import fs from "fs";
-import { stringify } from "safe-stable-stringify";
-import { readConfig } from "../utils/config/config";
+import stringify from "safe-stable-stringify";
+import { runMonitorserver } from "../servers/monitor-server/src/monitorserver";
+import { readSecureConfig } from "../utils/config/configSecure";
 import { sleepms } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { Terminal } from "../utils/monitoring/Terminal";
-import { AttesterMonitor } from "./AttestationMonitor";
-import { DatabaseMonitor } from "./DatabaseMonitor";
-import { DockerMonitor } from "./DockerMonitor";
-import { IndexerMonitor } from "./IndexerMonitor";
-import { MonitorBase, MonitorRestartConfig } from "./MonitorBase";
+import { MonitorBase } from "./MonitorBase";
+import { MonitorConfigBase } from "./MonitorConfigBase";
 import { MonitorConfig } from "./MonitorConfiguration";
-import { NodeMonitor } from "./NodeMonitor";
-import { WebserverMonitor } from "./WebserverMonitor";
+import { SystemMonitor } from "./monitors/SystemMonitor";
+import { Prometheus } from "./prometheus";
+
+let prometheus: Prometheus;
+let statusJson: string = "";
+let statusObject;
+
+export async function getPrometheusMetrics(): Promise<string> {
+  return await prometheus.getMetrics();
+}
+
+export async function getStatusJson(): Promise<string> {
+  return statusJson;
+}
+
+export async function getStatusObject(): Promise<string> {
+  return statusObject;
+}
 
 @Managed()
 export class MonitorManager {
   logger: AttLogger;
   config: MonitorConfig;
+  monitors: MonitorBase<MonitorConfigBase>[] = [];
 
-  monitors: MonitorBase[] = [];
+  initializeMonitors<T extends MonitorConfigBase>(monitors: T[]) {
+    for (const monitor of monitors) {
+      this.logger.debug(`initializing: ${monitor.getName()} ${monitor.name} ${monitor.disabled ? "^rdisabled^^" : ""}`);
+      if (monitor.disabled) continue;
 
-  constructor() {
+      this.monitors.push(monitor.createMonitor(monitor, this.config, this.logger));
+    }
+  }
+
+  async initialize() {
     this.logger = getGlobalLogger();
 
-    this.config = readConfig(new MonitorConfig(), "monitor");
+    process.env.SECURE_CONFIG_PATH = "deployment/credentials";
 
-    for (const node of this.config.nodes) {
-      this.monitors.push(new NodeMonitor(node, this.logger, this.config));
+    this.config = await readSecureConfig(new MonitorConfig(), "monitor");
+
+    if (this.config.system) {
+      this.logger.debug("initializing: SystemMonitor");
+      this.monitors.push(new SystemMonitor(new MonitorConfigBase(), this.config, this.logger));
     }
 
-    for (const docker of this.config.dockers) {
-      this.monitors.push(new DockerMonitor(docker, this.logger, this.config));
-    }
+    this.initializeMonitors(this.config.dockers);
+    this.initializeMonitors(this.config.nodes);
+    this.initializeMonitors(this.config.indexers);
+    this.initializeMonitors(this.config.attesters);
+    this.initializeMonitors(this.config.backends);
+    this.initializeMonitors(this.config.databases);
 
-    for (const indexer of this.config.indexers) {
-      this.monitors.push(new IndexerMonitor(indexer, this.logger, this.config));
-    }
-
-    for (const attester of this.config.attesters) {
-      this.monitors.push(
-        new AttesterMonitor(attester.name, this.logger, attester.mode, attester.path, new MonitorRestartConfig(this.config.timeRestart, attester.restart))
-      );
-    }
-
-    for (const backend of this.config.backends) {
-      this.monitors.push(new WebserverMonitor(backend.name, this.logger, new MonitorRestartConfig(this.config.timeRestart, backend.restart), backend.address));
-    }
-
-    for (const database of this.config.databases) {
-      this.monitors.push(new DatabaseMonitor(database.name, this.logger, database.database, database.connection));
+    for (const monitor of this.monitors) {
+      await monitor.initialize();
     }
   }
 
@@ -57,66 +77,98 @@ export class MonitorManager {
     traceManager.displayStateOnException = false;
     traceManager.displayRuntimeTrace = false;
 
-    for (const alert of this.monitors) {
-      await alert.initialize();
+    // initialize monitors
+    await this.initialize();
+
+    if (this.config.prometheus.monitorServerEnabled) {
+      runMonitorserver();
     }
 
     const terminal = new Terminal(process.stderr);
     //terminal.cursor(false);
 
-    this.logger.info(`^e^K${"type".padEnd(20)}  ${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                        `);
+    this.logger.info(
+      `^e^K${"type".padEnd(20)}  ${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                                        `
+    );
 
     terminal.cursorSave();
 
+    // create prometheus registry and pushgateway
+    const prefix = "attestationsuite";
+
+    prometheus = new Prometheus(this.logger);
+
+    if (this.config.prometheus.pushGatewayEnabled) {
+      prometheus.connectPushgateway(this.config.prometheus.pushGatewayUrl);
+    }
+
     while (true) {
+      // monitoring
       try {
         terminal.cursorRestore();
 
-        const statusAlerts = [];
+        const statusMonitors = [];
         const statusPerfs = [];
 
-        for (const alert of this.monitors) {
+        for (const monitor of this.monitors) {
           try {
-            const resAlert = await alert.check();
+            const resAlert = await monitor.check();
 
             if (!resAlert) continue;
 
-            statusAlerts.push(resAlert);
+            statusMonitors.push(resAlert);
 
             resAlert.displayStatus(this.logger);
+
+            var status = 0;
+            switch (resAlert.status) {
+              case "down":
+                status = 0;
+                break;
+              case "late":
+                status = 1;
+                break;
+              case "sync":
+                status = 2;
+                break;
+              case "running":
+                status = 3;
+                break;
+            }
+
+            prometheus.setGauge(`${prefix}_${monitor.name}_${resAlert.type}`, resAlert.comment, resAlert.status, status);
           } catch (error) {
-            logException(error, `alert ${alert.name}`);
+            logException(error, `monitor ${monitor.name}`);
           }
         }
 
-        for (const alert of this.monitors) {
+        for (const monitor of this.monitors) {
           try {
-            const resPerfs = await alert.perf();
+            const resPerfs = await monitor.perf();
 
             if (!resPerfs) continue;
 
             for (const perf of resPerfs) {
               statusPerfs.push(perf);
               perf.displayStatus(this.logger);
+
+              prometheus.setGauge(`${prefix}_${perf.name}_${perf.valueName}_${perf.valueUnit}`, perf.valueName, perf.valueUnit, perf.value);
             }
           } catch (error) {
-            logException(error, `perf ${alert.name}`);
+            logException(error, `perf ${monitor.name}`);
           }
         }
 
-        if (this.config.stateSaveFilename) {
-          try {
-            fs.writeFile(this.config.stateSaveFilename, stringify({ alerts: statusAlerts, perf: statusPerfs }), function (err) {
-              if (err) {
-                this.logger.error(err);
-              }
-            });
-          } catch (error) {
-            logException(error, `save state`);
-          }
-        }
+        // save status to json string
+        statusObject = { monitor: statusMonitors, perf: statusPerfs };
+        statusJson = stringify(statusObject);
       } catch (error) {
-        logException(error, `runAlerts`);
+        logException(error, `runMonitor`);
+      }
+
+      if (this.config.prometheus.pushGatewayEnabled) {
+        // push metric to gateway
+        prometheus.push(prefix);
       }
 
       await sleepms(this.config.interval);

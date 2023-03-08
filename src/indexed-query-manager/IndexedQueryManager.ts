@@ -18,7 +18,7 @@ import {
   ReferencedTransactionsQueryRequest,
   ReferencedTransactionsQueryResponse,
   TransactionQueryParams,
-  TransactionQueryResult
+  TransactionQueryResult,
 } from "./indexed-query-manager-types";
 
 ////////////////////////////////////////////////////////
@@ -108,24 +108,6 @@ export class IndexedQueryManager {
     } as BlockHeightSample;
   }
 
-  /**
-   * Checks whether the sampling of the block height of the indexer is up to date.
-   * The last sample must be within `maxValidIndexerDelaySec` value (in options)
-   * @returns `true` if the indexer is up to date, `false` otherwise
-   */
-  public async isIndexerUpToDate(): Promise<boolean> {
-    const res = await this.getLatestBlockTimestamp();
-    if (res === null) {
-      return false;
-    }
-    const now = getUnixEpochTimestamp();
-    const delay = now - res.timestamp;
-    if (delay > this.settings.maxValidIndexerDelaySec) {
-      return false;
-    }
-    return true;
-  }
-
   ////////////////////////////////////////////////////////////
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////
@@ -137,14 +119,13 @@ export class IndexedQueryManager {
    * boundary range.
    */
   async queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult> {
-    let results = [];
+    let results: DBTransactionBase[] = [];
 
     for (const table of this.transactionTable) {
-      let query = this.entityManager
-        .createQueryBuilder(table, "transaction")
+      let query = this.entityManager.createQueryBuilder(table, "transaction");
 
       if (params.startBlockNumber) {
-        query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock : params.startBlockNumber });
+        query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock: params.startBlockNumber });
       }
 
       if (params.endBlockNumber) {
@@ -195,8 +176,7 @@ export class IndexedQueryManager {
     if (!params.blockNumber && !params.hash) {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
     }
-    let query = this.entityManager
-      .createQueryBuilder(this.blockTable, "block")
+    let query = this.entityManager.createQueryBuilder(this.blockTable, "block");
     if (params.confirmed) {
       query = query.andWhere("block.confirmed = :confirmed", { confirmed: !!params.confirmed });
     }
@@ -226,27 +206,6 @@ export class IndexedQueryManager {
     return null;
   }
 
-  // /**
-  //  * Checks whether lower boundary of query range within confirmed transactions is met.
-  //  * For that at least one confirmed block with lower timestamp that lower boundary timestamp
-  //  * must exist in the database.
-  //  * @param roundId
-  //  * @returns
-  //  */
-  // private async lowerBoundaryCheck(roundId: number, windowStartTime?: number): Promise<boolean> {
-  //   // lower boundary timestamp
-  //   let startTimestamp = windowStartTime;
-  //   if (!startTimestamp && startTimestamp !== 0) {
-  //     if (this.settings.windowStartTime) {
-  //       startTimestamp = this.settings.windowStartTime(roundId);
-  //     } else {
-  //       throw new Error("IndexedQueryManager: windowStartTime not configured");
-  //     }
-  //   }
-
-  //   return await this.hasIndexerConfirmedBlockStrictlyBeforeTime(startTimestamp);
-  // }
-
   ////////////////////////////////////////////////////////////
   // Confirmed blocks query
   ////////////////////////////////////////////////////////////
@@ -260,11 +219,11 @@ export class IndexedQueryManager {
   public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
     const blockQueryResult = await this.queryBlock({
       blockNumber: params.blockNumber,
-      confirmed: true
+      confirmed: true,
     });
     return {
       status: blockQueryResult ? "OK" : "NOT_EXIST",
-      block: blockQueryResult?.result
+      block: blockQueryResult?.result,
     };
   }
 
@@ -318,8 +277,8 @@ export class IndexedQueryManager {
     // Too small query window
     if (!transactionsQueryResult.startBlock) {
       return {
-        status: "DATA_AVAILABILITY_FAILURE"
-      }
+        status: "DATA_AVAILABILITY_FAILURE",
+      };
     }
 
     const transactions = transactionsQueryResult.result;
@@ -349,7 +308,7 @@ export class IndexedQueryManager {
       .orderBy("block.blockNumber", "ASC")
       .limit(1);
 
-      return query.getOne();
+    return query.getOne();
   }
 
   /**

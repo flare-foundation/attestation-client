@@ -77,7 +77,7 @@ const args = yargs
     demandOption: "Provide rpc url",
     type: "string",
     nargs: 1,
-    default: "http://127.0.0.1:8545"
+    default: "http://127.0.0.1:8545",
   })
   .option("f", {
     alias: "flavor",
@@ -86,8 +86,7 @@ const args = yargs
     choices: ["temp", "tran"],
     type: "string",
     nargs: 1,
-  })
-  .argv;
+  }).argv;
 
 const { rpc, flavor } = args as any;
 

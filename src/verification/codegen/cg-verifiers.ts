@@ -3,10 +3,11 @@ import { AttestationTypeScheme } from "../attestation-types/attestation-types";
 import { getSourceName } from "../sources/sources";
 import { genRandomResponseCode } from "./cg-attestation-random-utils";
 import {
-  ATTESTATION_TYPE_PREFIX, DATA_HASH_TYPE_PREFIX,
+  ATTESTATION_TYPE_PREFIX,
+  DATA_HASH_TYPE_PREFIX,
   SEMI_EDITABLE_GEN_FILE_HEADER,
   VERIFIER_FUNCTION_PREFIX,
-  WEB3_HASH_PREFIX_FUNCTION
+  WEB3_HASH_PREFIX_FUNCTION,
 } from "./cg-constants";
 import { dashCapitalized } from "./cg-utils";
 

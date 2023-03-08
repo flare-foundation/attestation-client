@@ -1,7 +1,5 @@
 {
-    // DEPRECATED
-    "version":"1.0.0",
-    // alert update interval
+    // monitor interval
     "interval":5000,
     // time in seconds when system status becomes late
     "timeLate":5,
@@ -9,25 +7,99 @@
     "timeDown":10,
     // time in seconds when system is restarted
     "timeRestart":120,
-    // path where alert status is saved
-    "stateSaveFilename":"../monitor-status.json",
+
+    // Prometheus settings
+    "prometheus":{
+        "monitorServerEnabled":"true",
+    },
+
+    // monitor system
+    "system": "true",
+
     // indexer alert systems
-    "indexers" : ["ALGO", "BTC", "DOGE", "LTC", "XRP"],
-    // indexer restart command
-    "indexerRestart":"systemctl --user restart indexer-<name>",
+    "indexers" : [ 
+        {
+            //"disabled": true,
+            "name" : "BTC",
+            "database" : "indexer-btc",
+        },
+        {
+            //"disabled": true,
+            "name" : "DOGE",
+            "database" : "indexer-doge",
+        },
+        {
+            //"disabled": true,
+            "name" : "XRP",
+            "database" : "indexer-xrp",
+        },
+    ],
+
+    // dockers
+    "dockers" : [
+        {
+            //"disabled": true,
+            "name" : "bitcoin",
+        },
+        {
+            //"disabled": true,
+            "name" : "dogecoin",
+        },
+        {
+            //"disabled": true,
+            "name" : "ripple",
+        },
+    ],
+
+    // nodes
+    "nodes" : [ 
+        {
+            //"disabled": true,
+            "name" : "BTC",
+            "url": "$(Monitor.BTCURL)",
+            "username":"$(BTCUsername)",
+            "password":"$(BTCPassword)",
+        },
+        {
+            //"disabled": true,
+            "name" : "DOGE",
+            "url": "$(Monitor.DOGEURL)",
+            "username":"$(DOGEUsername)",
+            "password":"$(DOGEPassword)",
+        },
+        {
+            //"disabled": true,
+            "name" : "XRP",
+            "url": "$(Monitor.XRLURL)",
+            "username":"$(XRPUsername)",
+            "password":"$(XRPPassword)",
+        },
+    ],
+    
     // attester-client alert systems
     "attesters" : [
         {
+            //"disabled": true,
+
             // attester-client name - used for alert display only
-            "name":"Coston2",
+            "name":"Songbird",
+            // database name (in databases array)
+            "database": "attestation-client",
             // attester-client configuration path
             "path":"../attestation-suite-config/prepared/coston2/",
             // attester-client restart command
-            "restart":"systemctl --user restart coston2-attester-client"
+            "restart":"systemctl --user restart coston2-attester-client",
+
+            // epoch start time in unix time
+            "firstEpochStartTime": 1636070400,
+            // epoch duration in seconds
+            "roundDurationSec": 90,
         },
     ],
     "backends" : [
         {
+            "disabled": true,
+
             "name": "Coston2",
             "address":"http://localhost:$(Coston2WebserverPort)/api/status/services",
             "restart":"systemctl --user restart coston2-webserver"
@@ -37,12 +109,60 @@
         {
             "name": "global",
             "database": "attester",
+
+            // this is to perform full database performance diagnosis (it MUST have write access)
+            "monitorPerformance": true,
+
             "connection": {
-                "host": "$(AttesterDatabaseHost)",
-                "port": "$(AttesterDatabasePort)",
+                "host":     "$(Monitor.AttesterDatabaseHost)",
+                "port":     "$(Monitor.AttesterDatabasePort)",
                 "database": "$(AttesterDatabase)",
                 "username": "$(AttesterWriterUsername)",
                 "password": "$(AttesterWriterPassword)"
+            }            
+        },
+        {
+            "name": "indexer-btc",
+            "database": "indexer",
+            "connection": {
+                "host":     "$(Monitor.BTCIndexerDatabaseHost)",
+                "port":     "$(Monitor.BTCIndexerDatabasePort)",
+                "database": "$(BTCIndexerDatabase)",
+                "username": "$(BTCIndexerReaderUsername)",
+                "password": "$(BTCIndexerReaderPassword)"
+            }            
+        },
+        {
+            "name": "indexer-doge",
+            "database": "indexer",
+            "connection": {
+                "host":     "$(Monitor.DOGEIndexerDatabaseHost)",
+                "port":     "$(Monitor.DOGEIndexerDatabasePort)",
+                "database": "$(DOGEIndexerDatabase)",
+                "username": "$(DOGEIndexerReaderUsername)",
+                "password": "$(DOGEIndexerReaderPassword)"
+            }            
+        },
+        {
+            "name": "indexer-xrp",
+            "database": "indexer",
+            "connection": {
+                "host":     "$(Monitor.XRPIndexerDatabaseHost)",
+                "port":     "$(Monitor.XRPIndexerDatabasePort)",
+                "database": "$(XRPIndexerDatabase)",
+                "username": "$(XRPIndexerReaderUsername)",
+                "password": "$(XRPIndexerReaderPassword)"
+            }            
+        },
+        {
+            "name": "attestation-client",
+            "database": "attester",
+            "connection": {
+                "host":     "$(Monitor.AttesterDatabaseHost)",
+                "port":     "$(Monitor.AttesterDatabasePort)",
+                "database": "$(AttesterDatabase)",
+                "username": "$(AttesterReaderUsername)",
+                "password": "$(AttesterReaderPassword)"
             }            
         }
     ]

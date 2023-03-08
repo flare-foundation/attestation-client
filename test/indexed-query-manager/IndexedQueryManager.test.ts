@@ -1,4 +1,3 @@
-
 import { ChainType, unPrefix0x } from "@flarenetwork/mcc";
 import { assert } from "chai";
 import { DataSource, DataSourceOptions } from "typeorm";
@@ -8,10 +7,9 @@ import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/inde
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
-import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
-import { changeTimestampT, generateTestIndexerDB, selectBlock, selectedReferencedTx, snapshotTimestampT, ZERO_PAYMENT_REFERENCE } from "./utils/indexerTestDataGenerator";
+import { generateTestIndexerDB, selectBlock, selectedReferencedTx, ZERO_PAYMENT_REFERENCE } from "./utils/indexerTestDataGenerator";
 
 // XRP
 const SOURCE_ID = SourceId.XRP;
@@ -26,7 +24,7 @@ const DB_BLOCK_TABLE = DBBlockXRP;
 const DB_TX_TABLE = DBTransactionXRP0;
 const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
-const CONFIG_PATH = "../test/indexed-query-manager/test-data"
+const SECURE_CONFIG_PATH = "./test/indexed-query-manager/test-data"
 
 describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
   let indexedQueryManager: IndexedQueryManager;
@@ -37,9 +35,9 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
   let dataSource: DataSource;
 
   before(async () => {
-    process.env.VERIFIER_TYPE = "xrp"
+    process.env.VERIFIER_TYPE = "xrp";
     process.env.TEST_CREDENTIALS = "1";
-    process.env.CONFIG_PATH = CONFIG_PATH;
+    process.env.SECURE_CONFIG_PATH = SECURE_CONFIG_PATH;
     
     let dbOptions = await createTypeOrmOptions("test");
     dataSource = new DataSource(dbOptions as DataSourceOptions);
@@ -62,17 +60,18 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     const options: IndexedQueryManagerOptions = {
       entityManager: dataSource.manager,
       chainType: SOURCE_ID as any as ChainType,
-      numberOfConfirmations: () => { return NUMBER_OF_CONFIRMATIONS },
-      maxValidIndexerDelaySec: 10,
+      numberOfConfirmations: () => {
+        return NUMBER_OF_CONFIRMATIONS;
+      },
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
 
     selectedBlock = await selectBlock(dataSource.manager, DB_BLOCK_TABLE, BLOCK_CHOICE);
-    selectedReferencedTransaction = await selectedReferencedTx(dataSource.manager, DB_TX_TABLE, BLOCK_CHOICE)
+    selectedReferencedTransaction = await selectedReferencedTx(dataSource.manager, DB_TX_TABLE, BLOCK_CHOICE);
   });
 
   it("Should referenced transaction have proper reference", async () => {
-    assert(selectedReferencedTransaction.paymentReference?.length === 64)
+    assert(selectedReferencedTransaction.paymentReference?.length === 64);
     assert(selectedReferencedTransaction.paymentReference !== ZERO_PAYMENT_REFERENCE);
   });
 
@@ -87,12 +86,6 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     assert(response.timestamp === lastTimestamp);
     assert(response.height === LAST_BLOCK);
   });
-
-  it("Should indexer be up to date", async () => {
-    const response = await indexedQueryManager.isIndexerUpToDate();
-    assert(response);
-  });
-
 
   it("Should get the correct block greater or equal to timestamp", async () => {
     const timestamp = selectedBlock.timestamp - 20;
@@ -147,13 +140,13 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     const tmpTransactions = tmpTransactionsQueryResult.result;
     assert(tmpTransactions.length === 1 && tmpTransactions[0].transactionId === selectedReferencedTransaction.transactionId);
   });
-  
+
   it("Should query transactions by payment reference and return boundary blocks", async () => {
     const lastConfirmedBlockNumber = await indexedQueryManager.getLastConfirmedBlockNumber();
     if (!selectedReferencedTransaction) {
       console.log("Probably too little transactions. Run indexer");
     }
-    const lowerBoundaryBlockNumber = selectedReferencedTransaction.blockNumber - 10
+    const lowerBoundaryBlockNumber = selectedReferencedTransaction.blockNumber - 10;
     const tmpTransactionsQueryResult = await indexedQueryManager.queryTransactions({
       startBlockNumber: lowerBoundaryBlockNumber,
       endBlockNumber: lastConfirmedBlockNumber,
@@ -166,14 +159,14 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
         found = true;
       }
     }
-    assert(found, "Transaction not found");    
+    assert(found, "Transaction not found");
     assert(tmpTransactionsQueryResult.startBlock?.blockNumber === lowerBoundaryBlockNumber, "Lower bound does not match");
     assert(tmpTransactionsQueryResult.endBlock?.blockNumber === lastConfirmedBlockNumber, "Upper bound does not match");
   });
 
   it("Should return block by hash", async () => {
     let result = await indexedQueryManager.getBlockByHash(selectedBlock.blockHash);
-    assert(result.blockNumber === selectedBlock.blockNumber, "Wrong block found")
+    assert(result.blockNumber === selectedBlock.blockNumber, "Wrong block found");
   });
 
   it("Should confirmed transactions queries respect startBlock and endBlock number", async () => {
@@ -189,8 +182,8 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     const transaction = transactionsQueryResult.result[0];
     transactionsQueryResult = await indexedQueryManager.queryTransactions({
       startBlockNumber: selectedReferencedTransaction.blockNumber + 1,
-      endBlockNumber: lastConfirmedBlock,      
-      transactionId: selectedReferencedTransaction.transactionId,      
+      endBlockNumber: lastConfirmedBlock,
+      transactionId: selectedReferencedTransaction.transactionId,
     });
     assert(transactionsQueryResult.result.length === 0, "Does not respect start block");
 
@@ -205,22 +198,22 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     const confirmedBlockQueryResult = await indexedQueryManager.getConfirmedBlock({
       blockNumber: selectedBlock.blockNumber,
     });
-    assert(confirmedBlockQueryResult.status === 'OK', "Wrong status");
+    assert(confirmedBlockQueryResult.status === "OK", "Wrong status");
     assert(confirmedBlockQueryResult.block.blockHash === unPrefix0x(selectedBlock.blockHash));
   });
 
   it("Should get referenced transactions", async () => {
     let selectedBlock = await selectBlock(dataSource.manager, DB_BLOCK_TABLE, LAST_CONFIRMED_BLOCK - 10);
-    
+
     const deadlineBlockNumber = selectedBlock.blockNumber + 1;
     const deadlineBlockTimestamp = selectedBlock.timestamp + 2;
     const resp = await indexedQueryManager.getReferencedTransactions({
       minimalBlockNumber: FIRST_BLOCK,
       deadlineBlockNumber,
-      deadlineBlockTimestamp, 
+      deadlineBlockTimestamp,
       paymentReference: selectedReferencedTransaction.paymentReference,
     });
-    assert(resp.status === 'OK', "Wrong status");
+    assert(resp.status === "OK", "Wrong status");
     assert(resp.transactions.length === 1, "More than one transaction");
     assert(resp.transactions[0].transactionId === selectedReferencedTransaction.transactionId, "Transaction id does not match");
     assert(resp.minimalBlock.blockNumber === FIRST_BLOCK, "Wrong lower boundary block number");
@@ -228,7 +221,3 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     assert(resp.firstOverflowBlock.timestamp === deadlineBlockTimestamp + 1, "First overflow block timestamp too small");
   });
 });
-
-
-
-

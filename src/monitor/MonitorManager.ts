@@ -1,6 +1,13 @@
+/**
+ * - Add prometheus server
+ * - Add indexer bottom top - block count
+ * - Add indexer bottom top - sec count
+ * - comment classes
+ */
+
 import { Managed, traceManager } from "@flarenetwork/mcc";
-import fs from "fs";
-import { stringify } from "safe-stable-stringify";
+import stringify from "safe-stable-stringify";
+import { runMonitorserver } from "../servers/monitor-server/src/monitorserver";
 import { readSecureConfig } from "../utils/config/configSecure";
 import { sleepms } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
@@ -10,6 +17,23 @@ import { MonitorConfigBase } from "./MonitorConfigBase";
 import { MonitorConfig } from "./MonitorConfiguration";
 import { SystemMonitor } from "./monitors/SystemMonitor";
 import { Prometheus } from "./prometheus";
+
+
+let prometheus: Prometheus;
+let statusJson: string = "";
+let statusObject;
+
+export async function getPrometheusMetrics() : Promise<string>{
+  return await prometheus.getMetrics();
+}
+
+export async function getStatusJson() : Promise<string>{
+  return statusJson;
+}
+
+export async function getStatusObject() : Promise<string>{
+  return statusObject;
+}
 
 @Managed()
 export class MonitorManager {
@@ -57,25 +81,32 @@ export class MonitorManager {
     // initialize monitors
     await this.initialize();
 
+    if( this.config.prometheus.monitorServerEnabled) {
+      runMonitorserver();
+    }
+
     const terminal = new Terminal(process.stderr);
     //terminal.cursor(false);
 
-    this.logger.info(`^e^K${"type".padEnd(20)}  ${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                        `);
+    this.logger.info(`^e^K${"type".padEnd(20)}  ${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                                        `);
 
     terminal.cursorSave();
 
     // create prometheus registry and pushgateway
     const prefix = 'attestationsuite';
 
-    const prometheus = new Prometheus(this.logger);
-    prometheus.connectPushgateway('http://127.0.0.1:9091');
+    prometheus = new Prometheus(this.logger);
+
+    if( this.config.prometheus.pushGatewayEnabled ) {
+      prometheus.connectPushgateway(this.config.prometheus.pushGatewayUrl);
+    }
 
     while (true) {
       // monitoring
       try {
         terminal.cursorRestore();
 
-        const statusAlerts = [];
+        const statusMonitors = [];
         const statusPerfs = [];
 
         for (const monitor of this.monitors) {
@@ -84,7 +115,7 @@ export class MonitorManager {
 
             if (!resAlert) continue;
 
-            statusAlerts.push(resAlert);
+            statusMonitors.push(resAlert);
 
             resAlert.displayStatus(this.logger);
 
@@ -126,24 +157,18 @@ export class MonitorManager {
           }
         }
 
-        // save monitoring state to a file
-        if (this.config.stateSaveFilename) {
-          try {
-            fs.writeFile(this.config.stateSaveFilename, stringify({ alerts: statusAlerts, perf: statusPerfs }), function (err) {
-              if (err) {
-                this.logger.error(err);
-              }
-            });
-          } catch (error) {
-            logException(error, `save state`);
-          }
-        }
+        // save status to json string
+        statusObject = { monitor: statusMonitors, perf: statusPerfs }
+        statusJson = stringify(statusObject);
+        
       } catch (error) {
         logException(error, `runMonitor`);
       }
 
-      // push metric to gateway 
-      prometheus.push(prefix);
+      if( this.config.prometheus.pushGatewayEnabled) {
+        // push metric to gateway 
+        prometheus.push(prefix);
+      }
 
       await sleepms(this.config.interval);
     }

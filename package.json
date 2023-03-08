@@ -203,6 +203,7 @@
       "src/install/**/*.*",
       "src/servers/web-server/src/dtos/**/*.*",
       "src/servers/verifier-server/src/dto/**/*.*",
+      "src/servers/monitor-server/src/dto/**/*.*",
       "src/spammer/**/*.*",
       "src/verification/codegen/**/*.*",
       "src/indexed-query-manager/indexed-query-manager-types.ts",

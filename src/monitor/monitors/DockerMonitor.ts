@@ -48,9 +48,9 @@ export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
 
     const resList = [];
 
-    resList.push(new PerformanceInfo(`docker.${this.name}.volume`, `size`, round(vol.size / (1024 * 1024 * 1024.0), 3), "GB", vol.volume_name));
+    resList.push(new PerformanceInfo(`docker.${this.name}.volume`, `size`, round(vol.size / (1024 * 1024.0), 3), "MB", vol.volume_name));
 
-    resList.push(new PerformanceInfo(`docker.${this.name}.container`, `size`, round(rep.size / (1024 * 1024 * 1024.0), 1), "GB", con.image));
+    resList.push(new PerformanceInfo(`docker.${this.name}.container`, `size`, round(rep.size / (1024 * 1024.0), 1), "MB", con.image));
 
     if (con.status.indexOf("Up ") === 0) {
       const status = /(\S+) (\d+) (\S+)/.exec(con.status);

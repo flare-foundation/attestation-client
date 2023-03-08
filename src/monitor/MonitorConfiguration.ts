@@ -7,14 +7,21 @@ import { MonitorIndexerConfig } from "./monitors/IndexerMonitor";
 import { MonitorNodeConfig } from "./monitors/NodeMonitor";
 import { MonitorUrlConfig } from "./monitors/UrlMonitor";
 
-export class MonitorConfig implements IReflection<MonitorConfig> {
-  stateSaveFilename = "";
+export class PrometheusConfig {
+  @optional() pushGatewayEnabled = false;
+  @optional() pushGatewayUrl = "http://127.0.0.1:9091";
+  @optional() monitorServerEnabled = false;
+  @optional() monitorServerPort = 3010;
+}
 
+export class MonitorConfig implements IReflection<MonitorConfig> {
   @optional() interval = 5000;
 
   @optional() timeLate = 5;
   @optional() timeDown = 10;
   @optional() timeRestart = 20;
+
+  prometheus = new PrometheusConfig();
 
   @optional() system = false;
 

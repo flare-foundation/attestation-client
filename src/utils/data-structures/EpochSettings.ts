@@ -24,7 +24,7 @@ export class EpochSettings {
   }
 
   /**
-   * 
+   *
    * @returns Start time of the first epoch in seconds
    */
   public firstEpochStartTimeSec() {
@@ -32,7 +32,7 @@ export class EpochSettings {
   }
 
   /**
-   * 
+   *
    * @returns Epoch duration in seconds
    */
   public epochPeriodSec() {
@@ -40,13 +40,12 @@ export class EpochSettings {
   }
 
   /**
-   * 
+   *
    * @returns Bitvote window duration in seconds
    */
   public bitVoteWindowDurationSec() {
     return this._bitVoteWindowDurationMs.div(toBN(1000)).toNumber();
   }
-
 
   /**
    * Epoch length in milliseconds.

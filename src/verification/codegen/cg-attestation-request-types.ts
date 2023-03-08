@@ -18,22 +18,21 @@ function numberLikeProperty() {
 }
 
 function genDefReqItem(item: AttestationRequestScheme) {
-
   function itemTypeApiProp(itemType: SupportedRequestType) {
-    switch(itemType){
+    switch (itemType) {
       case "AttestationType":
       case "SourceId":
-        return enumProperty(itemType)
+        return enumProperty(itemType);
       case "NumberLike":
-        return numberLikeProperty()
+        return numberLikeProperty();
       case "ByteSequenceLike":
-        return ""
+        return "";
       default:
         // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
         ((_: never): void => {})(itemType);
     }
   }
-  
+
   return `${commentText(item.description)}
    @ApiProperty(${itemTypeApiProp(item.type)})
    ${item.key}: ${item.type};`;

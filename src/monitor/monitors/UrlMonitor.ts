@@ -9,7 +9,9 @@ export class MonitorUrlConfig extends MonitorConfigBase {
   address = "";
   restart = "";
 
-  getName(){return "UrlMonitor";}
+  getName() {
+    return "UrlMonitor";
+  }
 
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new UrlMonitor(<MonitorUrlConfig>config, baseConfig, logger);
@@ -17,8 +19,7 @@ export class MonitorUrlConfig extends MonitorConfigBase {
 }
 
 export class UrlMonitor extends MonitorBase<MonitorUrlConfig> {
-
-  async initialize() { }
+  async initialize() {}
 
   async checkWebsite(url) {
     return new Promise((resolve, reject) => {
@@ -31,11 +32,9 @@ export class UrlMonitor extends MonitorBase<MonitorUrlConfig> {
           .on("error", function (e) {
             resolve(false);
           });
-      }
-      catch (error) {
+      } catch (error) {
         resolve(false);
       }
-
     });
   }
 

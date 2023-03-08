@@ -18,20 +18,19 @@ import { MonitorConfig } from "./MonitorConfiguration";
 import { SystemMonitor } from "./monitors/SystemMonitor";
 import { Prometheus } from "./prometheus";
 
-
 let prometheus: Prometheus;
 let statusJson: string = "";
 let statusObject;
 
-export async function getPrometheusMetrics() : Promise<string>{
+export async function getPrometheusMetrics(): Promise<string> {
   return await prometheus.getMetrics();
 }
 
-export async function getStatusJson() : Promise<string>{
+export async function getStatusJson(): Promise<string> {
   return statusJson;
 }
 
-export async function getStatusObject() : Promise<string>{
+export async function getStatusObject(): Promise<string> {
   return statusObject;
 }
 
@@ -81,23 +80,25 @@ export class MonitorManager {
     // initialize monitors
     await this.initialize();
 
-    if( this.config.prometheus.monitorServerEnabled) {
+    if (this.config.prometheus.monitorServerEnabled) {
       runMonitorserver();
     }
 
     const terminal = new Terminal(process.stderr);
     //terminal.cursor(false);
 
-    this.logger.info(`^e^K${"type".padEnd(20)}  ${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                                        `);
+    this.logger.info(
+      `^e^K${"type".padEnd(20)}  ${"name".padEnd(20)}  ${"status".padEnd(10)}    ${"message".padEnd(10)} comment                                        `
+    );
 
     terminal.cursorSave();
 
     // create prometheus registry and pushgateway
-    const prefix = 'attestationsuite';
+    const prefix = "attestationsuite";
 
     prometheus = new Prometheus(this.logger);
 
-    if( this.config.prometheus.pushGatewayEnabled ) {
+    if (this.config.prometheus.pushGatewayEnabled) {
       prometheus.connectPushgateway(this.config.prometheus.pushGatewayUrl);
     }
 
@@ -121,17 +122,21 @@ export class MonitorManager {
 
             var status = 0;
             switch (resAlert.status) {
-              case 'down': status = 0; break;
-              case 'late': status = 1; break;
-              case 'sync': status = 2; break;
-              case 'running': status = 3; break;
+              case "down":
+                status = 0;
+                break;
+              case "late":
+                status = 1;
+                break;
+              case "sync":
+                status = 2;
+                break;
+              case "running":
+                status = 3;
+                break;
             }
 
-            prometheus.setGauge(`${prefix}_${monitor.name}_${resAlert.type}`,
-              resAlert.comment,
-              resAlert.status,
-              status);
-
+            prometheus.setGauge(`${prefix}_${monitor.name}_${resAlert.type}`, resAlert.comment, resAlert.status, status);
           } catch (error) {
             logException(error, `monitor ${monitor.name}`);
           }
@@ -147,10 +152,7 @@ export class MonitorManager {
               statusPerfs.push(perf);
               perf.displayStatus(this.logger);
 
-              prometheus.setGauge(`${prefix}_${perf.name}_${perf.valueName}_${perf.valueUnit}`,
-                perf.valueName,
-                perf.valueUnit,
-                perf.value);
+              prometheus.setGauge(`${prefix}_${perf.name}_${perf.valueName}_${perf.valueUnit}`, perf.valueName, perf.valueUnit, perf.value);
             }
           } catch (error) {
             logException(error, `perf ${monitor.name}`);
@@ -158,15 +160,14 @@ export class MonitorManager {
         }
 
         // save status to json string
-        statusObject = { monitor: statusMonitors, perf: statusPerfs }
+        statusObject = { monitor: statusMonitors, perf: statusPerfs };
         statusJson = stringify(statusObject);
-        
       } catch (error) {
         logException(error, `runMonitor`);
       }
 
-      if( this.config.prometheus.pushGatewayEnabled) {
-        // push metric to gateway 
+      if (this.config.prometheus.pushGatewayEnabled) {
+        // push metric to gateway
         prometheus.push(prefix);
       }
 

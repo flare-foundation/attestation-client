@@ -35,7 +35,7 @@ export class SpammerCredentials implements IReflection<SpammerCredentials> {
   @optional() web2 = new AttesterWebOptions();
 
   /**
-   * Connection parameters and credentials for indexer produced database from which 
+   * Connection parameters and credentials for indexer produced database from which
    * the spammer creates attestation requests.
    */
   indexerDatabase = new DatabaseConnectOptions();

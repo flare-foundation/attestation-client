@@ -1,11 +1,11 @@
-import { MonitorConfig } from '../../../../monitor/MonitorConfiguration';
-import { readSecureConfig } from '../../../../utils/config/configSecure';
+import { MonitorConfig } from "../../../../monitor/MonitorConfiguration";
+import { readSecureConfig } from "../../../../utils/config/configSecure";
 
 export class ServerConfigurationService {
   serverCredentials: MonitorConfig;
   _initialized = false;
 
-  constructor() { }
+  constructor() {}
 
   async initialize() {
     if (this._initialized) return;

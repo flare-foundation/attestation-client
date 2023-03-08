@@ -8,7 +8,9 @@ import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
 export class MonitorDockerConfig extends MonitorConfigBase {
-  getName(){return "DockerMonitor";}
+  getName() {
+    return "DockerMonitor";
+  }
 
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new DockerMonitor(<MonitorDockerConfig>config, baseConfig, logger);

@@ -52,7 +52,8 @@ export class PerformanceInfo {
 
   displayStatus(logger: AttLogger) {
     logger.info(
-      `${this.name.padEnd(20)}  ${this.valueName.padEnd(14)}  ${this.value.toString().padStart(10)} ${this.valueUnit.padEnd(5)} ^B${this.comment
+      `${this.name.padEnd(20)}  ${this.valueName.padEnd(14)}  ${this.value.toString().padStart(10)} ${this.valueUnit.padEnd(5)} ^B${
+        this.comment
       }                  `
     );
   }
@@ -90,13 +91,15 @@ export class MonitorBase<T extends MonitorConfigBase> {
     this.restartConfig = new MonitorRestartConfig(config.timeRestart, config.restart);
   }
 
-  get name() { return this.config.name; }
+  get name() {
+    return this.config.name;
+  }
 
   async initialize?();
 
   async check?(): Promise<MonitorStatus>;
   async perf?(): Promise<PerformanceInfo[]>;
-  
+
   async restart(): Promise<boolean> {
     if (!MonitorBase.restartEnabled) return false;
 

@@ -1,6 +1,6 @@
 {
   "excludeExternals": true,
-  "entryPoints": ["./lib"],
+  "entryPoints": ["./src"],
   "categorizeByGroup": true,
   "categoryOrder": ["BaseMethod", "AdvancedMethod", "Indexer", "Verifiers", "*"],
   "mergeModulesMergeMode": "project",

@@ -40,9 +40,9 @@ export class AttesterClient {
   /**
    * Returns a block number of a block, which is surely below time, or returns the first block on the blockchain.
    * Note that function assumes that the block is not far behind as it is used in a specific context
-   * @param time 
-   * @param step 
-   * @returns 
+   * @param time
+   * @param step
+   * @returns
    */
   private async getBlockBeforeTime(time: number, step: number = 10) {
     let blockNumber = await this.flareConnection.web3Functions.getBlockNumber();
@@ -67,7 +67,7 @@ export class AttesterClient {
 
   /**
    * Callback for notification from data collector that a new block has been detected on (Flare) chain
-   * @param block 
+   * @param block
    */
   public async onNextBlockCapture(block: any) {
     this.attestationRoundManager.onLastFlareNetworkTimestamp(block.timestamp);
@@ -75,7 +75,7 @@ export class AttesterClient {
 
   /**
    * Processes flare network event - this function is triggering updates.
-   * @param event 
+   * @param event
    */
   public async onEventCapture(event: any) {
     try {
@@ -85,17 +85,18 @@ export class AttesterClient {
         const attestationData = new AttestationData(event);
 
         // eslint-disable-next-line
-        criticalAsync("onAttestationRequest",
-          () => this.attestationRoundManager.onAttestationRequest(attestationData)
-        );
+        criticalAsync("onAttestationRequest", () => this.attestationRoundManager.onAttestationRequest(attestationData));
       }
     } catch (error) {
-      // attestation request is non-parsable. It is ignored      
-      logException(error, `${this.label}processEvent(AttestationRequest) - unparsable attestation request: ${(event as AttestationRequest)?.returnValues?.data}`);
+      // attestation request is non-parsable. It is ignored
+      logException(
+        error,
+        `${this.label} processEvent(AttestationRequest) - unparsable attestation request: ${(event as AttestationRequest)?.returnValues?.data}`
+      );
     }
 
     try {
-      // handle bit vote event 
+      // handle bit vote event
       if (event.event === "BitVote") {
         const bitVoteEvent = new BitVoteData(event);
         this.logger.info(`Bit vote data ${bitVoteEvent.data}`);
@@ -118,12 +119,12 @@ export class AttesterClient {
           const commitedRoot = dbState ? dbState.merkleRoot : undefined;
           if (commitedRoot) {
             if (commitedRoot === merkleRoot) {
-              this.logger.info(`^e^G^Revent^^^G ${this.label}RoundFinalised ${roundId} ${merkleRoot} (root as commited)`);
+              this.logger.info(`^e^G^Revent^^^G ${this.label} RoundFinalised ${roundId} ${merkleRoot} (root as commited)`);
             } else {
-              this.logger.error(`^e^Revent^^ ${this.label}RoundFinalised ${roundId} ${merkleRoot} (commited root ${commitedRoot})`);
+              this.logger.error(`^e^Revent^^ ${this.label} RoundFinalised ${roundId} ${merkleRoot} (commited root ${commitedRoot})`);
             }
           } else {
-            this.logger.error(`^e^Revent^^ ${this.label}RoundFinalised ${roundId} ${merkleRoot} (root not commited)`);
+            this.logger.error(`^e^Revent^^ ${this.label} RoundFinalised ${roundId} ${merkleRoot} (root not commited)`);
           }
         }
       }
@@ -161,11 +162,7 @@ export class AttesterClient {
     const startBlock = await this.getBlockBeforeTime(startRoundTime);
 
     // connect to network block callback
-    this.flareDataCollector = new FlareDataCollector(
-      this,
-      startBlock,
-      this.config.web.refreshEventsMs
-    );
+    this.flareDataCollector = new FlareDataCollector(this, startBlock, this.config.web.refreshEventsMs);
 
     await this.flareDataCollector.startCollectingBlocksAndEvents();
   }

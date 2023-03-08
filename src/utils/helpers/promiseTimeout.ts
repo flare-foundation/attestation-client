@@ -92,8 +92,8 @@ export async function retryMany(
  * Catches an error of a (possibly) async function call and logs it.
  * The care is taken that exception is not thrown out.
  * Use this with care.
- * @param label 
- * @param funct 
+ * @param label
+ * @param funct
  */
 export async function catchErrorAndJustLog<T>(label: string, funct: any) {
   try {

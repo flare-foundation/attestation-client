@@ -9,15 +9,9 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "*": [
-        "node_modules/*"
-      ],
-      "@atc/common": [
-        "src/servers/common/src"
-      ],
-      "@atc/common/*": [
-        "src/servers/common/src/*"
-      ]
+      "*": ["node_modules/*"],
+      "@atc/common": ["src/servers/common/src"],
+      "@atc/common/*": ["src/servers/common/src/*"]
     },
     "esModuleInterop": true,
     "experimentalDecorators": true,
@@ -29,14 +23,6 @@
       "ES2021.String"
     ]    
   },
-  "include": [
-    "src/**/*",
-    "./typechain-web3-v1",
-    "./typechain-web3-v1-new",
-    "./typechain-truffle",
-    "./test"
-  ],
-  "files": [
-    "./hardhat.config.ts"
-  ]
+  "include": ["src/**/*", "./typechain-web3-v1", "./typechain-web3-v1-new", "./typechain-truffle", "./test"],
+  "files": ["./hardhat.config.ts"]
 }

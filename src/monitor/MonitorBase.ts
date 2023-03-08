@@ -28,7 +28,9 @@ export class MonitorStatus {
         color = "^g^K";
         break;
     }
-    logger.info(`${this.type.padEnd(20)}  ${this.name.padEnd(20)}  ${color} ${this.status.padEnd(10)} ^^  ${this.state.padEnd(10)} ^B${this.comment}                  `);
+    logger.info(
+      `${this.type.padEnd(20)}  ${this.name.padEnd(20)}  ${color} ${this.status.padEnd(10)} ^^  ${this.state.padEnd(10)} ^B${this.comment}                  `
+    );
   }
 }
 
@@ -117,7 +119,7 @@ export class MonitorBase<T extends MonitorConfigBase> {
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
-        logException(`exec '${command}'`, error + '');
+        logException(`exec '${command}'`, error + "");
         return;
       }
       if (stderr) {

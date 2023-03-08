@@ -49,18 +49,18 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   const request = {
     attestationType: AttestationType.BalanceDecreasingTransaction,
     sourceId: sourceId,
-    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
     id,
     inUtxo: toBN(0),
   } as ARBalanceDecreasingTransaction;
-  if (choice === 'WRONG_MIC') {
+  if (choice === "WRONG_MIC") {
     return request;
   }
   let attestation = createTestAttestationFromRequest(request, 0);
   try {
     let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
     // augment with message integrity code
-    if (response.status === 'OK') {
+    if (response.status === "OK") {
       request.messageIntegrityCode = hashBalanceDecreasingTransaction(request, response.response, MIC_SALT);
       logger.info(`Request augmented correctly (BalanceDecreasingTransaction)`);
       return request;
@@ -69,5 +69,4 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
     logger.info(`Attestation verification failed: ${e}`);
   }
   return null;
-
 }

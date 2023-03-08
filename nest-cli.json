@@ -1,10 +1,10 @@
 {
   "monorepo": true,
-  "root": "src/servers/verifier-server",
-  "sourceRoot": "src/servers/verifier-server/src",
+  "root": "src/servers/web-server",
+  "sourceRoot": "src/servers/web-server/src",
   "compilerOptions": {
     "webpack": true,
-    "tsConfigPath": "src/servers/verifier-server/tsconfig.app.json"
+    "tsConfigPath": "src/servers/web-server/tsconfig.app.json"
   },
   "projects": {
     "verifier-server": {
@@ -13,7 +13,16 @@
       "entryFile": "main",
       "sourceRoot": "src/servers/verifier-server/src",
       "compilerOptions": {
-        "tsConfigPath": "src/servers/verifier-server/tsconfig.app.json"
+        "tsConfigPath": "src/servers/verifier-server/tsconfig.app.json",
+        "plugins": [
+          {
+            "name": "@nestjs/swagger",
+            "options": {
+              "classValidatorShim": false,
+              "introspectComments": true
+            }
+          }
+        ]
       }
     },
     "web-server": {

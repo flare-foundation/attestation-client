@@ -1,12 +1,11 @@
 import { TraceManager, traceManager } from "@flarenetwork/mcc";
 import { exit } from "process";
+import * as yargs from "yargs";
 import { Indexer } from "./indexer/indexer";
 import { IndexerConfig } from "./indexer/IndexerConfig";
-import { ListChainConfig } from "./attester/configs/ChainConfig";
 import { readSecureConfig } from "./utils/config/configSecure";
-import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logging/logger";
 import { setRetryFailureCallback } from "./utils/helpers/promiseTimeout";
-import * as yargs from "yargs";
+import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "./utils/logging/logger";
 
 const args = yargs
   .option("reset", { alias: "r", type: "string", description: "Reset commands", default: true, demand: false })
@@ -19,8 +18,8 @@ function terminateOnRetryFailure(label: string) {
 }
 
 async function runIndexer() {
-  getGlobalLogger().info( `^gstarting Indexer ^r${args["chain"].toLowerCase()}`);
-  
+  getGlobalLogger().info(`^gstarting Indexer ^r${args["chain"].toLowerCase()}`);
+
   // setup debug trace
   TraceManager.enabled = false;
   traceManager.displayRuntimeTrace = false;
@@ -48,12 +47,12 @@ setGlobalLoggerLabel(args["chain"]);
 // allow only one instance of the application
 var instanceName = `indexer-${args["chain"]}`;
 
-var SingleInstance = require('single-instance');
+var SingleInstance = require("single-instance");
 var locker = new SingleInstance(instanceName);
 
-locker.lock()
+locker
+  .lock()
   .then(function () {
-
     // indexer entry point
     runIndexer()
       .then(() => process.exit(0))
@@ -67,6 +66,4 @@ locker.lock()
 
     // Quit the application
     exit(5);
-  })
-
-
+  });

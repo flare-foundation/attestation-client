@@ -1,13 +1,16 @@
 import fs from "fs";
-import prettier from 'prettier';
+import prettier from "prettier";
 import { AttestationTypeScheme, ATT_BYTES, DataHashScheme, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import {
   ATTESTATION_TYPE_PREFIX,
-  ATT_CLIENT_MOCK_TEST_FILE, DATA_HASH_TYPE_PREFIX,
+  ATT_CLIENT_MOCK_TEST_FILE,
+  DATA_HASH_TYPE_PREFIX,
   DEFAULT_GEN_FILE_HEADER,
-  GENERATED_TEST_ROOT, PRETTIER_SETTINGS, SOLIDITY_VERIFICATION_FUNCTION_PREFIX,
-  WEB3_HASH_PREFIX_FUNCTION
+  GENERATED_TEST_ROOT,
+  PRETTIER_SETTINGS,
+  SOLIDITY_VERIFICATION_FUNCTION_PREFIX,
+  WEB3_HASH_PREFIX_FUNCTION,
 } from "./cg-constants";
 import { trimStartNewline } from "./cg-utils";
 
@@ -157,7 +160,7 @@ export function createAttestationClientMockTest(definitions: AttestationTypeSche
 
   const itsForDefinitions = definitions.map((definition) => genItForAttestationClientMock(definition)).join("\n");
   const content = `${DEFAULT_GEN_FILE_HEADER}
-import { MerkleTree } from "../../src/utils/MerkleTree";
+import { MerkleTree } from "../../src/utils/data-structures/MerkleTree";
 import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { 
 ${dhImports} 
@@ -203,6 +206,6 @@ ${genItForMerkleTest(definitions)}
     fs.mkdirSync(GENERATED_TEST_ROOT, { recursive: true });
   }
 
-  const prettyContent = prettier.format(content, PRETTIER_SETTINGS)
+  const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
   fs.writeFileSync(`${GENERATED_TEST_ROOT}/${ATT_CLIENT_MOCK_TEST_FILE}`, prettyContent, "utf8");
 }

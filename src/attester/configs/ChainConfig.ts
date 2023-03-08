@@ -18,7 +18,7 @@ export class ChainConfig implements IReflection<ChainConfig> {
   public mccCreate: MccCreate;
 
   /**
-   * [Rate Limiting Options](./json/json-RateLimitingOptions.md) 
+   * [Rate Limiting Options](./json/json-RateLimitingOptions.md)
    */
   public rateLimitOptions = new RateLimitOptions();
 
@@ -61,7 +61,7 @@ export class ChainConfig implements IReflection<ChainConfig> {
    * Wait time in ms before re-validating block.
    */
   @optional() public validateBlockWaitMs = 500;
-  
+
   /**
    * Number of retries for block to become valid before app restart.
    */
@@ -86,5 +86,3 @@ export class ChainConfig implements IReflection<ChainConfig> {
     return info;
   }
 }
-
-

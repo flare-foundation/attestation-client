@@ -30,8 +30,8 @@ export class VerifierRouteConfig implements IReflection<VerifierRouteConfig> {
 
   /**
    * Returns source configuration for given @param sourceId
-   * @param sourceId 
-   * @returns 
+   * @param sourceId
+   * @returns
    */
   getSourceConfig(sourceId: number): VerifierSourceRouteConfig | undefined {
     const sourceName = getSourceName(sourceId);

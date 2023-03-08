@@ -9,7 +9,9 @@ import { MonitorConfig } from "../MonitorConfiguration";
 export class MonitorIndexerConfig extends MonitorConfigBase {
   database = "";
 
-  getName() { return "IndexerMonitor"; }
+  getName() {
+    return "IndexerMonitor";
+  }
 
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new IndexerMonitor(<MonitorIndexerConfig>config, baseConfig, logger);
@@ -25,7 +27,7 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
   statusError: string;
 
   async initialize() {
-    const dbConfig = this.baseConfig.databases.find(x => x.name == this.config.database);
+    const dbConfig = this.baseConfig.databases.find((x) => x.name == this.config.database);
 
     if (!dbConfig) {
       this.statusError = `database '${this.config.database}' not found')`;
@@ -36,8 +38,7 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
       this.dbService = new DatabaseService(this.logger, dbConfig.connection, `indexer`, `${this.name}-indexer`);
 
       await this.dbService.connect();
-    }
-    catch (error) {
+    } catch (error) {
       this.statusError = error.message;
     }
   }
@@ -64,7 +65,7 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
       resArray.push(new PerformanceInfo(`indexer.${this.name}`, `N`, +N[1], "block"));
     }
 
-    if( this.lastStateBottom ) {
+    if (this.lastStateBottom) {
       resArray.push(new PerformanceInfo(`indexer.${this.name}`, `Nbottom`, this.lastStateBottom.valueNumber, "block"));
     }
 

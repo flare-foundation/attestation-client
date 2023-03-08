@@ -10,7 +10,9 @@ export class MonitorNodeConfig extends MonitorConfigBase {
   username = "";
   password = "";
 
-  getName(){return "NodeMonitor";}
+  getName() {
+    return "NodeMonitor";
+  }
 
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new NodeMonitor(<MonitorNodeConfig>config, baseConfig, logger);
@@ -23,7 +25,6 @@ export class NodeMonitor extends MonitorBase<MonitorNodeConfig> {
   cachedClient: CachedMccClient;
 
   async initialize() {
-
     this.chainType = MCC.getChainType(this.name);
 
     // todo: setup options from config

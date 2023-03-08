@@ -16,7 +16,7 @@ export class VerifierSourceRouteConfig implements IReflection<VerifierSourceRout
   @optional() public defaultUrl: string = "";
   /**
    * Default API key of a verifier server. Overridden in `VerifierAttestationTypeRouteConfig`s if specified.
-   */  
+   */
   @optional() public defaultApiKey: string = "";
   /**
    * Maximum requests per source (used in `SourceManager`)

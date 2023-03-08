@@ -56,7 +56,7 @@ export class ApiResponseWrapper<T> {
   /**
    * Response status. OK for successful responses.
    */
-  @ApiProperty({enum: ApiResStatusEnum})
+  @ApiProperty({ enum: ApiResStatusEnum })
   status: ApiResStatusEnum;
 
   @ApiPropertyOptional()

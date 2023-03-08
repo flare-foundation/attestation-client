@@ -13,7 +13,9 @@ export class MonitorAttestationConfig extends MonitorConfigBase {
   firstEpochStartTime: number;
   roundDurationSec: number;
 
-  getName(){return "AttesterMonitor";}
+  getName() {
+    return "AttesterMonitor";
+  }
 
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new AttesterMonitor(<MonitorAttestationConfig>config, baseConfig, logger);
@@ -31,7 +33,7 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
   statusError: string;
 
   async initialize() {
-    const dbConfig = this.baseConfig.databases.find(x => x.name == this.config.database);
+    const dbConfig = this.baseConfig.databases.find((x) => x.name == this.config.database);
 
     if (!dbConfig) {
       this.statusError = `database '${this.config.database}' not found`;
@@ -43,14 +45,13 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
 
       this.epochSettings = new EpochSettings(toBN(this.config.firstEpochStartTime), toBN(this.config.roundDurationSec));
       await this.dbService.connect();
-    }
-    catch (error) {
+    } catch (error) {
       this.statusError = error.toString();
     }
   }
 
   async perf() {
-    if (!this.lastState ) {
+    if (!this.lastState) {
       return null;
     }
 
@@ -71,7 +72,6 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
     return resArray;
   }
 
-
   async check(): Promise<MonitorStatus> {
     const res = new MonitorStatus();
 
@@ -80,7 +80,7 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
 
     if (this.statusError) {
       res.state = this.statusError;
-      this.lastState=null;
+      this.lastState = null;
       return res;
     }
 

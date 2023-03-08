@@ -10,7 +10,7 @@ export enum AttestationRoundPhase {
 // and not back
 export enum AttestationRoundStatus {
   collecting,
-  bitVotingClosed,   // choose phase is finished and at least one block with bigger timestamp is mined or enough time has passed
+  bitVotingClosed, // choose phase is finished and at least one block with bigger timestamp is mined or enough time has passed
   chosen, // bit voting result calculated
   commitDataPrepared, // commit data (Merkle tree) calculated based on bit voting result
 

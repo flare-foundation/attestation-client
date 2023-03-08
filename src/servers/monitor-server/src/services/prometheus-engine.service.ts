@@ -7,9 +7,7 @@ import { ServerConfigurationService } from "./server-configuration.service";
 
 @Injectable()
 export class PrometheusEngineService {
-  constructor(
-    @Inject("SERVER_CONFIG") private configService: ServerConfigurationService
-  ) { }
+  constructor(@Inject("SERVER_CONFIG") private configService: ServerConfigurationService) {}
 
   public async servicePrometheusMetrics(): Promise<string> {
     return await getPrometheusMetrics();
@@ -18,9 +16,6 @@ export class PrometheusEngineService {
   public async serviceStatusJson(): Promise<string> {
     return await getStatusJson();
   }
-
-
-
 
   public async systemStatus(): Promise<SystemStatus> {
     let currentBufferNumber = 0; //this.configService.epochSettings.getCurrentEpochId().toNumber();
@@ -46,7 +41,6 @@ export class PrometheusEngineService {
   }
 
   public async serviceStatusHtml(): Promise<string> {
-
     let { currentBufferNumber, latestAvailableRoundId } = await this.systemStatus();
     let statuses = await this.serviceStatus();
 

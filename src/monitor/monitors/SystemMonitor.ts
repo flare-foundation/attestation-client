@@ -8,7 +8,6 @@ import { MonitorBase, PerformanceInfo } from "../MonitorBase";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
 export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
-
   cpuUsed = 0;
   cpuTime = 0;
 

@@ -8,7 +8,6 @@ import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
 export class MonitorDatabaseConfig extends MonitorConfigBase implements IReflection<MonitorDatabaseConfig> {
-
   @optional() database = "attester";
   @optional() monitorPerformance = false;
 
@@ -22,8 +21,9 @@ export class MonitorDatabaseConfig extends MonitorConfigBase implements IReflect
     return null;
   }
 
-
-  getName(){return "DatabaseMonitor";}
+  getName() {
+    return "DatabaseMonitor";
+  }
 
   createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
     return new DatabaseMonitor(<MonitorDatabaseConfig>config, baseConfig, logger);
@@ -40,8 +40,7 @@ export class DatabaseMonitor extends MonitorBase<MonitorDatabaseConfig> {
     try {
       this.dbService = new DatabaseService(this.logger, this.config.connection, this.config.database, this.config.database + "_process");
       await this.dbService.connect();
-    }
-    catch (error) {
+    } catch (error) {
       this.errorStatus = error.message;
       this.logger.exception(error);
     }

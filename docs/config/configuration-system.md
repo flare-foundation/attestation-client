@@ -30,28 +30,30 @@ All JSON configuration files in templates are in a JSON format that support comm
 Folders:
 - `indexer`: indexer configurations.
   - Contains indexer configurations, files of the form `<source>-indexer-config.json` where source is the indicator of the source in lowercase letters (e.g. `btc`, `xrp`, etc.). 
-  - Property description: [IndexerConfig](../../src/indexer/IndexerConfig.ts)
-  - Example: [`btc-indexer-config.json`](../../configs/.install/templates/indexer/btc-indexer-config.json)
-- `spammer`: spammer configurations.
-  - Contains spammer configurations, files of the form `<source>-spammer-config.json` where source is the indicator of the source in lowercase letters (e.g. `btc`, `xrp`, etc.). 
-  - Property description: [IndexerConfig](../../src/indexer/IndexerConfig.ts)
-  - Example: [`btc-indexer-config.json`](../../configs/.install/templates/indexer/btc-indexer-config.json)
-  - Not used in standard attestation suite deployment. Spammers are used to simulate sending attestation requests that are based on already indexed data.
-- `sql`: SQL scripts for initialization of the indexer database ([prepareIndexer.sql](../../configs/.install/templates/sql/prepareIndexer.sql)) and attestation client database ([prepareAttestationClient.sql](../../configs/.install/templates/sql/prepareIndexer.sql))indexer configurations, files of the form `<source>-indexer-config.json` where source is the indicator of the source in lowercase letters (e.g. `btc`, `xrp`, etc.). 
+  - Property description: [IndexerConfig](../../src/indexer/IndexerConfig.ts).
+  - Example: [`btc-indexer-config.json`](../../configs/.install/templates/indexer/btc-indexer-config.json).
+- `spammer`: spammer configurations. **Not used in standard attestation suite deployment.**
+  - Contains spammer configurations, files of the form `<source>-spammer-config.json` where `source` is the indicator of the data source in lowercase letters (e.g. `btc`, `xrp`, etc.). 
+  - Property description: [SpammerConfiguration](../../src/spammer/SpammerConfiguration.ts).
+  - Example: [`btc-indexer-config.json`](../../configs/.install/templates/spammer/btc-spammer-config.json).
+  - Spammers are used to simulate sending attestation requests that are based on already indexed data.
+- `sql`: SQL scripts for initialization of the indexer database ([prepareIndexer.sql](../../configs/.install/templates/sql/prepareIndexer.sql)) and attestation client database ([prepareAttestationClient.sql](../../configs/.install/templates/sql/prepareIndexer.sql))indexer configurations, files of the form `<source>-indexer-config.json` where `source` is the indicator of the data source in lowercase letters (e.g. `btc`, `xrp`, etc.). 
 - `verifier-client`: verifier route configurations for different rounds.
    - Contains verifier route configurations in the files with the names in the form `verifier-routes-<startRoundId>-config.json`, where `startRoundId` indicates the round id from which the configuration with the next higher `startRoundId` overrides it.
+   - Property description: [VerifierRouteConfig](../../src/verification/routing/configs/VerifierRouteConfig.ts).
+   - Example: [`verifier-routes-150-config.json`](configs/.install/templates/verifier-client/verifier-routes-150-config.json).   
 - `verifier-server`: verifier server configurations.
   - Contains verifier route configurations in file with the names in the form  `<source>-verifier-config.json` where source is the indicator of the source in lowercase letters (e.g. `btc`, `xrp`, etc.). 
-  - Property description: [VerifierRouteConfig](../../src/verification/routing/configs/VerifierRouteConfig.ts)
-  - Example: [`btc-verifier-config.json`](../../configs/.install/templates/verifier-server/btc-verifier-config.json)
+  - Property description: [VeriferServerConfig](../../src/servers/verifier-server/src/config-models/VerifierServerConfig.ts).
+  - Example: [`btc-verifier-config.json`](../../configs/.install/templates/verifier-server/btc-verifier-config.json).
   
-In addition to configurations in folders, there are the following configuration files in the `templates` folder:
+In addition to configurations in the folders stated above, there are the following configuration files in the `templates` folder:
 - `attester-config.json`: attestation client configuration.
-  - Property description: [AttestationClientConfig](../../src/attester/configs/AttestationClientConfig.ts)
-  - Example: [attester-config.json](../../configs/.install/templates/attester-config.json)
+  - Property description: [AttestationClientConfig](../../src/attester/configs/AttestationClientConfig.ts).
+  - Example: [attester-config.json](../../configs/.install/templates/attester-config.json).
 - `webserver-config.json`: attestation web server configuration.
-  - Property description: [WebserverConfig](../../src/servers/web-server/src/config-models/WebserverConfig.ts)
-  - Example: [attester-config.json](../../configs/.install/templates/webserver-config.json)
+  - Property description: [WebserverConfig](../../src/servers/web-server/src/config-models/WebserverConfig.ts).
+  - Example: [attester-config.json](../../configs/.install/templates/webserver-config.json).
 
 
 

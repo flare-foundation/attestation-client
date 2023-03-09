@@ -28,6 +28,7 @@ export class IndexerConfig implements IReflection<IndexerConfig> {
 
   /**
    * Indexer database configuration connection options
+   * See: src/utils/database/DatabaseConnectOptions.ts
    */
   indexerDatabase = new DatabaseConnectOptions();
 

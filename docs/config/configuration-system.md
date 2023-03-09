@@ -2,25 +2,24 @@
 
 Configuration system for attestation suite consists of configuration templates and credential files.
 Configuration templates consist of a prescribed folder structure and template configuration files with prescribed names.
-Template structure is defined in folder `configs/.install/templates`.
+Template structure is defined in folder [`configs/.install/templates`](../../configs/.install/templates/).
 
-Each attestation suite service expects the `templates` folder on path defined in environment variable `SECURE_CONFIG_PATH`.
-Then the prescribed relative path and expected file names are used for obtaining relevant configurations.
+Each attestation suite service expects the `templates` folder on the path defined in environment variable `SECURE_CONFIG_PATH`.
+The service then finds the configuration on the service specific relative path.
 
-Note that the templates in `configs/.install/templates` are basic templates. 
-A user can copy those templates to its own folder on `SECURE_CONFIG_PATH` and adapt them. But for the purpose of security the 
-secret credentials in templates are indicated buy stub identifier keys of the form `$<stub_name>`. 
-An attestation suite service on startup typically loads the relevant `.json` configuration file from the service specific relative path in `template` folder, and expects two more files in the same folder:
+Note that the configurations in `configs/.install/templates` are just basic templates. 
+A user can copy the `templates` folder to another location, set `SECURE_CONFIG_PATH` to point to that location and adapt configurations. 
+The secret credentials in the configuration templates are indicated buy stub identifier keys of the form `$<stub_name>`. 
+On a startup, each attestation suite service loads the relevant `*-config.json` configuration file from the service specific relative path in `template` folder, and expects two more files in the same subfolder:
 - `credentials.json.secure` - encrypted credentials (in form key-value pare, where keys are stub names),
 - `credentials.key` - instructions how to obtain the decryption key (e.g. use a path on cloud secret manager to obtain a decryption key).
 Then the credentials matching the stubs are rendered into configuration files in-memory.
 
-When installing services in production environment, preparation of credentials is needed in advance of deployment. For extra secure reasons, the preparation can be done on separate more secure machine. The preparation procedure is described in [deployment instructions](../../deployment/README.md).
+When installing services in a production environment, preparation of credentials is needed in advance of deployment. For extra secure reasons, the preparation can be done on separate, more secure machine. The preparation procedure is described in [deployment instructions](../../deployment/README.md).
 It basically consists of making the following by running a few scripts:
-- creating separate credentials folder
-- copying `./configs/.install/template` folder to a `templates` folder in the credentials folder
-- copying all `*-credentials.json` files from `./configs/.install` folder to the credentials folder. 
-- those files contain credential stub definitions which should be manually entered into those files
+- Creating separate credentials folder.
+- Copying `./configs/.install/template` folder to a `templates` folder in the credentials folder.
+- Copying all `*-credentials.json` files from `./configs/.install` folder to the credentials folder. These files contain credential stub key definitions which should be manually entered into those files.
 - `configurations.json` file is also copied to the credentials folder. This file can be used to define the encryption key handling procedure.
 - a script is run, to prepare encrypted credentials that can be moved to the deployment machine to a specific folder to which the environment variable `SECURE_CONFIG_PATH` should be set onto the copied folder.
 
@@ -37,7 +36,7 @@ Folders:
   - Contains spammer configurations, files of the form `<source>-spammer-config.json` where source is the indicator of the source in lowercase letters (e.g. `btc`, `xrp`, etc.). 
   - Property description: [IndexerConfig](../../src/indexer/IndexerConfig.ts)
   - Example: [`btc-indexer-config.json`](../../configs/.install/templates/indexer/btc-indexer-config.json)
-  - Not used in standard attestation suite deployement. Spammers are used to simulate sending attestation requests that are based on already indexed data.
+  - Not used in standard attestation suite deployment. Spammers are used to simulate sending attestation requests that are based on already indexed data.
 - `sql`: SQL scripts for initialization of the indexer database ([prepareIndexer.sql](../../configs/.install/templates/sql/prepareIndexer.sql)) and attestation client database ([prepareAttestationClient.sql](../../configs/.install/templates/sql/prepareIndexer.sql))indexer configurations, files of the form `<source>-indexer-config.json` where source is the indicator of the source in lowercase letters (e.g. `btc`, `xrp`, etc.). 
 - `verifier-client`: verifier route configurations for different rounds.
    - Contains verifier route configurations in the files with the names in the form `verifier-routes-<startRoundId>-config.json`, where `startRoundId` indicates the round id from which the configuration with the next higher `startRoundId` overrides it.

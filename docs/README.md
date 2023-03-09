@@ -3,6 +3,7 @@
 ## For attestation providers
 
 - [Dockerized installation](../deployment/README.md)
+- [Configurations](./config/configuration-system.md)
 
 ## For dApp developers
 

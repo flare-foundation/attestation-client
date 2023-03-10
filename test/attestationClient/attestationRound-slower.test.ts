@@ -103,7 +103,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
   after(function () {
     delete process.env.TEST_CREDENTIALS;
-    delete process.env.CONFIG_PATH;
+    delete process.env.SECURE_CONFIG_PATH;
   });
 
   describe("verification", function () {

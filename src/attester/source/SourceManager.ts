@@ -236,11 +236,6 @@ export class SourceManager {
     attestation.status = AttestationStatus.processing;
     attestation.processStartTime = now;
 
-    // debug test fail
-    let testFail = 0;
-    if (process.env.TEST_FAIL) {
-      testFail = attestation.reverification ? 0 : parseFloat(process.env.TEST_FAIL);
-    }
     // assert
     if (!verifierRouter) {
       // This should not happen as this is checked already on AttestationRound creation

@@ -69,9 +69,9 @@ function _hash${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definiti
 }
 
 /**
- * Generates the solidity code for file for contracts/generated/contracts/AttestationClientBase.sol
+ * Generates the solidity code for file for contracts/generated/contracts/SCProofVerifierBase.sol
  * @param definitions array of all attestation type definitions to generate methods for (defined in t-<number>-<attestation_type_name>.ts files)
- * @returns string representing solidity code for AttestationClientBase.sol
+ * @returns string representing solidity code for SCProofVerifierBase.sol
  */
 function getSolidityAttestationClientBase(definitions: AttestationTypeScheme[]): string {
   const constants = definitions.map((definitions) => genConstant(definitions)).join("\n");
@@ -83,10 +83,10 @@ function getSolidityAttestationClientBase(definitions: AttestationTypeScheme[]):
   return `// SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
-import "../interface/IAttestationClient.sol";
+import "../interface/ISCProofVerifier.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol"; 
 
-abstract contract AttestationClientBase is IAttestationClient {
+abstract contract SCProofVerifierBase is ISCProofVerifier {
     using MerkleProof for bytes32[];
 
     // possible attestationType values
@@ -111,7 +111,7 @@ ${hashFunctions}
 }
 
 /**
- * Creates contracts/generated/contracts/AttestationClientBase.sol solidity file
+ * Creates contracts/generated/contracts/SCProofVerifierBase.sol solidity file
  * @param definitions array of all attestation type definitions to generate methods for (defined in t-<number>-<attestation_type_name>.ts files)
  */
 export function createSolidityAttestationClientBase(definitions: AttestationTypeScheme[]): void {

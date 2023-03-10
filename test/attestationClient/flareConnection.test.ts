@@ -39,14 +39,6 @@ const RPC = "http://127.0.0.1:8545";
 const STATE_CONNECTOR_ADDRESS = "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F";
 const BIT_VOTE_ADDRESS = "0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf";
 
-// Testing modes:
-// scheduler: time is managed by Scheduler
-// offset: time is real, only that it is shifted in order to start everything exactly on a beginning of the
-//         next buffer window on StateConnectorTempTran contract
-// let TEST_MODE: "scheduler" | "offset" | "none" = "none"
-// const ADDITIONAL_OFFSET_PCT = 0
-const TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = LAST_CONFIRMED_BLOCK - FIRST_BLOCK;
-
 describe(`Flare Connection + Attester Client (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
   let web3: Web3;
@@ -123,7 +115,7 @@ describe(`Flare Connection + Attester Client (${getTestFile(__filename)})`, () =
     // configure attestation provider addresses
     await selfAssignAttestationProviders(getGlobalLogger(), stateConnector, web3, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));
 
-    // DO NOT CHANGE CONFIG_PATH while attester clients are running!!!
+    // DO NOT CHANGE SECURE_CONFIG_PATH while attester clients are running in the same process!!!
     process.env.SECURE_CONFIG_PATH = CONFIG_PATH_ATTESTER;
 
     const attestationClientConfig = await readSecureConfig(new AttestationClientConfig(), `attester_1`);
@@ -152,7 +144,7 @@ describe(`Flare Connection + Attester Client (${getTestFile(__filename)})`, () =
   after(async () => {
     // await Promise.all(runPromises);
     delete process.env.TEST_CREDENTIALS;
-    delete process.env.CONFIG_PATH;
+    delete process.env.SECURE_CONFIG_PATH;
     for (let child of childProcesses) {
       child.stdin.pause();
       child.kill();

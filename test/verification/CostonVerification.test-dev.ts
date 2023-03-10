@@ -20,7 +20,8 @@ import { parseRequest } from "../../src/verification/generated/attestation-reque
 import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 import { SourceId } from "../../src/verification/sources/sources";
 import { verifyAttestation } from "../../src/verification/verifiers/verifier_routing";
-import { AttestationClientSCInstance, StateConnectorInstance } from "../../typechain-truffle";
+import { StateConnectorInstance } from "../../typechain-truffle";
+import { SCProofVerifierInstance } from "../../typechain-truffle/SCProofVerifier";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 
@@ -32,17 +33,17 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   let stateConnector: StateConnectorInstance;
   let client: MccClient;
   let indexedQueryManager: IndexedQueryManager;
-  let attestationClient: AttestationClientSCInstance;
+  let attestationClient: SCProofVerifierInstance;
   let chainName: string;
   let chainIndexerConfig: ChainConfig;
 
   const StateConnector = artifacts.require("StateConnector");
-  const AttestationClientSC = artifacts.require("AttestationClientSC");
+  const SCProofVerifier = artifacts.require("SCProofVerifier");
 
   before(async () => {
     process.env.TEST_CREDENTIALS = "1"
     stateConnector = await StateConnector.at("0x1000000000000000000000000000000000000001");
-    attestationClient = await AttestationClientSC.at("0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf");
+    attestationClient = await SCProofVerifier.at("0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf");
     BUFFER_TIMESTAMP_OFFSET = (await stateConnector.BUFFER_TIMESTAMP_OFFSET()).toNumber();
     BUFFER_WINDOW = (await stateConnector.BUFFER_WINDOW()).toNumber();
     TOTAL_STORED_PROOFS = (await stateConnector.TOTAL_STORED_PROOFS()).toNumber();

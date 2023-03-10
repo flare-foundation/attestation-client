@@ -137,11 +137,11 @@ The data for assembling the proof should be obtained from an attestation provide
 
 ## To which smart contract I can/should submit the attestation proof?
 
-This depends on the dApp that utilizes State Connector proofs in order to allow certain actions based on a successful proof. A generic implementation of verification functions is available here in [AttestationClientBase.sol](../../contracts/generated/contracts/AttestationClientBase.sol). 
+This depends on the dApp that utilizes State Connector proofs in order to allow certain actions based on a successful proof. A generic implementation of verification functions is available here in [SCProofVerifierBase.sol](../../contracts/generated/contracts/SCProofVerifierBase.sol). 
 
 ## How can I implement a dApp that uses proofs for a State Connector system?
 
-To support all the currently available proofs and have verifier functions readily available one can develop a custom contract by inheriting [AttestationClientSC.sol](../../contracts/generated/contracts/AttestationClientSC.sol) and implement relevant methods that use the verification methods from the inherited [AttestationClientBase.sol](../../contracts/generated/contracts/AttestationClientBase.sol).
+To support all the currently available proofs and have verifier functions readily available one can develop a custom contract by inheriting [SCProofVerifier.sol](../../contracts/generated/contracts/SCProofVerifier.sol) and implement relevant methods that use the verification methods from the inherited [SCProofVerifierBase.sol](../../contracts/generated/contracts/SCProofVerifierBase.sol).
 
 For easier understanding, see an [example attestation verification workflow](./verification-workflow.md).
 

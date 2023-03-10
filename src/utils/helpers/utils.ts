@@ -47,12 +47,12 @@ export function prepareString(text: string, maxLength: number, reportOverflow: s
 export function getUnixEpochTimestamp(): number {
   const now = Math.floor(Date.now() / 1000);
   if (process.env.NODE_ENV === "development") {
-    if (process.env.TEST_OFFSET_TIME) {
-      const offset = parseInt("" + process.env.TEST_OFFSET_TIME, 10);
+    if (process.env.TEST_OFFSET_TIME_MS) {
+      const offset = parseInt("" + process.env.TEST_OFFSET_TIME_MS, 10);
       return now + offset;
     }
-    if (process.env.TEST_SCHEDULER_TIME) {
-      return parseInt("" + process.env.TEST_SCHEDULER_TIME, 10);
+    if (process.env.TEST_SCHEDULER_TIME_MS) {
+      return parseInt("" + process.env.TEST_SCHEDULER_TIME_MS, 10);
     }
   }
   return now;

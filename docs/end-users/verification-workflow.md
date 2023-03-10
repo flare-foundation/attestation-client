@@ -45,17 +45,17 @@ The proof data includes fields `roundId`, `response` and `merkleProof` that toge
 
 ## Implementing the smart contract
 
-The smart contract that is able to verify the proof can be implemented by inheriting the contract [contracts/generated/contracts/AttestationClientSC.sol](../../contracts/generated/contracts/AttestationClientSC.sol) and implementing the custom method 
+The smart contract that is able to verify the proof can be implemented by inheriting the contract [contracts/generated/contracts/SCProofVerifier.sol](../../contracts/generated/contracts/SCProofVerifier.sol) and implementing the custom method 
 
 ```Solidity
 provePayment(uint32 _chainId, Payment calldata _data)
 ```
 
-Note that the struct `Payment` contains the whole proof. The struct is defined in [contracts/generated/interface/IAttestationClient.sol](contracts/generated/interface/IAttestationClient.sol). At the beginning of the implemented function `provePayment` one should use the inherited function `verifyPayment(...)` to verify the proof data. If the function `verifyPayement` returns true, then the data in the `Payment` struct can be trusted. The rest of the function should check whether the provided attestation response the struct `Payment` matches the requirements (required payment amount, the correct destination address, etc.). Upon successful verification of requirements, the contract should allow the user to use the service, as it has fulfilled its payment obligations. 
+Note that the struct `Payment` contains the whole proof. The struct is defined in [contracts/generated/interface/ISCProofVerifier.sol](contracts/generated/interface/ISCProofVerifier.sol). At the beginning of the implemented function `provePayment` one should use the inherited function `verifyPayment(...)` to verify the proof data. If the function `verifyPayement` returns true, then the data in the `Payment` struct can be trusted. The rest of the function should check whether the provided attestation response the struct `Payment` matches the requirements (required payment amount, the correct destination address, etc.). Upon successful verification of requirements, the contract should allow the user to use the service, as it has fulfilled its payment obligations. 
 The contract should be deployed with the relevant `StateConnector` contract address provided in the constructor. 
 
-For test purposes and as a simple example, the contract [AttestationClientSC.sol](../../contracts/generated/contracts/AttestationClientSC.sol) can be deployed directly and can be used as a test example as well, where the function `verifyPayment(...)` to get the result of verification.
+For test purposes and as a simple example, the contract [SCProofVerifier.sol](../../contracts/generated/contracts/SCProofVerifier.sol) can be deployed directly and can be used as a test example as well, where the function `verifyPayment(...)` to get the result of verification.
 
-An example code with calls to the contract [AttestationClientSC.sol](../../contracts/generated/contracts/AttestationClientSC.sol) is available [here](../../test/generated/AttestationClientMock.test-contract.ts). Note also that a specific smart contract using only certain attestation proofs can be implemented by extracting relevant code from the generated contracts and interfaces in the folder [contracts/generated](../../contracts/generated/).
+An example code with calls to the contract [SCProofVerifier.sol](../../contracts/generated/contracts/SCProofVerifier.sol) is available [here](../../test/generated/SCProofVerifierMock.test-contract.ts). Note also that a specific smart contract using only certain attestation proofs can be implemented by extracting relevant code from the generated contracts and interfaces in the folder [contracts/generated](../../contracts/generated/).
 
 [Back to home](../README.md)

@@ -4,7 +4,6 @@
 
 - [Dockerized installation](../deployment/README.md)
 - [Configurations](./config/configuration-system.md)
-
 ## For dApp developers
 
 - [General usage](./end-users/state-connector-usage.md)
@@ -21,6 +20,7 @@
   - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md) 
 - [Attestation Suite](./attestation-client/attestation-suite.md)
   - [Attestation Client](./attestation-client/attestation-client.md)
+    - [Environment variables](./attestation-client/env-variables.md)
   - [Indexer](./indexing/indexer.md)
     - [Scope of indexing](./indexing/indexer-scope.md)
     - [Optimizations](./indexing/indexer-optimizations.md)

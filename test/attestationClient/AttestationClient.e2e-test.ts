@@ -52,14 +52,6 @@ const WEB_SERVER_IN_OTHER_PROCESS = false;
 const SPAMMER_GAPS = [[4, 8], [10, 11]];
 const SPAMMER_FREQUENCIES = [2, 3];
 
-// Testing modes:
-// scheduler: time is managed by Scheduler
-// offset: time is real, only that it is shifted in order to start everything exactly on a beginning of the 
-//         next buffer window on StateConnectorTempTran contract
-// let TEST_MODE: "scheduler" | "offset" | "none" = "none"
-// const ADDITIONAL_OFFSET_PCT = 0
-const TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = LAST_CONFIRMED_BLOCK - FIRST_BLOCK;
-
 describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   let setup: VerifierTestSetups;
   let web3: Web3;
@@ -129,7 +121,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     // Initialize contracts
     const artifacts = "artifacts";
     let abiPathStateConnector = await relativeContractABIPathForContractName("StateConnectorTempTran", artifacts);
-    let abiPathBitVoting = await relativeContractABIPathForContractName("BitVoting", artifacts);
+    let abiPathBitVoting = await relativeContractABIPathForContractName("BitVotingTest", artifacts);
     let stateConnectorABI = JSON.parse(fs.readFileSync(`${artifacts}/${abiPathStateConnector}`).toString());
     let bitVotingABI = JSON.parse(fs.readFileSync(`${artifacts}/${abiPathBitVoting}`).toString());
     stateConnector = new web3.eth.Contract(stateConnectorABI.abi, STATE_CONNECTOR_ADDRESS) as any as StateConnectorTempTran;
@@ -156,7 +148,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     //   let nextBufferNumber = Math.ceil((now - bufferTimestampOffsetSec) / bufferWindowDurationSec) + 1; // add one more bufferWindow
     //   startTime = bufferTimestampOffsetSec + nextBufferNumber * bufferWindowDurationSec;
     //   let offset = startTime - now + ADDITIONAL_OFFSET_S;
-    //   process.env.TEST_OFFSET_TIME = '' + offset;
+    //   process.env.TEST_OFFSET_TIME_MS = '' + offset;
     //   let lastBlockBefore = await web3.eth.getBlock(await web3.eth.getBlockNumber());
     //   await increaseTo(web3, startTime);
     //   let lastBlock = await web3.eth.getBlock(await web3.eth.getBlockNumber());
@@ -195,7 +187,6 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
     // Attester related intializations
     ///////////////////////////////////
 
-    process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = '' + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
     process.env.TEST_SAMPLING_REQUEST_INTERVAL = '' + 1000;
     let bootstrapPromises = [];
 

@@ -36,7 +36,7 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
 
   after(function () {
     delete process.env.TEST_CREDENTIALS;
-    delete process.env.CONFIG_PATH;
+    delete process.env.SECURE_CONFIG_PATH;
   });
 
   it("Should construct GlobalConfigManager", function () {

@@ -1,8 +1,8 @@
-# Example verification workflow
+# Verification smart contract and usage workflow
 
 Consider a case of a smart contract that allows the user to use some service, if it provides a payment proof for a specific payment on Ripple blockchain.
 
-## Contract implementation 
+## Smart contract requrements 
 
 Consider one of the [supported attestation types](https://github.com/flare-foundation/state-connector-attestation-types) - the `Payment` type.
 The contract should implement at least two functionalities:
@@ -10,24 +10,40 @@ The contract should implement at least two functionalities:
 1) Generation of payment requests on Ripple chain for the required service (e.g. by calling the function `requestServiceUsage(...)`)
 2) Verification of the payment proofs and unlocking of the service when payment is carried out and proved (e.g. the function `provePayment(...)`)
 
+## Usage workflow
+
+### Initiating request for service usage
+
 The user wanting to use the service first calls `requestServiceUsage(...)` function.
-The contract should record data that `msg.sender` has requested the service usage. Then it should issue 32-byte payment reference, specific for the user and the service usage request. It should return a request for payment containing:
+The contract should record data that `msg.sender` has requested the service usage. Then it should issue a 32-byte payment reference, specific for the user and the service usage request. It should return a request for payment containing:
 
 - the payment reference,
 - an address on Ripple network for the payment of the service,
 - amount in XRP to be paid for the service.
 
+### Paying on Ripple network
+
 Once the user receives the request for a payment, it can execute a payment in the Ripple network. The payment reference must be included in the memo field. Once the transaction is confirmed, the user records the transaction id (e.g. `XYZ`).
 
+### Preparing attestation request to prove the payment
+
 Next the user needs to assemble the attestation request for payment. The Typescript formats for attestation requests are available in [src/verification/generated/attestation-request-types.ts](src/verification/generated/attestation-request-types.ts). Based on the XRP payment transaction, the `ARPayment` request object is assembled. For the [`messageIntegrityCode`](../attestation-protocol/bit-voting.md#message-integrity-checks) field the attestation response needs to be determined. In order to obtain it, the user can either construct using the XRP blockchain transaction data, what the response should be, and hash it using the `function hashPayment(request: ARPayment, response: DHPayment, salt?: string)`, where `salt` is set as `"Flare"`. The function is available in [src/verification/generated/attestation-hash-utils.ts](src/verification/generated/attestation-hash-utils.ts). Then the attestation request can be encoded by 
-`function encodePayment(request: ARPayment)` in [src/verification/generated/attestation-request-encode.ts] making it ready to send to the State Connector contract. Alternatively, one can use any verifier server for Ripple blockchain and a POST API route [`/verifier/xrp/prepareAttestation`](./apis.md#attestation-request-api), and post the attestation request JSON object with empty `messageIntegrityCode`. If the request can be verified, the route will calculate the attestation response and return the byte encoded attestation request that can be submitted directly to the State Connector contract.
+`function encodePayment(request: ARPayment)` in [src/verification/generated/attestation-request-encode.ts] making it ready to send to the State Connector contract. Alternatively, one can use any verifier server for Ripple blockchain and a POST API route [`/verifier/xrp/prepareAttestation`](./apis.md#attestation-request-api), and post the attestation request JSON object with empty `messageIntegrityCode`. If the request can be verified, the route will calculate the attestation response and return the byte encoded attestation request that can be submitted directly to the [State Connector](../attestation-protocol/state-connector-contract.md) smart contract.
 
-The user then sends the byte encoded attestation request to the State Connector contract and waits for the attestation protocol to confirm it. Depending on the timestamp of the attestation request submission, the voting round id (`roundId`) is calculated. See the [formula](./state-connector-usage.md#round-id-of-the-attestation-request) for calculation of the `roundId`.
+### Sending the attestation request
 
+The user then [submits](./state-connector-usage.md#how-to-submit-an-attestation-request) the byte encoded attestation request to the [State Connector](../attestation-protocol/state-connector-contract.md) smart contract and waits for the attestation protocol to confirm it. 
 
-The user then waits for about 2-3 voting windows (3-5 mins) or monitors the `StateConnector` to ensure, that the confirmed Merkle root for the voting round `roundId` is obtained. Then it can try to query the Proof API(s) of selected attestation providers. One can use either the GET route [`api/proof/votes-for-round/{roundId}`](./apis.md#proof-api) and extract the data for relevant attestation request, or use the more direct POST route [`api/proof/get-specific-proof`](./apis.md#proof-api), to which the `roundId` and the attestation request (byte string) are posted and the proof data in JSON form are obtained.
+Depending on the timestamp of the attestation request submission, the voting round id (`roundId`) is [calculated](./state-connector-usage.md#how-do-i-know-in-which-voting-round-id-my-attestation-request-was-submitted). 
+
+The user then waits for about 2-3 voting windows (3-5 mins) or monitors the [State Connector](../attestation-protocol/state-connector-contract.md) smart contract to ensure, that the confirmed Merkle root for the voting round `roundId` is obtained. 
+
+### Obtaining the attestation proof
+Then it can try to query  [Proof REST APIs](./apis.md) of selected attestation providers. One can use either the GET route [`api/proof/votes-for-round/{roundId}`](./apis.md#proof-api) and extract the data for relevant attestation request, or use the more direct POST route [`api/proof/get-specific-proof`](./apis.md#proof-api), to which the `roundId` and the attestation request (byte string) are posted and the proof data in JSON form are obtained.
 
 The proof data includes fields `roundId`, `response` and `merkleProof` that together constitute a [proof](./state-connector-usage.md#assembling-the-proofs) that can be submitted to a verifying contract.
+
+## Implementing the smart contract
 
 The smart contract that is able to verify the proof can be implemented by inheriting the contract [contracts/generated/contracts/AttestationClientSC.sol](../../contracts/generated/contracts/AttestationClientSC.sol) and implementing the custom method 
 

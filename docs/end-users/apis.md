@@ -1,10 +1,10 @@
-# APIs
+# REST APIs provided by attestation providers
 
-There are two groups of APIs that are relevant for use by end users.
-- attestation request APIs from verifier servers,
-- proof APIs from attestation client servers.
+There are two groups of REST APIs that are relevant for use by end users.
+- attestation request REST APIs from verifier servers,
+- proof REST APIs from attestation provider server.
 
-## Attestation request API
+## Attestation request API on verifier servers
 
 Attestation request API routes are used to get well formatted attestation requests. Based on the [format](https://github.com/flare-foundation/state-connector-attestation-types) definition for a an attestation request of a specific type, a user can prepare the attestation request. In order to fully prepare it, the user needs to know what will be the attestation response. Namely a part of the request is also the field `messageIntegrityCode`, which is obtained by properly hashing the expected attestation response with the string `"Flare"` appended before hashing (see [here](../attestation-protocol/bit-voting.md#message-integrity-checks)). The verifier web service routes are documented using the Swagger interface at `/api-doc/` route. They include:
 
@@ -14,7 +14,7 @@ Attestation request API routes are used to get well formatted attestation reques
 
 Note that the routes depend on a `chain`, which is one of: `btc`, `doge` or `xrp`.
 
-## Proof API
+## Proof API on attestation provider server
 
 Attestation client comes with a web server that provides the data about the submitted attestation requests processing and voting results.
 The web service routes are documented using the Swagger interface at `/api-doc/` route. They include:

@@ -34,12 +34,19 @@ export async function getStatusObject(): Promise<string> {
   return statusObject;
 }
 
+/**
+ * Monitor manager.
+ */
 @Managed()
 export class MonitorManager {
   logger: AttLogger;
   config: MonitorConfig;
   monitors: MonitorBase<MonitorConfigBase>[] = [];
 
+  /**
+   * Initialize monitors.
+   * @param monitors 
+   */
   initializeMonitors<T extends MonitorConfigBase>(monitors: T[]) {
     for (const monitor of monitors) {
       this.logger.debug(`initializing: ${monitor.getName()} ${monitor.name} ${monitor.disabled ? "^rdisabled^^" : ""}`);
@@ -49,6 +56,9 @@ export class MonitorManager {
     }
   }
 
+  /**
+   * Initialize monitor manager.
+   */
   async initialize() {
     this.logger = getGlobalLogger();
 
@@ -73,6 +83,9 @@ export class MonitorManager {
     }
   }
 
+  /**
+   * Async run monitor.
+   */
   async runMonitor() {
     traceManager.displayStateOnException = false;
     traceManager.displayRuntimeTrace = false;
@@ -112,7 +125,7 @@ export class MonitorManager {
 
         for (const monitor of this.monitors) {
           try {
-            const resAlert = await monitor.check();
+            const resAlert = await monitor.getMonitorStatus();
 
             if (!resAlert) continue;
 
@@ -144,7 +157,7 @@ export class MonitorManager {
 
         for (const monitor of this.monitors) {
           try {
-            const resPerfs = await monitor.perf();
+            const resPerfs = await monitor.getPerformanceMetrics();
 
             if (!resPerfs) continue;
 

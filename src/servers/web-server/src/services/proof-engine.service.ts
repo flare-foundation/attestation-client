@@ -5,7 +5,7 @@ import fs from "fs";
 import { EntityManager } from "typeorm";
 import { DBAttestationRequest } from "../../../../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../../../../entity/attester/dbVotingRoundResult";
-import { MonitorStatus, PerformanceInfo } from "../../../../monitor/MonitorBase";
+import { MonitorStatus, PerformanceMetrics } from "../../../../monitor/MonitorBase";
 import { MerkleTree } from "../../../../utils/data-structures/MerkleTree";
 import { encodeRequest } from "../../../../verification/generated/attestation-request-encode";
 import { ServiceStatus } from "../dtos/ServiceStatus.dto";
@@ -181,7 +181,7 @@ export class ProofEngineService {
 `;
     };
 
-    let onePerformance = (status: PerformanceInfo) => {
+    let onePerformance = (status: PerformanceMetrics) => {
       return `
       <tr>
          <td>${status.name}</td>

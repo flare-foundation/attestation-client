@@ -4,9 +4,12 @@ import * as os from "os";
 import { getTimeMilli } from "../../utils/helpers/internetTime";
 import { round } from "../../utils/helpers/utils";
 import { logException } from "../../utils/logging/logger";
-import { MonitorBase, PerformanceInfo } from "../MonitorBase";
+import { MonitorBase, PerformanceMetrics } from "../MonitorBase";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
+/**
+ * System monitor.
+ */
 export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
   cpuUsed = 0;
   cpuTime = 0;
@@ -18,11 +21,11 @@ export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
     this.config.name = "system";
   }
 
-  async check() {
+  async getMonitorStatus() {
     return null;
   }
 
-  async perf(): Promise<PerformanceInfo[]> {
+  async getPerformanceMetrics(): Promise<PerformanceMetrics[]> {
     const resArray = [];
 
     const now = getTimeMilli();
@@ -38,11 +41,11 @@ export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
     const availableMemory = round(Number(/MemAvailable:[ ]+(\d+)/.exec(memInfo)[1]) / 1024, 1);
     const freeMemory = round(Number(/MemFree:[ ]+(\d+)/.exec(memInfo)[1]) / 1024, 1);
 
-    resArray.push(new PerformanceInfo(`system.memory`, "total", totalMemory, "MB"));
+    resArray.push(new PerformanceMetrics(`system.memory`, "total", totalMemory, "MB"));
 
-    resArray.push(new PerformanceInfo(`system.memory`, "free", freeMemory, "MB", `${round((freeMemory * 100) / totalMemory, 1)}% free`));
+    resArray.push(new PerformanceMetrics(`system.memory`, "free", freeMemory, "MB", `${round((freeMemory * 100) / totalMemory, 1)}% free`));
 
-    resArray.push(new PerformanceInfo(`system.memory`, "available", availableMemory, "MB", `${round((availableMemory * 100) / totalMemory, 1)}% available`));
+    resArray.push(new PerformanceMetrics(`system.memory`, "available", availableMemory, "MB", `${round((availableMemory * 100) / totalMemory, 1)}% available`));
 
     // update disk information
     if (now > this.diskCheckTime) {
@@ -65,10 +68,10 @@ export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
 
         const total = disk.available + disk.used;
 
-        resArray.push(new PerformanceInfo(`system.disk.${disk.filesystem}`, `total`, round(total / (1024 * 1024), 3), "GB"));
+        resArray.push(new PerformanceMetrics(`system.disk.${disk.filesystem}`, `total`, round(total / (1024 * 1024), 3), "GB"));
 
         resArray.push(
-          new PerformanceInfo(
+          new PerformanceMetrics(
             `system.disk.${disk.filesystem}`,
             `available`,
             round(disk.available / (1024 * 1024), 3),
@@ -78,7 +81,7 @@ export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
         );
 
         resArray.push(
-          new PerformanceInfo(
+          new PerformanceMetrics(
             `system.disk.${disk.filesystem}`,
             `used`,
             round(disk.used / (1024 * 1024), 3),
@@ -99,10 +102,10 @@ export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
 
     used /= cpus.length;
 
-    resArray.push(new PerformanceInfo(`system.cpu`, "count", cpus.length, "", cpus[0].model));
+    resArray.push(new PerformanceMetrics(`system.cpu`, "count", cpus.length, "", cpus[0].model));
 
     if (this.cpuTime > 0) {
-      resArray.push(new PerformanceInfo(`system.cpu`, "utilization", round(((used - this.cpuUsed) * 100) / (now - this.cpuTime), 1), "%"));
+      resArray.push(new PerformanceMetrics(`system.cpu`, "utilization", round(((used - this.cpuUsed) * 100) / (now - this.cpuTime), 1), "%"));
     }
 
     this.cpuTime = now;

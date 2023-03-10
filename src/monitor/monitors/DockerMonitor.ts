@@ -3,10 +3,13 @@ import { getTimeMilli } from "../../utils/helpers/internetTime";
 import { round } from "../../utils/helpers/utils";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { Docker, DockerInfo } from "../../utils/monitoring/Docker";
-import { MonitorBase, MonitorStatus, PerformanceInfo } from "../MonitorBase";
+import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
 import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
+/**
+ * Docker monitor configuration class.
+ */
 export class MonitorDockerConfig extends MonitorConfigBase {
   getName() {
     return "DockerMonitor";
@@ -17,6 +20,9 @@ export class MonitorDockerConfig extends MonitorConfigBase {
   }
 }
 
+/**
+ * Docker monitor.
+ */
 export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
   static dockerInfo: DockerInfo;
 
@@ -28,7 +34,7 @@ export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
     this.chainType = MCC.getChainType(this.config.name);
   }
 
-  async perf(): Promise<PerformanceInfo[]> {
+  async getPerformanceMetrics(): Promise<PerformanceMetrics[]> {
     const now = getTimeMilli();
     if (now > this.timeCheck) {
       getGlobalLogger().debug("DockerMonitor: updating docker info...");
@@ -50,21 +56,21 @@ export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
 
     const resList = [];
 
-    resList.push(new PerformanceInfo(`docker.${this.name}.volume`, `size`, round(vol.size / (1024 * 1024.0), 3), "MB", vol.volume_name));
+    resList.push(new PerformanceMetrics(`docker.${this.name}.volume`, `size`, round(vol.size / (1024 * 1024.0), 3), "MB", vol.volume_name));
 
-    resList.push(new PerformanceInfo(`docker.${this.name}.container`, `size`, round(rep.size / (1024 * 1024.0), 1), "MB", con.image));
+    resList.push(new PerformanceMetrics(`docker.${this.name}.container`, `size`, round(rep.size / (1024 * 1024.0), 1), "MB", con.image));
 
     if (con.status.indexOf("Up ") === 0) {
       const status = /(\S+) (\d+) (\S+)/.exec(con.status);
-      resList.push(new PerformanceInfo(`docker.${this.name}.container`, `status`, parseInt(status[2]), status[3], "up"));
+      resList.push(new PerformanceMetrics(`docker.${this.name}.container`, `status`, parseInt(status[2]), status[3], "up"));
     } else {
-      resList.push(new PerformanceInfo(`docker.${this.name}.container`, `status`, 0, "", "down"));
+      resList.push(new PerformanceMetrics(`docker.${this.name}.container`, `status`, 0, "", "down"));
     }
 
     return resList;
   }
 
-  async check(): Promise<MonitorStatus> {
+  async getMonitorStatus(): Promise<MonitorStatus> {
     return null;
   }
 }

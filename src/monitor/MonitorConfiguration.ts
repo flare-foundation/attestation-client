@@ -7,6 +7,9 @@ import { MonitorIndexerConfig } from "./monitors/IndexerMonitor";
 import { MonitorNodeConfig } from "./monitors/NodeMonitor";
 import { MonitorUrlConfig } from "./monitors/UrlMonitor";
 
+/**
+ * Prometheuse configuration.
+ */
 export class PrometheusConfig {
   @optional() pushGatewayEnabled = false;
   @optional() pushGatewayUrl = "http://127.0.0.1:9091";
@@ -14,6 +17,9 @@ export class PrometheusConfig {
   @optional() monitorServerPort = 3010;
 }
 
+/**
+ * Monitor configuration.
+ */
 export class MonitorConfig implements IReflection<MonitorConfig> {
   @optional() interval = 5000;
 

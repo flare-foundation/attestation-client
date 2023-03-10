@@ -1,11 +1,20 @@
-# Using the state connector system
+# Using State Connector system
 ## What is State Connector system?
 
-The State Connector system is request-response based system that supports proving certain data and facts from other blockchains and data sources.
+The State Connector system is request-response based system that supports proving certain data and facts from other blockchains and data sources. It runs on Flare Networks (Songbird, Flare, Coston, Coston2).
+
+## Why would I need the State Connector system?
+
+For example, I can implement a smart contract on a Flare Network, which acts upon a proof that somebody made specific payment on Bitcoin network. In such a way, somebody can buy a NFT on a Flare Network while paying on Bitcoin. The payment is made, the proof is required from State Connector system and used on the NFT smart contract to mint the NFT.
+
+Another example would be I require a specific payment of in XRP up to certain timestamp to release a collateral on Flare. The State Connector system can be used to prove that the payment was done in due data (and the collateral can be released), or it can be used to prove that the payment was not carried out in due data and the proof can be used to liquidate the collateral.
+
+The State Connector system allows for extensions of the types of the proofs and data sources (blockchains) in the form of new attestation types. Once those are introduced they can be used for new uses.
+
 ## How can State Connector system be used?
 
-- For a given fact, we form an attestation request.
-- The request is then encoded into byte sequence and submitted to the [StateConnector](../attestation-protocol/state-connector-contract.md) contract
+- To prove a given fact, say about a transaction with given `txid` on Bitcoin network, we form an attestation request (a specific JSON object).
+- The request is then encoded into the byte sequence and submitted to the [StateConnector](../attestation-protocol/state-connector-contract.md) contract
 - After 3-5 mins, the request is either confirmed or not. If it is confirmed, the attestation are grouped into a Merkle tree and the Merkle root is stored into the [StateConnector](../attestation-protocol/state-connector-contract.md) contract.
 - Checking whether the attestation request was proven and obtaining the proof data is carried out through REST API routes served by attestation providers.
 - Once the proof data is obtained, it can be submitted to a smart contract that can verify the proof and act upon it.

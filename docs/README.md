@@ -10,7 +10,7 @@
 - [General usage](./end-users/state-connector-usage.md)
 - [Available attestation types](https://github.com/flare-foundation/state-connector-attestation-types)
 - [REST APIs provided by attestation providers](./end-users/apis.md)
-- [Example with the workflow](./end-users/verification-workflow.md)
+- [Verification smart contract and usage workflow](./end-users/verification-workflow.md)
 
 ## Technical reference
 

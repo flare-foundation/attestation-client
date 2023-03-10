@@ -11,12 +11,12 @@ export class DatabaseConnectOptions {
   @optional() type = "mysql";
 
   /**
-   * Database host.
+   * Database server address (host)
    */
   @optional() host = "localhost";
 
   /**
-   * Database port.
+   * Database server port number.
    */
   @optional() port = 3306;
 
@@ -26,7 +26,7 @@ export class DatabaseConnectOptions {
   database = "database";
 
   /**
-   * Database user.
+   * Database user name.
    */
   username = "username";
 
@@ -36,7 +36,7 @@ export class DatabaseConnectOptions {
   password = "password";
 
   /**
-   * TypeORM setting for synchronization.
+   * TypeORM setting for database changes synchronization.
    */
   @optional() synchronize;
 

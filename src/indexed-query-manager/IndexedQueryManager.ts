@@ -108,24 +108,6 @@ export class IndexedQueryManager {
     } as BlockHeightSample;
   }
 
-  /**
-   * Checks whether the sampling of the block height of the indexer is up to date.
-   * The last sample must be within `maxValidIndexerDelaySec` value (in options)
-   * @returns `true` if the indexer is up to date, `false` otherwise
-   */
-  public async isIndexerUpToDate(): Promise<boolean> {
-    const res = await this.getLatestBlockTimestamp();
-    if (res === null) {
-      return false;
-    }
-    const now = getUnixEpochTimestamp();
-    const delay = now - res.timestamp;
-    if (delay > this.settings.maxValidIndexerDelaySec) {
-      return false;
-    }
-    return true;
-  }
-
   ////////////////////////////////////////////////////////////
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////

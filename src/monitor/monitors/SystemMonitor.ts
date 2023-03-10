@@ -1,51 +1,29 @@
 import fs from "fs";
-import * as os from "os";
-import { DatabaseConnectOptions } from "../utils/database/DatabaseConnectOptions";
-import { DatabaseService } from "../utils/database/DatabaseService";
-import { getTimeMilli } from "../utils/helpers/internetTime";
-import { round } from "../utils/helpers/utils";
-import { AttLogger, logException } from "../utils/logging/logger";
-import { MonitorBase, PerformanceInfo } from "./MonitorBase";
 import * as nodeDiskInfo from "node-disk-info";
+import * as os from "os";
+import { getTimeMilli } from "../../utils/helpers/internetTime";
+import { round } from "../../utils/helpers/utils";
+import { logException } from "../../utils/logging/logger";
+import { MonitorBase, PerformanceInfo } from "../MonitorBase";
+import { MonitorConfigBase } from "../MonitorConfigBase";
 
-export class DatabaseMonitor extends MonitorBase {
-  dbService: DatabaseService;
-
-  constructor(name: string, logger: AttLogger, databaseName: string, databaseConnectionOptions: DatabaseConnectOptions) {
-    super(name, logger, null);
-
-    this.dbService = new DatabaseService(logger, databaseConnectionOptions, databaseName, databaseName + "_process");
-  }
-
-  async initialize() {
-    await this.dbService.connect();
-  }
-
-  async check() {
-    return null;
-  }
-
+export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
   cpuUsed = 0;
   cpuTime = 0;
 
   disks = null;
   diskCheckTime = 0;
 
+  async initialize() {
+    this.config.name = "system";
+  }
+
+  async check() {
+    return null;
+  }
+
   async perf(): Promise<PerformanceInfo[]> {
     const resArray = [];
-
-    const dbRes = await this.dbService.manager.query(
-      "SELECT user, count(*) as conn, sum(time) as time FROM information_schema.processlist where command<>'Sleep' group by user order by time desc;"
-    );
-
-    if (dbRes.length === 0) {
-    } else {
-      for (const user of dbRes) {
-        if (user.user === "root" || user.user === "event_scheduler" || user.user === "processReader") continue;
-
-        resArray.push(new PerformanceInfo(`mysql.${user.user}`, "time", user.time, "ms", `${user.conn} connection(s)`));
-      }
-    }
 
     const now = getTimeMilli();
     const cpus = os.cpus();

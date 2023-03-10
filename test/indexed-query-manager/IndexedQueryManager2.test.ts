@@ -32,7 +32,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       entityManager: dataService.manager,
       chainType: ChainType.BTC,
       numberOfConfirmations: () => 5,
-      maxValidIndexerDelaySec: 10,
     };
     indexedQueryManager = new IndexedQueryManager(options);
 
@@ -84,11 +83,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     expect(blockTimestamp).to.be.null;
   });
 
-  it("Should check if indexer is up to date #1", async () => {
-    const blokcTimestamp = await indexedQueryManager.isIndexerUpToDate();
-    expect(blokcTimestamp).to.be.eq(false);
-  });
-
   it("Should getLatestBlockTimestamp", async () => {
     const state = new DBState();
     state.name = "BTC_T";
@@ -98,19 +92,6 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
     const blokcTimestamp = await indexedQueryManager.getLatestBlockTimestamp();
     expect(blokcTimestamp.timestamp).to.be.eq(25);
-  });
-
-  it("Should check if indexer is up to date #2", async () => {
-    const blokcTimestamp = await indexedQueryManager.isIndexerUpToDate();
-    expect(blokcTimestamp).to.be.eq(false);
-  });
-
-  it("Should check if indexer is up to date #3", async () => {
-    const fakeTime = sinon.useFakeTimers(5000);
-    const blokcTimestamp = await indexedQueryManager.isIndexerUpToDate();
-    fakeTime.restore();
-    expect(blokcTimestamp).to.be.eq(true);
-    sinon.restore();
   });
 
   describe("block query", function () {

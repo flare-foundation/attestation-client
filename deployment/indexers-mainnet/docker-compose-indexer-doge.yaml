@@ -40,6 +40,8 @@ services:
     #   - ./mysql-conf.d/:/etc/mysql/conf.d
     #   - ./mysql-initdb/:/docker-entrypoint-initdb.d
       - indexer-doge-db:/var/lib/mysql
+    ports:
+      - 23307:3306
 
   dogecoin-node:
     image: flarefoundation/dogecoin:1.14.6

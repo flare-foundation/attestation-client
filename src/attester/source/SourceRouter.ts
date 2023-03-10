@@ -29,7 +29,7 @@ export class SourceRouter {
     let verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
     for (let sourceName of verifierRouter.routeMap.keys()) {
       const sourceId = toSourceId(sourceName);
-      if(sourceId === SourceId.invalid) {
+      if (sourceId === SourceId.invalid) {
         this.logger.error(`Invalid source id. This should never happen! Terminating!`);
         process.exit(1);
       }

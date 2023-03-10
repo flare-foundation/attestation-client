@@ -1,30 +1,32 @@
-import { ChainType, IBlock, ITransaction, MCC } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptions } from "../caching/CachedMccClient";
-import { ChainConfig, ListChainConfig } from "../attester/configs/ChainConfig";
-import { readConfig } from "../utils/config/config";
-import { AttLogger, logException } from "../utils/logging/logger";
-import { MonitorBase, MonitorRestartConfig, MonitorStatus } from "./MonitorBase";
-import { MonitorConfig } from "./MonitorConfiguration";
+import { ChainType, MCC, RateLimitOptions } from "@flarenetwork/mcc";
+import { CachedMccClient, CachedMccClientOptions } from "../../caching/CachedMccClient";
+import { AttLogger, logException } from "../../utils/logging/logger";
+import { MonitorBase, MonitorStatus } from "../MonitorBase";
+import { MonitorConfig } from "../MonitorConfiguration";
+import { MonitorConfigBase } from "../MonitorConfigBase";
 
-export class NodeMonitor extends MonitorBase {
-  static chainsConfig: ListChainConfig;
-  chainType: ChainType;
+export class MonitorNodeConfig extends MonitorConfigBase {
+  url = "";
+  username = "";
+  password = "";
 
-  chainConfig: ChainConfig;
-  cachedClient: CachedMccClient;
-
-  constructor(name: string, logger: AttLogger, config: MonitorConfig) {
-    super(name, logger, new MonitorRestartConfig(config.timeRestart, config.indexerRestart.replace("<name>", name).toLowerCase()));
-
-    if (!NodeMonitor.chainsConfig) {
-      NodeMonitor.chainsConfig = readConfig(new ListChainConfig(), "chains");
-    }
-
-    this.chainType = MCC.getChainType(name);
-    this.chainConfig = NodeMonitor.chainsConfig.chains.find((el) => el.name === name)!;
+  getName() {
+    return "NodeMonitor";
   }
 
+  createMonitor(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger) {
+    return new NodeMonitor(<MonitorNodeConfig>config, baseConfig, logger);
+  }
+}
+
+export class NodeMonitor extends MonitorBase<MonitorNodeConfig> {
+  chainType: ChainType;
+
+  cachedClient: CachedMccClient;
+
   async initialize() {
+    this.chainType = MCC.getChainType(this.name);
+
     // todo: setup options from config
     const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
@@ -32,8 +34,10 @@ export class NodeMonitor extends MonitorBase {
       cleanupChunkSize: 100,
       activeLimit: 70,
       clientConfig: {
-        ...this.chainConfig.mccCreate,
-        rateLimitOptions: this.chainConfig.rateLimitOptions,
+        url: this.config.url,
+        username: this.config.username,
+        password: this.config.password,
+        rateLimitOptions: new RateLimitOptions(),
         loggingOptions: {
           mode: "production",
           loggingCallback: this.mccLogging.bind(this),
@@ -74,7 +78,7 @@ export class NodeMonitor extends MonitorBase {
     if (!this.cachedClient) {
       res.status = "down";
       res.state = "";
-      res.comment = `unable to connect ${(this.chainConfig.mccCreate as any)?.url}`;
+      res.comment = `unable to connect ${this.config.url}`;
       return res;
     }
 

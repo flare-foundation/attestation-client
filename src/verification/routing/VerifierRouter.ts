@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Attestation } from "../../attester/Attestation";
-import { ApiResponse } from "../../servers/common/src";
+import { ApiResponseWrapper } from "../../servers/common/src";
 import { retry } from "../../utils/helpers/promiseTimeout";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { AttestationRequest, AttestationTypeScheme, Verification } from "../attestation-types/attestation-types";
@@ -222,7 +222,7 @@ export class VerifierRouter {
         })
       );
 
-      let apiResponse = resp.data as ApiResponse<Verification<any, any>>;
+      let apiResponse = resp.data as ApiResponseWrapper<Verification<any, any>>;
       if (apiResponse.status === "OK") {
         return apiResponse.data;
       }

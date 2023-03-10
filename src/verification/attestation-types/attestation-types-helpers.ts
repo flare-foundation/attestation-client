@@ -1,7 +1,6 @@
 import BN from "bn.js";
 import glob from "glob";
 import Web3 from "web3";
-import { getGlobalLogger } from "../../utils/logging/logger";
 import { AttestationTypeScheme, NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
 
 const toBN = Web3.utils.toBN;
@@ -146,9 +145,6 @@ export async function getAttTypesDefinitionFiles(): Promise<string[]> {
  */
 export async function readAttestationTypeSchemes(): Promise<AttestationTypeScheme[]> {
   const names = await getAttTypesDefinitionFiles();
-
-  getGlobalLogger().debug(`getAttTypesDefinitionFiles ${names}`);
-
   return names.map((name) => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme);
 }
 

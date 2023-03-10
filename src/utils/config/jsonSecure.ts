@@ -2,10 +2,10 @@ import { sleepMs } from "@flarenetwork/mcc";
 import fs from "fs";
 import path from "path";
 import { exit } from "process";
-import { getCredentialsKey, getSecretByAddress } from "./credentialsKey";
-import { readJSONfromFile, readJSONfromString } from "./json";
 import { getGlobalLogger } from "../logging/logger";
 import { decryptString } from "../security/encrypt";
+import { getCredentialsKey, getSecretByAddress } from "./credentialsKey";
+import { readJSONfromFile, readJSONfromString } from "./json";
 
 // We assume that one app run has only one network credentials.
 export let SECURE_MASTER_CONFIGS = [];
@@ -190,8 +190,9 @@ export async function _prepareSecureData(data: string, inputFilename: string, ne
     for (const left of leftVariablesNoDup) {
       try {
         // check if it is secure credential
-        const secret = await getSecretByAddress( left.substring(2,left.length-1), false);
-        data = replaceAll(data, left, secret);
+        const search = left.substring(2, left.length - 1);
+        const secret = await getSecretByAddress(search, false);
+        data = replaceAll(data, search, secret);
       }
       catch {
         logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W${left}^^ left unset (check the configuration)`);

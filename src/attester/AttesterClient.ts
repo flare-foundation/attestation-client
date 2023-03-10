@@ -151,8 +151,8 @@ export class AttesterClient {
     // process configuration
     this.logger.info(`network RPC URL '${this.config.web.rpcUrl}'`);
 
-    this.logger.info(`roundManager initialize`);
     await this.attestationRoundManager.initialize();
+    this.logger.info(`roundManager initialized`);
 
     this.flareConnection.setStateManager(this.attestationRoundManager.attesterState);
 

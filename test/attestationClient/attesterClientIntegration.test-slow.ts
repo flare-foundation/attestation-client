@@ -41,6 +41,13 @@ chai.use(chaiAsPromised);
 describe(`Attester client integration (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
 
+  const start = Date.now();
+  let hardhatStart: number;
+  let inprocessStart: number;
+  let othersStart: number;
+  let spammerStart: number;
+
+  let startblock: number = getUnixEpochTimestamp();
   // find out how to fix starting time
   //sinon.useFakeTimers({ now: 1678117529082, shouldAdvanceTime: true });
 
@@ -126,6 +133,9 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
     // Bootstrap hardhat blockchain
     let child = spawn("yarn", ["hardhat", "node"], { shell: true });
     childProcesses.push(child);
+
+    hardhatStart = Date.now();
+
     await waitOn({ resources: [RPC] });
 
     // Deploy state connector and bit voting contracts (they get always deployed on the fixed addresses)
@@ -204,6 +214,20 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
     requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     attestationBTC = prepareAttestation(requestBTC, setup.startTime);
 
+    // starting simple spammer
+    await startSimpleSpammer(
+      getGlobalLogger(),
+      stateConnector,
+      web3,
+      spammerWallet,
+      bufferWindowDurationSec / 3, //to get duplicates
+      [attestationXRP.data.request, attestationBTC.data.request],
+      SPAMMER_FREQUENCIES,
+      SPAMMER_GAPS
+    );
+
+    spammerStart = Date.now();
+
     ///////////////////////////////////
     // Attester related intializations
     ///////////////////////////////////
@@ -216,12 +240,11 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
     let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
     runPromises.push(finalizationPromise);
 
-    // in-process clients
-    for (let i = 0; i < IN_PROCESS_CLIENTS; i++) {
-      bootstrapPromises.push(bootstrapAttestationClient(i));
+    let currentRound = await web3.eth.getBlockNumber();
+    while (currentRound < 9) {
+      sleepMs(500);
+      currentRound = await web3.eth.getBlockNumber();
     }
-    clients = await Promise.all(bootstrapPromises);
-    runPromises = clients.map((client) => client.runAttesterClient());
 
     // spawning the rest of clients in new processes
     for (let i = IN_PROCESS_CLIENTS; i < NUMBER_OF_CLIENTS - NUMBER_OF_FAILING_CLIENTS; i++) {
@@ -232,6 +255,16 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
       );
       childProcesses.push(child);
     }
+    othersStart = Date.now();
+
+    // in-process clients
+    for (let i = 0; i < IN_PROCESS_CLIENTS; i++) {
+      bootstrapPromises.push(bootstrapAttestationClient(i));
+    }
+    clients = await Promise.all(bootstrapPromises);
+    runPromises = clients.map((client) => client.runAttesterClient());
+
+    inprocessStart = Date.now();
 
     // // starting web server on the first node
     // if (WEB_SERVER_IN_OTHER_PROCESS) {
@@ -244,24 +277,22 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
     // } else {
     await bootstrapAttestationWebServer();
     // }
-
-    // starting simple spammer
-    await startSimpleSpammer(
-      getGlobalLogger(),
-      stateConnector,
-      web3,
-      spammerWallet,
-      bufferWindowDurationSec,
-      [attestationXRP.data.request, attestationBTC.data.request],
-      SPAMMER_FREQUENCIES,
-      SPAMMER_GAPS
-    );
+    startblock = await web3.eth.getBlockNumber();
 
     setInterval(async () => {
       let now = getUnixEpochTimestamp();
       let blockChainNow = await (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
       if (process.env.NODE_ENV === "development") {
         logger.info(`DIFF: ${now} - ${blockChainNow} = ${now - parseInt("" + blockChainNow, 10)}`);
+
+        // const klient = clients[0];
+        // const mngr = klient.attestationRoundManager;
+        // console.log("active round", mngr.activeRoundId);
+        // const prevRound = mngr.rounds.get(mngr.activeRoundId - 1);
+        // const curRound = mngr.rounds.get(mngr.activeRoundId);
+
+        // console.log("num of att", prevRound.attestations.length, curRound.attestations.length);
+        // console.log("num of bitvotes", prevRound.bitVoteMap.size, curRound.bitVoteMap.size);
       }
     }, 1000);
     // await Promise.all(runPromises);
@@ -285,20 +316,38 @@ describe(`Attester client integration (${getTestFile(__filename)})`, () => {
   it("Client works", async function () {
     const client = clients[0];
 
-    console.log("Wait for one attestation round");
-    await sleepMs(65000);
+    console.log("Wait for 5 epochs (80s)");
+    await sleepMs(80000);
     const activeRound = client.attestationRoundManager.activeRoundId;
+
+    const round = client.attestationRoundManager.rounds.get(activeRound - 3);
 
     const res1 = await client.flareConnection.attesterState.getRound(activeRound - 3);
 
     const res2 = await client.flareConnection.attesterState.getRound(activeRound - 2);
-    //console.log(res1);
+    // console.log(res1);
+    // console.log(round.roundId, "round ID");
+    // console.log(round.attestations.length);
     // console.log(res2);
 
+    // console.log(
+    //   "start",
+    //   start,
+    //   "hardhat",
+    //   hardhatStart - start,
+    //   "spammer",
+    //   spammerStart - hardhatStart,
+    //   "others",
+    //   othersStart - spammerStart,
+    //   "clients",
+    //   inprocessStart - othersStart
+    // );
     assert(client);
     assert(client.flareDataCollector);
-    expect(client.attestationRoundManager.rounds.size).to.be.greaterThanOrEqual(3);
-    expect(res1.commitNonce, "commitNonce").to.eq(4);
+    const nuOfRounds = client.attestationRoundManager.rounds.size;
+    expect(nuOfRounds).to.be.greaterThanOrEqual(3);
+    expect(res1.commitNonce, "commitNonce").to.eq(6);
     expect(res1.merkleRoot, "root").to.not.eq(toHex(0, 32));
+    assert(res1.revealNonce);
   });
 });

@@ -152,6 +152,6 @@ Definitions for state connector are defined in the [State Connector attestation 
 The first step for adding the new attestation types includes providing the consistent definition on that repository and obtaining the acceptance by the community. The next step is actual implementation of the support for the type. This usually includes implementation of the supporting
 code for attestation client and relevant verifier services and indexers.
 
-Next: [Code generation](./apis.md)
+Next: [Attestation provider REST APIs](./apis.md)
 
 [Back to home](../README.md)

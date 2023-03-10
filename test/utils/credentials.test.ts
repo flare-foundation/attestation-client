@@ -125,6 +125,33 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
         assert(exitCode !== 0, `exit not called`);
     });
 
+    it(`get secret from env`, async () => {
+
+        process.env.ENV_TEST="env_test";
+
+        const credentialsPassword = await getSecretByAddress("env:ENV_TEST");
+
+        assert(credentialsPassword==process.env.ENV_TEST, "invalid env password");
+
+        delete process.env.ENV_TEST;
+
+        assert(exitCode == 0, `exit called`);
+    });
+
+    it(`do not terminate on error`, async () => {
+        let errorMessage = "";
+        try {
+            const credentialsPassword = await getSecretByAddress("invalid format", false);
+        }
+        catch(error){
+            errorMessage=error;
+        }
+
+        assert(errorMessage!=="invalid format", `invalid error message` );
+
+        assert(exitCode == 0, `exit called`);
+    });
+
     it(`secure credentials read`, async () => {
         let testConfig = new TestConfig();
 

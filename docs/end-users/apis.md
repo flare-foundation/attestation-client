@@ -8,9 +8,9 @@ There are two groups of APIs that are relevant for use by end users.
 
 Attestation request API routes are used to get well formatted attestation requests. Based on the [format](https://github.com/flare-foundation/state-connector-attestation-types) definition for a an attestation request of a specific type, a user can prepare the attestation request. In order to fully prepare it, the user needs to know what will be the attestation response. Namely a part of the request is also the field `messageIntegrityCode`, which is obtained by properly hashing the expected attestation response with the string `"Flare"` appended before hashing (see [here](../attestation-protocol/bit-voting.md#message-integrity-checks)). The verifier web service routes are documented using the Swagger interface at `/api-doc/` route. They include:
 
-- `/verifier/<chain>/prepare` - POST, returns attestation response for an attestation request, without checking message integrity code.
-- `/verifier/<chain>/integrity` - POST, tries to verify attestation request without checking message integrity code, and if it is successful, it returns the correct message integrity code.
-- `/verifier/<chain>/prepareAttestation` - POST, tries to verify attestation request without checking message integrity code, and if it is successful, it returns the byte encoded attestation request with the correct message integrity code, that can be directly submitted to the State Connector contract.
+- `/verifier/<chain>/prepare` - POST, returns attestation response for an attestation request, without checking message integrity code (see POST object [format](../../src/verification/generated/attestation-request-types.ts)).
+- `/verifier/<chain>/integrity` - POST, tries to verify attestation request without checking message integrity code, and if it is successful, it returns the correct message integrity code (see POST object [format](../../src/verification/generated/attestation-request-types.ts)).
+- `/verifier/<chain>/prepareAttestation` - POST, tries to verify attestation request without checking message integrity code, and if it is successful, it returns the byte encoded attestation request with the correct message integrity code, that can be directly submitted to the State Connector contract(see POST object [format](../../src/verification/generated/attestation-request-types.ts)).
 
 Note that the routes depend on a `chain`, which is one of: `btc`, `doge` or `xrp`.
 

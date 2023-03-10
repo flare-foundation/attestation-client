@@ -10,7 +10,7 @@ import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } fr
 const args = yargs
   .option("reset", { alias: "r", type: "string", description: "Reset commands", default: true, demand: false })
   .option("setn", { alias: "n", type: "number", description: "Force set chain N", default: 0, demand: false })
-  .option("chain", { alias: "a", type: "string", description: "Chain", default: "btc", demand: false }).argv;
+  .option("chain", { alias: "a", type: "string", description: "Chain", default: process.env.INDEXER_CHAIN ?? "btc", demand: false }).argv;
 
 function terminateOnRetryFailure(label: string) {
   getGlobalLogger().error2(`retry failure: ${label} - application exit`);

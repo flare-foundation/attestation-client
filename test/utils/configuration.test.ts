@@ -25,6 +25,7 @@ class TestConfig implements IReflection<TestConfig> {
     key2: number = 0;
     key3: number = 0;
     key4: number = 0;
+    test: string ="";
 
     instanciate() {
         return new TestConfig();
@@ -138,6 +139,18 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
             assert(false, `error parsing json with error`);
         }
         catch { }
+    });
+
+    it.only(`prepare secure data env variable`, async () => {
+        let testConfig = new TestConfig();
+
+        process.env.ENV_TEST="env_test_value";
+
+        const test = await readSecureConfig(testConfig, "env_test");
+
+        assert(test.test==process.env.ENV_TEST, `invalid 'test' value '${test.test}' (expected '${process.env.ENV_TEST}')`);
+
+        delete process.env.ENV_TEST;
     });
 
     it(`prepare secure data`, async () => {

@@ -1,6 +1,9 @@
 import { Gauge, Metric, Pushgateway, Registry } from "prom-client";
 import { AttLogger, logException } from "../utils/logging/logger";
 
+/**
+ * Prometheus interface.
+ */
 export class Prometheus {
   logger: AttLogger;
 

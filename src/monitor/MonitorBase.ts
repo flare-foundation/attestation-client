@@ -5,6 +5,9 @@ import { AttLogger, logException } from "../utils/logging/logger";
 import { MonitorConfig } from "./MonitorConfiguration";
 import { MonitorConfigBase } from "./MonitorConfigBase";
 
+/**
+ * Monitor status.
+ */
 export class MonitorStatus {
   type = "unknown";
   name = "";
@@ -12,6 +15,11 @@ export class MonitorStatus {
   state = "";
   comment = "";
   timeLate: number;
+
+  /**
+   * Display monitor status.
+   * @param logger 
+   */
   displayStatus(logger: AttLogger) {
     let color = "";
     switch (this.status) {
@@ -34,8 +42,11 @@ export class MonitorStatus {
   }
 }
 
+/**
+ * Performance metrics.
+ */
 @Managed()
-export class PerformanceInfo {
+export class PerformanceMetrics {
   name: string;
   valueName = "";
   value: number;
@@ -50,6 +61,10 @@ export class PerformanceInfo {
     this.comment = comment;
   }
 
+  /**
+   * Display performance metrics status.
+   * @param logger 
+   */
   displayStatus(logger: AttLogger) {
     logger.info(
       `${this.name.padEnd(20)}  ${this.valueName.padEnd(14)}  ${this.value.toString().padStart(10)} ${this.valueUnit.padEnd(5)} ^B${
@@ -59,6 +74,9 @@ export class PerformanceInfo {
   }
 }
 
+/**
+ * Restart configuration.
+ */
 export class MonitorRestartConfig {
   time = 0;
   command = "";
@@ -71,6 +89,9 @@ export class MonitorRestartConfig {
 
 const MIN_RESTART_TIME = 60;
 
+/**
+ * Monitor base class.
+ */
 @Managed()
 export class MonitorBase<T extends MonitorConfigBase> {
   restartConfig: MonitorRestartConfig;
@@ -91,15 +112,32 @@ export class MonitorBase<T extends MonitorConfigBase> {
     this.restartConfig = new MonitorRestartConfig(config.timeRestart, config.restart);
   }
 
+  /**
+   * Get monitor name
+   */
   get name() {
     return this.config.name;
   }
 
+  /**
+   * Initialize monitor.
+   */
   async initialize?();
 
-  async check?(): Promise<MonitorStatus>;
-  async perf?(): Promise<PerformanceInfo[]>;
+  /**
+   * Get monitor status.
+   */
+  async getMonitorStatus?(): Promise<MonitorStatus>;
 
+  /**
+   * Return performance metrics.
+   */
+  async getPerformanceMetrics?(): Promise<PerformanceMetrics[]>;
+
+  /**
+   * Perform restart logic.
+   * @returns true if restart was initiated.
+   */
   async restart(): Promise<boolean> {
     if (!MonitorBase.restartEnabled) return false;
 

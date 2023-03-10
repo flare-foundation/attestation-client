@@ -4,7 +4,7 @@
 import { assert } from "chai";
 import sinon from "sinon";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
-import { getCredentialsKey, getCredentialsKeyAddress, getCredentialsKeyByAddress } from "../../src/utils/config/credentialsKey";
+import { getCredentialsKey, getCredentialsKeyAddress, getSecretByAddress } from "../../src/utils/config/credentialsKey";
 import { SECURE_MASTER_CONFIGS, _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
@@ -101,13 +101,13 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
     });
 
     it(`get credentials invalid format`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("provider:address:invalid");
+        const credentialsPassword = await getSecretByAddress("provider:address:invalid");
 
         assert(exitCode !== 0, `exit not called`);
     });
 
     it(`get credentials invalid address`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("unknown:some address");
+        const credentialsPassword = await getSecretByAddress("unknown:some address");
 
         assert(exitCode !== 0, `exit not called`);
     });
@@ -120,7 +120,7 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
     });
 
     it(`get credentials key google cloud secret manager invalid name`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:invalid name");
+        const credentialsPassword = await getSecretByAddress("GoogleCloudSecretManager:invalid name");
 
         assert(exitCode !== 0, `exit not called`);
     });

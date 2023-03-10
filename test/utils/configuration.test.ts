@@ -88,7 +88,7 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
         SECURE_MASTER_CONFIGS.push(["test1", "value1"]);
         SECURE_MASTER_CONFIGS.push(["test2", 2]);
 
-        const prepared = _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)"}`, "", "TestNetwork");
+        const prepared = await _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)"}`, "", "TestNetwork");
 
         assert(prepared === `{"test1"="value1","test2"=2"}`, `prepareSecureData does not work`);
     });
@@ -97,7 +97,7 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
         SECURE_MASTER_CONFIGS.push(["test1", "value1"]);
         SECURE_MASTER_CONFIGS.push(["test2", 2]);
 
-        const prepared = _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)", "test3"=$(test3)}`, "", "TestNetwork");
+        const prepared = await _prepareSecureData(`{"test1"="$(test1)","test2"=$(test2)", "test3"=$(test3)}`, "", "TestNetwork");
 
         assert(TestLogger.exists("file ^w^^ (chain ^ETestNetwork^^) variable ^r^W$(test3)^^ left unset (check the configuration)"), `config error not reported`);
     });
@@ -105,7 +105,7 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
     it(`test prepare secure data with network`, async () => {
         SECURE_MASTER_CONFIGS.push(["TestNetworkPassword", "123"]);
 
-        const prepared = _prepareSecureData(`{"Password"="$($(Network)Password)"}`, "", "TestNetwork");
+        const prepared = await _prepareSecureData(`{"Password"="$($(Network)Password)"}`, "", "TestNetwork");
 
         assert(prepared === `{"Password"="123"}`, `prepareSecureData with network does not work`);
     });

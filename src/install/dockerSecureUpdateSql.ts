@@ -44,7 +44,7 @@ async function run() {
   const inputFilename = `configs/.install/templates/sql/${inputFile}.sql`;
 
   const data = fs.readFileSync(inputFilename).toString();
-  const scriptLines = _prepareSecureData(data, inputFilename, nodeName, `Chain`).split(/\r?\n/);
+  const scriptLines = (await _prepareSecureData(data, inputFilename, nodeName, `Chain`)).split(/\r?\n/);
 
   // get secure DatabaseRootPassword
   const secureRootPassword = getSecureValue(`DatabaseRootPassword`);

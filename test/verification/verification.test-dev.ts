@@ -21,7 +21,8 @@ import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../src/in
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../src/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
 import { VerifierServerConfig } from "../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
-import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
+import { ChainConfig } from "../../src/attester/configs/ChainConfig";
+import { ListChainConfig } from "../../src/attester/configs/ListChainConfig";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { getGlobalLogger } from "../../src/utils/logging/logger";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
@@ -76,7 +77,6 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       },
       // TODO: connect the database
       entityManager: dbService.manager,
-      maxValidIndexerDelaySec: attesterClientChainConfiguration.maxValidIndexerDelaySec,
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
     randomGenerators = await prepareRandomGenerators(indexedQueryManager, BATCH_SIZE, TOP_UP_THRESHOLD);
@@ -187,11 +187,4 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     assert(maxReps > 0, "Too many tries");
   });
 
-  it("Should be IndexedQueryManager in sync", async () => {
-    const N = await indexedQueryManager.getLastConfirmedBlockNumber();
-    const res = await indexedQueryManager.getLatestBlockTimestamp();
-    const now = await getUnixEpochTimestamp();
-    const delay = now - res.timestamp;
-    assert(delay < indexedQueryManager.settings.maxValidIndexerDelaySec, `Delay too big: ${delay}, N = ${N}, T = ${res.height}, h = ${res.height - N}`);
-  });
 });

@@ -4,7 +4,8 @@
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import axios from "axios";
-import { ChainConfig, ListChainConfig } from "../../src/attester/configs/ChainConfig";
+import { ChainConfig } from "../../src/attester/configs/ChainConfig";
+import { ListChainConfig } from "../../src/attester/configs/ListChainConfig";
 import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import { createTestAttestationFromRequest } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
@@ -69,7 +70,6 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       numberOfConfirmations: () => {
         return chainIndexerConfig.numberOfConfirmations;
       },
-      maxValidIndexerDelaySec: 10,
       entityManager: dbService.manager,
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);

@@ -160,7 +160,7 @@ export function createAttestationClientMockTest(definitions: AttestationTypeSche
 
   const itsForDefinitions = definitions.map((definition) => genItForAttestationClientMock(definition)).join("\n");
   const content = `${DEFAULT_GEN_FILE_HEADER}
-import { MerkleTree } from "../../src/utils/MerkleTree";
+import { MerkleTree } from "../../src/utils/data-structures/MerkleTree";
 import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { 
 ${dhImports} 

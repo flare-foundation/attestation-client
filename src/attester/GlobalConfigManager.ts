@@ -131,7 +131,7 @@ export class GlobalConfigManager {
    */
   public getVerifierRouter(roundId: number): VerifierRouter {
     let result = this.getVerifierRouterWithConfig(roundId);
-    return result?.router;    // ? is needed for testing, when undefined is returned
+    return result?.router; // ? is needed for testing, when undefined is returned
   }
 
   /**
@@ -183,7 +183,7 @@ export class GlobalConfigManager {
     }
 
     this.globalAttestationConfigs = await Promise.all(promises);
-    
+
     this.sortGlobalConfigs();
   }
 
@@ -217,7 +217,7 @@ export class GlobalConfigManager {
         router = new VerifierRouter();
         router.initialize(config, definitions);
         this.hashToVerifierRouter.set(hash, router);
-        this.logger.info(`New config for round ${config.startRoundId} loaded.`)
+        this.logger.info(`New config for round ${config.startRoundId} loaded.`);
       }
       return {
         config,
@@ -310,7 +310,7 @@ export class GlobalConfigManager {
    * Sorts attestationConfig based on the startRoundId
    */
   private sortGlobalConfigs() {
-    this.globalAttestationConfigs.sort((a: GlobalAttestationConfig, b: GlobalAttestationConfig) => {      
+    this.globalAttestationConfigs.sort((a: GlobalAttestationConfig, b: GlobalAttestationConfig) => {
       if (a.startRoundId < b.startRoundId) return -1;
       if (a.startRoundId > b.startRoundId) return 1;
       return 0;

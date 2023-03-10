@@ -1,3 +1,3 @@
 import { runWebserver } from "./webserver";
 
-runWebserver();
+void runWebserver();

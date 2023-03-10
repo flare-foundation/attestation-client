@@ -1,7 +1,9 @@
 import { Managed } from "@flarenetwork/mcc";
-import { AttLogger, logException } from "../utils/logging/logger";
-import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 import { exec } from "child_process";
+import { getUnixEpochTimestamp } from "../utils/helpers/utils";
+import { AttLogger, logException } from "../utils/logging/logger";
+import { MonitorConfig } from "./MonitorConfiguration";
+import { MonitorConfigBase } from "./MonitorConfigBase";
 
 export class MonitorStatus {
   type = "unknown";
@@ -70,26 +72,34 @@ export class MonitorRestartConfig {
 const MIN_RESTART_TIME = 60;
 
 @Managed()
-export class MonitorBase {
+export class MonitorBase<T extends MonitorConfigBase> {
   restartConfig: MonitorRestartConfig;
+
+  config: T;
+  baseConfig: MonitorConfig;
 
   logger: AttLogger;
 
-  name: string;
   timeLastRestart = 0;
 
   static restartEnabled = true;
 
-  constructor(name: string, logger: AttLogger, restart: MonitorRestartConfig) {
-    this.name = name;
+  constructor(config: T, baseConfig: MonitorConfig, logger: AttLogger) {
+    this.config = config;
+    this.baseConfig = baseConfig;
     this.logger = logger;
-    this.restartConfig = restart;
+    this.restartConfig = new MonitorRestartConfig(config.timeRestart, config.restart);
+  }
+
+  get name() {
+    return this.config.name;
   }
 
   async initialize?();
 
   async check?(): Promise<MonitorStatus>;
   async perf?(): Promise<PerformanceInfo[]>;
+
   async restart(): Promise<boolean> {
     if (!MonitorBase.restartEnabled) return false;
 

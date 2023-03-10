@@ -1,6 +1,6 @@
 import { Controller, Get, Header } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { ApiResponse, handleApiResponse } from "../../../common/src";
+import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
 import { ServiceStatus } from "../dtos/ServiceStatus.dto";
 import { ProofEngineService } from "../services/proof-engine.service";
 
@@ -10,7 +10,7 @@ export class StatusController {
   constructor(private proofEngine: ProofEngineService) {}
 
   @Get("services")
-  public async serviceStatus(): Promise<ApiResponse<ServiceStatus>> {
+  public async serviceStatus(): Promise<ApiResponseWrapper<ServiceStatus>> {
     return handleApiResponse(this.proofEngine.serviceStatus());
   }
 

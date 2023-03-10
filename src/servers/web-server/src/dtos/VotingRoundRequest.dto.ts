@@ -1,4 +1,4 @@
-export interface VotingRoundRequest {
+export class VotingRoundRequest {
   roundId: number;
   requestBytes: string;
   verificationStatus: string;

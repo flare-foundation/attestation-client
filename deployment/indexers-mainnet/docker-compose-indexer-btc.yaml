@@ -40,6 +40,8 @@ services:
     #   - ./mysql-conf.d/:/etc/mysql/conf.d
     #   - ./mysql-initdb/:/docker-entrypoint-initdb.d
       - indexer-btc-db:/var/lib/mysql
+    ports:
+      - 23306:3306
 
   bitcoin-node:
     image: flarefoundation/bitcoin:23.0

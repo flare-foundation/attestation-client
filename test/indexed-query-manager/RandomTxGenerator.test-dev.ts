@@ -52,7 +52,6 @@ describe("Indexed query manager", () => {
       entityManager: dataSource.manager,
       chainType: SOURCE_ID as any as ChainType,
       numberOfConfirmations: () => { return NUMBER_OF_CONFIRMATIONS },
-      maxValidIndexerDelaySec: 10,
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);
 

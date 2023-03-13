@@ -231,7 +231,7 @@ export class AttestationRoundManager {
           );
         }
       },
-      process.env.TEST_SAMPLING_REQUEST_INTERVAL ? parseInt(process.env.TEST_SAMPLING_REQUEST_INTERVAL, 10) : 5000
+      process.env.SAMPLING_REQUEST_INTERVAL_MS ? parseInt(process.env.SAMPLING_REQUEST_INTERVAL_MS, 10) : 5000
     );
   }
 

@@ -40,7 +40,7 @@ export async function deployTestContracts(
   const web3 = getWeb3(web3Rpc);
   const artifacts = "artifacts";
   let abiPathStateConnector = await relativeContractABIPathForContractName("StateConnectorTempTran", artifacts);
-  let abiPathBitVoting = await relativeContractABIPathForContractName("BitVoting", artifacts);
+  let abiPathBitVoting = await relativeContractABIPathForContractName("BitVotingTest", artifacts);
   let stateConnectorABI = JSON.parse(fs.readFileSync(`${artifacts}/${abiPathStateConnector}`).toString());
   let bitVotingABI = JSON.parse(fs.readFileSync(`${artifacts}/${abiPathBitVoting}`).toString());
   let stateConnector = new web3.eth.Contract(stateConnectorABI.abi) as any as StateConnectorTempTran;
@@ -85,8 +85,10 @@ export async function deployTestContracts(
     const rec = await web3.eth.sendSignedTransaction(signed.rawTransaction);
     if (verbose) console.log(`${rec.contractAddress} (StateConnector)`);
   } catch (e) {
-    console.log("Transaction failed.");
-    console.log(e);
+    if (verbose) {
+      console.log("Transaction failed.");
+      console.log(e);
+    }
   }
 
   try {
@@ -94,8 +96,10 @@ export async function deployTestContracts(
     const rec = await web3.eth.sendSignedTransaction(signed.rawTransaction);
     if (verbose) console.log(`${rec.contractAddress} (BitVoting)`);
   } catch (e) {
-    console.log("Transaction failed.");
-    console.log(e);
+    if (verbose) {
+      console.log("Transaction failed.");
+      console.log(e);
+    }
   }
 }
 

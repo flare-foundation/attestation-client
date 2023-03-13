@@ -1,6 +1,6 @@
 import { MCC, XrpMccCreate } from "@flarenetwork/mcc";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { IndexerToClient } from "../../src/indexer/indexerToClient";
 import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";

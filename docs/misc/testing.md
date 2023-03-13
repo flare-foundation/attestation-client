@@ -19,16 +19,24 @@ All of the scripts associated with testing are collected in `-------TESTS-------
 
 run
 
+Run all fast tests
+
 ```bash
 yarn test:coverage
 ```
 
+Run all tests except the tests that need api credentials
+
 ```bash
 yarn test:coverage-full
 ```
+
+Run all tests including the tests that need api credentials that need to be provided
 
 ```bash
 yarn test:coverage-fullc
 ```
 
 ## Setting up testing environment
+
+[Back to home](../README.md)

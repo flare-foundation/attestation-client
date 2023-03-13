@@ -54,7 +54,7 @@ where \`attestationType\` (\`uint16\`) is a different constant for each of the m
 pragma solidity >=0.7.6 <0.9;
 
 
-interface IAttestationClient {
+interface ISCProofVerifier {
 ${structs}
 ${commentText(proofVerificationComment)}
 

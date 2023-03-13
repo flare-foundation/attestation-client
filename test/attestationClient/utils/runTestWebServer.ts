@@ -6,7 +6,7 @@ process.env.NODE_ENV = "development"
 // Should be set from outside:
 // process.env.TEST_CREDENTIALS = "1";
 // the correct:
-// process.env.CONFIG_PATH
+// process.env.SECURE_CONFIG_PATH
 
 bootstrapAttestationWebServer()
 .then(() => {})

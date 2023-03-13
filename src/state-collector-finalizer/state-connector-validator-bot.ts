@@ -85,7 +85,7 @@ function getAttestationSigners(chainId: number): string[] {
   }
 }
 
-export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" | "tran") {
+export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" | "tran", verbose = true) {
   const web3 = getWeb3(web3Rpc);
 
   if (process.env.TEST_HARDHAT_NODE) {
@@ -171,10 +171,12 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
       }
     }
 
-    console.log("VOTES:");
+    if (verbose) {
+      console.log("VOTES:");
+    }
     for (const signer of signers) {
       let result = await getAttestation(currentRound, signer);
-      console.error(`[${currentRound}]${signer}: ${result}`);
+      if (verbose) console.error(`[${currentRound}]${signer}: ${result}`);
       merkleRootCandidates.push(result);
     }
 
@@ -197,12 +199,13 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
 
     let tmpBlockNumber = await web3.eth.getBlockNumber();
     let tmpBlock = await web3.eth.getBlock(tmpBlockNumber);
-
-    console.log(
-      `BEFORE SENDING: currentRound: ${currentRound}, shouldBeForNow: ${Math.floor(
-        (now - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber()
-      )}, fromBlockTime: ${Math.floor((parseInt("" + tmpBlock.timestamp, 10) - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber())}`
-    );
+    if (verbose) {
+      console.log(
+        `BEFORE SENDING: currentRound: ${currentRound}, shouldBeForNow: ${Math.floor(
+          (now - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber()
+        )}, fromBlockTime: ${Math.floor((parseInt("" + tmpBlock.timestamp, 10) - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber())}`
+      );
+    }
     const finalizeData = stateConnectorContract.methods.finaliseRound(currentRound, root).encodeABI();
     const tx = {
       from: botWallet.address,

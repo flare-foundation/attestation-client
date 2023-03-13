@@ -153,7 +153,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     // Initialize contracts
     const artifacts = "artifacts";
     let abiPathStateConnector = await relativeContractABIPathForContractName("StateConnectorTempTran", artifacts);
-    let abiPathBitVoting = await relativeContractABIPathForContractName("BitVoting", artifacts);
+    let abiPathBitVoting = await relativeContractABIPathForContractName("BitVotingTest", artifacts);
     let stateConnectorABI = JSON.parse(fs.readFileSync(`${artifacts}/${abiPathStateConnector}`).toString());
     let bitVotingABI = JSON.parse(fs.readFileSync(`${artifacts}/${abiPathBitVoting}`).toString());
     stateConnector = new web3.eth.Contract(stateConnectorABI.abi, STATE_CONNECTOR_ADDRESS) as any as StateConnectorTempTran;
@@ -222,7 +222,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       stateConnector,
       web3,
       spammerWallet,
-      bufferWindowDurationSec / 3, //to get duplicates
+      bufferWindowDurationSec / 4, //to get duplicates
       [attestationXRP.data.request, attestationBTC.data.request],
       SPAMMER_FREQUENCIES,
       SPAMMER_GAPS
@@ -237,7 +237,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     let bootstrapPromises = [];
 
     // Finalization bot
-    let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp");
+    let finalizationPromise = runBot(STATE_CONNECTOR_ADDRESS, RPC, "temp", false);
     runPromises.push(finalizationPromise);
 
     // let currentRound = await web3.eth.getBlockNumber();
@@ -245,8 +245,6 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     //   sleepMs(500);
     //   currentRound = await web3.eth.getBlockNumber();
     // }
-
-    process.env.FAKE_TIME = `${Date.now()}`;
 
     // spawning the rest of clients in new processes
     for (let i = IN_PROCESS_CLIENTS; i < NUMBER_OF_CLIENTS - NUMBER_OF_FAILING_CLIENTS; i++) {

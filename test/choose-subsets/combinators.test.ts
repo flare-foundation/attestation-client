@@ -2,7 +2,16 @@
 
 import { expect } from "chai";
 import { stringify } from "safe-stable-stringify";
-import { chooseCandidate, countOnes, getSubsetsOfSize, hexStringAnd } from "../../src/choose-subsets-lib/subsets-lib";
+import {
+  chooseCandidate,
+  countOnes,
+  getSubsetsOfSize,
+  hexStringAnd,
+  isPrefixed0x,
+  padHexZeros,
+  prefix0x,
+  unPrefix0x,
+} from "../../src/choose-subsets-lib/subsets-lib";
 import { getTestFile } from "../test-utils/test-utils";
 
 function arrayEquality(a: any[], b: any[]) {
@@ -17,6 +26,58 @@ describe(`Choose round combinator lib test (${getTestFile(__filename)})`, functi
       "0x26bad89bdf5804ae76405edc35be82fd4c7ab8260d60a101070e8b1a42a16c5f8579ef5000abdf2dec491a38c2c783292acdaaf16837dceff040cc1a92c310b93c9230ff75e8f87b30807a9617dc30b374946b62ea7f6f451b0727f8351031e8e5c62081283947e23593a558b88748bc4f160aaec778b93f17e266ee4b89abf69bf882ed2bbdb9d1f552880aa52051e66562c0353d317fd95eaa0ced9a7f3ec270836ba158aea65e11d7d86d9eb777ef584a46437842793638e7d90838b30b727cfdf1f74655e086";
 
     const c = "0xff";
+  });
+
+  describe("utils", function () {
+    it("unPrefix0x", function () {
+      const res1 = unPrefix0x(null);
+      expect(res1).to.eq("0x0");
+      const res2 = unPrefix0x("0X111");
+      expect(res2).to.eq("111");
+      const res3 = unPrefix0x("-0X111");
+      expect(res3).to.eq("111");
+      const res4 = unPrefix0x("-0x111");
+      expect(res4).to.eq("111");
+      const res5 = unPrefix0x("A");
+      expect(res5).to.eq("A");
+    });
+
+    it("prefix0x", function () {
+      const res1 = prefix0x(null);
+      expect(res1).to.eq("0x0");
+      const res2 = prefix0x("0X111");
+      expect(res2).to.eq("0X111");
+      const res3 = prefix0x("-0X111");
+      expect(res3).to.eq("-0X111");
+      const res4 = prefix0x("-0x111");
+      expect(res4).to.eq("-0x111");
+      const res5 = prefix0x("A");
+      expect(res5).to.eq("0xA");
+      const res6 = prefix0x("0x124");
+      expect(res6).to.eq("0x124");
+    });
+
+    it("isPrefixed0x", function () {
+      const res1 = isPrefixed0x(null);
+      expect(res1).to.be.false;
+      const res2 = isPrefixed0x("0X111");
+      expect(res2).to.be.true;
+      const res3 = isPrefixed0x("-0X111");
+      expect(res3).to.true;
+      const res4 = isPrefixed0x("-0x111");
+      expect(res4).to.true;
+      const res5 = isPrefixed0x("A");
+      expect(res5).to.false;
+      const res6 = isPrefixed0x("0x124");
+      expect(res6).to.true;
+    });
+
+    it("padHexZeros", function () {
+      const res1 = padHexZeros("1234", 5);
+      expect(res1).to.eq("0x01234");
+      const res2 = padHexZeros("0x1234", 3);
+      expect(res2).to.eq("0x1234");
+    });
   });
 
   describe("Hex string AND", function () {
@@ -50,6 +111,15 @@ describe(`Choose round combinator lib test (${getTestFile(__filename)})`, functi
 
       const and = hexStringAnd(a, b);
       expect(and).to.eq("0x0001");
+    });
+
+    it("fails if invalid hex", function () {
+      expect(() => hexStringAnd("0x!!", "01234")).to.throw("Incorrectly formatted hex strings");
+    });
+
+    it("works with uneven lengths", function () {
+      const res = hexStringAnd("0x001", "0x1003");
+      expect(res).to.eq("0x0001");
     });
   });
 
@@ -88,20 +158,26 @@ describe(`Choose round combinator lib test (${getTestFile(__filename)})`, functi
 
       expect(count).to.eq(0);
     });
+
+    it("Rejects invalid input", function () {
+      expect(() => {
+        countOnes("0x!");
+      }).to.throw("Incorrectly formatted hex strings");
+    });
   });
 
   describe("getSubsetsOfSize tests", function () {
     it("Test getSubsetsOfSize number of elements", async function () {
       const elements = [1, 2, 3, 4, 5, 6, 7, 8, 9];
       const subSets = getSubsetsOfSize(elements, 7);
-  
+
       expect(subSets.length).to.eq(36);
     });
-  
+
     it("Test getSubsetsOfSize for all subsets of size 2 in a set of size 3", async function () {
       const elements = [1, 2, 3];
       const subSets = getSubsetsOfSize(elements, 2);
-  
+
       expect(subSets.length).to.eq(3);
       expect(subSets.find((elem) => arrayEquality(elem, [1, 2])));
       expect(subSets.find((elem) => arrayEquality(elem, [1, 3])));
@@ -111,7 +187,7 @@ describe(`Choose round combinator lib test (${getTestFile(__filename)})`, functi
     it("Test getSubsetsOfSize for all subsets of size 2 in a set of size 4", async function () {
       const elements = [1, 2, 3, 4];
       const subSets = getSubsetsOfSize(elements, 2);
-  
+
       expect(subSets.length).to.eq(6);
       expect(subSets.find((elem) => arrayEquality(elem, [1, 2])));
       expect(subSets.find((elem) => arrayEquality(elem, [1, 3])));
@@ -120,22 +196,22 @@ describe(`Choose round combinator lib test (${getTestFile(__filename)})`, functi
       expect(subSets.find((elem) => arrayEquality(elem, [2, 4])));
       expect(subSets.find((elem) => arrayEquality(elem, [3, 4])));
     });
-  
+
     it("Speed test", async function () {
       const elements = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
       const subSets = getSubsetsOfSize(elements, 15);
       expect(subSets.length).to.eq(15504);
     });
-  })
+  });
 
   describe("getSubsetsOfSize tests", function () {
     it("Test chooseCandidate", async function () {
       const elements = ["0xAAAA", "0xffff", "0xB355"];
       const candidate = chooseCandidate(elements, 2);
-      expect(candidate).to.eq("0xb355")
+      expect(candidate).to.eq("0xb355");
     });
 
-    it("Possible real world scenario test", function (){
+    it("Possible real world scenario test", function () {
       const chooses = [
         "0x954ace992099e7479fc59e5ccd4cb06fec54a1777a1eedf9a1",
         "0xfe5b9fa1f6b8e1062a0fd493680b7f26b164810f0ddaef0baf",
@@ -146,12 +222,10 @@ describe(`Choose round combinator lib test (${getTestFile(__filename)})`, functi
         "0x62149908a29c4cfeca6a3f9aab7ec2b3cadd229584ec089cab",
         "0xf3ff0e801c89bc2b697373d1df9159faa04d7f25854b568766",
         "0x346ffced36dcdca0f0c924c6464433373e49b354b20f066187",
-      ]
+      ];
       const candidate = chooseCandidate(chooses, 7);
 
-      expect(candidate).to.eq("0x00000800008800000000000000000000000000040000000000")
-    })
-  })
-
-  
+      expect(candidate).to.eq("0x00000800008800000000000000000000000000040000000000");
+    });
+  });
 });

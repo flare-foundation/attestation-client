@@ -5,10 +5,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
-import "../interface/IAttestationClient.sol";
+import "../interface/ISCProofVerifier.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-abstract contract AttestationClientBase is IAttestationClient {
+abstract contract SCProofVerifierBase is ISCProofVerifier {
     using MerkleProof for bytes32[];
 
     // possible attestationType values

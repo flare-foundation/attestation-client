@@ -213,7 +213,9 @@
       "src/monitor/**/*.*",
       "src/**/main.ts",
       "src/utils/monitoring/**/*.*",
-      "src/attester/experimental/**/*.*"
+      "src/attester/experimental/**/*.*",
+      "src/verification/verifiers/ALGO",
+      "src/verification/verifiers/LTC"
     ],
     "reporter": [
       "html",

@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.6 <0.9;
 
-interface IAttestationClient {
+interface ISCProofVerifier {
     struct Payment {
         // Round number (epoch id) of the state connector request
         uint256 stateConnectorRound;

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
-import "./AttestationClientBase.sol";
+import "./SCProofVerifierBase.sol";
 import "../interface/IStateConnector.sol";
 
-contract AttestationClientSC is AttestationClientBase {
+contract SCProofVerifier is SCProofVerifierBase {
     IStateConnector public stateConnector;
 
     constructor(IStateConnector _stateConnector) {

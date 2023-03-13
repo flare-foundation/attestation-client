@@ -36,7 +36,7 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
 
   after(function () {
     delete process.env.TEST_CREDENTIALS;
-    delete process.env.CONFIG_PATH;
+    delete process.env.SECURE_CONFIG_PATH;
   });
 
   it("Should construct GlobalConfigManager", function () {
@@ -49,6 +49,24 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
     expect(globalConfigManager.globalAttestationConfigs.length).to.be.equal(2);
     expect(globalConfigManager2.globalAttestationConfigs.length).to.be.equal(2);
     expect(globalConfigManager.globalAttestationConfigs[0].startRoundId).to.eq(0);
+  });
+
+  it("Should get activeRoundId", function () {
+    const rndId = globalConfigManager.activeRoundId;
+    expect(rndId).to.eq(160);
+  });
+
+  it("Should get activeRoundId", function () {
+    const rndId = globalConfigManager.activeRoundId;
+    expect(rndId).to.eq(160);
+  });
+
+  it("Should get activeRoundId", function () {
+    globalConfigManager.activeRoundId = undefined;
+
+    expect(() => {
+      globalConfigManager.activeRoundId;
+    }).to.throw("activeRoundId not defined");
   });
 
   it("Should not get config 0", function () {

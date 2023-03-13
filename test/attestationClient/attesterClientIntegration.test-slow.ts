@@ -216,18 +216,6 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     attestationBTC = prepareAttestation(requestBTC, setup.startTime);
 
-    // starting simple spammer
-    await startSimpleSpammer(
-      getGlobalLogger(),
-      stateConnector,
-      web3,
-      spammerWallet,
-      bufferWindowDurationSec / 4, //to get duplicates
-      [attestationXRP.data.request, attestationBTC.data.request],
-      SPAMMER_FREQUENCIES,
-      SPAMMER_GAPS
-    );
-
     ///////////////////////////////////
     // Attester related intializations
     ///////////////////////////////////
@@ -264,7 +252,17 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     clients = await Promise.all(bootstrapPromises);
     runPromises = clients.map((client) => client.runAttesterClient());
 
-    inprocessStart = Date.now();
+    // starting simple spammer
+    await startSimpleSpammer(
+      getGlobalLogger(),
+      stateConnector,
+      web3,
+      spammerWallet,
+      bufferWindowDurationSec / 5, //to get duplicates
+      [attestationXRP.data.request, attestationBTC.data.request],
+      SPAMMER_FREQUENCIES,
+      SPAMMER_GAPS
+    );
 
     // // starting web server on the first node
     // if (WEB_SERVER_IN_OTHER_PROCESS) {

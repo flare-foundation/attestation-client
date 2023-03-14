@@ -9,7 +9,7 @@ export NCNORMAL="${NC}$(tput sgr0)"
 
 source ~/.profile
 
-echo -e "${GREENBOLD}Installing Attestation Suite remote MySQL${NC}"
+echo -e "${GREENBOLD}Installing Attestation Suite MySQL${NC}"
 
 # check if MySQL setup file exists 
 # mysql
@@ -22,13 +22,15 @@ sudo apt install mysql-server -y
 #echo -e "${REDBOLD}[3] ${GREENBOLD}Initialize MySQL (install.sql)${NC}"
 #sudo mysql < install.sql
 
-yarn ts-node src/install/secureUpdateSql.ts
+#yarn ts-node src/install/secureUpdateSql.ts
 
-echo -e "${REDBOLD}[4] ${GREENBOLD}Restarting MySQL service${NC}"
+echo -e "${REDBOLD}[2] ${GREENBOLD}Restarting MySQL service${NC}"
 sudo service mysql restart
 
-
+echo -e "${REDBOLD}[3] ${GREENBOLD}Initializing MySQL databases and users${NC}"
 env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/attester-client/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareAttestationClient -p credentials.prepared/attester-client/
 env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/btc-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/btc-indexer-verifier/ -n BTC
 env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/xrp-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/xrp-indexer-verifier/ -n XRP
 env UPDATE_MYSQL=1 CREDENTIALS_KEY_FILE=credentials.prepared/doge-indexer-verifier/credentials.key yarn ts-node src/install/dockerSecureUpdateSql.ts -s 1 -i prepareIndexer -p credentials.prepared/doge-indexer-verifier/ -n DOGE
+
+echo -e "${GREENBOLD}MySQL completed${NC}"

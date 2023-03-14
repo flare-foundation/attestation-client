@@ -1,6 +1,10 @@
-# Manual installation (without dockers)
+# Direct installation to a Linux machine
 
-- install repository
+Here is bullet like summary for direct installation.
+Linux Ubuntu 20.04 and user `ubuntu` are assumed.
+The installation installs several attestation suite services, which are run as systemd services.
+
+- Install repository
 ```
 cd ~
 mkdir -p attestation-suite
@@ -9,19 +13,20 @@ cd attestation-suite
 git clone https://gitlab.com/flarenetwork/attestation-client.git
 cd attestation-client
 
-git checkout manual-install
+git checkout main
 ```
 
-- install dependencies: command `./scripts/install-dependencies.sh`
+- Install dependencies: command `./scripts/install-dependencies.sh`
 
-- login again
+- Logout and login again.
 
-- compile project: command `./scripts/compile.sh`
+- Compile the project: command `./scripts/compile.sh`
 
-- initialize credentials: command `./scripts/install-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again) 
-- copy configurations: command `cp configs/.install/configurations.json credentials/`
+- Initialize credentials: command `./scripts/install-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again).
 
-- update credentials keys
+- Copy configurations: command `cp configs/.install/configurations.json credentials/`.
+
+- Update credentials keys
     - `credentials/networks-credentials.json`
         - `PrivateKey` insert your private key
         - add key `Network` with value `coston2`
@@ -43,10 +48,10 @@ git checkout manual-install
     "XRPVerifierRouterServerPort": "9501",
     "DOGEVerifierRouterServerPort": "9504",    
     ```
-- update credentials passwords in `credentials/configurations.json` (all keys `credentials`)
-- prepare credentials: command `./scripts/prepare-credentials.sh` 
-    - use this command whenever you change something in credentials (and restart services after)
+- Update credentials passwords in `credentials/configurations.json` (all keys `credentials`)
+- Prepare credentials: command `./scripts/prepare-credentials.sh` 
+    - Use this command whenever you change something in credentials (and restart services after)
 
-- install: command `./scripts/install.sh`
+- Install: command `./scripts/install.sh`
 
-- restart all services: command `./scripts/services-restart-all.sh`
+- Restart all services: command `./scripts/services-restart-all.sh`

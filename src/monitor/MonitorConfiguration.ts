@@ -8,7 +8,7 @@ import { MonitorNodeConfig } from "./monitors/NodeMonitor";
 import { MonitorUrlConfig } from "./monitors/UrlMonitor";
 
 /**
- * Prometheuse configuration.
+ * Prometheus configuration.
  */
 export class PrometheusConfig {
   @optional() pushGatewayEnabled = false;

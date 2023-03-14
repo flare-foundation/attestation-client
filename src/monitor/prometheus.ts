@@ -30,10 +30,10 @@ export class Prometheus {
   }
 
   /**
-   *
-   * @param jobName Push registered metric to connected push gateway.
+   * Send registered metric to connected push gateway.
+   * @param jobName 
    */
-  push(jobName: string) {
+  sendPushGatewayMetric(jobName: string) {
     try {
       this.gateway
         .push({ jobName: jobName })
@@ -58,7 +58,7 @@ export class Prometheus {
   }
 
   /**
-   * Set gauge data, create and register it if not exists.
+   * Set gauge data, create and register it if it does not exists.
    * @param name
    * @param comment
    * @param labels

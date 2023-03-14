@@ -6,17 +6,15 @@ Attestation Suite monitoring utility, uses Prometheus and Grafana. This utility 
 
 The monitoring utility provides a comprehensive view of your Attestation Suite working status, allowing you to quickly identify any potential issues. By tracking metrics such as indexer histrory latency, block bottom times, node system usage you can quickly identify patterns and trends that may be impacting the performance of your system. This information can then be used to optimize your systems and ensure they are running efficiently.
 
+---
 ## Installation notes
-
-Installation notes:
 - Grafana is running on local port 9100 (not default)
 - Prometheus is running on local port 9090 (default)
 - push gateway is running on local port 9091 (default)
-- from outside the `https://monitor.oracle-daemon.com` points on Grafana
-- from outside the `https://monitor.oracle-daemon.com/prometheus` points on Prometheus
-- from outside the `https://monitor.oracle-daemon.com/pushgateway` points on push gateway
-- from outside the `https://monitor.oracle-daemon.com/monitor` points on monitor webserver
-
+- from outside the `https://<url_name>` points on Grafana
+- from outside the `https://<url_name>/prometheus` points on Prometheus
+- from outside the `https://<url_name>/pushgateway` points on push gateway
+- from outside the `https://<url_name>/monitor` points on monitor webserver
 
 ## Prometheus installation
 
@@ -44,18 +42,13 @@ scrape_configs:
   honor_timestamps: true
   scrape_interval: 15s
   scrape_timeout: 10s
-  metrics_path: /pushgateway/metrics
+  metrics_path: /monitor/metrics
   scheme: https
   follow_redirects: true
   enable_http2: true
   static_configs:
   - targets:
-    - monitor.oracle-daemon.com
-remote_write:
-- url: <enter your grafana url>
-  basic_auth:
-    username: <enter your grafana username>
-    password: <enter your grafana password>
+    - <url_name>
 ```
 
 Use this `run.sh` script.
@@ -66,10 +59,13 @@ docker run \
     prom/prometheus
 ```
 
+Monitor can be configured to provide data to Prometheus with:
+- Push Gateway 
+- Monitor Metrics server
 
 ## Grafana instalation
 
-Grafana is easiest launched from a prepared docker with command:
+Grafana is started from a prepared docker with command:
 ```
 sudo docker run -d -p 9100:3000 grafana/grafana-enterprise
 ```
@@ -78,8 +74,11 @@ Default login username is `admin` and password `admin`.
 
 ### Add Prometheus data source
 
+### Import Grafana monitoring template
+
 
 ## Push gateway
+
 Monitor can be configured to work with push gateway or ad a Prometheus server.
 TODO: Write pros cons.
 
@@ -96,13 +95,13 @@ Here is example of nginx server configuration:
 server {
         listen 443 ssl;
         listen [::]:443 ssl;
-        server_name monitor.oracle-daemon.com;
+        server_name <url_name>;
 
         #Size archive        client_max_body_size 50M;
 
-        ssl_certificate          /etc/letsencrypt/live/monitor.oracle-daemon.com/fullchain.pem;
-        ssl_certificate_key      /etc/letsencrypt/live/monitor.oracle-daemon.com/privkey.pem;
-        ssl_trusted_certificate  /etc/letsencrypt/live/monitor.oracle-daemon.com/chain.pem;
+        ssl_certificate          /etc/letsencrypt/live/<url_name>/fullchain.pem;
+        ssl_certificate_key      /etc/letsencrypt/live/<url_name>/privkey.pem;
+        ssl_trusted_certificate  /etc/letsencrypt/live/<url_name>/chain.pem;
 
         location / {
            proxy_set_header Host $http_host;

@@ -10,8 +10,8 @@ async function run() {
   // read configuration
   await initializeJSONsecure(DEFAULT_SECURE_CONFIG_PATH, process.env.FLARE_NETWORK ?? "Coston");
 
-  const installLines = readFileSecure("configs/.install/templates/sql/install.sql").split(/\r?\n/);
-  const updateLines = readFileSecure("configs/.install/templates/sql/update.sql").split(/\r?\n/);
+  const installLines = (await readFileSecure("configs/.install/templates/sql/install.sql")).split(/\r?\n/);
+  const updateLines = (await readFileSecure("configs/.install/templates/sql/update.sql")).split(/\r?\n/);
 
   for (var line of installLines) {
     try {

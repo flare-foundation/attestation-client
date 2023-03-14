@@ -5,6 +5,9 @@ import { MonitorBase, MonitorStatus } from "../MonitorBase";
 import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
+/**
+ * Node monitor configuration class.
+ */
 export class MonitorNodeConfig extends MonitorConfigBase {
   url = "";
   username = "";
@@ -19,6 +22,9 @@ export class MonitorNodeConfig extends MonitorConfigBase {
   }
 }
 
+/**
+ * Node monitor.
+ */
 export class NodeMonitor extends MonitorBase<MonitorNodeConfig> {
   chainType: ChainType;
 
@@ -66,11 +72,11 @@ export class NodeMonitor extends MonitorBase<MonitorNodeConfig> {
     logException(error, message);
   }
 
-  async perf() {
+  async getPerformanceMetrics() {
     return null;
   }
 
-  async check(): Promise<MonitorStatus> {
+  async getMonitorStatus(): Promise<MonitorStatus> {
     const res = new MonitorStatus();
     res.type = `node`;
     res.name = this.name;

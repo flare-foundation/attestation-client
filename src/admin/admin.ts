@@ -157,7 +157,7 @@ async function admin() {
     resAlerts = [];
     for (const alert of monitorManager.monitors) {
       try {
-        const resAlert = await alert.check();
+        const resAlert = await alert.getMonitorStatus();
 
         if (!resAlert) continue;
 
@@ -168,7 +168,7 @@ async function admin() {
     resPerfs = [];
     for (const alert of monitorManager.monitors) {
       try {
-        const resPerf = await alert.perf();
+        const resPerf = await alert.getPerformanceMetrics();
 
         if (!resPerf) continue;
 

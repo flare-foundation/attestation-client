@@ -3,7 +3,7 @@
 
 import { assert } from "chai";
 import sinon from "sinon";
-import { getCredentialsKeyByAddress } from "../../src/utils/config/credentialsKey";
+import { getSecretByAddress } from "../../src/utils/config/credentialsKey";
 import { _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
@@ -62,7 +62,7 @@ describe(`Test credentials config utils (${getTestFile(__filename)})`, () => {
     })
 
     it(`get credentials key google cloud secret manager`, async () => {
-        const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:projects/746294693511/secrets/test1/versions/latest");
+        const credentialsPassword = await getSecretByAddress("GoogleCloudSecretManager:projects/746294693511/secrets/test1/versions/latest");
 
         assert(credentialsPassword === password, `credentials password not correct`);
 

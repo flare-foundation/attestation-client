@@ -1,4 +1,6 @@
-import { BtcTransaction, ChainType, prefix0x, sleepMs, traceManager, XrpTransaction } from "@flarenetwork/mcc";
+// yarn test test/attestationClient/attesterClientIntegration.test-slow.ts
+
+import { BtcTransaction, ChainType, sleepMs, traceManager, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { spawn } from "child_process";
@@ -38,7 +40,7 @@ import {
 } from "./utils/attestation-client-test-utils";
 chai.use(chaiAsPromised);
 
-describe(`Attester client integration (sometimes it fails due to time uncertainty) (${getTestFile(__filename)})`, () => {
+describe(`Attester client integration (sometimes it fails due to time uncertainty (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
 
   // const date = new Date(2023, 2, 10, 1);
@@ -70,7 +72,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
   const BIT_VOTE_ADDRESS = "0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf";
   const SPAMMER_PRIVATE_KEY = "0x28d1bfbbafe9d1d4f5a11c3c16ab6bf9084de48d99fbac4058bdfa3c80b29087";
 
-  const NUMBER_OF_CLIENTS = 9;
+  const NUMBER_OF_CLIENTS = 5;
   const IN_PROCESS_CLIENTS = 1;
   const NUMBER_OF_FAILING_CLIENTS = 0;
   const WEB_SERVER_IN_OTHER_PROCESS = false;

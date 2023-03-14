@@ -1,8 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import BN from "bn.js";
-import { ApiPropertyUnion } from "../../servers/common/src/utils/open-api-utils";
-import { DHTypeArray } from "../generated/attestation-hash-types";
-import { ARTypeArray } from "../generated/attestation-request-types";
 import { SourceId } from "../sources/sources";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,22 +45,18 @@ export class Verification<R, T> {
   /**
    * Hash of the attestation as included in Merkle tree.
    */
-  @ApiPropertyOptional()
   hash?: string;
   /**
    * Parsed attestation request.
    */
-  @ApiPropertyUnion(ARTypeArray)
   request?: R;
   /**
    * Attestation response.
    */
-  @ApiPropertyUnion(DHTypeArray)
   response?: T;
   /**
    * Verification status. 
    */
-  @ApiProperty({enum: VerificationStatus})
   status: VerificationStatus;
 }
 
@@ -118,7 +110,6 @@ export class AttestationRequest {
   /**
    * Attestation request in hex string representing byte sequence as submitted to State Connector smart contract.
    */
-  @ApiProperty()
   request: string;
 }
 

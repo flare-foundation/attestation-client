@@ -1,13 +1,14 @@
 import { Body, Controller, Inject, Post, UseGuards } from "@nestjs/common";
 import { ApiExtraModels, ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { AttestationRequest, Verification } from "../../../../verification/attestation-types/attestation-types";
 import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
 // import { AuthGuard } from '../guards/auth.guard';
 import { AuthGuard } from "@nestjs/passport";
-import { VerifierProcessor } from "../services/verifier-processors/verifier-processor";
-import { ARType, ARTypeArray } from "../../../../verification/generated/attestation-request-types";
 import { DHType, DHTypeArray } from "../../../../verification/generated/attestation-hash-types";
+import { ARType, ARTypeArray } from "../../../../verification/generated/attestation-request-types";
 import { ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
+import { APIAttestationRequest } from "../dtos/APIAttestationRequest.dto";
+import { APIVerification } from "../dtos/APIVerification.dto";
+import { VerifierProcessor } from "../services/verifier-processors/verifier-processor";
 
 @ApiTags("Verifier")
 @Controller("query")
@@ -23,8 +24,8 @@ export class VerifierController {
    * @returns
    */
   @Post("")
-  @ApiResponseWrapperDec(Verification)
-  public async processAttestationRequest(@Body() attestationRequest: AttestationRequest): Promise<ApiResponseWrapper<Verification<ARType, DHType>>> {
+  @ApiResponseWrapperDec(APIVerification)
+  public async processAttestationRequest(@Body() attestationRequest: APIAttestationRequest): Promise<ApiResponseWrapper<APIVerification<ARType, DHType>>> {
     return handleApiResponse(this.processor.verify(attestationRequest));
   }
 
@@ -34,8 +35,8 @@ export class VerifierController {
    * @returns 
    */
   @Post("prepare")
-  @ApiResponseWrapperDec(Verification)
-  public async check(@Body() request: ARType): Promise<ApiResponseWrapper<Verification<ARType, DHType>>> {
+  @ApiResponseWrapperDec(APIVerification)
+  public async check(@Body() request: ARType): Promise<ApiResponseWrapper<APIVerification<ARType, DHType>>> {
     return handleApiResponse(this.processor.prepareRequest(request));
   }
 

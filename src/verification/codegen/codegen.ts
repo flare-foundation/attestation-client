@@ -21,8 +21,8 @@ async function generateCodeFiles() {
   const definitions = await readAttestationTypeSchemes();
 
   createAttestationEnumFile(definitions);
-  createAttestationRequestTypesFile(definitions);
-  createAttestationHashTypesFile(definitions);
+  createAttestationRequestTypesFile(definitions, {dto: true});
+  createAttestationHashTypesFile(definitions, {dto: true});
   createAttestationRandomUtils(definitions);
   createAttestationHashUtils(definitions);
   createAttestationRequestParse(definitions);

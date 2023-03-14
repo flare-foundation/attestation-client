@@ -16,6 +16,13 @@ import { DHTypeArray } from "../../../../verification/generated/attestation-hash
 export class ProofController {
   constructor(private proofEngine: ProofEngineService) {}
 
+  /**
+   * Returns all vote data of the attestation provider for the voting round @param roundId
+   * that was included into its Merkle tree. The data contains attestation responses, requests, the hash in 
+   * Merkle tree and the Merkle proof. The data can be used to fully assemble the Merkle tree used in the vote.
+   * @param roundId 
+   * @returns 
+   */
   @Get("votes-for-round/:roundId")
   @ApiResponseWrapperDec(VotingRoundResult, true)
   public async votesForRound(@Param("roundId", new ParseIntPipe()) roundId: number): Promise<ApiResponseWrapper<VotingRoundResult[]>> {
@@ -30,6 +37,12 @@ export class ProofController {
     }
   }
 
+  /**
+   * Returns proof data for specific attestation request. 
+   * Attestation request is identified by the request data and round id in which it was submitted.
+   * @param roundRequest 
+   * @returns 
+   */
   @Post("get-specific-proof")
   @ApiResponseWrapperDec(VotingRoundResult)
   public async getSpecificProofController(@Body() roundRequest: SpecificProofRequest): Promise<ApiResponseWrapper<VotingRoundResult>> {
@@ -44,6 +57,12 @@ export class ProofController {
     }
   }
 
+  /**
+   * Lists all requests received by attestation client.
+   * Each request includes its processing status.
+   * @param roundId 
+   * @returns 
+   */
   @Get("requests-for-round/:roundId")
   @ApiResponseWrapperDec(VotingRoundRequest, true)
   public async requestsForRound(@Param("roundId", new ParseIntPipe()) roundId: number): Promise<ApiResponseWrapper<VotingRoundRequest[]>> {

@@ -31,6 +31,8 @@ import { verifyReferencedPaymentNonexistenceALGO } from "./ALGO/v-00004-referenc
 
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { Attestation } from "../../attester/Attestation";
+import { DHType } from "../generated/attestation-hash-types";
+import { ARType } from "../generated/attestation-request-types";
 
 export class WrongAttestationTypeError extends Error {
   constructor(message) {
@@ -46,11 +48,11 @@ export class WrongSourceIdError extends Error {
   }
 }
 
-export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager): Promise<Verification<any, any>> {
+export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>> {
   return traceFunction(_verifyAttestation, client, attestation.data.request, indexer);
 }
 
-export async function _verifyAttestation(client: MccClient, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<any, any>> {
+export async function _verifyAttestation(client: MccClient, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>> {
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
   switch (attestationType) {
     case AttestationType.Payment:
@@ -118,7 +120,7 @@ export async function _verifyAttestation(client: MccClient, attestationRequest: 
   }
 }
 
-export async function verifyBTC(client: MCC.BTC, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<any, any>> {
+export async function verifyBTC(client: MCC.BTC, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>> {
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.BTC) {
@@ -139,7 +141,7 @@ export async function verifyBTC(client: MCC.BTC, attestationRequest: string, ind
   }
 }
 
-export async function verifyLTC(client: MCC.LTC, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<any, any>> {
+export async function verifyLTC(client: MCC.LTC, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>> {
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.LTC) {
@@ -160,7 +162,7 @@ export async function verifyLTC(client: MCC.LTC, attestationRequest: string, ind
   }
 }
 
-export async function verifyDOGE(client: MCC.DOGE, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<any, any>> {
+export async function verifyDOGE(client: MCC.DOGE, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>> {
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.DOGE) {
@@ -181,7 +183,7 @@ export async function verifyDOGE(client: MCC.DOGE, attestationRequest: string, i
   }
 }
 
-export async function verifyXRP(client: MCC.XRP, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<any, any>> {
+export async function verifyXRP(client: MCC.XRP, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>> {
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.XRP) {
@@ -202,7 +204,7 @@ export async function verifyXRP(client: MCC.XRP, attestationRequest: string, ind
   }
 }
 
-export async function verifyALGO(client: MCC.ALGO, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<any, any>> {
+export async function verifyALGO(client: MCC.ALGO, attestationRequest: string, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>> {
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.ALGO) {

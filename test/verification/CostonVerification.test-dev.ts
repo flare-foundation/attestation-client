@@ -119,7 +119,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     const result = await verifyAttestation(client, att, indexedQueryManager);
 
     console.log(`Status ${result.status}`);
-    console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
+    // console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
     const lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
     console.log(`Last confirmed block: ${lastConfirmedBlock}`);
   });
@@ -141,7 +141,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
 
     console.log(hexlifyBN(result));
     console.log(`Status ${result.status}`);
-    console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
+    // console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
     const lastConfirmedBlock = await indexedQueryManager.getLastConfirmedBlockNumber();
     console.log(`Last confirmed block: ${lastConfirmedBlock}`);
   });

@@ -76,7 +76,7 @@
     "test:coverage-fullc": "env NODE_ENV=development nyc yarn test-all-fullc",
     "atest": "env NODE_ENV=development yarn hardhat run scripts/generateAttestationRequest.ts --network local",
     "-------NEST---------": "",
-    "devverifierbtc2": "env NODE_ENV=development VERIFIER_TYPE=btc yarn nest start verifier-server --debug --watch",
+    "devverifierbtc2": "env SECURE_CONFIG_PATH=test/attestationClient/test-data TEST_CREDENTIALS=1 NODE_ENV=development VERIFIER_TYPE=btc yarn nest start verifier-server --debug --watch",
     "devwebserver_nest": "env SECURE_CONFIG_PATH=test/attestationClient/test-data TEST_CREDENTIALS=1 NODE_ENV=development yarn nest start web-server --debug --watch",
     "build_web_server_nest": "yarn nest build web-server",
     "build_verifier_server_nest": "yarn nest build verifier-server",

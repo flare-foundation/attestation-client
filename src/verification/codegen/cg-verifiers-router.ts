@@ -24,7 +24,7 @@ export async function verify${sourceName}(
   client:  MCC.${sourceName}, 
   attestationRequest: string,
   indexer: IndexedQueryManager
-): Promise<Verification<any, any>>{
+): Promise<Verification<ARType, DHType>>{
   let {attestationType, sourceId} = getAttestationTypeAndSource(attestationRequest);
 
   if(sourceId != SourceId.${sourceName}) {
@@ -99,6 +99,8 @@ import { Verification } from "../attestation-types/attestation-types";
 ${routerImports}
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager"
 import { Attestation } from "../../attester/Attestation"
+import { DHType } from "../generated/attestation-hash-types";
+import { ARType } from "../generated/attestation-request-types";
 
 export class WrongAttestationTypeError extends Error {
 	constructor(message) {
@@ -114,7 +116,7 @@ export class WrongSourceIdError extends Error {
 	}
 }
 
-export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager): Promise<Verification<any, any>>{
+export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>>{
   return traceFunction(
     _verifyAttestation,
     client,
@@ -127,7 +129,7 @@ export async function _verifyAttestation(
   client: MccClient,
   attestationRequest: string,
   indexer: IndexedQueryManager
-): Promise<Verification<any, any>>{
+): Promise<Verification<ARType, DHType>>{
 	let {attestationType, sourceId} = getAttestationTypeAndSource(attestationRequest);
 	switch(attestationType) {
 ${attestationTypeCases}

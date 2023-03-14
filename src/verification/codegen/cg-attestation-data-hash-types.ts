@@ -23,8 +23,13 @@ function genAttestationDataHashType(definition: AttestationTypeScheme, options?:
   const values = definition.dataHashDefinition.map((item) => genDefHashItem(item, options)).join("\n\n");
   return `
   export class ${DATA_HASH_TYPE_PREFIX}${definition.name} {
-  // Attestation type${options?.dto ? "\n@ApiPropertyOptional()\n" : ""}  
+  /** 
+   * Round id in which the attestation request was validated.
+   */${options?.dto ? "\n@ApiPropertyOptional()\n" : ""}  
   stateConnectorRound?: number;${options?.dto ? "\n@ApiPropertyOptional()\n" : ""}
+  /**
+   * Merkle proof (a list of 32-byte hex hashes).
+   */
   merkleProof?: string[];
    
   ${values}
@@ -54,5 +59,6 @@ export function createAttestationHashTypesFile(definitions: AttestationTypeSchem
   });
   content += dhType(definitions);
   const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
-  fs.writeFileSync(ATT_HASH_TYPES_FILE, prettyContent, "utf8");
+  const fName = options?.filePath ?? ATT_HASH_TYPES_FILE
+  fs.writeFileSync(fName, prettyContent, "utf8");
 }

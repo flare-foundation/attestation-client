@@ -1,7 +1,8 @@
 import fs from "fs";
 import prettier from "prettier";
+import { option } from "yargs";
 import { AttestationRequestScheme, AttestationTypeScheme, SupportedRequestType } from "../attestation-types/attestation-types";
-import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
+import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, GENERATED_ROOT, PRETTIER_SETTINGS } from "./cg-constants";
 import { JSDocCommentText, OpenAPIOptionsRequests } from "./cg-utils";
 
 function enumProperty(enumName: string, comment?: string) {
@@ -30,7 +31,7 @@ function genDefReqItem(item: AttestationRequestScheme, options: OpenAPIOptionsRe
         return "";
       default:
         // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-        ((_: never): void => {})(itemType);
+        ((_: never): void => { })(itemType);
     }
   }
 
@@ -58,13 +59,17 @@ function arType(definitions: AttestationTypeScheme[]) {
 }
 
 export function createAttestationRequestTypesFile(definitions: AttestationTypeScheme[], options: OpenAPIOptionsRequests) {
-  let openApiImport = options?.dto ? "\nimport { ApiProperty } from \"@nestjs/swagger\";" : ""
+  const openApiImport = options?.dto ? "\nimport { ApiProperty } from \"@nestjs/swagger\";" : ""
+  let prefixPath = "";
+  if (options?.dto && options?.filePath) {
+    prefixPath = options.filePath.split("/").slice(1).map(x => "..").join("/") + "/" + GENERATED_ROOT + "/"
+  }
   // Request types
   let content = `${DEFAULT_GEN_FILE_HEADER}
 ${openApiImport}  
-import { ByteSequenceLike, NumberLike } from "../attestation-types/attestation-types";
-import { AttestationType } from "./attestation-types-enum";
-import { SourceId } from "../sources/sources";
+import { ByteSequenceLike, NumberLike } from "${prefixPath}../attestation-types/attestation-types";
+import { AttestationType } from "${prefixPath}./attestation-types-enum";
+import { SourceId } from "${prefixPath}../sources/sources";
 `;
 
   definitions.forEach((definition) => {
@@ -73,5 +78,6 @@ import { SourceId } from "../sources/sources";
   content += arType(definitions);
 
   const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
-  fs.writeFileSync(ATT_REQUEST_TYPES_FILE, prettyContent, "utf8");
+  const fName = options?.filePath ?? ATT_REQUEST_TYPES_FILE
+  fs.writeFileSync(fName, prettyContent, "utf8");
 }

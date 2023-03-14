@@ -43,10 +43,10 @@ export function definitionFile(definition: AttestationTypeScheme, folder?: strin
 
 export interface OpenAPIOptionsRequests {
   dto?: boolean;
-  rootFolder?: string;
+  filePath?: string;
 }
 
 export interface OpenAPIOptionsResponses {
   dto?: boolean;
-  rootFolder?: string;
+  filePath?: string;
 }

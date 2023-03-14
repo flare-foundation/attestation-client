@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { MonitorStatus, PerformanceInfo } from "../../../../monitor/MonitorBase";
+import { MonitorStatus, PerformanceMetrics } from "../../../../monitor/MonitorBase";
 import { getPrometheusMetrics, getStatusJson, getStatusObject } from "../../../../monitor/MonitorManager";
 import { ServiceStatus } from "../dtos/ServiceStatus.dto";
 import { SystemStatus } from "../dtos/SystemStatus.dto";
@@ -56,7 +56,7 @@ export class PrometheusEngineService {
 `;
     };
 
-    let onePerformance = (status: PerformanceInfo) => {
+    let onePerformance = (status: PerformanceMetrics) => {
       return `
       <tr>
          <td>${status.name}</td>

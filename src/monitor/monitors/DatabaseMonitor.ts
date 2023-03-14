@@ -3,10 +3,13 @@ import { DatabaseConnectOptions } from "../../utils/database/DatabaseConnectOpti
 import { DatabaseService } from "../../utils/database/DatabaseService";
 import { AttLogger } from "../../utils/logging/logger";
 import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflection";
-import { MonitorBase, MonitorStatus, PerformanceInfo } from "../MonitorBase";
+import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
 import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
+/**
+ * Database monitor configuration class.
+ */
 export class MonitorDatabaseConfig extends MonitorConfigBase implements IReflection<MonitorDatabaseConfig> {
   @optional() database = "attester";
   @optional() monitorPerformance = false;
@@ -30,6 +33,9 @@ export class MonitorDatabaseConfig extends MonitorConfigBase implements IReflect
   }
 }
 
+/**
+ * Database monitor.
+ */
 export class DatabaseMonitor extends MonitorBase<MonitorDatabaseConfig> {
   dbService: DatabaseService;
   logger: AttLogger;
@@ -46,7 +52,7 @@ export class DatabaseMonitor extends MonitorBase<MonitorDatabaseConfig> {
     }
   }
 
-  async check() {
+  async getMonitorStatus() {
     if (this.errorStatus) {
       const res = new MonitorStatus();
       res.type = "database";
@@ -60,7 +66,7 @@ export class DatabaseMonitor extends MonitorBase<MonitorDatabaseConfig> {
     return null;
   }
 
-  async perf(): Promise<PerformanceInfo[]> {
+  async getPerformanceMetrics(): Promise<PerformanceMetrics[]> {
     const resArray = [];
 
     if (this.errorStatus) {
@@ -76,7 +82,7 @@ export class DatabaseMonitor extends MonitorBase<MonitorDatabaseConfig> {
       for (const user of dbRes) {
         if (user.user === "root" || user.user === "event_scheduler" || user.user === "processReader") continue;
 
-        resArray.push(new PerformanceInfo(`mysql.${user.user}`, "time", user.time, "ms", `${user.conn} connection(s)`));
+        resArray.push(new PerformanceMetrics(`mysql.${user.user}`, "time", user.time, "ms", `${user.conn} connection(s)`));
       }
     }
 

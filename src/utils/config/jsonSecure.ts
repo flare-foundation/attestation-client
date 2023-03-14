@@ -2,10 +2,10 @@ import { sleepMs } from "@flarenetwork/mcc";
 import fs from "fs";
 import path from "path";
 import { exit } from "process";
-import { getCredentialsKey } from "./credentialsKey";
-import { readJSONfromFile, readJSONfromString } from "./json";
 import { getGlobalLogger } from "../logging/logger";
 import { decryptString } from "../security/encrypt";
+import { getCredentialsKey, getSecretByAddress } from "./credentialsKey";
+import { readJSONfromFile, readJSONfromString } from "./json";
 
 // We assume that one app run has only one network credentials.
 export let SECURE_MASTER_CONFIGS = [];
@@ -140,9 +140,9 @@ export function isInitializedJSONsecure(): boolean {
  * @param validate
  * @returns
  */
-export function readFileSecure(filename: string, parser: any = null, validate = false): string {
+export async function readFileSecure(filename: string, parser: any = null, validate = false): Promise<string> {
   let data = fs.readFileSync(filename).toString();
-  return _prepareSecureData(data, filename, NETWORK_NAME);
+  return await _prepareSecureData(data, filename, NETWORK_NAME);
 }
 
 /**
@@ -155,12 +155,12 @@ export function readFileSecure(filename: string, parser: any = null, validate = 
  * @param validate
  * @returns
  */
-export function readJSONsecure<T>(filename: string, parser: any = null, validate = false): T {
+export async function readJSONsecure<T>(filename: string, parser: any = null, validate = false): Promise<T> {
   if (!isInitializedJSONsecure()) {
     return readJSONfromFile(filename, parser, validate);
   }
   let data = fs.readFileSync(filename).toString();
-  data = _prepareSecureData(data, filename, NETWORK_NAME);
+  data = await _prepareSecureData(data, filename, NETWORK_NAME);
   return readJSONfromString<T>(data, parser, validate, filename);
 }
 
@@ -177,7 +177,7 @@ export function readJSONsecure<T>(filename: string, parser: any = null, validate
  * @param network
  * @returns
  */
-export function _prepareSecureData(data: string, inputFilename: string, network: string, searchStub = "Network"): string {
+export async function _prepareSecureData(data: string, inputFilename: string, network: string, searchStub = "Network"): Promise<string> {
   const logger = getGlobalLogger();
   data = replaceAll(data, searchStub, network);
   for (const config of SECURE_MASTER_CONFIGS) {
@@ -188,7 +188,15 @@ export function _prepareSecureData(data: string, inputFilename: string, network:
   if (leftVariables) {
     const leftVariablesNoDup = leftVariables.filter((item, index) => leftVariables.indexOf(item) === index);
     for (const left of leftVariablesNoDup) {
-      logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
+      try {
+        // check if it is secure credential
+        const search = left.substring(2, left.length - 1);
+        const secret = await getSecretByAddress(search, false);
+        data = replaceAll(data, search, secret);
+      }
+      catch {
+        logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
+      }
     }
   }
   return data;

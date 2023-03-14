@@ -2,10 +2,13 @@ import { DBState } from "../../entity/indexer/dbState";
 import { DatabaseService } from "../../utils/database/DatabaseService";
 import { getUnixEpochTimestamp, secToHHMMSS } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
-import { MonitorBase, MonitorStatus, PerformanceInfo } from "../MonitorBase";
+import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 import { MonitorConfig } from "../MonitorConfiguration";
 
+/**
+ * Indexer monitor configuration class.
+ */
 export class MonitorIndexerConfig extends MonitorConfigBase {
   database = "";
 
@@ -18,6 +21,9 @@ export class MonitorIndexerConfig extends MonitorConfigBase {
   }
 }
 
+/**
+ * Indexer monitor.
+ */
 export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
   dbService: DatabaseService;
 
@@ -43,7 +49,7 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
     }
   }
 
-  async perf() {
+  async getPerformanceMetrics() {
     if (!this.lastState || !this.lastState.valueString) {
       return null;
     }
@@ -56,23 +62,23 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
     const N = this.lastState.comment.match(/N=([0-9]+)/);
     const T = this.lastState.comment.match(/T=([0-9]+)/);
 
-    resArray.push(new PerformanceInfo(`indexer.${this.name}`, `late`, +late, "sec"));
+    resArray.push(new PerformanceMetrics(`indexer.${this.name}`, `late`, +late, "sec"));
     if (N) {
-      resArray.push(new PerformanceInfo(`indexer.${this.name}`, `T`, +T[1], "block"));
+      resArray.push(new PerformanceMetrics(`indexer.${this.name}`, `T`, +T[1], "block"));
     }
 
     if (T) {
-      resArray.push(new PerformanceInfo(`indexer.${this.name}`, `N`, +N[1], "block"));
+      resArray.push(new PerformanceMetrics(`indexer.${this.name}`, `N`, +N[1], "block"));
     }
 
     if (this.lastStateBottom) {
-      resArray.push(new PerformanceInfo(`indexer.${this.name}`, `Nbottom`, this.lastStateBottom.valueNumber, "block"));
+      resArray.push(new PerformanceMetrics(`indexer.${this.name}`, `Nbottom`, this.lastStateBottom.valueNumber, "block"));
     }
 
     return resArray;
   }
 
-  async check(): Promise<MonitorStatus> {
+  async getMonitorStatus(): Promise<MonitorStatus> {
     const res = new MonitorStatus();
     res.type = "indexer";
     res.name = this.name;

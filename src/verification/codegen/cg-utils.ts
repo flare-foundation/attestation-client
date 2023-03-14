@@ -40,3 +40,13 @@ export function definitionFile(definition: AttestationTypeScheme, folder?: strin
   const suffix = addTs ? ".ts" : "";
   return `${root}t-${("" + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}${suffix}`;
 }
+
+export interface OpenAPIOptionsRequests {
+  dto?: boolean;
+  rootFolder?: string;
+}
+
+export interface OpenAPIOptionsResponses {
+  dto?: boolean;
+  rootFolder?: string;
+}

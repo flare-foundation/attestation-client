@@ -2,18 +2,19 @@ import fs from "fs";
 import prettier from "prettier";
 import { AttestationRequestScheme, AttestationTypeScheme, SupportedRequestType } from "../attestation-types/attestation-types";
 import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
-import { commentText } from "./cg-utils";
+import { JSDocCommentText } from "./cg-utils";
 
-function enumProperty(enumName: string) {
-  return `{enum: ${enumName}}`;
+function enumProperty(enumName: string, comment?: string) {
+  return `{enum: ${enumName}, description: \`${comment ?? ""}\`}`;
 }
 
-function numberLikeProperty() {
+function numberLikeProperty(comment?: string) {
   return `{
     oneOf: [
       { type: "string"},
       { type: "number"}
-    ]
+    ],
+    description: \`${comment ?? ""}\`
   }`;
 }
 
@@ -22,9 +23,9 @@ function genDefReqItem(item: AttestationRequestScheme) {
     switch (itemType) {
       case "AttestationType":
       case "SourceId":
-        return enumProperty(itemType);
+        return enumProperty(itemType, item.description);
       case "NumberLike":
-        return numberLikeProperty();
+        return numberLikeProperty(item.description);
       case "ByteSequenceLike":
         return "";
       default:
@@ -33,8 +34,8 @@ function genDefReqItem(item: AttestationRequestScheme) {
     }
   }
 
-  return `${commentText(item.description)}
-   @ApiProperty(${itemTypeApiProp(item.type)})
+  return `${JSDocCommentText(item.description)}
+  @ApiProperty(${itemTypeApiProp(item.type)})
    ${item.key}: ${item.type};`;
 }
 

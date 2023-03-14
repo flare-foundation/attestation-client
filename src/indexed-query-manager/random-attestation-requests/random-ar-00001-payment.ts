@@ -4,6 +4,7 @@ import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttLogger } from "../../utils/logging/logger";
 import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
+import { DHPayment } from "../../verification/generated/attestation-hash-types";
 import { hashPayment } from "../../verification/generated/attestation-hash-utils";
 import { ARPayment } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
@@ -57,7 +58,7 @@ export async function prepareRandomizedRequestPayment(
     let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
-      request.messageIntegrityCode = hashPayment(request, response.response, MIC_SALT);
+      request.messageIntegrityCode = hashPayment(request, response.response as DHPayment, MIC_SALT);
       logger.info(`Request augmented correctly (Payment)`);
       return request;
     }

@@ -4,6 +4,7 @@ import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttLogger } from "../../utils/logging/logger";
 import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
+import { DHBalanceDecreasingTransaction } from "../../verification/generated/attestation-hash-types";
 import { hashBalanceDecreasingTransaction } from "../../verification/generated/attestation-hash-utils";
 import { ARBalanceDecreasingTransaction } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
@@ -61,7 +62,7 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
     let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
-      request.messageIntegrityCode = hashBalanceDecreasingTransaction(request, response.response, MIC_SALT);
+      request.messageIntegrityCode = hashBalanceDecreasingTransaction(request, response.response as DHBalanceDecreasingTransaction, MIC_SALT);
       logger.info(`Request augmented correctly (BalanceDecreasingTransaction)`);
       return request;
     }

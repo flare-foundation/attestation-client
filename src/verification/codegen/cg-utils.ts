@@ -14,6 +14,14 @@ export function commentText(text: string, prefix = "//") {
     .join("\n");
 }
 
+export function JSDocCommentText(text: string) {
+  return "/**\n" + (text
+    .trim()
+    .split("\n")
+    .map((line) => `* ${line}`)
+    .join("\n")) + "\n*/"
+}
+
 export function dashCapitalized(name: string, glue = "-") {
   return name.replace(/([a-z])([A-Z])/g, `$1${glue}$2`).toLowerCase();
 }

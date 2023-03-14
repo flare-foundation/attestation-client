@@ -3,15 +3,19 @@ import prettier from "prettier";
 import { AttestationTypeScheme, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATT_HASH_TYPES_FILE, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
-import { commentText } from "./cg-utils";
+import { JSDocCommentText } from "./cg-utils";
 
-export function BNProperty() {
-  return `{type: "string", description:"String representation of number"}`;
+export function BNProperty(comment?: string) {
+  return `{type: "string", description: \`${comment ?? "String representation of number"}\`}`;
+}
+
+function descriptionObj(comment?: string) {
+  return `{description: \`${comment ?? ""}\`}`;
 }
 
 function genDefHashItem(item: DataHashScheme) {
-  return `${commentText(item.description)}
-   @ApiProperty(${tsTypeForSolidityType(item.type) === "BN" ? BNProperty() : ""})
+  return `${JSDocCommentText(item.description)}
+   @ApiProperty(${tsTypeForSolidityType(item.type) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})
    ${item.key}: ${tsTypeForSolidityType(item.type)};`;
 }
 

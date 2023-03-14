@@ -56,7 +56,7 @@ export class VerifierRouter {
   }
 
   /**
-   * Auxilliary function. Returns VerifierRoute for given @param sourceName and @param attestationTypeName
+   * Auxiliary function. Returns VerifierRoute for given @param sourceName and @param attestationTypeName
    * @param sourceName
    * @param attestationTypeName
    * @returns
@@ -77,7 +77,7 @@ export class VerifierRouter {
   }
 
   /**
-   * Auxilliary function. Sets VerifierRoute for given @param sourceName and @param attestationTypeName
+   * Auxiliary function. Sets VerifierRoute for given @param sourceName and @param attestationTypeName
    * @param sourceName
    * @param attestationTypeName
    * @param value
@@ -101,7 +101,7 @@ export class VerifierRouter {
    * a pair of (sourceName, attestationTypeName)
    */
   public async initialize(config: VerifierRouteConfig, definitions: AttestationTypeScheme[], logger?: AttLogger, mockTest = false) {
-    if (mockTest) return;
+    if (mockTest) return; //for testing purposes
 
     if (this._initialized) {
       throw new Error("Already initialized");
@@ -112,7 +112,7 @@ export class VerifierRouter {
       throw new Error(`Missing configuration`);
     }
 
-    this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>();
+    this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>(); //different type as promised
 
     // set up all possible routes
     for (let definition of definitions) {
@@ -131,7 +131,7 @@ export class VerifierRouter {
         tmp.set(attestationTypeName, EMPTY_VERIFIER_ROUTE);
       }
     }
-    // Check credentials against all possible routes and setup routes form credentials
+    // Check credentials against all possible routes and setup routes from credentials
     for (let sourceCred of this.config.verifierRoutes) {
       let defaultRoute: VerifierRoute | null = null;
       if (sourceCred.defaultUrl && sourceCred.defaultUrl.length > 0) {

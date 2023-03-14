@@ -193,7 +193,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         const data = new BitVoteData(vote);
         round.registerBitVote(data);
       }
-      const res = round.calculateBitVotingResult();
+      const res = round.calculateBitVotingResult(false);
       expect(res.toIndices(round.attestations.length)).to.deep.eq([0, 1, 2, 3, 4, 5]);
     });
 
@@ -249,7 +249,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     it("Should tryCalculateBitVotingResults", function () {
       round.phase = AttestationRoundPhase.commit;
       round.attestStatus = AttestationRoundStatus.bitVotingClosed;
-      round.tryCalculateBitVotingResults();
+      round.tryCalculateBitVotingResults(false);
       for (let j = 0; j < 6; j++) {
         assert(round.attestations[j].chosen);
       }
@@ -281,7 +281,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         const data = new BitVoteData(vote);
         round.registerBitVote(data);
       }
-      const res = round.calculateBitVotingResult();
+      const res = round.calculateBitVotingResult(true);
       expect(res.toIndices(round.attestations.length)).to.deep.eq([]);
     });
   });

@@ -36,7 +36,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
 }
 
 /**
- * Helper random value generator for Solidity type values used in in randomized attestaion requests or responses.
+ * Helper random value generator for Solidity type values used in in randomized attestation requests or responses.
  * Primarily used for testing
  * @param request attestation request or response object
  * @param key key of the object to randomize
@@ -118,7 +118,7 @@ export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
 }
 
 /**
- * Lister of the attestation type definitions form file system
+ * Lister of the attestation type definitions from file system
  * @returns the list of the names of the files matching the attestation type definition naming convention.
  */
 export async function getAttTypesDefinitionFiles(): Promise<string[]> {

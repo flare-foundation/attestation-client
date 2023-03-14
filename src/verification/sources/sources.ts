@@ -22,7 +22,7 @@ export function getSourceName(sourceId: number) {
 }
 
 /**
- * Returnes sourceId enum given either name or enum number.
+ * Returns sourceId enum given either name or enum number.
  * Note: that function does not do any additional validity checks so it must be
  * called by user with correct (sensible) id number.
  * @param id

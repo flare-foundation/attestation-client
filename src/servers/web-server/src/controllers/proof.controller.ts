@@ -1,14 +1,14 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
+import { ApiResponseWrapper, ApiResStatusEnum, handleApiResponse } from "../../../common/src";
+import { ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
+import { SpecificProofRequest } from "../dtos/SpecificProofRequest.dto";
 import { SystemStatus } from "../dtos/SystemStatus.dto";
 import { VotingRoundRequest } from "../dtos/VotingRoundRequest.dto";
 import { VotingRoundResult } from "../dtos/VotingRoundResult.dto";
+import { DHTypeArray } from "../dtos/w-hash-types.dto";
+import { ARTypeArray } from "../dtos/w-request-types.dto";
 import { ProofEngineService } from "../services/proof-engine.service";
-import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
-import { ApiResponseWrapper, ApiResStatusEnum, handleApiResponse } from "../../../common/src";
-import { SpecificProofRequest } from "../dtos/SpecificProofRequest.dto";
-import { ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
-import { ARTypeArray } from "../../../../verification/generated/attestation-request-types";
-import { DHTypeArray } from "../../../../verification/generated/attestation-hash-types";
 
 @ApiTags("Proof")
 @Controller("api/proof")

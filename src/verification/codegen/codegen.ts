@@ -10,6 +10,7 @@ import { createAttestationRequestEncode } from "./cg-attestation-request-encode"
 import { createAttestationRequestEquals } from "./cg-attestation-request-equals";
 import { createAttestationRequestParse } from "./cg-attestation-request-parse";
 import { createAttestationRequestTypesFile } from "./cg-attestation-request-types";
+import { VERIFIER_DTO_HASH_TYPE_FILE, VERIFIER_DTO_REQUEST_TYPE_FILE, WEB_SERVER_DTO_HASH_TYPE_FILE, WEB_SERVER_DTO_REQUEST_TYPE_FILE } from "./cg-constants";
 import { createSolidityIAttestationClient } from "./cg-iattestation-client";
 import { createVerifiersImportFiles } from "./cg-verifier-imports";
 import { createVerifiersAndRouter } from "./cg-verifiers-router";
@@ -21,8 +22,14 @@ async function generateCodeFiles() {
   const definitions = await readAttestationTypeSchemes();
 
   createAttestationEnumFile(definitions);
-  createAttestationRequestTypesFile(definitions, {dto: true});
-  createAttestationHashTypesFile(definitions, {dto: true});
+  createAttestationRequestTypesFile(definitions, {});
+  createAttestationRequestTypesFile(definitions, {dto: true, filePath: VERIFIER_DTO_REQUEST_TYPE_FILE});
+  createAttestationRequestTypesFile(definitions, {dto: true, filePath: WEB_SERVER_DTO_REQUEST_TYPE_FILE});
+
+  createAttestationHashTypesFile(definitions, {});
+  createAttestationHashTypesFile(definitions, {dto: true, filePath: VERIFIER_DTO_HASH_TYPE_FILE});
+  createAttestationHashTypesFile(definitions, {dto: true, filePath: WEB_SERVER_DTO_HASH_TYPE_FILE});
+
   createAttestationRandomUtils(definitions);
   createAttestationHashUtils(definitions);
   createAttestationRequestParse(definitions);

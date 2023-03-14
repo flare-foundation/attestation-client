@@ -4,24 +4,24 @@
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import axios from "axios";
-import { ChainConfig } from "../../src/attester/configs/ChainConfig";
-import { ListChainConfig } from "../../src/attester/configs/ListChainConfig";
-import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
-import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
-import { createTestAttestationFromRequest } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
-import { VerifierServerConfig } from "../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
-import { readSecureConfig } from "../../src/utils/config/configSecure";
-import { MerkleTree } from "../../src/utils/data-structures/MerkleTree";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
-import { getGlobalLogger } from "../../src/utils/logging/logger";
-import { hexlifyBN } from "../../src/verification/attestation-types/attestation-types-helpers";
-import { parseRequest } from "../../src/verification/generated/attestation-request-parse";
-import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
-import { SourceId } from "../../src/verification/sources/sources";
-import { verifyAttestation } from "../../src/verification/verifiers/verifier_routing";
-import { StateConnectorInstance } from "../../typechain-truffle";
-import { SCProofVerifierInstance } from "../../typechain-truffle/SCProofVerifier";
+import { ChainConfig } from "../../../src/attester/configs/ChainConfig";
+// import { ListChainConfig } from "../../../src/attester/configs/ListChainConfig";
+import { IndexedQueryManagerOptions } from "../../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../../src/indexed-query-manager/IndexedQueryManager";
+import { createTestAttestationFromRequest } from "../../../src/indexed-query-manager/random-attestation-requests/random-ar";
+import { VerifierServerConfig } from "../../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
+import { readSecureConfig } from "../../../src/utils/config/configSecure";
+import { MerkleTree } from "../../../src/utils/data-structures/MerkleTree";
+import { DatabaseService } from "../../../src/utils/database/DatabaseService";
+import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
+import { getGlobalLogger } from "../../../src/utils/logging/logger";
+import { hexlifyBN } from "../../../src/verification/attestation-types/attestation-types-helpers";
+import { parseRequest } from "../../../src/verification/generated/attestation-request-parse";
+import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
+import { SourceId } from "../../../src/verification/sources/sources";
+import { verifyAttestation } from "../../../src/verification/verifiers/verifier_routing";
+import { StateConnectorInstance } from "../../../typechain-truffle";
+import { SCProofVerifierInstance } from "../../../typechain-truffle/SCProofVerifier";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 
@@ -51,8 +51,8 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     currentBufferNumber = Math.floor((now - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
     console.log(`Current buffer number ${currentBufferNumber}, mod: ${currentBufferNumber % TOTAL_STORED_PROOFS}`);
     chainName = SourceId[SOURCE_ID];
-    const configIndexer = await readSecureConfig(new ListChainConfig(), "chains");
-    chainIndexerConfig = configIndexer.chains.find((item) => item.name === chainName);
+    // const configIndexer = await readSecureConfig(new ListChainConfig(), "chains"); // BROKEN
+    // chainIndexerConfig = configIndexer.chains.find((item) => item.name === chainName);
     const verifierCredentials = await readSecureConfig(new VerifierServerConfig(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
     

@@ -141,7 +141,7 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
         catch { }
     });
 
-    it.only(`prepare secure data env variable`, async () => {
+    it(`prepare secure data env variable`, async () => {
         let testConfig = new TestConfig();
 
         process.env.ENV_TEST="env_test_value";

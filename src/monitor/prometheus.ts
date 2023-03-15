@@ -31,7 +31,7 @@ export class Prometheus {
 
   /**
    * Send registered metric to connected push gateway.
-   * @param jobName 
+   * @param jobName
    */
   sendPushGatewayMetric(jobName: string) {
     try {

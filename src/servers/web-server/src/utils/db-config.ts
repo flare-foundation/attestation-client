@@ -15,9 +15,9 @@ export async function createTypeOrmOptions(loggerLabel: string, entities: any[])
       name: "attesterDatabase",
       type: "better-sqlite3",
       database: config.attesterDatabase.testSqlite3DBPath !== "" ? config.attesterDatabase.testSqlite3DBPath : ":memory:",
-      dropSchema: true,
+      dropSchema: config.attesterDatabase.dropSchema !== undefined ? config.attesterDatabase.dropSchema : true,
       entities: entities,
-      synchronize: true,
+      synchronize: config.attesterDatabase.synchronize !== undefined ? config.attesterDatabase.synchronize : true,
       migrationsRun: false,
       logging: false,
     };

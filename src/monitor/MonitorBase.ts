@@ -18,7 +18,7 @@ export class MonitorStatus {
 
   /**
    * Display monitor status.
-   * @param logger 
+   * @param logger
    */
   displayStatus(logger: AttLogger) {
     let color = "";
@@ -63,7 +63,7 @@ export class PerformanceMetrics {
 
   /**
    * Display performance metrics status.
-   * @param logger 
+   * @param logger
    */
   displayStatus(logger: AttLogger) {
     logger.info(

@@ -46,7 +46,7 @@ export async function getSecretGoogleCloud(name: string) {
  * @param terminateOnError
  * @returns
  */
-export async function getSecretByProvider(provider: string, address: string, terminateOnError=true): Promise<string> {
+export async function getSecretByProvider(provider: string, address: string, terminateOnError = true): Promise<string> {
   switch (provider) {
     case "GoogleCloudSecretManager": {
       return await getSecretGoogleCloud(address);
@@ -63,7 +63,7 @@ export async function getSecretByProvider(provider: string, address: string, ter
     }
     default: {
       getGlobalLogger().error(`invalid getSecret provider "${provider}"`);
-      if( !terminateOnError ) throw new Error("invalid getSecret provider");
+      if (!terminateOnError) throw new Error("invalid getSecret provider");
       exit(UNKNOWN_SECRET_PROVIDER);
       return;
     }
@@ -81,11 +81,11 @@ export async function getSecretByProvider(provider: string, address: string, ter
  * @param terminateOnError
  * @returns
  */
-export async function getSecretByAddress(address: string, terminateOnError=true) {
+export async function getSecretByAddress(address: string, terminateOnError = true) {
   const providerAddress = address.split(":");
   if (providerAddress.length != 2) {
     getGlobalLogger().error(`invalid getCredentialsKeyByAddress address '${address}'`);
-    if( !terminateOnError ) throw new Error("invalid format");
+    if (!terminateOnError) throw new Error("invalid format");
     exit(INVALID_CREDENTIAL_ADDRESS);
     return;
   }

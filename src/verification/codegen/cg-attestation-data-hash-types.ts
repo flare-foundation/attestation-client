@@ -14,7 +14,9 @@ function descriptionObj(comment?: string) {
 }
 
 function genDefHashItem(item: DataHashScheme, options?: OpenAPIOptionsResponses) {
-  const annotation = options?.dto ? `\n@ApiProperty(${tsTypeForSolidityType(item.type) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})` : "";
+  const annotation = options?.dto
+    ? `\n@ApiProperty(${tsTypeForSolidityType(item.type) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})`
+    : "";
   return `${JSDocCommentText(item.description)}${annotation}
    ${item.key}: ${tsTypeForSolidityType(item.type)};`;
 }
@@ -47,7 +49,7 @@ function dhType(definitions: AttestationTypeScheme[]) {
 
 export function createAttestationHashTypesFile(definitions: AttestationTypeScheme[], options?: OpenAPIOptionsResponses) {
   // Request types
-  const openAPIImport = options?.dto ? "import { ApiProperty, ApiPropertyOptional } from \"@nestjs/swagger\";" : ""
+  const openAPIImport = options?.dto ? 'import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";' : "";
   let content = `${DEFAULT_GEN_FILE_HEADER}
   ${openAPIImport}
   import BN from "bn.js";
@@ -59,6 +61,6 @@ export function createAttestationHashTypesFile(definitions: AttestationTypeSchem
   });
   content += dhType(definitions);
   const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
-  const fName = options?.filePath ?? ATT_HASH_TYPES_FILE
+  const fName = options?.filePath ?? ATT_HASH_TYPES_FILE;
   fs.writeFileSync(fName, prettyContent, "utf8");
 }

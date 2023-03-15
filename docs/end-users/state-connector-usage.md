@@ -130,14 +130,19 @@ attestation requests in the specific round.
 The attestation proof consists of the following data:
 
 - `roundId` of the attestation request.
-- attestation response, which consists of the data about the result of the attestation request, in the form as described in the definition of each attesetation type.
-- Merkle proof
+- attestation response, which consists of the data about the result of the attestation request, in the form as described in the definition of each attestation type.
+- Merkle proof.
 
 The data for assembling the proof should be obtained from an attestation provider's REST API as described above.
+
+One should use the data obtained from the REST API to fill in the relevant struct object defined in [`contracts/generated/interface/ISCProofVerifier.sol`](../../contracts/generated/interface/ISCProofVerifier.sol). Some Javascript/Typescript libraries like *web3.js* and *ethers.js* allow sending structs as JSON objects which are almost identical to the structure of the attestation response. Hence one can use the attestation response JSON object and add the key `merkleProof`, a list of 32-byte hex hashes. Then relevant `chainId` (see [here](../../src/verification/sources/sources.ts)) and the assembled JSON object can be used in verification functions on the contract. For example, to verify the proof given a `assembled_proof_json`, for the `Payment` attestation type on Ripple blockchain (`chainId` is 3) the call `verifyPayment(3, assembled_proof_json)` will return `true`, if done on a deployed contract.
 
 ## To which smart contract I can/should submit the attestation proof?
 
 This depends on the dApp that utilizes State Connector proofs in order to allow certain actions based on a successful proof. A generic implementation of verification functions is available here in [SCProofVerifierBase.sol](../../contracts/generated/contracts/SCProofVerifierBase.sol). 
+
+An example of such contact deployed on Coston2 network is [here](https://coston2-explorer.flare.network/address/0xA8083d78B6ABC328b4d3B714F76F384eCC7147e1/read-contract#address-tabs). The verification functions (named `verify<attestation type name>(...)`) can be used to check the proofs.
+
 
 ## How can I implement a dApp that uses proofs for a State Connector system?
 

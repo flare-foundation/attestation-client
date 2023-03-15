@@ -5,7 +5,8 @@
 //  SOURCE_ID=ALGO CONFIG_PATH=dev NODE_ENV=development yarn hardhat test test/verification/verification.test.ts
 
 import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
-import assert from "assert";
+import { assert } from "chai";
+import { ChainConfig } from "../../../src/attester/configs/ChainConfig";
 import { DBBlockBase } from "../../../src/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
 import { IndexedQueryManagerOptions } from "../../../src/indexed-query-manager/indexed-query-manager-types";
@@ -21,15 +22,13 @@ import { prepareRandomizedRequestConfirmedBlockHeightExists } from "../../../src
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "../../../src/indexed-query-manager/random-attestation-requests/random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator } from "../../../src/indexed-query-manager/random-attestation-requests/random-query";
 import { VerifierServerConfig } from "../../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
-import { ChainConfig } from "../../../src/attester/configs/ChainConfig";
 // import { ListChainConfig } from "../../../src/attester/configs/ListChainConfig";
 import { readSecureConfig } from "../../../src/utils/config/configSecure";
+import { DatabaseService } from "../../../src/utils/database/DatabaseService";
 import { getGlobalLogger } from "../../../src/utils/logging/logger";
-import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
 import { VerificationStatus } from "../../../src/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../../src/verification/sources/sources";
 import { verifyAttestation } from "../../../src/verification/verifiers/verifier_routing";
-import { DatabaseService } from "../../../src/utils/database/DatabaseService";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;

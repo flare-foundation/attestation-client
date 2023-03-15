@@ -55,7 +55,7 @@ describe(`Flare Connection + Attester Client (${getTestFile(__filename)})`, () =
 
   before(async function () {
     // clear all test databases in './db/' folder
-    clearTestDatabases();
+    await clearTestDatabases();
 
     // setRetryFailureCallback((label: string) => {
     //   throw new Error(TERMINATION_TOKEN);

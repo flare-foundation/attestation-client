@@ -2,8 +2,6 @@ import { INestApplication } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { Test } from "@nestjs/testing";
 import BN from "bn.js";
-import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import * as fs from "fs";
 import helmet from "helmet";
 import Web3 from "web3";
@@ -130,24 +128,8 @@ export async function bootstrapAttestationWebServer(
 
    let configurationService: ServerConfigurationService;
 
-   app.use(
-      helmet({
-         contentSecurityPolicy: false,
-      })
-   );
-   // app.use(compression()); // Compress all routes
-
-   app.use(cookieParser());
-   app.use(bodyParser.json({ limit: "50mb" }));
-   // Use body parser to read sent json payloads
-   app.use(
-      bodyParser.urlencoded({
-         limit: "50mb",
-         extended: true,
-         parameterLimit: 50000,
-      })
-   );
-
+   app.use(helmet());
+   
    app.setGlobalPrefix(process.env.APP_BASE_PATH ?? '');
    const config = new DocumentBuilder()
       .setTitle('Attestation Client Public Server')
@@ -314,7 +296,7 @@ export async function startSimpleSpammer(
       return false;
    }
 
-   // Alway send the 0 spam round;
+   // Always send the 0 spam round;
    for (let request of requests) {
       try {
          await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
@@ -334,7 +316,6 @@ export async function startSimpleSpammer(
       }
 
       let sendCount = 0;
-      let promises = [];
       for (let [index, request] of requests.entries()) {
          let send = false;
          if (spammerGaps.length > 0) {
@@ -345,12 +326,12 @@ export async function startSimpleSpammer(
          }
          if (send) {
             sendCount++;
-            promises.push(submitAttestationRequest(stateConnector, web3, spammerWallet, request));
+            await submitAttestationRequest(stateConnector, web3, spammerWallet, request);
          }
       }
       logger.error(`^Spam round ${counter}: sent ${sendCount}`);
       counter++;
-      await Promise.all(promises);
+      // await Promise.all(promises);
    }, bufferWindowDurationSec * 1000);
 }
 

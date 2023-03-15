@@ -20,7 +20,7 @@ export class VerifierController {
 
   /**
    * Verifies attestation request.
-   * @param attestationRequest 
+   * @param attestationRequest
    * @returns
    */
   @Post("")
@@ -31,8 +31,8 @@ export class VerifierController {
 
   /**
    * Given parsed @param request in JSON with possibly invalid message integrity code it returns the verification object.
-   * @param request 
-   * @returns 
+   * @param request
+   * @returns
    */
   @Post("prepare")
   @ApiResponseWrapperDec(APIVerification)
@@ -42,8 +42,8 @@ export class VerifierController {
 
   /**
    * Given parsed @param request in JSON with possibly invalid message integrity code it returns the message integrity code.
-   * @param request 
-   * @returns 
+   * @param request
+   * @returns
    */
   @Post("integrity")
   @ApiResponseWrapperDec(String)
@@ -55,8 +55,8 @@ export class VerifierController {
    * Given parsed @param request in JSON with possibly invalid message integrity code it returns the byte encoded
    * attestation request with the correct message integrity code. The response can be directly used for submitting
    * attestation request to StateConnector smart contract.
-   * @param request 
-   * @returns 
+   * @param request
+   * @returns
    */
   @Post("prepareAttestation")
   @ApiResponseWrapperDec(String)

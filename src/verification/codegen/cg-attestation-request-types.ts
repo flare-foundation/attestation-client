@@ -31,7 +31,7 @@ function genDefReqItem(item: AttestationRequestScheme, options: OpenAPIOptionsRe
         return "";
       default:
         // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-        ((_: never): void => { })(itemType);
+        ((_: never): void => {})(itemType);
     }
   }
 
@@ -59,10 +59,18 @@ function arType(definitions: AttestationTypeScheme[]) {
 }
 
 export function createAttestationRequestTypesFile(definitions: AttestationTypeScheme[], options: OpenAPIOptionsRequests) {
-  const openApiImport = options?.dto ? "\nimport { ApiProperty } from \"@nestjs/swagger\";" : ""
+  const openApiImport = options?.dto ? '\nimport { ApiProperty } from "@nestjs/swagger";' : "";
   let prefixPath = "";
   if (options?.dto && options?.filePath) {
-    prefixPath = options.filePath.split("/").slice(1).map(x => "..").join("/") + "/" + GENERATED_ROOT + "/"
+    prefixPath =
+      options.filePath
+        .split("/")
+        .slice(1)
+        .map((x) => "..")
+        .join("/") +
+      "/" +
+      GENERATED_ROOT +
+      "/";
   }
   // Request types
   let content = `${DEFAULT_GEN_FILE_HEADER}
@@ -78,6 +86,6 @@ import { SourceId } from "${prefixPath}../sources/sources";
   content += arType(definitions);
 
   const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
-  const fName = options?.filePath ?? ATT_REQUEST_TYPES_FILE
+  const fName = options?.filePath ?? ATT_REQUEST_TYPES_FILE;
   fs.writeFileSync(fName, prettyContent, "utf8");
 }

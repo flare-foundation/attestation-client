@@ -44,16 +44,16 @@ export class DatabaseService {
       let dbPath: string | undefined;
       if (testDBPath && typeof testDBPath === "string") {
         dbPath = testDBPath;
-      } else if (this.options.testSqlite3DBPath !== "") {
+      } else if (this.options?.testSqlite3DBPath && this.options.testSqlite3DBPath !== "") {
         dbPath = this.options.testSqlite3DBPath;
       }
       const connectOptions = {
         name: this.connectionName,
         type: "better-sqlite3",
         database: dbPath ?? ":memory:",
-        dropSchema: this.options.dropSchema !== undefined ? this.options.dropSchema : true,
-        entities: this.options.entities ?? [entities],
-        synchronize: this.options.synchronize !== undefined ? this.options.synchronize : true,
+        dropSchema: this.options?.dropSchema !== undefined ? this.options.dropSchema : true,
+        entities: this.options?.entities ?? [entities],
+        synchronize: this.options?.synchronize !== undefined ? this.options.synchronize : true,
         migrationsRun: false,
         logging: false,
       } as DataSourceOptions;

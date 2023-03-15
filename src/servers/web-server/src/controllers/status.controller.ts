@@ -13,10 +13,4 @@ export class StatusController {
   public async serviceStatus(): Promise<ApiResponseWrapper<ServiceStatus>> {
     return handleApiResponse(this.proofEngine.serviceStatus());
   }
-
-  @Get("services-html")
-  @Header("Content-Type", "text/html")
-  public async serviceStatusHtml(): Promise<string> {
-    return await this.proofEngine.serviceStatusHtml();
-  }
 }

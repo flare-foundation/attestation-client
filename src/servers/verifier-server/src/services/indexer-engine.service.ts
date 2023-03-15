@@ -1,7 +1,6 @@
 import { unPrefix0x } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
-import { off } from "process";
 import { EntityManager } from "typeorm";
 import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
 import { DBState } from "../../../../entity/indexer/dbState";

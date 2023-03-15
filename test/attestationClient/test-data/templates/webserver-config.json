@@ -12,6 +12,8 @@
         "username": "",
         "password": "",
         "inMemory": true,
-        "testSqlite3DBPath": "./db/attester_0.db"
+        "testSqlite3DBPath": "./db/attester_0.db",
+        "dropSchema": false,
+        "synchronize": false
     }
  }

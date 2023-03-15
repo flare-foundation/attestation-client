@@ -193,8 +193,7 @@ export async function _prepareSecureData(data: string, inputFilename: string, ne
         const search = left.substring(2, left.length - 1);
         const secret = await getSecretByAddress(search, false);
         data = replaceAll(data, search, secret);
-      }
-      catch {
+      } catch {
         logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
       }
     }

@@ -135,17 +135,9 @@ export function waitFinalize3Factory(web3: any) {
  * @returns path to the compilation result file for the contract (containing ABI)
  */
 export async function relativeContractABIPathForContractName(name: string, artifactsRoot = "artifacts"): Promise<string> {
-  return new Promise((resolve, reject) => {
-    glob(`contracts/**/${name}.sol/${name}.json`, { cwd: artifactsRoot }, (er: any, files: string[] | null) => {
-      if (er) {
-        reject(er);
-      } else {
-        if (files && files.length === 1) {
-          resolve(files[0]);
-        } else {
-          reject(files);
-        }
-      }
-    });
-  });
+  const files = await glob(`contracts/**/${name}.sol/${name}.json`, { cwd: artifactsRoot });
+  if (files && files.length === 1) {
+    return files[0];
+  }
+  throw new Error(`Not a unique file: ${files.toString()}`);
 }

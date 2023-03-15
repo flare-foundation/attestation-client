@@ -15,11 +15,15 @@ export function commentText(text: string, prefix = "//") {
 }
 
 export function JSDocCommentText(text: string) {
-  return "/**\n" + (text
-    .trim()
-    .split("\n")
-    .map((line) => `* ${line}`)
-    .join("\n")) + "\n*/"
+  return (
+    "/**\n" +
+    text
+      .trim()
+      .split("\n")
+      .map((line) => `* ${line}`)
+      .join("\n") +
+    "\n*/"
+  );
 }
 
 export function dashCapitalized(name: string, glue = "-") {

@@ -10,25 +10,24 @@ import { ApiPropertyUnion } from "../../../common/src/utils/open-api-utils";
  * in the full response.
  */
 export class APIVerification<R, T> {
-   /**
-    * Hash of the attestation as included in Merkle tree.
-    */
-   @ApiPropertyOptional()
-   hash?: string;
-   /**
-    * Parsed attestation request.
-    */
-   @ApiPropertyUnion(ARTypeArray)
-   request?: R;
-   /**
-    * Attestation response.
-    */
-   @ApiPropertyUnion(DHTypeArray)
-   response?: T;
-   /**
-    * Verification status. 
-    */
-   @ApiProperty({enum: VerificationStatus})
-   status: VerificationStatus;
- }
- 
+  /**
+   * Hash of the attestation as included in Merkle tree.
+   */
+  @ApiPropertyOptional()
+  hash?: string;
+  /**
+   * Parsed attestation request.
+   */
+  @ApiPropertyUnion(ARTypeArray)
+  request?: R;
+  /**
+   * Attestation response.
+   */
+  @ApiPropertyUnion(DHTypeArray)
+  response?: T;
+  /**
+   * Verification status.
+   */
+  @ApiProperty({ enum: VerificationStatus })
+  status: VerificationStatus;
+}

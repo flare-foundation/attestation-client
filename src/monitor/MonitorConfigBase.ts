@@ -20,9 +20,9 @@ export class MonitorConfigBase {
 
   /**
    * Create monitor for this configuration.
-   * @param config 
-   * @param baseConfig 
-   * @param logger 
+   * @param config
+   * @param baseConfig
+   * @param logger
    */
   createMonitor?(config: MonitorConfigBase, baseConfig: MonitorConfig, logger: AttLogger): MonitorBase<MonitorConfigBase>;
 }

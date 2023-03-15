@@ -1,5 +1,4 @@
 import { Managed } from "@flarenetwork/mcc";
-import assert from "assert";
 import { exit } from "process";
 import { criticalAsync } from "../../indexer/indexer-utils";
 import { PriorityQueue } from "../../utils/data-structures/PriorityQueue";
@@ -294,11 +293,15 @@ export class SourceManager {
    * @param verificationData
    */
   private onProcessed(attestation: Attestation, status: AttestationStatus, verificationData?: Verification<any, any>) {
-    assert(status === AttestationStatus.valid ? verificationData : true, `valid attestation must have valid verificationData`);
+    let actualStatus = status;
+    if (actualStatus === AttestationStatus.valid && !verificationData) {
+      this.logger.error("Attestation status is valid but no verification data provided. Attestation considered as invalid");
+      actualStatus = AttestationStatus.failed;
+    }
 
     // set status
-    attestation.status = status;
-    attestation.verificationData = verificationData!;
+    attestation.status = actualStatus;
+    attestation.verificationData = verificationData;
 
     // augument the attestation response with the round id
     if (attestation.verificationData?.response) {

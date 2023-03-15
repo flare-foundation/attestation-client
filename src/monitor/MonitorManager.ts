@@ -11,7 +11,6 @@ import { MonitorConfig } from "./MonitorConfiguration";
 import { SystemMonitor } from "./monitors/SystemMonitor";
 import { Prometheus } from "./prometheus";
 
-
 /**
  * Interface for web monitor
  */
@@ -21,7 +20,7 @@ let statusObject;
 
 /**
  * Get registered Prometheus metrics
- * @returns 
+ * @returns
  */
 export async function getPrometheusMetrics(): Promise<string> {
   return await prometheus.getMetrics();
@@ -29,7 +28,7 @@ export async function getPrometheusMetrics(): Promise<string> {
 
 /**
  * Get status as a json string.
- * @returns 
+ * @returns
  */
 export async function getStatusJson(): Promise<string> {
   return statusJson;
@@ -37,7 +36,7 @@ export async function getStatusJson(): Promise<string> {
 
 /**
  * Get status as a native status object.
- * @returns 
+ * @returns
  */
 export async function getStatusObject(): Promise<string> {
   return statusObject;
@@ -54,7 +53,7 @@ export class MonitorManager {
 
   /**
    * Initialize monitors for one class.
-   * @param monitors 
+   * @param monitors
    */
   initializeMonitors<T extends MonitorConfigBase>(monitors: T[]) {
     for (const monitor of monitors) {
@@ -142,7 +141,7 @@ export class MonitorManager {
 
             resAlert.displayStatus(this.logger);
 
-            // set status metrics 
+            // set status metrics
             var status = 0;
             switch (resAlert.status) {
               case "down":

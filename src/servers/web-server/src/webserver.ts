@@ -1,7 +1,5 @@
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { getGlobalLogger } from "../../../utils/logging/logger";
 import { ServerConfigurationService } from "./services/server-configuration.service";
@@ -10,23 +8,7 @@ import { WebServerModule } from "./web-server.module";
 export async function runWebserver() {
   const app = await NestFactory.create(WebServerModule);
 
-  app.use(
-    helmet({
-      contentSecurityPolicy: false,
-    })
-  );
-  // app.use(compression()); // Compress all routes
-
-  app.use(cookieParser());
-  app.use(bodyParser.json({ limit: "50mb" }));
-  // Use body parser to read sent json payloads
-  app.use(
-    bodyParser.urlencoded({
-      limit: "50mb",
-      extended: true,
-      parameterLimit: 50000,
-    })
-  );
+  app.use(helmet());
 
   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? "");
   const config = new DocumentBuilder()

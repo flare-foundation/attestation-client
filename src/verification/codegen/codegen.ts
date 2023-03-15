@@ -23,12 +23,12 @@ async function generateCodeFiles() {
 
   createAttestationEnumFile(definitions);
   createAttestationRequestTypesFile(definitions, {});
-  createAttestationRequestTypesFile(definitions, {dto: true, filePath: VERIFIER_DTO_REQUEST_TYPE_FILE});
-  createAttestationRequestTypesFile(definitions, {dto: true, filePath: WEB_SERVER_DTO_REQUEST_TYPE_FILE});
+  createAttestationRequestTypesFile(definitions, { dto: true, filePath: VERIFIER_DTO_REQUEST_TYPE_FILE });
+  createAttestationRequestTypesFile(definitions, { dto: true, filePath: WEB_SERVER_DTO_REQUEST_TYPE_FILE });
 
   createAttestationHashTypesFile(definitions, {});
-  createAttestationHashTypesFile(definitions, {dto: true, filePath: VERIFIER_DTO_HASH_TYPE_FILE});
-  createAttestationHashTypesFile(definitions, {dto: true, filePath: WEB_SERVER_DTO_HASH_TYPE_FILE});
+  createAttestationHashTypesFile(definitions, { dto: true, filePath: VERIFIER_DTO_HASH_TYPE_FILE });
+  createAttestationHashTypesFile(definitions, { dto: true, filePath: WEB_SERVER_DTO_HASH_TYPE_FILE });
 
   createAttestationRandomUtils(definitions);
   createAttestationHashUtils(definitions);

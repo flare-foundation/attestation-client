@@ -55,7 +55,7 @@ export class Verification<R, T> {
    */
   response?: T;
   /**
-   * Verification status. 
+   * Verification status.
    */
   status: VerificationStatus;
 }

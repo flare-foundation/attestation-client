@@ -20,7 +20,7 @@ Then the credentials matching the stubs are rendered into configuration files in
 
 When installing services in a production environment, preparation of credentials is needed in advance of deployment. For extra secure reasons, the preparation should be done on separate, more secure machine. The preparation procedure is described in [deployment instructions](../../deployment/README.md).
 It basically consists of making the following by running a few scripts:
-- `scripts/install-credentials.sh` will create folder `credentials` and copy all credentials files from 
+- `scripts/initialize-credentials.sh` will create folder `credentials` and copy all credentials files from 
 - `scripts/prepare-credentials.sh`
 
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./scripts/install-config.sh
+source ./scripts/direct-install/install-config.sh
 
 failed=false
 

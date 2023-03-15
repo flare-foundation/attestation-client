@@ -87,7 +87,7 @@ Credentials are stored in `../attestation-suite-config` folder to be persistent 
 
 To initialy create credentials use next command:
 ```
-./scripts/initialize-config.sh
+./scripts/direct-install/initialize-credentials.sh
 ```
 
 Modify credential files:
@@ -131,7 +131,7 @@ files are needed (in `../attestation-suite-config/` folder).
 ### 4) Install
 After the configuration is setup run the main installer
 ```
-./scripts/install.sh
+./scripts/direct-install/install.sh
 ```
 
 ## Update configuration
@@ -148,7 +148,7 @@ Setup configuration files are in folder `../attestation-suite-config/`:
 To update changes in configuration run:
 ```
 cd ~/attestation-suite/attestation-client
-./scripts/update-config.sh
+./scripts/direct-install/update-config.sh
 ```
 
 the script will :

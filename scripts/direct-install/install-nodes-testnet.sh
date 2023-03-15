@@ -1,13 +1,12 @@
 #!/bin/bash
 
-source ./scripts/install-config.sh
+source ./scripts/direct-install/install-config.sh
 
 echo -e "${GREENBOLD}Installing testnet nodes${NC}"
 
 export LOCAL_DIR=$(pwd)
 
 cd /opt
-#sudo git clone https://github.com/zelje/flare-connected-chains-docker.git
 sudo git clone https://github.com/flare-foundation/connected-chains-docker.git
 
 cd connected-chains-docker/

@@ -1,10 +1,10 @@
 #!/bin/bash
-source ./scripts/install-config.sh
+source ./scripts/direct-install/install-config.sh
 
 # copy services
 echo -e "${REDBOLD}[1] ${GREENBOLD}Copying services...${NC}"
 mkdir -p ~/.config/systemd/user
-cp ./scripts/services/*.service ~/.config/systemd/user
+cp ./scripts/direct-install/services/*.service ~/.config/systemd/user
 
 # enable services
 echo -e "${REDBOLD}[2] ${GREENBOLD}Installing services...${NC}"

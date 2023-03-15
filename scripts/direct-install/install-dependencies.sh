@@ -1,4 +1,4 @@
-bash ./scripts/install-config.sh
+bash ./scripts/direct-install/install-config.sh
 
 echo -e "${GREENBOLD}Installing Attestation Suite dependencies${NC}"
 

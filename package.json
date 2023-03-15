@@ -56,7 +56,7 @@
     "devconfig": "yarn ts-node-dev --notify --respawn src/attester/configvalidate.ts",
     "devadmin": "env DOTENV=DEV CONFIG_PATH=.secure.dev yarn ts-node src/admin/admin.ts",
     "devinstall": "env DOTENV=DEV CONFIG_PATH=.secure.dev yarn ts-node src/install/install.ts ../attestation-suite-config/",
-    "devinstallfile": "env JSON_CONFIG_PATH=../attestation-suite-config/  yarn ts-node src/install/install-file.ts -i ./scripts/files/frontend.env -o ./scripts/files/frontend.env.out   -r HOSTNAME -w www.something.com -c Coston",
+    "devinstallfile": "env JSON_CONFIG_PATH=../attestation-suite-config/  yarn ts-node src/install/install-file.ts -i ./scripts/direct-install/files/frontend.env -o ./scripts/direct-install/files/frontend.env.out   -r HOSTNAME -w www.something.com -c Coston",
     "devinstallsecurecommand": "env JSON_CONFIG_PATH=../attestation-suite-config/  yarn ts-node src/install/secureCommand -a installNodesTestNet",
     "devsecurecredentials": "yarn ts-node src/install/secureCredentials.ts -a direct:t3stPassw0rd",
     "-------MONITORING---------": "",

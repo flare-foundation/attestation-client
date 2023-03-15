@@ -61,7 +61,7 @@ git checkout dockerization
 
 To begin with installation you need to first setup credentials.
 ```
-./install-credentials.sh
+./initialize-credentials.sh
 ```
 
 ### 3) Update credentials 

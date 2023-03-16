@@ -36,7 +36,7 @@ export class VerifierController {
    */
   @Post("prepare")
   @ApiResponseWrapperDec(APIVerification)
-  public async check(@Body() request: ARType): Promise<ApiResponseWrapper<APIVerification<ARType, DHType>>> {
+  public async prepare(@Body() request: ARType): Promise<ApiResponseWrapper<APIVerification<ARType, DHType>>> {
     return handleApiResponse(this.processor.prepareRequest(request));
   }
 
@@ -47,7 +47,7 @@ export class VerifierController {
    */
   @Post("integrity")
   @ApiResponseWrapperDec(String)
-  public async getIntegrity(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
+  public async getIntegrityCode(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
     return handleApiResponse(this.processor.getMessageIntegrityCheck(request));
   }
 
@@ -60,7 +60,7 @@ export class VerifierController {
    */
   @Post("prepareAttestation")
   @ApiResponseWrapperDec(String)
-  public async getAttestationData(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
+  public async prepareAttestationData(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
     return handleApiResponse(this.processor.getAttestationData(request));
   }
 }

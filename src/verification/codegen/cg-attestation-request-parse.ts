@@ -126,13 +126,23 @@ export function getAttestationTypeAndSource(bytes: string) {
 function genHelperFunctions() {
   return `
 export function unPrefix0x(tx: string) {
-	return tx.startsWith("0x") ? tx.slice(2) : tx;
-}
-
-export function prefix0x(tx: string) {
-	return tx.startsWith("0x") ? tx : "0x" + tx;
-}
-
+	if (!tx) {
+	  return "0x0";
+	} else if (tx.startsWith("0x") || tx.startsWith("0X")) {
+	  return tx.slice(2);
+	}
+	return tx;
+ }
+ 
+ export function prefix0x(tx: string) {
+	if (!tx) {
+	  return "0x0";
+	} else if (tx.startsWith("0x") || tx.startsWith("0X")) {
+	  return tx;
+	}
+	return "0x" + tx;
+ }
+ 
 export function toHex(x: string | number | BN, padToBytes?: number) {
 	const hexValue = Web3.utils.toHex(x);
 	if (hexValue.startsWith("-")) {

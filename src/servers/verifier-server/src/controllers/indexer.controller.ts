@@ -1,14 +1,13 @@
 import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
-import { ApiQuery, ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
-import { BlockRange } from "../dtos/BlockRange.dto";
-// import { AuthGuard } from '../guards/auth.guard';
 import { AuthGuard } from "@nestjs/passport";
-import { IndexerEngineService } from "../services/indexer-engine.service";
+import { ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
+import { ApiDBBlock } from "../dtos/ApiDbBlock";
 import { ApiDBState } from "../dtos/ApiDbState";
 import { ApiDBTransaction } from "../dtos/ApiDbTransaction";
-import { ApiDBBlock } from "../dtos/ApiDbBlock";
-// @ApiSecurity('X-API-KEY', ['X-API-KEY'])
+import { BlockRange } from "../dtos/BlockRange.dto";
+import { QueryTransaction } from "../dtos/QueryTransaction.dto";
+import { IndexerEngineService } from "../services/indexer-engine.service";
 
 @ApiTags("Indexer")
 @Controller("api/indexer")
@@ -93,47 +92,21 @@ export class IndexerController {
    * @param paymentReference 0x-prefixed lowercase hex string representing 32-bytes
    * @param limit Query limit. Capped by server config settings
    * @param offset Query offset
+   * @param returnResponse Whether response from node stored in the indexer database should be returned
    * @returns 
    */
-  @ApiQuery({
-    name: "from",
-    type: Number,
-    description: "Minimal block number of query range",
-    required: false
-  })
-  @ApiQuery({
-    name: "to",
-    type: Number,
-    description: "Maximal block number of the query range",
-    required: false
-  })
-  @ApiQuery({
-    name: "paymentReference",
-    type: String,
-    description: "0x-prefixed lowercase hex string representing 32-bytes",
-    required: false
-  })
-  @ApiQuery({
-    name: "limit",
-    type: Number,
-    description: "Query limit. Capped by server config settings",
-    required: false
-  })
-  @ApiQuery({
-    name: "offset",
-    type: Number,
-    description: "Query offset",
-    required: false
-  })
+
   @Get("transactions")
   public async transactionsWithinBlockRange(
-    @Query("from") from?: number,
-    @Query("to") to?: number,
-    @Query("paymentReference") paymentReference?: string,
-    @Query("limit") limit?: number,
-    @Query("offset") offset?: number,
+    // @Query("from", ParseIntPipe) from?: number,
+    // @Query("to", ParseIntPipe) to?: number,
+    // @Query("paymentReference") paymentReference?: string,
+    // @Query("limit", ParseIntPipe) limit?: number,
+    // @Query("offset", ParseIntPipe) offset?: number,
+    // @Query("returnResponse", ParseBoolPipe) returnResponse?: boolean,
+    @Query() query: QueryTransaction
   ): Promise<ApiResponseWrapper<ApiDBTransaction[]>> {
-    return handleApiResponse(this.indexerEngine.getTransactionsWithinBlockRange(from, to, paymentReference, limit, offset));
+    return handleApiResponse(this.indexerEngine.getTransactionsWithinBlockRange(query.from, query.to, query.paymentReference, query.limit, query.offset, query.returnResponse));
   }
 
 }

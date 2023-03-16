@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Restart all services for specified modules
+
 source ./scripts/direct-install/install-config.sh
 
 if $ENABLE_INDEXER; then

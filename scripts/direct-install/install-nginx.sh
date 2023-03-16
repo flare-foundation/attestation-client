@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Install nginx and configure it for Attestation Suite.
+# Please refer to [docs/install/direct-installation.md] for more details.
+
+
 source ./scripts/direct-install/install-config.sh
 
 echo -e "${GREENBOLD}Installing nginX${NC}"

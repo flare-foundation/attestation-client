@@ -1,5 +1,7 @@
 #!/bin/bash
-source ./scripts/direct-install/install-config.sh
+
+# Update credential and restart services.
+# Please refer to [docs/install/direct-installation.md] for more details.
 
 yarn ts-node src/direct-install/install/secureConfigurations.ts -i credentials -o credentials.prepared
 

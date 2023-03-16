@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Main direct-install script.
+# It installs Attestation Suite services and selected modules.
+# Please refer to [docs/install/direct-installation.md] for more details.
+
+
 source ~/.profile 
 source ~/.nvm/nvm.sh
 

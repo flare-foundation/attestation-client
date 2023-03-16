@@ -7,6 +7,6 @@ export class APIAttestationRequest {
   /**
    * Attestation request in hex string representing byte sequence as submitted to State Connector smart contract.
    */
-  @IsHexadecimal()  
+  @IsHexadecimal()
   request: string;
 }

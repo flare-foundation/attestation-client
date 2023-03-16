@@ -1,5 +1,5 @@
 import { applyDecorators, Type } from "@nestjs/common";
-import { ApiExtraModels, ApiOkResponse, ApiProperty, getSchemaPath } from "@nestjs/swagger";
+import { ApiBody, ApiExtraModels, ApiOkResponse, ApiProperty, getSchemaPath } from "@nestjs/swagger";
 import { ApiResponseWrapper } from "..";
 
 function arrayResults<TModel extends Type<any>>(model: TModel) {
@@ -41,6 +41,20 @@ export function ApiPropertyUnion<TTypeArray extends Array<Type<any>>>(models: TT
           $ref: getSchemaPath(model),
         };
       }),
+    })
+  );
+}
+
+export function ApiBodyUnion<TTypeArray extends Array<Type<any>>>(models: TTypeArray) {
+  return applyDecorators(
+    ApiBody({
+      schema: {
+        oneOf: models.map((model) => {
+          return {
+            $ref: getSchemaPath(model),
+          };
+        }),
+      },
     })
   );
 }

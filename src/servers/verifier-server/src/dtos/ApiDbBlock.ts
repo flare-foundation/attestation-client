@@ -1,4 +1,3 @@
-
 /**
  * Block header data in the indexer database
  */
@@ -26,7 +25,7 @@ export class ApiDBBlock {
   confirmed?: boolean;
 
   /**
-   * Number of confirmations of the block. 
+   * Number of confirmations of the block.
    */
   numberOfConfirmations: number;
 

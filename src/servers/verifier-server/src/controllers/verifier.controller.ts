@@ -1,14 +1,13 @@
 import { Body, Controller, Inject, Post, UseGuards } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 import { ApiExtraModels, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
-// import { AuthGuard } from '../guards/auth.guard';
-import { AuthGuard } from "@nestjs/passport";
-import { ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
+import { ApiBodyUnion, ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
 import { APIAttestationRequest } from "../dtos/APIAttestationRequest.dto";
 import { APIVerification } from "../dtos/APIVerification.dto";
-import { VerifierProcessor } from "../services/verifier-processors/verifier-processor";
-import { ARType, ARTypeArray } from "../dtos/v-request-types.dto";
 import { DHType, DHTypeArray } from "../dtos/v-hash-types.dto";
+import { ARType, ARTypeArray } from "../dtos/v-request-types.dto";
+import { VerifierProcessor } from "../services/verifier-processors/verifier-processor";
 
 @ApiTags("Verifier")
 @Controller("query")
@@ -36,6 +35,7 @@ export class VerifierController {
    */
   @Post("prepare")
   @ApiResponseWrapperDec(APIVerification)
+  @ApiBodyUnion(ARTypeArray)
   public async prepare(@Body() request: ARType): Promise<ApiResponseWrapper<APIVerification<ARType, DHType>>> {
     return handleApiResponse(this.processor.prepareRequest(request));
   }
@@ -47,6 +47,7 @@ export class VerifierController {
    */
   @Post("integrity")
   @ApiResponseWrapperDec(String)
+  @ApiBodyUnion(ARTypeArray)
   public async getIntegrityCode(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
     return handleApiResponse(this.processor.getMessageIntegrityCheck(request));
   }
@@ -60,6 +61,7 @@ export class VerifierController {
    */
   @Post("prepareAttestation")
   @ApiResponseWrapperDec(String)
+  @ApiBodyUnion(ARTypeArray)
   public async prepareAttestationData(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
     return handleApiResponse(this.processor.getAttestationData(request));
   }

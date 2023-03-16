@@ -27,7 +27,7 @@ export class VerifierServerConfig implements IReflection<VerifierServerConfig> {
    */
   @optional() port: number = 8088;
   /**
-   * Web socket connection check interval in milliseconds. 
+   * Web socket connection check interval in milliseconds.
    * Currently web sockets are not used.
    */
   @optional() checkAliveIntervalMs: number = 5000;

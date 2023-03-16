@@ -47,11 +47,15 @@ export class ProofController {
   @ApiResponseWrapperDec(VotingRoundResult)
   public async getSpecificProofController(@Body() roundRequest: SpecificProofRequest): Promise<ApiResponseWrapper<VotingRoundResult>> {
     try {
+      const canReveal = this.proofEngine.canReveal(roundRequest.roundId);
+      if (!canReveal) {
+        return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.PENDING);
+      }
       let result = await this.proofEngine.getSpecificProofForRound(roundRequest.roundId, roundRequest.callData);
       if (result) {
         return new ApiResponseWrapper<VotingRoundResult>(result);
       }
-      return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.PENDING);
+      return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.OK);
     } catch (reason: any) {
       throw new ApiResponseWrapper<VotingRoundResult>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }

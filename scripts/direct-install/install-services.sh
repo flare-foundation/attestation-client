@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Copy systemd service files and register them.
+# Please refer to [docs/install/direct-installation.md] for more details.
+
 source ./scripts/direct-install/install-config.sh
 
 # copy services

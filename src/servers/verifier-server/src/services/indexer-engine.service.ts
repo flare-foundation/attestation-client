@@ -132,7 +132,7 @@ export class IndexerEngineService {
    * @param to
    * @returns
    */
-  public async getTransactionsWithinBlockRange(from?: number, to?: number, paymentReference?: string, limit?: number, offset?: number): Promise<DBTransactionBase[]> {
+  public async getTransactionsWithinBlockRange(from?: number, to?: number, paymentReference?: string, limit?: number, offset?: number, returnResponse?: boolean): Promise<DBTransactionBase[]> {
     if (paymentReference) {
       if (! /^0x[0-9a-f]{64}$/i.test(paymentReference)) {
         throw new Error("Invalid payment reference")
@@ -153,7 +153,7 @@ export class IndexerEngineService {
         countQuery = countQuery.andWhere("transaction.blockNumber >= :from", { from });
       }
       if (to !== undefined) {
-        countQuery = countQuery.andWhere("transaction.blockNumber < :to", { to });
+        countQuery = countQuery.andWhere("transaction.blockNumber <= :to", { to });
       }
       if (paymentReference) {
         countQuery = countQuery.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
@@ -182,7 +182,7 @@ export class IndexerEngineService {
         query = query.andWhere("transaction.blockNumber >= :from", { from });
       }
       if (to !== undefined) {
-        query = query.andWhere("transaction.blockNumber < :to", { to });
+        query = query.andWhere("transaction.blockNumber <= :to", { to });
       }
       if (paymentReference) {
         query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
@@ -204,7 +204,7 @@ export class IndexerEngineService {
         query = query.andWhere("transaction.blockNumber >= :from", { from });
       }
       if (to !== undefined) {
-        query = query.andWhere("transaction.blockNumber < :to", { to });
+        query = query.andWhere("transaction.blockNumber <= :to", { to });
       }
       if (paymentReference) {
         query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
@@ -218,9 +218,7 @@ export class IndexerEngineService {
     }
 
     return results.map((res) => {
-      if (res.response) {
-        res.response = JSON.parse(res.response);
-      }
+      res.response = returnResponse && res.response ? JSON.parse(res.response) : undefined;
       return res;
     }) as DBTransactionBase[];
   }

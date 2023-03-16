@@ -9,19 +9,25 @@ import { SourceId } from "../sources/sources";
  * Enumerated verification status of attestation
  */
 export enum VerificationStatus {
-  // Successful verification
+  ///////////////////////////
+  // VALID STATUS
+  ///////////////////////////
+
   OK = "OK",
 
-  // Needs recheck
-  // RECHECK_LATER = "RECHECK_LATER",
+  ///////////////////////////
+  // INDETERMINATE STATUSES
+  ///////////////////////////
 
   // Temporary status during checks
   NEEDS_MORE_CHECKS = "NEEDS_MORE_CHECKS",
-
   // Source failure - source data is not up to date and does not allow consistent queries
   SYSTEM_FAILURE = "SYSTEM_FAILURE",
-
-  // Error fields
+  
+  ///////////////////////////
+  // ERROR STATUSES
+  ///////////////////////////
+  
   NOT_CONFIRMED = "NOT_CONFIRMED",
 
   NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",

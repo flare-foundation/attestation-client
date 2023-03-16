@@ -257,13 +257,24 @@ export class SourceManager {
             return;
           }
           this.logger.debug(`${this.label} WRONG MIC for ${attestation.data.request}`);
+          this.onProcessed(attestation, AttestationStatus.invalid, verification);
+          return;
+        }
+
+        if (verification.status === VerificationStatus.NEEDS_MORE_CHECKS) {
+          // assert. This should never happen.
+          this.logger.error2(`${this.label} NEEDS_MORE_CHECKS should never happen ${attestation.data.request}`);
+          this.onProcessed(attestation, AttestationStatus.error, verification);
+          return;
         }
 
         if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
           this.logger.error2(`${this.label} SYSTEM_FAILURE ${attestation.data.request}`);
+          this.onProcessed(attestation, AttestationStatus.error, verification);
+          return;
         }
 
-        // The verification is invalid or mic does not match
+        // The verification is invalid as it returns error verification status
         this.onProcessed(attestation, AttestationStatus.invalid, verification);
       })
       .catch((error: any) => {
@@ -280,7 +291,7 @@ export class SourceManager {
           this.enQueueDelayed(attestation, getTimeMilli() + this.delayBeforeRetryMs);
         } else {
           this.logger.error2(`${this.label} transaction verification error ${attestation.data.request}`);
-          this.onProcessed(attestation, AttestationStatus.invalid);
+          this.onProcessed(attestation, AttestationStatus.error);
         }
       });
   }

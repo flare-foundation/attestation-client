@@ -1,6 +1,4 @@
 import { Managed } from "@flarenetwork/mcc";
-import { exit } from "process";
-import { MOCK_NULL_WHEN_TESTING } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
 import { SourceId, toSourceId } from "../../verification/sources/sources";
 import { GlobalConfigManager } from "../GlobalConfigManager";
@@ -43,18 +41,12 @@ export class SourceRouter {
       // create new source manager
       sourceManager = new SourceManager(this.globalConfigManager, sourceId);
       sourceManager.refreshLatestRoundId(roundId);
-      this.addSourceManager(sourceId, sourceManager);
+      this.sourceManagers.set(sourceId, sourceManager);
     }
 
     // FUTURE OPTIMIZATION: delete obsolete source managers.
   }
 
-  /**
-   * Assign @param sourceManager to @param sourceId
-   */
-  addSourceManager(sourceId: SourceId, sourceManager: SourceManager) {
-    this.sourceManagers.set(sourceId, sourceManager);
-  }
 
   /**
    * Returns source manager for given source
@@ -65,7 +57,7 @@ export class SourceRouter {
     const sourceManager = this.sourceManagers.get(sourceId);
     if (!sourceManager) {
       this.logger.error(`${sourceId}: critical error, source not defined`);
-      exit(1);
+      process.exit(1);
       return; //for testing
     }
     return sourceManager;

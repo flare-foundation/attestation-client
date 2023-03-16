@@ -4,6 +4,7 @@ import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationTypeConfig } from "../../src/attester/configs/AttestationTypeConfig";
 import { SourceConfig } from "../../src/attester/configs/SourceConfig";
 import { SourceLimiter } from "../../src/attester/source/SourceLimiter";
+import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { encodeReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-encode";
 import { ARReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-types";
@@ -53,7 +54,7 @@ describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
   it("Should not ProceedWithValidation, invalid type", function () {
     const res = sourceLimiter.canProceedWithValidation(attestation2);
     assert(!res);
-    expect(attestation2.status).to.eq(7);
+    expect(attestation2.status).to.eq(AttestationStatus.error);
   });
 
   it("Should ProceedWithValidation", function () {
@@ -62,6 +63,6 @@ describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
 
   it("Should not ProceedWithValidation", function () {
     assert(!sourceLimiter.canProceedWithValidation(attestation));
-    expect(attestation.status).to.eq(6);
+    expect(attestation.status).to.eq(AttestationStatus.overLimit);
   });
 });

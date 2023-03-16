@@ -1,4 +1,10 @@
-bash ./scripts/install-config.sh
+#!/bin/bash
+
+# Install Attestation Suite dependencies.
+# Please refer to [docs/install/direct-installation.md] for more details.
+
+
+bash ./scripts/direct-install/install-config.sh
 
 echo -e "${GREENBOLD}Installing Attestation Suite dependencies${NC}"
 

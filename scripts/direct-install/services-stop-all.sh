@@ -1,5 +1,8 @@
 #!/bin/bash
-source ./scripts/install-config.sh
+
+# Stop all services for specified modules
+
+source ./scripts/direct-install/install-config.sh
 
 if $ENABLE_INDEXER; then
     systemctl --user stop indexer-xrp.service

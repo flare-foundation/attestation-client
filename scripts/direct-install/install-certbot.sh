@@ -1,5 +1,9 @@
 #!/bin/bash
-source ./scripts/install-config.sh
+
+# Install certbot for nginx.
+# Please refer to [docs/install/direct-installation.md] for more details.
+
+source ./scripts/direct-install/install-config.sh
 
 echo -e "${GREENBOLD}Installing CertBot${NC}"
 

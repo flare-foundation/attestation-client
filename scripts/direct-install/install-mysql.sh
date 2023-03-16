@@ -1,3 +1,8 @@
+#!/bin/bash
+
+# Install MYSQL and create configuration for Attestation Suite.
+# Please refer to [docs/install/direct-installation.md] for more details.
+
 export RED='\033[0;31m'
 export GREEN='\033[0;32m'
 export WHITE="\033[0;37m"

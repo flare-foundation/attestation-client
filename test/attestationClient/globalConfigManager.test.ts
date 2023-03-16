@@ -52,22 +52,22 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
   });
 
   it("Should not get config 0", function () {
-    const config = globalConfigManager.getConfig(10);
+    const config = globalConfigManager.getGlobalConfig(10);
     expect(config.startRoundId).to.eq(0);
   });
 
   it("Should get config 150", function () {
-    const config = globalConfigManager.getConfig(170);
+    const config = globalConfigManager.getGlobalConfig(170);
     expect(config.startRoundId).to.eq(150);
   });
 
   it("Should not get SourceLimiterConfig #1", function () {
-    const config = globalConfigManager.getConfig(10).sourcesMap.get(15);
+    const config = globalConfigManager.getGlobalConfig(10).sourcesMap.get(15);
     assert(!config);
   });
 
   it("Should get SourceLimiterConfig", function () {
-    const config = globalConfigManager.getConfig(170).sourcesMap.get(SourceId.DOGE);
+    const config = globalConfigManager.getGlobalConfig(170).sourcesMap.get(SourceId.DOGE);
     assert(config);
   });
 

@@ -297,7 +297,7 @@ export class GlobalConfigManager {
 
     let obj = new GlobalAttestationConfig();
     Object.setPrototypeOf(config, Object.getPrototypeOf(obj));
-    const valid = isEqualType(obj.instanciate(), config);
+    const valid = isEqualType(obj.instantiate(), config);
     if (!valid) {
       this.logger.error(`${this.label} Global configuration in file '${filename}' is invalid`);
       return;

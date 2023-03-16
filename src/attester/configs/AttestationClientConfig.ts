@@ -74,7 +74,7 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
    */
   @optional() public indexerDatabase = new DatabaseConnectOptions();
 
-  instanciate() {
+  instantiate() {
     return new AttestationClientConfig();
   }
 

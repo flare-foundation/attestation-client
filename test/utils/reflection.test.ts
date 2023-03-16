@@ -11,7 +11,7 @@ import { getTestFile } from "../test-utils/test-utils";
 
 
 class TestClass implements IReflection<TestClass>{
-    instanciate() {
+    instantiate() {
         return new TestClass();
     }
 
@@ -31,7 +31,7 @@ class TestReflection implements IReflection<TestReflection> {
     stringArray: string[] = [];
     objectArray: TestReflection[] = [];
 
-    instanciate() {
+    instantiate() {
         return new TestReflection();
     }
 
@@ -71,7 +71,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
 
         const test = new TestReflection();
 
-        const res = isEqualType(test.instanciate(), test);
+        const res = isEqualType(test.instantiate(), test);
 
         assert(res, `type test incomplete`);
     });
@@ -82,7 +82,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
 
         test.object = new Object() as TestClass;
 
-        const res = isEqualType(test.instanciate(), test);
+        const res = isEqualType(test.instantiate(), test);
 
         assert(res, `type test incomplete`);
     });
@@ -94,7 +94,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
         // push object
         test.objectArray.push(new TestReflection());
 
-        const res = isEqualType(test.instanciate(), test);
+        const res = isEqualType(test.instantiate(), test);
 
         assert(res, `type test incomplete`);
     });
@@ -105,7 +105,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
 
         test.object["addMember"] = 1;
 
-        const res = isEqualType(test.instanciate(), test);
+        const res = isEqualType(test.instantiate(), test);
 
         assert(res, `type test incomplete`);
     });
@@ -117,7 +117,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
         // push invalid object
         test.objectArray.push(new Object() as TestReflection);
 
-        const res = isEqualType(test.instanciate(), test);
+        const res = isEqualType(test.instantiate(), test);
 
         assert(!res, `type test incomplete`);
     });
@@ -131,7 +131,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
             "string": "abc",
         };
 
-        const res = isEqualType(test.instanciate(), test2);
+        const res = isEqualType(test.instantiate(), test2);
 
         assert(!res, `type test incomplete`);
     });
@@ -146,7 +146,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
             "additionalMember": 123,
         };
 
-        const res = isEqualType(test.instanciate(), test2);
+        const res = isEqualType(test.instantiate(), test2);
 
         assert(!res, `type test incomplete`);
     });
@@ -161,7 +161,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
             "additionalArray": [1, 2, 3],
         };
 
-        const res = isEqualType(test.instanciate(), test2);
+        const res = isEqualType(test.instantiate(), test2);
 
         assert(!res, `type test incomplete`);
     });
@@ -171,7 +171,7 @@ describe(`Test reflection util (${getTestFile(__filename)})`, () => {
         const test = new TestReflection();
         const test2 = new IndexerConfig();
 
-        const res = isEqualType(test.instanciate(), test2);
+        const res = isEqualType(test.instantiate(), test2);
 
         assert(!res, `type test incomplete`);
     });

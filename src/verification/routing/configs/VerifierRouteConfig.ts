@@ -18,7 +18,7 @@ export class VerifierRouteConfig implements IReflection<VerifierRouteConfig> {
    */
   public verifierRoutes: VerifierSourceRouteConfig[] = [];
 
-  instanciate(): VerifierRouteConfig {
+  instantiate(): VerifierRouteConfig {
     return new VerifierRouteConfig();
   }
 

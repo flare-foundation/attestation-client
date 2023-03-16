@@ -1,4 +1,4 @@
-import { IInstanciate } from "./IInstanciate";
+import { IInstantiate } from "./IInstantiate";
 
 export class AdditionalTypeInfo {
   arrayMap = new Map<string, any>();
@@ -9,7 +9,7 @@ export class AdditionalTypeInfo {
   }
 }
 
-export interface IReflection<T> extends IInstanciate<T> {
-  instanciate(): T;
+export interface IReflection<T> extends IInstantiate<T> {
+  instantiate(): T;
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo;
 }

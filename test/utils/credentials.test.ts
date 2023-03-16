@@ -25,7 +25,7 @@ class TestConfig implements IReflection<TestConfig> {
     key3: number = 0;
     key4: number = 0;
 
-    instanciate() {
+    instantiate() {
         return new TestConfig();
     }
 

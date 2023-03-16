@@ -37,7 +37,7 @@ The address of the deployed contract appears in the file `.stateconnector-addres
 ## Run spammer
 
 ``` bash
-./scripts/run-attester-spammer-XRP.sh
+./scripts/direct-install/helpers/run-attester-spammer-XRP.sh
 ```
 
 This spammer is adapted for scdev chain.

@@ -16,15 +16,14 @@ cd attestation-client
 git checkout main
 ```
 
-- Install dependencies: command `./scripts/install-dependencies.sh`
-
-- Logout and login again.
+- Install dependencies: command `./scripts/direct-install/install-dependencies.sh`
 
 - Compile the project: command `./scripts/compile.sh`
 
-- Initialize credentials: command `./scripts/install-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again).
+- Compile project: command `./scripts/direct-install/.sh`
 
-- Copy configurations: command `cp configs/.install/configurations.json credentials/`.
+- Initialize credentials: command `./scripts/direct-install/initialize-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again) 
+- Copy configurations: command `cp configs/.install/configurations.json credentials/`
 
 - Update credentials keys
     - `credentials/networks-credentials.json`
@@ -49,9 +48,9 @@ git checkout main
     "DOGEVerifierRouterServerPort": "9504",    
     ```
 - Update credentials passwords in `credentials/configurations.json` (all keys `credentials`)
-- Prepare credentials: command `./scripts/prepare-credentials.sh` 
-    - Use this command whenever you change something in credentials (and restart services after)
+- Prepare credentials: command `./scripts/direct-install/prepare-credentials.sh` 
+    - use this command whenever you change something in credentials (and restart services after)
 
-- Install: command `./scripts/install.sh`
+- Install: command `./scripts/direct-install/install.sh`
 
-- Restart all services: command `./scripts/services-restart-all.sh`
+- Restart all services: command `./scripts/direct-install/services-restart-all.sh`

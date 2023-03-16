@@ -1,4 +1,3 @@
-
 /**
  * Confirmed transaction entry in the indexer database.
  */
@@ -47,4 +46,3 @@ export class ApiDBTransaction {
    */
   transactionType: string;
 }
-

@@ -123,7 +123,7 @@ export class ProofEngineService {
     return finalResult;
   }
 
-  private canReveal(roundId: number) {
+  public canReveal(roundId: number) {
     let current = this.configService.epochSettings.getCurrentEpochId().toNumber();
     return current >= roundId + 2; // we must be in the reveal phase or later for a given roundId
   }

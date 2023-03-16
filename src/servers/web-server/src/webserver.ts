@@ -1,3 +1,4 @@
+import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "helmet";
@@ -9,6 +10,7 @@ export async function runWebserver() {
   const app = await NestFactory.create(WebServerModule);
 
   app.use(helmet());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? "");
   const config = new DocumentBuilder()

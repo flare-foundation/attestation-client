@@ -13,7 +13,7 @@ export class IndexerEngineService {
   constructor(
     @Inject("VERIFIER_CONFIG") private configService: VerifierConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
-  ) { }
+  ) {}
 
   /**
    * Gets the state entries from the indexer database.
@@ -89,7 +89,8 @@ export class IndexerEngineService {
    * @returns
    */
   public async confirmedBlockAt(blockNumber: number): Promise<DBBlockBase> {
-    let query = this.manager.createQueryBuilder(this.configService.blockTable as any, "block")
+    let query = this.manager
+      .createQueryBuilder(this.configService.blockTable as any, "block")
       .andWhere("block.blockNumber = :blockNumber", { blockNumber })
       .andWhere("block.confirmed = :confirmed", { confirmed: true });
     let result = (await query.getOne()) as DBBlockBase;
@@ -132,10 +133,17 @@ export class IndexerEngineService {
    * @param to
    * @returns
    */
-  public async getTransactionsWithinBlockRange(from?: number, to?: number, paymentReference?: string, limit?: number, offset?: number, returnResponse?: boolean): Promise<DBTransactionBase[]> {
+  public async getTransactionsWithinBlockRange(
+    from?: number,
+    to?: number,
+    paymentReference?: string,
+    limit?: number,
+    offset?: number,
+    returnResponse?: boolean
+  ): Promise<DBTransactionBase[]> {
     if (paymentReference) {
-      if (! /^0x[0-9a-f]{64}$/i.test(paymentReference)) {
-        throw new Error("Invalid payment reference")
+      if (!/^0x[0-9a-f]{64}$/i.test(paymentReference)) {
+        throw new Error("Invalid payment reference");
       }
     }
     let theLimit = limit ?? this.configService.config.indexerServerPageLimit;
@@ -147,8 +155,7 @@ export class IndexerEngineService {
 
     // Check the sizes of results in both tables
     for (let table of this.configService.transactionTable) {
-      let countQuery = this.manager
-        .createQueryBuilder(table as any, "transaction");
+      let countQuery = this.manager.createQueryBuilder(table as any, "transaction");
       if (from !== undefined) {
         countQuery = countQuery.andWhere("transaction.blockNumber >= :from", { from });
       }
@@ -159,9 +166,7 @@ export class IndexerEngineService {
         countQuery = countQuery.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
       }
 
-      countQuery = countQuery
-        .select("COUNT(id)", "cnt")
-        .addSelect("MIN(transaction.blockNumber)", "min");
+      countQuery = countQuery.select("COUNT(id)", "cnt").addSelect("MIN(transaction.blockNumber)", "min");
       let stat = await countQuery.getRawOne();
       if (stat.cnt) {
         stat.index = index;
@@ -176,8 +181,7 @@ export class IndexerEngineService {
     }
     // Make an offset query in the first table if needed
     if (stats[0] && theOffset < stats[0].cnt) {
-      let query = this.manager
-        .createQueryBuilder(this.configService.transactionTable[stats[0].index] as any, "transaction");
+      let query = this.manager.createQueryBuilder(this.configService.transactionTable[stats[0].index] as any, "transaction");
       if (from !== undefined) {
         query = query.andWhere("transaction.blockNumber >= :from", { from });
       }
@@ -187,19 +191,14 @@ export class IndexerEngineService {
       if (paymentReference) {
         query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
       }
-      query = query
-        .orderBy("transaction.blockNumber", "ASC")
-        .addOrderBy("transaction.transactionId", "ASC")
-        .limit(theLimit)
-        .offset(theOffset);
+      query = query.orderBy("transaction.blockNumber", "ASC").addOrderBy("transaction.transactionId", "ASC").limit(theLimit).offset(theOffset);
       results = results.concat(await query.getMany());
     }
     // Make an offset query in the second table if needed
     if (stats[1] && stats[1].cnt > 0 && theOffset >= stats[0].cnt) {
       theLimit = results.length > 0 ? theLimit - results.length : theLimit;
       theOffset = results.length > 0 ? 0 : theOffset - stats[0].cnt;
-      let query = this.manager
-        .createQueryBuilder(this.configService.transactionTable[stats[1].index] as any, "transaction");
+      let query = this.manager.createQueryBuilder(this.configService.transactionTable[stats[1].index] as any, "transaction");
       if (from !== undefined) {
         query = query.andWhere("transaction.blockNumber >= :from", { from });
       }
@@ -209,11 +208,7 @@ export class IndexerEngineService {
       if (paymentReference) {
         query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
       }
-      query = query
-        .orderBy("transaction.blockNumber", "ASC")
-        .addOrderBy("transaction.transactionId", "ASC")
-        .limit(theLimit)
-        .offset(theOffset);
+      query = query.orderBy("transaction.blockNumber", "ASC").addOrderBy("transaction.transactionId", "ASC").limit(theLimit).offset(theOffset);
       results = results.concat(await query.getMany());
     }
 
@@ -222,5 +217,4 @@ export class IndexerEngineService {
       return res;
     }) as DBTransactionBase[];
   }
-
 }

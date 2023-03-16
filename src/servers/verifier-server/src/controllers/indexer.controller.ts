@@ -14,11 +14,11 @@ import { IndexerEngineService } from "../services/indexer-engine.service";
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
 export class IndexerController {
-  constructor(private indexerEngine: IndexerEngineService) { }
+  constructor(private indexerEngine: IndexerEngineService) {}
 
   /**
    * Gets the state entries from the indexer database.
-   * @returns 
+   * @returns
    */
   @Get("state")
   public async indexerState(): Promise<ApiResponseWrapper<ApiDBState[]>> {
@@ -27,7 +27,7 @@ export class IndexerController {
 
   /**
    * Gets the range of available confirmed blocks in the indexer database.
-   * @returns 
+   * @returns
    */
   @Get("block-range")
   public async blockRange(): Promise<ApiResponseWrapper<BlockRange | null>> {
@@ -36,8 +36,8 @@ export class IndexerController {
 
   /**
    * Gets the transaction for a given transaction id (hash).
-   * @param txHash 
-   * @returns 
+   * @param txHash
+   * @returns
    */
   @Get("transaction/:txHash")
   public async transaction(@Param("txHash") txHash: string): Promise<ApiResponseWrapper<ApiDBTransaction>> {
@@ -46,8 +46,8 @@ export class IndexerController {
 
   /**
    * Gets a block with given hash from the indexer database.
-   * @param blockHash 
-   * @returns 
+   * @param blockHash
+   * @returns
    */
   @Get("block/:blockHash")
   public async block(@Param("blockHash") blockHash: string): Promise<ApiResponseWrapper<ApiDBBlock>> {
@@ -55,10 +55,10 @@ export class IndexerController {
   }
 
   /**
-   * Gets confirmed block with the given block number. 
+   * Gets confirmed block with the given block number.
    * Blocks that are not confirmed yet cannot be obtained using this route.
-   * @param blockNumber 
-   * @returns 
+   * @param blockNumber
+   * @returns
    */
   @Get("confirmed-block-at/:blockNumber")
   public async confirmedBlockAt(@Param("blockNumber", new ParseIntPipe()) blockNumber: number): Promise<ApiResponseWrapper<ApiDBBlock>> {
@@ -67,7 +67,7 @@ export class IndexerController {
 
   /**
    * Gets the indexed block height.
-   * @returns 
+   * @returns
    */
   @Get("block-height")
   public async blockHeight(): Promise<ApiResponseWrapper<number>> {
@@ -76,8 +76,8 @@ export class IndexerController {
 
   /**
    * Returns block header data for the transaction with the given transaction id
-   * @param txHash 
-   * @returns 
+   * @param txHash
+   * @returns
    */
   @Get("transaction-block/:txHash")
   public async transactionBlock(@Param("txHash") txHash: string): Promise<ApiResponseWrapper<ApiDBBlock>> {
@@ -93,20 +93,13 @@ export class IndexerController {
    * @param limit Query limit. Capped by server config settings
    * @param offset Query offset
    * @param returnResponse Whether response from node stored in the indexer database should be returned
-   * @returns 
+   * @returns
    */
 
   @Get("transactions")
-  public async transactionsWithinBlockRange(
-    // @Query("from", ParseIntPipe) from?: number,
-    // @Query("to", ParseIntPipe) to?: number,
-    // @Query("paymentReference") paymentReference?: string,
-    // @Query("limit", ParseIntPipe) limit?: number,
-    // @Query("offset", ParseIntPipe) offset?: number,
-    // @Query("returnResponse", ParseBoolPipe) returnResponse?: boolean,
-    @Query() query: QueryTransaction
-  ): Promise<ApiResponseWrapper<ApiDBTransaction[]>> {
-    return handleApiResponse(this.indexerEngine.getTransactionsWithinBlockRange(query.from, query.to, query.paymentReference, query.limit, query.offset, query.returnResponse));
+  public async transactionsWithinBlockRange(@Query() query: QueryTransaction): Promise<ApiResponseWrapper<ApiDBTransaction[]>> {
+    return handleApiResponse(
+      this.indexerEngine.getTransactionsWithinBlockRange(query.from, query.to, query.paymentReference, query.limit, query.offset, query.returnResponse)
+    );
   }
-
 }

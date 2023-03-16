@@ -1,4 +1,3 @@
-
 /**
  * State table entry of the indexer database
  */

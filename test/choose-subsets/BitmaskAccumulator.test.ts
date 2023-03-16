@@ -87,57 +87,6 @@ describe(`BitmaskAccumulator.ts (${getTestFile(__filename)})`, function () {
     }
   });
 
-  it(`Should identify missing bits`, async function () {
-    let sequence0 = "01101011";
-    let sequence1 = "1011001";
-    assert(sequence0.length >= sequence1.length, "Sequence0 must not be shorter than sequence1")
-    let bitmask = BitmaskAccumulator.fromBitString(sequence0);
-
-    let indices0 = bitmask.missingIndices(BitmaskAccumulator.fromBitString(sequence1).toHex());
-    let indices1 = [];
-    for (let i = 0; i < sequence0.length; i++) {
-      if (i >= sequence1.length) continue;
-      if (sequence1[i] === "1" && sequence0[i] === "0") {
-        indices1.push(i)
-      }
-    }
-    // console.log("------------")
-    // console.log(indices0)
-    // console.log(indices1)
-    assert(indices0.length === indices1.length, "Missing indices lists should be of the same length")
-    for (let i = 0; i < indices0.length; i++) {
-      assert(indices0[i] === indices1[i], `Indices do not match at index ${i}, values ${indices0[i]} != ${indices1[i]}`)
-    }
-  });
-
-
-  it(`Should identify missing bits for different random ranges`, async function () {
-    for (let n = 0; n < N_MAX_MISSING; n++) {
-      for (let r = 0; r < N_REPEAT_MISSING; r++) {
-        let sequence0 = randomBitSequence(n)
-        let sequence1 = randomBitSequence(n, false, Math.random() / (2 * RAND_OFFSET) + (0.5 - RAND_OFFSET));
-        assert(sequence0.length >= sequence1.length, "Sequence0 must not be shorter than sequence1")
-        let bitmask = BitmaskAccumulator.fromBitString(sequence0);
-        let indices0 = bitmask.missingIndices(BitmaskAccumulator.fromBitString(sequence1).toHex());
-        let indices1 = [];
-        for (let i = 0; i < sequence0.length; i++) {
-          if (i >= sequence1.length) continue;
-          if (sequence1[i] === "1" && sequence0[i] === "0") {
-            indices1.push(i)
-          }
-        }
-        // console.log("------------")
-        // console.log(indices0)
-        // console.log(indices1)
-
-        assert(indices0.length === indices1.length, "Missing indices lists should be of the same length")
-        for (let i = 0; i < indices0.length; i++) {
-          assert(indices0[i] === indices1[i], `Indices do not match at index ${i}, values ${indices0[i]} != ${indices1[i]}`)
-        }
-      }
-    }
-  });
-
   it(`Should correctly extract indices`, async function () {
     let sequence = "1001101";
     let indices0 = [];

@@ -2,6 +2,7 @@ export enum AttestationStatus {
   ///// IN PROCESSING STATUSES ///////
   queued,
   processing,
+  undetermined,
 
   ///// FINAL STATUSES //////
   failed,

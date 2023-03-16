@@ -35,7 +35,7 @@ export class VerifierServerConfig implements IReflection<VerifierServerConfig> {
   sourceId: string = "";
   attestationTypes: string[] = [];
 
-  instanciate(): VerifierServerConfig {
+  instantiate(): VerifierServerConfig {
     return new VerifierServerConfig();
   }
 

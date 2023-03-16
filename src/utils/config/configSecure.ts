@@ -61,7 +61,7 @@ async function readSecureConfigBase<T extends IReflection<T>>(project: string, t
   try {
     const res = await readJSONsecure<T>(filePath);
     Object.setPrototypeOf(res, Object.getPrototypeOf(obj));
-    const valid = isEqualType(obj.instanciate(), res);
+    const valid = isEqualType(obj.instantiate(), res);
     if (valid) {
       logger.info(`^g^W${project}^^ ^Rsecure^G configuration ^K^w${filePath}^^ loaded`);
     } else {

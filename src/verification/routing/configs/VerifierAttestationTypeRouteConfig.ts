@@ -18,7 +18,7 @@ export class VerifierAttestationTypeRouteConfig implements IReflection<VerifierA
    */
   public apiKey: string = "";
 
-  instanciate(): VerifierAttestationTypeRouteConfig {
+  instantiate(): VerifierAttestationTypeRouteConfig {
     return new VerifierAttestationTypeRouteConfig();
   }
 

@@ -16,7 +16,7 @@ export class MonitorDatabaseConfig extends MonitorConfigBase implements IReflect
 
   connection = new DatabaseConnectOptions();
 
-  instanciate() {
+  instantiate() {
     return new MonitorDatabaseConfig();
   }
 

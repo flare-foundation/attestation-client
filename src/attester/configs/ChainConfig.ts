@@ -67,7 +67,7 @@ export class ChainConfig implements IReflection<ChainConfig> {
    */
   @optional() public validateBlockMaxRetry = 10;
 
-  instanciate(): ChainConfig {
+  instantiate(): ChainConfig {
     return new ChainConfig();
   }
 

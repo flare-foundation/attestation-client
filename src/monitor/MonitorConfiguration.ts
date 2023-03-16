@@ -39,7 +39,7 @@ export class MonitorConfig implements IReflection<MonitorConfig> {
   @optional() backends: Array<MonitorUrlConfig> = [];
   @optional() databases: Array<MonitorDatabaseConfig> = [];
 
-  instanciate() {
+  instantiate() {
     return new MonitorConfig();
   }
 

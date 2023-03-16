@@ -30,7 +30,7 @@ export class GlobalAttestationConfig implements IReflection<GlobalAttestationCon
    * is used. If all 7-subsets have 0 intersection votes, the process is repeated with 6-subsets and
    * if needed with 5-subsets.
    */
-  consensusSubsetSize: number = 1;
+  consensusSubsetSize: number = 7;
 
   /**
    * Definitions of supported data sources and attestation types, together with
@@ -51,7 +51,7 @@ export class GlobalAttestationConfig implements IReflection<GlobalAttestationCon
     return info;
   }
 
-  instanciate(): GlobalAttestationConfig {
+  instantiate(): GlobalAttestationConfig {
     return new GlobalAttestationConfig();
   }
 

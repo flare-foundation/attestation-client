@@ -17,7 +17,7 @@ export class IndexerEngineService {
 
   /**
    * Gets the state entries from the indexer database.
-   * @returns 
+   * @returns
    */
   public async getStateSetting() {
     let stateQuery = this.manager.createQueryBuilder(DBState, "state");
@@ -27,7 +27,7 @@ export class IndexerEngineService {
 
   /**
    * Gets the range of available confirmed blocks in the indexer database.
-   * @returns 
+   * @returns
    */
   public async getBlockRange(): Promise<BlockRange | null> {
     let results: any[] = [];
@@ -52,8 +52,8 @@ export class IndexerEngineService {
 
   /**
    * Gets the confirmed transaction from the indexer database for a given transaction id (hash).
-   * @param txHash 
-   * @returns 
+   * @param txHash
+   * @returns
    */
   public async getTransaction(txHash: string): Promise<DBTransactionBase> | null {
     let results: any[] = [];
@@ -74,8 +74,8 @@ export class IndexerEngineService {
 
   /**
    * Gets a block header data from the indexer database for a given block hash.
-   * @param blockHash 
-   * @returns 
+   * @param blockHash
+   * @returns
    */
   public async getBlock(blockHash: string): Promise<DBBlockBase> {
     let query = this.manager.createQueryBuilder(this.configService.blockTable as any, "block").andWhere("block.blockHash = :blockHash", { blockHash });
@@ -85,8 +85,8 @@ export class IndexerEngineService {
 
   /**
    * Gets a block in the indexer database with the given block number. Note that some chains may have blocks in multiple forks on the same height.
-   * @param blockNumber 
-   * @returns 
+   * @param blockNumber
+   * @returns
    */
   public async confirmedBlockAt(blockNumber: number): Promise<DBBlockBase> {
     let query = this.manager.createQueryBuilder(this.configService.blockTable as any, "block")
@@ -113,9 +113,9 @@ export class IndexerEngineService {
 
   /**
    * Get the block header data of the confirmed transaction in the database
-   * for the given transaction id. 
-   * @param txHash 
-   * @returns 
+   * for the given transaction id.
+   * @param txHash
+   * @returns
    */
   public async getTransactionBlock(txHash: string): Promise<DBBlockBase> | null {
     const tx = await this.getTransaction(txHash);
@@ -127,33 +127,10 @@ export class IndexerEngineService {
   }
 
   /**
-   * Gets the list of confirmed transactions in the indexer database with the given payment reference.
-   * Payment reference should be in the standard form (32-byte hex lowercase string).
-   * @param reference 
-   * @returns 
-   */
-  public async getTransactionsWithPaymentReference(reference: string, limit?: number, offset?: number): Promise<DBTransactionBase[]> {
-    let theLimit = limit ?? this.configService.config.indexerServerPageLimit;
-    let theOffset = offset ?? 0;
-    let results: any[] = [];
-    for (let table of this.configService.transactionTable) {
-      let query = this.manager.createQueryBuilder(table as any, "transaction")
-        .andWhere("transaction.paymentReference = :reference", { reference });
-      results = results.concat(await query.getMany());
-    }
-    return results.map((res) => {
-      if (res.response) {
-        res.response = JSON.parse(res.response);
-      }
-      return res;
-    }) as DBTransactionBase[];
-  }
-
-  /**
    * Gets a confirmed transaction from the indexer database in the given block number range.
-   * @param from 
-   * @param to 
-   * @returns 
+   * @param from
+   * @param to
+   * @returns
    */
   public async getTransactionsWithinBlockRange(from?: number, to?: number, paymentReference?: string, limit?: number, offset?: number): Promise<DBTransactionBase[]> {
     if (paymentReference) {
@@ -179,7 +156,7 @@ export class IndexerEngineService {
         countQuery = countQuery.andWhere("transaction.blockNumber < :to", { to });
       }
       if (paymentReference) {
-        countQuery = countQuery.andWhere("transaction.paymentReference < :reference", { reference: unPrefix0x(paymentReference) });
+        countQuery = countQuery.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
       }
 
       countQuery = countQuery
@@ -192,13 +169,13 @@ export class IndexerEngineService {
       }
       index++;
     }
-    
+
     // order the tables by block numbers
     if (stats.length > 1 && stats[0].min > stats[1].min) {
       stats = [stats[1], stats[0]];
     }
     // Make an offset query in the first table if needed
-    if (stats[0] && theOffset < stats[0].cnt) {      
+    if (stats[0] && theOffset < stats[0].cnt) {
       let query = this.manager
         .createQueryBuilder(this.configService.transactionTable[stats[0].index] as any, "transaction");
       if (from !== undefined) {
@@ -208,7 +185,7 @@ export class IndexerEngineService {
         query = query.andWhere("transaction.blockNumber < :to", { to });
       }
       if (paymentReference) {
-        query = query.andWhere("transaction.paymentReference < :reference", { reference: unPrefix0x(paymentReference) });
+        query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
       }
       query = query
         .orderBy("transaction.blockNumber", "ASC")
@@ -230,7 +207,7 @@ export class IndexerEngineService {
         query = query.andWhere("transaction.blockNumber < :to", { to });
       }
       if (paymentReference) {
-        query = query.andWhere("transaction.paymentReference < :reference", { reference: unPrefix0x(paymentReference) });
+        query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
       }
       query = query
         .orderBy("transaction.blockNumber", "ASC")

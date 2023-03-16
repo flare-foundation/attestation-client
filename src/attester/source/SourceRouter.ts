@@ -32,6 +32,7 @@ export class SourceRouter {
       if (sourceId === SourceId.invalid) {
         this.logger.error(`Invalid source id. This should never happen! Terminating!`);
         process.exit(1);
+        return; // Don't delete needed for testing
       }
       let sourceManager = this.sourceManagers.get(sourceId);
       if (sourceManager) {

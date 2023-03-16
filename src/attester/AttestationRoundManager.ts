@@ -1,5 +1,4 @@
 import { Managed, toBN } from "@flarenetwork/mcc";
-import { exit } from "process";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { EpochSettings } from "../utils/data-structures/EpochSettings";
 import { attesterEntities } from "../utils/database/databaseEntities";
@@ -250,11 +249,11 @@ export class AttestationRoundManager {
     }
 
     // obtain global configuration for roundId
-    const globalConfig = this.globalConfigManager.getConfig(roundId);
+    const globalConfig = this.globalConfigManager.getGlobalConfig(roundId);
 
     if (!globalConfig) {
       this.logger.error(`${this.label}: critical error, global config for round #${roundId} not defined`);
-      exit(1);
+      process.exit(1);
       return MOCK_NULL_WHEN_TESTING;
     }
 
@@ -262,10 +261,9 @@ export class AttestationRoundManager {
     const verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
 
     // If no verifier, round cannot be evaluated - critical error.
-    // TODO: we should check if it is defined!
     if (!verifierRouter) {
       this.logger.error(`${this.label}${roundId}: critical error, verifier router for round #${roundId} not defined`);
-      exit(1);
+      process.exit(1);
       return MOCK_NULL_WHEN_TESTING;
     }
 
@@ -385,13 +383,14 @@ export class AttestationRoundManager {
   private createAttestation(roundId: number, data: AttestationData) {
     const attestation = new Attestation(roundId, data);
 
-    const globalConfig = this.globalConfigManager.getConfig(roundId);
+    const globalConfig = this.globalConfigManager.getGlobalConfig(roundId);
     const verifier = this.globalConfigManager.getVerifierRouter(roundId);
     if (!globalConfig || !verifier) {
       // this should not happen
       attestation.status = AttestationStatus.failed;
       this.logger.error(`${this.label} Assert: both global config and verifier router for round should exist. Critical error`);
       process.exit(1);
+      return; // Don't delete needed for testing
     }
     const attestationSupported = globalConfig.sourceAndTypeSupported(data.sourceId, data.type);
     if (!attestationSupported || !verifier.isSupported(data.sourceId, data.type)) {

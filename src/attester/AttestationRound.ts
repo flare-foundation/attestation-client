@@ -694,6 +694,7 @@ export class AttestationRound {
     if (this.attestationsProcessed > this.attestations.length) {
       this.logger.error(`Critical error: number of processed attestations are bigger than number of all attestations in the round.`);
       process.exit(1);
+      return; // Don't delete needed for testing
     }
 
     // eslint-disable-next-line

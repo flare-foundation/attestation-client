@@ -51,7 +51,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     const sourceRouter = new SourceRouter(globalConfigManager);
     await globalConfigManager.initialize();
 
-    activeGlobalConfig = globalConfigManager.getConfig(160);
+    activeGlobalConfig = globalConfigManager.getGlobalConfig(160);
     await dbService.connect();
 
     let flareConnection = new MockFlareConnection(attestationClientConfig, getGlobalLogger());

@@ -26,6 +26,12 @@ export class ProofEngineService {
   private cache = {};
   private requestCache = {};
 
+  /**
+   * Returns all vote results for round, if they can be revealed. 
+   * The results are calculated and cached.
+   * @param roundId 
+   * @returns 
+   */
   public async getVoteResultsForRound(roundId: number): Promise<VotingRoundResult[] | null> {
     if (this.cache[roundId]) {
       return this.cache[roundId];
@@ -70,6 +76,13 @@ export class ProofEngineService {
     return finalResult;
   }
 
+  /**
+   * Returns proof data for specific attestation request.
+   * Attestation request is identified by the request data and round id in which it was submitted.
+   * @param roundId 
+   * @param callData 
+   * @returns 
+   */
   public async getSpecificProofForRound(roundId: number, callData: string): Promise<VotingRoundResult | null> {
     const roundData = await this.getVoteResultsForRound(roundId);
     const upCallData = unPrefix0x(callData).toLowerCase();
@@ -81,6 +94,11 @@ export class ProofEngineService {
     return null;
   }
 
+  /**
+   * Returns all requests for a specific round if they can be revealed subject to timing
+   * @param roundId 
+   * @returns 
+   */
   public async getRequestsForRound(roundId: number): Promise<VotingRoundRequest[] | null> {
     if (this.requestCache[roundId]) {
       return this.requestCache[roundId];
@@ -123,17 +141,30 @@ export class ProofEngineService {
     return finalResult;
   }
 
+  /**
+   * Returns true if the voting data for @param roundId can be revealed.
+   * @param roundId 
+   * @returns 
+   */
   public canReveal(roundId: number) {
     let current = this.configService.epochSettings.getCurrentEpochId().toNumber();
     return current >= roundId + 2; // we must be in the reveal phase or later for a given roundId
   }
 
+  /**
+   * Calculates maximum round id for submitted vote results in the database.
+   * @returns 
+   */
   private async maxRoundId() {
     let maxQuery = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").select("MAX(voting_round_result.roundId)", "max");
     let res = await maxQuery.getRawOne();
     return res?.max;
   }
 
+  /**
+   * Returns current buffer number and latest available round id (subject to revealing limitations)
+   * @returns 
+   */
   public async systemStatus(): Promise<SystemStatus> {
     let currentBufferNumber = this.configService.epochSettings.getCurrentEpochId().toNumber();
     let latestAvailableRoundId = await this.maxRoundId();
@@ -147,19 +178,4 @@ export class ProofEngineService {
     };
   }
 
-  public async serviceStatus(): Promise<ServiceStatus> {
-    let path = this.configService.serverCredentials.serviceStatusFilePath;
-    if (!path) {
-      return {
-        alerts: [],
-        perf: [],
-      };
-    }
-    let statuses = JSON.parse(fs.readFileSync(path).toString());
-    let perf = (statuses as any).perf;
-    return {
-      alerts: (statuses as any).alerts as MonitorStatus[],
-      perf,
-    };
-  }
 }

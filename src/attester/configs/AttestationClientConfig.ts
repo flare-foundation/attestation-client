@@ -1,4 +1,3 @@
-import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../../utils/database/DatabaseConnectOptions";
 import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflection";
 import { AttesterWebOptions } from "./AttesterWebOptions";
@@ -13,18 +12,6 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
    * If set to 'none', the label is empty.
    */
   public label = "none";
-
-  /**
-   * First epoch start time in seconds in StateConnector and BitVoting contracts.
-   * @deprecated scheduled for deletion as it is read directly from the smart contract upon start
-   */
-  public firstEpochStartTime = 1636070400;
-
-  /**
-   * Voting window duration in seconds in StateConnector and BitVoting contracts.
-   * @deprecated scheduled for deletion as it is read directly from the smart contract upon start
-   */
-  public roundDurationSec = 90;
 
   /**
    * Path to (dynamic) global configurations folder. It can be described relative to
@@ -55,7 +42,7 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
    * client forcedly decides that all votes should be available. The setting is relative to the end
    * of the `choose` phase and is usually few seconds.
    */
-  public forceCloseBitVotingSec = 2;
+  public forceCloseBitVotingSec = 5;
 
   /**
    * Web3 configurations for attestation client.
@@ -66,13 +53,6 @@ export class AttestationClientConfig implements IReflection<AttestationClientCon
    * Database connection configuration for attestation client
    */
   public attesterDatabase = new DatabaseConnectOptions();
-
-  // DEPRECATED should be moved to monitor configs
-  /**
-   * Indexer database configuration for attestation client.
-   * @deprecated scheduled for deletion as it is not needed
-   */
-  @optional() public indexerDatabase = new DatabaseConnectOptions();
 
   instantiate() {
     return new AttestationClientConfig();

@@ -1,7 +1,7 @@
 import { stringify } from "safe-stable-stringify";
 import Web3 from "web3";
 import { AttesterWebOptions } from "../../attester/configs/AttesterWebOptions";
-import { getTimeMilli } from "./internetTime";
+import { getTimeMs } from "./internetTime";
 import { AttLogger, logException } from "../logging/logger";
 import { retry } from "./promiseTimeout";
 import { getUnixEpochTimestamp, sleepms } from "./utils";
@@ -80,7 +80,7 @@ export class Web3Functions {
     try {
       const waitIndex = this.nextIndex;
       this.nextIndex += 1;
-      const time0 = getTimeMilli();
+      const time0 = getTimeMs();
 
       if (waitIndex !== this.currentIndex) {
         if (verbose) {
@@ -102,7 +102,7 @@ export class Web3Functions {
       }
 
       const res = await this._signAndFinalize3(label, toAddress, fnToEncode);
-      const time1 = getTimeMilli();
+      const time1 = getTimeMs();
 
       if (verbose) {
         this.logger.debug2(`sign ${label} done #${waitIndex} (time ${time1 - time0}ms)`);

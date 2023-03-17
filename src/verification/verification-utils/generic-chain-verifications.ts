@@ -46,8 +46,8 @@ export async function responsePayment(
   try {
     parsedData = JSON.parse(dbTransaction.response);
   } catch (error) {
-    logException(error, `verifyPayment '${dbTransaction.id}' JSON parse '${dbTransaction.response}'`);
-    throw error;
+    logException(error, `responsePayment '${dbTransaction.id}' JSON parse '${dbTransaction.response}'`);
+    return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
@@ -122,6 +122,10 @@ export async function verifyPayment(
     return { status };
   }
 
+  if (confirmedTransactionResult.transaction.blockNumber !== confirmedBlockQueryResult.block.blockNumber) {
+    return { status: VerificationStatus.NON_EXISTENT_TRANSACTION };
+  }
+
   const dbTransaction = confirmedTransactionResult.transaction;
   return await responsePayment(dbTransaction, TransactionClass, request.inUtxo, request.utxo, client);
 }
@@ -140,7 +144,14 @@ export async function responseBalanceDecreasingTransaction(
   inUtxo: NumberLike,
   client?: MccClient
 ) {
-  const parsedData = JSON.parse(dbTransaction.response);
+  let parsedData: any;
+  try {
+    parsedData = JSON.parse(dbTransaction.response);
+  } catch (error) {
+    logException(error, `responseBalanceDecreasingTransaction '${dbTransaction.id}' JSON parse '${dbTransaction.response}'`);
+    return { status: VerificationStatus.SYSTEM_FAILURE };
+  }
+
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
   const inUtxoNumber = toBN(inUtxo).toNumber();
@@ -202,6 +213,12 @@ export async function verifyBalanceDecreasingTransaction(
   status = verifyWorkflowForTransaction(confirmedTransactionResult);
   if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
+  }
+
+  if (confirmedTransactionResult.transaction.blockNumber !== confirmedBlockQueryResult.block.blockNumber) {
+    return {
+      status: VerificationStatus.NON_EXISTENT_TRANSACTION,
+    };
   }
 
   const dbTransaction = confirmedTransactionResult.transaction;
@@ -352,6 +369,10 @@ export async function verifyReferencedPaymentNonExistence(
 
   if (unPrefix0x(request.paymentReference) === unPrefix0x(ZERO_BYTES_32)) {
     return { status: VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED };
+  }
+
+  if (!/^[0-9A-Fa-f]{64}$/.test(unPrefix0x(request.paymentReference))) {
+    return { status: VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE };
   }
 
   const referencedTransactionsResponse = await iqm.getReferencedTransactions({

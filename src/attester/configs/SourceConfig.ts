@@ -23,7 +23,7 @@ export class SourceConfig implements IReflection<SourceConfig> {
    */
   attestationTypes: AttestationTypeConfig[] = [];
 
-  // 
+  //
   /**
    * Source id. Not intended to be read from the JSON file. Recalculated from `source`
    */

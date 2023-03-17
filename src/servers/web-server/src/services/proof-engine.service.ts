@@ -1,14 +1,11 @@
 import { unPrefix0x } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
-import fs from "fs";
 import { EntityManager } from "typeorm";
 import { DBAttestationRequest } from "../../../../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../../../../entity/attester/dbVotingRoundResult";
-import { MonitorStatus, PerformanceMetrics } from "../../../../monitor/MonitorBase";
 import { MerkleTree } from "../../../../utils/data-structures/MerkleTree";
 import { encodeRequest } from "../../../../verification/generated/attestation-request-encode";
-import { ServiceStatus } from "../dtos/ServiceStatus.dto";
 import { SystemStatus } from "../dtos/SystemStatus.dto";
 import { VotingRoundRequest } from "../dtos/VotingRoundRequest.dto";
 import { VotingRoundResult } from "../dtos/VotingRoundResult.dto";
@@ -27,10 +24,10 @@ export class ProofEngineService {
   private requestCache = {};
 
   /**
-   * Returns all vote results for round, if they can be revealed. 
+   * Returns all vote results for round, if they can be revealed.
    * The results are calculated and cached.
-   * @param roundId 
-   * @returns 
+   * @param roundId
+   * @returns
    */
   public async getVoteResultsForRound(roundId: number): Promise<VotingRoundResult[] | null> {
     if (this.cache[roundId]) {
@@ -79,9 +76,9 @@ export class ProofEngineService {
   /**
    * Returns proof data for specific attestation request.
    * Attestation request is identified by the request data and round id in which it was submitted.
-   * @param roundId 
-   * @param callData 
-   * @returns 
+   * @param roundId
+   * @param callData
+   * @returns
    */
   public async getSpecificProofForRound(roundId: number, callData: string): Promise<VotingRoundResult | null> {
     const roundData = await this.getVoteResultsForRound(roundId);
@@ -96,8 +93,8 @@ export class ProofEngineService {
 
   /**
    * Returns all requests for a specific round if they can be revealed subject to timing
-   * @param roundId 
-   * @returns 
+   * @param roundId
+   * @returns
    */
   public async getRequestsForRound(roundId: number): Promise<VotingRoundRequest[] | null> {
     if (this.requestCache[roundId]) {
@@ -143,8 +140,8 @@ export class ProofEngineService {
 
   /**
    * Returns true if the voting data for @param roundId can be revealed.
-   * @param roundId 
-   * @returns 
+   * @param roundId
+   * @returns
    */
   public canReveal(roundId: number) {
     let current = this.configService.epochSettings.getCurrentEpochId().toNumber();
@@ -153,7 +150,7 @@ export class ProofEngineService {
 
   /**
    * Calculates maximum round id for submitted vote results in the database.
-   * @returns 
+   * @returns
    */
   private async maxRoundId() {
     let maxQuery = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").select("MAX(voting_round_result.roundId)", "max");
@@ -163,7 +160,7 @@ export class ProofEngineService {
 
   /**
    * Returns current buffer number and latest available round id (subject to revealing limitations)
-   * @returns 
+   * @returns
    */
   public async systemStatus(): Promise<SystemStatus> {
     let currentBufferNumber = this.configService.epochSettings.getCurrentEpochId().toNumber();
@@ -177,5 +174,4 @@ export class ProofEngineService {
       latestAvailableRoundId,
     };
   }
-
 }

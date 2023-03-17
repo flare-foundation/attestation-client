@@ -183,7 +183,7 @@ export class GlobalConfigManager {
       return this.loadGlobalConfig(filename);
     });
     const configs = await Promise.all(promises);
-    
+
     this.globalAttestationConfigs = configs;
 
     this.sortGlobalConfigs();
@@ -236,9 +236,9 @@ export class GlobalConfigManager {
   }
 
   /**
-   * Compares two lists of configurations with verifier routes. 
-   * @param configs1 
-   * @param configs2 
+   * Compares two lists of configurations with verifier routes.
+   * @param configs1
+   * @param configs2
    * @returns `true` if configuration lists fully match
    */
   private compareConfigurations(configs1: VerifierRouterWithConfig[], configs2: VerifierRouterWithConfig[]) {
@@ -293,14 +293,14 @@ export class GlobalConfigManager {
     const config = readJSONfromFile<GlobalAttestationConfig>(path.join(this.attestationClientConfig.globalConfigurationsFolder, filename));
     // startRoundId in config must match the one in the file name
     if (config.startRoundId !== startRoundId) {
-      throw new Error(`Error: wrong startRoundId in the global config file: (${config.startRoundId}) in '${filename}'.`)
+      throw new Error(`Error: wrong startRoundId in the global config file: (${config.startRoundId}) in '${filename}'.`);
     }
 
     let obj = new GlobalAttestationConfig();
     Object.setPrototypeOf(config, Object.getPrototypeOf(obj));
     const valid = isEqualType(obj.instantiate(), config);
     if (!valid) {
-      throw new Error(`Global configuration in file '${filename}' is invalid`)
+      throw new Error(`Global configuration in file '${filename}' is invalid`);
     }
     config.initialize();
     return config;

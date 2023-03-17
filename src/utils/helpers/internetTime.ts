@@ -4,7 +4,7 @@ const timeSync = 0;
  * Returns time passed from 1 January 1970 in milliseconds, UTC
  * @returns
  */
-export function getTimeMilli() {
+export function getTimeMs() {
   const now = new Date().getTime();
   // Test purposes only
   if (process.env.NODE_ENV === "development") {
@@ -25,5 +25,5 @@ export function getTimeMilli() {
  * @returns
  */
 export function getTimeSec() {
-  return Math.floor(getTimeMilli() / 1000);
+  return Math.floor(getTimeMs() / 1000);
 }

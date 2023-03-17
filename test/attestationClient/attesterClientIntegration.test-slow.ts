@@ -1,6 +1,6 @@
 // yarn test test/attestationClient/attesterClientIntegration.test-slow.ts
 
-import { BtcTransaction, ChainType, sleepMs, traceManager, XrpTransaction } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, DogeTransaction, sleepMs, traceManager, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { spawn } from "child_process";
@@ -86,8 +86,10 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
   let web3: Web3;
   let requestXRP: ARPayment;
   let requestBTC: ARPayment;
+  let requestDoge: ARPayment;
   let attestationXRP: Attestation;
   let attestationBTC: Attestation;
+  let attestationDoge: Attestation;
   let stateConnector: StateConnectorTempTran;
   let bitVoting: BitVoting;
   let spammerWallet: any;
@@ -195,7 +197,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       TXS_IN_BLOCK,
       BLOCK_CHOICE,
     } as VerifierBootstrapOptions;
-    setup = await bootstrapTestVerifiers(bootstrapOptions, false);
+    setup = await bootstrapTestVerifiers(bootstrapOptions, true, true, true, true);
 
     // console.log("XXX")
     // let a = 1/1;
@@ -212,6 +214,9 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     let utxo = firstAddressVout(setup.BTC.selectedTransaction);
     requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     attestationBTC = prepareAttestation(requestBTC, setup.startTime);
+
+    requestDoge = await testPaymentRequest(setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE);
+    attestationDoge = prepareAttestation(requestDoge, setup.startTime);
 
     ///////////////////////////////////
     // Attester related intializations
@@ -254,7 +259,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       web3,
       spammerWallet,
       bufferWindowDurationSec / 5, //to get duplicates
-      [attestationXRP.data.request, attestationBTC.data.request],
+      [attestationXRP.data.request, attestationBTC.data.request, attestationDoge.data.request],
       SPAMMER_FREQUENCIES,
       SPAMMER_GAPS
     );

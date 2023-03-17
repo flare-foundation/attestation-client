@@ -23,6 +23,9 @@ export function genRequestParseFunctionForDefinition(definition: AttestationType
   }
   const parseEntries = parseEntryList.join(",\n");
   return `
+/**
+ * Parses an attestation request of type ${definition.name} from byte string @param bytes to object of type ${ATTESTATION_TYPE_PREFIX}${definition.name}
+ */
 export function ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(bytes: string): ${ATTESTATION_TYPE_PREFIX}${definition.name} {
 	if(!bytes) {
 		throw new AttestationRequestParseError("Empty attestation request")
@@ -81,6 +84,9 @@ case AttestationType.${definition.name}:
 export function genRequestParseFunction(definitions: AttestationTypeScheme[]) {
   const attestationTypeCases = definitions.map((definition) => genParseAttestationTypeCase(definition)).join("");
   return `
+/**
+ * Parses an attestation request from byte string @param bytes to object of type ${ATTESTATION_TYPE_PREFIX}Type
+ */
 export function ${REQUEST_PARSE_PREFIX_FUNCTION}Request(bytes: string): ${ATTESTATION_TYPE_PREFIX}Type {  
 	const { attestationType } = getAttestationTypeAndSource(bytes);
 	switch(attestationType) {
@@ -97,7 +103,7 @@ function genParseException() {
 export class AttestationRequestParseError extends Error {
 	constructor(message: any) {
 		super(message);
-		this.name = 'AttestationRequestParseError';
+		this.name = 'AttestationRequestParseError'; 
 	}
 }
 `;

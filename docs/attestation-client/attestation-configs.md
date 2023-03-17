@@ -2,6 +2,7 @@
 
 Attestation client specific configurations are defined and documented in [attester-config.json](../../configs/.install/templates/attester-config.json).
 These mostly include attestation database connection credentials, Flare blockchain connection credentials and specific time setting for submissions of data to the blockchain. Beside those configurations two more types of configurations are used in operation of the attestation client:
+
 - global configurations,
 - verifier routes configurations.
 
@@ -16,6 +17,6 @@ Global configurations are described by class [GlobalAttestationConfig](../../src
 ## Verifier routes configurations
 
 Verifier routes configurations are configurations used in class [VerifierRouter](../../src/verification/routing/VerifierRouter.ts). They define credentials for verifier servers (urls, API keys) based on data source and attestation type. The configurations are deserialized from JSON configuration
-files into class [VerifierRouteConfig](../../src/verification/routing/configs/VerifierRouteConfig.ts). JSON configuration file names have the form `verifier-routes-<startRoundId>-config.json` (see [example](../../configs/.install/templates/verifier-client/verifier-routes-150-config.json)), where `startRoundId` is an integer number matching the `startRoundId` key in the file and indicates from which attestation round the configuration is valid. These configuration files are usually contained on relative path `templates/verifier-client`, relative to the path set in `SECURE_CONFIG_PATH` environment variable. A verifer route configuration for a given `startRoundId` is valid from that round id on (including) up to the round with round id one less of the next verifier routes configuration with `startRoundId` strictly larger. Global configurations are loaded at the start of attestation client using class [GlobalConfigManager](../../src/attester/GlobalConfigManager.ts). Verifier routes configurations are loaded on start of the attestation client and periodically (currently fixed to 80s).
+files into class [VerifierRouteConfig](../../src/verification/routing/configs/VerifierRouteConfig.ts). JSON configuration file names have the form `verifier-routes-<startRoundId>-config.json` (see [example](../../configs/.install/templates/verifier-client/verifier-routes-150-config.json)), where `startRoundId` is an integer number matching the `startRoundId` key in the file and indicates from which attestation round the configuration is valid. These configuration files are usually contained on relative path `templates/verifier-client`, relative to the path set in `SECURE_CONFIG_PATH` environment variable. A verifier route configuration for a given `startRoundId` is valid from that round id on (including) up to the round with round id one less of the next verifier routes configuration with `startRoundId` strictly larger. Global configurations are loaded at the start of attestation client using class [GlobalConfigManager](../../src/attester/GlobalConfigManager.ts). Verifier routes configurations are loaded on start of the attestation client and periodically (currently fixed to 80s).
 
 [Back to home](../README.md)

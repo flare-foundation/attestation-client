@@ -13,6 +13,12 @@ const web3 = new Web3();
 // Attestation types.
 //////////////////////////////////////////////////////////////
 
+/**
+ * Calculates the hash of a @param response to the attestation @param request of type Payment with added @param salt
+ * @param request
+ * @param response
+ * @param salt
+ */
 export function hashPayment(request: ARPayment, response: DHPayment, salt?: string) {
   const types = [
     "uint16", // attestationType
@@ -55,6 +61,12 @@ export function hashPayment(request: ARPayment, response: DHPayment, salt?: stri
   return web3.utils.soliditySha3(encoded)!;
 }
 
+/**
+ * Calculates the hash of a @param response to the attestation @param request of type BalanceDecreasingTransaction with added @param salt
+ * @param request
+ * @param response
+ * @param salt
+ */
 export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTransaction, response: DHBalanceDecreasingTransaction, salt?: string) {
   const types = [
     "uint16", // attestationType
@@ -87,6 +99,12 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
   return web3.utils.soliditySha3(encoded)!;
 }
 
+/**
+ * Calculates the hash of a @param response to the attestation @param request of type ConfirmedBlockHeightExists with added @param salt
+ * @param request
+ * @param response
+ * @param salt
+ */
 export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightExists, response: DHConfirmedBlockHeightExists, salt?: string) {
   const types = [
     "uint16", // attestationType
@@ -115,6 +133,12 @@ export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightEx
   return web3.utils.soliditySha3(encoded)!;
 }
 
+/**
+ * Calculates the hash of a @param response to the attestation @param request of type ReferencedPaymentNonexistence with added @param salt
+ * @param request
+ * @param response
+ * @param salt
+ */
 export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNonexistence, response: DHReferencedPaymentNonexistence, salt?: string) {
   const types = [
     "uint16", // attestationType
@@ -151,6 +175,12 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
   return web3.utils.soliditySha3(encoded)!;
 }
 
+/**
+ * Calculates the hash of a @param response to the attestation @param request with added @param salt
+ * @param request
+ * @param response
+ * @param salt
+ */
 export function dataHash(request: ARType, response: DHType, salt?: string) {
   switch (request.attestationType) {
     case AttestationType.Payment:

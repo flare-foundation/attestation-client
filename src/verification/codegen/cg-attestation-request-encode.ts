@@ -38,6 +38,9 @@ export function genRequestEncodeFunctionForDefinition(definition: AttestationTyp
   const bytes = bytesList.join("\n");
 
   return `
+  /**
+   * Encodes an attestation @param request of type ${definition.name} into a byte string
+   */
 export function ${REQUEST_ENCODE_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}) {
 ${checks}
 	let bytes = "0x"
@@ -56,6 +59,9 @@ case AttestationType.${definition.name}:
 export function genRequestEncodeFunction(definitions: AttestationTypeScheme[]) {
   const attestationTypeCases = definitions.map((definition) => genEncodeAttestationTypeCase(definition)).join("");
   return `
+  /**
+   * Encode the attestation @request into a byte string with respect to its attestation type
+   */
 export function ${REQUEST_ENCODE_PREFIX_FUNCTION}Request(request: ${ATTESTATION_TYPE_PREFIX}Type): string  {  
 	switch(request.attestationType) {
 ${attestationTypeCases}

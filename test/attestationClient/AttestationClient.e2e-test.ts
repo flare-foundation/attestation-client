@@ -48,9 +48,9 @@ const TEST_LOGGER = false;
 const NUMBER_OF_CLIENTS = 9;
 const IN_PROCESS_CLIENTS = 1
 const NUMBER_OF_FAILING_CLIENTS = 0;
-const WEB_SERVER_IN_OTHER_PROCESS = false;
 const SPAMMER_GAPS = [[4, 8], [10, 11]];
 const SPAMMER_FREQUENCIES = [2, 3];
+
 
 describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   let setup: VerifierTestSetups;
@@ -78,7 +78,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
       initializeTestGlobalLogger();
     }
     // clear all test databases in './db/' folder
-    clearTestDatabases();
+    await clearTestDatabases();
 
     // setRetryFailureCallback((label: string) => {
     //   throw new Error(TERMINATION_TOKEN);

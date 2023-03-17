@@ -37,14 +37,26 @@ export enum VerificationStatus {
 }
 
 /**
- * Interface for a verification of a request of type R with response of typo T.
- * The validity of the request is stored in status.
+ * DTO Object returned after attestation request verification.
+ * If status is 'OK' then parameters @param hash, @param request and @param response appear
+ * in the full response.
  */
-export interface Verification<R, T> {
+export class Verification<R, T> {
+  /**
+   * Hash of the attestation as included in Merkle tree.
+   */
   hash?: string;
+  /**
+   * Parsed attestation request.
+   */
   request?: R;
+  /**
+   * Attestation response.
+   */
   response?: T;
-  rawResponse?: any;
+  /**
+   * Verification status.
+   */
   status: VerificationStatus;
 }
 
@@ -94,7 +106,10 @@ export interface AttestationTypeScheme {
   request: AttestationRequestScheme[];
   dataHashDefinition: DataHashScheme[];
 }
-export interface AttestationRequest {
+export class AttestationRequest {
+  /**
+   * Attestation request in hex string representing byte sequence as submitted to State Connector smart contract.
+   */
   request: string;
 }
 

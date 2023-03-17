@@ -1,8 +1,7 @@
+import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { getGlobalLogger } from "../../../utils/logging/logger";
 import { VerifierConfigurationService } from "./services/verifier-configuration.service";
@@ -13,18 +12,7 @@ export async function runVerifierServer() {
   app.useWebSocketAdapter(new WsAdapter(app));
 
   app.use(helmet());
-  // app.use(compression()); // Compress all routes
-
-  app.use(cookieParser());
-  app.use(bodyParser.json({ limit: "50mb" }));
-  // Use body parser to read sent json payloads
-  app.use(
-    bodyParser.urlencoded({
-      limit: "1mb",
-      extended: true,
-      parameterLimit: 50000,
-    })
-  );
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? "");
   const config = new DocumentBuilder()

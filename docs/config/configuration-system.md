@@ -1,33 +1,26 @@
 # Configuration system
 
 Configuration system for attestation suite consists of configuration templates and credential files.
-Configuration templates consist of a prescribed folder structure and template configuration files with prescribed names.
-Template structure is defined in folder [`configs/.install/templates`](../../configs/.install/templates/).
+A **configuration template** is a JSON file with prescribed name of the form `<config_name>-config.json` where name indicates the attestation suite service for which the configuration is intended. Configuration templates are organized in the prescribed folder structure, see [`configs/.install/templates`](../../configs/.install/templates/).
+**Credential file** is a file of the form `<name>-credentials.json`. Credential files contain secret credentials in key-value pair format, each credential identified by its identifier key. Examples of all such files are in `configs/.install` folder.
 
-Each attestation suite service expects the `templates` folder on the path defined in environment variable `SECURE_CONFIG_PATH`.
-The service then finds the configuration on the service specific relative path.
-
-Note that the configurations in `configs/.install/templates` are just basic templates.
-A user can copy the `templates` folder to another location, set `SECURE_CONFIG_PATH` to point to that location and adapt configurations.
-The secret credentials in the configuration templates are indicated buy stub identifier keys of the form `$<stub_name>`.
-On a startup, each attestation suite service loads the relevant `*-config.json` configuration file from the service specific relative path in `template` folder, and expects two more files in the same subfolder:
+**Credential package** consists of two files:
 
 - `credentials.json.secure` - encrypted credentials (in form key-value pare, where keys are stub names),
 - `credentials.key` - instructions how to obtain the decryption key (e.g. use a path on cloud secret manager to obtain a decryption key).
-  Then the credentials matching the stubs are rendered into configuration files in-memory.
 
-When installing services in a production environment, preparation of credentials is needed in advance of deployment. For extra secure reasons, the preparation can be done on separate, more secure machine. The preparation procedure is described in [deployment instructions](../../deployment/README.md).
-It basically consists of making the following by running a few scripts:
+Each attestation suite service expects the credential package and `templates` folder on the path defined in environment variable `SECURE_CONFIG_PATH`.
+If a specific configuration template is missing, the default template on the same relative path relative to `configs/.install/templates` is used.
 
-- Creating separate credentials folder.
-- Copying `./configs/.install/template` folder to a `templates` folder in the credentials folder.
-- Copying all `*-credentials.json` files from `./configs/.install` folder to the credentials folder. These files contain credential stub key definitions which should be manually entered into those files.
-- `configurations.json` file is also copied to the credentials folder. This file can be used to define the encryption key handling procedure.
-- a script is run, to prepare encrypted credentials that can be moved to the deployment machine to a specific folder to which the environment variable `SECURE_CONFIG_PATH` should be set onto the copied folder.
+In place of credentials, configuration templates contain stub identifier keys of the form `$(<credential_identifier_key>)`, where `<credential_identifier_key>` represents a key in exactly one of the credential files. Credential files are used in the process of building credentials package, usually on a secure machine. A **top level configuration file** [`configurations.json`](../../configs/.install/configurations.json) defines instructions on how the credential packages and the corresponding template folders get generated and what encryption should be used. The built credential packages and templates are then usually moved to production machine where they are used by specific attestation suite service.
+
+On a startup, each attestation suite service loads the identifier key stubs from credentials package. This is done in-memory.
+
+The process of preparing credentials and building credentials packages is described in [deployment instructions](../../deployment/README.md)
 
 ## Structure of `templates` folder
 
-All JSON configuration files in templates are in a JSON format that support comments.
+All configuration templates are in a JSON format that support comments.
 
 Folders:
 
@@ -57,6 +50,8 @@ In addition to configurations in the folders stated above, there are the followi
   - Example: [attester-config.json](../../configs/.install/templates/attester-config.json).
 - `webserver-config.json`: attestation web server configuration.
   - Property description: [WebserverConfig](../../src/servers/web-server/src/config-models/WebserverConfig.ts).
-  - Example: [attester-config.json](../../configs/.install/templates/webserver-config.json).
-
-[Back to home](../README.md)
+  - Example: [webserver-config.json](../../configs/.install/templates/webserver-config.json).
+- `monitor-config.json`: attestation suite monitor configuration.
+  - Containes definitions for monitoring status and performance metrics for all Attestation Suite modules.
+  - Property description: [TBD]
+  - Example: [monitor-config.json](../../configs/.install/templates/monitor-config.json)

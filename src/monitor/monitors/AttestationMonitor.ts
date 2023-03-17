@@ -3,10 +3,13 @@ import { DBRoundResult } from "../../entity/attester/dbRoundResult";
 import { EpochSettings } from "../../utils/data-structures/EpochSettings";
 import { DatabaseService } from "../../utils/database/DatabaseService";
 import { AttLogger } from "../../utils/logging/logger";
-import { MonitorBase, MonitorStatus, PerformanceInfo } from "../MonitorBase";
+import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
 import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
+/**
+ * Attestation monitor configuration class
+ */
 export class MonitorAttestationConfig extends MonitorConfigBase {
   database = "";
 
@@ -22,6 +25,9 @@ export class MonitorAttestationConfig extends MonitorConfigBase {
   }
 }
 
+/**
+ * Attester monitor
+ */
 export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
   dbService: DatabaseService;
   epochSettings: EpochSettings;
@@ -50,7 +56,7 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
     }
   }
 
-  async perf() {
+  async getPerformanceMetrics() {
     if (!this.lastState) {
       return null;
     }
@@ -63,16 +69,16 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
     const activeRound = this.epochSettings.getCurrentEpochId().toNumber();
     const dbRound = this.lastState[0].roundId;
 
-    resArray.push(new PerformanceInfo(`attester.${this.name}`, `collected`, transactions, "tx"));
-    resArray.push(new PerformanceInfo(`attester.${this.name}`, `valid`, validTransactions, "tx"));
+    resArray.push(new PerformanceMetrics(`attester.${this.name}`, `collected`, transactions, "tx"));
+    resArray.push(new PerformanceMetrics(`attester.${this.name}`, `valid`, validTransactions, "tx"));
 
-    resArray.push(new PerformanceInfo(`attester.${this.name}`, `active`, activeRound, "round"));
-    resArray.push(new PerformanceInfo(`attester.${this.name}`, `saved`, dbRound, "round"));
+    resArray.push(new PerformanceMetrics(`attester.${this.name}`, `active`, activeRound, "round"));
+    resArray.push(new PerformanceMetrics(`attester.${this.name}`, `saved`, dbRound, "round"));
 
     return resArray;
   }
 
-  async check(): Promise<MonitorStatus> {
+  async getMonitorStatus(): Promise<MonitorStatus> {
     const res = new MonitorStatus();
 
     res.type = `attestation client`;

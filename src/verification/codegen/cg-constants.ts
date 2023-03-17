@@ -30,6 +30,10 @@ export const ATT_REQ_PARSER_TEST_FILE = `AttestationRequestParser.test-contract.
 export const I_ATTESTATION_CLIENT_FILE = `ISCProofVerifier.sol`;
 export const ATTESTATION_CLIENT_BASE = `SCProofVerifierBase.sol`;
 export const HASH_TEST_FILE = `HashTest.sol`;
+export const VERIFIER_DTO_REQUEST_TYPE_FILE = "src/servers/verifier-server/src/dtos/v-request-types.dto.ts";
+export const VERIFIER_DTO_HASH_TYPE_FILE = "src/servers/verifier-server/src/dtos/v-hash-types.dto.ts";
+export const WEB_SERVER_DTO_REQUEST_TYPE_FILE = "src/servers/web-server/src/dtos/w-request-types.dto.ts";
+export const WEB_SERVER_DTO_HASH_TYPE_FILE = "src/servers/web-server/src/dtos/w-hash-types.dto.ts";
 
 export const CODEGEN_TAB = 3;
 export const SOLIDITY_CODEGEN_TAB = 4;

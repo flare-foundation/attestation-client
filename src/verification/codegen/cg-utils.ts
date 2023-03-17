@@ -14,6 +14,18 @@ export function commentText(text: string, prefix = "//") {
     .join("\n");
 }
 
+export function JSDocCommentText(text: string) {
+  return (
+    "/**\n" +
+    text
+      .trim()
+      .split("\n")
+      .map((line) => `* ${line}`)
+      .join("\n") +
+    "\n*/"
+  );
+}
+
 export function dashCapitalized(name: string, glue = "-") {
   return name.replace(/([a-z])([A-Z])/g, `$1${glue}$2`).toLowerCase();
 }
@@ -31,4 +43,14 @@ export function definitionFile(definition: AttestationTypeScheme, folder?: strin
   const root = folder ? `${folder}/` : "";
   const suffix = addTs ? ".ts" : "";
   return `${root}t-${("" + definition.id).padStart(5, "0")}-${dashCapitalized(definition.name)}${suffix}`;
+}
+
+export interface OpenAPIOptionsRequests {
+  dto?: boolean;
+  filePath?: string;
+}
+
+export interface OpenAPIOptionsResponses {
+  dto?: boolean;
+  filePath?: string;
 }

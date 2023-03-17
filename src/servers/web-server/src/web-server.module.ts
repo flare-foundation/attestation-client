@@ -3,7 +3,6 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { attesterEntities } from "../../../utils/database/databaseEntities";
 import { CommonModule } from "../../common/src";
 import { ProofController } from "./controllers/proof.controller";
-import { StatusController } from "./controllers/status.controller";
 import { ProofEngineService } from "./services/proof-engine.service";
 import { ServerConfigurationService } from "./services/server-configuration.service";
 import { createTypeOrmOptions } from "./utils/db-config";
@@ -16,7 +15,7 @@ import { createTypeOrmOptions } from "./utils/db-config";
       useFactory: async () => createTypeOrmOptions("web", attesterEntities()),
     }),
   ],
-  controllers: [ProofController, StatusController],
+  controllers: [ProofController],
   providers: [
     {
       provide: "SERVER_CONFIG",
@@ -29,4 +28,4 @@ import { createTypeOrmOptions } from "./utils/db-config";
     ProofEngineService,
   ],
 })
-export class WebServerModule {}
+export class WebServerModule { }

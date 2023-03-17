@@ -124,19 +124,10 @@ export function randomWeightedChoice<T>(choices: WeightedRandomChoice<T>[]): T {
 export async function getAttTypesDefinitionFiles(): Promise<string[]> {
   const dev = process.env.NODE_ENV === "development";
   const pattern = `t-*.${dev ? "ts" : "js"}`;
-
-  return new Promise((resolve, reject) => {
-    glob(pattern, { cwd: (dev ? "" : "dist/") + ATT_TYPE_DEFINITIONS_ROOT }, (er: any, files: string[] | null) => {
-      if (er) {
-        reject(er);
-      } else {
-        if (files) {
-          files.sort();
-        }
-        resolve(files || []);
-      }
-    });
-  });
+  const files = await glob(pattern, { cwd: (dev ? "" : "dist/") + ATT_TYPE_DEFINITIONS_ROOT });
+  if (!files) return [];
+  files.sort();
+  return files;
 }
 
 /**

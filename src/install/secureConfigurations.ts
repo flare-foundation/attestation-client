@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { exit } from "process";
 import yargs from "yargs";
-import { getCredentialsKeyByAddress } from "../utils/config/credentialsKey";
+import { getSecretByAddress } from "../utils/config/credentialsKey";
 import { readJSONfromFile } from "../utils/config/json";
 import { getGlobalLogger } from "../utils/logging/logger";
 import { encryptString } from "../utils/security/encrypt";
@@ -114,7 +114,7 @@ async function prepareConfiguration(configuration: Configuration) {
   const outputCredentials = path.join(secureStorage, `credentials.json.secure`);
   const outputKey = path.join(secureStorage, `credentials.key`);
 
-  const password = await getCredentialsKeyByAddress(configuration.credentials);
+  const password = await getSecretByAddress(configuration.credentials);
 
   // encrypt and save credentials
   const combinedConfigString = JSON.stringify(objectKeys);

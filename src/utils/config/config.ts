@@ -58,7 +58,7 @@ export function readConfigBase<T extends IReflection<T>>(
     const res = readJSONfromFile<T>(path);
 
     // validate json read object with template class
-    const valid = isEqualType(obj.instanciate(), res);
+    const valid = isEqualType(obj.instantiate(), res);
 
     if (valid) {
       logger.info(`^g^W ${project} ^^ ^Gconfiguration ^K^w${path}^^ loaded`);

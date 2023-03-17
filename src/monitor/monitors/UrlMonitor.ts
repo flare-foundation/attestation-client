@@ -5,6 +5,9 @@ import { MonitorBase, MonitorStatus } from "../MonitorBase";
 import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 
+/**
+ * Url monitor configuration class.
+ */
 export class MonitorUrlConfig extends MonitorConfigBase {
   address = "";
   restart = "";
@@ -18,6 +21,9 @@ export class MonitorUrlConfig extends MonitorConfigBase {
   }
 }
 
+/**
+ * Url monitor.
+ */
 export class UrlMonitor extends MonitorBase<MonitorUrlConfig> {
   async initialize() {}
 
@@ -38,11 +44,11 @@ export class UrlMonitor extends MonitorBase<MonitorUrlConfig> {
     });
   }
 
-  async perf() {
+  async getPerformanceMetrics() {
     return null;
   }
 
-  async check(): Promise<MonitorStatus> {
+  async getMonitorStatus(): Promise<MonitorStatus> {
     const res = new MonitorStatus();
     res.type = `backend`;
     res.name = this.name;

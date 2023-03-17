@@ -4,8 +4,8 @@ import { ApiResponseWrapper } from "..";
 
 /**
  * Open API array results properties for a given model
- * @param model 
- * @returns 
+ * @param model
+ * @returns
  */
 function arrayResults<TModel extends Type<any>>(model: TModel) {
   return {
@@ -20,8 +20,8 @@ function arrayResults<TModel extends Type<any>>(model: TModel) {
 
 /**
  * Open API properties for flat model.
- * @param model 
- * @returns 
+ * @param model
+ * @returns
  */
 function flatResults<TModel extends Type<any>>(model: TModel) {
   return {
@@ -33,9 +33,9 @@ function flatResults<TModel extends Type<any>>(model: TModel) {
 
 /**
  * Open API decorator for API response wrappers given generic type, either in the direct form or in array.
- * @param model 
- * @param isArray 
- * @returns 
+ * @param model
+ * @param isArray
+ * @returns
  */
 export function ApiResponseWrapperDec<TModel extends Type<any>>(model: TModel, isArray: boolean = false) {
   return applyDecorators(
@@ -50,9 +50,9 @@ export function ApiResponseWrapperDec<TModel extends Type<any>>(model: TModel, i
 }
 
 /**
- * 
- * @param models 
- * @returns 
+ *
+ * @param models
+ * @returns
  */
 export function ApiPropertyUnion<TTypeArray extends Array<Type<any>>>(models: TTypeArray) {
   return applyDecorators(
@@ -68,8 +68,8 @@ export function ApiPropertyUnion<TTypeArray extends Array<Type<any>>>(models: TT
 
 /**
  * Decorator for Union type generic responses.
- * @param models 
- * @returns 
+ * @param models
+ * @returns
  */
 export function ApiBodyUnion<TTypeArray extends Array<Type<any>>>(models: TTypeArray) {
   return applyDecorators(

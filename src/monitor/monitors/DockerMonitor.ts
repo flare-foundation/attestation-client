@@ -1,5 +1,5 @@
 import { ChainType, MCC } from "@flarenetwork/mcc";
-import { getTimeMilli } from "../../utils/helpers/internetTime";
+import { getTimeMs } from "../../utils/helpers/internetTime";
 import { round } from "../../utils/helpers/utils";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { Docker, DockerInfo } from "../../utils/monitoring/Docker";
@@ -35,7 +35,7 @@ export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
   }
 
   async getPerformanceMetrics(): Promise<PerformanceMetrics[]> {
-    const now = getTimeMilli();
+    const now = getTimeMs();
     if (now > this.timeCheck) {
       getGlobalLogger().debug("DockerMonitor: updating docker info...");
       DockerMonitor.dockerInfo = Docker.getDockerInfo();

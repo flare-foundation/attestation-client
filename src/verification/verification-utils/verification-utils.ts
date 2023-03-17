@@ -1,8 +1,8 @@
 import { AlgoTransaction, BtcTransaction, DogeTransaction, LtcTransaction, XrpTransaction } from "@flarenetwork/mcc";
 import {
-  ConfirmedBlockQueryResponse, ConfirmedTransactionQueryResponse,
-  ConfirmedTransactionQueryStatusType,
-  ReferencedTransactionsQueryResponse
+  ConfirmedBlockQueryResponse,
+  ConfirmedTransactionQueryResponse,
+  ReferencedTransactionsQueryResponse,
 } from "../../indexed-query-manager/indexed-query-manager-types";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 
@@ -21,7 +21,7 @@ export interface VerificationResponse<T> {
 export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryResponse): VerificationStatus {
   switch (result.status) {
     case "OK":
-      return VerificationStatus.NEEDS_MORE_CHECKS;   
+      return VerificationStatus.NEEDS_MORE_CHECKS;
     case "NOT_EXIST":
       return VerificationStatus.NON_EXISTENT_TRANSACTION;
     default:
@@ -33,7 +33,7 @@ export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryRe
 export function verifyWorkflowForBlockAvailability(result: ConfirmedBlockQueryResponse): VerificationStatus {
   switch (result.status) {
     case "OK":
-      return VerificationStatus.NEEDS_MORE_CHECKS;   
+      return VerificationStatus.NEEDS_MORE_CHECKS;
     case "NOT_EXIST":
       return VerificationStatus.DATA_AVAILABILITY_ISSUE;
     default:
@@ -42,13 +42,12 @@ export function verifyWorkflowForBlockAvailability(result: ConfirmedBlockQueryRe
   }
 }
 
-
-export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse): VerificationStatus  {
+export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse): VerificationStatus {
   switch (result.status) {
     case "OK":
-      return VerificationStatus.NEEDS_MORE_CHECKS;   
+      return VerificationStatus.NEEDS_MORE_CHECKS;
     case "NOT_EXIST":
-      return VerificationStatus.NON_EXISTENT_BLOCK;;
+      return VerificationStatus.NON_EXISTENT_BLOCK;
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
       ((_: never): void => {})(result.status);
@@ -58,10 +57,10 @@ export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse): Ver
 export function verifyWorkflowForReferencedTransactions(result: ReferencedTransactionsQueryResponse): VerificationStatus {
   switch (result.status) {
     case "OK":
-      return VerificationStatus.NEEDS_MORE_CHECKS;   
+      return VerificationStatus.NEEDS_MORE_CHECKS;
     case "NO_OVERFLOW_BLOCK":
     case "DATA_AVAILABILITY_FAILURE":
-      return VerificationStatus.DATA_AVAILABILITY_ISSUE;;
+      return VerificationStatus.DATA_AVAILABILITY_ISSUE;
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
       ((_: never): void => {})(result.status);

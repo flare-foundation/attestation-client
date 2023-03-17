@@ -47,7 +47,6 @@ export class SourceRouter {
     // FUTURE OPTIMIZATION: delete obsolete source managers.
   }
 
-
   /**
    * Returns source manager for given source
    * @param sourceId

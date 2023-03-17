@@ -142,7 +142,7 @@ export class BitmaskAccumulator {
 
   /**
    * Returns byte padded hex representation of the accumulator.
-   * @returns 
+   * @returns
    */
   public toHex() {
     return "0x" + this.buffer.toString("hex");

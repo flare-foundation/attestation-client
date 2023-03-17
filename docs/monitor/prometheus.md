@@ -4,10 +4,12 @@ Monitoring software is an essential component of any modern software development
 
 Attestation Suite monitoring utility, uses Prometheus and Grafana. This utility provides an easy and efficient way to monitor and track the progress of attestation suite tests. With Prometheus, your utility can collect and store metrics from different sources, while Grafana allows you to visualize this data in a variety of formats such as graphs, charts, and tables.
 
-The monitoring utility provides a comprehensive view of your Attestation Suite working status, allowing you to quickly identify any potential issues. By tracking metrics such as indexer histrory latency, block bottom times, node system usage you can quickly identify patterns and trends that may be impacting the performance of your system. This information can then be used to optimize your systems and ensure they are running efficiently.
+The monitoring utility provides a comprehensive view of your Attestation Suite working status, allowing you to quickly identify any potential issues. By tracking metrics such as indexer history latency, block bottom times, node system usage you can quickly identify patterns and trends that may be impacting the performance of your system. This information can then be used to optimize your systems and ensure they are running efficiently.
 
 ---
+
 ## Installation notes
+
 - Grafana is running on local port 9100 (not default)
 - Prometheus is running on local port 9090 (default)
 - push gateway is running on local port 9091 (default)
@@ -21,6 +23,7 @@ The monitoring utility provides a comprehensive view of your Attestation Suite w
 Create `tools/prometheus` folder.
 
 Use this `prometheus.yml` configuration.
+
 ```
 global:
   scrape_interval: 15s
@@ -52,6 +55,7 @@ scrape_configs:
 ```
 
 Use this `run.sh` script.
+
 ```
 docker run \
     -p 9090:9090 \
@@ -60,12 +64,14 @@ docker run \
 ```
 
 Monitor can be configured to provide data to Prometheus with:
-- Push Gateway 
+
+- Push Gateway
 - Monitor Metrics server
 
 ## Grafana instalation
 
 Grafana is started from a prepared docker with command:
+
 ```
 sudo docker run -d -p 9100:3000 grafana/grafana-enterprise
 ```
@@ -76,13 +82,13 @@ Default login username is `admin` and password `admin`.
 
 ### Import Grafana monitoring template
 
-
 ## Push gateway
 
 Monitor can be configured to work with push gateway or ad a Prometheus server.
 TODO: Write pros cons.
 
 Run push gateway with this command.
+
 ```
 sudo sudo docker pull prom/pushgateway
 sudo docker run -d -p 9091:9091 prom/pushgateway
@@ -91,6 +97,7 @@ sudo docker run -d -p 9091:9091 prom/pushgateway
 ## NGINX
 
 Here is example of nginx server configuration:
+
 ```
 server {
         listen 443 ssl;

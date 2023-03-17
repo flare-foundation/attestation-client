@@ -33,6 +33,9 @@ export function assertEqualsByScheme(a: any, b: any, type: string) {
   }
 }
 
+/**
+ * Checks whether @param request1 and @param request2 of type Payment are querying the same thing
+ */
 export function equalsPayment(request1: ARPayment, request2: ARPayment) {
   if (!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
     return false;
@@ -58,6 +61,9 @@ export function equalsPayment(request1: ARPayment, request2: ARPayment) {
   return true;
 }
 
+/**
+ * Checks whether @param request1 and @param request2 of type BalanceDecreasingTransaction are querying the same thing
+ */
 export function equalsBalanceDecreasingTransaction(request1: ARBalanceDecreasingTransaction, request2: ARBalanceDecreasingTransaction) {
   if (!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
     return false;
@@ -80,6 +86,9 @@ export function equalsBalanceDecreasingTransaction(request1: ARBalanceDecreasing
   return true;
 }
 
+/**
+ * Checks whether @param request1 and @param request2 of type ConfirmedBlockHeightExists are querying the same thing
+ */
 export function equalsConfirmedBlockHeightExists(request1: ARConfirmedBlockHeightExists, request2: ARConfirmedBlockHeightExists) {
   if (!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
     return false;
@@ -99,6 +108,9 @@ export function equalsConfirmedBlockHeightExists(request1: ARConfirmedBlockHeigh
   return true;
 }
 
+/**
+ * Checks whether @param request1 and @param request2 of type ReferencedPaymentNonexistence are querying the same thing
+ */
 export function equalsReferencedPaymentNonexistence(request1: ARReferencedPaymentNonexistence, request2: ARReferencedPaymentNonexistence) {
   if (!assertEqualsByScheme(request1.attestationType, request2.attestationType, "AttestationType")) {
     return false;
@@ -130,6 +142,9 @@ export function equalsReferencedPaymentNonexistence(request1: ARReferencedPaymen
   return true;
 }
 
+/**
+ * Checks whether @param request1 and @param request2 are querying the same thing
+ */
 export function equalsRequest(request1: ARType, request2: ARType): boolean {
   if (request1.attestationType != request2.attestationType) {
     return false;

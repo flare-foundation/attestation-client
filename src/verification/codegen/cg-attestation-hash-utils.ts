@@ -35,6 +35,13 @@ const encoded = web3.eth.abi.encodeParameters(types, values);
 
 export function genWeb3HashFunction(definition: AttestationTypeScheme) {
   return `
+
+  /**
+   * Calculates the hash of a @param response to the attestation @param request of type ${definition.name} with added @param salt
+   * @param request
+   * @param response
+   * @param salt
+   */
 export function ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}, response: ${DATA_HASH_TYPE_PREFIX}${
     definition.name
   }, salt?: string) {
@@ -57,6 +64,12 @@ case AttestationType.${definition.name}:
 export function genDataHashFunction(definitions: AttestationTypeScheme[]) {
   const datahashCases = definitions.map((definition) => genDatahashCase(definition)).join("");
   return `
+  /**
+   * Calculates the hash of a @param response to the attestation @param request with added @param salt
+   * @param request
+   * @param response
+   * @param salt
+   */
 export function dataHash(request: ${ATTESTATION_TYPE_PREFIX}Type, response: ${DATA_HASH_TYPE_PREFIX}Type, salt?: string) {  
 	switch(request.attestationType) {
 ${datahashCases}

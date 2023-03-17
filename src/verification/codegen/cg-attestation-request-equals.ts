@@ -33,6 +33,9 @@ export function genRequestEqualsFunctionForDefinition(definition: AttestationTyp
   const checks = checkList.join("\n");
 
   return `
+  /**
+   * Checks whether @param request1 and @param request2 of type ${definition.name} are querying the same thing
+   */
 export function ${REQUEST_EQUALS_PREFIX_FUNCTION}${definition.name}(request1: ${ATTESTATION_TYPE_PREFIX}${definition.name}, request2: ${ATTESTATION_TYPE_PREFIX}${definition.name}) {
 ${checks}
 	return true;
@@ -49,6 +52,9 @@ case AttestationType.${definition.name}:
 export function genRequestEqualsFunction(definitions: AttestationTypeScheme[]) {
   const attestationTypeCases = definitions.map((definition) => genEqualsAttestationTypeCase(definition)).join("");
   return `
+  /**
+  * Checks whether @param request1 and @param request2 are querying the same thing
+  */
 export function ${REQUEST_EQUALS_PREFIX_FUNCTION}Request(request1: ${ATTESTATION_TYPE_PREFIX}Type, request2: ${ATTESTATION_TYPE_PREFIX}Type): boolean  {  
 	if(request1.attestationType != request2.attestationType) {
 		return false;

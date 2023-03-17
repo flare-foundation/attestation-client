@@ -80,6 +80,9 @@ export function getAttestationTypeAndSource(bytes: string) {
   }
 }
 
+/**
+ * Parses an attestation request of type Payment from byte string @param bytes to object of type ARPayment
+ */
 export function parsePayment(bytes: string): ARPayment {
   if (!bytes) {
     throw new AttestationRequestParseError("Empty attestation request");
@@ -100,6 +103,9 @@ export function parsePayment(bytes: string): ARPayment {
   };
 }
 
+/**
+ * Parses an attestation request of type BalanceDecreasingTransaction from byte string @param bytes to object of type ARBalanceDecreasingTransaction
+ */
 export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecreasingTransaction {
   if (!bytes) {
     throw new AttestationRequestParseError("Empty attestation request");
@@ -119,6 +125,9 @@ export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecre
   };
 }
 
+/**
+ * Parses an attestation request of type ConfirmedBlockHeightExists from byte string @param bytes to object of type ARConfirmedBlockHeightExists
+ */
 export function parseConfirmedBlockHeightExists(bytes: string): ARConfirmedBlockHeightExists {
   if (!bytes) {
     throw new AttestationRequestParseError("Empty attestation request");
@@ -137,6 +146,9 @@ export function parseConfirmedBlockHeightExists(bytes: string): ARConfirmedBlock
   };
 }
 
+/**
+ * Parses an attestation request of type ReferencedPaymentNonexistence from byte string @param bytes to object of type ARReferencedPaymentNonexistence
+ */
 export function parseReferencedPaymentNonexistence(bytes: string): ARReferencedPaymentNonexistence {
   if (!bytes) {
     throw new AttestationRequestParseError("Empty attestation request");
@@ -159,6 +171,9 @@ export function parseReferencedPaymentNonexistence(bytes: string): ARReferencedP
   };
 }
 
+/**
+ * Parses an attestation request from byte string @param bytes to object of type ARType
+ */
 export function parseRequest(bytes: string): ARType {
   const { attestationType } = getAttestationTypeAndSource(bytes);
   switch (attestationType) {

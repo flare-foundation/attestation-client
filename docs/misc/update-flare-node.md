@@ -1,6 +1,5 @@
 Flare Node Update script
 
-
 ```
 bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
 sudo apt -y install gcc g++ curl jq
@@ -8,7 +7,7 @@ sudo apt-get install bison -y
 sudo apt-get install make -y
 sudo apt-get install golang-go -y
 sudo npm install gvm -y
-source ~/.profile 
+source ~/.profile
 
 gvm install go1.18.5
 gvm use go1.18.5 --default
@@ -17,12 +16,12 @@ gvm use go1.18.5 --default
 
 ```
 
-
 ```
 cd flare2/go-flare
 ```
 
 Run from folder where you have avalanche git:
+
 ```
 gvm install go1.18.5
 gvm use go1.18.5 --default
@@ -43,22 +42,17 @@ mv avalanchego/build .
 ./flare.sh
 ```
 
-
-Observe ... it takes few min to get 1st reponse :(
+Observe ... it takes few min to get 1st response :(
 
 ```
 tail -f logs/flare/node1/main.log
 ```
-
-
 
 Check what version you have (when it is running)
 
 ```
 cat flare2/go-flare/logs/flare/node1/main.log | grep "node version is"
 ```
-
-
 
 Update
 

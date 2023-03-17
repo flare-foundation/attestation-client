@@ -1,12 +1,11 @@
 Flare Node Update script
 
-
-
 ```
 cd flare/flare
 ```
 
 Run from folder where you have avalanche git:
+
 ```
 gvm use go1.17.7
 git pull
@@ -29,19 +28,14 @@ mv avalanchego/build .
 ./songbird.sh
 ```
 
-
-
-Observe ... it takes few min to get 1st reponse :(
+Observe ... it takes few min to get 1st response :(
 
 ```
 tail -f logs/songbird/node1/main.log
 ```
-
-
 
 Check what version you have (when it is running)
 
 ```
 cat flare/flare/logs/songbird/node1/main.log | grep "node version is"
 ```
-

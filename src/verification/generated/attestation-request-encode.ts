@@ -45,6 +45,9 @@ function toUnprefixedBytes(value: any, type: string, size: number, key: string) 
   return bytes;
 }
 
+/**
+ * Encodes an attestation @param request of type Payment into a byte string
+ */
 export function encodePayment(request: ARPayment) {
   if (request.attestationType == null) {
     throw new AttestationRequestEncodeError("Missing 'attestationType'");
@@ -78,6 +81,9 @@ export function encodePayment(request: ARPayment) {
   return bytes;
 }
 
+/**
+ * Encodes an attestation @param request of type BalanceDecreasingTransaction into a byte string
+ */
 export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingTransaction) {
   if (request.attestationType == null) {
     throw new AttestationRequestEncodeError("Missing 'attestationType'");
@@ -107,6 +113,9 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
   return bytes;
 }
 
+/**
+ * Encodes an attestation @param request of type ConfirmedBlockHeightExists into a byte string
+ */
 export function encodeConfirmedBlockHeightExists(request: ARConfirmedBlockHeightExists) {
   if (request.attestationType == null) {
     throw new AttestationRequestEncodeError("Missing 'attestationType'");
@@ -132,6 +141,9 @@ export function encodeConfirmedBlockHeightExists(request: ARConfirmedBlockHeight
   return bytes;
 }
 
+/**
+ * Encodes an attestation @param request of type ReferencedPaymentNonexistence into a byte string
+ */
 export function encodeReferencedPaymentNonexistence(request: ARReferencedPaymentNonexistence) {
   if (request.attestationType == null) {
     throw new AttestationRequestEncodeError("Missing 'attestationType'");
@@ -173,6 +185,9 @@ export function encodeReferencedPaymentNonexistence(request: ARReferencedPayment
   return bytes;
 }
 
+/**
+ * Encode the attestation @request into a byte string with respect to its attestation type
+ */
 export function encodeRequest(request: ARType): string {
   switch (request.attestationType) {
     case AttestationType.Payment:

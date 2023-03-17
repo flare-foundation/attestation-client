@@ -95,6 +95,6 @@ web3.eth.abi.encodeParameters(["bytes32", "bytes32"], [a1, a2]);
 
 Where `a1` and `a2` are `0x`-prefixed hex strings representing 32-bytes.
 
-Next: [Limiting attestation requests](./attestation-limiter.md)
+Next: [Attestation provider behavior](./voting-behavior.md)
 
 [Back to home](../README.md)

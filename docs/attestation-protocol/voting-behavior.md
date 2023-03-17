@@ -36,3 +36,7 @@ The first option can be used only if both rounds involved in `submitAttestation`
 Note that the members of a private set need not fully participate in Merkle root voting. They can try to verify only specific attestation requests. 
 They will not be able to assemble a Merkle tree in general and hence confirm a vote, but they may reject the vote with a random Merkle root in case they 
 find that bit-vote contains invalid attestation. In such a case the default set may or may not confirm the bit-voted Merkle tree, but private set would surely reject it if it happens to get confirmed. Such a "partial" attestation provider used on a private set would either abstain or reject votes, but never confirm them.
+
+Next: [Limiting attestation requests](./attestation-limiter.md)
+
+[Back to home](../README.md)

@@ -18,6 +18,7 @@
   - [State connector contract](./attestation-protocol/state-connector-contract.md)
   - [Bit voting](./attestation-protocol/bit-voting.md)
   - [Merkle tree and Merkle proofs](./attestation-protocol/merkle-tree.md)
+  - [Attestation provider behavior](./attestation-protocol/voting-behavior.md)
   - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md) 
 - [Attestation Suite](./attestation-client/attestation-suite.md)
   - [Attestation Client](./attestation-client/attestation-client.md)

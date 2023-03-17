@@ -29,4 +29,7 @@ export class DBRoundResult {
 
   @Column({ nullable: true, type: "text" }) bitVoteResult: string;
   @Column({ nullable: true }) bitVoteResultTimestamp: number;
+
+  // This field is either empty or contains protest string
+  @Column({ nullable: true }) rejectIndex: number;
 }

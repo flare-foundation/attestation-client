@@ -131,6 +131,7 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       attestationType: 1,
       sourceId: 2,
       messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",   // TODO change
+      blockNumber: 1,
       id: "0x851f2660dff77e9e54d220ca6d06071ef951612bfbcacc8a35fe20380bacc384",
       inUtxo: "0x0",
       utxo: "0x0",

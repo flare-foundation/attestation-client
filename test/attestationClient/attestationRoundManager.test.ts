@@ -16,6 +16,7 @@ import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnect
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
+import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 import { getTestFile } from "../test-utils/test-utils";
 import { createAttestationVerificationPair, createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
 import { MockFlareConnection } from "./utils/mockClasses";
@@ -161,7 +162,7 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
     const time = TEST_START_TIME * 1000 + 1;
     const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
-    const event = createBlankAtRequestEvent(1, 15, "0xFakeMIC", "" + TEST_START_TIME);
+    const event = createBlankAtRequestEvent(AttestationType.Payment, 15, 1, "0xFakeMIC", "" + TEST_START_TIME);
     const attData = new AttestationData(event);
     await roundManager.onAttestationRequest(attData);
 

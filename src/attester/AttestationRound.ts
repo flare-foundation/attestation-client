@@ -23,7 +23,7 @@ import { FlareConnection } from "./FlareConnection";
 import { SourceLimiter } from "./source/SourceLimiter";
 import { SourceRouter } from "./source/SourceRouter";
 import { AttestationRoundPhase, AttestationRoundStatus, NO_VOTE } from "./types/AttestationRoundEnums";
-import { AttestationStatus } from "./types/AttestationStatus";
+import { AttestationStatus, getSummarizedAttestationStatus, SummarizedAttestationStatus } from "./types/AttestationStatus";
 
 const ZERO_HASH = toHex(0, 32);
 
@@ -53,6 +53,8 @@ export class AttestationRound {
   nextRound: AttestationRound;
   prevRound: AttestationRound;
   private isEmpty = false;
+  private isReject = false;
+  private rejectIndex: number | undefined;
 
   // attestations
   attestations = new Array<Attestation>();
@@ -73,9 +75,9 @@ export class AttestationRound {
 
   // bit votes map for the default set of voters
   bitVoteMap = new Map<string, string>();
-  // a record of my bit vote
+  // a record of what I have bit-voted if I am in the default set
   bitVoteRecord?: string;
-  // a result of bit voting
+  // a result of bit voting, indices of attestation that should be in Merkle tree
   bitVoteResultIndices?: number[] = [];
 
   constructor(
@@ -274,13 +276,13 @@ export class AttestationRound {
       return new BitmaskAccumulator(this.attestations.length);
     }
 
-    let foundNonzeroVote = false;
+    let foundNonzeroVoteResult = false;
     // find first nonzero vote on subsets of sizes consensusSubsetSize, ..., minVoters
     for (let size = this.activeGlobalConfig.consensusSubsetSize; size >= minVoters; size--) {
       let candidate = chooseCandidate(votes, size);
       let numberOfOnes = countOnes(candidate);
       if (numberOfOnes > 0) {
-        foundNonzeroVote = true;
+        foundNonzeroVoteResult = true;
         bitmask = BitmaskAccumulator.fromHex(candidate);
         if (size != this.activeGlobalConfig.consensusSubsetSize) {
           this.logger.info(`${this.label} - vote successful with lower consensus threshold ${size}/${this.activeGlobalConfig.consensusSubsetSize}`);
@@ -290,7 +292,7 @@ export class AttestationRound {
       this.logger.info(`${this.label} - unsuccessful vote count for threshold ${size}/${this.defaultSetAddresses.length}`);
     }
 
-    if (!foundNonzeroVote) {
+    if (!foundNonzeroVoteResult) {
       this.logger.info(`${this.label} Non-conclusive vote. Non zero voters: ${nonZeroVotes}, required >= ${minVoters}`);
       return new BitmaskAccumulator(this.attestations.length);
     }
@@ -311,7 +313,6 @@ export class AttestationRound {
    * @param verbose - whether verbose logging is used
    */
   tryCalculateBitVotingResults(verbose = true) {
-    this.logger.info(`${this.label} - tryCalculateBitVotingResults - call`);
     if (this.attestStatus >= AttestationRoundStatus.chosen) {
       this.logger.error(`${this.label} - tryCalculateBitVotingResults - chosen`);
       return;
@@ -352,7 +353,7 @@ export class AttestationRound {
     if (isError) {
       this.bitVoteResultIndices = [];
     } else {
-      if (countRequired != votingResultIndices.length) {
+      if (countRequired !== votingResultIndices.length) {
         this.logger.info(`${this.label} Choose phase voting not successful yet. Status ${countRequired}/${votingResultIndices.length}`);
         return;
       }
@@ -433,7 +434,7 @@ export class AttestationRound {
    * @param bitVoteData Bit vote event data
    */
   registerBitVote(bitVoteData: BitVoteData) {
-    let address = bitVoteData.sender.toLocaleLowerCase();
+    let address = bitVoteData.sender.toLowerCase();
     if (this.defaultSetAddresses.indexOf(address) >= 0) {
       this.bitVoteMap.set(address, bitVoteData.bitVote);
     }
@@ -466,8 +467,7 @@ export class AttestationRound {
    */
   private canCommit(): boolean {
     this.logger.debug(
-      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
-        AttestationRoundPhase[this.phase]
+      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${AttestationRoundPhase[this.phase]
       }', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
     return this.phase === AttestationRoundPhase.commit && this.attestStatus === AttestationRoundStatus.commitDataPrepared;
@@ -486,11 +486,11 @@ export class AttestationRound {
     db.logIndex = att.data.logIndex;
     db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
     db.attestationStatus = AttestationStatus[att.status];
-    db.request = prepareString(stringify(att.verificationData?.request ? att.verificationData.request : ""), 4 * 1024);
-    db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 4 * 1024);
+    db.request = prepareString(stringify(att.verificationData?.request ? att.verificationData.request : ""), 65535);
+    db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 65535);
     db.exceptionError = prepareString(att.exception?.toString(), 128);
     db.hashData = prepareString(att.verificationData?.hash, 256);
-    db.requestBytes = prepareString(att.data.request, 4 * 1024);
+    db.requestBytes = prepareString(att.data.request, 65535);
 
     return db;
   }
@@ -500,7 +500,6 @@ export class AttestationRound {
    * This function may be called several times, sometimes too early and retried later. Retrials are handled from outside.
    */
   public async tryPrepareCommitData() {
-    this.logger.info(`${this.label} - tryPrepareCommitData - call`);
     if (this.attestStatus >= AttestationRoundStatus.commitDataPrepared) {
       this.logger.info(`${this.label} - tryPrepareCommitData - commit already prepared`);
       return;
@@ -509,13 +508,16 @@ export class AttestationRound {
     // check if commit can be performed
     if (this.phase !== AttestationRoundPhase.commit) {
       this.logger.info(`${this.label} - tryPrepareCommitData - not commit phase: '${AttestationRoundPhase[this.phase]}'`);
-
       return;
     }
 
     if (this.attestStatus !== AttestationRoundStatus.chosen) {
       this.logger.info(`${this.label} - tryPrepareCommitData - not status 'chosen' ('${AttestationRoundStatus[this.attestStatus]}' instead)`);
-      // this.logger.error(`${this.label}round #${this.roundId} cannot commit yet, bit voting result is not yet calculated.`);
+      return;
+    }
+
+    if(this.isReject) {
+      this.logger.info(`${this.label} - tryPrepareCommitData - round already rejected`);
       return;
     }
 
@@ -526,17 +528,21 @@ export class AttestationRound {
     //  check if all attestations required by bit vote result are validated
     for (let i of this.bitVoteResultIndices) {
       const attestation = this.attestations[i];
-      if (attestation.status === AttestationStatus.valid) {
-        validated.push(attestation);
-      }
-    }
 
-    // check if one can commit
-    if (validated.length != this.bitVoteResultIndices.length) {
-      this.logger.error(
-        `${this.label} round #${this.roundId} cannot yet commit ${validated.length}/${this.bitVoteResultIndices.length} attestations validated.`
-      );
-      return;
+      let summarizedAttestationStatus = getSummarizedAttestationStatus(attestation.status);
+      if (summarizedAttestationStatus === SummarizedAttestationStatus.valid) {
+        validated.push(attestation);
+      } else if (summarizedAttestationStatus === SummarizedAttestationStatus.invalid) {
+        // If we encounter invalid attestation 
+        this.isReject = true;
+        this.rejectIndex = i;
+        return;
+      } else {
+        this.logger.error(
+          `${this.label} round #${this.roundId} cannot yet commit ${validated.length}/${this.bitVoteResultIndices.length} attestations validated.`
+        );
+        return;
+      }
     }
 
     // Prepare database entities for result logs
@@ -557,7 +563,7 @@ export class AttestationRound {
     if (validated.length === 0) {
       this.logger.error(`${this.label} round #${this.roundId} nothing to commit - no valid attestation (${this.attestations.length} attestation(s))`);
       this.attestStatus = AttestationRoundStatus.commitDataPrepared;
-      await this.makeEmptyRound();
+      await this.abstainVoteRound();
       return;
     }
 
@@ -617,8 +623,7 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
-        time1 - time0
+      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0
       }ms M:${time2 - time1}ms)`
     );
   }
@@ -627,15 +632,42 @@ export class AttestationRound {
    * Sets the round as the empty round. Empty round is a round in which there is nothing to commit or
    * the vote is not possible to calculate due to some reason.
    */
-  private async makeEmptyRound() {
+  private async abstainVoteRound() {
     this.logger.debug2(`${this.label} create empty state for #${this.roundId}`);
 
     this.roundMerkleRoot = ZERO_HASH;
     this.roundRandom = await getCryptoSafeRandom();
-    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.flareConnection.web3Functions.account.address);
+    // We prepare invalid commit-reveal pair.
+    // If we need to use data in submitAttestation call it will
+    // not cause forking in case the attestation provider is 
+    // chosen as private
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, ZERO_HASH, this.flareConnection.web3Functions.account.address);
     this.isEmpty = true;
     // after commit state has been calculated add it in state
     await this.attesterState.saveRound(this);
+  }
+
+  /**
+   * Sets the round as the empty round. Empty round is a round in which there is nothing to commit or
+   * the vote is not possible to calculate due to some reason.
+   */
+  private async rejectVoteRound() {
+    if(!this.isReject) {
+      this.logger.error(`${this.label} 'rejectVote' called on non-rejected round - this should not happen in round #${this.roundId}`);  
+      process.exit(1);
+      return; // For testing
+    }
+    this.logger.debug2(`${this.label} Disagreement with bit-voting validity in round #${this.roundId}`);
+
+    // We prepare valid commit-reveal pair for ZERO_HASH root, which cannot 
+    // Be used to prove anything.
+    // If sufficient number of default set voters also do ZERO_HASH reject
+    // this will protect nodes with legit private sets from forking
+    this.roundMerkleRoot = await getCryptoSafeRandom(); // sending random merkle root to object 
+    this.roundRandom = await getCryptoSafeRandom();
+    this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.flareConnection.web3Functions.account.address);
+    // after commit state has been calculated add it in state
+    await this.attesterState.saveRound(this, 0, this.rejectIndex); // save with rejectIndex
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////
@@ -647,8 +679,7 @@ export class AttestationRound {
    */
   public async onChoosePhaseStart() {
     this.logger.group(
-      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -659,12 +690,10 @@ export class AttestationRound {
    */
   public async onCommitPhaseStart() {
     this.logger.group(
-      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
-    // this.tryCalculateBitVotingResults(); they appear together elsewhere
     await this.tryPrepareCommitData(); // In case all requests are already processed
   }
 
@@ -710,7 +739,7 @@ export class AttestationRound {
    */
   async onFirstCommit() {
     if (!this.canCommit()) {
-      await this.makeEmptyRound();
+      await this.abstainVoteRound();
     }
 
     const action = `${this.label} Submitting ^Y#${this.roundId}^^ for bufferNumber ${this.roundId + 1} (first commit)`;
@@ -780,8 +809,7 @@ export class AttestationRound {
     if (!commitPreparedOrCommitted) {
       // Log unexpected attestation round statuses, but proceed with submitAttestation
       this.logger.error(
-        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${
-          this.attestationsProcessed
+        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${this.attestationsProcessed
         }/${this.attestations.length}`
       );
     }
@@ -796,7 +824,12 @@ export class AttestationRound {
 
     if (this.nextRound) {
       if (!this.nextRound.canCommit()) {
-        await this.nextRound.makeEmptyRound();
+        if(this.nextRound.isReject) {
+          await this.nextRound.rejectVoteRound()
+        } else {
+          await this.nextRound.abstainVoteRound();
+        }
+        
       }
 
       nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;

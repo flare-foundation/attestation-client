@@ -40,7 +40,7 @@ export class SourceLimiter {
 
     if (!typeConfig) {
       this.logger.error2(`missing source ${attestation.data.sourceId} config for attestation type (${attestation.data.type})`);
-      attestation.status = AttestationStatus.error;
+      attestation.status = AttestationStatus.failed;
       return false;
     }
 

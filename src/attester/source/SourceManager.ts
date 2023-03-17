@@ -5,7 +5,7 @@ import { PriorityQueue } from "../../utils/data-structures/PriorityQueue";
 import { getTimeMilli, getTimeSec } from "../../utils/helpers/internetTime";
 import { arrayRemoveElement } from "../../utils/helpers/utils";
 import { AttLogger, logException } from "../../utils/logging/logger";
-import { MIC_SALT, Verification, VerificationStatus } from "../../verification/attestation-types/attestation-types";
+import { getSummarizedVerificationStatus, MIC_SALT, SummarizedVerificationStatus, Verification, VerificationStatus } from "../../verification/attestation-types/attestation-types";
 import { dataHash } from "../../verification/generated/attestation-hash-utils";
 import { parseRequest } from "../../verification/generated/attestation-request-parse";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
@@ -257,13 +257,31 @@ export class SourceManager {
             return;
           }
           this.logger.debug(`${this.label} WRONG MIC for ${attestation.data.request}`);
+          this.onProcessed(attestation, AttestationStatus.invalid, verification);
+          return;
         }
 
-        if (verification.status === VerificationStatus.SYSTEM_FAILURE) {
-          this.logger.error2(`${this.label} SYSTEM_FAILURE ${attestation.data.request}`);
+        if (verification.status === VerificationStatus.NEEDS_MORE_CHECKS) {
+          // assert. This should never happen.
+          this.logger.error2(`${this.label} NEEDS_MORE_CHECKS should never happen ${attestation.data.request}`);
+          this.onProcessed(attestation, AttestationStatus.error, verification);
+          return;
         }
 
-        // The verification is invalid or mic does not match
+        let sumarizedVerificationStatus = getSummarizedVerificationStatus(verification.status);
+
+        if (sumarizedVerificationStatus === SummarizedVerificationStatus.indeterminate) {
+          this.logger.error2(`${this.label} INDETERMINATE VERIFICATION STATUS: ${attestation.data.request}`);
+          this.onProcessed(attestation, AttestationStatus.error, verification);
+          return;
+        }
+
+        if(sumarizedVerificationStatus !== SummarizedVerificationStatus.invalid) {
+          // assert - this should never happen
+          this.logger.error2(`${this.label} Critical error: The summarized verification status should be 'invalid': ${attestation.data.request}`);
+          process.exit(1);
+        }
+        // The verification is invalid as it returns error verification status
         this.onProcessed(attestation, AttestationStatus.invalid, verification);
       })
       .catch((error: any) => {
@@ -280,7 +298,7 @@ export class SourceManager {
           this.enQueueDelayed(attestation, getTimeMilli() + this.delayBeforeRetryMs);
         } else {
           this.logger.error2(`${this.label} transaction verification error ${attestation.data.request}`);
-          this.onProcessed(attestation, AttestationStatus.invalid);
+          this.onProcessed(attestation, AttestationStatus.error);
         }
       });
   }

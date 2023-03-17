@@ -1,6 +1,6 @@
 /**
- * Given a string of 0 and 1 it calculates the difference to the first greater or equal
- * divisor of 8.
+ * Given a string of 0 and 1 it calculates the first length >= bitString.length
+ * that is divisible by 8.
  * @param bitString
  * @returns
  */
@@ -21,14 +21,29 @@ export function padBitString(bitString: string) {
 /**
  * Helper class to manage bit vectors corresponding to arrays of true and false values.
  * Allows for sequential construction, conversion to Hex and comparison of missing values
- * against other hex-string representing a bit vector of the same length (if shorter, it
+ * against other hex-strings representing a bit vector of the same length (if shorter, it
  * is considered to be padded by zeros.
  */
 export class BitmaskAccumulator {
+  /**
+   * Number of bits in the accumulator
+   */
   length: number;
+  /**
+   * Buffer of bytes into which we sequentially store bits
+   */
   buffer: Buffer;
+  /**
+   * The weight 2^i of the bit within the byte in the buffer which is the next to fill
+   */
   weight: number;
+  /**
+   * Number of current byte with the next bit to fill
+   */
   index = 0;
+  /**
+   * Number of bits that are already filled.
+   */
   count = 0;
 
   /**
@@ -39,6 +54,7 @@ export class BitmaskAccumulator {
     this.length = length;
     this.buffer = Buffer.alloc(Math.ceil(length / 8));
     this.index = 0;
+    // weight of the rightmost bit in the byte
     this.weight = 128;
     this.count = 0;
   }
@@ -65,17 +81,27 @@ export class BitmaskAccumulator {
 
   /**
    * Creates bitmask accumulator from hex string.
+   * T
    * @param hexString
    */
   public static fromHex(hexString: string) {
     let value = hexString;
-    if (hexString.startsWith("0x")) {
+    if (hexString.startsWith("0x") || hexString.startsWith("0X")) {
       value = hexString.slice(2);
     }
-    const bitmask = new BitmaskAccumulator(8);
+    if (value.length % 2) {
+      value += "0";
+    }
+    if (!/^[0-9A-Fa-f]+$/.test(value)) {
+      throw new Error(`Invalid hex string '${hexString}'`);
+    }
+    const bitmask = new BitmaskAccumulator(0);
     bitmask.buffer = Buffer.from(value, "hex");
-    bitmask.length = (value.length + (hexString.length % 2)) / 2;
-    bitmask.count = bitmask.length;
+    const bytesUsed = Math.ceil(value.length / 2);
+    bitmask.index = bytesUsed;
+    bitmask.count = bytesUsed * 8;
+    bitmask.length = bytesUsed * 8;
+    bitmask.weight = 128;
     return bitmask;
   }
 
@@ -85,6 +111,9 @@ export class BitmaskAccumulator {
    * @param bitString
    */
   public static fromBitString(bitString: string) {
+    if (!/^[01]*$/.test(bitString)) {
+      throw new Error(`Invalid bit string '${bitString}'`);
+    }
     const result = new BitmaskAccumulator(bitString.length);
     for (let i = 0; i < bitString.length; i++) {
       if (bitString[i] === "1") {
@@ -92,11 +121,10 @@ export class BitmaskAccumulator {
       } else if (bitString[i] === "0") {
         result.addBit(false);
       } else {
-        throw new Error(`Wrong character in bitstring ${bitString}`);
+        // Should never happen
+        throw new Error(`Wrong character in bit string ${bitString}`);
       }
     }
-    result.length = bitString.length;
-    result.count = result.length;
     return result;
   }
 
@@ -112,42 +140,12 @@ export class BitmaskAccumulator {
     return result;
   }
 
+  /**
+   * Returns byte padded hex representation of the accumulator.
+   * @returns 
+   */
   public toHex() {
     return "0x" + this.buffer.toString("hex");
-  }
-
-  /**
-   * Calculate indices of bits in the bit accumulator, that are 0, but in the @param hexString they are 1.
-   * Assumption: @param hexString converted to buffer is of at most length of the bytes in the bit accumulator
-   * @param value
-   */
-  public missingIndices(hexString: string) {
-    let value = hexString;
-    if (value.startsWith("0x")) {
-      value = value.slice(2);
-    }
-    const buffer2 = Buffer.from(value, "hex");
-    if (buffer2.length > this.buffer.length) {
-      throw new Error("Buffer in the accumulator too short");
-    }
-    const indices = [];
-    for (let i = 0; i < buffer2.length; i++) {
-      let byte1 = this.buffer[i];
-      let byte2 = buffer2[i];
-      const tmpList = [];
-      for (let pos = 7; pos >= 0; pos--) {
-        const isMissing = !(byte1 % 2) && byte2 % 2;
-        if (isMissing) {
-          tmpList.push(8 * i + pos);
-        }
-        byte1 = byte1 >>> 1;
-        byte2 = byte2 >>> 1;
-      }
-      for (let j = tmpList.length - 1; j >= 0; j--) {
-        indices.push(tmpList[j]);
-      }
-    }
-    return indices;
   }
 
   /**

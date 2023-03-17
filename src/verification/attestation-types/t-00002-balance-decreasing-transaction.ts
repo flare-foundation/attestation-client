@@ -39,6 +39,14 @@ Transaction hash to search for.
 `,
     },
     {
+      key: "blockNumber",
+      size: BLOCKNUMBER_BYTES,
+      type: "NumberLike",
+      description: `
+Block number of the transaction.
+`,
+    },
+    {
       key: "inUtxo",
       size: UTXO_BYTES,
       type: "NumberLike",

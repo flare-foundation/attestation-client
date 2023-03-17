@@ -341,6 +341,7 @@ export async function testPaymentRequest(
       sourceId: chainType as any as SourceId,
       messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
       id: prefix0x(dbTransaction.transactionId),
+      blockNumber: responseData.response?.blockNumber,
       inUtxo,
       utxo
    } as ARPayment;
@@ -368,6 +369,7 @@ export async function testBalanceDecreasingTransactionRequest(
       sourceId: chainType as any as SourceId,
       messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
       id: prefix0x(dbTransaction.transactionId),
+      blockNumber: responseData.response?.blockNumber,
       inUtxo
    } as ARBalanceDecreasingTransaction;
    if (responseData.status === 'OK') {

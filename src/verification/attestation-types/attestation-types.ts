@@ -9,31 +9,75 @@ import { SourceId } from "../sources/sources";
  * Enumerated verification status of attestation
  */
 export enum VerificationStatus {
-  // Successful verification
+  ///////////////////////////
+  // VALID STATUS
+  ///////////////////////////
+
   OK = "OK",
 
-  // Needs recheck
-  // RECHECK_LATER = "RECHECK_LATER",
+  ///////////////////////////
+  // INDETERMINATE STATUSES
+  ///////////////////////////
 
+  DATA_AVAILABILITY_ISSUE = "DATA_AVAILABILITY_ISSUE",
   // Temporary status during checks
   NEEDS_MORE_CHECKS = "NEEDS_MORE_CHECKS",
-
-  // Source failure - source data is not up to date and does not allow consistent queries
+  // Source failure - error in checking
   SYSTEM_FAILURE = "SYSTEM_FAILURE",
 
-  // Error fields
+  ///////////////////////////
+  // ERROR STATUSES
+  ///////////////////////////
+
+  // for test purposes only
   NOT_CONFIRMED = "NOT_CONFIRMED",
 
   NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",
   NON_EXISTENT_BLOCK = "NON_EXISTENT_BLOCK",
+
   NOT_PAYMENT = "NOT_PAYMENT",
 
-  NON_EXISTENT_MINIMAL_BLOCK = "NON_EXISTENT_MINIMAL_BLOCK",
 
   REFERENCED_TRANSACTION_EXISTS = "REFERENCED_TRANSACTION_EXISTS",
   ZERO_PAYMENT_REFERENCE_UNSUPPORTED = "ZERO_PAYMENT_REFERENCE_UNSUPPORTED",
 
   PAYMENT_SUMMARY_ERROR = "PAYMENT_SUMMARY_ERROR",
+}
+
+/**
+ * Summarized verification status into three options.
+ */
+export enum SummarizedVerificationStatus {
+  valid,
+  invalid,
+  indeterminate
+}
+
+/**
+ * Given a VerificationStatus status it returns the corresponding SummarizedValidationStatus
+ * @param status 
+ * @returns 
+ */
+export function getSummarizedVerificationStatus(status: VerificationStatus): SummarizedVerificationStatus {
+  switch (status) {
+    case VerificationStatus.OK:
+      return SummarizedVerificationStatus.valid;
+    case VerificationStatus.DATA_AVAILABILITY_ISSUE:
+    case VerificationStatus.NEEDS_MORE_CHECKS:
+    case VerificationStatus.SYSTEM_FAILURE:
+      return SummarizedVerificationStatus.indeterminate;
+    case VerificationStatus.NOT_CONFIRMED:
+    case VerificationStatus.NON_EXISTENT_TRANSACTION:
+    case VerificationStatus.NON_EXISTENT_BLOCK:
+    case VerificationStatus.NOT_PAYMENT:
+    case VerificationStatus.REFERENCED_TRANSACTION_EXISTS:
+    case VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED:
+    case VerificationStatus.PAYMENT_SUMMARY_ERROR:
+        return SummarizedVerificationStatus.invalid;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => { })(status);
+  }
 }
 
 /**

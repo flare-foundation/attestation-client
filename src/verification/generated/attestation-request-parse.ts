@@ -85,7 +85,7 @@ export function parsePayment(bytes: string): ARPayment {
     throw new AttestationRequestParseError("Empty attestation request");
   }
   const input = unPrefix0x(bytes);
-  if (input.length != 144) {
+  if (input.length != 152) {
     throw new AttestationRequestParseError("Incorrectly formatted attestation request");
   }
 
@@ -94,8 +94,9 @@ export function parsePayment(bytes: string): ARPayment {
     sourceId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
     messageIntegrityCode: fromUnprefixedBytes(input.slice(12, 76), "ByteSequenceLike", 32) as string,
     id: fromUnprefixedBytes(input.slice(76, 140), "ByteSequenceLike", 32) as string,
-    inUtxo: fromUnprefixedBytes(input.slice(140, 142), "NumberLike", 1) as BN,
-    utxo: fromUnprefixedBytes(input.slice(142, 144), "NumberLike", 1) as BN,
+    blockNumber: fromUnprefixedBytes(input.slice(140, 148), "NumberLike", 4) as BN,
+    inUtxo: fromUnprefixedBytes(input.slice(148, 150), "NumberLike", 1) as BN,
+    utxo: fromUnprefixedBytes(input.slice(150, 152), "NumberLike", 1) as BN,
   };
 }
 
@@ -104,7 +105,7 @@ export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecre
     throw new AttestationRequestParseError("Empty attestation request");
   }
   const input = unPrefix0x(bytes);
-  if (input.length != 142) {
+  if (input.length != 150) {
     throw new AttestationRequestParseError("Incorrectly formatted attestation request");
   }
 
@@ -113,7 +114,8 @@ export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecre
     sourceId: fromUnprefixedBytes(input.slice(4, 12), "SourceId", 4) as SourceId,
     messageIntegrityCode: fromUnprefixedBytes(input.slice(12, 76), "ByteSequenceLike", 32) as string,
     id: fromUnprefixedBytes(input.slice(76, 140), "ByteSequenceLike", 32) as string,
-    inUtxo: fromUnprefixedBytes(input.slice(140, 142), "NumberLike", 1) as BN,
+    blockNumber: fromUnprefixedBytes(input.slice(140, 148), "NumberLike", 4) as BN,
+    inUtxo: fromUnprefixedBytes(input.slice(148, 150), "NumberLike", 1) as BN,
   };
 }
 

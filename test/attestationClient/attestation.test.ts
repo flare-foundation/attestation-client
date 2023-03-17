@@ -2,13 +2,15 @@ import { expect, assert } from "chai";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
+import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createBlankAtRequestEvent } from "./utils/createEvents";
 
 describe(`Attestation Data (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
 
-  const event = createBlankAtRequestEvent(1, 3, "0xFakeMIC", "123", "0xfakeId");
+  const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
 
   const attData = new AttestationData(event);
 

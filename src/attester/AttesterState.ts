@@ -65,7 +65,7 @@ export class AttesterState {
    * @param round
    * @param validTransactionCount
    */
-  async saveRound(round: AttestationRound, validTransactionCount = 0) {
+  async saveRound(round: AttestationRound, validTransactionCount = 0, rejectIndex?: number) {
     const dbRound = new DBRoundResult();
 
     dbRound.roundId = round.roundId;
@@ -75,6 +75,7 @@ export class AttesterState {
     dbRound.finalizedTimestamp = getUnixEpochTimestamp();
     dbRound.transactionCount = round.attestations.length;
     dbRound.validTransactionCount = validTransactionCount;
+    dbRound.rejectIndex = rejectIndex;
 
     await this.saveOrUpdateRound(dbRound);
   }

@@ -9,9 +9,9 @@
       "apiKey": "7890"
     }
   ],
-  "port": 9500,
+  "port": 9502,
   "checkAliveIntervalMs": 5000,
-  "sourceId": "BTC",
+  "sourceId": "DOGE",
   "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
   "indexerDatabase": {
     "port": 3337,
@@ -21,9 +21,9 @@
     "inMemory": true
   },
   "chainConfiguration": {
-    "name": "BTC",
+    "name": "DOGE",
     "mccCreate": {
-      "url": "https://bitcoin.flare.network/",
+      "url": "https://doge.flare.network/",
       "username": "flareadmin",
       "password": "password"
     },

@@ -10,8 +10,8 @@ import rimraf from "rimraf";
 import { EntityManager } from "typeorm";
 import { Attestation } from "../../../src/attester/Attestation";
 import { AttestationData } from "../../../src/attester/AttestationData";
-import { DBBlockBTC, DBBlockXRP } from "../../../src/entity/indexer/dbBlock";
-import { DBTransactionBase, DBTransactionBTC0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
+import { DBBlockBTC, DBBlockDOGE, DBBlockXRP } from "../../../src/entity/indexer/dbBlock";
+import { DBTransactionBase, DBTransactionBTC0, DBTransactionDOGE0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
 import { VerifierConfigurationService } from "../../../src/servers/verifier-server/src/services/verifier-configuration.service";
 import { VerifierServerModule } from "../../../src/servers/verifier-server/src/verifier-server.module";
 import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../../src/utils/logging/logger";
@@ -45,6 +45,8 @@ export interface VerifierTestSetups {
   startTime: number;
   XRP: VerifierTestSetup;
   BTC: VerifierTestSetup;
+  Doge: VerifierTestSetup;
+
   logger: AttLogger;
 }
 
@@ -52,7 +54,7 @@ export async function clearTestDatabases(folder = TEST_DB_DIR) {
   await rimraf(`${TEST_DB_DIR}/*`);
 }
 
-export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, initTestLogger = true) {
+export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, initTestLogger = true, xrp = true, btc = true, doge = false) {
   delete process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
   if (initTestLogger) {
     initializeTestGlobalLogger();
@@ -70,33 +72,50 @@ export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, 
   let configXRP = appXRP.get("VERIFIER_CONFIG") as VerifierConfigurationService;
   let selectedTransactionXRP = await selectedReferencedTx(entityManagerXRP, DBTransactionXRP0, options.BLOCK_CHOICE, options.whichXRP ?? 0);
 
+  const XRPSetup = {
+    app: appXRP,
+    entityManager: entityManagerXRP,
+    config: configXRP,
+    selectedTransaction: selectedTransactionXRP,
+  };
+
   let appBTC = await bootstrapVerifier("btc", lastTimestamp, DBBlockBTC, DBTransactionBTC0, logger, options);
   let entityManagerBTC = appBTC.get(getEntityManagerToken("indexerDatabase"));
   let configBTC = appBTC.get("VERIFIER_CONFIG") as VerifierConfigurationService;
   let selectedTransactionBTC = await selectedReferencedTx(entityManagerBTC, DBTransactionBTC0, options.BLOCK_CHOICE, options.whichBTC ?? 0);
+
+  const BTCSetup = {
+    app: appBTC,
+    entityManager: entityManagerBTC,
+    config: configBTC,
+    selectedTransaction: selectedTransactionBTC,
+  };
+
+  let appDoge = await bootstrapVerifier("doge", lastTimestamp, DBBlockDOGE, DBTransactionDOGE0, logger, options);
+  let entityManagerDoge = appDoge.get(getEntityManagerToken("indexerDatabase"));
+  let configDoge = appDoge.get("VERIFIER_CONFIG") as VerifierConfigurationService;
+  let selectedTransactionDoge = await selectedReferencedTx(entityManagerDoge, DBTransactionDOGE0, options.BLOCK_CHOICE, 0);
+
+  const DogeSetup = {
+    app: appDoge,
+    entityManager: entityManagerDoge,
+    config: configDoge,
+    selectedTransaction: selectedTransactionDoge,
+  };
 
   let startTime = lastTimestamp - (options.LAST_BLOCK - options.FIRST_BLOCK);
   logger.info(`BLOCK TIMES: from: ${startTime} to: ${lastTimestamp}`);
   return {
     startTime,
     lastTimestamp,
-    XRP: {
-      app: appXRP,
-      entityManager: entityManagerXRP,
-      config: configXRP,
-      selectedTransaction: selectedTransactionXRP,
-    },
-    BTC: {
-      app: appBTC,
-      entityManager: entityManagerBTC,
-      config: configBTC,
-      selectedTransaction: selectedTransactionBTC,
-    },
+    XRP: XRPSetup,
+    BTC: BTCSetup,
+    Doge: DogeSetup,
   } as VerifierTestSetups;
 }
 
 export async function bootstrapVerifier(
-  verifierType: "xrp" | "btc",
+  verifierType: "xrp" | "btc" | "doge",
   lastTimestamp: number,
   dbBlock: any,
   dbTransaction: any,

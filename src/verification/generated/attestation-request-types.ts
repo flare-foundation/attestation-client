@@ -28,6 +28,11 @@ export class ARPayment {
   id: ByteSequenceLike;
 
   /**
+   * Block number of the transaction.
+   */
+  blockNumber: NumberLike;
+
+  /**
    * Index of the source address on UTXO chains. Always 0 on non-UTXO chains.
    */
   inUtxo: NumberLike;
@@ -58,6 +63,11 @@ export class ARBalanceDecreasingTransaction {
    * Transaction hash to search for.
    */
   id: ByteSequenceLike;
+
+  /**
+   * Block number of the transaction.
+   */
+  blockNumber: NumberLike;
 
   /**
    * Index of the source address on UTXO chains.

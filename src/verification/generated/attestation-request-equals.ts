@@ -46,6 +46,9 @@ export function equalsPayment(request1: ARPayment, request2: ARPayment) {
   if (!assertEqualsByScheme(request1.id, request2.id, "ByteSequenceLike")) {
     return false;
   }
+  if (!assertEqualsByScheme(request1.blockNumber, request2.blockNumber, "NumberLike")) {
+    return false;
+  }
   if (!assertEqualsByScheme(request1.inUtxo, request2.inUtxo, "NumberLike")) {
     return false;
   }
@@ -66,6 +69,9 @@ export function equalsBalanceDecreasingTransaction(request1: ARBalanceDecreasing
     return false;
   }
   if (!assertEqualsByScheme(request1.id, request2.id, "ByteSequenceLike")) {
+    return false;
+  }
+  if (!assertEqualsByScheme(request1.blockNumber, request2.blockNumber, "NumberLike")) {
     return false;
   }
   if (!assertEqualsByScheme(request1.inUtxo, request2.inUtxo, "NumberLike")) {

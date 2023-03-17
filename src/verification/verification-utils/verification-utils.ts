@@ -1,8 +1,8 @@
 import { AlgoTransaction, BtcTransaction, DogeTransaction, LtcTransaction, XrpTransaction } from "@flarenetwork/mcc";
 import {
-  ConfirmedBlockQueryResponse,
-  ConfirmedTransactionQueryResponse,
-  ReferencedTransactionsQueryResponse,
+  ConfirmedBlockQueryResponse, ConfirmedTransactionQueryResponse,
+  ConfirmedTransactionQueryStatusType,
+  ReferencedTransactionsQueryResponse
 } from "../../indexed-query-manager/indexed-query-manager-types";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 
@@ -18,38 +18,52 @@ export interface VerificationResponse<T> {
 // `generic-chain-verification.ts`
 //////////////////////////////////////////////////
 
-export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryResponse) {
-  if (result.status === "NOT_EXIST" || result.status === "NO_BOUNDARY" || !result.transaction) {
-    return VerificationStatus.NON_EXISTENT_TRANSACTION;
+export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryResponse): VerificationStatus {
+  switch (result.status) {
+    case "OK":
+      return VerificationStatus.NEEDS_MORE_CHECKS;   
+    case "NOT_EXIST":
+      return VerificationStatus.NON_EXISTENT_TRANSACTION;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => {})(result.status);
   }
-
-  if (result.status === "SYSTEM_FAILURE") {
-    return VerificationStatus.SYSTEM_FAILURE;
-  }
-
-  return VerificationStatus.NEEDS_MORE_CHECKS;
 }
 
-export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse) {
-  if (result.status === "NOT_EXIST" || result.status === "NO_BOUNDARY" || !result.block) {
-    return VerificationStatus.NON_EXISTENT_BLOCK;
+export function verifyWorkflowForBlockAvailability(result: ConfirmedBlockQueryResponse): VerificationStatus {
+  switch (result.status) {
+    case "OK":
+      return VerificationStatus.NEEDS_MORE_CHECKS;   
+    case "NOT_EXIST":
+      return VerificationStatus.DATA_AVAILABILITY_ISSUE;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => {})(result.status);
   }
-
-  if (result.status === "SYSTEM_FAILURE") {
-    return VerificationStatus.SYSTEM_FAILURE;
-  }
-
-  return VerificationStatus.NEEDS_MORE_CHECKS;
 }
 
-export function verifyWorkflowForReferencedTransactions(result: ReferencedTransactionsQueryResponse) {
-  if (result.status === "NO_OVERFLOW_BLOCK" || result.status === "NO_BOUNDARY" || !result.firstOverflowBlock) {
-    return VerificationStatus.NON_EXISTENT_BLOCK;
-  }
 
-  if (result.status === "SYSTEM_FAILURE") {
-    return VerificationStatus.SYSTEM_FAILURE;
+export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse): VerificationStatus  {
+  switch (result.status) {
+    case "OK":
+      return VerificationStatus.NEEDS_MORE_CHECKS;   
+    case "NOT_EXIST":
+      return VerificationStatus.NON_EXISTENT_BLOCK;;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => {})(result.status);
   }
+}
 
-  return VerificationStatus.NEEDS_MORE_CHECKS;
+export function verifyWorkflowForReferencedTransactions(result: ReferencedTransactionsQueryResponse): VerificationStatus {
+  switch (result.status) {
+    case "OK":
+      return VerificationStatus.NEEDS_MORE_CHECKS;   
+    case "NO_OVERFLOW_BLOCK":
+    case "DATA_AVAILABILITY_FAILURE":
+      return VerificationStatus.DATA_AVAILABILITY_ISSUE;;
+    default:
+      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+      ((_: never): void => {})(result.status);
+  }
 }

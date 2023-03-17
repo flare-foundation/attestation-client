@@ -47,22 +47,22 @@ export interface BlockQueryResult {
 /// Specific query requests and responses
 ////////////////////////////////////////////////////////
 
-export type IndexerQueryStatus = "OK" | "DATA_AVAILABILITY_FAILURE" | "NO_BOUNDARY" | "SYSTEM_FAILURE";
-
 export interface ConfirmedBlockQueryRequest {
   blockNumber: number;
 }
 
+export type ConfirmedBlockQueryStatusType = "OK" | "NOT_EXIST";
 export interface ConfirmedBlockQueryResponse {
-  status: IndexerQueryStatus | "NOT_EXIST";
+  status: ConfirmedBlockQueryStatusType;
   block?: DBBlockBase;
 }
 export interface ConfirmedTransactionQueryRequest {
   txId: string; // transaction id
 }
 
-export interface ConfirmedTransactionQueryResponse {
-  status: IndexerQueryStatus | "NOT_EXIST";
+export type ConfirmedTransactionQueryStatusType = "OK" | "NOT_EXIST";
+export interface  ConfirmedTransactionQueryResponse {
+  status: ConfirmedTransactionQueryStatusType;
   transaction?: DBTransactionBase;
 }
 
@@ -73,8 +73,9 @@ export interface ReferencedTransactionsQueryRequest {
   paymentReference: string; // payment reference
 }
 
+export type ReferencedTransactionsQueryStatusType = "OK" | "NO_OVERFLOW_BLOCK" | "DATA_AVAILABILITY_FAILURE";
 export interface ReferencedTransactionsQueryResponse {
-  status: IndexerQueryStatus | "NO_OVERFLOW_BLOCK";
+  status: ReferencedTransactionsQueryStatusType;
   transactions?: DBTransactionBase[];
   firstOverflowBlock?: DBBlockBase;
   minimalBlock?: DBBlockBase;

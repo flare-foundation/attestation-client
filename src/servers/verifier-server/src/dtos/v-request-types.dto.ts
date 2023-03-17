@@ -43,6 +43,17 @@ The ID of the underlying chain, see 'SourceId' enum.
   id: ByteSequenceLike;
 
   /**
+   * Block number of the transaction.
+   */
+  @ApiProperty({
+    oneOf: [{ type: "string" }, { type: "number" }],
+    description: `
+Block number of the transaction.
+`,
+  })
+  blockNumber: NumberLike;
+
+  /**
    * Index of the source address on UTXO chains. Always 0 on non-UTXO chains.
    */
   @ApiProperty({
@@ -99,6 +110,17 @@ The ID of the underlying chain, see 'SourceId' enum.
    */
   @ApiProperty()
   id: ByteSequenceLike;
+
+  /**
+   * Block number of the transaction.
+   */
+  @ApiProperty({
+    oneOf: [{ type: "string" }, { type: "number" }],
+    description: `
+Block number of the transaction.
+`,
+  })
+  blockNumber: NumberLike;
 
   /**
    * Index of the source address on UTXO chains.

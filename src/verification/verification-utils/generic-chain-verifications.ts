@@ -17,6 +17,7 @@ import {
   MccTransactionType,
   VerificationResponse,
   verifyWorkflowForBlock,
+  verifyWorkflowForBlockAvailability,
   verifyWorkflowForReferencedTransactions,
   verifyWorkflowForTransaction,
 } from "./verification-utils";
@@ -58,7 +59,6 @@ export async function responsePayment(
   try {
     paymentSummary = await fullTxData.paymentSummary(client, inUtxoNumber, utxoNumber);
   } catch (e: any) {
-    // TODO: return status according to exception
     return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR };
   }
 
@@ -102,12 +102,23 @@ export async function verifyPayment(
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<DHPayment>> {
+  // Check data availability
+  const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
+    blockNumber: toBN(request.blockNumber).toNumber(),
+  });
+
+  let status = verifyWorkflowForBlockAvailability(confirmedBlockQueryResult);
+  if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
+    return { status };
+  }
+
+  // Check for transaction
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
     txId: unPrefix0x(request.id),
   });
 
-  const status = verifyWorkflowForTransaction(confirmedTransactionResult);
-  if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
+  status = verifyWorkflowForTransaction(confirmedTransactionResult);
+  if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
 
@@ -138,7 +149,6 @@ export async function responseBalanceDecreasingTransaction(
   try {
     paymentSummary = await fullTxData.paymentSummary(client, inUtxoNumber);
   } catch (e: any) {
-    // TODO: return status according to exception
     return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR };
   }
 
@@ -174,12 +184,23 @@ export async function verifyBalanceDecreasingTransaction(
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
+  // Check data availability
+  const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
+    blockNumber: toBN(request.blockNumber).toNumber(),
+  });
+
+  let status = verifyWorkflowForBlockAvailability(confirmedBlockQueryResult);
+  if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
+    return { status };
+  }
+
+  // Check for transaction
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
     txId: unPrefix0x(request.id),
   });
 
-  const status = verifyWorkflowForTransaction(confirmedTransactionResult);
-  if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
+  status = verifyWorkflowForTransaction(confirmedTransactionResult);
+  if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
 
@@ -225,7 +246,7 @@ export async function verifyConfirmedBlockHeightExists(
   });
 
   const status = verifyWorkflowForBlock(confirmedBlockQueryResult);
-  if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
+  if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
 
@@ -235,7 +256,7 @@ export async function verifyConfirmedBlockHeightExists(
 
   if (!lowerQueryWindowBlock) {
     return {
-      status: VerificationStatus.NON_EXISTENT_MINIMAL_BLOCK,
+      status: VerificationStatus.DATA_AVAILABILITY_ISSUE,
     };
   }
   return await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.settings.numberOfConfirmations());
@@ -341,7 +362,7 @@ export async function verifyReferencedPaymentNonExistence(
   });
 
   const status = verifyWorkflowForReferencedTransactions(referencedTransactionsResponse);
-  if (status != VerificationStatus.NEEDS_MORE_CHECKS) {
+  if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
 

@@ -58,6 +58,9 @@ export function encodePayment(request: ARPayment) {
   if (request.id == null) {
     throw new AttestationRequestEncodeError("Missing 'id'");
   }
+  if (request.blockNumber == null) {
+    throw new AttestationRequestEncodeError("Missing 'blockNumber'");
+  }
   if (request.inUtxo == null) {
     throw new AttestationRequestEncodeError("Missing 'inUtxo'");
   }
@@ -69,6 +72,7 @@ export function encodePayment(request: ARPayment) {
   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4, "sourceId");
   bytes += toUnprefixedBytes(request.messageIntegrityCode, "ByteSequenceLike", 32, "messageIntegrityCode");
   bytes += toUnprefixedBytes(request.id, "ByteSequenceLike", 32, "id");
+  bytes += toUnprefixedBytes(request.blockNumber, "NumberLike", 4, "blockNumber");
   bytes += toUnprefixedBytes(request.inUtxo, "NumberLike", 1, "inUtxo");
   bytes += toUnprefixedBytes(request.utxo, "NumberLike", 1, "utxo");
   return bytes;
@@ -87,6 +91,9 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
   if (request.id == null) {
     throw new AttestationRequestEncodeError("Missing 'id'");
   }
+  if (request.blockNumber == null) {
+    throw new AttestationRequestEncodeError("Missing 'blockNumber'");
+  }
   if (request.inUtxo == null) {
     throw new AttestationRequestEncodeError("Missing 'inUtxo'");
   }
@@ -95,6 +102,7 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
   bytes += toUnprefixedBytes(request.sourceId, "SourceId", 4, "sourceId");
   bytes += toUnprefixedBytes(request.messageIntegrityCode, "ByteSequenceLike", 32, "messageIntegrityCode");
   bytes += toUnprefixedBytes(request.id, "ByteSequenceLike", 32, "id");
+  bytes += toUnprefixedBytes(request.blockNumber, "NumberLike", 4, "blockNumber");
   bytes += toUnprefixedBytes(request.inUtxo, "NumberLike", 1, "inUtxo");
   return bytes;
 }

@@ -31,5 +31,5 @@ export class DBRoundResult {
   @Column({ nullable: true }) bitVoteResultTimestamp: number;
 
   // This field is either empty or contains protest string
-  @Column({ nullable: true }) protest: string;
+  @Column({ nullable: true }) rejectIndex: number;
 }

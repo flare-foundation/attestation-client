@@ -45,6 +45,7 @@ export class GlobalConfigManager {
     if (!checkChainTypesMatchSourceIds(this.logger)) {
       this.logger.error("Discrepancy between ChainType and SourceId enums. Critical error.");
       process.exit(1);
+      return; // Don't delete needed for testing
     }
   }
 
@@ -72,14 +73,14 @@ export class GlobalConfigManager {
    */
   public get label() {
     let label = "";
-    if (this.attestationClientConfig.label != "none") {
+    if (this.attestationClientConfig.label !== "none") {
       label = `[${this.attestationClientConfig.label}]`;
     }
     return label;
   }
 
   /**
-   * Initializes the configuration manager
+   * Initializes the configuration manager.
    */
   public async initialize(verifierConfigRefreshIntervalMs = 80000) {
     // load global configs at start
@@ -94,22 +95,25 @@ export class GlobalConfigManager {
         } catch (error) {
           logException(error, `Critical error while refreshing verifier configs`);
           process.exit(1);
+          return; // Don't delete needed for testing
         }
       }, verifierConfigRefreshIntervalMs);
     } catch (error) {
       logException(error, `GlobalConfigManager::initialize: Critical error`);
       process.exit(1);
+      return; // Don't delete needed for testing
     }
   }
 
   /**
    * @returns global configuration for a given @param roundId
    */
-  public getConfig(roundId: number): GlobalAttestationConfig {
+  public getGlobalConfig(roundId: number): GlobalAttestationConfig {
     // configs must be ordered by decreasing roundId number
     if (this.globalAttestationConfigs.length === 0) {
       this.logger.error(`${this.label} No global configurations.`);
       process.exit(1);
+      return; // Don't delete needed for testing
     }
     let i = this.globalAttestationConfigs.length - 1;
     // Skip the future configs in regard to roundId
@@ -120,6 +124,7 @@ export class GlobalConfigManager {
       if (this.globalAttestationConfigs[0].startRoundId > roundId) {
         this.logger.error(`${this.label} Round id (${roundId}) too low for the first global config (round: ${this.globalAttestationConfigs[0].startRoundId})`);
         process.exit(1);
+        return; // Don't delete needed for testing
       }
       return this.globalAttestationConfigs[0];
     }
@@ -143,6 +148,7 @@ export class GlobalConfigManager {
     if (this.verifierRoutersWithConfig.length === 0) {
       this.logger.error(`${this.label} No global configurations.`);
       process.exit(1);
+      return; // Don't delete needed for testing
     }
     let i = this.verifierRoutersWithConfig.length - 1;
     // Skip the future configs in regard to roundId
@@ -174,15 +180,11 @@ export class GlobalConfigManager {
       throw new Error(`loadAllGlobalConfigs: no configuration files`);
     }
     const promises = files.map(async (filename: string) => {
-      return await this.loadGlobalConfig(filename);
+      return this.loadGlobalConfig(filename);
     });
     const configs = await Promise.all(promises);
-    if (configs.find((x) => x === undefined)) {
-      // undefined signalizes some error with the config
-      throw new Error(`Error while loading global configurations. Exiting.`);
-    }
-
-    this.globalAttestationConfigs = await Promise.all(promises);
+    
+    this.globalAttestationConfigs = configs;
 
     this.sortGlobalConfigs();
   }
@@ -204,10 +206,7 @@ export class GlobalConfigManager {
       return await this.loadVerifierConfig(filename);
     });
     let configs = await Promise.all(promises);
-    if (configs.find((x) => x === undefined)) {
-      // undefined signalizes some error with the config
-      throw new Error(`Error while loading verifier configurations. Exiting.`);
-    }
+
     // re-use or initialize new VerifierRouters matching to configs
     let newVerifierRouteConfigs = configs.map((config) => {
       const hash = this.verifierRouteConfigHash(config);
@@ -236,6 +235,12 @@ export class GlobalConfigManager {
     this.verifierRoutersWithConfig = newVerifierRouteConfigs;
   }
 
+  /**
+   * Compares two lists of configurations with verifier routes. 
+   * @param configs1 
+   * @param configs2 
+   * @returns `true` if configuration lists fully match
+   */
   private compareConfigurations(configs1: VerifierRouterWithConfig[], configs2: VerifierRouterWithConfig[]) {
     if (configs1.length !== configs2.length) return false;
     for (let i = 0; i < configs1.length; i++) {
@@ -259,18 +264,16 @@ export class GlobalConfigManager {
    * @param fileName
    * @returns loaded verifer router configuration or `undefined` on error.
    */
-  private async loadVerifierConfig(fileName: string): Promise<VerifierRouteConfig | undefined> {
+  private async loadVerifierConfig(fileName: string): Promise<VerifierRouteConfig> {
     let startRoundId = parseInt(fileName.match(VERIFIER_CONFIG_FILE_RE)?.[1], 10);
     if (isNaN(startRoundId)) {
-      this.logger.error(`${this.label} Wrongly named file for verifier client config: '${fileName}'`);
-      return;
+      throw new Error(`Wrongly named file for verifier client config: '${fileName}'`);
     }
     let projectName = path.join(`verifier-client`, fileName.slice(0, -CONFIG_JSON_RIGHT_STRIP_LENGTH));
     const config = await readSecureConfig(new VerifierRouteConfig(), projectName);
     // startRoundId in config must match the one in the file name
     if (config.startRoundId !== startRoundId) {
-      this.logger.error(`${this.label} Error: wrong startRoundId in the config file: (${config.startRoundId}) in '${fileName}'. Config file ignored.`);
-      return;
+      throw new Error(`Error: wrong startRoundId in the config file: (${config.startRoundId}) in '${fileName}'. Config file ignored.`);
     }
     return config;
   }
@@ -281,26 +284,23 @@ export class GlobalConfigManager {
    * @param disregardObsolete
    * @returns loaded configuration or `undefined` in case of error
    */
-  private async loadGlobalConfig(filename: string): Promise<GlobalAttestationConfig | undefined> {
+  private loadGlobalConfig(filename: string): GlobalAttestationConfig {
     let startRoundId = parseInt(filename.match(GLOBAL_CONFIG_FILE_RE)?.[1], 10);
     if (isNaN(startRoundId)) {
-      this.logger.error(`${this.label} Wrongly named file for global config: '${filename}'`);
-      return;
+      throw new Error(`Wrongly named file for global config: '${filename}'`);
     }
 
     const config = readJSONfromFile<GlobalAttestationConfig>(path.join(this.attestationClientConfig.globalConfigurationsFolder, filename));
     // startRoundId in config must match the one in the file name
     if (config.startRoundId !== startRoundId) {
-      this.logger.error(`${this.label} Error: wrong startRoundId in the global config file: (${config.startRoundId}) in '${filename}'.`);
-      return;
+      throw new Error(`Error: wrong startRoundId in the global config file: (${config.startRoundId}) in '${filename}'.`)
     }
 
     let obj = new GlobalAttestationConfig();
     Object.setPrototypeOf(config, Object.getPrototypeOf(obj));
-    const valid = isEqualType(obj.instanciate(), config);
+    const valid = isEqualType(obj.instantiate(), config);
     if (!valid) {
-      this.logger.error(`${this.label} Global configuration in file '${filename}' is invalid`);
-      return;
+      throw new Error(`Global configuration in file '${filename}' is invalid`)
     }
     config.initialize();
     return config;
@@ -310,21 +310,13 @@ export class GlobalConfigManager {
    * Sorts attestationConfig based on the startRoundId
    */
   private sortGlobalConfigs() {
-    this.globalAttestationConfigs.sort((a: GlobalAttestationConfig, b: GlobalAttestationConfig) => {
-      if (a.startRoundId < b.startRoundId) return -1;
-      if (a.startRoundId > b.startRoundId) return 1;
-      return 0;
-    });
+    this.globalAttestationConfigs.sort((a: GlobalAttestationConfig, b: GlobalAttestationConfig) => a.startRoundId - b.startRoundId);
   }
 
   /**
    * Sorts verifierRoutersWithConfig based on the startRoundId
    */
   private sortVerifierRouteConfigs(verifierRoutersWithConfig: VerifierRouterWithConfig[]) {
-    verifierRoutersWithConfig.sort((a: VerifierRouterWithConfig, b: VerifierRouterWithConfig) => {
-      if (a.config.startRoundId < b.config.startRoundId) return -1;
-      if (a.config.startRoundId > b.config.startRoundId) return 1;
-      return 0;
-    });
+    verifierRoutersWithConfig.sort((a: VerifierRouterWithConfig, b: VerifierRouterWithConfig) => a.config.startRoundId - b.config.startRoundId);
   }
 }

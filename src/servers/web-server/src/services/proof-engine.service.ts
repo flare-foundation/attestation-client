@@ -5,7 +5,7 @@ import fs from "fs";
 import { EntityManager } from "typeorm";
 import { DBAttestationRequest } from "../../../../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../../../../entity/attester/dbVotingRoundResult";
-import { MonitorStatus, PerformanceInfo } from "../../../../monitor/MonitorBase";
+import { MonitorStatus, PerformanceMetrics } from "../../../../monitor/MonitorBase";
 import { MerkleTree } from "../../../../utils/data-structures/MerkleTree";
 import { encodeRequest } from "../../../../verification/generated/attestation-request-encode";
 import { ServiceStatus } from "../dtos/ServiceStatus.dto";
@@ -26,6 +26,12 @@ export class ProofEngineService {
   private cache = {};
   private requestCache = {};
 
+  /**
+   * Returns all vote results for round, if they can be revealed. 
+   * The results are calculated and cached.
+   * @param roundId 
+   * @returns 
+   */
   public async getVoteResultsForRound(roundId: number): Promise<VotingRoundResult[] | null> {
     if (this.cache[roundId]) {
       return this.cache[roundId];
@@ -70,6 +76,13 @@ export class ProofEngineService {
     return finalResult;
   }
 
+  /**
+   * Returns proof data for specific attestation request.
+   * Attestation request is identified by the request data and round id in which it was submitted.
+   * @param roundId 
+   * @param callData 
+   * @returns 
+   */
   public async getSpecificProofForRound(roundId: number, callData: string): Promise<VotingRoundResult | null> {
     const roundData = await this.getVoteResultsForRound(roundId);
     const upCallData = unPrefix0x(callData).toLowerCase();
@@ -81,6 +94,11 @@ export class ProofEngineService {
     return null;
   }
 
+  /**
+   * Returns all requests for a specific round if they can be revealed subject to timing
+   * @param roundId 
+   * @returns 
+   */
   public async getRequestsForRound(roundId: number): Promise<VotingRoundRequest[] | null> {
     if (this.requestCache[roundId]) {
       return this.requestCache[roundId];
@@ -123,17 +141,30 @@ export class ProofEngineService {
     return finalResult;
   }
 
-  private canReveal(roundId: number) {
+  /**
+   * Returns true if the voting data for @param roundId can be revealed.
+   * @param roundId 
+   * @returns 
+   */
+  public canReveal(roundId: number) {
     let current = this.configService.epochSettings.getCurrentEpochId().toNumber();
     return current >= roundId + 2; // we must be in the reveal phase or later for a given roundId
   }
 
+  /**
+   * Calculates maximum round id for submitted vote results in the database.
+   * @returns 
+   */
   private async maxRoundId() {
     let maxQuery = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").select("MAX(voting_round_result.roundId)", "max");
     let res = await maxQuery.getRawOne();
     return res?.max;
   }
 
+  /**
+   * Returns current buffer number and latest available round id (subject to revealing limitations)
+   * @returns 
+   */
   public async systemStatus(): Promise<SystemStatus> {
     let currentBufferNumber = this.configService.epochSettings.getCurrentEpochId().toNumber();
     let latestAvailableRoundId = await this.maxRoundId();
@@ -147,183 +178,4 @@ export class ProofEngineService {
     };
   }
 
-  public async serviceStatus(): Promise<ServiceStatus> {
-    let path = this.configService.serverCredentials.serviceStatusFilePath;
-    if (!path) {
-      return {
-        alerts: [],
-        perf: [],
-      };
-    }
-    let statuses = JSON.parse(fs.readFileSync(path).toString());
-    let perf = (statuses as any).perf;
-    return {
-      alerts: (statuses as any).alerts as MonitorStatus[],
-      perf,
-    };
-  }
-
-  public async serviceStatusHtml(): Promise<string> {
-    let { currentBufferNumber, latestAvailableRoundId } = await this.systemStatus();
-    let path = this.configService.serverCredentials.serviceStatusFilePath;
-    let statuses = await this.serviceStatus();
-
-    let stat = fs.statSync(path);
-    let oneService = (status: MonitorStatus) => {
-      return `
-      <tr>
-         <td>${status.type}</td>
-         <td>${status.name}</td>
-         <td class="${status.status}">${status.status}</td>
-         <td>${status.state}</td>
-         <td>${status.comment}</td>
-      </tr>    
-`;
-    };
-
-    let onePerformance = (status: PerformanceInfo) => {
-      return `
-      <tr>
-         <td>${status.name}</td>
-         <td style="padding-right: 1rem">${status.valueName}</td>
-         <td class="align-right">${status.value}</td>         
-         <td style="padding-right: 1rem">${status.valueUnit}</td>         
-         <td>${status.comment}</td>
-      </tr>    
-`;
-    };
-
-    let rows = statuses.alerts.map(oneService).join("\n");
-    let performanceRows = statuses.perf.map(onePerformance).join("\n");
-
-    return `
-<html>
-<head>
-<style>
-th {
-   text-align: left; 
-   padding: 2px;
-   padding-left: 0.25rem;
-   padding-right: 0.25rem;
-}
-
-td {
-   text-align: left; 
-   padding: 2px;
-   padding-left: 0.25rem;
-   padding-right: 0.25rem;
-}
-
-h1 {
-   margin-left: 0.25rem;
-}
-
-body {
-   font-family: "Arial";
-}
-
-.first-row {
-   background-color: #eee;
-}
-
-.running {
-   background-color: #00ff00;
-}
-
-.down {
-   background-color: #ff0000;
-}
-
-.late {
-   background-color: #FFCC00;
-}
-
-.time {
-   margin-top: 0.25rem;
-   margin-bottom: 1rem;
-   margin-left: 0.25rem;
-}
-
-.time-label {
-   font-weight: 600;
-   margin-right: 0.25rem;
-}
-
-.status-block {
-   margin-top: 1rem;
-}
-
-.mid-title {
-   margin-left: 0.25rem;
-   margin-top: 1rem;
-   margin-bottom: 1rem;
-   font-size: 1.2rem;   
-   font-weight: 600;
-}
-
-.align-right {
-   text-align: right;
-}
-
-</style>
-
-<!-- <meta http-equiv="refresh" content="5"> -->
-
-<script type="text/javascript">
-   function autoRefresh() {
-      window.location = window.location.href;
-   }
-   setInterval('autoRefresh()', 5000);
-</script>
-
-</head>
-<body>
-   <h1>Attestation service status</h1>
-   <div class="time"><span class="time-label">Time:</span>${stat.mtime.toLocaleString()}</div>
-
-   <div class="mid-title">Services</div>
-
-   <table border="0" cellpadding="0" cellspacing="0">
-      <tr class="first-row">
-         <th style="width: 10rem">type</th>
-         <th style="width: 10rem">name</th>
-         <th style="width: 5rem">status</th>
-         <th style="width: 5rem">action</th>
-         <th>comment</th>
-      </tr>
-${rows}      
-   </table>
-   
-   <div class="mid-title">Rounds</div>
-
-   <table border="0" cellpadding="0" cellspacing="0" class="status-block">
-      <tr>
-        <td>Current buffer number:</td>
-        <td> ${currentBufferNumber}</td>
-      </tr> 
-      <tr>
-        <td>Votes for latest commited round id:</td>
-        <td> <a href="../proof/votes-for-round/${latestAvailableRoundId}" target="_blank">${latestAvailableRoundId}</a></td>
-      </tr> 
-      <tr>
-        <td>Requests for latest commited round id:</td>
-        <td> <a href="../proof/requests-for-round/${latestAvailableRoundId}" target="_blank">${latestAvailableRoundId}</a></td>
-      </tr> 
-   </table>
-
-   <div class="mid-title">Performance</div>
-   <table border="0" cellpadding="0" cellspacing="0">
-      <tr class="first-row">
-         <th style="width: 10rem">group</th>
-         <th>name</th>
-         <th>value</th>
-         <th></th>
-         <th>comment</th>
-      </tr>
-${performanceRows}      
-   </table>
-</body>
-</html>
-`;
-  }
 }

@@ -3,26 +3,35 @@ import prettier from "prettier";
 import { AttestationTypeScheme, DataHashScheme } from "../attestation-types/attestation-types";
 import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
 import { ATT_HASH_TYPES_FILE, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
-import { commentText } from "./cg-utils";
+import { JSDocCommentText, OpenAPIOptionsResponses } from "./cg-utils";
 
-export function BNProperty() {
-  return `{type: "string", description:"String representation of number"}`;
+export function BNProperty(comment?: string) {
+  return `{type: "string", description: \`${comment ?? "String representation of number"}\`}`;
 }
 
-function genDefHashItem(item: DataHashScheme) {
-  return `${commentText(item.description)}
-   @ApiProperty(${tsTypeForSolidityType(item.type) === "BN" ? BNProperty() : ""})
+function descriptionObj(comment?: string) {
+  return `{description: \`${comment ?? ""}\`}`;
+}
+
+function genDefHashItem(item: DataHashScheme, options?: OpenAPIOptionsResponses) {
+  const annotation = options?.dto
+    ? `\n@ApiProperty(${tsTypeForSolidityType(item.type) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})`
+    : "";
+  return `${JSDocCommentText(item.description)}${annotation}
    ${item.key}: ${tsTypeForSolidityType(item.type)};`;
 }
 
-function genAttestationDataHashType(definition: AttestationTypeScheme) {
-  const values = definition.dataHashDefinition.map((item) => genDefHashItem(item)).join("\n\n");
+function genAttestationDataHashType(definition: AttestationTypeScheme, options?: OpenAPIOptionsResponses) {
+  const values = definition.dataHashDefinition.map((item) => genDefHashItem(item, options)).join("\n\n");
   return `
   export class ${DATA_HASH_TYPE_PREFIX}${definition.name} {
-  // Attestation type
-  @ApiPropertyOptional()
-  stateConnectorRound?: number;
-  @ApiPropertyOptional()
+  /** 
+   * Round id in which the attestation request was validated.
+   */${options?.dto ? "\n@ApiPropertyOptional()\n" : ""}  
+  stateConnectorRound?: number;${options?.dto ? "\n@ApiPropertyOptional()\n" : ""}
+  /**
+   * Merkle proof (a list of 32-byte hex hashes).
+   */
   merkleProof?: string[];
    
   ${values}
@@ -38,18 +47,20 @@ function dhType(definitions: AttestationTypeScheme[]) {
   export const ${DATA_HASH_TYPE_PREFIX}TypeArray = [${dhUnionArray}];`;
 }
 
-export function createAttestationHashTypesFile(definitions: AttestationTypeScheme[]) {
+export function createAttestationHashTypesFile(definitions: AttestationTypeScheme[], options?: OpenAPIOptionsResponses) {
   // Request types
+  const openAPIImport = options?.dto ? 'import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";' : "";
   let content = `${DEFAULT_GEN_FILE_HEADER}
-  import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+  ${openAPIImport}
   import BN from "bn.js";
 
   `;
 
   definitions.forEach((definition) => {
-    content += genAttestationDataHashType(definition);
+    content += genAttestationDataHashType(definition, options);
   });
   content += dhType(definitions);
   const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
-  fs.writeFileSync(ATT_HASH_TYPES_FILE, prettyContent, "utf8");
+  const fName = options?.filePath ?? ATT_HASH_TYPES_FILE;
+  fs.writeFileSync(fName, prettyContent, "utf8");
 }

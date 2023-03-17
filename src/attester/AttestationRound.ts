@@ -1,5 +1,4 @@
 import { Managed, toBN } from "@flarenetwork/mcc";
-import assert from "assert";
 import { stringify } from "safe-stable-stringify";
 import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 import { chooseCandidate, countOnes, prefix0x, unPrefix0x } from "../choose-subsets-lib/subsets-lib";
@@ -691,7 +690,12 @@ export class AttestationRound {
    */
   public onAttestationProcessed(attestation: Attestation): void {
     this.attestationsProcessed++;
-    assert(this.attestationsProcessed <= this.attestations.length);
+    // assert check
+    if (this.attestationsProcessed > this.attestations.length) {
+      this.logger.error(`Critical error: number of processed attestations are bigger than number of all attestations in the round.`);
+      process.exit(1);
+      return; // Don't delete needed for testing
+    }
 
     // eslint-disable-next-line
     criticalAsync("processed", async () => {

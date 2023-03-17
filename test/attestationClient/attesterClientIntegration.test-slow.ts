@@ -40,18 +40,13 @@ import {
 } from "./utils/attestation-client-test-utils";
 chai.use(chaiAsPromised);
 
-describe(`Attester client integration (sometimes it fails due to time uncertainty (${getTestFile(__filename)})`, () => {
+describe(`Attester client integration (sometimes it fails due to time uncertainty) (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
 
   // const date = new Date(2023, 2, 10, 1);
   // const time = date.getTime() + 4000;
 
   // sinon.useFakeTimers({ now: Date.now(), shouldAdvanceTime: true });
-
-  let hardhatStart: number;
-  let inprocessStart: number;
-  let othersStart: number;
-  let spammerStart: number;
 
   let startblock: number = getUnixEpochTimestamp();
   // find out how to fix starting time
@@ -112,7 +107,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     definitions = await readAttestationTypeSchemes();
 
     // clear all test databases in './db/' folder
-    clearTestDatabases();
+    await clearTestDatabases();
 
     // setRetryFailureCallback((label: string) => {
     //   throw new Error(TERMINATION_TOKEN);
@@ -222,7 +217,6 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     // Attester related intializations
     ///////////////////////////////////
 
-    process.env.TEST_OVERRIDE_QUERY_WINDOW_IN_SEC = "" + TEST_OVERRIDE_QUERY_WINDOW_IN_SEC;
     process.env.TEST_SAMPLING_REQUEST_INTERVAL = "" + 1000;
     let bootstrapPromises = [];
 
@@ -236,6 +230,13 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     //   currentRound = await web3.eth.getBlockNumber();
     // }
 
+    // in-process clients
+    for (let i = 0; i < IN_PROCESS_CLIENTS; i++) {
+      bootstrapPromises.push(bootstrapAttestationClient(i));
+    }
+    clients = await Promise.all(bootstrapPromises);
+    runPromises = clients.map((client) => client.runAttesterClient());
+
     // spawning the rest of clients in new processes
     for (let i = IN_PROCESS_CLIENTS; i < NUMBER_OF_CLIENTS - NUMBER_OF_FAILING_CLIENTS; i++) {
       const child = spawn(
@@ -245,14 +246,6 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       );
       childProcesses.push(child);
     }
-    othersStart = Date.now();
-
-    // in-process clients
-    for (let i = 0; i < IN_PROCESS_CLIENTS; i++) {
-      bootstrapPromises.push(bootstrapAttestationClient(i));
-    }
-    clients = await Promise.all(bootstrapPromises);
-    runPromises = clients.map((client) => client.runAttesterClient());
 
     // starting simple spammer
     await startSimpleSpammer(

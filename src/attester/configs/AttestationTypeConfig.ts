@@ -1,15 +1,19 @@
 import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflection";
-import { AttestationType } from "../../verification/generated/attestation-types-enum";
 
 /**
- * Class defining attestation type for a source in global configuration
+ * Class defining attestation type for a source in global configuration.
  */
 export class AttestationTypeConfig implements IReflection<AttestationTypeConfig> {
+  /**
+   * Type name as string. Se enum `AttestationType` (src/verification/generated/attestation-types-enum.ts)
+   */
   type: string;
-  // Weight presents the difficulty of validating the attestation depending on the attestation type and source
+  /**
+   * Weight presents the difficulty of validating the attestation depending on the attestation type and source
+   */
   weight: number = 0;
 
-  instanciate(): AttestationTypeConfig {
+  instantiate(): AttestationTypeConfig {
     return new AttestationTypeConfig();
   }
 

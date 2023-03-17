@@ -21,9 +21,9 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
       type: "better-sqlite3",
       database:
         config.indexerDatabase.testSqlite3DBPath && config.indexerDatabase.testSqlite3DBPath !== "" ? config.indexerDatabase.testSqlite3DBPath : ":memory:",
-      dropSchema: true,
+      dropSchema: config.indexerDatabase.dropSchema !== undefined ? config.indexerDatabase.dropSchema : true,
       entities: entities,
-      synchronize: true,
+      synchronize: config.indexerDatabase.synchronize !== undefined ? config.indexerDatabase.synchronize : true,
       migrationsRun: false,
       logging: false,
     };

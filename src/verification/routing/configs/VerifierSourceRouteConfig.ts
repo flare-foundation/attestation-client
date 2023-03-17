@@ -37,7 +37,7 @@ export class VerifierSourceRouteConfig implements IReflection<VerifierSourceRout
 
   public routes: VerifierAttestationTypeRouteConfig[] = [];
 
-  instanciate(): VerifierSourceRouteConfig {
+  instantiate(): VerifierSourceRouteConfig {
     return new VerifierSourceRouteConfig();
   }
 

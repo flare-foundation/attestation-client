@@ -40,7 +40,7 @@ export class SpammerCredentials implements IReflection<SpammerCredentials> {
    */
   indexerDatabase = new DatabaseConnectOptions();
 
-  instanciate(): SpammerCredentials {
+  instantiate(): SpammerCredentials {
     return new SpammerCredentials();
   }
 

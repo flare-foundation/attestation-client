@@ -1,10 +1,3 @@
-/**
- * - Add prometheus server
- * - Add indexer bottom top - block count
- * - Add indexer bottom top - sec count
- * - comment classes
- */
-
 import { Managed, traceManager } from "@flarenetwork/mcc";
 import stringify from "safe-stable-stringify";
 import { runMonitorserver } from "../servers/monitor-server/src/monitorserver";
@@ -18,28 +11,50 @@ import { MonitorConfig } from "./MonitorConfiguration";
 import { SystemMonitor } from "./monitors/SystemMonitor";
 import { Prometheus } from "./prometheus";
 
+/**
+ * Interface for web monitor
+ */
 let prometheus: Prometheus;
 let statusJson: string = "";
 let statusObject;
 
+/**
+ * Get registered Prometheus metrics
+ * @returns
+ */
 export async function getPrometheusMetrics(): Promise<string> {
   return await prometheus.getMetrics();
 }
 
+/**
+ * Get status as a json string.
+ * @returns
+ */
 export async function getStatusJson(): Promise<string> {
   return statusJson;
 }
 
+/**
+ * Get status as a native status object.
+ * @returns
+ */
 export async function getStatusObject(): Promise<string> {
   return statusObject;
 }
 
+/**
+ * Monitor manager.
+ */
 @Managed()
 export class MonitorManager {
   logger: AttLogger;
   config: MonitorConfig;
   monitors: MonitorBase<MonitorConfigBase>[] = [];
 
+  /**
+   * Initialize monitors for one class.
+   * @param monitors
+   */
   initializeMonitors<T extends MonitorConfigBase>(monitors: T[]) {
     for (const monitor of monitors) {
       this.logger.debug(`initializing: ${monitor.getName()} ${monitor.name} ${monitor.disabled ? "^rdisabled^^" : ""}`);
@@ -49,6 +64,9 @@ export class MonitorManager {
     }
   }
 
+  /**
+   * Initialize monitor manager and all monitors.
+   */
   async initialize() {
     this.logger = getGlobalLogger();
 
@@ -73,6 +91,9 @@ export class MonitorManager {
     }
   }
 
+  /**
+   * Async run monitor.
+   */
   async runMonitor() {
     traceManager.displayStateOnException = false;
     traceManager.displayRuntimeTrace = false;
@@ -112,7 +133,7 @@ export class MonitorManager {
 
         for (const monitor of this.monitors) {
           try {
-            const resAlert = await monitor.check();
+            const resAlert = await monitor.getMonitorStatus();
 
             if (!resAlert) continue;
 
@@ -120,6 +141,7 @@ export class MonitorManager {
 
             resAlert.displayStatus(this.logger);
 
+            // set status metrics
             var status = 0;
             switch (resAlert.status) {
               case "down":
@@ -144,7 +166,7 @@ export class MonitorManager {
 
         for (const monitor of this.monitors) {
           try {
-            const resPerfs = await monitor.perf();
+            const resPerfs = await monitor.getPerformanceMetrics();
 
             if (!resPerfs) continue;
 
@@ -152,6 +174,7 @@ export class MonitorManager {
               statusPerfs.push(perf);
               perf.displayStatus(this.logger);
 
+              // set performance metrics
               prometheus.setGauge(`${prefix}_${perf.name}_${perf.valueName}_${perf.valueUnit}`, perf.valueName, perf.valueUnit, perf.value);
             }
           } catch (error) {
@@ -168,7 +191,7 @@ export class MonitorManager {
 
       if (this.config.prometheus.pushGatewayEnabled) {
         // push metric to gateway
-        prometheus.push(prefix);
+        prometheus.sendPushGatewayMetric(prefix);
       }
 
       await sleepms(this.config.interval);

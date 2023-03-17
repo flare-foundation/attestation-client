@@ -79,8 +79,6 @@ The currently deployed `StateConnector` contracts on Songbird and Coston network
 
 Both contracts have as the start timestamp set the Unix epoch `BUFFER_TIMESTAMP_OFFSET = 1636070400` (November 5th, 2021) and `BUFFER_WINDOW = 90`.
 
-Note, these are older contracts with less secure (non-copy-proof) commit reveal scheme, that are subject to change soon. The official version of the new copy-proof `StateConnector` contract is expected to be deployed soon and will reside on the address `0x1000000000000000000000000000000000000001`
-
 Next: [Bit voting](./bit-voting.md)
 
 [Back to home](../README.md)

@@ -4,6 +4,7 @@ import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { AttLogger } from "../../utils/logging/logger";
 import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
+import { DHConfirmedBlockHeightExists } from "../../verification/generated/attestation-hash-types";
 import { hashConfirmedBlockHeightExists } from "../../verification/generated/attestation-hash-utils";
 import { ARConfirmedBlockHeightExists } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
@@ -60,7 +61,7 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
     let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
-      request.messageIntegrityCode = hashConfirmedBlockHeightExists(request, response.response, MIC_SALT);
+      request.messageIntegrityCode = hashConfirmedBlockHeightExists(request, response.response as DHConfirmedBlockHeightExists, MIC_SALT);
       logger.info(`Request augmented correctly (ConfirmedBlockHeightExists)`);
       return request;
     }

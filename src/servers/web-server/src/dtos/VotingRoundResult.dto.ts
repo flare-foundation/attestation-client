@@ -1,6 +1,6 @@
-import { DHType, DHTypeArray } from "../../../../verification/generated/attestation-hash-types";
-import { ARType, ARTypeArray } from "../../../../verification/generated/attestation-request-types";
 import { ApiPropertyUnion } from "../../../common/src/utils/open-api-utils";
+import { DHType, DHTypeArray } from "./w-hash-types.dto";
+import { ARType, ARTypeArray } from "./w-request-types.dto";
 
 export class VotingRoundResult {
   roundId: number;

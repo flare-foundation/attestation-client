@@ -4,8 +4,6 @@ import { WsAdapter } from "@nestjs/platform-ws";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { Test } from "@nestjs/testing";
 import { getEntityManagerToken } from "@nestjs/typeorm";
-import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import fs from "fs";
 import helmet from "helmet";
 import rimraf from "rimraf";
@@ -50,8 +48,8 @@ export interface VerifierTestSetups {
   logger: AttLogger;
 }
 
-export function clearTestDatabases(folder = TEST_DB_DIR) {
-  rimraf(`${TEST_DB_DIR}/*`, () => null);
+export async function clearTestDatabases(folder = TEST_DB_DIR) {
+  await rimraf(`${TEST_DB_DIR}/*`);
 }
 
 export async function bootstrapTestVerifiers(options: VerifierBootstrapOptions, initTestLogger = true) {
@@ -120,18 +118,6 @@ export async function bootstrapVerifier(
   app.useWebSocketAdapter(new WsAdapter(app));
 
   app.use(helmet());
-  // app.use(compression()); // Compress all routes
-
-  app.use(cookieParser());
-  app.use(bodyParser.json({ limit: "50mb" }));
-  // Use body parser to read sent json payloads
-  app.use(
-    bodyParser.urlencoded({
-      limit: "1mb",
-      extended: true,
-      parameterLimit: 50000,
-    })
-  );
 
   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? "");
   const config = new DocumentBuilder()

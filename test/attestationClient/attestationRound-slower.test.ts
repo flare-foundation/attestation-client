@@ -61,7 +61,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     const sourceRouter = new SourceRouter(globalConfigManager);
     await globalConfigManager.initialize();
 
-    activeGlobalConfig = globalConfigManager.getConfig(161);
+    activeGlobalConfig = globalConfigManager.getGlobalConfig(161);
     await dbService.connect();
 
     flareConnection = new MockFlareConnection(attestationClientConfig, getGlobalLogger(), true);

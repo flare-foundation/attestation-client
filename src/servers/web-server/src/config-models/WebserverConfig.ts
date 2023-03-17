@@ -15,7 +15,7 @@ export class WebserverConfig implements IReflection<WebserverConfig> {
 
   attesterDatabase = new DatabaseConnectOptions();
 
-  instanciate(): WebserverConfig {
+  instantiate(): WebserverConfig {
     return new WebserverConfig();
   }
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {

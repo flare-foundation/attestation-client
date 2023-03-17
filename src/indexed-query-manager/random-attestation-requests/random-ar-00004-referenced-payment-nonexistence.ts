@@ -4,6 +4,7 @@ import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttLogger } from "../../utils/logging/logger";
 import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
+import { DHReferencedPaymentNonexistence } from "../../verification/generated/attestation-hash-types";
 import { hashReferencedPaymentNonexistence } from "../../verification/generated/attestation-hash-utils";
 import { ARReferencedPaymentNonexistence } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
@@ -101,7 +102,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
     let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
-      request.messageIntegrityCode = hashReferencedPaymentNonexistence(request, response.response, MIC_SALT);
+      request.messageIntegrityCode = hashReferencedPaymentNonexistence(request, response.response as DHReferencedPaymentNonexistence, MIC_SALT);
       logger.info(`Request augmented correctly (ReferencePaymentNonexistence)`);
       return request;
     }

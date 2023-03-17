@@ -3,7 +3,7 @@ import { AdditionalTypeInfo, IReflection } from "../../../../utils/reflection/re
 export class MonitorserverConfig implements IReflection<MonitorserverConfig> {
   port: number = 9600;
 
-  instanciate(): MonitorserverConfig {
+  instantiate(): MonitorserverConfig {
     return new MonitorserverConfig();
   }
 

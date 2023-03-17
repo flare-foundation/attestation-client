@@ -36,7 +36,7 @@ export class IndexerConfig implements IReflection<IndexerConfig> {
    */
   chainConfiguration = new ChainConfig();
 
-  instanciate() {
+  instantiate() {
     return new IndexerConfig();
   }
 

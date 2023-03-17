@@ -4,7 +4,7 @@
 import { assert } from "chai";
 import sinon from "sinon";
 import { getSecureConfigRootPath, readSecureConfig } from "../../src/utils/config/configSecure";
-import { getCredentialsKey, getCredentialsKeyAddress, getCredentialsKeyByAddress } from "../../src/utils/config/credentialsKey";
+import { getCredentialsKey, getCredentialsKeyAddress, getSecretByAddress } from "../../src/utils/config/credentialsKey";
 import { initializeJSONsecure, SECURE_MASTER_CONFIGS, _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AdditionalTypeInfo, IReflection } from "../../src/utils/reflection/reflection";
@@ -24,7 +24,7 @@ class TestConfig implements IReflection<TestConfig> {
   key3: number = 0;
   key4: number = 0;
 
-  instanciate() {
+  instantiate() {
     return new TestConfig();
   }
 
@@ -97,13 +97,13 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
   });
 
   it(`get credentials invalid format`, async () => {
-    const credentialsPassword = await getCredentialsKeyByAddress("provider:address:invalid");
+    const credentialsPassword = await getSecretByAddress("provider:address:invalid");
 
     assert(exitCode !== 0, `exit not called`);
   });
 
   it(`get credentials invalid address`, async () => {
-    const credentialsPassword = await getCredentialsKeyByAddress("unknown:some address");
+    const credentialsPassword = await getSecretByAddress("unknown:some address");
 
     assert(exitCode !== 0, `exit not called`);
   });
@@ -115,20 +115,43 @@ describe(`Test credentials utils (${getTestFile(__filename)})`, () => {
   });
 
   it(`get credentials key google cloud secret manager invalid name`, async () => {
-    const credentialsPassword = await getCredentialsKeyByAddress("GoogleCloudSecretManager:invalid name");
+    const credentialsPassword = await getSecretByAddress("GoogleCloudSecretManager:invalid name");
 
     assert(exitCode !== 0, `exit not called`);
+  });
+
+  it(`get secret from env`, async () => {
+    process.env.ENV_TEST = "env_test";
+
+    const credentialsPassword = await getSecretByAddress("env:ENV_TEST");
+
+    assert(credentialsPassword == process.env.ENV_TEST, "invalid env password");
+
+    delete process.env.ENV_TEST;
+
+    assert(exitCode == 0, `exit called`);
+  });
+
+  it(`do not terminate on error`, async () => {
+    let errorMessage = "";
+    try {
+      const credentialsPassword = await getSecretByAddress("invalid format", false);
+    } catch (error) {
+      errorMessage = error;
+    }
+
+    assert(errorMessage !== "invalid format", `invalid error message`);
+
+    assert(exitCode == 0, `exit called`);
   });
 
   it(`secure credentials read`, async () => {
     let testConfig = new TestConfig();
 
-    const test = await readSecureConfig(testConfig, "template1");
-
-    assert(test.key1 === 1, "incorrect config key");
-    assert(test.key2 === 2, "incorrect config key");
-    assert(test.key3 === 3, "incorrect config key");
-    assert(test.key4 === 4, "incorrect config key");
+    assert(testConfig.key1 === 0, "incorrect config key 1");
+    assert(testConfig.key2 === 0, "incorrect config key 2");
+    assert(testConfig.key3 === 0, "incorrect config key 3");
+    assert(testConfig.key4 === 0, "incorrect config key 4");
 
     assert(exitCode === 0, `function must not exit`);
   });

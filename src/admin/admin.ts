@@ -16,28 +16,28 @@ async function admin() {
 
   const menu = new Menu();
 
-  menu.addCommand("Update", "bash ./scripts/update.sh");
+  menu.addCommand("Update", "bash ./scripts/direct-install/.sh");
   menu
     .addSubmenu("Deploy")
-    .addCommand("^RAll", "bash ./scripts/deploy-all.sh")
+    .addCommand("^RAll", "bash ./scripts/direct-install/deploy-all.sh")
     .parent()
-    .addCommand("Indexers", "bash ./scripts/deploy-indexer")
+    .addCommand("Indexers", "bash ./scripts/direct-install/deploy-indexer")
     .parent()
-    .addCommand("Alerts", "bash ./scripts/deploy-alerts")
+    .addCommand("Alerts", "bash ./scripts/direct-install/deploy-alerts")
     .parent()
-    .addCommand("Coston Attestation Client", "bash ./scripts/deploy-coston-attester")
+    .addCommand("Coston Attestation Client", "bash ./scripts/direct-install/deploy-coston-attester")
     .parent()
-    .addCommand("Coston webserver", "bash ./scripts/deploy-coston-webserver")
+    .addCommand("Coston webserver", "bash ./scripts/direct-install/deploy-coston-webserver")
     .parent()
-    .addCommand("Songbird Attestation Client", "bash ./scripts/deploy-songbird-attester")
+    .addCommand("Songbird Attestation Client", "bash ./scripts/direct-install/deploy-songbird-attester")
     .parent()
-    .addCommand("Songbird webserver", "bash ./scripts/deplay-songbird-webserver");
+    .addCommand("Songbird webserver", "bash ./scripts/direct-install/deplay-songbird-webserver");
 
   menu
     .addSubmenu("Services")
-    .addCommand("^RRestart all", "bash ./scripts/services-restart-all")
+    .addCommand("^RRestart all", "bash ./scripts/direct-install/services-restart-all")
     .parent()
-    .addCommand("^RStop all", "bash ./scripts/services-stop-all")
+    .addCommand("^RStop all", "bash ./scripts/direct-install/services-stop-all")
     .parent()
     .addSubmenu("Indexer")
     .addService("ALGO", "indexer-algo")
@@ -89,15 +89,15 @@ async function admin() {
 
   menu
     .addSubmenu("Reset Database")
-    .addCommand("ALGO", "bash ./scripts/indexer-reset-algo.sh")
+    .addCommand("ALGO", "bash ./scripts/direct-install/helpers/indexer-reset-algo.sh")
     .parent()
-    .addCommand("BTC", "bash ./scripts/indexer-reset-btc.sh")
+    .addCommand("BTC", "bash ./scripts/direct-install/helpers/indexer-reset-btc.sh")
     .parent()
-    .addCommand("DOGE", "bash ./scripts/indexer-reset-doge.sh")
+    .addCommand("DOGE", "bash ./scripts/direct-install/helpers/indexer-reset-doge.sh")
     .parent()
-    .addCommand("LTC", "bash ./scripts/indexer-reset-ltc.sh")
+    .addCommand("LTC", "bash ./scripts/direct-install/helpers/indexer-reset-ltc.sh")
     .parent()
-    .addCommand("XRP", "bash ./scripts/indexer-reset-xrp.sh")
+    .addCommand("XRP", "bash ./scripts/direct-install/helpers/indexer-reset-xrp.sh")
     .parent();
 
   //await menu.run();
@@ -157,7 +157,7 @@ async function admin() {
     resAlerts = [];
     for (const alert of monitorManager.monitors) {
       try {
-        const resAlert = await alert.check();
+        const resAlert = await alert.getMonitorStatus();
 
         if (!resAlert) continue;
 
@@ -168,7 +168,7 @@ async function admin() {
     resPerfs = [];
     for (const alert of monitorManager.monitors) {
       try {
-        const resPerf = await alert.perf();
+        const resPerf = await alert.getPerformanceMetrics();
 
         if (!resPerf) continue;
 

@@ -1,5 +1,6 @@
 import { AttestationRequest, MIC_SALT, Verification, VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
-import { hashPayment } from "../../../../../verification/generated/attestation-hash-utils";
+import { DHType } from "../../../../../verification/generated/attestation-hash-types";
+import { dataHash } from "../../../../../verification/generated/attestation-hash-utils";
 import { encodeRequest } from "../../../../../verification/generated/attestation-request-encode";
 import { getAttestationTypeAndSource } from "../../../../../verification/generated/attestation-request-parse";
 import { ARType } from "../../../../../verification/generated/attestation-request-types";
@@ -7,10 +8,10 @@ import { getAttestationTypeName } from "../../../../../verification/generated/at
 import { getSourceName } from "../../../../../verification/sources/sources";
 
 export abstract class VerifierProcessor {
-  public abstract verify(attestationRequest: AttestationRequest): Promise<Verification<any, any>>;
+  public abstract verify(attestationRequest: AttestationRequest): Promise<Verification<ARType, DHType>>;
   public abstract supportedAttestationTypes(): string[];
   public abstract supportedSource(): string;
-  public prepareRequest(request: ARType): Promise<Verification<any, any>> {
+  public prepareRequest(request: ARType): Promise<Verification<ARType, DHType>> {
     return this.verify({ request: encodeRequest(request) });
   }
 
@@ -20,7 +21,7 @@ export abstract class VerifierProcessor {
       // TODO: This should be made more stable
       return data.status;
     }
-    const integrity = hashPayment(data.request, data.response, MIC_SALT);
+    const integrity = dataHash(data.request, data.response, MIC_SALT);
     return integrity;
   }
 
@@ -30,7 +31,7 @@ export abstract class VerifierProcessor {
       // TODO: This should be made more stable
       return data.status;
     }
-    const integrity = hashPayment(data.request, data.response, MIC_SALT);
+    const integrity = dataHash(data.request, data.response, MIC_SALT);
     request.messageIntegrityCode = integrity;
     return encodeRequest(request);
   }

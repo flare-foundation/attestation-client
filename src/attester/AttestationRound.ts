@@ -23,7 +23,7 @@ import { FlareConnection } from "./FlareConnection";
 import { SourceLimiter } from "./source/SourceLimiter";
 import { SourceRouter } from "./source/SourceRouter";
 import { AttestationRoundPhase, AttestationRoundStatus, NO_VOTE } from "./types/AttestationRoundEnums";
-import { AttestationStatus } from "./types/AttestationStatus";
+import { AttestationStatus, getSummarizedAttestationStatus, SummarizedAttestationStatus } from "./types/AttestationStatus";
 
 const ZERO_HASH = toHex(0, 32);
 
@@ -54,6 +54,7 @@ export class AttestationRound {
   prevRound: AttestationRound;
   private isEmpty = false;
   private isReject = false;
+  private rejectIndex: number | undefined;
 
   // attestations
   attestations = new Array<Attestation>();
@@ -515,6 +516,11 @@ export class AttestationRound {
       return;
     }
 
+    if(this.isReject) {
+      this.logger.info(`${this.label} - tryPrepareCommitData - round already rejected`);
+      return;
+    }
+
     // collect valid attestations and prepare to save all requests
     const dbAttestationRequests = [];
     const validated: Attestation[] = [];
@@ -522,12 +528,15 @@ export class AttestationRound {
     //  check if all attestations required by bit vote result are validated
     for (let i of this.bitVoteResultIndices) {
       const attestation = this.attestations[i];
-      if (attestation.status === AttestationStatus.valid) {
+
+      let summarizedAttestationStatus = getSummarizedAttestationStatus(attestation.status);
+      if (summarizedAttestationStatus === SummarizedAttestationStatus.valid) {
         validated.push(attestation);
-      } else if (attestation.status === AttestationStatus.invalid) {
+      } else if (summarizedAttestationStatus === SummarizedAttestationStatus.invalid) {
         // If we encounter invalid attestation 
         this.isReject = true;
-        // TODO: what do we save to database
+        this.rejectIndex = i;
+        return;
       } else {
         this.logger.error(
           `${this.label} round #${this.roundId} cannot yet commit ${validated.length}/${this.bitVoteResultIndices.length} attestations validated.`
@@ -549,13 +558,6 @@ export class AttestationRound {
       criticalAsync("commit", async () => {
         await this.attesterState.entityManager.save(dbAttestationRequests);
       });
-    }
-
-    if(this.isReject) {
-      this.attestStatus = AttestationRoundStatus.commitDataPrepared;
-      await this.rejectVoteRound();
-      this.logger.info(`${this.label} round #${this.roundId} REJECT VOTE`);
-      return;
     }
 
     if (validated.length === 0) {
@@ -650,18 +652,22 @@ export class AttestationRound {
    * the vote is not possible to calculate due to some reason.
    */
   private async rejectVoteRound() {
+    if(!this.isReject) {
+      this.logger.error(`${this.label} 'rejectVote' called on non-rejected round - this should not happen in round #${this.roundId}`);  
+      process.exit(1);
+      return; // For testing
+    }
     this.logger.debug2(`${this.label} Disagreement with bit-voting validity in round #${this.roundId}`);
 
     // We prepare valid commit-reveal pair for ZERO_HASH root, which cannot 
     // Be used to prove anything.
     // If sufficient number of default set voters also do ZERO_HASH reject
     // this will protect nodes with legit private sets from forking
-    this.roundMerkleRoot = ZERO_HASH; // sending random merkle root to object 
+    this.roundMerkleRoot = await getCryptoSafeRandom(); // sending random merkle root to object 
     this.roundRandom = await getCryptoSafeRandom();
     this.roundMaskedMerkleRoot = commitHash(this.roundMerkleRoot, this.roundRandom, this.flareConnection.web3Functions.account.address);
-    this.isReject = true;
     // after commit state has been calculated add it in state
-    await this.attesterState.saveRound(this, 0, true); // save with protest
+    await this.attesterState.saveRound(this, 0, this.rejectIndex); // save with rejectIndex
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////
@@ -818,7 +824,12 @@ export class AttestationRound {
 
     if (this.nextRound) {
       if (!this.nextRound.canCommit()) {
-        await this.nextRound.abstainVoteRound();
+        if(this.nextRound.isReject) {
+          await this.nextRound.rejectVoteRound()
+        } else {
+          await this.nextRound.abstainVoteRound();
+        }
+        
       }
 
       nextRoundMerkleRoot = this.nextRound.roundMerkleRoot;

@@ -21,6 +21,8 @@ import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { SourceRouter } from "../../src/attester/source/SourceRouter";
 import { AttestationRoundPhase, AttestationRoundStatus } from "../../src/attester/types/AttestationRoundEnums";
 import { traceManager } from "@flarenetwork/mcc";
+import { SourceId } from "../../src/verification/sources/sources";
+import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -161,7 +163,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
     it("Should create bitVote", function () {
       for (let j = 1; j < 6; j++) {
-        const event = createBlankAtRequestEvent(1, 2, `0xfakeMIC${j}`, "12345", `0xfakeID${j}`);
+        const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${j}`);
         const attestation = new Attestation(160, new AttestationData(event));
         attestation.index = j - 1;
         attestation.status = j < 4 ? AttestationStatus.valid : AttestationStatus.tooLate;
@@ -178,7 +180,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         round.defaultSetAddresses.push(address);
         round.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(1, 2, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
           const attestation = new Attestation(160, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = i < 5 + j ? AttestationStatus.valid : AttestationStatus.overLimit;
@@ -204,7 +206,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         roundAlt.defaultSetAddresses.push(address);
         roundAlt.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(1, 2, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
           const attestation = new Attestation(180, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = i == j ? AttestationStatus.valid : AttestationStatus.overLimit;
@@ -266,7 +268,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         round.defaultSetAddresses.push(address);
         round.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(1, 2, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
           const attestation = new Attestation(160, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = AttestationStatus.overLimit;

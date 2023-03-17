@@ -131,6 +131,7 @@ export function getRandomRequestForAttestationTypeAndSourceId(attestationType: A
         sourceId,
         messageIntegrityCode: Web3.utils.randomHex(32),
         id: Web3.utils.randomHex(32),
+        blockNumber: toBN(Web3.utils.randomHex(4)),
         inUtxo: toBN(Web3.utils.randomHex(1)),
         utxo: toBN(Web3.utils.randomHex(1)),
       } as ARPayment;
@@ -140,6 +141,7 @@ export function getRandomRequestForAttestationTypeAndSourceId(attestationType: A
         sourceId,
         messageIntegrityCode: Web3.utils.randomHex(32),
         id: Web3.utils.randomHex(32),
+        blockNumber: toBN(Web3.utils.randomHex(4)),
         inUtxo: toBN(Web3.utils.randomHex(1)),
       } as ARBalanceDecreasingTransaction;
     case AttestationType.ConfirmedBlockHeightExists:

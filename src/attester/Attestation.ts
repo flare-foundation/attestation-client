@@ -27,7 +27,7 @@ export class Attestation {
   private _roundId: number;
 
   // validation result
-  status: AttestationStatus = AttestationStatus.undetermined;
+  status: AttestationStatus = AttestationStatus.initial;
 
   // verification result (response by verifier)
   verificationData!: Verification<any, any>;

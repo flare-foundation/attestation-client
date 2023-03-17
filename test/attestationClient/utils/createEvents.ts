@@ -16,6 +16,7 @@ import { prefix0x } from "@flarenetwork/mcc";
 export function createBlankAtRequestEvent(
   atType: AttestationType,
   sourceId: SourceId,
+  blockNumber: number,
   MIC: string,
   timeStamp: string,
   id = "0xfakeId",
@@ -26,7 +27,7 @@ export function createBlankAtRequestEvent(
 
   switch (atType) {
     case AttestationType.Payment:
-      const arPayment: ARPayment = { attestationType: atType, sourceId: sourceId, inUtxo: inUtxo, utxo: utxo, id: id, messageIntegrityCode: MIC };
+      const arPayment: ARPayment = { attestationType: atType, blockNumber, sourceId: sourceId, inUtxo: inUtxo, utxo: utxo, id: id, messageIntegrityCode: MIC };
 
       reqData = encodePayment(arPayment);
       break;
@@ -97,6 +98,7 @@ export function createAttestationVerificationPair(reqId: string, round: number, 
   const arPayment: ARPayment = {
     attestationType: AttestationType.Payment,
     sourceId: SourceId.XRP,
+    blockNumber: 1,
     messageIntegrityCode: "",
     id: reqId,
     inUtxo: "",

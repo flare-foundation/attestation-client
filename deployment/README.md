@@ -55,11 +55,11 @@ cd ~
 mkdir -p attestation-suite
 cd attestation-suite
 
-git clone https://gitlab.com/flarenetwork/attestation-client.git
+git clone git@github.com:flare-foundation/attestation-client.git
 cd attestation-client
 
 # use relevant branch or tag
-# git checkout bit-voting
+git checkout 2.0.1
 
 ```
 

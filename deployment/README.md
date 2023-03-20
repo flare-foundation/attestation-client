@@ -67,7 +67,7 @@ git checkout main
 
 Run
 ``` bash
-docker build -t attestation-suite .
+docker build -t attestation-suite . --no-cache
 ```
 
 ### 1.3 Initialize credentials

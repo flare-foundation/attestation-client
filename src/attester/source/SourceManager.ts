@@ -1,11 +1,16 @@
 import { Managed } from "@flarenetwork/mcc";
-import { exit } from "process";
 import { criticalAsync } from "../../indexer/indexer-utils";
 import { PriorityQueue } from "../../utils/data-structures/PriorityQueue";
-import { getTimeMilli, getTimeSec } from "../../utils/helpers/internetTime";
+import { getTimeMs, getTimeSec } from "../../utils/helpers/internetTime";
 import { arrayRemoveElement } from "../../utils/helpers/utils";
 import { AttLogger, logException } from "../../utils/logging/logger";
-import { getSummarizedVerificationStatus, MIC_SALT, SummarizedVerificationStatus, Verification, VerificationStatus } from "../../verification/attestation-types/attestation-types";
+import {
+  getSummarizedVerificationStatus,
+  MIC_SALT,
+  SummarizedVerificationStatus,
+  Verification,
+  VerificationStatus,
+} from "../../verification/attestation-types/attestation-types";
 import { dataHash } from "../../verification/generated/attestation-hash-utils";
 import { parseRequest } from "../../verification/generated/attestation-request-parse";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
@@ -171,6 +176,11 @@ export class SourceManager {
     this.updateDelayQueueTimer();
   }
 
+  /**
+   * Set ups the timer for processing priority queue for the time of the
+   * top element.
+   * @returns
+   */
   private updateDelayQueueTimer(): void {
     if (this.attestationsPriorityQueue.length() == 0) return;
 
@@ -178,7 +188,7 @@ export class SourceManager {
     const firstStartTime = this.attestationsPriorityQueue.peekKey()!;
 
     // if start time has passed then just call startNext (no timeout is needed)
-    if (firstStartTime < getTimeMilli()) {
+    if (firstStartTime < getTimeMs()) {
       this.startNext();
       return;
     }
@@ -198,7 +208,7 @@ export class SourceManager {
 
         this.startNext();
         this.delayQueueTimer = undefined;
-      }, firstStartTime - getTimeMilli());
+      }, firstStartTime - getTimeMs());
     }
   }
 
@@ -208,10 +218,7 @@ export class SourceManager {
    * @returns
    */
   private async process(attestation: Attestation) {
-    //this.logger.info(`chain ${this.chainName} process ${tx.data.id}  (${this.transactionsQueue.length},${this.transactionsProcessing.length}++,${this.transactionsDone.length})`);
-
     const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
-    // Check if active verifier supports attestation
 
     // Check again, if verifier supports the attestation type
     if (!verifierRouter || !verifierRouter.isSupported(attestation.data.sourceId, attestation.data.type)) {
@@ -220,7 +227,7 @@ export class SourceManager {
       return;
     }
 
-    const now = getTimeMilli();
+    const now = getTimeMs();
 
     // check if the transaction is too late
     if (now > attestation.round.commitEndTimeMs) {
@@ -229,30 +236,30 @@ export class SourceManager {
       return;
     }
 
-    //this.addRequestCount();
     this.attestationProcessing.add(attestation);
 
     attestation.status = AttestationStatus.processing;
     attestation.processStartTime = now;
 
-    // assert
-    if (!verifierRouter) {
-      // This should not happen as this is checked already on AttestationRound creation
-      this.logger.error(`${this.label} Assert. Critical error. VerifierRouter does not exist in SourceManager for roundId ${attestation.roundId}`);
-      exit(1);
-    }
-
     this.increaseRequestCount();
     verifierRouter
       .verifyAttestation(attestation)
       .then((verification: Verification<any, any>) => {
-        attestation.processEndTime = getTimeMilli();
+        attestation.processEndTime = getTimeMs();
         let status = verification.status;
         if (status === VerificationStatus.OK) {
           // check message integrity
           const originalRequest = parseRequest(attestation.data.request);
           const micOk = originalRequest.messageIntegrityCode === dataHash(originalRequest, verification.response, MIC_SALT);
           if (micOk) {
+            const hash = dataHash(originalRequest, verification.response);
+            // check if verificaton returned consistent hash
+            if (verification.hash !== hash) {
+              // Adjust hash
+              verification.hash = hash;
+              // Report error
+              this.logger.error(`Verifier server returned correct data by wrong hash in verification object: correct: ${hash}, returned ${verification.hash}`);
+            }
             this.onProcessed(attestation, AttestationStatus.valid, verification);
             return;
           }
@@ -268,15 +275,15 @@ export class SourceManager {
           return;
         }
 
-        let sumarizedVerificationStatus = getSummarizedVerificationStatus(verification.status);
+        let summarizedVerificationStatus = getSummarizedVerificationStatus(verification.status);
 
-        if (sumarizedVerificationStatus === SummarizedVerificationStatus.indeterminate) {
+        if (summarizedVerificationStatus === SummarizedVerificationStatus.indeterminate) {
           this.logger.error2(`${this.label} INDETERMINATE VERIFICATION STATUS: ${attestation.data.request}`);
           this.onProcessed(attestation, AttestationStatus.error, verification);
           return;
         }
 
-        if(sumarizedVerificationStatus !== SummarizedVerificationStatus.invalid) {
+        if (summarizedVerificationStatus !== SummarizedVerificationStatus.invalid) {
           // assert - this should never happen
           this.logger.error2(`${this.label} Critical error: The summarized verification status should be 'invalid': ${attestation.data.request}`);
           process.exit(1);
@@ -291,11 +298,11 @@ export class SourceManager {
         attestation.exception = error;
 
         // Retries
-        attestation.processEndTime = getTimeMilli();
+        attestation.processEndTime = getTimeMs();
         if (attestation.retry < this.maxFailedRetries) {
           this.logger.warning(`${this.label}transaction verification error (retry ${attestation.retry})`);
           attestation.retry++;
-          this.enQueueDelayed(attestation, getTimeMilli() + this.delayBeforeRetryMs);
+          this.enQueueDelayed(attestation, getTimeMs() + this.delayBeforeRetryMs);
         } else {
           this.logger.error2(`${this.label} transaction verification error ${attestation.data.request}`);
           this.onProcessed(attestation, AttestationStatus.error);
@@ -377,7 +384,7 @@ export class SourceManager {
       while (this.attestationsPriorityQueue.length() && this.canProcessNextAttestation()) {
         // check if queue start time is reached
         const startTime = this.attestationsPriorityQueue.peekKey()!;
-        if (getTimeMilli() < startTime) break;
+        if (getTimeMs() < startTime) break;
 
         // take top and process it then start new top timer
         const attestation = this.attestationsPriorityQueue.pop();

@@ -28,4 +28,4 @@ import { createTypeOrmOptions } from "./utils/db-config";
     ProofEngineService,
   ],
 })
-export class WebServerModule { }
+export class WebServerModule {}

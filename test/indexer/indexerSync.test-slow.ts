@@ -65,6 +65,9 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
     });
 
     it("Should run indexer sync up", async function () {
+      sinon.stub(console, "error");
+      sinon.stub(console, "log");
+
       indexer.chainConfig.blockCollecting = "raw";
       indexer.chainConfig.syncReadAhead = 4;
 

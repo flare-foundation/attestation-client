@@ -30,7 +30,6 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
   traceManager.displayRuntimeTrace = false;
   traceManager.displayStateOnException = false;
 
-
   let attestationClientConfig: AttestationClientConfig;
 
   const logger = getGlobalLogger();
@@ -46,7 +45,6 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
   let BITVOTE_DURATION_S: number;
   const TEST_ROUND_ID = 11;
   let TEST_START_TIME: number;
-
 
   for (let j = 0; j < 9; j++) {
     fakeAddresses.push(`0xfakeaddress${j}`);
@@ -86,6 +84,9 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
   });
 
   it("Should not get activeRoundId if not defined", function () {
+    sinon.stub(console, "error");
+    sinon.stub(console, "log");
+
     expect(() => {
       roundManager.activeRoundId;
     }).to.throw("OutsideError");
@@ -101,6 +102,8 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
   });
 
   it("Should not initialize AttestationRoundManager twice", async function () {
+    sinon.stub(console, "error");
+    sinon.stub(console, "log");
     const time = TEST_START_TIME * 1000 + 1;
     const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
@@ -212,7 +215,6 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
     roundManager.onBitVoteEvent(bitVoteData);
     assert(!roundManager.rounds.get(2));
   });
-
 
   it("Should initialize try bitVote close", function () {
     const round = roundManager.rounds.get(TEST_ROUND_ID);

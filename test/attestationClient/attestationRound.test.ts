@@ -153,7 +153,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
   describe("Bit Voting", function () {
     it("Should mask nonexisting bitVote", function () {
-      expect(() => round.bitVoteMaskWithRoundCheck).to.throw("OutsideError");
+      sinon.stub(console, "error");
+      sinon.stub(console, "log");
+
+      assert.throws(() => round.bitVoteMaskWithRoundCheck, "OutsideError");
     });
 
     it("Should create empty bitVote", function () {

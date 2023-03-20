@@ -1,12 +1,12 @@
 // yarn test test/utils/internetTime.test.ts
 
 import { assert } from "chai";
-import { getTimeSec, getTimeMilli } from "../../src/utils/helpers/internetTime";
+import { getTimeSec, getTimeMs } from "../../src/utils/helpers/internetTime";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`Internet time (${getTestFile(__filename)})`, () => {
   it("Should get time in milliseconds", () => {
-    const timeMil = getTimeMilli();
+    const timeMil = getTimeMs();
     assert(timeMil > 1666622201459);
   });
 

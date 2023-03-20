@@ -3,7 +3,7 @@ import { criticalAsync } from "../indexer/indexer-utils";
 import { EpochSettings } from "../utils/data-structures/EpochSettings";
 import { attesterEntities } from "../utils/database/databaseEntities";
 import { DatabaseService } from "../utils/database/DatabaseService";
-import { getTimeMilli } from "../utils/helpers/internetTime";
+import { getTimeMs } from "../utils/helpers/internetTime";
 import { catchErrorAndJustLog } from "../utils/helpers/promiseTimeout";
 import { MOCK_NULL_WHEN_TESTING, round, sleepms } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
@@ -100,7 +100,7 @@ export class AttestationRoundManager {
       throw new Error("AttestationRoundManager can be initialized only once");
     }
     // initialize activeRoundId for the first time, before first load of global configuration, verifer routing configurations
-    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
 
     // loads global configurations and initializes them for further refreshes/updates
     await this.globalConfigManager.initialize();
@@ -118,7 +118,7 @@ export class AttestationRoundManager {
     await this.dbServiceAttester.connect();
 
     // update active round again since waiting for DB connection can take time
-    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
     this.startRoundId = this.activeRoundId;
 
     this.attesterState = new AttesterState(this.dbServiceAttester);
@@ -137,7 +137,7 @@ export class AttestationRoundManager {
   private async startRoundUpdate(): Promise<void> {
     while (true) {
       try {
-        const epochId: number = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+        const epochId: number = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
         this.activeRoundId = epochId;
 
         const activeRound = this.getRoundOrCreateIt(epochId);
@@ -217,7 +217,7 @@ export class AttestationRoundManager {
   private initRoundSampler(activeRound: AttestationRound, roundStartTimeMs: number, windowDurationMs: number, roundCommitStartTimeMs: number) {
     const intervalId = setInterval(
       () => {
-        const now = getTimeMilli();
+        const now = getTimeMs();
         if (now > roundCommitStartTimeMs) {
           clearInterval(intervalId);
         }
@@ -241,7 +241,7 @@ export class AttestationRoundManager {
    * @returns attestation round for given @param roundId
    */
   private getRoundOrCreateIt(roundId: number): AttestationRound {
-    const now = getTimeMilli();
+    const now = getTimeMs();
     let activeRound = this.rounds.get(roundId);
 
     if (activeRound) {
@@ -341,7 +341,7 @@ export class AttestationRoundManager {
   public async onAttestationRequest(attestationData: AttestationData) {
     const epochId: number = this.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
 
-    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMilli())).toNumber();
+    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
 
     if (epochId < this.startRoundId) {
       this.logger.debug(`${this.label} epoch too low ^Y#${epochId}^^`);

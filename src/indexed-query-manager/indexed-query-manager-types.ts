@@ -61,7 +61,7 @@ export interface ConfirmedTransactionQueryRequest {
 }
 
 export type ConfirmedTransactionQueryStatusType = "OK" | "NOT_EXIST";
-export interface  ConfirmedTransactionQueryResponse {
+export interface ConfirmedTransactionQueryResponse {
   status: ConfirmedTransactionQueryStatusType;
   transaction?: DBTransactionBase;
 }

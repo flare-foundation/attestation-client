@@ -1,7 +1,7 @@
 import fs from "fs";
 import * as nodeDiskInfo from "node-disk-info";
 import * as os from "os";
-import { getTimeMilli } from "../../utils/helpers/internetTime";
+import { getTimeMs } from "../../utils/helpers/internetTime";
 import { round } from "../../utils/helpers/utils";
 import { logException } from "../../utils/logging/logger";
 import { MonitorBase, PerformanceMetrics } from "../MonitorBase";
@@ -28,7 +28,7 @@ export class SystemMonitor extends MonitorBase<MonitorConfigBase> {
   async getPerformanceMetrics(): Promise<PerformanceMetrics[]> {
     const resArray = [];
 
-    const now = getTimeMilli();
+    const now = getTimeMs();
     const cpus = os.cpus();
 
     // update memory information

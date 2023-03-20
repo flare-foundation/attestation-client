@@ -70,11 +70,11 @@ export class ApiResponseWrapper<T> {
   }
 }
 
-export function handleApiResponse<T>(action: Promise<T>): Promise<ApiResponseWrapper<T>> {
-  return action.then(
-    (resp: T) => new ApiResponseWrapper<T>(resp),
-    (reason: any) => {
-      return new ApiResponseWrapper<T>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
-    }
-  );
+export async function handleApiResponse<T>(action: Promise<T>): Promise<ApiResponseWrapper<T>> {
+  try {
+    const resp = await action;
+    return new ApiResponseWrapper<T>(resp);
+  } catch (reason) {
+    return new ApiResponseWrapper<T>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
+  }
 }

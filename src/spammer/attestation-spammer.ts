@@ -12,7 +12,7 @@ import { RandomDBIterator } from "../indexed-query-manager/random-attestation-re
 import { readSecureConfig } from "../utils/config/configSecure";
 import { indexerEntities } from "../utils/database/databaseEntities";
 import { DatabaseService } from "../utils/database/DatabaseService";
-import { getTimeMilli } from "../utils/helpers/internetTime";
+import { getTimeMs } from "../utils/helpers/internetTime";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
@@ -150,7 +150,7 @@ class AttestationSpammer {
       `request attestation #${AttestationSpammer.sendCount}`,
       this.stateConnector.options.address,
       fnToEncode,
-      getTimeMilli() + 5000,
+      getTimeMs() + 5000,
       false
     );
     //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)
@@ -163,7 +163,7 @@ class AttestationSpammer {
         `request attestation 2 #${AttestationSpammer.sendCount}`,
         this.stateConnector_2.options.address,
         fnToEncode,
-        getTimeMilli() + 5000,
+        getTimeMs() + 5000,
         false
       );
       //console.timeEnd(`request attestation ${this.id} #${AttestationSpammer.sendId}`)

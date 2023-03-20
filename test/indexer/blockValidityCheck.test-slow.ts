@@ -12,7 +12,7 @@ import { Indexer } from "../../src/indexer/indexer";
 import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestLogger } from "../../src/utils/logging/testLogger";
-import { TERMINATION_TOKEN } from "../test-utils/test-utils";
+import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
 
@@ -76,7 +76,7 @@ class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
   }
 }
 
-describe("Block validity check before processing", () => {
+describe(`Block validity check before processing , (${getTestFile(__filename)})`, () => {
   let XrpMccClient: MCC.XRP;
   let indexer: Indexer;
 
@@ -139,6 +139,9 @@ describe("Block validity check before processing", () => {
   });
 
   it(`Block processor manager for valid XRP block`, async function () {
+    sinon.stub(console, "error");
+    sinon.stub(console, "log");
+
     const block = await XrpMccClient.getBlock(70_015_100);
 
     //block.data.result.validated = false;
@@ -152,6 +155,9 @@ describe("Block validity check before processing", () => {
   });
 
   it(`Block processor manager for in-valid XRP block`, async function () {
+    sinon.stub(console, "error");
+    sinon.stub(console, "log");
+
     const block = await XrpMccClient.getBlock(70_015_100);
 
     block.data.result.validated = false;
@@ -166,6 +172,9 @@ describe("Block validity check before processing", () => {
   });
 
   it(`Block processor manager for in-valid XRP block when validation is not waited for`, async function () {
+    sinon.stub(console, "error");
+    sinon.stub(console, "log");
+
     const block = await XrpMccClient.getBlock(70_015_100);
 
     block.data.result.validated = false;
@@ -180,6 +189,9 @@ describe("Block validity check before processing", () => {
 
   //to be checked again
   it(`Block processor manager for always in-valid XRP block`, async function () {
+    sinon.stub(console, "error");
+    sinon.stub(console, "log");
+
     const XrpMccClient = new MockXRPImplementation(XRPMccConnection);
 
     indexer.logger = getGlobalLogger();

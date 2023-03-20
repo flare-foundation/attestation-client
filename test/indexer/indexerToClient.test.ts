@@ -14,6 +14,10 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
 
   setRetryFailureCallback(getGlobalLogger().error);
 
+  afterEach(function () {
+    sinon.restore();
+  });
+
   describe(`XRP`, function () {
     const XRPMccConnection = {
       url: "https://xrplcluster.com",
@@ -34,6 +38,9 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
 
     // Produces too long trace
     it("Should not get Block", async function () {
+      sinon.stub(console, "error");
+      sinon.stub(console, "log");
+
       await expect(inToCl.getBlockFromClient("something", -1)).to.be.rejected;
     });
 
@@ -64,7 +71,7 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
       expect(res).to.be.eq(1671199631);
     });
 
-    describe("null returns should call failure callback", function () {
+    describe("Null returns should call failure callback", function () {
       afterEach(function () {
         sinon.restore();
       });

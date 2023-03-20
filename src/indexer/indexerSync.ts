@@ -266,6 +266,7 @@ export class IndexerSync {
       //await this.indexer.interlace.resetAll();
 
       exit(4);
+      return; //for testing
     }
 
     this.indexer.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);

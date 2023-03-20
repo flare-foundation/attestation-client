@@ -22,7 +22,7 @@ import { Interlacing } from "../../src/indexer/interlacing";
 import { PreparedBlock } from "../../src/indexer/preparedBlock";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
+import { getRetryFailureCallback, setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { MockMccClient } from "../caching/test-utils/MockMccClient";
 import { TestBlockXRPAlt, TestBlockXRPFake, TestXRPStatus, TestXRPStatusAlt } from "../mockData/indexMock";
@@ -32,6 +32,7 @@ chai.use(chaiAsPromised);
 
 describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
+
   let indexer = new Indexer(null, null, null);
   indexer.chainType = ChainType.XRP;
   indexer.chainConfig = new ChainConfig();
@@ -86,8 +87,6 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
     });
 
     describe("Methods tests", function () {
-      setRetryFailureCallback(console.log);
-
       const XRPMccConnection = {
         url: "https://xrplcluster.com",
       } as XrpMccCreate;
@@ -179,8 +178,9 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         expect(res).to.eq(DBTransactionXRP0);
       });
 
-      it("Should not save a block with wrong blocknumber", async function () {
-        setRetryFailureCallback(console.log);
+      it("Should not save a block with a wrong blocknumber", async function () {
+        setRetryFailureCallback((string) => {});
+
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "2DC82E21AC08DD1565246D92E1260297FB8B63D40B8DB64752A8117F6326B5B9";
         testBlock.blockNumber = 5;
@@ -509,9 +509,10 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
             const store = indexer.chainConfig.blockCollecting;
             indexer.chainConfig.blockCollecting = "latestBlock";
 
-            const stub2 = sinon.stub(process, "exit").withArgs(4).throws("This stops exit");
+            const stub2 = sinon.stub(process, "exit").withArgs(4);
 
-            await expect(indSync.runSync(1)).to.be.rejectedWith("OutsideError");
+            await indSync.runSync(1);
+            expect(stub2.called).to.be.true;
           });
         });
       });

@@ -1,7 +1,7 @@
 // yarn test test/caching/LimitingProcessor.test.ts
 
 import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
-import chai, { expect } from "chai";
+import chai, { expect, assert } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import console from "console";
 import sinon from "sinon";
@@ -226,7 +226,6 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
       expect(limitingProcessor.isActive).to.be.false;
       limitingProcessor
         .call(() => {
-          console.log("first");
           return "54321";
         }, true)
         .catch((e) => getGlobalLogger().error("Limiting processor call failed"));
@@ -243,11 +242,17 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
 
     // crashes
     it("Should initializeJobs throw an error", async function () {
+      sinon.stub(console, "error");
+      sinon.stub(console, "log");
+
       await expect(limitingProcessor.initializeJobs(null, null)).to.be.rejected;
     });
 
-    describe("debug", function () {
+    describe("Debug", function () {
       it("Should show debug info", function () {
+        sinon.stub(console, "error");
+        sinon.stub(console, "log");
+
         limitingProcessor.debugInfo();
       });
 

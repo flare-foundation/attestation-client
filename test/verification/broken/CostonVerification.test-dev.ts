@@ -20,8 +20,7 @@ import { parseRequest } from "../../../src/verification/generated/attestation-re
 import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
 import { SourceId } from "../../../src/verification/sources/sources";
 import { verifyAttestation } from "../../../src/verification/verifiers/verifier_routing";
-import { StateConnectorInstance } from "../../../typechain-truffle";
-import { SCProofVerifierInstance } from "../../../typechain-truffle/SCProofVerifier";
+import { SCProofVerifierInstance, StateConnectorInstance } from "../../../typechain-truffle";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 

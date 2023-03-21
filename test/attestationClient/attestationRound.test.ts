@@ -33,6 +33,8 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
   let attestationClientConfig: AttestationClientConfig;
 
+  let sourceRouter: SourceRouter;
+
   const dbConnectOptions = new DatabaseConnectOptions();
   const dbService = new DatabaseService(getGlobalLogger(), dbConnectOptions, "", "", true);
 
@@ -50,7 +52,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     const globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
     globalConfigManager.activeRoundId = 160;
 
-    const sourceRouter = new SourceRouter(globalConfigManager);
+    sourceRouter = new SourceRouter(globalConfigManager);
     await globalConfigManager.initialize();
 
     activeGlobalConfig = globalConfigManager.getGlobalConfig(160);
@@ -288,6 +290,20 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
       }
       const res = round.calculateBitVotingResult(true);
       expect(res.toIndices(round.attestations.length)).to.deep.eq([]);
+    });
+  });
+
+  describe("SourceManager", function () {
+    it("Should get max failed retries", function () {
+      const sourceManager = sourceRouter.getSourceManager(SourceId.BTC);
+
+      expect(sourceManager.maxFailedRetries).to.eq(1);
+    });
+
+    it("Should get delayBeforeRetry", function () {
+      const sourceManager = sourceRouter.getSourceManager(SourceId.BTC);
+
+      expect(sourceManager.delayBeforeRetryMs).to.eq(1000);
     });
   });
 });

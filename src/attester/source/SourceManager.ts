@@ -80,7 +80,7 @@ export class SourceManager {
   }
 
   /**
-   * Retruns delay before retrying in ms.
+   * Returns delay before retrying in ms.
    */
   get delayBeforeRetryMs(): number {
     const config = this.verifierSourceConfig;

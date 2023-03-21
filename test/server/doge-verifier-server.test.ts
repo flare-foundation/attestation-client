@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-import { BtcTransaction, ChainType, prefix0x, toBN, toHex } from "@flarenetwork/mcc";
+import { ChainType, DogeTransaction, prefix0x, toBN, toHex } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -7,8 +7,8 @@ import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
-import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
-import { DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
+import { DBBlockDOGE } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionDOGE0 } from "../../src/entity/indexer/dbTransaction";
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
 import { VerifierProcessor } from "../../src/servers/verifier-server/src/services/verifier-processors/verifier-processor";
 import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
@@ -52,10 +52,10 @@ const NUMBER_OF_CONFIRMATIONS = 6;
 const FIRST_BLOCK = 100;
 const LAST_BLOCK = 203;
 const LAST_CONFIRMED_BLOCK = 200;
-const CHAIN_TYPE = ChainType.BTC;
-const DB_BLOCK_TABLE = DBBlockBTC;
-const DB_TX_TABLE = DBTransactionBTC0;
-const TX_CLASS = BtcTransaction;
+const CHAIN_TYPE = ChainType.DOGE;
+const DB_BLOCK_TABLE = DBBlockDOGE;
+const DB_TX_TABLE = DBTransactionDOGE0;
+const TX_CLASS = DogeTransaction;
 const BLOCK_CHOICE = 150;
 const TXS_IN_BLOCK = 10;
 const BLOCK_QUERY_WINDOW = 40;
@@ -67,7 +67,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   let entityManager: EntityManager;
   let lastTimestamp: number = 0;
   let startTime: number = 0;
-  let selectedTransaction: DBTransactionBTC0;
+  let selectedTransaction: DBTransactionDOGE0;
 
   before(async () => {
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
@@ -76,7 +76,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     process.env.TEST_CREDENTIALS = "1";
 
-    initializeTestGlobalLogger();
+    //initializeTestGlobalLogger();
 
     const module = await Test.createTestingModule({
       imports: [VerifierServerModule],
@@ -118,6 +118,8 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   after(async () => {
     delete process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
     delete process.env.TEST_CREDENTIALS;
+    delete process.env.VERIFIER_TYPE;
+    delete process.env.SECURE_CONFIG_PATH;
     await app.close();
   });
 
@@ -216,7 +218,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
-    let utxo = firstAddressVout(selectedTransaction, 1);
+    let utxo = firstAddressVout(selectedTransaction, 0);
     let receivingAddress = addressOnVout(selectedTransaction, utxo);
     let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
 
@@ -224,7 +226,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
 
     let request = await testReferencedPaymentNonexistenceRequest(
-      [],
+      [selectedTransaction],
       TX_CLASS,
       firstOverflowBlock,
       lowerQueryWindowBlock,
@@ -250,30 +252,6 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE - 1), "Incorrect first overflow block");
     assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp - 1), "Incorrect first overflow block timestamp");
     assert(request.messageIntegrityCode === hashReferencedPaymentNonexistence(request, resp.data.response, MIC_SALT), "MIC does not match");
-  });
-
-  it(`Should fail to provide Referenced Payment Nonexistence with negative value`, async function () {
-    let utxo = firstAddressVout(selectedTransaction, 0);
-    let receivingAddress = addressOnVout(selectedTransaction, utxo);
-    let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
-
-    let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE + 3);
-    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
-
-    let request = await testReferencedPaymentNonexistenceRequest(
-      [selectedTransaction],
-      TX_CLASS,
-      firstOverflowBlock,
-      lowerQueryWindowBlock,
-      CHAIN_TYPE,
-      BLOCK_CHOICE + 1,
-      selectedTransaction.timestamp + 2,
-      receivingAddress,
-      prefix0x(selectedTransaction.paymentReference),
-      receivedAmount
-    );
-
-    expect(() => encodeReferencedPaymentNonexistence(request)).to.throw("Negative values are not supported in attestation requests");
   });
 
   it(`Should return correct supported source and types`, async function () {

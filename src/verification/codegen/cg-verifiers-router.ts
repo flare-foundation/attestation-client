@@ -28,13 +28,13 @@ export async function verify${sourceName}(
   let {attestationType, sourceId} = getAttestationTypeAndSource(attestationRequest);
 
   if(sourceId != SourceId.${sourceName}) {
-    throw new Error("Wrong source while calling 'verify${sourceName}'(...)");
+    throw new WrongSourceIdError("Wrong source while calling 'verify${sourceName}'(...)");
   }
   
   switch(attestationType) {
     ${sourceCases}
         default:
-          throw new WrongSourceIdError("Wrong source id");
+          throw new WrongAttestationTypeError("Unknown attestation type");
   }
 }
 `;

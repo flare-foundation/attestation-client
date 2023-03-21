@@ -222,7 +222,7 @@ export class IndexedQueryManager {
       confirmed: true,
     });
     return {
-      status: blockQueryResult ? "OK" : "NOT_EXIST",
+      status: blockQueryResult.result ? "OK" : "NOT_EXIST",
       block: blockQueryResult?.result,
     };
   }

@@ -6,9 +6,9 @@ process.env.VERIFIER_TYPE = "xrp";
 import { sleepMs } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
-import { Test } from '@nestjs/testing';
-import chai, { assert, expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import { Test } from "@nestjs/testing";
+import chai, { assert, expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
 import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
@@ -30,13 +30,15 @@ interface TestData extends IIdentifiable {
 }
 
 describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
-
   let app: INestApplication;
   let configurationService: VerifierConfigurationService;
 
   before(async () => {
     initializeTestGlobalLogger();
-    process.env.TEST_CREDENTIALS = "1"
+    process.env.VERIFIER_TYPE = "btc";
+
+    process.env.TEST_CREDENTIALS = "1";
+    process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
 
     const module = await Test.createTestingModule({
       imports: [VerifierServerModule],
@@ -53,17 +55,20 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     let port = configurationService.config.port;
     await app.listen(port, undefined, () => {
       logger.info(`Server started listening at http://localhost:${configurationService.config.port}`);
-      logger.info(`Websocket server started listening at ws://localhost:${configurationService.config.port}`)
-    })
+      logger.info(`Websocket server started listening at ws://localhost:${configurationService.config.port}`);
+    });
     await app.init();
   });
 
   after(async () => {
     delete process.env.TEST_CREDENTIALS;
+    delete process.env.VERIFIER_TYPE;
+    delete process.env.SECURE_CONFIG_PATH;
+
     await app.close();
   });
-  
-  it(`Should connect `, async () => {
+
+  it(`Should connect`, async () => {
     const client = new WsClient<TestData, TestData>(defaultWsClientOptions);
     await client.connect();
     assert(client.connected, `Client should be connected`);
@@ -105,33 +110,42 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
   });
 
   it(`Should fail to authenticate`, async function () {
-    const client = new WsClient<TestData, TestData>({
-      ...defaultWsClientOptions,
-      url: WS_URL + 'x'  // wrong API key
-    }, true);
+    const client = new WsClient<TestData, TestData>(
+      {
+        ...defaultWsClientOptions,
+        url: WS_URL + "x", // wrong API key
+      },
+      true
+    );
     await expect(client.connect()).to.eventually.be.rejectedWith("authorizationFailed").and.be.an.instanceOf(Error);
     client.disconnect();
   });
 
   it(`Should obtain a ping-pong record`, async function () {
     const checkAliveIntervalMs = 100;
-    const client = new WsClient<TestData, TestData>({
-      ...defaultWsClientOptions,
-      checkAliveIntervalMs
-    }, true);
+    const client = new WsClient<TestData, TestData>(
+      {
+        ...defaultWsClientOptions,
+        checkAliveIntervalMs,
+      },
+      true
+    );
     await client.connect();
     let rec1 = await client.getNextPingPongTimes();
     assert(rec1[0] && rec1[1] && rec1[0] <= rec1[1], "Ping pong record does not exist");
-    assert(client.pingPongRecords.size === 0, "Ping pong records not cleared")
+    assert(client.pingPongRecords.size === 0, "Ping pong records not cleared");
     client.disconnect();
   });
 
   it(`Should obtain two sequential ping-pong records`, async function () {
     const checkAliveIntervalMs = 100;
-    const client = new WsClient<TestData, TestData>({
-      ...defaultWsClientOptions,
-      checkAliveIntervalMs
-    }, true);
+    const client = new WsClient<TestData, TestData>(
+      {
+        ...defaultWsClientOptions,
+        checkAliveIntervalMs,
+      },
+      true
+    );
     await client.connect();
     let rec1 = await client.getNextPingPongTimes();
     assert(rec1[0] && rec1[1] && rec1[0] <= rec1[1], "Ping pong record does not exist");
@@ -139,8 +153,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     let rec2 = await client.getNextPingPongTimes();
     assert(rec2[0] && rec2[1] && rec2[0] <= rec2[1], "Ping pong record does not exist");
     assert(rec2[0].getTime() - rec1[0].getTime() >= checkAliveIntervalMs - 2, "Two pings are not separated enough");
-    assert(client.pingPongRecords.size === 0, "Ping pong records not cleared")
+    assert(client.pingPongRecords.size === 0, "Ping pong records not cleared");
     client.disconnect();
   });
-
 });

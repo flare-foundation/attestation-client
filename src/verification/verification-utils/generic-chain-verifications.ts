@@ -1,4 +1,5 @@
 import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x, ZERO_BYTES_32 } from "@flarenetwork/mcc";
+import { stat } from "fs";
 import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
@@ -268,7 +269,6 @@ export async function verifyConfirmedBlockHeightExists(
   }
 
   const dbBlock = confirmedBlockQueryResult.block;
-
   const lowerQueryWindowBlock = await iqm.getLastConfirmedBlockStrictlyBeforeTime(dbBlock.timestamp - toBN(request.queryWindow).toNumber());
 
   if (!lowerQueryWindowBlock) {

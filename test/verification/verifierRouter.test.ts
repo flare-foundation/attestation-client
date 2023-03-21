@@ -1,10 +1,10 @@
-import { BtcTransaction, ChainType, DogeTransaction, prefix0x, XrpTransaction } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, DogeTransaction, prefix0x, toBN, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { DBBlockBTC, DBBlockDOGE, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { AttestationTypeScheme } from "../../src/verification/attestation-types/attestation-types";
-import { readAttestationTypeSchemes } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { readAttestationTypeSchemes, toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { VerifierRouteConfig } from "../../src/verification/routing/configs/VerifierRouteConfig";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import {
@@ -55,6 +55,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     delete process.env.TEST_CREDENTIALS;
     await setup.XRP.app.close();
     await setup.BTC.app.close();
+    await setup.Doge.app.close();
   });
 
   it(`Should verify attestation payment`, async function () {
@@ -83,6 +84,42 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     assert(respBTC.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
   });
 
+  it(`Should not verify corrupt attestation payment`, async function () {
+    const verifierRouter = new VerifierRouter();
+    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
+    await verifierRouter.initialize(verifierConfig, definitions);
+
+    let requestXRP = await testPaymentRequest(setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
+    requestXRP.id = toHex(0, 32);
+    const attestationXRP = prepareAttestation(requestXRP, setup.startTime);
+
+    let inUtxo = firstAddressVin(setup.BTC.selectedTransaction);
+    let utxo = firstAddressVout(setup.BTC.selectedTransaction);
+
+    let requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
+    requestBTC.id = toHex(0, 32);
+    const attestationBTC = prepareAttestation(requestBTC, setup.startTime);
+
+    let inUtxoDoge = firstAddressVin(setup.Doge.selectedTransaction);
+    let utxoDoge = firstAddressVout(setup.Doge.selectedTransaction);
+
+    let requestDoge = await testPaymentRequest(setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE, inUtxoDoge, utxoDoge);
+    requestDoge.id = toHex(0, 32);
+    const attestationDoge = prepareAttestation(requestDoge, setup.startTime);
+
+    let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
+
+    assert(respXRP.status === "NON_EXISTENT_TRANSACTION", "Wrong server response");
+
+    let respBTC = await verifierRouter.verifyAttestation(attestationBTC);
+    // console.log("XRP", attestationXRP.data.request, requestXRP)
+    // console.log("BTC", attestationBTC.data.request, requestBTC)
+    assert(respBTC.status === "NON_EXISTENT_TRANSACTION", "Wrong server response");
+
+    let respDoge = await verifierRouter.verifyAttestation(attestationDoge);
+    assert(respDoge.status === "NON_EXISTENT_TRANSACTION", "Wrong server response");
+  });
+
   it(`Should verify attestation BalanceDecreasingTransaction Doge`, async function () {
     const verifierRouter = new VerifierRouter();
     let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
@@ -94,8 +131,21 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     const attestationDoge = prepareAttestation(requestDoge, setup.startTime);
     let respDoge = await verifierRouter.verifyAttestation(attestationDoge);
 
+    requestDoge.id = toHex(0, 32);
+
+    const attestationDogeFail = prepareAttestation(requestDoge, setup.startTime);
+    let respDogeFail = await verifierRouter.verifyAttestation(attestationDogeFail);
+
     assert(respDoge.status === "OK", "Wrong server response");
     assert(respDoge.response.transactionHash === prefix0x(setup.Doge.selectedTransaction.transactionId), "Wrong transaction id");
+
+    assert(respDogeFail.status === "NON_EXISTENT_TRANSACTION", "Wrong server response");
+  });
+
+  it("Should verify attestation confirmed block height", async function () {
+    const verifierRouter = new VerifierRouter();
+    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
+    await verifierRouter.initialize(verifierConfig, definitions);
   });
 
   it(`Should fail due to sending wrong route`, async function () {

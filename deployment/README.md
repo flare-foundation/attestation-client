@@ -20,7 +20,7 @@ Minimal hardware requirements for complete `mainnet` configuration are:
 ## Installation
 
 The deployment includes:
-- cloning Attestation-Suite deployment repository from gitlab
+- cloning Attestation-Suite deployment repository from github
 - preparing credentials
 - deploying docker containers for 
     - blockchain nodes
@@ -55,11 +55,11 @@ cd ~
 mkdir -p attestation-suite
 cd attestation-suite
 
-git clone https://gitlab.com/flarenetwork/attestation-client.git
+git clone git@github.com:flare-foundation/attestation-client.git
 cd attestation-client
 
-# use relevant branch or tag
-# git checkout bit-voting
+# use relevant branch or tag instead of 'main'
+git checkout main
 
 ```
 
@@ -67,7 +67,7 @@ cd attestation-client
 
 Run
 ``` bash
-docker build -t attestation-suite .
+docker build -t attestation-suite . --no-cache
 ```
 
 ### 1.3 Initialize credentials

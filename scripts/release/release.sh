@@ -1,4 +1,6 @@
 # In order to release a new version of the application, you need to load this script to bash shell.
+# This util is for core developers only, used to push and tag new versions to development and public
+# repositories and tag them with a version number.
 #
 # source scripts/release/release.sh
 #
@@ -6,7 +8,11 @@
 #
 # release-util
 #
+# This will create a new version tag and push it to the remote repository. Only revision version 
+# number will be bumped. If you want to bump major or minor version, use `--major` or `--minor`
+# be bumped by 1.
 # Check `release-util` help for more details.
+
 
 # Colors.
 export GREEN='\e[32m'
@@ -37,11 +43,8 @@ function op-fetch-tags() {
     then
         case $1 in
             '-h' | '--help')
-                echo "op-mode: fetch new remote tags and prune non pushed local tags ..."
+                echo "op-fetch-tags: fetch new remote tags and prune non pushed local tags ..."
                 return
-            ;;
-            *)
-                MODE=$1
             ;;
         esac
     fi
@@ -84,7 +87,6 @@ function update-versions() {
     local RX
 
     # Get the last version tag.
-    local MODED_TAG_VERSION=''
     local TAG_VERSION=
     local TARGETVERSION=$1
 
@@ -143,10 +145,6 @@ function show-versions() {
 
 # Update versions.
 function release-util() {
-    local OLD=$PWD
-    local OLD_MODE=$__MODE__
-
-    MODE="None" # GLOBAL
     TAG="" # GLOBAL
     local MINOR_UPDATE=
     local MAJOR_UPDATE=
@@ -167,11 +165,11 @@ function release-util() {
 
         case $ARG in
             '-h' | '--help')
-                echo "release-util -m <mode> [OPTION]: release application."
+                echo "release-util [OPTION]: release version."
                 echo "      -d --dry-run Don't update or push anything."
-                echo "      -u --minor-update Increate minor version number and update build configuration files."
+                echo "      -u --minor Increate minor version number and update build configuration files."
                 echo "      -i --ignore-branch Ignores the 'main' branch check."
-                echo "      -j --major-update Increate major version number and update build configuration files."
+                echo "      -j --major Increate major version number and update build configuration files."
                 echo "      -l --list-tags List available tags."
                 echo "      -r --remove-tag <tag> Remove a specified tag."
                 echo "      -t --tag <tag> Only newer commit logs than this tag will be shown in the app."
@@ -183,10 +181,10 @@ function release-util() {
             '-d' | '--dry-run')
                 DRY_RUN=true
             ;;
-            '-u' | '--minor-update')
+            '-u' | '--minor')
                 MINOR_UPDATE=true
             ;;
-            '-j' | '--major-update')
+            '-j' | '--major')
                 MAJOR_UPDATE=true
             ;;
             '-l' | '--list-tags')
@@ -252,7 +250,7 @@ function release-util() {
 
     [ -z $DRY_RUN ] && git commit -m "New release $VERSION_GIT_TAG."
 
-    echo_green "commits [$MODE]: commiting new tag $VERSION_GIT_TAG to repository ..."
+    echo_green "commits: commiting new tag $VERSION_GIT_TAG to repository ..."
     [ -z $DRY_RUN ] && git push origin $TARGET
     [ -z $DRY_RUN ] && git push github $TARGET
     [ -z $DRY_RUN ] && git tag -a $VERSION_GIT_TAG -m "release $VERSION_GIT_TAG"

@@ -11,8 +11,12 @@ if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
    ./uninstall.sh doge
 
    cd ../attestation-client
-
    ./uninstall.sh
+   
+   cd ../monitor
+   ./uninstall.sh
+   
+   cd ..
 else
-  echo "Invalid network: '$NETWORK'"
+  echo "Invalid network: '$NETWORK' ('mainnet' and 'testnet' supported)."
 fi

@@ -15,5 +15,5 @@ if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
    docker-compose -f docker-compose-indexer-doge.yaml -p indexer-doge start 
 
 else
-  echo "Invalid network: '$NETWORK'"
+  echo "Invalid network: '$NETWORK' ('mainnet' and 'testnet' supported)."
 fi

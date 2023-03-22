@@ -70,8 +70,6 @@ export class MonitorManager {
   async initialize() {
     this.logger = getGlobalLogger();
 
-    process.env.SECURE_CONFIG_PATH = "deployment/credentials";
-
     this.config = await readSecureConfig(new MonitorConfig(), "monitor");
 
     if (this.config.system) {

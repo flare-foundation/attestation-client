@@ -1,5 +1,12 @@
-# In order to release a new version of the application, you need to upload this script to bash.
-# source scripts/releases/tags.sh
+# In order to release a new version of the application, you need to load this script to bash shell.
+#
+# source scripts/release/release.sh
+#
+# Then call 
+#
+# release-util
+#
+# Check `release-util` help for more details.
 
 # Colors.
 export GREEN='\e[32m'

@@ -1,10 +1,8 @@
-import { MccClient } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
-import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 import { getSourceName } from "../verification/sources/sources";
 import {
   BlockHeightSample,
@@ -222,7 +220,7 @@ export class IndexedQueryManager {
       confirmed: true,
     });
     return {
-      status: blockQueryResult ? "OK" : "NOT_EXIST",
+      status: blockQueryResult?.result ? "OK" : "NOT_EXIST",
       block: blockQueryResult?.result,
     };
   }

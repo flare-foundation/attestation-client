@@ -1,6 +1,8 @@
 # In order to release a new version of the application, you need to load this script to bash shell.
 # This util is for core developers only, used to push and tag new versions to development and public
-# repositories and tag them with a version number.
+# repositories and tag them with a version number. The core developers should have a repos
+# set up in such a way that the remote 'origin' is set to developer repo and the remote 'github' 
+# is set to public repo.
 #
 # source scripts/release/release.sh
 #

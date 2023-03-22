@@ -11,6 +11,3 @@ services:
     restart: unless-stopped
     environment:
       FLARE_NETWORK: songbird
-
-volumes:
-  - /var/run/docker.sock:/var/run/docker.sock

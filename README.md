@@ -1,6 +1,6 @@
 # Attestation Client Suite
 
-Current production tag is 2.0.4.
+Current production tag is 2.0.5.
 
 The Attestation Client Suite is a set of software modules for handling tasks related to performing attestations in Flare's State Connector protocol. It includes the following modules:
 

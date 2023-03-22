@@ -123,7 +123,7 @@ function update-versions() {
     [ -z $DRY_RUN ] &&  sed -i '' "$RX" README.md
 
     RX='s/^git checkout \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)$/git checkout '${VERSION_GIT_TAG}'/g'
-    [ -z $DRY_RUN ] &&  sed -i '' "$RX" README.md
+    [ -z $DRY_RUN ] &&  sed -i '' "$RX" deployment/README.md
 
 }
 

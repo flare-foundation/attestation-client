@@ -59,7 +59,7 @@ git clone git@github.com:flare-foundation/attestation-client.git
 cd attestation-client
 
 # use relevant branch or tag instead of 'main'
-git checkout 2.0.0
+git checkout 2.0.5
 
 ```
 

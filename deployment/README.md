@@ -13,9 +13,11 @@ Minimal hardware requirements for complete `testnet` configuration are:
 - MEMORY: 8 GB
 
 Minimal hardware requirements for complete `mainnet` configuration are:
-- CPU: 16 cores @ 2.2GHz
-- DISK: 3 TB SSD disk
-- MEMORY: 16 GB
+- CPU: 16/32 cores/threads @ 2.2GHz
+- DISK: 3 TB NVMe disk
+- MEMORY: 64 GB
+
+Most of this power is required for Ripple node.
 
 ## Installation
 
@@ -93,7 +95,7 @@ Provide relevant definition of the encryption keys in the `key` variables.
 
 Use:
  - `direct:<key>` to specify the key directly in place of `<key>`.
- - `GoogleCloudSecretManager:<path>` to specify the secret Google Cloud Secret Manager path in place of `<path>`
+ - `GoogleCloudSecretManager:<path>` to specify the secret Google Cloud Secret (More details can be found [here](./../docs/installation/GoogleCloudSecretManager.md) ). Manager path in place of `<path>`
 
 Beside the `configuration.json` file, the `credentials` folder contains several credential configuration files of the form `<******>-credentials.json`.
 Update these files with relevant credentials. Note that some credentials/passwords are randomly generated with a secure random password generator. You may change those to suit your needs. 

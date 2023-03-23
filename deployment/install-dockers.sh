@@ -11,10 +11,14 @@ if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
    ./install.sh doge ../node-configs/$NETWORK/dogecoin/
 
    cd ../attestation-client
-
    ./install.sh  
+
+   cd ../monitor
+   ./install.sh 
+
+   cd .. 
 else
-  echo "Invalid network: '$NETWORK'"
+  echo "Invalid network: '$NETWORK' ('mainnet' and 'testnet' supported)."
 fi
 
 

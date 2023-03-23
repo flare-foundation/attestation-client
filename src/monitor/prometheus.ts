@@ -60,23 +60,27 @@ export class Prometheus {
   /**
    * Set gauge data, create and register it if it does not exists.
    * @param name
-   * @param comment
+   * @param help
    * @param labels
    * @param value
    */
-  setGauge(name: string, comment: string, labels: string, value: number) {
+  setGauge(name: string, help: string, labels: string, value: number) {
     try {
       const cleanName = name.toLowerCase().replaceAll("-", "_").replaceAll(".", "_").replaceAll("/", "_").replaceAll(" ", "").replaceAll("%", "percent");
       const cleanLabels = labels.toLowerCase().replaceAll("-", "_").replaceAll(".", "_").replaceAll("/", "_").replaceAll(" ", "").replaceAll("%", "percent");
 
       let gauge = <Gauge>this.metrics.get(cleanName);
 
+      if (!help) {
+        help = "no help provided";
+      }
+
       if (!gauge) {
-        this.logger.debug(`register prometheus gauge '^g${cleanName}^^ (${labels})'`);
+        this.logger.debug(`register prometheus gauge '^g${cleanName}^^ (${labels}) (${help})'`);
 
         gauge = new Gauge({
           name: cleanName,
-          help: comment,
+          help: help,
           registers: [this.register],
           labelNames: cleanLabels ? [cleanLabels] : [],
         });

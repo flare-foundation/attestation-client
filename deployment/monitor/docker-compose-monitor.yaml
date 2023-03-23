@@ -1,0 +1,13 @@
+
+
+services:
+  monitor:
+    image: attestation-suite
+    network_mode: host
+    volumes:
+      - ../credentials.prepared/monitor:/app/attestation-suite-config
+    container_name: monitor
+    command: monitor
+    restart: unless-stopped
+    environment:
+      FLARE_NETWORK: songbird

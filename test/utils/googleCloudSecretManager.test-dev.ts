@@ -1,5 +1,5 @@
-// yarn test test/utils/configuration.test.ts
-// yarn nyc yarn test test/utils/configuration.test.ts
+// yarn test test/utils/googleCloudSecretManager.test-dev.ts
+// yarn nyc yarn test test/utils/googleCloudSecretManager.test-dev.ts
 
 import { assert } from "chai";
 import sinon from "sinon";

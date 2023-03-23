@@ -59,6 +59,17 @@
             "files": [
                 "webserver-config.json"
             ],
+        },
+        {
+            "name": "monitor",
+            "credentials": "direct:t3stPassw0rd!9",
+            "keys": [
+                "DatabaseRootPassword",
+                "DatabaseWriteAccessSource"
+            ],
+            "files": [
+                "monitor-config.json"
+            ],
         }
     ]
 }

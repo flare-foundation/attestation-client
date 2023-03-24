@@ -1,12 +1,14 @@
 import { BtcTransaction, ChainType, DogeTransaction, prefix0x, toBN, XrpTransaction } from "@flarenetwork/mcc";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { DBBlockBTC, DBBlockDOGE, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
+import { DBBlockBTC, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { AttestationTypeScheme } from "../../src/verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes, toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 import { VerifierRouteConfig } from "../../src/verification/routing/configs/VerifierRouteConfig";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
+import { SourceId } from "../../src/verification/sources/sources";
 import {
   firstAddressVin,
   firstAddressVout,
@@ -14,7 +16,6 @@ import {
   testBalanceDecreasingTransactionRequest,
   testConfirmedBlockHeightExistsRequest,
   testPaymentRequest,
-  testReferencedPaymentNonexistenceRequest,
 } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
 import { bootstrapTestVerifiers, prepareAttestation, VerifierBootstrapOptions, VerifierTestSetups } from "./test-utils/verifier-test-utils";
@@ -56,6 +57,29 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     await setup.XRP.app.close();
     await setup.BTC.app.close();
     await setup.Doge.app.close();
+  });
+
+  it("Should check if the type is supported", async function () {
+    const verifierRouter = new VerifierRouter();
+    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
+    await verifierRouter.initialize(verifierConfig, definitions);
+
+    const res = verifierRouter.isSupported(SourceId.ALGO, AttestationType.BalanceDecreasingTransaction);
+    assert(!res);
+  });
+
+  it("Should not initialize twice", async function () {
+    const verifierRouter = new VerifierRouter();
+    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
+    await verifierRouter.initialize(verifierConfig, definitions);
+
+    await expect(verifierRouter.initialize(verifierConfig, definitions)).to.be.rejectedWith("Already initialized");
+  });
+
+  it("Should not initialize without configuration", async function () {
+    const verifierRouter = new VerifierRouter();
+
+    await expect(verifierRouter.initialize(undefined, definitions)).to.be.rejectedWith("Missing configuration");
   });
 
   it(`Should verify attestation payment`, async function () {

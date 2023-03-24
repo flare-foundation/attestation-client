@@ -13,7 +13,7 @@ export enum AttestationType {
  * @param attestationType: number
  */
 export function getAttestationTypeName(attestationType: number): string {
-  if (attestationType == null || AttestationType[attestationType] === null) {
+  if (attestationType == null || !AttestationType[attestationType]) {
     return null;
   }
   return AttestationType[attestationType];

@@ -28,6 +28,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
     case "string":
     case "bytes4":
     case "bytes32":
+    case "bytes20":
       return "string";
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
@@ -71,6 +72,8 @@ export function randSol(request: any, key: string, type: SupportedSolidityType) 
       return web3.utils.randomHex(4);
     case "bytes32":
       return web3.utils.randomHex(32);
+    case "bytes20":
+      return web3.utils.randomHex(20);
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
       ((_: never): void => {})(type);
@@ -136,7 +139,16 @@ export async function getAttTypesDefinitionFiles(): Promise<string[]> {
  */
 export async function readAttestationTypeSchemes(): Promise<AttestationTypeScheme[]> {
   const names = await getAttTypesDefinitionFiles();
-  return names.map((name) => require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme);
+  return names.map((name) => {
+    let json = require(`../attestation-types/${name}`).TDEF as AttestationTypeScheme;
+    // expected file name format: t-<attestation type id>-<name>.ts
+    // where <attestation type id> is a 5 digit number, zero padded from the left. E.g. 00001
+    let attType = parseInt(name.slice(2, 7));
+    if (isNaN(attType) || attType !== json.id) {
+      throw new Error(`Attestation type definition file name ${name} does not match the attestation type id ${json.id}`);
+    }
+    return json;
+  });
 }
 
 /**

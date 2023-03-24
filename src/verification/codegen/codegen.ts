@@ -1,4 +1,5 @@
 import { readAttestationTypeSchemes } from "../attestation-types/attestation-types-helpers";
+import { VerifierTypeConfigGenerationChecker } from "../attestation-types/verifier-configs";
 import { createSolidityAttestationClientBase } from "./cg-attestation-client-base";
 import { createAttestationClientMockTest } from "./cg-attestation-client-mock-test";
 import { createAttestationHashTypesFile } from "./cg-attestation-data-hash-types";
@@ -20,14 +21,15 @@ import { createVerifiersAndRouter } from "./cg-verifiers-router";
  */
 async function generateCodeFiles() {
   const definitions = await readAttestationTypeSchemes();
+  const verifierGenChecker = new VerifierTypeConfigGenerationChecker();
 
   createAttestationEnumFile(definitions);
   createAttestationRequestTypesFile(definitions, {});
-  createAttestationRequestTypesFile(definitions, { dto: true, filePath: VERIFIER_DTO_REQUEST_TYPE_FILE });
+  createAttestationRequestTypesFile(definitions, { dto: true, filePath: VERIFIER_DTO_REQUEST_TYPE_FILE, verifierGenChecker, verifierValidation: true });
   createAttestationRequestTypesFile(definitions, { dto: true, filePath: WEB_SERVER_DTO_REQUEST_TYPE_FILE });
 
   createAttestationHashTypesFile(definitions, {});
-  createAttestationHashTypesFile(definitions, { dto: true, filePath: VERIFIER_DTO_HASH_TYPE_FILE });
+  createAttestationHashTypesFile(definitions, { dto: true, filePath: VERIFIER_DTO_HASH_TYPE_FILE, verifierGenChecker });
   createAttestationHashTypesFile(definitions, { dto: true, filePath: WEB_SERVER_DTO_HASH_TYPE_FILE });
 
   createAttestationRandomUtils(definitions);
@@ -35,10 +37,10 @@ async function generateCodeFiles() {
   createAttestationRequestParse(definitions);
   createAttestationRequestEncode(definitions);
   createAttestationRequestEquals(definitions);
-  createVerifiersAndRouter(definitions);
+  createVerifiersAndRouter(definitions, verifierGenChecker);
   createSolidityIAttestationClient(definitions);
   createSolidityAttestationClientBase(definitions);
-  createVerifiersImportFiles(definitions);
+  createVerifiersImportFiles(definitions, verifierGenChecker);
   createAttestationClientMockTest(definitions);
   createAttestationParserTest(definitions);
 }

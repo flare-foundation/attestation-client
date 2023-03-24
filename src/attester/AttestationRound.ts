@@ -569,6 +569,7 @@ export class AttestationRound {
 
       dbVoteResult.roundId = this.roundId;
       dbVoteResult.hash = voteHash;
+      dbVoteResult.requestBytes = validAttestation.data.request;
       dbVoteResult.request = stringify(validAttestation.verificationData?.request ? hexlifyBN(validAttestation.verificationData.request) : "");
       dbVoteResult.response = stringify(validAttestation.verificationData?.response ? hexlifyBN(validAttestation.verificationData.response) : "");
     }

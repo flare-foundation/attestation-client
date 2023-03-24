@@ -13,7 +13,7 @@ import {
   hashReferencedPaymentNonexistence,
   IndexedQueryManager,
   MCC,
-  parseRequest,
+  parseReferencedPaymentNonexistence,
   randSol,
   Verification,
   VerificationStatus,
@@ -29,7 +29,7 @@ export async function verifyReferencedPaymentNonexistenceXRP(
   attestationRequest: string,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>> {
-  const request = parseRequest(attestationRequest) as ARReferencedPaymentNonexistence;
+  const request = parseReferencedPaymentNonexistence(attestationRequest) as ARReferencedPaymentNonexistence;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 

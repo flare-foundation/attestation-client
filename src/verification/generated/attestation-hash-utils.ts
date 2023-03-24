@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////
 
 import Web3 from "web3";
-import { ARPayment, ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARReferencedPaymentNonexistence, ARType } from "./attestation-request-types";
+import { ARPayment, ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARReferencedPaymentNonexistence, ARBase } from "./attestation-request-types";
 import { DHPayment, DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHReferencedPaymentNonexistence, DHType } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
 
@@ -19,7 +19,7 @@ const web3 = new Web3();
  * @param response
  * @param salt
  */
-export function hashPayment(request: ARPayment, response: DHPayment, salt?: string) {
+export function hashPayment(request: ARBase, response: DHPayment, salt?: string) {
   const types = [
     "uint16", // attestationType
     "uint32", // sourceId
@@ -67,7 +67,7 @@ export function hashPayment(request: ARPayment, response: DHPayment, salt?: stri
  * @param response
  * @param salt
  */
-export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTransaction, response: DHBalanceDecreasingTransaction, salt?: string) {
+export function hashBalanceDecreasingTransaction(request: ARBase, response: DHBalanceDecreasingTransaction, salt?: string) {
   const types = [
     "uint16", // attestationType
     "uint32", // sourceId
@@ -105,7 +105,7 @@ export function hashBalanceDecreasingTransaction(request: ARBalanceDecreasingTra
  * @param response
  * @param salt
  */
-export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightExists, response: DHConfirmedBlockHeightExists, salt?: string) {
+export function hashConfirmedBlockHeightExists(request: ARBase, response: DHConfirmedBlockHeightExists, salt?: string) {
   const types = [
     "uint16", // attestationType
     "uint32", // sourceId
@@ -139,7 +139,7 @@ export function hashConfirmedBlockHeightExists(request: ARConfirmedBlockHeightEx
  * @param response
  * @param salt
  */
-export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNonexistence, response: DHReferencedPaymentNonexistence, salt?: string) {
+export function hashReferencedPaymentNonexistence(request: ARBase, response: DHReferencedPaymentNonexistence, salt?: string) {
   const types = [
     "uint16", // attestationType
     "uint32", // sourceId
@@ -181,7 +181,7 @@ export function hashReferencedPaymentNonexistence(request: ARReferencedPaymentNo
  * @param response
  * @param salt
  */
-export function dataHash(request: ARType, response: DHType, salt?: string) {
+export function dataHash(request: ARBase, response: DHType, salt?: string) {
   switch (request.attestationType) {
     case AttestationType.Payment:
       return hashPayment(request as ARPayment, response as DHPayment, salt);

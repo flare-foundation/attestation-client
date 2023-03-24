@@ -4,6 +4,7 @@ import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
 import axios from "axios";
+import chai, { assert, expect } from "chai";
 import { ServerConfigurationService } from "../../src/servers/web-server/src/services/server-configuration.service";
 import { WebServerModule } from "../../src/servers/web-server/src/web-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
@@ -12,6 +13,7 @@ import { getTestFile } from "../test-utils/test-utils";
 process.env.NODE_ENV = "development";
 process.env.TEST_CREDENTIALS = "1";
 process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
+process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
 
 describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`, function () {
   let app: INestApplication;
@@ -38,6 +40,7 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
   after(async () => {
     delete process.env.TEST_CREDENTIALS;
     delete process.env.SECURE_CONFIG_PATH;
+    delete process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
 
     await app.close();
   });
@@ -47,6 +50,6 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
       headers: {},
     });
 
-    console.log(resp.data);
+    expect(resp.data.status).to.eq("OK");
   });
 });

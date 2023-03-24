@@ -16,6 +16,8 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
   let mockMccClient: MockMccClient;
   beforeEach(async () => {
     mockMccClient = new MockMccClient();
+    sinon.stub(console, "log");
+    sinon.stub(console, "error");
   });
 
   afterEach(function () {

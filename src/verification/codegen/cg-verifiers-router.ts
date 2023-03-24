@@ -1,6 +1,7 @@
 import fs from "fs";
 import prettier from "prettier";
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { VerifierTypeConfigGenerationChecker } from "../attestation-types/verifier-configs";
 import { getSourceName, SourceId } from "../sources/sources";
 import { DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS, VERIFIERS_ROOT, VERIFIERS_ROUTING_FILE } from "./cg-constants";
 import { trimStartNewline } from "./cg-utils";
@@ -16,8 +17,14 @@ function genAttestationCaseForSource(definition: AttestationTypeScheme, sourceId
   return "";
 }
 
-function genVerifiersForSourceId(definitions: AttestationTypeScheme[], sourceId: number) {
-  const sourceCases = definitions.map((definition) => genAttestationCaseForSource(definition, sourceId)).join("\n");
+function genVerifiersForSourceId(definitions: AttestationTypeScheme[], sourceId: number, verifierGenChecker?: VerifierTypeConfigGenerationChecker) {
+  if (verifierGenChecker && !verifierGenChecker.hasSource(sourceId)) {
+    return "";
+  }
+  const sourceCases = definitions
+    .filter((definition) => !verifierGenChecker || verifierGenChecker.givenSourceHasAttestationTypeForSource(sourceId, definition.id))
+    .map((definition) => genAttestationCaseForSource(definition, sourceId))
+    .join("\n");
   const sourceName = getSourceName(sourceId);
   const result = `
 export async function verify${sourceName}(
@@ -41,18 +48,21 @@ export async function verify${sourceName}(
   return trimStartNewline(result);
 }
 
-function genVerifiersForSources(definitions: AttestationTypeScheme[]) {
+function genVerifiersForSources(definitions: AttestationTypeScheme[], verifierGenChecker?: VerifierTypeConfigGenerationChecker) {
   let sources = new Set<SourceId>();
   definitions.forEach((definition) => {
     definition.supportedSources.forEach((source) => sources.add(source));
   });
   let sourceList = [...sources];
   sourceList.sort();
-  return sourceList.map((sourceId) => genVerifiersForSourceId(definitions, sourceId)).join("\n");
+  return sourceList.map((sourceId) => genVerifiersForSourceId(definitions, sourceId, verifierGenChecker)).join("\n");
 }
 
-function genDefinitionCases(definition: AttestationTypeScheme) {
-  const sourceCases = definition.supportedSources.map((sourceId) => genSourceCase(definition, sourceId)).join("\n");
+function genDefinitionCases(definition: AttestationTypeScheme, verifierGenChecker?: VerifierTypeConfigGenerationChecker) {
+  if (verifierGenChecker && !verifierGenChecker.hasAttestationType(definition.id)) {
+    return "";
+  }
+  const sourceCases = definition.supportedSources.map((sourceId) => genSourceCase(definition, sourceId, verifierGenChecker)).join("\n");
   const result = `
 case AttestationType.${definition.name}:
 	switch(sourceId) {
@@ -63,20 +73,26 @@ ${sourceCases}
   return trimStartNewline(result);
 }
 
-function genSourceCase(definition: AttestationTypeScheme, sourceId: number) {
+function genSourceCase(definition: AttestationTypeScheme, sourceId: number, verifierGenChecker?: VerifierTypeConfigGenerationChecker) {
+  if (verifierGenChecker && !verifierGenChecker.givenSourceHasAttestationTypeForSource(sourceId, definition.id)) {
+    return "";
+  }
   const result = `
 case SourceId.${getSourceName(sourceId)}:
 	return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestationRequest, indexer);`;
   return trimStartNewline(result);
 }
 
-export function createVerifiersAndRouter(definitions: AttestationTypeScheme[]) {
+export function createVerifiersAndRouter(definitions: AttestationTypeScheme[], verifierGenChecker?: VerifierTypeConfigGenerationChecker) {
   let routerImports = "";
-  const attestationTypeCases = definitions.map((definition) => genDefinitionCases(definition)).join("\n");
-  const verifiersForSources = genVerifiersForSources(definitions);
+  const attestationTypeCases = definitions.map((definition) => genDefinitionCases(definition, verifierGenChecker)).join("\n");
+  const verifiersForSources = genVerifiersForSources(definitions, verifierGenChecker);
 
   for (const definition of definitions) {
     for (const sourceId of definition.supportedSources) {
+      if (verifierGenChecker && !verifierGenChecker.givenSourceHasAttestationTypeForSource(sourceId, definition.id)) {
+        continue;
+      }
       const relFolder = verifierFolder(sourceId, ".");
       const folder = verifierFolder(sourceId, VERIFIERS_ROOT);
       if (!fs.existsSync(folder)) {

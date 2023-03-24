@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { VerificationStatus } from "../../../../verification/attestation-types/attestation-types";
-import { DHTypeArray } from "../../../../verification/generated/attestation-hash-types";
-import { ARTypeArray } from "../../../../verification/generated/attestation-request-types";
 import { ApiPropertyUnion } from "../../../common/src/utils/open-api-utils";
+import { DHTypeArray } from "./v-hash-types.dto";
+import { ARTypeArray } from "./v-request-types.dto";
 
 /**
  * DTO Object returned after attestation request verification.

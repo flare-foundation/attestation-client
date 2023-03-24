@@ -42,9 +42,7 @@ export function genWeb3HashFunction(definition: AttestationTypeScheme) {
    * @param response
    * @param salt
    */
-export function ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request: ${ATTESTATION_TYPE_PREFIX}${definition.name}, response: ${DATA_HASH_TYPE_PREFIX}${
-    definition.name
-  }, salt?: string) {
+export function ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request: ARBase, response: ${DATA_HASH_TYPE_PREFIX}${definition.name}, salt?: string) {
 ${genHashCode(definition, "request", "response")}
 	return web3.utils.soliditySha3(encoded)!;
 }
@@ -70,7 +68,7 @@ export function genDataHashFunction(definitions: AttestationTypeScheme[]) {
    * @param response
    * @param salt
    */
-export function dataHash(request: ${ATTESTATION_TYPE_PREFIX}Type, response: ${DATA_HASH_TYPE_PREFIX}Type, salt?: string) {  
+export function dataHash(request: ARBase, response: ${DATA_HASH_TYPE_PREFIX}Type, salt?: string) {  
 	switch(request.attestationType) {
 ${datahashCases}
 		default:
@@ -88,11 +86,11 @@ export function createAttestationHashUtils(definitions: AttestationTypeScheme[])
 import Web3 from "web3";
 import { 
 ${arImports},
-	${ATTESTATION_TYPE_PREFIX}Type 
+  ARBase,
 } from "./attestation-request-types";
 import {
 ${dhImports},
-	${DATA_HASH_TYPE_PREFIX}Type 
+	${DATA_HASH_TYPE_PREFIX}Type
 } from "./attestation-hash-types";
 import { AttestationType } from "./attestation-types-enum";
 

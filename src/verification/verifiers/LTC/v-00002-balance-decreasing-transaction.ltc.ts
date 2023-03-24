@@ -13,7 +13,7 @@ import {
   hashBalanceDecreasingTransaction,
   IndexedQueryManager,
   MCC,
-  parseRequest,
+  parseBalanceDecreasingTransaction,
   randSol,
   Verification,
   VerificationStatus,
@@ -29,7 +29,7 @@ export async function verifyBalanceDecreasingTransactionLTC(
   attestationRequest: string,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
-  const request = parseRequest(attestationRequest) as ARBalanceDecreasingTransaction;
+  const request = parseBalanceDecreasingTransaction(attestationRequest) as ARBalanceDecreasingTransaction;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 

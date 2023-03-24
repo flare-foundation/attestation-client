@@ -22,6 +22,9 @@ function genDefHashItem(item: DataHashScheme, options?: OpenAPIOptionsResponses)
 }
 
 function genAttestationDataHashType(definition: AttestationTypeScheme, options?: OpenAPIOptionsResponses) {
+  if (options.verifierGenChecker && !options.verifierGenChecker.hasAttestationType(definition.id)) {
+    return "";
+  }
   const values = definition.dataHashDefinition.map((item) => genDefHashItem(item, options)).join("\n\n");
   return `
   export class ${DATA_HASH_TYPE_PREFIX}${definition.name} {
@@ -39,8 +42,10 @@ function genAttestationDataHashType(definition: AttestationTypeScheme, options?:
   `;
 }
 
-function dhType(definitions: AttestationTypeScheme[]) {
-  const dhNames = definitions.map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`);
+function dhType(definitions: AttestationTypeScheme[], options?: OpenAPIOptionsResponses) {
+  const dhNames = definitions
+    .filter((definition) => !options?.verifierGenChecker || options.verifierGenChecker.hasAttestationType(definition.id))
+    .map((definition) => `${DATA_HASH_TYPE_PREFIX}${definition.name}`);
   const dhTypes = dhNames.join(" | ");
   const dhUnionArray = dhNames.join(" , ");
   return `export type ${DATA_HASH_TYPE_PREFIX}Type = ${dhTypes};
@@ -59,7 +64,7 @@ export function createAttestationHashTypesFile(definitions: AttestationTypeSchem
   definitions.forEach((definition) => {
     content += genAttestationDataHashType(definition, options);
   });
-  content += dhType(definitions);
+  content += dhType(definitions, options);
   const prettyContent = prettier.format(content, PRETTIER_SETTINGS);
   const fName = options?.filePath ?? ATT_HASH_TYPES_FILE;
   fs.writeFileSync(fName, prettyContent, "utf8");

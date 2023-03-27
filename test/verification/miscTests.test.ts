@@ -3,7 +3,7 @@ import { getTestFile } from "../test-utils/test-utils";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { getRandomRequestForAttestationTypeAndSourceId } from "../../src/verification/generated/attestation-random-utils";
-import { SourceId } from "../../src/verification/sources/sources";
+import { getSourceName, SourceId, toSourceId } from "../../src/verification/sources/sources";
 import { assertEqualsByScheme, equalsRequest } from "../../src/verification/generated/attestation-request-equals";
 import { prefix0xSigned } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { array, number } from "yargs";
@@ -42,6 +42,19 @@ describe(`Misc verifier utils, (${getTestFile(__filename)})`, function () {
       const res = prefix0xSigned("-1a");
       expect(res).to.eq("-0x1a");
     });
+  });
+
+  it("Should not get source name", function () {
+    const res = getSourceName(15);
+    expect(res).to.eq(null);
+  });
+
+  it("Should  convert to source id", function () {
+    const res1 = toSourceId(15);
+    expect(res1).to.eq(15);
+
+    const res2 = toSourceId(undefined);
+    expect(res2).to.eq(-1);
   });
 
   describe("Equality of requests", function () {

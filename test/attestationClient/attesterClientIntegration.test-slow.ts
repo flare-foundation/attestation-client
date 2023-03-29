@@ -178,6 +178,8 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     // configure attestation provider addresses
     await selfAssignAttestationProviders(getGlobalLogger(), stateConnector, web3, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));
 
+    console.log("Contracts deployed");
+
     // if (TEST_MODE === "offset") {
     //   let ADDITIONAL_OFFSET_S = Math.floor(ADDITIONAL_OFFSET_PCT * bufferWindowDurationSec);
     //   let now = Math.floor(Date.now() / 1000);
@@ -259,6 +261,8 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       childProcesses.push(child);
     }
 
+    console.log("Clients initiated");
+
     // starting simple spammer
     await startSimpleSpammer(
       getGlobalLogger(),
@@ -270,6 +274,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       SPAMMER_FREQUENCIES,
       SPAMMER_GAPS
     );
+    console.log("Spammer initiated");
 
     // // starting web server on the first node
     // if (WEB_SERVER_IN_OTHER_PROCESS) {
@@ -282,6 +287,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     // } else {
     await bootstrapAttestationWebServer();
     // }
+    console.log("Web server initiated");
 
     setInterval(async () => {
       let blockChainNow = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;

@@ -3,7 +3,7 @@ import { DHType } from "../../../../../verification/generated/attestation-hash-t
 import { dataHash } from "../../../../../verification/generated/attestation-hash-utils";
 import { encodeRequest } from "../../../../../verification/generated/attestation-request-encode";
 import { getAttestationTypeAndSource } from "../../../../../verification/generated/attestation-request-parse";
-import { ARType } from "../../../../../verification/generated/attestation-request-types";
+import { ARPayment, ARType } from "../../../../../verification/generated/attestation-request-types";
 import { getAttestationTypeName } from "../../../../../verification/generated/attestation-types-enum";
 import { getSourceName } from "../../../../../verification/sources/sources";
 
@@ -16,6 +16,7 @@ export abstract class VerifierProcessor {
   }
 
   public async getMessageIntegrityCheck(request: ARType): Promise<string> {
+    console.log("SRVR", request);
     const data = await this.verify({ request: encodeRequest(request) });
     if (data.status !== VerificationStatus.OK) {
       // TODO: This should be made more stable

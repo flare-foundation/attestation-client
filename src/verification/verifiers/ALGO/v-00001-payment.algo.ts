@@ -6,7 +6,7 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parseRequest, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parsePayment, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { AlgoTransaction } from "@flarenetwork/mcc";
 import { verifyPayment } from "../../verification-utils/generic-chain-verifications";
 
@@ -17,7 +17,7 @@ export async function verifyPaymentALGO(
   attestationRequest: string,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARPayment, DHPayment>> {
-  const request = parseRequest(attestationRequest) as ARPayment;
+  const request = parsePayment(attestationRequest) as ARPayment;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 

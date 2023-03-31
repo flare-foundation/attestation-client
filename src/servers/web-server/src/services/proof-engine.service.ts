@@ -5,7 +5,6 @@ import { EntityManager } from "typeorm";
 import { DBAttestationRequest } from "../../../../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../../../../entity/attester/dbVotingRoundResult";
 import { MerkleTree } from "../../../../utils/data-structures/MerkleTree";
-import { encodeRequest } from "../../../../verification/generated/attestation-request-encode";
 import { SystemStatus } from "../dtos/SystemStatus.dto";
 import { VotingRoundRequest } from "../dtos/VotingRoundRequest.dto";
 import { VotingRoundResult } from "../dtos/VotingRoundResult.dto";
@@ -52,7 +51,7 @@ export class ProofEngineService {
     const finalResult: VotingRoundResult[] = [];
     for (const res of results) {
       const request = JSON.parse(res.request);
-      const requestBytes = encodeRequest(request).toLowerCase();
+      const requestBytes = res.requestBytes;
       const response = JSON.parse(res.response);
       const hash = res.hash;
       const roundId = res.roundId;

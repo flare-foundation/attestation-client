@@ -8,6 +8,7 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/log
 import { getTestFile } from "../test-utils/test-utils";
 import sinon from "sinon";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { SourceId } from "../../src/verification/sources/sources";
 
 describe(`SourceRouter (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -41,17 +42,17 @@ describe(`SourceRouter (${getTestFile(__filename)})`, function () {
 
   it("Should initialize Source", function () {
     sourceRouter.initializeSourcesForRound(170);
-    expect(sourceRouter.sourceManagers.size).to.eq(5);
+    expect(sourceRouter.sourceManagers.size).to.eq(Object.keys(SourceId).length / 2 - 1);  // 'invalid' not counted
   });
 
   it("Should get SourceManager", function () {
-    const res = sourceRouter.getSourceManager(3);
-    expect(res.sourceId).to.eq(3);
+    const res = sourceRouter.getSourceManager(SourceId.XRP);
+    expect(res.sourceId).to.eq(SourceId.XRP);
   });
 
   it("Should not get SourceManager", function () {
     const stub = sinon.stub(process, "exit");
-    const res = sourceRouter.getSourceManager(8);
+    const res = sourceRouter.getSourceManager(SourceId.invalid);
     assert(stub.calledOnce);
   });
 });

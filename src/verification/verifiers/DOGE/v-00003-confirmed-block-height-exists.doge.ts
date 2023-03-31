@@ -13,7 +13,7 @@ import {
   hashConfirmedBlockHeightExists,
   IndexedQueryManager,
   MCC,
-  parseRequest,
+  parseConfirmedBlockHeightExists,
   randSol,
   Verification,
   VerificationStatus,
@@ -28,7 +28,7 @@ export async function verifyConfirmedBlockHeightExistsDOGE(
   attestationRequest: string,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>> {
-  const request = parseRequest(attestationRequest) as ARConfirmedBlockHeightExists;
+  const request = parseConfirmedBlockHeightExists(attestationRequest) as ARConfirmedBlockHeightExists;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 

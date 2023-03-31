@@ -6,7 +6,24 @@ import { ByteSequenceLike, NumberLike } from "../attestation-types/attestation-t
 import { AttestationType } from "./attestation-types-enum";
 import { SourceId } from "../sources/sources";
 
-export class ARPayment {
+export interface ARBase {
+  /**
+   * Attestation type id for this request, see 'AttestationType' enum.
+   */
+  attestationType: AttestationType;
+
+  /**
+   * The ID of the underlying chain, see 'SourceId' enum.
+   */
+  sourceId: SourceId;
+
+  /**
+   * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+   */
+  messageIntegrityCode: ByteSequenceLike;
+}
+
+export class ARPayment implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
@@ -43,7 +60,7 @@ export class ARPayment {
   utxo: NumberLike;
 }
 
-export class ARBalanceDecreasingTransaction {
+export class ARBalanceDecreasingTransaction implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
@@ -75,7 +92,7 @@ export class ARBalanceDecreasingTransaction {
   inUtxo: NumberLike;
 }
 
-export class ARConfirmedBlockHeightExists {
+export class ARConfirmedBlockHeightExists implements ARBase {
   /**
    * Attestation type id for this request, see AttestationType enum.
    */
@@ -102,7 +119,7 @@ export class ARConfirmedBlockHeightExists {
   queryWindow: NumberLike;
 }
 
-export class ARReferencedPaymentNonexistence {
+export class ARReferencedPaymentNonexistence implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */

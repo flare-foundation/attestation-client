@@ -1,11 +1,11 @@
 import { AttestationRequest, MIC_SALT, Verification, VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
-import { DHType } from "../../../../../verification/generated/attestation-hash-types";
 import { dataHash } from "../../../../../verification/generated/attestation-hash-utils";
 import { encodeRequest } from "../../../../../verification/generated/attestation-request-encode";
 import { getAttestationTypeAndSource } from "../../../../../verification/generated/attestation-request-parse";
-import { ARPayment, ARType } from "../../../../../verification/generated/attestation-request-types";
 import { getAttestationTypeName } from "../../../../../verification/generated/attestation-types-enum";
 import { getSourceName } from "../../../../../verification/sources/sources";
+import { DHType } from "../../dtos/v-hash-types.dto";
+import { ARType } from "../../dtos/v-request-types.dto";
 
 export abstract class VerifierProcessor {
   public abstract verify(attestationRequest: AttestationRequest): Promise<Verification<ARType, DHType>>;

@@ -1,4 +1,5 @@
 import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { VerifierTypeConfigGenerationChecker } from "../attestation-types/verifier-configs";
 import { CODEGEN_TAB } from "./cg-constants";
 
 export function trimStartNewline(text: string) {
@@ -48,9 +49,12 @@ export function definitionFile(definition: AttestationTypeScheme, folder?: strin
 export interface OpenAPIOptionsRequests {
   dto?: boolean;
   filePath?: string;
+  verifierGenChecker?: VerifierTypeConfigGenerationChecker;
+  verifierValidation?: boolean;
 }
 
 export interface OpenAPIOptionsResponses {
   dto?: boolean;
   filePath?: string;
+  verifierGenChecker?: VerifierTypeConfigGenerationChecker;
 }

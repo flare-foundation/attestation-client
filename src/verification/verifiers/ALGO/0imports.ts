@@ -14,7 +14,6 @@ export { RPCInterface, MCC } from "@flarenetwork/mcc";
 export { IndexedQueryManager } from "../../../indexed-query-manager/IndexedQueryManager";
 export { Verification, VerificationStatus } from "../../attestation-types/attestation-types";
 export { randSol } from "../../attestation-types/attestation-types-helpers";
-export { parseRequest } from "../../generated/attestation-request-parse";
 export {
   DHPayment,
   DHBalanceDecreasingTransaction,
@@ -33,6 +32,12 @@ export {
   hashConfirmedBlockHeightExists,
   hashReferencedPaymentNonexistence,
 } from "../../generated/attestation-hash-utils";
+export {
+  parsePayment,
+  parseBalanceDecreasingTransaction,
+  parseConfirmedBlockHeightExists,
+  parseReferencedPaymentNonexistence,
+} from "../../generated/attestation-request-parse";
 export { BN };
 export { Web3 };
 export { TDEF_payment };

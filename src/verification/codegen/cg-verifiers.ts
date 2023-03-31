@@ -5,6 +5,7 @@ import { genRandomResponseCode } from "./cg-attestation-random-utils";
 import {
   ATTESTATION_TYPE_PREFIX,
   DATA_HASH_TYPE_PREFIX,
+  REQUEST_PARSE_PREFIX_FUNCTION,
   SEMI_EDITABLE_GEN_FILE_HEADER,
   VERIFIER_FUNCTION_PREFIX,
   WEB3_HASH_PREFIX_FUNCTION,
@@ -73,7 +74,7 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
     `${DATA_HASH_TYPE_PREFIX}${definition.name}`,
     `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`,
     `IndexedQueryManager`,
-    `parseRequest`,
+    `${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}`,
     `randSol`,
     `MCC`,
     `Verification`,
@@ -94,7 +95,7 @@ export async function ${functionName}(
 	indexer: IndexedQueryManager 
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
 {
-  const request = parseRequest(attestationRequest) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+  const request = ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(attestationRequest) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
 	//-$$$<start> of the custom code section. Do not change this comment.
 

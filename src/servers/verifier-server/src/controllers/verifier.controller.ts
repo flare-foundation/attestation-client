@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Inject, Post, UseGuards, UsePipes } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiExtraModels, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
@@ -7,6 +7,7 @@ import { APIAttestationRequest } from "../dtos/APIAttestationRequest.dto";
 import { APIVerification } from "../dtos/APIVerification.dto";
 import { DHType, DHTypeArray } from "../dtos/v-hash-types.dto";
 import { ARType, ARTypeArray } from "../dtos/v-request-types.dto";
+import { AttestationRequestValidationPipe } from "../pipes/AttestationRequestBodyValidation.pipe";
 import { VerifierProcessor } from "../services/verifier-processors/verifier-processor";
 
 @ApiTags("Verifier")
@@ -36,6 +37,7 @@ export class VerifierController {
   @Post("prepare")
   @ApiResponseWrapperDec(APIVerification)
   @ApiBodyUnion(ARTypeArray)
+  @UsePipes(new AttestationRequestValidationPipe())
   public async prepare(@Body() request: ARType): Promise<ApiResponseWrapper<APIVerification<ARType, DHType>>> {
     return handleApiResponse(this.processor.prepareRequest(request));
   }
@@ -48,6 +50,7 @@ export class VerifierController {
   @Post("integrity")
   @ApiResponseWrapperDec(String)
   @ApiBodyUnion(ARTypeArray)
+  @UsePipes(new AttestationRequestValidationPipe())
   public async getIntegrityCode(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
     return handleApiResponse(this.processor.getMessageIntegrityCheck(request));
   }
@@ -62,6 +65,7 @@ export class VerifierController {
   @Post("prepareAttestation")
   @ApiResponseWrapperDec(String)
   @ApiBodyUnion(ARTypeArray)
+  @UsePipes(new AttestationRequestValidationPipe())
   public async prepareAttestationData(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
     return handleApiResponse(this.processor.getAttestationData(request));
   }

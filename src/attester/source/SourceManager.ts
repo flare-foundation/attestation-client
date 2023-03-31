@@ -12,7 +12,7 @@ import {
   VerificationStatus,
 } from "../../verification/attestation-types/attestation-types";
 import { dataHash } from "../../verification/generated/attestation-hash-utils";
-import { parseRequest } from "../../verification/generated/attestation-request-parse";
+import { getAttestationTypeAndSource } from "../../verification/generated/attestation-request-parse";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";
@@ -249,7 +249,7 @@ export class SourceManager {
         let status = verification.status;
         if (status === VerificationStatus.OK) {
           // check message integrity
-          const originalRequest = parseRequest(attestation.data.request);
+          const originalRequest = getAttestationTypeAndSource(attestation.data.request);
           const micOk = originalRequest.messageIntegrityCode === dataHash(originalRequest, verification.response, MIC_SALT);
           if (micOk) {
             const hash = dataHash(originalRequest, verification.response);

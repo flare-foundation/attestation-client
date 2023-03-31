@@ -4,7 +4,14 @@
 
 import Web3 from "web3";
 import BN from "bn.js";
-import { ARPayment, ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARReferencedPaymentNonexistence, ARType } from "./attestation-request-types";
+import {
+  ARPayment,
+  ARBalanceDecreasingTransaction,
+  ARConfirmedBlockHeightExists,
+  ARReferencedPaymentNonexistence,
+  ARType,
+  ARBase,
+} from "./attestation-request-types";
 import { AttestationType } from "./attestation-types-enum";
 import { SourceId } from "../sources/sources";
 
@@ -74,7 +81,8 @@ export function getAttestationTypeAndSource(bytes: string) {
     return {
       attestationType: toBN(prefix0x(input.slice(0, 4))).toNumber() as AttestationType,
       sourceId: toBN(prefix0x(input.slice(4, 12))).toNumber() as SourceId,
-    };
+      messageIntegrityCode: prefix0x(input.slice(12, 76)),
+    } as ARBase;
   } catch (e) {
     throw new AttestationRequestParseError(e);
   }

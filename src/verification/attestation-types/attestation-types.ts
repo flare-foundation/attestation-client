@@ -130,7 +130,19 @@ export const XRP_ACCOUNT_BYTES = 20;
 export type NumberLike = number | BN | string;
 export type ByteSequenceLike = string;
 
-export type SupportedSolidityType = "uint8" | "uint16" | "uint32" | "uint64" | "uint128" | "uint256" | "int256" | "bytes4" | "bytes32" | "bool" | "string";
+export type SupportedSolidityType =
+  | "uint8"
+  | "uint16"
+  | "uint32"
+  | "uint64"
+  | "uint128"
+  | "uint256"
+  | "int256"
+  | "bytes4"
+  | "bytes32"
+  | "bytes20"
+  | "bool"
+  | "string";
 export type SupportedRequestType = "ByteSequenceLike" | "NumberLike" | "AttestationType" | "SourceId";
 export interface AttestationRequestScheme {
   key: string;

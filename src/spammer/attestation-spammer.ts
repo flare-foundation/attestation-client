@@ -19,7 +19,6 @@ import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } fr
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
 import { encodeRequest } from "../verification/generated/attestation-request-encode";
-import { parseRequest } from "../verification/generated/attestation-request-parse";
 import { ARType } from "../verification/generated/attestation-request-types";
 import { SourceId } from "../verification/sources/sources";
 import { SpammerCredentials } from "./SpammerConfiguration";
@@ -219,7 +218,7 @@ class AttestationSpammer {
             if (event.event === "AttestationRequest") {
               const timestamp = event.returnValues.timestamp;
               const data = event.returnValues.data;
-              const parsedRequest = parseRequest(data);
+              // const parsedRequest = parseRequest(data);
               //
               //console.log("RECEIVED:\n", data, "\n", parsedRequest);
               // console.log("RECEIVED:\n", data);

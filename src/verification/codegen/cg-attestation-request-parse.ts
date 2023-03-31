@@ -1,6 +1,6 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, MIC_BYTES, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_REQUEST_PARSE_FILE,
@@ -119,8 +119,9 @@ export function getAttestationTypeAndSource(bytes: string) {
 		}
 		return {
 			attestationType: toBN(prefix0x(input.slice(0, ${ATT_BYTES * 2}))).toNumber() as AttestationType,
-			sourceId: toBN(prefix0x(input.slice(${ATT_BYTES * 2}, ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}))).toNumber() as SourceId
-		}
+			sourceId: toBN(prefix0x(input.slice(${ATT_BYTES * 2}, ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}))).toNumber() as SourceId,
+			messageIntegrityCode: prefix0x(input.slice(${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2}, ${ATT_BYTES * 2 + SOURCE_ID_BYTES * 2 + MIC_BYTES * 2}))
+		} as ARBase;
 	} catch(e) {
 		throw new AttestationRequestParseError(e)
 	}
@@ -170,7 +171,8 @@ import Web3 from "web3";
 import BN from "bn.js";
 import { 
 ${arImports},
-	${ATTESTATION_TYPE_PREFIX}Type 
+	${ATTESTATION_TYPE_PREFIX}Type,
+	ARBase,
 } from "./attestation-request-types";
 import { AttestationType } from "./attestation-types-enum";
 import { SourceId } from "../sources/sources";

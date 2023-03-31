@@ -16,7 +16,6 @@ export abstract class VerifierProcessor {
   }
 
   public async getMessageIntegrityCheck(request: ARType): Promise<string> {
-    console.log("SRVR", request);
     const data = await this.verify({ request: encodeRequest(request) });
     if (data.status !== VerificationStatus.OK) {
       // TODO: This should be made more stable

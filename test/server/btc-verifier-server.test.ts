@@ -8,6 +8,7 @@ import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
+import { toNumber } from "web3-utils";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
@@ -128,18 +129,14 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let utxo = firstAddressVout(selectedTransaction);
     let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-    let attestationRequest = {
-      request: encodePayment(request),
-      options: {},
-    } as AttestationRequest;
+    request.blockNumber = toNumber(request.blockNumber);
 
     const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
       headers: {
         "x-api-key": API_KEY,
       },
     });
-    // console.log(request);
-    // console.log(resp);
+    expect(resp.data.data, "MIC does not match").to.eq(request.messageIntegrityCode);
   });
 
   it(`Should verify Payment attestation`, async function () {
@@ -147,30 +144,12 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let utxo = firstAddressVout(selectedTransaction);
     let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-    request.blockNumber = toBN("0x150");
     let attestationRequest = {
       request: encodePayment(request),
       options: {},
     } as AttestationRequest;
 
-    //let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
-
-    const resp = (
-      await axios.post(`http://localhost:${configurationService.config.port}/query`, attestationRequest, {
-        headers: {
-          "x-api-key": API_KEY,
-        },
-      })
-    ).data;
-
-    console.log("Test", request);
-    console.log("blnum", request.blockNumber);
-    const resp2 = await axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
-      headers: {
-        "x-api-key": API_KEY,
-      },
-    });
-    console.log(resp2.data);
+    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");

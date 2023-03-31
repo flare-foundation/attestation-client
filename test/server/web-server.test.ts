@@ -46,10 +46,10 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
   });
 
   it("Should get the table of requests for a round", async function () {
-    const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/requests-for-round/2740977`);
+    const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/requests-for-round/2751735`);
     expect(resp.data.status).to.eq("OK");
     expect(resp.data.data.length).to.eq(3);
-    expect(resp.data.data[0].roundId).to.eq(2740977);
+    expect(resp.data.data[0].roundId).to.eq(2751735);
   });
 
   it("Should not get a table of requests for a round for a unfinalised round", async function () {
@@ -59,9 +59,9 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
   });
 
   it("Should get table of results (confirmed request) for a round", async function () {
-    const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/votes-for-round/2740978`);
+    const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/votes-for-round/2751736`);
     expect(resp.data.status).to.eq("OK");
-    expect(resp.data.data[0].roundId).to.eq(2740978);
+    expect(resp.data.data[0].roundId).to.eq(2751736);
   });
 
   it("Should not get table of results (confirmed request) for a round in the future", async function () {
@@ -72,18 +72,18 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
 
   it("Should get specific proof for a request", async function () {
     const resp = await axios.post(`http://localhost:${configurationService.serverCredentials.port}/api/proof/get-specific-proof`, {
-      roundId: 2740978,
+      roundId: 2751736,
       callData:
-        "0x000100000003fcc55a2e4fee0a7830de7e8aa0597e0fe34750174be9d73b6f28a4559f9b3fe69735df203e0f80e59120fbe07e2ff8324be470e408c664b4fa86bc40b4cfe9c3000003b60000",
+        "0x0001000000026bc43c39eed5effef28dd065b180819f0b0cdb9c303913aadc009603bf62d0e99735df203e0f80e59120fbe07e2ff8324be470e408c664b4fa86bc40b4cfe9c3000003b60000",
     });
 
     expect(resp.data.status).to.eq("OK");
-    expect(resp.data.data.roundId).to.eq(2740978);
+    expect(resp.data.data.roundId).to.eq(2751736);
   });
 
   it("Should not get specific proof for a request that does not exist", async function () {
     const resp = await axios.post(`http://localhost:${configurationService.serverCredentials.port}/api/proof/get-specific-proof`, {
-      roundId: 2740978,
+      roundId: 2751736,
       callData:
         "0x000100000003fcc56a2e4fee0a7830de7e8aa0597e0fe34750174be9d73b6f28a4559f9b3fe69735df203e0f80e59120fbe07e2ff8324be470e408c664b4fa86bc40b4cfe9c3000003b60000",
     });
@@ -92,8 +92,8 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
     expect(resp.data.data).to.be.null;
   });
 
-  it("Should get table of results (confirmed request) for a round", async function () {
+  it("Should get status", async function () {
     const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/status`);
-    expect(resp.data.data.latestAvailableRoundId).to.eq(2740979);
+    expect(resp.data.data.latestAvailableRoundId).to.eq(2751737);
   });
 });

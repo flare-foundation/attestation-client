@@ -28,6 +28,7 @@ export class ProofController {
   public async votesForRound(@Param("roundId", new ParseIntPipe()) roundId: number): Promise<ApiResponseWrapper<VotingRoundResult[]>> {
     try {
       let result = await this.proofEngine.getVoteResultsForRound(roundId);
+
       if (result) {
         return new ApiResponseWrapper<VotingRoundResult[]>(result);
       }

@@ -226,6 +226,20 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       expect(resp.data.data, "MIC does not match").to.eq(request.messageIntegrityCode);
     });
 
+    it(`Should not get MIC with wrong types request`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+
+      await expect(
+        axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
+          headers: {
+            "x-api-key": API_KEY,
+          },
+        })
+      ).to.be.rejected;
+    });
+
     it(`Should prepareAttestation`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);

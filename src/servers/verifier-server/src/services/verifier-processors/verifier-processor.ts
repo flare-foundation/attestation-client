@@ -12,13 +12,16 @@ export abstract class VerifierProcessor {
   public abstract supportedAttestationTypes(): string[];
   public abstract supportedSource(): string;
 
-  //This is obsolete. It is the same as the getAttestationData but without MIC
+  /**
+   * Verifies @param request. Used by attestation client.
+   * @returns
+   */
   public async prepareRequest(request: ARType): Promise<Verification<ARType, DHType>> {
     return this.verify({ request: encodeRequest(request) });
   }
 
   /**
-   * @returns the Message Integrity check for  @param request
+   * @returns the Message Integrity check for @param request.
    */
   public async getMessageIntegrityCheck(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
@@ -31,8 +34,7 @@ export abstract class VerifierProcessor {
   }
 
   /**
-   *
-   * Adds MIC to @param request and encodes it
+   * Adds MIC to @param request and encodes it. Used to create attestation request
    * @returns
    */
   public async getAttestationData(request: ARType): Promise<string> {

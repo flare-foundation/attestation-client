@@ -75,9 +75,6 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
     });
 
     it("Should run indexer sync", async function () {
-      sinon.stub(console, "error");
-      sinon.stub(console, "log");
-
       indexer.chainConfig.blockCollecting = "tips";
       indexer.chainConfig.syncReadAhead = 4;
 
@@ -115,9 +112,6 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
     });
 
     it("Should run headerCollector", function (done) {
-      sinon.stub(console, "error");
-      sinon.stub(console, "log");
-
       const tip1 = new UtxoBlockTip({
         hash: "682a97ab2b41ccd025df47f5fac5b902f04776031fb4961373230c9ef6e1f585",
         height: 2402422,

@@ -29,6 +29,7 @@ export class VerifierController {
     return handleApiResponse(this.processor.verify(attestationRequest));
   }
 
+  //this is obsolete. it is the same as prepareAttestation but without MIC
   /**
    * Given parsed @param request in JSON with possibly invalid message integrity code it returns the verification object.
    * @param request

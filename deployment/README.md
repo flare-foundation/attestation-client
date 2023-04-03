@@ -45,7 +45,7 @@ Estimated time: `15min`.
 - Docker folder should be set to a mount that has sufficient amount of disk space for docker volumes. The installation creates several docker volumes.
 
 
-## Step 1 - Credential configs generation
+## Step 1 - Clone repository and build Docker image
 
 Note that the secure installation should have Step 1 carried out on a separate secure machine
 and then have credential configurations copied to a deployment machine.
@@ -72,7 +72,9 @@ Run
 docker build -t attestation-suite . --no-cache
 ```
 
-### 1.3 Initialize credentials
+## Step 2 - Credential configs generation
+
+### 2.1 Initialize credentials
 
 Go to the `deployment` folder. All deployment data, encrypted credentials and scripts for running are available here.
 
@@ -88,7 +90,10 @@ Initialize credentials first.
 
 This creates the sub folder `credentials`. 
 
-### 1.4 Update credentials 
+---
+IMPORTANT: Using this command again will overwrite your credentials!
+
+### 2.2 Update credentials 
 
 The file `credentials/configurations.json` contains the keys used to encrypt the credentials.
 Provide relevant definition of the encryption keys in the `key` variables.
@@ -98,12 +103,17 @@ Use:
  - `GoogleCloudSecretManager:<path>` to specify the secret Google Cloud Secret (More details can be found [here](./../docs/installation/GoogleCloudSecretManager.md) ). Manager path in place of `<path>`
 
 Beside the `configuration.json` file, the `credentials` folder contains several credential configuration files of the form `<******>-credentials.json`.
-Update these files with relevant credentials. Note that some credentials/passwords are randomly generated with a secure random password generator. You may change those to suit your needs. 
+Update these files with relevant credentials. Note that some credentials/passwords (with values `$(GENERATE_RANDOM_PASSWORD_<**>)`) are randomly generated with a secure random password generator. You may change those to suit your needs. 
 
 Some of the more important settings and credentials include:
 - in `networks-credentials.json`:
-   - `NetworkPrivateKey` - set `0x`-prefixed private key from which attestation client will be submitting attestations to Flare network.
+   - `Network` - set to desired network (e.g. `songbird`, `flare`).
+   - `NetworkPrivateKey` - set `0x`-prefixed private key from which attestation client will be submitting attestations to Flare network. Private key can also be specified as a Google Cloud Secred Manager variable. To do that use syntax: 
+   ```
+   "NetworkPrivateKey":"$(GoogleCloudSecretManager:projects/<project>/secrets/<name>/versions/<version>)"
+   ```
    - `StateConnectorContractAddress` - the `StateConnector` contract address on the specific network. 
+   - `RPC` - update the network RPC to desired network.
 - In `verifier-client-credentials.json` - instead od `localhost` use the IP address of the host machine. On Linux Ubuntu one can get it by running 
 ```bash
 ip addr show docker0 | grep -Po 'inet \K[\d.]+'
@@ -111,7 +121,7 @@ ip addr show docker0 | grep -Po 'inet \K[\d.]+'
 - in `verifier-server-credentials.json` - Set API keys for supported external blockchains (currently BTC, DOGE and XRP). Default templates are configured 
 for two API keys. 
 
-### 1.5 Prepare credentials
+### 2.3 Prepare credentials
 
 After credentials have been set up they must be prepared for deployment.
 
@@ -132,13 +142,13 @@ A process in a docker container first identifies from  `credentials.key`, how th
 credential stubs in templates are filled in. This is done in-memory of the process. The process reads configs and credentials from the rendered template 
 structure in memory.
 
-## Step 2 - Installation
+## Step 3 - Installation
 
-### 2.1 - Copying credentials
+### 3.1 - Copying credentials
 If the installation is done on different deployment machine then the credential generation, proceed with steps 1.1 and 1.2 (cloning the repo and building the docker image on the deployment machine. Copy the folder `deployment/credentials.prepared` from the secure machine to the deployment machine into 
 `<git-repo-root>/deployment` folder.
  
-### 2.2 - Installing
+### 3.2 - Installing
 Run the installation from the `deployment` folder:
 ``` bash
 ./install-dockers.sh mainnet

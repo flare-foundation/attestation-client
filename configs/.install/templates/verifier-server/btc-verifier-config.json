@@ -3,10 +3,6 @@
       {
          "name": "test1",
          "apiKey": "$(BTCApiKey1)"
-      },
-      {
-         "name": "test2",
-         "apiKey": "$(BTCApiKey2)"
       }
    ],
    "port": $(BTCVerifierRouterServerPort),

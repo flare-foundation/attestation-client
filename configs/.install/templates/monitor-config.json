@@ -100,8 +100,8 @@
         {
             "disabled": true,
 
-            "name": "Coston2",
-            "address":"http://localhost:$(Coston2WebserverPort)/api/status/services",
+            "name": "Songbird",
+            "address":"http://localhost:$(WebserverPort)/api/status/services",
             "restart":"systemctl --user restart coston2-webserver"
         },
     ],

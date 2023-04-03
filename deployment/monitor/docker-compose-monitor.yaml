@@ -3,11 +3,13 @@
 services:
   monitor:
     image: attestation-suite
+    privileged: true
     network_mode: host
     volumes:
       - ../credentials.prepared/monitor:/app/attestation-suite-config
+      - /var/run/docker.sock:/var/run/docker.sock
     container_name: monitor
     command: monitor
     restart: unless-stopped
     environment:
-      FLARE_NETWORK: songbird
+      FLARE_NETWORK: songbird      

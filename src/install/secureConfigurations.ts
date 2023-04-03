@@ -68,7 +68,7 @@ function collectKeysFromTemplateFile(filename: string): string[] {
 
 function createDirectory(name: string) {
   if (fs.existsSync(name)) return;
-  fs.mkdirSync(name);
+  fs.mkdirSync(name, { recursive: true });
 }
 
 async function prepareConfiguration(configuration: Configuration) {

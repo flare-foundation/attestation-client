@@ -11,10 +11,15 @@ export abstract class VerifierProcessor {
   public abstract verify(attestationRequest: AttestationRequest): Promise<Verification<ARType, DHType>>;
   public abstract supportedAttestationTypes(): string[];
   public abstract supportedSource(): string;
+
+  //This is obsolete. It is the same as the getAttestationData but without MIC
   public async prepareRequest(request: ARType): Promise<Verification<ARType, DHType>> {
     return this.verify({ request: encodeRequest(request) });
   }
 
+  /**
+   * @returns the Message Integrity check for  @param request
+   */
   public async getMessageIntegrityCheck(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
     if (data.status !== VerificationStatus.OK) {
@@ -25,6 +30,11 @@ export abstract class VerifierProcessor {
     return integrity;
   }
 
+  /**
+   *
+   * Adds MIC to @param request and encodes it
+   * @returns
+   */
   public async getAttestationData(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
     if (data.status !== VerificationStatus.OK) {

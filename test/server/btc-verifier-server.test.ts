@@ -139,6 +139,22 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     expect(resp.data.data, "MIC does not match").to.eq(request.messageIntegrityCode);
   });
 
+  it(`Should prepareAttestation`, async function () {
+    let inUtxo = firstAddressVin(selectedTransaction);
+    let utxo = firstAddressVout(selectedTransaction);
+    let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+
+    request.blockNumber = toNumber(request.blockNumber);
+
+    const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
+      headers: {
+        "x-api-key": API_KEY,
+      },
+    });
+
+    expect(resp.data.status, "MIC does not match").to.eq("OK");
+  });
+
   it(`Should verify Payment attestation`, async function () {
     let inUtxo = firstAddressVin(selectedTransaction);
     let utxo = firstAddressVout(selectedTransaction);

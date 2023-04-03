@@ -48,6 +48,11 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
       indexer.dbTransactionClasses = indexer.interlace.DBTransactionClasses;
     });
 
+    beforeEach(function () {
+      sinon.stub(console, "error");
+      sinon.stub(console, "log");
+    });
+
     afterEach(function () {
       sinon.restore();
     });

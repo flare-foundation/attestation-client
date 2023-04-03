@@ -240,6 +240,22 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       ).to.be.rejected;
     });
 
+    it(`Should prepare attestation response without mic`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+
+      request.blockNumber = toNumber(request.blockNumber);
+
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepare`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.status, "response not ok").to.eq("OK");
+      expect(resp.data.data.status, "attestation response not ok").to.eq("OK");
+    });
+
     it(`Should prepareAttestation`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);

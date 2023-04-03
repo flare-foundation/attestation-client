@@ -124,215 +124,302 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     await app.close();
   });
 
-  it(`Should get MIC`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);
-    let utxo = firstAddressVout(selectedTransaction);
-    let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+  describe("indexer", function () {
+    it("Should get indexer state", async function () {
+      const resp = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/state`, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
 
-    request.blockNumber = toNumber(request.blockNumber);
-
-    const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
-      headers: {
-        "x-api-key": API_KEY,
-      },
-    });
-    expect(resp.data.data, "MIC does not match").to.eq(request.messageIntegrityCode);
-  });
-
-  it(`Should prepareAttestation`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);
-    let utxo = firstAddressVout(selectedTransaction);
-    let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
-
-    request.blockNumber = toNumber(request.blockNumber);
-
-    const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
-      headers: {
-        "x-api-key": API_KEY,
-      },
+      expect(resp.data.data.length).to.eq(4);
     });
 
-    expect(resp.data.status, "response not ok").to.eq("OK");
-    expect(resp.data.data.length).to.eq(154);
-  });
+    it("Should get indexer block range", async function () {
+      const resp = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/block-range`, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
 
-  it(`Should not prepareAttestation for invalid request`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);
-    let utxo = firstAddressVout(selectedTransaction);
-    let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
-
-    request.blockNumber = 300;
-
-    const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
-      headers: {
-        "x-api-key": API_KEY,
-      },
+      expect(resp.data.data.last).to.eq(200);
     });
 
-    expect(resp.data.status, "response not ok").to.eq("OK");
-    expect(resp.data.data).to.eq("DATA_AVAILABILITY_ISSUE");
+    it("Should get block-height", async function () {
+      const resp = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/block-height`, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+
+      expect(resp.data.data).to.eq(203);
+    });
+
+    it("Should get transaction for txId", async function () {
+      const tx = await selectedReferencedTx(entityManager, DB_TX_TABLE, BLOCK_CHOICE + 10);
+      const txId = tx.transactionId;
+      const resp = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/transaction/${txId}`, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.data.blockNumber).to.eq(160);
+    });
+
+    it("Should get transaction for txId", async function () {
+      const tx = await selectedReferencedTx(entityManager, DB_TX_TABLE, BLOCK_CHOICE + 10);
+      const txId = tx.transactionId;
+      const resp = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/transaction-block/${txId}`, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.data.blockNumber).to.eq(160);
+    });
+
+    it("Should not get transaction for invalid txId", async function () {
+      const tx = await selectedReferencedTx(entityManager, DB_TX_TABLE, BLOCK_CHOICE + 10);
+      const txId = "q4fd";
+      const resp = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/transaction/${txId}`, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.data).to.be.null;
+    });
+
+    it("Should get block for blockHash", async function () {
+      const hash = "4082d8aa0be13ab143f55d600665a8ae7ef90ba09d57c38fa538a2604d7e9827";
+      const resp = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/block/${hash}`, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.data.blockNumber).to.eq(190);
+      expect(resp.data.data.confirmed).to.be.true;
+    });
+
+    it("Should get confirmed-block-at height", async function () {
+      const resp = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/confirmed-block-at/190`, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.data.blockNumber).to.eq(190);
+      expect(resp.data.data.confirmed).to.be.true;
+    });
   });
 
-  it(`Should verify Payment attestation`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);
-    let utxo = firstAddressVout(selectedTransaction);
-    let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+  describe("verifier", function () {
+    it(`Should get MIC`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-    let attestationRequest = {
-      request: encodePayment(request),
-      options: {},
-    } as AttestationRequest;
+      request.blockNumber = toNumber(request.blockNumber);
 
-    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.data, "MIC does not match").to.eq(request.messageIntegrityCode);
+    });
 
-    assert(resp.status === "OK", "Wrong server response");
-    assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-    let response = JSON.parse(selectedTransaction.response);
-    let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
-    let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
-    assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
-    assert(resp.data.response.receivingAddressHash === Web3.utils.soliditySha3(receivingAddress), "Wrong receiving address");
-    assert(request.messageIntegrityCode === hashPayment(request, resp.data.response, MIC_SALT), "MIC does not match");
-  });
+    it(`Should prepareAttestation`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-  it(`Should verify Balance Decreasing attestation attestation`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);
-    let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo);
-    let attestationRequest = {
-      request: encodeBalanceDecreasingTransaction(request),
-      options: {
-        roundId: 1,
-      },
-    } as AttestationRequest;
+      request.blockNumber = toNumber(request.blockNumber);
 
-    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
 
-    assert(resp.status === "OK", "Wrong server response");
-    assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-    let response = JSON.parse(selectedTransaction.response);
-    let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
-    assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
-    assert(request.messageIntegrityCode === hashBalanceDecreasingTransaction(request, resp.data.response, MIC_SALT), "MIC does not match");
-  });
+      expect(resp.data.status, "response not ok").to.eq("OK");
+      expect(resp.data.data.length).to.eq(154);
+    });
 
-  it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);
-    let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo);
-    request.id = toHexPad(12, 32);
-    let attestationRequest = {
-      request: encodeBalanceDecreasingTransaction(request),
-      options: {
-        roundId: 1,
-      },
-    } as AttestationRequest;
+    it(`Should not prepareAttestation for invalid request`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
+      request.blockNumber = 300;
 
-    assert(resp.status === "OK", "Wrong server response");
-    assert(resp.data.status === "NON_EXISTENT_TRANSACTION");
-  });
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.status, "response not ok").to.eq("OK");
+      expect(resp.data.data).to.eq("DATA_AVAILABILITY_ISSUE");
+    });
 
-  it(`Should verify Confirmed Block Height Exists attestation`, async function () {
-    let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
-    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-    let request = await testConfirmedBlockHeightExistsRequest(confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
-    let attestationRequest = {
-      request: encodeConfirmedBlockHeightExists(request),
-      options: {
-        roundId: 1,
-      },
-    } as AttestationRequest;
+    it(`Should verify Payment attestation`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
-    assert(resp.status === "OK", "Wrong server response");
-    assert(resp.data.response.blockNumber === toHex(BLOCK_CHOICE), "Wrong block number");
-    assert(resp.data.response.lowestQueryWindowBlockNumber === toHex(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1), "Wrong lowest query window block number");
-    assert(request.messageIntegrityCode === hashConfirmedBlockHeightExists(request, resp.data.response, MIC_SALT), "MIC does not match");
-  });
+      let attestationRequest = {
+        request: encodePayment(request),
+        options: {},
+      } as AttestationRequest;
 
-  it(`Should not verify corrupt Confirmed Block Height Exists attestation`, async function () {
-    let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
-    confirmedBlock.blockNumber = 250;
-    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-    let request = await testConfirmedBlockHeightExistsRequest(confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
-    let attestationRequest = {
-      request: encodeConfirmedBlockHeightExists(request),
-      options: {
-        roundId: 1,
-      },
-    } as AttestationRequest;
+      let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
-    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
-    assert(resp.status === "OK", "Wrong server response");
-    assert(resp.data.status === "NON_EXISTENT_BLOCK", "Wrong status response");
-  });
+      assert(resp.status === "OK", "Wrong server response");
+      assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
+      let response = JSON.parse(selectedTransaction.response);
+      let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
+      let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
+      assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
+      assert(resp.data.response.receivingAddressHash === Web3.utils.soliditySha3(receivingAddress), "Wrong receiving address");
+      assert(request.messageIntegrityCode === hashPayment(request, resp.data.response, MIC_SALT), "MIC does not match");
+    });
 
-  it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
-    let utxo = firstAddressVout(selectedTransaction, 1);
-    let receivingAddress = addressOnVout(selectedTransaction, utxo);
-    let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
+    it(`Should verify Balance Decreasing attestation attestation`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo);
+      let attestationRequest = {
+        request: encodeBalanceDecreasingTransaction(request),
+        options: {
+          roundId: 1,
+        },
+      } as AttestationRequest;
 
-    let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - 1);
-    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
+      let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
-    let request = await testReferencedPaymentNonexistenceRequest(
-      [],
-      TX_CLASS,
-      firstOverflowBlock,
-      lowerQueryWindowBlock,
-      CHAIN_TYPE,
-      BLOCK_CHOICE - 3,
-      selectedTransaction.timestamp - 2,
-      receivingAddress,
-      prefix0x(selectedTransaction.paymentReference),
-      receivedAmount.add(toBN(1))
-    );
+      assert(resp.status === "OK", "Wrong server response");
+      assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
+      let response = JSON.parse(selectedTransaction.response);
+      let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
+      assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
+      assert(request.messageIntegrityCode === hashBalanceDecreasingTransaction(request, resp.data.response, MIC_SALT), "MIC does not match");
+    });
 
-    let attestationRequest = {
-      request: encodeReferencedPaymentNonexistence(request),
-      options: {
-        roundId: 1,
-      },
-    } as AttestationRequest;
+    it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo);
+      request.id = toHexPad(12, 32);
+      let attestationRequest = {
+        request: encodeBalanceDecreasingTransaction(request),
+        options: {
+          roundId: 1,
+        },
+      } as AttestationRequest;
 
-    let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
+      let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
 
-    assert(resp.status === "OK", "Wrong server response");
-    assert(resp.data.status === "OK", "Status is not OK");
-    assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE - 1), "Incorrect first overflow block");
-    assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp - 1), "Incorrect first overflow block timestamp");
-    assert(request.messageIntegrityCode === hashReferencedPaymentNonexistence(request, resp.data.response, MIC_SALT), "MIC does not match");
-  });
+      assert(resp.status === "OK", "Wrong server response");
+      assert(resp.data.status === "NON_EXISTENT_TRANSACTION");
+    });
 
-  it(`Should fail to provide Referenced Payment Nonexistence with negative value`, async function () {
-    let utxo = firstAddressVout(selectedTransaction, 0);
-    let receivingAddress = addressOnVout(selectedTransaction, utxo);
-    let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
+    it(`Should verify Confirmed Block Height Exists attestation`, async function () {
+      let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
+      let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
+      let request = await testConfirmedBlockHeightExistsRequest(confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
+      let attestationRequest = {
+        request: encodeConfirmedBlockHeightExists(request),
+        options: {
+          roundId: 1,
+        },
+      } as AttestationRequest;
 
-    let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE + 3);
-    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
+      let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
+      assert(resp.status === "OK", "Wrong server response");
+      assert(resp.data.response.blockNumber === toHex(BLOCK_CHOICE), "Wrong block number");
+      assert(resp.data.response.lowestQueryWindowBlockNumber === toHex(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1), "Wrong lowest query window block number");
+      assert(request.messageIntegrityCode === hashConfirmedBlockHeightExists(request, resp.data.response, MIC_SALT), "MIC does not match");
+    });
 
-    let request = await testReferencedPaymentNonexistenceRequest(
-      [selectedTransaction],
-      TX_CLASS,
-      firstOverflowBlock,
-      lowerQueryWindowBlock,
-      CHAIN_TYPE,
-      BLOCK_CHOICE + 1,
-      selectedTransaction.timestamp + 2,
-      receivingAddress,
-      prefix0x(selectedTransaction.paymentReference),
-      receivedAmount
-    );
+    it(`Should not verify corrupt Confirmed Block Height Exists attestation`, async function () {
+      let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
+      confirmedBlock.blockNumber = 250;
+      let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
+      let request = await testConfirmedBlockHeightExistsRequest(confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
+      let attestationRequest = {
+        request: encodeConfirmedBlockHeightExists(request),
+        options: {
+          roundId: 1,
+        },
+      } as AttestationRequest;
 
-    expect(() => encodeReferencedPaymentNonexistence(request)).to.throw("Negative values are not supported in attestation requests");
-  });
+      let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
+      assert(resp.status === "OK", "Wrong server response");
+      assert(resp.data.status === "NON_EXISTENT_BLOCK", "Wrong status response");
+    });
 
-  it(`Should return correct supported source and types`, async function () {
-    let processor = app.get("VERIFIER_PROCESSOR") as VerifierProcessor;
-    assert(processor.supportedSource() === getSourceName(CHAIN_TYPE).toUpperCase(), `Supported source should be ${getSourceName(CHAIN_TYPE).toUpperCase()}`);
-    let supported = processor.supportedAttestationTypes();
-    assert(supported.indexOf("Payment") >= 0, "Payment should be supported");
-    assert(supported.indexOf("BalanceDecreasingTransaction") >= 0, "BalanceDecreasingTransaction should be supported");
+    it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
+      let utxo = firstAddressVout(selectedTransaction, 1);
+      let receivingAddress = addressOnVout(selectedTransaction, utxo);
+      let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
+
+      let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - 1);
+      let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
+
+      let request = await testReferencedPaymentNonexistenceRequest(
+        [],
+        TX_CLASS,
+        firstOverflowBlock,
+        lowerQueryWindowBlock,
+        CHAIN_TYPE,
+        BLOCK_CHOICE - 3,
+        selectedTransaction.timestamp - 2,
+        receivingAddress,
+        prefix0x(selectedTransaction.paymentReference),
+        receivedAmount.add(toBN(1))
+      );
+
+      let attestationRequest = {
+        request: encodeReferencedPaymentNonexistence(request),
+        options: {
+          roundId: 1,
+        },
+      } as AttestationRequest;
+
+      let resp = await sendToVerifier(configurationService, attestationRequest, API_KEY);
+
+      assert(resp.status === "OK", "Wrong server response");
+      assert(resp.data.status === "OK", "Status is not OK");
+      assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE - 1), "Incorrect first overflow block");
+      assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp - 1), "Incorrect first overflow block timestamp");
+      assert(request.messageIntegrityCode === hashReferencedPaymentNonexistence(request, resp.data.response, MIC_SALT), "MIC does not match");
+    });
+
+    it(`Should fail to provide Referenced Payment Nonexistence with negative value`, async function () {
+      let utxo = firstAddressVout(selectedTransaction, 0);
+      let receivingAddress = addressOnVout(selectedTransaction, utxo);
+      let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
+
+      let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE + 3);
+      let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
+
+      let request = await testReferencedPaymentNonexistenceRequest(
+        [selectedTransaction],
+        TX_CLASS,
+        firstOverflowBlock,
+        lowerQueryWindowBlock,
+        CHAIN_TYPE,
+        BLOCK_CHOICE + 1,
+        selectedTransaction.timestamp + 2,
+        receivingAddress,
+        prefix0x(selectedTransaction.paymentReference),
+        receivedAmount
+      );
+
+      expect(() => encodeReferencedPaymentNonexistence(request)).to.throw("Negative values are not supported in attestation requests");
+    });
+
+    it(`Should return correct supported source and types`, async function () {
+      let processor = app.get("VERIFIER_PROCESSOR") as VerifierProcessor;
+      assert(processor.supportedSource() === getSourceName(CHAIN_TYPE).toUpperCase(), `Supported source should be ${getSourceName(CHAIN_TYPE).toUpperCase()}`);
+      let supported = processor.supportedAttestationTypes();
+      assert(supported.indexOf("Payment") >= 0, "Payment should be supported");
+      assert(supported.indexOf("BalanceDecreasingTransaction") >= 0, "BalanceDecreasingTransaction should be supported");
+    });
   });
 });

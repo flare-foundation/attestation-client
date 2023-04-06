@@ -1,6 +1,7 @@
 import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { getGlobalLogger } from "../../../../utils/logging/logger";
 import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
 import { ApiDBBlock } from "../dtos/ApiDbBlock";
 import { ApiDBState } from "../dtos/ApiDbState";
@@ -14,6 +15,7 @@ import { IndexerEngineService } from "../services/indexer-engine.service";
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
 export class IndexerController {
+  logger = getGlobalLogger();
   constructor(private indexerEngine: IndexerEngineService) {}
 
   /**
@@ -22,7 +24,7 @@ export class IndexerController {
    */
   @Get("state")
   public async indexerState(): Promise<ApiResponseWrapper<ApiDBState[]>> {
-    return handleApiResponse(this.indexerEngine.getStateSetting());
+    return handleApiResponse(this.indexerEngine.getStateSetting(), this.logger);
   }
 
   /**
@@ -31,7 +33,7 @@ export class IndexerController {
    */
   @Get("block-range")
   public async blockRange(): Promise<ApiResponseWrapper<BlockRange | null>> {
-    return handleApiResponse(this.indexerEngine.getBlockRange());
+    return handleApiResponse(this.indexerEngine.getBlockRange(), this.logger);
   }
 
   /**
@@ -41,7 +43,7 @@ export class IndexerController {
    */
   @Get("transaction/:txHash")
   public async transaction(@Param("txHash") txHash: string): Promise<ApiResponseWrapper<ApiDBTransaction>> {
-    return handleApiResponse(this.indexerEngine.getTransaction(txHash));
+    return handleApiResponse(this.indexerEngine.getTransaction(txHash), this.logger);
   }
 
   /**
@@ -51,7 +53,7 @@ export class IndexerController {
    */
   @Get("block/:blockHash")
   public async block(@Param("blockHash") blockHash: string): Promise<ApiResponseWrapper<ApiDBBlock>> {
-    return handleApiResponse(this.indexerEngine.getBlock(blockHash));
+    return handleApiResponse(this.indexerEngine.getBlock(blockHash), this.logger);
   }
 
   /**
@@ -62,7 +64,7 @@ export class IndexerController {
    */
   @Get("confirmed-block-at/:blockNumber")
   public async confirmedBlockAt(@Param("blockNumber", new ParseIntPipe()) blockNumber: number): Promise<ApiResponseWrapper<ApiDBBlock>> {
-    return handleApiResponse(this.indexerEngine.confirmedBlockAt(blockNumber));
+    return handleApiResponse(this.indexerEngine.confirmedBlockAt(blockNumber), this.logger);
   }
 
   /**
@@ -71,7 +73,7 @@ export class IndexerController {
    */
   @Get("block-height")
   public async blockHeight(): Promise<ApiResponseWrapper<number>> {
-    return handleApiResponse(this.indexerEngine.getBlockHeight());
+    return handleApiResponse(this.indexerEngine.getBlockHeight(), this.logger);
   }
 
   /**
@@ -81,7 +83,7 @@ export class IndexerController {
    */
   @Get("transaction-block/:txHash")
   public async transactionBlock(@Param("txHash") txHash: string): Promise<ApiResponseWrapper<ApiDBBlock>> {
-    return handleApiResponse(this.indexerEngine.getTransactionBlock(txHash));
+    return handleApiResponse(this.indexerEngine.getTransactionBlock(txHash), this.logger);
   }
 
   /**
@@ -99,7 +101,8 @@ export class IndexerController {
   @Get("transactions")
   public async transactionsWithinBlockRange(@Query() query: QueryTransaction): Promise<ApiResponseWrapper<ApiDBTransaction[]>> {
     return handleApiResponse(
-      this.indexerEngine.getTransactionsWithinBlockRange(query.from, query.to, query.paymentReference, query.limit, query.offset, query.returnResponse)
+      this.indexerEngine.getTransactionsWithinBlockRange(query.from, query.to, query.paymentReference, query.limit, query.offset, query.returnResponse), 
+      this.logger
     );
   }
 }

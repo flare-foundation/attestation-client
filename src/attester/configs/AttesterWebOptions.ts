@@ -31,9 +31,10 @@ export class AttesterWebOptions {
   @optional() public gasLimit = "2500000";
 
   /**
-   * Gas price for sending transactions. Defined as string in Gwei.
+   * Gas price is calculated from the network. The addition (in wei) is added to make the call more competitive.
+   * Default is set to 20 Gwei.
    */
-  @optional() public gasPrice = "300000000000";
+  @optional() public gasPriceAddition = "20000000000";
 
   /**
    * Polling time for collection data from the Flare chain (new blocks, new events).

@@ -27,7 +27,7 @@ async function generatePasswords(source: string, length = 32) {
 
 function createDirectory(name: string) {
   if (fs.existsSync(name)) return;
-  fs.mkdirSync(name);
+  fs.mkdirSync(name, { recursive: true });
 }
 
 async function installCredentials() {

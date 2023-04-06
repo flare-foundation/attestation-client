@@ -18,6 +18,7 @@
 - [Attestation protocol](./attestation-protocol/attestation-protocol.md)
   - [State connector contract](./attestation-protocol/state-connector-contract.md)
   - [Bit voting](./attestation-protocol/bit-voting.md)
+  - [Request message integrity](./attestation-protocol/message-integrity.md)
   - [Merkle tree and Merkle proofs](./attestation-protocol/merkle-tree.md)
   - [Attestation provider behavior](./attestation-protocol/voting-behavior.md)
   - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md)

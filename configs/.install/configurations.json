@@ -70,6 +70,13 @@
             "files": [
                 "monitor-config.json"
             ],
+        },
+        {
+            "name": "stats",
+            "credentials": "direct:t3stPassw0rd!10",
+            "files": [
+                "stats-config.json"
+            ],
         }
     ]
 }

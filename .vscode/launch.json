@@ -68,7 +68,8 @@
             ],
             "env": {
                 "CONFIG_PATH": ".secure.dev",
-                "NODE_ENV":"development"
+                "NODE_ENV":"development",
+                "SECURE_CONFIG_PATH":"./deployment/credentials"
             },
             "runtimeArgs": [
                 "devattester"
@@ -209,6 +210,17 @@
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
                 "devmonitor"
+            ]
+        },
+
+        {
+            "type": "node",
+            "console": "integratedTerminal",
+            "request": "launch",
+            "name": "Launch Docker Stats",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "devdockerstats"
             ]
         },
 

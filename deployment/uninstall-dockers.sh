@@ -16,6 +16,9 @@ if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
    cd ../monitor
    ./uninstall.sh
    
+   cd ../stats
+   ./uninstall.sh
+   
    cd ..
 else
   echo "Invalid network: '$NETWORK' ('mainnet' and 'testnet' supported)."

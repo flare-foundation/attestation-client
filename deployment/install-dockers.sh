@@ -13,6 +13,9 @@ if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
    cd ../attestation-client
    ./install.sh  
 
+   cd ../stats
+   ./install.sh 
+
    cd ../monitor
    ./install.sh 
 

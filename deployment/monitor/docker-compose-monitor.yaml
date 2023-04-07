@@ -3,11 +3,10 @@
 services:
   monitor:
     image: attestation-suite
-    privileged: true
     network_mode: host
     volumes:
       - ../credentials.prepared/monitor:/app/attestation-suite-config
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../../stats:/app/stats
     container_name: monitor
     command: monitor
     restart: unless-stopped

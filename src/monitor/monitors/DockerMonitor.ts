@@ -1,16 +1,19 @@
-import { ChainType, MCC } from "@flarenetwork/mcc";
-import { getTimeMs } from "../../utils/helpers/internetTime";
+import { ChainType, MCC, optional } from "@flarenetwork/mcc";
+import * as fs from 'fs';
 import { round } from "../../utils/helpers/utils";
-import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
-import { Docker, DockerInfo } from "../../utils/monitoring/Docker";
+import { AttLogger } from "../../utils/logging/logger";
+import { DockerInfo } from "../../utils/monitoring/Docker";
 import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
-import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
+import { MonitorConfig } from "../MonitorConfiguration";
 
 /**
  * Docker monitor configuration class.
  */
 export class MonitorDockerConfig extends MonitorConfigBase {
+
+  @optional() path: string = "../stats/docker_stats.json";
+
   getName() {
     return "DockerMonitor";
   }
@@ -24,9 +27,7 @@ export class MonitorDockerConfig extends MonitorConfigBase {
  * Docker monitor.
  */
 export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
-  static dockerInfo: DockerInfo;
-
-  timeCheck = 0;
+  dockerInfo: DockerInfo;
 
   chainType: ChainType;
 
@@ -34,43 +35,62 @@ export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
     this.chainType = MCC.getChainType(this.config.name);
   }
 
-  async getPerformanceMetrics(): Promise<PerformanceMetrics[]> {
-    const now = getTimeMs();
-    if (now > this.timeCheck) {
-      getGlobalLogger().debug("DockerMonitor: updating docker info...");
-      DockerMonitor.dockerInfo = Docker.getDockerInfo();
+  async getMonitorStatus(): Promise<MonitorStatus> {
+    const res = new MonitorStatus();
+    res.type = "container";
+    res.name = this.name;
 
-      // check once per 10 minutes
-      this.timeCheck = now + 60 * 10 * 1000;
+    const data = fs.readFileSync(this.config.path).toString();
+    this.dockerInfo = JSON.parse(data) as DockerInfo;
+
+    if (!this.dockerInfo) {
+      return res;
     }
 
-    if (!DockerMonitor.dockerInfo) return null;
+    const containerInfo = this.dockerInfo.containers.find(x => x.name == this.name);
 
-    const rep = DockerMonitor.dockerInfo.repositoryInfo.find((x) => x.repository.indexOf(this.name) > 0);
-    const con = DockerMonitor.dockerInfo.containerInfo.find((x) => x.image.indexOf(this.name) > 0);
-    const vol = DockerMonitor.dockerInfo.volumeInfo.find((x) => x.volume_name.indexOf(this.name) > 0);
+    if (!containerInfo) {
+      return res;
+    }
 
-    if (!rep || !vol || !con) {
+    if (containerInfo.status == "running") {
+      res.status = "running";
+    }
+
+    return res;
+  }
+
+  async getPerformanceMetrics(): Promise<PerformanceMetrics[]> {
+    if (!this.dockerInfo) return null;
+
+    const containerInfo = this.dockerInfo.containers.find(x => x.name == this.name);
+
+    if (!containerInfo) {
       return null;
     }
 
     const resList = [];
 
-    resList.push(new PerformanceMetrics(`docker.${this.name}.volume`, `size`, round(vol.size / (1024 * 1024.0), 3), "MB", vol.volume_name));
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `volume_size`, round(containerInfo.imageDiskUsage / (1024 * 1024.0), 1), "MB"));
 
-    resList.push(new PerformanceMetrics(`docker.${this.name}.container`, `size`, round(rep.size / (1024 * 1024.0), 1), "MB", con.image));
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `size`, round(containerInfo.diskUsage / (1024 * 1024.0), 1), "MB"));
 
-    if (con.status.indexOf("Up ") === 0) {
-      const status = /(\S+) (\d+) (\S+)/.exec(con.status);
-      resList.push(new PerformanceMetrics(`docker.${this.name}.container`, `status`, parseInt(status[2]), status[3], "up"));
-    } else {
-      resList.push(new PerformanceMetrics(`docker.${this.name}.container`, `status`, 0, "", "down"));
-    }
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `cpu_usage`, containerInfo.cpuUsage, "%"));
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `mem_usage`, round(containerInfo.memUsage / (1024 * 1024.0), 1), "MB"));
+
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `io_wr_size`, round(containerInfo.diskIoWriteBytes / (1024 * 1024.0), 1), "MB"));
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `io_rd_size`, round(containerInfo.diskIoReadBytes / (1024 * 1024.0), 1), "MB"));
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `io_wr_op`, containerInfo.diskIoWrite));
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `io_rd_op`, containerInfo.diskIoRead));
+
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `network_tx_op`, containerInfo.networkTx));
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `network_rx_op`, containerInfo.networkRx));
+
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `status`, containerInfo.status == "running" ? 1 : 0));
+
+    resList.push(new PerformanceMetrics(`docker.${this.name}`, `restartCount`, containerInfo.restartCount));
 
     return resList;
   }
 
-  async getMonitorStatus(): Promise<MonitorStatus> {
-    return null;
-  }
 }

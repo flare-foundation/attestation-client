@@ -79,27 +79,24 @@ export class Docker {
     };
 
     const http = require("http");
-    let done = false;
 
-    const apiReq = http.request(options, (apiRes) => {
-      apiRes.on("data", (d) => {
-        onData(d.toString());
+    return new Promise((resolve, reject) => {
+      const apiReq = http.request(options, (apiRes) => {
+        apiRes.on("data", (d) => {
+          onData(d.toString());
+        });
+        apiRes.on("end", () => {
+          resolve(undefined);
+        });
       });
-      apiRes.on("end", () => {
-        done = true;
+
+      apiReq.on("error", (err) => {
+        console.error(err);
+        reject(undefined);
       });
+
+      apiReq.end();
     });
-
-    apiReq.on("error", (err) => {
-      console.error(err);
-      done = true;
-    });
-
-    apiReq.end();
-
-    while (!done) {
-      await sleepms(1);
-    }
   }
 
   /**

@@ -1,0 +1,6 @@
+{
+    // stats update interval
+    "interval":5000,
+    // save stats path
+    "path":"../stats/docker_stats.json",
+}

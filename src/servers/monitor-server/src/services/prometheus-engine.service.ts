@@ -161,7 +161,7 @@ body {
    <table border="0" cellpadding="0" cellspacing="0">
       <tr class="first-row">
          <th style="width: 10rem">type</th>
-         <th style="width: 10rem">name</th>
+         <th style="width: 20rem">name</th>
          <th style="width: 5rem">status</th>
          <th style="width: 5rem">action</th>
          <th>comment</th>
@@ -189,7 +189,7 @@ ${rows}
    <div class="mid-title">Performance</div>
    <table border="0" cellpadding="0" cellspacing="0">
       <tr class="first-row">
-         <th style="width: 10rem">group</th>
+         <th style="width: 30rem">group</th>
          <th>name</th>
          <th>value</th>
          <th></th>

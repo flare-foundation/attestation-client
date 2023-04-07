@@ -1,217 +1,347 @@
-import { execSync } from "child_process";
-import { logException } from "../logging/logger";
+import { sleepms } from "../helpers/utils";
+import { AttLogger, getGlobalLogger, logException } from "../logging/logger";
 
-export class RepositoryInfo {
-  repository: string;
-  tag: string;
-  image_id: string;
-  created: string;
-  size: number;
-  shared_size: number;
-  unique_size: number;
-  containers: string;
+interface EventOnData { (data: string): void; }
+interface EventContainerFilter { (name: string): boolean; }
 
-  constructor(repository: string, tag: string, image_id: string, created: string, size: number, shared_size: number, unique_size: number, containers: string) {
-    this.repository = repository;
-    this.tag = tag;
-    this.image_id = image_id;
-    this.created = created;
-    this.size = size;
-    this.shared_size = shared_size;
-    this.unique_size = unique_size;
-    this.containers = containers;
-  }
-}
-
+/**
+ * Docker container information and stats.
+ */
 export class ContainerInfo {
-  container_id: string;
-  image: string;
-  command: string;
-  local_volumes: string;
-  size: number;
-  created: string;
-  status: string;
-  names: string;
+  name: string = "";
+  id: string = "";
+  image: string = "";
 
-  constructor(container_id: string, image: string, command: string, local_volumes: string, size: number, created: string, status: string, names: string) {
-    this.container_id = container_id;
-    this.image = image;
-    this.command = command;
-    this.local_volumes = local_volumes;
-    this.size = size;
-    this.created = created;
-    this.status = status;
-    this.names = names;
-  }
+  status: string = "";
+  restartCount: number = 0;
+
+  memUsage: number = 0;
+  memMaxUsage: number = 0;
+
+  cpuUsage: number = 0;
+
+  imageDiskUsage: number = 0;
+
+  diskUsage: number = 0;
+  diskIoRead: number = 0;
+  diskIoWrite: number = 0;
+  diskIoReadBytes: number = 0;
+  diskIoWriteBytes: number = 0;
+
+  networkTx: number = 0;
+  networkRx: number = 0;
 }
 
-export class VolumeInfo {
-  volume_name: string;
-  size: number;
-
-  constructor(volume_name: string, size: number) {
-    this.volume_name = volume_name;
-    this.size = size;
-  }
-}
+/**
+ * Collection of docker container info and stats.
+ */
 export class DockerInfo {
-  public repositoryInfo: RepositoryInfo[];
-  public containerInfo: ContainerInfo[];
-  public volumeInfo: VolumeInfo[];
+  containers : Array<ContainerInfo> = [];
 }
 
+/**
+ * Docker information class.
+ * All information is retrieved over a socket.
+ */
 export class Docker {
-  public static getSize(size: string): number {
-    if (size.indexOf("TB") > 0) {
-      size = size.replace(/TB/, "");
-      return parseFloat(size) * (1024 * 1024 * 1024 * 1024);
-    }
+  logger: AttLogger;
+  dockerSocket: string;
 
-    if (size.indexOf("GB") > 0) {
-      size = size.replace(/GB/, "");
-      return parseFloat(size) * (1024 * 1024 * 1024);
-    }
+  containerStatsStream = new Map<string, any>();
+  containerStatsData = new Map<string, string>();
 
-    if (size.indexOf("MB") > 0) {
-      size = size.replace(/MB/, "");
-      return parseFloat(size) * (1024 * 1024);
-    }
+  dockerApiVersion = "1.41";
 
-    if (size.indexOf("KB") > 0) {
-      size = size.replace(/KB/, "");
-      return parseFloat(size) * 1024;
-    }
-
-    if (size.indexOf("B") > 0) {
-      size = size.replace(/B/, "");
-      return parseFloat(size);
-    }
-
-    return parseFloat(size);
+  constructor(dockerSockerName: string = '/var/run/docker.sock') {
+    this.dockerSocket = dockerSockerName;
+    this.logger = getGlobalLogger();
   }
 
-  public static getDockerInfo(): DockerInfo {
-    try {
-      const buffer = this.execute("sudo docker system df --verbose");
+  /**
+   * Perform Docker API request over Docker Socket and wait for it to be completed
+   * @param path Docker API request url
+   * @param onData Callback event on data
+   * @param onEnd Callback event on completed
+   */
+  public async dockerSockerRequestAsync(path: string, onData: EventOnData, useNoVersion = false) {
+    let options = {
+      socketPath: this.dockerSocket,
+      path: useNoVersion ? `/v${this.dockerApiVersion}${path}` : path,
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': 0
+      }
+    };
 
-      /*
-            // Test
-            const buffer = 
-`Images space usage:
+    const http = require('http');
+    let done = false;
 
-REPOSITORY                 TAG         IMAGE ID       CREATED        SIZE      SHARED SIZE   UNIQUE SIZE   CONTAINERS
-flarefoundation/algorand   3.6.2-dev   3305ec93de1c   4 days ago     3.622GB   0B            3.622GB       1
-flarefoundation/rippled    1.9.0       76cdc0e4dc7d   7 weeks ago    8.336GB   0B            8.336GB       1
-flarefoundation/dogecoin   1.14.5      01d7c62a7772   2 months ago   1.846GB   72.76MB       1.773GB       1
-flarefoundation/bitcoin    22.0        bf7c3fa43358   2 months ago   2.853GB   72.76MB       2.78GB        1
-flarefoundation/litecoin   0.18.1      3fedbbd03519   2 months ago   2.051GB   72.76MB       1.978GB       1
-
-Containers space usage:
-
-CONTAINER ID   IMAGE                                COMMAND                  LOCAL VOLUMES   SIZE      CREATED       STATUS       NAMES
-732da6631e58   flarefoundation/algorand:3.6.2-dev   "entrypoint.sh algod"    1               0B        3 days ago    Up 3 days    connected-chains_algorand_1
-29b10a7d1d7e   flarefoundation/dogecoin:1.14.5      "dogecoind -conf=/op…"   1               0B        12 days ago   Up 12 days   connected-chains_dogecoin_1
-ee9095587127   flarefoundation/litecoin:0.18.1      "litecoind -conf=/op…"   1               0B        12 days ago   Up 12 days   connected-chains_litecoin_1
-0e095a5e44c9   flarefoundation/rippled:1.9.0        "rippled --conf=/opt…"   1               58.6MB    12 days ago   Up 12 days   connected-chains_rippled_1
-2c996a8cf930   flarefoundation/bitcoin:22.0         "bitcoind -conf=/opt…"   1               0B        12 days ago   Up 12 days   connected-chains_bitcoin_1
-
-Local Volumes space usage:
-
-VOLUME NAME                      LINKS     SIZE
-connected-chains_bitcoin-data    1         510.6GB
-connected-chains_litecoin-data   1         91.93GB
-connected-chains_dogecoin-data   1         62.58GB
-connected-chains_ripple-data     1         617.3GB
-connected-chains_algorand-data   1         809GB
-
-Build cache usage: 0B
-
-CACHE ID   CACHE TYPE   SIZE      CREATED   LAST USED   USAGE     SHARED`; /**/
-
-      const lines = buffer.toString().split("\n");
-
-      const repository: RepositoryInfo[] = [];
-      const containers: ContainerInfo[] = [];
-      const volumes: VolumeInfo[] = [];
-
-      let mode: "none" | "repository" | "container" | "volume" = "none";
-      let index = 0;
-
-      lines.forEach((value) => {
-        if (value !== "") {
-          //const line: string = value.replace(/(\S) (\S)/g, '$1_$2').replace(/ (?= )/g, '');//.replace(/_/g," ");
-          const line: string = value.replace(/ ( )+/g, "\t");
-          const tokens = line.split("\t");
-
-          if (tokens.length >= 3) {
-            if (tokens[0] === `REPOSITORY`) {
-              mode = "repository";
-              index = 0;
-            }
-            if (tokens[0] === `CONTAINER ID`) {
-              mode = "container";
-              index = 0;
-            }
-            if (tokens[0] === `VOLUME NAME`) {
-              mode = "volume";
-              index = 0;
-            }
-          } else {
-            mode = "none";
-          }
-
-          if (mode !== "none" && index > 0) {
-            if (mode === "repository" && tokens.length === 8) {
-              repository.push(
-                new RepositoryInfo(
-                  tokens[0],
-                  tokens[1],
-                  tokens[2],
-                  tokens[3].replace(/_/g, " "),
-                  Docker.getSize(tokens[4]),
-                  Docker.getSize(tokens[5]),
-                  Docker.getSize(tokens[6]),
-                  tokens[7]
-                )
-              );
-            }
-            if (mode === "container" && tokens.length === 8) {
-              containers.push(
-                new ContainerInfo(
-                  tokens[0],
-                  tokens[1],
-                  tokens[2],
-                  tokens[3],
-                  Docker.getSize(tokens[4]),
-                  tokens[5].replace(/_/g, " "),
-                  tokens[6].replace(/_/g, " "),
-                  tokens[7]
-                )
-              );
-            }
-            if (mode === "volume" && tokens.length === 3) {
-              volumes.push(new VolumeInfo(tokens[0], Docker.getSize(tokens[2])));
-            }
-          }
-
-          index++;
-        }
+    const apiReq = http.request(options, (apiRes) => {
+      apiRes.on('data', d => {
+        onData(d.toString());
       });
+      apiRes.on('end', () => {
+        done = true;
+      });
+    });
 
-      const dockerInfo = new DockerInfo();
+    apiReq.on('error', err => {
+      console.error(err)
+      done = true;
+    });
 
-      dockerInfo.repositoryInfo = repository;
-      dockerInfo.containerInfo = containers;
-      dockerInfo.volumeInfo = volumes;
+    apiReq.end();
 
-      return dockerInfo;
-    } catch (error) {
-      logException(error, "docker");
-      return null;
+    while (!done) {
+      await sleepms(1);
     }
   }
 
-  public static execute(command: string): Buffer {
-    return execSync(command, { windowsHide: true, encoding: "buffer" });
+  /**
+   * Docker Socker request wrapped that returns result for given path.
+   * @param path 
+   * @returns 
+   */
+  public async dockerSockerRequest(path: string, useNoVersion = false) {
+
+    let response = '';
+
+    const apiReq = await this.dockerSockerRequestAsync(path, (data) => { response += data }, useNoVersion);
+
+    return JSON.parse(response);
   }
+
+  /**
+   * Get docker API version.
+   * @returns
+   */
+  public async getVersion() {
+    return await this.dockerSockerRequest(`/version`, true);
+  }
+
+
+  /**
+   * Get docker API info.
+   * @returns
+   */
+  public async getInfo() {
+    return await this.dockerSockerRequest(`/info`);
+  }
+
+  /**
+   * Get all containers.
+   * @returns
+   */
+  public async getAllContainers() {
+    return await this.dockerSockerRequest(`/containers/json?all=1&size=true`);
+  }
+
+  /**
+   * Get all images.
+   * @returns 
+   */
+  public async getAllImages() {
+    return await this.dockerSockerRequest(`/images/json?all=1`);
+  }
+
+  /**
+   * Get all volumes.
+   * @returns 
+   */
+  public async getAllVolumes() {
+    return await this.dockerSockerRequest(`/volumes`);
+  }
+
+  /**
+   * Get system usage information.
+   * @returns 
+   */
+  public async getSystemUsageInformation() {
+    return await this.dockerSockerRequest(`/system/df`);
+  }
+
+  /**
+   * Inspect volume.
+   * @returns 
+   */
+  public async getVolumeDetails(volumeName: string) {
+    return await this.dockerSockerRequest(`/volumes/${volumeName}`);
+  }
+
+  /**
+   * Get container details.
+   * @param containerId 
+   * @returns 
+   */
+  public async getContainerDetails(containerId: string) {
+    return await this.dockerSockerRequest(`/containers/${containerId}/json`);
+  }
+
+  /**
+   * Get container logs.
+   * @param containerId 
+   * @param tail 
+   * @returns 
+   */
+  public async getContainerLogs(containerId: string, tail = 0) {
+    return await this.dockerSockerRequest(`/containers/${containerId}/logs?tail=${tail == 0 ? "all" : tail}`);
+  }
+
+  /**
+   * Get container stats.
+   * @param containerId 
+   * @returns 
+   */
+  public async getContainerStats(containerId: string) {
+    return await this.dockerSockerRequest(`/containers/${containerId}/stats?stream=false`);
+  }
+
+  /**
+   * Start container stats stream.
+   * @param dockerId 
+   * @param onData 
+   * @returns 
+   */
+  public async startContainerStatsStream(dockerId: string, onData: EventOnData) {
+    return await this.dockerSockerRequestAsync(`/containers/${dockerId}/stats?stream=true`, onData);
+  }
+
+  /**
+   * Async start container stats stream and continuosly collect stats.
+   * @param containerId 
+   * @param containerName 
+   * @returns 
+   */
+  private startContainerStats(containerId: string, containerName: string) {
+    if (this.containerStatsData.get(containerId) != undefined) return;
+
+    this.logger.debug(`starting container ${containerName} stats stream...`);
+    this.containerStatsData.set(containerId, "");
+
+    // eslint-disable-next-line
+    this.startContainerStatsStream(containerId, (data: string) => {
+      let allData = this.containerStatsData.get(containerId) + data;
+      try {
+        if (allData.endsWith(`}\n`)) {
+          this.containerStatsStream.set(containerId, JSON.parse(allData));
+          this.containerStatsData.set(containerId, "");
+        }
+        else {
+          this.containerStatsData.set(containerId, allData);
+        }
+      }
+      catch (error) {
+        this.containerStatsData.set(containerId, "");
+      }
+    });
+  }
+
+  /**
+   * Async get docker info.
+   * @param outputInfo Should collected container information be displayed.
+   * @param filter Filter to only collect info on selected containers.
+   * @returns 
+   */
+  public async getDockerInfo(outputInfo = false, filter: EventContainerFilter = null): Promise<DockerInfo> {
+    const system = await this.getSystemUsageInformation();
+
+    const dockerInfo = new DockerInfo();
+    for (const container of system.Containers) {
+      try {
+        const containerName = container.Names[0].substring(1);
+
+        // filter what container are to be populated
+        if (filter && !filter(containerName)) {
+          continue;
+        }
+
+        this.startContainerStats(container.Id, containerName);
+
+        const containerDetail = await this.getContainerDetails(container.Id);
+        const containerStats = this.containerStatsStream.get(container.Id);
+
+        const imageName = container.Image;
+        const containerImage = system.Images.find(x => x.Id == container.ImageID);
+
+        const containerInfo = new ContainerInfo();
+
+        containerInfo.id = container.Id;
+        containerInfo.name = containerName;
+        containerInfo.image = imageName;
+        containerInfo.status = container.State;
+
+        containerInfo.imageDiskUsage = containerImage.Size ?? 0;
+        containerInfo.diskUsage = container.SizeRw ?? 0;
+
+        // get volumes size info
+        if (containerDetail.Mounts) {
+          for (const mount of containerDetail.Mounts) {
+            if (mount.Type != "volume") {
+              continue;
+            }
+
+            const volume = system.Volumes.find(x => x.Name == mount.Name);
+            if (!volume) {
+              continue;
+            }
+
+            containerInfo.diskUsage += volume.UsageData.Size;
+          }
+        }
+
+        containerInfo.restartCount = containerDetail.RestartCount;
+
+        if (outputInfo) {
+          const color = containerInfo.status == "running" ? "^g^K" : "^r^W";
+          const size = Math.round(containerInfo.diskUsage / (1024 * 1024));
+          this.logger.info(`   ${containerInfo.name.padEnd(40, ' ')} ${color}${containerInfo.status.padEnd(12, ' ')}^^ size ${size.toString().padStart(10, ' ')} Mb`);
+        }
+
+        if (containerStats) {
+          const used_memory = containerStats.memory_stats.usage - containerStats.memory_stats.stats.cache;
+          const cpu_delta = containerStats.cpu_stats.cpu_usage.total_usage - containerStats.precpu_stats.cpu_usage.total_usage;
+          const system_cpu_delta = containerStats.cpu_stats.system_cpu_usage - containerStats.precpu_stats.system_cpu_usage;
+          const number_cpus = containerStats.cpu_stats.cpu_usage.percpu_usage.length;
+          const cpu_usage = (cpu_delta / system_cpu_delta) * number_cpus * 100.0;
+
+          containerInfo.cpuUsage = cpu_usage;
+          containerInfo.memUsage = used_memory;
+
+          // op value
+          for (const op of containerStats.blkio_stats.io_service_bytes_recursive) {
+            if (op.op == "Read") {
+              containerInfo.diskIoReadBytes = op.value;
+            }
+            if (op.op == "Write") {
+              containerInfo.diskIoReadBytes = op.value;
+            }
+          }
+          for (const op of containerStats.blkio_stats.io_serviced_recursive) {
+            if (op.op == "Read") {
+              containerInfo.diskIoRead = op.value;
+            }
+            if (op.op == "Write") {
+              containerInfo.diskIoRead = op.value;
+            }
+          }
+
+          if (containerStats.networks) {
+            for (const network of Object.keys(containerStats.networks)) {
+              containerInfo.networkRx += containerStats.networks[network].rx_bytes;
+              containerInfo.networkTx += containerStats.networks[network].tx_bytes;
+            }
+          }
+        }
+
+        dockerInfo.containers.push(containerInfo);
+      } catch (error) {
+        logException(error, "getDockerInfo");
+        return null;
+      }
+    }
+
+    return dockerInfo;
+  }
+
 }

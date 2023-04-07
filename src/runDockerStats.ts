@@ -18,15 +18,14 @@ var SingleInstance = require("single-instance");
 var locker = new SingleInstance(instanceName);
 
 locker
-    .lock()
-    .then(function () {
-        // eslint-disable-next-line
-        dockerStats.runDockerStats();
-    })
-    .catch(function (err) {
-        getGlobalLogger().error(`unable to start application. ^w${instanceName}^^ is locked`);
+  .lock()
+  .then(function () {
+    // eslint-disable-next-line
+    dockerStats.runDockerStats();
+  })
+  .catch(function (err) {
+    getGlobalLogger().error(`unable to start application. ^w${instanceName}^^ is locked`);
 
-        // Quit the application
-        exit(5);
-    });
-
+    // Quit the application
+    exit(5);
+  });

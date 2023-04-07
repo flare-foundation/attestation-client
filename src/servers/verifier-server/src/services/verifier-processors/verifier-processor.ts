@@ -18,8 +18,8 @@ export abstract class VerifierProcessor {
   /**
    * Returns the message integrity code for the given attestation request.
    * If the attestation request is invalid, an error is thrown.
-   * @param request 
-   * @returns 
+   * @param request
+   * @returns
    */
   public async getMessageIntegrityCheck(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
@@ -32,8 +32,8 @@ export abstract class VerifierProcessor {
 
   /**
    * Returns the byte encoded attestation request with the correct message integrity code.
-   * @param request 
-   * @returns 
+   * @param request
+   * @returns
    */
   public async getAttestationData(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
@@ -47,8 +47,8 @@ export abstract class VerifierProcessor {
 
   /**
    * Asserts that the attestation request is supported by the verifier.
-   * @param attestationRequest 
-   * @returns 
+   * @param attestationRequest
+   * @returns
    */
   public assertIsSupported(attestationRequest: AttestationRequest) {
     if (process.env.NODE_ENV === "development" && process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST) {

@@ -72,12 +72,12 @@ export class ApiResponseWrapper<T> {
 }
 
 /**
- * Intercepts response and wraps it in ApiResponseWrapper. If exception is thrown it is logged and 
+ * Intercepts response and wraps it in ApiResponseWrapper. If exception is thrown it is logged and
  * ApiResponseWrapper with status ERROR is returned.
  * If sanitize is true, the error message is sanitized.
- * @param action 
- * @param logger 
- * @returns 
+ * @param action
+ * @param logger
+ * @returns
  */
 export async function handleApiResponse<T>(action: Promise<T>, logger?: AttLogger, sanitize = true): Promise<ApiResponseWrapper<T>> {
   try {
@@ -85,10 +85,11 @@ export async function handleApiResponse<T>(action: Promise<T>, logger?: AttLogge
     return new ApiResponseWrapper<T>(resp);
   } catch (reason) {
     if (logger) {
-      logger.error(`Intercepted response error: ${reason}`);      
+      logger.error(`Intercepted response error: ${reason}`);
     }
     if (sanitize) {
-      return new ApiResponseWrapper<T>(undefined as any, ApiResStatusEnum.ERROR, "Error while processing request", "Error while processing request");
+      const message = reason.message ?? "Error while processing request";
+      return new ApiResponseWrapper<T>(undefined as any, ApiResStatusEnum.ERROR, message, message);
     }
     return new ApiResponseWrapper<T>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
   }

@@ -47,7 +47,7 @@ export class Web3Functions {
     return retry(`Web3Function::gasPrice`, async () => {
       const gasPriceAddition = parseInt(this.web3Options.gasPriceAddition, 10);
       const gasPriceNetwork = parseInt(await this.web3.eth.getGasPrice(), 10);
-      const gasPrice = gasPriceNetwork + gasPriceAddition
+      const gasPrice = gasPriceNetwork + gasPriceAddition;
       return gasPrice.toString();
     });
   }
@@ -65,8 +65,8 @@ export class Web3Functions {
 
   /**
    * Given a block number it returns the block data.
-   * @param blockNumber 
-   * @returns 
+   * @param blockNumber
+   * @returns
    */
   public async getBlock(blockNumber: number): Promise<any> {
     return retry(`Web3Function::getBlock`, async () => this.web3.eth.getBlock(blockNumber));
@@ -74,7 +74,7 @@ export class Web3Functions {
 
   /**
    * Returns the last block number.
-   * @returns 
+   * @returns
    */
   public async getBlockNumber(): Promise<number> {
     return retry(`Web3Function::getBlockNumber`, async () => this.web3.eth.getBlockNumber());
@@ -144,7 +144,7 @@ export class Web3Functions {
   private async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any): Promise<any> {
     try {
       const nonce = await this.getNonce();
-      const gasPrice = await this.gasPrice()
+      const gasPrice = await this.gasPrice();
       const tx = {
         from: this.account.address,
         to: toAddress,

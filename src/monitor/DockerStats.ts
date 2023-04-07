@@ -1,5 +1,5 @@
 import { Managed, optional } from "@flarenetwork/mcc";
-import * as fs from 'fs';
+import * as fs from "fs";
 import { exit } from "process";
 import { readSecureConfig } from "../utils/config/configSecure";
 import { sleepms } from "../utils/helpers/utils";
@@ -13,7 +13,7 @@ import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection"
 class DockerStatsConfig implements IReflection<DockerStatsConfig> {
   @optional() path: string = "../stats/docker_stats.json";
   @optional() interval = 5000;
-  @optional() dockerSockerName: string = '/var/run/docker.sock';
+  @optional() dockerSockerName: string = "/var/run/docker.sock";
 
   instantiate() {
     return new DockerStatsConfig();
@@ -22,7 +22,6 @@ class DockerStatsConfig implements IReflection<DockerStatsConfig> {
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     return null;
   }
-
 }
 
 /**
@@ -30,13 +29,12 @@ class DockerStatsConfig implements IReflection<DockerStatsConfig> {
  */
 @Managed()
 export class DockerStats {
-
   /**
    * Async run docker stats.
    */
   async runDockerStats() {
     const logger = getGlobalLogger();
-    logger.info("Staring docker stats")
+    logger.info("Staring docker stats");
 
     const config = await readSecureConfig(new DockerStatsConfig(), "stats");
 
@@ -53,8 +51,7 @@ export class DockerStats {
     logger.debug(`Containers: ^w${info.Containers}^^`);
     logger.debug(`Images: ^w${info.Images}^^`);
 
-    if( docker.dockerApiVersion < version.MinAPIVersion && docker.dockerApiVersion > version.ApiVersion )
-    {
+    if (docker.dockerApiVersion < version.MinAPIVersion && docker.dockerApiVersion > version.ApiVersion) {
       logger.error(`Docker does not support requested app version ${docker.dockerApiVersion}`);
       exit(1);
     }
@@ -62,7 +59,7 @@ export class DockerStats {
     while (true) {
       logger.info("Updating");
       try {
-        const dockerInfo = await docker.getDockerInfo(true,(containerName) => {
+        const dockerInfo = await docker.getDockerInfo(true, (containerName) => {
           return containerName.startsWith(`attestation-`) || containerName.startsWith(`indexer-`) || containerName.startsWith(`monitor`);
         });
 
@@ -76,5 +73,4 @@ export class DockerStats {
       await sleepms(config.interval);
     }
   }
-
 }

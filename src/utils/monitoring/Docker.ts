@@ -1,8 +1,12 @@
 import { sleepms } from "../helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../logging/logger";
 
-interface EventOnData { (data: string): void; }
-interface EventContainerFilter { (name: string): boolean; }
+interface EventOnData {
+  (data: string): void;
+}
+interface EventContainerFilter {
+  (name: string): boolean;
+}
 
 /**
  * Docker container information and stats.
@@ -36,7 +40,7 @@ export class ContainerInfo {
  * Collection of docker container info and stats.
  */
 export class DockerInfo {
-  containers : Array<ContainerInfo> = [];
+  containers: Array<ContainerInfo> = [];
 }
 
 /**
@@ -52,7 +56,7 @@ export class Docker {
 
   dockerApiVersion = "1.41";
 
-  constructor(dockerSockerName: string = '/var/run/docker.sock') {
+  constructor(dockerSockerName: string = "/var/run/docker.sock") {
     this.dockerSocket = dockerSockerName;
     this.logger = getGlobalLogger();
   }
@@ -67,27 +71,27 @@ export class Docker {
     let options = {
       socketPath: this.dockerSocket,
       path: useNoVersion ? `/v${this.dockerApiVersion}${path}` : path,
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': 0
-      }
+        "Content-Type": "application/json",
+        "Content-Length": 0,
+      },
     };
 
-    const http = require('http');
+    const http = require("http");
     let done = false;
 
     const apiReq = http.request(options, (apiRes) => {
-      apiRes.on('data', d => {
+      apiRes.on("data", (d) => {
         onData(d.toString());
       });
-      apiRes.on('end', () => {
+      apiRes.on("end", () => {
         done = true;
       });
     });
 
-    apiReq.on('error', err => {
-      console.error(err)
+    apiReq.on("error", (err) => {
+      console.error(err);
       done = true;
     });
 
@@ -100,14 +104,19 @@ export class Docker {
 
   /**
    * Docker Socker request wrapped that returns result for given path.
-   * @param path 
-   * @returns 
+   * @param path
+   * @returns
    */
   public async dockerSockerRequest(path: string, useNoVersion = false) {
+    let response = "";
 
-    let response = '';
-
-    const apiReq = await this.dockerSockerRequestAsync(path, (data) => { response += data }, useNoVersion);
+    const apiReq = await this.dockerSockerRequestAsync(
+      path,
+      (data) => {
+        response += data;
+      },
+      useNoVersion
+    );
 
     return JSON.parse(response);
   }
@@ -119,7 +128,6 @@ export class Docker {
   public async getVersion() {
     return await this.dockerSockerRequest(`/version`, true);
   }
-
 
   /**
    * Get docker API info.
@@ -139,7 +147,7 @@ export class Docker {
 
   /**
    * Get all images.
-   * @returns 
+   * @returns
    */
   public async getAllImages() {
     return await this.dockerSockerRequest(`/images/json?all=1`);
@@ -147,7 +155,7 @@ export class Docker {
 
   /**
    * Get all volumes.
-   * @returns 
+   * @returns
    */
   public async getAllVolumes() {
     return await this.dockerSockerRequest(`/volumes`);
@@ -155,7 +163,7 @@ export class Docker {
 
   /**
    * Get system usage information.
-   * @returns 
+   * @returns
    */
   public async getSystemUsageInformation() {
     return await this.dockerSockerRequest(`/system/df`);
@@ -163,7 +171,7 @@ export class Docker {
 
   /**
    * Inspect volume.
-   * @returns 
+   * @returns
    */
   public async getVolumeDetails(volumeName: string) {
     return await this.dockerSockerRequest(`/volumes/${volumeName}`);
@@ -171,8 +179,8 @@ export class Docker {
 
   /**
    * Get container details.
-   * @param containerId 
-   * @returns 
+   * @param containerId
+   * @returns
    */
   public async getContainerDetails(containerId: string) {
     return await this.dockerSockerRequest(`/containers/${containerId}/json`);
@@ -180,9 +188,9 @@ export class Docker {
 
   /**
    * Get container logs.
-   * @param containerId 
-   * @param tail 
-   * @returns 
+   * @param containerId
+   * @param tail
+   * @returns
    */
   public async getContainerLogs(containerId: string, tail = 0) {
     return await this.dockerSockerRequest(`/containers/${containerId}/logs?tail=${tail == 0 ? "all" : tail}`);
@@ -190,8 +198,8 @@ export class Docker {
 
   /**
    * Get container stats.
-   * @param containerId 
-   * @returns 
+   * @param containerId
+   * @returns
    */
   public async getContainerStats(containerId: string) {
     return await this.dockerSockerRequest(`/containers/${containerId}/stats?stream=false`);
@@ -199,9 +207,9 @@ export class Docker {
 
   /**
    * Start container stats stream.
-   * @param dockerId 
-   * @param onData 
-   * @returns 
+   * @param dockerId
+   * @param onData
+   * @returns
    */
   public async startContainerStatsStream(dockerId: string, onData: EventOnData) {
     return await this.dockerSockerRequestAsync(`/containers/${dockerId}/stats?stream=true`, onData);
@@ -209,9 +217,9 @@ export class Docker {
 
   /**
    * Async start container stats stream and continuosly collect stats.
-   * @param containerId 
-   * @param containerName 
-   * @returns 
+   * @param containerId
+   * @param containerName
+   * @returns
    */
   private startContainerStats(containerId: string, containerName: string) {
     if (this.containerStatsData.get(containerId) != undefined) return;
@@ -226,12 +234,10 @@ export class Docker {
         if (allData.endsWith(`}\n`)) {
           this.containerStatsStream.set(containerId, JSON.parse(allData));
           this.containerStatsData.set(containerId, "");
-        }
-        else {
+        } else {
           this.containerStatsData.set(containerId, allData);
         }
-      }
-      catch (error) {
+      } catch (error) {
         this.containerStatsData.set(containerId, "");
       }
     });
@@ -241,7 +247,7 @@ export class Docker {
    * Async get docker info.
    * @param outputInfo Should collected container information be displayed.
    * @param filter Filter to only collect info on selected containers.
-   * @returns 
+   * @returns
    */
   public async getDockerInfo(outputInfo = false, filter: EventContainerFilter = null): Promise<DockerInfo> {
     const system = await this.getSystemUsageInformation();
@@ -262,7 +268,7 @@ export class Docker {
         const containerStats = this.containerStatsStream.get(container.Id);
 
         const imageName = container.Image;
-        const containerImage = system.Images.find(x => x.Id == container.ImageID);
+        const containerImage = system.Images.find((x) => x.Id == container.ImageID);
 
         const containerInfo = new ContainerInfo();
 
@@ -281,7 +287,7 @@ export class Docker {
               continue;
             }
 
-            const volume = system.Volumes.find(x => x.Name == mount.Name);
+            const volume = system.Volumes.find((x) => x.Name == mount.Name);
             if (!volume) {
               continue;
             }
@@ -295,7 +301,9 @@ export class Docker {
         if (outputInfo) {
           const color = containerInfo.status == "running" ? "^g^K" : "^r^W";
           const size = Math.round(containerInfo.diskUsage / (1024 * 1024));
-          this.logger.info(`   ${containerInfo.name.padEnd(40, ' ')} ${color}${containerInfo.status.padEnd(12, ' ')}^^ size ${size.toString().padStart(10, ' ')} Mb`);
+          this.logger.info(
+            `   ${containerInfo.name.padEnd(40, " ")} ${color}${containerInfo.status.padEnd(12, " ")}^^ size ${size.toString().padStart(10, " ")} Mb`
+          );
         }
 
         if (containerStats) {
@@ -343,5 +351,4 @@ export class Docker {
 
     return dockerInfo;
   }
-
 }

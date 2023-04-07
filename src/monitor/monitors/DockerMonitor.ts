@@ -1,5 +1,5 @@
 import { ChainType, MCC, optional } from "@flarenetwork/mcc";
-import * as fs from 'fs';
+import * as fs from "fs";
 import { round } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
 import { DockerInfo } from "../../utils/monitoring/Docker";
@@ -11,7 +11,6 @@ import { MonitorConfig } from "../MonitorConfiguration";
  * Docker monitor configuration class.
  */
 export class MonitorDockerConfig extends MonitorConfigBase {
-
   @optional() path: string = "../stats/docker_stats.json";
 
   getName() {
@@ -47,7 +46,7 @@ export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
       return res;
     }
 
-    const containerInfo = this.dockerInfo.containers.find(x => x.name == this.name);
+    const containerInfo = this.dockerInfo.containers.find((x) => x.name == this.name);
 
     if (!containerInfo) {
       return res;
@@ -63,7 +62,7 @@ export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
   async getPerformanceMetrics(): Promise<PerformanceMetrics[]> {
     if (!this.dockerInfo) return null;
 
-    const containerInfo = this.dockerInfo.containers.find(x => x.name == this.name);
+    const containerInfo = this.dockerInfo.containers.find((x) => x.name == this.name);
 
     if (!containerInfo) {
       return null;
@@ -92,5 +91,4 @@ export class DockerMonitor extends MonitorBase<MonitorDockerConfig> {
 
     return resList;
   }
-
 }

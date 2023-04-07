@@ -1,6 +1,7 @@
 import { Body, Controller, Inject, Post, UseGuards, UsePipes } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiExtraModels, ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { getGlobalLogger } from "../../../../utils/logging/logger";
 import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
 import { ApiBodyUnion, ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
 import { APIAttestationRequest } from "../dtos/APIAttestationRequest.dto";
@@ -16,6 +17,8 @@ import { VerifierProcessor } from "../services/verifier-processors/verifier-proc
 @ApiSecurity("X-API-KEY")
 @ApiExtraModels(...ARTypeArray, ...DHTypeArray)
 export class VerifierController {
+  logger = getGlobalLogger();
+
   constructor(@Inject("VERIFIER_PROCESSOR") private processor: VerifierProcessor) {}
 
   /**
@@ -26,7 +29,7 @@ export class VerifierController {
   @Post("")
   @ApiResponseWrapperDec(APIVerification)
   public async processAttestationRequest(@Body() attestationRequest: APIAttestationRequest): Promise<ApiResponseWrapper<APIVerification<ARType, DHType>>> {
-    return handleApiResponse(this.processor.verify(attestationRequest));
+    return handleApiResponse(this.processor.verify(attestationRequest), this.logger);
   }
 
   /**
@@ -39,7 +42,7 @@ export class VerifierController {
   @ApiBodyUnion(ARTypeArray)
   @UsePipes(new AttestationRequestValidationPipe())
   public async prepare(@Body() request: ARType): Promise<ApiResponseWrapper<APIVerification<ARType, DHType>>> {
-    return handleApiResponse(this.processor.prepareRequest(request));
+    return handleApiResponse(this.processor.prepareRequest(request), this.logger);
   }
 
   /**
@@ -52,7 +55,7 @@ export class VerifierController {
   @ApiBodyUnion(ARTypeArray)
   @UsePipes(new AttestationRequestValidationPipe())
   public async getIntegrityCode(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
-    return handleApiResponse(this.processor.getMessageIntegrityCheck(request));
+    return handleApiResponse(this.processor.getMessageIntegrityCheck(request), this.logger);
   }
 
   /**
@@ -67,6 +70,6 @@ export class VerifierController {
   @ApiBodyUnion(ARTypeArray)
   @UsePipes(new AttestationRequestValidationPipe())
   public async prepareAttestationData(@Body() request: ARType): Promise<ApiResponseWrapper<string>> {
-    return handleApiResponse(this.processor.getAttestationData(request));
+    return handleApiResponse(this.processor.getAttestationData(request), this.logger);
   }
 }

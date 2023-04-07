@@ -8,9 +8,9 @@ The State Connector system is request-response based system that supports provin
 
 For example, I can implement a smart contract on a Flare Network, which acts upon a proof that somebody made specific payment on Bitcoin network. In such a way, somebody can buy a NFT on a Flare Network while paying on Bitcoin. The payment is made, the proof is required from State Connector system and used on the NFT smart contract to mint the NFT.
 
-Another example would be I require a specific payment of in XRP up to certain timestamp to release a collateral on Flare. The State Connector system can be used to prove that the payment was done in due data (and the collateral can be released), or it can be used to prove that the payment was not carried out in due data and the proof can be used to liquidate the collateral.
+Another example would be that I require a specific payment in XRP up to a certain timestamp to release a collateral on Flare. The State Connector system can be used to prove that the payment was done in due data (and the collateral can be released), or it can be used to prove that the payment was not carried out in due data and the proof can be used to liquidate the collateral.
 
-The State Connector system allows for extensions of the types of the proofs and data sources (blockchains) in the form of new attestation types. Once those are introduced they can be used for new uses.
+The State Connector system allows for extensions of the types of the proofs and data sources (blockchains) in the form of new attestation types. Once those are introduced, they can be used for new uses.
 
 ## How can State Connector system be used?
 
@@ -22,11 +22,11 @@ The State Connector system allows for extensions of the types of the proofs and 
 
 ## What is an attestation request?
 
-Attestation request is a type of a predefined and parametrized query submitted to the [StateConnector](../attestation-protocol/state-connector-contract.md) smart contract with the goal of proving certain data or facts from an external data source. An example of an attestation request is _"prove that a certain payment is confirmed on the Bitcoin chain"_. Such an attestation request triggers validation of the query by attestation providers in a decentralized manner. If the query gives a positive response, certain data called attestation response are produced and attested for by each attestation provider. See details for attestation protocol [here](../attestation-protocol/attestation-protocol.md).
+Attestation request is a type of a predefined and parametrized query submitted to the [StateConnector](../attestation-protocol/state-connector-contract.md) smart contract with the goal of proving certain data or facts from an external data source. An example of an attestation request is _"confirm that a certain payment is confirmed on the Bitcoin chain"_. Such an attestation request triggers validation of the query by attestation providers in a decentralized manner. If the query gives a positive response, certain data called attestation response are produced and attested for by each attestation provider. See details for attestation protocol [here](../attestation-protocol/attestation-protocol.md).
 
 ## What is an attestation response?
 
-Attestation response is a JSON like response obtained in the process of verification of an attestation request, in case the attestation request can be verified. The Typescript types for attestation responses matching attestation requests are available [here](../../src/verification/generated/attestation-hash-types.ts).
+Attestation response is a JSON like response obtained in the process of verification of an attestation request in case the attestation request can be verified. The Typescript types for attestation responses matching attestation requests are available [here](../../src/verification/generated/attestation-hash-types.ts).
 
 ## Which kinds of attestation requests can the State Connector system currently perform?
 
@@ -35,7 +35,7 @@ The list of the supported types of attestation requests is available on the [Sta
 ## How can I form an attestation request?
 
 Attestation request is formed in JSON format and then encoded to the relevant byte sequence. Understanding of attestation type [definitions](https://github.com/flare-foundation/state-connector-attestation-types) and the context of the data we want to prove is essential in filling in the request data. The JSON structure of the attestation requests is available [here](../../src/verification/generated/attestation-request-types.ts). The functions for encoding JSON formats to byte sequences represented with `0x`-prefixed hex strings are available [here](../../src/verification/generated/attestation-request-encode.ts). See also the question about the use of the code as a Typescript library below.
-Certain [REST API routes](./apis.md) provided by attestation providers can be used when helping to forming attestation requests.
+Certain [REST API routes](./apis.md) provided by attestation providers can be used when forming attestation requests.
 
 ## Which are generic fields each attestation request has?
 
@@ -47,7 +47,7 @@ Each [attestation request](../../src/verification/generated/attestation-request-
 
 ## What is message integrity code?
 
-Attestation requests are used to obtain proofs from the State Connector system. In the process the attestation provides process an attestation request and if they verify it they obtain attestation response. When sending the request we already know, what the correct response should be and we just want the State Connector system to provide a proof for the data, that can be used with smart contracts on a Flare Networks blockchain. To provide better security and stability of the State Connector system the protocol requires that we indicate in unambiguous way, what the response should be using the
+Attestation requests are used to obtain proofs from the State Connector system. In the process, the attestation provides process an attestation request and if they verify it they obtain attestation response. When sending the request we already know, what the correct response should be and we just want the State Connector system to provide a proof for the data, that can be used with smart contracts on a Flare Networks blockchain. To provide better security and stability of the State Connector system the protocol requires that we indicate in unambiguous way, what the response should be using the
 message integrity code. This is obtained by essentially taking the expected attestation response and concatenating to it the string `"Flare"`, called _salt_. The helper functions for doing this are available [here](../../src/verification/generated/attestation-hash-utils.ts).
 
 ## How can I calculate message integrity code?
@@ -76,7 +76,7 @@ in 3-5mins.
 
 ### How do I know in which voting round id my attestation request was submitted?
 
-Based on the block timestamp of the attestation request transaction, the attestation request gets assigned to the voting round (`roundId`).
+Based on the block timestamp of the attestation request transaction, the attestation request gets assigned to a voting round (`roundId`).
 By reading the variables `BUFFER_TIMESTAMP_OFFSET` and `BUFFER_WINDOW` from the [State Connector](../attestation-protocol/state-connector-contract.md) smart contract, we can calculate `roundId` from the transaction's `block.timestamp` as follows
 
 ```
@@ -87,7 +87,7 @@ Note that `block.timestamp` is in seconds on Flare Networks, thus it is an integ
 
 ## Who are attestation providers?
 
-They are external entities that verify attestation requests by looking into data on relevant external data sources/blockchains. Verification is done by each attestation provider independently in a decentralized manner. Each also provides certain REST API routes used that can be used to obtain the attestation proofs, monitor attestation request progress and help in forming correct attestation requests.
+They are external entities that verify attestation requests by looking into data on relevant external data sources/blockchains. Verification is done by each attestation provider independently in a decentralized manner. Each attestation provider also provides certain REST API routes that can be used to obtain attestation proofs, monitor attestation request progress and help in forming correct attestation requests.
 
 ## Do I submit attestation request to an attestation provider?
 
@@ -95,7 +95,7 @@ No. Attestation request is submitted to a Flare Networks blockchain, using the `
 
 ## Which code should I use in my web UI application to handle attestation requests and attestation responses?
 
-For encoding/decoding/hashing operations use the Typescript code that can be extracted from the following folders:
+For encoding/decoding/hashing operations, use the Typescript code that can be extracted from the following folders:
 
 - `src/verification/attestation-types`
 - `src/verification/generated`
@@ -109,17 +109,17 @@ The external NPM dependencies include
 
 ## How do I get a proof for the submitted attestation request?
 
-After an attestation request is submitted it is important to record/remember two pieces od data:
+After an attestation request is submitted, it is important to record/remember two pieces od data:
 
 - the byte encoded attestation request,
 - the round id, in which the attestation request was submitted.
 
-These two pieces of data will help you find the proof data, if the attestation request was successfully validated.
+These two pieces of data will help you find the proof data if the attestation request was successfully validated.
 In order to obtain the proof, certain REST API routes on attestation provider servers need to be queried. For that purpose, relevant
 URL(s) of attestation providers' public servers need to be obtained and queried.
 To obtain the proof for my specific request, the API route `/api/proof/get-specific-proof` on an attestation provider's server should be used.
 The input parameters of this POST request include the two pieces of data stated above. See [here](./apis.md) for more details.
-The response of the API route contains all the needed data to assemble the proof ready to submit to a verifying contract.
+The response of the API route contains all the needed data to assemble the proof ready to be submitted to a verifying contract.
 
 ## What if I cannot obtain the proof from the REST API of an attestation provider's server?
 
@@ -140,7 +140,7 @@ The attestation proof consists of the following data:
 
 The data for assembling the proof should be obtained from an attestation provider's REST API as described above.
 
-One should use the data obtained from the REST API to fill in the relevant struct object defined in [`contracts/generated/interface/ISCProofVerifier.sol`](../../contracts/generated/interface/ISCProofVerifier.sol). Some Javascript/Typescript libraries like _web3.js_ and _ethers.js_ allow sending structs as JSON objects which are almost identical to the structure of the attestation response. Hence one can use the attestation response JSON object and add the key `merkleProof`, a list of 32-byte hex hashes. Then relevant `chainId` (see [here](../../src/verification/sources/sources.ts)) and the assembled JSON object can be used in verification functions on the contract. For example, to verify the proof given a `assembled_proof_json`, for the `Payment` attestation type on Ripple blockchain (`chainId` is 3) the call `verifyPayment(3, assembled_proof_json)` will return `true`, if done on a deployed contract.
+One should use the data obtained from the REST API to fill in the relevant struct object defined in [`here`](../../contracts/generated/interface/ISCProofVerifier.sol). Some Javascript/Typescript libraries like _web3.js_ and _ethers.js_ allow sending structs as JSON objects which are almost identical to the structure of the attestation response. Hence, one can use the attestation response JSON object and add the key `merkleProof`, a list of 32-byte hex hashes. Then relevant `chainId` (see [here](../../src/verification/sources/sources.ts)) and the assembled JSON object can be used in verification functions on the contract. For example, to verify the proof given a `assembled_proof_json`, for the `Payment` attestation type on Ripple blockchain (`chainId` is 3) the call `verifyPayment(3, assembled_proof_json)` will return `true`, if done on a deployed contract.
 
 ## To which smart contract I can/should submit the attestation proof?
 

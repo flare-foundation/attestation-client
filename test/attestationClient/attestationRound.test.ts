@@ -199,7 +199,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         round.registerBitVote(data);
       }
       const res = round.calculateBitVotingResult(false);
-      expect(res.toIndices(round.attestations.length)).to.deep.eq([0, 1, 2, 3, 4, 5]);
+      expect(res.toIndices(round.attestations.length)).to.deep.eq([0, 1, 2, 3, 4, 5, 6, 7]);
     });
 
     it("Should calculate inconclusive bitVote", function () {
@@ -255,10 +255,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
       round.phase = AttestationRoundPhase.commit;
       round.attestStatus = AttestationRoundStatus.bitVotingClosed;
       round.tryCalculateBitVotingResults(false);
-      for (let j = 0; j < 6; j++) {
+      for (let j = 0; j < 8; j++) {
         assert(round.attestations[j].chosen);
       }
-      for (let j = 6; j < 9; j++) {
+      for (let j = 8; j < 9; j++) {
         assert(!round.attestations[j].chosen);
       }
       expect(round.attestStatus).to.eq(AttestationRoundStatus.chosen);

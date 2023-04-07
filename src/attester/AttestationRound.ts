@@ -276,26 +276,14 @@ export class AttestationRound {
       return new BitmaskAccumulator(this.attestations.length);
     }
 
-    let foundNonzeroVoteResult = false;
-    // find first nonzero vote on subsets of sizes consensusSubsetSize, ..., minVoters
-    for (let size = this.activeGlobalConfig.consensusSubsetSize; size >= minVoters; size--) {
-      let candidate = chooseCandidate(votes, size);
-      let numberOfOnes = countOnes(candidate);
-      if (numberOfOnes > 0) {
-        foundNonzeroVoteResult = true;
-        bitmask = BitmaskAccumulator.fromHex(candidate);
-        if (size != this.activeGlobalConfig.consensusSubsetSize) {
-          this.logger.info(`${this.label} - vote successful with lower consensus threshold ${size}/${this.activeGlobalConfig.consensusSubsetSize}`);
-        }
-        break;
-      }
-      this.logger.info(`${this.label} - unsuccessful vote count for threshold ${size}/${this.defaultSetAddresses.length}`);
-    }
-
-    if (!foundNonzeroVoteResult) {
+    let candidate = chooseCandidate(votes, minVoters);
+    let numberOfOnes = countOnes(candidate);
+    if (numberOfOnes === 0) {
       this.logger.info(`${this.label} Non-conclusive vote. Non zero voters: ${nonZeroVotes}, required >= ${minVoters}`);
       return new BitmaskAccumulator(this.attestations.length);
     }
+
+    bitmask = BitmaskAccumulator.fromHex(candidate);
 
     if (bitmask.hasActiveBitsBeyond(this.attestations.length)) {
       this.logger.error(`${this.label} Local and all indices do not match. Critical error!`);
@@ -303,7 +291,7 @@ export class AttestationRound {
     }
 
     if (verbose) {
-      this.logger.info(`${this.label}-RESULT[${this.activeGlobalConfig.consensusSubsetSize}] - ${bitmask?.toBitString()}`);
+      this.logger.info(`${this.label}-RESULT[${minVoters}] - ${bitmask?.toBitString()}`);
     }
     return bitmask;
   }
@@ -467,8 +455,7 @@ export class AttestationRound {
    */
   private canCommit(): boolean {
     this.logger.debug(
-      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
-        AttestationRoundPhase[this.phase]
+      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${AttestationRoundPhase[this.phase]
       }', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
     return this.phase === AttestationRoundPhase.commit && this.attestStatus === AttestationRoundStatus.commitDataPrepared;
@@ -609,8 +596,7 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - now;
 
     this.logger.info(
-      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
-        time1 - time0
+      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0
       }ms M:${time2 - time1}ms)`
     );
   }
@@ -668,8 +654,7 @@ export class AttestationRound {
    */
   public async onChoosePhaseStart() {
     this.logger.group(
-      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -680,8 +665,7 @@ export class AttestationRound {
    */
   public async onCommitPhaseStart() {
     this.logger.group(
-      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${(this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
@@ -805,8 +789,7 @@ export class AttestationRound {
     if (!commitPreparedOrCommitted) {
       // Log unexpected attestation round statuses, but proceed with submitAttestation
       this.logger.error(
-        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${
-          this.attestationsProcessed
+        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${this.attestationsProcessed
         }/${this.attestations.length}`
       );
     }

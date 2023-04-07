@@ -12,5 +12,3 @@ services:
     container_name: stats
     command: stats
     restart: unless-stopped
-    environment:
-      FLARE_NETWORK: songbird

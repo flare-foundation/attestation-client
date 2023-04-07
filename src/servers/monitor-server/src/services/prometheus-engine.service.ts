@@ -152,7 +152,7 @@ body {
 </script>
 
 </head>
-<body style="background-color:#404040">
+<body style="background-color:white">
    <h1>Attestation Suite Status</h1>
    <div class="time"><span class="time-label">Time:</span>${new Date()}</div>
 

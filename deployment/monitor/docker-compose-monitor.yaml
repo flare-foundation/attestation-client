@@ -10,5 +10,3 @@ services:
     container_name: monitor
     command: monitor
     restart: unless-stopped
-    environment:
-      FLARE_NETWORK: songbird      

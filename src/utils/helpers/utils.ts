@@ -10,7 +10,7 @@ export const MOCK_NULL_WHEN_TESTING = null;
  * @param array
  * @param element
  */
-export function arrayRemoveElement(array: any[], element: any) {
+export function arrayRemoveElement<T>(array: T[], element: T) {
   const index = array.indexOf(element, 0);
   if (index > -1) {
     array.splice(index, 1);
@@ -18,7 +18,7 @@ export function arrayRemoveElement(array: any[], element: any) {
 }
 
 /**
- * Limiter of a string length. Used for capping strings when writting to the database. Equipped with global logger.
+ * Limiter of a string length. Used for capping strings when writing to the database. Equipped with global logger.
  * @param text the input string
  * @param maxLength length limitation
  * @param reportOverflow logs limitation if true

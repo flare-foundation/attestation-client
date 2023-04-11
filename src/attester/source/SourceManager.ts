@@ -44,7 +44,7 @@ export class SourceManager {
   }
 
   /**
-   * Returns verifer source config for the latest round id, that is initialized on the SourceManager.
+   * Returns verifier source config for the latest round id, that is initialized on the SourceManager.
    */
   get verifierSourceConfig(): VerifierSourceRouteConfig | undefined {
     const config = this.globalConfigManager.getVerifierRouter(this.latestRoundId).config;
@@ -80,7 +80,7 @@ export class SourceManager {
   }
 
   /**
-   * Retruns delay before retrying in ms.
+   * Returns delay before retrying in ms.
    */
   get delayBeforeRetryMs(): number {
     const config = this.verifierSourceConfig;

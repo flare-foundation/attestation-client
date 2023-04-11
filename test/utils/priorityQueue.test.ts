@@ -14,7 +14,7 @@ describe(`PriorityQueue, (${getTestFile(__filename)})`, () => {
   for (let j = 26; j < 50; j++) {
     priorityQueue.push(j, j);
   }
-  it("Should recognise empty queue", () => {
+  it("Should recognize empty queue", () => {
     assert(priorityQueueEmpty.isEmpty());
   });
 
@@ -29,7 +29,7 @@ describe(`PriorityQueue, (${getTestFile(__filename)})`, () => {
     assert(priorityQueueEmpty.peekKey() == null);
   });
 
-  it("Should recognise nonempty queue", () => {
+  it("Should recognize nonempty queue", () => {
     assert(!priorityQueue.isEmpty());
   });
 

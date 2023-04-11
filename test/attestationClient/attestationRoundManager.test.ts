@@ -17,6 +17,7 @@ import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
 import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
+import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createAttestationVerificationPair, createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
 import { MockFlareConnection } from "./utils/mockClasses";

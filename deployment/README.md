@@ -61,7 +61,7 @@ git clone git@github.com:flare-foundation/attestation-client.git
 cd attestation-client
 
 # use relevant branch or tag instead of 'main'
-git checkout 2.0.5
+git checkout 2.0.6
 
 ```
 
@@ -71,6 +71,33 @@ Run
 ``` bash
 docker build -t attestation-suite . --no-cache
 ```
+
+### 1.3 Initialize Google Cloud Secret Manager
+
+Run
+```
+docker run -it attestation-suite bash
+```
+
+Inside docker bash run 
+```bash
+sudo apt-get install apt-transport-https ca-certificates gnupg
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+sudo apt-get update && sudo apt-get install google-cloud-cli
+
+gcloud init
+```
+Follow the instructions and initialize gcloud.
+
+Then run `gcloud auth application-default login` to initialize application access.
+
+Then exit docker bash with `exit` command.
+
+Get this container ID with command `docker ps` and save image with GCSM initialized with command:
+```
+docker commit <container-id> attestation-suite
+``` 
 
 ## Step 2 - Credential configs generation
 

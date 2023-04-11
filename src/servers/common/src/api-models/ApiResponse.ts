@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { AttLogger } from "../../../../utils/logging/logger";
 
 /**
  * All possible values of status.
@@ -70,11 +71,26 @@ export class ApiResponseWrapper<T> {
   }
 }
 
-export async function handleApiResponse<T>(action: Promise<T>): Promise<ApiResponseWrapper<T>> {
+/**
+ * Intercepts response and wraps it in ApiResponseWrapper. If exception is thrown it is logged and
+ * ApiResponseWrapper with status ERROR is returned.
+ * If sanitize is true, the error message is sanitized.
+ * @param action
+ * @param logger
+ * @returns
+ */
+export async function handleApiResponse<T>(action: Promise<T>, logger?: AttLogger, sanitize = true): Promise<ApiResponseWrapper<T>> {
   try {
     const resp = await action;
     return new ApiResponseWrapper<T>(resp);
   } catch (reason) {
+    if (logger) {
+      logger.error(`Intercepted response error: ${reason}`);
+    }
+    if (sanitize) {
+      const message = reason.message ?? "Error while processing request";
+      return new ApiResponseWrapper<T>(undefined as any, ApiResStatusEnum.ERROR, message, message);
+    }
     return new ApiResponseWrapper<T>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
   }
 }

@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
 import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
+import { getGlobalLogger } from "../../../../utils/logging/logger";
 import { ApiResponseWrapper, ApiResStatusEnum, handleApiResponse } from "../../../common/src";
 import { ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
 import { SpecificProofRequest } from "../dtos/SpecificProofRequest.dto";
@@ -14,6 +15,7 @@ import { ProofEngineService } from "../services/proof-engine.service";
 @Controller("api/proof")
 @ApiExtraModels(...ARTypeArray, ...DHTypeArray)
 export class ProofController {
+  logger = getGlobalLogger();
   constructor(private proofEngine: ProofEngineService) {}
 
   /**
@@ -88,6 +90,6 @@ export class ProofController {
   @Get("status")
   @ApiResponseWrapperDec(SystemStatus)
   public async systemStatus(): Promise<ApiResponseWrapper<SystemStatus>> {
-    return handleApiResponse(this.proofEngine.systemStatus());
+    return handleApiResponse(this.proofEngine.systemStatus(), this.logger);
   }
 }

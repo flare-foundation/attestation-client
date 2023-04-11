@@ -1,0 +1,14 @@
+
+
+services:
+  stats:
+    image: attestation-suite
+    network_mode: host
+    user: root
+    volumes:
+      - ../credentials.prepared/stats:/app/attestation-suite-config
+      - ../../../stats:/app/stats
+      - /var/run/docker.sock:/var/run/docker.sock
+    container_name: stats
+    command: stats
+    restart: unless-stopped

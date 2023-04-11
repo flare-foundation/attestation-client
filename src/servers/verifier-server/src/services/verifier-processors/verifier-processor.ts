@@ -21,33 +21,40 @@ export abstract class VerifierProcessor {
   }
 
   /**
-   * @returns the Message Integrity check for @param request.
+   * Returns the message integrity code for the given attestation request.
+   * If the attestation request is invalid, an error is thrown.
+   * @param request
+   * @returns
    */
   public async getMessageIntegrityCheck(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
     if (data.status !== VerificationStatus.OK) {
-      // TODO: This should be made more stable
-      return data.status;
+      throw new Error(`Invalid attestation request: ${data.status}`);
     }
     const integrity = dataHash(data.request, data.response, MIC_SALT);
     return integrity;
   }
 
   /**
-   * Adds MIC to @param request and encodes it. Used to create attestation request
+   * Returns the byte encoded attestation request with the correct message integrity code.
+   * @param request
    * @returns
    */
   public async getAttestationData(request: ARType): Promise<string> {
     const data = await this.verify({ request: encodeRequest(request) });
     if (data.status !== VerificationStatus.OK) {
-      // TODO: This should be made more stable
-      return data.status;
+      throw new Error(`Invalid attestation request: ${data.status}`);
     }
     const integrity = dataHash(data.request, data.response, MIC_SALT);
     request.messageIntegrityCode = integrity;
     return encodeRequest(request);
   }
 
+  /**
+   * Asserts that the attestation request is supported by the verifier.
+   * @param attestationRequest
+   * @returns
+   */
   public assertIsSupported(attestationRequest: AttestationRequest) {
     if (process.env.NODE_ENV === "development" && process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST) {
       return;

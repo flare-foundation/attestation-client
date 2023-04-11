@@ -256,6 +256,23 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       expect(resp.data.data.status, "attestation response not ok").to.eq("OK");
     });
 
+    it(`Should not MIC for invalid request`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+
+      request.blockNumber = 300;
+
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.status, "response not ok").to.eq("ERROR");
+      expect(resp.data.data).to.be.undefined;
+      expect(resp.data.errorMessage).to.eq("Invalid attestation request: DATA_AVAILABILITY_ISSUE");
+    });
+
     it(`Should prepareAttestation`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
@@ -285,8 +302,9 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
           "x-api-key": API_KEY,
         },
       });
-      expect(resp.data.status, "response not ok").to.eq("OK");
-      expect(resp.data.data).to.eq("DATA_AVAILABILITY_ISSUE");
+      expect(resp.data.status, "response not ok").to.eq("ERROR");
+      expect(resp.data.data).to.be.undefined;
+      expect(resp.data.errorMessage).to.eq("Invalid attestation request: DATA_AVAILABILITY_ISSUE");
     });
 
     it(`Should verify Payment attestation`, async function () {

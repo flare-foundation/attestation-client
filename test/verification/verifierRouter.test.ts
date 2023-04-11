@@ -211,7 +211,7 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     try {
       await verifierRouter.verifyAttestation(attestationBTC);
     } catch (e) {
-      assert(e.message.startsWith("Error: Unsupported attestation type 'ConfirmedBlockHeightExists'"), "Wrong error message");
+      assert(e.message.startsWith("Unsupported attestation type 'ConfirmedBlockHeightExists'"), "Wrong error message");
     }
     // await sleepMs(10000000)
   });

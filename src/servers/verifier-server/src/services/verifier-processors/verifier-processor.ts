@@ -11,6 +11,11 @@ export abstract class VerifierProcessor {
   public abstract verify(attestationRequest: AttestationRequest): Promise<Verification<ARType, DHType>>;
   public abstract supportedAttestationTypes(): string[];
   public abstract supportedSource(): string;
+
+  /**
+   * Verifies @param request. Used by attestation client.
+   * @returns
+   */
   public async prepareRequest(request: ARType): Promise<Verification<ARType, DHType>> {
     return this.verify({ request: encodeRequest(request) });
   }

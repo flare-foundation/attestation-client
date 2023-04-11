@@ -70,6 +70,9 @@ export class VerifierRouter {
     return route;
   }
 
+  /**
+   * Checks if the VerifierRouter supports attestation @param type for chain with @param sourceId
+   */
   public isSupported(sourceId: SourceId, type: AttestationType): boolean {
     const routeEntry = this.getRouteEntry(getSourceName(sourceId), getAttestationTypeName(type));
     if (!routeEntry || routeEntry === EMPTY_VERIFIER_ROUTE) return false;
@@ -100,9 +103,7 @@ export class VerifierRouter {
    * configurations are read and set and there are no double setting of a specific configuration for
    * a pair of (sourceName, attestationTypeName)
    */
-  public async initialize(config: VerifierRouteConfig, definitions: AttestationTypeScheme[], logger?: AttLogger, mockTest = false) {
-    if (mockTest) return; //for testing purposes
-
+  public async initialize(config: VerifierRouteConfig, definitions: AttestationTypeScheme[], logger?: AttLogger) {
     if (this._initialized) {
       throw new Error("Already initialized");
     }

@@ -15,7 +15,7 @@ export enum SourceId {
  * @returns
  */
 export function getSourceName(sourceId: number) {
-  if (sourceId == null || SourceId[sourceId] === null) {
+  if (sourceId == null || SourceId[sourceId] === undefined) {
     return null;
   }
   return SourceId[sourceId];

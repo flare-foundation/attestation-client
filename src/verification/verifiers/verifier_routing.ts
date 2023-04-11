@@ -124,7 +124,7 @@ export async function verifyBTC(client: MCC.BTC, attestationRequest: string, ind
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.BTC) {
-    throw new Error("Wrong source while calling 'verifyBTC'(...)");
+    throw new WrongSourceIdError("Wrong source while calling 'verifyBTC'(...)");
   }
 
   switch (attestationType) {
@@ -137,7 +137,7 @@ export async function verifyBTC(client: MCC.BTC, attestationRequest: string, ind
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceBTC(client, attestationRequest, indexer);
     default:
-      throw new WrongSourceIdError("Wrong source id");
+      throw new WrongAttestationTypeError("Unknown attestation type");
   }
 }
 
@@ -145,7 +145,7 @@ export async function verifyLTC(client: MCC.LTC, attestationRequest: string, ind
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.LTC) {
-    throw new Error("Wrong source while calling 'verifyLTC'(...)");
+    throw new WrongSourceIdError("Wrong source while calling 'verifyLTC'(...)");
   }
 
   switch (attestationType) {
@@ -158,7 +158,7 @@ export async function verifyLTC(client: MCC.LTC, attestationRequest: string, ind
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceLTC(client, attestationRequest, indexer);
     default:
-      throw new WrongSourceIdError("Wrong source id");
+      throw new WrongAttestationTypeError("Unknown attestation type");
   }
 }
 
@@ -166,7 +166,7 @@ export async function verifyDOGE(client: MCC.DOGE, attestationRequest: string, i
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.DOGE) {
-    throw new Error("Wrong source while calling 'verifyDOGE'(...)");
+    throw new WrongSourceIdError("Wrong source while calling 'verifyDOGE'(...)");
   }
 
   switch (attestationType) {
@@ -179,7 +179,7 @@ export async function verifyDOGE(client: MCC.DOGE, attestationRequest: string, i
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceDOGE(client, attestationRequest, indexer);
     default:
-      throw new WrongSourceIdError("Wrong source id");
+      throw new WrongAttestationTypeError("Unknown attestation type");
   }
 }
 
@@ -187,7 +187,7 @@ export async function verifyXRP(client: MCC.XRP, attestationRequest: string, ind
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.XRP) {
-    throw new Error("Wrong source while calling 'verifyXRP'(...)");
+    throw new WrongSourceIdError("Wrong source while calling 'verifyXRP'(...)");
   }
 
   switch (attestationType) {
@@ -200,7 +200,7 @@ export async function verifyXRP(client: MCC.XRP, attestationRequest: string, ind
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceXRP(client, attestationRequest, indexer);
     default:
-      throw new WrongSourceIdError("Wrong source id");
+      throw new WrongAttestationTypeError("Unknown attestation type");
   }
 }
 
@@ -208,7 +208,7 @@ export async function verifyALGO(client: MCC.ALGO, attestationRequest: string, i
   let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
 
   if (sourceId != SourceId.ALGO) {
-    throw new Error("Wrong source while calling 'verifyALGO'(...)");
+    throw new WrongSourceIdError("Wrong source while calling 'verifyALGO'(...)");
   }
 
   switch (attestationType) {
@@ -221,6 +221,6 @@ export async function verifyALGO(client: MCC.ALGO, attestationRequest: string, i
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceALGO(client, attestationRequest, indexer);
     default:
-      throw new WrongSourceIdError("Wrong source id");
+      throw new WrongAttestationTypeError("Unknown attestation type");
   }
 }

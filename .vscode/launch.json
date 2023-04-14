@@ -432,7 +432,8 @@
             "name": "Test 2",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "testdebug"
+                "test",
+                "test/utils/configuration.test.ts"
             ]
         },
 

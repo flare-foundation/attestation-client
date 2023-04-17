@@ -375,9 +375,12 @@ export async function verifyReferencedPaymentNonExistence(
     return { status: VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE };
   }
 
+  const minimalBlockNumber = numberLikeToNumber(request.minimalBlockNumber);
+  const deadlineBlockNumber = numberLikeToNumber(request.deadlineBlockNumber);
+
   const referencedTransactionsResponse = await iqm.getReferencedTransactions({
-    minimalBlockNumber: numberLikeToNumber(request.minimalBlockNumber),
-    deadlineBlockNumber: numberLikeToNumber(request.deadlineBlockNumber),
+    minimalBlockNumber,
+    deadlineBlockNumber,
     deadlineBlockTimestamp: numberLikeToNumber(request.deadlineTimestamp),
     paymentReference: unPrefix0x(request.paymentReference),
   });
@@ -392,6 +395,12 @@ export async function verifyReferencedPaymentNonExistence(
   const firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
   const lowerBoundaryBlock = referencedTransactionsResponse.minimalBlock;
 
+  if (minimalBlockNumber > deadlineBlockNumber || minimalBlockNumber >= firstOverflowBlock.blockNumber) {
+    return {
+      status: VerificationStatus.NOT_CONFIRMED,
+    };
+  }
+  
   return await responseReferencedPaymentNonExistence(
     dbTransactions,
     TransactionClass,

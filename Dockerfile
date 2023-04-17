@@ -4,7 +4,7 @@
 
 FROM node:16
 WORKDIR /app/attestation-client
-COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "yarn.lock", "./"]
+COPY ["package.json", "yarn.lock", "./"]
 ENV DEBIAN_FRONTEND=noninteractive
 RUN \
 apt-get update && \

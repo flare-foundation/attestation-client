@@ -253,12 +253,12 @@ export class SourceManager {
           const micOk = originalRequest.messageIntegrityCode === dataHash(originalRequest, verification.response, MIC_SALT);
           if (micOk) {
             const hash = dataHash(originalRequest, verification.response);
-            // check if verificaton returned consistent hash
+            // check if verification returned consistent hash
             if (verification.hash !== hash) {
-              // Adjust hash
-              verification.hash = hash;
               // Report error
               this.logger.error(`Verifier server returned correct data by wrong hash in verification object: correct: ${hash}, returned ${verification.hash}`);
+              // Adjust hash
+              verification.hash = hash;
             }
             this.onProcessed(attestation, AttestationStatus.valid, verification);
             return;

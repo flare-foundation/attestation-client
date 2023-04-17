@@ -395,12 +395,12 @@ export async function verifyReferencedPaymentNonExistence(
   const firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
   const lowerBoundaryBlock = referencedTransactionsResponse.minimalBlock;
 
-  if (minimalBlockNumber > deadlineBlockNumber || minimalBlockNumber >= firstOverflowBlock.blockNumber) {
+  if (minimalBlockNumber >= firstOverflowBlock.blockNumber) {
     return {
       status: VerificationStatus.NOT_CONFIRMED,
     };
   }
-  
+
   return await responseReferencedPaymentNonExistence(
     dbTransactions,
     TransactionClass,

@@ -122,6 +122,18 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
     });
 
 
+    it(`test recursive env parameters`, async () => {
+
+        process.env["test1"]="test2";
+        process.env["test2"]="test3";
+        process.env["test3"]="ok";
+
+        const prepared = await _prepareSecureData(`{"test"="$(env:$(env:$(env:test1)))"}`, "", "");
+
+        assert(prepared === `{"test"="ok"}`, `prepareSecureData with recursive env does not work`);
+    });
+
+
     // JSON
 
     it(`parse json with EOL comment`, async () => {

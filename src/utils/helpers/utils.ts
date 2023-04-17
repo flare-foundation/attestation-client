@@ -62,7 +62,7 @@ export function getUnixEpochTimestamp(): number {
  * Sleep function
  * @param milliseconds time to sleep
  */
-export async function sleepms(milliseconds: number) {
+export async function sleepMs(milliseconds: number) {
   await new Promise((resolve: any) => {
     setTimeout(() => {
       resolve();

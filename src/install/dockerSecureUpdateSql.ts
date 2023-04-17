@@ -3,7 +3,7 @@ import fs from "fs";
 import { exit } from "process";
 import * as yargs from "yargs";
 import { getSecureValue, initializeJSONsecure, _prepareSecureData } from "../utils/config/jsonSecure";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
@@ -81,7 +81,7 @@ async function run() {
       //logger.exception(muteMySQLPasswords(error.message));
     }
     // if login failed - wait a bit for the database docker
-    await sleepms(1000);
+    await sleepMs(1000);
   }
 
   if (!connected) {

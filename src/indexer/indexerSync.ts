@@ -1,7 +1,7 @@
 import { IBlockTip, Managed } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { failureCallback, retry } from "../utils/helpers/promiseTimeout";
-import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/helpers/utils";
+import { getUnixEpochTimestamp, round, secToHHMMSS, sleepMs } from "../utils/helpers/utils";
 import { AttLogger } from "../utils/logging/logger";
 import { Indexer } from "./indexer";
 import { criticalAsync, getStateEntryString, SECONDS_PER_DAY } from "./indexer-utils";
@@ -142,7 +142,7 @@ export class IndexerSync {
       // this never happens: lastN=-1, indexer.N>=0
       if (lastN === this.indexer.N) {
         this.logger.debug(`runSyncRaw wait block N=${this.indexer.N} T=${this.indexer.T}`);
-        await sleepms(100);
+        await sleepMs(100);
         continue;
       }
       lastN = this.indexer.N;
@@ -197,7 +197,7 @@ export class IndexerSync {
       // We wait until block N+1 is either saved or indicated that there is no such block
       // This is the only point in the loop that increments N
       while (!(await this.indexer.trySaveNp1Block())) {
-        await sleepms(100);
+        await sleepMs(100);
         this.logger.debug(`runSyncRaw wait save N=${this.indexer.N} T=${this.indexer.T}`);
       }
     }

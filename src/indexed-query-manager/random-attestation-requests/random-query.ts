@@ -1,7 +1,7 @@
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { logException } from "../../utils/logging/logger";
-import { sleepms } from "../../utils/helpers/utils";
+import { sleepMs } from "../../utils/helpers/utils";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 export class RandomDBIterator<T> {
@@ -35,7 +35,7 @@ export class RandomDBIterator<T> {
     } catch (error) {
       logException(error, `RandomDBIterator::next`);
     }
-    await sleepms(100);
+    await sleepMs(100);
     if (this.size / this.batchSize < this.topUpThreshold) {
       // eslint-disable-next-line
       this.refresh(); // async call

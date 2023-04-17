@@ -1,0 +1,15 @@
+.test:
+  tags:
+  - flarenetwork
+  image: node:16
+  variables:
+    NODE_ENV=development
+  before_script:
+  - yarn install --frozen-lockfile
+
+
+
+test-coverage:
+  script: [ "yarn run test:coverage" ]
+  rules:
+  - when: success

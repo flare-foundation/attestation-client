@@ -1,4 +1,3 @@
-import { sleepms } from "../helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../logging/logger";
 
 interface EventOnData {

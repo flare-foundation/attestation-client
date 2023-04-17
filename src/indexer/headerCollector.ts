@@ -91,7 +91,7 @@ export class HeaderCollector {
     while (currentBlockNumber >= 0) {
       const hashList = this.blockNumberHash.get(currentBlockNumber);
       if (!hashList || hashList.length === 0) {
-        return;
+        return; //this happens only if cache for currentBlockNumber has already been cleared or is before the start of indexing, therefore also for all blocks before
       }
       this.blockHeaderNumber.delete(currentBlockNumber);
       for (const hash of hashList) {

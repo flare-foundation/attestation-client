@@ -170,9 +170,9 @@ export async function readJSONsecure<T>(filename: string, parser: any = null, va
  *
  * First it replaces all instances of `$(Network)` to value of @param chain.
  * Second it replaces all instances of `$(key)` to value of 'key` from secure master config.
- * 
+ *
  * It recursively repeats this for 3 times if some '$(` are left.
- *  
+ *
  * Finally it checks if any instance of `$(` is left to validate that everything is correctly replaced.
  *
  * @param data
@@ -200,8 +200,7 @@ export async function _prepareSecureData(data: string, inputFilename: string, ne
       } catch {
         if (recursive > 3) {
           logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
-        }
-        else {
+        } else {
           data = await _prepareSecureData(data, inputFilename, network, searchStub, recursive + 1);
         }
       }

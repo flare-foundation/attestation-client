@@ -828,7 +828,7 @@ export class AttestationRound {
     }
 
     // eslint-disable-next-line
-    criticalAsync("", async () => {
+    criticalAsync("submit attestation", async () => {
       const receipt = await this.flareConnection.submitAttestation(
         action,
         // commit index (collect+2)

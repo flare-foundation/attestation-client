@@ -1,6 +1,6 @@
 import { ChainType, Managed } from "@flarenetwork/mcc";
 import { AttLogger } from "../utils/logging/logger";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables, SECONDS_PER_DAY } from "./indexer-utils";
 import { IDBBlockBase } from "../entity/indexer/dbBlock";
@@ -134,7 +134,7 @@ export class Interlacing {
   public async update(blockTime: number, blockNumber: number): Promise<boolean> {
     // in case table drop was requested in another async we need to wait until drop is completed
     while (this.tableLock) {
-      await sleepms(1);
+      await sleepMs(1);
     }
 
     if (this.endBlockTime === -1) {
@@ -180,7 +180,7 @@ export class Interlacing {
   public async resetAll() {
     // in case table drop was requested in another async we need to wait until drop is completed
     while (this.tableLock) {
-      await sleepms(1);
+      await sleepMs(1);
     }
 
     this.endBlockTime = -1;

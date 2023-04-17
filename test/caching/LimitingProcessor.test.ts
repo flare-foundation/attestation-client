@@ -10,7 +10,7 @@ import { DelayedExecution, LimitingProcessor } from "../../src/caching/LimitingP
 import { Interlacing } from "../../src/indexer/interlacing";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { sleepms } from "../../src/utils/helpers/utils";
+import { sleepMs } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
 chai.use(chaiAsPromised);
@@ -20,12 +20,12 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
 
   describe("Delayed execution", () => {
     async function testFunc() {
-      await sleepms(10);
+      await sleepMs(10);
       return "Succes";
     }
 
     async function testFuncFail() {
-      await sleepms(10);
+      await sleepMs(10);
       throw "Fail";
     }
 
@@ -145,7 +145,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
       limitingProcessor.resume().catch((e) => getGlobalLogger().error("Limiting processor resume failed"));
 
       //with for the tasks to be done and expect first task to be done first
-      sleepms(100)
+      sleepMs(100)
         .then(() => {
           expect(preFake1.callCount).to.be.eq(1);
           expect(preFake2.callCount).to.be.eq(1);
@@ -173,7 +173,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
       limitingProcessor.resume().catch((e) => getGlobalLogger().error("Limiting processor resume failed"));
 
       //with for the tasks to be done and expect first task to be done first
-      sleepms(100)
+      sleepMs(100)
         .then(() => {
           expect(preFake1.callCount).to.be.eq(1);
           expect(preFake2.callCount).to.be.eq(1);
@@ -199,7 +199,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
         .call(firstFake)
         .then(() => limitingProcessor.call(secondFake))
         .then(() => limitingProcessor.call(thirdFake, true))
-        .then(() => sleepms(300))
+        .then(() => sleepMs(300))
         .then(() => {
           expect(secondFake.callCount).to.be.equal(1);
           expect(firstFake.callCount).to.be.equal(1);
@@ -213,7 +213,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
       const spy = sinon.spy(getGlobalLogger(), "error2");
       expect(limitingProcessor.isActive).to.eq(true);
       limitingProcessor.queue.push(null);
-      sleepms(200)
+      sleepMs(200)
         .then(() => {
           expect(spy.calledWith(`LimitingProcessor::continue error: de is undefined`)).to.be.true;
           done();

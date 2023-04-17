@@ -1,4 +1,4 @@
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { getGlobalLogger } from "../utils/logging/logger";
 import { Terminal } from "../utils/monitoring/Terminal";
 import { MenuItem } from "./menuItem";
@@ -129,7 +129,7 @@ export class Menu {
   }
 
   async waitForInputTimeout(timeout: number) {
-    return await Promise.race([this.waitForInput(), sleepms(timeout)]);
+    return await Promise.race([this.waitForInput(), sleepMs(timeout)]);
   }
 
   async waitForInput(): Promise<number> {

@@ -1,6 +1,6 @@
 import fs from "fs";
 import { Tail } from "tail";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { ColorConsole } from "../utils/logging/ColorConsole";
 import { getGlobalLogger, logException } from "../utils/logging/logger";
 import { Menu } from "./menu";
@@ -105,7 +105,7 @@ export class MenuItemLog extends MenuItemBase {
       Menu.clearKeys();
 
       while (1) {
-        await sleepms(100);
+        await sleepMs(100);
 
         if (Menu.isKey()) {
           tail.unwatch();

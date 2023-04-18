@@ -3,7 +3,7 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { CachedMccClient } from "../../src/caching/CachedMccClient";
-import { sleepms } from "../../src/utils/helpers/utils";
+import { sleepMs } from "../../src/utils/helpers/utils";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { SourceId } from "../../src/verification/sources/sources";
 import { TestBlockXRPAlt } from "../mockData/indexMock";
@@ -93,7 +93,7 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
     const first = cachedMccClient.transactionCleanupQueue.first;
     // allow for async cleanup
     expect(cachedMccClient.transactionCache.get(first)).not.to.be.undefined;
-    await sleepms(10);
+    await sleepMs(10);
     expect(cachedMccClient.transactionCleanupQueue.size).to.equal(LIMIT);
     expect(cachedMccClient.transactionCache.get(first)).to.be.undefined;
   });
@@ -156,7 +156,7 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
     const first = cachedMccClient.blockCleanupQueue.first;
     // allow for async cleanup
     expect(cachedMccClient.blockCache.get(first)).not.to.be.undefined;
-    await sleepms(10);
+    await sleepMs(10);
     expect(cachedMccClient.blockCleanupQueue.size).to.equal(LIMIT);
     expect(cachedMccClient.blockCache.get(first)).to.be.undefined;
   });

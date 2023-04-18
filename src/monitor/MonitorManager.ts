@@ -2,7 +2,7 @@ import { Managed, traceManager } from "@flarenetwork/mcc";
 import stringify from "safe-stable-stringify";
 import { runMonitorserver } from "../servers/monitor-server/src/monitorserver";
 import { readSecureConfig } from "../utils/config/configSecure";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { Terminal } from "../utils/monitoring/Terminal";
 import { MonitorBase } from "./MonitorBase";
@@ -192,7 +192,7 @@ export class MonitorManager {
         prometheus.sendPushGatewayMetric(prefix);
       }
 
-      await sleepms(this.config.interval);
+      await sleepMs(this.config.interval);
     }
   }
 }

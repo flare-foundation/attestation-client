@@ -14,7 +14,7 @@ import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { sleepms } from "../../src/utils/helpers/utils";
+import { sleepMs } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { Verification, VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
 import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
@@ -155,7 +155,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
       round.addAttestation(pairInvalid.attestation);
 
-      await sleepms(200);
+      await sleepMs(200);
 
       expect(pairOk.attestation.status, "status ok").to.eq(AttestationStatus.valid);
       expect(pairOk.attestation.index, "index ok").to.eq(0);
@@ -190,7 +190,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       round.addAttestation(pair3.attestation);
       round.addAttestation(pair4.attestation);
 
-      await sleepms(200);
+      await sleepMs(200);
 
       expect(pair2.attestation.status).to.eq(AttestationStatus.valid);
       expect(pair3.attestation.status).to.eq(AttestationStatus.overLimit);
@@ -208,7 +208,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
       round.addAttestation(pair.attestation);
 
-      await sleepms(100);
+      await sleepMs(100);
 
       expect(pair.attestation.status).to.eq(AttestationStatus.tooLate);
     });

@@ -3,7 +3,7 @@ import { MonitorBase } from "../monitor/MonitorBase";
 import { MonitorManager } from "../monitor/MonitorManager";
 import { getGlobalLogger, setLoggerName } from "../utils/logging/logger";
 import { EServiceStatus } from "../utils/monitoring/EServiceStatus";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { Menu } from "./menu";
 import { MenuItemCommand } from "./menuItemCommand";
 import { MenuItemLog } from "./menuItemLog";
@@ -189,7 +189,7 @@ async function admin() {
 
     // wait for execution to stop
     while (MenuItemCommand.working || MenuItemLog.working) {
-      await sleepms(100);
+      await sleepMs(100);
     }
   }
 }

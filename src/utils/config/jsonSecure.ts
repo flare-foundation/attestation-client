@@ -170,9 +170,9 @@ export async function readJSONsecure<T>(filename: string, parser: any = null, va
  *
  * First it replaces all instances of `$(Network)` to value of @param chain.
  * Second it replaces all instances of `$(key)` to value of 'key` from secure master config.
- * 
- * It recursively repeats this for 3 times if some '$(` are left.
- *  
+ *
+ * It recursively replaces all '$(`.
+ *
  * Finally it checks if any instance of `$(` is left to validate that everything is correctly replaced.
  *
  * @param data
@@ -191,15 +191,15 @@ export async function _prepareSecureData(data: string, inputFilename: string, ne
     const c = data.charAt(i);
 
     // check if new variable `$(`
-    if (c === '$' && i < data.length - 1 && data.charAt(i + 1) === '(') {
+    if (c === "$" && i < data.length - 1 && data.charAt(i + 1) === "(") {
       // open new stack
-      level++
+      level++;
       stack.push("");
       i++;
       continue;
     }
     // check if variable close ')'
-    else if (level >= 0 && c === ')') {
+    else if (level >= 0 && c === ")") {
       // process this level
       const search = stack[level];
       let secret = undefined;
@@ -210,7 +210,7 @@ export async function _prepareSecureData(data: string, inputFilename: string, ne
         }
       }
       if (!secret) {
-        if (search.indexOf(':') > 0) {
+        if (search.indexOf(":") > 0) {
           secret = await getSecretByAddress(search, false);
         }
       }
@@ -218,8 +218,7 @@ export async function _prepareSecureData(data: string, inputFilename: string, ne
         data = replaceAll(data, search, secret);
         // return index back for replacement change (3 is because of `$()` that are not in search string but are also removed)
         i += secret.length - search.length - 3;
-      }
-      else {
+      } else {
         logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W$(${search})^^ left unset (check the configuration)`);
         secret = "";
       }

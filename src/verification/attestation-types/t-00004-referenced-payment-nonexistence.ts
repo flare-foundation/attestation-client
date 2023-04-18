@@ -69,7 +69,7 @@ Maximum timestamp of the block where the transaction is searched for. Search ran
       size: TX_ID_BYTES,
       type: "ByteSequenceLike",
       description: `
-Hash of exact address to which the payment was done to.
+Standardized address hash of the exact address to which the payment was done to.
 `,
     },
     {
@@ -108,7 +108,7 @@ Deadline timestamp specified in the attestation request.
       key: "destinationAddressHash",
       type: "bytes32",
       description: `
-Hash of the destination address searched for.
+Standardized address hash of the destination address searched for.
 `,
     },
     {

@@ -22,11 +22,9 @@ interface ISCProofVerifier {
         // Output index for a transaction with multiple outputs on UTXO chains, 0 on non-UTXO chains.
         // The same as in the 'utxo' parameter from the request.
         uint8 utxo;
-        // Hash of the source address viewed as a string (the one indicated by the 'inUtxo'
-        // parameter for UTXO blockchains).
+        // Standardized address hash of the source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
         bytes32 sourceAddressHash;
-        // Hash of the receiving address as a string (the one indicated by the 'utxo'
-        // parameter for UTXO blockchains).
+        // Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
         bytes32 receivingAddressHash;
         // The amount that went out of the source address, in the smallest underlying units.
         // In non-UTXO chains it includes both payment value and fee (gas).
@@ -60,17 +58,11 @@ interface ISCProofVerifier {
         uint64 blockTimestamp;
         // Hash of the transaction on the underlying chain.
         bytes32 transactionHash;
-        // Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
-        bytes32 inUtxo;
-        // Hash of the source address as a string. For UTXO transactions with multiple input addresses
-        // this is the address that is on the input indicated by 'inUtxo' parameter.
+        // Either standardized hash of a source address or UTXO vin index in hex format (as provided in the request).
+        bytes32 sourceAddressIndicator;
+        // Standardized hash of the source address viewed as a string (the one indicated by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
         bytes32 sourceAddressHash;
-        // The amount that went out of the source address, in the smallest underlying units.
-        // In non-UTXO chains it includes both payment value and fee (gas).
-        // Calculation for UTXO chains depends on the existence of standardized payment reference.
-        // If it exists, it is calculated as 'outgoing_amount - returned_amount' and can be negative.
-        // If the standardized payment reference does not exist, then it is just the spent amount
-        // on the input indicated by 'inUtxo'.
+        // The amount that went out of the source address, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address indicated by 'sourceAddressIndicator', and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by 'sourceAddressIndicator'.
         int256 spentAmount;
         // Standardized payment reference, if it exists, 0 otherwise.
         bytes32 paymentReference;
@@ -102,7 +94,7 @@ interface ISCProofVerifier {
         uint64 deadlineBlockNumber;
         // Deadline timestamp specified in the attestation request.
         uint64 deadlineTimestamp;
-        // Hash of the destination address searched for.
+        // Standardized address hash of the destination address searched for.
         bytes32 destinationAddressHash;
         // The payment reference searched for.
         bytes32 paymentReference;

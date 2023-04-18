@@ -5,12 +5,17 @@
   variables:
     NODE_ENV: development
   before_script:
-  - yarn install --frozen-lockfile
+  - yarn install --frozen-lockfile > /dev/null
 
 
 
 test-coverage:
   extends: .test
   script: [ "yarn run test:coverage" ]
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
   rules:
   - when: on_success

@@ -159,16 +159,11 @@ Block number of the transaction.
   blockNumber: NumberLike;
 
   /**
-   * Index of the source address on UTXO chains.
+   * Index of the source address on UTXO chains. On other chains it is a hash or the address for which we are checking balance decreasing.
    */
-  @Validate(IsNumberLike)
-  @ApiProperty({
-    oneOf: [{ type: "string" }, { type: "number" }],
-    description: `
-Index of the source address on UTXO chains.
-`,
-  })
-  inUtxo: NumberLike;
+  @Validate(IsHash32)
+  @ApiProperty()
+  inUtxo: ByteSequenceLike;
 }
 
 export class ARConfirmedBlockHeightExists implements ARBase {

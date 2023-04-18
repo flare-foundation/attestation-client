@@ -116,6 +116,7 @@ export interface WeightedRandomChoice<T> {
 export const ATT_BYTES = 2;
 export const SOURCE_ID_BYTES = 4;
 export const UTXO_BYTES = 1;
+export const IN_UTXO_BYTES = 32;
 export const BLOCKNUMBER_BYTES = 4;
 export const TIMESTAMP_BYTES = 4;
 export const TIME_DURATION_BYTES = 4;

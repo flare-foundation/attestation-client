@@ -74,7 +74,7 @@ export function hashBalanceDecreasingTransaction(request: ARBase, response: DHBa
     "uint64", // blockNumber
     "uint64", // blockTimestamp
     "bytes32", // transactionHash
-    "uint8", // inUtxo
+    "bytes32", // inUtxo
     "bytes32", // sourceAddressHash
     "int256", // spentAmount
     "bytes32", // paymentReference

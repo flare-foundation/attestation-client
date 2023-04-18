@@ -61,7 +61,7 @@ interface ISCProofVerifier {
         // Hash of the transaction on the underlying chain.
         bytes32 transactionHash;
         // Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
-        uint8 inUtxo;
+        bytes32 inUtxo;
         // Hash of the source address as a string. For UTXO transactions with multiple input addresses
         // this is the address that is on the input indicated by 'inUtxo' parameter.
         bytes32 sourceAddressHash;

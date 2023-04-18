@@ -109,7 +109,7 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
   bytes += toUnprefixedBytes(request.messageIntegrityCode, "ByteSequenceLike", 32, "messageIntegrityCode");
   bytes += toUnprefixedBytes(request.id, "ByteSequenceLike", 32, "id");
   bytes += toUnprefixedBytes(request.blockNumber, "NumberLike", 4, "blockNumber");
-  bytes += toUnprefixedBytes(request.inUtxo, "NumberLike", 1, "inUtxo");
+  bytes += toUnprefixedBytes(request.inUtxo, "ByteSequenceLike", 32, "inUtxo");
   return bytes;
 }
 

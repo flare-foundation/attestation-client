@@ -119,7 +119,7 @@ export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecre
     throw new AttestationRequestParseError("Empty attestation request");
   }
   const input = unPrefix0x(bytes);
-  if (input.length != 150) {
+  if (input.length != 212) {
     throw new AttestationRequestParseError("Incorrectly formatted attestation request");
   }
 
@@ -129,7 +129,7 @@ export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecre
     messageIntegrityCode: fromUnprefixedBytes(input.slice(12, 76), "ByteSequenceLike", 32) as string,
     id: fromUnprefixedBytes(input.slice(76, 140), "ByteSequenceLike", 32) as string,
     blockNumber: fromUnprefixedBytes(input.slice(140, 148), "NumberLike", 4) as BN,
-    inUtxo: fromUnprefixedBytes(input.slice(148, 150), "NumberLike", 1) as BN,
+    inUtxo: fromUnprefixedBytes(input.slice(148, 212), "ByteSequenceLike", 32) as string,
   };
 }
 

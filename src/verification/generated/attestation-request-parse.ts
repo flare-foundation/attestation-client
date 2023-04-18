@@ -129,7 +129,7 @@ export function parseBalanceDecreasingTransaction(bytes: string): ARBalanceDecre
     messageIntegrityCode: fromUnprefixedBytes(input.slice(12, 76), "ByteSequenceLike", 32) as string,
     id: fromUnprefixedBytes(input.slice(76, 140), "ByteSequenceLike", 32) as string,
     blockNumber: fromUnprefixedBytes(input.slice(140, 148), "NumberLike", 4) as BN,
-    inUtxo: fromUnprefixedBytes(input.slice(148, 212), "ByteSequenceLike", 32) as string,
+    sourceAddressIndicator: fromUnprefixedBytes(input.slice(148, 212), "ByteSequenceLike", 32) as string,
   };
 }
 

@@ -104,16 +104,14 @@ The same as in the 'utxo' parameter from the request.
       key: "sourceAddressHash",
       type: "bytes32",
       description: `
-Hash of the source address viewed as a string (the one indicated by the 'inUtxo'
-parameter for UTXO blockchains).
+Standardized address hash of the source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
 `,
     },
     {
       key: "receivingAddressHash",
       type: "bytes32",
       description: `
-Hash of the receiving address as a string (the one indicated by the 'utxo'
-parameter for UTXO blockchains).
+Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
 `,
     },
     {

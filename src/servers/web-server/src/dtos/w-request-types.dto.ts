@@ -140,10 +140,10 @@ Block number of the transaction.
   blockNumber: NumberLike;
 
   /**
-   * Index of the source address on UTXO chains. On other chains it is a hash or the address for which we are checking balance decreasing.
+   * Either standardized hash of a source address or UTXO vin index in hex format.
    */
   @ApiProperty()
-  inUtxo: ByteSequenceLike;
+  sourceAddressIndicator: ByteSequenceLike;
 }
 
 export class ARConfirmedBlockHeightExists implements ARBase {
@@ -261,7 +261,7 @@ Maximum timestamp of the block where the transaction is searched for. Search ran
   deadlineTimestamp: NumberLike;
 
   /**
-   * Hash of exact address to which the payment was done to.
+   * Standardized address hash of the exact address to which the payment was done to.
    */
   @ApiProperty()
   destinationAddressHash: ByteSequenceLike;

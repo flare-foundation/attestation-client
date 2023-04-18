@@ -87,9 +87,9 @@ export class ARBalanceDecreasingTransaction implements ARBase {
   blockNumber: NumberLike;
 
   /**
-   * Index of the source address on UTXO chains. On other chains it is a hash or the address for which we are checking balance decreasing.
+   * Either standardized hash of a source address or UTXO vin index in hex format.
    */
-  inUtxo: ByteSequenceLike;
+  sourceAddressIndicator: ByteSequenceLike;
 }
 
 export class ARConfirmedBlockHeightExists implements ARBase {
@@ -151,7 +151,7 @@ export class ARReferencedPaymentNonexistence implements ARBase {
   deadlineTimestamp: NumberLike;
 
   /**
-   * Hash of exact address to which the payment was done to.
+   * Standardized address hash of the exact address to which the payment was done to.
    */
   destinationAddressHash: ByteSequenceLike;
 

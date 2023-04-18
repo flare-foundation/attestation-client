@@ -100,8 +100,8 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
   if (request.blockNumber == null) {
     throw new AttestationRequestEncodeError("Missing 'blockNumber'");
   }
-  if (request.inUtxo == null) {
-    throw new AttestationRequestEncodeError("Missing 'inUtxo'");
+  if (request.sourceAddressIndicator == null) {
+    throw new AttestationRequestEncodeError("Missing 'sourceAddressIndicator'");
   }
   let bytes = "0x";
   bytes += toUnprefixedBytes(request.attestationType, "AttestationType", 2, "attestationType");
@@ -109,7 +109,7 @@ export function encodeBalanceDecreasingTransaction(request: ARBalanceDecreasingT
   bytes += toUnprefixedBytes(request.messageIntegrityCode, "ByteSequenceLike", 32, "messageIntegrityCode");
   bytes += toUnprefixedBytes(request.id, "ByteSequenceLike", 32, "id");
   bytes += toUnprefixedBytes(request.blockNumber, "NumberLike", 4, "blockNumber");
-  bytes += toUnprefixedBytes(request.inUtxo, "ByteSequenceLike", 32, "inUtxo");
+  bytes += toUnprefixedBytes(request.sourceAddressIndicator, "ByteSequenceLike", 32, "sourceAddressIndicator");
   return bytes;
 }
 

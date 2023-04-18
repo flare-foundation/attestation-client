@@ -64,7 +64,7 @@ abstract contract SCProofVerifierBase is ISCProofVerifier {
                     _data.blockNumber,
                     _data.blockTimestamp,
                     _data.transactionHash,
-                    _data.inUtxo,
+                    _data.sourceAddressIndicator,
                     _data.sourceAddressHash,
                     _data.spentAmount,
                     _data.paymentReference

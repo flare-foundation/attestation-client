@@ -711,7 +711,7 @@ export class AttestationRound {
     });
 
     // eslint-disable-next-line
-    criticalAsync("processed", async () => {
+    criticalAsync("calculateBitVote", async () => {
       this.tryCalculateBitVotingResults();
       await this.tryPrepareCommitData();
     });

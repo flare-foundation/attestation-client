@@ -37,7 +37,7 @@ export function randomResponseBalanceDecreasingTransaction() {
     blockNumber: randSol({}, "blockNumber", "uint64") as BN,
     blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN,
     transactionHash: randSol({}, "transactionHash", "bytes32") as string,
-    inUtxo: randSol({}, "inUtxo", "uint8") as BN,
+    inUtxo: randSol({}, "inUtxo", "bytes32") as string,
     sourceAddressHash: randSol({}, "sourceAddressHash", "bytes32") as string,
     spentAmount: randSol({}, "spentAmount", "int256") as BN,
     paymentReference: randSol({}, "paymentReference", "bytes32") as string,
@@ -142,7 +142,7 @@ export function getRandomRequestForAttestationTypeAndSourceId(attestationType: A
         messageIntegrityCode: Web3.utils.randomHex(32),
         id: Web3.utils.randomHex(32),
         blockNumber: toBN(Web3.utils.randomHex(4)),
-        inUtxo: toBN(Web3.utils.randomHex(1)),
+        inUtxo: Web3.utils.randomHex(32),
       } as ARBalanceDecreasingTransaction;
     case AttestationType.ConfirmedBlockHeightExists:
       return {

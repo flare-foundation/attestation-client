@@ -1,5 +1,5 @@
 import { SourceId } from "../sources/sources";
-import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, MIC_BYTES, SOURCE_ID_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
+import { ATT_BYTES, AttestationTypeScheme, BLOCKNUMBER_BYTES, IN_UTXO_BYTES, MIC_BYTES, SOURCE_ID_BYTES, TX_ID_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
   id: 2,
@@ -48,10 +48,10 @@ Block number of the transaction.
     },
     {
       key: "inUtxo",
-      size: UTXO_BYTES,
-      type: "NumberLike",
+      size: IN_UTXO_BYTES,
+      type: "ByteSequenceLike",
       description: `
-Index of the source address on UTXO chains.
+Index of the source address on UTXO chains. On other chains it is a hash or the address for which we are checking balance decreasing.
 `,
     },
   ],
@@ -79,7 +79,7 @@ Hash of the transaction on the underlying chain.
     },
     {
       key: "inUtxo",
-      type: "uint8",
+      type: "bytes32",
       description: `
 Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
 `,

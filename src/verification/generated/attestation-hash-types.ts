@@ -115,7 +115,7 @@ export class DHBalanceDecreasingTransaction {
   /**
    * Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
    */
-  inUtxo: BN;
+  inUtxo: string;
 
   /**
    * Hash of the source address as a string. For UTXO transactions with multiple input addresses

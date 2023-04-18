@@ -80,7 +80,7 @@ export function equalsBalanceDecreasingTransaction(request1: ARBalanceDecreasing
   if (!assertEqualsByScheme(request1.blockNumber, request2.blockNumber, "NumberLike")) {
     return false;
   }
-  if (!assertEqualsByScheme(request1.inUtxo, request2.inUtxo, "NumberLike")) {
+  if (!assertEqualsByScheme(request1.inUtxo, request2.inUtxo, "ByteSequenceLike")) {
     return false;
   }
   return true;

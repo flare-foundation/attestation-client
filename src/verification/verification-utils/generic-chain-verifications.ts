@@ -168,7 +168,7 @@ export async function responseBalanceDecreasingTransaction(
     blockNumber: toBN(dbTransaction.blockNumber),
     blockTimestamp: toBN(dbTransaction.timestamp),
     transactionHash: prefix0x(dbTransaction.transactionId),
-    inUtxo: toBN(inUtxo),
+    inUtxo: inUtxo,
     sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : Web3.utils.leftPad("0x", 64),
     spentAmount: paymentSummary.spentAmount || toBN(0),
     paymentReference: paymentSummary.paymentReference || Web3.utils.leftPad("0x", 64),

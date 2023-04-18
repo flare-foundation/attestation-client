@@ -17,10 +17,12 @@ export class ContainerInfo {
   image: string = "";
 
   status: string = "";
+  statusIndex: number = 0;
   restartCount: number = 0;
 
+  error: string = "";
+
   memUsage: number = 0;
-  memMaxUsage: number = 0;
 
   cpuUsage: number = 0;
 
@@ -263,7 +265,6 @@ export class Docker {
 
         const containerDetail = await this.getContainerDetails(container.Id);
         const containerStats = this.containerStatsStream.get(container.Id);
-
         const imageName = container.Image;
         const containerImage = system.Images.find((x) => x.Id == container.ImageID);
 
@@ -273,6 +274,24 @@ export class Docker {
         containerInfo.name = containerName;
         containerInfo.image = imageName;
         containerInfo.status = container.State;
+
+        containerInfo.statusIndex = 0;
+        if( containerDetail.State.Running ) {
+          containerInfo.statusIndex = 1;
+        }
+        else if( containerDetail.State.Restarting ) {
+          containerInfo.statusIndex = 2;
+        }
+        else if( containerDetail.State.Paused ) {
+          containerInfo.statusIndex = 3;
+        }
+        else if( containerDetail.State.Dead ) {
+          containerInfo.statusIndex = 4;
+        }
+        else if( containerDetail.State.OOMKilled ) {
+          containerInfo.statusIndex = 5;
+        }
+        containerInfo.error = `${containerDetail.State.Error} (${containerDetail.State.ExitCode})`;
 
         containerInfo.imageDiskUsage = containerImage.Size ?? 0;
         containerInfo.diskUsage = container.SizeRw ?? 0;
@@ -304,39 +323,45 @@ export class Docker {
         }
 
         if (containerStats) {
-          const used_memory = containerStats.memory_stats.usage - containerStats.memory_stats.stats.cache;
-          const cpu_delta = containerStats.cpu_stats.cpu_usage.total_usage - containerStats.precpu_stats.cpu_usage.total_usage;
-          const system_cpu_delta = containerStats.cpu_stats.system_cpu_usage - containerStats.precpu_stats.system_cpu_usage;
-          const number_cpus = containerStats.cpu_stats.cpu_usage.percpu_usage.length;
-          const cpu_usage = (cpu_delta / system_cpu_delta) * number_cpus * 100.0;
+          try {
+            const used_memory = containerStats.memory_stats.usage - containerStats.memory_stats.stats.cache;
+            const cpu_delta = containerStats.cpu_stats.cpu_usage.total_usage - containerStats.precpu_stats.cpu_usage.total_usage;
+            const system_cpu_delta = containerStats.cpu_stats.system_cpu_usage - containerStats.precpu_stats.system_cpu_usage;
+            const number_cpus = containerStats.cpu_stats.cpu_usage.percpu_usage.length;
+            const cpu_usage = (cpu_delta / system_cpu_delta) * number_cpus * 100.0;
 
-          containerInfo.cpuUsage = cpu_usage;
-          containerInfo.memUsage = used_memory;
+            containerInfo.cpuUsage = cpu_usage;
+            containerInfo.memUsage = used_memory;
+          }
+          catch{}
 
-          // op value
-          for (const op of containerStats.blkio_stats.io_service_bytes_recursive) {
-            if (op.op == "Read") {
-              containerInfo.diskIoReadBytes = op.value;
+          try {
+            // op value
+            for (const op of containerStats.blkio_stats.io_service_bytes_recursive) {
+              if (op.op == "Read") {
+                containerInfo.diskIoReadBytes = op.value;
+              }
+              if (op.op == "Write") {
+                containerInfo.diskIoReadBytes = op.value;
+              }
             }
-            if (op.op == "Write") {
-              containerInfo.diskIoReadBytes = op.value;
+            for (const op of containerStats.blkio_stats.io_serviced_recursive) {
+              if (op.op == "Read") {
+                containerInfo.diskIoRead = op.value;
+              }
+              if (op.op == "Write") {
+                containerInfo.diskIoRead = op.value;
+              }
+            }
+
+            if (containerStats.networks) {
+              for (const network of Object.keys(containerStats.networks)) {
+                containerInfo.networkRx += containerStats.networks[network].rx_bytes;
+                containerInfo.networkTx += containerStats.networks[network].tx_bytes;
+              }
             }
           }
-          for (const op of containerStats.blkio_stats.io_serviced_recursive) {
-            if (op.op == "Read") {
-              containerInfo.diskIoRead = op.value;
-            }
-            if (op.op == "Write") {
-              containerInfo.diskIoRead = op.value;
-            }
-          }
-
-          if (containerStats.networks) {
-            for (const network of Object.keys(containerStats.networks)) {
-              containerInfo.networkRx += containerStats.networks[network].rx_bytes;
-              containerInfo.networkTx += containerStats.networks[network].tx_bytes;
-            }
-          }
+          catch{}
         }
 
         dockerInfo.containers.push(containerInfo);

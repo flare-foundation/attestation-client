@@ -222,7 +222,7 @@ export class SourceManager {
 
     // Check again, if verifier supports the attestation type
     if (!verifierRouter || !verifierRouter.isSupported(attestation.data.sourceId, attestation.data.type)) {
-      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' and type '${attestation.data.type}'`);
+      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' for type '${attestation.data.type}'`);
       this.onProcessed(attestation, AttestationStatus.failed);
       return;
     }
@@ -300,7 +300,7 @@ export class SourceManager {
         // Retries
         attestation.processEndTime = getTimeMs();
         if (attestation.retry < this.maxFailedRetries) {
-          this.logger.warning(`${this.label}transaction verification error (retry ${attestation.retry})`);
+          this.logger.warning(`${this.label} transaction verification error (retry ${attestation.retry})`);
           attestation.retry++;
           this.enQueueDelayed(attestation, getTimeMs() + this.delayBeforeRetryMs);
         } else {
@@ -328,7 +328,7 @@ export class SourceManager {
     attestation.status = actualStatus;
     attestation.verificationData = verificationData;
 
-    // augument the attestation response with the round id
+    // augment the attestation response with the round id
     if (attestation.verificationData?.response) {
       attestation.verificationData.response.stateConnectorRound = attestation.roundId;
     }

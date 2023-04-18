@@ -8,7 +8,7 @@ import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/database/DatabaseService";
 import { failureCallback, retry } from "../utils/helpers/promiseTimeout";
-import { round, sleepms } from "../utils/helpers/utils";
+import { round, sleepMs } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
@@ -350,7 +350,7 @@ export class Indexer {
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
     if (!this.indexerToDB.bottomBlockTime) {
-      await this.indexerToDB.saveBottomState();
+      await this.indexerToDB.saveBottomState((bottomBlockNumber) => this.headerCollector.onUpdateBottomBlockNumber(bottomBlockNumber));
     }
 
     this.blockProcessorManager.clearProcessorsUpToBlockNumber(Np1);
@@ -360,7 +360,7 @@ export class Indexer {
     // table interlacing
     if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
-      await this.indexerToDB.saveBottomState();
+      await this.indexerToDB.saveBottomState((bottomBlockNumber) => this.headerCollector.onUpdateBottomBlockNumber(bottomBlockNumber));
       await this.checkDatabaseContinuous();
     }
 
@@ -434,7 +434,7 @@ export class Indexer {
     this.logger.debug(`^Gwaiting for block N=${Np1}`);
 
     while (this.waitNp1) {
-      await sleepms(100);
+      await sleepMs(100);
 
       // If block processing takes more than 5 seconds we start to log warnings every 5 seconds
       if (Date.now() - timeStart > 5000) {
@@ -588,7 +588,7 @@ export class Indexer {
   async waitForever() {
     this.logger.error2("waiting forever");
     while (true) {
-      await sleepms(60000);
+      await sleepMs(60000);
 
       this.logger.debug("waiting forever");
     }
@@ -695,7 +695,7 @@ export class Indexer {
 
     // this.prepareTables();
 
-    await this.indexerToDB.saveBottomState();
+    await this.indexerToDB.saveBottomState((bottomBlockNumber) => this.headerCollector.onUpdateBottomBlockNumber(bottomBlockNumber));
 
     const startBlockNumber = (await this.indexerToClient.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
 
@@ -751,7 +751,7 @@ export class Indexer {
 
       // check if N + 1 hash is the same
       if (!isNp1Confirmed && !isChangedNp1Hash) {
-        await sleepms(this.config.blockCollectTimeMs);
+        await sleepMs(this.config.blockCollectTimeMs);
         continue;
       }
 

@@ -1,5 +1,5 @@
 import { getGlobalLogger } from "../utils/logging/logger";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { MenuItemBase } from "./menuItemBase";
 import { exec } from "child_process";
 
@@ -32,7 +32,7 @@ export class MenuItemCommand extends MenuItemBase {
 
     // wait until exec is completed
     while (!done) {
-      await sleepms(100);
+      await sleepMs(100);
     }
 
     MenuItemCommand.working = false;

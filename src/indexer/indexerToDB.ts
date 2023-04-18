@@ -91,7 +91,7 @@ export class IndexerToDB {
    * The bottom block is the minimal block for confirmed transactions that are currently
    * stored in the interlacing transaction tables.
    */
-  async saveBottomState() {
+  async saveBottomState(onNewBottomBlock?: (blockNumber: number) => void) {
     try {
       const bottomBlockNumber = await this.getBottomDBBlockNumberFromStoredTransactions();
       if (bottomBlockNumber) {
@@ -101,6 +101,9 @@ export class IndexerToDB {
         this.logger.debug(`block bottom state ${bottomBlockNumber}`);
         const bottomStates = [getStateEntry(`Nbottom`, this.chainName, bottomBlockNumber), getStateEntry(`NbottomTime`, this.chainName, this.bottomBlockTime)];
         await this.dbService.manager.save(bottomStates);
+        if (onNewBottomBlock) {
+          onNewBottomBlock(bottomBlockNumber);
+        }
       } else {
         this.logger.debug(`block bottom state is undefined`);
       }

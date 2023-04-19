@@ -1,5 +1,4 @@
 import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x, ZERO_BYTES_32 } from "@flarenetwork/mcc";
-import { stat } from "fs";
 import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
@@ -31,7 +30,7 @@ import {
  * Auxillary function for assembling attestation response for 'Payment' attestation type.
  * @param dbTransaction
  * @param TransactionClass
- * @param inUtxo
+ * @param inUtxo 
  * @param utxo
  * @param client
  * @returns
@@ -135,14 +134,14 @@ export async function verifyPayment(
  * Auxillary function for assembling attestation response for 'BlanceDecreasingTransaction' attestation type.
  * @param dbTransaction
  * @param TransactionClass
- * @param inUtxo
+ * @param sourceAddressIndicator
  * @param client
  * @returns
  */
 export async function responseBalanceDecreasingTransaction(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => MccTransactionType,
-  inUtxo: ByteSequenceLike,
+  sourceAddressIndicator: ByteSequenceLike,
   client?: MccClient
 ) {
   let parsedData: any;
@@ -155,7 +154,7 @@ export async function responseBalanceDecreasingTransaction(
 
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
-  const inUtxoNumber = toBN(inUtxo).toNumber();
+  const inUtxoNumber = toBN(sourceAddressIndicator).toNumber();
 
   let paymentSummary: PaymentSummary;
   try {
@@ -168,7 +167,7 @@ export async function responseBalanceDecreasingTransaction(
     blockNumber: toBN(dbTransaction.blockNumber),
     blockTimestamp: toBN(dbTransaction.timestamp),
     transactionHash: prefix0x(dbTransaction.transactionId),
-    inUtxo: inUtxo,
+    sourceAddressIndicator,
     sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : Web3.utils.leftPad("0x", 64),
     spentAmount: paymentSummary.spentAmount || toBN(0),
     paymentReference: paymentSummary.paymentReference || Web3.utils.leftPad("0x", 64),
@@ -223,7 +222,7 @@ export async function verifyBalanceDecreasingTransaction(
   }
 
   const dbTransaction = confirmedTransactionResult.transaction;
-  return await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request.inUtxo, client);
+  return await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request.sourceAddressIndicator, client);
 }
 
 /**

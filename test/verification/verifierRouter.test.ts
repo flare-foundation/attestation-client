@@ -149,9 +149,8 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
     await verifierRouter.initialize(verifierConfig, definitions);
 
-    let inUtxo = firstAddressVin(setup.Doge.selectedTransaction);
-
-    let requestDoge = await testBalanceDecreasingTransactionRequest(setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE, inUtxo);
+    let sourceAddressIndicator = prefix0x("" +firstAddressVin(setup.Doge.selectedTransaction));
+    let requestDoge = await testBalanceDecreasingTransactionRequest(setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE, sourceAddressIndicator);
     const attestationDoge = prepareAttestation(requestDoge, setup.startTime);
     let respDoge = await verifierRouter.verifyAttestation(attestationDoge);
 

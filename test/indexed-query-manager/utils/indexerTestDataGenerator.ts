@@ -386,9 +386,9 @@ export async function testBalanceDecreasingTransactionRequest(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => MccTransactionType,
   chainType: ChainType,
-  inUtxo: number = 0
+  sourceAddressIndicator: string = "0x"
 ) {
-  const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, inUtxo, undefined);
+  const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, sourceAddressIndicator, undefined);
 
   const request = {
     attestationType: AttestationType.BalanceDecreasingTransaction,
@@ -396,7 +396,7 @@ export async function testBalanceDecreasingTransactionRequest(
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     id: prefix0x(dbTransaction.transactionId),
     blockNumber: responseData.response?.blockNumber,
-    inUtxo,
+    sourceAddressIndicator,
   } as ARBalanceDecreasingTransaction;
   if (responseData.status === "OK") {
     request.messageIntegrityCode = hashBalanceDecreasingTransaction(request, responseData.response, MIC_SALT);

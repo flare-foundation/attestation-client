@@ -10,7 +10,17 @@
 
     // Prometheus settings
     "prometheus":{
+        // Enable monitor server
         "monitorServerEnabled":"true",
+
+        // Monitor Server port
+        //"monitorServerPort":"3010";
+
+        // Enable Prometheus push gateway
+        //"pushGatewayEnabled":"true",
+
+        // Push gateway URL
+        //"pushGatewayUrl":"http://127.0.0.1:9091",
     },
 
     // monitor system

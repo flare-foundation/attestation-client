@@ -52,7 +52,7 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
     sourceId: sourceId,
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
     id,
-    inUtxo: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    sourceAddressIndicator: "0x0000000000000000000000000000000000000000000000000000000000000000",
   } as ARBalanceDecreasingTransaction;
   if (choice === "WRONG_MIC") {
     return request;

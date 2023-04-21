@@ -83,6 +83,7 @@ export class MonitorManager {
     this.initializeMonitors(this.config.attesters);
     this.initializeMonitors(this.config.backends);
     this.initializeMonitors(this.config.databases);
+    this.initializeMonitors(this.config.balances);
 
     for (const monitor of this.monitors) {
       await monitor.initialize();
@@ -170,7 +171,7 @@ export class MonitorManager {
 
             for (const perf of resPerfs) {
               statusPerfs.push(perf);
-              perf.displayStatus(this.logger);
+              //perf.displayStatus(this.logger);
 
               // set performance metrics
               prometheus.setGauge(`${prefix}_${perf.name}_${perf.valueName}_${perf.valueUnit}`, perf.valueName, perf.valueUnit, perf.value);

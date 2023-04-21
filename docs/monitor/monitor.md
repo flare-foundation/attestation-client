@@ -7,7 +7,6 @@ Attestation Suite monitoring utility, uses Prometheus and Grafana. This utility 
 The monitoring utility provides a comprehensive view of your Attestation Suite working status, allowing you to quickly identify any potential issues. By tracking metrics such as indexer history latency, block bottom times, node system usage you can quickly identify patterns and trends that may be impacting the performance of your system. This information can then be used to optimize your systems and ensure they are running efficiently.
 
 ---
-
 ## Overview
 Grafana is a tool that allows you to visualize data and create dashboards. It does this by querying Prometheus, a monitoring and alerting system, for the data it needs. Prometheus, in turn, collects metrics and time series data by sequentially querying sources for new metrics.
 
@@ -39,6 +38,7 @@ By default the monitoring tool is configured to act as a Prometheus web server. 
 1. Comment `"monitorServerEnabled":"true"`
 2. Uncomment `"pushGatewayEnabled":"true"`
 
+---
 ## Installation notes
 
 Ports:
@@ -49,7 +49,7 @@ Ports:
 
 Exposed addresses:
 - `https://<url_name>` points on Grafana/
-- `https://<url_name>/prometheus` points on Prometheus/
+- `https://<url_name>/prometheus/graph` points on Prometheus/
 - `https://<url_name>/monitor` points on AS Monitor webserver (no actual data).
 - `https://<url_name>/pushgateway` points on push gateway.
 
@@ -58,7 +58,7 @@ Other usefull links:
 - `https://<url_name>/monitor/status/json` provides monitor status in JSON format
 - `https://<url_name>/monitor/metrics` provides Prometheus monitor metrics
 
-
+---
 ## Prometheus installation
 
 Create `tools/prometheus` folder.
@@ -99,72 +99,85 @@ Use this `run.sh` script.
 
 ```
 docker run \
+    -d \
     -p 9090:9090 \
     -v /home/ubuntu/tools/prometheus/:/etc/prometheus/ \
     prom/prometheus
 ```
+
+To check if `Prometheus` is working, navigate to `https://<host_name>/prometheus/graph` select `Status` and choose `Targets`. There you should see one Endpoint with green status `UP`.
 
 Monitor can be configured to provide data to Prometheus with:
 
 - Push Gateway
 - Monitor Metrics server
 
+---
 ## Grafana instalation
 
 Grafana is started from a prepared docker with command:
 
 ```
-sudo docker run -d -p 9100:3000 grafana/grafana-enterprise
+docker run -d -p 9100:3000 grafana/grafana-enterprise
 ```
 
----
 Default login username is `admin` and password `admin`.
 
+---
+CHANGE PASSWORD ON FIRST LOGIN!
+
+
+---
 ## Grafana setup
 
 ### Add Prometheus data source
 
-Add local host from *global ip*.
+On Home dashboard click `Data Source` ans select `Promethers` time series databases.
 
-Example: 
-Following the nginx example the url is:
-URL: https://`<host>`/prometheus
+Change only URL to point to your hostname (i.e. https://`<host>`/prometheus).
+
+Before exiting this page save the Prometheus `uid` from the addres URL (last part).
+
+Click `Save & test` (at the bottom).
 
 ### Import Grafana monitoring template
 
 To import Grafana template follow the next steps.
 
 #### 1. Find Prometheus UID
-1. In grafana create a dummy panel and add one panel. 
-2. In this panel add single metrics from Prometheus. 
-3. Click apply to save this panel.
-4. Select dashboard settings. 
-5. In settings choose tab `JSON Model`. 
-6. In JSON find data source uid and copy it into clipboard.
+To find Data source UID:
+1. Navigate to Grafana settings (left bottom)
+2. Select `Data sources`
+3. Choose `Prometheus` data source
+4. UID is in the URL (example: `https://<hostname>/datasources/edit/p-xsB0Y4z` UID is `p-xsB0Y4z`)
 
 #### 2. Prepare new template
-1. In Grafana template replace all uid values withthat value.
+1. In Grafana template replace all `uid` values with the data source UID.
 
 Grafana template is located here `scripts/grafana/grafana.json`.
 
-#### 3. Update panel
-1. Insert whole `panels` section from the template into `JSON Model`.
-2. Click `Save Changes` at the bottom.
+#### 3. Create new Dashboard
+1. In `Grafana/Home` create new Dashboard
+2. Navigate to settings (top right).
+3. Select `JSON Model` (right bottom).
+4. Replace line 29 `panels:[],` with the new template.
+5. Click `Save Changes` at the bottom.
 
+---
 ## Push gateway
 
 Monitor can be configured to work with push gateway or ad a Prometheus server.
 
----
 *Install Push Gateway only if you intend to use it.*
 
 Run push gateway with this command.
 
 ```
-sudo sudo docker pull prom/pushgateway
-sudo docker run -d -p 9091:9091 prom/pushgateway
+docker pull prom/pushgateway
+docker run -d -p 9091:9091 prom/pushgateway
 ```
 
+---
 ## NGINX
 
 Here is example of nginx server configuration:

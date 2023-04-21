@@ -44,6 +44,7 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
       this.dbService = new DatabaseService(this.logger, dbConfig.connection, `indexer`, `${this.name}-indexer`);
 
       await this.dbService.connect();
+      this.statusError = null;
     } catch (error) {
       this.statusError = error.message;
     }
@@ -85,6 +86,7 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
 
     if (this.statusError) {
       res.state = this.statusError;
+      await this.initialize();
       return res;
     }
 

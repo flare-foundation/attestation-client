@@ -275,19 +275,15 @@ export class Docker {
         containerInfo.status = container.State;
 
         containerInfo.statusIndex = 0;
-        if( containerDetail.State.Running ) {
+        if (containerDetail.State.Running) {
           containerInfo.statusIndex = 1;
-        }
-        else if( containerDetail.State.Restarting ) {
+        } else if (containerDetail.State.Restarting) {
           containerInfo.statusIndex = 2;
-        }
-        else if( containerDetail.State.Paused ) {
+        } else if (containerDetail.State.Paused) {
           containerInfo.statusIndex = 3;
-        }
-        else if( containerDetail.State.Dead ) {
+        } else if (containerDetail.State.Dead) {
           containerInfo.statusIndex = 4;
-        }
-        else if( containerDetail.State.OOMKilled ) {
+        } else if (containerDetail.State.OOMKilled) {
           containerInfo.statusIndex = 5;
         }
         containerInfo.error = `${containerDetail.State.Error} (${containerDetail.State.ExitCode})`;
@@ -331,8 +327,7 @@ export class Docker {
 
             containerInfo.cpuUsage = cpu_usage;
             containerInfo.memUsage = used_memory;
-          }
-          catch{}
+          } catch {}
 
           try {
             // op value
@@ -359,8 +354,7 @@ export class Docker {
                 containerInfo.networkTx += containerStats.networks[network].tx_bytes;
               }
             }
-          }
-          catch{}
+          } catch {}
         }
 
         dockerInfo.containers.push(containerInfo);

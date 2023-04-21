@@ -7,6 +7,7 @@ import {
   IBlock,
   IBlockHeader,
   IBlockTip,
+  IFullBlock,
   INodeStatus,
   ITransaction,
   MccError,
@@ -22,6 +23,9 @@ import * as xrpBlockResponse from "./xrp-block-response.json";
 import * as xrpTxResponse from "./xrp-tx-response.json";
 
 export class MockMccClient implements ReadRpcInterface {
+  getFullBlock(blockNumberOrHash: string | number): Promise<IFullBlock> {
+    throw new Error("Method not implemented.");
+  }
   web3 = new Web3();
   getNodeStatus(): Promise<INodeStatus> {
     throw new Error("Method not implemented.");
@@ -81,6 +85,9 @@ export class MockMccClient implements ReadRpcInterface {
 }
 
 export class MockMccClientBTC implements ReadRpcInterface {
+  getFullBlock(blockNumberOrHash: string | number): Promise<IFullBlock> {
+    throw new Error("Method not implemented.");
+  }
   web3 = new Web3();
   getNodeStatus(): Promise<INodeStatus> {
     throw new Error("Method not implemented.");

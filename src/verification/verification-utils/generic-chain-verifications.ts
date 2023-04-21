@@ -1,4 +1,4 @@
-import { MccClient, PaymentSummary, prefix0x, toBN, unPrefix0x, ZERO_BYTES_32 } from "@flarenetwork/mcc";
+import { BalanceDecreasingSummaryResponse, BalanceDecreasingSummaryStatus, MccClient, PaymentSummaryResponse, PaymentSummaryStatus, prefix0x, toBN, TransactionSuccessStatus, unPrefix0x, ZERO_BYTES_32 } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
@@ -21,6 +21,7 @@ import {
   verifyWorkflowForReferencedTransactions,
   verifyWorkflowForTransaction,
 } from "./verification-utils";
+import { retry } from "../../utils/helpers/promiseTimeout";
 
 //////////////////////////////////////////////////
 // Verification functions
@@ -55,15 +56,14 @@ export async function responsePayment(
   const inUtxoNumber = toBN(inUtxo).toNumber();
   const utxoNumber = toBN(utxo).toNumber();
 
-  let paymentSummary: PaymentSummary;
-  try {
-    paymentSummary = await fullTxData.paymentSummary(client, inUtxoNumber, utxoNumber);
-  } catch (e: any) {
-    return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR };
+  let paymentSummary = await fullTxData.paymentSummary({ client, inUtxo: inUtxoNumber, outUtxo: utxoNumber });
+
+  if (paymentSummary.status !== PaymentSummaryStatus.Success) {
+    return { status: VerificationStatus.NOT_CONFIRMED };
   }
 
-  if (!paymentSummary.isNativePayment) {
-    return { status: VerificationStatus.NOT_PAYMENT };
+  if (!paymentSummary.response) {
+    throw new Error("critical error: should always have response");
   }
 
   const response = {
@@ -72,12 +72,14 @@ export async function responsePayment(
     transactionHash: prefix0x(dbTransaction.transactionId),
     inUtxo: toBN(inUtxo),
     utxo: toBN(utxo),
-    sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : Web3.utils.leftPad("0x", 64),
-    receivingAddressHash: paymentSummary.receivingAddress ? Web3.utils.soliditySha3(paymentSummary.receivingAddress) : Web3.utils.leftPad("0x", 64),
-    paymentReference: paymentSummary.paymentReference || Web3.utils.leftPad("0x", 64),
-    spentAmount: paymentSummary.spentAmount || toBN(0),
-    receivedAmount: paymentSummary.receivedAmount || toBN(0),
-    oneToOne: !!paymentSummary.oneToOne,
+    sourceAddressHash: paymentSummary.response.sourceAddressHash,
+
+    receivingAddressHash: paymentSummary.response.receivingAddressHash,
+    paymentReference: paymentSummary.response.paymentReference,
+    spentAmount: toBN(paymentSummary.response.spentAmount),
+
+    receivedAmount: toBN(paymentSummary.response.receivedAmount),
+    oneToOne: paymentSummary.response.oneToOne,
     status: toBN(fullTxData.successStatus),
   } as DHPayment;
 
@@ -154,13 +156,14 @@ export async function responseBalanceDecreasingTransaction(
 
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
-  const inUtxoNumber = toBN(sourceAddressIndicator).toNumber();
+  let balanceDecreasingSummary: BalanceDecreasingSummaryResponse;
+  balanceDecreasingSummary = await fullTxData.balanceDecreasingSummary({ client, sourceAddressIndicator });
+  if (balanceDecreasingSummary.status !== BalanceDecreasingSummaryStatus.Success) {
+    return { status: VerificationStatus.NOT_CONFIRMED };
+  }
 
-  let paymentSummary: PaymentSummary;
-  try {
-    paymentSummary = await fullTxData.paymentSummary(client, inUtxoNumber);
-  } catch (e: any) {
-    return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR };
+  if (!balanceDecreasingSummary.response) {
+    throw new Error("critical error: should always have response");
   }
 
   const response = {
@@ -168,9 +171,9 @@ export async function responseBalanceDecreasingTransaction(
     blockTimestamp: toBN(dbTransaction.timestamp),
     transactionHash: prefix0x(dbTransaction.transactionId),
     sourceAddressIndicator,
-    sourceAddressHash: paymentSummary.sourceAddress ? Web3.utils.soliditySha3(paymentSummary.sourceAddress) : Web3.utils.leftPad("0x", 64),
-    spentAmount: paymentSummary.spentAmount || toBN(0),
-    paymentReference: paymentSummary.paymentReference || Web3.utils.leftPad("0x", 64),
+    sourceAddressHash: balanceDecreasingSummary.response.sourceAddressHash,
+    spentAmount: toBN(balanceDecreasingSummary.response.spentAmount),
+    paymentReference: balanceDecreasingSummary.response.paymentReference
   } as DHBalanceDecreasingTransaction;
 
   return {
@@ -315,18 +318,27 @@ export async function responseReferencedPaymentNonExistence(
     // In account based case this loop goes through only once.
     for (let outUtxo = 0; outUtxo < fullTxData.receivingAddresses.length; outUtxo++) {
       const address = fullTxData.receivingAddresses[outUtxo];
+      // TODO: standard address hash
       const destinationAddressHashTmp = Web3.utils.soliditySha3(address);
       if (destinationAddressHashTmp === destinationAddressHash) {
-        try {
-          const paymentSummary = await fullTxData.paymentSummary(undefined, undefined, outUtxo);
 
-          if (paymentSummary.receivedAmount.eq(toBN(amount))) {
+        const paymentSummary = await retry(`responseReferencedPaymentNonExistence::paymentSummary`, async () => fullTxData.paymentSummary({ inUtxo: 0, outUtxo })) as PaymentSummaryResponse;
+
+        if (paymentSummary.status !== PaymentSummaryStatus.Success) {
+          // the address indicated in destinationAddressHash was fully checked, no need to proceed with utxos
+          break;
+        }
+
+        if (!paymentSummary.response) {
+          throw new Error("critical error: should always have response");
+        }
+      
+        if (paymentSummary.response.receivedAmount.eq(toBN(amount))) {
+          if (paymentSummary.response.transactionStatus !== TransactionSuccessStatus.SENDER_FAILURE) {
+            // it must be SUCCESS or RECEIVER_FAULT, so the sender sent it correctly
             return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS };
           }
-        } catch (e) {
-          return { status: VerificationStatus.PAYMENT_SUMMARY_ERROR };
         }
-        // no match on that address, proceed to the next transaction
         break;
       }
     }

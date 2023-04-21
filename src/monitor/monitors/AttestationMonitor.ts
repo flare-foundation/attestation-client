@@ -4,8 +4,8 @@ import { EpochSettings } from "../../utils/data-structures/EpochSettings";
 import { DatabaseService } from "../../utils/database/DatabaseService";
 import { AttLogger } from "../../utils/logging/logger";
 import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
-import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
+import { MonitorConfig } from "../MonitorConfiguration";
 
 /**
  * Attestation monitor configuration class
@@ -51,6 +51,9 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
 
       this.epochSettings = new EpochSettings(toBN(this.config.firstEpochStartTime), toBN(this.config.roundDurationSec));
       await this.dbService.connect();
+
+      // clear error
+      this.statusError = null;
     } catch (error) {
       this.statusError = error.toString();
     }
@@ -87,6 +90,10 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
     if (this.statusError) {
       res.state = this.statusError;
       this.lastState = null;
+
+      // try to reconnect
+      await this.initialize();
+
       return res;
     }
 

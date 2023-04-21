@@ -46,6 +46,7 @@ export class DatabaseMonitor extends MonitorBase<MonitorDatabaseConfig> {
     try {
       this.dbService = new DatabaseService(this.logger, this.config.connection, this.config.database, this.config.database + "_process");
       await this.dbService.connect();
+      this.errorStatus = null;
     } catch (error) {
       this.errorStatus = error.message;
       this.logger.exception(error);
@@ -59,6 +60,8 @@ export class DatabaseMonitor extends MonitorBase<MonitorDatabaseConfig> {
       res.name = this.name;
       res.state = this.errorStatus;
       res.status = "down";
+
+      await this.initialize();
 
       return res;
     }

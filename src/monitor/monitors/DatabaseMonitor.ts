@@ -1,7 +1,7 @@
 import { optional } from "@flarenetwork/mcc";
 import { DatabaseConnectOptions } from "../../utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../utils/database/DatabaseService";
-import { AttLogger } from "../../utils/logging/logger";
+import { AttLogger, logException } from "../../utils/logging/logger";
 import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflection";
 import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
 import { MonitorConfig } from "../MonitorConfiguration";
@@ -76,19 +76,23 @@ export class DatabaseMonitor extends MonitorBase<MonitorDatabaseConfig> {
       return null;
     }
 
-    const dbRes = await this.dbService.manager.query(
-      "SELECT user, count(*) as conn, sum(time) as time FROM information_schema.processlist where command<>'Sleep' group by user order by time desc;"
-    );
+    try {
+      const dbRes = await this.dbService.manager.query(
+        "SELECT user, count(*) as conn, sum(time) as time FROM information_schema.processlist where command<>'Sleep' group by user order by time desc;"
+      );
 
-    if (dbRes.length === 0) {
-    } else {
-      for (const user of dbRes) {
-        if (user.user === "root" || user.user === "event_scheduler" || user.user === "processReader") continue;
+      if (dbRes.length === 0) {
+      } else {
+        for (const user of dbRes) {
+          if (user.user === "root" || user.user === "event_scheduler" || user.user === "processReader") continue;
 
-        resArray.push(new PerformanceMetrics(`mysql.${user.user}`, "time", user.time, "ms", `${user.conn} connection(s)`));
+          resArray.push(new PerformanceMetrics(`mysql.${user.user}`, "time", user.time, "ms", `${user.conn} connection(s)`));
+        }
       }
+    } catch (error) {
+      logException(error, `database monitor ${this.config.name}`);
+      this.errorStatus = error.toString();
     }
-
     return resArray;
   }
 }

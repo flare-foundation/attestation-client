@@ -1,8 +1,10 @@
 import {
-  ChainType, IUtxoGetBlockRes,
+  BtcFullBlock,
+  ChainType, DogeFullBlock, IUtxoGetBlockRes,
   IXrpGetBlockRes, IXrpGetTransactionRes,
-  LtcBlockHeader, UtxoBlock, UtxoTransaction,
-  XrpBlock, XrpNodeStatus, XrpTransaction
+  LtcBlockHeader, LtcFullBlock,
+  UtxoTransaction,
+  XrpBlock, XrpFullBlock, XrpNodeStatus, XrpTransaction
 } from "@flarenetwork/mcc";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
@@ -31,26 +33,26 @@ import * as resLTCBlock421 from "../mockData/LTCBlock421.json";
 import * as resLTCBlockHeader from "../mockData/LTCBlockHeaderFake.json";
 
 
-export const TestBlockBTC = new UtxoBlock(resBTCBlock);
+export const TestBlockBTC = new BtcFullBlock(resBTCBlock);
 export const TestTxBTC = new UtxoTransaction(resBTCTx);
-export const TestBlockBTCAlt = new UtxoBlock(resBTCBlockAlt as unknown as IUtxoGetBlockRes);
+export const TestBlockBTCAlt = new BtcFullBlock(resBTCBlockAlt as unknown as IUtxoGetBlockRes);
 export const TestTxBTCAlt = new UtxoTransaction(resBTCTxAlt);
 export const TestTxBTCFake = new UtxoTransaction(resBTCTxFake);
 
-export const TestBlockDOGE = new UtxoBlock(resDOGEBlock as unknown as IUtxoGetBlockRes);
+export const TestBlockDOGE = new DogeFullBlock(resDOGEBlock as unknown as IUtxoGetBlockRes);
 
 export const TestBlockXRP = new XrpBlock(resXRPBlock as unknown as IXrpGetBlockRes);
 export const TestTxXRP = new XrpTransaction(resXRPTx as unknown as IXrpGetTransactionRes);
 
-export const TestBlockXRPAlt = new XrpBlock(resXRPBlockAlt as unknown as IXrpGetBlockRes);
-export const TestBlockXRPFake = new XrpBlock(resXRPBlockFake as unknown as IXrpGetBlockRes);
+export const TestBlockXRPAlt = new XrpFullBlock(resXRPBlockAlt as unknown as IXrpGetBlockRes);
+export const TestBlockXRPFake = new XrpFullBlock(resXRPBlockFake as unknown as IXrpGetBlockRes);
 
 export const BlockXRP612 = new XrpBlock(resXRPBlock612 as unknown as IXrpGetBlockRes);
 export const BlockXRP613 = new XrpBlock(resXRPBlock613 as unknown as IXrpGetBlockRes);
 export const BlockXRP614 = new XrpBlock(resXRPBlock614 as unknown as IXrpGetBlockRes);
 
-export const BlockLTC420 = new UtxoBlock(resLTCBlock420);
-export const BlockLTC421 = new UtxoBlock(resLTCBlock421);
+export const BlockLTC420 = new LtcFullBlock(resLTCBlock420);
+export const BlockLTC421 = new LtcFullBlock(resLTCBlock421);
 
 export const BlockHeaderLTC = new LtcBlockHeader(resLTCBlockHeader);
 

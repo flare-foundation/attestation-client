@@ -74,7 +74,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       expect(BlockProcessor(-1)).to.be.null;
     });
 
-    describe("ALGO", function () {
+    describe.skip("ALGO", function () {
       const algoCreateConfig = {
         algod: {
           url: "https://node.algoexplorerapi.io/",

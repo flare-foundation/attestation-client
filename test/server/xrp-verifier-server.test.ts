@@ -1,6 +1,6 @@
 // This should always be on the top of the file, before imports
 
-import { ChainType, prefix0x, toHex, XrpTransaction } from "@flarenetwork/mcc";
+import { ChainType, prefix0x, standardAddressHash, toHex, XrpTransaction } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -134,7 +134,8 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   it(`Should verify Balance Decreasing attestation attestation`, async function () {
-    let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE);
+    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.response).data.result.Account);
+    let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
     let attestationRequest = {
       request: encodeBalanceDecreasingTransaction(request),
       options: {
@@ -152,7 +153,9 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
-    let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE);
+    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.response).data.result.Account);
+    let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
+
     request.id = "0x0000000000000000000000000000000000000000000000000000000000000000";
     let attestationRequest = {
       request: encodeBalanceDecreasingTransaction(request),

@@ -540,7 +540,7 @@
         "CONFIG_PATH": ".secure.dev",
         "NODE_ENV": "development"
       },
-      "runtimeArgs": ["test", "test/server/btc-verifier-server.test.ts"]
+      "runtimeArgs": ["test", "test/server/xrp-verifier-server.test.ts"]
     },
     {
       "type": "node",

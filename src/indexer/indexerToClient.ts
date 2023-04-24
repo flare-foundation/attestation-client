@@ -31,7 +31,7 @@ export class IndexerToClient {
     const result = await retry(
       `indexerToClient.getBlockFromClient.${label}`,
       async () => {
-        return await this.client.getBlock(blockNumber);
+        return await this.client.getFullBlock(blockNumber);
       },
       thisreference.timeoutTime,
       thisreference.numRetry,

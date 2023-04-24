@@ -386,7 +386,7 @@ export async function testBalanceDecreasingTransactionRequest(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => MccTransactionType,
   chainType: ChainType,
-  sourceAddressIndicator: string = "0x"
+  sourceAddressIndicator: string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 ) {
   const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, sourceAddressIndicator, undefined);
 

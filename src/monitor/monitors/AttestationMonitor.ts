@@ -2,10 +2,10 @@ import { toBN } from "@flarenetwork/mcc";
 import { DBRoundResult } from "../../entity/attester/dbRoundResult";
 import { EpochSettings } from "../../utils/data-structures/EpochSettings";
 import { DatabaseService } from "../../utils/database/DatabaseService";
-import { AttLogger } from "../../utils/logging/logger";
+import { AttLogger, logException } from "../../utils/logging/logger";
 import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
-import { MonitorConfig } from "../MonitorConfiguration";
 import { MonitorConfigBase } from "../MonitorConfigBase";
+import { MonitorConfig } from "../MonitorConfiguration";
 
 /**
  * Attestation monitor configuration class
@@ -51,6 +51,9 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
 
       this.epochSettings = new EpochSettings(toBN(this.config.firstEpochStartTime), toBN(this.config.roundDurationSec));
       await this.dbService.connect();
+
+      // clear error
+      this.statusError = null;
     } catch (error) {
       this.statusError = error.toString();
     }
@@ -87,40 +90,49 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
     if (this.statusError) {
       res.state = this.statusError;
       this.lastState = null;
+
+      // try to reconnect
+      await this.initialize();
+
       return res;
     }
 
-    const dbRes = await this.dbService.manager.getRepository(DBRoundResult).find({ order: { roundId: "DESC" }, take: 1 });
+    try {
+      const dbRes = await this.dbService.manager.getRepository(DBRoundResult).find({ order: { roundId: "DESC" }, take: 1 });
 
-    let transactions = 0;
-    let validTransactions = 0;
+      let transactions = 0;
+      let validTransactions = 0;
 
-    if (dbRes.length === 0) {
-      res.state = `unable to get valid result`;
-      return res;
-    } else {
-      transactions = dbRes[0].transactionCount;
-      validTransactions = dbRes[0].validTransactionCount;
-    }
-
-    this.lastState = dbRes;
-
-    res.state = `running`;
-
-    const activeRound = this.epochSettings.getCurrentEpochId().toNumber();
-    const dbRound = dbRes[0].roundId;
-
-    res.comment = `round ${dbRound} (${activeRound}) transactions ${validTransactions}/${transactions}`;
-
-    res.status = dbRound + 2 >= activeRound ? "running" : "down";
-
-    // restart if more than 2 round behind
-    if (dbRound + 3 < activeRound) {
-      if (await this.restart()) {
-        res.comment = "^r^Wrestart^^";
+      if (dbRes.length === 0) {
+        res.state = `unable to get valid result`;
+        return res;
+      } else {
+        transactions = dbRes[0].transactionCount;
+        validTransactions = dbRes[0].validTransactionCount;
       }
-    }
 
+      this.lastState = dbRes;
+
+      res.state = `running`;
+
+      const activeRound = this.epochSettings.getCurrentEpochId().toNumber();
+      const dbRound = dbRes[0].roundId;
+
+      res.comment = `round ${dbRound} (${activeRound}) transactions ${validTransactions}/${transactions}`;
+
+      res.status = dbRound + 2 >= activeRound ? "running" : "down";
+
+      // restart if more than 2 round behind
+      if (dbRound + 3 < activeRound) {
+        if (await this.restart()) {
+          res.comment = "^r^Wrestart^^";
+        }
+      }
+    } catch (error) {
+      logException(error, `attesttaion client monitor ${this.config.name}`);
+      this.statusError = error.toString();
+      res.state = this.statusError;
+    }
     return res;
   }
 }

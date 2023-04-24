@@ -1,1531 +1,2272 @@
-{
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "panels": [],
+      "title": "Status",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
           },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "target": {
-            "limit": 100,
-            "matchAny": false,
-            "tags": [],
-            "type": "dashboard"
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 4,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
-          "type": "dashboard"
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         }
-      ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_attester_songbird_active_round - attestationsuite_attester_songbird_saved_round",
+          "legendFormat": "Late",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_attester_songbird_valid_tx",
+          "hide": false,
+          "legendFormat": "Valid tx",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_attester_songbird_collected_tx",
+          "hide": false,
+          "legendFormat": "Tx",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Attestation Client History",
+      "type": "timeseries"
     },
-    "description": "Flare Attestation Suite",
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
-    "id": 10,
-    "links": [],
-    "liveNow": false,
-    "panels": [
-      {
-        "collapsed": false,
-        "gridPos": {
-          "h": 1,
-          "w": 24,
-          "x": 0,
-          "y": 0
-        },
-        "id": 2,
-        "panels": [],
-        "title": "Status",
-        "type": "row"
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
       },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "series",
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 3,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisGridShow": true,
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "axisSoftMax": 4,
-              "axisSoftMin": 0,
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "smooth",
-              "lineStyle": {
-                "fill": "solid"
-              },
-              "lineWidth": 2,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "never",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
             },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "#EAB839",
-                  "value": 1
-                },
-                {
-                  "color": "red",
-                  "value": 2
-                }
-              ]
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 1
-        },
-        "id": 22,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_attester_songbird_active_round - attestationsuite_attester_songbird_saved_round",
-            "legendFormat": "Late",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_attester_songbird_valid_tx",
-            "hide": false,
-            "legendFormat": "Valid tx",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_attester_songbird_collected_tx",
-            "hide": false,
-            "legendFormat": "Tx",
-            "range": true,
-            "refId": "C"
-          }
-        ],
-        "title": "Attestation Client History",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "series",
-              "axisGridShow": true,
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "axisSoftMax": 3,
-              "axisSoftMin": 0,
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 10,
-              "gradientMode": "hue",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "linear",
-              "lineStyle": {
-                "fill": "solid"
-              },
-              "lineWidth": 2,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "always",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "#EAB839",
-                  "value": 1
-                },
-                {
-                  "color": "red",
-                  "value": 2
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 1
-        },
-        "id": 24,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "pluginVersion": "9.4.1-30f3f63",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_btc_late_sec",
-            "legendFormat": "BTC",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_doge_late_sec",
-            "hide": false,
-            "legendFormat": "DOGE",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_xrp_late_sec",
-            "hide": false,
-            "legendFormat": "XRP",
-            "range": true,
-            "refId": "C"
-          }
-        ],
-        "title": "Indexers History",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "fixed"
-            },
-            "custom": {
-              "fillOpacity": 100,
-              "lineWidth": 0
-            },
-            "mappings": [
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
               {
-                "options": {
-                  "0": {
-                    "color": "red",
-                    "index": 0,
-                    "text": "down"
-                  },
-                  "1": {
-                    "color": "blue",
-                    "index": 1,
-                    "text": "late"
-                  },
-                  "2": {
-                    "color": "yellow",
-                    "index": 2,
-                    "text": "sync"
-                  },
-                  "3": {
-                    "color": "green",
-                    "index": 3,
-                    "text": "up"
-                  }
-                },
-                "type": "value"
-              }
-            ],
-            "max": 3,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "red",
-                  "value": null
-                },
-                {
-                  "color": "green",
-                  "value": 3
-                }
-              ]
-            },
-            "unit": "string"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 5,
-          "w": 12,
-          "x": 0,
-          "y": 9
-        },
-        "id": 4,
-        "options": {
-          "colWidth": 0.5,
-          "legend": {
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "rowHeight": 0.8,
-          "showValue": "auto",
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "builder",
-            "expr": "attestationsuite_btc_node",
-            "legendFormat": "BTC",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "builder",
-            "expr": "attestationsuite_doge_node",
-            "hide": false,
-            "legendFormat": "DOGE",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "builder",
-            "expr": "attestationsuite_xrp_node",
-            "format": "heatmap",
-            "hide": false,
-            "legendFormat": "XRP",
-            "range": true,
-            "refId": "C"
-          }
-        ],
-        "title": "Nodes Uptime History",
-        "type": "status-history"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "fixed"
-            },
-            "custom": {
-              "fillOpacity": 100,
-              "lineWidth": 0
-            },
-            "mappings": [
+                "color": "green",
+                "value": null
+              },
               {
-                "options": {
-                  "0": {
-                    "color": "red",
-                    "index": 0,
-                    "text": "down"
-                  },
-                  "1": {
-                    "color": "blue",
-                    "index": 1,
-                    "text": "late"
-                  },
-                  "2": {
-                    "color": "yellow",
-                    "index": 2,
-                    "text": "sync"
-                  },
-                  "3": {
-                    "color": "green",
-                    "index": 3,
-                    "text": "up"
-                  }
-                },
-                "type": "value"
+                "color": "#EAB839",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
               }
-            ],
-            "max": 3,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.4.1-30f3f63",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_btc_late_sec",
+          "legendFormat": "BTC",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_doge_late_sec",
+          "hide": false,
+          "legendFormat": "DOGE",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_xrp_late_sec",
+          "hide": false,
+          "legendFormat": "XRP",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Indexers History",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "fillOpacity": 100,
+            "lineWidth": 0
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
                   "color": "red",
-                  "value": null
+                  "index": 0,
+                  "text": "down"
                 },
-                {
-                  "color": "green",
-                  "value": 3
-                }
-              ]
-            },
-            "unit": "string"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 5,
-          "w": 12,
-          "x": 12,
-          "y": 9
-        },
-        "id": 9,
-        "options": {
-          "colWidth": 0.5,
-          "legend": {
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "rowHeight": 0.8,
-          "showValue": "auto",
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "builder",
-            "expr": "attestationsuite_btc_indexer",
-            "legendFormat": "BTC",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "builder",
-            "expr": "attestationsuite_doge_indexer",
-            "hide": false,
-            "legendFormat": "DOGE",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "builder",
-            "expr": "attestationsuite_xrp_indexer",
-            "format": "heatmap",
-            "hide": false,
-            "legendFormat": "XRP",
-            "range": true,
-            "refId": "C"
-          }
-        ],
-        "title": "Indexers Uptime History",
-        "type": "status-history"
-      },
-      {
-        "collapsed": false,
-        "gridPos": {
-          "h": 1,
-          "w": 24,
-          "x": 0,
-          "y": 14
-        },
-        "id": 6,
-        "panels": [],
-        "title": "System Performance",
-        "type": "row"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisGridShow": true,
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "axisSoftMax": 100,
-              "axisSoftMin": 0,
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "smooth",
-              "lineWidth": 2,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "never",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "area"
-              }
-            },
-            "mappings": [],
-            "max": 100,
-            "min": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "yellow",
-                  "value": 70
-                },
-                {
-                  "color": "red",
-                  "value": 90
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 5,
-          "w": 12,
-          "x": 0,
-          "y": 15
-        },
-        "id": 26,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_system_cpu_utilization_percent",
-            "legendFormat": "CPU utilization",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "100 * attestationsuite_system_memory_available_mb / attestationsuite_system_memory_total_mb",
-            "hide": false,
-            "legendFormat": "Memory available",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "100 * attestationsuite_system_disk__dev_md127_used_gb / attestationsuite_system_disk__dev_md127_total_gb",
-            "hide": false,
-            "legendFormat": "Disk used",
-            "range": true,
-            "refId": "C"
-          }
-        ],
-        "title": "System Information",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "description": "",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "decimals": 0,
-            "mappings": [],
-            "max": 100,
-            "min": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
+                "1": {
                   "color": "blue",
-                  "value": null
+                  "index": 1,
+                  "text": "late"
                 },
-                {
+                "2": {
                   "color": "yellow",
-                  "value": 70
+                  "index": 2,
+                  "text": "sync"
                 },
-                {
-                  "color": "red",
-                  "value": 90
-                }
-              ]
-            },
-            "unit": "percent"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 5,
-          "w": 3,
-          "x": 12,
-          "y": 15
-        },
-        "id": 11,
-        "options": {
-          "orientation": "auto",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showThresholdLabels": false,
-          "showThresholdMarkers": true,
-          "text": {}
-        },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "100*attestationsuite_system_disk__dev_md127_used_gb/ attestationsuite_system_disk__dev_md127_total_gb",
-            "instant": false,
-            "legendFormat": "__auto",
-            "range": true,
-            "refId": "A"
-          }
-        ],
-        "title": "Disk usage",
-        "type": "gauge"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "description": "",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "decimals": 0,
-            "mappings": [],
-            "max": 100,
-            "min": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
+                "3": {
                   "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "yellow",
-                  "value": 70
-                },
-                {
-                  "color": "red",
-                  "value": 90
+                  "index": 3,
+                  "text": "up"
                 }
-              ]
-            },
-            "unit": "percent"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 5,
-          "w": 3,
-          "x": 15,
-          "y": 15
-        },
-        "id": 29,
-        "options": {
-          "orientation": "auto",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showThresholdLabels": false,
-          "showThresholdMarkers": true,
-          "text": {}
-        },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_system_cpu_utilization_percent",
-            "instant": false,
-            "legendFormat": "__auto",
-            "range": true,
-            "refId": "A"
-          }
-        ],
-        "title": "CPU usage",
-        "type": "gauge"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "description": "",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "decimals": 0,
-            "mappings": [],
-            "max": 100,
-            "min": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "light-yellow",
-                  "value": null
-                },
-                {
-                  "color": "yellow",
-                  "value": 70
-                },
-                {
-                  "color": "red",
-                  "value": 90
-                }
-              ]
-            },
-            "unit": "percent"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 5,
-          "w": 3,
-          "x": 18,
-          "y": 15
-        },
-        "id": 30,
-        "options": {
-          "orientation": "auto",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showThresholdLabels": false,
-          "showThresholdMarkers": true,
-          "text": {}
-        },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "100 * attestationsuite_system_memory_available_mb / attestationsuite_system_memory_total_mb",
-            "instant": false,
-            "legendFormat": "__auto",
-            "range": true,
-            "refId": "A"
-          }
-        ],
-        "title": "Memory usage",
-        "type": "gauge"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "description": "",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "purple",
-                  "value": null
-                }
-              ]
+              },
+              "type": "value"
             }
+          ],
+          "max": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
           },
-          "overrides": []
+          "unit": "string"
         },
-        "gridPos": {
-          "h": 5,
-          "w": 3,
-          "x": 21,
-          "y": 15
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "colWidth": 0.5,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "id": 31,
-        "options": {
-          "colorMode": "value",
-          "graphMode": "area",
-          "justifyMode": "auto",
-          "orientation": "auto",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
+        "rowHeight": 0.8,
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
           },
-          "textMode": "auto"
+          "editorMode": "builder",
+          "expr": "attestationsuite_btc_node",
+          "legendFormat": "BTC",
+          "range": true,
+          "refId": "A"
         },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "$$hashKey": "object:24",
-            "aggregation": "Last",
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "decimals": 2,
-            "displayAliasType": "Warning / Critical",
-            "displayType": "Regular",
-            "displayValueWithAlias": "Never",
-            "editorMode": "code",
-            "expr": "attestationsuite_system_cpu_count_",
-            "instant": false,
-            "legendFormat": "__auto",
-            "range": true,
-            "refId": "A",
-            "units": "none",
-            "valueHandler": "Number Threshold"
-          }
-        ],
-        "title": "CPU count",
-        "type": "stat"
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "builder",
+          "expr": "attestationsuite_doge_node",
+          "hide": false,
+          "legendFormat": "DOGE",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "builder",
+          "expr": "attestationsuite_xrp_node",
+          "format": "heatmap",
+          "hide": false,
+          "legendFormat": "XRP",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Nodes Uptime History",
+      "type": "status-history"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
       },
-      {
-        "collapsed": false,
-        "gridPos": {
-          "h": 1,
-          "w": 24,
-          "x": 0,
-          "y": 20
-        },
-        "id": 28,
-        "panels": [],
-        "title": "Details",
-        "type": "row"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "fillOpacity": 100,
+            "lineWidth": 0
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "down"
+                },
+                "1": {
+                  "color": "blue",
+                  "index": 1,
+                  "text": "late"
+                },
+                "2": {
+                  "color": "yellow",
+                  "index": 2,
+                  "text": "sync"
+                },
+                "3": {
                   "color": "green",
-                  "value": null
+                  "index": 3,
+                  "text": "up"
                 }
-              ]
+              },
+              "type": "value"
             }
+          ],
+          "max": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
           },
-          "overrides": []
+          "unit": "string"
         },
-        "gridPos": {
-          "h": 4,
-          "w": 5,
-          "x": 0,
-          "y": 21
-        },
-        "id": 20,
-        "options": {
-          "displayMode": "gradient",
-          "minVizHeight": 10,
-          "minVizWidth": 0,
-          "orientation": "horizontal",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showUnfilled": true
-        },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_attester_songbird_active_round",
-            "legendFormat": "Active Round",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_attester_songbird_saved_round",
-            "hide": false,
-            "legendFormat": "Saved Round",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_attester_songbird_collected_tx",
-            "hide": false,
-            "legendFormat": "Collected tx",
-            "range": true,
-            "refId": "C"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_attester_songbird_valid_tx",
-            "hide": false,
-            "legendFormat": "Validated tx",
-            "range": true,
-            "refId": "D"
-          }
-        ],
-        "title": "Attestation Client details",
-        "type": "bargauge"
+        "overrides": []
       },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "dark-yellow",
-                  "value": null
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 6,
-          "w": 5,
-          "x": 5,
-          "y": 21
-        },
-        "id": 18,
-        "options": {
-          "displayMode": "gradient",
-          "minVizHeight": 10,
-          "minVizWidth": 0,
-          "orientation": "horizontal",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showUnfilled": true
-        },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "builder",
-            "exemplar": false,
-            "expr": "attestationsuite_indexer_btc_n_block",
-            "instant": false,
-            "legendFormat": "BTC N",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_btc_t_block",
-            "hide": false,
-            "legendFormat": "BTC Top",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_doge_n_block",
-            "hide": false,
-            "legendFormat": "DOGE N",
-            "range": true,
-            "refId": "C"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_doge_t_block",
-            "hide": false,
-            "legendFormat": "DOGE Top",
-            "range": true,
-            "refId": "D"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_xrp_n_block",
-            "hide": false,
-            "legendFormat": "XRP N",
-            "range": true,
-            "refId": "E"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_xrp_t_block",
-            "hide": false,
-            "legendFormat": "XRL Top",
-            "range": true,
-            "refId": "F"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_btc_nbottom_block",
-            "hide": false,
-            "legendFormat": "BTC N bottom",
-            "range": true,
-            "refId": "G"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_doge_nbottom_block",
-            "hide": false,
-            "legendFormat": "DOGE N bottom",
-            "range": true,
-            "refId": "H"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_indexer_xrp_nbottom_block",
-            "hide": false,
-            "legendFormat": "XRP N bottom",
-            "range": true,
-            "refId": "I"
-          }
-        ],
-        "title": "Indexers details",
-        "type": "bargauge"
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 9
       },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
+      "id": 9,
+      "options": {
+        "colWidth": 0.5,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "purple",
-                  "value": null
-                }
-              ]
-            },
-            "unit": "decgbytes"
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 6,
-          "w": 4,
-          "x": 10,
-          "y": 21
-        },
-        "id": 32,
-        "options": {
-          "displayMode": "gradient",
-          "minVizHeight": 10,
-          "minVizWidth": 0,
-          "orientation": "horizontal",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showUnfilled": true
-        },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "exemplar": false,
-            "expr": "attestationsuite_docker_bitcoin_container_size_mb/1024",
-            "instant": false,
-            "legendFormat": "Container size",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_docker_bitcoin_container_status_days",
-            "hide": false,
-            "legendFormat": "Days up",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_docker_bitcoin_volume_size_mb/1024.0",
-            "hide": false,
-            "legendFormat": "Volume size",
-            "range": true,
-            "refId": "C"
-          }
-        ],
-        "title": "BTC node details",
-        "type": "bargauge"
+        "rowHeight": 0.8,
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "purple",
-                  "value": null
-                }
-              ]
-            }
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
           },
-          "overrides": []
+          "editorMode": "builder",
+          "expr": "attestationsuite_btc_indexer",
+          "legendFormat": "BTC",
+          "range": true,
+          "refId": "A"
         },
-        "gridPos": {
-          "h": 6,
-          "w": 4,
-          "x": 14,
-          "y": 21
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "builder",
+          "expr": "attestationsuite_doge_indexer",
+          "hide": false,
+          "legendFormat": "DOGE",
+          "range": true,
+          "refId": "B"
         },
-        "id": 33,
-        "options": {
-          "displayMode": "gradient",
-          "minVizHeight": 10,
-          "minVizWidth": 0,
-          "orientation": "horizontal",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
           },
-          "showUnfilled": true
-        },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "exemplar": false,
-            "expr": "attestationsuite_docker_dogecoin_container_size_mb/1024",
-            "instant": false,
-            "legendFormat": "Container size (GB)",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_docker_dogecoin_container_status_days",
-            "hide": false,
-            "legendFormat": "Days up",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_docker_dogecoin_volume_size_mb/1024.0",
-            "hide": false,
-            "legendFormat": "Volume size (GB)",
-            "range": true,
-            "refId": "C"
-          }
-        ],
-        "title": "DOGE node details",
-        "type": "bargauge"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "kQrTgqx4z"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "purple",
-                  "value": null
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 6,
-          "w": 4,
-          "x": 18,
-          "y": 21
-        },
-        "id": 34,
-        "options": {
-          "displayMode": "gradient",
-          "minVizHeight": 10,
-          "minVizWidth": 0,
-          "orientation": "horizontal",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showUnfilled": true
-        },
-        "pluginVersion": "9.4.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "exemplar": false,
-            "expr": "attestationsuite_docker_ripple_container_size_mb/1024",
-            "instant": false,
-            "legendFormat": "Container size (GB)",
-            "range": true,
-            "refId": "A"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "kQrTgqx4z"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_docker_ripple_container_status_days",
-            "hide": false,
-            "legendFormat": "Days up",
-            "range": true,
-            "refId": "B"
-          },
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "prometheus"
-            },
-            "editorMode": "code",
-            "expr": "attestationsuite_docker_ripple_volume_size_mb/1024.0",
-            "hide": false,
-            "legendFormat": "Volume size (GB)",
-            "range": true,
-            "refId": "C"
-          }
-        ],
-        "title": "XRP node details",
-        "type": "bargauge"
-      }
-    ],
-    "refresh": "",
-    "revision": 1,
-    "schemaVersion": 38,
-    "style": "dark",
-    "tags": [],
-    "templating": {
-      "list": []
+          "editorMode": "builder",
+          "expr": "attestationsuite_xrp_indexer",
+          "format": "heatmap",
+          "hide": false,
+          "legendFormat": "XRP",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Indexers Uptime History",
+      "type": "status-history"
     },
-    "time": {
-      "from": "now-6h",
-      "to": "now"
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 6,
+      "panels": [],
+      "title": "System Performance",
+      "type": "row"
     },
-    "timepicker": {
-      "refresh_intervals": [
-        "1m",
-        "5m",
-        "15m",
-        "30m",
-        "1h",
-        "2h",
-        "1d"
-      ]
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 100,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "id": 26,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_system_cpu_utilization_percent",
+          "legendFormat": "CPU utilization",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "100 * attestationsuite_system_memory_available_mb / attestationsuite_system_memory_total_mb",
+          "hide": false,
+          "legendFormat": "Memory available",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "100 * attestationsuite_system_disk_overlay_used_gb / attestationsuite_system_disk_overlay_total_gb",
+          "hide": false,
+          "legendFormat": "Disk used",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "System Information",
+      "type": "timeseries"
     },
-    "timezone": "",
-    "title": "Attestation Suite",
-    "uid": "u9YidGb4z",
-    "version": 13,
-    "weekStart": ""
-  }
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 12,
+        "y": 15
+      },
+      "id": 11,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "100*attestationsuite_system_disk_overlay_used_gb/ attestationsuite_system_disk_overlay_total_gb",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Disk usage",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 15,
+        "y": 15
+      },
+      "id": 29,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_system_cpu_utilization_percent",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "CPU usage",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "light-yellow",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 18,
+        "y": 15
+      },
+      "id": 30,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "100 * attestationsuite_system_memory_available_mb / attestationsuite_system_memory_total_mb",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Memory usage",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 21,
+        "y": 15
+      },
+      "id": 31,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "$$hashKey": "object:24",
+          "aggregation": "Last",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "decimals": 2,
+          "displayAliasType": "Warning / Critical",
+          "displayType": "Regular",
+          "displayValueWithAlias": "Never",
+          "editorMode": "code",
+          "expr": "attestationsuite_system_cpu_count_",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "units": "none",
+          "valueHandler": "Number Threshold"
+        }
+      ],
+      "title": "CPU count",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 28,
+      "panels": [],
+      "title": "Details",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 21
+      },
+      "id": 20,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_attester_songbird_active_round",
+          "legendFormat": "Active Round",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_attester_songbird_saved_round",
+          "hide": false,
+          "legendFormat": "Saved Round",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_attester_songbird_collected_tx",
+          "hide": false,
+          "legendFormat": "Collected tx",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_attester_songbird_valid_tx",
+          "hide": false,
+          "legendFormat": "Validated tx",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "title": "Attestation Client details",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-yellow"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 21
+      },
+      "id": 18,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "builder",
+          "exemplar": false,
+          "expr": "attestationsuite_indexer_btc_n_block",
+          "instant": false,
+          "legendFormat": "BTC N",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_btc_t_block",
+          "hide": false,
+          "legendFormat": "BTC Top",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_doge_n_block",
+          "hide": false,
+          "legendFormat": "DOGE N",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_doge_t_block",
+          "hide": false,
+          "legendFormat": "DOGE Top",
+          "range": true,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_xrp_n_block",
+          "hide": false,
+          "legendFormat": "XRP N",
+          "range": true,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_xrp_t_block",
+          "hide": false,
+          "legendFormat": "XRL Top",
+          "range": true,
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_btc_nbottom_block",
+          "hide": false,
+          "legendFormat": "BTC N bottom",
+          "range": true,
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_doge_nbottom_block",
+          "hide": false,
+          "legendFormat": "DOGE N bottom",
+          "range": true,
+          "refId": "H"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_indexer_xrp_nbottom_block",
+          "hide": false,
+          "legendFormat": "XRP N bottom",
+          "range": true,
+          "refId": "I"
+        }
+      ],
+      "title": "Indexers details",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple"
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 10,
+        "y": 21
+      },
+      "id": 32,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "attestationsuite_docker_indexer_btc_bitcoin_node_1_size_mb/(1024*1024)",
+          "format": "time_series",
+          "instant": false,
+          "legendFormat": "Container size (TB)",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "attestationsuite_docker_indexer_btc_bitcoin_node_1_cpu_usage_percent{}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "CPU usage (%)",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_btc_bitcoin_node_1_mem_usage_mb/1024",
+          "hide": false,
+          "legendFormat": "Memory usage (GB)",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_btc_bitcoin_node_1_restartcount_{}",
+          "hide": false,
+          "legendFormat": "Restart count",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "title": "BTC node details",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple"
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 14,
+        "y": 21
+      },
+      "id": 33,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "attestationsuite_docker_indexer_doge_dogecoin_node_1_size_mb/(1024*1024)",
+          "format": "time_series",
+          "instant": false,
+          "legendFormat": "Container size (TB)",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "attestationsuite_docker_indexer_doge_dogecoin_node_1_cpu_usage_percent{}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "CPU usage (%)",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_doge_dogecoin_node_1_mem_usage_mb/1024",
+          "hide": false,
+          "legendFormat": "Memory usage (GB)",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_doge_dogecoin_node_1_restartcount_{}",
+          "hide": false,
+          "legendFormat": "Restart count",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "title": "DOGE node details",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple"
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 18,
+        "y": 21
+      },
+      "id": 34,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "attestationsuite_docker_indexer_xrp_ripple_node_1_size_mb/(1024*1024)",
+          "format": "time_series",
+          "instant": false,
+          "legendFormat": "Container size (TB)",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "attestationsuite_docker_indexer_xrp_ripple_node_1_cpu_usage_percent{}",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "CPU usage (%)",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_xrp_ripple_node_1_mem_usage_mb/1024",
+          "hide": false,
+          "legendFormat": "Memory usage (GB)",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_xrp_ripple_node_1_restartcount_{}",
+          "hide": false,
+          "legendFormat": "Restart count",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "title": "RIPPLE node details",
+      "type": "bargauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 39,
+      "panels": [],
+      "title": "Dockers status",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "fillOpacity": 100,
+            "lineWidth": 0
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "invalid"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "running"
+                },
+                "2": {
+                  "color": "semi-dark-orange",
+                  "index": 2,
+                  "text": "restarting"
+                },
+                "3": {
+                  "color": "yellow",
+                  "index": 3,
+                  "text": "paused"
+                },
+                "4": {
+                  "color": "semi-dark-red",
+                  "index": 4,
+                  "text": "dead"
+                },
+                "5": {
+                  "color": "semi-dark-red",
+                  "index": 5,
+                  "text": "killed"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red"
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 7,
+        "x": 0,
+        "y": 28
+      },
+      "id": 35,
+      "options": {
+        "colWidth": 0.5,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "rowHeight": 0.8,
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_attestation_client_client_status_{}",
+          "hide": false,
+          "legendFormat": "Attestation Client",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_attestation_client_database_status_{}",
+          "hide": false,
+          "legendFormat": "Attestation Client DB",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_attestation_client_webserver_status_{}",
+          "hide": false,
+          "legendFormat": "Attestation Client WebServer",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "title": "Atestation Client Dockers status",
+      "type": "status-history"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "fillOpacity": 100,
+            "lineWidth": 0
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "invalid"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "running"
+                },
+                "2": {
+                  "color": "semi-dark-orange",
+                  "index": 2,
+                  "text": "restarting"
+                },
+                "3": {
+                  "color": "yellow",
+                  "index": 3,
+                  "text": "paused"
+                },
+                "4": {
+                  "color": "semi-dark-red",
+                  "index": 4,
+                  "text": "dead"
+                },
+                "5": {
+                  "color": "semi-dark-red",
+                  "index": 5,
+                  "text": "killed"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red"
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 7,
+        "x": 7,
+        "y": 28
+      },
+      "id": 36,
+      "options": {
+        "colWidth": 0.5,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "rowHeight": 0.8,
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_btc_indexer_status_{}",
+          "hide": false,
+          "legendFormat": "Indexer",
+          "range": true,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_btc_database_status_{}",
+          "hide": false,
+          "legendFormat": "Database",
+          "range": true,
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_btc_verification_server_status_{}",
+          "hide": false,
+          "legendFormat": "Verification server",
+          "range": true,
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_btc_bitcoin_node_1_status_{}",
+          "legendFormat": "Node",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "BTC Dockers status",
+      "type": "status-history"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "fillOpacity": 100,
+            "lineWidth": 0
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "invalid"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "running"
+                },
+                "2": {
+                  "color": "semi-dark-orange",
+                  "index": 2,
+                  "text": "restarting"
+                },
+                "3": {
+                  "color": "yellow",
+                  "index": 3,
+                  "text": "paused"
+                },
+                "4": {
+                  "color": "semi-dark-red",
+                  "index": 4,
+                  "text": "dead"
+                },
+                "5": {
+                  "color": "semi-dark-red",
+                  "index": 5,
+                  "text": "killed"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red"
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 7,
+        "x": 14,
+        "y": 28
+      },
+      "id": 37,
+      "options": {
+        "colWidth": 0.5,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "rowHeight": 0.8,
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_doge_indexer_status_{}",
+          "hide": false,
+          "legendFormat": "Indexer",
+          "range": true,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_doge_database_status_{}",
+          "hide": false,
+          "legendFormat": "Database",
+          "range": true,
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_doge_verification_server_status_{}",
+          "hide": false,
+          "legendFormat": "Verification server",
+          "range": true,
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_doge_dogecoin_node_1_status_{}",
+          "legendFormat": "Node",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "DOGE Dockers status",
+      "type": "status-history"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "fillOpacity": 100,
+            "lineWidth": 0
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "invalid"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "running"
+                },
+                "2": {
+                  "color": "semi-dark-orange",
+                  "index": 2,
+                  "text": "restarting"
+                },
+                "3": {
+                  "color": "yellow",
+                  "index": 3,
+                  "text": "paused"
+                },
+                "4": {
+                  "color": "semi-dark-red",
+                  "index": 4,
+                  "text": "dead"
+                },
+                "5": {
+                  "color": "semi-dark-red",
+                  "index": 5,
+                  "text": "killed"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red"
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 7,
+        "x": 14,
+        "y": 34
+      },
+      "id": 40,
+      "options": {
+        "colWidth": 0.5,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "rowHeight": 0.8,
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_xrp_indexer_status_{}",
+          "hide": false,
+          "legendFormat": "Indexer",
+          "range": true,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_xrp_database_status_{}",
+          "hide": false,
+          "legendFormat": "Database",
+          "range": true,
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_xrp_verification_server_status_{}",
+          "hide": false,
+          "legendFormat": "Verification server",
+          "range": true,
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "attestationsuite_docker_indexer_xrp_ripple_node_1_status_{}",
+          "legendFormat": "Node",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "XRP Dockers status",
+      "type": "status-history"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 42,
+      "panels": [],
+      "title": "IO operations",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-yellow"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 41
+      },
+      "id": 43,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "(attestationsuite_docker_indexer_btc_bitcoin_node_1_io_rd_op_+attestationsuite_docker_indexer_btc_bitcoin_node_1_io_wr_op_)/1000000",
+          "instant": false,
+          "legendFormat": "BTC",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "(attestationsuite_docker_indexer_doge_dogecoin_node_1_io_rd_op_+attestationsuite_docker_indexer_doge_dogecoin_node_1_io_wr_op_)/1000000",
+          "hide": false,
+          "legendFormat": "DOGE",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "(attestationsuite_docker_indexer_xrp_ripple_node_1_io_rd_op_+attestationsuite_docker_indexer_xrp_ripple_node_1_io_wr_op_)/1000000",
+          "hide": false,
+          "legendFormat": "XRP",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Disk IO (MIOPS)",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "p-xsB0Y4z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-yellow"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 41
+      },
+      "id": 44,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "(attestationsuite_docker_indexer_btc_bitcoin_node_1_network_tx_op_+attestationsuite_docker_indexer_btc_bitcoin_node_1_network_rx_op_)/1000000",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "BTC",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "(attestationsuite_docker_indexer_doge_dogecoin_node_1_network_tx_op_+attestationsuite_docker_indexer_doge_dogecoin_node_1_network_rx_op_)/1000000",
+          "hide": false,
+          "legendFormat": "DOGE",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "p-xsB0Y4z"
+          },
+          "editorMode": "code",
+          "expr": "(attestationsuite_docker_indexer_xrp_ripple_node_1_network_tx_op_+attestationsuite_docker_indexer_xrp_ripple_node_1_network_rx_op_)/1000000",
+          "hide": false,
+          "legendFormat": "XRP",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Network Traffix (MIOPS)",
+      "type": "bargauge"
+    }
+  ],

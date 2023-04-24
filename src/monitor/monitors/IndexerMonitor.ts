@@ -1,7 +1,7 @@
 import { DBState } from "../../entity/indexer/dbState";
 import { DatabaseService } from "../../utils/database/DatabaseService";
 import { getUnixEpochTimestamp, secToHHMMSS } from "../../utils/helpers/utils";
-import { AttLogger } from "../../utils/logging/logger";
+import { AttLogger, logException } from "../../utils/logging/logger";
 import { MonitorBase, MonitorStatus, PerformanceMetrics } from "../MonitorBase";
 import { MonitorConfigBase } from "../MonitorConfigBase";
 import { MonitorConfig } from "../MonitorConfiguration";
@@ -44,6 +44,7 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
       this.dbService = new DatabaseService(this.logger, dbConfig.connection, `indexer`, `${this.name}-indexer`);
 
       await this.dbService.connect();
+      this.statusError = null;
     } catch (error) {
       this.statusError = error.message;
     }
@@ -85,33 +86,50 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
 
     if (this.statusError) {
       res.state = this.statusError;
+      await this.initialize();
       return res;
     }
 
-    const resState = await this.dbService.manager.findOne(DBState, { where: { name: `${this.name}_state` } });
+    try {
+      const resState = await this.dbService.manager.findOne(DBState, { where: { name: `${this.name}_state` } });
 
-    if (!resState || !resState.valueString) {
-      res.state = "state data not available";
-      this.lastState = null;
-      return res;
-    }
+      if (!resState || !resState.valueString) {
+        res.state = "state data not available";
+        this.lastState = null;
+        return res;
+      }
 
-    this.lastStateBottom = await this.dbService.manager.findOne(DBState, { where: { name: `${this.name}_Nbottom` } });
+      this.lastStateBottom = await this.dbService.manager.findOne(DBState, { where: { name: `${this.name}_Nbottom` } });
 
-    this.lastState = resState;
+      this.lastState = resState;
 
-    const now = getUnixEpochTimestamp();
+      const now = getUnixEpochTimestamp();
 
-    res.state = resState.valueString;
-    const late = now - resState.timestamp;
+      res.state = resState.valueString;
+      const late = now - resState.timestamp;
 
-    res.timeLate = late;
-    res.comment = resState.comment;
+      res.timeLate = late;
+      res.comment = resState.comment;
 
-    if (resState.valueString == "sync") {
-      if (resState.valueNumber > 0) {
-        res.comment = `ETA ${secToHHMMSS(resState.valueNumber)}`;
-        res.status = "sync";
+      if (resState.valueString == "sync") {
+        if (resState.valueNumber > 0) {
+          res.comment = `ETA ${secToHHMMSS(resState.valueNumber)}`;
+          res.status = "sync";
+
+          if (late > this.baseConfig.timeLate) {
+            res.status = "late";
+          }
+
+          if (late > this.baseConfig.timeDown) {
+            res.status = "down";
+          }
+        } else {
+          res.comment = "invalid response";
+          res.status = "down";
+        }
+      } else if (resState.valueString == "running") {
+        res.comment = `processed blocks ${resState.valueNumber} (late ${late} sec) ${resState.comment}`;
+        res.status = "running";
 
         if (late > this.baseConfig.timeLate) {
           res.status = "late";
@@ -120,30 +138,20 @@ export class IndexerMonitor extends MonitorBase<MonitorIndexerConfig> {
         if (late > this.baseConfig.timeDown) {
           res.status = "down";
         }
-      } else {
-        res.comment = "invalid response";
-        res.status = "down";
-      }
-    } else if (resState.valueString == "running") {
-      res.comment = `processed blocks ${resState.valueNumber} (late ${late} sec) ${resState.comment}`;
-      res.status = "running";
-
-      if (late > this.baseConfig.timeLate) {
-        res.status = "late";
+      } else if (resState.valueString == "running-sync") {
+        res.comment = `processed blocks ${resState.valueNumber} ${resState.comment}`;
+        res.status = "sync";
       }
 
-      if (late > this.baseConfig.timeDown) {
-        res.status = "down";
+      if (late > this.restartConfig.time) {
+        if (await this.restart()) {
+          res.comment = "^r^Wrestart^^";
+        }
       }
-    } else if (resState.valueString == "running-sync") {
-      res.comment = `processed blocks ${resState.valueNumber} ${resState.comment}`;
-      res.status = "sync";
-    }
-
-    if (late > this.restartConfig.time) {
-      if (await this.restart()) {
-        res.comment = "^r^Wrestart^^";
-      }
+    } catch (error) {
+      logException(error, `indexer monitor ${this.config.name}`);
+      this.statusError = error.toString();
+      res.state = this.statusError;
     }
 
     return res;

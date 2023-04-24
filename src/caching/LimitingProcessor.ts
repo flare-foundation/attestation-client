@@ -2,7 +2,7 @@ import { IBlock, IFullBlock, Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Queue } from "../utils/data-structures/Queue";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { CachedMccClient } from "./CachedMccClient";
 
@@ -143,7 +143,7 @@ export class LimitingProcessor {
     while (this.isActive) {
       if (this.queue.size === 0 || !this.client.canAccept) {
         // console.log("Sleep:", this.client.inProcessing, this.client.inQueue)
-        await sleepms(100);
+        await sleepMs(100);
         continue;
       }
       const de = this.queue.shift();
@@ -154,7 +154,7 @@ export class LimitingProcessor {
         this.logger.error2(`LimitingProcessor::continue error: de is undefined`);
       }
       this.counter++;
-      await sleepms(0);
+      await sleepMs(0);
     }
   }
 

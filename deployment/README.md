@@ -19,6 +19,15 @@ Minimal hardware requirements for complete `mainnet` configuration are:
 
 Most of this power is required for Ripple node.
 
+## Software requirements:
+
+Attestation Suite was tested on Ubuntu 20.02 and Ubuntu 22.02.
+
+Additional required software:
+ - *docker* version 20.10.12
+ - *docker-compose* version 1.29.2
+
+
 ## Installation
 
 The deployment includes:
@@ -61,7 +70,7 @@ git clone git@github.com:flare-foundation/attestation-client.git
 cd attestation-client
 
 # use relevant branch or tag instead of 'main'
-git checkout 2.0.7
+git checkout 2.0.9
 
 ```
 
@@ -76,17 +85,16 @@ docker build -t attestation-suite . --no-cache
 
 Run
 ```
-docker run -it attestation-suite bash
+docker run --user root -it attestation-suite bash
 ```
 
 Inside docker bash run 
 ```bash
-sudo apt-get install apt-transport-https ca-certificates gnupg
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-sudo apt-get update && sudo apt-get install google-cloud-cli
+apt-get install apt-transport-https ca-certificates gnupg -y
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+apt-get update && apt-get install google-cloud-cli
 
-gcloud init
 ```
 Follow the instructions and initialize gcloud.
 
@@ -198,9 +206,12 @@ Once Attestation Suite is installed one can change credentials as follows:
 
 Updating can be done on specific containers only. In this case only specific containers are stopped, steps 1.4, 1.5 are carried out on updated configs, but only changed secure credential configs are copied to the deployment machine into the folders mounted to the specific containers. Those containers are then restarted. Stopping and starting is carried out using `docker-compose` and handy scripts in `deployment` folder.
 
+## Step 4. Monitoring
+Attestation Suite monitoring installation is documented [here](./../docs/monitor/monitor.md).
+
 ## Indexer syncing times
 
-For 2days:
+For 2 days:
 
 - ALGO running sync (2 days)
 - BTC ~20 min

@@ -3,7 +3,7 @@ import WebSocket, { Event } from "ws";
 import { AttLogger, getGlobalLogger } from "../../../utils/logging/logger";
 import { PromiseRequestManager } from "../../../utils/helpers/PromiseRequestManager";
 import { IIdentifiable } from "../../../utils/helpers/promiseRequestTypes";
-import { sleepms } from "../../../utils/helpers/utils";
+import { sleepMs } from "../../../utils/helpers/utils";
 import { WsClientOptions } from "./WsClientOptions";
 
 const WS_POLLING_INTERVAL = 100; // ms
@@ -94,7 +94,7 @@ export class WsClient<R extends IIdentifiable, S extends IIdentifiable> {
     return new Promise(async (resolve, reject) => {
       let timeout = 0;
       while (!this.connected) {
-        await sleepms(WS_POLLING_INTERVAL);
+        await sleepMs(WS_POLLING_INTERVAL);
         if (this.authorizationFailed) {
           reject(new Error("authorizationFailed"));
           return;

@@ -6,6 +6,7 @@ import { MonitorDockerConfig } from "./monitors/DockerMonitor";
 import { MonitorIndexerConfig } from "./monitors/IndexerMonitor";
 import { MonitorNodeConfig } from "./monitors/NodeMonitor";
 import { MonitorUrlConfig } from "./monitors/UrlMonitor";
+import { Web3BalanceConfig } from "./monitors/Web3BalanceMonitor";
 
 /**
  * Prometheus configuration.
@@ -39,6 +40,8 @@ export class MonitorConfig implements IReflection<MonitorConfig> {
   @optional() backends: Array<MonitorUrlConfig> = [];
   @optional() databases: Array<MonitorDatabaseConfig> = [];
 
+  @optional() balances: Array<Web3BalanceConfig> = [];
+
   instantiate() {
     return new MonitorConfig();
   }
@@ -52,6 +55,7 @@ export class MonitorConfig implements IReflection<MonitorConfig> {
     res.arrayMap.set("nodes", new MonitorNodeConfig());
     res.arrayMap.set("backends", new MonitorUrlConfig());
     res.arrayMap.set("databases", new MonitorDatabaseConfig());
+    res.arrayMap.set("balances", new Web3BalanceConfig());
 
     return res;
   }

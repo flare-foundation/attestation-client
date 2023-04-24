@@ -1,4 +1,4 @@
-import { IBlock, Managed } from "@flarenetwork/mcc";
+import { IBlock, IFullBlock, Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Queue } from "../utils/data-structures/Queue";
@@ -105,7 +105,7 @@ export class LimitingProcessor {
   debugLabel = "";
   reportInMs = 1000;
 
-  block: IBlock;
+  block: IFullBlock;
   logger: AttLogger;
 
   constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {

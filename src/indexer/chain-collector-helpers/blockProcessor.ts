@@ -1,4 +1,18 @@
-import { AlgoBlock, ChainType, IBlock, Managed, traceFunction, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction, XRP_UTD } from "@flarenetwork/mcc";
+import {
+  AlgoBlock,
+  ChainType,
+  IBlock,
+  Managed,
+  traceFunction,
+  UtxoBlock,
+  UtxoTransaction,
+  XrpBlock,
+  XrpTransaction,
+  XRP_UTD,
+  IFullBlock,
+  XrpFullBlock,
+  UtxoFullBlock,
+} from "@flarenetwork/mcc";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBBlockALGO, DBBlockDOGE, DBBlockXRP } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase, DBTransactionDOGE0 } from "../../entity/indexer/dbTransaction";
@@ -39,8 +53,8 @@ export function BlockProcessor(chainType: ChainType) {
  */
 @Managed()
 export class UtxoBlockProcessor extends LimitingProcessor {
-  async initializeJobs(block: IBlock, onSave: onSaveSig) {
-    this.block = block as UtxoBlock;
+  async initializeJobs(block: IFullBlock, onSave: onSaveSig) {
+    this.block = block as UtxoFullBlock<UtxoTransaction>;
     const txPromises = block.data.tx.map((txObject) => {
       const getTxObject = {
         blockhash: block.stdBlockHash,
@@ -82,9 +96,9 @@ export class UtxoBlockProcessor extends LimitingProcessor {
  */
 @Managed()
 export class DogeBlockProcessor extends LimitingProcessor {
-  async initializeJobs(block: IBlock, onSave: onSaveSig) {
+  async initializeJobs(block: IFullBlock, onSave: onSaveSig) {
     this.registerTopLevelJob();
-    this.block = block as UtxoBlock;
+    this.block = block as UtxoFullBlock<UtxoTransaction>;
 
     // DOGE API does not support returning the list of transactions with block request
     const preprocesedTxPromises = block.stdTransactionIds.map((txid: string) => {
@@ -134,7 +148,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
  */
 @Managed()
 export class AlgoBlockProcessor extends LimitingProcessor {
-  async initializeJobs(block: IBlock, onSave: onSaveSig) {
+  async initializeJobs(block: IFullBlock, onSave: onSaveSig) {
     this.block = block as AlgoBlock;
 
     const txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
@@ -162,21 +176,15 @@ export class AlgoBlockProcessor extends LimitingProcessor {
  */
 @Managed()
 export class XrpBlockProcessor extends LimitingProcessor {
-  async initializeJobs(block: IBlock, onSave: onSaveSig) {
-    this.block = block as XrpBlock;
+  async initializeJobs(block: IFullBlock, onSave: onSaveSig) {
+    this.block = block as XrpFullBlock;
 
-    const txPromises = block.data.result.ledger.transactions.map((txObject) => {
-      const newObj = {
-        result: txObject,
-      };
-      newObj.result.date = block.unixTimestamp - XRP_UTD;
-      // @ts-ignore
-      const processed = new XrpTransaction(newObj);
-
+    const txPromises = this.block.transactions.map((tx) => {
       return () => {
-        return augmentTransactionXrp(block, processed);
+        return augmentTransactionXrp(block, tx);
       };
     });
+
     const transDb = (await retryMany(
       `XrpBlockProcessor::initializeJobs(${block.number})`,
       txPromises,

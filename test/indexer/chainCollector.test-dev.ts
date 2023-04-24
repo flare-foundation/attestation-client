@@ -76,8 +76,8 @@ describe("Test process helpers ", () => {
 
   it(`Test btc block processing `, async function () {
     // const block = await MccClient.getBlock(723581);
-    const block = await BtcMccClient.getBlock(723746);
-    const block2 = await BtcMccClient.getBlock(723746); // simulation of other block
+    const block = await BtcMccClient.getFullBlock(723746);
+    const block2 = await BtcMccClient.getFullBlock(723746); // simulation of other block
 
     // console.log(block)
 
@@ -146,7 +146,7 @@ describe("Test process helpers ", () => {
   });
 
   it(`Test btc new block processing `, async function () {
-    const block = await BtcMccClient.getBlock(723746);
+    const block = await BtcMccClient.getFullBlock(723746);
 
     const defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
@@ -186,7 +186,7 @@ describe("Test process helpers ", () => {
   });
 
   it(`Test xrp block processing `, async function () {
-    const block = await XrpMccClient.getBlock("FDD11CCFB38765C2DA0B3E6D4E3EF7DFDD4EE1DBBA4F319493EB6E1376814EC2");
+    const block = await XrpMccClient.getFullBlock("FDD11CCFB38765C2DA0B3E6D4E3EF7DFDD4EE1DBBA4F319493EB6E1376814EC2");
 
     const defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,

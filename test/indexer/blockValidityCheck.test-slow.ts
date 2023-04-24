@@ -1,7 +1,6 @@
 // yarn test test/indexer/blockValidityCheck.test-slow.ts
 
-import { BlockBase, ChainType, IBlock, IXrpGetBlockRes, MCC, traceManager } from "@flarenetwork/mcc";
-import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
+import { BlockBase, ChainType, FullBlockBase, IBlock, IXrpGetBlockRes, MCC, XrpTransaction, traceManager } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -13,6 +12,7 @@ import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout"
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestLogger } from "../../src/utils/logging/testLogger";
 import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
+import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
 
 chai.use(chaiAsPromised);
 
@@ -21,14 +21,17 @@ const XRPMccConnection = {
 };
 
 class MockXRPImplementation extends XRPImplementation {
-  async getBlock(blockNumberOrHash: number | string): Promise<MockXrpBlock> {
-    const block = await super.getBlock(blockNumberOrHash);
+  async getFullBlock(blockNumberOrHash: number | string): Promise<MockXrpBlock> {
+    const block = await super.getFullBlock(blockNumberOrHash);
 
     return new MockXrpBlock(block);
   }
 }
 
-class MockXrpBlock extends BlockBase<IXrpGetBlockRes> {
+class MockXrpBlock extends FullBlockBase<IXrpGetBlockRes, XrpTransaction> {
+  get transactions(): XrpTransaction[] {
+    throw new Error("Method not implemented.");
+  }
   get previousBlockHash(): string {
     throw new Error("Method not implemented.");
   }
@@ -142,7 +145,7 @@ describe(`Block validity check before processing , (${getTestFile(__filename)})`
     sinon.stub(console, "error");
     sinon.stub(console, "log");
 
-    const block = await XrpMccClient.getBlock(70_015_100);
+    const block = await XrpMccClient.getFullBlock(70_015_100);
 
     //block.data.result.validated = false;
 
@@ -158,7 +161,7 @@ describe(`Block validity check before processing , (${getTestFile(__filename)})`
     sinon.stub(console, "error");
     sinon.stub(console, "log");
 
-    const block = await XrpMccClient.getBlock(70_015_100);
+    const block = await XrpMccClient.getFullBlock(70_015_100);
 
     block.data.result.validated = false;
 
@@ -175,7 +178,7 @@ describe(`Block validity check before processing , (${getTestFile(__filename)})`
     sinon.stub(console, "error");
     sinon.stub(console, "log");
 
-    const block = await XrpMccClient.getBlock(70_015_100);
+    const block = await XrpMccClient.getFullBlock(70_015_100);
 
     block.data.result.validated = false;
 
@@ -197,7 +200,7 @@ describe(`Block validity check before processing , (${getTestFile(__filename)})`
     indexer.logger = getGlobalLogger();
     indexer.cachedClient.client = XrpMccClient;
 
-    const block = await XrpMccClient.getBlock(70_015_100);
+    const block = await XrpMccClient.getFullBlock(70_015_100);
 
     const invalidBlock = new MockXrpBlock(block);
 

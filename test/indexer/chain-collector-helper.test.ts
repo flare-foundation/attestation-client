@@ -105,7 +105,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       });
 
       it("Should initializeJobs", async function () {
-        const block = await cachedClient.client.getBlock(25400573);
+        const block = await cachedClient.client.getFullBlock(25400573);
 
         const fake = sinon.fake();
         let res = [];

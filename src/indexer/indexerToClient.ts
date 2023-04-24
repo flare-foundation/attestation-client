@@ -1,4 +1,4 @@
-import { IBlock, IBlockHeader, Managed, ReadRpcInterface } from "@flarenetwork/mcc";
+import { IBlock, IBlockHeader, IFullBlock, Managed, ReadRpcInterface } from "@flarenetwork/mcc";
 import { DEFAULT_BACK_OFF_TIME, DEFAULT_RETRY, DEFAULT_TIMEOUT, failureCallback, retry } from "../utils/helpers/promiseTimeout";
 
 /**
@@ -25,7 +25,7 @@ export class IndexerToClient {
    * @returns
    * @category BaseMethod
    */
-  public async getBlockFromClient(label: string, blockNumber: number): Promise<IBlock> {
+  public async getBlockFromClient(label: string, blockNumber: number): Promise<IFullBlock> {
     // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(

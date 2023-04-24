@@ -1,794 +1,692 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "--- MAIN ---"
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "--- MAIN ---",
-        },    
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Indexer",
+      "runtimeExecutable": "yarn",
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "DOTENV": "DEV",
+        "NODE_ENV": "development"
+      },
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "runtimeArgs": ["devindexer"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Indexer",
-            "runtimeExecutable": "yarn",
-            "env": {
-                "CONFIG_PATH":".secure.dev",
-                "DOTENV":"DEV",
-                "NODE_ENV":"development"
-            },
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "runtimeArgs": [
-                "devindexer"
-            ]
-        },
-        
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Verifier Server",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "CONFIG_PATH": ".secure.dev",
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "devverifierserver",
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Verifier Server",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["devverifierserver"]
+    },
 
-        
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Attester",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development",
+        "SECURE_CONFIG_PATH": "./deployment/credentials"
+      },
+      "runtimeArgs": ["devattester"]
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Attester Coston 2 Local",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "FLARE_NETWORK": "Coston2",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["ts-node", "src/runAttestationClient.ts", "-i", "coston2"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Attester",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "CONFIG_PATH": ".secure.dev",
-                "NODE_ENV":"development",
-                "SECURE_CONFIG_PATH":"./deployment/credentials"
-            },
-            "runtimeArgs": [
-                "devattester"
-            ]
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Attester Coston 2 Local",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "FLARE_NETWORK": "Coston2",
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "ts-node",
-                "src/runAttestationClient.ts",
-                "-i", "coston2"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "--- ADMIN AND MONITORING ---"
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "--- ADMIN AND MONITORING ---",
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Admin",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devadmin"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Admin",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devadmin"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "--- FINALIZING BOT ---"
+    },
 
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Install",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devinstall"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "--- FINALIZING BOT ---",
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Secure Credentials",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devsecurecredentials"]
+    },
 
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Install-file",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devinstallfile"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Install",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devinstall"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Install secureCommand",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devinstallsecurecommand"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Secure Credentials",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devsecurecredentials"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Install secureConfigurations",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["ts-node", "src/install/secureConfigurations.ts"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Install-file",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devinstallfile"
-            ]
-        },        
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Install dockerSecureUpdateSql",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["ts-node", "src/install/dockerSecureUpdateSql.ts", "-i", "prepareIndexer", "-n", "BTC"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Install secureCommand",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devinstallsecurecommand"
-            ]
-        },        
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Config Verify",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devconfig"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Install secureConfigurations",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "ts-node" , "src/install/secureConfigurations.ts"
-            ]
-        },        
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Monitor",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devmonitor"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Install dockerSecureUpdateSql",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "ts-node" , "src/install/dockerSecureUpdateSql.ts", "-i", "prepareIndexer", "-n", "BTC"
-            ]
-        },        
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Docker Stats",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devdockerstats"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Config Verify",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devconfig"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch ctail",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devctail"]
+    },
 
-        
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Monitor",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devmonitor"
-            ]
-        },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test BTC",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/flare-mcc/**",
+        "${workspaceFolder}/../mcc/**/*.js",
+        "${workspaceFolder}/../mcc/src/**"
+      ],
+      "runtimeArgs": ["hardhat", "test", "test/StateConnectorBTC.test.ts"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test XRP",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/flare-mcc/**",
+        "${workspaceFolder}/../mcc/**/*.js",
+        "${workspaceFolder}/../mcc/src/**"
+      ],
+      "runtimeArgs": ["hardhat", "test", "test/StateConnectorXRP.test.ts"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test LTC",
+      "runtimeExecutable": "yarn",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": ["hardhat", "test", "test/StateConnectorLTC.test.ts"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test ALGO",
+      "runtimeExecutable": "yarn",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": ["hardhat", "test", "test/StateConnectorALGO.test.ts"]
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Attester spammer XRP",
+      "env": {
+        "DOTENV": "DEV",
+        "NODE_ENV": "development",
+        "CONFIG_PATH": ".secure.dev"
+      },
+      "envFile": "${workspaceFolder}/.deploy.env",
+      "runtimeExecutable": "yarn",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": ["ts-node", "src/spammer/attestation-spammer.ts", "-c", "XRP", "-l", "XRP"]
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Attester spammer BTC",
+      "env": {
+        "DOTENV": "DEV",
+        "NODE_ENV": "development",
+        "CONFIG_PATH": ".secure.dev"
+      },
+      "envFile": "${workspaceFolder}/.deploy.env",
+      "runtimeExecutable": "yarn",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": ["ts-node", "src/spammer/attestation-spammer.ts", "-c", "BTC", "-l", "BTC"]
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Attester spammer BTC - testing",
+      "env": {},
+      "envFile": "${workspaceFolder}/.deploy.env",
+      "runtimeExecutable": "yarn",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": ["ts-node", "src/spammer/attestation-spammer.ts", "-c", "BTC", "-l", "BTC", "-t", "-f", "../test/attestationClient/test-data"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Docker Stats",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devdockerstats"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Attester collector XRP",
+      "runtimeExecutable": "yarn",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": [
+        "ts-node",
+        "src/spammer/attestation-collector.ts",
+        "-c",
+        "XRP",
+        "-r",
+        "http://127.0.0.1:9650/ext/bc/C/rpc",
+        "-a",
+        "artifacts/contracts/StateConnector.sol/StateConnector.json",
+        "-t",
+        "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
+        "-u",
+        "https://xrplcluster.com",
+        "-b",
+        "1",
+        "-o",
+        "1", // numberOfAccounts
+        "-f",
+        "1",
+        "-w",
+        "1000",
+        "-d",
+        "2000",
+        "-l",
+        "XRP"
+      ]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch ctail",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devctail"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Attester collector BTC",
+      "runtimeExecutable": "yarn",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": [
+        "ts-node",
+        "src/spammer/attestation-collector.ts",
+        "-c",
+        "BTC",
+        "-r",
+        "http://127.0.0.1:9650/ext/bc/C/rpc",
+        "-a",
+        "artifacts/contracts/StateConnector.sol/StateConnector.json",
+        "-t",
+        "0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
+        "-u",
+        "http://34.159.118.250:9332/",
+        "-s",
+        "flareadmin",
+        "-p",
+        "mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
+        "-b",
+        "1",
+        "-o",
+        "1", // numberOfAccounts
+        "-f",
+        "1",
+        "-w",
+        "1000",
+        "-d",
+        "2000",
+        "-l",
+        "BTC"
+      ]
+    },
 
-        
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test BTC",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**",
-                "${workspaceFolder}/../mcc/**/*.js",
-                "${workspaceFolder}/../mcc/src/**"
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/StateConnectorBTC.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test XRP",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**",
-                "${workspaceFolder}/../mcc/**/*.js",
-                "${workspaceFolder}/../mcc/src/**"
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/StateConnectorXRP.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test LTC",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/StateConnectorLTC.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test ALGO",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/StateConnectorALGO.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Attester spammer XRP",
-            "env": {
-                "DOTENV": "DEV",
-                "NODE_ENV": "development",
-                "CONFIG_PATH": ".secure.dev",
-            },
-            "envFile": "${workspaceFolder}/.deploy.env",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "ts-node",
-                "src/spammer/attestation-spammer.ts",
-                "-c","XRP",
-                "-l","XRP"             
-            ]
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Attester spammer BTC",
-            "env": {
-                "DOTENV": "DEV",
-                "NODE_ENV": "development",
-                "CONFIG_PATH": ".secure.dev"
-            },
-            "envFile": "${workspaceFolder}/.deploy.env",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "ts-node",
-                "src/spammer/attestation-spammer.ts",
-                "-c","BTC",
-                "-l","BTC"             
-            ]
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Attester spammer BTC - testing",
-            "env": {
-            },
-            "envFile": "${workspaceFolder}/.deploy.env",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "ts-node",
-                "src/spammer/attestation-spammer.ts",
-                "-c","BTC",
-                "-l","BTC",
-                "-t",
-                "-f", "../test/attestationClient/test-data"           
-            ]
-        },
+    {
+      "type": "node",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "name": "Test 2",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["test", "test/utils/configuration.test.ts"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Attester collector XRP",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "ts-node",
-                "src/spammer/attestation-collector.ts",
-                "-c","XRP",
-                "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
-                "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
-                "-t","0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
-                "-u","https://xrplcluster.com",
-                "-b","1",
-                "-o","1", // numberOfAccounts
-                "-f","1",
-                "-w","1000",
-                "-d","2000",
-                "-l","XRP"             
-            ]
-        },
-        
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Attester collector BTC",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "ts-node",
-                "src/spammer/attestation-collector.ts",
-                "-c","BTC",
-                "-r","http://127.0.0.1:9650/ext/bc/C/rpc",
-                "-a","artifacts/contracts/StateConnector.sol/StateConnector.json",
-                "-t","0x7c2C195CD6D34B8F845992d380aADB2730bB9C6F",
-                "-u","http://34.159.118.250:9332/",
-                "-s","flareadmin",
-                "-p","mcaeEGn6CxYt49XIEYemAB-zSfu38fYEt5dV8zFmGo4=",
-                "-b","1",
-                "-o","1", // numberOfAccounts
-                "-f","1",
-                "-w","1000",
-                "-d","2000",
-                "-l","BTC"             
-            ]
-        },
-        
-        {
-            "type": "node",
-            "request": "launch",
-            "console": "integratedTerminal",
-            "name": "Test 2",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "test",
-                "test/utils/configuration.test.ts"
-            ]
-        },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Quick",
+      "runtimeExecutable": "yarn",
+      "console": "integratedTerminal",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": ["hardhat", "test", "test/QuickTest.test.ts"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Colector",
+      "runtimeExecutable": "yarn",
+      "console": "integratedTerminal",
+      "outFiles": ["${workspaceFolder}/**/*.js", "${workspaceFolder}/node_modules/flare-mcc/**"],
+      "runtimeArgs": ["test", "test/utils/credentials.test.ts"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Configuration",
+      "runtimeExecutable": "yarn",
+      "console": "integratedTerminal",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/flare-mcc/**",
+        "${workspaceFolder}/../mcc/**/*.js",
+        "${workspaceFolder}/../mcc/src/**"
+      ],
+      "runtimeArgs": ["test", "test/utils/configuration.test.ts"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Indexer",
+      "runtimeExecutable": "yarn",
+      "console": "integratedTerminal",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/flare-mcc/**",
+        "${workspaceFolder}/../mcc/**/*.js",
+        "${workspaceFolder}/../mcc/src/**"
+      ],
+      "runtimeArgs": ["test", "test/indexer/blockValidityCheck.test.ts"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Attestation Client",
+      "runtimeExecutable": "yarn",
+      "console": "integratedTerminal",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/flare-mcc/**",
+        "${workspaceFolder}/../mcc/**/*.js",
+        "${workspaceFolder}/../mcc/src/**"
+      ],
+      "runtimeArgs": ["test", "test/attestationCient/attestationClient.test.ts"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Verification BTC",
+      "runtimeExecutable": "yarn",
+      "console": "integratedTerminal",
+      "env": {
+        "SOURCE_ID": "BTC",
+        "CONFIG_PATH": "dev"
+      },
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/flare-mcc/**",
+        "${workspaceFolder}/../mcc/**/*.js",
+        "${workspaceFolder}/../mcc/src/**"
+      ],
+      "runtimeArgs": ["hardhat", "test", "test/verification/verification.test.ts"]
+    },
 
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test Quick",
-            "runtimeExecutable": "yarn",
-            "console": "integratedTerminal",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/QuickTest.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test Colector",
-            "runtimeExecutable": "yarn",
-            "console": "integratedTerminal",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**"
-            ],
-            "runtimeArgs": [
-                "test",
-                "test/utils/credentials.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test Configuration",
-            "runtimeExecutable": "yarn",
-            "console": "integratedTerminal",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**",
-                "${workspaceFolder}/../mcc/**/*.js",
-                "${workspaceFolder}/../mcc/src/**"
-            ],
-            "runtimeArgs": [
-                "test",
-                "test/utils/configuration.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test Indexer",
-            "runtimeExecutable": "yarn",
-            "console": "integratedTerminal",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**",
-                "${workspaceFolder}/../mcc/**/*.js",
-                "${workspaceFolder}/../mcc/src/**"
-            ],
-            "runtimeArgs": [
-                "test",
-                "test/indexer/blockValidityCheck.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test Attestation Client",
-            "runtimeExecutable": "yarn",
-            "console": "integratedTerminal",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**",
-                "${workspaceFolder}/../mcc/**/*.js",
-                "${workspaceFolder}/../mcc/src/**"
-            ],
-            "runtimeArgs": [
-                "test",
-                "test/attestationCient/attestationClient.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test Verification BTC",
-            "runtimeExecutable": "yarn",
-            "console": "integratedTerminal",
-            "env": {
-                "SOURCE_ID": "BTC",
-                "CONFIG_PATH": "dev"
-            },
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**",
-                "${workspaceFolder}/../mcc/**/*.js",
-                "${workspaceFolder}/../mcc/src/**"
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/verification/verification.test.ts"
-            ]
-        },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Block Download XRP",
+      "runtimeExecutable": "yarn",
+      "console": "integratedTerminal",
+      "env": {
+        "SOURCE_ID": "BTC",
+        "CONFIG_PATH": "dev"
+      },
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/flare-mcc/**",
+        "${workspaceFolder}/../mcc/**/*.js",
+        "${workspaceFolder}/../mcc/src/**"
+      ],
+      "runtimeArgs": ["hardhat", "test", "test/indexer/chainCollector.test-dev.ts"]
+    },
 
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Test Block Download XRP",
-            "runtimeExecutable": "yarn",
-            "console": "integratedTerminal",
-            "env": {
-                "SOURCE_ID": "BTC",
-                "CONFIG_PATH": "dev"
-            },
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/flare-mcc/**",
-                "${workspaceFolder}/../mcc/**/*.js",
-                "${workspaceFolder}/../mcc/src/**"
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/indexer/chainCollector.test-dev.ts"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch webserver",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["devwebserver"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch webserver",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": [
-                "devwebserver"
-            ]
-        },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Coston Verification",
+      "console": "integratedTerminal",
+      "runtimeExecutable": "yarn",
+      "env": {
+        "SOURCE_ID": "BTC",
+        "CONFIG_PATH": "dev",
+        "NODE_ENV": "development"
+      },
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "runtimeArgs": ["hardhat", "test", "test/CostonVerification.test.ts", "--network", "coston"]
+    },
 
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Coston Verification",
-            "console": "integratedTerminal",
-            "runtimeExecutable": "yarn",
-            "env": {
-                "SOURCE_ID": "BTC",
-                "CONFIG_PATH": "dev",
-                "NODE_ENV":"development"
-            },
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "runtimeArgs": [
-                "hardhat",
-                "test",
-                "test/CostonVerification.test.ts",
-                "--network",
-                "coston"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Webserver2",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["devwebserver2"]
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch WS Server",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["devwsserver"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Webserver2",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "CONFIG_PATH": ".secure.dev",
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "devwebserver2"
-            ]
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch WS Server",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "CONFIG_PATH": ".secure.dev",
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "devwsserver"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch Verifier Server test",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["test", "test/server/btc-verifier-server.test.ts"]
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "AC e2e test",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["test", "test/attestationClient/AttestationClient.e2e-test.ts"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch Verifier Server test",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "CONFIG_PATH": ".secure.dev",
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "test",
-                "test/server/btc-verifier-server.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "AC e2e test",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "test",
-                "test/attestationClient/AttestationClient.e2e-test.ts"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Test indexed query manager",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["test", "test/indexed-query-manager/IndexedQueryManager.test.ts"]
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch VerifierRouter test",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["test", "test/verification/verifierRouter.test.ts"]
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Launch E2E test",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["test_endtoend"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Test indexed query manager",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "CONFIG_PATH": ".secure.dev",
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "test",
-                "test/indexed-query-manager/IndexedQueryManager.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch VerifierRouter test",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "CONFIG_PATH": ".secure.dev",
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "test",
-                "test/verification/verifierRouter.test.ts"
-            ]
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Launch E2E test",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-                "NODE_ENV":"development"
-            },
-            "runtimeArgs": [
-                "test_endtoend"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "--- FINALIZING BOT ---"
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "--- FINALIZING BOT ---",
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Finalizing bot",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {},
+      "runtimeArgs": ["runFinalizingBot"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "Finalizing bot",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-            },
-            "runtimeArgs": [
-                "runFinalizingBot"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "--- SubSets LIB ---"
+    },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "SubSets Lib Test",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {},
+      "runtimeArgs": ["test", "test/caching/LimitingProcessor.test.ts"]
+    },
 
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "--- SubSets LIB ---",
-        },
-        {
-            "type": "node",
-            "console": "integratedTerminal",
-            "request": "launch",
-            "name": "SubSets Lib Test",
-            "runtimeExecutable": "yarn",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-                "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**",
-            ],
-            "env": {
-            },
-            "runtimeArgs": [
-                "test",
-                "test/caching/LimitingProcessor.test.ts"
-            ]
-        },
+    {
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Test block validity",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["test", "test/indexer/blockValidityCheck.test-slow.ts"]
+    },
 
-
-    ]
+    {
+        "type": "node",
+        "console": "integratedTerminal",
+        "request": "launch",
+        "name": "Test block processor mannager",
+        "runtimeExecutable": "yarn",
+        "outFiles": [
+          "${workspaceFolder}/**/*.js",
+          "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+          "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+        ],
+        "env": {
+          "CONFIG_PATH": ".secure.dev",
+          "NODE_ENV": "development"
+        },
+        "runtimeArgs": ["test", "test/indexer/blockProcessorManager.test.ts"]
+      }
+  ]
 }

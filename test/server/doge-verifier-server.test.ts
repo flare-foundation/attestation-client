@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-import { ChainType, DogeTransaction, prefix0x, toBN, toHex } from "@flarenetwork/mcc";
+import { ChainType, DogeTransaction, prefix0x, toBN, toHex, toHex32Bytes } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -146,7 +146,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   it(`Should verify Balance Decreasing attestation attestation`, async function () {
-    let sourceAddressIndicator = prefix0x("" + firstAddressVin(selectedTransaction));
+    let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));
     let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
     let attestationRequest = {
       request: encodeBalanceDecreasingTransaction(request),
@@ -160,13 +160,13 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
     let response = JSON.parse(selectedTransaction.response);
-    let sourceAddress = response.additionalData.vinouts[sourceAddressIndicator].vinvout.scriptPubKey.address;
+    let sourceAddress = response.additionalData.vinouts[parseInt(sourceAddressIndicator, 16)].vinvout.scriptPubKey.address;    
     assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
     assert(request.messageIntegrityCode === hashBalanceDecreasingTransaction(request, resp.data.response, MIC_SALT), "MIC does not match");
   });
 
   it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
-    let sourceAddressIndicator = prefix0x("" + firstAddressVin(selectedTransaction));     
+    let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));     
     let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
     request.id = toHexPad(12, 32);
     let attestationRequest = {

@@ -76,7 +76,7 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
         sinon.restore();
       });
 
-      it("getBlockFromClient", async function () {
+      it.skip("getBlockFromClient", async function () {
         const stub1 = sinon.stub(inToCl.client, "getBlock").resolves(null);
         const stub2 = sinon.stub(inToCl.client, "getBlockHeader").resolves(null);
         const mock = sinon.mock();

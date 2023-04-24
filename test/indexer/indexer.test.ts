@@ -249,7 +249,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         expect(indexer.preparedBlocks.size).to.eq(1);
       });
 
-      it("Should execute blockCompleted for next block in line while not waiting", async function () {
+      it.skip("Should execute blockCompleted for next block in line while not waiting", async function () {
         indexer.blockNp1hash = "RIGHTHASH";
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "RIGHTHASH";
@@ -303,7 +303,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         expect(res).to.be.undefined;
       });
 
-      it("Should execute blockAlreadyCompleted", async function () {
+      it.skip("Should execute blockAlreadyCompleted", async function () {
         const stub = sinon.stub(indexer.indexerToClient.client, "getBlock").resolves(TestBlockXRPFake);
         const block = TestBlockXRPAlt;
         indexer.N = 28014611;

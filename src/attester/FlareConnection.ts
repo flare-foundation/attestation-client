@@ -126,9 +126,9 @@ export class FlareConnection {
    * @param action - label for recording action in logs
    * @param bufferNumber - buffer number in which we are submitting attestation
    *
-   * @param commitedMerkleRoot - committed Merkle root (used just for logging)
-   * @param commitedMaskedMerkleRoot - committed masked Merkle root
-   * @param commitedRandom - random number of committed round (used just for logging)
+   * @param committedMerkleRoot - committed Merkle root (used just for logging)
+   * @param committedMaskedMerkleRoot - committed masked Merkle root
+   * @param committedRandom - random number of committed round (used just for logging)
    *
    * @param revealedMerkleRoot - revealed Merkle root
    * @param revealedRandom - revealed random
@@ -140,22 +140,22 @@ export class FlareConnection {
     action: string,
     bufferNumber: BN,
     // commit
-    commitedMerkleRoot: string,
-    commitedMaskedMerkleRoot: string,
-    commitedRandom: string,
+    committedMerkleRoot: string,
+    committedMaskedMerkleRoot: string,
+    committedRandom: string,
     // reveal
     revealedMerkleRoot: string,
     revealedRandom: string,
 
     verbose = true
   ) {
-    this.checkHex64(commitedMerkleRoot);
-    this.checkHex64(commitedMaskedMerkleRoot);
+    this.checkHex64(committedMerkleRoot);
+    this.checkHex64(committedMaskedMerkleRoot);
     this.checkHex64(revealedRandom);
 
     const fnToEncode = (this.stateConnector as StateConnector | StateConnectorTempTran).methods.submitAttestation(
       bufferNumber,
-      commitedMaskedMerkleRoot,
+      committedMaskedMerkleRoot,
       revealedMerkleRoot,
       revealedRandom
     );
@@ -163,9 +163,9 @@ export class FlareConnection {
     if (verbose) {
       this.logger.info(`${this.label} action .................... : ${action}`);
       this.logger.info(`${this.label} bufferNumber .............. : ^e${bufferNumber.toString()}`);
-      this.logger.info(`${this.label} commitedMaskedMerkleRoot .. : ^e${commitedMaskedMerkleRoot.toString()}`);
-      this.logger.info(`${this.label} commitedMerkleRoot ........ : ${commitedMerkleRoot.toString()}`);
-      this.logger.info(`${this.label} commitedRandom ............ : ${commitedRandom.toString()}`);
+      this.logger.info(`${this.label} committedMaskedMerkleRoot .. : ^e${committedMaskedMerkleRoot.toString()}`);
+      this.logger.info(`${this.label} committedMerkleRoot ........ : ${committedMerkleRoot.toString()}`);
+      this.logger.info(`${this.label} committedRandom ............ : ${committedRandom.toString()}`);
       this.logger.info(`${this.label} revealedMerkleRoot ........ : ^e${revealedMerkleRoot.toString()}`);
       this.logger.info(`${this.label} revealedRandom ............ : ^e${revealedRandom.toString()}`);
     }
@@ -219,7 +219,7 @@ export class FlareConnection {
 
     const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
 
-    const extReceipt = await retry(`${this.logger} submitAttestation signAndFinalize3`, async () =>
+    const extReceipt = await retry(`${this.logger} submitBitVote signAndFinalize3`, async () =>
       this.web3Functions.signAndFinalize3Sequenced(action, this.bitVoting.options.address, fnToEncode, epochEndTime)
     );
 

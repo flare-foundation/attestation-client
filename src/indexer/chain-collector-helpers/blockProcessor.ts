@@ -85,7 +85,7 @@ export class UtxoBlockProcessor extends LimitingProcessor {
     this.stop();
 
     // eslint-disable-next-line
-    criticalAsync(`UtxoBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));
+    criticalAsync(`UtxoBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
   }
 }
 /**
@@ -139,7 +139,7 @@ export class DogeBlockProcessor extends LimitingProcessor {
     this.stop();
 
     // eslint-disable-next-line
-    criticalAsync(`DogeBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));
+    criticalAsync(`DogeBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
   }
 }
 /**
@@ -166,7 +166,7 @@ export class AlgoBlockProcessor extends LimitingProcessor {
     const blockDb = augmentBlock(DBBlockALGO, block);
 
     // eslint-disable-next-line
-    criticalAsync(`AlgoBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));
+    criticalAsync(`AlgoBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
   }
 }
 
@@ -195,6 +195,6 @@ export class XrpBlockProcessor extends LimitingProcessor {
     const blockDb = augmentBlock(DBBlockXRP, block);
 
     // eslint-disable-next-line
-    criticalAsync(`XrpBlockProcessor::initializeJobs(${block.number}) exception: `, () => onSave(blockDb, transDb));
+    criticalAsync(`XrpBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
   }
 }

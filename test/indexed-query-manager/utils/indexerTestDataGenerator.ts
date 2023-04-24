@@ -130,7 +130,7 @@ function addXrpTransactionResponse(transaction: DBTransactionBase, transactionIn
   }
   let json = JSON.parse(txStr);
   json.data.result.hash = unPrefix0x(transaction.transactionId);
-  json.data.result.metaData.TransactionIndex = transactionIndex;
+  json.data.result.meta.TransactionIndex = transactionIndex;
   if (paymentReference) {
     json.data.result.Memos[0].Memo.MemoData = paymentReference;
     transaction.paymentReference = paymentReference;

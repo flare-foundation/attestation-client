@@ -1,5 +1,5 @@
 import { AttLogger, logException } from "../utils/logging/logger";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { AttesterClient } from "./AttesterClient";
 import { FlareConnection } from "./FlareConnection";
 
@@ -68,7 +68,7 @@ export class FlareDataCollector {
         let currentBlockNumber = await this.flareConnection.web3Functions.getBlockNumber();
         // wait for new block
         if (nextBlockNumberToProcess >= currentBlockNumber + 1) {
-          await sleepms(this.refreshEventsMs);
+          await sleepMs(this.refreshEventsMs);
           continue;
         }
 

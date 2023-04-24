@@ -31,7 +31,7 @@ export enum VerificationStatus {
   // ERROR STATUSES
   ///////////////////////////
 
-  // for test purposes only
+  // generic invalid response
   NOT_CONFIRMED = "NOT_CONFIRMED",
 
   NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",

@@ -2,7 +2,7 @@ import { Managed, optional } from "@flarenetwork/mcc";
 import * as fs from "fs";
 import { exit } from "process";
 import { readSecureConfig } from "../utils/config/configSecure";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { getGlobalLogger, logException } from "../utils/logging/logger";
 import { Docker } from "../utils/monitoring/Docker";
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection";
@@ -70,7 +70,7 @@ export class DockerStats {
         logException(error, `runDockerStats`);
       }
 
-      await sleepms(config.interval);
+      await sleepMs(config.interval);
     }
   }
 }

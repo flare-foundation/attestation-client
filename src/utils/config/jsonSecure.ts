@@ -170,9 +170,9 @@ export async function readJSONsecure<T>(filename: string, parser: any = null, va
  *
  * First it replaces all instances of `$(Network)` to value of @param chain.
  * Second it replaces all instances of `$(key)` to value of 'key` from secure master config.
- * 
- * It recursively repeats this for 3 times if some '$(` are left.
- *  
+ *
+ * It recursively replaces all '$(`.
+ *
  * Finally it checks if any instance of `$(` is left to validate that everything is correctly replaced.
  *
  * @param data
@@ -184,27 +184,57 @@ export async function readJSONsecure<T>(filename: string, parser: any = null, va
 export async function _prepareSecureData(data: string, inputFilename: string, network: string, searchStub = "Network", recursive = 0): Promise<string> {
   const logger = getGlobalLogger();
   data = replaceAll(data, searchStub, network);
-  for (const config of SECURE_MASTER_CONFIGS) {
-    data = replaceAll(data, config[0], config[1]);
-  }
-  // check if any instance of `$(` is left - indicating some values were not defined
-  const leftVariables = data.match(/\$\(([^\)]+)\)/g);
-  if (leftVariables) {
-    const leftVariablesNoDup = leftVariables.filter((item, index) => leftVariables.indexOf(item) === index);
-    for (const left of leftVariablesNoDup) {
-      try {
-        // check if it is secure credential
-        const search = left.substring(2, left.length - 1);
-        const secret = await getSecretByAddress(search, false);
-        data = replaceAll(data, search, secret);
-      } catch {
-        if (recursive > 3) {
-          logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W${left}^^ left unset (check the configuration)`);
-        }
-        else {
-          data = await _prepareSecureData(data, inputFilename, network, searchStub, recursive + 1);
+
+  let level = -1;
+  let stack = [];
+  for (var i = 0; i < data.length; i++) {
+    const c = data.charAt(i);
+
+    // check if new variable `$(`
+    if (c === "$" && i < data.length - 1 && data.charAt(i + 1) === "(") {
+      // open new stack
+      level++;
+      stack.push("");
+      i++;
+      continue;
+    }
+    // check if variable close ')'
+    else if (level >= 0 && c === ")") {
+      // process this level
+      const search = stack[level];
+      let secret = undefined;
+      for (const config of SECURE_MASTER_CONFIGS) {
+        if (config[0] === search) {
+          secret = config[1] + "";
+          break;
         }
       }
+      if (!secret) {
+        if (search.indexOf(":") > 0) {
+          secret = await getSecretByAddress(search, false);
+        }
+      }
+      if (secret) {
+        data = replaceAll(data, search, secret);
+        // return index back for replacement change (3 is because of `$()` that are not in search string but are also removed)
+        i += secret.length - search.length - 3;
+      } else {
+        logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W$(${search})^^ left unset (check the configuration)`);
+        secret = "";
+      }
+
+      // pop stack
+      stack.pop();
+      level--;
+
+      // optimization: add secret to last stack (instead of returning for whole search)
+      if (level >= 0) {
+        stack[level] += secret;
+      }
+      continue;
+    }
+    if (level >= 0) {
+      stack[level] += c;
     }
   }
   return data;

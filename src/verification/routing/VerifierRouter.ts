@@ -9,7 +9,7 @@ import { AttestationType, getAttestationTypeName } from "../generated/attestatio
 import { getSourceName, SourceId } from "../sources/sources";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
-const VERIFER_TIMEOUT = 10000;
+const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;
   apiKey?: string;
@@ -221,7 +221,7 @@ export class VerifierRouter {
             "x-api-key": route.apiKey,
           },
         }),
-        VERIFER_TIMEOUT
+        VERIFIER_TIMEOUT
       );
 
       let apiResponse = resp.data as ApiResponseWrapper<Verification<any, any>>;

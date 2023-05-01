@@ -6,11 +6,18 @@ test-coverage:
   variables:
     NODE_ENV: development
   before_script:
-  - yarn install --frozen-lockfile > /dev/null
+  - yarn install --frozen-lockfile --cache-folder $CI_PROJECT_DIR/.yarn-cache > /dev/null
   script:
   - yarn run test:coverage
   after_script:
   - echo "View the generated docs at https://flarenetwork.gitlab.io/-/attestation-client/-/jobs/$CI_JOB_ID/artifacts/coverage/index.html"
+  cache:
+    key:
+      files:
+      - yarn.lock
+    paths:
+    - .yarn-cache
+    - node_modules
   artifacts:
     paths:
     - coverage

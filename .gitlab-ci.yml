@@ -19,6 +19,7 @@ test-coverage:
     - .yarn-cache
     - node_modules
   artifacts:
+    when: always
     paths:
     - coverage
     reports:

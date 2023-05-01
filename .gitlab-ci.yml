@@ -20,7 +20,6 @@ test-coverage:
     - node_modules
   artifacts:
     when: always
-    expose_as: 'Coverage report'
     paths:
     - coverage/*
     reports:

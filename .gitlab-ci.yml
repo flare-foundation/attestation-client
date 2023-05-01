@@ -1,18 +1,19 @@
-.test:
+test-coverage:
   tags:
   - flarenetwork
+  needs: []
   image: node:16
   variables:
     NODE_ENV: development
   before_script:
   - yarn install --frozen-lockfile > /dev/null
-
-
-
-test-coverage:
-  extends: .test
-  script: [ "yarn run test:coverage" ]
+  script:
+  - yarn run test:coverage
+  after_script:
+  - echo "View the generated docs at https://flarenetwork.gitlab.io/-/attestation-client/-/jobs/$CI_JOB_ID/artifacts/coverage/index.html"
   artifacts:
+    paths:
+    - coverage
     reports:
       coverage_report:
         coverage_format: cobertura

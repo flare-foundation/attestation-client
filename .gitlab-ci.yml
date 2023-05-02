@@ -1,6 +1,43 @@
-test-coverage:
+stages:
+- build
+- test
+
+default:
   tags:
   - flarenetwork
+
+
+
+
+
+
+# Using https://gitplac.si/cts/build-oci
+build-container:
+  stage: build
+  needs: []
+  image: registry.gitplac.si/cts/build-oci:1.2.2
+  script: [ "/build.sh" ]
+  variables:
+    CTS_BUILD_CACHE_REPO: ${CI_REGISTRY_IMAGE}/cache
+    CTS_BUILD_DOCKERFILE: Dockerfile
+  rules:
+  - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    variables:
+      CTS_BUILD_TAG: latest
+  - if: $CI_COMMIT_TAG != null
+    variables:
+      CTS_BUILD_TAG: $CI_COMMIT_TAG
+  - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+    variables:
+      BUILD_OCI_TAG: $CI_COMMIT_REF_SLUG
+
+
+
+
+
+
+test-coverage:
+  stage: test
   needs: []
   image: node:16
   variables:
@@ -20,6 +57,7 @@ test-coverage:
     - node_modules
   artifacts:
     when: always
+    expire_in: 1 month
     paths:
     - coverage/*
     reports:

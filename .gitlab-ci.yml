@@ -15,12 +15,15 @@ default:
 build-container:
   stage: build
   needs: []
+  tags:
+  - runner-helm-02.shared.infra.flare.network
   image: registry.gitplac.si/cts/build-oci:1.2.2
   script: [ "/build.sh" ]
   variables:
     CTS_BUILD_CACHE_REPO: ${CI_REGISTRY_IMAGE}/cache
     CTS_BUILD_DOCKERFILE: Dockerfile
     KUBERNETES_MEMORY_REQUEST: "8Gi"
+    KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "8Gi"
   rules:
   - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     variables:

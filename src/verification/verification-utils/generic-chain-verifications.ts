@@ -1,4 +1,15 @@
-import { BalanceDecreasingSummaryResponse, BalanceDecreasingSummaryStatus, MccClient, PaymentSummaryResponse, PaymentSummaryStatus, prefix0x, toBN, TransactionSuccessStatus, unPrefix0x, ZERO_BYTES_32 } from "@flarenetwork/mcc";
+import {
+  BalanceDecreasingSummaryResponse,
+  BalanceDecreasingSummaryStatus,
+  MccClient,
+  PaymentSummaryResponse,
+  PaymentSummaryStatus,
+  prefix0x,
+  toBN,
+  TransactionSuccessStatus,
+  unPrefix0x,
+  ZERO_BYTES_32,
+} from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
@@ -31,7 +42,7 @@ import { retry } from "../../utils/helpers/promiseTimeout";
  * Auxillary function for assembling attestation response for 'Payment' attestation type.
  * @param dbTransaction
  * @param TransactionClass
- * @param inUtxo 
+ * @param inUtxo
  * @param utxo
  * @param client
  * @returns
@@ -67,18 +78,21 @@ export async function responsePayment(
   }
 
   const response = {
+    stateConnectorRound: 0,
     blockNumber: toBN(dbTransaction.blockNumber),
     blockTimestamp: toBN(dbTransaction.timestamp),
     transactionHash: prefix0x(dbTransaction.transactionId),
     inUtxo: toBN(inUtxo),
     utxo: toBN(utxo),
     sourceAddressHash: paymentSummary.response.sourceAddressHash,
-
+    intendedSourceAddressHash: paymentSummary.response.intendedSourceAddressHash,
     receivingAddressHash: paymentSummary.response.receivingAddressHash,
+    intendedReceivingAddressHash: paymentSummary.response.intendedReceivingAddressHash,
     paymentReference: paymentSummary.response.paymentReference,
     spentAmount: toBN(paymentSummary.response.spentAmount),
-
+    intendedSpentAmount: toBN(paymentSummary.response.intendedSourceAmount),
     receivedAmount: toBN(paymentSummary.response.receivedAmount),
+    intendedReceivedAmount: toBN(paymentSummary.response.intendedReceivingAmount),
     oneToOne: paymentSummary.response.oneToOne,
     status: toBN(fullTxData.successStatus),
   } as DHPayment;
@@ -167,13 +181,14 @@ export async function responseBalanceDecreasingTransaction(
   }
 
   const response = {
+    stateConnectorRound: 0,
     blockNumber: toBN(dbTransaction.blockNumber),
     blockTimestamp: toBN(dbTransaction.timestamp),
     transactionHash: prefix0x(dbTransaction.transactionId),
     sourceAddressIndicator,
     sourceAddressHash: balanceDecreasingSummary.response.sourceAddressHash,
     spentAmount: toBN(balanceDecreasingSummary.response.spentAmount),
-    paymentReference: balanceDecreasingSummary.response.paymentReference
+    paymentReference: balanceDecreasingSummary.response.paymentReference,
   } as DHBalanceDecreasingTransaction;
 
   return {
@@ -237,6 +252,7 @@ export async function verifyBalanceDecreasingTransaction(
  */
 export async function responseConfirmedBlockHeightExists(dbBlock: DBBlockBase, lowerQueryWindowBlock: DBBlockBase, numberOfConfirmations: number) {
   const response = {
+    stateConnectorRound: 0,
     blockNumber: toBN(dbBlock.blockNumber),
     blockTimestamp: toBN(dbBlock.timestamp),
     numberOfConfirmations: toBN(numberOfConfirmations),
@@ -321,8 +337,9 @@ export async function responseReferencedPaymentNonExistence(
       // TODO: standard address hash
       const destinationAddressHashTmp = Web3.utils.soliditySha3(address);
       if (destinationAddressHashTmp === destinationAddressHash) {
-
-        const paymentSummary = await retry(`responseReferencedPaymentNonExistence::paymentSummary`, async () => fullTxData.paymentSummary({ inUtxo: 0, outUtxo })) as PaymentSummaryResponse;
+        const paymentSummary = (await retry(`responseReferencedPaymentNonExistence::paymentSummary`, async () =>
+          fullTxData.paymentSummary({ inUtxo: 0, outUtxo })
+        )) as PaymentSummaryResponse;
 
         if (paymentSummary.status !== PaymentSummaryStatus.Success) {
           // the address indicated in destinationAddressHash was fully checked, no need to proceed with utxos
@@ -332,7 +349,7 @@ export async function responseReferencedPaymentNonExistence(
         if (!paymentSummary.response) {
           throw new Error("critical error: should always have response");
         }
-      
+
         if (paymentSummary.response.receivedAmount.eq(toBN(amount))) {
           if (paymentSummary.response.transactionStatus !== TransactionSuccessStatus.SENDER_FAILURE) {
             // it must be SUCCESS or RECEIVER_FAULT, so the sender sent it correctly
@@ -345,6 +362,7 @@ export async function responseReferencedPaymentNonExistence(
   }
 
   const response = {
+    stateConnectorRound: 0,
     deadlineBlockNumber: toBN(deadlineBlockNumber),
     deadlineTimestamp: toBN(deadlineTimestamp),
     destinationAddressHash: destinationAddressHash,

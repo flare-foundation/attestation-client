@@ -48,7 +48,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
     const attestationType = AttestationType.Payment;
     const request = { attestationType, sourceId: CHAIN_ID } as ARPayment;
 
-    const response = getRandomResponseForType(attestationType) as DHPayment;
+    const response = getRandomResponseForType(attestationType, STATECONNECTOR_ROUND) as DHPayment;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
@@ -69,7 +69,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
     const attestationType = AttestationType.BalanceDecreasingTransaction;
     const request = { attestationType, sourceId: CHAIN_ID } as ARBalanceDecreasingTransaction;
 
-    const response = getRandomResponseForType(attestationType) as DHBalanceDecreasingTransaction;
+    const response = getRandomResponseForType(attestationType, STATECONNECTOR_ROUND) as DHBalanceDecreasingTransaction;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
@@ -90,7 +90,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
     const attestationType = AttestationType.ConfirmedBlockHeightExists;
     const request = { attestationType, sourceId: CHAIN_ID } as ARConfirmedBlockHeightExists;
 
-    const response = getRandomResponseForType(attestationType) as DHConfirmedBlockHeightExists;
+    const response = getRandomResponseForType(attestationType, STATECONNECTOR_ROUND) as DHConfirmedBlockHeightExists;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
@@ -111,7 +111,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
     const attestationType = AttestationType.ReferencedPaymentNonexistence;
     const request = { attestationType, sourceId: CHAIN_ID } as ARReferencedPaymentNonexistence;
 
-    const response = getRandomResponseForType(attestationType) as DHReferencedPaymentNonexistence;
+    const response = getRandomResponseForType(attestationType, STATECONNECTOR_ROUND) as DHReferencedPaymentNonexistence;
     response.stateConnectorRound = STATECONNECTOR_ROUND;
     response.merkleProof = [];
 
@@ -132,7 +132,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
     const verifications = [];
     for (let i = 0; i < NUM_OF_HASHES; i++) {
       const request = getRandomRequest();
-      const response = getRandomResponseForType(request.attestationType);
+      const response = getRandomResponseForType(request.attestationType, STATECONNECTOR_ROUND);
       verifications.push({
         request,
         response,

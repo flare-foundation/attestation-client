@@ -252,14 +252,13 @@ export class SourceManager {
           const originalRequest = getAttestationTypeAndSource(attestation.data.request);
           const micOk = originalRequest.messageIntegrityCode === dataHash(originalRequest, verification.response, MIC_SALT);
           if (micOk) {
+            // augment the attestation response with the round id
+            verification.response.stateConnectorRound = attestation.roundId;
+            // calculate the correct hash, with given roundId
             const hash = dataHash(originalRequest, verification.response);
             // check if verification returned consistent hash
-            if (verification.hash !== hash) {
-              // Report error
-              this.logger.error(`Verifier server returned correct data by wrong hash in verification object: correct: ${hash}, returned ${verification.hash}`);
-              // Adjust hash
-              verification.hash = hash;
-            }
+            verification.hash = hash;
+
             this.onProcessed(attestation, AttestationStatus.valid, verification);
             return;
           }
@@ -327,11 +326,6 @@ export class SourceManager {
     // set status
     attestation.status = actualStatus;
     attestation.verificationData = verificationData;
-
-    // augment the attestation response with the round id
-    if (attestation.verificationData?.response) {
-      attestation.verificationData.response.stateConnectorRound = attestation.roundId;
-    }
 
     // move into processed
     this.attestationProcessing.delete(attestation);

@@ -1,5 +1,6 @@
 import {
   BtcFullBlock,
+  BtcTransaction,
   ChainType, DogeFullBlock, IUtxoGetBlockRes,
   IXrpGetBlockRes, IXrpGetTransactionRes,
   LtcBlockHeader, LtcFullBlock,
@@ -34,10 +35,10 @@ import * as resLTCBlockHeader from "../mockData/LTCBlockHeaderFake.json";
 
 
 export const TestBlockBTC = new BtcFullBlock(resBTCBlock);
-export const TestTxBTC = new UtxoTransaction(resBTCTx);
+export const TestTxBTC = new BtcTransaction(resBTCTx);
 export const TestBlockBTCAlt = new BtcFullBlock(resBTCBlockAlt as unknown as IUtxoGetBlockRes);
-export const TestTxBTCAlt = new UtxoTransaction(resBTCTxAlt);
-export const TestTxBTCFake = new UtxoTransaction(resBTCTxFake);
+export const TestTxBTCAlt = new BtcTransaction(resBTCTxAlt);
+export const TestTxBTCFake = new BtcTransaction(resBTCTxFake);
 
 export const TestBlockDOGE = new DogeFullBlock(resDOGEBlock as unknown as IUtxoGetBlockRes);
 

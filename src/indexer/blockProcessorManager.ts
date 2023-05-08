@@ -31,7 +31,7 @@ export class BlockProcessorManager {
   logger: AttLogger;
 
   // list of block processors
-  blockProcessors: LimitingProcessor[] = [];
+  blockProcessors: LimitingProcessor<IFullBlock>[] = [];
 
   // Called on block processing completion
   completeCallback: any;

@@ -1,14 +1,13 @@
-import { ChainType, UtxoBlock } from "@flarenetwork/mcc";
+import { BtcBlock, ChainType } from "@flarenetwork/mcc";
 import { expect } from "chai";
-import sinon from "sinon";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBState } from "../../src/entity/indexer/dbState";
 import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
-import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
@@ -100,7 +99,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
         hash: resBTCBlock.hash,
       };
 
-      const block = new UtxoBlock(resBTCBlock);
+      const block = new BtcBlock(resBTCBlock);
       const augBlock = augmentBlock(DBBlockBTC, block);
       await dataService.manager.save(augBlock);
 

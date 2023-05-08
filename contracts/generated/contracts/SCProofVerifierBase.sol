@@ -43,14 +43,24 @@ abstract contract SCProofVerifierBase is ISCProofVerifier {
                     abi.encode(
                         PAYMENT,
                         _chainId,
+                        _data.stateConnectorRound,
                         _data.blockNumber,
                         _data.blockTimestamp,
                         _data.transactionHash,
                         _data.inUtxo,
-                        _data.utxo,
-                        _data.sourceAddressHash
+                        _data.utxo
                     ),
-                    abi.encode(_data.receivingAddressHash, _data.spentAmount, _data.receivedAmount, _data.paymentReference, _data.oneToOne, _data.status)
+                    abi.encode(
+                        _data.sourceAddressHash,
+                        _data.intendedSourceAddressHash,
+                        _data.receivingAddressHash,
+                        _data.intendedReceivingAddressHash,
+                        _data.spentAmount,
+                        _data.intendedSpentAmount,
+                        _data.receivedAmount,
+                        _data.intendedReceivedAmount
+                    ),
+                    abi.encode(_data.paymentReference, _data.oneToOne, _data.status)
                 )
             );
     }
@@ -61,6 +71,7 @@ abstract contract SCProofVerifierBase is ISCProofVerifier {
                 abi.encode(
                     BALANCE_DECREASING_TRANSACTION,
                     _chainId,
+                    _data.stateConnectorRound,
                     _data.blockNumber,
                     _data.blockTimestamp,
                     _data.transactionHash,
@@ -78,6 +89,7 @@ abstract contract SCProofVerifierBase is ISCProofVerifier {
                 abi.encode(
                     CONFIRMED_BLOCK_HEIGHT_EXISTS,
                     _chainId,
+                    _data.stateConnectorRound,
                     _data.blockNumber,
                     _data.blockTimestamp,
                     _data.numberOfConfirmations,
@@ -95,14 +107,19 @@ abstract contract SCProofVerifierBase is ISCProofVerifier {
                     abi.encode(
                         REFERENCED_PAYMENT_NONEXISTENCE,
                         _chainId,
+                        _data.stateConnectorRound,
                         _data.deadlineBlockNumber,
                         _data.deadlineTimestamp,
                         _data.destinationAddressHash,
                         _data.paymentReference,
-                        _data.amount,
-                        _data.lowerBoundaryBlockNumber
+                        _data.amount
                     ),
-                    abi.encode(_data.lowerBoundaryBlockTimestamp, _data.firstOverflowBlockNumber, _data.firstOverflowBlockTimestamp)
+                    abi.encode(
+                        _data.lowerBoundaryBlockNumber,
+                        _data.lowerBoundaryBlockTimestamp,
+                        _data.firstOverflowBlockNumber,
+                        _data.firstOverflowBlockTimestamp
+                    )
                 )
             );
     }

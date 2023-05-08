@@ -145,12 +145,10 @@ on the input indicated by 'inUtxo'.
       type: "int256",
       description: `
 The amount that was intended to go out of the source address, in the smallest underlying units.
-In non-UTXO chains it includes both payment value and fee (gas). 
-If the transaction status is successful the value matches 'spentAmounts'.
-On some chains, a transaction can be in block and fail, the intended spent amounts represent the amounts that were intended to be spent by each address.
+If the transaction status is successful the value matches 'spentAmount'. 
+If the transaction status is not successful, the value is the amount that was intended to be spent by the source address.
 `,
     },
-
     {
       key: "receivedAmount",
       type: "int256",
@@ -162,7 +160,9 @@ The amount received to the receiving address, in smallest underlying units. Can 
       key: "intendedReceivedAmount",
       type: "int256",
       description: `
-The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
+The intended amount to be received by the receiving address, in smallest underlying units. 
+For transactions that are successful, this is the same as 'receivedAmount'.
+If the transaction status is not successful, the value is the amount that was intended to be received by the receiving address.
 `,
     },
     {

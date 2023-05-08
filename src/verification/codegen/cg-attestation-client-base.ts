@@ -41,7 +41,12 @@ function verify${definition.name}(uint${SOURCE_ID_BYTES * 8} _chainId, ${definit
  * @returns generated attestation type hash method
  */
 function genHashFunctions(definition: AttestationTypeScheme): string {
-  const paramsArr = [constantize(definition.name), "_chainId", ...definition.dataHashDefinition.map((item) => `_data.${item.key}`)];
+  const paramsArr = [
+    constantize(definition.name),
+    "_chainId",
+    "_data.stateConnectorRound",
+    ...definition.dataHashDefinition.map((item) => `_data.${item.key}`),
+  ];
   let encodedParams: string;
   if (paramsArr.length <= 10) {
     const paramsText = paramsArr.join(",\n");

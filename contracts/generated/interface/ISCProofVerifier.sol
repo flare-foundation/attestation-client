@@ -24,8 +24,12 @@ interface ISCProofVerifier {
         uint8 utxo;
         // Standardized address hash of the source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
         bytes32 sourceAddressHash;
+        // Standardized address hash of the intended source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+        bytes32 intendedSourceAddressHash;
         // Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
         bytes32 receivingAddressHash;
+        // Standardized address hash of the intended receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+        bytes32 intendedReceivingAddressHash;
         // The amount that went out of the source address, in the smallest underlying units.
         // In non-UTXO chains it includes both payment value and fee (gas).
         // Calculation for UTXO chains depends on the existence of standardized payment reference.
@@ -33,8 +37,16 @@ interface ISCProofVerifier {
         // If the standardized payment reference does not exist, then it is just the spent amount
         // on the input indicated by 'inUtxo'.
         int256 spentAmount;
+        // The amount that was intended to go out of the source address, in the smallest underlying units.
+        // If the transaction status is successful the value matches 'spentAmount'.
+        // If the transaction status is not successful, the value is the amount that was intended to be spent by the source address.
+        int256 intendedSpentAmount;
         // The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
         int256 receivedAmount;
+        // The intended amount to be received by the receiving address, in smallest underlying units.
+        // For transactions that are successful, this is the same as 'receivedAmount'.
+        // If the transaction status is not successful, the value is the amount that was intended to be received by the receiving address.
+        int256 intendedReceivedAmount;
         // Standardized payment reference, if it exists, 0 otherwise.
         bytes32 paymentReference;
         // 'true' if the transaction has exactly one source address and

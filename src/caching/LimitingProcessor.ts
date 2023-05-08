@@ -1,4 +1,4 @@
-import { IBlock, IFullBlock, Managed } from "@flarenetwork/mcc";
+import { Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Queue } from "../utils/data-structures/Queue";
@@ -86,7 +86,7 @@ export class DelayedExecution {
  * API calls, pass the processor to the async calls so that it can .call can be used in nested calls.
  */
 @Managed()
-export class LimitingProcessor {
+export class LimitingProcessor<B> {
   static defaultLimitingProcessorOptions = {
     sleepDelayMs: 100,
     activeLimit: 50,
@@ -105,7 +105,7 @@ export class LimitingProcessor {
   debugLabel = "";
   reportInMs = 1000;
 
-  block: IFullBlock;
+  block: B;
   logger: AttLogger;
 
   constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
@@ -266,7 +266,7 @@ export class LimitingProcessor {
     this.debugLogInterval = undefined;
   }
 
-  async initializeJobs(block: IBlock, onSave: onSaveSig) {
+  async initializeJobs(block: B, onSave: onSaveSig) {
     throw new Error("Should be shadowed");
   }
 }

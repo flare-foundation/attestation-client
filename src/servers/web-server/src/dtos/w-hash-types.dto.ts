@@ -85,6 +85,16 @@ Standardized address hash of the source address viewed as a string (the one indi
   sourceAddressHash: string;
 
   /**
+   * Standardized address hash of the intended source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+   */
+  @ApiProperty({
+    description: `
+Standardized address hash of the intended source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+`,
+  })
+  intendedSourceAddressHash: string;
+
+  /**
    * Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
@@ -93,6 +103,16 @@ Standardized address hash of the receiving address as a string (the one indicate
 `,
   })
   receivingAddressHash: string;
+
+  /**
+   * Standardized address hash of the intended receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+   */
+  @ApiProperty({
+    description: `
+Standardized address hash of the intended receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+`,
+  })
+  intendedReceivingAddressHash: string;
 
   /**
    * The amount that went out of the source address, in the smallest underlying units.
@@ -116,6 +136,21 @@ on the input indicated by 'inUtxo'.
   spentAmount: BN;
 
   /**
+   * The amount that was intended to go out of the source address, in the smallest underlying units.
+   * If the transaction status is successful the value matches 'spentAmount'.
+   * If the transaction status is not successful, the value is the amount that was intended to be spent by the source address.
+   */
+  @ApiProperty({
+    type: "string",
+    description: `
+The amount that was intended to go out of the source address, in the smallest underlying units.
+If the transaction status is successful the value matches 'spentAmount'. 
+If the transaction status is not successful, the value is the amount that was intended to be spent by the source address.
+`,
+  })
+  intendedSpentAmount: BN;
+
+  /**
    * The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
    */
   @ApiProperty({
@@ -125,6 +160,21 @@ The amount received to the receiving address, in smallest underlying units. Can 
 `,
   })
   receivedAmount: BN;
+
+  /**
+   * The intended amount to be received by the receiving address, in smallest underlying units.
+   * For transactions that are successful, this is the same as 'receivedAmount'.
+   * If the transaction status is not successful, the value is the amount that was intended to be received by the receiving address.
+   */
+  @ApiProperty({
+    type: "string",
+    description: `
+The intended amount to be received by the receiving address, in smallest underlying units. 
+For transactions that are successful, this is the same as 'receivedAmount'.
+If the transaction status is not successful, the value is the amount that was intended to be received by the receiving address.
+`,
+  })
+  intendedReceivedAmount: BN;
 
   /**
    * Standardized payment reference, if it exists, 0 otherwise.

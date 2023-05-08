@@ -64,11 +64,11 @@ export function augmentTransactionAlgo(block: AlgoBlock, txData: AlgoTransaction
  * @param txDataPromise
  * @returns
  */
-export async function augmentTransactionUtxo(
+export async function augmentTransactionUtxo<T extends UtxoTransaction>(
   dbTransaction: IDBTransactionBase,
   chainType: ChainType,
   block: UtxoBlock,
-  txDataPromise: Promise<UtxoTransaction>
+  txDataPromise: Promise<T>
 ): Promise<DBTransactionBase> {
   const txData = await txDataPromise;
   const res = augmentTransactionBase(dbTransaction, chainType, block, txData);

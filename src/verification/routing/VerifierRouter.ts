@@ -215,12 +215,14 @@ export class VerifierRouter {
         request: attestation.data.request,
       } as AttestationRequest;
 
-      const resp = await retry(`VerifierRouter::verifyAttestation`, async () =>
-        axios.post(this.transformRoute(route.url), attestationRequest, {
-          headers: {
-            "x-api-key": route.apiKey,
-          },
-        }),
+      const resp = await retry(
+        `VerifierRouter::verifyAttestation`,
+        async () =>
+          axios.post(this.transformRoute(route.url), attestationRequest, {
+            headers: {
+              "x-api-key": route.apiKey,
+            },
+          }),
         VERIFIER_TIMEOUT
       );
 

@@ -1,6 +1,6 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
+import { ATT_BYTES, AttestationTypeScheme, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_HASH_UTILS_FILE,
@@ -18,11 +18,13 @@ export function genHashCode(definition: AttestationTypeScheme, defaultRequest = 
 const types = [
   "uint${ATT_BYTES * 8}",\t\t// attestationType
   "uint${SOURCE_ID_BYTES * 8}",\t\t// sourceId
+  "uint256",\t\t// state connector round
 ${types}
 ];
 const values = 	[
   ${defaultRequest}.attestationType,
   ${defaultRequest}.sourceId,
+  ${defaultResponse}.stateConnectorRound,
 ${values}
 ] as any[];
 if(salt) {

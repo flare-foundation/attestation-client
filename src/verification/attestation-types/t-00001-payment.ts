@@ -108,10 +108,24 @@ Standardized address hash of the source address viewed as a string (the one indi
 `,
     },
     {
+      key: "intendedSourceAddressHash",
+      type: "bytes32",
+      description: `
+Standardized address hash of the intended source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+`,
+    },
+    {
       key: "receivingAddressHash",
       type: "bytes32",
       description: `
 Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+`,
+    },
+    {
+      key: "intendedReceivingAddressHash",
+      type: "bytes32",
+      description: `
+Standardized address hash of the intended receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
 `,
     },
     {
@@ -127,7 +141,25 @@ on the input indicated by 'inUtxo'.
 `,
     },
     {
+      key: "intendedSpentAmount",
+      type: "int256",
+      description: `
+The amount that was intended to go out of the source address, in the smallest underlying units.
+In non-UTXO chains it includes both payment value and fee (gas). 
+If the transaction status is successful the value matches 'spentAmounts'.
+On some chains, a transaction can be in block and fail, the intended spent amounts represent the amounts that were intended to be spent by each address.
+`,
+    },
+
+    {
       key: "receivedAmount",
+      type: "int256",
+      description: `
+The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
+`,
+    },
+    {
+      key: "intendedReceivedAmount",
       type: "int256",
       description: `
 The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.

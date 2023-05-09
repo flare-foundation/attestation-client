@@ -1,3 +1,5 @@
+// yarn test test/indexer/indexerToClient.test.ts
+
 import { MCC, XrpMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -76,8 +78,8 @@ describe(`Indexer to client (${getTestFile(__filename)})`, function () {
         sinon.restore();
       });
 
-      it.skip("getBlockFromClient", async function () {
-        const stub1 = sinon.stub(inToCl.client, "getBlock").resolves(null);
+      it("getBlockFromClient", async function () {
+        const stub1 = sinon.stub(inToCl.client, "getFullBlock").resolves(null);
         const stub2 = sinon.stub(inToCl.client, "getBlockHeader").resolves(null);
         const mock = sinon.mock();
         setRetryFailureCallback(mock);

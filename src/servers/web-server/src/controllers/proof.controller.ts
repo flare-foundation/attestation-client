@@ -59,7 +59,7 @@ export class ProofController {
       if (result) {
         return new ApiResponseWrapper<VotingRoundResult>(result);
       }
-      return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.OK);
+      throw new Error("Proof not found");
     } catch (reason: any) {
       throw new ApiResponseWrapper<VotingRoundResult>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }

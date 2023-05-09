@@ -1,35 +1,11 @@
 import { SourceId } from "../sources/sources";
-import { ATT_BYTES, AttestationTypeScheme, BLOCKNUMBER_BYTES, IN_UTXO_BYTES, MIC_BYTES, SOURCE_ID_BYTES, TX_ID_BYTES } from "./attestation-types";
+import { AttestationTypeScheme, BLOCKNUMBER_BYTES, IN_UTXO_BYTES, TX_ID_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
   id: 2,
   supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
   name: "BalanceDecreasingTransaction",
   request: [
-    {
-      key: "attestationType",
-      size: ATT_BYTES,
-      type: "AttestationType",
-      description: `
-Attestation type id for this request, see 'AttestationType' enum.
-`,
-    },
-    {
-      key: "sourceId",
-      size: SOURCE_ID_BYTES,
-      type: "SourceId",
-      description: `
-The ID of the underlying chain, see 'SourceId' enum.
-`,
-    },
-    {
-      key: "messageIntegrityCode",
-      size: MIC_BYTES,
-      type: "ByteSequenceLike",
-      description: `
-The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
-`,
-    },
     {
       key: "id",
       size: TX_ID_BYTES,

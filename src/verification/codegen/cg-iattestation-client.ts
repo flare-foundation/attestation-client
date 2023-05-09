@@ -1,6 +1,6 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, RESPONSE_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
 import {
   DEFAULT_GEN_FILE_HEADER,
   I_ATTESTATION_CLIENT_FILE,
@@ -12,7 +12,7 @@ import { commentText } from "./cg-utils";
 
 function genProofStructs(definition: AttestationTypeScheme): any {
   const structName = `${definition.name}`;
-  const typedParams = definition.dataHashDefinition
+  const typedParams = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition]
     .map(
       (item) =>
         `
@@ -22,9 +22,6 @@ ${commentText(item.description)}
     .join("\n");
   return `
     struct ${structName} {
-        // Round number (epoch id) of the state connector request
-        uint256 stateConnectorRound;
-
         // Merkle proof needed to verify the existence of transaction with the below fields.
         bytes32[] merkleProof;
 ${typedParams}

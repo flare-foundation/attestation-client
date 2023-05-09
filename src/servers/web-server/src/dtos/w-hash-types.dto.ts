@@ -6,17 +6,21 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import BN from "bn.js";
 
 export class DHPayment {
-  /**
-   * Round id in which the attestation request was validated.
-   */
   @ApiPropertyOptional()
-  stateConnectorRound?: number;
-  @ApiPropertyOptional()
-
   /**
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
+
+  /**
+   * Round id in which the attestation request was validated.
+   */
+  @ApiProperty({
+    description: `
+Round id in which the attestation request was validated.
+`,
+  })
+  stateConnectorRound: number;
 
   /**
    * Number of the transaction block on the underlying chain.
@@ -217,17 +221,21 @@ Transaction success status, can have 3 values:
 }
 
 export class DHBalanceDecreasingTransaction {
-  /**
-   * Round id in which the attestation request was validated.
-   */
   @ApiPropertyOptional()
-  stateConnectorRound?: number;
-  @ApiPropertyOptional()
-
   /**
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
+
+  /**
+   * Round id in which the attestation request was validated.
+   */
+  @ApiProperty({
+    description: `
+Round id in which the attestation request was validated.
+`,
+  })
+  stateConnectorRound: number;
 
   /**
    * Number of the transaction block on the underlying chain.
@@ -304,17 +312,21 @@ Standardized payment reference, if it exists, 0 otherwise.
 }
 
 export class DHConfirmedBlockHeightExists {
-  /**
-   * Round id in which the attestation request was validated.
-   */
   @ApiPropertyOptional()
-  stateConnectorRound?: number;
-  @ApiPropertyOptional()
-
   /**
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
+
+  /**
+   * Round id in which the attestation request was validated.
+   */
+  @ApiProperty({
+    description: `
+Round id in which the attestation request was validated.
+`,
+  })
+  stateConnectorRound: number;
 
   /**
    * Number of the highest confirmed block that was proved to exist.
@@ -373,17 +385,21 @@ Lowest query window block timestamp.
 }
 
 export class DHReferencedPaymentNonexistence {
-  /**
-   * Round id in which the attestation request was validated.
-   */
   @ApiPropertyOptional()
-  stateConnectorRound?: number;
-  @ApiPropertyOptional()
-
   /**
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
+
+  /**
+   * Round id in which the attestation request was validated.
+   */
+  @ApiProperty({
+    description: `
+Round id in which the attestation request was validated.
+`,
+  })
+  stateConnectorRound: number;
 
   /**
    * Deadline block number specified in the attestation request.

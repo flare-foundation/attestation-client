@@ -7,10 +7,10 @@ pragma solidity >=0.7.6 <0.9;
 
 interface ISCProofVerifier {
     struct Payment {
-        // Round number (epoch id) of the state connector request
-        uint256 stateConnectorRound;
         // Merkle proof needed to verify the existence of transaction with the below fields.
         bytes32[] merkleProof;
+        // Round id in which the attestation request was validated.
+        uint256 stateConnectorRound;
         // Number of the transaction block on the underlying chain.
         uint64 blockNumber;
         // Timestamp of the transaction block on the underlying chain.
@@ -60,10 +60,10 @@ interface ISCProofVerifier {
     }
 
     struct BalanceDecreasingTransaction {
-        // Round number (epoch id) of the state connector request
-        uint256 stateConnectorRound;
         // Merkle proof needed to verify the existence of transaction with the below fields.
         bytes32[] merkleProof;
+        // Round id in which the attestation request was validated.
+        uint256 stateConnectorRound;
         // Number of the transaction block on the underlying chain.
         uint64 blockNumber;
         // Timestamp of the transaction block on the underlying chain.
@@ -81,10 +81,10 @@ interface ISCProofVerifier {
     }
 
     struct ConfirmedBlockHeightExists {
-        // Round number (epoch id) of the state connector request
-        uint256 stateConnectorRound;
         // Merkle proof needed to verify the existence of transaction with the below fields.
         bytes32[] merkleProof;
+        // Round id in which the attestation request was validated.
+        uint256 stateConnectorRound;
         // Number of the highest confirmed block that was proved to exist.
         uint64 blockNumber;
         // Timestamp of the confirmed block that was proved to exist.
@@ -98,10 +98,10 @@ interface ISCProofVerifier {
     }
 
     struct ReferencedPaymentNonexistence {
-        // Round number (epoch id) of the state connector request
-        uint256 stateConnectorRound;
         // Merkle proof needed to verify the existence of transaction with the below fields.
         bytes32[] merkleProof;
+        // Round id in which the attestation request was validated.
+        uint256 stateConnectorRound;
         // Deadline block number specified in the attestation request.
         uint64 deadlineBlockNumber;
         // Deadline timestamp specified in the attestation request.

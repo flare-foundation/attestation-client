@@ -1,6 +1,6 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES, RESPONSE_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
 import { ATTESTATION_CLIENT_BASE, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS_SOL, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 import { constantize } from "./cg-utils";
 
@@ -44,8 +44,7 @@ function genHashFunctions(definition: AttestationTypeScheme): string {
   const paramsArr = [
     constantize(definition.name),
     "_chainId",
-    "_data.stateConnectorRound",
-    ...definition.dataHashDefinition.map((item) => `_data.${item.key}`),
+    ...[...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `_data.${item.key}`),
   ];
   let encodedParams: string;
   if (paramsArr.length <= 10) {

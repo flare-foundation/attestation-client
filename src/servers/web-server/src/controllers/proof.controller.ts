@@ -36,7 +36,7 @@ export class ProofController {
       }
       return new ApiResponseWrapper<VotingRoundResult[]>([], ApiResStatusEnum.PENDING);
     } catch (reason: any) {
-      throw new ApiResponseWrapper<VotingRoundResult[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
+      return new ApiResponseWrapper<VotingRoundResult[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }
   }
 
@@ -61,7 +61,7 @@ export class ProofController {
       }
       throw new Error("Proof not found");
     } catch (reason: any) {
-      throw new ApiResponseWrapper<VotingRoundResult>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
+      return new ApiResponseWrapper<VotingRoundResult>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }
   }
 
@@ -81,7 +81,7 @@ export class ProofController {
       }
       return new ApiResponseWrapper<VotingRoundRequest[]>([], ApiResStatusEnum.PENDING);
     } catch (reason: any) {
-      throw new ApiResponseWrapper<VotingRoundRequest[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
+      return new ApiResponseWrapper<VotingRoundRequest[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }
   }
 

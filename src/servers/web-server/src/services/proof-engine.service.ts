@@ -34,8 +34,7 @@ export class ProofEngineService {
     }
 
     if (!this.canReveal(roundId)) {
-      throw new Error("Round data cannot be revealed yet");
-      // return null;
+      return null;
     }
 
     const query = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").andWhere("voting_round_result.roundId = :roundId", { roundId });

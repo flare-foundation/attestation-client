@@ -1,4 +1,4 @@
-import { unPrefix0x } from "@flarenetwork/mcc";
+import { round, unPrefix0x } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
 import { EntityManager } from "typeorm";
@@ -34,7 +34,7 @@ export class ProofEngineService {
     }
 
     if (!this.canReveal(roundId)) {
-      return null;
+      throw new Error(`Votes for round ${roundId} can not be revealed.`);
     }
 
     const query = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").andWhere("voting_round_result.roundId = :roundId", { roundId });
@@ -87,7 +87,7 @@ export class ProofEngineService {
         return proof;
       }
     }
-    return null;
+    throw new Error("Proof not found.");
   }
 
   /**
@@ -101,7 +101,7 @@ export class ProofEngineService {
     }
 
     if (!this.canReveal(roundId)) {
-      return null;
+      throw new Error(`Requests for round ${roundId} can not be revealed.`);
     }
 
     const query = this.manager

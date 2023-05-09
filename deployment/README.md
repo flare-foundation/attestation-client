@@ -17,23 +17,22 @@ Minimal hardware requirements for complete `mainnet` configuration are:
 - DISK: 3 TB NVMe disk
 - MEMORY: 64 GB
 
-Most of this power is required for Ripple node.
+Most of this power is required for Ripple nodes.
 
-## Software requirements:
+## Software requirements
 
 Attestation Suite was tested on Ubuntu 20.02 and Ubuntu 22.02.
 
 Additional required software:
- - *docker* version 20.10.12
+ - *docker* version 20.10.
  - *docker-compose* version 1.29.2
-
 
 ## Installation
 
 The deployment includes:
 - cloning Attestation-Suite deployment repository from github
 - preparing credentials
-- deploying docker containers for 
+- deploying docker containers for
     - blockchain nodes
         - bitcoin
         - dogecoin
@@ -47,12 +46,11 @@ The deployment includes:
 
 Estimated time: `15min`.
 
-## Prerequisites 
+## Prerequisites
 
-- A machine(s) with `docker` and `docker-compose` installed. 
-- A a deployment user being in `docker` group.
-- Docker folder should be set to a mount that has sufficient amount of disk space for docker volumes. The installation creates several docker volumes.
-
+- A machine(s) with `docker` and `docker-compose` installed.
+- A a deployment user being in a `docker` group.
+- The docker folder set to an amount that has sufficient disk space for docker volumes. The installation creates several docker volumes.
 
 ## Step 1 - Clone repository and build Docker image
 
@@ -88,7 +86,7 @@ Run
 docker run --user root -it attestation-suite bash
 ```
 
-Inside docker bash run 
+Inside docker bash run
 ```bash
 apt-get install apt-transport-https ca-certificates gnupg -y
 echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
@@ -105,7 +103,7 @@ Then exit docker bash with `exit` command.
 Get this container ID with command `docker ps` and save image with GCSM initialized with command:
 ```
 docker commit <container-id> attestation-suite
-``` 
+```
 
 ## Step 2 - Credential configs generation
 
@@ -123,12 +121,12 @@ Initialize credentials first.
 ./initialize-credentials.sh
 ```
 
-This creates the sub folder `credentials`. 
+This creates the subfolder `credentials`.
 
 ---
 IMPORTANT: Using this command again will overwrite your credentials!
 
-### 2.2 Update credentials 
+### 2.2 Update credentials
 
 The file `credentials/configurations.json` contains the keys used to encrypt the credentials.
 Provide relevant definition of the encryption keys in the `key` variables.
@@ -138,23 +136,23 @@ Use:
  - `GoogleCloudSecretManager:<path>` to specify the secret Google Cloud Secret (More details can be found [here](./../docs/installation/GoogleCloudSecretManager.md) ). Manager path in place of `<path>`
 
 Beside the `configuration.json` file, the `credentials` folder contains several credential configuration files of the form `<******>-credentials.json`.
-Update these files with relevant credentials. Note that some credentials/passwords (with values `$(GENERATE_RANDOM_PASSWORD_<**>)`) are randomly generated with a secure random password generator. You may change those to suit your needs. 
+Update these files with relevant credentials. Note that some credentials/passwords (with values `$(GENERATE_RANDOM_PASSWORD_<**>)`) are randomly generated with a secure random password generator. You may change those to suit your needs.
 
 Some of the more important settings and credentials include:
 - in `networks-credentials.json`:
    - `Network` - set to desired network (e.g. `songbird`, `flare`).
-   - `NetworkPrivateKey` - set `0x`-prefixed private key from which attestation client will be submitting attestations to Flare network. Private key can also be specified as a Google Cloud Secred Manager variable. To do that use syntax: 
+   - `NetworkPrivateKey` - set `0x`-prefixed private key from which an attestation client submits attestations to the Flare network. A private key can also be specified as a Google Cloud Secret Manager variable. To do that use syntax:
    ```
    "NetworkPrivateKey":"$(GoogleCloudSecretManager:projects/<project>/secrets/<name>/versions/<version>)"
    ```
-   - `StateConnectorContractAddress` - the `StateConnector` contract address on the specific network. 
+   - `StateConnectorContractAddress` - the `StateConnector` contract address on the specific network.
    - `RPC` - update the network RPC to desired network.
-- In `verifier-client-credentials.json` - instead od `localhost` use the IP address of the host machine. On Linux Ubuntu one can get it by running 
+- In `verifier-client-credentials.json` - instead of `localhost`, use the IP address of the host machine. On Linux Ubuntu, get it by running
 ```bash
 ip addr show docker0 | grep -Po 'inet \K[\d.]+'
 ```
-- in `verifier-server-credentials.json` - Set API keys for supported external blockchains (currently BTC, DOGE and XRP). Default templates are configured 
-for two API keys. 
+- in `verifier-server-credentials.json` - Set API keys for supported external blockchains (currently BTC, DOGE and XRP). Default templates are configured
+for two API keys.
 
 ### 2.3 Prepare credentials
 
@@ -164,26 +162,27 @@ After credentials have been set up they must be prepared for deployment.
 ./prepare-credentials.sh
 ```
 
-This script creates secure credential configs in the sub folder `credentials.prepared` which
-contains sub folders that are to be mounted to specific docker containers on the deployment machine.
+This script creates secure credential configs in the subfolder `credentials.prepared`, which
+contains subfolders that are to be mounted to specific docker containers on the deployment machine.
 
-Each sub folder (docker credentials mount) contains the following:
+Each subfolder (docker credentials mount) contains the following:
 - `credentials.json.secure` - encrypted credentials (using encryption key as defined in `credentials/configuration.json`)
 - `credentials.key` - decryption instruction
-- `templates` - sub folder with configurations as templates where credentials are indicated by stubs of the form `${credential_name}`. Non credential parts of configs can be edited directly.
+- `templates` - subfolder with configurations as templates where credentials are indicated by stubs of the form `${credential_name}`. Non credential parts of configs can be edited directly.
 
-Secure credential configs work as follows. 
-A process in a docker container first identifies from  `credentials.key`, how the credentials in can be decrypted `credentials.json.secure` and then the 
-credential stubs in templates are filled in. This is done in-memory of the process. The process reads configs and credentials from the rendered template 
+Secure credential configs work as follows.
+A process in a docker container first identifies from  `credentials.key`, how the credentials in can be decrypted `credentials.json.secure` and then the
+credential stubs in templates are filled in. This is done in-memory of the process. The process reads configs and credentials from the rendered template
 structure in memory.
 
 ## Step 3 - Installation
 
 ### 3.1 - Copying credentials
-If the installation is done on different deployment machine then the credential generation, proceed with steps 1.1 and 1.2 (cloning the repo and building the docker image on the deployment machine. Copy the folder `deployment/credentials.prepared` from the secure machine to the deployment machine into 
-`<git-repo-root>/deployment` folder.
- 
+
+If the installation is done on a different deployment machine than the credential generation, proceed with steps 1.1 and 1.2 (cloning the repo and building the docker image on the deployment machine). Copy the folder `deployment/credentials.prepared` from the secure machine to the deployment machine into the `<git-repo-root>/deployment` folder.
+
 ### 3.2 - Installing
+
 Run the installation from the `deployment` folder:
 ``` bash
 ./install-dockers.sh mainnet
@@ -207,6 +206,7 @@ Once Attestation Suite is installed one can change credentials as follows:
 Updating can be done on specific containers only. In this case only specific containers are stopped, steps 1.4, 1.5 are carried out on updated configs, but only changed secure credential configs are copied to the deployment machine into the folders mounted to the specific containers. Those containers are then restarted. Stopping and starting is carried out using `docker-compose` and handy scripts in `deployment` folder.
 
 ## Step 4. Monitoring
+
 Attestation Suite monitoring installation is documented [here](./../docs/monitor/monitor.md).
 
 ## Indexer syncing times

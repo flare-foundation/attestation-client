@@ -49,15 +49,15 @@ Folders:
     - Property description: [VeriferServerConfig](../../src/servers/verifier-server/src/config-models/VerifierServerConfig.ts).
     - Example: [`btc-verifier-config.json`](../../configs/.install/templates/verifier-server/btc-verifier-config.json).
 
-In addition to configurations in the folders listed above, there are the following configuration files in the `templates` folder:
+In addition to configurations in the folders stated above, there are the following configuration files in the `templates` folder:
 
-- `attester-config.json`: Attestation client configuration:
+- `attester-config.json`: attestation client configuration.
     - Property description: [AttestationClientConfig](../../src/attester/configs/AttestationClientConfig.ts).
     - Example: [attester-config.json](../../configs/.install/templates/attester-config.json).
-- `webserver-config.json`: Attestation web server configuration:
+- `webserver-config.json`: attestation web server configuration.
     - Property description: [WebserverConfig](../../src/servers/web-server/src/config-models/WebserverConfig.ts).
     - Example: [webserver-config.json](../../configs/.install/templates/webserver-config.json).
-- `monitor-config.json`: Attestation suite monitor configuration:
+- `monitor-config.json`: attestation suite monitor configuration.
     - Contains definitions for monitoring status and performance metrics for all Attestation Suite modules.
     - Property description: [MonitorConfiguration](../../src/monitor/MonitorConfiguration.ts)
     - Example: [monitor-config.json](../../configs/.install/templates/monitor-config.json)

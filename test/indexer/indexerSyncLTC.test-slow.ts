@@ -48,11 +48,6 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
       indexer.dbTransactionClasses = indexer.interlace.DBTransactionClasses;
     });
 
-    beforeEach(function () {
-      sinon.stub(console, "error");
-      sinon.stub(console, "log");
-    });
-
     afterEach(function () {
       sinon.restore();
     });
@@ -82,8 +77,17 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
       const stub2 = sinon.stub(indexer.indexerSync, "getSyncStartBlockNumber").resolves(2402419);
 
       const stub3 = sinon.stub(indexer.indexerToClient.client, "getBlock");
+      const stub6 = sinon.stub(indexer.cachedClient, "getBlock");
+      const stub7 = sinon.stub(indexer.indexerToClient.client, "getFullBlock");
+
       stub3.withArgs(2402420).resolves(BlockLTC420);
       stub3.withArgs(2402421).resolves(BlockLTC421);
+
+      stub6.withArgs(2402420).resolves(BlockLTC420);
+      stub6.withArgs(2402421).resolves(BlockLTC421);
+
+      stub7.withArgs(2402420).resolves(BlockLTC420);
+      stub7.withArgs(2402421).resolves(BlockLTC421);
 
       const stub4 = sinon.stub(readTx, "getFullTransactionUtxo").callsFake(async (x, y, z) => y);
 

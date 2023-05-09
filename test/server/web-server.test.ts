@@ -88,8 +88,8 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
         "0x000100000003fcc56a2e4fee0a7830de7e8aa0597e0fe34750174be9d73b6f28a4559f9b3fe69735df203e0f80e59120fbe07e2ff8324be470e408c664b4fa86bc40b4cfe9c3000003b60000",
     });
 
-    expect(resp.data.status).to.eq("OK");
-    expect(resp.data.data).to.be.null;
+    expect(resp.data.status).to.eq("ERROR");
+    expect(resp.data.data).to.be.undefined;
   });
 
   it("Should get status", async function () {

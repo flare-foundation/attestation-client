@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Post } from "@nestjs/common";
 import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { getGlobalLogger } from "../../../../utils/logging/logger";
 import { ApiResponseWrapper, ApiResStatusEnum, handleApiResponse } from "../../../common/src";
@@ -47,6 +47,7 @@ export class ProofController {
    * @returns
    */
   @Post("get-specific-proof")
+  @HttpCode(200)
   @ApiResponseWrapperDec(VotingRoundResult)
   public async getSpecificProofController(@Body() roundRequest: SpecificProofRequest): Promise<ApiResponseWrapper<VotingRoundResult>> {
     try {

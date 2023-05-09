@@ -249,7 +249,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         expect(indexer.preparedBlocks.size).to.eq(1);
       });
 
-      it.skip("Should execute blockCompleted for next block in line while not waiting", async function () {
+      it("Should execute blockCompleted for next block in line while not waiting", async function () {
         indexer.blockNp1hash = "RIGHTHASH";
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "RIGHTHASH";
@@ -263,7 +263,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         testTx.transactionId = "5BEBD97B6F7CFF8CF1D10B7B851DF044AE3FC29F81B68BE0E01F8051CA314190";
         testTx.timestamp = Date.now();
 
-        const stub = sinon.stub(indexer.indexerToClient.client, "getBlock").resolves(TestBlockXRPFake);
+        const stub = sinon.stub(indexer.indexerToClient.client, "getFullBlock").resolves(TestBlockXRPFake);
 
         const res = await indexer.blockCompleted(testBlock, [testTx]);
 

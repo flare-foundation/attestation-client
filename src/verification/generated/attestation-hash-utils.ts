@@ -23,7 +23,7 @@ export function hashPayment(request: ARBase, response: DHPayment, salt?: string)
   const types = [
     "uint16", // attestationType
     "uint32", // sourceId
-    "uint256", // state connector round
+    "uint256", // stateConnectorRound
     "uint64", // blockNumber
     "uint64", // blockTimestamp
     "bytes32", // transactionHash
@@ -81,7 +81,7 @@ export function hashBalanceDecreasingTransaction(request: ARBase, response: DHBa
   const types = [
     "uint16", // attestationType
     "uint32", // sourceId
-    "uint256", // state connector round
+    "uint256", // stateConnectorRound
     "uint64", // blockNumber
     "uint64", // blockTimestamp
     "bytes32", // transactionHash
@@ -121,7 +121,7 @@ export function hashConfirmedBlockHeightExists(request: ARBase, response: DHConf
   const types = [
     "uint16", // attestationType
     "uint32", // sourceId
-    "uint256", // state connector round
+    "uint256", // stateConnectorRound
     "uint64", // blockNumber
     "uint64", // blockTimestamp
     "uint8", // numberOfConfirmations
@@ -157,7 +157,7 @@ export function hashReferencedPaymentNonexistence(request: ARBase, response: DHR
   const types = [
     "uint16", // attestationType
     "uint32", // sourceId
-    "uint256", // state connector round
+    "uint256", // stateConnectorRound
     "uint64", // deadlineBlockNumber
     "uint64", // deadlineTimestamp
     "bytes32", // destinationAddressHash

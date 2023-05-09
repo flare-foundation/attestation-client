@@ -1,7 +1,7 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme, DataHashScheme } from "../attestation-types/attestation-types";
-import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
+import { AttestationTypeScheme, DataHashScheme, RESPONSE_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
+import { tsTypeForItem } from "../attestation-types/attestation-types-helpers";
 import { ATT_HASH_TYPES_FILE, DATA_HASH_TYPE_PREFIX, DEFAULT_GEN_FILE_HEADER, PRETTIER_SETTINGS } from "./cg-constants";
 import { JSDocCommentText, OpenAPIOptionsResponses } from "./cg-utils";
 
@@ -15,23 +15,20 @@ function descriptionObj(comment?: string) {
 
 function genDefHashItem(item: DataHashScheme, options?: OpenAPIOptionsResponses) {
   const annotation = options?.dto
-    ? `\n@ApiProperty(${tsTypeForSolidityType(item.type) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})`
+    ? `\n@ApiProperty(${tsTypeForItem(item) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})`
     : "";
   return `${JSDocCommentText(item.description)}${annotation}
-   ${item.key}: ${tsTypeForSolidityType(item.type)};`;
+   ${item.key}: ${tsTypeForItem(item)};`;
 }
 
 function genAttestationDataHashType(definition: AttestationTypeScheme, options?: OpenAPIOptionsResponses) {
   if (options.verifierGenChecker && !options.verifierGenChecker.hasAttestationType(definition.id)) {
     return "";
   }
-  const values = definition.dataHashDefinition.map((item) => genDefHashItem(item, options)).join("\n\n");
+  const values = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => genDefHashItem(item, options)).join("\n\n");
   return `
   export class ${DATA_HASH_TYPE_PREFIX}${definition.name} {
-  /** 
-   * Round id in which the attestation request was validated.
-   */${options?.dto ? "\n@ApiPropertyOptional()\n" : ""}  
-  stateConnectorRound?: number;${options?.dto ? "\n@ApiPropertyOptional()\n" : ""}
+  ${options.dto ? "@ApiPropertyOptional()" : ""}
   /**
    * Merkle proof (a list of 32-byte hex hashes).
    */

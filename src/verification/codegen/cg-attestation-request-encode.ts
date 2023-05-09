@@ -1,6 +1,6 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, REQUEST_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_REQUEST_ENCODE_FILE,
@@ -25,7 +25,7 @@ export function genRequestEncodeFunctionForDefinition(definition: AttestationTyp
   const checkList = [];
   const bytesList = [];
 
-  for (const item of definition.request) {
+  for (const item of [...REQUEST_BASE_DEFINITIONS, ...definition.request]) {
     const check = `if(request.${item.key} == null) {
 	throw new AttestationRequestEncodeError("Missing '${item.key}'")
 }`;

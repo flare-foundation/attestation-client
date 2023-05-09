@@ -1,7 +1,7 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme, ATT_BYTES, DataHashScheme, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
-import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
+import { AttestationTypeScheme, ATT_BYTES, DataHashScheme, SOURCE_ID_BYTES, RESPONSE_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
+import { tsTypeForItem } from "../attestation-types/attestation-types-helpers";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_CLIENT_MOCK_TEST_FILE,
@@ -15,12 +15,12 @@ import {
 import { trimStartNewline } from "./cg-utils";
 
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
-  const res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;
+  const res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForItem(item)}`;
   return trimStartNewline(res);
 }
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  const responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
+  const responseFields = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
   const randomResponse = `
 const response = {
 ${responseFields}      
@@ -60,8 +60,8 @@ ${attestationTypeCases}
 }
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
-  const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
-  const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
+  const types = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
+  const values = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 const encoded = web3.eth.abi.encodeParameters(
 	[
@@ -95,7 +95,7 @@ it("'${definition.name}' test", async function () {
   const attestationType = AttestationType.${definition.name};
   const request = { attestationType, sourceId: CHAIN_ID } as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
-  const response = getRandomResponseForType(attestationType) as ${DATA_HASH_TYPE_PREFIX}${definition.name};
+  const response = getRandomResponseForType(attestationType, STATECONNECTOR_ROUND) as ${DATA_HASH_TYPE_PREFIX}${definition.name};
   response.stateConnectorRound = STATECONNECTOR_ROUND;
   response.merkleProof = [];
 
@@ -128,7 +128,7 @@ it("Merkle tree test", async function () {
 	const verifications = [];
 	for(let i = 0; i < NUM_OF_HASHES; i++) {
 		const request = getRandomRequest();
-		const response = getRandomResponseForType(request.attestationType);
+		const response = getRandomResponseForType(request.attestationType, STATECONNECTOR_ROUND);
 		verifications.push({
 			request,
 			response,

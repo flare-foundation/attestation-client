@@ -31,14 +31,14 @@ export function createVerifiersImportFileForSource(
     if (verifierGenChecker && !verifierGenChecker.givenSourceHasAttestationTypeForSource(sourceId, definition.id)) {
       continue;
     }
-    if (definition.supportedSources.indexOf(sourceId) >= 0) {
-      tdefImports += `import {TDEF as TDEF_${dashCapitalized(definition.name, "_")} } from "../../attestation-types/${definitionFile(
-        definition,
-        undefined,
-        false
-      )}";\n`;
-      tdefExports += `export { TDEF_${dashCapitalized(definition.name, "_")} };\n`;
-    }
+    // if (definition.supportedSources.indexOf(sourceId) >= 0) {
+    //   tdefImports += `import {TDEF as TDEF_${dashCapitalized(definition.name, "_")} } from "../../attestation-types/${definitionFile(
+    //     definition,
+    //     undefined,
+    //     false
+    //   )}";\n`;
+    //   tdefExports += `export { TDEF_${dashCapitalized(definition.name, "_")} };\n`;
+    // }
     dhTypeList.push(`${DATA_HASH_TYPE_PREFIX}${definition.name}`);
     arTypeList.push(`${ATTESTATION_TYPE_PREFIX}${definition.name}`);
     hashFunctionList.push(`${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`);

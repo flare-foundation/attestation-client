@@ -17,30 +17,6 @@ export const TDEF: AttestationTypeScheme = {
   name: "ReferencedPaymentNonexistence",
   request: [
     {
-      key: "attestationType",
-      size: ATT_BYTES,
-      type: "AttestationType",
-      description: `
-Attestation type id for this request, see 'AttestationType' enum.
-`,
-    },
-    {
-      key: "sourceId",
-      size: SOURCE_ID_BYTES,
-      type: "SourceId",
-      description: `
-The ID of the underlying chain, see 'SourceId' enum.
-`,
-    },
-    {
-      key: "messageIntegrityCode",
-      size: MIC_BYTES,
-      type: "ByteSequenceLike",
-      description: `
-The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
-`,
-    },
-    {
       key: "minimalBlockNumber",
       size: BLOCKNUMBER_BYTES,
       type: "NumberLike",

@@ -168,27 +168,27 @@ Block number of the transaction.
 
 export class ARConfirmedBlockHeightExists implements ARBase {
   /**
-   * Attestation type id for this request, see AttestationType enum.
+   * Attestation type id for this request, see 'AttestationType' enum.
    */
   @IsInt()
   @Min(1)
   @ApiProperty({
     enum: AttestationType,
     description: `
-Attestation type id for this request, see AttestationType enum.
+Attestation type id for this request, see 'AttestationType' enum.
 `,
   })
   attestationType: AttestationType;
 
   /**
-   * The ID of the underlying chain, see SourceId enum.
+   * The ID of the underlying chain, see 'SourceId' enum.
    */
   @IsInt()
   @Min(0)
   @ApiProperty({
     enum: SourceId,
     description: `
-The ID of the underlying chain, see SourceId enum.
+The ID of the underlying chain, see 'SourceId' enum.
 `,
   })
   sourceId: SourceId;

@@ -6,13 +6,14 @@ import BN from "bn.js";
 
 export class DHPayment {
   /**
-   * Round id in which the attestation request was validated.
-   */
-  stateConnectorRound?: number;
-  /**
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
+
+  /**
+   * Round id in which the attestation request was validated.
+   */
+  stateConnectorRound: number;
 
   /**
    * Number of the transaction block on the underlying chain.
@@ -111,13 +112,14 @@ export class DHPayment {
 
 export class DHBalanceDecreasingTransaction {
   /**
-   * Round id in which the attestation request was validated.
-   */
-  stateConnectorRound?: number;
-  /**
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
+
+  /**
+   * Round id in which the attestation request was validated.
+   */
+  stateConnectorRound: number;
 
   /**
    * Number of the transaction block on the underlying chain.
@@ -157,13 +159,14 @@ export class DHBalanceDecreasingTransaction {
 
 export class DHConfirmedBlockHeightExists {
   /**
-   * Round id in which the attestation request was validated.
-   */
-  stateConnectorRound?: number;
-  /**
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
+
+  /**
+   * Round id in which the attestation request was validated.
+   */
+  stateConnectorRound: number;
 
   /**
    * Number of the highest confirmed block that was proved to exist.
@@ -193,13 +196,14 @@ export class DHConfirmedBlockHeightExists {
 
 export class DHReferencedPaymentNonexistence {
   /**
-   * Round id in which the attestation request was validated.
-   */
-  stateConnectorRound?: number;
-  /**
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
+
+  /**
+   * Round id in which the attestation request was validated.
+   */
+  stateConnectorRound: number;
 
   /**
    * Deadline block number specified in the attestation request.

@@ -1,6 +1,6 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, REQUEST_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_REQUEST_EQUALS_FILE,
@@ -24,7 +24,7 @@ export class AttestationRequestEqualsError extends Error {
 export function genRequestEqualsFunctionForDefinition(definition: AttestationTypeScheme) {
   const checkList = [];
 
-  for (const item of definition.request) {
+  for (const item of [...REQUEST_BASE_DEFINITIONS, ...definition.request]) {
     const check = `if(!assertEqualsByScheme(request1.${item.key}, request2.${item.key}, "${item.type}")) {
 	return false;
 }`;

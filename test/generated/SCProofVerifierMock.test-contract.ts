@@ -19,14 +19,7 @@ import {
 import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 import { SourceId } from "../../src/verification/sources/sources";
 import { getRandomResponseForType, getRandomRequest } from "../../src/verification/generated/attestation-random-utils";
-import {
-  hashPayment,
-  hashBalanceDecreasingTransaction,
-  hashConfirmedBlockHeightExists,
-  hashReferencedPaymentNonexistence,
-  dataHash,
-} from "../../src/verification/generated/attestation-hash-utils";
-
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 import { SCProofVerifierInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 import { getTestFile } from "../test-utils/test-utils";
 
@@ -39,6 +32,13 @@ const NUM_OF_HASHES = 100;
 describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () {
   let attestationClient: SCProofVerifierInstance;
   let stateConnectorMock: StateConnectorMockInstance;
+  let defStore: AttestationDefinitionStore;
+
+  before(async () => {
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
+  });
+
   beforeEach(async () => {
     stateConnectorMock = await StateConnectorMock.new();
     attestationClient = await SCProofVerifier.new(stateConnectorMock.address);
@@ -54,7 +54,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
 
     const responseHex = hexlifyBN(response);
 
-    const hash = hashPayment(request, response);
+    const hash = defStore.dataHash(request, response);
 
     const dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
@@ -75,7 +75,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
 
     const responseHex = hexlifyBN(response);
 
-    const hash = hashBalanceDecreasingTransaction(request, response);
+    const hash = defStore.dataHash(request, response);
 
     const dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
@@ -96,7 +96,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
 
     const responseHex = hexlifyBN(response);
 
-    const hash = hashConfirmedBlockHeightExists(request, response);
+    const hash = defStore.dataHash(request, response);
 
     const dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
@@ -117,7 +117,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
 
     const responseHex = hexlifyBN(response);
 
-    const hash = hashReferencedPaymentNonexistence(request, response);
+    const hash = defStore.dataHash(request, response);
 
     const dummyHash = web3.utils.randomHex(32);
     await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);
@@ -136,7 +136,7 @@ describe(`Attestestation Client Mock (${getTestFile(__filename)})`, function () 
       verifications.push({
         request,
         response,
-        hash: dataHash(request, response),
+        hash: defStore.dataHash(request, response),
       });
     }
     const hashes = verifications.map((verification) => verification.hash);

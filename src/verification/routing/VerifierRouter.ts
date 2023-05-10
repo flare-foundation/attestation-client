@@ -4,11 +4,11 @@ import { ApiResponseWrapper } from "../../servers/common/src";
 import { retry } from "../../utils/helpers/promiseTimeout";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { AttestationRequest, AttestationTypeScheme, Verification } from "../attestation-types/attestation-types";
-import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
 import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
 import { getSourceName, SourceId } from "../sources/sources";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
+import { getAttestationTypeAndSource } from "../attestation-types/attestation-type-utils";
 const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;

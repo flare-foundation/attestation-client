@@ -63,12 +63,7 @@ ${dhTypes}
 export { 
 ${arTypes} 
 } from "../../generated/attestation-request-types";
-export { 
-${hashFunctions} 
-} from "../../generated/attestation-hash-utils";
-export { 
-${parserList} 
-} from "../../generated/attestation-request-parse";  
+export { AttestationDefinitionStore } from "../../attestation-types/AttestationDefinitionManager";
 export { BN };
 export { Web3 };
 ${tdefExports}

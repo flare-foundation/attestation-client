@@ -14,8 +14,7 @@ import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/web3-utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { AttestationTypeScheme } from "../../src/verification/attestation-types/attestation-types";
-import { readAttestationTypeSchemes } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { VerifierRouteConfig } from "../../src/verification/routing/configs/VerifierRouteConfig";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
@@ -69,10 +68,12 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   let privateKeys: string[] = [];
   let childProcesses: any[] = [];
   let runPromises = [];
-  let definitions: AttestationTypeScheme[];
+  let defStore: AttestationDefinitionStore;
+  
 
   before(async function () {
-    definitions = await readAttestationTypeSchemes();
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
 
     if (TEST_LOGGER) {
       initializeTestGlobalLogger();
@@ -175,13 +176,13 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
 
     // Initialize test requests
 
-    requestXRP = await testPaymentRequest(setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
-    attestationXRP = prepareAttestation(requestXRP, setup.startTime);
+    requestXRP = await testPaymentRequest(defStore, setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
+    attestationXRP = prepareAttestation(defStore, requestXRP, setup.startTime);
 
     let inUtxo = firstAddressVin(setup.BTC.selectedTransaction);
     let utxo = firstAddressVout(setup.BTC.selectedTransaction);
-    requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
-    attestationBTC = prepareAttestation(requestBTC, setup.startTime);
+    requestBTC = await testPaymentRequest(defStore, setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
+    attestationBTC = prepareAttestation(defStore, requestBTC, setup.startTime);
 
     ///////////////////////////////////
     // Attester related intializations
@@ -270,7 +271,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   it.skip(`Should be able to verify attestations through VerifierRouter`, async function () {
     const verifierRouter = new VerifierRouter();
     let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
-    await verifierRouter.initialize(verifierConfig, definitions);
+    await verifierRouter.initialize(verifierConfig, defStore.definitions);
 
     let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
 

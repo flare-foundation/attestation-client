@@ -204,9 +204,8 @@ The ID of the underlying chain, see 'SourceId' enum.
     description: `
 The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
 `,
-  }
-]
-
+  },
+];
 
 export const RESPONSE_BASE_DEFINITIONS: DataHashScheme[] = [
   {
@@ -216,5 +215,5 @@ export const RESPONSE_BASE_DEFINITIONS: DataHashScheme[] = [
     description: `
 Round id in which the attestation request was validated.
 `,
-  }
-]
+  },
+];

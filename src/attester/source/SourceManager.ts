@@ -5,14 +5,14 @@ import { getTimeMs, getTimeSec } from "../../utils/helpers/internetTime";
 import { arrayRemoveElement } from "../../utils/helpers/utils";
 import { AttLogger, logException } from "../../utils/logging/logger";
 import {
-  getSummarizedVerificationStatus,
   MIC_SALT,
   SummarizedVerificationStatus,
   Verification,
   VerificationStatus,
+  getSummarizedVerificationStatus,
 } from "../../verification/attestation-types/attestation-types";
-import { dataHash } from "../../verification/generated/attestation-hash-utils";
-import { getAttestationTypeAndSource } from "../../verification/generated/attestation-request-parse";
+
+import { getAttestationTypeAndSource } from "../../verification/attestation-types/attestation-type-utils";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";
@@ -250,12 +250,13 @@ export class SourceManager {
         if (status === VerificationStatus.OK) {
           // check message integrity
           const originalRequest = getAttestationTypeAndSource(attestation.data.request);
-          const micOk = originalRequest.messageIntegrityCode === dataHash(originalRequest, verification.response, MIC_SALT);
+          const micOk =
+            originalRequest.messageIntegrityCode === this.globalConfigManager.definitionStore.dataHash(originalRequest, verification.response, MIC_SALT);
           if (micOk) {
             // augment the attestation response with the round id
             verification.response.stateConnectorRound = attestation.roundId;
             // calculate the correct hash, with given roundId
-            const hash = dataHash(originalRequest, verification.response);
+            const hash = this.globalConfigManager.definitionStore.dataHash(originalRequest, verification.response);
             // check if verification returned consistent hash
             verification.hash = hash;
 

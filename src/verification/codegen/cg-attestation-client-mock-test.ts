@@ -20,7 +20,9 @@ export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{
 }
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  const responseFields = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
+  const responseFields = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition]
+    .map((item) => randomHashItemValue(item, defaultReadObject))
+    .join(",\n");
   const randomResponse = `
 const response = {
 ${responseFields}      
@@ -101,7 +103,7 @@ it("'${definition.name}' test", async function () {
 
   const responseHex = hexlifyBN(response);
 
-  const hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
+  const hash = defStore.dataHash(request, response);
 
   const dummyHash = web3.utils.randomHex(32);
   await stateConnectorMock.setMerkleRoot(STATECONNECTOR_ROUND, hash);    
@@ -132,7 +134,7 @@ it("Merkle tree test", async function () {
 		verifications.push({
 			request,
 			response,
-			hash: dataHash(request, response)
+			hash: defStore.dataHash(request, response)
 		})
 	};
 	const hashes = verifications.map(verification => verification.hash);
@@ -174,11 +176,7 @@ import {
 	getRandomResponseForType, 
 	getRandomRequest,
 } from "../../src/verification/generated/attestation-random-utils";
-import { 
-${hashFunctionsImports},
-	dataHash
-} from "../../src/verification/generated/attestation-hash-utils";
-  
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionManager";
 import { SCProofVerifierInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 import { getTestFile } from "../test-utils/test-utils";
 
@@ -191,6 +189,13 @@ const NUM_OF_HASHES = 100;
 describe(\`Attestestation Client Mock (\$\{getTestFile(__filename)\})\`, function () {
   let attestationClient: SCProofVerifierInstance;
   let stateConnectorMock: StateConnectorMockInstance;
+  let defStore: AttestationDefinitionStore;
+
+  before(async () => {
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
+  });
+
   beforeEach(async () => {
     stateConnectorMock = await StateConnectorMock.new();
     attestationClient = await SCProofVerifier.new(stateConnectorMock.address);

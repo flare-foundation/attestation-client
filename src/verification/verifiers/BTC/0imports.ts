@@ -22,17 +22,6 @@ export {
   ARConfirmedBlockHeightExists,
   ARReferencedPaymentNonexistence,
 } from "../../generated/attestation-request-types";
-export {
-  hashPayment,
-  hashBalanceDecreasingTransaction,
-  hashConfirmedBlockHeightExists,
-  hashReferencedPaymentNonexistence,
-} from "../../generated/attestation-hash-utils";
-export {
-  parsePayment,
-  parseBalanceDecreasingTransaction,
-  parseConfirmedBlockHeightExists,
-  parseReferencedPaymentNonexistence,
-} from "../../generated/attestation-request-parse";
+export { AttestationDefinitionStore } from "../../attestation-types/AttestationDefinitionStore";
 export { BN };
 export { Web3 };

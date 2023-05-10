@@ -12,7 +12,7 @@ import {
   getSummarizedVerificationStatus,
 } from "../../verification/attestation-types/attestation-types";
 
-import { getAttestationTypeAndSource } from "../../verification/attestation-types/attestation-type-utils";
+import { getAttestationTypeAndSource } from "../../verification/attestation-types/attestation-types-utils";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";

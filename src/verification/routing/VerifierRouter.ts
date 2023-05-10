@@ -8,7 +8,7 @@ import { AttestationType, getAttestationTypeName } from "../generated/attestatio
 import { getSourceName, SourceId } from "../sources/sources";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
-import { getAttestationTypeAndSource } from "../attestation-types/attestation-type-utils";
+import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
 const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;

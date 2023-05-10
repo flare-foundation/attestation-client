@@ -41,7 +41,7 @@ import {
 	getRandomRequestForAttestationTypeAndSourceId
 } from "../../src/verification/generated/attestation-random-utils";
 import { getTestFile } from "../test-utils/test-utils";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionManager";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 
 describe(\`Attestestation Request Parser (\$\{getTestFile(__filename)\})\`, function () {
 

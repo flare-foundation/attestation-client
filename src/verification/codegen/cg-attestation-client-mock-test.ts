@@ -176,7 +176,7 @@ import {
 	getRandomResponseForType, 
 	getRandomRequest,
 } from "../../src/verification/generated/attestation-random-utils";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionManager";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 import { SCProofVerifierInstance, StateConnectorMockInstance } from "../../typechain-truffle";
 import { getTestFile } from "../test-utils/test-utils";
 

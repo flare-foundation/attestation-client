@@ -33,7 +33,7 @@ import { Attestation } from "../../attester/Attestation";
 import { DHType } from "../generated/attestation-hash-types";
 import { ARType } from "../generated/attestation-request-types";
 import { AttestationDefinitionStore } from "../attestation-types/AttestationDefinitionStore";
-import { getAttestationTypeAndSource } from "../attestation-types/attestation-type-utils";
+import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
 
 export class WrongAttestationTypeError extends Error {
   constructor(message) {

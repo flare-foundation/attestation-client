@@ -1,7 +1,15 @@
 import fs from "fs";
 import prettier from "prettier";
 import Web3 from "web3";
-import { AttestationTypeScheme, ATT_BYTES, DataHashScheme, SOURCE_ID_BYTES, SupportedRequestType, RESPONSE_BASE_DEFINITIONS, REQUEST_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
+import {
+  AttestationTypeScheme,
+  ATT_BYTES,
+  DataHashScheme,
+  SOURCE_ID_BYTES,
+  SupportedRequestType,
+  RESPONSE_BASE_DEFINITIONS,
+  REQUEST_BASE_DEFINITIONS,
+} from "../attestation-types/attestation-types";
 import { tsTypeForItem } from "../attestation-types/attestation-types-helpers";
 import {
   ATTESTATION_TYPE_PREFIX,
@@ -14,7 +22,7 @@ import {
 import { trimStartNewline } from "./cg-utils";
 
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
-  if(item.key === "stateConnectorRound") {
+  if (item.key === "stateConnectorRound") {
     return `${item.key}: roundId`;
   }
   const res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForItem(item)}`;
@@ -43,7 +51,9 @@ export function randReqItemCode(type: SupportedRequestType, size: number) {
 // funkcija za enkodiranje vsakega od tipov
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  const responseFields = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
+  const responseFields = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition]
+    .map((item) => randomHashItemValue(item, defaultReadObject))
+    .join(",\n");
   const randomResponse = `
 const response = {
 ${responseFields}      

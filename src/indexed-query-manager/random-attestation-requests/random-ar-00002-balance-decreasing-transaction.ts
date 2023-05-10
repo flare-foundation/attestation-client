@@ -1,11 +1,11 @@
-import { prefix0x, toBN } from "@flarenetwork/mcc";
+import { prefix0x } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttLogger } from "../../utils/logging/logger";
+import { AttestationDefinitionStore } from "../../verification/attestation-types/AttestationDefinitionStore";
 import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction } from "../../verification/generated/attestation-hash-types";
-import { hashBalanceDecreasingTransaction } from "../../verification/generated/attestation-hash-utils";
 import { ARBalanceDecreasingTransaction } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
@@ -27,6 +27,7 @@ const RANDOM_OPTIONS_BALANCE_DECREASING_TRANSACTION = [
 ] as WeightedRandomChoice<RandomBalanceDecreasingTransactionChoiceType>[];
 
 export async function prepareRandomizedRequestBalanceDecreasingTransaction(
+  defStore: AttestationDefinitionStore,
   logger: AttLogger,
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
@@ -57,12 +58,12 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   if (choice === "WRONG_MIC") {
     return request;
   }
-  let attestation = createTestAttestationFromRequest(request, 0);
+  let attestation = createTestAttestationFromRequest(defStore, request, 0);
   try {
-    let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
+    let response = await verifyAttestation(defStore, undefined, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
-      request.messageIntegrityCode = hashBalanceDecreasingTransaction(request, response.response as DHBalanceDecreasingTransaction, MIC_SALT);
+      request.messageIntegrityCode = defStore.dataHash(request, response.response as DHBalanceDecreasingTransaction, MIC_SALT);
       logger.info(`Request augmented correctly (BalanceDecreasingTransaction)`);
       return request;
     }

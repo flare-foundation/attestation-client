@@ -1,17 +1,23 @@
-import { AttestationType, getAttestationTypeName } from "../../src/verification/generated/attestation-types-enum";
-import { getTestFile } from "../test-utils/test-utils";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { getRandomRequestForAttestationTypeAndSourceId } from "../../src/verification/generated/attestation-random-utils";
-import { getSourceName, SourceId, toSourceId } from "../../src/verification/sources/sources";
-import { assertEqualsByScheme, equalsRequest } from "../../src/verification/generated/attestation-request-equals";
-import { prefix0xSigned } from "../../src/verification/attestation-types/attestation-types-helpers";
-import { array, number } from "yargs";
+import { AttestationType, getAttestationTypeName } from "../../src/verification/generated/attestation-types-enum";
+import { SourceId, getSourceName, toSourceId } from "../../src/verification/sources/sources";
+import { getTestFile } from "../test-utils/test-utils";
 import { arrayRemoveElement } from "../../src/utils/helpers/utils";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
+import { prefix0xSigned } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { assertEqualsByScheme } from "../../src/verification/attestation-types/attestation-type-utils";
 
 chai.use(chaiAsPromised);
 
-describe(`Misc verifier utils, (${getTestFile(__filename)})`, function () {
+let defStore = new AttestationDefinitionStore()
+
+describe(`Misc verifier utils, (${getTestFile(__filename)})`,  function () {
+  before(async function () {
+    await defStore.initialize();
+  })
+
   it("Should get attestation type name", function () {
     const res1 = getAttestationTypeName(AttestationType.Payment);
     expect(res1).to.eq("Payment");
@@ -61,7 +67,7 @@ describe(`Misc verifier utils, (${getTestFile(__filename)})`, function () {
     it("Should check that request are not equal if they are of different types", function () {
       const res1 = getRandomRequestForAttestationTypeAndSourceId(AttestationType.ConfirmedBlockHeightExists, SourceId.BTC);
       const res2 = getRandomRequestForAttestationTypeAndSourceId(AttestationType.Payment, SourceId.BTC);
-      const res = equalsRequest(res1, res2);
+      const res = defStore.equalsRequest(res1, res2);
       assert(!res);
     });
 
@@ -70,7 +76,7 @@ describe(`Misc verifier utils, (${getTestFile(__filename)})`, function () {
         const res1 = getRandomRequestForAttestationTypeAndSourceId(j, SourceId.BTC);
         const res2 = getRandomRequestForAttestationTypeAndSourceId(j, SourceId.ALGO);
 
-        const res = equalsRequest(res1, res2);
+        const res = defStore.equalsRequest(res1, res2);
 
         assert(!res);
       });
@@ -81,7 +87,7 @@ describe(`Misc verifier utils, (${getTestFile(__filename)})`, function () {
           const res1 = getRandomRequestForAttestationTypeAndSourceId(j, i);
           const res2 = getRandomRequestForAttestationTypeAndSourceId(j, i);
 
-          const res = equalsRequest(res1, res2);
+          const res = defStore.equalsRequest(res1, res2);
 
           assert(!res, `${getAttestationTypeName(j)}, ${SourceId[i]}`);
         }

@@ -1,6 +1,13 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme, ATT_BYTES, MIC_BYTES, SOURCE_ID_BYTES, SupportedRequestType, REQUEST_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
+import {
+  AttestationTypeScheme,
+  ATT_BYTES,
+  MIC_BYTES,
+  SOURCE_ID_BYTES,
+  SupportedRequestType,
+  REQUEST_BASE_DEFINITIONS,
+} from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_REQUEST_PARSE_FILE,

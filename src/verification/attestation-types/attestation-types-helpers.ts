@@ -14,7 +14,7 @@ export const ATT_TYPE_DEFINITIONS_ROOT = "src/verification/attestation-types";
  * @returns
  */
 export function tsTypeForItem(item: DataHashScheme) {
-  if(item.tsType) {
+  if (item.tsType) {
     return item.tsType;
   }
   switch (item.type) {

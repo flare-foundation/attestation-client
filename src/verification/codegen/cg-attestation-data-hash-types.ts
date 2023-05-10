@@ -14,9 +14,7 @@ function descriptionObj(comment?: string) {
 }
 
 function genDefHashItem(item: DataHashScheme, options?: OpenAPIOptionsResponses) {
-  const annotation = options?.dto
-    ? `\n@ApiProperty(${tsTypeForItem(item) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})`
-    : "";
+  const annotation = options?.dto ? `\n@ApiProperty(${tsTypeForItem(item) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})` : "";
   return `${JSDocCommentText(item.description)}${annotation}
    ${item.key}: ${tsTypeForItem(item)};`;
 }

@@ -63,7 +63,7 @@ ${dhTypes}
 export { 
 ${arTypes} 
 } from "../../generated/attestation-request-types";
-export { AttestationDefinitionStore } from "../../attestation-types/AttestationDefinitionManager";
+export { AttestationDefinitionStore } from "../../attestation-types/AttestationDefinitionStore";
 export { BN };
 export { Web3 };
 ${tdefExports}

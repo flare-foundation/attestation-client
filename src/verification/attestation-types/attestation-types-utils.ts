@@ -3,6 +3,9 @@ import BN from "bn.js";
 import { ARBase } from "../generated/attestation-request-types";
 
 const toBN = Web3.utils.toBN;
+////////////////////////////////////////////////////////////////////////////////
+// Exceptions
+////////////////////////////////////////////////////////////////////////////////
 
 export class AttestationRequestEncodeError extends Error {
   constructor(message: any) {
@@ -25,6 +28,15 @@ export class AttestationRequestEqualsError extends Error {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Unprefixes a string with 0x if it is prefixed.
+ * @param tx
+ * @returns
+ */
 export function unPrefix0x(tx: string) {
   if (!tx) {
     return "0x0";
@@ -34,6 +46,11 @@ export function unPrefix0x(tx: string) {
   return tx;
 }
 
+/**
+ * Prefixes a string with 0x if it is not already prefixed.
+ * @param tx
+ * @returns
+ */
 export function prefix0x(tx: string) {
   if (!tx) {
     return "0x0";
@@ -43,6 +60,12 @@ export function prefix0x(tx: string) {
   return "0x" + tx;
 }
 
+/**
+ * Converts a value to hex, depending on the type supported with attestation requests.
+ * @param x
+ * @param padToBytes
+ * @returns
+ */
 export function toHex(x: string | number | BN, padToBytes?: number) {
   const hexValue = Web3.utils.toHex(x);
   if (hexValue.startsWith("-")) {
@@ -53,6 +76,14 @@ export function toHex(x: string | number | BN, padToBytes?: number) {
   }
   return hexValue;
 }
+
+/**
+ * Parses slices of bytes from attestation request bytes to a given supported type.
+ * @param bytes
+ * @param type
+ * @param size
+ * @returns
+ */
 export function fromUnprefixedBytes(bytes: string, type: string, size: number) {
   switch (type) {
     case "AttestationType":
@@ -68,6 +99,11 @@ export function fromUnprefixedBytes(bytes: string, type: string, size: number) {
   }
 }
 
+/**
+ * Extracts attestation type and source id from attestation request bytes.
+ * @param bytes
+ * @returns
+ */
 export function getAttestationTypeAndSource(bytes: string) {
   try {
     const input = unPrefix0x(bytes);
@@ -83,6 +119,15 @@ export function getAttestationTypeAndSource(bytes: string) {
     throw new AttestationRequestParseError(e);
   }
 }
+
+/**
+ * Makes a conversion of a value to bytes, depending on the type supported by with attestation requests.
+ * @param value
+ * @param type
+ * @param size
+ * @param key
+ * @returns
+ */
 export function toUnprefixedBytes(value: any, type: string, size: number, key: string) {
   let bytes = "";
   switch (type) {
@@ -111,6 +156,13 @@ export function toUnprefixedBytes(value: any, type: string, size: number, key: s
   return bytes;
 }
 
+/**
+ * Compares two values according to types that are used in attestation requests
+ * @param a
+ * @param b
+ * @param type
+ * @returns
+ */
 export function assertEqualsByScheme(a: any, b: any, type: string) {
   switch (type) {
     case "AttestationType":

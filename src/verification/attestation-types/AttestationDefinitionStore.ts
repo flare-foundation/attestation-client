@@ -9,8 +9,11 @@ import {
   unPrefix0x,
   fromUnprefixedBytes,
   assertEqualsByScheme,
-} from "./attestation-type-utils";
+} from "./attestation-types-utils";
 
+/**
+ * Reads attestation type definition schemes and provide methods to encode, decode, compare and hash attestation requests and attestation responses.
+ */
 export class AttestationDefinitionStore {
   definitions: AttestationTypeScheme[];
   web3: Web3;
@@ -60,7 +63,7 @@ export class AttestationDefinitionStore {
   }
 
   /**
-   * Encode the attestation @request into a byte string with respect to its attestation type
+   * Encodes the attestation @request into a byte string with respect to its attestation type
    */
   encodeRequest(request: ARBase): string {
     let definition = this.getDefinitionForAttestationType(request.attestationType);

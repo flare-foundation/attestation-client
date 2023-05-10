@@ -117,7 +117,8 @@ import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryMan
 import { Attestation } from "../../attester/Attestation"
 import { DHType } from "../generated/attestation-hash-types";
 import { ARType } from "../generated/attestation-request-types";
-import { AttestationDefinitionStore, getAttestationTypeAndSource } from "../attestation-types/AttestationDefinitionManager";
+import { AttestationDefinitionStore } from "../attestation-types/AttestationDefinitionStore";
+import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
 
 export class WrongAttestationTypeError extends Error {
 	constructor(message) {

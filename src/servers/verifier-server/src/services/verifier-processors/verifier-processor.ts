@@ -1,5 +1,5 @@
 import { AttestationDefinitionStore } from "../../../../../verification/attestation-types/AttestationDefinitionStore";
-import { getAttestationTypeAndSource } from "../../../../../verification/attestation-types/attestation-type-utils";
+import { getAttestationTypeAndSource } from "../../../../../verification/attestation-types/attestation-types-utils";
 import { AttestationRequest, MIC_SALT, Verification, VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import { getAttestationTypeName } from "../../../../../verification/generated/attestation-types-enum";
 import { getSourceName } from "../../../../../verification/sources/sources";

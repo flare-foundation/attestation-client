@@ -7,7 +7,7 @@ import { getTestFile } from "../test-utils/test-utils";
 import { arrayRemoveElement } from "../../src/utils/helpers/utils";
 import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 import { prefix0xSigned } from "../../src/verification/attestation-types/attestation-types-helpers";
-import { assertEqualsByScheme } from "../../src/verification/attestation-types/attestation-type-utils";
+import { assertEqualsByScheme } from "../../src/verification/attestation-types/attestation-types-utils";
 
 chai.use(chaiAsPromised);
 

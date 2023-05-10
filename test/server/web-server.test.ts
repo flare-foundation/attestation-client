@@ -54,8 +54,8 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
 
   it("Should not get a table of requests for a round for a unfinalised round", async function () {
     const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/requests-for-round/27409770000`);
-    expect(resp.data.status).to.eq("PENDING");
-    expect(resp.data.data.length).to.eq(0);
+    expect(resp.data.status).to.eq("ERROR");
+    expect(resp.data.data).to.be.undefined;
   });
 
   it("Should get table of results (confirmed request) for a round", async function () {
@@ -66,8 +66,8 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
 
   it("Should not get table of results (confirmed request) for a round in the future", async function () {
     const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/votes-for-round/274097800`);
-    expect(resp.data.status).to.eq("PENDING");
-    expect(resp.data.data.length).to.eq(0);
+    expect(resp.data.status).to.eq("ERROR");
+    expect(resp.data.data).to.be.undefined;
   });
 
   it("Should get specific proof for a request", async function () {

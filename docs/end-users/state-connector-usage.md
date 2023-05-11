@@ -76,6 +76,7 @@ The `_data` parameter is the `0x`-prefixed byte sequence encoded attestation req
 ## What happens after I submit an attestation request?
 
 The attestation request is successfully submitted if the transaction calling the `requestAttestations(...)` function on the [StateConnector](../attestation-protocol/state-connector-contract.md) smart contract is successful. It is important to read out the transaction's timestamp from the blockchain, since the timestamp determines the voting round ID to which the transaction is submitted (see the question below).
+
 A successfully submitted transaction triggers validation of the attestation request by attestation providers. The result of validation is available
 in 3-5mins.
 

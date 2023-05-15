@@ -55,7 +55,7 @@ export class ProofController {
       if (!canReveal) {
         return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.PENDING, "Proof cannot be reveled.");
       }
-      let result = await this.proofEngine.getSpecificProofForRound(roundRequest.roundId, roundRequest.callData);
+      let result = await this.proofEngine.getSpecificProofForRound(roundRequest.roundId, roundRequest.requestBytes);
       if (result) {
         return new ApiResponseWrapper<VotingRoundResult>(result);
       }

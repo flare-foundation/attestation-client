@@ -98,7 +98,7 @@ The payment reference searched for.
       key: "amount",
       type: "uint128",
       description: `
-The amount searched for.
+The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
 `,
     },
     {

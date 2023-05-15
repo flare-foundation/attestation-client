@@ -110,7 +110,7 @@ interface ISCProofVerifier {
         bytes32 destinationAddressHash;
         // The payment reference searched for.
         bytes32 paymentReference;
-        // The amount searched for.
+        // The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
         uint128 amount;
         // The first confirmed block that gets checked. It is exactly 'minimalBlockNumber' from the request.
         uint64 lowerBoundaryBlockNumber;

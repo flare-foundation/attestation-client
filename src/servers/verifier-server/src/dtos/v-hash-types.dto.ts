@@ -444,12 +444,12 @@ The payment reference searched for.
   paymentReference: string;
 
   /**
-   * The amount searched for.
+   * The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
    */
   @ApiProperty({
     type: "string",
     description: `
-The amount searched for.
+The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
 `,
   })
   amount: BN;

@@ -87,7 +87,7 @@ export class ProofEngineService {
         return proof;
       }
     }
-    throw new Error("Proof not found.");
+    throw new Error("Proof not found in the round.");
   }
 
   /**

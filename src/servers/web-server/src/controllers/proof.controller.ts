@@ -34,7 +34,7 @@ export class ProofController {
       if (result) {
         return new ApiResponseWrapper<VotingRoundResult[]>(result);
       }
-      return new ApiResponseWrapper<VotingRoundResult[]>([], ApiResStatusEnum.PENDING);
+      return new ApiResponseWrapper<VotingRoundResult[]>([], ApiResStatusEnum.PENDING, `No results for ${roundId}.`);
     } catch (reason: any) {
       return new ApiResponseWrapper<VotingRoundResult[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }
@@ -53,7 +53,7 @@ export class ProofController {
     try {
       const canReveal = this.proofEngine.canReveal(roundRequest.roundId);
       if (!canReveal) {
-        return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.PENDING);
+        return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.PENDING, "Proof cannot be reveled.");
       }
       let result = await this.proofEngine.getSpecificProofForRound(roundRequest.roundId, roundRequest.callData);
       if (result) {
@@ -79,7 +79,7 @@ export class ProofController {
       if (result) {
         return new ApiResponseWrapper<VotingRoundRequest[]>(result);
       }
-      return new ApiResponseWrapper<VotingRoundRequest[]>([], ApiResStatusEnum.PENDING);
+      return new ApiResponseWrapper<VotingRoundRequest[]>([], ApiResStatusEnum.PENDING, `No requests for round ${roundId}.`);
     } catch (reason: any) {
       return new ApiResponseWrapper<VotingRoundRequest[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }

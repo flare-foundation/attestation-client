@@ -30,10 +30,9 @@ Attestation client comes with a web server that provides the data about the subm
 The web service routes are documented using the Swagger interface at `/api-doc/` route. They include:
 
 - `/api/proof/get-specific-proof` - POST, given `{roundId: number, callData: string}`, a submission of a specific attestation request and the actual byte array of the submitted attestation request (`callData`, a `0x`-prefixed hex string representing the byte array) to the State Connector in the round `roundId`, it returns the JSON response data, that includes the attestation proof, but only if the attestation request was successfully verified in the given round `roundId`.
-- `/api/proof/votes-for-round/{roundId}` - GET, given a `roundId` it returns a JSON response containing the list of attestation objects. Each attestation object contains attestation round, attestation hash, attestation request and attestation response. The data can be used for creating the attestation proofs .
-- `/api/proof/requests-for-round/{roundId}` - GET, given a `roundId` it returns a JSON response containing the list of objects describing attestation requests. Each such object contains attestation round, request bytes, verification status, attestation status and exception error (if relevant). The data can be used for investigating the status of all attestation requests in the round.
+- `/api/proof/votes-for-round/{roundId}` - GET, given a `roundId` it returns a JSON response containing the list of all attestation objects that were confirmed in the round. Each attestation object contains attestation round, attestation hash, attestation request and attestation response. The data can be used for creating the attestation proofs.
+- `/api/proof/requests-for-round/{roundId}` - GET, given a `roundId` it returns a JSON response containing the list of objects describing all attestation requests that were considered in the round. Each such object contains attestation round, request bytes, verification status, attestation status and exception error (if relevant). The data can be used for investigating the status of all attestation requests in the round.
 - `/api/proof/status` - GET, returns an object that includes current buffer number (voting window id) and the latest available round id, for which the attestation responses are available.
-
 
 Next: [Verification workflow](./verification-workflow.md)
 

@@ -4,7 +4,7 @@ import {
   BtcTransaction,
   ChainType,
   DogeFullBlock,
-  IFullBlock,
+  FullBlockBase,
   IUtxoGetTransactionRes,
   IUtxoTransactionAdditionalData,
   LtcFullBlock,
@@ -118,7 +118,7 @@ export class LtcBlockProcessor extends UtxoBlockProcessor<LtcTransaction, LtcFul
  */
 @Managed()
 export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
-  async initializeJobs(block: IFullBlock, onSave: onSaveSig) {
+  async initializeJobs(block: DogeFullBlock, onSave: onSaveSig) {
     this.registerTopLevelJob();
     this.block = block as UtxoFullBlock<UtxoTransaction>;
 
@@ -170,7 +170,7 @@ export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
  */
 @Managed()
 export class AlgoBlockProcessor extends LimitingProcessor<any> {
-  async initializeJobs(block: IFullBlock, onSave: onSaveSig) {
+  async initializeJobs(block: FullBlockBase<any>, onSave: onSaveSig) {
     this.block = block as AlgoBlock;
 
     const txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
@@ -198,7 +198,7 @@ export class AlgoBlockProcessor extends LimitingProcessor<any> {
  */
 @Managed()
 export class XrpBlockProcessor extends LimitingProcessor<XrpFullBlock> {
-  async initializeJobs(block: IFullBlock, onSave: onSaveSig) {
+  async initializeJobs(block: XrpFullBlock, onSave: onSaveSig) {
     this.block = block as XrpFullBlock;
 
     const txPromises = this.block.transactions.map((tx) => {

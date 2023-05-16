@@ -76,14 +76,14 @@ export class ProofEngineService {
    * Returns proof data for specific attestation request.
    * Attestation request is identified by the request data and round id in which it was submitted.
    * @param roundId
-   * @param callData
+   * @param requestBytes
    * @returns
    */
-  public async getSpecificProofForRound(roundId: number, callData: string): Promise<VotingRoundResult | null> {
+  public async getSpecificProofForRound(roundId: number, requestBytes: string): Promise<VotingRoundResult | null> {
     const roundData = await this.getVoteResultsForRound(roundId);
-    const upCallData = unPrefix0x(callData).toLowerCase();
+    const lowRequestBytes = unPrefix0x(requestBytes).toLowerCase();
     for (const proof of roundData) {
-      if (unPrefix0x(proof.requestBytes) === upCallData) {
+      if (unPrefix0x(proof.requestBytes) === lowRequestBytes) {
         return proof;
       }
     }

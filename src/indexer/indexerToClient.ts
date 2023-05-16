@@ -1,4 +1,4 @@
-import { IBlock, IBlockHeader, IFullBlock, Managed, ReadRpcInterface } from "@flarenetwork/mcc";
+import { BlockBase, BlockHeaderBase, FullBlockBase, Managed, ReadRpcInterface } from "@flarenetwork/mcc";
 import { DEFAULT_BACK_OFF_TIME, DEFAULT_RETRY, DEFAULT_TIMEOUT, failureCallback, retry } from "../utils/helpers/promiseTimeout";
 
 /**
@@ -25,7 +25,7 @@ export class IndexerToClient {
    * @returns
    * @category BaseMethod
    */
-  public async getBlockFromClient(label: string, blockNumber: number): Promise<IFullBlock> {
+  public async getBlockFromClient(label: string, blockNumber: number): Promise<FullBlockBase<any>> {
     // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
@@ -50,7 +50,7 @@ export class IndexerToClient {
    * @returns
    * @category BaseMethod
    */
-  public async getBlockHeaderFromClient(label: string, blockNumber: number): Promise<IBlockHeader> {
+  public async getBlockHeaderFromClient(label: string, blockNumber: number): Promise<BlockHeaderBase> {
     // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
@@ -75,7 +75,7 @@ export class IndexerToClient {
    * @returns
    * @category BaseMethod
    */
-  public async getBlockFromClientByHash(label: string, blockHash: string): Promise<IBlock> {
+  public async getBlockFromClientByHash(label: string, blockHash: string): Promise<BlockBase> {
     // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
@@ -100,7 +100,7 @@ export class IndexerToClient {
    * @returns
    * @category BaseMethod
    */
-  public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<IBlockHeader> {
+  public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<BlockHeaderBase> {
     // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
@@ -152,7 +152,7 @@ export class IndexerToClient {
    */
   public async getBlockNumberTimestampFromClient(blockNumber: number): Promise<number> {
     // todo: get `getBlockLite` FAST version of block read since we only need timestamp
-    const block = (await this.getBlockHeaderFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as IBlock;
+    const block = (await this.getBlockHeaderFromClient(`getBlockNumberTimestampFromClient`, blockNumber)) as BlockBase;
     // block cannot be undefined as the above call will fatally fail and terminate app
     return block.unixTimestamp;
   }

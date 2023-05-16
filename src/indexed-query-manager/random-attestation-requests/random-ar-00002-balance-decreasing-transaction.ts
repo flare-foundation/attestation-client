@@ -64,6 +64,9 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
     // augment with message integrity code
     if (response.status === "OK") {
       request.messageIntegrityCode = defStore.dataHash(request, response.response as DHBalanceDecreasingTransaction, MIC_SALT);
+      if (request.sourceId === SourceId.XRP) {
+        request.sourceAddressIndicator = (response.response as DHBalanceDecreasingTransaction).sourceAddressHash;
+      }
       logger.info(`Request augmented correctly (BalanceDecreasingTransaction)`);
       return request;
     }

@@ -57,12 +57,12 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
 
     it("Should not read full transaction utxo", async () => {
       const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor);
-      expect(fullTx.additionalData.vinouts[0]).to.be.undefined;
+      expect(fullTx._additionalData.vinouts[0]).to.be.undefined;
     });
 
     it("Should read full transaction utxo", async () => {
       const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor);
-      expect(fullTx.additionalData.vinouts.length).to.be.eq(1);
+      expect(fullTx._additionalData.vinouts.length).to.be.eq(1);
     });
   });
 

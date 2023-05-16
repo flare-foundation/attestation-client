@@ -1,6 +1,6 @@
 // yarn test test/indexer/blockValidityCheck.test-slow.ts
 
-import { BlockBase, ChainType, FullBlockBase, IBlock, IXrpGetBlockRes, MCC, XrpTransaction, traceManager } from "@flarenetwork/mcc";
+import { BlockBase, ChainType, FullBlockBase, IXrpGetBlockRes, MCC, XrpFullBlock, XrpTransaction, traceManager } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -21,6 +21,7 @@ const XRPMccConnection = {
 };
 
 class MockXRPImplementation extends XRPImplementation {
+  
   async getFullBlock(blockNumberOrHash: number | string): Promise<MockXrpBlock> {
     const block = await super.getFullBlock(blockNumberOrHash);
 
@@ -28,7 +29,12 @@ class MockXRPImplementation extends XRPImplementation {
   }
 }
 
-class MockXrpBlock extends FullBlockBase<IXrpGetBlockRes, XrpTransaction> {
+class MockXrpBlock extends XrpFullBlock {
+
+  protected get data() {
+    return this._data;
+  }
+
   get transactions(): XrpTransaction[] {
     throw new Error("Method not implemented.");
   }
@@ -39,10 +45,10 @@ class MockXrpBlock extends FullBlockBase<IXrpGetBlockRes, XrpTransaction> {
     throw new Error("Method not implemented.");
   }
 
-  private block: IBlock;
+  private block: BlockBase;
 
-  public constructor(block: IBlock) {
-    super(block.data);
+  public constructor(block: BlockBase) {
+    super(block._data);
     this.block = block;
   }
 
@@ -163,7 +169,7 @@ describe(`Block validity check before processing , (${getTestFile(__filename)})`
 
     const block = await XrpMccClient.getFullBlock(70_015_100);
 
-    block.data.result.validated = false;
+    block._data.result.validated = false;
 
     indexer.chainConfig.validateBlockBeforeProcess = true;
     indexer.blockProcessorManager.settings.validateBlockBeforeProcess = true;
@@ -180,7 +186,7 @@ describe(`Block validity check before processing , (${getTestFile(__filename)})`
 
     const block = await XrpMccClient.getFullBlock(70_015_100);
 
-    block.data.result.validated = false;
+    block._data.result.validated = false;
 
     indexer.chainConfig.validateBlockBeforeProcess = false;
     indexer.blockProcessorManager.settings.validateBlockBeforeProcess = false;

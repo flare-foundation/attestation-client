@@ -1,17 +1,17 @@
 import {
+  BlockBase,
+  BlockHeaderBase,
+  BlockTipBase,
   BtcBlock,
   BtcBlockHeader,
   BtcTransaction,
   ChainType,
+  FullBlockBase,
   getTransactionOptions,
-  IBlock,
-  IBlockHeader,
-  IBlockTip,
-  IFullBlock,
   INodeStatus,
-  ITransaction,
   MccError,
   ReadRpcInterface,
+  TransactionBase,
   unPrefix0x, XrpBlock,
   XrpTransaction
 } from "@flarenetwork/mcc";
@@ -23,7 +23,7 @@ import * as xrpBlockResponse from "./xrp-block-response.json";
 import * as xrpTxResponse from "./xrp-tx-response.json";
 
 export class MockMccClient implements ReadRpcInterface {
-  getFullBlock(blockNumberOrHash: string | number): Promise<IFullBlock> {
+  getFullBlock(blockNumberOrHash: string | number): Promise<FullBlockBase<any>> {
     throw new Error("Method not implemented.");
   }
   web3 = new Web3();
@@ -33,7 +33,7 @@ export class MockMccClient implements ReadRpcInterface {
   getBottomBlockHeight(): Promise<number> {
     throw new Error("Method not implemented.");
   }
-  async getBlock(blockNumberOrHash: any): Promise<IBlock> {
+  async getBlock(blockNumberOrHash: any): Promise<BlockBase> {
     const respData = { ...xrpBlockResponse.data };
     if (typeof blockNumberOrHash === "string") {
       const number = this.randomBlockNumber();
@@ -47,16 +47,16 @@ export class MockMccClient implements ReadRpcInterface {
   getBlockHeight(): Promise<number> {
     throw new Error("Method not implemented.");
   }
-  getBlockTips?(height_gte: number): Promise<IBlockTip[]> {
+  getBlockTips?(height_gte: number): Promise<BlockTipBase[]> {
     throw new Error("Method not implemented.");
   }
-  getTopLiteBlocks(branch_len: number, read_main?: boolean): Promise<IBlockTip[]> {
+  getTopLiteBlocks(branch_len: number, read_main?: boolean): Promise<BlockTipBase[]> {
     throw new Error("Method not implemented.");
   }
-  getBlockHeader(blockNumberOrHash: any): Promise<IBlockHeader> {
+  getBlockHeader(blockNumberOrHash: any): Promise<BlockHeaderBase> {
     throw new Error("Method not implemented.");
   }
-  async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<ITransaction> {
+  async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<TransactionBase> {
     if (txId === "") {
       throw MccError("XXX error"); // for testing purposes
     }
@@ -85,7 +85,7 @@ export class MockMccClient implements ReadRpcInterface {
 }
 
 export class MockMccClientBTC implements ReadRpcInterface {
-  getFullBlock(blockNumberOrHash: string | number): Promise<IFullBlock> {
+  getFullBlock(blockNumberOrHash: string | number): Promise<FullBlockBase<any>> {
     throw new Error("Method not implemented.");
   }
   web3 = new Web3();
@@ -95,7 +95,7 @@ export class MockMccClientBTC implements ReadRpcInterface {
   getBottomBlockHeight(): Promise<number> {
     throw new Error("Method not implemented.");
   }
-  async getBlock(blockNumberOrHash: any): Promise<IBlock> {
+  async getBlock(blockNumberOrHash: any): Promise<BlockBase> {
     const respData = { ...btcBlockResponse.data };
     if (typeof blockNumberOrHash === "string") {
       respData.result.hash = blockNumberOrHash;
@@ -108,13 +108,13 @@ export class MockMccClientBTC implements ReadRpcInterface {
   getBlockHeight(): Promise<number> {
     throw new Error("Method not implemented.");
   }
-  getBlockTips?(height_gte: number): Promise<IBlockTip[]> {
+  getBlockTips?(height_gte: number): Promise<BlockTipBase[]> {
     throw new Error("Method not implemented.");
   }
-  getTopLiteBlocks(branch_len: number, read_main?: boolean): Promise<IBlockTip[]> {
+  getTopLiteBlocks(branch_len: number, read_main?: boolean): Promise<BlockTipBase[]> {
     throw new Error("Method not implemented.");
   }
-  async getBlockHeader(blockNumberOrHash: any): Promise<IBlockHeader> {
+  async getBlockHeader(blockNumberOrHash: any): Promise<BlockHeaderBase> {
     const respData = { ...btcBlockHeaderResponse.data };
     if (typeof blockNumberOrHash === "string") {
       respData.result.hash = blockNumberOrHash;
@@ -124,7 +124,7 @@ export class MockMccClientBTC implements ReadRpcInterface {
     const blockHeaderTemplate = new BtcBlockHeader(respData.result as any);
     return blockHeaderTemplate;
   }
-  async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<ITransaction> {
+  async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<TransactionBase> {
     if (txId === "") {
       throw MccError("XXX error"); // for testing purposes
     }

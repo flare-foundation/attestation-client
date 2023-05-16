@@ -6,6 +6,7 @@ import {
   PaymentSummaryStatus,
   prefix0x,
   toBN,
+  TransactionBase,
   TransactionSuccessStatus,
   unPrefix0x,
   ZERO_BYTES_32,
@@ -14,6 +15,7 @@ import Web3 from "web3";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
+import { retry } from "../../utils/helpers/promiseTimeout";
 import { logException } from "../../utils/logging/logger";
 import { ByteSequenceLike, NumberLike, VerificationStatus } from "../attestation-types/attestation-types";
 import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
@@ -25,14 +27,12 @@ import {
   ARReferencedPaymentNonexistence,
 } from "../generated/attestation-request-types";
 import {
-  MccTransactionType,
   VerificationResponse,
   verifyWorkflowForBlock,
   verifyWorkflowForBlockAvailability,
   verifyWorkflowForReferencedTransactions,
   verifyWorkflowForTransaction,
 } from "./verification-utils";
-import { retry } from "../../utils/helpers/promiseTimeout";
 
 //////////////////////////////////////////////////
 // Verification functions
@@ -47,9 +47,9 @@ import { retry } from "../../utils/helpers/promiseTimeout";
  * @param client
  * @returns
  */
-export async function responsePayment(
+export async function responsePayment<T extends TransactionBase>(
   dbTransaction: DBTransactionBase,
-  TransactionClass: new (...args: any[]) => MccTransactionType,
+  TransactionClass: new (...args: any[]) => T,
   inUtxo: NumberLike,
   utxo: NumberLike,
   client?: MccClient
@@ -112,8 +112,8 @@ export async function responsePayment(
  * @returns Verification response: object containing status and attestation response
  * @category Verifiers
  */
-export async function verifyPayment(
-  TransactionClass: new (...args: any[]) => MccTransactionType,
+export async function verifyPayment<T extends TransactionBase>(
+  TransactionClass: new (...args: any[]) => T,
   request: ARPayment,
   iqm: IndexedQueryManager,
   client?: MccClient
@@ -154,9 +154,9 @@ export async function verifyPayment(
  * @param client
  * @returns
  */
-export async function responseBalanceDecreasingTransaction(
+export async function responseBalanceDecreasingTransaction<T extends TransactionBase>(
   dbTransaction: DBTransactionBase,
-  TransactionClass: new (...args: any[]) => MccTransactionType,
+  TransactionClass: new (...args: any[]) => T,
   sourceAddressIndicator: ByteSequenceLike,
   client?: MccClient
 ) {
@@ -207,8 +207,8 @@ export async function responseBalanceDecreasingTransaction(
  * @returns Verification response, status and attestation response
  * @category Verifiers
  */
-export async function verifyBalanceDecreasingTransaction(
-  TransactionClass: new (...args: any[]) => MccTransactionType,
+export async function verifyBalanceDecreasingTransaction<T extends TransactionBase>(
+  TransactionClass: new (...args: any[]) => T,
   request: ARBalanceDecreasingTransaction,
   iqm: IndexedQueryManager,
   client?: MccClient
@@ -310,9 +310,9 @@ export async function verifyConfirmedBlockHeightExists(
  * @param amount
  * @returns
  */
-export async function responseReferencedPaymentNonExistence(
+export async function responseReferencedPaymentNonExistence<T extends TransactionBase>(
   dbTransactions: DBTransactionBase[],
-  TransactionClass: new (...args: any[]) => MccTransactionType,
+  TransactionClass: new (...args: any[]) => T,
   firstOverflowBlock: DBBlockBase,
   lowerBoundaryBlock: DBBlockBase,
   deadlineBlockNumber: NumberLike,
@@ -388,8 +388,8 @@ export async function responseReferencedPaymentNonExistence(
  * @param iqm IndexedQuery object for the relevant blockchain indexer
  * @returns Verification response, status and attestation response
  */
-export async function verifyReferencedPaymentNonExistence(
-  TransactionClass: new (...args: any[]) => MccTransactionType,
+export async function verifyReferencedPaymentNonExistence<T extends TransactionBase>(
+  TransactionClass: new (...args: any[]) => T,
   request: ARReferencedPaymentNonexistence,
   iqm: IndexedQueryManager
 ): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {

@@ -2,7 +2,7 @@
 
 Here is a summary for direct installation.
 Linux Ubuntu 20.04 and user `ubuntu` are assumed.
-The installation installs several attestation suite services, which are run as systemd services.
+The installation installs several attestation suite services, which are run as system services.
 
 - Install repository:
 

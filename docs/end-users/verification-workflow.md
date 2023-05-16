@@ -1,4 +1,4 @@
-# Verification Smart Contract and Usage Workflow
+# Verification Smart Contract and Workflow
 
 Consider the case of a smart contract that allows the user to use some service if it provides a payment proof for a specific payment on the Ripple blockchain.
 

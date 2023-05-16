@@ -53,7 +53,7 @@ Standardized address hash of the exact address to which the payment was done to.
       size: AMOUNT_BYTES,
       type: "NumberLike",
       description: `
-The exact amount to search for.
+The minimal amount to search for.
 `,
     },
     {

@@ -156,7 +156,7 @@ export class ARReferencedPaymentNonexistence implements ARBase {
   destinationAddressHash: ByteSequenceLike;
 
   /**
-   * The exact amount to search for.
+   * The minimal amount to search for.
    */
   amount: NumberLike;
 

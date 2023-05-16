@@ -303,13 +303,13 @@ Maximum timestamp of the block where the transaction is searched for. Search ran
   destinationAddressHash: ByteSequenceLike;
 
   /**
-   * The exact amount to search for.
+   * The minimal amount to search for.
    */
   @Validate(IsNumberLike)
   @ApiProperty({
     oneOf: [{ type: "string" }, { type: "number" }],
     description: `
-The exact amount to search for.
+The minimal amount to search for.
 `,
   })
   amount: NumberLike;

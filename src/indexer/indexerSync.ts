@@ -1,4 +1,4 @@
-import { IBlockTip, Managed } from "@flarenetwork/mcc";
+import { BlockTipBase, Managed } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { failureCallback, retry } from "../utils/helpers/promiseTimeout";
 import { getUnixEpochTimestamp, round, secToHHMMSS, sleepMs } from "../utils/helpers/utils";
@@ -220,7 +220,7 @@ export class IndexerSync {
 
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
-    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN, false);
+    const blocks: BlockTipBase[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN, false);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N

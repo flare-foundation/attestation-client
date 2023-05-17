@@ -93,7 +93,7 @@
     "test_endtoend": "yarn test test/attestationClient/AttestationClient.e2e-test.ts"
   },
   "dependencies": {
-    "@flarenetwork/mcc": "2.0.10",
+    "@flarenetwork/mcc": "3.0.2",
     "@google-cloud/secret-manager": "4.2.1",
     "@nestjs/common": "9.3.9",
     "@nestjs/core": "9.3.9",

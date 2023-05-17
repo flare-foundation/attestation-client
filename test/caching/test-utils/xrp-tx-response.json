@@ -13,7 +13,7 @@
          "TransactionType": "Payment",
          "TxnSignature": "304402205824E95D212C7BFBA6D75803CAC4DB0CBC591CBD66330EDF63E4C57F4B221DF002207F2CD9563D84837D5D0DCBD58AEEA941C4C3494296F268BCEA954A6683ACC040",
          "hash": "116977E5FDB8677752359AA32FC59CC5FEFFD5A379D17D543AEEF12AFCA61B8D",
-         "metaData": {
+         "meta": {
             "AffectedNodes": [
                {
                   "ModifiedNode": {

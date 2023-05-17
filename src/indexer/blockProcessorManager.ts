@@ -1,4 +1,4 @@
-import { IBlock, Managed, sleepMs } from "@flarenetwork/mcc";
+import { FullBlockBase, Managed, sleepMs } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../caching/CachedMccClient";
 import { LimitingProcessor } from "../caching/LimitingProcessor";
 import { failureCallback } from "../utils/helpers/promiseTimeout";
@@ -31,7 +31,7 @@ export class BlockProcessorManager {
   logger: AttLogger;
 
   // list of block processors
-  blockProcessors: LimitingProcessor[] = [];
+  blockProcessors: LimitingProcessor<FullBlockBase<any>>[] = [];
 
   // Called on block processing completion
   completeCallback: any;
@@ -89,7 +89,7 @@ export class BlockProcessorManager {
    * Assumptions:
    * - block is on height > N
    */
-  async process(block: IBlock) {
+  async process(block: FullBlockBase<any>) {
     // check if processor for this block is already completed
     if (this.blockProcessors.find((processor) => processor.block.stdBlockHash === block.stdBlockHash && processor.isCompleted)) {
       this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
@@ -138,7 +138,7 @@ export class BlockProcessorManager {
    * @param block block to process
    * @returns
    */
-  async processSync(block: IBlock) {
+  async processSync(block: FullBlockBase<any>) {
     if (this.blockProcessors.find((processor) => processor.block.stdBlockHash === block.stdBlockHash)) {
       return;
     }
@@ -164,7 +164,7 @@ export class BlockProcessorManager {
    * @param block
    * @returns valid (confirmed) block on the same height as `block`
    */
-  private async waitUntilBlockIsValid(block: IBlock): Promise<IBlock> {
+  private async waitUntilBlockIsValid(block: FullBlockBase<any>): Promise<FullBlockBase<any>> {
     if (!this.settings.validateBlockBeforeProcess) {
       return block;
     }
@@ -183,7 +183,7 @@ export class BlockProcessorManager {
       await sleepMs(this.settings.validateBlockWaitMs);
 
       // get block again (NOTE: on reading by block.number blocks are not cached)
-      currentBlock = await this.cachedClient.client.getBlock(block.number);
+      currentBlock = await this.cachedClient.client.getFullBlock(block.number);
     }
 
     if (retryCount > 0) {

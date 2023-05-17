@@ -29,7 +29,8 @@ export class LTCProcessorService extends VerifierProcessor {
 
   public async verify(attestationRequest: AttestationRequest) {
     this.assertIsSupported(attestationRequest);
-    let response = await verifyLTC(this.client, attestationRequest.request, this.indexedQueryManager);
+    await this.ensureInitialized();
+    let response = await verifyLTC(this.defStore, this.client, attestationRequest.request, this.indexedQueryManager);
     return hexlifyBN(response);
   }
 

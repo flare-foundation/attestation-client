@@ -1,6 +1,6 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationRequestScheme, AttestationTypeScheme, SupportedRequestType } from "../attestation-types/attestation-types";
+import { AttestationRequestScheme, AttestationTypeScheme, REQUEST_BASE_DEFINITIONS, SupportedRequestType } from "../attestation-types/attestation-types";
 import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, GENERATED_ROOT, PRETTIER_SETTINGS } from "./cg-constants";
 import { JSDocCommentText, OpenAPIOptionsRequests } from "./cg-utils";
 
@@ -61,7 +61,7 @@ function genAttestationRequestType(definition: AttestationTypeScheme, options: O
     return "";
   }
   definition.dataHashDefinition;
-  const values = definition.request.map((item) => genDefReqItem(item, options)).join("\n\n");
+  const values = [...REQUEST_BASE_DEFINITIONS, ...definition.request].map((item) => genDefReqItem(item, options)).join("\n\n");
   return `
 export class ${ATTESTATION_TYPE_PREFIX}${definition.name} implements ARBase {
 ${values}

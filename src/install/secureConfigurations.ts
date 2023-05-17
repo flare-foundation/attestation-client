@@ -136,7 +136,7 @@ async function prepareConfiguration(configuration: Configuration) {
 }
 
 async function prepareConfigurations() {
-  logger.info(`loadin credential files...`);
+  logger.info(`loading credential files...`);
   logger.debug(`input path: ^W${inputPath}`);
   logger.debug(`templates path: ^W${templatesPath}`);
   logger.debug(`output path: ^W${outputPath}`);

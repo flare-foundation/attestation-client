@@ -6,9 +6,10 @@ import { readJSONfromFile } from "../utils/config/json";
 import { checkChainTypesMatchSourceIds } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { isEqualType } from "../utils/reflection/typeReflection";
+import { AttestationDefinitionStore } from "../verification/attestation-types/AttestationDefinitionStore";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
-import { VerifierRouteConfig } from "../verification/routing/configs/VerifierRouteConfig";
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
+import { VerifierRouteConfig } from "../verification/routing/configs/VerifierRouteConfig";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 import { GlobalAttestationConfig } from "./configs/GlobalAttestationConfig";
 
@@ -29,6 +30,7 @@ export class GlobalConfigManager {
   globalAttestationConfigs: GlobalAttestationConfig[] = [];
   verifierRoutersWithConfig: VerifierRouterWithConfig[] = [];
   hashToVerifierRouter = new Map<string, VerifierRouter>();
+  definitionStore: AttestationDefinitionStore;
 
   attestationClientConfig: AttestationClientConfig;
 
@@ -47,6 +49,7 @@ export class GlobalConfigManager {
       process.exit(1);
       return; // Don't delete needed for testing
     }
+    this.definitionStore = new AttestationDefinitionStore();
   }
 
   /**
@@ -98,6 +101,7 @@ export class GlobalConfigManager {
           return; // Don't delete needed for testing
         }
       }, verifierConfigRefreshIntervalMs);
+      await this.definitionStore.initialize();
     } catch (error) {
       logException(error, `GlobalConfigManager::initialize: Critical error`);
       process.exit(1);

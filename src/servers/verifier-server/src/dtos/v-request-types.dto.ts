@@ -159,41 +159,36 @@ Block number of the transaction.
   blockNumber: NumberLike;
 
   /**
-   * Index of the source address on UTXO chains.
+   * Either standardized hash of a source address or UTXO vin index in hex format.
    */
-  @Validate(IsNumberLike)
-  @ApiProperty({
-    oneOf: [{ type: "string" }, { type: "number" }],
-    description: `
-Index of the source address on UTXO chains.
-`,
-  })
-  inUtxo: NumberLike;
+  @Validate(IsHash32)
+  @ApiProperty()
+  sourceAddressIndicator: ByteSequenceLike;
 }
 
 export class ARConfirmedBlockHeightExists implements ARBase {
   /**
-   * Attestation type id for this request, see AttestationType enum.
+   * Attestation type id for this request, see 'AttestationType' enum.
    */
   @IsInt()
   @Min(1)
   @ApiProperty({
     enum: AttestationType,
     description: `
-Attestation type id for this request, see AttestationType enum.
+Attestation type id for this request, see 'AttestationType' enum.
 `,
   })
   attestationType: AttestationType;
 
   /**
-   * The ID of the underlying chain, see SourceId enum.
+   * The ID of the underlying chain, see 'SourceId' enum.
    */
   @IsInt()
   @Min(0)
   @ApiProperty({
     enum: SourceId,
     description: `
-The ID of the underlying chain, see SourceId enum.
+The ID of the underlying chain, see 'SourceId' enum.
 `,
   })
   sourceId: SourceId;
@@ -301,20 +296,20 @@ Maximum timestamp of the block where the transaction is searched for. Search ran
   deadlineTimestamp: NumberLike;
 
   /**
-   * Hash of exact address to which the payment was done to.
+   * Standardized address hash of the exact address to which the payment was done to.
    */
   @Validate(IsHash32)
   @ApiProperty()
   destinationAddressHash: ByteSequenceLike;
 
   /**
-   * The exact amount to search for.
+   * The minimal amount to search for.
    */
   @Validate(IsNumberLike)
   @ApiProperty({
     oneOf: [{ type: "string" }, { type: "number" }],
     description: `
-The exact amount to search for.
+The minimal amount to search for.
 `,
   })
   amount: NumberLike;

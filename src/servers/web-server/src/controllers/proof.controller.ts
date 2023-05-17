@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Post } from "@nestjs/common";
 import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { getGlobalLogger } from "../../../../utils/logging/logger";
 import { ApiResponseWrapper, ApiResStatusEnum, handleApiResponse } from "../../../common/src";
@@ -34,9 +34,9 @@ export class ProofController {
       if (result) {
         return new ApiResponseWrapper<VotingRoundResult[]>(result);
       }
-      return new ApiResponseWrapper<VotingRoundResult[]>([], ApiResStatusEnum.PENDING);
+      return new ApiResponseWrapper<VotingRoundResult[]>([], ApiResStatusEnum.PENDING, `No results for ${roundId}.`);
     } catch (reason: any) {
-      throw new ApiResponseWrapper<VotingRoundResult[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
+      return new ApiResponseWrapper<VotingRoundResult[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }
   }
 
@@ -47,20 +47,21 @@ export class ProofController {
    * @returns
    */
   @Post("get-specific-proof")
+  @HttpCode(200)
   @ApiResponseWrapperDec(VotingRoundResult)
   public async getSpecificProofController(@Body() roundRequest: SpecificProofRequest): Promise<ApiResponseWrapper<VotingRoundResult>> {
     try {
       const canReveal = this.proofEngine.canReveal(roundRequest.roundId);
       if (!canReveal) {
-        return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.PENDING);
+        return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.PENDING, "Proof cannot be reveled.");
       }
-      let result = await this.proofEngine.getSpecificProofForRound(roundRequest.roundId, roundRequest.callData);
+      let result = await this.proofEngine.getSpecificProofForRound(roundRequest.roundId, roundRequest.requestBytes);
       if (result) {
         return new ApiResponseWrapper<VotingRoundResult>(result);
       }
-      return new ApiResponseWrapper<VotingRoundResult>(null, ApiResStatusEnum.OK);
+      throw new Error("Proof not found");
     } catch (reason: any) {
-      throw new ApiResponseWrapper<VotingRoundResult>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
+      return new ApiResponseWrapper<VotingRoundResult>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }
   }
 
@@ -78,9 +79,9 @@ export class ProofController {
       if (result) {
         return new ApiResponseWrapper<VotingRoundRequest[]>(result);
       }
-      return new ApiResponseWrapper<VotingRoundRequest[]>([], ApiResStatusEnum.PENDING);
+      return new ApiResponseWrapper<VotingRoundRequest[]>([], ApiResStatusEnum.PENDING, `No requests for round ${roundId}.`);
     } catch (reason: any) {
-      throw new ApiResponseWrapper<VotingRoundRequest[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
+      return new ApiResponseWrapper<VotingRoundRequest[]>(undefined as any, ApiResStatusEnum.ERROR, "" + reason, reason);
     }
   }
 

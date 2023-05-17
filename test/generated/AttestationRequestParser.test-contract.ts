@@ -11,19 +11,22 @@ import {
 import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 import { SourceId } from "../../src/verification/sources/sources";
 import { getRandomRequestForAttestationTypeAndSourceId } from "../../src/verification/generated/attestation-random-utils";
-import { encodeRequest } from "../../src/verification/generated/attestation-request-encode";
-import { parseRequest } from "../../src/verification/generated/attestation-request-parse";
-import { equalsRequest } from "../../src/verification/generated/attestation-request-equals";
 import { getTestFile } from "../test-utils/test-utils";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 
 describe(`Attestestation Request Parser (${getTestFile(__filename)})`, function () {
+  const defStore = new AttestationDefinitionStore();
+  before(async function () {
+    await defStore.initialize();
+  });
+
   it("Should encode and decode for 'Payment'", async function () {
     for (const sourceId of [3, 0, 1, 2, 4]) {
       const randomRequest = getRandomRequestForAttestationTypeAndSourceId(1 as AttestationType, sourceId as SourceId) as ARPayment;
 
-      const bytes = encodeRequest(randomRequest);
-      const parsedRequest = parseRequest(bytes);
-      assert(equalsRequest(randomRequest, parsedRequest));
+      const bytes = defStore.encodeRequest(randomRequest);
+      const parsedRequest = defStore.parseRequest(bytes);
+      assert(defStore.equalsRequest(randomRequest, parsedRequest));
     }
   });
 
@@ -31,9 +34,9 @@ describe(`Attestestation Request Parser (${getTestFile(__filename)})`, function 
     for (const sourceId of [3, 0, 1, 2, 4]) {
       const randomRequest = getRandomRequestForAttestationTypeAndSourceId(2 as AttestationType, sourceId as SourceId) as ARBalanceDecreasingTransaction;
 
-      const bytes = encodeRequest(randomRequest);
-      const parsedRequest = parseRequest(bytes);
-      assert(equalsRequest(randomRequest, parsedRequest));
+      const bytes = defStore.encodeRequest(randomRequest);
+      const parsedRequest = defStore.parseRequest(bytes);
+      assert(defStore.equalsRequest(randomRequest, parsedRequest));
     }
   });
 
@@ -41,9 +44,9 @@ describe(`Attestestation Request Parser (${getTestFile(__filename)})`, function 
     for (const sourceId of [3, 0, 1, 2, 4]) {
       const randomRequest = getRandomRequestForAttestationTypeAndSourceId(3 as AttestationType, sourceId as SourceId) as ARConfirmedBlockHeightExists;
 
-      const bytes = encodeRequest(randomRequest);
-      const parsedRequest = parseRequest(bytes);
-      assert(equalsRequest(randomRequest, parsedRequest));
+      const bytes = defStore.encodeRequest(randomRequest);
+      const parsedRequest = defStore.parseRequest(bytes);
+      assert(defStore.equalsRequest(randomRequest, parsedRequest));
     }
   });
 
@@ -51,9 +54,9 @@ describe(`Attestestation Request Parser (${getTestFile(__filename)})`, function 
     for (const sourceId of [3, 0, 1, 2, 4]) {
       const randomRequest = getRandomRequestForAttestationTypeAndSourceId(4 as AttestationType, sourceId as SourceId) as ARReferencedPaymentNonexistence;
 
-      const bytes = encodeRequest(randomRequest);
-      const parsedRequest = parseRequest(bytes);
-      assert(equalsRequest(randomRequest, parsedRequest));
+      const bytes = defStore.encodeRequest(randomRequest);
+      const parsedRequest = defStore.parseRequest(bytes);
+      assert(defStore.equalsRequest(randomRequest, parsedRequest));
     }
   });
 });

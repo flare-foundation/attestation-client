@@ -1,4 +1,4 @@
-import { unPrefix0x } from "@flarenetwork/mcc";
+import { round, unPrefix0x } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
 import { EntityManager } from "typeorm";
@@ -34,7 +34,7 @@ export class ProofEngineService {
     }
 
     if (!this.canReveal(roundId)) {
-      return null;
+      throw new Error(`Votes for round ${roundId} can not be revealed.`);
     }
 
     const query = this.manager.createQueryBuilder(DBVotingRoundResult, "voting_round_result").andWhere("voting_round_result.roundId = :roundId", { roundId });
@@ -76,18 +76,18 @@ export class ProofEngineService {
    * Returns proof data for specific attestation request.
    * Attestation request is identified by the request data and round id in which it was submitted.
    * @param roundId
-   * @param callData
+   * @param requestBytes
    * @returns
    */
-  public async getSpecificProofForRound(roundId: number, callData: string): Promise<VotingRoundResult | null> {
+  public async getSpecificProofForRound(roundId: number, requestBytes: string): Promise<VotingRoundResult | null> {
     const roundData = await this.getVoteResultsForRound(roundId);
-    const upCallData = unPrefix0x(callData).toLowerCase();
+    const lowRequestBytes = unPrefix0x(requestBytes).toLowerCase();
     for (const proof of roundData) {
-      if (unPrefix0x(proof.requestBytes) === upCallData) {
+      if (unPrefix0x(proof.requestBytes) === lowRequestBytes) {
         return proof;
       }
     }
-    return null;
+    throw new Error("Proof not found in the round.");
   }
 
   /**
@@ -101,7 +101,7 @@ export class ProofEngineService {
     }
 
     if (!this.canReveal(roundId)) {
-      return null;
+      throw new Error(`Requests for round ${roundId} can not be revealed.`);
     }
 
     const query = this.manager

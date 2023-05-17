@@ -87,19 +87,19 @@ export class ARBalanceDecreasingTransaction implements ARBase {
   blockNumber: NumberLike;
 
   /**
-   * Index of the source address on UTXO chains.
+   * Either standardized hash of a source address or UTXO vin index in hex format.
    */
-  inUtxo: NumberLike;
+  sourceAddressIndicator: ByteSequenceLike;
 }
 
 export class ARConfirmedBlockHeightExists implements ARBase {
   /**
-   * Attestation type id for this request, see AttestationType enum.
+   * Attestation type id for this request, see 'AttestationType' enum.
    */
   attestationType: AttestationType;
 
   /**
-   * The ID of the underlying chain, see SourceId enum.
+   * The ID of the underlying chain, see 'SourceId' enum.
    */
   sourceId: SourceId;
 
@@ -151,12 +151,12 @@ export class ARReferencedPaymentNonexistence implements ARBase {
   deadlineTimestamp: NumberLike;
 
   /**
-   * Hash of exact address to which the payment was done to.
+   * Standardized address hash of the exact address to which the payment was done to.
    */
   destinationAddressHash: ByteSequenceLike;
 
   /**
-   * The exact amount to search for.
+   * The minimal amount to search for.
    */
   amount: NumberLike;
 

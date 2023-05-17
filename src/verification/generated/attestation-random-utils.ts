@@ -13,17 +13,22 @@ import { SourceId } from "../sources/sources";
 const toBN = Web3.utils.toBN;
 const web3 = new Web3();
 
-export function randomResponsePayment() {
+export function randomResponsePayment(roundId = 0) {
   const response = {
+    stateConnectorRound: roundId,
     blockNumber: randSol({}, "blockNumber", "uint64") as BN,
     blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN,
     transactionHash: randSol({}, "transactionHash", "bytes32") as string,
     inUtxo: randSol({}, "inUtxo", "uint8") as BN,
     utxo: randSol({}, "utxo", "uint8") as BN,
     sourceAddressHash: randSol({}, "sourceAddressHash", "bytes32") as string,
+    intendedSourceAddressHash: randSol({}, "intendedSourceAddressHash", "bytes32") as string,
     receivingAddressHash: randSol({}, "receivingAddressHash", "bytes32") as string,
+    intendedReceivingAddressHash: randSol({}, "intendedReceivingAddressHash", "bytes32") as string,
     spentAmount: randSol({}, "spentAmount", "int256") as BN,
+    intendedSpentAmount: randSol({}, "intendedSpentAmount", "int256") as BN,
     receivedAmount: randSol({}, "receivedAmount", "int256") as BN,
+    intendedReceivedAmount: randSol({}, "intendedReceivedAmount", "int256") as BN,
     paymentReference: randSol({}, "paymentReference", "bytes32") as string,
     oneToOne: randSol({}, "oneToOne", "bool") as boolean,
     status: randSol({}, "status", "uint8") as BN,
@@ -32,12 +37,13 @@ export function randomResponsePayment() {
   return response;
 }
 
-export function randomResponseBalanceDecreasingTransaction() {
+export function randomResponseBalanceDecreasingTransaction(roundId = 0) {
   const response = {
+    stateConnectorRound: roundId,
     blockNumber: randSol({}, "blockNumber", "uint64") as BN,
     blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN,
     transactionHash: randSol({}, "transactionHash", "bytes32") as string,
-    inUtxo: randSol({}, "inUtxo", "uint8") as BN,
+    sourceAddressIndicator: randSol({}, "sourceAddressIndicator", "bytes32") as string,
     sourceAddressHash: randSol({}, "sourceAddressHash", "bytes32") as string,
     spentAmount: randSol({}, "spentAmount", "int256") as BN,
     paymentReference: randSol({}, "paymentReference", "bytes32") as string,
@@ -46,8 +52,9 @@ export function randomResponseBalanceDecreasingTransaction() {
   return response;
 }
 
-export function randomResponseConfirmedBlockHeightExists() {
+export function randomResponseConfirmedBlockHeightExists(roundId = 0) {
   const response = {
+    stateConnectorRound: roundId,
     blockNumber: randSol({}, "blockNumber", "uint64") as BN,
     blockTimestamp: randSol({}, "blockTimestamp", "uint64") as BN,
     numberOfConfirmations: randSol({}, "numberOfConfirmations", "uint8") as BN,
@@ -58,8 +65,9 @@ export function randomResponseConfirmedBlockHeightExists() {
   return response;
 }
 
-export function randomResponseReferencedPaymentNonexistence() {
+export function randomResponseReferencedPaymentNonexistence(roundId = 0) {
   const response = {
+    stateConnectorRound: roundId,
     deadlineBlockNumber: randSol({}, "deadlineBlockNumber", "uint64") as BN,
     deadlineTimestamp: randSol({}, "deadlineTimestamp", "uint64") as BN,
     destinationAddressHash: randSol({}, "destinationAddressHash", "bytes32") as string,
@@ -77,19 +85,19 @@ export function randomResponseReferencedPaymentNonexistence() {
 // Random attestation requests and resposes. Used for testing.
 //////////////////////////////////////////////////////////////
 
-export function getRandomResponseForType(attestationType: AttestationType) {
+export function getRandomResponseForType(attestationType: AttestationType, roundId = 0) {
   switch (attestationType) {
     case AttestationType.Payment:
-      return randomResponsePayment();
+      return randomResponsePayment(roundId);
 
     case AttestationType.BalanceDecreasingTransaction:
-      return randomResponseBalanceDecreasingTransaction();
+      return randomResponseBalanceDecreasingTransaction(roundId);
 
     case AttestationType.ConfirmedBlockHeightExists:
-      return randomResponseConfirmedBlockHeightExists();
+      return randomResponseConfirmedBlockHeightExists(roundId);
 
     case AttestationType.ReferencedPaymentNonexistence:
-      return randomResponseReferencedPaymentNonexistence();
+      return randomResponseReferencedPaymentNonexistence(roundId);
 
     default:
       throw new Error("Wrong attestation type.");
@@ -142,7 +150,7 @@ export function getRandomRequestForAttestationTypeAndSourceId(attestationType: A
         messageIntegrityCode: Web3.utils.randomHex(32),
         id: Web3.utils.randomHex(32),
         blockNumber: toBN(Web3.utils.randomHex(4)),
-        inUtxo: toBN(Web3.utils.randomHex(1)),
+        sourceAddressIndicator: Web3.utils.randomHex(32),
       } as ARBalanceDecreasingTransaction;
     case AttestationType.ConfirmedBlockHeightExists:
       return {

@@ -1,35 +1,11 @@
 import { SourceId } from "../sources/sources";
-import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, MIC_BYTES, SOURCE_ID_BYTES, TIME_DURATION_BYTES } from "./attestation-types";
+import { AttestationTypeScheme, BLOCKNUMBER_BYTES, TIME_DURATION_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
   id: 3,
   supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
   name: "ConfirmedBlockHeightExists",
   request: [
-    {
-      key: "attestationType",
-      size: ATT_BYTES,
-      type: "AttestationType",
-      description: `
-Attestation type id for this request, see AttestationType enum.
-`,
-    },
-    {
-      key: "sourceId",
-      size: SOURCE_ID_BYTES,
-      type: "SourceId",
-      description: `
-The ID of the underlying chain, see SourceId enum.
-`,
-    },
-    {
-      key: "messageIntegrityCode",
-      size: MIC_BYTES,
-      type: "ByteSequenceLike",
-      description: `
-The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
-`,
-    },
     {
       key: "blockNumber",
       size: BLOCKNUMBER_BYTES,

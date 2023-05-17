@@ -1,35 +1,11 @@
 import { SourceId } from "../sources/sources";
-import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, MIC_BYTES, SOURCE_ID_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
+import { AttestationTypeScheme, BLOCKNUMBER_BYTES, IN_UTXO_BYTES, TX_ID_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
   id: 2,
   supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
   name: "BalanceDecreasingTransaction",
   request: [
-    {
-      key: "attestationType",
-      size: ATT_BYTES,
-      type: "AttestationType",
-      description: `
-Attestation type id for this request, see 'AttestationType' enum.
-`,
-    },
-    {
-      key: "sourceId",
-      size: SOURCE_ID_BYTES,
-      type: "SourceId",
-      description: `
-The ID of the underlying chain, see 'SourceId' enum.
-`,
-    },
-    {
-      key: "messageIntegrityCode",
-      size: MIC_BYTES,
-      type: "ByteSequenceLike",
-      description: `
-The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
-`,
-    },
     {
       key: "id",
       size: TX_ID_BYTES,
@@ -47,11 +23,11 @@ Block number of the transaction.
 `,
     },
     {
-      key: "inUtxo",
-      size: UTXO_BYTES,
-      type: "NumberLike",
+      key: "sourceAddressIndicator",
+      size: IN_UTXO_BYTES,
+      type: "ByteSequenceLike",
       description: `
-Index of the source address on UTXO chains.
+Either standardized hash of a source address or UTXO vin index in hex format.
 `,
     },
   ],
@@ -78,30 +54,24 @@ Hash of the transaction on the underlying chain.
 `,
     },
     {
-      key: "inUtxo",
-      type: "uint8",
+      key: "sourceAddressIndicator",
+      type: "bytes32",
       description: `
-Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
+Either standardized hash of a source address or UTXO vin index in hex format (as provided in the request).
 `,
     },
     {
       key: "sourceAddressHash",
       type: "bytes32",
       description: `
-Hash of the source address as a string. For UTXO transactions with multiple input addresses 
-this is the address that is on the input indicated by 'inUtxo' parameter.
+Standardized hash of the source address viewed as a string (the one indicated by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
 `,
     },
     {
       key: "spentAmount",
       type: "int256",
       description: `
-The amount that went out of the source address, in the smallest underlying units.
-In non-UTXO chains it includes both payment value and fee (gas).
-Calculation for UTXO chains depends on the existence of standardized payment reference.
-If it exists, it is calculated as 'outgoing_amount - returned_amount' and can be negative.
-If the standardized payment reference does not exist, then it is just the spent amount
-on the input indicated by 'inUtxo'.
+The amount that went out of the source address, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address indicated by 'sourceAddressIndicator', and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by 'sourceAddressIndicator'.
 `,
     },
     {

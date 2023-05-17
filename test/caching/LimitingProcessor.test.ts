@@ -1,6 +1,6 @@
 // yarn test test/caching/LimitingProcessor.test.ts
 
-import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
+import { BtcFullBlock, ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
 import chai, { expect, assert } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import console from "console";
@@ -85,7 +85,7 @@ describe(`Limiting processor (${getTestFile(__filename)})`, function () {
     };
 
     const interlacing = new Interlacing();
-    let limitingProcessor: LimitingProcessor;
+    let limitingProcessor: LimitingProcessor<BtcFullBlock>;
     const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
 
     before(async () => {

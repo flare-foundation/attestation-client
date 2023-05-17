@@ -8,12 +8,11 @@
 
 import {
   ARReferencedPaymentNonexistence,
+  AttestationDefinitionStore,
   BN,
   DHReferencedPaymentNonexistence,
-  hashReferencedPaymentNonexistence,
   IndexedQueryManager,
   MCC,
-  parseReferencedPaymentNonexistence,
   randSol,
   Verification,
   VerificationStatus,
@@ -25,11 +24,12 @@ import { verifyReferencedPaymentNonExistence } from "../../verification-utils/ge
 const web3 = new Web3();
 
 export async function verifyReferencedPaymentNonexistenceXRP(
+  defStore: AttestationDefinitionStore,
   client: MCC.XRP,
   attestationRequest: string,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARReferencedPaymentNonexistence, DHReferencedPaymentNonexistence>> {
-  const request = parseReferencedPaymentNonexistence(attestationRequest) as ARReferencedPaymentNonexistence;
+  const request = defStore.parseRequest(attestationRequest) as ARReferencedPaymentNonexistence;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
@@ -42,7 +42,7 @@ export async function verifyReferencedPaymentNonexistenceXRP(
 
   //-$$$<end> of the custom section. Do not change this comment.
 
-  const hash = hashReferencedPaymentNonexistence(request, response);
+  const hash = defStore.dataHash(request, response);
 
   return {
     hash,

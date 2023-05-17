@@ -219,4 +219,19 @@ For 2 days:
 - LTC ~10 min
 - XRP ~2 h
 
+## Maintenance
+
+To make maintenance of the Attestation Suite easier and more efficient, we have taken the time to prepare several useful scripts. These scripts are designed to help streamline common maintenance tasks and reduce the amount of time and effort required to manage the system.
+
+By using these scripts, you can automate many routine tasks and simplify the process of updating, configuring, and managing the Attestation Suite. This can help to reduce the risk of errors and improve overall system stability and reliability.
+
+Whether you need to update the system, or perform routine maintenance tasks, our scripts can help you to get the job done quickly and easily. We have taken care to ensure that our scripts are well-documented and easy to use, even for those who may not have extensive experience with the Attestation Suite or the underlying technologies.
+
+- [Update](./../docs/installation/MaintenanceScripts.md#update)
+- [Restart](./../docs/installation/MaintenanceScripts.md#restart)
+- [Drop database](./../docs/installation/MaintenanceScripts.md#drop-database)
+
+
+Full maintenance documentation is [here](./../docs/installation/MaintenanceScripts.md).
+
 [Back to Home](./../README.md)

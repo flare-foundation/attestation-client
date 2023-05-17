@@ -50,7 +50,7 @@ function submitAttestation(
 
 This function is called once per attestation round, usually near the end of it. By calling this function, one simultaneously sends commit data for the current voting round (`commitHash`) and reveal data for the previous voting round (`merkleRoot`, `randomNumber`).
 
-The `StateConnector` smart contract operates with sequential 90s windows (`BUFFER_WINDOW = 90`). Here `bufferNumber` indicates the index of the particular window. Given a timestamp, `T`, one can calculate the corresponding `bufferNumber` with `T` contained in it as follows:
+The `StateConnector` smart contract operates with sequential 90s windows (`BUFFER_WINDOW = 90`). Here `bufferNumber` indicates the index of the particular window. Given a timestamp `T`, one can calculate the corresponding `bufferNumber` with `T` contained in it as follows:
 
 ```solidity
 bufferNumber(T) = (T - BUFFER_TIMESTAMP_OFFSET)/BUFFER_WINDOW

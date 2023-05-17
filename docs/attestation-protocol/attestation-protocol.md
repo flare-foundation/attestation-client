@@ -20,22 +20,28 @@ Multiple attestation requests can be collected and put up for vote in a single v
 
 A secure implementation of the protocol, using a proper commit-reveal scheme, prevents copying the votes (attestations), similar to the way elections are organized.
 
-### Commit-reveal scheme
+### Commit-Reveal Scheme
 
 A commit-reveal scheme for voting consists of a 2-phase procedure for sending the data in such a way that:
 
 - In the **commit phase**, we can send **commit data** that contains the proof of the existence of the real data, but does not disclose the data itself. The commit data is calculated from Merkle root, a random number (to mask the Merkle root) and the sender's address (to prevent hash copying). Sending the commit data is possible only during this phase.
 - Once the commit phase is finished, the **reveal phase** starts. In this phase, the voters can disclose their data (**reveal data**), which should match the **commit data**.
 
-## Voting rounds
+## Voting Rounds
 
 The implemented attestation protocol is managed by the [`StateConnector`](state-connector-contract.md) smart contact and [BitVoting](bit-voting.md) smart contract. Voting activities are organized using sequential 90-second **voting windows** enumerated by a sequential ID, the `bufferNumber`. Each round starts with the particular voting window. The `roundId` for the round is the `bufferNumber` of the voting start window. A round evolves through the five phases explained below (in four sequential voting windows). Sending the commit-reveal data is carried out only once per voting window, usually `commitTime` seconds before the end (see [`attester-config.json`](configs/.install/templates/attester-config.json)). Note that the voting data is sent for two voting rounds, commit data for one, and reveal data for the next one. Before the commit-reveal voting another pre-voting phase is carried out, called [**bit-voting**](bit-voting.md). This phase is used to agree on which attestations should be put into the Merkle tree while voting in commit-reveal scheme.
 
+### Two Sets of Attestation Providers
+
 Also note that in the current implementation of the attestation protocol the attestation providers are divided into two sets:
+
 - **default set** - a selected set of 9 attestation providers that carry out bit-voting and commit-reveal voting. The accepted hash is defined by the majority Merkle root from the default set.
 - **local sets** - each validator or observation node can configure a set of local attestation providers. A local attestation provider is usually not a member of the default set. They are not involved in bit-voting, do participate in commit-reveal voting, but their votes do not influence the default set voting result. If the majority of the local set at a specific node produces a different Merkle root voting result then the default set, the node forks out of the network (rejects the Merkle root accepted by the default set). Local sets are used as an additional security mechanism.
 
+### Five Phases of a Round
+
 The breakdown of phases of a voting round is as follows:
+
 - `collect`: The first voting window with a given `bufferNumber` that defines the voting round's `roundId`. In this phase attestation requests are being collected. After attestation request are collected the verification process is started.
 - `choose`: The first half of the next voting window (`bufferNumber + 1`). Before the end of this choose phase the members of the default set carry out the voting about which attestations should be included into the final vote. Each member of the default set sends a bit vector with bits corresponding to attestation requests in the order of arrival (with duplicates removed). These *bit-votes* are sent to a special contract [BitVoting](./bit-voting.md) contract, where they are emitted as events. Based on the votes submitted, each attestation provider can use a deterministic algorithm to calculate the voting result and hence know, which attestations, must be included into Merkle tree, hence attested on. 
 - `commit`: The second half of the voting window `bufferNumber + 1`. In this phase attestation providers are finishing out verifications, calculating the attestations, building the Merkle based on the result of the `choose` phase, calculating the Merkle root and sending the **commit data**. Note that the **commit data** is sent together with the **reveal data** for the previous round (`roundId - 1`).

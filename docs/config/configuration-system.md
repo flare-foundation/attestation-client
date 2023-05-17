@@ -49,7 +49,7 @@ Folders:
     - Property description: [VeriferServerConfig](../../src/servers/verifier-server/src/config-models/VerifierServerConfig.ts).
     - Example: [`btc-verifier-config.json`](../../configs/.install/templates/verifier-server/btc-verifier-config.json).
 
-In addition to configurations in the folders stated above, there are the following configuration files in the `templates` folder:
+In addition to configurations in the folders listed above, there are the following configuration files in the `templates` folder:
 
 - `attester-config.json`: Attestation client configuration:
     - Property description: [AttestationClientConfig](../../src/attester/configs/AttestationClientConfig.ts).

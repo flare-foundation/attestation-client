@@ -323,7 +323,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
 ) {
   // Check transactions for a matching
   for (const dbTransaction of dbTransactions) {
-    let fullTxData;
+    let fullTxData: T;
     try {
       const parsedData = JSON.parse(dbTransaction.response);
       fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
@@ -332,8 +332,8 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
     }
 
     // In account based case this loop goes through only once.
-    for (let outUtxo = 0; outUtxo < fullTxData.receivingAddresses.length; outUtxo++) {
-      const address = fullTxData.receivingAddresses[outUtxo];
+    for (let outUtxo = 0; outUtxo < fullTxData.intendedReceivedAmounts.length; outUtxo++) {
+      const address = fullTxData.intendedReceivedAmounts[outUtxo].address;
       // TODO: standard address hash
       const destinationAddressHashTmp = Web3.utils.soliditySha3(address);
       if (destinationAddressHashTmp === destinationAddressHash) {

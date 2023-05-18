@@ -8,12 +8,11 @@
 
 import {
   ARBalanceDecreasingTransaction,
+  AttestationDefinitionStore,
   BN,
   DHBalanceDecreasingTransaction,
-  hashBalanceDecreasingTransaction,
   IndexedQueryManager,
   MCC,
-  parseBalanceDecreasingTransaction,
   randSol,
   Verification,
   VerificationStatus,
@@ -25,11 +24,12 @@ import { verifyBalanceDecreasingTransaction } from "../../verification-utils/gen
 const web3 = new Web3();
 
 export async function verifyBalanceDecreasingTransactionBTC(
+  defStore: AttestationDefinitionStore,
   client: MCC.BTC,
   attestationRequest: string,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARBalanceDecreasingTransaction, DHBalanceDecreasingTransaction>> {
-  const request = parseBalanceDecreasingTransaction(attestationRequest) as ARBalanceDecreasingTransaction;
+  const request = defStore.parseRequest(attestationRequest) as ARBalanceDecreasingTransaction;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
@@ -42,7 +42,7 @@ export async function verifyBalanceDecreasingTransactionBTC(
 
   //-$$$<end> of the custom section. Do not change this comment.
 
-  const hash = hashBalanceDecreasingTransaction(request, response);
+  const hash = defStore.dataHash(request, response);
 
   return {
     hash,

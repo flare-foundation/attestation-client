@@ -2,13 +2,13 @@
 
 The `StateConnector` smart contract is used to manage the attestation protocol. It is a voting contract, which does the following:
 
-- Accepts attestation requests all the time and emits events that contain the attestation requests and timestamps. Note that the contract does not keep track of any data related to attestation requests. Matching attestation requests to the correct `collect` phases of voting rounds is done by attestation providers according to the timestamps of the emitted events.
-- Accepts commit and reveal submissions by attestation providers, mapping them to the correct voting windows, consequently mapping them to the correct `commit` and `reveal` phases of the voting rounds.
+- Accepts attestation requests all the time and emits events that contain the attestation requests and timestamps. Note that the contract does not keep track of any data related to attestation requests. Matching an attestation request to the `collect` phases of the correct voting rounds is done by attestation providers according to the timestamp of the emitted event.
+- Accepts commit and reveal submissions by attestation providers, mapping them to the correct voting rounds, consequently mapping them to the correct `commit` and `reveal` phases of the voting rounds.
 - Counts the votes (attestations) and declares the winning attestation hash (confirmed Merkle root) for every voting round (in the `count` phase).
 
 Note that voting rounds are interlaced. For example, if _W<sub>0</sub>_, _W<sub>1</sub>_, ... are sequential 90s voting windows, then the voting round with id `0` has the `collect` phase in _W<sub>0</sub>_, the `commit` phase in _W<sub>1</sub>_, the `reveal` phase in _W<sub>2</sub>_ and the `count` phase in _W<sub>3</sub>_. Simultaneously, the voting round with id `1` has the `collect` phase in _W<sub>1</sub>_, the `commit` phase in _W<sub>2</sub>_ and the `reveal` phase in _W<sub>3</sub>_.
 
-Additionally, the data submitted by attestation providers per voting window is interlaced; the data sent in window _W<sub>n</sub>_ contains commit data for `roundId = n - 1` and reveal data for `roundId = n - 2`.
+Additionally, the data submitted by attestation providers for voting rounds is interlaced; the data sent in window _W<sub>n</sub>_ contains commit data for `roundId = n - 1` and reveal data for `roundId = n - 2`.
 
 ## Requesting attestations
 
@@ -48,7 +48,7 @@ function submitAttestation(
 )
 ```
 
-This function is called once per attestation round, usually near the end of it. Note that by calling the function, one simultaneously sends commit data for current voting round (`commitHash`) and reveal data for the previous voting round (`merkleRoot`, `randomNumber`).
+This function is called once per voting window, usually near the end of it. Note that by calling the function, one simultaneously sends commit data for current voting round (`commitHash`) and reveal data for the previous voting round (`merkleRoot`, `randomNumber`).
 
 `StateConnector` smart contract operates with sequential 90s windows (`BUFFER_WINDOW = 90`). Here `bufferNumber` indicates the index of the particular window. Given a timestamp `T` one can calculate the corresponding `bufferNumber` with the timestamp `T` contained in it as follows:
 
@@ -58,9 +58,9 @@ bufferNumber(T) = (T - BUFFER_TIMESTAMP_OFFSET)/BUFFER_WINDOW
 
 The caller of the function `submitAttestation` must call it with the `bufferNumber` corresponding to the time of the call, otherwise the call is rejected.
 
-The relation between the voting round id and the `bufferNumber` is defined as follows. The first voting round (`roundId = 0`) starts its `collect` phase in the voting window with `bufferNumber = 0`. Therefore, the `bufferNumber` corresponds to the voting window of the `collect` phase of the voting round with the same index (`roundId`). The `choose` and `commit` phases of the round with a given `roundId` are in the voting window with the `bufferNumber` equal to `roundId + 1`, the `reveal` phase is in the voting window with the `bufferNumber` equal to `roundId + 2` and the `count` phase is in the voting window with the `bufferNumber` equal to `roundId + 3`.
+The relation between the voting round id and the `bufferNumber` is described in [Attestation Protocol](attestation-protocol.md).
 
-Accordingly, calling `submitAttestation` in a given voting window with the `bufferNumber`, implies we are sending commit data for `roundId` equal `bufferNumber - 1` and the reveal data for the `roundId` equal `bufferNumber - 2`.
+Calling `submitAttestation` in a given voting window with the `bufferNumber`, implies we are sending commit data for `roundId` equal `bufferNumber - 1` and the reveal data for the `roundId` equal `bufferNumber - 2`.
 
 ## Confirmed Merkle Roots
 

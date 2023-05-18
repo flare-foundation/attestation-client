@@ -1,11 +1,11 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { AttestationTypeScheme, RESPONSE_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
 import { DEFAULT_GEN_FILE_HEADER, HASH_TEST_FILE, PRETTIER_SETTINGS, PRETTIER_SETTINGS_SOL, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 
 function genTestHashStruct(definition: AttestationTypeScheme) {
   const structName = `${definition.name}`;
-  const typedParams = definition.dataHashDefinition.map((item) => `      ${item.type} ${item.key};`).join("\n");
+  const typedParams = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `      ${item.type} ${item.key};`).join("\n");
   return `
    struct ${structName} {
 ${typedParams}
@@ -15,7 +15,7 @@ ${typedParams}
 
 function genTestHashFunction(definition: AttestationTypeScheme) {
   const functionName = `hashTest${definition.name}`;
-  const params = definition.dataHashDefinition.map((item) => `data.${item.key}`).join(",");
+  const params = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `data.${item.key}`).join(",");
   return `
    function ${functionName}(
       bytes memory _data,

@@ -11,12 +11,12 @@ import { EntityManager } from "typeorm";
 import { Attestation } from "../../../src/attester/Attestation";
 import { AttestationData } from "../../../src/attester/AttestationData";
 import { DBBlockBTC, DBBlockDOGE, DBBlockXRP } from "../../../src/entity/indexer/dbBlock";
-import { DBTransactionBase, DBTransactionBTC0, DBTransactionDOGE0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
+import { DBTransactionBTC0, DBTransactionBase, DBTransactionDOGE0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
 import { VerifierConfigurationService } from "../../../src/servers/verifier-server/src/services/verifier-configuration.service";
 import { VerifierServerModule } from "../../../src/servers/verifier-server/src/verifier-server.module";
-import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../../src/utils/logging/logger";
 import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
-import { encodeRequest } from "../../../src/verification/generated/attestation-request-encode";
+import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../../src/utils/logging/logger";
+import { AttestationDefinitionStore } from "../../../src/verification/attestation-types/AttestationDefinitionStore";
 import { ARType } from "../../../src/verification/generated/attestation-request-types";
 import { generateTestIndexerDB, selectedReferencedTx } from "../../indexed-query-manager/utils/indexerTestDataGenerator";
 
@@ -175,11 +175,11 @@ export async function bootstrapVerifier(
   return app;
 }
 
-export function prepareAttestation(request: ARType, startTime: number): Attestation {
+export function prepareAttestation(defStore: AttestationDefinitionStore, request: ARType, startTime: number): Attestation {
   const data = new AttestationData();
   data.type = request.attestationType;
   data.sourceId = request.sourceId;
-  data.request = encodeRequest(request);
+  data.request = defStore.encodeRequest(request);
   const attestation = new Attestation(undefined, data);
   return attestation;
 }

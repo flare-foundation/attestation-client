@@ -72,13 +72,12 @@ export function genVerifier(definition: AttestationTypeScheme, sourceId: number,
     `${ATTESTATION_TYPE_PREFIX}${definition.name}`,
     `BN`,
     `${DATA_HASH_TYPE_PREFIX}${definition.name}`,
-    `${WEB3_HASH_PREFIX_FUNCTION}${definition.name}`,
     `IndexedQueryManager`,
-    `${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}`,
     `randSol`,
     `MCC`,
     `Verification`,
     `VerificationStatus`,
+    `AttestationDefinitionStore`,
     `Web3`,
   ];
   importedSymbols.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
@@ -90,12 +89,13 @@ ${imports}
 const web3 = new Web3();
 
 export async function ${functionName}(
+  defStore: AttestationDefinitionStore,
 	client: ${mccInterface}, 
   attestationRequest: string,
 	indexer: IndexedQueryManager 
 ): Promise<Verification<${ATTESTATION_TYPE_PREFIX}${definition.name}, ${DATA_HASH_TYPE_PREFIX}${definition.name}>>
 {
-  const request = ${REQUEST_PARSE_PREFIX_FUNCTION}${definition.name}(attestationRequest) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
+  const request = defStore.parseRequest(attestationRequest) as ${ATTESTATION_TYPE_PREFIX}${definition.name};
 
 	//-$$$<start> of the custom code section. Do not change this comment.
 
@@ -105,7 +105,7 @@ ${code}
 
 ${hasResponseDefined ? "" : randomResponse}
 
-	const hash = ${WEB3_HASH_PREFIX_FUNCTION}${definition.name}(request, response);
+	const hash = defStore.dataHash(request, response);
 
 	return {
 		hash,

@@ -711,7 +711,7 @@ export class AttestationRound {
     });
 
     // eslint-disable-next-line
-    criticalAsync("processed", async () => {
+    criticalAsync("calculateBitVote", async () => {
       this.tryCalculateBitVotingResults();
       await this.tryPrepareCommitData();
     });
@@ -828,7 +828,7 @@ export class AttestationRound {
     }
 
     // eslint-disable-next-line
-    criticalAsync("", async () => {
+    criticalAsync("submit attestation", async () => {
       const receipt = await this.flareConnection.submitAttestation(
         action,
         // commit index (collect+2)

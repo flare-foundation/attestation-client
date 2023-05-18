@@ -1,4 +1,4 @@
-import { BlockHeaderBase, IBlockHeader, IBlockTip, Managed } from "@flarenetwork/mcc";
+import { BlockHeaderBase, BlockTipBase, Managed } from "@flarenetwork/mcc";
 import { failureCallback, retry, retryMany } from "../utils/helpers/promiseTimeout";
 import { sleepMs } from "../utils/helpers/utils";
 import { AttLogger } from "../utils/logging/logger";
@@ -65,7 +65,7 @@ export class HeaderCollector {
    * @param block
    * @returns
    */
-  private isBlockCached(block: IBlockTip) {
+  private isBlockCached(block: BlockTipBase) {
     return this.blockHeaderHash.has(block.stdBlockHash) && this.blockHeaderNumber.has(block.number);
   }
 
@@ -73,7 +73,7 @@ export class HeaderCollector {
    * Cache the block.
    * @param block
    */
-  private cacheBlock(block: IBlockTip) {
+  private cacheBlock(block: BlockTipBase) {
     this.blockHeaderHash.add(block.stdBlockHash);
     this.blockHeaderNumber.add(block.number);
     let hashes = this.blockNumberHash.get(block.number) || [];
@@ -132,7 +132,7 @@ export class HeaderCollector {
       blockPromises.push(async () => this.indexerToClient.getBlockHeaderFromClient(`saveBlocksHeaders`, blockNumber));
     }
 
-    let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as IBlockHeader[];
+    let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as BlockHeaderBase[];
     blocks = blocks.filter((block) => !this.isBlockCached(block));
     await this.saveHeadersOnNewTips(blocks);
   }
@@ -150,7 +150,7 @@ export class HeaderCollector {
    * @param blocks array of headers
    * @returns
    */
-  public async saveHeadersOnNewTips(blockTips: IBlockTip[] | IBlockHeader[]) {
+  public async saveHeadersOnNewTips(blockTips: BlockTipBase[] | BlockHeaderBase[]) {
     let blocksText = "[";
 
     const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexerToDB.dbService, this.indexerToDB.dbBlockClass, this.N);
@@ -184,7 +184,7 @@ export class HeaderCollector {
 
       if (blockTip instanceof BlockHeaderBase) {
         // if we got IBlockHeader we already have all the info required
-        const header = blockTip as IBlockHeader;
+        const header = blockTip as BlockHeaderBase;
 
         dbBlock.timestamp = header.unixTimestamp;
         dbBlock.previousBlockHash = header.previousBlockHash;
@@ -254,7 +254,7 @@ export class HeaderCollector {
         T = newT;
       }
 
-      const blocks: IBlockTip[] = await this.indexerToClient.client.getTopLiteBlocks(this.settings.numberOfConfirmations);
+      const blocks: BlockTipBase[] = await this.indexerToClient.client.getTopLiteBlocks(this.settings.numberOfConfirmations);
 
       await this.saveHeadersOnNewTips(blocks);
 

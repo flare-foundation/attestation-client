@@ -13,5 +13,5 @@ export class SpecificProofRequest {
    * Attestation request data as submitted to State Connector smart contract
    */
   @IsHexadecimal()
-  callData: string;
+  requestBytes: string;
 }

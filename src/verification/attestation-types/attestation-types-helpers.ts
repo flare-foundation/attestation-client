@@ -1,7 +1,7 @@
 import BN from "bn.js";
 import glob from "glob";
 import Web3 from "web3";
-import { AttestationTypeScheme, NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
+import { AttestationTypeScheme, DataHashScheme, NumberLike, SupportedSolidityType, WeightedRandomChoice } from "./attestation-types";
 
 const toBN = Web3.utils.toBN;
 
@@ -13,8 +13,11 @@ export const ATT_TYPE_DEFINITIONS_ROOT = "src/verification/attestation-types";
  * @param type
  * @returns
  */
-export function tsTypeForSolidityType(type: SupportedSolidityType) {
-  switch (type) {
+export function tsTypeForItem(item: DataHashScheme) {
+  if (item.tsType) {
+    return item.tsType;
+  }
+  switch (item.type) {
     case "uint8":
     case "uint16":
     case "uint32":
@@ -32,7 +35,7 @@ export function tsTypeForSolidityType(type: SupportedSolidityType) {
       return "string";
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      ((_: never): void => {})(item.type);
   }
 }
 

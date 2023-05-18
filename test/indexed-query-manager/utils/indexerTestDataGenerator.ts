@@ -6,14 +6,9 @@ import { DBBlockBase } from "../../../src/entity/indexer/dbBlock";
 import { DBState } from "../../../src/entity/indexer/dbState";
 import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
 import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
+import { AttestationDefinitionStore } from "../../../src/verification/attestation-types/AttestationDefinitionStore";
 import { MIC_SALT, NumberLike } from "../../../src/verification/attestation-types/attestation-types";
-import { hexlifyBN, toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
-import {
-  hashBalanceDecreasingTransaction,
-  hashConfirmedBlockHeightExists,
-  hashPayment,
-  hashReferencedPaymentNonexistence,
-} from "../../../src/verification/generated/attestation-hash-utils";
+import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
 import {
   ARBalanceDecreasingTransaction,
   ARConfirmedBlockHeightExists,
@@ -21,7 +16,7 @@ import {
   ARReferencedPaymentNonexistence,
 } from "../../../src/verification/generated/attestation-request-types";
 import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
-import { getSourceName, SourceId } from "../../../src/verification/sources/sources";
+import { SourceId, getSourceName } from "../../../src/verification/sources/sources";
 import {
   responseBalanceDecreasingTransaction,
   responseConfirmedBlockHeightExists,
@@ -130,7 +125,7 @@ function addXrpTransactionResponse(transaction: DBTransactionBase, transactionIn
   }
   let json = JSON.parse(txStr);
   json.data.result.hash = unPrefix0x(transaction.transactionId);
-  json.data.result.metaData.TransactionIndex = transactionIndex;
+  json.data.result.meta.TransactionIndex = transactionIndex;
   if (paymentReference) {
     json.data.result.Memos[0].Memo.MemoData = paymentReference;
     transaction.paymentReference = paymentReference;
@@ -359,6 +354,7 @@ export function totalDeliveredAmountToAddress(dbTransaction: DBTransactionBase, 
 }
 
 export async function testPaymentRequest(
+  definitionStore: AttestationDefinitionStore,
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => MccTransactionType,
   chainType: ChainType,
@@ -377,18 +373,19 @@ export async function testPaymentRequest(
     utxo,
   } as ARPayment;
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = hashPayment(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
   }
   return request;
 }
 
 export async function testBalanceDecreasingTransactionRequest(
+  definitionStore: AttestationDefinitionStore,
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => MccTransactionType,
   chainType: ChainType,
-  inUtxo: number = 0
+  sourceAddressIndicator: string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 ) {
-  const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, inUtxo, undefined);
+  const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, sourceAddressIndicator, undefined);
 
   const request = {
     attestationType: AttestationType.BalanceDecreasingTransaction,
@@ -396,15 +393,16 @@ export async function testBalanceDecreasingTransactionRequest(
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     id: prefix0x(dbTransaction.transactionId),
     blockNumber: responseData.response?.blockNumber,
-    inUtxo,
+    sourceAddressIndicator,
   } as ARBalanceDecreasingTransaction;
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = hashBalanceDecreasingTransaction(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
   }
   return request;
 }
 
 export async function testConfirmedBlockHeightExistsRequest(
+  definitionStore: AttestationDefinitionStore,
   dbBlock: DBBlockBase,
   lowerQueryWindowBlock: DBBlockBase,
   chainType: ChainType,
@@ -421,12 +419,13 @@ export async function testConfirmedBlockHeightExistsRequest(
     queryWindow,
   } as ARConfirmedBlockHeightExists;
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = hashConfirmedBlockHeightExists(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
   }
   return request;
 }
 
 export async function testReferencedPaymentNonexistenceRequest(
+  definitionStore: AttestationDefinitionStore,
   dbTransactions: DBTransactionBase[],
   TransactionClass: new (...args: any[]) => MccTransactionType,
   firstOverflowBlock: DBBlockBase,
@@ -463,7 +462,7 @@ export async function testReferencedPaymentNonexistenceRequest(
   } as ARReferencedPaymentNonexistence;
 
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = hashReferencedPaymentNonexistence(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
   }
 
   return request;

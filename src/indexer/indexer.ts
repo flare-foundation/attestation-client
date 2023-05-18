@@ -1,4 +1,4 @@
-import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
+import { BlockBase, ChainType, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { EntityTarget } from "typeorm";
 import { ChainConfig } from "../attester/configs/ChainConfig";
@@ -231,7 +231,7 @@ export class Indexer {
    * Async callback from BlockProcessor in case block processing is triggered after block was already processed.
    * @param block block to be processed
    */
-  async blockAlreadyCompleted(block: IBlock) {
+  async blockAlreadyCompleted(block: BlockBase) {
     this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.N}`);
 
     // todo: this causes asycn growing - this should be queued and run from main async
@@ -502,7 +502,7 @@ export class Indexer {
    * Updates the status for monitoring
    * @param blockNp1 N + 1 block candidate
    */
-  private async updateStatus(blockNp1: IBlock) {
+  private async updateStatus(blockNp1: BlockBase) {
     const NisReady = this.N >= this.T - this.chainConfig.numberOfConfirmations - 2;
     const syncTimeSec = this.syncTimeDays() * SECONDS_PER_DAY;
     const fullHistory = !this.indexerToDB.bottomBlockTime ? false : blockNp1.unixTimestamp - this.indexerToDB.bottomBlockTime > syncTimeSec;

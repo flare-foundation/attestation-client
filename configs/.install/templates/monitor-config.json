@@ -45,6 +45,17 @@
         },
     ],
 
+    // web3 account balance
+    "balances" : [
+        {
+            "name": "AttestationClientFlare",
+            "address":"",
+            // "web3Rpc": "https://flare-api.flare.network/ext/C/rpc",
+            // "currency": "FLR";
+            // "lowBalanceErrorThreshold": 100
+        }
+    ],
+
     // dockers
     "dockers" : [
         {

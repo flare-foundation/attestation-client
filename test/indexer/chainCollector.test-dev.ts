@@ -1,11 +1,11 @@
 // yarn test test/indexer/chainCollector.test-dev.ts
 
 import { ChainType, MCC, traceManager, UtxoMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
 import { ChainConfig } from "../../src/attester/configs/ChainConfig";
+import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
 import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
-import { AlgoBlockProcessor, UtxoBlockProcessor, XrpBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
+import { AlgoBlockProcessor, BtcBlockProcessor, XrpBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { Indexer } from "../../src/indexer/indexer";
 import { getGlobalLogger } from "../../src/utils/logging/logger";
 
@@ -76,8 +76,8 @@ describe("Test process helpers ", () => {
 
   it(`Test btc block processing `, async function () {
     // const block = await MccClient.getBlock(723581);
-    const block = await BtcMccClient.getBlock(723746);
-    const block2 = await BtcMccClient.getBlock(723746); // simulation of other block
+    const block = await BtcMccClient.getFullBlock(723746);
+    const block2 = await BtcMccClient.getFullBlock(723746); // simulation of other block
 
     // console.log(block)
 
@@ -92,13 +92,13 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    const processor = new UtxoBlockProcessor(indexer.cachedClient);
+    const processor = new BtcBlockProcessor(indexer.cachedClient);
     processor.debugOn("FIRST");
     processor.initializeJobs(block, save).then(() => {}).catch(e => {
       getGlobalLogger().error("Initialize jobs failed for processor 1")
     });
 
-    const processor2 = new UtxoBlockProcessor(indexer.cachedClient);
+    const processor2 = new BtcBlockProcessor(indexer.cachedClient);
     processor2.debugOn("SECOND");
     processor2.initializeJobs(block2, save).then(() => {}).catch(e => {
       getGlobalLogger().error("Initialize jobs failed for processor 1")
@@ -146,7 +146,7 @@ describe("Test process helpers ", () => {
   });
 
   it(`Test btc new block processing `, async function () {
-    const block = await BtcMccClient.getBlock(723746);
+    const block = await BtcMccClient.getFullBlock(723746);
 
     const defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
@@ -159,7 +159,7 @@ describe("Test process helpers ", () => {
     const cachedClient = new CachedMccClient(ChainType.BTC, defaultCachedMccClientOptions);
     indexer.cachedClient = cachedClient;
 
-    const processor = new UtxoBlockProcessor(indexer.cachedClient);
+    const processor = new BtcBlockProcessor(indexer.cachedClient);
     processor.debugOn("FIRST");    
     await processor.initializeJobs(block, save);
   });
@@ -186,7 +186,7 @@ describe("Test process helpers ", () => {
   });
 
   it(`Test xrp block processing `, async function () {
-    const block = await XrpMccClient.getBlock("FDD11CCFB38765C2DA0B3E6D4E3EF7DFDD4EE1DBBA4F319493EB6E1376814EC2");
+    const block = await XrpMccClient.getFullBlock("FDD11CCFB38765C2DA0B3E6D4E3EF7DFDD4EE1DBBA4F319493EB6E1376814EC2");
 
     const defaultCachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,

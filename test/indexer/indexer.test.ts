@@ -263,7 +263,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         testTx.transactionId = "5BEBD97B6F7CFF8CF1D10B7B851DF044AE3FC29F81B68BE0E01F8051CA314190";
         testTx.timestamp = Date.now();
 
-        const stub = sinon.stub(indexer.indexerToClient.client, "getBlock").resolves(TestBlockXRPFake);
+        const stub = sinon.stub(indexer.indexerToClient.client, "getFullBlock").resolves(TestBlockXRPFake);
 
         const res = await indexer.blockCompleted(testBlock, [testTx]);
 
@@ -304,7 +304,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
       });
 
       it("Should execute blockAlreadyCompleted", async function () {
-        const stub = sinon.stub(indexer.indexerToClient.client, "getBlock").resolves(TestBlockXRPFake);
+        const stub = sinon.stub(indexer.indexerToClient.client, "getFullBlock").resolves(TestBlockXRPFake);
         const block = TestBlockXRPAlt;
         indexer.N = 28014611;
         indexer.blockNp1hash = "08E71799B2DDEE48F12A62626508D8F879E67FB2AB90FECECE4BC82650DA7D04";

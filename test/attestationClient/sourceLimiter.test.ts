@@ -1,4 +1,4 @@
-import { expect, assert } from "chai";
+import { assert, expect } from "chai";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationTypeConfig } from "../../src/attester/configs/AttestationTypeConfig";
@@ -6,12 +6,13 @@ import { SourceConfig } from "../../src/attester/configs/SourceConfig";
 import { SourceLimiter } from "../../src/attester/source/SourceLimiter";
 import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { encodeReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-encode";
 import { ARReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-types";
 import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createBlankAtRequestEvent } from "./utils/createEvents";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
+import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 
 describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -29,12 +30,16 @@ describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
 
   const sourceLimiter = new SourceLimiter(config, getGlobalLogger());
 
-  const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
-  const attData = new AttestationData(event);
-  const attestation = new Attestation(14, attData);
+  let event: AttestationRequest; 
+  let attData: AttestationData;
+  let attestation: Attestation;
+
+  let event2: AttestationRequest; 
+  let attData2: AttestationData;
+  let attestation2: Attestation;
 
   const arRef: ARReferencedPaymentNonexistence = {
-    attestationType: 15,
+    attestationType: 15 as any,
     sourceId: 2,
     messageIntegrityCode: "0xfakeMIC",
     minimalBlockNumber: 2,
@@ -44,10 +49,21 @@ describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
     amount: 100,
     paymentReference: "0xfakeref",
   };
-  const reqData2 = encodeReferencedPaymentNonexistence(arRef);
-  const event2 = createBlankAtRequestEvent(AttestationType.ReferencedPaymentNonexistence, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
-  const attData2 = new AttestationData(event2);
-  const attestation2 = new Attestation(15, attData2);
+
+  let defStore: AttestationDefinitionStore;
+
+  before(async function () {
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
+
+    event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
+    attData = new AttestationData(event);
+    attestation = new Attestation(14, attData);
+
+    event2 = createBlankAtRequestEvent(defStore, AttestationType.ReferencedPaymentNonexistence, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
+    attData2 = new AttestationData(event2);
+    attestation2 = new Attestation(15, attData2);  
+  });
 
   it("Should construct sourceLimiter", function () {
     assert(sourceLimiter);

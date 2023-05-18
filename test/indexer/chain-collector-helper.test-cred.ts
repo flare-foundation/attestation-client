@@ -7,7 +7,7 @@ import chaiAsPromised from "chai-as-promised";
 import { afterEach } from "mocha";
 import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
-import { BlockProcessor, UtxoBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
+import { BlockProcessor, BtcBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { getFullTransactionUtxo } from "../../src/indexer/chain-collector-helpers/readTransaction";
 import { Interlacing } from "../../src/indexer/interlacing";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
@@ -46,23 +46,23 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
     const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
     const interlacing = new Interlacing();
-    let utxoBlockProcessor: UtxoBlockProcessor;
+    let utxoBlockProcessor: BtcBlockProcessor;
     const tx = TestTxBTC;
     const txFake = TestTxBTCFake;
     before(async () => {
       await dataService.connect();
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 12);
-      utxoBlockProcessor = new UtxoBlockProcessor(cachedClient);
+      utxoBlockProcessor = new BtcBlockProcessor(cachedClient);
     });
 
     it("Should not read full transaction utxo", async () => {
       const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor);
-      expect(fullTx.additionalData.vinouts[0]).to.be.undefined;
+      expect(fullTx._additionalData.vinouts[0]).to.be.undefined;
     });
 
     it("Should read full transaction utxo", async () => {
       const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor);
-      expect(fullTx.additionalData.vinouts.length).to.be.eq(1);
+      expect(fullTx._additionalData.vinouts.length).to.be.eq(1);
     });
   });
 

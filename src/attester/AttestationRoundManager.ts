@@ -394,7 +394,7 @@ export class AttestationRoundManager {
     }
     const attestationSupported = globalConfig.sourceAndTypeSupported(data.sourceId, data.type);
     if (!attestationSupported || !verifier.isSupported(data.sourceId, data.type)) {
-      this.logger.error(`${this.label}Attestation type for source ${data.sourceId} and type ${data.type} not supported for request: ${data.request}`);
+      this.logger.error(`${this.label} Attestation type for source ${data.sourceId} and type ${data.type} not supported for request: ${data.request}`);
       attestation.status = AttestationStatus.failed;
     }
     return attestation;

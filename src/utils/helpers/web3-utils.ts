@@ -141,3 +141,14 @@ export async function relativeContractABIPathForContractName(name: string, artif
   }
   throw new Error(`Not a unique file: ${files.toString()}`);
 }
+
+/**
+ * Helper function that converts wei to decimal.
+ * @param value
+ * @param digitsToInteger
+ * @returns
+ */
+export function weiToDecimal(value: bigint, digitsToInteger: number = 18): bigint {
+  const oneUnit = BigInt(10) ** BigInt(digitsToInteger);
+  return value / oneUnit;
+}

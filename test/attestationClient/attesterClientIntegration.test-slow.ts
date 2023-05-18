@@ -1,7 +1,6 @@
 // yarn test test/attestationClient/attesterClientIntegration.test-slow.ts
 
 import { BtcTransaction, ChainType, DogeTransaction, sleepMs, traceManager, XrpTransaction } from "@flarenetwork/mcc";
-import { ok } from "assert";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { spawn } from "child_process";
@@ -15,8 +14,8 @@ import { runBot } from "../../src/state-collector-finalizer/state-connector-vali
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/web3-utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { AttestationTypeScheme } from "../../src/verification/attestation-types/attestation-types";
-import { readAttestationTypeSchemes, toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
@@ -101,14 +100,14 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
   let privateKeys: string[] = [];
   let childProcesses: any[] = [];
   let runPromises = [];
-  let definitions: AttestationTypeScheme[];
   let clients: AttesterClient[];
-
+  let defStore: AttestationDefinitionStore;
   const logger = getGlobalLogger();
 
   before(async function () {
-    definitions = await readAttestationTypeSchemes();
-
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
+    
     // clear all test databases in './db/' folder
     await clearTestDatabases();
 
@@ -215,16 +214,16 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
 
     // Initialize test requests
 
-    requestXRP = await testPaymentRequest(setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
-    attestationXRP = prepareAttestation(requestXRP, setup.startTime);
+    requestXRP = await testPaymentRequest(defStore, setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
+    attestationXRP = prepareAttestation(defStore, requestXRP, setup.startTime);
 
     let inUtxo = firstAddressVin(setup.BTC.selectedTransaction);
     let utxo = firstAddressVout(setup.BTC.selectedTransaction);
-    requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
-    attestationBTC = prepareAttestation(requestBTC, setup.startTime);
+    requestBTC = await testPaymentRequest(defStore, setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
+    attestationBTC = prepareAttestation(defStore, requestBTC, setup.startTime);
 
-    requestDoge = await testPaymentRequest(setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE);
-    attestationDoge = prepareAttestation(requestDoge, setup.startTime);
+    requestDoge = await testPaymentRequest(defStore, setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE);
+    attestationDoge = prepareAttestation(defStore, requestDoge, setup.startTime);
 
     ///////////////////////////////////
     // Attester related intializations

@@ -5,13 +5,20 @@ import { getTestFile } from "../test-utils/test-utils";
 import { createBlankAtRequestEvent } from "../attestationClient/utils/createEvents";
 import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
 import { SourceId } from "../../src/verification/sources/sources";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
+import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 
 describe(`Attestation Data (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
-
-  const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.XRP, 1, "0xfakeId", "123", "0xFakeMIC");
-
+  let defStore: AttestationDefinitionStore;
+  let event: AttestationRequest;
   let attData: AttestationData;
+
+  before(async function () {
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
+    event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.XRP, 1, "0xfakeId", "123", "0xFakeMIC");
+  });
 
   it("Should construct Attestation Data", function () {
     attData = new AttestationData(event);

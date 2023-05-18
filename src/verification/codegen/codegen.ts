@@ -33,10 +33,10 @@ async function generateCodeFiles() {
   createAttestationHashTypesFile(definitions, { dto: true, filePath: WEB_SERVER_DTO_HASH_TYPE_FILE });
 
   createAttestationRandomUtils(definitions);
-  createAttestationHashUtils(definitions);
-  createAttestationRequestParse(definitions);
-  createAttestationRequestEncode(definitions);
-  createAttestationRequestEquals(definitions);
+  // createAttestationHashUtils(definitions);
+  // createAttestationRequestParse(definitions);
+  // createAttestationRequestEncode(definitions);
+  // createAttestationRequestEquals(definitions);
   createVerifiersAndRouter(definitions, verifierGenChecker);
   createSolidityIAttestationClient(definitions);
   createSolidityAttestationClientBase(definitions);

@@ -64,7 +64,7 @@ Accordingly, calling `submitAttestation` in a given voting window with the `buff
 
 ## Confirmed Merkle Roots
 
-In the `count` phase, the `StateConnector` verifies `commit data` against `reveal data` and counts the appearances of Merkle roots. If one Merkle root is submitted by more than 50% of attesters, the `StateConnector` emits it as `the confirmed Merkle root` of the voting round. To help reach the consensus we provide [BitVoting](./bit-voting.md).
+In the `count` phase, the `StateConnector` verifies `commit data` against `reveal data` and counts the occurrences of Merkle roots. If one Merkle root is submitted by more than 50% of attesters, the `StateConnector` emits it as `the confirmed Merkle root` of the voting round. To help reach the consensus we provide [BitVoting](./bit-voting.md).
 
 As of current implementation, the confirmed Merkle root is accessible by looking up the public array `merkleRoots` in the contract, which is a cyclic buffer of length `TOTAL_STORED_PROOFS` (6720, a week of proofs). The proof for a given voting round `roundId`is stored at the index `roundId % TOTAL_STORED_PROOFS`.
 

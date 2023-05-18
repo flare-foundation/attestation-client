@@ -20,6 +20,8 @@ services:
       - ../credentials.prepared/webserver:/app/attestation-suite-config
     container_name: attestation-client-webserver
     command: webserver
+    environment:
+      APP_BASE_PATH: /attestation-client
     restart: unless-stopped
     depends_on:
       - database

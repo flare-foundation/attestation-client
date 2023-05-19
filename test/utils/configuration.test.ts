@@ -121,6 +121,15 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
         assert(prepared === `{"3LevelRecursive"="ok"}`, `prepareSecureData with recursion does not work`);
     });
 
+    it(`test recursion within parameters`, async () => {
+        SECURE_MASTER_CONFIGS.push(["FirstValue", "$(SecondValue)"]);
+        SECURE_MASTER_CONFIGS.push(["SecondValue", "$(ThirdValue)"]);
+        SECURE_MASTER_CONFIGS.push(["ThirdValue", "ok"]);
+
+        const prepared = await _prepareSecureData(`{"Result"="$(FirstValue)"}`, "", "");
+
+        assert(prepared === `{"Result"="ok"}`, `prepareSecureData with recursion does not work`);
+    });
 
     it(`test recursive env parameters`, async () => {
 

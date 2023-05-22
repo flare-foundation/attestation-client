@@ -2,7 +2,7 @@
 
 ## For Attestation Providers
 
-- [Attestation Suite Installation](../deployment/README.md)
+- [Dockerized Installation](../deployment/README.md)
 - [Direct Installation to a Linux Machine](./installation/direct-installation.md)
 - [Configuration System](./config/configuration-system.md)
 

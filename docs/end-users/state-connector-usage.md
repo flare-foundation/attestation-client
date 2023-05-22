@@ -53,7 +53,7 @@ Each [attestation request](../../src/verification/generated/attestation-request-
 
 Attestation requests are used to obtain proofs from the State Connector system. The attestation process provides an attestation request and, if they verify it, they obtain an attestation response. When sending the request, we already know what the correct response should be, and we just want the State Connector system to provide a proof for the data, which can be used with smart contracts on a Flare Networks blockchain.
 
-To provide better security and stability for the State Connector system, the protocol requires that we indicate, in an unambiguous way, what the response should be using the message integrity code. This is obtained by essentially taking the expected attestation response and concatenating the string `"Flare"` to it as a _salt_ (data added for security). The helper functions for doing this are available in the [attestation hash utils](../../src/verification/generated/attestation-hash-utils.ts) file.
+To provide better security and stability for the State Connector system, the protocol requires that we indicate, in an unambiguous way, what the response should be using the message integrity code. This is obtained by essentially taking the expected attestation response and concatenating the string `Flare` to it as a _salt_ (data added for security). The helper functions for doing this are available in the [attestation hash utils](../../src/verification/generated/attestation-hash-utils.ts) file.
 
 ## How can I calculate a message integrity code?
 
@@ -152,7 +152,7 @@ Use the data obtained from the REST API to fill in the relevant struct object de
 
 This depends on the dApp that utilizes the State Connector proofs to allow certain actions based on a successful proof. A generic implementation of verification functions is available here in [SCProofVerifierBase.sol](../../contracts/generated/contracts/SCProofVerifierBase.sol).
 
-An example of such a contact deployed on Coston2 network is on the [Read Contract tab of SCProofVerifier](https://coston2-explorer.flare.network/address/0xA8083d78B6ABC328b4d3B714F76F384eCC7147e1/read-contract#address-tabs). Use the verification functions (named `verify<attestation type name>(...)`) to check the proofs.
+An example of such a contract deployed on Coston2 network is on the [Read Contract tab of SCProofVerifier](https://coston2-explorer.flare.network/address/0xA8083d78B6ABC328b4d3B714F76F384eCC7147e1/read-contract#address-tabs). Use the verification functions (named `verify<attestation type name>(...)`) to check the proofs.
 
 ## How can I implement a dApp that uses proofs for a State Connector system?
 

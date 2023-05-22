@@ -50,4 +50,4 @@ The breakdown of phases of a voting round is as follows:
 
 Next: [State Connector Contract](./state-connector-contract.md)
 
-[Back to home](../README.md)
+[Back to Home](../README.md)

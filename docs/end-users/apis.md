@@ -1,4 +1,4 @@
-# REST APIs for Attestation Providers
+# REST APIs Provided by Attestation Providers
 
 There are two groups of REST APIs that are relevant for use by end users.
 
@@ -9,9 +9,9 @@ There are two groups of REST APIs that are relevant for use by end users.
 
 Attestation request API routes on verifier servers are used to get well formatted attestation requests. Based on the [format definition for an attestation request](https://github.com/flare-foundation/state-connector-attestation-types), a user can prepare the attestation request. To fully prepare it, the user needs to know what the attestation response will be. Namely, a part of the request is also the field `messageIntegrityCode`, which is obtained by properly hashing the expected attestation response with the string `"Flare"` appended before hashing (see [Message Integrity Checks](../attestation-protocol/message-integrity.md)). The verifier web service routes are documented using the Swagger interface at `/api-doc/` route. They include:
 
-- `/verifier/<chain>/prepare` - POST: Returns attestation response for an attestation request, without checking tha message integrity code (see [POST object format](../../src/servers/verifier-server/src/dtos/v-request-types.dto.ts)).
+- `/verifier/<chain>/prepare` - POST: Returns the attestation response for an attestation request, without checking the message integrity code (see [POST object format](../../src/servers/verifier-server/src/dtos/v-request-types.dto.ts)).
 - `/verifier/<chain>/integrity` - POST: Tries to verify attestation request without checking message integrity code, and if it is successful, it returns the correct message integrity code (see [POST object format](../../src/servers/verifier-server/src/dtos/v-request-types.dto.ts)).
-- `/verifier/<chain>/prepareAttestation` - POST: Tries to verify attestation request without checking message integrity code, and if it is successful, it returns the byte encoded attestation request with the correct message integrity code, that can be directly submitted to the State Connector contract(see [POST object format](../../src/servers/verifier-server/src/dtos/v-request-types.dto.ts)).
+- `/verifier/<chain>/prepareAttestation` - POST: Tries to verify attestation request without checking message integrity code. If it is successful, it returns the byte encoded attestation request with the correct message integrity code, which can be directly submitted to the State Connector contract (see [POST object format](../../src/servers/verifier-server/src/dtos/v-request-types.dto.ts)).
 
 Note that the routes depend on a `chain`, which is one of: `btc`, `doge`, or `xrp`.
 

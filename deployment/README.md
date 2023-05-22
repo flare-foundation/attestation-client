@@ -1,4 +1,4 @@
-# Attestation Suite Installation
+# Dockerized Installation
 
 ## Hardware Requirements
 
@@ -131,8 +131,9 @@ Initialize credentials first:
 
 This creates the subfolder `credentials`.
 
-!!! IMPORTANT
-Using this command again will overwrite your credentials!
+!!! Important
+
+  Using this command again will overwrite your credentials!
 
 ### 2.2 Update Credentials
 
@@ -154,17 +155,17 @@ Some of the more important settings and credentials include:
     - `Network` - Set to desired network (e.g., `songbird`, `flare`).
     - `NetworkPrivateKey` - Set `0x`-prefixed private key from which an attestation client submits attestations to the Flare network. A private key can also be specified as a Google Cloud Secret Manager variable. To do that use this syntax:
 
-    ```bash
-    "NetworkPrivateKey":"$(GoogleCloudSecretManager:projects/<project>/secrets/<name>/versions/<version>)"
-    ```
+        ```bash
+        "NetworkPrivateKey":"$(GoogleCloudSecretManager:projects/<project>/secrets/<name>/versions/<version>)"
+        ```
 
     - `StateConnectorContractAddress` - The `StateConnector` contract address on the specific network.
     - `RPC` - Update the network RPC to desired network.
 - In `verifier-client-credentials.json` - Instead of `localhost`, use the IP address of the host machine. On Linux Ubuntu, get it by running:
 
-```bash
-ip addr show docker0 | grep -Po 'inet \K[\d.]+'
-```
+    ```bash
+    ip addr show docker0 | grep -Po 'inet \K[\d.]+'
+    ```
 
 - In `verifier-server-credentials.json` - Set API keys for supported external blockchains (currently BTC, DOGE and XRP). Default templates are configured
 for two API keys.

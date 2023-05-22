@@ -48,6 +48,6 @@ The breakdown of phases of a voting round is as follows:
 - `reveal`: The next voting window (`bufferNumber + 2`). The attestation providers reveal their votes by sending the **reveal data** that matches the submitted **commit data** in the previous voting window. The **reveal data** is sent with the **commit data** for the next round (`roundId + 1`).
 - `count`: Starts immediately after the end of the `reveal` phase, at the beginning of the next voting window (`bufferNumber + 3`). The reveal data sent by each attestation provider is verified against the commit data they sent, thus verifying the validity. All Merkle roots are now disclosed. The protocol finds the majority Merkle root and declares it the confirmed attestation (confirmed Merkle root). The majority threshold is set to 50%+ of all possible votes (the set of all default attestation providers is known in advance). In their case, where there is no majority Merkle root, the voting round has failed, and no attestation request from that round gets confirmed. Users can resubmit attestation requests in later rounds.
 
-Next: [State connector contract](./state-connector-contract.md)
+Next: [State Connector Contract](./state-connector-contract.md)
 
 [Back to home](../README.md)

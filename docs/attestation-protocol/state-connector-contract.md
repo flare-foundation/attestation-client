@@ -53,7 +53,7 @@ This function is called once per attestation round, usually near the end of it. 
 The `StateConnector` smart contract operates with sequential 90s windows (`BUFFER_WINDOW = 90`). Here `bufferNumber` indicates the index of the particular window. Given a timestamp `T`, one can calculate the corresponding `bufferNumber` with `T` contained in it as follows:
 
 ```solidity
-bufferNumber(T) = (T - BUFFER_TIMESTAMP_OFFSET)/BUFFER_WINDOW
+bufferNumber(T) = (T - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW
 ```
 
 The caller of the `submitAttestation` function must call it with the `bufferNumber` corresponding to the time of the call. Otherwise the call is rejected.

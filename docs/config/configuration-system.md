@@ -2,7 +2,7 @@
 
 The configuration system for the attestation suite consists of credential files and configuration templates:
 
-- A **credential file** is a file of the form `<name>-credentials.json`. Credential files contain secret credentials in key-value pair format, each credential identified by its identifier key. Examples of all such files are in the `configs/.install` folder.
+- A **credential file** is a file of the form `<name>-credentials.json`. where `name` indicates the attestation suite service for which the configuration is intended. Credential files contain secret credentials in key-value pair format, each credential identified by its identifier key. Examples of all such files are in the `configs/.install` folder.
 - A **configuration template** is a JSON file with a prescribed name of the form `<config_name>-config.json`, where `config_name` indicates the attestation suite service for which the configuration is intended. Configuration templates are organized in the prescribed folder structure, see [`configs/.install/templates`](../../configs/.install/templates/).
 
 Credential files make up a **credential package** and consist of two files:

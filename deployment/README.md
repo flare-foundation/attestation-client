@@ -29,13 +29,13 @@ The Attestation Suite was tested on Ubuntu 20.02 and Ubuntu 22.02.
 Additional required software:
 
 - *Docker* version 20.10.
-- *Docker-compose* version 1.29.2
+- *Docker Compose* version 1.29.2
 
 ## Prerequisites
 
 - A machine(s) with `docker` and `docker-compose` installed.
 - A deployment user in the `docker` group.
-- The Docker folder set to a amount that has sufficient disk space for Docker volumes. The installation creates several Docker volumes.
+- The Docker folder set to a mount point that has sufficient disk space for Docker volumes. The installation creates several Docker volumes.
 
 ## Installation
 
@@ -99,7 +99,6 @@ apt-get install apt-transport-https ca-certificates gnupg -y
 echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 apt-get update && apt-get install google-cloud-cli
-
 ```
 
 Follow the instructions and initialize `gcloud`.
@@ -108,7 +107,7 @@ Then run `gcloud auth application-default login` to initialize application acces
 
 Then exit Docker bash with `exit` command.
 
-Get this container ID with the command `docker ps` and save the image with GCSM initialized with the command:
+Get this container's ID with the command `docker ps` and save the image with GCSM initialized with the command:
 
 ```bash
 Docker commit <container-id> attestation-suite
@@ -132,8 +131,8 @@ Initialize credentials first:
 
 This creates the subfolder `credentials`.
 
----
-IMPORTANT: Using this command again will overwrite your credentials!
+!!! IMPORTANT
+Using this command again will overwrite your credentials!
 
 ### 2.2 Update Credentials
 

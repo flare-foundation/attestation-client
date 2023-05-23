@@ -1,29 +1,29 @@
-# Direct installation to a Linux machine
+# Direct installation to a Linux Machine
 
 Here is a summary for direct installation.
 Linux Ubuntu 20.04 and user `ubuntu` are assumed.
-The installation installs several attestation suite services, which are run as system services.
+The installation installs several attestation suite services, which are run as systemd services.
 
 - Install repository:
 
-```bash
-cd ~
-mkdir -p attestation-suite
-cd attestation-suite
+    ```bash
+    cd ~
+    mkdir -p attestation-suite
+    cd attestation-suite
 
-git clone git@github.com:flare-foundation/attestation-client.git
-cd attestation-client
+    git clone git@github.com:flare-foundation/attestation-client.git
+    cd attestation-client
 
-# use relevant branch or tag instead of 'main'
-git checkout main
+    # use relevant branch or tag instead of 'main'
+    git checkout main
 
-```
+    ```
 
 - Install dependencies command: `./scripts/direct-install/install-dependencies.sh`
 
 - Compile the project command: `./scripts/compile.sh`
 
-- Compile project command: `./scripts/direct-install/.sh`
+- Compile the project command: `./scripts/direct-install/.sh`
 
 - Initialize credentials command: `./scripts/direct-install/initialize-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again).
 - Copy configurations commands; `cp configs/.install/configurations.json credentials/`
@@ -42,18 +42,18 @@ git checkout main
         - All `*DatabaseHost` must be `localhost`
         - All `database`, `username` must be prepended with the chain name. Examples:
 
-        ```json
-        "BTCIndexerDatabase":"btc_indexer",
-        "BTCIndexerWriterUsername":"btc_indexerWriter",
-        "BTCIndexerReaderUsername":"btc_indexerReader",
-        ```
+            ```json
+            "BTCIndexerDatabase":"btc_indexer",
+            "BTCIndexerWriterUsername":"btc_indexerWriter",
+            "BTCIndexerReaderUsername":"btc_indexerReader",
+            ```
 
     - `credentials/verifier-server-credentials.json` change like this:
 
-    ```json
-    "XRPVerifierRouterServerPort": "9501",
-    "DOGEVerifierRouterServerPort": "9504",
-    ```
+        ```json
+        "XRPVerifierRouterServerPort": "9501",
+        "DOGEVerifierRouterServerPort": "9504",
+        ```
 
 - Update credentials passwords in `credentials/configurations.json` (all keys `credentials`).
 - Prepare credentials command: `./scripts/direct-install/prepare-credentials.sh`

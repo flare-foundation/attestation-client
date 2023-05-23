@@ -122,7 +122,7 @@ If the attestation request was successfully validated, two pieces of data help y
   When you submit an attestation request, take note of these two pieces of data:
 
     - The byte encoded attestation request.
-    - The `roundId`, in which the attestation request was submitted.
+    - The `roundId` in which the attestation request was submitted.
 
 In order to obtain the proof, certain REST API routes on attestation provider servers need to be queried. For that purpose, relevant URL(s) of attestation providers' public servers need to be obtained and queried. To obtain the proof for a specific request, use the API route `/api/proof/get-specific-proof` on an attestation provider's server. Include the two pieces of data stated above, as the input parameters of the POST request. See [REST APIs provided by attestation providers](./apis.md) for more details.
 
@@ -166,6 +166,6 @@ Definitions for state connector are defined in the [State Connector attestation 
 
 The first step for adding the new attestation types includes providing the consistent definition on that repository and obtaining the acceptance by the community. The next step is the actual implementation of support for the type. This usually includes implementation of the supporting code for the attestation client and relevant verifier services and indexers.
 
-Next: [Attestation provider REST APIs](./apis.md)
+Next: [Attestation Provider REST APIs](./apis.md)
 
-[Back to home](../README.md)
+[Back to Home](../README.md)

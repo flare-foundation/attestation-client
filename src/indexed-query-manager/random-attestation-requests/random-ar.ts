@@ -1,3 +1,4 @@
+import { MccClient } from "@flarenetwork/mcc";
 import { Attestation } from "../../attester/Attestation";
 import { AttestationData } from "../../attester/AttestationData";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
@@ -25,7 +26,8 @@ export async function getRandomAttestationRequest(
   logger: AttLogger,
   randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>,
   indexedQueryManager: IndexedQueryManager,
-  sourceId: SourceId
+  sourceId: SourceId,
+  client?: MccClient
 ) {
   const { attestationType, generator } = randomGeneratorChoiceWithAttestationType(randomGenerators);
   if (generator.size <= 0) {
@@ -38,7 +40,7 @@ export async function getRandomAttestationRequest(
     case AttestationType.Payment:
       return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId);
     case AttestationType.BalanceDecreasingTransaction:
-      return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId);
+      return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, undefined, client);
     case AttestationType.ConfirmedBlockHeightExists:
       return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as DBBlockBase, sourceId);
     case AttestationType.ReferencedPaymentNonexistence:

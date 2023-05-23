@@ -2,6 +2,7 @@ import { optional } from "@flarenetwork/mcc";
 import { AttesterWebOptions } from "../attester/configs/AttesterWebOptions";
 import { DatabaseConnectOptions } from "../utils/database/DatabaseConnectOptions";
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection";
+import { ChainConfig } from "../attester/configs/ChainConfig";
 
 /**
  * Configurations and credential class for deserialization of JSON configs for spammer.
@@ -39,6 +40,11 @@ export class SpammerCredentials implements IReflection<SpammerCredentials> {
    * the spammer creates attestation requests.
    */
   indexerDatabase = new DatabaseConnectOptions();
+
+  /**
+   * Blockchain configurations options
+   */
+  @optional() chainConfiguration = new ChainConfig();
 
   instantiate(): SpammerCredentials {
     return new SpammerCredentials();

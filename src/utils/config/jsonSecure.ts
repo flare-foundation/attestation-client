@@ -217,7 +217,7 @@ export async function _prepareSecureData(data: string, inputFilename: string, ne
       if (secret) {
         data = replaceAll(data, search, secret);
         // return index back for replacement change (3 is because of `$()` that are not in search string but are also removed)
-        i += secret.length - search.length - 3;
+        i -= search.length + 3;
       } else {
         logger.error(`file ^w${inputFilename}^^ (chain ^E${network}^^) variable ^r^W$(${search})^^ left unset (check the configuration)`);
         secret = "";
@@ -227,10 +227,6 @@ export async function _prepareSecureData(data: string, inputFilename: string, ne
       stack.pop();
       level--;
 
-      // optimization: add secret to last stack (instead of returning for whole search)
-      if (level >= 0) {
-        stack[level] += secret;
-      }
       continue;
     }
     if (level >= 0) {

@@ -23,7 +23,7 @@ import { PreparedBlock } from "./preparedBlock";
 /**
  * Indexer class for a blockchain. It connects to a blockchain node through a cachedClient.
  * Indexing means the following:
- * * agressive reading blocks (headers) from all tips
+ * * aggressive reading blocks (headers) from all tips
  * * managing which blocks are confirmed and storing confirmed transactions from those blocks to
  *   the database, as soon as they are confirmed.
  * * front running reading transactions in candidate confirmed blocks using block processor
@@ -303,7 +303,7 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
-          // fix transactions class to active interlace tranascation class
+          // fix transactions class to active interlace transaction class
           const dummy = new transactionClass();
           for (let tx of transactions) {
             Object.setPrototypeOf(tx, Object.getPrototypeOf(dummy));
@@ -567,7 +567,7 @@ export class Indexer {
   }
 
   /**
-   * check if indexer database is continous
+   * check if indexer database is continuous
    */
 
   async waitForever() {

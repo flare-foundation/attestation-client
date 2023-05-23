@@ -48,14 +48,19 @@ export async function getRandomAttestationRequest(
   }
 }
 
-export function createTestAttestationFromRequest(defStore: AttestationDefinitionStore, request: ARBase, roundId: number): Attestation {
-  const data = new AttestationData();
-  data.type = request.attestationType;
-  data.sourceId = request.sourceId;
-  data.request = defStore.encodeRequest(request);
-  const attestation = new Attestation(undefined, data);
-  attestation.setTestRoundId(roundId);
-  return attestation;
+export function createTestAttestationFromRequest(defStore: AttestationDefinitionStore, request: ARBase, roundId: number, logger?: AttLogger): Attestation {
+  try {
+    const data = new AttestationData();
+    data.type = request.attestationType;
+    data.sourceId = request.sourceId;
+    data.request = defStore.encodeRequest(request);
+    const attestation = new Attestation(undefined, data);
+    attestation.setTestRoundId(roundId);
+    return attestation;
+  } catch (e) {
+    logger?.error(`Error creating attestation from request: ${request}\n ERROR ${e}`);
+    throw e;
+  }
 }
 
 export enum TxOrBlockGeneratorType {
@@ -116,7 +121,7 @@ export function prepareGenerator(
       );
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      ((_: never): void => { })(type);
   }
 }
 

@@ -47,18 +47,19 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   }
 
   const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
-
+  const blockNumber = randomTransaction.blockNumber;
   const request = {
     attestationType: AttestationType.BalanceDecreasingTransaction,
     sourceId: sourceId,
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
     id,
+    blockNumber,
     sourceAddressIndicator: "0x0000000000000000000000000000000000000000000000000000000000000000",
   } as ARBalanceDecreasingTransaction;
   if (choice === "WRONG_MIC") {
     return request;
   }
-  let attestation = createTestAttestationFromRequest(defStore, request, 0);
+  let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
     let response = await verifyAttestation(defStore, undefined, attestation, indexedQueryManager);
     // augment with message integrity code

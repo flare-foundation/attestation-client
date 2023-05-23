@@ -98,7 +98,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   if (choice === "WRONG_MIC") {
     return request;
   }
-  let attestation = createTestAttestationFromRequest(defStore, request, 0);
+  let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
     let response = await verifyAttestation(defStore, undefined, attestation, indexedQueryManager);
     // augment with message integrity code

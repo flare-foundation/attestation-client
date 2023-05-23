@@ -43,18 +43,20 @@ export async function prepareRandomizedRequestPayment(
     return null;
   }
   const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
+  const blockNumber = randomTransaction.blockNumber;
   const request = {
     attestationType: AttestationType.Payment,
     sourceId: sourceId,
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
     id,
+    blockNumber,
     utxo: toBN(0), // TODO: randomize for UTXO chains
     inUtxo: toBN(0), // TODO: randomize for UTXO chains
   } as ARPayment;
   if (choice === "WRONG_MIC") {
     return request;
   }
-  let attestation = createTestAttestationFromRequest(defStore, request, 0);
+  let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
     let response = await verifyAttestation(defStore, undefined, attestation, indexedQueryManager);
     // augment with message integrity code

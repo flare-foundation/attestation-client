@@ -23,6 +23,8 @@ services:
     environment:
       APP_BASE_PATH: /attestation-client
     restart: unless-stopped
+    environment:
+      APP_BASE_PATH: /attestation-client
     depends_on:
       - database
     ports:

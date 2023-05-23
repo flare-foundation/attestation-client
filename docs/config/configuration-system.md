@@ -53,5 +53,5 @@ In addition to configurations in the folders stated above, there are the followi
   - Example: [webserver-config.json](../../configs/.install/templates/webserver-config.json).
 - `monitor-config.json`: attestation suite monitor configuration.
   - Contains definitions for monitoring status and performance metrics for all Attestation Suite modules.
-  - Property description: [TBD]
+  - Property description: [MonitorConfiguration](../../src/monitor/MonitorConfiguration.ts)
   - Example: [monitor-config.json](../../configs/.install/templates/monitor-config.json)

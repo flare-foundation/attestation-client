@@ -23,7 +23,7 @@ import { PreparedBlock } from "./preparedBlock";
 /**
  * Indexer class for a blockchain. It connects to a blockchain node through a cachedClient.
  * Indexing means the following:
- * * agressive reading blocks (headers) from all tips
+ * * aggressive reading blocks (headers) from all tips
  * * managing which blocks are confirmed and storing confirmed transactions from those blocks to
  *   the database, as soon as they are confirmed.
  * * front running reading transactions in candidate confirmed blocks using block processor
@@ -172,16 +172,8 @@ export class Indexer {
   }
 
   /////////////////////////////////////////////////////////////
-  // Safeguarded client functions
-  /////////////////////////////////////////////////////////////
-
-  // MOVED TO indexerToClient.ts
-
-  /////////////////////////////////////////////////////////////
   // misc
   /////////////////////////////////////////////////////////////
-
-  // Moved to indexer-utils
 
   /**
    * Returns number of days for syncing from configurations
@@ -192,12 +184,6 @@ export class Indexer {
     if (this.chainConfig.syncTimeDays > 0) return this.chainConfig.syncTimeDays;
     return this.config.syncTimeDays;
   }
-
-  /////////////////////////////////////////////////////////////
-  // state recording functions
-  /////////////////////////////////////////////////////////////
-
-  // Moved to indexer-utils
 
   /////////////////////////////////////////////////////////////
   // block processor callbacks
@@ -278,8 +264,6 @@ export class Indexer {
     this.dbBlockClass = prepared.blockTable;
   }
 
-  // MOVED TO interlacing.ts
-
   /////////////////////////////////////////////////////////////
   // block save
   // - table interlacing
@@ -319,7 +303,7 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
-          // fix transactions class to active interlace tranascation class
+          // fix transactions class to active interlace transaction class
           const dummy = new transactionClass();
           for (let tx of transactions) {
             Object.setPrototypeOf(tx, Object.getPrototypeOf(dummy));
@@ -366,18 +350,6 @@ export class Indexer {
 
     return true;
   }
-
-  /////////////////////////////////////////////////////////////
-  // Save bottom N state (used for verification)
-  /////////////////////////////////////////////////////////////
-
-  // MOVED TO indexerToDB.ts
-
-  /////////////////////////////////////////////////////////////
-  // get respective DB block number
-  /////////////////////////////////////////////////////////////
-
-  // MOVED TO indexerToDB.ts
 
   /////////////////////////////////////////////////////////////
   // Block saving management
@@ -511,7 +483,20 @@ export class Indexer {
     return false;
   }
 
-  // MOVED TO indexerToDB.ts
+  /**
+   * Reset indexer database and stop running.
+   * @param reason Reason for stopping.
+   */
+  public async resetDatabaseAndStop(reason: string) {
+    this.logger.error(reason);
+
+    await this.interlace.resetAll();
+    await this.indexerToDB.dropAllStateInfo();
+
+    this.logger.debug(`manual restart required`);
+    await this.waitForever();
+    exit(3);
+  }
 
   /**
    * Updates the status for monitoring
@@ -582,7 +567,7 @@ export class Indexer {
   }
 
   /**
-   * check if indexer database is continous
+   * check if indexer database is continuous
    */
 
   async waitForever() {
@@ -614,7 +599,7 @@ export class Indexer {
       const Nbottom = await queryNbottom.getRawOne();
 
       if (!Nbottom || !Nbottom.valueNumber) {
-        this.logger.error(`${name} discontinuity test failed (unable to get state:${name.toUpperCase()}_Nbottom)`);
+        this.logger.error(`${name} discontinuity test canceled (unable to get state:${name.toUpperCase()}_Nbottom)`);
         return;
       }
 
@@ -635,13 +620,7 @@ export class Indexer {
 
       if (table0missing && table0missing.missing) {
         if (table0missing.missing != 0) {
-          this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
-
-          //await this.interlace.resetAll();
-
-          this.logger.debug(`restarting`);
-          await this.waitForever();
-          exit(3);
+          await this.resetDatabaseAndStop(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
         } else {
           this.logger.debug(`${name} continuity ok on [0]`);
         }
@@ -649,14 +628,7 @@ export class Indexer {
 
       if (table1missing && table1missing.missing) {
         if (table1missing.missing != 0) {
-          this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
-
-          await this.interlace.resetAll();
-          await this.indexerToDB.dropAllStateInfo();
-
-          this.logger.debug(`restarting`);
-          await this.waitForever();
-          exit(3);
+          await this.resetDatabaseAndStop(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
         } else {
           this.logger.debug(`${name} continuity ok on [1]`);
         }
@@ -705,9 +677,9 @@ export class Indexer {
     this.N = startBlockNumber;
 
     // N is last completed block - confirmed and stored in DB
-    const dbStartBlockNumber = await this.indexerToDB.getNfromDB();
-    if (dbStartBlockNumber > 0) {
-      this.N = dbStartBlockNumber;
+    const dbLastDBBlockNumber = await this.indexerToDB.getNfromDB();
+    if (dbLastDBBlockNumber > 0) {
+      this.N = dbLastDBBlockNumber;
     }
 
     await this.interlace.initialize(
@@ -724,7 +696,7 @@ export class Indexer {
     await this.checkDatabaseContinuous();
 
     // ------- 1. sync blocks from the past ------------------
-    await this.indexerSync.runSync(dbStartBlockNumber);
+    await this.indexerSync.runSync(dbLastDBBlockNumber);
 
     // ------- 2. Run header collection ----------------------
     // eslint-disable-next-line

@@ -509,7 +509,8 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
             const store = indexer.chainConfig.blockCollecting;
             indexer.chainConfig.blockCollecting = "latestBlock";
 
-            const stub2 = sinon.stub(process, "exit").withArgs(4);
+            const stub2 = sinon.stub(process, "exit").withArgs(3);
+            const stub3 = sinon.stub(indexer, "waitForever");
 
             await indSync.runSync(1);
             expect(stub2.called).to.be.true;

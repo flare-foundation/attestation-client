@@ -20,9 +20,9 @@
     "chainConfiguration": {
         "name": "DOGE",
         "mccCreate": {
-            "url": "$(DOGESpammerURL)",
-            "username": "$(DOGESpammerUsername)",
-            "password": "$(DOGESpammerPassword)"
+            "url": "$(DOGESpammerNodeURL)",
+            "username": "$(DOGESpammerNodeUsername)",
+            "password": "$(DOGESpammerNodePassword)"
         },
         "rateLimitOptions": {
             "maxRPS": 30,

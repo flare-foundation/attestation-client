@@ -20,9 +20,9 @@
     "chainConfiguration": {
         "name": "BTC",
         "mccCreate": {
-            "url": "$(BTCSpammerURL)",
-            "username": "$(BTCSpammerUsername)",
-            "password": "$(BTCSpammerPassword)"
+            "url": "$(BTCSpammerNodeURL)",
+            "username": "$(BTCSpammerNodeUsername)",
+            "password": "$(BTCSpammerNodePassword)"
         },
         "rateLimitOptions": {
             "maxRPS": 20,

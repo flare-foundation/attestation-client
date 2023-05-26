@@ -1,4 +1,4 @@
-import { toBN } from "@flarenetwork/mcc";
+import { MccClient, toBN } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { AttLogger } from "../../utils/logging/logger";
 import { AttestationDefinitionStore } from "../../verification/attestation-types/AttestationDefinitionStore";
@@ -31,6 +31,7 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   randomBlock: DBBlockBase,
   sourceId: SourceId,
   enforcedChoice?: RandomConfirmedBlockHeightExistsChoiceType,
+  client?: MccClient,
   queryWindow = 100
 ): Promise<ARConfirmedBlockHeightExists | null> {
   if (!randomBlock) {
@@ -58,7 +59,7 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   }
   let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
-    let response = await verifyAttestation(defStore, undefined, attestation, indexedQueryManager);
+    let response = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
       request.messageIntegrityCode = defStore.dataHash(request, response.response as DHConfirmedBlockHeightExists, MIC_SALT);

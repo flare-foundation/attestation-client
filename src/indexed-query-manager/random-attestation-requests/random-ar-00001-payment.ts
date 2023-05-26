@@ -1,4 +1,4 @@
-import { prefix0x, toBN } from "@flarenetwork/mcc";
+import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttLogger } from "../../utils/logging/logger";
@@ -31,7 +31,8 @@ export async function prepareRandomizedRequestPayment(
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
-  enforcedChoice?: RandomPaymentChoiceType
+  enforcedChoice?: RandomPaymentChoiceType,
+  client?: MccClient
 ): Promise<ARPayment | null> {
   if (!randomTransaction) {
     return null;
@@ -58,7 +59,7 @@ export async function prepareRandomizedRequestPayment(
   }
   let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
-    let response = await verifyAttestation(defStore, undefined, attestation, indexedQueryManager);
+    let response = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
       request.messageIntegrityCode = defStore.dataHash(request, response.response as DHPayment, MIC_SALT);

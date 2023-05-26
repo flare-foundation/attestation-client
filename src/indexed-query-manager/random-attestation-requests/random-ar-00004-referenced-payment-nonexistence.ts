@@ -1,4 +1,4 @@
-import { prefix0x, toBN } from "@flarenetwork/mcc";
+import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttLogger } from "../../utils/logging/logger";
@@ -33,6 +33,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
   enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType,
+  client?: MccClient,
   queryWindow = 100
 ): Promise<ARReferencedPaymentNonexistence | null> {
   const OVERFLOW_BLOCK_OFFSET = 10;
@@ -100,7 +101,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   }
   let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
-    let response = await verifyAttestation(defStore, undefined, attestation, indexedQueryManager);
+    let response = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
       request.messageIntegrityCode = defStore.dataHash(request, response.response as DHReferencedPaymentNonexistence, MIC_SALT);

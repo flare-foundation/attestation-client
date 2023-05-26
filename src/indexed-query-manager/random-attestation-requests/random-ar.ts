@@ -38,13 +38,13 @@ export async function getRandomAttestationRequest(
 
   switch (attestationType) {
     case AttestationType.Payment:
-      return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId);
+      return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, undefined, client);
     case AttestationType.BalanceDecreasingTransaction:
       return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, undefined, client);
     case AttestationType.ConfirmedBlockHeightExists:
-      return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as DBBlockBase, sourceId);
+      return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as DBBlockBase, sourceId, undefined, client);
     case AttestationType.ReferencedPaymentNonexistence:
-      return prepareRandomizedRequestReferencedPaymentNonexistence(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId);
+      return prepareRandomizedRequestReferencedPaymentNonexistence(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, undefined, client);
     default:
       throw new Error("Invalid attestation type");
   }

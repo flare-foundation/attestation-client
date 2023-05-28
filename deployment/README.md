@@ -231,8 +231,8 @@ See [Attestation Suite monitoring](./../docs/monitor/monitor.md).
 ## Indexer Syncing Times
 
 To be ready for use, each network must sync its blocks and transactions with the Flare database indexer.
-The Algorand network syncs while running, so it takes a longer.<!--Placeholder: What does "Running sync" mean?-->
-Here are the times that each network requires:
+The Algorand network doesn't have an indexer, so it runs for the actual time the data is needed for.
+For two days worth of data, these are the times that each network requires:
 
 - ALGO running sync (2 days)
 - BTC ~20 min

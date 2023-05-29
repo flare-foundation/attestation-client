@@ -1,9 +1,12 @@
 # BitVoting
 
-Because the availability of data may be different for a specific data source, it can happen at a given time that not all data providers can confirm certain transactions or facts. For example, a transaction may be in a recent block, which is visible to some of the attestation providers but not yet with some others. Also, attestation providers use indexers of blockchain data, which may have a limited history and the transaction may be too old to be within the indexing window. So some attestation providers can confirm it, but others cannot.
+BitVoting is a technique used to resolve an ambiguous attestation situation.
 
-Since 50%+ of attesters have to submit the same Merkle root in order to be confirmed, at least 50%+<!--at least 50%--> of votes have to be identical on all requests. Few such non-clear-cut<!--Meh--> decision requests can disrupt the attestation process, yielding several different non-majority Merkle roots submitted. For this, the [**choose** phase](./attestation-protocol.md#five-phases-of-a-round) is used to sync the attestation providers on what can be jointly confirmed.
-After collecting attestation requests, each attester enumerates the requests in order of arrival (omitting duplicates) and queries for the existence of data needed for the attestation at relevant data sources (blockchain nodes, indexers, ...). Confirmed (attested) requests are indicated by `1` (can validate) or `0` (cannot validate) and stored into a bit array called `bitVote` that is sent to the `BitVoting` contract.
+Because the availability of data may be different from a specific data source, it can happen at any given time that not all data providers can confirm certain transactions or facts. For example, a transaction may be in a recent block, which is visible to some of the attestation providers but not yet with others. Also, attestation providers use indexers of blockchain data, which may have a limited history and the transaction may be too old to be within the indexing window. So some attestation providers can confirm it, but others cannot.
+
+Since 50%+ of attesters have to submit the same Merkle root in order to be confirmed, at least that number of votes must be identical on all requests. Such unclear-cut decision requests can disrupt the attestation process, resulting in several different non-majority Merkle roots being submitted. For this situation, the [**choose** phase](./attestation-protocol.md#five-phases-of-a-round) is used to sync the attestation providers on what can be jointly confirmed.
+
+After collecting attestation requests, each attester enumerates the requests in order of arrival (omitting duplicates) and queries for the existence of data needed for the attestation at relevant data sources (blockchain nodes, indexers, ...). Confirmed requests are indicated by a `1`  for "can validate" or a `0` for "cannot validate" They are stored into a bit array called `bitVote` that is sent to the `BitVoting` contract.
 
 Attestation providers use:
 

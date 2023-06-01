@@ -21,9 +21,7 @@ The installation installs several attestation suite services, which are run as s
 
 - Install dependencies command: `./scripts/direct-install/install-dependencies.sh`
 
-- Compile the project command: `./scripts/compile.sh`
-
-- Compile the project command: `./scripts/direct-install/.sh`
+- Compile the project command: `./scripts/compile/.sh` (It must compile for the next command to work.)
 
 - Initialize credentials command: `./scripts/direct-install/initialize-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again).
 - Copy configurations commands; `cp configs/.install/configurations.json credentials/`
@@ -60,6 +58,6 @@ The installation installs several attestation suite services, which are run as s
 
     - Use this command whenever you change something in credentials (and restart services after).
 
-- Install command: `./scripts/direct-install/install.sh`
+- Install command: `./scripts/direct-install/install.sh`<!--Need one more answer (about these 2 lines from DavidP: https://flarenetworks.slack.com/archives/C02NURDPAQZ/p1684868796516599 -->
 
 - Restart all services command: `./scripts/direct-install/services-restart-all.sh`

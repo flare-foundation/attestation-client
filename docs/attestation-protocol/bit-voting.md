@@ -31,12 +31,12 @@ See [Voting Behavior of Attestation Providers](./voting-behavior.md).
 
 Note that 5 attestation providers represent 50%+ of the default set. If the the chosen subset of 5 proposes to confirm an invalid attestation<!--How do we know its invalid if more than 5 want to confirm it? Aren't they the ones confirming the validity? Or is the validation process different from the attestation process?--> while bit voting, it implies that the majority of the default set is malicious or corrupted, which would require their replacement.
 
-## BitVoting Contract Deployments in Block Explorer
+## BitVoting Contract Deployments in the Block Explorer
 
-- [On Songbird](https://songbird-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
-- [On FLare](https://flare-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
-- [On Coston](https://coston-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
-- [On Coston2](https://coston2-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
+* [On Songbird](https://songbird-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
+* [On FLare](https://flare-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
+* [On Coston](https://coston-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
+* [On Coston2](https://coston2-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
 
 Next: [Message Integrity](./message-integrity.md)
 

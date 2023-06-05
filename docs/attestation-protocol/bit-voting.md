@@ -29,7 +29,7 @@ Currently, `StateConnector` has a default set of 9 attestation providers. We nee
 
 See [Voting Behavior of Attestation Providers](./voting-behavior.md).
 
-Note that 5 attestation providers represent 50%+ of the default set. If the the chosen subset of 5 proposes to confirm an invalid attestation<!--How do we know its invalid if more than 5 want to confirm it? Aren't they the ones confirming the validity?--> while bit voting, it implies that the majority of the default set is malicious or corrupted, which would require their replacement.
+Note that 5 attestation providers represent 50%+ of the default set. If the the chosen subset of 5 proposes to confirm an invalid attestation<!--How do we know its invalid if more than 5 want to confirm it? Aren't they the ones confirming the validity? Or is the validation process different from the attestation process?--> while bit voting, it implies that the majority of the default set is malicious or corrupted, which would require their replacement.
 
 ## BitVoting Contract Deployments
 

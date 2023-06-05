@@ -1,14 +1,14 @@
 # Bit Voting
 
-Bit voting is a technique used to resolve an ambiguous attestation. All attestation providers vote on how they want to attest on each received request, using one bit for each vote.
+Bit voting is a technique used to resolve an ambiguous attestation.
 
 Because the availability of data from a specific data source may vary, it can happen that not all data providers can confirm certain transactions or facts at any given time. For example, a transaction may be in a recent block, which is visible to some of the attestation providers but not yet to others. Also, the indexers of blockchain data that attestation providers use may have a limited history so that a transaction may be too old to be within the indexing window. The result is that some attestation providers can confirm it, but others cannot.
 
-Since 50%+ of attesters have to submit the same Merkle root in order for it to be confirmed, at least that number of votes must be identical on all requests. Ambiguous decision requests can therefore disrupt the attestation process, resulting in several different non-majority Merkle roots being submitted. To sync the attestation providers on what can be jointly confirmed, the [**choose** phase](./attestation-protocol.md#five-phases-of-a-round) of the attestation protocol is used.
+Since 50%+ of attesters have to submit the same Merkle root in order for it to be confirmed, at least that number of votes must be identical on all requests. Ambiguous decision requests can therefore disrupt the attestation process, resulting in several different non-majority Merkle roots being submitted. To sync the attestation providers on what can be jointly confirmed, the [**choose** phase](./attestation-protocol.md#five-phases-of-a-round) of the attestation protocol is used. It is called bit voting, because all attestation providers vote on how they want to attest for each received request, using one bit for each vote.
 
-Here's how the choose phase works for bit voting: After collecting attestation requests, each attester enumerates the requests in order of arrival (omitting duplicates) and queries for the existence of data needed for the attestation at relevant data sources (blockchain nodes, indexers,...). Confirmed requests are indicated by a `1`  for _can validate_ or a `0` for _cannot validate_. They are stored into a bit array called `bitVote`, which is sent to the `BitVoting` contract.
+Here's how the choose phase works for bit voting: After collecting attestation requests, each attester enumerates the requests in order of arrival (omitting duplicates) and queries for the existence of data needed for the attestation at relevant data sources (blockchain nodes, indexers,...). Confirmed requests are indicated by a `1`  for _can validate_ or a `0` for _cannot validate_. They are stored into a bit array called `bitVote`, which is sent to the `BitVoting` contract.<!--I can't understand the order of operations between these paragraphs.-->
 
-To emit a `bitVote` from the `BitVoting` contract in the `choose` phase, attestation providers run:
+Attestation providers use the following function to emit a `bitVote` from the `BitVoting` contract in the `choose` phase:
 
 ```solidity
 function submitVote(

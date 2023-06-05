@@ -8,16 +8,7 @@ Since 50%+ of attesters have to submit the same Merkle root in order for it to b
 
 Here's how the choose phase works for bit voting: After collecting attestation requests, each attester enumerates the requests in order of arrival (omitting duplicates) and queries for the existence of data needed for the attestation at relevant data sources (blockchain nodes, indexers,...). Confirmed requests are indicated by a `1`  for _can validate_ or a `0` for _cannot validate_. They are stored into a bit array called `bitVote`, which is sent to the `BitVoting` contract.<!--What is the order of operations between these paragraphs?-->
 
-Attestation providers use the following function to emit<!--submit?--> a `bitVote` to the `BitVoting` contract in the `choose` phase:
-
-```solidity
-function submitVote(
-   uint256 bufferNumber,
-   bytes bitVote
-   ) external
-```
-
-The first byte of the bit vote indicates the intended voting round for which the bit vote is carried out. Its value must be `roundId % 256` to be considered a valid vote. If an attester submits several votes, the last vote sent before the deadline is considered valid.
+Attestation providers<!--then?--> use the `submitVote` method from the BitVoting contract to emit their vote in the choose phase. The first byte of the bit vote indicates the intended voting round for which the bit vote is carried out. Its value must be `roundId % 256` to be considered a valid vote. If an attester submits several votes, the last vote sent before the deadline is considered valid.
 
 Attesters can listen to the emitted bit votes and use a deterministic algorithm to determine a subset of chosen requests such that enough attesters can get the data to decide on all of the requests in the subset. Then attestation providers only validate (include into the Merkle tree) the chosen requests.
 

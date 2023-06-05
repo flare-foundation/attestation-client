@@ -1,21 +1,21 @@
-# Merkle tree
+# Merkle Tree
 
 Attestations for each voting round (data hashes of the attested data) are assembled into a Merkle tree and only the Merkle root is used in voting. The Merkle root that is sent by the majority of attestation providers becomes the confirmed Merkle root for the round and it is stored in the `StateConnector` contract.
 
-For proving verifications of a specific voting round, it suffices to know whether an attestation hash of a specific attestation request has appeared (or equivalently was confirmed) in the voting round.
-For this purpose, attestation providers (voters) organize the submitted attestation hashes in a round as follows.
+For proving verifications of a specific voting round, it suffices to know whether an attestation hash of a specific attestation request has appeared (or was equivalently confirmed) in the voting round.
+For this purpose, attestation providers (voters) organize the submitted attestation hashes in a round as follows:
 
 - They collect all the voting requests for a specific round and try to verify them.
-- Exclude the request that were not chosen in the choose round.
-- For the verified ones, the attestation hashes are calculated. There are no hashes produced for the requests that cannot be verified.
-- All verified attestation hashes are put in the list and sorted (numerically, ascending order). Duplicates are removed.
+- They exclude any requests that were not chosen in the [`choose` phase](./attestation-protocol.md#five-phases-of-a-round).
+- The attestation hashes are calculated for the verified ones. No hashes are produced for the requests that cannot be verified.
+- All verified attestation hashes are put in the list and sorted numerically, in ascending order, and duplicates are removed.
 - The Merkle tree is built on those hashes as described below.
 
-## Merkle tree structure
+## Merkle Tree Structure
 
-The Merkle tree on _n_ sorted hashes is represented by an array of length _2n - 1_ which represents the complete binary tree. A complete binary tree is a binary tree in which all the levels are completely filled except possibly the lowest one, which is filled from the left.
+The Merkle tree of _n_ sorted hashes is represented by an array of length _2n - 1_, which represents the complete binary tree. A complete binary tree is a binary tree in which all the levels are completely filled except possibly the lowest one, which is filled from the left.
 
-It can be easily proven by induction that a complete binary tree with _2n - 1_ elements has exactly _n_ leaves and all nodes are either leaves or have two descendants (left and right). For _n = 1_ we have a tree with only one element, the root and the leaf simultaneously. If we add two descendants to a single element tree, we get a tree with 2 leaves but _3 = 2 x 2 - 1_ elements. If we add two descendants to the leftmost leaf, we change a leaf to an internal node, effectively removing one leaf and adding two more leafs. In general step we thus have a complete binary tree that has all levels filled except maybe the last one, which is filled from the left. If we enumerate nodes from 0 starting with the root and proceeding through levels from the left to the right, we take the node with the first index, such that it is a leaf and expand it with two leafs. We again get a complete binary tree with 2 more nodes and 1 more leaf.
+It can be easily proven by induction that a complete binary tree with _2n - 1_ elements has exactly _n_ leaves and all nodes are either leaves or have two descendants (left and right). For _n = 1_ we have a tree with only one element, the root and the leaf simultaneously. If we add two descendants to a single element tree, we get a tree with 2 leaves but _3 = 2 x 2 - 1_ elements. If we add two descendants to the leftmost leaf, we change a leaf to an internal node, effectively removing one leaf and adding two more leafs. We thus have a complete binary tree that has all levels filled except maybe the last one, which is filled from the left. If we enumerate nodes from 0 starting with the root and proceeding through levels from the left to the right, we take the node with the first index, such that it is a leaf and expand it with two leafs. We again get a complete binary tree with 2 more nodes and 1 more leaf.
 
 The above mentioned indexing enables us to represent a Merkle tree with _n_ leaves in an array of length exactly _2n - 1_, where the last _n_ elements are the leaves. This representation of a complete binary tree is well known from classic implementation of binary heaps. It encodes the tree structure as follows:
 
@@ -47,7 +47,7 @@ shash(data1, data2) = hash(join(sort([data1, data2])))
 
 This function will be used for producing pair hashes while building the Merkle tree. Basically that means that given two hashes they are first sorted, then joined, and then a hash is produced.
 
-## Building a Merkle tree
+## Building a Merkle Tree
 
 Assume an attestation provider has performed all necessary verifications and obtained the necessary attestation hashes for the confirmed request _m_. Some requests may be duplicate, yielding duplicate verification hashes, and those can be safely removed. Hence, we can assume that the attestation provider has _n_ unique attestation hashes. To build the Merkle tree, the attestation providers proceeds as follows:
 
@@ -56,7 +56,7 @@ Assume an attestation provider has performed all necessary verifications and obt
 - _n_ hashes are put into the slots from _n - 1_ to _2n - 2_, hence `M[n-1], ..., M[2n - 2]`.
 - for _i = n - 2_ down to 0 calculate `M[i] = shash( M[left(i)], M[right(i)])`
 
-## Building a Merkle proof
+## Building a Merkle Proof
 
 A Merkle proof for a leaf is the shortest sequence of hashes in the Merkle tree on a path to the Merkle root that enables the calculation of the Merkle root from the leaf. Let `M` be an array representing a Merkle tree on _n_ leaves with _2n - 1_ nodes defined as above. Note that the attestation hashes appear on indices _n-1_ to _2n - 2_ and are sorted. Hence the _k_-th hash appears on the index _n - 1 + k_. The Merkle proof for _k_-th hash can be calculated by using the following pseudocode:
 
@@ -77,7 +77,7 @@ getProof(k) {
 
 For checking a Merkle proof the following "standard" [Open Zeppelin library](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/MerkleProof.sol) can be used.
 
-## Hashing function
+## Hashing Function
 
 Given two attestation hashes `a1` and `a2`, `Shash(a1, a2)` function used in Solidity is defined as follows:
 

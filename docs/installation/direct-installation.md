@@ -54,7 +54,7 @@ The installation installs several attestation suite services, which are run as s
         ```
 
 - Update credentials passwords in `credentials/configurations.json` (all keys `credentials`).
-- Prepare credentials command: `./scripts/direct-install/prepare-credentials.sh`. Use this command whenever you change something in credentials. Restart services after.
+- Prepare credentials command: `./scripts/direct-install/prepare-credentials.sh`. Use this command whenever you change something in credentials, and restart services after (see below).
 
 - Install command: `./scripts/direct-install/install.sh`
 

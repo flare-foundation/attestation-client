@@ -1,9 +1,9 @@
-# REST APIs provided by attestation providers
+# REST APIs Provided by Attestation Providers
 
 There are two groups of REST APIs that are relevant for use by end users.
 
-- attestation request REST APIs from verifier servers,
-- proof REST APIs from attestation provider server.
+- Attestation request REST APIs from verifier servers.
+- Proof REST APIs from the attestation provider server.
 
 ## API response
 
@@ -18,7 +18,7 @@ The response includes the following items:
 
 ## Attestation request API on verifier servers
 
-Attestation request API routes are used to get well formatted attestation requests. Based on the [format](https://github.com/flare-foundation/state-connector-attestation-types) definition for an attestation request of a specific type, a user can prepare the attestation request. In order to fully prepare it, the user needs to know what will be the attestation response. Namely a part of the request is also the field `messageIntegrityCode`, which is obtained by properly hashing the expected attestation response with the string `"Flare"` appended before hashing (see [here](../attestation-protocol/message-integrity.md)). The verifier web service routes are documented using the Swagger interface at `/api-doc/` route. They include:
+Attestation request API routes on verifier servers are used to get well formatted attestation requests. Based on the [format definition for an attestation request](https://github.com/flare-foundation/state-connector-attestation-types), a user can prepare the attestation request. To fully prepare it, the user needs to know what the attestation response will be. Namely, a part of the request is also the field `messageIntegrityCode`, which is obtained by properly hashing the expected attestation response with the string `"Flare"` appended before hashing (see [Message Integrity Checks](../attestation-protocol/message-integrity.md)). The verifier web service routes are documented using the Swagger interface at `/api-doc/` route. They include:
 
 - `/verifier/<chain>/prepare` - POST, returns attestation response for an attestation request, without checking message integrity code. Primarily used by attestation providers. (see POST object [format](../../src/servers/verifier-server/src/dtos/v-request-types.dto.ts)).
   Response data contains:
@@ -33,11 +33,11 @@ Attestation request API routes are used to get well formatted attestation reques
 - `/verifier/<chain>/integrity` - POST, tries to verify attestation request without checking message integrity code, and if it is successful, it returns the correct message integrity code (see POST object [format](../../src/servers/verifier-server/src/dtos/v-request-types.dto.ts)). Returns MIC as data.
 - `/verifier/<chain>/prepareAttestation` - POST, tries to verify attestation request without checking message integrity code, and if it is successful, it returns the byte encoded attestation request with the correct message integrity code, that can be directly submitted to the State Connector contract (see POST object [format](../../src/servers/verifier-server/src/dtos/v-request-types.dto.ts)).
 
-Note that the routes depend on a `chain`, which is one of: `btc`, `doge` or `xrp`.
+Note that the routes depend on a `chain`, which is one of: `btc`, `doge`, or `xrp`.
 
-## Proof API on attestation provider server
+## Attestation Proof APIs
 
-Attestation client comes with a web server that provides the data about the submitted attestation requests processing and voting results.
+The attestation client comes with a web server (the provider server) that provides the data about the submitted attestation requests processing and voting results.
 The web service routes are documented using the Swagger interface at `/api-doc/` route. They include:
 
 - `/api/proof/get-specific-proof` - POST, given `{roundId: number, requestBytes: string}`, a submission of a specific attestation request and the actual byte array of the submitted attestation request (`callData`, a `0x`-prefixed hex string representing the byte array) to the State Connector in the round `roundId`, it returns the JSON response data, that includes the attestation proof, but only if the attestation request was successfully verified in the given round `roundId`. The response data contains

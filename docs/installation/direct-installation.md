@@ -56,6 +56,6 @@ The installation installs several attestation suite services, which are run as s
 - Update credentials passwords in `credentials/configurations.json` (all keys `credentials`).
 - Prepare credentials command: `./scripts/direct-install/prepare-credentials.sh`. Use this command whenever you change something in credentials. Restart services after.
 
-- Install command: `./scripts/direct-install/install.sh`<!--Need one more answer (about these 2 lines from DavidP: https://flarenetworks.slack.com/archives/C02NURDPAQZ/p1684868796516599 -->
+- Install command: `./scripts/direct-install/install.sh`
 
 - Restart all services command: `./scripts/direct-install/services-restart-all.sh`

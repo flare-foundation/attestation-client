@@ -117,14 +117,14 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
 
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-    let response = JSON.parse(selectedTransaction.response);
+    let response = JSON.parse(selectedTransaction.getResponse());
     assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
     assert(resp.data.response.receivingAddressHash === Web3.utils.soliditySha3(response.data.result.Destination), "Wrong receiving address");
     assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
   });
 
   it(`Should verify Balance Decreasing attestation attestation`, async function () {
-    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.response).data.result.Account);
+    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.getResponse()).data.result.Account);
     let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
     let attestationRequest = {
       request: defStore.encodeRequest(request),
@@ -137,13 +137,13 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
 
     assert(resp.status === "OK", "Wrong server response");
     assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-    let response = JSON.parse(selectedTransaction.response);
+    let response = JSON.parse(selectedTransaction.getResponse());
     assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
     assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
   });
 
   it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
-    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.response).data.result.Account);
+    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.getResponse()).data.result.Account);
     let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
 
     request.id = "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -198,7 +198,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   it(`Should fail to provide Referenced Payment Nonexistence attestation`, async function () {
-    let response = JSON.parse(selectedTransaction.response);
+    let response = JSON.parse(selectedTransaction.getResponse());
     let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE + 3);
     let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK + 1);
 
@@ -228,7 +228,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   });
 
   it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
-    let response = JSON.parse(selectedTransaction.response);
+    let response = JSON.parse(selectedTransaction.getResponse());
 
     let firstOverflowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - 1);
     let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);

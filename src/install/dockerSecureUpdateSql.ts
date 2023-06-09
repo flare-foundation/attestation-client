@@ -2,7 +2,7 @@ import { execSync } from "child_process";
 import fs from "fs";
 import { exit } from "process";
 import * as yargs from "yargs";
-import { getSecureValue, initializeJSONsecure, _prepareSecureData } from "../utils/config/jsonSecure";
+import { _prepareSecureData, getSecureValue, initializeJSONsecure } from "../utils/config/jsonSecure";
 import { sleepMs } from "../utils/helpers/utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 
@@ -19,6 +19,9 @@ const args = yargs
   .option("input", { alias: "i", type: "string", description: "input file", default: DEFAULT_SECURE_CONFIG_PATH, demand: true })
   .option("chain", { alias: "n", type: "string", description: "node name", default: "", demand: false })
   .option("sudo", { alias: "s", type: "boolean", description: "sudo mysql mode", default: false, demand: false })
+  .option("host", { alias: "h", type: "string", description: "database host", default: "database", demand: false })
+  .option("port", { alias: "P", type: "string", description: "host port", default: "3306", demand: false })
+  .option("force", { alias: "f", type: "string", description: "force update", default: "0", demand: false })
   .option("network", { alias: "e", type: "string", description: "network", default: "Coston", demand: false }).argv;
 
 async function run() {
@@ -27,6 +30,9 @@ async function run() {
   const inputFile = args["input"];
   const nodeName = args["chain"].toUpperCase();
   const sudo = args["sudo"];
+  const host = args["host"];
+  const port = args["port"];
+  const force = args["force"] == "1";
 
   if (nodeName != "") {
     logger.info(`^gstarting MYSQL script ^r${inputFile}^g for node ^r${nodeName}`);
@@ -57,7 +63,7 @@ async function run() {
     try {
       const secureLogin = (retry & 1) === 0;
       password = secureLogin ? secureRootPassword : process.env.MYSQL_ROOT_PASSWORD;
-      const command = sudo ? `sudo mysql -e ";"` : `mysql -h database -u root -p${password} -e ";"`;
+      const command = sudo ? `sudo mysql -e ";"` : `mysql -h ${host} -P ${port} -u root -p${password} -e ";"`;
 
       //logger.debug(muteMySQLPasswords(command));
       logger.debug(`connecting to database ${retry}`);
@@ -66,7 +72,7 @@ async function run() {
       connected = true;
       if (secureLogin) {
         logger.info(`mysql connected with secure password`);
-        if (!process.env.UPDATE_MYSQL) {
+        if (!process.env.UPDATE_MYSQL && !force) {
           logger.info(`mysql already setup. exiting.`);
           logger.debug(`(use env UPDATE_MYSQL=1 to force update)`);
           return;
@@ -97,7 +103,7 @@ async function run() {
     try {
       if (line.trim() === "") continue;
 
-      const command = (sudo ? `sudo mysql ` : `mysql -h database -u root -p${password} `) + `-e "${line}"`;
+      const command = (sudo ? `sudo mysql ` : `mysql  -h ${host} -P ${port} -u root -p${password} `) + `-e "${line}"`;
 
       // check is root password changed
       if (sudo && line.startsWith("ALTER USER 'root'@")) {

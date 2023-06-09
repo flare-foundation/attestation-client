@@ -1,4 +1,4 @@
-import { AlgoMccCreate, ChainType, MCC, MccClient, UtxoMccCreate, XrpMccCreate, sleepMs } from "@flarenetwork/mcc";
+import { ChainType, MCC, MccClient, UtxoMccCreate, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import * as yargs from "yargs";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
@@ -251,10 +251,10 @@ class AttestationSpammer {
         return new MCC.DOGE(this.spammerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
       case "xrp":
         return undefined;
-        // return new MCC.XRP(this.spammerCredentials.chainConfiguration.mccCreate as XrpMccCreate);
+      // return new MCC.XRP(this.spammerCredentials.chainConfiguration.mccCreate as XrpMccCreate);
       case "algo":
         return undefined;
-        // return new MCC.ALGO(this.spammerCredentials.chainConfiguration.mccCreate as AlgoMccCreate);
+      // return new MCC.ALGO(this.spammerCredentials.chainConfiguration.mccCreate as AlgoMccCreate);
       default:
         throw new Error(`Unknown chain ${chainName}`);
     }
@@ -266,7 +266,7 @@ class AttestationSpammer {
       try {
         AttestationSpammer.sendCount++;
         // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
-        
+
         const attRequest = await getRandomAttestationRequest(
           this.defStore,
           this.logger,

@@ -311,7 +311,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
 
       assert(resp.status === "OK", "Wrong server response");
       assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-      let response = JSON.parse(selectedTransaction.response);
+      let response = JSON.parse(selectedTransaction.getResponse());
       let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
       let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
       assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
@@ -333,7 +333,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
 
       assert(resp.status === "OK", "Wrong server response");
       assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-      let response = JSON.parse(selectedTransaction.response);
+      let response = JSON.parse(selectedTransaction.getResponse());
       let sourceAddress = response.additionalData.vinouts[parseInt(sourceAddressIndicator, 16)].vinvout.scriptPubKey.address;
       assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
       assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");

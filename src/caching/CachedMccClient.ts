@@ -109,7 +109,7 @@ export class CachedMccClient {
     // if client.getTransaction after retrying fails, the application is terminated (critical error)
     // eslint-disable-next-line
     const newPromise = criticalAsync(`CachedMccClient::getTransaction(${txId}) exception: `, () =>
-      retry(`CachedMccClient.getTransaction`, async () => {
+      retry(`CachedMccClient.getTransaction(${txId})`, async () => {
         return await this.client.getTransaction(txId);
       })
     );

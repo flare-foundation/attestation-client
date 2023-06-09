@@ -17,8 +17,8 @@ import {
   traceFunction,
 } from "@flarenetwork/mcc";
 import { LimitingProcessor, LimitingProcessorOptions } from "../../caching/LimitingProcessor";
-import { DBBlockALGO, DBBlockDOGE, DBBlockXRP } from "../../entity/indexer/dbBlock";
-import { DBTransactionBase, DBTransactionDOGE0 } from "../../entity/indexer/dbTransaction";
+import { DBBlockALGO, DBBlockXRP } from "../../entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { retryMany } from "../../utils/helpers/promiseTimeout";
 
 import { CachedMccClient } from "../../caching/CachedMccClient";

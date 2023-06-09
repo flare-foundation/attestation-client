@@ -4,6 +4,7 @@ import {
   BtcTransaction,
   ChainType,
   DogeFullBlock,
+  DogeTransaction,
   FullBlockBase,
   IUtxoGetTransactionRes,
   IUtxoTransactionAdditionalData,
@@ -16,8 +17,8 @@ import {
   traceFunction,
 } from "@flarenetwork/mcc";
 import { LimitingProcessor, LimitingProcessorOptions } from "../../caching/LimitingProcessor";
-import { DBBlockALGO, DBBlockDOGE, DBBlockXRP } from "../../entity/indexer/dbBlock";
-import { DBTransactionBase, DBTransactionDOGE0 } from "../../entity/indexer/dbTransaction";
+import { DBBlockALGO, DBBlockXRP } from "../../entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { retryMany } from "../../utils/helpers/promiseTimeout";
 
 import { CachedMccClient } from "../../caching/CachedMccClient";
@@ -110,60 +111,68 @@ export class LtcBlockProcessor extends UtxoBlockProcessor<LtcTransaction, LtcFul
   }
 }
 
+@Managed()
+export class DogeBlockProcessor extends UtxoBlockProcessor<DogeTransaction, DogeFullBlock> {
+  constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
+    super(client, options, DogeTransaction);
+  }
+}
+
 /**
  * Block processor for DOGE chain.
  * It is a specialized implementation of `LimitingProcessor`.
  * DOGE API does not contain all transactions in `tx` field so
  * additional reading of transactions from block is needed.
  */
-@Managed()
-export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
-  async initializeJobs(block: DogeFullBlock, onSave: onSaveSig) {
-    this.registerTopLevelJob();
-    this.block = block as UtxoFullBlock<UtxoTransaction>;
+// @Managed()
+// export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
+//   async initializeJobs(block: DogeFullBlock, onSave: onSaveSig) {
+//     this.registerTopLevelJob();
+//     this.block = block as UtxoFullBlock<UtxoTransaction>;
 
-    // DOGE API does not support returning the list of transactions with block request
-    const preprocesedTxPromises = block.stdTransactionIds.map((txid: string) => {
-      // the in-transactions are prepended to queue in order to process them earlier
-      return () => this.call(() => this.client.getTransaction(txid), true) as Promise<UtxoTransaction>;
-    });
+//     // DOGE API does not support returning the list of transactions with block request
+//     const preprocesedTxPromises = block.stdTransactionIds.map((txid: string) => {
+//       // the in-transactions are prepended to queue in order to process them earlier
+//       return () => this.call(() => this.client.getTransaction(txid), true) as Promise<UtxoTransaction>;
+//     });
 
-    const awaitedTxIds = (await retryMany(
-      `DogeBlockProcessor::preprocess all transactions`,
-      preprocesedTxPromises,
-      this.settings.timeout,
-      this.settings.retry
-    )) as UtxoTransaction[];
+//     const awaitedTxIds = (await retryMany(
+//       `DogeBlockProcessor::preprocess all transactions`,
+//       preprocesedTxPromises,
+//       this.settings.timeout,
+//       this.settings.retry
+//     )) as UtxoTransaction[];
 
-    const txPromises = awaitedTxIds.map((processed) => {
-      return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>;
-    });
+//     const txPromises = awaitedTxIds.map((processed) => {
+//       return this.call(() => getFullTransactionUtxo(this.client, processed, this)) as Promise<UtxoTransaction>;
+//     });
 
-    const transDbPromisses = txPromises.map((processed) => async () => {
-      return await augmentTransactionUtxo(DBTransactionDOGE0, ChainType.DOGE, block, processed);
-    });
+//     const transDbPromisses = txPromises.map((processed) => async () => {
+//       return await augmentTransactionUtxo(DBTransactionDOGE0, ChainType.DOGE, block, processed);
+//     });
 
-    const transDb = (await retryMany(
-      `DogeBlockProcessor::initializeJobs`,
-      transDbPromisses,
-      this.settings.timeout,
-      this.settings.retry
-    )) as DBTransactionBase[];
+//     const transDb = (await retryMany(
+//       `DogeBlockProcessor::initializeJobs`,
+//       transDbPromisses,
+//       this.settings.timeout,
+//       this.settings.retry
+//     )) as DBTransactionBase[];
 
-    if (!transDb) {
-      return;
-    }
+//     if (!transDb) {
+//       return;
+//     }
 
-    this.markTopLevelJobDone();
+//     this.markTopLevelJobDone();
 
-    const blockDb = augmentBlock(DBBlockDOGE, block);
+//     const blockDb = augmentBlock(DBBlockDOGE, block);
 
-    this.stop();
+//     this.stop();
 
-    // eslint-disable-next-line
-    criticalAsync(`DogeBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
-  }
-}
+//     // eslint-disable-next-line
+//     criticalAsync(`DogeBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
+//   }
+// }
+
 /**
  * Block processor for ALGO chain.
  * It is a specialized implementation of `LimitingProcessor`.

@@ -24,6 +24,7 @@ import {
   responseReferencedPaymentNonExistence,
 } from "../../../src/verification/verification-utils/generic-chain-verifications";
 import { MccTransactionType } from "../../../src/verification/verification-utils/verification-utils";
+import { compressBin } from "../../../src/utils/compression/compression.zlib";
 
 const TEST_DATA_PATH = "test/indexed-query-manager/test-data";
 
@@ -190,10 +191,9 @@ function generateTransactionsForBlock(chainType: ChainType, blockNumber: number,
     transaction.blockNumber = blockNumber;
     transaction.timestamp = blockTimestamp;
     transaction.paymentReference = "";
-    transaction.response = "";
     transaction.isNativePayment = true;
     transaction.transactionType = "";
-    transaction.response = addTransactionResponse(transaction, i);
+    transaction.response = compressBin( addTransactionResponse(transaction, i) );
     transactions.push(transaction);
   }
   return transactions;
@@ -298,7 +298,7 @@ export async function selectBlock(entityManager: EntityManager, blockClass: any,
 }
 
 export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
-  let response = JSON.parse(dbTransaction.response);
+  let response = JSON.parse(dbTransaction.getResponse());
   let appearances = [];
   for (let i = 0; i < response.data.vout.length; i++) {
     let address = response.data.vout[i].scriptPubKey?.address;
@@ -316,7 +316,7 @@ export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
 }
 
 export function firstAddressVin(dbTransaction: DBTransactionBase) {
-  let response = JSON.parse(dbTransaction.response);
+  let response = JSON.parse(dbTransaction.getResponse());
   for (let i = 0; i < response.additionalData.vinouts.length; i++) {
     if (response.additionalData?.vinouts?.[i]?.vinvout?.scriptPubKey?.address) {
       return i;
@@ -326,13 +326,13 @@ export function firstAddressVin(dbTransaction: DBTransactionBase) {
 }
 
 export function addressOnVout(dbTransaction: DBTransactionBase, i: number) {
-  let response = JSON.parse(dbTransaction.response);
+  let response = JSON.parse(dbTransaction.getResponse());
   return response.data?.vout?.[i]?.scriptPubKey?.address;
 }
 
 export function totalDeliveredAmountToAddress(dbTransaction: DBTransactionBase, address: string) {
   let spent = toBN(0);
-  let response = JSON.parse(dbTransaction.response);
+  let response = JSON.parse(dbTransaction.getResponse());
   for (let i = 0; i < response.additionalData.vinouts.length; i++) {
     if (response.additionalData?.vinouts?.[i]?.vinvout?.scriptPubKey?.address === address) {
       let value = response.additionalData?.vinouts?.[i]?.vinvout.value;

@@ -12,7 +12,12 @@ import {
 } from "@flarenetwork/mcc";
 import { stringify } from "safe-stable-stringify";
 import { DBTransactionALGO0, DBTransactionBase, DBTransactionXRP0, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { compressBin } from "../../utils/compression/compression.zlib";
 import { prepareString } from "../../utils/helpers/utils";
+
+
+export let uncompressedTransactionResponseDataSize = 0;
+export let compressedTransactionResponseDataSize = 0;
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
@@ -35,7 +40,13 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
   //txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
 
   // use full response size
-  txEntity.response = stringify({ data: txData._data, additionalData: txData._additionalData });
+  const data = stringify({ data: txData._data, additionalData: txData._additionalData });
+  const compressedData = compressBin(data);
+
+  uncompressedTransactionResponseDataSize+=data.length;
+  compressedTransactionResponseDataSize+=compressedData.length;
+
+  txEntity.response = compressedData;
 
   return txEntity;
 }

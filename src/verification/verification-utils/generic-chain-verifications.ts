@@ -56,9 +56,9 @@ export async function responsePayment<T extends TransactionBase>(
 ) {
   let parsedData: any;
   try {
-    parsedData = JSON.parse(dbTransaction.response);
+    parsedData = JSON.parse(dbTransaction.getResponse());
   } catch (error) {
-    logException(error, `responsePayment '${dbTransaction.id}' JSON parse '${dbTransaction.response}'`);
+    logException(error, `responsePayment '${dbTransaction.id}' JSON parse '${dbTransaction.getResponse()}'`);
     return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
@@ -162,9 +162,9 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
 ) {
   let parsedData: any;
   try {
-    parsedData = JSON.parse(dbTransaction.response);
+    parsedData = JSON.parse(dbTransaction.getResponse());
   } catch (error) {
-    logException(error, `responseBalanceDecreasingTransaction '${dbTransaction.id}' JSON parse '${dbTransaction.response}'`);
+    logException(error, `responseBalanceDecreasingTransaction '${dbTransaction.id}' JSON parse '${dbTransaction.getResponse()}'`);
     return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
@@ -325,7 +325,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
   for (const dbTransaction of dbTransactions) {
     let fullTxData: T;
     try {
-      const parsedData = JSON.parse(dbTransaction.response);
+      const parsedData = JSON.parse(dbTransaction.getResponse());
       fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
     } catch (e) {
       return { status: VerificationStatus.SYSTEM_FAILURE };

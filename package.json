@@ -40,7 +40,7 @@
     "-------CODE-GEN------": "",
     "codegen": "env NODE_ENV=development yarn ts-node src/verification/codegen/codegen.ts",
     "-------DEV-MAIN------": "",
-    "devindexer": "env NODE_ENV=development yarn ts-node src/runIndexer.ts",
+    "devindexer": "env NODE_ENV=development SECURE_CONFIG_PATH=./deployment/credentials FLARE_NETWORK=songbird yarn ts-node src/runIndexer.ts",
     "devverifierserver": "env NODE_ENV=development VERIFIER_TYPE=btc yarn ts-node src/runVerifierServer.ts",
     "devattester": "env FLARE_NETWORK=coston2 NODE_ENV=development CREDENTIALS_KEY=direct:t3stPassw0rd yarn ts-node src/runAttestationClient.ts",
     "devwebserver": "env NODE_ENV=development yarn ts-node src/runWebserver.ts",
@@ -72,7 +72,7 @@
     "test-all-cred": "env NODE_ENV=development mocha -r ts-node/register -t 0 --exit 'test/**/*.test-cred.ts'",
     "test-all-full": "env NODE_ENV=development npm-run-all test-all-contracts test-all-slow test-all-other",
     "test-all-fullc": "env NODE_ENV=development npm-run-all test-all-contracts test-all-slow test-all-cred test-all-other",
-    "test:coverage": "env NODE_ENV=development nyc yarn test-all-fast",
+    "test:coverage": "env NODE_ENV=development SQLITE=true nyc yarn test-all-fast",
     "test:coverage-full": "env NODE_ENV=development nyc yarn test-all-full",
     "test:coverage-fullc": "env NODE_ENV=development nyc yarn test-all-fullc",
     "atest": "env NODE_ENV=development yarn hardhat run scripts/generateAttestationRequest.ts --network local",
@@ -90,10 +90,11 @@
     "runFinalizingBot": "yarn ts-node -r dotenv/config src/state-collector-finalizer/main.ts -a '0xB6fF182DB28C3aD8f0611d59b183BFC40AF5268d' -r 'https://coston2-api.flare.network/ext/C/rpc'",
     "runFinalizingBotTran": "yarn ts-node -r dotenv/config src/state-collector-finalizer/main.ts -a '0xd035F05E6d159F7DE00809f8E3bAb809Cd33bACA' -f tran -r 'https://coston2-api.flare.network/ext/C/rpc'",
     "--------E2E-TESTS------": "",
-    "test_endtoend": "yarn test test/attestationClient/AttestationClient.e2e-test.ts"
+    "test_endtoend": "env SQLITE=true yarn test test/attestationClient/AttestationClient.e2e-test.ts"
   },
   "dependencies": {
-    "@flarenetwork/mcc": "3.0.2",
+    "@flarenetwork/mcc": "3.0.3-beta.4",
+    "@foxglove/wasm-zstd": "^1.0.1",
     "@google-cloud/secret-manager": "4.2.1",
     "@nestjs/common": "9.3.9",
     "@nestjs/core": "9.3.9",
@@ -125,7 +126,8 @@
     "web3": "1.8.2",
     "web3-utils": "1.8.2",
     "winston": "3.8.2",
-    "yargs": "17.7.1"
+    "yargs": "17.7.1",
+    "zstd.ts": "^1.1.3"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
@@ -161,7 +163,7 @@
     "@typescript-eslint/eslint-plugin": "5.55.0",
     "@typescript-eslint/parser": "5.55.0",
     "axios": "1.3.4",
-    "better-sqlite3": "8.2.0",
+    "better-sqlite3": "^8.4.0",
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "concurrently": "7.6.0",

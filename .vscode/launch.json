@@ -364,8 +364,12 @@
       "request": "launch",
       "console": "integratedTerminal",
       "name": "Test 2",
+      "env": {
+        "SQLITE": "true",
+        "NODE_ENV": "development"
+      },
       "runtimeExecutable": "yarn",
-      "runtimeArgs": ["test", "test/utils/compression.test.ts"]
+      "runtimeArgs": ["test", "test/indexer/indexer.test.ts"]
     },
 
     {

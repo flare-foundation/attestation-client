@@ -1,8 +1,8 @@
-# Direct installation to a Linux Machine
+# Direct Installation to a Linux Machine
 
 Here is a summary for direct installation.
 Linux Ubuntu 20.04 and user `ubuntu` are assumed.
-The installation installs several attestation suite services, which are run as systemd services.
+The installation installs several attestation suite services, which are run as `systemd` services.
 
 - Install repository:
 
@@ -24,7 +24,7 @@ The installation installs several attestation suite services, which are run as s
 - Compile the project command: `./scripts/compile/.sh` (It must compile for the next command to work.)
 
 - Initialize credentials command: `./scripts/direct-install/initialize-credentials.sh`. IMPORTANT: this overwrites all credentials (so don't run it again).
-- Copy configurations commands: `cp configs/.install/configurations.json credentials/`
+- Copy configurations command: `cp configs/.install/configurations.json credentials/`
 
 - Update credentials keys:
 

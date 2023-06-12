@@ -13,11 +13,11 @@ For this purpose, attestation providers (voters) organize the submitted attestat
 
 ## Merkle Tree Structure
 
-The Merkle tree of _n_ sorted hashes is represented by an array of length _2n - 1_, which represents the complete binary tree. A complete binary tree is a binary tree in which all the levels are completely filled except possibly the lowest one, which is filled from the left.
+The Merkle tree on _n_ sorted hashes is represented by an array of length _2n - 1_, which represents the complete binary tree. A complete binary tree is a binary tree in which all the levels are completely filled except possibly the lowest one, which is filled from the left.
 
-It can be easily proven by induction that a complete binary tree with _2n - 1_ elements has exactly _n_ leaves and all nodes are either leaves or have two descendants (left and right). For _n = 1_ there is a tree with only one element, the root and the leaf simultaneously. If two descendants are added to a single element tree, the result is a tree with 2 leaves but _3 = 2 x 2 - 1_ elements. If two descendants are added to the leftmost leaf, a leaf is changed to an internal node, effectively removing one leaf and adding two more leaves. The result is a complete binary tree that has all levels filled except maybe the last one, which is filled from the left. If nodes are enumerated from 0 starting with the root and proceeding through levels from the left to the right, the node with the first index is taken such that it is a leaf and it is expanded with two leaves. The final result is a complete binary tree with 2 more nodes and 1 more leaf.
+It can be easily proven by induction that a complete binary tree with _2n - 1_ elements has exactly _n_ leaves and all nodes are either leaves or have two descendants (left and right). For _n = 1_ there is a tree with only one element, the root and the leaf simultaneously. If two descendants are added to a single element tree, the result is a tree with 2 leaves but _3 = 2 x 2 - 1_ elements. If two descendants are added to the leftmost leaf, it is changed to an internal node, effectively removing one leaf and adding two more leaves. The result is a complete binary tree that has all levels filled except maybe the last one, which is filled from the left. If nodes are enumerated from 0 starting with the root and proceeding through levels from the left to the right, then, to add a leaf to the tree, the leaf node with the lowest index needs to be expanded with two leaves, resulting in a complete binary tree with 2 more leaves and 1 more internal node.
 
-The above mentioned indexing enables us to represent a Merkle tree with _n_ leaves in an array of length exactly _2n - 1_, where the last _n_ elements are the leaves. This representation of a complete binary tree is well known from classic implementation of binary heaps. It encodes the tree structure as follows:
+The above-mentioned indexing enables us to represent a Merkle tree with _n_ leaves in an array of length exactly _2n - 1_, where the last _n_ elements are the leaves. This representation of a complete binary tree is well known from classic implementation of binary heaps. It encodes the tree structure as follows:
 
 - The Merkle root is at index _0_.
 - Leaves are on the last _n_ indices, from _n - 1_ to _2n - 2_.
@@ -32,7 +32,7 @@ The above mentioned indexing enables us to represent a Merkle tree with _n_ leav
 - Since it is a complete binary tree, a sibling of the node with index _i_ can easily be calculated with:
 
   ```text
-  sibling(k) = k + 2*(k % 2) - 1
+  sibling(i) = i + 2*(i % 2) - 1
   ```
 
 Note that there are several types of Merkle trees, depending on their purpose. In general, a Merkle tree can be used to uniquely produce a representative hash for a _fixed sequence_ of hashes or just for a _set_ of hashes, if the order of appearance is not important.
@@ -51,10 +51,10 @@ This function will be used for producing pair hashes while building the Merkle t
 
 Assume an attestation provider has performed all necessary verifications and obtained the necessary attestation hashes for the confirmed request _m_. Some requests may be duplicates, yielding duplicate verification hashes, and those can be safely removed. Hence, we can assume that the attestation provider has _n_ unique attestation hashes. To build the Merkle tree, the attestation providers proceed as follows:
 
-1. Sort _n_ hashes in the ascending order. Note that the order is unique.
-2. Allocate array `M` with _2n - 1_ elements.
-3. Put _n_ hashes into the slots from _n - 1_ to _2n - 2_: `M[n-1], ..., M[2n - 2]`.
-4. For _i = n - 2_, calculate `M[i] = shash( M[left(i)], M[right(i)])` down to 0.
+- _n_ hashes are sorted in the ascending order. Note that the order is unique.
+- An array `M` with _2n - 1_ elements is allocated.
+- _n_ hashes are put into the slots from _n - 1_ to _2n - 2_, this is, `M[n-1], ..., M[2n - 2]`.
+- for _i = n - 2_ down to 0, calculate `M[i] = shash( M[left(i)], M[right(i)])`
 
 ## Building a Merkle Proof
 

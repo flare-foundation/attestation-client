@@ -48,7 +48,7 @@ function submitAttestation(
 )
 ```
 
-This function is called once per voting window, usually near the end of it. Note that by calling the function, one simultaneously sends commit data for current voting round (`commitHash`) and reveal data for the previous voting round (`merkleRoot`, `randomNumber`).
+This function is called once per attestation round, usually near the end of it. By calling this function, one simultaneously sends commit data for the current voting round (`commitHash`) and reveal data for the previous voting round (`merkleRoot`, `randomNumber`).
 
 The `StateConnector` smart contract operates with sequential 90s windows (`BUFFER_WINDOW = 90`). Here `bufferNumber` indicates the index of the particular window. Given a timestamp `T`, one can calculate the corresponding `bufferNumber` with `T` contained in it as follows:
 
@@ -58,7 +58,7 @@ bufferNumber(T) = (T - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW
 
 The caller of the `submitAttestation` function must call it with the `bufferNumber` corresponding to the time of the call. Otherwise the call is rejected.
 
-The relation between the voting round ID and the `bufferNumber` is defined as follows: The first voting round (`roundId = 0`) starts its `collect` phase in the voting window with `bufferNumber = 0`. Therefore, the `bufferNumber` corresponds to the voting window of the `collect` phase of the voting round with the same index (`roundId`). The `choose` and `commit` phases of the round with a given `roundId` are in the voting window with the `bufferNumber` equal to `roundId + 1`, the `reveal` phase is in the voting window with the `bufferNumber` equal to `roundId + 2`, and the `count` phase is in the voting window with the `bufferNumber` equal to `roundId + 3`.
+The relation between the voting round ID and the `bufferNumber` is described in [Attestation Protocol](attestation-protocol.md).
 
 Accordingly, calling `submitAttestation` in a given voting window with the `bufferNumber` implies we are sending commit data for `roundId` equal to `bufferNumber - 1` and the reveal data for the `roundId` equal to `bufferNumber - 2`.
 

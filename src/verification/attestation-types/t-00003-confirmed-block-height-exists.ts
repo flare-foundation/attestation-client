@@ -19,7 +19,9 @@ Block number to be proved to be confirmed.
       size: TIME_DURATION_BYTES,
       type: "NumberLike",
       description: `
-Period in seconds considered for sampling block production. The block with number 'lowestQueryWindowBlockNumber' in the attestation response is defined as the last block with the timestamp strictly smaller than 'block.timestamp - queryWindow'.
+Period in seconds considered for sampling block production.
+The block with number 'lowestQueryWindowBlockNumber' in the attestation response is defined
+as the last block with the timestamp strictly smaller than 'block.timestamp - queryWindow'.
 `,
     },
   ],

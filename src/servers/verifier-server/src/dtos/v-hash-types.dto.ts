@@ -79,41 +79,49 @@ The same as in the 'utxo' parameter from the request.
   utxo: BN;
 
   /**
-   * Standardized address hash of the source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+   * Standardized address hash of the source address viewed as a string
+   * (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized address hash of the source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+Standardized address hash of the source address viewed as a string
+(the one indicated by the 'inUtxo' parameter for UTXO blockchains).
 `,
   })
   sourceAddressHash: string;
 
   /**
-   * Standardized address hash of the intended source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+   * Standardized address hash of the intended source address viewed as a string
+   * (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized address hash of the intended source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+Standardized address hash of the intended source address viewed as a string
+(the one indicated by the 'inUtxo' parameter for UTXO blockchains).
 `,
   })
   intendedSourceAddressHash: string;
 
   /**
-   * Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+   * Standardized address hash of the receiving address as a string
+   * (the one indicated by the 'utxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+Standardized address hash of the receiving address as a string
+(the one indicated by the 'utxo' parameter for UTXO blockchains).
 `,
   })
   receivingAddressHash: string;
 
   /**
-   * Standardized address hash of the intended receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+   * Standardized address hash of the intended receiving address as a string
+   * (the one indicated by the 'utxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized address hash of the intended receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+Standardized address hash of the intended receiving address as a string
+(the one indicated by the 'utxo' parameter for UTXO blockchains).
 `,
   })
   intendedReceivingAddressHash: string;
@@ -142,25 +150,29 @@ on the input indicated by 'inUtxo'.
   /**
    * The amount that was intended to go out of the source address, in the smallest underlying units.
    * If the transaction status is successful the value matches 'spentAmount'.
-   * If the transaction status is not successful, the value is the amount that was intended to be spent by the source address.
+   * If the transaction status is not successful, the value is the amount that was intended
+   * to be spent by the source address.
    */
   @ApiProperty({
     type: "string",
     description: `
 The amount that was intended to go out of the source address, in the smallest underlying units.
-If the transaction status is successful the value matches 'spentAmount'. 
-If the transaction status is not successful, the value is the amount that was intended to be spent by the source address.
+If the transaction status is successful the value matches 'spentAmount'.
+If the transaction status is not successful, the value is the amount that was intended
+to be spent by the source address.
 `,
   })
   intendedSpentAmount: BN;
 
   /**
-   * The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
+   * The amount received to the receiving address, in smallest underlying units.
+   * Can be negative in UTXO chains.
    */
   @ApiProperty({
     type: "string",
     description: `
-The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
+The amount received to the receiving address, in smallest underlying units.
+Can be negative in UTXO chains.
 `,
   })
   receivedAmount: BN;
@@ -168,14 +180,16 @@ The amount received to the receiving address, in smallest underlying units. Can 
   /**
    * The intended amount to be received by the receiving address, in smallest underlying units.
    * For transactions that are successful, this is the same as 'receivedAmount'.
-   * If the transaction status is not successful, the value is the amount that was intended to be received by the receiving address.
+   * If the transaction status is not successful, the value is the amount that was intended
+   * to be received by the receiving address.
    */
   @ApiProperty({
     type: "string",
     description: `
-The intended amount to be received by the receiving address, in smallest underlying units. 
+The intended amount to be received by the receiving address, in smallest underlying units.
 For transactions that are successful, this is the same as 'receivedAmount'.
-If the transaction status is not successful, the value is the amount that was intended to be received by the receiving address.
+If the transaction status is not successful, the value is the amount that was intended
+to be received by the receiving address.
 `,
   })
   intendedReceivedAmount: BN;
@@ -196,7 +210,7 @@ Standardized payment reference, if it exists, 0 otherwise.
    */
   @ApiProperty({
     description: `
-'true' if the transaction has exactly one source address and 
+'true' if the transaction has exactly one source address and
 exactly one receiving address (different from source).
 `,
   })
@@ -270,32 +284,48 @@ Hash of the transaction on the underlying chain.
   transactionHash: string;
 
   /**
-   * Either standardized hash of a source address or UTXO vin index in hex format (as provided in the request).
+   * Either standardized hash of a source address or UTXO vin index in hex format
+   * (as provided in the request).
    */
   @ApiProperty({
     description: `
-Either standardized hash of a source address or UTXO vin index in hex format (as provided in the request).
+Either standardized hash of a source address or UTXO vin index in hex format
+(as provided in the request).
 `,
   })
   sourceAddressIndicator: string;
 
   /**
-   * Standardized hash of the source address viewed as a string (the one indicated by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
+   * Standardized hash of the source address viewed as a string (the one indicated
+   *   by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized hash of the source address viewed as a string (the one indicated by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
+Standardized hash of the source address viewed as a string (the one indicated
+  by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
 `,
   })
   sourceAddressHash: string;
 
   /**
-   * The amount that went out of the source address, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address indicated by 'sourceAddressIndicator', and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by 'sourceAddressIndicator'.
+   * The amount that went out of the source address, in the smallest underlying units.
+   * In non-UTXO chains it includes both payment value and fee (gas).
+   * Calculation for UTXO chains depends on the existence of standardized payment reference.
+   * If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address
+   * indicated by 'sourceAddressIndicator', and can be negative.
+   * If the standardized payment reference does not exist, then it is just the spent amount
+   * on the input indicated by 'sourceAddressIndicator'.
    */
   @ApiProperty({
     type: "string",
     description: `
-The amount that went out of the source address, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address indicated by 'sourceAddressIndicator', and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by 'sourceAddressIndicator'.
+The amount that went out of the source address, in the smallest underlying units.
+In non-UTXO chains it includes both payment value and fee (gas).
+Calculation for UTXO chains depends on the existence of standardized payment reference.
+If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address
+indicated by 'sourceAddressIndicator', and can be negative.
+If the standardized payment reference does not exist, then it is just the spent amount
+on the input indicated by 'sourceAddressIndicator'.
 `,
   })
   spentAmount: BN;
@@ -444,12 +474,14 @@ The payment reference searched for.
   paymentReference: string;
 
   /**
-   * The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
+   * The minimal amount intended to be paid to the destination address.
+   * The actual amount should match or exceed this value.
    */
   @ApiProperty({
     type: "string",
     description: `
-The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
+The minimal amount intended to be paid to the destination address.
+The actual amount should match or exceed this value.
 `,
   })
   amount: BN;
@@ -483,7 +515,7 @@ Timestamp of the 'lowerBoundaryBlockNumber'.
   @ApiProperty({
     type: "string",
     description: `
-The first (lowest) confirmed block with 'timestamp > deadlineTimestamp' 
+The first (lowest) confirmed block with 'timestamp > deadlineTimestamp'
 and 'blockNumber  > deadlineBlockNumber'.
 `,
   })
@@ -495,7 +527,7 @@ and 'blockNumber  > deadlineBlockNumber'.
   @ApiProperty({
     type: "string",
     description: `
-Timestamp of the firstOverflowBlock. 
+Timestamp of the firstOverflowBlock.
 `,
   })
   firstOverflowBlockTimestamp: BN;

@@ -213,13 +213,17 @@ Block number to be proved to be confirmed.
   blockNumber: NumberLike;
 
   /**
-   * Period in seconds considered for sampling block production. The block with number 'lowestQueryWindowBlockNumber' in the attestation response is defined as the last block with the timestamp strictly smaller than 'block.timestamp - queryWindow'.
+   * Period in seconds considered for sampling block production.
+   * The block with number 'lowestQueryWindowBlockNumber' in the attestation response is defined
+   * as the last block with the timestamp strictly smaller than 'block.timestamp - queryWindow'.
    */
   @Validate(IsNumberLike)
   @ApiProperty({
     oneOf: [{ type: "string" }, { type: "number" }],
     description: `
-Period in seconds considered for sampling block production. The block with number 'lowestQueryWindowBlockNumber' in the attestation response is defined as the last block with the timestamp strictly smaller than 'block.timestamp - queryWindow'.
+Period in seconds considered for sampling block production.
+The block with number 'lowestQueryWindowBlockNumber' in the attestation response is defined
+as the last block with the timestamp strictly smaller than 'block.timestamp - queryWindow'.
 `,
   })
   queryWindow: NumberLike;
@@ -284,13 +288,17 @@ Maximum number of the block where the transaction is searched for.
   deadlineBlockNumber: NumberLike;
 
   /**
-   * Maximum timestamp of the block where the transaction is searched for. Search range is determined by the bigger of the 'deadlineBlockNumber' and the last block with 'deadlineTimestamp'.
+   * Maximum timestamp of the block where the transaction is searched for.
+   * Search range is determined by the bigger of the 'deadlineBlockNumber'
+   * and the last block with 'deadlineTimestamp'.
    */
   @Validate(IsNumberLike)
   @ApiProperty({
     oneOf: [{ type: "string" }, { type: "number" }],
     description: `
-Maximum timestamp of the block where the transaction is searched for. Search range is determined by the bigger of the 'deadlineBlockNumber' and the last block with 'deadlineTimestamp'.
+Maximum timestamp of the block where the transaction is searched for.
+Search range is determined by the bigger of the 'deadlineBlockNumber'
+and the last block with 'deadlineTimestamp'.
 `,
   })
   deadlineTimestamp: NumberLike;

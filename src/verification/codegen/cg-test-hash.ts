@@ -1,15 +1,14 @@
 import fs from "fs";
-import prettier from "prettier";
 import { AttestationTypeScheme, RESPONSE_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
-import { DEFAULT_GEN_FILE_HEADER, HASH_TEST_FILE, PRETTIER_SETTINGS, PRETTIER_SETTINGS_SOL, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
+import { DEFAULT_GEN_FILE_HEADER, HASH_TEST_FILE, SOLIDITY_GEN_CONTRACTS_ROOT } from "./cg-constants";
 
 function genTestHashStruct(definition: AttestationTypeScheme) {
   const structName = `${definition.name}`;
-  const typedParams = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `      ${item.type} ${item.key};`).join("\n");
+  const typedParams = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `        ${item.type} ${item.key};`).join("\n");
   return `
-   struct ${structName} {
+    struct ${structName} {
 ${typedParams}
-   }
+    }
 `;
 }
 
@@ -17,15 +16,15 @@ function genTestHashFunction(definition: AttestationTypeScheme) {
   const functionName = `hashTest${definition.name}`;
   const params = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `data.${item.key}`).join(",");
   return `
-   function ${functionName}(
-      bytes memory _data,
-      bytes32 _hashToProve
+    function ${functionName}(
+        bytes memory _data,
+        bytes32 _hashToProve
     ) external pure returns (bool _match) {
-      bytes32 hash = keccak256(_data);
-      ${definition.name} memory data = abi.decode(_data, (${definition.name}));
-      // require(data.attestationType > 0);
-      bytes32 hash2 = keccak256(abi.encode(${params}));
-      return hash == _hashToProve && hash == hash2;
+        bytes32 hash = keccak256(_data);
+        ${definition.name} memory data = abi.decode(_data, (${definition.name}));
+        // require(data.attestationType > 0);
+        bytes32 hash2 = keccak256(abi.encode(${params}));
+        return hash == _hashToProve && hash == hash2;
     }
 `;
 }
@@ -69,12 +68,10 @@ ${functions}
 export function createHashTestSolidityFile(definitions: AttestationTypeScheme[]) {
   // Hash test contract
   const content = `${DEFAULT_GEN_FILE_HEADER}
-      ${getSolidityHashTest(definitions)}   
+      ${getSolidityHashTest(definitions)}
       `;
   if (!fs.existsSync(SOLIDITY_GEN_CONTRACTS_ROOT)) {
     fs.mkdirSync(SOLIDITY_GEN_CONTRACTS_ROOT, { recursive: true });
   }
-
-  const prettyContent = prettier.format(content, PRETTIER_SETTINGS_SOL);
-  fs.writeFileSync(`${SOLIDITY_GEN_CONTRACTS_ROOT}/${HASH_TEST_FILE}`, prettyContent, "utf8");
+  fs.writeFileSync(`${SOLIDITY_GEN_CONTRACTS_ROOT}/${HASH_TEST_FILE}`, content, "utf8");
 }

@@ -9,7 +9,7 @@
          "apiKey": "7890"
       }
    ],
-   "port": 9500,
+   "port": 9600,
    "checkAliveIntervalMs": 5000,
    "sourceId": "XRP",
    "attestationTypes": [

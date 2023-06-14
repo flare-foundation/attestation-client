@@ -19,7 +19,7 @@ import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
 
-const WS_URL = `ws://localhost:9500?apiKey=7890`;
+const WS_URL = `ws://localhost:9600?apiKey=7890`;
 
 const defaultWsClientOptions: WsClientOptions = new WsClientOptions();
 defaultWsClientOptions.url = WS_URL;

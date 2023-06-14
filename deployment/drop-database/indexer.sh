@@ -11,7 +11,7 @@ if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
     echo "drop indexer $CHAIN database container"
 
     docker stop indexer-$CHAIN-database
-    docker container rm attestation-$CHAIN-database
+    docker container rm indexer-$CHAIN-database
 
     docker volume prune -f
 

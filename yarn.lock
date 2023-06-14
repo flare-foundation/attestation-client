@@ -757,11 +757,6 @@
     web3 "1.9.0"
     xrpl "2.7.0"
 
-"@foxglove/wasm-zstd@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@foxglove/wasm-zstd/-/wasm-zstd-1.0.1.tgz#41f97f9c1ed5d10790603376fbecda7ce2145fe5"
-  integrity sha512-hqKTO45Sl+kSq9SDqM9xi5L+GncjFEZIJgYEkGTlpJXTfhy1Gf+a+3epWMcE0tLUKmzM77dtu8snape/J+7ueQ==
-
 "@google-cloud/secret-manager@4.2.1":
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/@google-cloud/secret-manager/-/secret-manager-4.2.1.tgz#c2f04af967e4c70612077816bd4d3af5f85c6edf"
@@ -2783,7 +2778,7 @@ bech32@1.1.4, bech32@^1.1.3:
   resolved "https://registry.yarnpkg.com/bech32/-/bech32-1.1.4.tgz#e38c9f37bf179b8eb16ae3a772b40c356d4832e9"
   integrity sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==
 
-better-sqlite3@^8.4.0:
+better-sqlite3@8.4.0:
   version "8.4.0"
   resolved "https://registry.yarnpkg.com/better-sqlite3/-/better-sqlite3-8.4.0.tgz#aa27bbc6bb42bb438fc55c88b146fcfe5978fa76"
   integrity sha512-NmsNW1CQvqMszu/CFAJ3pLct6NEFlNfuGM6vw72KHkjOD1UDnL96XNN1BMQc1hiHo8vE2GbOWQYIpZ+YM5wrZw==
@@ -10899,8 +10894,3 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
-
-zstd.ts@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/zstd.ts/-/zstd.ts-1.1.3.tgz#3ddbc625ef499429aa69d423a0fb5892e5af99f5"
-  integrity sha512-1xlKTD4O/4H2MEQ/McteFAdujc4cHxNZYDRzjxtWfLAimYbPzV7mIa+ZzzJqpN830AuNklVDA6RgHwcop6IZKw==

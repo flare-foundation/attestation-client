@@ -16,7 +16,7 @@ function descriptionObj(comment?: string) {
 function genDefHashItem(item: DataHashScheme, options?: OpenAPIOptionsResponses) {
   const annotation = options?.dto ? `\n@ApiProperty(${tsTypeForItem(item) === "BN" ? BNProperty(item.description) : descriptionObj(item.description)})` : "";
   return `${JSDocCommentText(item.description)}${annotation}
-   ${item.key}: ${tsTypeForItem(item)};`;
+   ${item.key}!: ${tsTypeForItem(item)};`;
 }
 
 function genAttestationDataHashType(definition: AttestationTypeScheme, options?: OpenAPIOptionsResponses) {
@@ -31,7 +31,7 @@ function genAttestationDataHashType(definition: AttestationTypeScheme, options?:
    * Merkle proof (a list of 32-byte hex hashes).
    */
   merkleProof?: string[];
-   
+
   ${values}
   }
   `;

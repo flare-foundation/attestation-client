@@ -11,9 +11,9 @@ ${values}
 }
 /**
  * Returns attestation type name for an attestation type enum
- * @param attestationType: number 
+ * @param attestationType: number
  */
-export function getAttestationTypeName(attestationType: number): string {
+export function getAttestationTypeName(attestationType: number): string | null {
   if (attestationType == null || !AttestationType[attestationType]) {
     return null;
   }

@@ -39,7 +39,7 @@ export class ARPayment implements ARBase {
 Attestation type id for this request, see 'AttestationType' enum.
 `,
   })
-  attestationType: AttestationType;
+  attestationType!: AttestationType;
 
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
@@ -52,21 +52,21 @@ Attestation type id for this request, see 'AttestationType' enum.
 The ID of the underlying chain, see 'SourceId' enum.
 `,
   })
-  sourceId: SourceId;
+  sourceId!: SourceId;
 
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  messageIntegrityCode: ByteSequenceLike;
+  messageIntegrityCode!: ByteSequenceLike;
 
   /**
    * Transaction hash to search for.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  id: ByteSequenceLike;
+  id!: ByteSequenceLike;
 
   /**
    * Block number of the transaction.
@@ -78,7 +78,7 @@ The ID of the underlying chain, see 'SourceId' enum.
 Block number of the transaction.
 `,
   })
-  blockNumber: NumberLike;
+  blockNumber!: NumberLike;
 
   /**
    * Index of the source address on UTXO chains. Always 0 on non-UTXO chains.
@@ -90,7 +90,7 @@ Block number of the transaction.
 Index of the source address on UTXO chains. Always 0 on non-UTXO chains.
 `,
   })
-  inUtxo: NumberLike;
+  inUtxo!: NumberLike;
 
   /**
    * Index of the receiving address on UTXO chains. Always 0 on non-UTXO chains.
@@ -102,7 +102,7 @@ Index of the source address on UTXO chains. Always 0 on non-UTXO chains.
 Index of the receiving address on UTXO chains. Always 0 on non-UTXO chains.
 `,
   })
-  utxo: NumberLike;
+  utxo!: NumberLike;
 }
 
 export class ARBalanceDecreasingTransaction implements ARBase {
@@ -117,7 +117,7 @@ export class ARBalanceDecreasingTransaction implements ARBase {
 Attestation type id for this request, see 'AttestationType' enum.
 `,
   })
-  attestationType: AttestationType;
+  attestationType!: AttestationType;
 
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
@@ -130,21 +130,21 @@ Attestation type id for this request, see 'AttestationType' enum.
 The ID of the underlying chain, see 'SourceId' enum.
 `,
   })
-  sourceId: SourceId;
+  sourceId!: SourceId;
 
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  messageIntegrityCode: ByteSequenceLike;
+  messageIntegrityCode!: ByteSequenceLike;
 
   /**
    * Transaction hash to search for.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  id: ByteSequenceLike;
+  id!: ByteSequenceLike;
 
   /**
    * Block number of the transaction.
@@ -156,14 +156,14 @@ The ID of the underlying chain, see 'SourceId' enum.
 Block number of the transaction.
 `,
   })
-  blockNumber: NumberLike;
+  blockNumber!: NumberLike;
 
   /**
    * Either standardized hash of a source address or UTXO vin index in hex format.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  sourceAddressIndicator: ByteSequenceLike;
+  sourceAddressIndicator!: ByteSequenceLike;
 }
 
 export class ARConfirmedBlockHeightExists implements ARBase {
@@ -178,7 +178,7 @@ export class ARConfirmedBlockHeightExists implements ARBase {
 Attestation type id for this request, see 'AttestationType' enum.
 `,
   })
-  attestationType: AttestationType;
+  attestationType!: AttestationType;
 
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
@@ -191,14 +191,14 @@ Attestation type id for this request, see 'AttestationType' enum.
 The ID of the underlying chain, see 'SourceId' enum.
 `,
   })
-  sourceId: SourceId;
+  sourceId!: SourceId;
 
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  messageIntegrityCode: ByteSequenceLike;
+  messageIntegrityCode!: ByteSequenceLike;
 
   /**
    * Block number to be proved to be confirmed.
@@ -210,7 +210,7 @@ The ID of the underlying chain, see 'SourceId' enum.
 Block number to be proved to be confirmed.
 `,
   })
-  blockNumber: NumberLike;
+  blockNumber!: NumberLike;
 
   /**
    * Period in seconds considered for sampling block production.
@@ -226,7 +226,7 @@ The block with number 'lowestQueryWindowBlockNumber' in the attestation response
 as the last block with the timestamp strictly smaller than 'block.timestamp - queryWindow'.
 `,
   })
-  queryWindow: NumberLike;
+  queryWindow!: NumberLike;
 }
 
 export class ARReferencedPaymentNonexistence implements ARBase {
@@ -241,7 +241,7 @@ export class ARReferencedPaymentNonexistence implements ARBase {
 Attestation type id for this request, see 'AttestationType' enum.
 `,
   })
-  attestationType: AttestationType;
+  attestationType!: AttestationType;
 
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
@@ -254,14 +254,14 @@ Attestation type id for this request, see 'AttestationType' enum.
 The ID of the underlying chain, see 'SourceId' enum.
 `,
   })
-  sourceId: SourceId;
+  sourceId!: SourceId;
 
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  messageIntegrityCode: ByteSequenceLike;
+  messageIntegrityCode!: ByteSequenceLike;
 
   /**
    * Minimum number of the block for the query window. Equal to 'lowerBoundaryBlockNumber' in response.
@@ -273,7 +273,7 @@ The ID of the underlying chain, see 'SourceId' enum.
 Minimum number of the block for the query window. Equal to 'lowerBoundaryBlockNumber' in response.
 `,
   })
-  minimalBlockNumber: NumberLike;
+  minimalBlockNumber!: NumberLike;
 
   /**
    * Maximum number of the block where the transaction is searched for.
@@ -285,7 +285,7 @@ Minimum number of the block for the query window. Equal to 'lowerBoundaryBlockNu
 Maximum number of the block where the transaction is searched for.
 `,
   })
-  deadlineBlockNumber: NumberLike;
+  deadlineBlockNumber!: NumberLike;
 
   /**
    * Maximum timestamp of the block where the transaction is searched for.
@@ -301,14 +301,14 @@ Search range is determined by the bigger of the 'deadlineBlockNumber'
 and the last block with 'deadlineTimestamp'.
 `,
   })
-  deadlineTimestamp: NumberLike;
+  deadlineTimestamp!: NumberLike;
 
   /**
    * Standardized address hash of the exact address to which the payment was done to.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  destinationAddressHash: ByteSequenceLike;
+  destinationAddressHash!: ByteSequenceLike;
 
   /**
    * The minimal amount to search for.
@@ -320,14 +320,14 @@ and the last block with 'deadlineTimestamp'.
 The minimal amount to search for.
 `,
   })
-  amount: NumberLike;
+  amount!: NumberLike;
 
   /**
    * The payment reference to search for.
    */
   @Validate(IsHash32)
   @ApiProperty()
-  paymentReference: ByteSequenceLike;
+  paymentReference!: ByteSequenceLike;
 }
 export type ARType = ARPayment | ARBalanceDecreasingTransaction | ARConfirmedBlockHeightExists | ARReferencedPaymentNonexistence;
 export const ARTypeArray = [ARPayment, ARBalanceDecreasingTransaction, ARConfirmedBlockHeightExists, ARReferencedPaymentNonexistence];

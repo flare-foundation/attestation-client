@@ -19,6 +19,7 @@ import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
 import { Interlacing } from "./interlacing";
 import { PreparedBlock } from "./preparedBlock";
+import { compressedTransactionResponseDataSize, uncompressedTransactionResponseDataSize } from "./chain-collector-helpers/augmentTransaction";
 
 /**
  * Indexer class for a blockchain. It connects to a blockchain node through a cachedClient.
@@ -339,7 +340,7 @@ export class Indexer {
 
     this.blockProcessorManager.clearProcessorsUpToBlockNumber(Np1);
     const time1 = Date.now();
-    this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms)`);
+    this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms) ^g^W[compression ${round(uncompressedTransactionResponseDataSize/(1024*1024),1)}MB -> ${round( compressedTransactionResponseDataSize/(1024*1024),1)}MB ${round(compressedTransactionResponseDataSize*100/uncompressedTransactionResponseDataSize,1)}%]^^`);
 
     // table interlacing
     if (await this.interlace.update(block.timestamp, block.blockNumber)) {

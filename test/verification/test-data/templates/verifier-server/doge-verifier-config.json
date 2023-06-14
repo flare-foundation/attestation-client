@@ -9,7 +9,7 @@
       "apiKey": "7890"
     }
   ],
-  "port": 9502,
+  "port": 9602,
   "checkAliveIntervalMs": 5000,
   "sourceId": "DOGE",
   "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],

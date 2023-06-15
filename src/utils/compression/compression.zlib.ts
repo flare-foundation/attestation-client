@@ -1,4 +1,4 @@
-const zlib = require('zlib');
+import * as zlib from "zlib";
 
 /**
  * Compress string data into base64 string.
@@ -6,7 +6,7 @@ const zlib = require('zlib');
  * @returns compressed data as base64 string
  */
 export function compressGzip(data: string): string {
-    return zlib.deflateSync(data, {level: 9}).toString('base64');
+    return zlib.deflateSync(data, { level: 9 }).toString('base64');
 }
 
 /**
@@ -25,7 +25,7 @@ export function decompressGzip(compressedData: string): string {
  */
 export function compressGzipBin(data: string): Buffer {
     //return zlib.deflateSync(data, {level: 9});
-    return zlib.gzipSync(data, {level: 9});
+    return zlib.gzipSync(data, { level: 9 });
     //return zlib.brotliCompressSync(data);
 }
 

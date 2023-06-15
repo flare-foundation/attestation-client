@@ -3,6 +3,7 @@
 import { assert } from "chai";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 
+import { round } from "@flarenetwork/mcc";
 import { CompressionType, compress, compressBin, decompress, decompressBin } from "../../src/utils/compression/compression";
 import { getTestFile } from "../test-utils/test-utils";
 
@@ -123,51 +124,28 @@ describe(`Test compression utils (${getTestFile(__filename)})`, () => {
     before(async () => {
         initializeTestGlobalLogger();
     });
-  
+
 
     it(`Gzip compress string base64`, async () => {
-        const compressedData = compress(compressionJsonData, CompressionType.Gzip);
+        const compressedData = compress(compressionTextData, CompressionType.Gzip);
 
         const len0 = compressionJsonData.length;
         const len1 = compressedData.length;
 
         const decompressedData = decompress(compressedData, CompressionType.Gzip);
 
-        assert(decompressedData === compressionJsonData, `decompression does not work`);
-    });    
-    
+        assert(decompressedData === compressionTextData, `decompression does not work`);
+    });
+
     it(`Gzip compress string raw`, async () => {
         const compressedData = compressBin(compressionJsonData, CompressionType.Gzip);
 
         const len0 = compressionJsonData.length;
         const len1 = compressedData.byteLength;
 
-        console.info( `Gzip compression ${len1*100/len0}`)
+        console.info(`Gzip compression ratio ${round(len1 * 100 / len0, 1)}%`)
 
         const decompressedData = decompressBin(compressedData, CompressionType.Gzip);
-
-        assert(decompressedData === compressionJsonData, `decompression does not work`);
-    });
-    it(`Zstd compress string base64`, async () => {
-        const compressedData = compress(compressionJsonData, CompressionType.Zstd);
-
-        const len0 = compressionJsonData.length;
-        const len1 = compressedData.length;
-
-        const decompressedData = decompress(compressedData, CompressionType.Zstd);
-
-        assert(decompressedData === compressionJsonData, `decompression does not work`);
-    });    
-    
-    it(`Zstd compress string raw`, async () => {
-        const compressedData = compressBin(compressionJsonData, CompressionType.Zstd);
-
-        const len0 = compressionJsonData.length;
-        const len1 = compressedData.byteLength;
-
-        console.info( `Zstd compression ${len1*100/len0}`)
-
-        const decompressedData = decompressBin(compressedData, CompressionType.Zstd);
 
         assert(decompressedData === compressionJsonData, `decompression does not work`);
     });

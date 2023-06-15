@@ -117,9 +117,7 @@ The external NPM dependencies include:
 
 If the attestation request was successfully validated, two pieces of data help you find the proof data.
 
-!!! Important
-
-  When you submit an attestation request, take note of these two pieces of data:
+When you submit an attestation request, take note of these two pieces of data:
 
     - The byte encoded attestation request.
     - The `roundId` in which the attestation request was submitted.

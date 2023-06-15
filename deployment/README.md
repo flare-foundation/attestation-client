@@ -131,9 +131,8 @@ Initialize credentials first:
 
 This creates the subfolder `credentials`.
 
-!!! Important
-
-  Using this command again will overwrite your credentials!
+> **Important**:
+> Using this command again will overwrite your credentials!
 
 ### 2.2 Update Credentials
 

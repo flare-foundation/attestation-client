@@ -1,5 +1,4 @@
 import { compressGzip, compressGzipBin, decompressGzip, decompressGzipBin } from "./compression.zlib";
-import { compressZstd, compressZstdBin, decompressZstd, decompressZstdBin } from "./compression.zstd";
 
 
 // tested:
@@ -11,7 +10,6 @@ import { compressZstd, compressZstdBin, decompressZstd, decompressZstdBin } from
 
 export enum CompressionType {
     Gzip = 'gzip',
-    Zstd = 'zstd',
 };
 
 const DEFAULT_COMPRESSION_TYPE = CompressionType.Gzip;
@@ -21,11 +19,8 @@ const DEFAULT_COMPRESSION_TYPE = CompressionType.Gzip;
  * @param data 
  * @returns compressed data as base64 string
  */
-export function compress(data: string, compressionType=DEFAULT_COMPRESSION_TYPE): string {
-    switch( compressionType ) {
-        case CompressionType.Gzip: return compressGzip(data);
-        case CompressionType.Zstd: return compressZstd(data);
-    }
+export function compress(data: string, compressionType = DEFAULT_COMPRESSION_TYPE): string {
+    return compressGzip(data);
 }
 
 /**
@@ -33,11 +28,8 @@ export function compress(data: string, compressionType=DEFAULT_COMPRESSION_TYPE)
  * @param compressedData base64 string compressed with @Compress function
  * @returns decompressed data as string
  */
-export function decompress(compressedData: string, compressionType=DEFAULT_COMPRESSION_TYPE): string {
-    switch( compressionType ) {
-        case CompressionType.Gzip: return decompressGzip(compressedData);
-        case CompressionType.Zstd: return decompressZstd(compressedData);
-    }
+export function decompress(compressedData: string, compressionType = DEFAULT_COMPRESSION_TYPE): string {
+    return decompressGzip(compressedData);
 }
 
 /**
@@ -45,11 +37,8 @@ export function decompress(compressedData: string, compressionType=DEFAULT_COMPR
  * @param data 
  * @returns compressed data as binary buffer
  */
-export function compressBin(data: string, compressionType=DEFAULT_COMPRESSION_TYPE): Buffer {
-    switch( compressionType ) {
-        case CompressionType.Gzip: return compressGzipBin(data);
-        case CompressionType.Zstd: return compressZstdBin(data);
-    }
+export function compressBin(data: string, compressionType = DEFAULT_COMPRESSION_TYPE): Buffer {
+    return compressGzipBin(data);
 }
 
 /**
@@ -57,9 +46,6 @@ export function compressBin(data: string, compressionType=DEFAULT_COMPRESSION_TY
  * @param compressedDataBuffer binary data compressed with @CompressBin function
  * @returns decompressed data string
  */
-export function decompressBin(compressedDataBuffer: Buffer, compressionType=DEFAULT_COMPRESSION_TYPE): string {
-    switch( compressionType ) {
-        case CompressionType.Gzip: return decompressGzipBin(compressedDataBuffer);
-        case CompressionType.Zstd: return decompressZstdBin(compressedDataBuffer);
-    }
+export function decompressBin(compressedDataBuffer: Buffer, compressionType = DEFAULT_COMPRESSION_TYPE): string {
+    return decompressGzipBin(compressedDataBuffer);
 }   

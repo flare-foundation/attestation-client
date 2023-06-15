@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { ARBase } from "../generated/attestation-request-types";
-import { ATT_BYTES, AttestationTypeScheme, REQUEST_BASE_DEFINITIONS, RESPONSE_BASE_DEFINITIONS, SupportedSolidityType } from "./attestation-types";
+import { ATT_BYTES, AttestationTypeScheme, REQUEST_BASE_DEFINITIONS, RESPONSE_BASE_DEFINITIONS, STATE_CONNECTOR_ROUND_KEY, SupportedSolidityType } from "./attestation-types";
 import { readAttestationTypeSchemes } from "./attestation-types-helpers";
 import {
   AttestationRequestEncodeError,
@@ -47,7 +47,10 @@ export class AttestationDefinitionStore {
     const values = [
       request.attestationType,
       request.sourceId,
-      ...[...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((def) => response[def.key]),
+      ...[...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition]
+        .map((def) => salt && def.key === STATE_CONNECTOR_ROUND_KEY ? 0 : response[def.key]),
+        // if salted hash, then stateConnectorRound is forced to 0
+        // to ensure message integrity code is consistent
     ];
     // All values must be defined in response
     if (values.find((value) => value === undefined)) {

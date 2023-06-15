@@ -1,14 +1,12 @@
 import fs from "fs";
-import prettier from "prettier";
 import { AttestationTypeScheme, RESPONSE_BASE_DEFINITIONS } from "../attestation-types/attestation-types";
 import {
   DEFAULT_GEN_FILE_HEADER,
   I_ATTESTATION_CLIENT_FILE,
-  PRETTIER_SETTINGS_SOL,
   SOLIDITY_GEN_INTERFACES_ROOT,
   SOLIDITY_VERIFICATION_FUNCTION_PREFIX,
 } from "./cg-constants";
-import { commentText } from "./cg-utils";
+import { commentText, indentText } from "./cg-utils";
 
 function genProofStructs(definition: AttestationTypeScheme): any {
   const structName = `${definition.name}`;
@@ -16,7 +14,7 @@ function genProofStructs(definition: AttestationTypeScheme): any {
     .map(
       (item) =>
         `
-${commentText(item.description)}
+        ${indentText(commentText(item.description), 8, false)}
         ${item.type} ${item.key};`
     )
     .join("\n");
@@ -42,7 +40,7 @@ function getSolidityIAttestationClient(definitions: AttestationTypeScheme[]) {
   const verifyProofFunctionSignatures = definitions.map((definition) => genProofVerificationFunctionSignatures(definition)).join("\n\n");
   const proofVerificationComment = `
 When verifying state connector proofs, the data verified will be
-\`keccak256(abi.encode(attestationType, _chainId, all _data fields except merkleProof, stateConnectorRound))\`
+  \`keccak256(abi.encode(attestationType, _chainId, all _data fields except merkleProof, stateConnectorRound))\`
 where \`attestationType\` (\`uint16\`) is a different constant for each of the methods below
 (possible values are defined in attestation specs).
 `;
@@ -53,9 +51,9 @@ pragma solidity >=0.7.6 <0.9;
 
 interface ISCProofVerifier {
 ${structs}
-${commentText(proofVerificationComment)}
+${indentText(commentText(proofVerificationComment), 4)}
 
-${verifyProofFunctionSignatures}
+${indentText(verifyProofFunctionSignatures, 4)}
 }
 `;
 }
@@ -66,7 +64,5 @@ ${getSolidityIAttestationClient(definitions)}`;
   if (!fs.existsSync(SOLIDITY_GEN_INTERFACES_ROOT)) {
     fs.mkdirSync(SOLIDITY_GEN_INTERFACES_ROOT, { recursive: true });
   }
-
-  const prettyContent = prettier.format(content, PRETTIER_SETTINGS_SOL);
-  fs.writeFileSync(`${SOLIDITY_GEN_INTERFACES_ROOT}/${I_ATTESTATION_CLIENT_FILE}`, prettyContent, "utf8");
+  fs.writeFileSync(`${SOLIDITY_GEN_INTERFACES_ROOT}/${I_ATTESTATION_CLIENT_FILE}`, content, "utf8");
 }

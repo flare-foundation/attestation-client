@@ -37,7 +37,9 @@ Maximum number of the block where the transaction is searched for.
       size: TIMESTAMP_BYTES,
       type: "NumberLike",
       description: `
-Maximum timestamp of the block where the transaction is searched for. Search range is determined by the bigger of the 'deadlineBlockNumber' and the last block with 'deadlineTimestamp'.
+Maximum timestamp of the block where the transaction is searched for.
+Search range is determined by the bigger of the 'deadlineBlockNumber'
+and the last block with 'deadlineTimestamp'.
 `,
     },
     {
@@ -98,7 +100,8 @@ The payment reference searched for.
       key: "amount",
       type: "uint128",
       description: `
-The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
+The minimal amount intended to be paid to the destination address.
+The actual amount should match or exceed this value.
 `,
     },
     {
@@ -119,7 +122,7 @@ Timestamp of the 'lowerBoundaryBlockNumber'.
       key: "firstOverflowBlockNumber",
       type: "uint64",
       description: `
-The first (lowest) confirmed block with 'timestamp > deadlineTimestamp' 
+The first (lowest) confirmed block with 'timestamp > deadlineTimestamp'
 and 'blockNumber  > deadlineBlockNumber'.
 `,
     },
@@ -127,7 +130,7 @@ and 'blockNumber  > deadlineBlockNumber'.
       key: "firstOverflowBlockTimestamp",
       type: "uint64",
       description: `
-Timestamp of the firstOverflowBlock. 
+Timestamp of the firstOverflowBlock.
 `,
     },
   ],

@@ -53,7 +53,7 @@ function genDefReqItem(item: AttestationRequestScheme, options: OpenAPIOptionsRe
   let annotation = options?.dto ? `\n@ApiProperty(${itemTypeApiProp(item.type)})\n` : "";
   let validation = options.verifierValidation ? `\n${itemValidations(item.type)}\n` : "";
   return `${JSDocCommentText(item.description)}${validation}${annotation}
-   ${item.key}: ${item.type};`;
+   ${item.key}!: ${item.type};`;
 }
 
 function genAttestationRequestType(definition: AttestationTypeScheme, options: OpenAPIOptionsRequests): string {
@@ -101,7 +101,7 @@ import { IsNumberLike } from "../utils/validators/NumberLikeValidator";`
       : "";
   // Request types
   let content = `${DEFAULT_GEN_FILE_HEADER}
-${openApiImport}  
+${openApiImport}
 import { ByteSequenceLike, NumberLike } from "${prefixPath}../attestation-types/attestation-types";
 import { AttestationType } from "${prefixPath}./attestation-types-enum";
 import { SourceId } from "${prefixPath}../sources/sources";

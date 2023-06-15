@@ -27,6 +27,15 @@ export function JSDocCommentText(text: string) {
   );
 }
 
+export function indentText(text: string | string[], indent: number, indentFirstLine: boolean = true) {
+  const indentStr = ''.padStart(indent, ' ');
+  let lines = typeof text === 'string' ? text.trimEnd().split('\n') : text;
+  lines = lines.map(line => line.trimEnd());
+  if (lines.length > 0 && lines[0] === '') lines = lines.slice(1);
+  lines = lines.map((line, ind) => ind > 0 || indentFirstLine ? indentStr + line : line);
+  return lines.join('\n');
+}
+
 export function dashCapitalized(name: string, glue = "-") {
   return name.replace(/([a-z])([A-Z])/g, `$1${glue}$2`).toLowerCase();
 }

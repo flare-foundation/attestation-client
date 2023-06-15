@@ -20,7 +20,7 @@ export class DHPayment {
 Round id in which the attestation request was validated.
 `,
   })
-  stateConnectorRound: number;
+  stateConnectorRound!: number;
 
   /**
    * Number of the transaction block on the underlying chain.
@@ -31,7 +31,7 @@ Round id in which the attestation request was validated.
 Number of the transaction block on the underlying chain.
 `,
   })
-  blockNumber: BN;
+  blockNumber!: BN;
 
   /**
    * Timestamp of the transaction block on the underlying chain.
@@ -42,7 +42,7 @@ Number of the transaction block on the underlying chain.
 Timestamp of the transaction block on the underlying chain.
 `,
   })
-  blockTimestamp: BN;
+  blockTimestamp!: BN;
 
   /**
    * Hash of the transaction on the underlying chain.
@@ -52,7 +52,7 @@ Timestamp of the transaction block on the underlying chain.
 Hash of the transaction on the underlying chain.
 `,
   })
-  transactionHash: string;
+  transactionHash!: string;
 
   /**
    * Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
@@ -63,7 +63,7 @@ Hash of the transaction on the underlying chain.
 Index of the transaction input indicating source address on UTXO chains, 0 on non-UTXO chains.
 `,
   })
-  inUtxo: BN;
+  inUtxo!: BN;
 
   /**
    * Output index for a transaction with multiple outputs on UTXO chains, 0 on non-UTXO chains.
@@ -76,47 +76,55 @@ Output index for a transaction with multiple outputs on UTXO chains, 0 on non-UT
 The same as in the 'utxo' parameter from the request.
 `,
   })
-  utxo: BN;
+  utxo!: BN;
 
   /**
-   * Standardized address hash of the source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+   * Standardized address hash of the source address viewed as a string
+   * (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized address hash of the source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+Standardized address hash of the source address viewed as a string
+(the one indicated by the 'inUtxo' parameter for UTXO blockchains).
 `,
   })
-  sourceAddressHash: string;
+  sourceAddressHash!: string;
 
   /**
-   * Standardized address hash of the intended source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+   * Standardized address hash of the intended source address viewed as a string
+   * (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized address hash of the intended source address viewed as a string (the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+Standardized address hash of the intended source address viewed as a string
+(the one indicated by the 'inUtxo' parameter for UTXO blockchains).
 `,
   })
-  intendedSourceAddressHash: string;
+  intendedSourceAddressHash!: string;
 
   /**
-   * Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+   * Standardized address hash of the receiving address as a string
+   * (the one indicated by the 'utxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized address hash of the receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+Standardized address hash of the receiving address as a string
+(the one indicated by the 'utxo' parameter for UTXO blockchains).
 `,
   })
-  receivingAddressHash: string;
+  receivingAddressHash!: string;
 
   /**
-   * Standardized address hash of the intended receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+   * Standardized address hash of the intended receiving address as a string
+   * (the one indicated by the 'utxo' parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized address hash of the intended receiving address as a string (the one indicated by the 'utxo' parameter for UTXO blockchains).
+Standardized address hash of the intended receiving address as a string
+(the one indicated by the 'utxo' parameter for UTXO blockchains).
 `,
   })
-  intendedReceivingAddressHash: string;
+  intendedReceivingAddressHash!: string;
 
   /**
    * The amount that went out of the source address, in the smallest underlying units.
@@ -137,48 +145,54 @@ If the standardized payment reference does not exist, then it is just the spent 
 on the input indicated by 'inUtxo'.
 `,
   })
-  spentAmount: BN;
+  spentAmount!: BN;
 
   /**
    * The amount that was intended to go out of the source address, in the smallest underlying units.
    * If the transaction status is successful the value matches 'spentAmount'.
-   * If the transaction status is not successful, the value is the amount that was intended to be spent by the source address.
+   * If the transaction status is not successful, the value is the amount that was intended
+   * to be spent by the source address.
    */
   @ApiProperty({
     type: "string",
     description: `
 The amount that was intended to go out of the source address, in the smallest underlying units.
-If the transaction status is successful the value matches 'spentAmount'. 
-If the transaction status is not successful, the value is the amount that was intended to be spent by the source address.
+If the transaction status is successful the value matches 'spentAmount'.
+If the transaction status is not successful, the value is the amount that was intended
+to be spent by the source address.
 `,
   })
-  intendedSpentAmount: BN;
+  intendedSpentAmount!: BN;
 
   /**
-   * The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
+   * The amount received to the receiving address, in smallest underlying units.
+   * Can be negative in UTXO chains.
    */
   @ApiProperty({
     type: "string",
     description: `
-The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
+The amount received to the receiving address, in smallest underlying units.
+Can be negative in UTXO chains.
 `,
   })
-  receivedAmount: BN;
+  receivedAmount!: BN;
 
   /**
    * The intended amount to be received by the receiving address, in smallest underlying units.
    * For transactions that are successful, this is the same as 'receivedAmount'.
-   * If the transaction status is not successful, the value is the amount that was intended to be received by the receiving address.
+   * If the transaction status is not successful, the value is the amount that was intended
+   * to be received by the receiving address.
    */
   @ApiProperty({
     type: "string",
     description: `
-The intended amount to be received by the receiving address, in smallest underlying units. 
+The intended amount to be received by the receiving address, in smallest underlying units.
 For transactions that are successful, this is the same as 'receivedAmount'.
-If the transaction status is not successful, the value is the amount that was intended to be received by the receiving address.
+If the transaction status is not successful, the value is the amount that was intended
+to be received by the receiving address.
 `,
   })
-  intendedReceivedAmount: BN;
+  intendedReceivedAmount!: BN;
 
   /**
    * Standardized payment reference, if it exists, 0 otherwise.
@@ -188,7 +202,7 @@ If the transaction status is not successful, the value is the amount that was in
 Standardized payment reference, if it exists, 0 otherwise.
 `,
   })
-  paymentReference: string;
+  paymentReference!: string;
 
   /**
    * 'true' if the transaction has exactly one source address and
@@ -196,11 +210,11 @@ Standardized payment reference, if it exists, 0 otherwise.
    */
   @ApiProperty({
     description: `
-'true' if the transaction has exactly one source address and 
+'true' if the transaction has exactly one source address and
 exactly one receiving address (different from source).
 `,
   })
-  oneToOne: boolean;
+  oneToOne!: boolean;
 
   /**
    * Transaction success status, can have 3 values:
@@ -217,7 +231,7 @@ Transaction success status, can have 3 values:
   - 2 - Failure due to receiver (bad destination address)
 `,
   })
-  status: BN;
+  status!: BN;
 }
 
 export class DHBalanceDecreasingTransaction {
@@ -235,7 +249,7 @@ export class DHBalanceDecreasingTransaction {
 Round id in which the attestation request was validated.
 `,
   })
-  stateConnectorRound: number;
+  stateConnectorRound!: number;
 
   /**
    * Number of the transaction block on the underlying chain.
@@ -246,7 +260,7 @@ Round id in which the attestation request was validated.
 Number of the transaction block on the underlying chain.
 `,
   })
-  blockNumber: BN;
+  blockNumber!: BN;
 
   /**
    * Timestamp of the transaction block on the underlying chain.
@@ -257,7 +271,7 @@ Number of the transaction block on the underlying chain.
 Timestamp of the transaction block on the underlying chain.
 `,
   })
-  blockTimestamp: BN;
+  blockTimestamp!: BN;
 
   /**
    * Hash of the transaction on the underlying chain.
@@ -267,38 +281,54 @@ Timestamp of the transaction block on the underlying chain.
 Hash of the transaction on the underlying chain.
 `,
   })
-  transactionHash: string;
+  transactionHash!: string;
 
   /**
-   * Either standardized hash of a source address or UTXO vin index in hex format (as provided in the request).
+   * Either standardized hash of a source address or UTXO vin index in hex format
+   * (as provided in the request).
    */
   @ApiProperty({
     description: `
-Either standardized hash of a source address or UTXO vin index in hex format (as provided in the request).
+Either standardized hash of a source address or UTXO vin index in hex format
+(as provided in the request).
 `,
   })
-  sourceAddressIndicator: string;
+  sourceAddressIndicator!: string;
 
   /**
-   * Standardized hash of the source address viewed as a string (the one indicated by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
+   * Standardized hash of the source address viewed as a string (the one indicated
+   *   by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
    */
   @ApiProperty({
     description: `
-Standardized hash of the source address viewed as a string (the one indicated by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
+Standardized hash of the source address viewed as a string (the one indicated
+  by the 'sourceAddressIndicator' (vin input index) parameter for UTXO blockchains).
 `,
   })
-  sourceAddressHash: string;
+  sourceAddressHash!: string;
 
   /**
-   * The amount that went out of the source address, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address indicated by 'sourceAddressIndicator', and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by 'sourceAddressIndicator'.
+   * The amount that went out of the source address, in the smallest underlying units.
+   * In non-UTXO chains it includes both payment value and fee (gas).
+   * Calculation for UTXO chains depends on the existence of standardized payment reference.
+   * If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address
+   * indicated by 'sourceAddressIndicator', and can be negative.
+   * If the standardized payment reference does not exist, then it is just the spent amount
+   * on the input indicated by 'sourceAddressIndicator'.
    */
   @ApiProperty({
     type: "string",
     description: `
-The amount that went out of the source address, in the smallest underlying units. In non-UTXO chains it includes both payment value and fee (gas). Calculation for UTXO chains depends on the existence of standardized payment reference. If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address indicated by 'sourceAddressIndicator', and can be negative. If the standardized payment reference does not exist, then it is just the spent amount on the input indicated by 'sourceAddressIndicator'.
+The amount that went out of the source address, in the smallest underlying units.
+In non-UTXO chains it includes both payment value and fee (gas).
+Calculation for UTXO chains depends on the existence of standardized payment reference.
+If it exists, it is calculated as 'total_outgoing_amount - returned_amount' from the address
+indicated by 'sourceAddressIndicator', and can be negative.
+If the standardized payment reference does not exist, then it is just the spent amount
+on the input indicated by 'sourceAddressIndicator'.
 `,
   })
-  spentAmount: BN;
+  spentAmount!: BN;
 
   /**
    * Standardized payment reference, if it exists, 0 otherwise.
@@ -308,7 +338,7 @@ The amount that went out of the source address, in the smallest underlying units
 Standardized payment reference, if it exists, 0 otherwise.
 `,
   })
-  paymentReference: string;
+  paymentReference!: string;
 }
 
 export class DHConfirmedBlockHeightExists {
@@ -326,7 +356,7 @@ export class DHConfirmedBlockHeightExists {
 Round id in which the attestation request was validated.
 `,
   })
-  stateConnectorRound: number;
+  stateConnectorRound!: number;
 
   /**
    * Number of the highest confirmed block that was proved to exist.
@@ -337,7 +367,7 @@ Round id in which the attestation request was validated.
 Number of the highest confirmed block that was proved to exist.
 `,
   })
-  blockNumber: BN;
+  blockNumber!: BN;
 
   /**
    * Timestamp of the confirmed block that was proved to exist.
@@ -348,7 +378,7 @@ Number of the highest confirmed block that was proved to exist.
 Timestamp of the confirmed block that was proved to exist.
 `,
   })
-  blockTimestamp: BN;
+  blockTimestamp!: BN;
 
   /**
    * Number of confirmations for the blockchain.
@@ -359,7 +389,7 @@ Timestamp of the confirmed block that was proved to exist.
 Number of confirmations for the blockchain.
 `,
   })
-  numberOfConfirmations: BN;
+  numberOfConfirmations!: BN;
 
   /**
    * Lowest query window block number.
@@ -370,7 +400,7 @@ Number of confirmations for the blockchain.
 Lowest query window block number.
 `,
   })
-  lowestQueryWindowBlockNumber: BN;
+  lowestQueryWindowBlockNumber!: BN;
 
   /**
    * Lowest query window block timestamp.
@@ -381,7 +411,7 @@ Lowest query window block number.
 Lowest query window block timestamp.
 `,
   })
-  lowestQueryWindowBlockTimestamp: BN;
+  lowestQueryWindowBlockTimestamp!: BN;
 }
 
 export class DHReferencedPaymentNonexistence {
@@ -399,7 +429,7 @@ export class DHReferencedPaymentNonexistence {
 Round id in which the attestation request was validated.
 `,
   })
-  stateConnectorRound: number;
+  stateConnectorRound!: number;
 
   /**
    * Deadline block number specified in the attestation request.
@@ -410,7 +440,7 @@ Round id in which the attestation request was validated.
 Deadline block number specified in the attestation request.
 `,
   })
-  deadlineBlockNumber: BN;
+  deadlineBlockNumber!: BN;
 
   /**
    * Deadline timestamp specified in the attestation request.
@@ -421,7 +451,7 @@ Deadline block number specified in the attestation request.
 Deadline timestamp specified in the attestation request.
 `,
   })
-  deadlineTimestamp: BN;
+  deadlineTimestamp!: BN;
 
   /**
    * Standardized address hash of the destination address searched for.
@@ -431,7 +461,7 @@ Deadline timestamp specified in the attestation request.
 Standardized address hash of the destination address searched for.
 `,
   })
-  destinationAddressHash: string;
+  destinationAddressHash!: string;
 
   /**
    * The payment reference searched for.
@@ -441,18 +471,20 @@ Standardized address hash of the destination address searched for.
 The payment reference searched for.
 `,
   })
-  paymentReference: string;
+  paymentReference!: string;
 
   /**
-   * The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
+   * The minimal amount intended to be paid to the destination address.
+   * The actual amount should match or exceed this value.
    */
   @ApiProperty({
     type: "string",
     description: `
-The minimal amount intended to be paid to the destination address. The actual amount should match or exceed this value.
+The minimal amount intended to be paid to the destination address.
+The actual amount should match or exceed this value.
 `,
   })
-  amount: BN;
+  amount!: BN;
 
   /**
    * The first confirmed block that gets checked. It is exactly 'minimalBlockNumber' from the request.
@@ -463,7 +495,7 @@ The minimal amount intended to be paid to the destination address. The actual am
 The first confirmed block that gets checked. It is exactly 'minimalBlockNumber' from the request.
 `,
   })
-  lowerBoundaryBlockNumber: BN;
+  lowerBoundaryBlockNumber!: BN;
 
   /**
    * Timestamp of the 'lowerBoundaryBlockNumber'.
@@ -474,7 +506,7 @@ The first confirmed block that gets checked. It is exactly 'minimalBlockNumber' 
 Timestamp of the 'lowerBoundaryBlockNumber'.
 `,
   })
-  lowerBoundaryBlockTimestamp: BN;
+  lowerBoundaryBlockTimestamp!: BN;
 
   /**
    * The first (lowest) confirmed block with 'timestamp > deadlineTimestamp'
@@ -483,11 +515,11 @@ Timestamp of the 'lowerBoundaryBlockNumber'.
   @ApiProperty({
     type: "string",
     description: `
-The first (lowest) confirmed block with 'timestamp > deadlineTimestamp' 
+The first (lowest) confirmed block with 'timestamp > deadlineTimestamp'
 and 'blockNumber  > deadlineBlockNumber'.
 `,
   })
-  firstOverflowBlockNumber: BN;
+  firstOverflowBlockNumber!: BN;
 
   /**
    * Timestamp of the firstOverflowBlock.
@@ -495,10 +527,10 @@ and 'blockNumber  > deadlineBlockNumber'.
   @ApiProperty({
     type: "string",
     description: `
-Timestamp of the firstOverflowBlock. 
+Timestamp of the firstOverflowBlock.
 `,
   })
-  firstOverflowBlockTimestamp: BN;
+  firstOverflowBlockTimestamp!: BN;
 }
 export type DHType = DHPayment | DHBalanceDecreasingTransaction | DHConfirmedBlockHeightExists | DHReferencedPaymentNonexistence;
 export const DHTypeArray = [DHPayment, DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHReferencedPaymentNonexistence];

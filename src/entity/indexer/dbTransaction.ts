@@ -1,5 +1,5 @@
 import { Column, Entity, Index } from "typeorm";
-import { decompressBin } from "../../utils/compression/compression.zlib";
+import { decompressBin } from "../../utils/compression/compression";
 import { BaseEntity } from "../base/BaseEntity";
 
 /**

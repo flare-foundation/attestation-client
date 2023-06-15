@@ -3,7 +3,7 @@
   "roundDurationSec": 8,
   "serviceStatusFilePath": "../monitor-status.json",
 
-  "port": 9510,
+  "port": 9610,
 
   "attesterDatabase": {
     "host": "",

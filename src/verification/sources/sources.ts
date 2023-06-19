@@ -9,6 +9,8 @@ export enum SourceId {
   ALGO = 4,
 }
 
+export const HIGHEST_SOURCE_ID = 4;
+
 /**
  * Returns source name for `sourceId`
  * @param sourceId

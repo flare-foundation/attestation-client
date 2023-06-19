@@ -37,9 +37,9 @@ function genDefReqItem(item: AttestationRequestScheme, options: OpenAPIOptionsRe
   function itemValidations(itemType: SupportedRequestType) {
     switch (itemType) {
       case "AttestationType":
-        return `@IsInt()\n@Min(1)`;
+        return `@Min(1)\n@IsInt()`;
       case "SourceId":
-        return `@IsInt()\n@Min(0)`;
+        return `@Min(0)\n@IsInt()`;
       case "NumberLike":
         return `@Validate(IsNumberLike)`;
       case "ByteSequenceLike":

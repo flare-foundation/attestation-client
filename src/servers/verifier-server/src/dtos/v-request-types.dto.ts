@@ -31,8 +31,8 @@ export class ARPayment implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
-  @IsInt()
   @Min(1)
+  @IsInt()
   @ApiProperty({
     enum: AttestationType,
     description: `
@@ -44,8 +44,8 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
-  @IsInt()
   @Min(0)
+  @IsInt()
   @ApiProperty({
     enum: SourceId,
     description: `
@@ -109,8 +109,8 @@ export class ARBalanceDecreasingTransaction implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
-  @IsInt()
   @Min(1)
+  @IsInt()
   @ApiProperty({
     enum: AttestationType,
     description: `
@@ -122,8 +122,8 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
-  @IsInt()
   @Min(0)
+  @IsInt()
   @ApiProperty({
     enum: SourceId,
     description: `
@@ -170,8 +170,8 @@ export class ARConfirmedBlockHeightExists implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
-  @IsInt()
   @Min(1)
+  @IsInt()
   @ApiProperty({
     enum: AttestationType,
     description: `
@@ -183,8 +183,8 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
-  @IsInt()
   @Min(0)
+  @IsInt()
   @ApiProperty({
     enum: SourceId,
     description: `
@@ -233,8 +233,8 @@ export class ARReferencedPaymentNonexistence implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
-  @IsInt()
   @Min(1)
+  @IsInt()
   @ApiProperty({
     enum: AttestationType,
     description: `
@@ -246,8 +246,8 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
-  @IsInt()
   @Min(0)
+  @IsInt()
   @ApiProperty({
     enum: SourceId,
     description: `

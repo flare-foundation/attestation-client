@@ -42,11 +42,11 @@ export class ApiValidationErrorDetails {
 export class ApiResponseWrapper<T> {
   data?: T;
 
-  /**
-   * Optional details for unexpected error responses.
-   */
-  @ApiPropertyOptional()
-  errorDetails?: string;
+  // /**
+  //  * Optional details for unexpected error responses.
+  //  */
+  // @ApiPropertyOptional()
+  // errorDetails?: string;
 
   /**
    * Simple message to explain client developers the reason for error.
@@ -67,7 +67,7 @@ export class ApiResponseWrapper<T> {
     this.status = status || ApiResStatusEnum.OK;
     this.data = data;
     this.errorMessage = errorMessage;
-    this.errorDetails = errorDetails;
+    // this.errorDetails = errorDetails;
   }
 }
 

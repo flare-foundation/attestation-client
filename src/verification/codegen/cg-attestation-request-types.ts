@@ -3,6 +3,8 @@ import prettier from "prettier";
 import { AttestationRequestScheme, AttestationTypeScheme, REQUEST_BASE_DEFINITIONS, SupportedRequestType } from "../attestation-types/attestation-types";
 import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, GENERATED_ROOT, PRETTIER_SETTINGS } from "./cg-constants";
 import { JSDocCommentText, OpenAPIOptionsRequests } from "./cg-utils";
+import { NUMBER_OF_ATTESTATION_TYPES } from "../generated/attestation-types-enum";
+import { HIGHEST_SOURCE_ID } from "../sources/sources";
 
 function enumProperty(enumName: string, comment?: string) {
   return `{enum: ${enumName}, description: \`${comment ?? ""}\`}`;
@@ -37,9 +39,9 @@ function genDefReqItem(item: AttestationRequestScheme, options: OpenAPIOptionsRe
   function itemValidations(itemType: SupportedRequestType) {
     switch (itemType) {
       case "AttestationType":
-        return `@Min(1)\n@IsInt()`;
+        return `@Max(${NUMBER_OF_ATTESTATION_TYPES})\n@Min(1)\n@IsInt()`;
       case "SourceId":
-        return `@Min(0)\n@IsInt()`;
+        return `@Max(${HIGHEST_SOURCE_ID})\n@Min(0)\n@IsInt()`;
       case "NumberLike":
         return `@Validate(IsNumberLike)`;
       case "ByteSequenceLike":
@@ -95,7 +97,7 @@ export function createAttestationRequestTypesFile(definitions: AttestationTypeSc
   }
   const validationImports =
     options.dto && options.verifierValidation
-      ? `import { IsInt, Min, Validate } from "class-validator";
+      ? `import { IsInt, Min, Max, Validate } from "class-validator";
 import { IsHash32 } from "../utils/validators/Hash32Validator";
 import { IsNumberLike } from "../utils/validators/NumberLikeValidator";`
       : "";

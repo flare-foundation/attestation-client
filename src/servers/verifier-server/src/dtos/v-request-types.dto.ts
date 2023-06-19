@@ -6,7 +6,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { ByteSequenceLike, NumberLike } from "../../../../../src/verification/generated/../attestation-types/attestation-types";
 import { AttestationType } from "../../../../../src/verification/generated/./attestation-types-enum";
 import { SourceId } from "../../../../../src/verification/generated/../sources/sources";
-import { IsInt, Min, Validate } from "class-validator";
+import { IsInt, Min, Max, Validate } from "class-validator";
 import { IsHash32 } from "../utils/validators/Hash32Validator";
 import { IsNumberLike } from "../utils/validators/NumberLikeValidator";
 
@@ -31,6 +31,7 @@ export class ARPayment implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
+  @Max(4)
   @Min(1)
   @IsInt()
   @ApiProperty({
@@ -44,6 +45,7 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
+  @Max(4)
   @Min(0)
   @IsInt()
   @ApiProperty({
@@ -109,6 +111,7 @@ export class ARBalanceDecreasingTransaction implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
+  @Max(4)
   @Min(1)
   @IsInt()
   @ApiProperty({
@@ -122,6 +125,7 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
+  @Max(4)
   @Min(0)
   @IsInt()
   @ApiProperty({
@@ -170,6 +174,7 @@ export class ARConfirmedBlockHeightExists implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
+  @Max(4)
   @Min(1)
   @IsInt()
   @ApiProperty({
@@ -183,6 +188,7 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
+  @Max(4)
   @Min(0)
   @IsInt()
   @ApiProperty({
@@ -233,6 +239,7 @@ export class ARReferencedPaymentNonexistence implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
+  @Max(4)
   @Min(1)
   @IsInt()
   @ApiProperty({
@@ -246,6 +253,7 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
+  @Max(4)
   @Min(0)
   @IsInt()
   @ApiProperty({

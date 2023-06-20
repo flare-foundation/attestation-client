@@ -60,7 +60,7 @@ To provide better security and stability for the State Connector system, the pro
 First you need to form the attestation request with all the fields except the `messageIntegrityCode`, which can be set to an empty string. The
 object should match the fields of the relevant [attestation request type](../../src/verification/generated/attestation-request-types.ts). Then there are two options:
 
-- Form the object for the [expected attestation response](../../src/verification/generated/attestation-hash-types.ts), using the relevant hashing function from the[hashing library](../../src/verification/generated/attestation-hash-utils.ts) and the `Flare` salt.
+- Form the object for the [expected attestation response](../../src/verification/generated/attestation-hash-types.ts), using the relevant hashing function from the [hashing library](../../src/verification/generated/attestation-hash-utils.ts) and the `Flare` salt.
 - Use one of the verifier server REST API methods provided by any attestation provider (`/verifier/<chain>/integrity` or `/verifier/<chain>/prepareAttestation`). Verifier server REST APIs usually require an API key.
 
 ## How to submit an attestation request?

@@ -305,18 +305,13 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       request.blockNumber = toNumber(request.blockNumber);
       request.messageIntegrityCode = "12";
 
-      try {
-        const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
-          headers: {
-            "x-api-key": API_KEY,
-          },
-        });
-        console.log(resp);
-        expect(resp.data.status, "response not ok").to.eq("OK");
-        expect(resp.data.data.length).to.eq(154);
-      } catch (e) {
-        console.log(e);
-      }
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.status, "response not ok").to.eq("OK");
+      expect(resp.data.data.length).to.eq(154);
     });
 
     it(`Should not prepareAttestation for invalid request`, async function () {

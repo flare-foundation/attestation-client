@@ -216,6 +216,23 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       expect(resp.data.data, "MIC does not match").to.eq(request.messageIntegrityCode);
     });
 
+    it(`Should get MIC without predefined mic`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+
+      request.blockNumber = toNumber(request.blockNumber);
+      const mic = request.messageIntegrityCode;
+      request.messageIntegrityCode = undefined;
+
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.data, "MIC does not match").to.eq(mic);
+    });
+
     it(`Should not get MIC with wrong types request`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
@@ -280,6 +297,28 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       expect(resp.data.data.length).to.eq(154);
     });
 
+    it(`Should prepareAttestation with invalid mic`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+
+      request.blockNumber = toNumber(request.blockNumber);
+      request.messageIntegrityCode = "12";
+
+      try {
+        const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
+          headers: {
+            "x-api-key": API_KEY,
+          },
+        });
+        console.log(resp);
+        expect(resp.data.status, "response not ok").to.eq("OK");
+        expect(resp.data.data.length).to.eq(154);
+      } catch (e) {
+        console.log(e);
+      }
+    });
+
     it(`Should not prepareAttestation for invalid request`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
@@ -340,7 +379,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     });
 
     it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
-      let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));      
+      let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));
       let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
       request.id = toHexPad(12, 32);
       let attestationRequest = {
@@ -359,7 +398,14 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     it(`Should verify Confirmed Block Height Exists attestation`, async function () {
       let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
       let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-      let request = await testConfirmedBlockHeightExistsRequest(defStore, confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
+      let request = await testConfirmedBlockHeightExistsRequest(
+        defStore,
+        confirmedBlock,
+        lowerQueryWindowBlock,
+        CHAIN_TYPE,
+        NUMBER_OF_CONFIRMATIONS,
+        BLOCK_QUERY_WINDOW
+      );
       let attestationRequest = {
         request: defStore.encodeRequest(request),
         options: {
@@ -378,7 +424,14 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
       confirmedBlock.blockNumber = 250;
       let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-      let request = await testConfirmedBlockHeightExistsRequest(defStore, confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
+      let request = await testConfirmedBlockHeightExistsRequest(
+        defStore,
+        confirmedBlock,
+        lowerQueryWindowBlock,
+        CHAIN_TYPE,
+        NUMBER_OF_CONFIRMATIONS,
+        BLOCK_QUERY_WINDOW
+      );
       let attestationRequest = {
         request: defStore.encodeRequest(request),
         options: {
@@ -400,7 +453,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
 
       let request = await testReferencedPaymentNonexistenceRequest(
-        defStore, 
+        defStore,
         [],
         TX_CLASS,
         firstOverflowBlock,
@@ -438,7 +491,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
 
       let request = await testReferencedPaymentNonexistenceRequest(
-        defStore, 
+        defStore,
         [selectedTransaction],
         TX_CLASS,
         firstOverflowBlock,

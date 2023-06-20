@@ -77,7 +77,7 @@ export function getSummarizedVerificationStatus(status: VerificationStatus): Sum
       return SummarizedVerificationStatus.invalid;
   }
   // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-  ((_: never): void => { })(status);
+  ((_: never): void => {})(status);
 }
 
 /**

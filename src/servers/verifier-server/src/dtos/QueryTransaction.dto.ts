@@ -8,16 +8,16 @@ export class QueryTransaction {
   /**
    * Minimal block number of query range
    */
-  @IsOptional()
   @IsInt()
   @Type(() => Number)
+  @IsOptional()
   from?: number;
   /**
    * Maximal block number of the query range
    */
-  @IsOptional()
   @IsInt()
   @Type(() => Number)
+  @IsOptional()
   to?: number;
   /**
    * 0x-prefixed lowercase hex string representing 32-bytes
@@ -27,21 +27,21 @@ export class QueryTransaction {
   /**
    * Query limit. Capped by server config settings
    */
-  @IsOptional()
   @IsInt()
   @Type(() => Number)
+  @IsOptional()
   limit?: number;
   /**
    * Query offset
    */
-  @IsOptional()
   @IsInt()
   @Type(() => Number)
+  @IsOptional()
   offset?: number;
   /**
    * Whether response from node stored in the indexer database should be returned
    */
-  @IsOptional()
   @Transform(({ value }) => value === "true")
+  @IsOptional()
   returnResponse?: boolean;
 }

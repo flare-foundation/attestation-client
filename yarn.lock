@@ -738,10 +738,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@flarenetwork/mcc@3.0.3-beta.4":
-  version "3.0.3-beta.4"
-  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-3.0.3-beta.4.tgz#2f72f5aaeb70096e8438c595b0aa8fc4764f2d9c"
-  integrity sha512-DI4PhTuLAqlZRDXHvMlCQtheszYfmynrIJtbpAzFv9BKHG3bln+mWXQzShMFhlUdTQ9MkdYeSELR0zOU4huaJA==
+"@flarenetwork/mcc@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-3.1.0.tgz#b39abad520b18dd6d75aa3447f41d8de9c7ebaba"
+  integrity sha512-ErQxMEMoNm0UDS0E56zklz+G+dXMC4z7BTzigKXoHSAA2kX8KtSdWraIbMgy/hwhkqgroViZxouR0am/6XnN4g==
   dependencies:
     "@msgpack/msgpack" "^2.8.0"
     algo-msgpack-with-bigint "2.1.1"

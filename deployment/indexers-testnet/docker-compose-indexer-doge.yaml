@@ -43,6 +43,7 @@ services:
 
   dogecoin-node:
     image: flarefoundation/dogecoin:1.14.6
+    container_name: indexer-doge-node
     restart: unless-stopped
     ports:
       - 44555:44555

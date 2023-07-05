@@ -42,6 +42,19 @@ The web service routes are documented using the Swagger interface at the `/api-d
 
 - `/api/proof/get-specific-proof` - POST: Given `{roundId: number, requestBytes: string}`, a submission of a specific attestation request and the actual byte array of the submitted attestation request (`requestBytes`, a `0x`-prefixed hex string representing the byte array) to the State Connector in the round `roundId`, it returns the JSON response data, which includes the attestation proof, but only if the attestation request was successfully verified in the given round `roundId`. The response data contains:
 
+  | Field          | Type   | Description                                                                                                                                                |
+  | -------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `roundId`      | number | ID of the attestation round in which the request was considered.                                                                                           |
+  | `hash`         | string | Hash of the attestation as in the Merkle tree.                                                                                                             |
+  | `requestBytes` | string | Encoded attestation request.                                                                                                                               |
+  | `request`      | object | Request as specified by the attestation type.                                                                                                              |
+  | `response`     | object | Response to the request as specified by the attestation type.                                                                                              |
+  | `merkleProof`  | array  | Array of hashes that prove that the request's hash is included in the Merkle tree. It can be an empty array if only one request is confirmed in the round. |
+
+  The data can be used for creating the attestation proofs used on the Flare blockchain.
+
+- `/api/proof/votes-for-round/{roundId}` - GET: Given a `roundId` it returns a JSON response containing the list of all attestation objects that were confirmed in the round. The data contains an array of objects containing:
+
   | Field          | Type   | Description                                                                        |
   | -------------- | ------ | ---------------------------------------------------------------------------------- |
   | `roundId`      | number | ID of the attestation round in which the request was considered.                   |
@@ -51,7 +64,9 @@ The web service routes are documented using the Swagger interface at the `/api-d
   | `response`     | object | Response to the request as specified by the attestation type.                      |
   | `merkleProof`  | array  | Array of hashes that prove that the request's hash is included in the Merkle tree. |
 
-- `/api/proof/votes-for-round/{roundId}` - GET: Given a `roundId` it returns a JSON response containing the list of all attestation objects that were confirmed in the round. The data contains an array of objects containing:
+  It is the same as calling get-specific-proof for every confirmed request in the round.
+
+- `/api/proof/requests-for-round/{roundId}` - GET: Given a `roundId` it returns a JSON response containing the list of objects describing all attestation requests that were considered in the round. The response data contains an array of objects containing:
 
   | Field                | Type   | Description                                                  |
   | -------------------- | ------ | ------------------------------------------------------------ |
@@ -59,19 +74,6 @@ The web service routes are documented using the Swagger interface at the `/api-d
   | `verificationStatus` | string | Verification status.                                         |
   | `attestationStatus`  | string | Attestation status.                                          |
   | `roundId`            | number | ID of the attestation round in which request was considered. |
-
-  The data can be used for creating the attestation proofs.
-
-- `/api/proof/requests-for-round/{roundId}` - GET: Given a `roundId` it returns a JSON response containing the list of objects describing all attestation requests that were considered in the round. The response data contains an array of objects containing:
-
-  | Field          | Type   | Description                                                                        |
-  | -------------- | ------ | ---------------------------------------------------------------------------------- |
-  | `roundId`      | number | ID of the attestation round in which the request was considered.                   |
-  | `hash`         | string | Hash of the attestation as in the Merkle tree.                                     |
-  | `requestBytes` | string | Encoded attestation request.                                                       |
-  | `request`      | object | Request as specified by the attestation type.                                      |
-  | `response`     | object | Response to the request as specified by the attestation type.                      |
-  | `merkleProof`  | array  | Array of hashes that prove that the request's hash is included in the Merkle tree. |
 
   The data can be used for investigating the status of all attestation requests in the round.
 

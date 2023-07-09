@@ -60,15 +60,15 @@
     "dockers" : [
         {
             //"disabled": true,
-            "name" : "indexer-btc_bitcoin-node_1",
+            "name" : "indexer-btc-node",
         },
         {
             //"disabled": true,
-            "name" : "indexer-doge_dogecoin-node_1",
+            "name" : "indexer-doge-node",
         },
         {
             //"disabled": true,
-            "name" : "indexer-xrp_ripple-node_1",
+            "name" : "indexer-xrp-node",
         },
         
 

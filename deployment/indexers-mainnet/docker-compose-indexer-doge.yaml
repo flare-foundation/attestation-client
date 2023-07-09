@@ -45,6 +45,7 @@ services:
 
   dogecoin-node:
     image: registry.aflabs.org/public-docker/dogecoin:fullTx
+    container_name: indexer-doge-node
     restart: unless-stopped
     ports:
       - 22555:22555

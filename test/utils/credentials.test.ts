@@ -3,7 +3,7 @@
 
 import { assert } from "chai";
 import sinon from "sinon";
-import { getSecureConfigRootPath, readSecureConfig } from "../../src/utils/config/configSecure";
+import { getSecureConfigRootPath } from "../../src/utils/config/configSecure";
 import { getCredentialsKey, getCredentialsKeyAddress, getSecretByAddress } from "../../src/utils/config/credentialsKey";
 import { initializeJSONsecure, SECURE_MASTER_CONFIGS, _clearSecureCredentials } from "../../src/utils/config/jsonSecure";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";

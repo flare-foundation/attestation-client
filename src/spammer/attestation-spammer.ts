@@ -1,24 +1,24 @@
-import { ChainType, MCC, sleepMs } from "@flarenetwork/mcc";
+import { ChainType, MCC, MccClient, UtxoMccCreate, sleepMs } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import * as yargs from "yargs";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
-import { getRandomAttestationRequest, prepareRandomGenerators, TxOrBlockGeneratorType } from "../indexed-query-manager/random-attestation-requests/random-ar";
+import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
+import { TxOrBlockGeneratorType, getRandomAttestationRequest, prepareRandomGenerators } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
 import { readSecureConfig } from "../utils/config/configSecure";
-import { indexerEntities } from "../utils/database/databaseEntities";
 import { DatabaseService } from "../utils/database/DatabaseService";
+import { indexerEntities } from "../utils/database/databaseEntities";
+import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { getTimeMs } from "../utils/helpers/internetTime";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
-import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
+import { AttestationDefinitionStore } from "../verification/attestation-types/AttestationDefinitionStore";
 import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
 import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
-import { encodeRequest } from "../verification/generated/attestation-request-encode";
 import { ARType } from "../verification/generated/attestation-request-types";
 import { SourceId } from "../verification/sources/sources";
 import { SpammerCredentials } from "./SpammerConfiguration";
@@ -49,6 +49,9 @@ class AttestationSpammer {
   // attestationRoundManager: AttestationRoundManager;
   spammerCredentials: SpammerCredentials;
 
+  defStore: AttestationDefinitionStore;
+  client: MccClient;
+
   get numberOfConfirmations(): number {
     return this.spammerCredentials.numberOfConfirmations;
   }
@@ -70,6 +73,8 @@ class AttestationSpammer {
   }
 
   async init() {
+    this.defStore = new AttestationDefinitionStore();
+    await this.defStore.initialize();
     // Reading configuration
     this.spammerCredentials = await readSecureConfig(new SpammerCredentials(), `spammer/${args["chain"].toLowerCase()}-spammer`);
 
@@ -137,7 +142,7 @@ class AttestationSpammer {
     // let scheme = this.definitions.find(definition => definition.id === request.attestationType);
     // let requestBytes = encodeRequestBytes(request, scheme);
 
-    const requestBytes = encodeRequest(request);
+    const requestBytes = this.defStore.encodeRequest(request);
     // // DEBUG CODE
     //console.log("SENDING:\n", requestBytes, "\n", request);
     // console.log("SENDING:\n", requestBytes, "\n");
@@ -235,17 +240,40 @@ class AttestationSpammer {
 
   static sendCount = 0;
 
+  private getClient() {
+    let chainName = args["chain"].toLowerCase();
+    switch (chainName) {
+      case "btc":
+        return new MCC.BTC(this.spammerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
+      case "ltc":
+        return new MCC.LTC(this.spammerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
+      case "doge":
+        return new MCC.DOGE(this.spammerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
+      case "xrp":
+        return undefined;
+      // return new MCC.XRP(this.spammerCredentials.chainConfiguration.mccCreate as XrpMccCreate);
+      case "algo":
+        return undefined;
+      // return new MCC.ALGO(this.spammerCredentials.chainConfiguration.mccCreate as AlgoMccCreate);
+      default:
+        throw new Error(`Unknown chain ${chainName}`);
+    }
+  }
+
   async runSpammer() {
+    this.client = this.getClient();
     while (true) {
       try {
         AttestationSpammer.sendCount++;
         // const attRequest = validTransactions[await getRandom(0, validTransactions.length - 1)];
 
         const attRequest = await getRandomAttestationRequest(
+          this.defStore,
           this.logger,
           this.randomGenerators,
           this.indexedQueryManager,
-          this.chainType as number as SourceId
+          this.chainType as number as SourceId,
+          this.client
         );
 
         if (attRequest) {

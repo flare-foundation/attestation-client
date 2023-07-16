@@ -8,12 +8,11 @@
 
 import {
   ARConfirmedBlockHeightExists,
+  AttestationDefinitionStore,
   BN,
   DHConfirmedBlockHeightExists,
-  hashConfirmedBlockHeightExists,
   IndexedQueryManager,
   MCC,
-  parseConfirmedBlockHeightExists,
   randSol,
   Verification,
   VerificationStatus,
@@ -24,11 +23,12 @@ import { verifyConfirmedBlockHeightExists } from "../../verification-utils/gener
 const web3 = new Web3();
 
 export async function verifyConfirmedBlockHeightExistsBTC(
+  defStore: AttestationDefinitionStore,
   client: MCC.BTC,
   attestationRequest: string,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARConfirmedBlockHeightExists, DHConfirmedBlockHeightExists>> {
-  const request = parseConfirmedBlockHeightExists(attestationRequest) as ARConfirmedBlockHeightExists;
+  const request = defStore.parseRequest(attestationRequest) as ARConfirmedBlockHeightExists;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
@@ -41,7 +41,7 @@ export async function verifyConfirmedBlockHeightExistsBTC(
 
   //-$$$<end> of the custom section. Do not change this comment.
 
-  const hash = hashConfirmedBlockHeightExists(request, response);
+  const hash = defStore.dataHash(request, response);
 
   return {
     hash,

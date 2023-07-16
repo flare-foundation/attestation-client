@@ -1,9 +1,9 @@
 import {
   AlgoBlock,
   AlgoTransaction,
+  BlockBase,
   ChainType,
-  IBlock,
-  ITransaction,
+  TransactionBase,
   unPrefix0x,
   UtxoBlock,
   UtxoTransaction,
@@ -12,7 +12,12 @@ import {
 } from "@flarenetwork/mcc";
 import { stringify } from "safe-stable-stringify";
 import { DBTransactionALGO0, DBTransactionBase, DBTransactionXRP0, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { compressBin } from "../../utils/compression/compression";
 import { prepareString } from "../../utils/helpers/utils";
+
+
+export let uncompressedTransactionResponseDataSize = 0;
+export let compressedTransactionResponseDataSize = 0;
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
@@ -22,7 +27,7 @@ import { prepareString } from "../../utils/helpers/utils";
  * @param txData
  * @returns
  */
-function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: ChainType, block: IBlock, txData: ITransaction): DBTransactionBase {
+function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: ChainType, block: BlockBase, txData: TransactionBase): DBTransactionBase {
   const txEntity = new dbTransaction();
 
   txEntity.chainType = chainType;
@@ -35,7 +40,13 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
   //txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
 
   // use full response size
-  txEntity.response = stringify({ data: txData.data, additionalData: txData.additionalData });
+  const data = stringify({ data: txData._data, additionalData: txData._additionalData });
+  const compressedData = compressBin(data);
+
+  uncompressedTransactionResponseDataSize+=data.length;
+  compressedTransactionResponseDataSize+=compressedData.length;
+
+  txEntity.response = compressedData;
 
   return txEntity;
 }
@@ -64,11 +75,11 @@ export function augmentTransactionAlgo(block: AlgoBlock, txData: AlgoTransaction
  * @param txDataPromise
  * @returns
  */
-export async function augmentTransactionUtxo(
+export async function augmentTransactionUtxo<T extends UtxoTransaction>(
   dbTransaction: IDBTransactionBase,
   chainType: ChainType,
   block: UtxoBlock,
-  txDataPromise: Promise<UtxoTransaction>
+  txDataPromise: Promise<T>
 ): Promise<DBTransactionBase> {
   const txData = await txDataPromise;
   const res = augmentTransactionBase(dbTransaction, chainType, block, txData);

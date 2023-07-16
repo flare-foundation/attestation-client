@@ -17,30 +17,6 @@ export const TDEF: AttestationTypeScheme = {
   name: "ReferencedPaymentNonexistence",
   request: [
     {
-      key: "attestationType",
-      size: ATT_BYTES,
-      type: "AttestationType",
-      description: `
-Attestation type id for this request, see 'AttestationType' enum.
-`,
-    },
-    {
-      key: "sourceId",
-      size: SOURCE_ID_BYTES,
-      type: "SourceId",
-      description: `
-The ID of the underlying chain, see 'SourceId' enum.
-`,
-    },
-    {
-      key: "messageIntegrityCode",
-      size: MIC_BYTES,
-      type: "ByteSequenceLike",
-      description: `
-The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
-`,
-    },
-    {
       key: "minimalBlockNumber",
       size: BLOCKNUMBER_BYTES,
       type: "NumberLike",
@@ -61,7 +37,9 @@ Maximum number of the block where the transaction is searched for.
       size: TIMESTAMP_BYTES,
       type: "NumberLike",
       description: `
-Maximum timestamp of the block where the transaction is searched for. Search range is determined by the bigger of the 'deadlineBlockNumber' and the last block with 'deadlineTimestamp'.
+Maximum timestamp of the block where the transaction is searched for.
+Search range is determined by the bigger of the 'deadlineBlockNumber'
+and the last block with 'deadlineTimestamp'.
 `,
     },
     {
@@ -69,7 +47,7 @@ Maximum timestamp of the block where the transaction is searched for. Search ran
       size: TX_ID_BYTES,
       type: "ByteSequenceLike",
       description: `
-Hash of exact address to which the payment was done to.
+Standardized address hash of the exact address to which the payment was done to.
 `,
     },
     {
@@ -77,7 +55,7 @@ Hash of exact address to which the payment was done to.
       size: AMOUNT_BYTES,
       type: "NumberLike",
       description: `
-The exact amount to search for.
+The minimal amount to search for.
 `,
     },
     {
@@ -108,7 +86,7 @@ Deadline timestamp specified in the attestation request.
       key: "destinationAddressHash",
       type: "bytes32",
       description: `
-Hash of the destination address searched for.
+Standardized address hash of the destination address searched for.
 `,
     },
     {
@@ -122,7 +100,8 @@ The payment reference searched for.
       key: "amount",
       type: "uint128",
       description: `
-The amount searched for.
+The minimal amount intended to be paid to the destination address.
+The actual amount should match or exceed this value.
 `,
     },
     {
@@ -143,7 +122,7 @@ Timestamp of the 'lowerBoundaryBlockNumber'.
       key: "firstOverflowBlockNumber",
       type: "uint64",
       description: `
-The first (lowest) confirmed block with 'timestamp > deadlineTimestamp' 
+The first (lowest) confirmed block with 'timestamp > deadlineTimestamp'
 and 'blockNumber  > deadlineBlockNumber'.
 `,
     },
@@ -151,7 +130,7 @@ and 'blockNumber  > deadlineBlockNumber'.
       key: "firstOverflowBlockTimestamp",
       type: "uint64",
       description: `
-Timestamp of the firstOverflowBlock. 
+Timestamp of the firstOverflowBlock.
 `,
     },
   ],

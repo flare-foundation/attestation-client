@@ -4,11 +4,8 @@ import { AttesterWebOptions } from "../../attester/configs/AttesterWebOptions";
 import { getTimeMs } from "./internetTime";
 import { AttLogger, logException } from "../logging/logger";
 import { retry } from "./promiseTimeout";
-import { getUnixEpochTimestamp, sleepms } from "./utils";
+import { getUnixEpochTimestamp, sleepMs } from "./utils";
 import { getWeb3Wallet, waitFinalize3Factory } from "./web3-utils";
-
-export const DEFAULT_GAS = "2500000";
-export const DEFAULT_GAS_PRICE = "300000000000";
 
 export interface ExtendedReceipt {
   receipt?: any;
@@ -42,10 +39,23 @@ export class Web3Functions {
     return this.web3Options.gasLimit;
   }
 
-  private get gasPrice(): string {
-    return this.web3Options.gasPrice;
+  /**
+   * Calculates gas price for the transaction, based on the network gas price and the addition.
+   * @returns gas price in wei
+   */
+  private async gasPrice(): Promise<string> {
+    return retry(`Web3Function::gasPrice`, async () => {
+      const gasPriceAddition = parseInt(this.web3Options.gasPriceAddition, 10);
+      const gasPriceNetwork = parseInt(await this.web3.eth.getGasPrice(), 10);
+      const gasPrice = gasPriceNetwork + gasPriceAddition;
+      return gasPrice.toString();
+    });
   }
 
+  /**
+   * Calculates nonce for the account.
+   * @returns nonce for the account
+   */
   private async getNonce(): Promise<number> {
     return retry(`Web3Function::getNonce`, async () => {
       const nonce = await this.web3.eth.getTransactionCount(this.account.address);
@@ -53,16 +63,21 @@ export class Web3Functions {
     });
   }
 
+  /**
+   * Given a block number it returns the block data.
+   * @param blockNumber
+   * @returns
+   */
   public async getBlock(blockNumber: number): Promise<any> {
     return retry(`Web3Function::getBlock`, async () => this.web3.eth.getBlock(blockNumber));
   }
 
+  /**
+   * Returns the last block number.
+   * @returns
+   */
   public async getBlockNumber(): Promise<number> {
     return retry(`Web3Function::getBlockNumber`, async () => this.web3.eth.getBlockNumber());
-  }
-
-  public setTransactionPollingTimeout(timeout: number) {
-    this.web3.eth.transactionPollingTimeout = timeout;
   }
 
   /**
@@ -93,7 +108,7 @@ export class Web3Functions {
               return {};
             }
           }
-          await sleepms(100);
+          await sleepMs(100);
         }
       }
 
@@ -129,16 +144,17 @@ export class Web3Functions {
   private async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any): Promise<any> {
     try {
       const nonce = await this.getNonce();
+      const gasPrice = await this.gasPrice();
       const tx = {
         from: this.account.address,
         to: toAddress,
         gas: this.gasLimit,
-        gasPrice: this.gasPrice,
+        gasPrice: gasPrice,
         data: fnToEncode.encodeABI(),
         nonce,
       };
       const signedTx = await this.account.signTransaction(tx);
-
+      this.logger.info(`Gas price used: ${gasPrice}`);
       try {
         const receipt = await this.waitFinalize3(this.account.address, () => this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!));
         return { receipt, nonce };

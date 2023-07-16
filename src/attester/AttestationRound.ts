@@ -276,26 +276,14 @@ export class AttestationRound {
       return new BitmaskAccumulator(this.attestations.length);
     }
 
-    let foundNonzeroVoteResult = false;
-    // find first nonzero vote on subsets of sizes consensusSubsetSize, ..., minVoters
-    for (let size = this.activeGlobalConfig.consensusSubsetSize; size >= minVoters; size--) {
-      let candidate = chooseCandidate(votes, size);
-      let numberOfOnes = countOnes(candidate);
-      if (numberOfOnes > 0) {
-        foundNonzeroVoteResult = true;
-        bitmask = BitmaskAccumulator.fromHex(candidate);
-        if (size != this.activeGlobalConfig.consensusSubsetSize) {
-          this.logger.info(`${this.label} - vote successful with lower consensus threshold ${size}/${this.activeGlobalConfig.consensusSubsetSize}`);
-        }
-        break;
-      }
-      this.logger.info(`${this.label} - unsuccessful vote count for threshold ${size}/${this.defaultSetAddresses.length}`);
-    }
-
-    if (!foundNonzeroVoteResult) {
+    let candidate = chooseCandidate(votes, minVoters);
+    let numberOfOnes = countOnes(candidate);
+    if (numberOfOnes === 0) {
       this.logger.info(`${this.label} Non-conclusive vote. Non zero voters: ${nonZeroVotes}, required >= ${minVoters}`);
       return new BitmaskAccumulator(this.attestations.length);
     }
+
+    bitmask = BitmaskAccumulator.fromHex(candidate);
 
     if (bitmask.hasActiveBitsBeyond(this.attestations.length)) {
       this.logger.error(`${this.label} Local and all indices do not match. Critical error!`);
@@ -303,7 +291,7 @@ export class AttestationRound {
     }
 
     if (verbose) {
-      this.logger.info(`${this.label}-RESULT[${this.activeGlobalConfig.consensusSubsetSize}] - ${bitmask?.toBitString()}`);
+      this.logger.info(`${this.label}-RESULT[${minVoters}] - ${bitmask?.toBitString()}`);
     }
     return bitmask;
   }
@@ -723,7 +711,7 @@ export class AttestationRound {
     });
 
     // eslint-disable-next-line
-    criticalAsync("processed", async () => {
+    criticalAsync("calculateBitVote", async () => {
       this.tryCalculateBitVotingResults();
       await this.tryPrepareCommitData();
     });
@@ -840,7 +828,7 @@ export class AttestationRound {
     }
 
     // eslint-disable-next-line
-    criticalAsync("", async () => {
+    criticalAsync("submit attestation", async () => {
       const receipt = await this.flareConnection.submitAttestation(
         action,
         // commit index (collect+2)

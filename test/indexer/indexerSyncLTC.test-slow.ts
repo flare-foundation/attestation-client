@@ -1,6 +1,6 @@
 // yarn test test/indexer/indexerSyncLTC.test-slow.ts
 
-import { UtxoBlockTip, UtxoMccCreate } from "@flarenetwork/mcc";
+import { LtcBlockTip, UtxoMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -8,9 +8,9 @@ import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { DBBlockLTC } from "../../src/entity/indexer/dbBlock";
 import { DBState } from "../../src/entity/indexer/dbState";
 import { DBTransactionLTC0 } from "../../src/entity/indexer/dbTransaction";
+import { IndexerConfig } from "../../src/indexer/IndexerConfig";
 import * as readTx from "../../src/indexer/chain-collector-helpers/readTransaction";
 import { Indexer } from "../../src/indexer/indexer";
-import { IndexerConfig } from "../../src/indexer/IndexerConfig";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { BlockHeaderLTC, BlockLTC420, BlockLTC421 } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
@@ -70,9 +70,6 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
     });
 
     it("Should run indexer sync", async function () {
-      sinon.stub(console, "error");
-      sinon.stub(console, "log");
-
       indexer.chainConfig.blockCollecting = "tips";
       indexer.chainConfig.syncReadAhead = 4;
 
@@ -80,12 +77,21 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
       const stub2 = sinon.stub(indexer.indexerSync, "getSyncStartBlockNumber").resolves(2402419);
 
       const stub3 = sinon.stub(indexer.indexerToClient.client, "getBlock");
+      const stub6 = sinon.stub(indexer.cachedClient, "getBlock");
+      const stub7 = sinon.stub(indexer.indexerToClient.client, "getFullBlock");
+
       stub3.withArgs(2402420).resolves(BlockLTC420);
       stub3.withArgs(2402421).resolves(BlockLTC421);
 
+      stub6.withArgs(2402420).resolves(BlockLTC420);
+      stub6.withArgs(2402421).resolves(BlockLTC421);
+
+      stub7.withArgs(2402420).resolves(BlockLTC420);
+      stub7.withArgs(2402421).resolves(BlockLTC421);
+
       const stub4 = sinon.stub(readTx, "getFullTransactionUtxo").callsFake(async (x, y, z) => y);
 
-      const tip = new UtxoBlockTip({
+      const tip = new LtcBlockTip({
         hash: "682a97ab2b41ccd025df47f5fac5b902f04776031fb4961373230c9ef6e1f585",
         height: 2402422,
         branchlen: 1,
@@ -110,24 +116,21 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
     });
 
     it("Should run headerCollector", function (done) {
-      sinon.stub(console, "error");
-      sinon.stub(console, "log");
-
-      const tip1 = new UtxoBlockTip({
+      const tip1 = new LtcBlockTip({
         hash: "682a97ab2b41ccd025df47f5fac5b902f04776031fb4961373230c9ef6e1f585",
         height: 2402422,
         branchlen: 1,
         status: "headers-only",
       });
 
-      const tip2 = new UtxoBlockTip({
+      const tip2 = new LtcBlockTip({
         hash: "682a97ab2b41ccd025df47f5fac5b902f04776031fb4961373230c9ef6e1f584",
         height: 2402423,
         branchlen: 2,
         status: "headers-only",
       });
 
-      const tip3 = new UtxoBlockTip({
+      const tip3 = new LtcBlockTip({
         hash: "8d1ba90d4443b7750c769861e2ed2a58480aec3ad1ea712e203af70525fa3d68",
         height: 2402424,
         branchlen: 0,

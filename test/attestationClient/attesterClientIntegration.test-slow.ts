@@ -14,8 +14,8 @@ import { runBot } from "../../src/state-collector-finalizer/state-connector-vali
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/web3-utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { AttestationTypeScheme } from "../../src/verification/attestation-types/attestation-types";
-import { readAttestationTypeSchemes, toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
@@ -100,14 +100,14 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
   let privateKeys: string[] = [];
   let childProcesses: any[] = [];
   let runPromises = [];
-  let definitions: AttestationTypeScheme[];
   let clients: AttesterClient[];
-
+  let defStore: AttestationDefinitionStore;
   const logger = getGlobalLogger();
 
   before(async function () {
-    definitions = await readAttestationTypeSchemes();
-
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
+    
     // clear all test databases in './db/' folder
     await clearTestDatabases();
 
@@ -142,6 +142,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     // Deploy state connector and bit voting contracts (they get always deployed on the fixed addresses)
     privateKeys = JSON.parse(fs.readFileSync(`test-1020-accounts.json`).toString()).map((x) => x.privateKey);
     const PRIVATE_KEY = privateKeys[0];
+
     await deployTestContracts(RPC, PRIVATE_KEY);
 
     // connect and initialize chain for interval mining
@@ -152,17 +153,21 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     // Initialize contracts
     const artifacts = "artifacts";
     let abiPathStateConnector = await relativeContractABIPathForContractName("StateConnectorTempTran", artifacts);
+
     let abiPathBitVoting = await relativeContractABIPathForContractName("BitVotingTest", artifacts);
+
     let stateConnectorABI = JSON.parse(fs.readFileSync(`${artifacts}/${abiPathStateConnector}`).toString());
     let bitVotingABI = JSON.parse(fs.readFileSync(`${artifacts}/${abiPathBitVoting}`).toString());
     stateConnector = new web3.eth.Contract(stateConnectorABI.abi, STATE_CONNECTOR_ADDRESS) as any as StateConnectorTempTran;
     bitVoting = new web3.eth.Contract(bitVotingABI.abi, BIT_VOTE_ADDRESS) as any as BitVoting;
 
     bufferWindowDurationSec = parseInt(await stateConnector.methods.BUFFER_WINDOW().call(), 10);
+
     bufferTimestampOffsetSec = parseInt(await stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call(), 10);
 
     // Configure finalization bot
     signers = await getVoterAddresses(NUMBER_OF_CLIENTS);
+
     assertAddressesMatchPrivateKeys(web3, signers, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));
 
     process.env.FINALIZING_BOT_PRIVATE_KEY = PRIVATE_KEY;
@@ -171,6 +176,8 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
 
     // configure attestation provider addresses
     await selfAssignAttestationProviders(getGlobalLogger(), stateConnector, web3, privateKeys.slice(1, NUMBER_OF_CLIENTS + 1));
+
+    console.log("Contracts deployed");
 
     // if (TEST_MODE === "offset") {
     //   let ADDITIONAL_OFFSET_S = Math.floor(ADDITIONAL_OFFSET_PCT * bufferWindowDurationSec);
@@ -207,16 +214,16 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
 
     // Initialize test requests
 
-    requestXRP = await testPaymentRequest(setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
-    attestationXRP = prepareAttestation(requestXRP, setup.startTime);
+    requestXRP = await testPaymentRequest(defStore, setup.XRP.selectedTransaction, XrpTransaction, ChainType.XRP);
+    attestationXRP = prepareAttestation(defStore, requestXRP, setup.startTime);
 
     let inUtxo = firstAddressVin(setup.BTC.selectedTransaction);
     let utxo = firstAddressVout(setup.BTC.selectedTransaction);
-    requestBTC = await testPaymentRequest(setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
-    attestationBTC = prepareAttestation(requestBTC, setup.startTime);
+    requestBTC = await testPaymentRequest(defStore, setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
+    attestationBTC = prepareAttestation(defStore, requestBTC, setup.startTime);
 
-    requestDoge = await testPaymentRequest(setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE);
-    attestationDoge = prepareAttestation(requestDoge, setup.startTime);
+    requestDoge = await testPaymentRequest(defStore, setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE);
+    attestationDoge = prepareAttestation(defStore, requestDoge, setup.startTime);
 
     ///////////////////////////////////
     // Attester related intializations
@@ -235,6 +242,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     //   currentRound = await web3.eth.getBlockNumber();
     // }
 
+    await sleepMs(500);
     // in-process clients
     for (let i = 0; i < IN_PROCESS_CLIENTS; i++) {
       bootstrapPromises.push(bootstrapAttestationClient(i));
@@ -252,6 +260,8 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       childProcesses.push(child);
     }
 
+    console.log("Clients initiated");
+
     // starting simple spammer
     await startSimpleSpammer(
       getGlobalLogger(),
@@ -263,6 +273,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       SPAMMER_FREQUENCIES,
       SPAMMER_GAPS
     );
+    console.log("Spammer initiated");
 
     // // starting web server on the first node
     // if (WEB_SERVER_IN_OTHER_PROCESS) {
@@ -275,7 +286,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     // } else {
     await bootstrapAttestationWebServer();
     // }
-    startblock = await web3.eth.getBlockNumber();
+    console.log("Web server initiated");
 
     setInterval(async () => {
       let blockChainNow = (await web3.eth.getBlock(await web3.eth.getBlockNumber())).timestamp;
@@ -304,6 +315,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     delete process.env.TEST_CREDENTIALS;
     await setup.XRP.app.close();
     await setup.BTC.app.close();
+    await setup.Doge.app.close();
     for (let child of childProcesses) {
       child.stdin.pause();
       child.kill();

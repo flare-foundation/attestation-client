@@ -23,6 +23,7 @@ import { AttestationRoundPhase, AttestationRoundStatus } from "../../src/atteste
 import { traceManager } from "@flarenetwork/mcc";
 import { SourceId } from "../../src/verification/sources/sources";
 import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -33,12 +34,16 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
   let attestationClientConfig: AttestationClientConfig;
 
+  let sourceRouter: SourceRouter;
+
   const dbConnectOptions = new DatabaseConnectOptions();
   const dbService = new DatabaseService(getGlobalLogger(), dbConnectOptions, "", "", true);
 
   const attesterState = new AttesterState(dbService);
 
   let activeGlobalConfig: GlobalAttestationConfig;
+
+  let defStore: AttestationDefinitionStore;
 
   before(async function () {
     traceManager.displayStateOnException = false;
@@ -50,7 +55,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     const globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
     globalConfigManager.activeRoundId = 160;
 
-    const sourceRouter = new SourceRouter(globalConfigManager);
+    sourceRouter = new SourceRouter(globalConfigManager);
     await globalConfigManager.initialize();
 
     activeGlobalConfig = globalConfigManager.getGlobalConfig(160);
@@ -65,6 +70,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     roundAlt = new AttestationRound(180, activeGlobalConfig, getGlobalLogger(), flareConnection, attesterState, sourceRouter, attestationClientConfig);
 
     await roundAlt.initialize();
+
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
+
   });
 
   afterEach(function () {
@@ -166,7 +175,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
     it("Should create bitVote", function () {
       for (let j = 1; j < 6; j++) {
-        const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${j}`);
+        const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${j}`);
         const attestation = new Attestation(160, new AttestationData(event));
         attestation.index = j - 1;
         attestation.status = j < 4 ? AttestationStatus.valid : AttestationStatus.tooLate;
@@ -183,7 +192,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         round.defaultSetAddresses.push(address);
         round.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
           const attestation = new Attestation(160, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = i < 5 + j ? AttestationStatus.valid : AttestationStatus.overLimit;
@@ -199,7 +208,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         round.registerBitVote(data);
       }
       const res = round.calculateBitVotingResult(false);
-      expect(res.toIndices(round.attestations.length)).to.deep.eq([0, 1, 2, 3, 4, 5]);
+      expect(res.toIndices(round.attestations.length)).to.deep.eq([0, 1, 2, 3, 4, 5, 6, 7]);
     });
 
     it("Should calculate inconclusive bitVote", function () {
@@ -209,7 +218,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         roundAlt.defaultSetAddresses.push(address);
         roundAlt.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
           const attestation = new Attestation(180, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = i == j ? AttestationStatus.valid : AttestationStatus.overLimit;
@@ -255,10 +264,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
       round.phase = AttestationRoundPhase.commit;
       round.attestStatus = AttestationRoundStatus.bitVotingClosed;
       round.tryCalculateBitVotingResults(false);
-      for (let j = 0; j < 6; j++) {
+      for (let j = 0; j < 8; j++) {
         assert(round.attestations[j].chosen);
       }
-      for (let j = 6; j < 9; j++) {
+      for (let j = 8; j < 9; j++) {
         assert(!round.attestations[j].chosen);
       }
       expect(round.attestStatus).to.eq(AttestationRoundStatus.chosen);
@@ -271,7 +280,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         round.defaultSetAddresses.push(address);
         round.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
           const attestation = new Attestation(160, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = AttestationStatus.overLimit;
@@ -288,6 +297,20 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
       }
       const res = round.calculateBitVotingResult(true);
       expect(res.toIndices(round.attestations.length)).to.deep.eq([]);
+    });
+  });
+
+  describe("SourceManager", function () {
+    it("Should get max failed retries", function () {
+      const sourceManager = sourceRouter.getSourceManager(SourceId.BTC);
+
+      expect(sourceManager.maxFailedRetries).to.eq(1);
+    });
+
+    it("Should get delayBeforeRetry", function () {
+      const sourceManager = sourceRouter.getSourceManager(SourceId.BTC);
+
+      expect(sourceManager.delayBeforeRetryMs).to.eq(1000);
     });
   });
 });

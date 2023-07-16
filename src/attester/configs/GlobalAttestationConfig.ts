@@ -24,15 +24,6 @@ export class GlobalAttestationConfig implements IReflection<GlobalAttestationCon
   defaultSetAssignerAddresses: string[] = [];
 
   /**
-   * Initial subset size for reaching bit-voting consensus. For a default set of 9 it is
-   * usually set to 7. This means that first all subsets of size 7 of the set of 9 attestation
-   * provider addresses are calculated and the one with maximal confirmed validations in bit voting
-   * is used. If all 7-subsets have 0 intersection votes, the process is repeated with 6-subsets and
-   * if needed with 5-subsets.
-   */
-  consensusSubsetSize: number = 7;
-
-  /**
    * Definitions of supported data sources and attestation types, together with
    * rate limit weights.
    */

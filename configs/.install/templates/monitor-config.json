@@ -10,7 +10,17 @@
 
     // Prometheus settings
     "prometheus":{
+        // Enable monitor server
         "monitorServerEnabled":"true",
+
+        // Monitor Server port
+        //"monitorServerPort":"3010";
+
+        // Enable Prometheus push gateway
+        //"pushGatewayEnabled":"true",
+
+        // Push gateway URL
+        //"pushGatewayUrl":"http://127.0.0.1:9091",
     },
 
     // monitor system
@@ -35,20 +45,95 @@
         },
     ],
 
+    // web3 account balance
+    "balances" : [
+        {
+            "name": "AttestationClientFlare",
+            "address":"",
+            // "web3Rpc": "https://flare-api.flare.network/ext/C/rpc",
+            // "currency": "FLR";
+            // "lowBalanceErrorThreshold": 100
+        }
+    ],
+
     // dockers
     "dockers" : [
         {
             //"disabled": true,
-            "name" : "bitcoin",
+            "name" : "indexer-btc_bitcoin-node_1",
         },
         {
             //"disabled": true,
-            "name" : "dogecoin",
+            "name" : "indexer-doge_dogecoin-node_1",
         },
         {
             //"disabled": true,
-            "name" : "ripple",
+            "name" : "indexer-xrp_ripple-node_1",
         },
+        
+
+        {
+            //"disabled": true,
+            "name" : "indexer-btc-indexer",
+        },
+        {
+            //"disabled": true,
+            "name" : "indexer-btc-database",
+        },
+        {
+            //"disabled": true,
+            "name" : "indexer-btc-verification-server",
+        },
+        
+
+        {
+            //"disabled": true,
+            "name" : "indexer-doge-indexer",
+        },
+        {
+            //"disabled": true,
+            "name" : "indexer-doge-database",
+        },
+        {
+            //"disabled": true,
+            "name" : "indexer-doge-verification-server",
+        },
+        
+
+        {
+            //"disabled": true,
+            "name" : "indexer-xrp-indexer",
+        },
+        {
+            //"disabled": true,
+            "name" : "indexer-xrp-database",
+        },
+        {
+            //"disabled": true,
+            "name" : "indexer-xrp-verification-server",
+        },
+        
+
+        {
+            //"disabled": true,
+            "name" : "attestation-client-client",
+        },
+        {
+            //"disabled": true,
+            "name" : "attestation-client-database",
+        },
+        {
+            //"disabled": true,
+            "name" : "attestation-client-webserver",
+        },
+
+
+        {
+            //"disabled": true,
+            "name" : "monitor",
+        },
+
+
     ],
 
     // nodes

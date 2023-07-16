@@ -1,0 +1,19 @@
+{
+  "firstEpochStartTime": 1636070400,
+  "roundDurationSec": 8,
+  "serviceStatusFilePath": "../monitor-status.json",
+
+  "port": 9610,
+
+  "attesterDatabase": {
+    "host": "",
+    "port": 1001,
+    "database": "attester",
+    "username": "",
+    "password": "",
+    "inMemory": true,
+    "testSqlite3DBPath": "./test/server/test-data/db/attester_0.db",
+    "dropSchema": false,
+    "synchronize": false
+  }
+}

@@ -44,7 +44,7 @@ services:
       - 23307:3306
 
   dogecoin-node:
-    image: flarefoundation/dogecoin:1.14.6
+    image: registry.aflabs.org/public-docker/dogecoin:fullTx
     restart: unless-stopped
     ports:
       - 22555:22555

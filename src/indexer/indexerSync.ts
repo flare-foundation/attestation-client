@@ -1,10 +1,9 @@
-import { IBlockTip, Managed } from "@flarenetwork/mcc";
-import { exit } from "process";
+import { BlockTipBase, Managed } from "@flarenetwork/mcc";
 import { failureCallback, retry } from "../utils/helpers/promiseTimeout";
-import { getUnixEpochTimestamp, round, secToHHMMSS, sleepms } from "../utils/helpers/utils";
+import { getUnixEpochTimestamp, round, secToHHMMSS, sleepMs } from "../utils/helpers/utils";
 import { AttLogger } from "../utils/logging/logger";
 import { Indexer } from "./indexer";
-import { criticalAsync, getStateEntryString, SECONDS_PER_DAY } from "./indexer-utils";
+import { SECONDS_PER_DAY, criticalAsync, getStateEntryString } from "./indexer-utils";
 import { IndexerToClient } from "./indexerToClient";
 
 /**
@@ -142,7 +141,7 @@ export class IndexerSync {
       // this never happens: lastN=-1, indexer.N>=0
       if (lastN === this.indexer.N) {
         this.logger.debug(`runSyncRaw wait block N=${this.indexer.N} T=${this.indexer.T}`);
-        await sleepms(100);
+        await sleepMs(100);
         continue;
       }
       lastN = this.indexer.N;
@@ -158,8 +157,7 @@ export class IndexerSync {
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.indexer.N} to ${this.indexer.T}, ${blocksLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${
-            this.indexer.cachedClient.reqsPs
+          `sync ${this.indexer.N} to ${this.indexer.T}, ${blocksLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.indexer.cachedClient.reqsPs
           })`
         );
       } else {
@@ -197,7 +195,7 @@ export class IndexerSync {
       // We wait until block N+1 is either saved or indicated that there is no such block
       // This is the only point in the loop that increments N
       while (!(await this.indexer.trySaveNp1Block())) {
-        await sleepms(100);
+        await sleepMs(100);
         this.logger.debug(`runSyncRaw wait save N=${this.indexer.N} T=${this.indexer.T}`);
       }
     }
@@ -220,7 +218,7 @@ export class IndexerSync {
 
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
-    const blocks: IBlockTip[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN, false);
+    const blocks: BlockTipBase[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN, false);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N
@@ -242,34 +240,26 @@ export class IndexerSync {
 
   /**
    * Syncs blocks depending on mode set in configuration.
-   * @param dbStartBlockNumber
+   * @param dbLastSavedBlockNumber Top database block number (N).
    * @returns
    */
-  public async runSync(dbStartBlockNumber: number) {
+  public async runSync(dbLastSavedBlockNumber: number) {
     if (!this.indexer.config.syncEnabled) {
       return;
     }
 
     const syncStartBlockNumber = await this.getSyncStartBlockNumber(); // N ... start reading N+1
 
-    // check if syncN is bigger than DB-N.
-    if (dbStartBlockNumber > 0 && dbStartBlockNumber < syncStartBlockNumber) {
-      // note that this drops the table when dbStartBlockNumber + 1 = syncStartBlockNumber which would be valid from continuity stand point
-      // but in case that sync N was node bottom block we would not be able to read block number sync N.
-      // here we are a bit more defensive since it is a very low probability of this actually happening.
+    // check if syncN is bigger than DB_N.
+    if (dbLastSavedBlockNumber > 0 && dbLastSavedBlockNumber < syncStartBlockNumber) {
+      // this can happen if indexer is not run for some time and last save block number is below sync start block number.
 
-      this.logger.error(
-        `runSync possible gap detected DB_N=${dbStartBlockNumber} Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`
-      );
+      await this.indexer.resetDatabaseAndStop(`last database block number DB_N=${dbLastSavedBlockNumber} is below indexer start block number Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`);
 
-      // drop both tables
-      //await this.indexer.interlace.resetAll();
-
-      exit(4);
       return; //for testing
     }
 
-    this.indexer.N = Math.max(dbStartBlockNumber, syncStartBlockNumber);
+    this.indexer.N = Math.max(dbLastSavedBlockNumber, syncStartBlockNumber);
 
     this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);
 

@@ -1,36 +1,34 @@
-## BitVoting contract
+# Bit Voting
 
-Due to possible different availability of data for a specific source (blockchain) it can happen at a given time that not all data providers can confirm certain transaction or a fact on the other chain. For example, a transaction may be in a recent block, which is visible at some of the attestation providers but yet not with some others. Also, attestation providers use indexers of blockchain data, which may have only a limited history and the transaction may be already to old to be within the indexing window. So some attestation providers can confirm it, but others cannot.
+Bit voting is a technique used to resolve an ambiguous attestation request.
 
-Since 50% of attesters have to submit the same Merkle root in order to be confirmed, at least 50% of votes have to vote identically on all requests. Few such non-clear-cut decision requests can disrupt the attestation process, yielding several different non-majority Merkle roots submitted. For this, the **choose** phase is used to sync the default set on what can be jointly confirmed.
-After collecting attestation requests, each attester enumerates the requests in order of arrival (omitting the duplicates) and queries for the existence of data needed for the attestation at relevant data sources (blockchain nodes, indexers, ...). Confirmed (attested) requests indicated with `1` (can validate), `0` (can not validate) and stored in a bit array called `bitVote` that is sent to the `BitVoting` contract.
+Because the availability of data from a specific data source may vary, it can happen that not all data providers can confirm certain transactions or facts at any given time. For example, a transaction may be in a recent block, which is visible to some of the attestation providers but not yet to others. Also, the indexers of blockchain data that attestation providers use may have a limited history so that a transaction may be too old to be within the indexing window. The result is that some attestation providers can confirm it, but others cannot.
 
-Attestation providers use
+Since 50%+ of attesters have to submit the same Merkle root in order for it to be confirmed, at least that number of votes must be identical on all requests. Ambiguous decision requests can therefore disrupt the attestation process, resulting in several different non-majority Merkle roots being submitted. To sync the attestation providers on what can be jointly confirmed, the [**choose** phase](./attestation-protocol.md#five-phases-of-a-round) of the attestation protocol is used. It is called bit voting, because all attestation providers vote on how they want to attest for each received request, using one bit for each vote.
 
-```solidity
-function submitVote(
-   uint256 bufferNumber,
-   bytes bitVote
-   ) external
-```
+Here's how the choose phase works for bit voting: After collecting attestation requests, each attester enumerates the requests in order of arrival (omitting duplicates) and queries for the existence of data needed for the attestation at relevant data sources (blockchain nodes, indexers,...). Confirmed requests are indicated by a `1`  for _can validate_ or a `0` for _cannot validate_. They are stored into a bit array called `bitVote`, which is sent to the `BitVoting` contract.
 
-from `BitVoting` contract to emit `bitVote` in the `choose` phase.
+Attestation providers use the `submitVote` method from the `BitVoting` contract to emit their vote in the choose phase. The first byte of the bit vote indicates the intended voting round for which the bit vote is carried out. Its value must be `roundId % 256` to be considered a valid vote. If an attester submits several votes, the last vote sent before the deadline is considered valid.
 
-Attesters can listen to emitted bit-votes and use a deterministic algorithm to determine a subset of chosen requests such that enough attesters can get the data to decide on all of the requests in the subset. Then attestation providers only validate (include into the Merkle tree) the chosen requests.
+Attesters can listen to the emitted bit votes and use a deterministic algorithm to determine a subset of chosen requests such that enough attesters can get the data to decide on all of the requests in the subset. Then attestation providers only validate (include into the Merkle tree) the chosen requests.
 
-Currently, `StateConnector` has a default set of 9 attestation providers. We need at least 5 to confirm a Merkle root. Ideally, we could take all bit-votes of the 9 members of the default set and calculate the joint `AND`, in order to determine what is common intersection of attestations that they can confirm. Such a procedure could be very sensitive on occasional disruption of attestation providers, yielding a failed round, even if more than 5 attestation providers from the default set could be able to some Merkle tree for certain subset of requests (attestations). To increase robustness of the algorithm we proceed as follows. We enumerate all the 7-subsets of the default set. For each 7-subset we calculate the joint intersection and calculate the number of ones. The first enumerated 7-subset that has the maximal number of ones defines the voting result. In case the maximal number of ones is 0, the procedure is repeated on 6-subsets, and if here we get 0 ones in all the intersections, we proceed with 5-subsets. If even here no intersection with ones is found, the vote is non-conclusive. In other cases there the deterministic algorithm described above returns the a non-zero bit-mask indicating which requests should be put into the Merkle tree. The algorithm is used by each attestation provider separately. An attestation provider should either assemble the Merkle tree which includes exactly the attestations for requests as described by the choose voting result bit-mask or vote with zero (`0x000...000`) Merkle root or abstain with voting.
+Currently, `StateConnector` has a default set of 9 attestation providers. We need at least 5 to confirm a Merkle root. The calculation of the voting result proceeds as follows. Based on the fixed order of the attestation providers, we enumerate all the 5-subsets of the default set of the size 9. For each 5-subset, we calculate the joint intersection of votes and count the number of ones. The voting result is the intersection of the 5-subset, that has the most number of ones. If more 5-subsets, produce the same number of ones, the first according to the enumeration defines the result. The algorithm is used by each attestation provider separately. An attestation provider should either:
 
-## Message integrity checks
+* Assemble the Merkle tree that includes the exact hashes of attestations for the chosen requests,
+* Reject the proposed Merkle root with a valid zero (`0x000...000`), or
+* Abstain from voting.
 
-While bit voting in choose phase ensures agreement on which attestation should be put in the Merkle tree, there is no insurance that all attestation providers will be able to build the same Merkle tree and thus obtain the same Merkle root to vote with. Namely, attestation providers could (usually due to a bug in code) have issues with consistency of the data obtained from the data source or issues of calculating the hash of the relevant data, before putting it into the Merkle tree. For that reason, each attestation request contains the **message integrity code**. This is the hash of the attestation response and the string `"Flare"`. Each (non-malicious) requester should already know, what the attestation response should be - they are just requesting the Attestation protocol to confirm the data in a decentralized and secure way (by voting of attestation providers). Hence, they provide the message integrity check. Upon making the query to the data source, the attestation provider appends to its own response the string `"Flare"` and calculates the hash. Only if this hash matches the message integrity code provided in the attestation request, the attestation response is considered valid and can be considered for inclusion into the Merkle tree. Bit voting in combination of message integrity codes make the attestation protocol much more robust to attacks that could arise from misbehavior of a subset of attestation providers or bugs in attestation code.
+See [Voting Behavior of Attestation Providers](./voting-behavior.md).
 
-## BitVoting contract deployments
+Note that 5 attestation providers represent 50%+ of the default set. If the the chosen subset of 5 proposes to confirm an invalid attestation while bit voting, it implies that the majority of the default set is malicious or corrupted, which would require their replacement.
 
-- https://songbird-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64
-- https://flare-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64
-- https://coston-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64
-- https://coston2-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64
+## BitVoting Contract Deployments in the Block Explorer
 
-Next: [Merkle tree and Merkle proof](./merkle-tree.md)
+* [On Songbird](https://songbird-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
+* [On FLare](https://flare-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
+* [On Coston](https://coston-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
+* [On Coston2](https://coston2-explorer.flare.network/address/0xd1Fa33f1b591866dEaB5cF25764Ee95F24B1bE64)
 
-[Back to home](../README.md)
+Next: [Message Integrity](./message-integrity.md)
+
+[Back to Home](../README.md)

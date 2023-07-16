@@ -1,35 +1,11 @@
 import { SourceId } from "../sources/sources";
-import { AttestationTypeScheme, ATT_BYTES, BLOCKNUMBER_BYTES, MIC_BYTES, SOURCE_ID_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
+import { AttestationTypeScheme, BLOCKNUMBER_BYTES, TX_ID_BYTES, UTXO_BYTES } from "./attestation-types";
 
 export const TDEF: AttestationTypeScheme = {
   id: 1,
   supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
   name: "Payment",
   request: [
-    {
-      key: "attestationType",
-      size: ATT_BYTES,
-      type: "AttestationType",
-      description: `
-Attestation type id for this request, see 'AttestationType' enum.
-`,
-    },
-    {
-      key: "sourceId",
-      size: SOURCE_ID_BYTES,
-      type: "SourceId",
-      description: `
-The ID of the underlying chain, see 'SourceId' enum.
-`,
-    },
-    {
-      key: "messageIntegrityCode",
-      size: MIC_BYTES,
-      type: "ByteSequenceLike",
-      description: `
-The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
-`,
-    },
     {
       key: "id",
       size: TX_ID_BYTES,
@@ -104,16 +80,32 @@ The same as in the 'utxo' parameter from the request.
       key: "sourceAddressHash",
       type: "bytes32",
       description: `
-Hash of the source address viewed as a string (the one indicated by the 'inUtxo'
-parameter for UTXO blockchains).
+Standardized address hash of the source address viewed as a string
+(the one indicated by the 'inUtxo' parameter for UTXO blockchains).
+`,
+    },
+    {
+      key: "intendedSourceAddressHash",
+      type: "bytes32",
+      description: `
+Standardized address hash of the intended source address viewed as a string
+(the one indicated by the 'inUtxo' parameter for UTXO blockchains).
 `,
     },
     {
       key: "receivingAddressHash",
       type: "bytes32",
       description: `
-Hash of the receiving address as a string (the one indicated by the 'utxo'
-parameter for UTXO blockchains).
+Standardized address hash of the receiving address as a string
+(the one indicated by the 'utxo' parameter for UTXO blockchains).
+`,
+    },
+    {
+      key: "intendedReceivingAddressHash",
+      type: "bytes32",
+      description: `
+Standardized address hash of the intended receiving address as a string
+(the one indicated by the 'utxo' parameter for UTXO blockchains).
 `,
     },
     {
@@ -129,10 +121,31 @@ on the input indicated by 'inUtxo'.
 `,
     },
     {
+      key: "intendedSpentAmount",
+      type: "int256",
+      description: `
+The amount that was intended to go out of the source address, in the smallest underlying units.
+If the transaction status is successful the value matches 'spentAmount'.
+If the transaction status is not successful, the value is the amount that was intended
+to be spent by the source address.
+`,
+    },
+    {
       key: "receivedAmount",
       type: "int256",
       description: `
-The amount received to the receiving address, in smallest underlying units. Can be negative in UTXO chains.
+The amount received to the receiving address, in smallest underlying units.
+Can be negative in UTXO chains.
+`,
+    },
+    {
+      key: "intendedReceivedAmount",
+      type: "int256",
+      description: `
+The intended amount to be received by the receiving address, in smallest underlying units.
+For transactions that are successful, this is the same as 'receivedAmount'.
+If the transaction status is not successful, the value is the amount that was intended
+to be received by the receiving address.
 `,
     },
     {
@@ -146,7 +159,7 @@ Standardized payment reference, if it exists, 0 otherwise.
       key: "oneToOne",
       type: "bool",
       description: `
-'true' if the transaction has exactly one source address and 
+'true' if the transaction has exactly one source address and
 exactly one receiving address (different from source).
 `,
     },

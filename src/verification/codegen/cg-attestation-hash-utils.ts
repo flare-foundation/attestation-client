@@ -1,6 +1,6 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme, ATT_BYTES, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
+import { ATT_BYTES, AttestationTypeScheme, RESPONSE_BASE_DEFINITIONS, SOURCE_ID_BYTES } from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_HASH_UTILS_FILE,
@@ -12,8 +12,8 @@ import {
 } from "./cg-constants";
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
-  const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
-  const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
+  const types = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
+  const values = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 const types = [
   "uint${ATT_BYTES * 8}",\t\t// attestationType

@@ -1,4 +1,5 @@
 import { ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
+import { request } from "http";
 import { EntityManager } from "typeorm";
 import { IndexedQueryManagerOptions } from "../../../../../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../../../../indexed-query-manager/IndexedQueryManager";
@@ -29,7 +30,8 @@ export class BTCProcessorService extends VerifierProcessor {
 
   public async verify(attestationRequest: AttestationRequest) {
     this.assertIsSupported(attestationRequest);
-    let response = await verifyBTC(this.client, attestationRequest.request, this.indexedQueryManager);
+    await this.ensureInitialized();
+    let response = await verifyBTC(this.defStore, this.client, attestationRequest.request, this.indexedQueryManager);
     return hexlifyBN(response);
   }
 

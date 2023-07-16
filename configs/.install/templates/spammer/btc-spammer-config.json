@@ -15,5 +15,24 @@
         "database": "$(BTCIndexerDatabase)",
         "username": "$(BTCIndexerReaderUsername)",
         "password": "$(BTCIndexerReaderPassword)"
+    },
+    // See documentation for class `ChainConfig` in `src/attester/configs`
+    "chainConfiguration": {
+        "name": "BTC",
+        "mccCreate": {
+            "url": "$(BTCSpammerNodeURL)",
+            "username": "$(BTCSpammerNodeUsername)",
+            "password": "$(BTCSpammerNodePassword)"
+        },
+        "rateLimitOptions": {
+            "maxRPS": 20,
+            "timeoutMs": 15000,
+            "retries": 3
+        },
+        "numberOfConfirmations": 6,
+        "syncReadAhead": 10,
+        "blockCollecting": "tips",
+        "minimalStorageHistoryDays": 2,
+        "minimalStorageHistoryBlocks": 100,
     }
 }

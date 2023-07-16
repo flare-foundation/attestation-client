@@ -111,6 +111,50 @@ describe(`Test config utils (${getTestFile(__filename)})`, () => {
         assert(prepared === `{"Password"="123"}`, `prepareSecureData with network does not work`);
     });
 
+    it(`test recursive parameters`, async () => {
+        SECURE_MASTER_CONFIGS.push(["Level1_2_3", "ok"]);
+        SECURE_MASTER_CONFIGS.push(["Level2_3", "_2_3"]);
+        SECURE_MASTER_CONFIGS.push(["Level3", "_3"]);
+
+        const prepared = await _prepareSecureData(`{"3LevelRecursive"="$(Level1$(Level2$(Level3)))"}`, "", "");
+
+        assert(prepared === `{"3LevelRecursive"="ok"}`, `prepareSecureData with recursion does not work`);
+    });
+
+    it(`test recursion within parameters`, async () => {
+        SECURE_MASTER_CONFIGS.push(["FirstValue", "$(SecondValue)"]);
+        SECURE_MASTER_CONFIGS.push(["SecondValue", "$(ThirdValue)"]);
+        SECURE_MASTER_CONFIGS.push(["ThirdValue", "ok"]);
+
+        const prepared = await _prepareSecureData(`{"Result"="$(FirstValue)"}`, "", "");
+
+        assert(prepared === `{"Result"="ok"}`, `prepareSecureData with recursion does not work`);
+    });    
+
+
+    it(`test recursive env parameters`, async () => {
+
+        process.env["test1"]="test2";
+        process.env["test2"]="test3";
+        process.env["test3"]="ok";
+
+        const prepared = await _prepareSecureData(`{"test"="$(env:$(env:$(env:test1)))"}`, "", "");
+
+        assert(prepared === `{"test"="ok"}`, `prepareSecureData with recursive env does not work`);
+    });
+
+    it(`test recursive env parameters complex`, async () => {
+
+        process.env["test1"]="test";
+        process.env["test2"]="test3";
+        process.env["test3"]="ok";
+        process.env["test_ok_2"]="ok";
+
+        const prepared = await _prepareSecureData(`{"test"="$(env:test_$(env:$(env:$(env:test1)2))_2)"}`, "", "");
+
+        assert(prepared === `{"test"="ok"}`, `prepareSecureData with recursive env does not work`);
+    });
+
 
     // JSON
 

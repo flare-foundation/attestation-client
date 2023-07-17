@@ -21,7 +21,7 @@ export interface ARBase {
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
-  messageIntegrityCode: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 }
 
 export class ARPayment implements ARBase {
@@ -51,7 +51,7 @@ The ID of the underlying chain, see 'SourceId' enum.
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
   @ApiProperty()
-  messageIntegrityCode!: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 
   /**
    * Transaction hash to search for.
@@ -120,7 +120,7 @@ The ID of the underlying chain, see 'SourceId' enum.
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
   @ApiProperty()
-  messageIntegrityCode!: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 
   /**
    * Transaction hash to search for.
@@ -173,7 +173,7 @@ The ID of the underlying chain, see 'SourceId' enum.
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
   @ApiProperty()
-  messageIntegrityCode!: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 
   /**
    * Block number to be proved to be confirmed.
@@ -229,7 +229,7 @@ The ID of the underlying chain, see 'SourceId' enum.
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
   @ApiProperty()
-  messageIntegrityCode!: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 
   /**
    * Minimum number of the block for the query window. Equal to 'lowerBoundaryBlockNumber' in response.

@@ -6,7 +6,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { ByteSequenceLike, NumberLike } from "../../../../../src/verification/generated/../attestation-types/attestation-types";
 import { AttestationType } from "../../../../../src/verification/generated/./attestation-types-enum";
 import { SourceId } from "../../../../../src/verification/generated/../sources/sources";
-import { IsInt, Min, Validate } from "class-validator";
+import { IsInt, Min, Max, Validate, IsOptional } from "class-validator";
 import { IsHash32 } from "../utils/validators/Hash32Validator";
 import { IsNumberLike } from "../utils/validators/NumberLikeValidator";
 
@@ -24,15 +24,16 @@ export interface ARBase {
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
-  messageIntegrityCode: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 }
 
 export class ARPayment implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
-  @IsInt()
+  @Max(4)
   @Min(1)
+  @IsInt()
   @ApiProperty({
     enum: AttestationType,
     description: `
@@ -44,8 +45,9 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
-  @IsInt()
+  @Max(4)
   @Min(0)
+  @IsInt()
   @ApiProperty({
     enum: SourceId,
     description: `
@@ -57,9 +59,9 @@ The ID of the underlying chain, see 'SourceId' enum.
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
-  @Validate(IsHash32)
+  @IsOptional()
   @ApiProperty()
-  messageIntegrityCode!: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 
   /**
    * Transaction hash to search for.
@@ -109,8 +111,9 @@ export class ARBalanceDecreasingTransaction implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
-  @IsInt()
+  @Max(4)
   @Min(1)
+  @IsInt()
   @ApiProperty({
     enum: AttestationType,
     description: `
@@ -122,8 +125,9 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
-  @IsInt()
+  @Max(4)
   @Min(0)
+  @IsInt()
   @ApiProperty({
     enum: SourceId,
     description: `
@@ -135,9 +139,9 @@ The ID of the underlying chain, see 'SourceId' enum.
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
-  @Validate(IsHash32)
+  @IsOptional()
   @ApiProperty()
-  messageIntegrityCode!: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 
   /**
    * Transaction hash to search for.
@@ -170,8 +174,9 @@ export class ARConfirmedBlockHeightExists implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
-  @IsInt()
+  @Max(4)
   @Min(1)
+  @IsInt()
   @ApiProperty({
     enum: AttestationType,
     description: `
@@ -183,8 +188,9 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
-  @IsInt()
+  @Max(4)
   @Min(0)
+  @IsInt()
   @ApiProperty({
     enum: SourceId,
     description: `
@@ -196,9 +202,9 @@ The ID of the underlying chain, see 'SourceId' enum.
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
-  @Validate(IsHash32)
+  @IsOptional()
   @ApiProperty()
-  messageIntegrityCode!: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 
   /**
    * Block number to be proved to be confirmed.
@@ -233,8 +239,9 @@ export class ARReferencedPaymentNonexistence implements ARBase {
   /**
    * Attestation type id for this request, see 'AttestationType' enum.
    */
-  @IsInt()
+  @Max(4)
   @Min(1)
+  @IsInt()
   @ApiProperty({
     enum: AttestationType,
     description: `
@@ -246,8 +253,9 @@ Attestation type id for this request, see 'AttestationType' enum.
   /**
    * The ID of the underlying chain, see 'SourceId' enum.
    */
-  @IsInt()
+  @Max(4)
   @Min(0)
+  @IsInt()
   @ApiProperty({
     enum: SourceId,
     description: `
@@ -259,9 +267,9 @@ The ID of the underlying chain, see 'SourceId' enum.
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
-  @Validate(IsHash32)
+  @IsOptional()
   @ApiProperty()
-  messageIntegrityCode!: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 
   /**
    * Minimum number of the block for the query window. Equal to 'lowerBoundaryBlockNumber' in response.

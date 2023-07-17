@@ -3,6 +3,8 @@ import prettier from "prettier";
 import { AttestationRequestScheme, AttestationTypeScheme, REQUEST_BASE_DEFINITIONS, SupportedRequestType } from "../attestation-types/attestation-types";
 import { ATTESTATION_TYPE_PREFIX, ATT_REQUEST_TYPES_FILE, DEFAULT_GEN_FILE_HEADER, GENERATED_ROOT, PRETTIER_SETTINGS } from "./cg-constants";
 import { JSDocCommentText, OpenAPIOptionsRequests } from "./cg-utils";
+import { NUMBER_OF_ATTESTATION_TYPES } from "../generated/attestation-types-enum";
+import { HIGHEST_SOURCE_ID } from "../sources/sources";
 
 function enumProperty(enumName: string, comment?: string) {
   return `{enum: ${enumName}, description: \`${comment ?? ""}\`}`;
@@ -34,24 +36,28 @@ function genDefReqItem(item: AttestationRequestScheme, options: OpenAPIOptionsRe
     }
   }
 
-  function itemValidations(itemType: SupportedRequestType) {
-    switch (itemType) {
+  function itemValidations(item: AttestationRequestScheme) {
+    switch (item.type) {
       case "AttestationType":
-        return `@IsInt()\n@Min(1)`;
+        return `@Max(${NUMBER_OF_ATTESTATION_TYPES})\n@Min(1)\n@IsInt()`;
       case "SourceId":
-        return `@IsInt()\n@Min(0)`;
+        return `@Max(${HIGHEST_SOURCE_ID})\n@Min(0)\n@IsInt()`;
       case "NumberLike":
         return `@Validate(IsNumberLike)`;
       case "ByteSequenceLike":
+        if (item.key == "messageIntegrityCode") return `@IsOptional()`;
         return `@Validate(IsHash32)`;
       default:
         // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-        ((_: never): void => {})(itemType);
+        ((_: never): void => {})(item.type);
     }
   }
 
   let annotation = options?.dto ? `\n@ApiProperty(${itemTypeApiProp(item.type)})\n` : "";
-  let validation = options.verifierValidation ? `\n${itemValidations(item.type)}\n` : "";
+  let validation = options.verifierValidation ? `\n${itemValidations(item)}\n` : "";
+  if (item.key == "messageIntegrityCode")
+    return `${JSDocCommentText(item.description)}${validation}${annotation}
+   ${item.key}?: ${item.type};`;
   return `${JSDocCommentText(item.description)}${validation}${annotation}
    ${item.key}!: ${item.type};`;
 }
@@ -95,7 +101,7 @@ export function createAttestationRequestTypesFile(definitions: AttestationTypeSc
   }
   const validationImports =
     options.dto && options.verifierValidation
-      ? `import { IsInt, Min, Validate } from "class-validator";
+      ? `import { IsInt, Min, Max, Validate,IsOptional } from "class-validator";
 import { IsHash32 } from "../utils/validators/Hash32Validator";
 import { IsNumberLike } from "../utils/validators/NumberLikeValidator";`
       : "";
@@ -121,7 +127,7 @@ export interface ARBase {
   /**
    * The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
    */
-  messageIntegrityCode: ByteSequenceLike;
+  messageIntegrityCode?: ByteSequenceLike;
 }
 
 `;

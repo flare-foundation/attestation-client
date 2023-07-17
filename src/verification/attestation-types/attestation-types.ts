@@ -206,9 +206,10 @@ The hash of the expected attestation response appended by string 'Flare'. Used t
   },
 ];
 
+export const STATE_CONNECTOR_ROUND_KEY = "stateConnectorRound";
 export const RESPONSE_BASE_DEFINITIONS: DataHashScheme[] = [
   {
-    key: "stateConnectorRound",
+    key: STATE_CONNECTOR_ROUND_KEY,
     type: "uint256",
     tsType: "number",
     description: `

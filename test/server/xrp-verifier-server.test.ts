@@ -52,7 +52,8 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   let lastTimestamp: number = 0;
   let startTime: number = 0;
   let selectedTransaction: DBTransactionXRP0;
-  let defStore = new AttestationDefinitionStore()
+  let defStore = new AttestationDefinitionStore();
+
   before(async () => {
     await defStore.initialize();
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
@@ -103,6 +104,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   after(async () => {
     delete process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
     delete process.env.TEST_CREDENTIALS;
+    delete process.env.SQLITE;
     await app.close();
   });
 
@@ -163,7 +165,14 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   it(`Should verify Confirmed Block Height Exists attestation`, async function () {
     let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
     let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-    let request = await testConfirmedBlockHeightExistsRequest(defStore, confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
+    let request = await testConfirmedBlockHeightExistsRequest(
+      defStore,
+      confirmedBlock,
+      lowerQueryWindowBlock,
+      CHAIN_TYPE,
+      NUMBER_OF_CONFIRMATIONS,
+      BLOCK_QUERY_WINDOW
+    );
     let attestationRequest = {
       request: defStore.encodeRequest(request),
       options: {
@@ -183,7 +192,14 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
     confirmedBlock.blockNumber = 300;
     let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-    let request = await testConfirmedBlockHeightExistsRequest(defStore, confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
+    let request = await testConfirmedBlockHeightExistsRequest(
+      defStore,
+      confirmedBlock,
+      lowerQueryWindowBlock,
+      CHAIN_TYPE,
+      NUMBER_OF_CONFIRMATIONS,
+      BLOCK_QUERY_WINDOW
+    );
     let attestationRequest = {
       request: defStore.encodeRequest(request),
       options: {
@@ -203,7 +219,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK + 1);
 
     let request = await testReferencedPaymentNonexistenceRequest(
-      defStore, 
+      defStore,
       [selectedTransaction],
       TX_CLASS,
       firstOverflowBlock,
@@ -234,7 +250,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
 
     let request = await testReferencedPaymentNonexistenceRequest(
-      defStore, 
+      defStore,
       [],
       TX_CLASS,
       firstOverflowBlock,

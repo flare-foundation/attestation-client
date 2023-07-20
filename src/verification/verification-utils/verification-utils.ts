@@ -1,4 +1,4 @@
-import { AlgoTransaction, BtcTransaction, DogeTransaction, LtcTransaction, XrpTransaction } from "@flarenetwork/mcc";
+import { BtcTransaction, DogeTransaction, XrpTransaction } from "@flarenetwork/mcc";
 import {
   ConfirmedBlockQueryResponse,
   ConfirmedTransactionQueryResponse,
@@ -6,7 +6,7 @@ import {
 } from "../../indexed-query-manager/indexed-query-manager-types";
 import { VerificationStatus } from "../attestation-types/attestation-types";
 
-export type MccTransactionType = BtcTransaction | LtcTransaction | DogeTransaction | XrpTransaction | AlgoTransaction;
+export type MccTransactionType = BtcTransaction | DogeTransaction | XrpTransaction;
 export interface VerificationResponse<T> {
   status: VerificationStatus;
   response?: T;

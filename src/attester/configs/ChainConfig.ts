@@ -1,4 +1,4 @@
-import { AlgoMccCreate, MccCreate, optional, RateLimitOptions, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { MccCreate, optional, RateLimitOptions, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflection";
 
 /**
@@ -77,8 +77,6 @@ export class ChainConfig implements IReflection<ChainConfig> {
 
     if (cc.name === "XRP") {
       info.additionalKeys.set("mccCreate", new XrpMccCreate());
-    } else if (cc.name === "ALGO") {
-      info.additionalKeys.set("mccCreate", new AlgoMccCreate());
     } else {
       info.additionalKeys.set("mccCreate", new UtxoMccCreate());
     }

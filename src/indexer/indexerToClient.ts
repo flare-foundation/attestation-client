@@ -6,12 +6,12 @@ import { DEFAULT_BACK_OFF_TIME, DEFAULT_RETRY, DEFAULT_TIMEOUT, failureCallback,
  */
 @Managed()
 export class IndexerToClient {
-  client: ReadRpcInterface;
+  client: ReadRpcInterface<any, any, any, any, any>;
   timeoutTime: number = DEFAULT_TIMEOUT;
   numRetry: number = DEFAULT_RETRY;
   backOffTime: number = DEFAULT_BACK_OFF_TIME;
 
-  constructor(client: ReadRpcInterface, timeoutTime?: number, numRetry?: number, backOffTime?: number) {
+  constructor(client: ReadRpcInterface<any, any, any, any, any>, timeoutTime?: number, numRetry?: number, backOffTime?: number) {
     this.client = client;
     if (timeoutTime) this.timeoutTime = timeoutTime;
     if (numRetry) this.numRetry = numRetry;

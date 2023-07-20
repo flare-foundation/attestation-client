@@ -3,7 +3,7 @@ import { AttestationTypeScheme, BLOCKNUMBER_BYTES, TX_ID_BYTES, UTXO_BYTES } fro
 
 export const TDEF: AttestationTypeScheme = {
   id: 1,
-  supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
+  supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.DOGE], //[SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
   name: "Payment",
   request: [
     {

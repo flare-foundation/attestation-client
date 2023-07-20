@@ -1,12 +1,6 @@
-import {
-  AlgoMccCreate,
-  BtcBlock,
-  BtcTransaction,
-  ChainType,
-  XrpMccCreate
-} from "@flarenetwork/mcc";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import { BtcBlock, BtcTransaction, ChainType, XrpMccCreate } from "@flarenetwork/mcc";
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { afterEach } from "mocha";
 import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
@@ -14,7 +8,7 @@ import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
 import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
 import { augmentTransactionUtxo, augmentTransactionXrp } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
-import { BlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
+import { BlockProcessor, XrpBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { Interlacing } from "../../src/indexer/interlacing";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
@@ -76,53 +70,6 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       expect(BlockProcessor(-1)).to.be.null;
     });
 
-    describe.skip("ALGO", function () {
-      const algoCreateConfig = {
-        algod: {
-          url: "https://node.algoexplorerapi.io/",
-          token: "",
-        },
-      } as AlgoMccCreate;
-
-      let cachedMccClientOptionsFull: CachedMccClientOptionsFull = {
-        transactionCacheSize: 1000,
-        blockCacheSize: 5,
-        cleanupChunkSize: 10,
-        activeLimit: 5,
-        clientConfig: algoCreateConfig,
-      };
-
-      const cachedClient = new CachedMccClient(ChainType.ALGO, cachedMccClientOptionsFull);
-      const interlacing = new Interlacing();
-
-      const blockProcessorConst = BlockProcessor(ChainType.ALGO);
-      let blockProcessor = new blockProcessorConst(cachedClient);
-
-      before(async function () {
-        await interlacing.initialize(getGlobalLogger(), dataService, ChainType.ALGO, 36000, 10);
-      });
-      after(function () {
-        blockProcessor.stop();
-        blockProcessor.destroy();
-      });
-
-      it("Should initializeJobs", async function () {
-        const block = await cachedClient.client.getFullBlock(25400573);
-
-        const fake = sinon.fake();
-        let res = [];
-        const voidOnSave = async (blockDb, transDb) => {
-          fake(blockDb, transDb);
-          res = transDb;
-          return true;
-        };
-
-        await blockProcessor.initializeJobs(block, voidOnSave);
-        expect(res.length).to.eq(67);
-        expect(fake.callCount).to.eq(1);
-      });
-    });
-
     describe("XRP", function () {
       const XRPMccConnection = {
         url: "https://xrplcluster.com",
@@ -140,7 +87,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       const interlacing = new Interlacing();
 
       const blockProcessorConst = BlockProcessor(ChainType.XRP);
-      let blockProcessor = new blockProcessorConst(cachedClient);
+      let blockProcessor = new blockProcessorConst(cachedClient) as XrpBlockProcessor;
 
       before(async function () {
         await interlacing.initialize(getGlobalLogger(), dataService, ChainType.XRP, 3600, 10);

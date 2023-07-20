@@ -1,13 +1,13 @@
 // yarn test test/indexer/chain-collector-helper.test-cred.ts
 //tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
 
-import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
+import { ChainType, DogeBlock, UtxoMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { afterEach } from "mocha";
 import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
-import { BlockProcessor, BtcBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
+import { BlockProcessor, BtcBlockProcessor, DogeBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { getFullTransactionUtxo } from "../../src/indexer/chain-collector-helpers/readTransaction";
 import { Interlacing } from "../../src/indexer/interlacing";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
@@ -97,7 +97,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       const interlacing = new Interlacing();
 
       const blockProcessorConst = BlockProcessor(ChainType.BTC);
-      let blockProcessor = new blockProcessorConst(cachedClient);
+      let blockProcessor = new blockProcessorConst(cachedClient) as BtcBlockProcessor;
 
       before(async function () {
         await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 10);
@@ -132,7 +132,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       const interlacing = new Interlacing();
 
       const blockProcessorConst = BlockProcessor(ChainType.DOGE);
-      let blockProcessor = new blockProcessorConst(cachedClient);
+      let blockProcessor = new blockProcessorConst(cachedClient) as DogeBlockProcessor;
 
       before(async function () {
         await interlacing.initialize(getGlobalLogger(), dataService, ChainType.DOGE, 36000, 10);

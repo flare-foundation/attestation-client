@@ -1,4 +1,4 @@
-import { IUtxoVinTransaction, MccUtxoClient, UtxoTransaction } from "@flarenetwork/mcc";
+import { FullBlockBase, MccUtxoClient, UtxoTransaction } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 
@@ -13,7 +13,7 @@ import { LimitingProcessor } from "../../caching/LimitingProcessor";
  * @param processor block processor
  * @returns processed transaction
  */
-export async function getFullTransactionUtxo<B, T extends UtxoTransaction>(
+export async function getFullTransactionUtxo<B extends FullBlockBase<any>, T extends UtxoTransaction>(
   client: CachedMccClient,
   blockTransaction: T,
   processor: LimitingProcessor<B>
@@ -24,14 +24,16 @@ export async function getFullTransactionUtxo<B, T extends UtxoTransaction>(
     // if (blockTransaction.type !== "coinbase") {   // too slow indexing!!!
     blockTransaction.synchronizeAdditionalData();
 
-    const txPromises = blockTransaction._data.vin.map((vin: IUtxoVinTransaction, index: number) => {
-      if (vin.txid) {
-        // the in-transactions are prepended to queue in order to process them earlier
-        return processor.call(() => blockTransaction.vinVoutAt(index, client.client as MccUtxoClient), true) as Promise<T>;
-      }
-    });
+    // const txPromises = blockTransaction._data.vin.map((vin: IUtxoVinTransaction, index: number) => {
+    //   if (vin.txid) {
+    //     // the in-transactions are prepended to queue in order to process them earlier
+    //     return processor.call(() => blockTransaction.vinVoutAt(index, client.client as MccUtxoClient), true) as Promise<T>;
+    //   }
+    // });
 
-    await Promise.all(txPromises);
+    // await Promise.all(txPromises);
+
+    await blockTransaction.makeFull(client.client as MccUtxoClient);
 
     processor.markTopLevelJobDone();
 

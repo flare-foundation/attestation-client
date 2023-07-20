@@ -1,4 +1,4 @@
-import { AlgoMccCreate, BlockBase, ChainType, Managed, MCC, ReadRpcInterface, TransactionBase, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { BlockBase, ChainType, Managed, MCC, ReadRpcInterface, TransactionBase, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Queue } from "../utils/data-structures/Queue";
 import { retry } from "../utils/helpers/promiseTimeout";
@@ -17,12 +17,12 @@ export interface CachedMccClientOptionsFull {
   blockCacheSize: number;
   cleanupChunkSize: number;
   activeLimit: number; // maximum number of requests that are either in processing or in queue
-  clientConfig: AlgoMccCreate | UtxoMccCreate | XrpMccCreate;
-  forcedClient?: ReadRpcInterface;
+  clientConfig: UtxoMccCreate | XrpMccCreate;
+  forcedClient?: ReadRpcInterface<any, any, any, any, any>;
 }
 
 export interface CachedMccClientOptionsTest {
-  forcedClient: ReadRpcInterface;
+  forcedClient: ReadRpcInterface<any, any, any, any, any>;
 }
 
 export type CachedMccClientOptions = CachedMccClientOptionsFull | CachedMccClientOptionsTest;
@@ -46,7 +46,7 @@ const defaultCachedMccClientOptions: CachedMccClientOptions = {
 
 @Managed()
 export class CachedMccClient {
-  client: ReadRpcInterface;
+  client: ReadRpcInterface<any, any, any, any, any>;
   chainType: ChainType;
 
   transactionCache: Map<string, Promise<TransactionBase>>;
@@ -89,7 +89,7 @@ export class CachedMccClient {
     if (options?.forcedClient) {
       this.client = options.forcedClient;
     } else {
-      this.client = MCC.Client(this.chainType, fullSettings.clientConfig) as any as ReadRpcInterface;
+      this.client = MCC.Client(this.chainType, fullSettings.clientConfig) as any as ReadRpcInterface<any, any, any, any, any>;
     }
   }
 

@@ -111,20 +111,20 @@ export function getRandomRequest() {
   let sourceIds: SourceId[] = [];
   switch (randomAttestationType) {
     case AttestationType.Payment:
-      sourceIds = [3, 0, 1, 2, 4];
-      sourceId = sourceIds[Math.floor(Math.random() * 5)];
+      sourceIds = [3, 0, 2];
+      sourceId = sourceIds[Math.floor(Math.random() * 3)];
       return { attestationType: randomAttestationType, sourceId } as ARPayment;
     case AttestationType.BalanceDecreasingTransaction:
-      sourceIds = [3, 0, 1, 2, 4];
-      sourceId = sourceIds[Math.floor(Math.random() * 5)];
+      sourceIds = [3, 0, 2];
+      sourceId = sourceIds[Math.floor(Math.random() * 3)];
       return { attestationType: randomAttestationType, sourceId } as ARBalanceDecreasingTransaction;
     case AttestationType.ConfirmedBlockHeightExists:
-      sourceIds = [3, 0, 1, 2, 4];
-      sourceId = sourceIds[Math.floor(Math.random() * 5)];
+      sourceIds = [3, 0, 2];
+      sourceId = sourceIds[Math.floor(Math.random() * 3)];
       return { attestationType: randomAttestationType, sourceId } as ARConfirmedBlockHeightExists;
     case AttestationType.ReferencedPaymentNonexistence:
-      sourceIds = [3, 0, 1, 2, 4];
-      sourceId = sourceIds[Math.floor(Math.random() * 5)];
+      sourceIds = [3, 0, 2];
+      sourceId = sourceIds[Math.floor(Math.random() * 3)];
       return { attestationType: randomAttestationType, sourceId } as ARReferencedPaymentNonexistence;
     default:
       throw new Error("Invalid attestation type");

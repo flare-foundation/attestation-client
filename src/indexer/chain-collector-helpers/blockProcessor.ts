@@ -1,27 +1,13 @@
-import {
-  BtcFullBlock,
-  BtcTransaction,
-  ChainType,
-  DogeFullBlock,
-  DogeTransaction,
-  IUtxoGetTransactionRes,
-  IUtxoTransactionAdditionalData,
-  Managed,
-  UtxoFullBlock,
-  UtxoTransaction,
-  XrpFullBlock,
-  traceFunction
-} from "@flarenetwork/mcc";
-import { LimitingProcessor, LimitingProcessorOptions } from "../../caching/LimitingProcessor";
+import { BtcFullBlock, BtcTransaction, ChainType, DogeFullBlock, DogeTransaction, Managed, XrpFullBlock, traceFunction } from "@flarenetwork/mcc";
+import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBBlockXRP } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { retryMany } from "../../utils/helpers/promiseTimeout";
 
-import { CachedMccClient } from "../../caching/CachedMccClient";
 import { criticalAsync, prepareIndexerTables } from "../indexer-utils";
 import { augmentBlock } from "./augmentBlock";
 import { augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
-import { getFullTransactionUtxo } from "./readTransaction";
+import { FullIndexingOptions, getFullTransactionUtxo } from "./readTransaction";
 import { onSaveSig } from "./types";
 
 /**
@@ -48,30 +34,78 @@ export function BlockProcessor(chainType: ChainType) {
  * The block class (IBlock) is expected to have all transactions in
  * `tx` field.
  */
-abstract class UtxoBlockProcessor<T extends UtxoTransaction, B extends UtxoFullBlock<T>> extends LimitingProcessor<B> {
-  transactionConstructor: new (d: IUtxoGetTransactionRes, a?: IUtxoTransactionAdditionalData) => T;
+// abstract class UtxoBlockProcessor<T extends UtxoTransaction, B extends UtxoFullBlock<T>> extends LimitingProcessor<B> {
+//   transactionConstructor: new (d: IUtxoGetTransactionRes, a?: IUtxoTransactionAdditionalData) => T;
 
-  constructor(
-    client: CachedMccClient,
-    options?: LimitingProcessorOptions,
-    txConstructor?: new (d: IUtxoGetTransactionRes, a?: IUtxoTransactionAdditionalData) => T
-  ) {
-    super(client, options);
-    this.transactionConstructor = txConstructor;
-  }
+//   constructor(
+//     client: CachedMccClient,
+//     options?: LimitingProcessorOptions,
+//     txConstructor?: new (d: IUtxoGetTransactionRes, a?: IUtxoTransactionAdditionalData) => T
+//   ) {
+//     super(client, options);
+//     this.transactionConstructor = txConstructor;
+//   }
 
-  async initializeJobs(block: B, onSave: onSaveSig) {
+//   async initializeJobs(block: B, onSave: onSaveSig) {
+//     this.block = block;
+
+//     const txPromises = block.transactions.map((txObject) => {
+//       return this.call(() => traceFunction(() => getFullTransactionUtxo<B, T>(this.client, txObject, this))) as Promise<T>;
+//     });
+
+//     const chainType = this.client.chainType;
+//     const dbTableScheme = prepareIndexerTables(chainType);
+
+//     const transDbPromises = txPromises.map((processed) => async () => {
+//       return await augmentTransactionUtxo<T>(dbTableScheme.transactionTable[0], chainType, block, processed);
+//     });
+
+//     const transDb = (await retryMany(`UtxoBlockProcessor::initializeJobs(${block.number})`, transDbPromises)) as DBTransactionBase[];
+
+//     if (!transDb) {
+//       return;
+//     }
+
+//     const blockDb = augmentBlock(dbTableScheme.blockTable, block);
+
+//     this.stop();
+
+//     // eslint-disable-next-line
+//     criticalAsync(`UtxoBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
+//   }
+// }
+
+@Managed()
+export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
+  async initializeJobs(block: DogeFullBlock, onSave: onSaveSig) {
     this.block = block;
 
-    const txPromises = block.transactions.map((txObject) => {
-      return this.call(() => traceFunction(() => getFullTransactionUtxo<B, T>(this.client, txObject, this))) as Promise<T>;
+    // TODO: take this from some sort of settings file
+    const withDogeFork = false;
+    const transactionIndexingOption = FullIndexingOptions.withReference;
+
+    let transactionObjects: DogeTransaction[];
+
+    if (withDogeFork) {
+      transactionObjects = block.transactions;
+    } else {
+      const transactionObjectsPromises = block.transactionIds.map((txId) => {
+        return this.client.getTransaction(txId) as Promise<DogeTransaction>;
+      });
+      transactionObjects = await Promise.all(transactionObjectsPromises);
+    }
+
+    const txPromises = transactionObjects.map((txObject) => {
+      return this.call(() =>
+        traceFunction(() => getFullTransactionUtxo<DogeFullBlock, DogeTransaction>(this.client, txObject, this, transactionIndexingOption))
+      ) as Promise<DogeTransaction>;
     });
 
     const chainType = this.client.chainType;
     const dbTableScheme = prepareIndexerTables(chainType);
 
     const transDbPromises = txPromises.map((processed) => async () => {
-      return await augmentTransactionUtxo<T>(dbTableScheme.transactionTable[0], chainType, block, processed);
+      return await augmentTransactionUtxo(dbTableScheme.transactionTable[0], chainType, block, processed);
     });
 
     const transDb = (await retryMany(`UtxoBlockProcessor::initializeJobs(${block.number})`, transDbPromises)) as DBTransactionBase[];
@@ -86,20 +120,6 @@ abstract class UtxoBlockProcessor<T extends UtxoTransaction, B extends UtxoFullB
 
     // eslint-disable-next-line
     criticalAsync(`UtxoBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
-  }
-}
-
-// @Managed()
-// export class BtcBlockProcessor extends UtxoBlockProcessor<BtcTransaction, BtcFullBlock> {
-//   constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
-//     super(client, options, BtcTransaction);
-//   }
-// }
-
-@Managed()
-export class DogeBlockProcessor extends UtxoBlockProcessor<DogeTransaction, DogeFullBlock> {
-  constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
-    super(client, options, DogeTransaction);
   }
 }
 

@@ -2,15 +2,15 @@
 # docker-compose -f docker-compose-indexer-btc.yaml up
 
 
-FROM node:16
+FROM node:16-bullseye
 WORKDIR /app/attestation-client
 COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "yarn.lock", "./"]
 ENV DEBIAN_FRONTEND=noninteractive
 RUN \
 apt-get update && \
-curl -L -o /tmp/mysql-apt-config_0.8.24-1_all.deb https://dev.mysql.com/get/mysql-apt-config_0.8.24-1_all.deb && \
+curl -L -o /tmp/mysql-apt-config.deb https://dev.mysql.com/get/mysql-apt-config_0.8.26-1_all.deb && \
 apt-get install lsb-release -y && \
-dpkg -i /tmp/mysql-apt-config_0.8.24-1_all.deb && \
+dpkg -i /tmp/mysql-apt-config.deb && \
 apt-get update && \
 apt-get -y install mysql-client && \
 yarn install --frozen-lockfile

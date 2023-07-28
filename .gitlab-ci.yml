@@ -15,8 +15,6 @@ default:
 build-container:
   stage: build
   needs: []
-  tags:
-  - runner-helm-02.shared.infra.flare.network
   image: registry.gitplac.si/cts/build-oci:1.2.2
   script: [ "/build.sh" ]
   variables:

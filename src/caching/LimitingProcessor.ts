@@ -1,4 +1,4 @@
-import { Managed } from "@flarenetwork/mcc";
+import { BtcFullBlock, DogeFullBlock, FullBlockBase, Managed, XrpFullBlock } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Queue } from "../utils/data-structures/Queue";
@@ -86,7 +86,7 @@ export class DelayedExecution {
  * API calls, pass the processor to the async calls so that it can .call can be used in nested calls.
  */
 @Managed()
-export class LimitingProcessor<B> {
+export class LimitingProcessor<B extends FullBlockBase<any>> {
   static defaultLimitingProcessorOptions = {
     sleepDelayMs: 100,
     activeLimit: 50,

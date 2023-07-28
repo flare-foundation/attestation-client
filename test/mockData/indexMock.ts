@@ -1,10 +1,9 @@
 import {
+  BtcBlockHeader,
   BtcFullBlock,
   BtcTransaction,
   ChainType, DogeFullBlock, IUtxoGetBlockRes,
   IXrpGetBlockRes, IXrpGetTransactionRes,
-  LtcBlockHeader, LtcFullBlock,
-  UtxoTransaction,
   XrpBlock, XrpFullBlock, XrpNodeStatus, XrpTransaction
 } from "@flarenetwork/mcc";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
@@ -28,9 +27,6 @@ import * as resXRPBlock612 from "../mockData/XRPBlock612.json";
 import * as resXRPBlock613 from "../mockData/XRPBlock613.json";
 import * as resXRPBlock614 from "../mockData/XRPBlock614.json";
 
-import * as resLTCBlock420 from "../mockData/LTCBlock420.json";
-import * as resLTCBlock421 from "../mockData/LTCBlock421.json";
-
 import * as resLTCBlockHeader from "../mockData/LTCBlockHeaderFake.json";
 
 
@@ -52,10 +48,7 @@ export const BlockXRP612 = new XrpBlock(resXRPBlock612 as unknown as IXrpGetBloc
 export const BlockXRP613 = new XrpBlock(resXRPBlock613 as unknown as IXrpGetBlockRes);
 export const BlockXRP614 = new XrpBlock(resXRPBlock614 as unknown as IXrpGetBlockRes);
 
-export const BlockLTC420 = new LtcFullBlock(resLTCBlock420);
-export const BlockLTC421 = new LtcFullBlock(resLTCBlock421);
-
-export const BlockHeaderLTC = new LtcBlockHeader(resLTCBlockHeader);
+export const BlockHeaderBTC = new BtcBlockHeader(resLTCBlockHeader);
 
 export const AugTestBlockBTC = augmentBlock(DBBlockBTC, TestBlockBTC);
 export const AugTestBlockBTCAlt = augmentBlock(DBBlockBTC, TestBlockBTCAlt);

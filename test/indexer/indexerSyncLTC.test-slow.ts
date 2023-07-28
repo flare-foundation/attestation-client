@@ -1,6 +1,6 @@
 // yarn test test/indexer/indexerSyncLTC.test-slow.ts
 
-import { LtcBlockTip, UtxoMccCreate } from "@flarenetwork/mcc";
+import { BtcBlockTip, UtxoMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -12,7 +12,7 @@ import { IndexerConfig } from "../../src/indexer/IndexerConfig";
 import * as readTx from "../../src/indexer/chain-collector-helpers/readTransaction";
 import { Indexer } from "../../src/indexer/indexer";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { BlockHeaderLTC, BlockLTC420, BlockLTC421 } from "../mockData/indexMock";
+import { BlockHeaderBTC } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 chai.use(chaiAsPromised);
 
@@ -80,18 +80,9 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
       const stub6 = sinon.stub(indexer.cachedClient, "getBlock");
       const stub7 = sinon.stub(indexer.indexerToClient.client, "getFullBlock");
 
-      stub3.withArgs(2402420).resolves(BlockLTC420);
-      stub3.withArgs(2402421).resolves(BlockLTC421);
-
-      stub6.withArgs(2402420).resolves(BlockLTC420);
-      stub6.withArgs(2402421).resolves(BlockLTC421);
-
-      stub7.withArgs(2402420).resolves(BlockLTC420);
-      stub7.withArgs(2402421).resolves(BlockLTC421);
-
       const stub4 = sinon.stub(readTx, "getFullTransactionUtxo").callsFake(async (x, y, z) => y);
 
-      const tip = new LtcBlockTip({
+      const tip = new BtcBlockTip({
         hash: "682a97ab2b41ccd025df47f5fac5b902f04776031fb4961373230c9ef6e1f585",
         height: 2402422,
         branchlen: 1,
@@ -116,21 +107,21 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
     });
 
     it("Should run headerCollector", function (done) {
-      const tip1 = new LtcBlockTip({
+      const tip1 = new BtcBlockTip({
         hash: "682a97ab2b41ccd025df47f5fac5b902f04776031fb4961373230c9ef6e1f585",
         height: 2402422,
         branchlen: 1,
         status: "headers-only",
       });
 
-      const tip2 = new LtcBlockTip({
+      const tip2 = new BtcBlockTip({
         hash: "682a97ab2b41ccd025df47f5fac5b902f04776031fb4961373230c9ef6e1f584",
         height: 2402423,
         branchlen: 2,
         status: "headers-only",
       });
 
-      const tip3 = new LtcBlockTip({
+      const tip3 = new BtcBlockTip({
         hash: "8d1ba90d4443b7750c769861e2ed2a58480aec3ad1ea712e203af70525fa3d68",
         height: 2402424,
         branchlen: 0,
@@ -142,7 +133,7 @@ describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
       const stub3 = sinon
         .stub(indexer.indexerToClient, "getBlockHeaderFromClientByHash")
         .withArgs("saveHeadersOnNewTips", "8d1ba90d4443b7750c769861e2ed2a58480aec3ad1ea712e203af70525fa3d68")
-        .resolves(BlockHeaderLTC);
+        .resolves(BlockHeaderBTC);
 
       const spy = sinon.spy(indexer.headerCollector.indexerToDB, "writeT");
       indexer.headerCollector

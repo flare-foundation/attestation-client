@@ -1,6 +1,16 @@
-import { IUtxoVinTransaction, MccUtxoClient, UtxoTransaction } from "@flarenetwork/mcc";
+import { FullBlockBase, MccUtxoClient, UtxoTransaction } from "@flarenetwork/mcc";
 import { CachedMccClient } from "../../caching/CachedMccClient";
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
+
+/**
+ * Options for full indexing. on the utxo (for now only doge) chains
+ */
+export enum FullIndexingOptions {
+  all = "all",
+  none = "none",
+  withReference = "withReference",
+  withStdReference = "withStdReference",
+}
 
 /**
  * Given a UTXO transaction it does additional processing on UTXO inputs.
@@ -11,27 +21,37 @@ import { LimitingProcessor } from "../../caching/LimitingProcessor";
  * @param client chain client
  * @param blockTransaction specific transaction from the block to be processed with block processor
  * @param processor block processor
+ * @param indexingOption indexing option
  * @returns processed transaction
  */
-export async function getFullTransactionUtxo<B, T extends UtxoTransaction>(
+export async function getFullTransactionUtxo<B extends FullBlockBase<any>, T extends UtxoTransaction>(
   client: CachedMccClient,
   blockTransaction: T,
-  processor: LimitingProcessor<B>
+  processor: LimitingProcessor<B>,
+  indexingOption: FullIndexingOptions = FullIndexingOptions.withReference
 ): Promise<T> {
   processor.registerTopLevelJob();
-  // only for transactions with reference all input transactions are processed
-  if (blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase") {
-    // if (blockTransaction.type !== "coinbase") {   // too slow indexing!!!
-    blockTransaction.synchronizeAdditionalData();
+  let fullIndexing = false;
+  switch (indexingOption) {
+    case FullIndexingOptions.all:
+      fullIndexing = true;
+      break;
+    case FullIndexingOptions.withReference:
+      // only for transactions with reference all input transactions are processed
+      fullIndexing = blockTransaction.reference.length > 0 && blockTransaction.type !== "coinbase";
+      break;
+    case FullIndexingOptions.withStdReference:
+      // only transactions with standard reference are fully processed
+      fullIndexing = blockTransaction.stdPaymentReference && blockTransaction.type !== "coinbase";
+      break;
+    case FullIndexingOptions.none:
+    default:
+      fullIndexing = false;
+      break;
+  }
 
-    const txPromises = blockTransaction._data.vin.map((vin: IUtxoVinTransaction, index: number) => {
-      if (vin.txid) {
-        // the in-transactions are prepended to queue in order to process them earlier
-        return processor.call(() => blockTransaction.vinVoutAt(index, client.client as MccUtxoClient), true) as Promise<T>;
-      }
-    });
-
-    await Promise.all(txPromises);
+  if (fullIndexing) {
+    await blockTransaction.makeFull(client.client as MccUtxoClient);
 
     processor.markTopLevelJobDone();
 

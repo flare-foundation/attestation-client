@@ -129,6 +129,8 @@ export class BlockProcessorManager {
     // terminate app on exception
     // eslint-disable-next-line
     criticalAsync(`process -> BlockProcessorManager(${block.number})::processor.initializeJobs exception:`, () =>
+      // TODO: @ts-ignore remove ts-ignore
+      // @ts-ignore
       processor.initializeJobs(validatedBlock, this.completeCallback)
     );
   }
@@ -153,6 +155,8 @@ export class BlockProcessorManager {
     // terminate app on exception
     // eslint-disable-next-line
     criticalAsync(`process -> BlockProcessorManager(${block.number})::processor.initializeJobs exception:`, () =>
+      // TODO: @ts-ignore remove ts-ignore
+      // @ts-ignore
       processor.initializeJobs(validatedBlock, this.completeCallback)
     );
   }
@@ -164,7 +168,7 @@ export class BlockProcessorManager {
    * @param block
    * @returns valid (confirmed) block on the same height as `block`
    */
-  private async waitUntilBlockIsValid(block: FullBlockBase<any>): Promise<FullBlockBase<any>> {
+  private async waitUntilBlockIsValid<B extends FullBlockBase<any>>(block: B): Promise<B> {
     if (!this.settings.validateBlockBeforeProcess) {
       return block;
     }

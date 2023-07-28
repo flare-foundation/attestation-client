@@ -245,8 +245,6 @@ class AttestationSpammer {
     switch (chainName) {
       case "btc":
         return new MCC.BTC(this.spammerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
-      case "ltc":
-        return new MCC.LTC(this.spammerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
       case "doge":
         return new MCC.DOGE(this.spammerCredentials.chainConfiguration.mccCreate as UtxoMccCreate);
       case "xrp":

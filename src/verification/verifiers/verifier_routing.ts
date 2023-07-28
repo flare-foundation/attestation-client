@@ -9,24 +9,16 @@ import { Verification } from "../attestation-types/attestation-types";
 
 import { verifyPaymentXRP } from "./XRP/v-00001-payment.xrp";
 import { verifyPaymentBTC } from "./BTC/v-00001-payment.btc";
-import { verifyPaymentLTC } from "./LTC/v-00001-payment.ltc";
 import { verifyPaymentDOGE } from "./DOGE/v-00001-payment.doge";
-import { verifyPaymentALGO } from "./ALGO/v-00001-payment.algo";
 import { verifyBalanceDecreasingTransactionXRP } from "./XRP/v-00002-balance-decreasing-transaction.xrp";
 import { verifyBalanceDecreasingTransactionBTC } from "./BTC/v-00002-balance-decreasing-transaction.btc";
-import { verifyBalanceDecreasingTransactionLTC } from "./LTC/v-00002-balance-decreasing-transaction.ltc";
 import { verifyBalanceDecreasingTransactionDOGE } from "./DOGE/v-00002-balance-decreasing-transaction.doge";
-import { verifyBalanceDecreasingTransactionALGO } from "./ALGO/v-00002-balance-decreasing-transaction.algo";
 import { verifyConfirmedBlockHeightExistsXRP } from "./XRP/v-00003-confirmed-block-height-exists.xrp";
 import { verifyConfirmedBlockHeightExistsBTC } from "./BTC/v-00003-confirmed-block-height-exists.btc";
-import { verifyConfirmedBlockHeightExistsLTC } from "./LTC/v-00003-confirmed-block-height-exists.ltc";
 import { verifyConfirmedBlockHeightExistsDOGE } from "./DOGE/v-00003-confirmed-block-height-exists.doge";
-import { verifyConfirmedBlockHeightExistsALGO } from "./ALGO/v-00003-confirmed-block-height-exists.algo";
 import { verifyReferencedPaymentNonexistenceXRP } from "./XRP/v-00004-referenced-payment-nonexistence.xrp";
 import { verifyReferencedPaymentNonexistenceBTC } from "./BTC/v-00004-referenced-payment-nonexistence.btc";
-import { verifyReferencedPaymentNonexistenceLTC } from "./LTC/v-00004-referenced-payment-nonexistence.ltc";
 import { verifyReferencedPaymentNonexistenceDOGE } from "./DOGE/v-00004-referenced-payment-nonexistence.doge";
-import { verifyReferencedPaymentNonexistenceALGO } from "./ALGO/v-00004-referenced-payment-nonexistence.algo";
 
 import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
 import { Attestation } from "../../attester/Attestation";
@@ -72,12 +64,8 @@ export async function _verifyAttestation(
           return verifyPaymentXRP(defStore, client as MCC.XRP, attestationRequest, indexer);
         case SourceId.BTC:
           return verifyPaymentBTC(defStore, client as MCC.BTC, attestationRequest, indexer);
-        case SourceId.LTC:
-          return verifyPaymentLTC(defStore, client as MCC.LTC, attestationRequest, indexer);
         case SourceId.DOGE:
           return verifyPaymentDOGE(defStore, client as MCC.DOGE, attestationRequest, indexer);
-        case SourceId.ALGO:
-          return verifyPaymentALGO(defStore, client as MCC.ALGO, attestationRequest, indexer);
         default:
           throw new WrongSourceIdError("Wrong source id");
       }
@@ -87,12 +75,8 @@ export async function _verifyAttestation(
           return verifyBalanceDecreasingTransactionXRP(defStore, client as MCC.XRP, attestationRequest, indexer);
         case SourceId.BTC:
           return verifyBalanceDecreasingTransactionBTC(defStore, client as MCC.BTC, attestationRequest, indexer);
-        case SourceId.LTC:
-          return verifyBalanceDecreasingTransactionLTC(defStore, client as MCC.LTC, attestationRequest, indexer);
         case SourceId.DOGE:
           return verifyBalanceDecreasingTransactionDOGE(defStore, client as MCC.DOGE, attestationRequest, indexer);
-        case SourceId.ALGO:
-          return verifyBalanceDecreasingTransactionALGO(defStore, client as MCC.ALGO, attestationRequest, indexer);
         default:
           throw new WrongSourceIdError("Wrong source id");
       }
@@ -102,12 +86,8 @@ export async function _verifyAttestation(
           return verifyConfirmedBlockHeightExistsXRP(defStore, client as MCC.XRP, attestationRequest, indexer);
         case SourceId.BTC:
           return verifyConfirmedBlockHeightExistsBTC(defStore, client as MCC.BTC, attestationRequest, indexer);
-        case SourceId.LTC:
-          return verifyConfirmedBlockHeightExistsLTC(defStore, client as MCC.LTC, attestationRequest, indexer);
         case SourceId.DOGE:
           return verifyConfirmedBlockHeightExistsDOGE(defStore, client as MCC.DOGE, attestationRequest, indexer);
-        case SourceId.ALGO:
-          return verifyConfirmedBlockHeightExistsALGO(defStore, client as MCC.ALGO, attestationRequest, indexer);
         default:
           throw new WrongSourceIdError("Wrong source id");
       }
@@ -117,12 +97,8 @@ export async function _verifyAttestation(
           return verifyReferencedPaymentNonexistenceXRP(defStore, client as MCC.XRP, attestationRequest, indexer);
         case SourceId.BTC:
           return verifyReferencedPaymentNonexistenceBTC(defStore, client as MCC.BTC, attestationRequest, indexer);
-        case SourceId.LTC:
-          return verifyReferencedPaymentNonexistenceLTC(defStore, client as MCC.LTC, attestationRequest, indexer);
         case SourceId.DOGE:
           return verifyReferencedPaymentNonexistenceDOGE(defStore, client as MCC.DOGE, attestationRequest, indexer);
-        case SourceId.ALGO:
-          return verifyReferencedPaymentNonexistenceALGO(defStore, client as MCC.ALGO, attestationRequest, indexer);
         default:
           throw new WrongSourceIdError("Wrong source id");
       }
@@ -152,32 +128,6 @@ export async function verifyBTC(
       return verifyConfirmedBlockHeightExistsBTC(defStore, client, attestationRequest, indexer);
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceBTC(defStore, client, attestationRequest, indexer);
-    default:
-      throw new WrongAttestationTypeError("Unknown attestation type");
-  }
-}
-
-export async function verifyLTC(
-  defStore: AttestationDefinitionStore,
-  client: MCC.LTC,
-  attestationRequest: string,
-  indexer: IndexedQueryManager
-): Promise<Verification<ARType, DHType>> {
-  let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
-
-  if (sourceId != SourceId.LTC) {
-    throw new WrongSourceIdError("Wrong source while calling 'verifyLTC'(...)");
-  }
-
-  switch (attestationType) {
-    case AttestationType.Payment:
-      return verifyPaymentLTC(defStore, client, attestationRequest, indexer);
-    case AttestationType.BalanceDecreasingTransaction:
-      return verifyBalanceDecreasingTransactionLTC(defStore, client, attestationRequest, indexer);
-    case AttestationType.ConfirmedBlockHeightExists:
-      return verifyConfirmedBlockHeightExistsLTC(defStore, client, attestationRequest, indexer);
-    case AttestationType.ReferencedPaymentNonexistence:
-      return verifyReferencedPaymentNonexistenceLTC(defStore, client, attestationRequest, indexer);
     default:
       throw new WrongAttestationTypeError("Unknown attestation type");
   }
@@ -230,32 +180,6 @@ export async function verifyXRP(
       return verifyConfirmedBlockHeightExistsXRP(defStore, client, attestationRequest, indexer);
     case AttestationType.ReferencedPaymentNonexistence:
       return verifyReferencedPaymentNonexistenceXRP(defStore, client, attestationRequest, indexer);
-    default:
-      throw new WrongAttestationTypeError("Unknown attestation type");
-  }
-}
-
-export async function verifyALGO(
-  defStore: AttestationDefinitionStore,
-  client: MCC.ALGO,
-  attestationRequest: string,
-  indexer: IndexedQueryManager
-): Promise<Verification<ARType, DHType>> {
-  let { attestationType, sourceId } = getAttestationTypeAndSource(attestationRequest);
-
-  if (sourceId != SourceId.ALGO) {
-    throw new WrongSourceIdError("Wrong source while calling 'verifyALGO'(...)");
-  }
-
-  switch (attestationType) {
-    case AttestationType.Payment:
-      return verifyPaymentALGO(defStore, client, attestationRequest, indexer);
-    case AttestationType.BalanceDecreasingTransaction:
-      return verifyBalanceDecreasingTransactionALGO(defStore, client, attestationRequest, indexer);
-    case AttestationType.ConfirmedBlockHeightExists:
-      return verifyConfirmedBlockHeightExistsALGO(defStore, client, attestationRequest, indexer);
-    case AttestationType.ReferencedPaymentNonexistence:
-      return verifyReferencedPaymentNonexistenceALGO(defStore, client, attestationRequest, indexer);
     default:
       throw new WrongAttestationTypeError("Unknown attestation type");
   }

@@ -1,31 +1,13 @@
-import {
-  AlgoBlock,
-  BtcFullBlock,
-  BtcTransaction,
-  ChainType,
-  DogeFullBlock,
-  DogeTransaction,
-  FullBlockBase,
-  IUtxoGetTransactionRes,
-  IUtxoTransactionAdditionalData,
-  LtcFullBlock,
-  LtcTransaction,
-  Managed,
-  UtxoFullBlock,
-  UtxoTransaction,
-  XrpFullBlock,
-  traceFunction,
-} from "@flarenetwork/mcc";
-import { LimitingProcessor, LimitingProcessorOptions } from "../../caching/LimitingProcessor";
-import { DBBlockALGO, DBBlockXRP } from "../../entity/indexer/dbBlock";
+import { BtcFullBlock, BtcTransaction, ChainType, DogeFullBlock, DogeTransaction, Managed, XrpFullBlock, traceFunction } from "@flarenetwork/mcc";
+import { LimitingProcessor } from "../../caching/LimitingProcessor";
+import { DBBlockXRP } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { retryMany } from "../../utils/helpers/promiseTimeout";
 
-import { CachedMccClient } from "../../caching/CachedMccClient";
 import { criticalAsync, prepareIndexerTables } from "../indexer-utils";
 import { augmentBlock } from "./augmentBlock";
-import { augmentTransactionAlgo, augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
-import { getFullTransactionUtxo } from "./readTransaction";
+import { augmentTransactionUtxo, augmentTransactionXrp } from "./augmentTransaction";
+import { FullIndexingOptions, getFullTransactionUtxo } from "./readTransaction";
 import { onSaveSig } from "./types";
 
 /**
@@ -39,12 +21,8 @@ export function BlockProcessor(chainType: ChainType) {
       return XrpBlockProcessor;
     case ChainType.BTC:
       return BtcBlockProcessor;
-    case ChainType.LTC:
-      return LtcBlockProcessor;
     case ChainType.DOGE:
       return DogeBlockProcessor;
-    case ChainType.ALGO:
-      return AlgoBlockProcessor;
     default:
       return null;
   }
@@ -56,30 +34,37 @@ export function BlockProcessor(chainType: ChainType) {
  * The block class (IBlock) is expected to have all transactions in
  * `tx` field.
  */
-abstract class UtxoBlockProcessor<T extends UtxoTransaction, B extends UtxoFullBlock<T>> extends LimitingProcessor<B> {
-  transactionConstructor: new (d: IUtxoGetTransactionRes, a?: IUtxoTransactionAdditionalData) => T;
-
-  constructor(
-    client: CachedMccClient,
-    options?: LimitingProcessorOptions,
-    txConstructor?: new (d: IUtxoGetTransactionRes, a?: IUtxoTransactionAdditionalData) => T
-  ) {
-    super(client, options);
-    this.transactionConstructor = txConstructor;
-  }
-
-  async initializeJobs(block: B, onSave: onSaveSig) {
+@Managed()
+export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
+  async initializeJobs(block: DogeFullBlock, onSave: onSaveSig) {
     this.block = block;
 
-    const txPromises = block.transactions.map((txObject) => {
-      return this.call(() => traceFunction(() => getFullTransactionUtxo<B, T>(this.client, txObject, this))) as Promise<T>;
+    // TODO: take this from some sort of settings file
+    const withDogeFork = true;
+    const transactionIndexingOption = FullIndexingOptions.withReference;
+
+    let transactionObjects: DogeTransaction[];
+
+    if (withDogeFork) {
+      transactionObjects = block.transactions;
+    } else {
+      const transactionObjectsPromises = block.transactionIds.map((txId) => {
+        return this.client.getTransaction(txId) as Promise<DogeTransaction>;
+      });
+      transactionObjects = await Promise.all(transactionObjectsPromises);
+    }
+
+    const txPromises = transactionObjects.map((txObject) => {
+      return this.call(() =>
+        traceFunction(() => getFullTransactionUtxo<DogeFullBlock, DogeTransaction>(this.client, txObject, this, transactionIndexingOption))
+      ) as Promise<DogeTransaction>;
     });
 
     const chainType = this.client.chainType;
     const dbTableScheme = prepareIndexerTables(chainType);
 
     const transDbPromises = txPromises.map((processed) => async () => {
-      return await augmentTransactionUtxo<T>(dbTableScheme.transactionTable[0], chainType, block, processed);
+      return await augmentTransactionUtxo(dbTableScheme.transactionTable[0], chainType, block, processed);
     });
 
     const transDb = (await retryMany(`UtxoBlockProcessor::initializeJobs(${block.number})`, transDbPromises)) as DBTransactionBase[];
@@ -97,24 +82,34 @@ abstract class UtxoBlockProcessor<T extends UtxoTransaction, B extends UtxoFullB
   }
 }
 
+/**
+ * Block processor for BTC chain utilizing the full transaction verbosity.
+ * It is a specialized implementation of `LimitingProcessor`.
+ */
 @Managed()
-export class BtcBlockProcessor extends UtxoBlockProcessor<BtcTransaction, BtcFullBlock> {
-  constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
-    super(client, options, BtcTransaction);
-  }
-}
+export class BtcBlockProcessor extends LimitingProcessor<BtcFullBlock> {
+  async initializeJobs(block: BtcFullBlock, onSave: onSaveSig) {
+    this.block = block;
 
-@Managed()
-export class LtcBlockProcessor extends UtxoBlockProcessor<LtcTransaction, LtcFullBlock> {
-  constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
-    super(client, options, LtcTransaction);
-  }
-}
+    const chainType = this.client.chainType;
+    const dbTableScheme = prepareIndexerTables(chainType);
 
-@Managed()
-export class DogeBlockProcessor extends UtxoBlockProcessor<DogeTransaction, DogeFullBlock> {
-  constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
-    super(client, options, DogeTransaction);
+    const transDbPromises = block.transactions.map((processed) => async () => {
+      return await augmentTransactionUtxo<BtcTransaction>(dbTableScheme.transactionTable[0], chainType, block, processed);
+    });
+
+    const transDb = (await retryMany(`UtxoBlockProcessor::initializeJobs(${block.number})`, transDbPromises)) as DBTransactionBase[];
+
+    if (!transDb) {
+      return;
+    }
+
+    const blockDb = augmentBlock(dbTableScheme.blockTable, block);
+
+    this.stop();
+
+    // eslint-disable-next-line
+    criticalAsync(`UtxoBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
   }
 }
 
@@ -177,29 +172,29 @@ export class DogeBlockProcessor extends UtxoBlockProcessor<DogeTransaction, Doge
  * Block processor for ALGO chain.
  * It is a specialized implementation of `LimitingProcessor`.
  */
-@Managed()
-export class AlgoBlockProcessor extends LimitingProcessor<any> {
-  async initializeJobs(block: FullBlockBase<any>, onSave: onSaveSig) {
-    this.block = block as AlgoBlock;
+// @Managed()
+// export class AlgoBlockProcessor extends LimitingProcessor<any> {
+//   async initializeJobs(block: FullBlockBase<any>, onSave: onSaveSig) {
+//     this.block = block as AlgoBlock;
 
-    const txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
-      return () => {
-        return augmentTransactionAlgo(block as AlgoBlock, algoTrans);
-      };
-    });
-    const transDb = (await retryMany(
-      `AlgoBlockProcessor::initializeJobs(${block.number})`,
-      txPromises,
-      this.settings.timeout,
-      this.settings.retry
-    )) as DBTransactionBase[];
-    this.pause();
-    const blockDb = augmentBlock(DBBlockALGO, block);
+//     const txPromises = (block as AlgoBlock).transactions.map((algoTrans) => {
+//       return () => {
+//         return augmentTransactionAlgo(block as AlgoBlock, algoTrans);
+//       };
+//     });
+//     const transDb = (await retryMany(
+//       `AlgoBlockProcessor::initializeJobs(${block.number})`,
+//       txPromises,
+//       this.settings.timeout,
+//       this.settings.retry
+//     )) as DBTransactionBase[];
+//     this.pause();
+//     const blockDb = augmentBlock(DBBlockALGO, block);
 
-    // eslint-disable-next-line
-    criticalAsync(`AlgoBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
-  }
-}
+//     // eslint-disable-next-line
+//     criticalAsync(`AlgoBlockProcessor::initializeJobs(${block.number}) onSave exception: `, () => onSave(blockDb, transDb));
+//   }
+// }
 
 /**
  * Block processor for XRP chain.

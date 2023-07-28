@@ -162,7 +162,22 @@
       },
       "name": "Launch Install dockerSecureUpdateSql",
       "runtimeExecutable": "yarn",
-      "runtimeArgs": ["ts-node", "src/install/dockerSecureUpdateSql.ts", "-i", "prepareIndexer", "-n", "XRP", "-p" , "./deployment/credentials" ,"-h", "127.0.0.1", "-P", "23308", "-f" , "1" ]
+      "runtimeArgs": [
+        "ts-node",
+        "src/install/dockerSecureUpdateSql.ts",
+        "-i",
+        "prepareIndexer",
+        "-n",
+        "XRP",
+        "-p",
+        "./deployment/credentials",
+        "-h",
+        "127.0.0.1",
+        "-P",
+        "23308",
+        "-f",
+        "1"
+      ]
     },
 
     {
@@ -564,7 +579,7 @@
       "env": {
         "NODE_ENV": "development"
       },
-      "runtimeArgs": ["test", "test/attestationClient/AttestationClient.e2e-test.ts"]
+      "runtimeArgs": ["test_endtoend"]
     },
 
     {
@@ -680,21 +695,21 @@
     },
 
     {
-        "type": "node",
-        "console": "integratedTerminal",
-        "request": "launch",
-        "name": "Test block processor mannager",
-        "runtimeExecutable": "yarn",
-        "outFiles": [
-          "${workspaceFolder}/**/*.js",
-          "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
-          "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
-        ],
-        "env": {
-          "CONFIG_PATH": ".secure.dev",
-          "NODE_ENV": "development"
-        },
-        "runtimeArgs": ["test", "test/indexer/blockProcessorManager.test.ts"]
-      }
+      "type": "node",
+      "console": "integratedTerminal",
+      "request": "launch",
+      "name": "Test block processor mannager",
+      "runtimeExecutable": "yarn",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/**",
+        "${workspaceFolder}/node_modules/@flarenetwork/mcc/src/**"
+      ],
+      "env": {
+        "CONFIG_PATH": ".secure.dev",
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": ["test", "test/indexer/blockProcessorManager.test.ts"]
+    }
   ]
 }

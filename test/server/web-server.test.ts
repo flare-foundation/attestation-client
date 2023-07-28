@@ -54,8 +54,8 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
 
   it("Should not get a table of requests for a round for a unfinalised round", async function () {
     const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/requests-for-round/27409770000`);
-    expect(resp.data.status).to.eq("PENDING");
-    expect(resp.data.data.length).to.eq(0);
+    expect(resp.data.status).to.eq("ERROR");
+    expect(resp.data.data).to.be.undefined;
   });
 
   it("Should get table of results (confirmed request) for a round", async function () {
@@ -66,17 +66,17 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
 
   it("Should not get table of results (confirmed request) for a round in the future", async function () {
     const resp = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/votes-for-round/274097800`);
-    expect(resp.data.status).to.eq("PENDING");
-    expect(resp.data.data.length).to.eq(0);
+    expect(resp.data.status).to.eq("ERROR");
+    expect(resp.data.data).to.be.undefined;
   });
 
   it("Should get specific proof for a request", async function () {
     const resp = await axios.post(`http://localhost:${configurationService.serverCredentials.port}/api/proof/get-specific-proof`, {
       roundId: 2751736,
-      callData:
+      requestBytes:
         "0x0001000000026bc43c39eed5effef28dd065b180819f0b0cdb9c303913aadc009603bf62d0e99735df203e0f80e59120fbe07e2ff8324be470e408c664b4fa86bc40b4cfe9c3000003b60000",
     });
-
+    const resp2 = await axios.get(`http://localhost:${configurationService.serverCredentials.port}/api/proof/votes-for-round/2751736`);
     expect(resp.data.status).to.eq("OK");
     expect(resp.data.data.roundId).to.eq(2751736);
   });
@@ -84,12 +84,12 @@ describe(`Web-server (so far with empty database) (${getTestFile(__filename)})`,
   it("Should not get specific proof for a request that does not exist", async function () {
     const resp = await axios.post(`http://localhost:${configurationService.serverCredentials.port}/api/proof/get-specific-proof`, {
       roundId: 2751736,
-      callData:
+      requestBytes:
         "0x000100000003fcc56a2e4fee0a7830de7e8aa0597e0fe34750174be9d73b6f28a4559f9b3fe69735df203e0f80e59120fbe07e2ff8324be470e408c664b4fa86bc40b4cfe9c3000003b60000",
     });
 
-    expect(resp.data.status).to.eq("OK");
-    expect(resp.data.data).to.be.null;
+    expect(resp.data.status).to.eq("ERROR");
+    expect(resp.data.data).to.be.undefined;
   });
 
   it("Should get status", async function () {

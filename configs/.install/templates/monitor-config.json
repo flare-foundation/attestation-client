@@ -10,7 +10,17 @@
 
     // Prometheus settings
     "prometheus":{
+        // Enable monitor server
         "monitorServerEnabled":"true",
+
+        // Monitor Server port
+        //"monitorServerPort":"3010";
+
+        // Enable Prometheus push gateway
+        //"pushGatewayEnabled":"true",
+
+        // Push gateway URL
+        //"pushGatewayUrl":"http://127.0.0.1:9091",
     },
 
     // monitor system
@@ -33,6 +43,17 @@
             "name" : "XRP",
             "database" : "indexer-xrp",
         },
+    ],
+
+    // web3 account balance
+    "balances" : [
+        {
+            "name": "AttestationClientFlare",
+            "address":"",
+            // "web3Rpc": "https://flare-api.flare.network/ext/C/rpc",
+            // "currency": "FLR";
+            // "lowBalanceErrorThreshold": 100
+        }
     ],
 
     // dockers

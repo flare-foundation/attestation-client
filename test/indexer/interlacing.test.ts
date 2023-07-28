@@ -133,7 +133,7 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
         .update(16685757980, 7643800)
         .then(() => {})
         .catch((e) => getGlobalLogger().error("interlacing.update failed"));
-      const spy = sinon.spy(utils, "sleepms");
+      const spy = sinon.spy(utils, "sleepMs");
       await interlacing.update(16685747980, 7633800);
       expect(spy.calledWith(1)).to.be.true;
       sinon.restore();
@@ -146,7 +146,7 @@ describe(`Interlacing (${getTestFile(__filename)})`, () => {
         .resetAll()
         .then(() => {})
         .catch((e) => getGlobalLogger().error("interlacing.update failed"));
-      const spy = sinon.spy(utils, "sleepms");
+      const spy = sinon.spy(utils, "sleepMs");
       expect(spy.calledWith(1)).to.be.false;
       await interlacing.resetAll();
       expect(spy.calledWith(1)).to.be.true;

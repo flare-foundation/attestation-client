@@ -1,10 +1,10 @@
-import { BlockHeaderBase, IBlock, IBlockHeader, IBlockTip, Managed } from "@flarenetwork/mcc";
+import { BlockHeaderBase, BlockTipBase, Managed } from "@flarenetwork/mcc";
 import { failureCallback, retry, retryMany } from "../utils/helpers/promiseTimeout";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { AttLogger } from "../utils/logging/logger";
+import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
-import { UnconfirmedBlockManager } from "./UnconfirmedBlockManager";
 
 interface IHeaderCollectorSettings {
   blockCollectTimeMs: number;
@@ -25,7 +25,7 @@ export class HeaderCollector {
   private blockHeaderHash = new Set<string>();
   private blockHeaderNumber = new Set<number>();
   // Use this only on non-forkable chains
-  private blockNumberHash = new Map<number, string>();
+  private blockNumberHash = new Map<number, string[]>();
 
   constructor(logger: AttLogger, N: number, indexerToClient: IndexerToClient, indexerToDB: IndexerToDB, settings: IHeaderCollectorSettings) {
     this.logger = logger;
@@ -39,24 +39,69 @@ export class HeaderCollector {
   // update N
   /////////////////////////////////////////////////////////////
 
+  /**
+   * Updates N.
+   * @param newN
+   */
   public updateN(newN: number) {
     this.N = newN;
+  }
+
+  /**
+   * Triggered when the bottom block number is updated.
+   * @param newBottomBlockNumber
+   */
+  public onUpdateBottomBlockNumber(newBottomBlockNumber: number) {
+    // this is non-awaited on purpose
+    this.clearOlderBlocksInCache(newBottomBlockNumber);
   }
 
   /////////////////////////////////////////////////////////////
   // caching
   /////////////////////////////////////////////////////////////
 
-  private isBlockCached(block: IBlockTip) {
+  /**
+   * Checks if the block is cached.
+   * @param block
+   * @returns
+   */
+  private isBlockCached(block: BlockTipBase) {
     return this.blockHeaderHash.has(block.stdBlockHash) && this.blockHeaderNumber.has(block.number);
   }
 
-  private cacheBlock(block: IBlockTip) {
+  /**
+   * Cache the block.
+   * @param block
+   */
+  private cacheBlock(block: BlockTipBase) {
     this.blockHeaderHash.add(block.stdBlockHash);
     this.blockHeaderNumber.add(block.number);
-    this.blockNumberHash.set(block.number, block.stdBlockHash);
+    let hashes = this.blockNumberHash.get(block.number) || [];
+    hashes.push(block.stdBlockHash);
+    this.blockNumberHash.set(block.number, hashes);
   }
 
+  /**
+   * Clears the cache of blocks with block numbers < blockNumber.
+   * @param blockNumber
+   * @returns
+   */
+  private async clearOlderBlocksInCache(blockNumber: number) {
+    let currentBlockNumber = blockNumber - 1;
+    while (currentBlockNumber >= 0) {
+      const hashList = this.blockNumberHash.get(currentBlockNumber);
+      if (!hashList || hashList.length === 0) {
+        return; //this happens only if cache for currentBlockNumber has already been cleared or is before the start of indexing, therefore also for all blocks before
+      }
+      this.blockHeaderNumber.delete(currentBlockNumber);
+      for (const hash of hashList) {
+        this.blockHeaderHash.delete(hash);
+      }
+      this.blockNumberHash.delete(currentBlockNumber);
+      currentBlockNumber--;
+      await sleepMs(10); // yield the thread
+    }
+  }
   /////////////////////////////////////////////////////////////
   // saving blocks
   /////////////////////////////////////////////////////////////
@@ -87,7 +132,7 @@ export class HeaderCollector {
       blockPromises.push(async () => this.indexerToClient.getBlockHeaderFromClient(`saveBlocksHeaders`, blockNumber));
     }
 
-    let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as IBlockHeader[];
+    let blocks = (await retryMany(`saveBlocksHeaders`, blockPromises, 5000, 5)) as BlockHeaderBase[];
     blocks = blocks.filter((block) => !this.isBlockCached(block));
     await this.saveHeadersOnNewTips(blocks);
   }
@@ -105,7 +150,7 @@ export class HeaderCollector {
    * @param blocks array of headers
    * @returns
    */
-  public async saveHeadersOnNewTips(blockTips: IBlockTip[] | IBlockHeader[]) {
+  public async saveHeadersOnNewTips(blockTips: BlockTipBase[] | BlockHeaderBase[]) {
     let blocksText = "[";
 
     const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexerToDB.dbService, this.indexerToDB.dbBlockClass, this.N);
@@ -139,7 +184,7 @@ export class HeaderCollector {
 
       if (blockTip instanceof BlockHeaderBase) {
         // if we got IBlockHeader we already have all the info required
-        const header = blockTip as IBlockHeader;
+        const header = blockTip as BlockHeaderBase;
 
         dbBlock.timestamp = header.unixTimestamp;
         dbBlock.previousBlockHash = header.previousBlockHash;
@@ -192,7 +237,7 @@ export class HeaderCollector {
         await this.indexerToDB.writeT(newT);
         T = newT;
       }
-      await sleepms(this.settings.blockCollectTimeMs);
+      await sleepMs(this.settings.blockCollectTimeMs);
     }
   }
 
@@ -209,11 +254,11 @@ export class HeaderCollector {
         T = newT;
       }
 
-      const blocks: IBlockTip[] = await this.indexerToClient.client.getTopLiteBlocks(this.settings.numberOfConfirmations);
+      const blocks: BlockTipBase[] = await this.indexerToClient.client.getTopLiteBlocks(this.settings.numberOfConfirmations);
 
       await this.saveHeadersOnNewTips(blocks);
 
-      await sleepms(this.settings.blockCollectTimeMs);
+      await sleepMs(this.settings.blockCollectTimeMs);
     }
   }
 

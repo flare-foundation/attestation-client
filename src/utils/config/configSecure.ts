@@ -8,9 +8,9 @@ import { initializeJSONsecure, readJSONsecure } from "./jsonSecure";
 const DEFAULT_SECURE_CONFIG_PATH = "../attestation-suite-config";
 
 /**
- * Read secure credentials file and substitude its variables in the template files.
+ * Read secure credentials file and substitute its variables in the template files.
  *
- * Function creates configurtion object of `obj` and checks if all class members are set.
+ * Function creates configuration object of `obj` and checks if all class members are set.
  * Any unset (non optional) members return error.
  *
  * Instance class (obj) must be inherited from `IReflection`

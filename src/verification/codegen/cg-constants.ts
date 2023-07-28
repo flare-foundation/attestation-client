@@ -43,10 +43,10 @@ export const DEFAULT_GEN_FILE_HEADER = `////////////////////////////////////////
 `;
 
 export const SEMI_EDITABLE_GEN_FILE_HEADER = `//////////////////////////////////////////////////////////////
-// This file is auto generated. You may edit it only in the 
+// This file is auto generated. You may edit it only in the
 // marked section between //-$$$<start> and //-$$$<end>.
 // You may also import custom imports needed for the code
-// in the custom section, which should be placed immediately 
+// in the custom section, which should be placed immediately
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 `;
@@ -57,7 +57,7 @@ export const RANDOM_RESPONSE_HEADER = `/////////////////////////////////////////
 `;
 
 export const WEB3_HASH_FUNCTIONS_HEADER = `//////////////////////////////////////////////////////////////
-// Hash functions for requests and responses for particular 
+// Hash functions for requests and responses for particular
 // Attestation types.
 //////////////////////////////////////////////////////////////
 `;
@@ -84,7 +84,8 @@ export const PRETTIER_SETTINGS_SOL: Options = {
   parser: "solidity-parse",
   trailingComma: "es5",
   tabWidth: 4,
-  printWidth: 160,
+  printWidth: 110,
+  proseWrap: 'preserve',
   semi: true,
   singleQuote: false,
 };

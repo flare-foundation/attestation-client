@@ -9,11 +9,14 @@ function genAttestationTypeEnum(definitions: AttestationTypeScheme[]): string {
 export enum AttestationType {
 ${values}
 }
+
+export const NUMBER_OF_ATTESTATION_TYPES = ${definitions.length}
+
 /**
  * Returns attestation type name for an attestation type enum
- * @param attestationType: number 
+ * @param attestationType: number
  */
-export function getAttestationTypeName(attestationType: number): string {
+export function getAttestationTypeName(attestationType: number): string | null {
   if (attestationType == null || !AttestationType[attestationType]) {
     return null;
   }

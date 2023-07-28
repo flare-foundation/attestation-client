@@ -1,8 +1,16 @@
 import fs from "fs";
 import prettier from "prettier";
 import Web3 from "web3";
-import { AttestationTypeScheme, ATT_BYTES, DataHashScheme, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
-import { tsTypeForSolidityType } from "../attestation-types/attestation-types-helpers";
+import {
+  AttestationTypeScheme,
+  ATT_BYTES,
+  DataHashScheme,
+  SOURCE_ID_BYTES,
+  SupportedRequestType,
+  RESPONSE_BASE_DEFINITIONS,
+  REQUEST_BASE_DEFINITIONS,
+} from "../attestation-types/attestation-types";
+import { tsTypeForItem } from "../attestation-types/attestation-types-helpers";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_RANDOM_UTILS_FILE,
@@ -14,7 +22,10 @@ import {
 import { trimStartNewline } from "./cg-utils";
 
 export function randomHashItemValue(item: DataHashScheme, defaultReadObject = "{}") {
-  const res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForSolidityType(item.type)}`;
+  if (item.key === "stateConnectorRound") {
+    return `${item.key}: roundId`;
+  }
+  const res = `${item.key}: randSol(${defaultReadObject}, "${item.key}", "${item.type}") as ${tsTypeForItem(item)}`;
   return trimStartNewline(res);
 }
 
@@ -40,7 +51,9 @@ export function randReqItemCode(type: SupportedRequestType, size: number) {
 // funkcija za enkodiranje vsakega od tipov
 
 export function genRandomResponseCode(definition: AttestationTypeScheme, defaultReadObject = "{}") {
-  const responseFields = definition.dataHashDefinition.map((item) => randomHashItemValue(item, defaultReadObject)).join(",\n");
+  const responseFields = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition]
+    .map((item) => randomHashItemValue(item, defaultReadObject))
+    .join(",\n");
   const randomResponse = `
 const response = {
 ${responseFields}      
@@ -51,7 +64,7 @@ ${responseFields}
 
 export function genRandomResponseFunction(definition: AttestationTypeScheme) {
   return `
-export function randomResponse${definition.name}() {
+export function randomResponse${definition.name}(roundId = 0) {
 ${genRandomResponseCode(definition)}
    return response;
 }
@@ -61,7 +74,7 @@ ${genRandomResponseCode(definition)}
 function genRandomResponseCase(definition: AttestationTypeScheme) {
   const result = `
 case AttestationType.${definition.name}:
-   return randomResponse${definition.name}();
+   return randomResponse${definition.name}(roundId);
 `;
   return trimStartNewline(result);
 }
@@ -69,7 +82,7 @@ case AttestationType.${definition.name}:
 export function genRandomResponseForAttestationTypeFunction(definitions: AttestationTypeScheme[]) {
   const attestationTypeCases = definitions.map((definition) => genRandomResponseCase(definition)).join("\n");
   return `
-export function getRandomResponseForType(attestationType: AttestationType) {
+export function getRandomResponseForType(attestationType: AttestationType, roundId = 0) {
 	switch(attestationType) {
 ${attestationTypeCases}
 		default:
@@ -80,8 +93,8 @@ ${attestationTypeCases}
 }
 
 export function genHashCode(definition: AttestationTypeScheme, defaultRequest = "response", defaultResponse = "response") {
-  const types = definition.dataHashDefinition.map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
-  const values = definition.dataHashDefinition.map((item) => `${defaultResponse}.${item.key}`).join(",\n");
+  const types = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `"${item.type}",\t\t// ${item.key}`).join("\n");
+  const values = [...RESPONSE_BASE_DEFINITIONS, ...definition.dataHashDefinition].map((item) => `${defaultResponse}.${item.key}`).join(",\n");
   return `
 const encoded = web3.eth.abi.encodeParameters(
 	[
@@ -126,7 +139,7 @@ ${attestationTypeCases}
 }
 
 function genRandomAttestationCaseForRandomRequest(definition: AttestationTypeScheme) {
-  const randomValuesForRequestItems = definition.request
+  const randomValuesForRequestItems = [...REQUEST_BASE_DEFINITIONS, ...definition.request]
     .filter((item) => item.key != "attestationType" && item.key != "sourceId")
     .map((item) => `${item.key}: ${randReqItemCode(item.type, item.size)}`)
     .join(",\n");

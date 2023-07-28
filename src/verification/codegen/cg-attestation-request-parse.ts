@@ -1,6 +1,13 @@
 import fs from "fs";
 import prettier from "prettier";
-import { AttestationTypeScheme, ATT_BYTES, MIC_BYTES, SOURCE_ID_BYTES, SupportedRequestType } from "../attestation-types/attestation-types";
+import {
+  AttestationTypeScheme,
+  ATT_BYTES,
+  MIC_BYTES,
+  SOURCE_ID_BYTES,
+  SupportedRequestType,
+  REQUEST_BASE_DEFINITIONS,
+} from "../attestation-types/attestation-types";
 import {
   ATTESTATION_TYPE_PREFIX,
   ATT_REQUEST_PARSE_FILE,
@@ -14,9 +21,9 @@ export function genRequestParseFunctionForDefinition(definition: AttestationType
   const parseEntryList: string[] = [];
 
   let start = 0;
-  const totalLength = definition.request.map((item) => item.size * 2).reduce((a, b) => a + b);
+  const totalLength = [...REQUEST_BASE_DEFINITIONS, ...definition.request].map((item) => item.size * 2).reduce((a, b) => a + b);
 
-  for (const item of definition.request) {
+  for (const item of [...REQUEST_BASE_DEFINITIONS, ...definition.request]) {
     const end = start + item.size * 2;
     parseEntryList.push(`${item.key}: fromUnprefixedBytes(input.slice(${start}, ${end}), "${item.type}", ${item.size}) as ${typeForRequestType(item.type)}`);
     start = end;

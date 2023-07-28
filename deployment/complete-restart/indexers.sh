@@ -1,9 +1,12 @@
 #!/bin/bash
 
+# documented in [./docs/installation/MaintenanceScripts.md]
+
 NETWORK="$1"
 
 if [[ $NETWORK == mainnet || $NETWORK == testnet ]] ; then
    echo "Restarting indexer dockers for: $NETWORK"
+
    cd indexers-$NETWORK
 
    docker-compose -f docker-compose-indexer-xrp.yaml -p indexer-xrp stop indexer 

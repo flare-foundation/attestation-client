@@ -29,7 +29,8 @@ export class XRPProcessorService extends VerifierProcessor {
 
   public async verify(attestationRequest: AttestationRequest) {
     this.assertIsSupported(attestationRequest);
-    let response = await verifyXRP(this.client, attestationRequest.request, this.indexedQueryManager);
+    await this.ensureInitialized();
+    let response = await verifyXRP(this.defStore, this.client, attestationRequest.request, this.indexedQueryManager);
     return hexlifyBN(response);
   }
 

@@ -6,8 +6,8 @@ import { ChainType, MCC, MccClient } from "@flarenetwork/mcc";
 import axios from "axios";
 import { ChainConfig } from "../../../src/attester/configs/ChainConfig";
 // import { ListChainConfig } from "../../../src/attester/configs/ListChainConfig";
-import { IndexedQueryManagerOptions } from "../../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../../src/indexed-query-manager/IndexedQueryManager";
+import { IndexedQueryManagerOptions } from "../../../src/indexed-query-manager/indexed-query-manager-types";
 import { createTestAttestationFromRequest } from "../../../src/indexed-query-manager/random-attestation-requests/random-ar";
 import { VerifierServerConfig } from "../../../src/servers/verifier-server/src/config-models/VerifierServerConfig";
 import { readSecureConfig } from "../../../src/utils/config/configSecure";
@@ -15,8 +15,8 @@ import { MerkleTree } from "../../../src/utils/data-structures/MerkleTree";
 import { DatabaseService } from "../../../src/utils/database/DatabaseService";
 import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
 import { getGlobalLogger } from "../../../src/utils/logging/logger";
+import { AttestationDefinitionStore } from "../../../src/verification/attestation-types/AttestationDefinitionStore";
 import { hexlifyBN } from "../../../src/verification/attestation-types/attestation-types-helpers";
-import { parseRequest } from "../../../src/verification/generated/attestation-request-parse";
 import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
 import { SourceId } from "../../../src/verification/sources/sources";
 import { verifyAttestation } from "../../../src/verification/verifiers/verifier_routing";
@@ -39,7 +39,9 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
   const StateConnector = artifacts.require("StateConnector");
   const SCProofVerifier = artifacts.require("SCProofVerifier");
 
+  const defStore = new AttestationDefinitionStore();
   before(async () => {
+    await defStore.initialize()
     process.env.TEST_CREDENTIALS = "1"
     stateConnector = await StateConnector.at("0x1000000000000000000000000000000000000001");
     attestationClient = await SCProofVerifier.at("0x8858eeB3DfffA017D4BCE9801D340D36Cf895CCf");
@@ -108,14 +110,14 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
     const request = "0x000100000004d35d367c3abd09d92c956c9e73d73fd9e7da10ba209b807829b7093a9a55f62f145848860e2f9e81c6c21eaeaa0fcbfe2d4876b872c09ea2294e19a965b92c420000";
     const roundId = 366582;
 
-    const parsed = parseRequest(request);
+    const parsed = defStore.parseRequest(request);
     // console.log(parsed)
     // let roundId = currentBufferNumber - 2;
 
     console.log( "***1");    
 
-    const att = createTestAttestationFromRequest(parsed, roundId);
-    const result = await verifyAttestation(client, att, indexedQueryManager);
+    const att = createTestAttestationFromRequest(defStore, parsed, roundId);
+    const result = await verifyAttestation(defStore, client, att, indexedQueryManager);
 
     console.log(`Status ${result.status}`);
     // console.log(`Block number: ${result.response?.blockNumber?.toString()}`);
@@ -136,8 +138,8 @@ describe(`Coston verification test (${SourceId[SOURCE_ID]})`, () => {
       utxo: "0x0",
     };
 
-    const att = createTestAttestationFromRequest(parsed, roundId);
-    const result = await verifyAttestation(client, att, indexedQueryManager);
+    const att = createTestAttestationFromRequest(defStore, parsed, roundId);
+    const result = await verifyAttestation(defStore, client, att, indexedQueryManager);
 
     console.log(hexlifyBN(result));
     console.log(`Status ${result.status}`);

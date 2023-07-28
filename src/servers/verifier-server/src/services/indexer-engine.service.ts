@@ -4,7 +4,7 @@ import { InjectEntityManager } from "@nestjs/typeorm";
 import { EntityManager } from "typeorm";
 import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
 import { DBState } from "../../../../entity/indexer/dbState";
-import { DBTransactionBase } from "../../../../entity/indexer/dbTransaction";
+import { ApiDBTransaction } from "../dtos/ApiDbTransaction";
 import { BlockRange } from "../dtos/BlockRange.dto";
 import { VerifierConfigurationService } from "./verifier-configuration.service";
 
@@ -55,7 +55,7 @@ export class IndexerEngineService {
    * @param txHash
    * @returns
    */
-  public async getTransaction(txHash: string): Promise<DBTransactionBase> | null {
+  public async getTransaction(txHash: string): Promise<ApiDBTransaction> | null {
     let results: any[] = [];
     for (let table of this.configService.transactionTable) {
       let query = this.manager.createQueryBuilder(table as any, "transaction").andWhere("transaction.transactionId = :txHash", { txHash });
@@ -64,9 +64,9 @@ export class IndexerEngineService {
     for (let res of results) {
       if (res) {
         if (res.response) {
-          res.response = JSON.parse(res.response);
+          res.response = JSON.parse(res.getResponse());
         }
-        return res as DBTransactionBase;
+        return res as ApiDBTransaction;
       }
     }
     return null;
@@ -140,7 +140,7 @@ export class IndexerEngineService {
     limit?: number,
     offset?: number,
     returnResponse?: boolean
-  ): Promise<DBTransactionBase[]> {
+  ): Promise<ApiDBTransaction[]> {
     if (paymentReference) {
       if (!/^0x[0-9a-f]{64}$/i.test(paymentReference)) {
         throw new Error("Invalid payment reference");
@@ -213,8 +213,8 @@ export class IndexerEngineService {
     }
 
     return results.map((res) => {
-      res.response = returnResponse && res.response ? JSON.parse(res.response) : undefined;
+      res.response = returnResponse && res.response ? JSON.parse(res.getResponse()) : undefined;
       return res;
-    }) as DBTransactionBase[];
+    }) as ApiDBTransaction[];
   }
 }

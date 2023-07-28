@@ -1,8 +1,8 @@
 // yarn test test/indexer/headerCollector.test.ts
 
-import { ChainType, MCC, XrpMccCreate } from "@flarenetwork/mcc";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import { ChainType, MCC, XrpMccCreate, sleepMs } from "@flarenetwork/mcc";
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { HeaderCollector } from "../../src/indexer/headerCollector";
@@ -114,6 +114,27 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
         expect(spy.called).to.be.true;
         done();
       }, 1000);
+    });
+
+    it("Should clear cache", async function () {
+      let cacheSizeBefore1 = headerCollector["blockNumberHash"].size;
+      let cacheSizeBefore2 = headerCollector["blockHeaderNumber"].size;
+      let cacheSizeBefore3 = headerCollector["blockHeaderHash"].size;
+
+      expect(cacheSizeBefore1).to.eq(4);
+      expect(cacheSizeBefore2).to.eq(4);
+      expect(cacheSizeBefore3).to.eq(4);
+
+      headerCollector.onUpdateBottomBlockNumber(76468243);
+      await sleepMs(10);
+
+      cacheSizeBefore1 = headerCollector["blockNumberHash"].size;
+      cacheSizeBefore2 = headerCollector["blockHeaderNumber"].size;
+      cacheSizeBefore3 = headerCollector["blockHeaderHash"].size;
+
+      expect(cacheSizeBefore1, "NH").to.eq(3);
+      expect(cacheSizeBefore2, "HN").to.eq(3);
+      expect(cacheSizeBefore3, "HH").to.eq(3);
     });
   });
 });

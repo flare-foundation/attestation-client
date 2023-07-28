@@ -1,9 +1,8 @@
 // yarn test test/caching/CachedBtcMccClient.test-cred.ts
 
-import { ChainType, UtxoMccCreate } from "@flarenetwork/mcc";
-import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
-import { ITransaction } from "@flarenetwork/mcc";
+import { ChainType, TransactionBase, UtxoMccCreate } from "@flarenetwork/mcc";
 import { expect } from "chai";
+import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 
 const BtcMccConnection = {
   url: "https://bitcoin-api.flare.network",
@@ -39,7 +38,7 @@ describe("CachedClient", () => {
     clientConfig: BtcMccConnection,
   };
   const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
-  let txs = new Array<ITransaction>();
+  let txs = new Array<TransactionBase>();
   before(async () => {
     for (let j = 0; j < 6; j++) {
       let tx = await cachedClient.getTransaction(txIds[j]);
@@ -71,7 +70,7 @@ describe.skip("blockCacheSize=0 or other false", () => {
   };
   cachedMccClientOptionsFull.blockCacheSize = 0;
   const cachedClient2 = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull2);
-  let txs = new Array<ITransaction>();
+  let txs = new Array<TransactionBase>();
   before(async () => {
     for (let j = 0; j < 6; j++) {
       let tx = await cachedClient2.getTransaction(txIds[j]);

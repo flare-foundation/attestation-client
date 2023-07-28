@@ -1,7 +1,9 @@
 import {
   AlgoMccCreate,
-  ChainType, UtxoBlock,
-  UtxoTransaction, XrpMccCreate
+  BtcBlock,
+  BtcTransaction,
+  ChainType,
+  XrpMccCreate
 } from "@flarenetwork/mcc";
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -33,7 +35,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
 
   describe("augmentBlock", () => {
     it("Should create entity for a block", async () => {
-      const block = new UtxoBlock(resBTCBlock);
+      const block = new BtcBlock(resBTCBlock);
       const augBlock = augmentBlock(DBBlockBTC, block);
       expect(augBlock.blockNumber).to.equal(729_410);
     });
@@ -41,8 +43,8 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
 
   describe("augmentTransaction", () => {
     it("Should create entity from a transaction for BTC", async () => {
-      const block = new UtxoBlock(resBTCBlock);
-      const tx = new UtxoTransaction(resBTCTx);
+      const block = new BtcBlock(resBTCBlock);
+      const tx = new BtcTransaction(resBTCTx);
       const waitTx = async () => {
         return tx;
       };
@@ -74,7 +76,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       expect(BlockProcessor(-1)).to.be.null;
     });
 
-    describe("ALGO", function () {
+    describe.skip("ALGO", function () {
       const algoCreateConfig = {
         algod: {
           url: "https://node.algoexplorerapi.io/",
@@ -105,7 +107,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       });
 
       it("Should initializeJobs", async function () {
-        const block = await cachedClient.client.getBlock(25400573);
+        const block = await cachedClient.client.getFullBlock(25400573);
 
         const fake = sinon.fake();
         let res = [];

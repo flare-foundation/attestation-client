@@ -1,10 +1,10 @@
-import { AlgoMccCreate, ChainType, IBlock, ITransaction, Managed, MCC, ReadRpcInterface, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
+import { AlgoMccCreate, BlockBase, ChainType, Managed, MCC, ReadRpcInterface, TransactionBase, UtxoMccCreate, XrpMccCreate } from "@flarenetwork/mcc";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Queue } from "../utils/data-structures/Queue";
 import { retry } from "../utils/helpers/promiseTimeout";
 
 /**
- * Interface for setting the capacities for CachedMccClinet:
+ * Interface for setting the capacities for CachedMccClient:
  *
  * transactionCacheSize+cleanupChunkSize is the maximal number of cached transactions
  * blockCacheSize+cleanupChunkSize is the maximal number of cached blocks
@@ -49,10 +49,10 @@ export class CachedMccClient {
   client: ReadRpcInterface;
   chainType: ChainType;
 
-  transactionCache: Map<string, Promise<ITransaction>>;
+  transactionCache: Map<string, Promise<TransactionBase>>;
   transactionCleanupQueue: Queue<string>;
 
-  blockCache: Map<string | number, Promise<IBlock>>;
+  blockCache: Map<string | number, Promise<BlockBase>>;
   blockCleanupQueue: Queue<string>;
 
   settings: CachedMccClientOptions;
@@ -67,9 +67,9 @@ export class CachedMccClient {
 
   constructor(chainType: ChainType, options?: CachedMccClientOptions) {
     this.chainType = chainType;
-    this.transactionCache = new Map<string, Promise<ITransaction>>();
+    this.transactionCache = new Map<string, Promise<TransactionBase>>();
     this.transactionCleanupQueue = new Queue<string>();
-    this.blockCache = new Map<string, Promise<IBlock>>();
+    this.blockCache = new Map<string, Promise<BlockBase>>();
     this.blockCleanupQueue = new Queue<string>();
 
     this.settings = options || defaultCachedMccClientOptions;
@@ -109,12 +109,12 @@ export class CachedMccClient {
     // if client.getTransaction after retrying fails, the application is terminated (critical error)
     // eslint-disable-next-line
     const newPromise = criticalAsync(`CachedMccClient::getTransaction(${txId}) exception: `, () =>
-      retry(`CachedMccClient.getTransaction`, async () => {
+      retry(`CachedMccClient.getTransaction(${txId})`, async () => {
         return await this.client.getTransaction(txId);
       })
     );
 
-    this.transactionCache.set(txId, newPromise as Promise<ITransaction>);
+    this.transactionCache.set(txId, newPromise as Promise<TransactionBase>);
     this.transactionCleanupQueue.push(txId);
     this.checkAndCleanup();
     return newPromise;
@@ -129,7 +129,7 @@ export class CachedMccClient {
    * @param blockHashOrNumber block hash or block number
    * @returns
    */
-  public async getBlock(blockHashOrNumber: string | number): Promise<IBlock | null> {
+  public async getBlock(blockHashOrNumber: string | number): Promise<BlockBase | null> {
     const blockPromise = this.blockCache.get(blockHashOrNumber);
     if (blockPromise) {
       return blockPromise;
@@ -146,15 +146,15 @@ export class CachedMccClient {
     if (typeof blockHashOrNumber === "number") {
       const block = await newPromise;
       if (!block) return null;
-      const blockHash = block.blockHash; // TODO
-      this.blockCache.set(blockHash, newPromise as Promise<IBlock>);
+      const blockHash = block.blockHash;
+      this.blockCache.set(blockHash, newPromise as Promise<BlockBase>);
       this.blockCleanupQueue.push(blockHash);
     } else {
-      this.blockCache.set(blockHashOrNumber, newPromise as Promise<IBlock>);
+      this.blockCache.set(blockHashOrNumber, newPromise as Promise<BlockBase>);
       this.blockCleanupQueue.push(blockHashOrNumber);
     }
     this.checkAndCleanup();
-    return newPromise as Promise<IBlock>; // TODO type
+    return newPromise as Promise<BlockBase>;
   }
 
   public get canAccept(): boolean {

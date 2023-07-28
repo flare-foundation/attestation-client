@@ -19,7 +19,7 @@ import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
 
-const WS_URL = `ws://localhost:9500?apiKey=7890`;
+const WS_URL = `ws://localhost:9600?apiKey=7890`;
 
 const defaultWsClientOptions: WsClientOptions = new WsClientOptions();
 defaultWsClientOptions.url = WS_URL;
@@ -39,13 +39,12 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
 
     process.env.TEST_CREDENTIALS = "1";
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
-
+    process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     const module = await Test.createTestingModule({
       imports: [VerifierServerModule],
       // providers: [WsServerService, WsServerGateway, AuthGuard],
     }).compile();
     app = module.createNestApplication();
-
     app.useWebSocketAdapter(new WsAdapter(app));
 
     // unique test logger
@@ -64,6 +63,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     delete process.env.TEST_CREDENTIALS;
     delete process.env.VERIFIER_TYPE;
     delete process.env.SECURE_CONFIG_PATH;
+    delete process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST;
 
     await app.close();
   });

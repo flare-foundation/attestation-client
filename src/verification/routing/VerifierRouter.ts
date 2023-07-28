@@ -4,12 +4,12 @@ import { ApiResponseWrapper } from "../../servers/common/src";
 import { retry } from "../../utils/helpers/promiseTimeout";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { AttestationRequest, AttestationTypeScheme, Verification } from "../attestation-types/attestation-types";
-import { getAttestationTypeAndSource } from "../generated/attestation-request-parse";
 import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
 import { getSourceName, SourceId } from "../sources/sources";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
-
+import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
+const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;
   apiKey?: string;
@@ -215,12 +215,15 @@ export class VerifierRouter {
         request: attestation.data.request,
       } as AttestationRequest;
 
-      const resp = await retry(`VerifierRouter::verifyAttestation`, async () =>
-        axios.post(this.transformRoute(route.url), attestationRequest, {
-          headers: {
-            "x-api-key": route.apiKey,
-          },
-        })
+      const resp = await retry(
+        `VerifierRouter::verifyAttestation`,
+        async () =>
+          axios.post(this.transformRoute(route.url), attestationRequest, {
+            headers: {
+              "x-api-key": route.apiKey,
+            },
+          }),
+        VERIFIER_TIMEOUT
       );
 
       let apiResponse = resp.data as ApiResponseWrapper<Verification<any, any>>;

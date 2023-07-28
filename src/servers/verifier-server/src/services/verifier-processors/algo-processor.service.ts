@@ -29,7 +29,8 @@ export class AlgoProcessorService extends VerifierProcessor {
 
   public async verify(attestationRequest: AttestationRequest) {
     this.assertIsSupported(attestationRequest);
-    let response = await verifyALGO(this.client, attestationRequest.request, this.indexedQueryManager);
+    await this.ensureInitialized();
+    let response = await verifyALGO(this.defStore, this.client, attestationRequest.request, this.indexedQueryManager);
     return hexlifyBN(response);
   }
 

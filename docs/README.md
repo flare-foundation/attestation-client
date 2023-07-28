@@ -1,36 +1,36 @@
-# Attestation client installation and technical reference
+# Attestation Client Installation and Technical Reference
 
-## For attestation providers
+## For Attestation Providers
 
-- [Dockerized installation](../deployment/README.md)
-- [Direct installation](./installation/direct-installation.md)
-- [Configurations](./config/configuration-system.md)
+- [Dockerized Installation](../deployment/README.md)
+- [Direct Installation to a Linux Machine](./installation/direct-installation.md)
+- [Configuration System](./config/configuration-system.md)
 
-## For dApp developers
+## For dApp Developers
 
-- [General usage](./end-users/state-connector-usage.md)
-- [Available attestation types](https://github.com/flare-foundation/state-connector-attestation-types)
-- [REST APIs provided by attestation providers](./end-users/apis.md)
-- [Verification smart contract and usage workflow](./end-users/verification-workflow.md)
+- [Using State Connector System](./end-users/state-connector-usage.md)
+- [State Connector Attestation Types](https://github.com/flare-foundation/state-connector-attestation-types)
+- [REST APIs for Attestation Providers](./end-users/apis.md)
+- [Verification Smart Contract and Workflow](./end-users/verification-workflow.md)
 
-## Technical reference
+## Technical Reference
 
-- [Attestation protocol](./attestation-protocol/attestation-protocol.md)
-  - [State connector contract](./attestation-protocol/state-connector-contract.md)
-  - [Bit voting](./attestation-protocol/bit-voting.md)
-  - [Request message integrity](./attestation-protocol/message-integrity.md)
-  - [Merkle tree and Merkle proofs](./attestation-protocol/merkle-tree.md)
-  - [Attestation provider behavior](./attestation-protocol/voting-behavior.md)
-  - [Limiting attestation requests](./attestation-protocol/attestation-limiter.md)
+- [Attestation Protocol](./attestation-protocol/attestation-protocol.md)
+    - [State Connector Contract](./attestation-protocol/state-connector-contract.md)
+    - [Bit Voting](./attestation-protocol/bit-voting.md)
+    - [Message Integrity Checks](./attestation-protocol/message-integrity.md)
+    - [Merkle Tree](./attestation-protocol/merkle-tree.md)
+    - [Voting Behavior of Attestation Providers](./attestation-protocol/voting-behavior.md)
+    - [Limiting the Number of Attestation Requests](./attestation-protocol/attestation-limiter.md)
 - [Attestation Suite](./attestation-client/attestation-suite.md)
-  - [Attestation Client](./attestation-client/attestation-client.md)
-    - [Environment variables](./attestation-client/env-variables.md)
-  - [Indexer](./indexing/indexer.md)
-    - [Scope of indexing](./indexing/indexer-scope.md)
-    - [Optimizations](./indexing/indexer-optimizations.md)
-  - [Verifier](./verfication/verifier.md)
-    - [Code generation](./verfication/code-generation.md)
-  - [Multi-Chain-Client](https://github.com/flare-foundation/multi-chain-client)
-  - [Blockchain nodes](./attestation-client/blockchain-nodes.md)
-  - [Configuration system](./config/configuration-system.md)
-  - [Tests](./misc/testing.md)
+    - [Attestation Client](./attestation-client/attestation-client.md)
+        - [A List of Env Variables](./attestation-client/env-variables.md)
+    - [Blockchain Indexer](./indexing/indexer.md)
+        - [Scope of Indexing](./indexing/indexer-scope.md)
+        - [Indexer Optimizations](./indexing/indexer-optimizations.md)
+    - [Verifier](./verfication/verifier.md)
+    - [Code Generation](./verfication/code-generation.md)
+    - [Multi-Chain Client](https://github.com/flare-foundation/multi-chain-client)
+    - [Blockchain Nodes](./attestation-client/blockchain-nodes.md)
+    - [Configuration System](./config/configuration-system.md)
+    - [Testing](./misc/testing.md)

@@ -104,7 +104,7 @@ export class AttesterClient {
       }
     } catch (error) {
       // bit vote cannot be parsed. It is ignored
-      logException(error, `processEvent(BitVote) - unparsable bitvote`);
+      logException(error, `processEvent(BitVote) - unparsable bitVote`);
     }
 
     try {
@@ -119,12 +119,12 @@ export class AttesterClient {
           const commitedRoot = dbState ? dbState.merkleRoot : undefined;
           if (commitedRoot) {
             if (commitedRoot === merkleRoot) {
-              this.logger.info(`^e^G^Revent^^^G ${this.label} RoundFinalised ${roundId} ${merkleRoot} (root as commited)`);
+              this.logger.info(`^e^G^Revent^^^G ${this.label} RoundFinalised ${roundId} ${merkleRoot} (root as committed)`);
             } else {
-              this.logger.error(`^e^Revent^^ ${this.label} RoundFinalised ${roundId} ${merkleRoot} (commited root ${commitedRoot})`);
+              this.logger.error(`^e^Revent^^ ${this.label} RoundFinalised ${roundId} ${merkleRoot} (committed root ${commitedRoot})`);
             }
           } else {
-            this.logger.error(`^e^Revent^^ ${this.label} RoundFinalised ${roundId} ${merkleRoot} (root not commited)`);
+            this.logger.error(`^e^Revent^^ ${this.label} RoundFinalised ${roundId} ${merkleRoot} (root not committed)`);
           }
         }
       }

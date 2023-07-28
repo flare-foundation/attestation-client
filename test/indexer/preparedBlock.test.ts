@@ -1,19 +1,19 @@
 // yarn test test/indexer/preparedBlock.test.ts
 
-import { ChainType, UtxoBlock, UtxoTransaction } from "@flarenetwork/mcc";
-import { DBTransactionBase, DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
+import { BtcBlock, BtcTransaction, ChainType } from "@flarenetwork/mcc";
+import { assert, expect } from "chai";
+import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
+import { DBTransactionBTC0, DBTransactionBTC1, DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
+import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
 import { augmentTransactionUtxo } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
+import { PreparedBlock } from "../../src/indexer/preparedBlock";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
-import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
-import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
-import { PreparedBlock } from "../../src/indexer/preparedBlock";
-import { assert, expect } from "chai";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`PreparedBlock, (${getTestFile(__filename)})`, function () {
-  const block = new UtxoBlock(resBTCBlock);
-  const tx = new UtxoTransaction(resBTCTx);
+  const block = new BtcBlock(resBTCBlock);
+  const tx = new BtcTransaction(resBTCTx);
 
   let augTx0: DBTransactionBase;
   let augTx1: DBTransactionBase;

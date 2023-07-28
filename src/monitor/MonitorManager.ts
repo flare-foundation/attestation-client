@@ -2,7 +2,7 @@ import { Managed, traceManager } from "@flarenetwork/mcc";
 import stringify from "safe-stable-stringify";
 import { runMonitorserver } from "../servers/monitor-server/src/monitorserver";
 import { readSecureConfig } from "../utils/config/configSecure";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { Terminal } from "../utils/monitoring/Terminal";
 import { MonitorBase } from "./MonitorBase";
@@ -83,6 +83,7 @@ export class MonitorManager {
     this.initializeMonitors(this.config.attesters);
     this.initializeMonitors(this.config.backends);
     this.initializeMonitors(this.config.databases);
+    this.initializeMonitors(this.config.balances);
 
     for (const monitor of this.monitors) {
       await monitor.initialize();
@@ -170,7 +171,7 @@ export class MonitorManager {
 
             for (const perf of resPerfs) {
               statusPerfs.push(perf);
-              perf.displayStatus(this.logger);
+              //perf.displayStatus(this.logger);
 
               // set performance metrics
               prometheus.setGauge(`${prefix}_${perf.name}_${perf.valueName}_${perf.valueUnit}`, perf.valueName, perf.valueUnit, perf.value);
@@ -192,7 +193,7 @@ export class MonitorManager {
         prometheus.sendPushGatewayMetric(prefix);
       }
 
-      await sleepms(this.config.interval);
+      await sleepMs(this.config.interval);
     }
   }
 }

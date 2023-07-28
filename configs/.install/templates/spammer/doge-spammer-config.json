@@ -15,5 +15,24 @@
         "database": "$(DOGEIndexerDatabase)",
         "username": "$(DOGEIndexerReaderUsername)",
         "password": "$(DOGEIndexerReaderPassword)"
-    }
+    },
+    // See documentation for class `ChainConfig` in `src/attester/configs`
+    "chainConfiguration": {
+        "name": "DOGE",
+        "mccCreate": {
+            "url": "$(DOGESpammerNodeURL)",
+            "username": "$(DOGESpammerNodeUsername)",
+            "password": "$(DOGESpammerNodePassword)"
+        },
+        "rateLimitOptions": {
+            "maxRPS": 30,
+            "timeoutMs": 5000,
+            "retries": 3
+        },
+        "numberOfConfirmations": 6,
+        "syncReadAhead": 10,
+        "blockCollecting": "tips",
+        "minimalStorageHistoryDays": 2,
+        "minimalStorageHistoryBlocks": 100,
+    }    
 }

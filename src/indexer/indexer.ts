@@ -1,4 +1,4 @@
-import { ChainType, IBlock, Managed, MCC } from "@flarenetwork/mcc";
+import { BlockBase, ChainType, Managed, MCC } from "@flarenetwork/mcc";
 import { exit } from "process";
 import { EntityTarget } from "typeorm";
 import { ChainConfig } from "../attester/configs/ChainConfig";
@@ -8,7 +8,7 @@ import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { DatabaseService } from "../utils/database/DatabaseService";
 import { failureCallback, retry } from "../utils/helpers/promiseTimeout";
-import { round, sleepms } from "../utils/helpers/utils";
+import { round, sleepMs } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { BlockProcessorManager } from "./blockProcessorManager";
 import { HeaderCollector } from "./headerCollector";
@@ -19,11 +19,12 @@ import { IndexerToClient } from "./indexerToClient";
 import { IndexerToDB } from "./indexerToDB";
 import { Interlacing } from "./interlacing";
 import { PreparedBlock } from "./preparedBlock";
+import { compressedTransactionResponseDataSize, uncompressedTransactionResponseDataSize } from "./chain-collector-helpers/augmentTransaction";
 
 /**
  * Indexer class for a blockchain. It connects to a blockchain node through a cachedClient.
  * Indexing means the following:
- * * agressive reading blocks (headers) from all tips
+ * * aggressive reading blocks (headers) from all tips
  * * managing which blocks are confirmed and storing confirmed transactions from those blocks to
  *   the database, as soon as they are confirmed.
  * * front running reading transactions in candidate confirmed blocks using block processor
@@ -172,16 +173,8 @@ export class Indexer {
   }
 
   /////////////////////////////////////////////////////////////
-  // Safeguarded client functions
-  /////////////////////////////////////////////////////////////
-
-  // MOVED TO indexerToClient.ts
-
-  /////////////////////////////////////////////////////////////
   // misc
   /////////////////////////////////////////////////////////////
-
-  // Moved to indexer-utils
 
   /**
    * Returns number of days for syncing from configurations
@@ -192,12 +185,6 @@ export class Indexer {
     if (this.chainConfig.syncTimeDays > 0) return this.chainConfig.syncTimeDays;
     return this.config.syncTimeDays;
   }
-
-  /////////////////////////////////////////////////////////////
-  // state recording functions
-  /////////////////////////////////////////////////////////////
-
-  // Moved to indexer-utils
 
   /////////////////////////////////////////////////////////////
   // block processor callbacks
@@ -245,7 +232,7 @@ export class Indexer {
    * Async callback from BlockProcessor in case block processing is triggered after block was already processed.
    * @param block block to be processed
    */
-  async blockAlreadyCompleted(block: IBlock) {
+  async blockAlreadyCompleted(block: BlockBase) {
     this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.N}`);
 
     // todo: this causes asycn growing - this should be queued and run from main async
@@ -277,8 +264,6 @@ export class Indexer {
     this.dbTransactionClasses = prepared.transactionTable;
     this.dbBlockClass = prepared.blockTable;
   }
-
-  // MOVED TO interlacing.ts
 
   /////////////////////////////////////////////////////////////
   // block save
@@ -319,7 +304,7 @@ export class Indexer {
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
-          // fix transactions class to active interlace tranascation class
+          // fix transactions class to active interlace transaction class
           const dummy = new transactionClass();
           for (let tx of transactions) {
             Object.setPrototypeOf(tx, Object.getPrototypeOf(dummy));
@@ -350,34 +335,22 @@ export class Indexer {
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
     if (!this.indexerToDB.bottomBlockTime) {
-      await this.indexerToDB.saveBottomState();
+      await this.indexerToDB.saveBottomState((bottomBlockNumber) => this.headerCollector.onUpdateBottomBlockNumber(bottomBlockNumber));
     }
 
     this.blockProcessorManager.clearProcessorsUpToBlockNumber(Np1);
     const time1 = Date.now();
-    this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms)`);
+    this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms) ^g^W[compression ${round(uncompressedTransactionResponseDataSize/(1024*1024),1)}MB -> ${round( compressedTransactionResponseDataSize/(1024*1024),1)}MB ${round(compressedTransactionResponseDataSize*100/uncompressedTransactionResponseDataSize,1)}%]^^`);
 
     // table interlacing
     if (await this.interlace.update(block.timestamp, block.blockNumber)) {
       // bottom state was changed because one table was dropped - we need to save new value
-      await this.indexerToDB.saveBottomState();
+      await this.indexerToDB.saveBottomState((bottomBlockNumber) => this.headerCollector.onUpdateBottomBlockNumber(bottomBlockNumber));
       await this.checkDatabaseContinuous();
     }
 
     return true;
   }
-
-  /////////////////////////////////////////////////////////////
-  // Save bottom N state (used for verification)
-  /////////////////////////////////////////////////////////////
-
-  // MOVED TO indexerToDB.ts
-
-  /////////////////////////////////////////////////////////////
-  // get respective DB block number
-  /////////////////////////////////////////////////////////////
-
-  // MOVED TO indexerToDB.ts
 
   /////////////////////////////////////////////////////////////
   // Block saving management
@@ -434,7 +407,7 @@ export class Indexer {
     this.logger.debug(`^Gwaiting for block N=${Np1}`);
 
     while (this.waitNp1) {
-      await sleepms(100);
+      await sleepMs(100);
 
       // If block processing takes more than 5 seconds we start to log warnings every 5 seconds
       if (Date.now() - timeStart > 5000) {
@@ -511,13 +484,26 @@ export class Indexer {
     return false;
   }
 
-  // MOVED TO indexerToDB.ts
+  /**
+   * Reset indexer database and stop running.
+   * @param reason Reason for stopping.
+   */
+  public async resetDatabaseAndStop(reason: string) {
+    this.logger.error(reason);
+
+    await this.interlace.resetAll();
+    await this.indexerToDB.dropAllStateInfo();
+
+    this.logger.debug(`manual restart required`);
+    await this.waitForever();
+    exit(3);
+  }
 
   /**
    * Updates the status for monitoring
    * @param blockNp1 N + 1 block candidate
    */
-  private async updateStatus(blockNp1: IBlock) {
+  private async updateStatus(blockNp1: BlockBase) {
     const NisReady = this.N >= this.T - this.chainConfig.numberOfConfirmations - 2;
     const syncTimeSec = this.syncTimeDays() * SECONDS_PER_DAY;
     const fullHistory = !this.indexerToDB.bottomBlockTime ? false : blockNp1.unixTimestamp - this.indexerToDB.bottomBlockTime > syncTimeSec;
@@ -582,13 +568,13 @@ export class Indexer {
   }
 
   /**
-   * check if indexer database is continous
+   * check if indexer database is continuous
    */
 
   async waitForever() {
     this.logger.error2("waiting forever");
     while (true) {
-      await sleepms(60000);
+      await sleepMs(60000);
 
       this.logger.debug("waiting forever");
     }
@@ -614,7 +600,7 @@ export class Indexer {
       const Nbottom = await queryNbottom.getRawOne();
 
       if (!Nbottom || !Nbottom.valueNumber) {
-        this.logger.error(`${name} discontinuity test failed (unable to get state:${name.toUpperCase()}_Nbottom)`);
+        this.logger.error(`${name} discontinuity test canceled (unable to get state:${name.toUpperCase()}_Nbottom)`);
         return;
       }
 
@@ -635,13 +621,7 @@ export class Indexer {
 
       if (table0missing && table0missing.missing) {
         if (table0missing.missing != 0) {
-          this.logger.error(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
-
-          //await this.interlace.resetAll();
-
-          this.logger.debug(`restarting`);
-          await this.waitForever();
-          exit(3);
+          await this.resetDatabaseAndStop(`${name} discontinuity detected (missed ${table0missing.missing} blocks in [0])`);
         } else {
           this.logger.debug(`${name} continuity ok on [0]`);
         }
@@ -649,14 +629,7 @@ export class Indexer {
 
       if (table1missing && table1missing.missing) {
         if (table1missing.missing != 0) {
-          this.logger.error(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
-
-          await this.interlace.resetAll();
-          await this.indexerToDB.dropAllStateInfo();
-
-          this.logger.debug(`restarting`);
-          await this.waitForever();
-          exit(3);
+          await this.resetDatabaseAndStop(`${name} discontinuity detected (missed ${table1missing.missing} blocks in [1])`);
         } else {
           this.logger.debug(`${name} continuity ok on [1]`);
         }
@@ -695,7 +668,7 @@ export class Indexer {
 
     // this.prepareTables();
 
-    await this.indexerToDB.saveBottomState();
+    await this.indexerToDB.saveBottomState((bottomBlockNumber) => this.headerCollector.onUpdateBottomBlockNumber(bottomBlockNumber));
 
     const startBlockNumber = (await this.indexerToClient.getBlockHeightFromClient(`runIndexer1`)) - this.chainConfig.numberOfConfirmations;
 
@@ -705,9 +678,9 @@ export class Indexer {
     this.N = startBlockNumber;
 
     // N is last completed block - confirmed and stored in DB
-    const dbStartBlockNumber = await this.indexerToDB.getNfromDB();
-    if (dbStartBlockNumber > 0) {
-      this.N = dbStartBlockNumber;
+    const dbLastDBBlockNumber = await this.indexerToDB.getNfromDB();
+    if (dbLastDBBlockNumber > 0) {
+      this.N = dbLastDBBlockNumber;
     }
 
     await this.interlace.initialize(
@@ -724,7 +697,7 @@ export class Indexer {
     await this.checkDatabaseContinuous();
 
     // ------- 1. sync blocks from the past ------------------
-    await this.indexerSync.runSync(dbStartBlockNumber);
+    await this.indexerSync.runSync(dbLastDBBlockNumber);
 
     // ------- 2. Run header collection ----------------------
     // eslint-disable-next-line
@@ -751,7 +724,7 @@ export class Indexer {
 
       // check if N + 1 hash is the same
       if (!isNp1Confirmed && !isChangedNp1Hash) {
-        await sleepms(this.config.blockCollectTimeMs);
+        await sleepMs(this.config.blockCollectTimeMs);
         continue;
       }
 

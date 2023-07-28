@@ -1,11 +1,11 @@
-import { prefix0x, toBN } from "@flarenetwork/mcc";
+import { MccClient, prefix0x } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttLogger } from "../../utils/logging/logger";
+import { AttestationDefinitionStore } from "../../verification/attestation-types/AttestationDefinitionStore";
 import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
 import { DHBalanceDecreasingTransaction } from "../../verification/generated/attestation-hash-types";
-import { hashBalanceDecreasingTransaction } from "../../verification/generated/attestation-hash-utils";
 import { ARBalanceDecreasingTransaction } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
@@ -27,11 +27,13 @@ const RANDOM_OPTIONS_BALANCE_DECREASING_TRANSACTION = [
 ] as WeightedRandomChoice<RandomBalanceDecreasingTransactionChoiceType>[];
 
 export async function prepareRandomizedRequestBalanceDecreasingTransaction(
+  defStore: AttestationDefinitionStore,
   logger: AttLogger,
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
-  enforcedChoice?: RandomBalanceDecreasingTransactionChoiceType
+  enforcedChoice?: RandomBalanceDecreasingTransactionChoiceType,
+  client?: MccClient
 ): Promise<ARBalanceDecreasingTransaction | null> {
   if (!randomTransaction) {
     return null;
@@ -46,23 +48,27 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   }
 
   const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
-
+  const blockNumber = randomTransaction.blockNumber;
   const request = {
     attestationType: AttestationType.BalanceDecreasingTransaction,
     sourceId: sourceId,
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
     id,
-    inUtxo: toBN(0),
+    blockNumber,
+    sourceAddressIndicator: "0x0000000000000000000000000000000000000000000000000000000000000000",
   } as ARBalanceDecreasingTransaction;
   if (choice === "WRONG_MIC") {
     return request;
   }
-  let attestation = createTestAttestationFromRequest(request, 0);
+  let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
-    let response = await verifyAttestation(undefined, attestation, indexedQueryManager);
+    let response = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
     // augment with message integrity code
     if (response.status === "OK") {
-      request.messageIntegrityCode = hashBalanceDecreasingTransaction(request, response.response as DHBalanceDecreasingTransaction, MIC_SALT);
+      request.messageIntegrityCode = defStore.dataHash(request, response.response as DHBalanceDecreasingTransaction, MIC_SALT);
+      if (request.sourceId === SourceId.XRP) {
+        request.sourceAddressIndicator = (response.response as DHBalanceDecreasingTransaction).sourceAddressHash;
+      }
       logger.info(`Request augmented correctly (BalanceDecreasingTransaction)`);
       return request;
     }

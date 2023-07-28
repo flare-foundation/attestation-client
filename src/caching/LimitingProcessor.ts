@@ -1,8 +1,8 @@
-import { IBlock, Managed } from "@flarenetwork/mcc";
+import { Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Queue } from "../utils/data-structures/Queue";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { AttLogger, getGlobalLogger, logException } from "../utils/logging/logger";
 import { CachedMccClient } from "./CachedMccClient";
 
@@ -86,7 +86,7 @@ export class DelayedExecution {
  * API calls, pass the processor to the async calls so that it can .call can be used in nested calls.
  */
 @Managed()
-export class LimitingProcessor {
+export class LimitingProcessor<B> {
   static defaultLimitingProcessorOptions = {
     sleepDelayMs: 100,
     activeLimit: 50,
@@ -105,7 +105,7 @@ export class LimitingProcessor {
   debugLabel = "";
   reportInMs = 1000;
 
-  block: IBlock;
+  block: B;
   logger: AttLogger;
 
   constructor(client: CachedMccClient, options?: LimitingProcessorOptions) {
@@ -143,7 +143,7 @@ export class LimitingProcessor {
     while (this.isActive) {
       if (this.queue.size === 0 || !this.client.canAccept) {
         // console.log("Sleep:", this.client.inProcessing, this.client.inQueue)
-        await sleepms(100);
+        await sleepMs(100);
         continue;
       }
       const de = this.queue.shift();
@@ -154,7 +154,7 @@ export class LimitingProcessor {
         this.logger.error2(`LimitingProcessor::continue error: de is undefined`);
       }
       this.counter++;
-      await sleepms(0);
+      await sleepMs(0);
     }
   }
 
@@ -266,7 +266,7 @@ export class LimitingProcessor {
     this.debugLogInterval = undefined;
   }
 
-  async initializeJobs(block: IBlock, onSave: onSaveSig) {
+  async initializeJobs(block: B, onSave: onSaveSig) {
     throw new Error("Should be shadowed");
   }
 }

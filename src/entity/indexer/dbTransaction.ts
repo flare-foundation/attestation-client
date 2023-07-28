@@ -1,5 +1,5 @@
-import { ChainType } from "@flarenetwork/mcc";
-import { Column, Entity, Index, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index } from "typeorm";
+import { decompressBin } from "../../utils/compression/compression";
 import { BaseEntity } from "../base/BaseEntity";
 
 /**
@@ -16,11 +16,15 @@ export class DBTransactionBase extends BaseEntity {
 
   @Column({ type: "varchar", length: 64 }) @Index() paymentReference: string = "";
 
-  @Column({ type: process.env.NODE_ENV === "development" ? "text" : "longtext" }) response: string = "";
+  @Column({ type: process.env.SQLITE ? "blob" : "longblob" }) response: Buffer = Buffer.from("");
 
   @Column() @Index() isNativePayment: boolean = false;
 
   @Column({ type: "varchar", length: 64 }) @Index() transactionType: string = "";
+
+  public getResponse(): string {
+    return decompressBin(this.response);
+  }
 }
 
 export type IDBTransactionBase = new () => DBTransactionBase;

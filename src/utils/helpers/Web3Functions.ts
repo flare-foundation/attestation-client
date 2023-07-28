@@ -4,7 +4,7 @@ import { AttesterWebOptions } from "../../attester/configs/AttesterWebOptions";
 import { getTimeMs } from "./internetTime";
 import { AttLogger, logException } from "../logging/logger";
 import { retry } from "./promiseTimeout";
-import { getUnixEpochTimestamp, sleepms } from "./utils";
+import { getUnixEpochTimestamp, sleepMs } from "./utils";
 import { getWeb3Wallet, waitFinalize3Factory } from "./web3-utils";
 
 export interface ExtendedReceipt {
@@ -108,7 +108,7 @@ export class Web3Functions {
               return {};
             }
           }
-          await sleepms(100);
+          await sleepMs(100);
         }
       }
 

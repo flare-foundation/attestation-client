@@ -5,14 +5,14 @@ import { getTimeMs, getTimeSec } from "../../utils/helpers/internetTime";
 import { arrayRemoveElement } from "../../utils/helpers/utils";
 import { AttLogger, logException } from "../../utils/logging/logger";
 import {
-  getSummarizedVerificationStatus,
   MIC_SALT,
   SummarizedVerificationStatus,
   Verification,
   VerificationStatus,
+  getSummarizedVerificationStatus,
 } from "../../verification/attestation-types/attestation-types";
-import { dataHash } from "../../verification/generated/attestation-hash-utils";
-import { getAttestationTypeAndSource } from "../../verification/generated/attestation-request-parse";
+
+import { getAttestationTypeAndSource } from "../../verification/attestation-types/attestation-types-utils";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";
@@ -222,7 +222,7 @@ export class SourceManager {
 
     // Check again, if verifier supports the attestation type
     if (!verifierRouter || !verifierRouter.isSupported(attestation.data.sourceId, attestation.data.type)) {
-      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' and type '${attestation.data.type}'`);
+      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' for type '${attestation.data.type}'`);
       this.onProcessed(attestation, AttestationStatus.failed);
       return;
     }
@@ -250,16 +250,16 @@ export class SourceManager {
         if (status === VerificationStatus.OK) {
           // check message integrity
           const originalRequest = getAttestationTypeAndSource(attestation.data.request);
-          const micOk = originalRequest.messageIntegrityCode === dataHash(originalRequest, verification.response, MIC_SALT);
+          const micOk =
+            originalRequest.messageIntegrityCode === this.globalConfigManager.definitionStore.dataHash(originalRequest, verification.response, MIC_SALT);
           if (micOk) {
-            const hash = dataHash(originalRequest, verification.response);
-            // check if verificaton returned consistent hash
-            if (verification.hash !== hash) {
-              // Adjust hash
-              verification.hash = hash;
-              // Report error
-              this.logger.error(`Verifier server returned correct data by wrong hash in verification object: correct: ${hash}, returned ${verification.hash}`);
-            }
+            // augment the attestation response with the round id
+            verification.response.stateConnectorRound = attestation.roundId;
+            // calculate the correct hash, with given roundId
+            const hash = this.globalConfigManager.definitionStore.dataHash(originalRequest, verification.response);
+            // check if verification returned consistent hash
+            verification.hash = hash;
+
             this.onProcessed(attestation, AttestationStatus.valid, verification);
             return;
           }
@@ -300,7 +300,7 @@ export class SourceManager {
         // Retries
         attestation.processEndTime = getTimeMs();
         if (attestation.retry < this.maxFailedRetries) {
-          this.logger.warning(`${this.label}transaction verification error (retry ${attestation.retry})`);
+          this.logger.warning(`${this.label} transaction verification error (retry ${attestation.retry})`);
           attestation.retry++;
           this.enQueueDelayed(attestation, getTimeMs() + this.delayBeforeRetryMs);
         } else {
@@ -327,11 +327,6 @@ export class SourceManager {
     // set status
     attestation.status = actualStatus;
     attestation.verificationData = verificationData;
-
-    // augument the attestation response with the round id
-    if (attestation.verificationData?.response) {
-      attestation.verificationData.response.stateConnectorRound = attestation.roundId;
-    }
 
     // move into processed
     this.attestationProcessing.delete(attestation);

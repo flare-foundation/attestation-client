@@ -29,7 +29,7 @@
             "timeoutMs": 5000,
             "retries": 3
         },
-        "numberOfConfirmations": 6,
+        "numberOfConfirmations": 60,
         "syncReadAhead": 10,
         "blockCollecting": "tips",
         "minimalStorageHistoryDays": 2,

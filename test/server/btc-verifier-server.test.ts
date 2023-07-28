@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-import { BtcTransaction, ChainType, prefix0x, toBN, toHex } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, prefix0x, toBN, toHex, toHex32Bytes } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -19,19 +19,7 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/log
 import { AttestationRequest, MIC_SALT } from "../../src/verification/attestation-types/attestation-types";
 import { toHex as toHexPad } from "../../src/verification/attestation-types/attestation-types-helpers";
 
-import {
-  hashBalanceDecreasingTransaction,
-  hashConfirmedBlockHeightExists,
-  hashPayment,
-  hashReferencedPaymentNonexistence,
-} from "../../src/verification/generated/attestation-hash-utils";
-import {
-  encodeBalanceDecreasingTransaction,
-  encodeConfirmedBlockHeightExists,
-  encodePayment,
-  encodeReferencedPaymentNonexistence,
-  encodeRequest,
-} from "../../src/verification/generated/attestation-request-encode";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 import { getSourceName } from "../../src/verification/sources/sources";
 import {
   addressOnVout,
@@ -71,8 +59,10 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   let lastTimestamp: number = 0;
   let startTime: number = 0;
   let selectedTransaction: DBTransactionBTC0;
+  let defStore = new AttestationDefinitionStore();
 
   before(async () => {
+    await defStore.initialize();
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
     process.env.NODE_ENV = "development";
     process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
@@ -214,7 +204,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     it(`Should get MIC`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
-      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
       request.blockNumber = toNumber(request.blockNumber);
 
@@ -226,10 +216,27 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       expect(resp.data.data, "MIC does not match").to.eq(request.messageIntegrityCode);
     });
 
+    it(`Should get MIC without predefined mic`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+
+      request.blockNumber = toNumber(request.blockNumber);
+      const mic = request.messageIntegrityCode;
+      request.messageIntegrityCode = undefined;
+
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.data, "MIC does not match").to.eq(mic);
+    });
+
     it(`Should not get MIC with wrong types request`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
-      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
       await expect(
         axios.post(`http://localhost:${configurationService.config.port}/query/integrity`, request, {
@@ -243,7 +250,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     it(`Should prepare attestation response without mic`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
-      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
       request.blockNumber = toNumber(request.blockNumber);
 
@@ -259,7 +266,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     it(`Should not MIC for invalid request`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
-      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
       request.blockNumber = 300;
 
@@ -276,7 +283,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     it(`Should prepareAttestation`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
-      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
       request.blockNumber = toNumber(request.blockNumber);
 
@@ -290,10 +297,27 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       expect(resp.data.data.length).to.eq(154);
     });
 
+    it(`Should prepareAttestation with invalid mic`, async function () {
+      let inUtxo = firstAddressVin(selectedTransaction);
+      let utxo = firstAddressVout(selectedTransaction);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+
+      request.blockNumber = toNumber(request.blockNumber);
+      request.messageIntegrityCode = "12";
+
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/query/prepareAttestation`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(resp.data.status, "response not ok").to.eq("OK");
+      expect(resp.data.data.length).to.eq(154);
+    });
+
     it(`Should not prepareAttestation for invalid request`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
-      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
       request.blockNumber = 300;
 
@@ -310,10 +334,10 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     it(`Should verify Payment attestation`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);
       let utxo = firstAddressVout(selectedTransaction);
-      let request = await testPaymentRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+      let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
       let attestationRequest = {
-        request: encodePayment(request),
+        request: defStore.encodeRequest(request),
         options: {},
       } as AttestationRequest;
 
@@ -321,19 +345,19 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
 
       assert(resp.status === "OK", "Wrong server response");
       assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-      let response = JSON.parse(selectedTransaction.response);
+      let response = JSON.parse(selectedTransaction.getResponse());
       let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
       let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
       assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
       assert(resp.data.response.receivingAddressHash === Web3.utils.soliditySha3(receivingAddress), "Wrong receiving address");
-      assert(request.messageIntegrityCode === hashPayment(request, resp.data.response, MIC_SALT), "MIC does not match");
+      assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
     });
 
     it(`Should verify Balance Decreasing attestation attestation`, async function () {
-      let inUtxo = firstAddressVin(selectedTransaction);
-      let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo);
+      let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));
+      let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
       let attestationRequest = {
-        request: encodeBalanceDecreasingTransaction(request),
+        request: defStore.encodeRequest(request),
         options: {
           roundId: 1,
         },
@@ -343,18 +367,18 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
 
       assert(resp.status === "OK", "Wrong server response");
       assert(resp.data.response.transactionHash === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-      let response = JSON.parse(selectedTransaction.response);
-      let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
+      let response = JSON.parse(selectedTransaction.getResponse());
+      let sourceAddress = response.additionalData.vinouts[parseInt(sourceAddressIndicator, 16)].vinvout.scriptPubKey.address;
       assert(resp.data.response.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
-      assert(request.messageIntegrityCode === hashBalanceDecreasingTransaction(request, resp.data.response, MIC_SALT), "MIC does not match");
+      assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
     });
 
     it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
-      let inUtxo = firstAddressVin(selectedTransaction);
-      let request = await testBalanceDecreasingTransactionRequest(selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo);
+      let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));
+      let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
       request.id = toHexPad(12, 32);
       let attestationRequest = {
-        request: encodeBalanceDecreasingTransaction(request),
+        request: defStore.encodeRequest(request),
         options: {
           roundId: 1,
         },
@@ -369,9 +393,16 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
     it(`Should verify Confirmed Block Height Exists attestation`, async function () {
       let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
       let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-      let request = await testConfirmedBlockHeightExistsRequest(confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
+      let request = await testConfirmedBlockHeightExistsRequest(
+        defStore,
+        confirmedBlock,
+        lowerQueryWindowBlock,
+        CHAIN_TYPE,
+        NUMBER_OF_CONFIRMATIONS,
+        BLOCK_QUERY_WINDOW
+      );
       let attestationRequest = {
-        request: encodeConfirmedBlockHeightExists(request),
+        request: defStore.encodeRequest(request),
         options: {
           roundId: 1,
         },
@@ -381,16 +412,23 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       assert(resp.status === "OK", "Wrong server response");
       assert(resp.data.response.blockNumber === toHex(BLOCK_CHOICE), "Wrong block number");
       assert(resp.data.response.lowestQueryWindowBlockNumber === toHex(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1), "Wrong lowest query window block number");
-      assert(request.messageIntegrityCode === hashConfirmedBlockHeightExists(request, resp.data.response, MIC_SALT), "MIC does not match");
+      assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
     });
 
     it(`Should not verify corrupt Confirmed Block Height Exists attestation`, async function () {
       let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
       confirmedBlock.blockNumber = 250;
       let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-      let request = await testConfirmedBlockHeightExistsRequest(confirmedBlock, lowerQueryWindowBlock, CHAIN_TYPE, NUMBER_OF_CONFIRMATIONS, BLOCK_QUERY_WINDOW);
+      let request = await testConfirmedBlockHeightExistsRequest(
+        defStore,
+        confirmedBlock,
+        lowerQueryWindowBlock,
+        CHAIN_TYPE,
+        NUMBER_OF_CONFIRMATIONS,
+        BLOCK_QUERY_WINDOW
+      );
       let attestationRequest = {
-        request: encodeConfirmedBlockHeightExists(request),
+        request: defStore.encodeRequest(request),
         options: {
           roundId: 1,
         },
@@ -410,6 +448,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
 
       let request = await testReferencedPaymentNonexistenceRequest(
+        defStore,
         [],
         TX_CLASS,
         firstOverflowBlock,
@@ -423,7 +462,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       );
 
       let attestationRequest = {
-        request: encodeReferencedPaymentNonexistence(request),
+        request: defStore.encodeRequest(request),
         options: {
           roundId: 1,
         },
@@ -435,7 +474,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       assert(resp.data.status === "OK", "Status is not OK");
       assert(resp.data.response.firstOverflowBlockNumber === toHex(BLOCK_CHOICE - 1), "Incorrect first overflow block");
       assert(resp.data.response.firstOverflowBlockTimestamp === toHex(selectedTransaction.timestamp - 1), "Incorrect first overflow block timestamp");
-      assert(request.messageIntegrityCode === hashReferencedPaymentNonexistence(request, resp.data.response, MIC_SALT), "MIC does not match");
+      assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
     });
 
     it(`Should fail to provide Referenced Payment Nonexistence with negative value`, async function () {
@@ -447,6 +486,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
       let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
 
       let request = await testReferencedPaymentNonexistenceRequest(
+        defStore,
         [selectedTransaction],
         TX_CLASS,
         firstOverflowBlock,
@@ -459,7 +499,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
         receivedAmount
       );
 
-      expect(() => encodeReferencedPaymentNonexistence(request)).to.throw("Negative values are not supported in attestation requests");
+      expect(() => defStore.encodeRequest(request)).to.throw("Negative values are not supported in attestation requests");
     });
 
     it(`Should return correct supported source and types`, async function () {

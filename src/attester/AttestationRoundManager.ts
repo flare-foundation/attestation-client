@@ -5,7 +5,7 @@ import { attesterEntities } from "../utils/database/databaseEntities";
 import { DatabaseService } from "../utils/database/DatabaseService";
 import { getTimeMs } from "../utils/helpers/internetTime";
 import { catchErrorAndJustLog } from "../utils/helpers/promiseTimeout";
-import { MOCK_NULL_WHEN_TESTING, round, sleepms } from "../utils/helpers/utils";
+import { MOCK_NULL_WHEN_TESTING, round, sleepMs } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
@@ -149,7 +149,7 @@ export class AttestationRoundManager {
         logException(error, `${this.label} startRoundUpdate`);
       }
       // FUTURE OPTIMIZATION: put this into config. Now ok for 90s voting rounds.
-      await sleepms(5000);
+      await sleepMs(5000);
     }
   }
 
@@ -394,7 +394,7 @@ export class AttestationRoundManager {
     }
     const attestationSupported = globalConfig.sourceAndTypeSupported(data.sourceId, data.type);
     if (!attestationSupported || !verifier.isSupported(data.sourceId, data.type)) {
-      this.logger.error(`${this.label}Attestation type for source ${data.sourceId} and type ${data.type} not supported for request: ${data.request}`);
+      this.logger.error(`${this.label} Attestation type for source ${data.sourceId} and type ${data.type} not supported for request: ${data.request}`);
       attestation.status = AttestationStatus.failed;
     }
     return attestation;

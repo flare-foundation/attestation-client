@@ -31,7 +31,7 @@ export enum VerificationStatus {
   // ERROR STATUSES
   ///////////////////////////
 
-  // for test purposes only
+  // generic invalid response
   NOT_CONFIRMED = "NOT_CONFIRMED",
 
   NON_EXISTENT_TRANSACTION = "NON_EXISTENT_TRANSACTION",
@@ -75,10 +75,9 @@ export function getSummarizedVerificationStatus(status: VerificationStatus): Sum
     case VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE:
     case VerificationStatus.PAYMENT_SUMMARY_ERROR:
       return SummarizedVerificationStatus.invalid;
-    default:
-      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(status);
   }
+  // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+  ((_: never): void => {})(status);
 }
 
 /**
@@ -102,7 +101,7 @@ export class Verification<R, T> {
   /**
    * Verification status.
    */
-  status: VerificationStatus;
+  status!: VerificationStatus;
 }
 
 export interface WeightedRandomChoice<T> {
@@ -116,6 +115,7 @@ export interface WeightedRandomChoice<T> {
 export const ATT_BYTES = 2;
 export const SOURCE_ID_BYTES = 4;
 export const UTXO_BYTES = 1;
+export const IN_UTXO_BYTES = 32;
 export const BLOCKNUMBER_BYTES = 4;
 export const TIMESTAMP_BYTES = 4;
 export const TIME_DURATION_BYTES = 4;
@@ -155,6 +155,7 @@ export interface DataHashScheme {
   key: string;
   type: SupportedSolidityType;
   description: string;
+  tsType?: string;
 }
 export interface AttestationTypeScheme {
   id: number;
@@ -167,10 +168,52 @@ export class AttestationRequest {
   /**
    * Attestation request in hex string representing byte sequence as submitted to State Connector smart contract.
    */
-  request: string;
+  request!: string;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Message integrity code
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 export const MIC_SALT = "Flare";
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// Request base
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+export const REQUEST_BASE_DEFINITIONS: AttestationRequestScheme[] = [
+  {
+    key: "attestationType",
+    size: ATT_BYTES,
+    type: "AttestationType",
+    description: `
+Attestation type id for this request, see 'AttestationType' enum.
+`,
+  },
+  {
+    key: "sourceId",
+    size: SOURCE_ID_BYTES,
+    type: "SourceId",
+    description: `
+The ID of the underlying chain, see 'SourceId' enum.
+`,
+  },
+  {
+    key: "messageIntegrityCode",
+    size: MIC_BYTES,
+    type: "ByteSequenceLike",
+    description: `
+The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
+`,
+  },
+];
+
+export const STATE_CONNECTOR_ROUND_KEY = "stateConnectorRound";
+export const RESPONSE_BASE_DEFINITIONS: DataHashScheme[] = [
+  {
+    key: STATE_CONNECTOR_ROUND_KEY,
+    type: "uint256",
+    tsType: "number",
+    description: `
+Round id in which the attestation request was validated.
+`,
+  },
+];

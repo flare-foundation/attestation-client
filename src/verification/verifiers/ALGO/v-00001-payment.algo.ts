@@ -6,18 +6,19 @@
 // in the usual import section (below this comment)
 //////////////////////////////////////////////////////////////
 
-import { ARPayment, BN, DHPayment, hashPayment, IndexedQueryManager, MCC, parsePayment, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
+import { ARPayment, AttestationDefinitionStore, BN, DHPayment, IndexedQueryManager, MCC, randSol, Verification, VerificationStatus, Web3 } from "./0imports";
 import { AlgoTransaction } from "@flarenetwork/mcc";
 import { verifyPayment } from "../../verification-utils/generic-chain-verifications";
 
 const web3 = new Web3();
 
 export async function verifyPaymentALGO(
+  defStore: AttestationDefinitionStore,
   client: MCC.ALGO,
   attestationRequest: string,
   indexer: IndexedQueryManager
 ): Promise<Verification<ARPayment, DHPayment>> {
-  const request = parsePayment(attestationRequest) as ARPayment;
+  const request = defStore.parseRequest(attestationRequest) as ARPayment;
 
   //-$$$<start> of the custom code section. Do not change this comment.
 
@@ -30,7 +31,7 @@ export async function verifyPaymentALGO(
 
   //-$$$<end> of the custom section. Do not change this comment.
 
-  const hash = hashPayment(request, response);
+  const hash = defStore.dataHash(request, response);
 
   return {
     hash,

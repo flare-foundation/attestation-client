@@ -2,7 +2,7 @@ import { Managed, optional } from "@flarenetwork/mcc";
 import * as fs from "fs";
 import { exit } from "process";
 import { readSecureConfig } from "../utils/config/configSecure";
-import { sleepms } from "../utils/helpers/utils";
+import { sleepMs } from "../utils/helpers/utils";
 import { getGlobalLogger, logException } from "../utils/logging/logger";
 import { Docker } from "../utils/monitoring/Docker";
 import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection";
@@ -13,7 +13,7 @@ import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection"
 class DockerStatsConfig implements IReflection<DockerStatsConfig> {
   @optional() path: string = "../stats/docker_stats.json";
   @optional() interval = 5000;
-  @optional() dockerSockerName: string = "/var/run/docker.sock";
+  @optional() dockerSocketName: string = "/var/run/docker.sock";
 
   instantiate() {
     return new DockerStatsConfig();
@@ -38,10 +38,10 @@ export class DockerStats {
 
     const config = await readSecureConfig(new DockerStatsConfig(), "stats");
 
-    logger.debug(`Docker socker: ^w${config.dockerSockerName}^^`);
+    logger.debug(`Docker socket: ^w${config.dockerSocketName}^^`);
     logger.debug(`File path: ^w${config.path}^^`);
 
-    const docker = new Docker(config.dockerSockerName);
+    const docker = new Docker(config.dockerSocketName);
 
     const version = await docker.getVersion();
     const info = await docker.getInfo();
@@ -70,7 +70,7 @@ export class DockerStats {
         logException(error, `runDockerStats`);
       }
 
-      await sleepms(config.interval);
+      await sleepMs(config.interval);
     }
   }
 }

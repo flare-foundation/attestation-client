@@ -11,7 +11,7 @@ function genAttestationCaseForSource(definition: AttestationTypeScheme, sourceId
   if (definition.supportedSources.find((x) => x === sourceId) !== undefined) {
     const result = `
     case AttestationType.${definition.name}:
-      return ${verifierFunctionName(definition, sourceId)}(client, attestationRequest, indexer);`;
+      return ${verifierFunctionName(definition, sourceId)}(defStore, client, attestationRequest, indexer);`;
     return trimStartNewline(result);
   }
   return "";
@@ -28,6 +28,7 @@ function genVerifiersForSourceId(definitions: AttestationTypeScheme[], sourceId:
   const sourceName = getSourceName(sourceId);
   const result = `
 export async function verify${sourceName}(
+  defStore: AttestationDefinitionStore,
   client:  MCC.${sourceName}, 
   attestationRequest: string,
   indexer: IndexedQueryManager
@@ -79,7 +80,7 @@ function genSourceCase(definition: AttestationTypeScheme, sourceId: number, veri
   }
   const result = `
 case SourceId.${getSourceName(sourceId)}:
-	return ${verifierFunctionName(definition, sourceId)}(client as MCC.${getSourceName(sourceId)}, attestationRequest, indexer);`;
+	return ${verifierFunctionName(definition, sourceId)}(defStore, client as MCC.${getSourceName(sourceId)}, attestationRequest, indexer);`;
   return trimStartNewline(result);
 }
 
@@ -107,7 +108,6 @@ export function createVerifiersAndRouter(definitions: AttestationTypeScheme[], v
 
   const router = `${DEFAULT_GEN_FILE_HEADER}
 import { MccClient, MCC, traceFunction } from "@flarenetwork/mcc"
-import { getAttestationTypeAndSource } from "../generated/attestation-request-parse"
 import { AttestationType } from "../generated/attestation-types-enum"
 import { SourceId } from "../sources/sources";
 import { Verification } from "../attestation-types/attestation-types";
@@ -117,6 +117,8 @@ import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryMan
 import { Attestation } from "../../attester/Attestation"
 import { DHType } from "../generated/attestation-hash-types";
 import { ARType } from "../generated/attestation-request-types";
+import { AttestationDefinitionStore } from "../attestation-types/AttestationDefinitionStore";
+import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
 
 export class WrongAttestationTypeError extends Error {
 	constructor(message) {
@@ -132,9 +134,10 @@ export class WrongSourceIdError extends Error {
 	}
 }
 
-export async function verifyAttestation(client: MccClient, attestation: Attestation, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>>{
+export async function verifyAttestation(defStore: AttestationDefinitionStore, client: MccClient, attestation: Attestation, indexer: IndexedQueryManager): Promise<Verification<ARType, DHType>>{
   return traceFunction(
     _verifyAttestation,
+    defStore,
     client,
     attestation.data.request,
     indexer
@@ -142,6 +145,7 @@ export async function verifyAttestation(client: MccClient, attestation: Attestat
 }
 
 export async function _verifyAttestation(
+  defStore: AttestationDefinitionStore,
   client: MccClient,
   attestationRequest: string,
   indexer: IndexedQueryManager

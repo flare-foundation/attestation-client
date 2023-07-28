@@ -14,7 +14,7 @@ import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { sleepms } from "../../src/utils/helpers/utils";
+import { sleepMs } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { Verification, VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
 import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
@@ -22,6 +22,7 @@ import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createAttestationVerificationPair } from "./utils/createEvents";
 import { MockFlareConnection } from "./utils/mockClasses";
+import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 
 describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -43,6 +44,8 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
   let globalConfigManager: GlobalConfigManager;
 
+  let defStore: AttestationDefinitionStore;
+
   const fakeAddresses: string[] = [];
 
   for (let j = 0; j < 9; j++) {
@@ -54,6 +57,8 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     process.env.TEST_CREDENTIALS = "1";
     process.env.SECURE_CONFIG_PATH = CONFIG_PATH_ATTESTER;
 
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
     const attestationClientConfig = await readSecureConfig(new AttestationClientConfig(), `attester_1`);
     globalConfigManager = new GlobalConfigManager(attestationClientConfig, getGlobalLogger());
     globalConfigManager.activeRoundId = 161;
@@ -129,16 +134,16 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       const pairsVer = new Map<string, Verification<any, any>>();
       const pariAtt = new Map<string, Attestation>();
 
-      const pairOk = createAttestationVerificationPair("11", 161, 1, true, VerificationStatus.OK);
+      const pairOk = createAttestationVerificationPair(defStore, "11", 161, 1, true, VerificationStatus.OK);
       pairsVer.set(pairOk.attestation.data.getId(), pairOk.verification);
       pariAtt.set(pairOk.attestation.data.getId(), pairOk.attestation);
-      const pairMICFail = createAttestationVerificationPair("12", 161, 2, false, VerificationStatus.OK);
+      const pairMICFail = createAttestationVerificationPair(defStore, "12", 161, 2, false, VerificationStatus.OK);
       pairsVer.set(pairMICFail.attestation.data.getId(), pairMICFail.verification);
       pariAtt.set(pairMICFail.attestation.data.getId(), pairMICFail.attestation);
-      const pairVerFail = createAttestationVerificationPair("13", 161, 3, false, VerificationStatus.NOT_CONFIRMED);
+      const pairVerFail = createAttestationVerificationPair(defStore, "13", 161, 3, false, VerificationStatus.NOT_CONFIRMED);
       pairsVer.set(pairVerFail.attestation.data.getId(), pairVerFail.verification);
       pariAtt.set(pairVerFail.attestation.data.getId(), pairVerFail.attestation);
-      const pairOk2 = createAttestationVerificationPair("14", 161, 4, true, VerificationStatus.OK);
+      const pairOk2 = createAttestationVerificationPair(defStore, "14", 161, 4, true, VerificationStatus.OK);
       pairsVer.set(pairOk2.attestation.data.getId(), pairOk2.verification);
       pariAtt.set(pairOk2.attestation.data.getId(), pairOk2.attestation);
 
@@ -150,12 +155,12 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       }
       round.addAttestation(pairOk.attestation);
 
-      const pairInvalid = createAttestationVerificationPair("15", 161, 5, false, VerificationStatus.NON_EXISTENT_TRANSACTION);
+      const pairInvalid = createAttestationVerificationPair(defStore, "15", 161, 5, false, VerificationStatus.NON_EXISTENT_TRANSACTION);
       pairInvalid.attestation.status = AttestationStatus.failed;
 
       round.addAttestation(pairInvalid.attestation);
 
-      await sleepms(200);
+      await sleepMs(200);
 
       expect(pairOk.attestation.status, "status ok").to.eq(AttestationStatus.valid);
       expect(pairOk.attestation.index, "index ok").to.eq(0);
@@ -173,10 +178,10 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
       round.sourceLimiters.get(SourceId.XRP).config.maxTotalRoundWeight = 5;
 
-      const pair1 = createAttestationVerificationPair("16", 161, 6, true, VerificationStatus.OK);
-      const pair2 = createAttestationVerificationPair("17", 161, 7, true, VerificationStatus.OK);
-      const pair3 = createAttestationVerificationPair("18", 161, 8, true, VerificationStatus.OK);
-      const pair4 = createAttestationVerificationPair("19", 161, 9, true, VerificationStatus.OK);
+      const pair1 = createAttestationVerificationPair(defStore, "16", 161, 6, true, VerificationStatus.OK);
+      const pair2 = createAttestationVerificationPair(defStore, "17", 161, 7, true, VerificationStatus.OK);
+      const pair3 = createAttestationVerificationPair(defStore, "18", 161, 8, true, VerificationStatus.OK);
+      const pair4 = createAttestationVerificationPair(defStore, "19", 161, 9, true, VerificationStatus.OK);
       const pairsVer = new Map<string, Verification<any, any>>();
       pairsVer.set(pair2.attestation.data.getId(), pair2.verification);
       pairsVer.set(pair3.attestation.data.getId(), pair3.verification);
@@ -190,7 +195,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       round.addAttestation(pair3.attestation);
       round.addAttestation(pair4.attestation);
 
-      await sleepms(200);
+      await sleepMs(200);
 
       expect(pair2.attestation.status).to.eq(AttestationStatus.valid);
       expect(pair3.attestation.status).to.eq(AttestationStatus.overLimit);
@@ -204,11 +209,11 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
       round.sourceLimiters.get(SourceId.XRP).config.maxTotalRoundWeight = 200;
 
-      const pair = createAttestationVerificationPair("20", 161, 10, true, VerificationStatus.OK);
+      const pair = createAttestationVerificationPair(defStore, "20", 161, 10, true, VerificationStatus.OK);
 
       round.addAttestation(pair.attestation);
 
-      await sleepms(100);
+      await sleepMs(100);
 
       expect(pair.attestation.status).to.eq(AttestationStatus.tooLate);
     });

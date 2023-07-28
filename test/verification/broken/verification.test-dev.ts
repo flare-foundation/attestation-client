@@ -29,6 +29,7 @@ import { getGlobalLogger } from "../../../src/utils/logging/logger";
 import { VerificationStatus } from "../../../src/verification/attestation-types/attestation-types";
 import { getSourceName, SourceId } from "../../../src/verification/sources/sources";
 import { verifyAttestation } from "../../../src/verification/verifiers/verifier_routing";
+import { AttestationDefinitionStore } from "../../../src/verification/attestation-types/AttestationDefinitionStore";
 
 const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
 const ROUND_ID = 1;
@@ -48,10 +49,13 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
   let chainName: string;
   const startTime = 0;
   const cutoffTime = 0; // TODO - set properly
+  let defStore: AttestationDefinitionStore;
 
   let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
 
   before(async () => {
+    defStore = new AttestationDefinitionStore();
+    await defStore.initialize();
     // chainsConfiguration = await readSecureConfig(new ListChainConfig(), "chains"); // BROKEN
     const verifierCredentials = await readSecureConfig(new VerifierServerConfig(), `${SOURCE_ID.toLowerCase()}-verifier`);
 
@@ -88,6 +92,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     }
 
     const request = await prepareRandomizedRequestPayment(
+      defStore,
       getGlobalLogger(),
       indexedQueryManager,
       randomTransaction as DBTransactionBase,
@@ -95,9 +100,9 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       "CORRECT"
     );
 
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID);
+    const attestation = createTestAttestationFromRequest(defStore,request, ROUND_ID);
 
-    const res = await verifyAttestation(client, attestation, indexedQueryManager);
+    const res = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
   });
 
@@ -108,6 +113,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     }
 
     const request = await prepareRandomizedRequestBalanceDecreasingTransaction(
+      defStore,
       getGlobalLogger(),
       indexedQueryManager,
       randomTransaction as DBTransactionBase,
@@ -115,9 +121,9 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       "CORRECT"
     );
 
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID);
+    const attestation = createTestAttestationFromRequest(defStore,request, ROUND_ID);
 
-    const res = await verifyAttestation(client, attestation, indexedQueryManager);
+    const res = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
 
     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
   });
@@ -131,6 +137,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     });
 
     const request = await prepareRandomizedRequestConfirmedBlockHeightExists(
+      defStore,
       getGlobalLogger(),
       indexedQueryManager,
       blockQueryRequest.result,
@@ -141,9 +148,9 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
     if (!request) {
       console.log("NO REQUEST - Repeat the test", request);
     }
-    const attestation = createTestAttestationFromRequest(request, ROUND_ID);
+    const attestation = createTestAttestationFromRequest(defStore,request, ROUND_ID);
 
-    const res = await verifyAttestation(client, attestation, indexedQueryManager);
+    const res = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
     assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
   });
 
@@ -162,6 +169,7 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
       }
 
       const request = await prepareRandomizedRequestReferencedPaymentNonexistence(
+        defStore,
         getGlobalLogger(),
         indexedQueryManager,
         randomTransaction as DBTransactionBase,
@@ -177,9 +185,9 @@ describe(`${getSourceName(SOURCE_ID)} verifiers`, () => {
         return;
       }
 
-      const attestation = createTestAttestationFromRequest(request, ROUND_ID);
+      const attestation = createTestAttestationFromRequest(defStore,request, ROUND_ID);
 
-      const res = await verifyAttestation(client, attestation, indexedQueryManager);
+      const res = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
       assert(res.status === VerificationStatus.OK, `Wrong status: ${res.status}`);
       // break;
     }

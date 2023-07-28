@@ -1,4 +1,4 @@
-import { IBlock } from "@flarenetwork/mcc";
+import { BlockBase } from "@flarenetwork/mcc";
 import { DBBlockBase, IDBBlockBase } from "../../entity/indexer/dbBlock";
 import { prepareString } from "../../utils/helpers/utils";
 
@@ -8,7 +8,7 @@ import { prepareString } from "../../utils/helpers/utils";
  * @param block
  * @returns
  */
-export function augmentBlock(dbBlockClass: IDBBlockBase, block: IBlock): DBBlockBase {
+export function augmentBlock(dbBlockClass: IDBBlockBase, block: BlockBase): DBBlockBase {
   const entity = new dbBlockClass();
   entity.blockNumber = block.number;
   entity.blockHash = prepareString(block.stdBlockHash, 128);

@@ -2,7 +2,7 @@ import { BtcFullBlock, BtcTransaction, ChainType, DogeFullBlock, DogeTransaction
 import { LimitingProcessor } from "../../caching/LimitingProcessor";
 import { DBBlockXRP } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
-import { retryMany } from "../../utils/helpers/promiseTimeout";
+import { retry, retryMany } from "../../utils/helpers/promiseTimeout";
 
 import { criticalAsync, prepareIndexerTables } from "../indexer-utils";
 import { augmentBlock } from "./augmentBlock";
@@ -44,20 +44,18 @@ export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
     const transactionIndexingOption = FullIndexingOptions.withReference;
 
     let transactionObjects: DogeTransaction[];
+    const txGetter = (txId: string) => this.call(() => retry("getTransaction", () => this.call(() => this.client.getTransaction(txId), true)), false);
 
+    
     if (withDogeFork) {
       transactionObjects = block.transactions;
     } else {
-      const transactionObjectsPromises = block.transactionIds.map((txId) => {
-        return this.client.getTransaction(txId) as Promise<DogeTransaction>;
-      });
-      transactionObjects = await Promise.all(transactionObjectsPromises);
+      transactionObjects = await Promise.all(block.transactionIds.map((txId) => txGetter(txId))) as DogeTransaction[];
     }
 
     const txPromises = transactionObjects.map((txObject) => {
-      return this.call(() =>
-        traceFunction(() => getFullTransactionUtxo<DogeFullBlock, DogeTransaction>(this.client, txObject, this, transactionIndexingOption))
-      ) as Promise<DogeTransaction>;
+      // Assumption: the promise never fails or is a critical error that halts a process inside the promise
+      return getFullTransactionUtxo<DogeFullBlock, DogeTransaction>(this.client, txObject, this, txGetter, transactionIndexingOption) as Promise<DogeTransaction>;
     });
 
     const chainType = this.client.chainType;

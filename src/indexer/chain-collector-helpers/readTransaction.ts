@@ -28,6 +28,7 @@ export async function getFullTransactionUtxo<B extends FullBlockBase<any>, T ext
   client: CachedMccClient,
   blockTransaction: T,
   processor: LimitingProcessor<B>,
+  txGetter: (txid: string) => Promise<T>,
   indexingOption: FullIndexingOptions = FullIndexingOptions.withReference
 ): Promise<T> {
   processor.registerTopLevelJob();
@@ -51,7 +52,7 @@ export async function getFullTransactionUtxo<B extends FullBlockBase<any>, T ext
   }
 
   if (fullIndexing) {
-    await blockTransaction.makeFull(client.client as MccUtxoClient);
+    await blockTransaction.makeFull(txGetter);
 
     processor.markTopLevelJobDone();
 

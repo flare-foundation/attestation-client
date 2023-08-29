@@ -47,7 +47,7 @@ import {
  * @param client
  * @returns
  */
-export async function responsePayment<T extends TransactionBase>(
+export async function responsePayment<T extends TransactionBase<any>>(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => T,
   inUtxo: NumberLike,
@@ -67,7 +67,8 @@ export async function responsePayment<T extends TransactionBase>(
   const inUtxoNumber = toBN(inUtxo).toNumber();
   const utxoNumber = toBN(utxo).toNumber();
 
-  let paymentSummary = await fullTxData.paymentSummary({ client, inUtxo: inUtxoNumber, outUtxo: utxoNumber });
+  const transactionGetter = (txid: string) => client.getTransaction(txid);
+  let paymentSummary = await fullTxData.paymentSummary({ transactionGetter, inUtxo: inUtxoNumber, outUtxo: utxoNumber });
 
   if (paymentSummary.status !== PaymentSummaryStatus.Success) {
     return { status: VerificationStatus.NOT_CONFIRMED };
@@ -112,7 +113,7 @@ export async function responsePayment<T extends TransactionBase>(
  * @returns Verification response: object containing status and attestation response
  * @category Verifiers
  */
-export async function verifyPayment<T extends TransactionBase>(
+export async function verifyPayment<T extends TransactionBase<any>>(
   TransactionClass: new (...args: any[]) => T,
   request: ARPayment,
   iqm: IndexedQueryManager,
@@ -154,7 +155,7 @@ export async function verifyPayment<T extends TransactionBase>(
  * @param client
  * @returns
  */
-export async function responseBalanceDecreasingTransaction<T extends TransactionBase>(
+export async function responseBalanceDecreasingTransaction<T extends TransactionBase<any>>(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => T,
   sourceAddressIndicator: ByteSequenceLike,
@@ -171,7 +172,8 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
   let balanceDecreasingSummary: BalanceDecreasingSummaryResponse;
-  balanceDecreasingSummary = await fullTxData.balanceDecreasingSummary({ client, sourceAddressIndicator });
+  const transactionGetter = (txid: string) => client.getTransaction(txid);
+  balanceDecreasingSummary = await fullTxData.balanceDecreasingSummary({ transactionGetter, sourceAddressIndicator });
   if (balanceDecreasingSummary.status !== BalanceDecreasingSummaryStatus.Success) {
     return { status: VerificationStatus.NOT_CONFIRMED };
   }
@@ -207,7 +209,7 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
  * @returns Verification response, status and attestation response
  * @category Verifiers
  */
-export async function verifyBalanceDecreasingTransaction<T extends TransactionBase>(
+export async function verifyBalanceDecreasingTransaction<T extends TransactionBase<any>>(
   TransactionClass: new (...args: any[]) => T,
   request: ARBalanceDecreasingTransaction,
   iqm: IndexedQueryManager,
@@ -310,7 +312,7 @@ export async function verifyConfirmedBlockHeightExists(
  * @param amount
  * @returns
  */
-export async function responseReferencedPaymentNonExistence<T extends TransactionBase>(
+export async function responseReferencedPaymentNonExistence<T extends TransactionBase<any>>(
   dbTransactions: DBTransactionBase[],
   TransactionClass: new (...args: any[]) => T,
   firstOverflowBlock: DBBlockBase,
@@ -388,7 +390,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
  * @param iqm IndexedQuery object for the relevant blockchain indexer
  * @returns Verification response, status and attestation response
  */
-export async function verifyReferencedPaymentNonExistence<T extends TransactionBase>(
+export async function verifyReferencedPaymentNonExistence<T extends TransactionBase<any>>(
   TransactionClass: new (...args: any[]) => T,
   request: ARReferencedPaymentNonexistence,
   iqm: IndexedQueryManager

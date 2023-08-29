@@ -52,7 +52,7 @@ export async function getFullTransactionUtxo<B extends FullBlockBase<any>, T ext
   }
 
   if (fullIndexing) {
-    await blockTransaction.makeFull((id: string) => txGetter(id));
+    await blockTransaction.makeFull(txGetter);
 
     processor.markTopLevelJobDone();
 

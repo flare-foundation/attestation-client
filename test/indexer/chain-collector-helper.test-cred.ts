@@ -1,7 +1,7 @@
 // yarn test test/indexer/chain-collector-helper.test-cred.ts
 //tests need appropriate api credentials for BTC and DOGE multi-chain-client to function properly
 
-import { ChainType, DogeBlock, UtxoMccCreate } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, DogeBlock, UtxoMccCreate } from "@flarenetwork/mcc";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { afterEach } from "mocha";
@@ -56,12 +56,14 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     });
 
     it("Should not read full transaction utxo", async () => {
-      const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor);
+      const txGetter = (txid: string) => cachedClient.getTransaction(txid) as Promise<BtcTransaction>;
+      const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor, txGetter);
       expect(fullTx._additionalData.vinouts[0]).to.be.undefined;
     });
 
     it("Should read full transaction utxo", async () => {
-      const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor);
+      const txGetter = (txid: string) => cachedClient.getTransaction(txid) as Promise<BtcTransaction>;
+      const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor, txGetter);
       expect(fullTx._additionalData.vinouts.length).to.be.eq(1);
     });
   });

@@ -44,18 +44,24 @@ export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
     const transactionIndexingOption = FullIndexingOptions.withReference;
 
     let transactionObjects: DogeTransaction[];
-    const txGetter = (txId: string) => this.call(() => retry("getTransaction", () => this.call(() => this.client.getTransaction(txId), true)), false);
+    const txGetter = (txId: string) =>
+      this.call(() => retry("getTransaction", () => this.call(() => this.client.getTransaction(txId), true)), false) as Promise<DogeTransaction>;
 
-    
     if (withDogeFork) {
       transactionObjects = block.transactions;
     } else {
-      transactionObjects = await Promise.all(block.transactionIds.map((txId) => txGetter(txId))) as DogeTransaction[];
+      transactionObjects = (await Promise.all(block.transactionIds.map((txId) => txGetter(txId)))) as DogeTransaction[];
     }
 
     const txPromises = transactionObjects.map((txObject) => {
       // Assumption: the promise never fails or is a critical error that halts a process inside the promise
-      return getFullTransactionUtxo<DogeFullBlock, DogeTransaction>(this.client, txObject, this, txGetter, transactionIndexingOption) as Promise<DogeTransaction>;
+      return getFullTransactionUtxo<DogeFullBlock, DogeTransaction>(
+        this.client,
+        txObject,
+        this,
+        txGetter,
+        transactionIndexingOption
+      ) as Promise<DogeTransaction>;
     });
 
     const chainType = this.client.chainType;

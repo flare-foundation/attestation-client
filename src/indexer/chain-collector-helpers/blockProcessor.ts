@@ -41,7 +41,7 @@ export class DogeBlockProcessor extends LimitingProcessor<DogeFullBlock> {
 
     // TODO: take this from some sort of settings file
     const withDogeFork = false;
-    const transactionIndexingOption = FullIndexingOptions.withReference;
+    const transactionIndexingOption = FullIndexingOptions.all;
 
     let transactionObjects: DogeTransaction[];
     const txGetter = (txId: string) =>

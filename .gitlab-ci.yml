@@ -58,9 +58,12 @@ test-coverage:
       - yarn.lock
     paths:
     - node_modules
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
     when: always
     expire_in: 1 month
+    paths:
+    - coverage/*
     reports:
       coverage_report:
         coverage_format: cobertura

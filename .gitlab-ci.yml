@@ -47,7 +47,7 @@ test-coverage:
   variables:
     NODE_ENV: development
   before_script:
-  - yarn install --frozen-lockfile --cache-folder $CI_PROJECT_DIR/.yarn-cache > /dev/null
+  - yarn install --frozen-lockfile > /dev/null
   script:
   - yarn run test:coverage
   after_script:
@@ -57,13 +57,10 @@ test-coverage:
       files:
       - yarn.lock
     paths:
-    - .yarn-cache
     - node_modules
   artifacts:
     when: always
     expire_in: 1 month
-    paths:
-    - coverage/*
     reports:
       coverage_report:
         coverage_format: cobertura

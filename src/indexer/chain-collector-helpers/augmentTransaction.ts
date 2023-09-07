@@ -1,6 +1,4 @@
 import {
-  AlgoBlock,
-  AlgoTransaction,
   BlockBase,
   ChainType,
   TransactionBase,
@@ -51,19 +49,19 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
   return txEntity;
 }
 
-/**
- * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
- * Specialization of the function for ALGO.
- * @param dbTransaction
- * @param block
- * @param txData
- * @returns
- */
-export function augmentTransactionAlgo(block: AlgoBlock, txData: AlgoTransaction): DBTransactionBase {
-  const res = augmentTransactionBase(DBTransactionALGO0, ChainType.ALGO, block, txData);
+// /**
+//  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
+//  * Specialization of the function for ALGO.
+//  * @param dbTransaction
+//  * @param block
+//  * @param txData
+//  * @returns
+//  */
+// export function augmentTransactionAlgo(block: AlgoBlock, txData: AlgoTransaction): DBTransactionBase {
+//   const res = augmentTransactionBase(DBTransactionALGO0, ChainType.ALGO, block, txData);
 
-  return res as DBTransactionBase;
-}
+//   return res as DBTransactionBase;
+// }
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
@@ -79,7 +77,7 @@ export async function augmentTransactionUtxo<T extends UtxoTransaction>(
   dbTransaction: IDBTransactionBase,
   chainType: ChainType,
   block: UtxoBlock,
-  txDataPromise: Promise<T>
+  txDataPromise: Promise<T> | T
 ): Promise<DBTransactionBase> {
   const txData = await txDataPromise;
   const res = augmentTransactionBase(dbTransaction, chainType, block, txData);

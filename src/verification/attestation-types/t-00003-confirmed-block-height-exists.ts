@@ -3,7 +3,7 @@ import { AttestationTypeScheme, BLOCKNUMBER_BYTES, TIME_DURATION_BYTES } from ".
 
 export const TDEF: AttestationTypeScheme = {
   id: 3,
-  supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
+  supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.DOGE], //[SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
   name: "ConfirmedBlockHeightExists",
   request: [
     {

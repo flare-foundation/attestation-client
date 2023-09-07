@@ -5,7 +5,7 @@ import { ChainConfig } from "../../src/attester/configs/ChainConfig";
 import { CachedMccClient, CachedMccClientOptions } from "../../src/caching/CachedMccClient";
 import { DBBlockBase } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
-import { AlgoBlockProcessor, BtcBlockProcessor, XrpBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
+import { BtcBlockProcessor, XrpBlockProcessor } from "../../src/indexer/chain-collector-helpers/blockProcessor";
 import { Indexer } from "../../src/indexer/indexer";
 import { getGlobalLogger } from "../../src/utils/logging/logger";
 
@@ -43,7 +43,6 @@ const XRPMccConnection = {
 
 describe("Test process helpers ", () => {
   let BtcMccClient: MCC.BTC;
-  let AlgoMccClient: MCC.ALGO;
   let XrpMccClient: MCC.XRP;
   let save;
 
@@ -54,7 +53,6 @@ describe("Test process helpers ", () => {
     traceManager.displayStateOnException = false;
 
     BtcMccClient = new MCC.BTC(BtcMccConnection);
-    AlgoMccClient = new MCC.ALGO(algoCreateConfig);
     XrpMccClient = new MCC.XRP(XRPMccConnection);
     save = async (block: DBBlockBase, transactions: DBTransactionBase[]) => {
       console.log("***************** BLOCK SAVE ************************");
@@ -164,26 +162,26 @@ describe("Test process helpers ", () => {
     await processor.initializeJobs(block, save);
   });
 
-  it(`Test algo block processing `, async function () {
-    const block = await AlgoMccClient.getBlock(723746);
+  // it(`Test algo block processing `, async function () {
+  //   const block = await AlgoMccClient.getBlock(723746);
 
-    // console.log(block)
+  //   // console.log(block)
 
-    const defaultCachedMccClientOptions: CachedMccClientOptions = {
-      transactionCacheSize: 100000,
-      blockCacheSize: 100000,
-      cleanupChunkSize: 100,
-      activeLimit: 70,
-      clientConfig: algoCreateConfig,
-    };
+  //   const defaultCachedMccClientOptions: CachedMccClientOptions = {
+  //     transactionCacheSize: 100000,
+  //     blockCacheSize: 100000,
+  //     cleanupChunkSize: 100,
+  //     activeLimit: 70,
+  //     clientConfig: algoCreateConfig,
+  //   };
 
-    const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient;
+  //   const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
+  //   indexer.cachedClient = cachedClient;
 
-    const processor = new AlgoBlockProcessor(indexer.cachedClient);
-    processor.debugOn("FIRST");
-    await processor.initializeJobs(block, save);
-  });
+  //   const processor = new AlgoBlockProcessor(indexer.cachedClient);
+  //   processor.debugOn("FIRST");
+  //   await processor.initializeJobs(block, save);
+  // });
 
   it(`Test xrp block processing `, async function () {
     const block = await XrpMccClient.getFullBlock("FDD11CCFB38765C2DA0B3E6D4E3EF7DFDD4EE1DBBA4F319493EB6E1376814EC2");
@@ -209,26 +207,26 @@ describe("Test process helpers ", () => {
     await processor.initializeJobs(block, save);
   });
 
-  it(`Test ALGO block processing `, async function () {
-    const block = await AlgoMccClient.getBlock(25254303);
+  // it(`Test ALGO block processing `, async function () {
+  //   const block = await AlgoMccClient.getBlock(25254303);
 
-    const defaultCachedMccClientOptions: CachedMccClientOptions = {
-      transactionCacheSize: 100000,
-      blockCacheSize: 100000,
-      cleanupChunkSize: 100,
-      activeLimit: 70,
-      clientConfig: algoCreateConfig,
-    };
+  //   const defaultCachedMccClientOptions: CachedMccClientOptions = {
+  //     transactionCacheSize: 100000,
+  //     blockCacheSize: 100000,
+  //     cleanupChunkSize: 100,
+  //     activeLimit: 70,
+  //     clientConfig: algoCreateConfig,
+  //   };
 
-    const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
-    indexer.cachedClient = cachedClient;
+  //   const cachedClient = new CachedMccClient(ChainType.ALGO, defaultCachedMccClientOptions);
+  //   indexer.cachedClient = cachedClient;
 
-    indexer.chainConfig = new ChainConfig();
-    indexer.chainConfig.name = "ALGO";
-    indexer.prepareTables();
+  //   indexer.chainConfig = new ChainConfig();
+  //   indexer.chainConfig.name = "ALGO";
+  //   indexer.prepareTables();
 
-    const processor = new AlgoBlockProcessor(indexer.cachedClient);
-    processor.debugOn("FIRST");
-    await processor.initializeJobs(block, save);
-  });
+  //   const processor = new AlgoBlockProcessor(indexer.cachedClient);
+  //   processor.debugOn("FIRST");
+  //   await processor.initializeJobs(block, save);
+  // });
 });

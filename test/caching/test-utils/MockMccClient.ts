@@ -12,8 +12,9 @@ import {
   MccError,
   ReadRpcInterface,
   TransactionBase,
-  unPrefix0x, XrpBlock,
-  XrpTransaction
+  unPrefix0x,
+  XrpBlock,
+  XrpTransaction,
 } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import * as btcBlockHeaderResponse from "./btc-block-header.json";
@@ -22,7 +23,7 @@ import * as btcTxResponse from "./btc-tx-response.json";
 import * as xrpBlockResponse from "./xrp-block-response.json";
 import * as xrpTxResponse from "./xrp-tx-response.json";
 
-export class MockMccClient implements ReadRpcInterface {
+export class MockMccClient implements ReadRpcInterface<any, any, any, any, any> {
   getFullBlock(blockNumberOrHash: string | number): Promise<FullBlockBase<any>> {
     throw new Error("Method not implemented.");
   }
@@ -84,7 +85,7 @@ export class MockMccClient implements ReadRpcInterface {
   }
 }
 
-export class MockMccClientBTC implements ReadRpcInterface {
+export class MockMccClientBTC implements ReadRpcInterface<any, any, any, any, any> {
   getFullBlock(blockNumberOrHash: string | number): Promise<FullBlockBase<any>> {
     throw new Error("Method not implemented.");
   }

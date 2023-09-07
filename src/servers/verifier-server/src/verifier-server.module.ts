@@ -9,10 +9,8 @@ import { VerifierController } from "./controllers/verifier.controller";
 import { WsServerGateway } from "./gateways/ws-server.gateway";
 import { IndexerEngineService } from "./services/indexer-engine.service";
 import { VerifierConfigurationService } from "./services/verifier-configuration.service";
-import { AlgoProcessorService } from "./services/verifier-processors/algo-processor.service";
 import { BTCProcessorService } from "./services/verifier-processors/btc-processor.service";
 import { DOGEProcessorService } from "./services/verifier-processors/doge-processor.service";
-import { LTCProcessorService } from "./services/verifier-processors/ltc-processor.service";
 import { VerifierProcessor } from "./services/verifier-processors/verifier-processor";
 import { XRPProcessorService } from "./services/verifier-processors/xrp-processor.service";
 import { WsCommandProcessorService } from "./services/ws-command-processor.service";
@@ -22,14 +20,10 @@ function processorProvider(config: VerifierConfigurationService, manager: Entity
   switch (process.env.VERIFIER_TYPE) {
     case "btc":
       return new BTCProcessorService(config, manager);
-    case "ltc":
-      return new LTCProcessorService(config, manager);
     case "doge":
       return new DOGEProcessorService(config, manager);
     case "xrp":
       return new XRPProcessorService(config, manager);
-    case "algo":
-      return new AlgoProcessorService(config, manager);
     default:
       throw new Error(`Wrong verifier type: '${process.env.VERIFIER_TYPE}'`);
   }

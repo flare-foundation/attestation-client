@@ -317,8 +317,8 @@ export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
 
 export function firstAddressVin(dbTransaction: DBTransactionBase) {
   let response = JSON.parse(dbTransaction.getResponse());
-  for (let i = 0; i < response.additionalData.vinouts.length; i++) {
-    if (response.additionalData?.vinouts?.[i]?.vinvout?.scriptPubKey?.address) {
+  for(let i = 0; i < response.data.vin.length; i++) {
+    if (response.data.vin[i].prevout.scriptPubKey?.address) {
       return i;
     }
   }

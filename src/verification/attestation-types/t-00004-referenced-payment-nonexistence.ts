@@ -13,7 +13,7 @@ import {
 
 export const TDEF: AttestationTypeScheme = {
   id: 4,
-  supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
+  supportedSources: [SourceId.XRP, SourceId.BTC, SourceId.DOGE], //[SourceId.XRP, SourceId.BTC, SourceId.LTC, SourceId.DOGE, SourceId.ALGO],
   name: "ReferencedPaymentNonexistence",
   request: [
     {

@@ -21,7 +21,7 @@ describe(`Attestestation Request Parser (${getTestFile(__filename)})`, function 
   });
 
   it("Should encode and decode for 'Payment'", async function () {
-    for (const sourceId of [3, 0, 1, 2, 4]) {
+    for (const sourceId of [3, 0, 2]) {
       const randomRequest = getRandomRequestForAttestationTypeAndSourceId(1 as AttestationType, sourceId as SourceId) as ARPayment;
 
       const bytes = defStore.encodeRequest(randomRequest);
@@ -31,7 +31,7 @@ describe(`Attestestation Request Parser (${getTestFile(__filename)})`, function 
   });
 
   it("Should encode and decode for 'BalanceDecreasingTransaction'", async function () {
-    for (const sourceId of [3, 0, 1, 2, 4]) {
+    for (const sourceId of [3, 0, 2]) {
       const randomRequest = getRandomRequestForAttestationTypeAndSourceId(2 as AttestationType, sourceId as SourceId) as ARBalanceDecreasingTransaction;
 
       const bytes = defStore.encodeRequest(randomRequest);
@@ -41,7 +41,7 @@ describe(`Attestestation Request Parser (${getTestFile(__filename)})`, function 
   });
 
   it("Should encode and decode for 'ConfirmedBlockHeightExists'", async function () {
-    for (const sourceId of [3, 0, 1, 2, 4]) {
+    for (const sourceId of [3, 0, 2]) {
       const randomRequest = getRandomRequestForAttestationTypeAndSourceId(3 as AttestationType, sourceId as SourceId) as ARConfirmedBlockHeightExists;
 
       const bytes = defStore.encodeRequest(randomRequest);
@@ -51,7 +51,7 @@ describe(`Attestestation Request Parser (${getTestFile(__filename)})`, function 
   });
 
   it("Should encode and decode for 'ReferencedPaymentNonexistence'", async function () {
-    for (const sourceId of [3, 0, 1, 2, 4]) {
+    for (const sourceId of [3, 0, 2]) {
       const randomRequest = getRandomRequestForAttestationTypeAndSourceId(4 as AttestationType, sourceId as SourceId) as ARReferencedPaymentNonexistence;
 
       const bytes = defStore.encodeRequest(randomRequest);

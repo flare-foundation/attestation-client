@@ -72,6 +72,6 @@ test-coverage:
   - when: on_success
 
 test-coverage-full:
-  extends: test-coverage-full
+  extends: test-coverage
   script:
   - yarn run test:coverage-full

@@ -70,3 +70,8 @@ test-coverage:
         path: coverage/cobertura-coverage.xml
   rules:
   - when: on_success
+
+test-coverage-full:
+  extends: test-coverage-full
+  script:
+  - yarn run test:coverage-full

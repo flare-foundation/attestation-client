@@ -1,0 +1,77 @@
+stages:
+- build
+- test
+
+default:
+  tags:
+  - flarenetwork
+
+
+
+
+
+
+# Using https://gitplac.si/cts/build-oci
+build-container:
+  stage: build
+  needs: []
+  tags:
+  - flarenetwork-lg
+  image: registry.gitplac.si/cts/build-oci:1.2.2
+  script: [ "/build.sh" ]
+  variables:
+    CTS_BUILD_CACHE_REPO: ${CI_REGISTRY_IMAGE}/cache
+    CTS_BUILD_DOCKERFILE: Dockerfile
+    KUBERNETES_MEMORY_REQUEST: "8Gi"
+    KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "8Gi"
+  rules:
+  - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    variables:
+      CTS_BUILD_TAG: latest
+  - if: $CI_COMMIT_TAG != null
+    variables:
+      CTS_BUILD_TAG: $CI_COMMIT_TAG
+  - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+    variables:
+      BUILD_OCI_TAG: $CI_COMMIT_REF_SLUG
+
+
+
+
+
+
+test-coverage:
+  stage: test
+  needs: []
+  image: node:16
+  variables:
+    NODE_ENV: development
+  before_script:
+  - yarn install --frozen-lockfile > /dev/null
+  script:
+  - yarn run test:coverage
+  after_script:
+  - echo "View the generated docs at https://flarenetwork.gitlab.io/-/attestation-client/-/jobs/$CI_JOB_ID/artifacts/coverage/index.html"
+  cache:
+    key:
+      files:
+      - yarn.lock
+    paths:
+    - node_modules
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    when: always
+    expire_in: 1 month
+    paths:
+    - coverage/*
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+  rules:
+  - when: on_success
+
+test-coverage-full:
+  extends: test-coverage
+  script:
+  - yarn run test:coverage-full

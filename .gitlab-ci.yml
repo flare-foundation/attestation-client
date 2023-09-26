@@ -9,7 +9,14 @@ default:
 
 
 
-
+build-project:
+  stage: build
+  needs: []
+  image: node:16
+  before_script:
+  - yarn install --frozen-lockfile
+  script:
+  - yarn build
 
 # Using https://gitplac.si/cts/build-oci
 build-container:

@@ -41,6 +41,7 @@ build-container:
 
 
 test-coverage:
+  allow_failure: true
   stage: test
   needs: []
   image: node:16

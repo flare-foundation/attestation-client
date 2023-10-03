@@ -218,12 +218,11 @@ export class AddressValidity_Request {
     /**
      * Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.
      */
-
+    @ValidateNested()
+    @Type(() => AddressValidity_RequestBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => AddressValidity_RequestBody)
     @ApiProperty({ description: `Data defining the request. Type (struct) and interpretation is determined by the 'attestationType'.` })
     requestBody!: AddressValidity_RequestBody;
 }
@@ -247,13 +246,10 @@ export class AddressValidity_Response {
     sourceId!: string;
 
     /**
-     * The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.
+     * The id of the state connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({
-        description: `The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.`,
-        example: "123",
-    })
+    @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
     votingRound!: string;
 
     /**
@@ -266,24 +262,22 @@ export class AddressValidity_Response {
     /**
      * Extracted from the request.
      */
-
+    @ValidateNested()
+    @Type(() => AddressValidity_RequestBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => AddressValidity_RequestBody)
     @ApiProperty({ description: `Extracted from the request.` })
     requestBody!: AddressValidity_RequestBody;
 
     /**
      * Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.
      */
-
+    @ValidateNested()
+    @Type(() => AddressValidity_ResponseBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => AddressValidity_ResponseBody)
     @ApiProperty({
         description: `Data defining the response. The verification rules for the construction of the response body and the type are defined per specific 'attestationType'.`,
     })
@@ -307,12 +301,11 @@ export class AddressValidity_Proof {
     /**
      * Attestation response.
      */
-
+    @ValidateNested()
+    @Type(() => AddressValidity_Response)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => AddressValidity_Response)
     @ApiProperty({ description: `Attestation response.` })
     data!: AddressValidity_Response;
 }

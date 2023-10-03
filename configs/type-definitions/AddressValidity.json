@@ -1,9 +1,9 @@
 {
   "name": "AddressValidity",
-  "fullComment": " @custom:name AddressValidity\n @custom:id 0x05\n @custom:supported BTC, DOGE, XRPL, ETH\n @author Flare\n @notice The purpose of this type is to assert that the string represents a valid address on an external chain.\n @custom:verification The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](attestation-objects/verification-rules/00005/BTC.md)\n - [DOGE](attestation-objects/verification-rules/00005/DOGE.md)\n - [XRP](attestation-objects/verification-rules/00005/XRP.md)\n - [Ethereum](attestation-objects/verification-rules/00005/ETH.md)\n @custom:lut $2^{64}-1$",
+  "fullComment": " @custom:name AddressValidity\n @custom:id 0x05\n @custom:supported BTC, DOGE, XRPL, ETH\n @author Flare\n @notice The purpose of this type is to assert that the string represents a valid address on an external chain.\n @custom:verification The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](attestation-objects/verification-rules/00005/BTC.md)\n - [DOGE](attestation-objects/verification-rules/00005/DOGE.md)\n - [XRPL](attestation-objects/verification-rules/00005/XRP.md)\n - [Ethereum](attestation-objects/verification-rules/00005/ETH.md)\n @custom:lut $2^{64}-1$",
   "description": "The purpose of this type is to assert that the string represents a valid address on an external chain.",
   "supported": "BTC, DOGE, XRPL, ETH",
-  "verification": "The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](attestation-objects/verification-rules/00005/BTC.md)\n - [DOGE](attestation-objects/verification-rules/00005/DOGE.md)\n - [XRP](attestation-objects/verification-rules/00005/XRP.md)\n - [Ethereum](attestation-objects/verification-rules/00005/ETH.md)",
+  "verification": "The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](attestation-objects/verification-rules/00005/BTC.md)\n - [DOGE](attestation-objects/verification-rules/00005/DOGE.md)\n - [XRPL](attestation-objects/verification-rules/00005/XRP.md)\n - [Ethereum](attestation-objects/verification-rules/00005/ETH.md)",
   "lut": "$2^{64}-1$",
   "proof": {
     "name": "Proof",
@@ -64,7 +64,7 @@
     "description": "Toplevel response",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -82,7 +82,7 @@
         "name": "votingRound",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes."
+        "comment": "The id of the state connector round in which the request was considered."
       },
       {
         "name": "lowestUsedTimestamp",

@@ -3,8 +3,8 @@ import {
   ConfirmedBlockQueryResponse,
   ConfirmedTransactionQueryResponse,
   ReferencedTransactionsQueryResponse,
-} from "../../indexed-query-manager/indexed-query-manager-types";
-import { VerificationStatus } from "../attestation-types/attestation-types";
+} from "../../../../indexed-query-manager/indexed-query-manager-types";
+import { VerificationStatus } from "../../../../verification/attestation-types/attestation-types";
 
 export type MccTransactionType = BtcTransaction | DogeTransaction | XrpTransaction;
 export interface VerificationResponse<T> {

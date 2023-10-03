@@ -1,5 +1,6 @@
 import BN from "bn.js";
 import { SourceId } from "../sources/sources";
+import { AttestationStatus } from "../../external-libs/AttestationResponse";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Verification status
@@ -79,6 +80,30 @@ export function getSummarizedVerificationStatus(status: VerificationStatus): Sum
   // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
   ((_: never): void => {})(status);
 }
+
+export function getAttestationStatus(status: VerificationStatus): AttestationStatus {
+  switch (status) {
+    case VerificationStatus.OK:
+      return AttestationStatus.VALID;
+    case VerificationStatus.DATA_AVAILABILITY_ISSUE:
+    case VerificationStatus.NEEDS_MORE_CHECKS:
+    case VerificationStatus.SYSTEM_FAILURE:
+    case VerificationStatus.NON_EXISTENT_BLOCK:
+      return AttestationStatus.INDETERMINATE;
+    case VerificationStatus.NOT_CONFIRMED:
+    case VerificationStatus.NON_EXISTENT_TRANSACTION:
+    case VerificationStatus.NOT_PAYMENT:
+    case VerificationStatus.REFERENCED_TRANSACTION_EXISTS:
+    case VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED:
+    case VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE:
+    case VerificationStatus.PAYMENT_SUMMARY_ERROR:
+      return AttestationStatus.INVALID;
+  }
+  // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+  ((_: never): void => {})(status);
+}
+
+
 
 /**
  * DTO Object returned after attestation request verification.

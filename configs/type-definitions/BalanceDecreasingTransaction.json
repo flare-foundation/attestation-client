@@ -1,0 +1,372 @@
+{
+  "name": "BalanceDecreasingTransaction",
+  "fullComment": " @custom:name BalanceDecreasingTransaction\n @custom:id 0x02\n @custom:supported BTC, DOGE, XRPL, ETH\n @author Flare\n @notice The intention of this attestation type is to detect a transaction that either decrease balance for some address or are signed by the source address.\n Such attestation could prove a violation of an agreement and give grounds to liquidate some funds locked by a smart contract on Flare.\n A transaction is considered “balance decreasing” for the address, if the balance after the transaction is lower than before or the address is among the signers of the transaction (even if its balance is greater than before the transaction).\n @custom:verification Based on transaction id, the transaction is fetched from the API of the source blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/attestation-protocol/configs.md), the attestation request is rejected.\n Once the transaction is received the response fields are extracted if the transaction is balance decreasing for the indicated address.\n Some of the request and response fields are chain specific as described below.\n The fields can be computed with a help of [balance decreasing summary](/transactions.md#balance-decreasing-summary).\n ### Bitcoin\n - `sourceAddressIndicator` is the the index of the transaction input in hex padded to a 0x prefixed 32-byte string.\n If the indicated input does not exist or the indicated input does not have the address, the attestation request is rejected.\n Then `sourceAddress` is the address of the indicated transaction input.\n - `spentAmount` is the sum of values of all inputs with sourceAddress minus the sum of all outputs with sourceAddress.\n Can be negative.\n ### Dogecoin\n Due to technical limitations on DOGE chain (a transaction does not contain the addresses of the inputs), the procedure for the attestation differs according to the existence of a [reference](/attestation-objects/paymentReference.md).\n Transactions with references and transactions with only one input undergo **full attestation**, whereas other transactions undergo **partial attestation**.\n - `sourceAddressIndicator` is the the index of the transaction input in hex padded to a 0x prefixed 32-byte string.\n Then `sourceAddress` is the address of the indicated input.\n - `spentAmount`: **Full attestation**: Sum of values of all inputs with sourceAddress minus the sum of all outputs with sourceAddress.\n Can be negative.\n **Partial attestation**: The value of the transaction input indicated by `sourceAddressIndicator`.\n ### XRPL\n - `sourceAddressIndicator` is the [standard address hash](/attestation-objects/standardAddressHash.md) of the address whose balance has been decreased.\n If the address indicated by `sourceAddressIndicator` is not among the signers of the transaction and the balance of the address was not lowered in the transaction, the attestation request is rejected.\n - `spentAmount` is the difference between the balance of the indicated address after and before the transaction.\n Can be negative.\n @custom:lut blockTimestamp",
+  "description": "The intention of this attestation type is to detect a transaction that either decrease balance for some address or are signed by the source address.\n Such attestation could prove a violation of an agreement and give grounds to liquidate some funds locked by a smart contract on Flare.\n A transaction is considered “balance decreasing” for the address, if the balance after the transaction is lower than before or the address is among the signers of the transaction (even if its balance is greater than before the transaction).",
+  "supported": "BTC, DOGE, XRPL, ETH",
+  "verification": "Based on transaction id, the transaction is fetched from the API of the source blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/attestation-protocol/configs.md), the attestation request is rejected.\n Once the transaction is received the response fields are extracted if the transaction is balance decreasing for the indicated address.\n Some of the request and response fields are chain specific as described below.\n The fields can be computed with a help of [balance decreasing summary](/transactions.md#balance-decreasing-summary).\n ### Bitcoin\n - `sourceAddressIndicator` is the the index of the transaction input in hex padded to a 0x prefixed 32-byte string.\n If the indicated input does not exist or the indicated input does not have the address, the attestation request is rejected.\n Then `sourceAddress` is the address of the indicated transaction input.\n - `spentAmount` is the sum of values of all inputs with sourceAddress minus the sum of all outputs with sourceAddress.\n Can be negative.\n ### Dogecoin\n Due to technical limitations on DOGE chain (a transaction does not contain the addresses of the inputs), the procedure for the attestation differs according to the existence of a [reference](/attestation-objects/paymentReference.md).\n Transactions with references and transactions with only one input undergo **full attestation**, whereas other transactions undergo **partial attestation**.\n - `sourceAddressIndicator` is the the index of the transaction input in hex padded to a 0x prefixed 32-byte string.\n Then `sourceAddress` is the address of the indicated input.\n - `spentAmount`: **Full attestation**: Sum of values of all inputs with sourceAddress minus the sum of all outputs with sourceAddress.\n Can be negative.\n **Partial attestation**: The value of the transaction input indicated by `sourceAddressIndicator`.\n ### XRPL\n - `sourceAddressIndicator` is the [standard address hash](/attestation-objects/standardAddressHash.md) of the address whose balance has been decreased.\n If the address indicated by `sourceAddressIndicator` is not among the signers of the transaction and the balance of the address was not lowered in the transaction, the attestation request is rejected.\n - `spentAmount` is the difference between the balance of the indicated address after and before the transaction.\n Can be negative.",
+  "lut": "blockTimestamp",
+  "proof": {
+    "name": "Proof",
+    "description": "Toplevel proof",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel proof\n @param merkleProof Merkle proof corresponding to the attestation response.\n @param data Attestation response.",
+    "params": [
+      {
+        "name": "merkleProof",
+        "type": "bytes32[]",
+        "typeSimple": "bytes32[]",
+        "comment": "Merkle proof corresponding to the attestation response."
+      },
+      {
+        "name": "data",
+        "type": "struct BalanceDecreasingTransaction.Response",
+        "typeSimple": "Response",
+        "comment": "Attestation response."
+      }
+    ]
+  },
+  "request": {
+    "name": "Request",
+    "description": "Toplevel request",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId Data source id as defined [here](/attestation-objects/enums.md).\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the attestation type."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Data source id as defined [here](/attestation-objects/enums.md)."
+      },
+      {
+        "name": "messageIntegrityCode",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code)."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct BalanceDecreasingTransaction.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Data defining the request. Type (struct) and interpretation is determined by the `attestationType`."
+      }
+    ]
+  },
+  "response": {
+    "name": "Response",
+    "description": "Toplevel response",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "votingRound",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes."
+      },
+      {
+        "name": "lowestUsedTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The lowest timestamp used to generate the response."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct BalanceDecreasingTransaction.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "responseBody",
+        "type": "struct BalanceDecreasingTransaction.ResponseBody",
+        "typeSimple": "ResponseBody",
+        "comment": "Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`."
+      }
+    ]
+  },
+  "requestBody": {
+    "name": "RequestBody",
+    "description": "Request body for BalanceDecreasingTransaction attestation type",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Request body for BalanceDecreasingTransaction attestation type\n @param transactionId The transaction identification.\n @param sourceAddressIndicator The indicator of the address whose balance has been decreased.",
+    "params": [
+      {
+        "name": "transactionId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "The transaction identification."
+      },
+      {
+        "name": "sourceAddressIndicator",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "The indicator of the address whose balance has been decreased."
+      }
+    ]
+  },
+  "responseBody": {
+    "name": "ResponseBody",
+    "description": "Response body for BalanceDecreasingTransaction attestation type",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Response body for BalanceDecreasingTransaction attestation type\n @param blockNumber The number of the block in which the transaction is included.\n @param blockTimestamp The timestamps of the block in which the transaction is included.\n @param sourceAddressHash Standard address hash of the address indicated by the `sourceAddressIndicator`.\n @param spentAmount Amount spent by the source address.\n @param standardPaymentReference Standard payment reference of the transaction.",
+    "params": [
+      {
+        "name": "blockNumber",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The number of the block in which the transaction is included."
+      },
+      {
+        "name": "blockTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The timestamps of the block in which the transaction is included."
+      },
+      {
+        "name": "sourceAddressHash",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Standard address hash of the address indicated by the `sourceAddressIndicator`."
+      },
+      {
+        "name": "spentAmount",
+        "type": "int256",
+        "typeSimple": "int256",
+        "comment": "Amount spent by the source address."
+      },
+      {
+        "name": "standardPaymentReference",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Standard payment reference of the transaction."
+      }
+    ]
+  },
+  "requestStructs": [],
+  "responseStructs": [],
+  "requestAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "messageIntegrityCode",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "transactionId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceAddressIndicator",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct BalanceDecreasingTransaction.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct BalanceDecreasingTransaction.Request",
+    "name": "_request",
+    "type": "tuple"
+  },
+  "responseAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "votingRound",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "lowestUsedTimestamp",
+        "type": "uint64"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "transactionId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceAddressIndicator",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct BalanceDecreasingTransaction.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "blockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "blockTimestamp",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceAddressHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "int256",
+            "name": "spentAmount",
+            "type": "int256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "standardPaymentReference",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct BalanceDecreasingTransaction.ResponseBody",
+        "name": "responseBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct BalanceDecreasingTransaction.Response",
+    "name": "_response",
+    "type": "tuple"
+  },
+  "proofAbi": {
+    "components": [
+      {
+        "internalType": "bytes32[]",
+        "name": "merkleProof",
+        "type": "bytes32[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "attestationType",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "votingRound",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lowestUsedTimestamp",
+            "type": "uint64"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "transactionId",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "sourceAddressIndicator",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct BalanceDecreasingTransaction.RequestBody",
+            "name": "requestBody",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "blockNumber",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "blockTimestamp",
+                "type": "uint64"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "sourceAddressHash",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "int256",
+                "name": "spentAmount",
+                "type": "int256"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "standardPaymentReference",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct BalanceDecreasingTransaction.ResponseBody",
+            "name": "responseBody",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct BalanceDecreasingTransaction.Response",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct BalanceDecreasingTransaction.Proof",
+    "name": "_proof",
+    "type": "tuple"
+  }
+}

@@ -1,20 +1,20 @@
 import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { getGlobalLogger } from "../../../../utils/logging/logger";
-import { ApiResponseWrapper, handleApiResponse } from "../../../common/src";
-import { ApiDBBlock } from "../dtos/ApiDbBlock";
-import { ApiDBState } from "../dtos/ApiDbState";
-import { ApiDBTransaction } from "../dtos/ApiDbTransaction";
-import { BlockRange } from "../dtos/BlockRange.dto";
-import { QueryTransaction } from "../dtos/QueryTransaction.dto";
-import { IndexerEngineService } from "../services/indexer-engine.service";
+import { getGlobalLogger } from "../../../../../utils/logging/logger";
+import { IndexerEngineService } from "../../services/indexer-engine.service";
+import { ApiResponseWrapper, handleApiResponse } from "../../../../common/src";
+import { ApiDBState } from "../../dtos/indexer/ApiDbState";
+import { BlockRange } from "../../dtos/indexer/BlockRange.dto";
+import { ApiDBTransaction } from "../../dtos/indexer/ApiDbTransaction";
+import { ApiDBBlock } from "../../dtos/indexer/ApiDbBlock";
+import { QueryTransaction } from "../../dtos/indexer/QueryTransaction.dto";
 
 @ApiTags("Indexer")
 @Controller("api/indexer")
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
-export class IndexerController {
+export class DOGEIndexerController {
   logger = getGlobalLogger();
   constructor(private indexerEngine: IndexerEngineService) {}
 

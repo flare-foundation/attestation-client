@@ -200,10 +200,10 @@ export class BalanceDecreasingTransaction_RequestBody {
     }
 
     /**
-     * The transaction identification.
+     * Id of the payment transaction.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `The transaction identification.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
+    @ApiProperty({ description: `Id of the payment transaction.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
     transactionId!: string;
 
     /**
@@ -251,12 +251,11 @@ export class BalanceDecreasingTransaction_Request {
     /**
      * Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.
      */
-
+    @ValidateNested()
+    @Type(() => BalanceDecreasingTransaction_RequestBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => BalanceDecreasingTransaction_RequestBody)
     @ApiProperty({ description: `Data defining the request. Type (struct) and interpretation is determined by the 'attestationType'.` })
     requestBody!: BalanceDecreasingTransaction_RequestBody;
 }
@@ -280,11 +279,11 @@ export class BalanceDecreasingTransaction_Response {
     sourceId!: string;
 
     /**
-     * The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.
+     * The id of the state connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({
-        description: `The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.`,
+        description: `The id of the state connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes.`,
         example: "123",
     })
     votingRound!: string;
@@ -299,24 +298,22 @@ export class BalanceDecreasingTransaction_Response {
     /**
      * Extracted from the request.
      */
-
+    @ValidateNested()
+    @Type(() => BalanceDecreasingTransaction_RequestBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => BalanceDecreasingTransaction_RequestBody)
     @ApiProperty({ description: `Extracted from the request.` })
     requestBody!: BalanceDecreasingTransaction_RequestBody;
 
     /**
      * Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.
      */
-
+    @ValidateNested()
+    @Type(() => BalanceDecreasingTransaction_ResponseBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => BalanceDecreasingTransaction_ResponseBody)
     @ApiProperty({
         description: `Data defining the response. The verification rules for the construction of the response body and the type are defined per specific 'attestationType'.`,
     })
@@ -340,12 +337,11 @@ export class BalanceDecreasingTransaction_Proof {
     /**
      * Attestation response.
      */
-
+    @ValidateNested()
+    @Type(() => BalanceDecreasingTransaction_Response)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => BalanceDecreasingTransaction_Response)
     @ApiProperty({ description: `Attestation response.` })
     data!: BalanceDecreasingTransaction_Response;
 }

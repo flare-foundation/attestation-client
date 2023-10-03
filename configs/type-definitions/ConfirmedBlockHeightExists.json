@@ -1,10 +1,10 @@
 {
   "name": "ConfirmedBlockHeightExists",
-  "fullComment": " @custom:name ConfirmedBlockHeightExists\n @custom:id 0x02\n @custom:supported BTC, DOGE, XRPL, ETH\n @author Flare\n @notice The intention of this attestation type is for a dapp to be able to see what is the confirmed height of an external chain and to calculate what is the block production (time wise) in a given time range.\n @custom:verification For the given `blockNumber`, it is checked that the block is confirmed by at least `numberOfConfirmations`.\n If it is not, the request is rejected.\n Then `lowestQueryWindowBlock` is determined and its number and timestamp are extracted.\n Current confirmation heights consensus:\n | `Chain` | `chainId` | `numberOfConfirmations` |\n | ------- | --------- | ----------------------- |\n | `BTC`   | 0         | 6                       |\n | `DOGE`  | 2         | 60                      |\n | `XRPL`  | 3         | 3                       |\n @custom:lut lowestQueryWindowBlockTimestamp",
+  "fullComment": " @custom:name ConfirmedBlockHeightExists\n @custom:id 0x02\n @custom:supported BTC, DOGE, XRPL, ETH\n @author Flare\n @notice The intention of this attestation type is for a dapp to be able to see what is the confirmed height of an external chain and to calculate what is the block production (time wise) in a given time range.\n @custom:verification For the given `blockNumber`, it is checked that the block is confirmed by at least `numberOfConfirmations`.\n If it is not, the request is rejected.\n Then `lowestQueryWindowBlock` is determined and its number and timestamp are extracted.\n Current confirmation heights consensus:\n | `Chain` | `chainId` | `numberOfConfirmations` |\n | ------- | --------- | ----------------------- |\n | `BTC`   | 0         | 6                       |\n | `DOGE`  | 2         | 60                      |\n | `XRPL`  | 3         | 3                       |\n @custom:lut `lowestQueryWindowBlockTimestamp`",
   "description": "The intention of this attestation type is for a dapp to be able to see what is the confirmed height of an external chain and to calculate what is the block production (time wise) in a given time range.",
   "supported": "BTC, DOGE, XRPL, ETH",
   "verification": "For the given `blockNumber`, it is checked that the block is confirmed by at least `numberOfConfirmations`.\n If it is not, the request is rejected.\n Then `lowestQueryWindowBlock` is determined and its number and timestamp are extracted.\n Current confirmation heights consensus:\n | `Chain` | `chainId` | `numberOfConfirmations` |\n | ------- | --------- | ----------------------- |\n | `BTC`   | 0         | 6                       |\n | `DOGE`  | 2         | 60                      |\n | `XRPL`  | 3         | 3                       |",
-  "lut": "lowestQueryWindowBlockTimestamp",
+  "lut": "`lowestQueryWindowBlockTimestamp`",
   "proof": {
     "name": "Proof",
     "description": "Toplevel proof",
@@ -31,7 +31,7 @@
     "description": "Toplevel request",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId Data source id as defined [here](/attestation-objects/enums.md).\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId The data source id as defined [here](/attestation-objects/enums.md).\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -43,7 +43,7 @@
         "name": "sourceId",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Data source id as defined [here](/attestation-objects/enums.md)."
+        "comment": "The data source id as defined [here](/attestation-objects/enums.md)."
       },
       {
         "name": "messageIntegrityCode",
@@ -64,7 +64,7 @@
     "description": "Toplevel response",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -82,7 +82,7 @@
         "name": "votingRound",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes."
+        "comment": "The id of the state connector round in which the request was considered."
       },
       {
         "name": "lowestUsedTimestamp",
@@ -109,19 +109,19 @@
     "description": "Request body for ConfirmedBlockHeightExistsType attestation type",
     "above": "",
     "below": "",
-    "fullComment": " @notice Request body for ConfirmedBlockHeightExistsType attestation type\n @param blockNumber Number of the block the request wants a confirmation of.\n @param queryWindow Period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`.",
+    "fullComment": " @notice Request body for ConfirmedBlockHeightExistsType attestation type\n @param blockNumber The number of the block the request wants a confirmation of.\n @param queryWindow The period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`.",
     "params": [
       {
         "name": "blockNumber",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "Number of the block the request wants a confirmation of."
+        "comment": "The number of the block the request wants a confirmation of."
       },
       {
         "name": "queryWindow",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "Period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`."
+        "comment": "The period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`."
       }
     ]
   },
@@ -130,13 +130,13 @@
     "description": "Response body for ConfirmedBlockHeightExistsType attestation type",
     "above": "",
     "below": "`blockNumber`, `lowestQueryWindowBlockNumber`, `blockTimestamp` and `lowestQueryWindowBlockTimestamp` can be used to compute the average block production time in the specified block range.",
-    "fullComment": " @notice Response body for ConfirmedBlockHeightExistsType attestation type\n @custom:below `blockNumber`, `lowestQueryWindowBlockNumber`, `blockTimestamp` and `lowestQueryWindowBlockTimestamp` can be used to compute the average block production time in the specified block range.\n @param blockTimestamp Timestamp of the block with `blockNumber`.\n @param numberOfConfirmations The depth at which a block is considered confirmed depending on the chain (see [here]). All attestation clients must agree on this number.\n @param lowestQueryWindowBlockNumber Block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`.\n @param lowestQueryWindowBlockTimestamp Timestamp of the block at height `lowestQueryWindowBlockNumber`.",
+    "fullComment": " @notice Response body for ConfirmedBlockHeightExistsType attestation type\n @custom:below `blockNumber`, `lowestQueryWindowBlockNumber`, `blockTimestamp` and `lowestQueryWindowBlockTimestamp` can be used to compute the average block production time in the specified block range.\n @param blockTimestamp The timestamp of the block with `blockNumber`.\n @param numberOfConfirmations The depth at which a block is considered confirmed depending on the chain (see [here]). All attestation clients must agree on this number.\n @param lowestQueryWindowBlockNumber The block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`.\n @param lowestQueryWindowBlockTimestamp The timestamp of the block at height `lowestQueryWindowBlockNumber`.",
     "params": [
       {
         "name": "blockTimestamp",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "Timestamp of the block with `blockNumber`."
+        "comment": "The timestamp of the block with `blockNumber`."
       },
       {
         "name": "numberOfConfirmations",
@@ -148,13 +148,13 @@
         "name": "lowestQueryWindowBlockNumber",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "Block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`."
+        "comment": "The block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`."
       },
       {
         "name": "lowestQueryWindowBlockTimestamp",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "Timestamp of the block at height `lowestQueryWindowBlockNumber`."
+        "comment": "The timestamp of the block at height `lowestQueryWindowBlockNumber`."
       }
     ]
   },

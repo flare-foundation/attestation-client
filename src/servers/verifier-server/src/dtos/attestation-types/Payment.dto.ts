@@ -175,16 +175,6 @@ export class Payment_ResponseBody {
     sourceAddressHash!: string;
 
     /**
-     * Standard address hash of the intended source address. Relevant if the transaction was unsuccessful.
-     */
-    @Validate(IsHash32)
-    @ApiProperty({
-        description: `Standard address hash of the intended source address. Relevant if the transaction was unsuccessful.`,
-        example: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    })
-    intendedSourceAddressHash!: string;
-
-    /**
      * Standard address hash of the receiving address.
      */
     @Validate(IsHash32)
@@ -317,12 +307,11 @@ export class Payment_Request {
     /**
      * Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.
      */
-
+    @ValidateNested()
+    @Type(() => Payment_RequestBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => Payment_RequestBody)
     @ApiProperty({ description: `Data defining the request. Type (struct) and interpretation is determined by the 'attestationType'.` })
     requestBody!: Payment_RequestBody;
 }
@@ -346,13 +335,10 @@ export class Payment_Response {
     sourceId!: string;
 
     /**
-     * The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.
+     * The id of the state connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({
-        description: `The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.`,
-        example: "123",
-    })
+    @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
     votingRound!: string;
 
     /**
@@ -365,24 +351,22 @@ export class Payment_Response {
     /**
      * Extracted from the request.
      */
-
+    @ValidateNested()
+    @Type(() => Payment_RequestBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => Payment_RequestBody)
     @ApiProperty({ description: `Extracted from the request.` })
     requestBody!: Payment_RequestBody;
 
     /**
      * Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.
      */
-
+    @ValidateNested()
+    @Type(() => Payment_ResponseBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => Payment_ResponseBody)
     @ApiProperty({
         description: `Data defining the response. The verification rules for the construction of the response body and the type are defined per specific 'attestationType'.`,
     })
@@ -406,12 +390,11 @@ export class Payment_Proof {
     /**
      * Attestation response.
      */
-
+    @ValidateNested()
+    @Type(() => Payment_Response)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => Payment_Response)
     @ApiProperty({ description: `Attestation response.` })
     data!: Payment_Response;
 }

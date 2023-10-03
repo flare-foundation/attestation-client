@@ -154,10 +154,10 @@ export class ConfirmedBlockHeightExists_ResponseBody {
     }
 
     /**
-     * Timestamp of the block with `blockNumber`.
+     * The timestamp of the block with `blockNumber`.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Timestamp of the block with 'blockNumber'.`, example: "123" })
+    @ApiProperty({ description: `The timestamp of the block with 'blockNumber'.`, example: "123" })
     blockTimestamp!: string;
 
     /**
@@ -171,20 +171,20 @@ export class ConfirmedBlockHeightExists_ResponseBody {
     numberOfConfirmations!: string;
 
     /**
-     * Block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`.
+     * The block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({
-        description: `Block number of the latest block that has a timestamp strictly smaller than 'blockTimestamp' - 'queryWindow'.`,
+        description: `The block number of the latest block that has a timestamp strictly smaller than 'blockTimestamp' - 'queryWindow'.`,
         example: "123",
     })
     lowestQueryWindowBlockNumber!: string;
 
     /**
-     * Timestamp of the block at height `lowestQueryWindowBlockNumber`.
+     * The timestamp of the block at height `lowestQueryWindowBlockNumber`.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Timestamp of the block at height 'lowestQueryWindowBlockNumber'.`, example: "123" })
+    @ApiProperty({ description: `The timestamp of the block at height 'lowestQueryWindowBlockNumber'.`, example: "123" })
     lowestQueryWindowBlockTimestamp!: string;
 }
 export class ConfirmedBlockHeightExists_RequestBody {
@@ -193,18 +193,18 @@ export class ConfirmedBlockHeightExists_RequestBody {
     }
 
     /**
-     * Number of the block the request wants a confirmation of.
+     * The number of the block the request wants a confirmation of.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Number of the block the request wants a confirmation of.`, example: "123" })
+    @ApiProperty({ description: `The number of the block the request wants a confirmation of.`, example: "123" })
     blockNumber!: string;
 
     /**
-     * Period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`.
+     * The period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({
-        description: `Period in seconds for sampling. The range is from 'blockNumber' to the blockNumber of the first block more than queryWindow before the 'blockNumber'.`,
+        description: `The period in seconds for sampling. The range is from 'blockNumber' to the blockNumber of the first block more than queryWindow before the 'blockNumber'.`,
         example: "123",
     })
     queryWindow!: string;
@@ -222,11 +222,11 @@ export class ConfirmedBlockHeightExists_Request {
     attestationType!: string;
 
     /**
-     * Data source id as defined [here](/attestation-objects/enums.md).
+     * The data source id as defined [here](/attestation-objects/enums.md).
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `Data source id as defined [here](/attestation-objects/enums.md).`,
+        description: `The data source id as defined [here](/attestation-objects/enums.md).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     sourceId!: string;
@@ -244,12 +244,11 @@ export class ConfirmedBlockHeightExists_Request {
     /**
      * Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.
      */
-
+    @ValidateNested()
+    @Type(() => ConfirmedBlockHeightExists_RequestBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => ConfirmedBlockHeightExists_RequestBody)
     @ApiProperty({ description: `Data defining the request. Type (struct) and interpretation is determined by the 'attestationType'.` })
     requestBody!: ConfirmedBlockHeightExists_RequestBody;
 }
@@ -273,13 +272,10 @@ export class ConfirmedBlockHeightExists_Response {
     sourceId!: string;
 
     /**
-     * The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.
+     * The id of the state connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({
-        description: `The id of the state connector round in which the request was considered. This is a security measure to prevent collision of attestation hashes.`,
-        example: "123",
-    })
+    @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
     votingRound!: string;
 
     /**
@@ -292,24 +288,22 @@ export class ConfirmedBlockHeightExists_Response {
     /**
      * Extracted from the request.
      */
-
+    @ValidateNested()
+    @Type(() => ConfirmedBlockHeightExists_RequestBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => ConfirmedBlockHeightExists_RequestBody)
     @ApiProperty({ description: `Extracted from the request.` })
     requestBody!: ConfirmedBlockHeightExists_RequestBody;
 
     /**
      * Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.
      */
-
+    @ValidateNested()
+    @Type(() => ConfirmedBlockHeightExists_ResponseBody)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => ConfirmedBlockHeightExists_ResponseBody)
     @ApiProperty({
         description: `Data defining the response. The verification rules for the construction of the response body and the type are defined per specific 'attestationType'.`,
     })
@@ -333,12 +327,11 @@ export class ConfirmedBlockHeightExists_Proof {
     /**
      * Attestation response.
      */
-
+    @ValidateNested()
+    @Type(() => ConfirmedBlockHeightExists_Response)
     @IsDefined()
     @IsNotEmptyObject()
     @IsObject()
-    @ValidateNested()
-    @Type(() => ConfirmedBlockHeightExists_Response)
     @ApiProperty({ description: `Attestation response.` })
     data!: ConfirmedBlockHeightExists_Response;
 }

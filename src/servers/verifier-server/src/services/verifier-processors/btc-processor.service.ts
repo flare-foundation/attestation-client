@@ -1,20 +1,20 @@
-import { ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
-import { request } from "http";
+import { BtcTransaction, ChainType, MCC, MccClient, UtxoMccCreate } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
-import { IndexedQueryManagerOptions } from "../../../../../indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../../../../indexed-query-manager/IndexedQueryManager";
-import { AttestationRequest } from "../../../../../verification/attestation-types/attestation-types";
-import { hexlifyBN } from "../../../../../verification/attestation-types/attestation-types-helpers";
-import { verifyBTC } from "../../../../../verification/verifiers/verifier_routing";
+import { IndexedQueryManagerOptions } from "../../../../../indexed-query-manager/indexed-query-manager-types";
 import { VerifierConfigurationService } from "../verifier-configuration.service";
-import { VerifierProcessor } from "./verifier-processor";
+import { AttestationResponse } from "../../../../../external-libs/AttestationResponse";
+import { ARBase } from "../../../../../external-libs/interfaces";
+import { ZERO_BYTES_32 } from "../../../../../external-libs/utils";
+import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
+import { VerificationResponse } from "../../verification/verification-utils";
 
-export class BTCProcessorService extends VerifierProcessor {
+export class BTCProcessorService {
   client: MCC.BTC;
   indexedQueryManager: IndexedQueryManager;
+  txClass = BtcTransaction;
 
   constructor(private config: VerifierConfigurationService, private manager: EntityManager) {
-    super();
     this.client = new MCC.BTC(this.config.config.chainConfiguration.mccCreate as UtxoMccCreate);
 
     const options: IndexedQueryManagerOptions = {
@@ -26,20 +26,5 @@ export class BTCProcessorService extends VerifierProcessor {
     };
 
     this.indexedQueryManager = new IndexedQueryManager(options);
-  }
-
-  public async verify(attestationRequest: AttestationRequest) {
-    this.assertIsSupported(attestationRequest);
-    await this.ensureInitialized();
-    let response = await verifyBTC(this.defStore, this.client, attestationRequest.request, this.indexedQueryManager);
-    return hexlifyBN(response);
-  }
-
-  public supportedAttestationTypes(): string[] {
-    return this.config.config.attestationTypes;
-  }
-
-  public supportedSource(): string {
-    return this.config.config.sourceId;
   }
 }

@@ -22,8 +22,8 @@ import {
   responseConfirmedBlockHeightExists,
   responsePayment,
   responseReferencedPaymentNonExistence,
-} from "../../../src/verification/verification-utils/generic-chain-verifications";
-import { MccTransactionType } from "../../../src/verification/verification-utils/verification-utils";
+} from "../../../src/servers/verifier-server/src/verification/generic-chain-verifications";
+import { MccTransactionType } from "../../../src/servers/verifier-server/src/verification/verification-utils";
 import { compressBin } from "../../../src/utils/compression/compression";
 
 const TEST_DATA_PATH = "test/indexed-query-manager/test-data";

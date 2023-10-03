@@ -4,34 +4,29 @@ import {
   MccClient,
   PaymentSummaryResponse,
   PaymentSummaryStatus,
-  prefix0x,
   toBN,
   TransactionBase,
   TransactionSuccessStatus,
   unPrefix0x,
-  ZERO_BYTES_32,
+  ZERO_BYTES_32
 } from "@flarenetwork/mcc";
 import Web3 from "web3";
-import { DBBlockBase } from "../../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
-import { IndexedQueryManager } from "../../indexed-query-manager/IndexedQueryManager";
-import { retry } from "../../utils/helpers/promiseTimeout";
-import { logException } from "../../utils/logging/logger";
-import { ByteSequenceLike, NumberLike, VerificationStatus } from "../attestation-types/attestation-types";
-import { numberLikeToNumber } from "../attestation-types/attestation-types-helpers";
-import { DHBalanceDecreasingTransaction, DHConfirmedBlockHeightExists, DHPayment, DHReferencedPaymentNonexistence } from "../generated/attestation-hash-types";
-import {
-  ARBalanceDecreasingTransaction,
-  ARConfirmedBlockHeightExists,
-  ARPayment,
-  ARReferencedPaymentNonexistence,
-} from "../generated/attestation-request-types";
+import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
+import { DBTransactionBase } from "../../../../entity/indexer/dbTransaction";
+import { IndexedQueryManager } from "../../../../indexed-query-manager/IndexedQueryManager";
+import { retry } from "../../../../utils/helpers/promiseTimeout";
+import { logException } from "../../../../utils/logging/logger";
+import { VerificationStatus } from "../../../../verification/attestation-types/attestation-types";
+import { numberLikeToNumber } from "../../../../verification/attestation-types/attestation-types-helpers";
+import { BalanceDecreasingTransaction_Request, BalanceDecreasingTransaction_Response, BalanceDecreasingTransaction_ResponseBody } from "../dtos/attestation-types/BalanceDecreasingTransaction.dto";
+import { ConfirmedBlockHeightExists_Request, ConfirmedBlockHeightExists_Response, ConfirmedBlockHeightExists_ResponseBody } from "../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { Payment_Request, Payment_Response, Payment_ResponseBody } from "../dtos/attestation-types/Payment.dto";
+import { ReferencedPaymentNonexistence_Request, ReferencedPaymentNonexistence_Response, ReferencedPaymentNonexistence_ResponseBody } from "../dtos/attestation-types/ReferencedPaymentNonexistence.dto";
 import {
   VerificationResponse,
   verifyWorkflowForBlock,
-  verifyWorkflowForBlockAvailability,
   verifyWorkflowForReferencedTransactions,
-  verifyWorkflowForTransaction,
+  verifyWorkflowForTransaction
 } from "./verification-utils";
 
 //////////////////////////////////////////////////
@@ -42,16 +37,14 @@ import {
  * Auxillary function for assembling attestation response for 'Payment' attestation type.
  * @param dbTransaction
  * @param TransactionClass
- * @param inUtxo
- * @param utxo
+ * @param request
  * @param client
  * @returns
  */
 export async function responsePayment<T extends TransactionBase>(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => T,
-  inUtxo: NumberLike,
-  utxo: NumberLike,
+  request: Payment_Request,
   client?: MccClient
 ) {
   let parsedData: any;
@@ -64,8 +57,8 @@ export async function responsePayment<T extends TransactionBase>(
 
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
-  const inUtxoNumber = toBN(inUtxo).toNumber();
-  const utxoNumber = toBN(utxo).toNumber();
+  const inUtxoNumber = toBN(request.requestBody.inUtxo).toNumber();
+  const utxoNumber = toBN(request.requestBody.utxo).toNumber();
 
   let paymentSummary = await fullTxData.paymentSummary({ client, inUtxo: inUtxoNumber, outUtxo: utxoNumber });
 
@@ -78,24 +71,27 @@ export async function responsePayment<T extends TransactionBase>(
   }
 
   const response = {
-    stateConnectorRound: 0,
-    blockNumber: toBN(dbTransaction.blockNumber),
-    blockTimestamp: toBN(dbTransaction.timestamp),
-    transactionHash: prefix0x(dbTransaction.transactionId),
-    inUtxo: toBN(inUtxo),
-    utxo: toBN(utxo),
-    sourceAddressHash: paymentSummary.response.sourceAddressHash,
-    intendedSourceAddressHash: paymentSummary.response.intendedSourceAddressHash,
-    receivingAddressHash: paymentSummary.response.receivingAddressHash,
-    intendedReceivingAddressHash: paymentSummary.response.intendedReceivingAddressHash,
-    paymentReference: paymentSummary.response.paymentReference,
-    spentAmount: toBN(paymentSummary.response.spentAmount),
-    intendedSpentAmount: toBN(paymentSummary.response.intendedSourceAmount),
-    receivedAmount: toBN(paymentSummary.response.receivedAmount),
-    intendedReceivedAmount: toBN(paymentSummary.response.intendedReceivingAmount),
-    oneToOne: paymentSummary.response.oneToOne,
-    status: toBN(fullTxData.successStatus),
-  } as DHPayment;
+    attestationType: request.attestationType,
+    sourceId: request.sourceId,
+    votingRound: "0",
+    lowestUsedTimestamp: dbTransaction.timestamp.toString(),
+    requestBody: request.requestBody,
+    responseBody: {
+      blockNumber: dbTransaction.blockNumber.toString(),
+      blockTimestamp: dbTransaction.timestamp.toString(),
+      sourceAddressHash: paymentSummary.response.sourceAddressHash,
+      intendedSourceAddressHash: paymentSummary.response.intendedSourceAddressHash,
+      receivingAddressHash: paymentSummary.response.receivingAddressHash,
+      intendedReceivingAddressHash: paymentSummary.response.intendedReceivingAddressHash,
+      standardPaymentReference: paymentSummary.response.paymentReference,
+      spentAmount: paymentSummary.response.spentAmount.toString(),
+      intendedSpentAmount: paymentSummary.response.intendedSourceAmount.toString(),
+      receivedAmount: paymentSummary.response.receivedAmount.toString(),
+      intendedReceivedAmount: paymentSummary.response.intendedReceivingAmount.toString(),
+      oneToOne: paymentSummary.response.oneToOne,
+      status: fullTxData.successStatus.toString(),
+    } as Payment_ResponseBody
+  } as Payment_Response;
 
   return {
     status: VerificationStatus.OK,
@@ -114,36 +110,36 @@ export async function responsePayment<T extends TransactionBase>(
  */
 export async function verifyPayment<T extends TransactionBase>(
   TransactionClass: new (...args: any[]) => T,
-  request: ARPayment,
+  request: Payment_Request,
   iqm: IndexedQueryManager,
   client?: MccClient
-): Promise<VerificationResponse<DHPayment>> {
-  // Check data availability
-  const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
-    blockNumber: toBN(request.blockNumber).toNumber(),
-  });
+): Promise<VerificationResponse<Payment_Response>> {
+  // // Check data availability
+  // const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
+  //   blockNumber: toBN(request.blockNumber).toNumber(),
+  // });
 
-  let status = verifyWorkflowForBlockAvailability(confirmedBlockQueryResult);
-  if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
-    return { status };
-  }
+  // let status = verifyWorkflowForBlockAvailability(confirmedBlockQueryResult);
+  // if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
+  //   return { status };
+  // }
 
   // Check for transaction
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
-    txId: unPrefix0x(request.id),
+    txId: unPrefix0x(request.requestBody.transactionId),
   });
 
-  status = verifyWorkflowForTransaction(confirmedTransactionResult);
+  let status = verifyWorkflowForTransaction(confirmedTransactionResult);
   if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
 
-  if (confirmedTransactionResult.transaction.blockNumber !== confirmedBlockQueryResult.block.blockNumber) {
-    return { status: VerificationStatus.NON_EXISTENT_TRANSACTION };
-  }
+  // if (confirmedTransactionResult.transaction.blockNumber !== confirmedBlockQueryResult.block.blockNumber) {
+  //   return { status: VerificationStatus.NON_EXISTENT_TRANSACTION };
+  // }
 
   const dbTransaction = confirmedTransactionResult.transaction;
-  return await responsePayment(dbTransaction, TransactionClass, request.inUtxo, request.utxo, client);
+  return await responsePayment(dbTransaction, TransactionClass, request, client);
 }
 
 /**
@@ -157,7 +153,7 @@ export async function verifyPayment<T extends TransactionBase>(
 export async function responseBalanceDecreasingTransaction<T extends TransactionBase>(
   dbTransaction: DBTransactionBase,
   TransactionClass: new (...args: any[]) => T,
-  sourceAddressIndicator: ByteSequenceLike,
+  request: BalanceDecreasingTransaction_Request,
   client?: MccClient
 ) {
   let parsedData: any;
@@ -171,7 +167,7 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
   let balanceDecreasingSummary: BalanceDecreasingSummaryResponse;
-  balanceDecreasingSummary = await fullTxData.balanceDecreasingSummary({ client, sourceAddressIndicator });
+  balanceDecreasingSummary = await fullTxData.balanceDecreasingSummary({ client, sourceAddressIndicator: request.requestBody.sourceAddressIndicator });
   if (balanceDecreasingSummary.status !== BalanceDecreasingSummaryStatus.Success) {
     return { status: VerificationStatus.NOT_CONFIRMED };
   }
@@ -181,15 +177,19 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
   }
 
   const response = {
-    stateConnectorRound: 0,
-    blockNumber: toBN(dbTransaction.blockNumber),
-    blockTimestamp: toBN(dbTransaction.timestamp),
-    transactionHash: prefix0x(dbTransaction.transactionId),
-    sourceAddressIndicator,
-    sourceAddressHash: balanceDecreasingSummary.response.sourceAddressHash,
-    spentAmount: toBN(balanceDecreasingSummary.response.spentAmount),
-    paymentReference: balanceDecreasingSummary.response.paymentReference,
-  } as DHBalanceDecreasingTransaction;
+    attestationType: request.attestationType,
+    sourceId: request.sourceId,
+    votingRound: "0",
+    lowestUsedTimestamp: dbTransaction.timestamp.toString(),
+    requestBody: request.requestBody,
+    responseBody: {
+      blockNumber: dbTransaction.blockNumber.toString(),
+      blockTimestamp: dbTransaction.timestamp.toString(),
+      sourceAddressHash: balanceDecreasingSummary.response.sourceAddressHash,
+      spentAmount: balanceDecreasingSummary.response.spentAmount.toString(),
+      standardPaymentReference: balanceDecreasingSummary.response.paymentReference,
+    } as BalanceDecreasingTransaction_ResponseBody
+  } as BalanceDecreasingTransaction_Response;
 
   return {
     status: VerificationStatus.OK,
@@ -209,38 +209,38 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
  */
 export async function verifyBalanceDecreasingTransaction<T extends TransactionBase>(
   TransactionClass: new (...args: any[]) => T,
-  request: ARBalanceDecreasingTransaction,
+  request: BalanceDecreasingTransaction_Request,
   iqm: IndexedQueryManager,
   client?: MccClient
-): Promise<VerificationResponse<DHBalanceDecreasingTransaction>> {
-  // Check data availability
-  const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
-    blockNumber: toBN(request.blockNumber).toNumber(),
-  });
+): Promise<VerificationResponse<BalanceDecreasingTransaction_Response>> {
+  // // Check data availability
+  // const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
+  //   blockNumber: toBN(request.blockNumber).toNumber(),
+  // });
 
-  let status = verifyWorkflowForBlockAvailability(confirmedBlockQueryResult);
-  if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
-    return { status };
-  }
+  // let status = verifyWorkflowForBlockAvailability(confirmedBlockQueryResult);
+  // if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
+  //   return { status };
+  // }
 
   // Check for transaction
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
-    txId: unPrefix0x(request.id),
+    txId: unPrefix0x(request.requestBody.transactionId),
   });
 
-  status = verifyWorkflowForTransaction(confirmedTransactionResult);
+  let status = verifyWorkflowForTransaction(confirmedTransactionResult);
   if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
 
-  if (confirmedTransactionResult.transaction.blockNumber !== confirmedBlockQueryResult.block.blockNumber) {
-    return {
-      status: VerificationStatus.NON_EXISTENT_TRANSACTION,
-    };
-  }
+  // if (confirmedTransactionResult.transaction.blockNumber !== confirmedBlockQueryResult.block.blockNumber) {
+  //   return {
+  //     status: VerificationStatus.NON_EXISTENT_TRANSACTION,
+  //   };
+  // }
 
   const dbTransaction = confirmedTransactionResult.transaction;
-  return await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request.sourceAddressIndicator, client);
+  return await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request, client);
 }
 
 /**
@@ -248,17 +248,29 @@ export async function verifyBalanceDecreasingTransaction<T extends TransactionBa
  * @param dbBlock
  * @param lowerQueryWindowBlock
  * @param numberOfConfirmations
+ * @param request
  * @returns
  */
-export async function responseConfirmedBlockHeightExists(dbBlock: DBBlockBase, lowerQueryWindowBlock: DBBlockBase, numberOfConfirmations: number) {
+export async function responseConfirmedBlockHeightExists(
+  dbBlock: DBBlockBase,
+  lowerQueryWindowBlock: DBBlockBase,
+  numberOfConfirmations: number,
+  request: ConfirmedBlockHeightExists_Request
+) {
   const response = {
-    stateConnectorRound: 0,
-    blockNumber: toBN(dbBlock.blockNumber),
-    blockTimestamp: toBN(dbBlock.timestamp),
-    numberOfConfirmations: toBN(numberOfConfirmations),
-    lowestQueryWindowBlockNumber: toBN(lowerQueryWindowBlock.blockNumber),
-    lowestQueryWindowBlockTimestamp: toBN(lowerQueryWindowBlock.timestamp),
-  } as DHConfirmedBlockHeightExists;
+    attestationType: request.attestationType,
+    sourceId: request.sourceId,
+    votingRound: "0",
+    lowestUsedTimestamp: dbBlock.timestamp.toString(),
+    requestBody: request.requestBody,
+    responseBody: {
+      blockNumber: dbBlock.blockNumber.toString(),
+      blockTimestamp: dbBlock.timestamp.toString(),
+      numberOfConfirmations: numberOfConfirmations.toString(),
+      lowestQueryWindowBlockNumber: lowerQueryWindowBlock.blockNumber.toString(),
+      lowestQueryWindowBlockTimestamp: lowerQueryWindowBlock.timestamp.toString(),
+    } as ConfirmedBlockHeightExists_ResponseBody,
+  } as ConfirmedBlockHeightExists_Response;
 
   return {
     status: VerificationStatus.OK,
@@ -269,16 +281,15 @@ export async function responseConfirmedBlockHeightExists(dbBlock: DBBlockBase, l
 /**
  * `ConfirmedBlockHeightExists` attestation type verification function performing synchronized indexer queries
  * @param request attestation request
- * @param requestOptions request options
  * @param iqm IndexedQuery object for the relevant blockchain indexer
  * @returns Verification response, status and attestation response
  */
 export async function verifyConfirmedBlockHeightExists(
-  request: ARConfirmedBlockHeightExists,
+  request: ConfirmedBlockHeightExists_Request,
   iqm: IndexedQueryManager
-): Promise<VerificationResponse<DHConfirmedBlockHeightExists>> {
+): Promise<VerificationResponse<ConfirmedBlockHeightExists_Response>> {
   const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
-    blockNumber: toBN(request.blockNumber).toNumber(),
+    blockNumber: toBN(request.requestBody.blockNumber).toNumber(),
   });
 
   const status = verifyWorkflowForBlock(confirmedBlockQueryResult);
@@ -287,14 +298,14 @@ export async function verifyConfirmedBlockHeightExists(
   }
 
   const dbBlock = confirmedBlockQueryResult.block;
-  const lowerQueryWindowBlock = await iqm.getLastConfirmedBlockStrictlyBeforeTime(dbBlock.timestamp - toBN(request.queryWindow).toNumber());
+  const lowerQueryWindowBlock = await iqm.getLastConfirmedBlockStrictlyBeforeTime(dbBlock.timestamp - toBN(request.requestBody.queryWindow).toNumber());
 
   if (!lowerQueryWindowBlock) {
     return {
       status: VerificationStatus.DATA_AVAILABILITY_ISSUE,
     };
   }
-  return await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.settings.numberOfConfirmations());
+  return await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.settings.numberOfConfirmations(), request);
 }
 
 /**
@@ -315,11 +326,12 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
   TransactionClass: new (...args: any[]) => T,
   firstOverflowBlock: DBBlockBase,
   lowerBoundaryBlock: DBBlockBase,
-  deadlineBlockNumber: NumberLike,
-  deadlineTimestamp: NumberLike,
-  destinationAddressHash: string,
-  paymentReference: string,
-  amount: NumberLike
+  request: ReferencedPaymentNonexistence_Request
+  // deadlineBlockNumber: NumberLike,
+  // deadlineTimestamp: NumberLike,
+  // destinationAddressHash: string,
+  // paymentReference: string,
+  // amount: NumberLike
 ) {
   // Check transactions for a matching
   for (const dbTransaction of dbTransactions) {
@@ -336,7 +348,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
       const address = fullTxData.intendedReceivedAmounts[outUtxo].address;
       // TODO: standard address hash
       const destinationAddressHashTmp = Web3.utils.soliditySha3(address);
-      if (destinationAddressHashTmp === destinationAddressHash) {
+      if (destinationAddressHashTmp === request.requestBody.destinationAddressHash) {
         const paymentSummary = (await retry(`responseReferencedPaymentNonExistence::paymentSummary`, async () =>
           fullTxData.paymentSummary({ inUtxo: 0, outUtxo })
         )) as PaymentSummaryResponse;
@@ -350,7 +362,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
           throw new Error("critical error: should always have response");
         }
 
-        if (paymentSummary.response.intendedReceivingAmount.gte(toBN(amount))) {
+        if (paymentSummary.response.intendedReceivingAmount.gte(toBN(request.requestBody.amount))) {
           if (paymentSummary.response.transactionStatus !== TransactionSuccessStatus.SENDER_FAILURE) {
             // it must be SUCCESS or RECEIVER_FAULT, so the sender sent it correctly
             return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS };
@@ -362,17 +374,17 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
   }
 
   const response = {
-    stateConnectorRound: 0,
-    deadlineBlockNumber: toBN(deadlineBlockNumber),
-    deadlineTimestamp: toBN(deadlineTimestamp),
-    destinationAddressHash: destinationAddressHash,
-    paymentReference: prefix0x(paymentReference),
-    amount: toBN(amount),
-    lowerBoundaryBlockNumber: toBN(lowerBoundaryBlock.blockNumber),
-    lowerBoundaryBlockTimestamp: toBN(lowerBoundaryBlock.timestamp),
-    firstOverflowBlockNumber: toBN(firstOverflowBlock.blockNumber),
-    firstOverflowBlockTimestamp: toBN(firstOverflowBlock.timestamp),
-  } as DHReferencedPaymentNonexistence;
+    attestationType: request.attestationType,
+    sourceId: request.sourceId,
+    votingRound: "0",
+    lowestUsedTimestamp: lowerBoundaryBlock.timestamp.toString(),
+    requestBody: request.requestBody,
+    responseBody: {
+      minimalBlockTimestamp: lowerBoundaryBlock.blockNumber.toString(),
+      firstOverflowBlockNumber: firstOverflowBlock.blockNumber.toString(),
+      firstOverflowBlockTimestamp: firstOverflowBlock.timestamp.toString(),
+    } as ReferencedPaymentNonexistence_ResponseBody,
+  } as ReferencedPaymentNonexistence_Response;
 
   return {
     status: VerificationStatus.OK,
@@ -390,28 +402,28 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
  */
 export async function verifyReferencedPaymentNonExistence<T extends TransactionBase>(
   TransactionClass: new (...args: any[]) => T,
-  request: ARReferencedPaymentNonexistence,
+  request: ReferencedPaymentNonexistence_Request,
   iqm: IndexedQueryManager
-): Promise<VerificationResponse<DHReferencedPaymentNonexistence>> {
+): Promise<VerificationResponse<ReferencedPaymentNonexistence_Response>> {
   // TODO: check if anything needs to be done with: startBlock >= overflowBlock
   // DANGER: How to handle this if there are a lot of transactions with same payment reference in the interval?
 
-  if (unPrefix0x(request.paymentReference) === unPrefix0x(ZERO_BYTES_32)) {
+  if (unPrefix0x(request.requestBody.standardPaymentReference) === unPrefix0x(ZERO_BYTES_32)) {
     return { status: VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED };
   }
 
-  if (!/^[0-9A-Fa-f]{64}$/.test(unPrefix0x(request.paymentReference))) {
+  if (!/^[0-9A-Fa-f]{64}$/.test(unPrefix0x(request.requestBody.standardPaymentReference))) {
     return { status: VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE };
   }
 
-  const minimalBlockNumber = numberLikeToNumber(request.minimalBlockNumber);
-  const deadlineBlockNumber = numberLikeToNumber(request.deadlineBlockNumber);
+  const minimalBlockNumber = numberLikeToNumber(request.requestBody.minimalBlockNumber);
+  const deadlineBlockNumber = numberLikeToNumber(request.requestBody.deadlineBlockNumber);
 
   const referencedTransactionsResponse = await iqm.getReferencedTransactions({
     minimalBlockNumber,
     deadlineBlockNumber,
-    deadlineBlockTimestamp: numberLikeToNumber(request.deadlineTimestamp),
-    paymentReference: unPrefix0x(request.paymentReference),
+    deadlineBlockTimestamp: numberLikeToNumber(request.requestBody.deadlineTimestamp),
+    paymentReference: unPrefix0x(request.requestBody.standardPaymentReference),
   });
 
   const status = verifyWorkflowForReferencedTransactions(referencedTransactionsResponse);
@@ -435,10 +447,6 @@ export async function verifyReferencedPaymentNonExistence<T extends TransactionB
     TransactionClass,
     firstOverflowBlock,
     lowerBoundaryBlock,
-    request.deadlineBlockNumber,
-    request.deadlineTimestamp,
-    request.destinationAddressHash,
-    request.paymentReference,
-    request.amount
+    request
   );
 }

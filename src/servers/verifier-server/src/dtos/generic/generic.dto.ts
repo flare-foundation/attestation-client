@@ -10,14 +10,14 @@ export class EncodedRequestBody {
     /**
      * Abi encoded request object see this for more info: https://gitlab.com/flarenetwork/state-connector-protocol/-/blob/main/attestation-objects/request-encoding-decoding.md
      */
-    abiEncodedRequest: string;
+    abiEncodedRequest?: string;
 }
 
 export class MicResponse {
     /**
      * Message integrity code
      */
-    messageIntegrityCode: string;
+    messageIntegrityCode?: string;
 }
 
 /**

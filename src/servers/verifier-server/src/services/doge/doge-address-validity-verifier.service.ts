@@ -15,7 +15,7 @@ export class DOGEAddressValidityVerifierService {
 
     constructor() {
         this.store = new AttestationDefinitionStore("configs/type-definitions");
-        this.exampleData = JSON.parse(readFileSync("src/example-data/AddressValidity.json", "utf8"));
+        this.exampleData = JSON.parse(readFileSync("src/servers/verifier-server/src/example-data/AddressValidity.json", "utf8"));
     }
 
     //-$$$<end-constructor> End of custom code section. Do not change this comment.

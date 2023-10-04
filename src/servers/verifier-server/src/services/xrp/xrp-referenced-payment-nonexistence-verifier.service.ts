@@ -45,6 +45,7 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
 
     public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<ReferencedPaymentNonexistence_Response>> {
         const requestJSON = this.store.parseRequest<ReferencedPaymentNonexistence_Request>(abiEncodedRequest);
+        
 
         //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
 

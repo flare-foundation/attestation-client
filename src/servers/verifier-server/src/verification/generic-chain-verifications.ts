@@ -17,7 +17,6 @@ import { IndexedQueryManager } from "../../../../indexed-query-manager/IndexedQu
 import { retry } from "../../../../utils/helpers/promiseTimeout";
 import { logException } from "../../../../utils/logging/logger";
 import { VerificationStatus } from "../../../../verification/attestation-types/attestation-types";
-import { numberLikeToNumber } from "../../../../verification/attestation-types/attestation-types-helpers";
 import { BalanceDecreasingTransaction_Request, BalanceDecreasingTransaction_Response, BalanceDecreasingTransaction_ResponseBody } from "../dtos/attestation-types/BalanceDecreasingTransaction.dto";
 import { ConfirmedBlockHeightExists_Request, ConfirmedBlockHeightExists_Response, ConfirmedBlockHeightExists_ResponseBody } from "../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
 import { Payment_Request, Payment_Response, Payment_ResponseBody } from "../dtos/attestation-types/Payment.dto";
@@ -29,6 +28,13 @@ import {
   verifyWorkflowForTransaction
 } from "./verification-utils";
 
+function serializeBigInts(obj: any) {
+  return JSON.parse(JSON.stringify(obj, (key, value) =>
+    typeof value === 'bigint'
+      ? value.toString()
+      : value // return everything else unchanged
+  ));
+}
 //////////////////////////////////////////////////
 // Verification functions
 /////////////////////////////////////////////////
@@ -57,8 +63,8 @@ export async function responsePayment<T extends TransactionBase>(
 
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
-  const inUtxoNumber = toBN(request.requestBody.inUtxo).toNumber();
-  const utxoNumber = toBN(request.requestBody.utxo).toNumber();
+  const inUtxoNumber = parseInt(BigInt(request.requestBody.inUtxo).toString());
+  const utxoNumber = parseInt(BigInt(request.requestBody.utxo).toString())
 
   let paymentSummary = await fullTxData.paymentSummary({ client, inUtxo: inUtxoNumber, outUtxo: utxoNumber });
 
@@ -75,7 +81,7 @@ export async function responsePayment<T extends TransactionBase>(
     sourceId: request.sourceId,
     votingRound: "0",
     lowestUsedTimestamp: dbTransaction.timestamp.toString(),
-    requestBody: request.requestBody,
+    requestBody: serializeBigInts(request.requestBody),
     responseBody: {
       blockNumber: dbTransaction.blockNumber.toString(),
       blockTimestamp: dbTransaction.timestamp.toString(),
@@ -181,7 +187,7 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
     sourceId: request.sourceId,
     votingRound: "0",
     lowestUsedTimestamp: dbTransaction.timestamp.toString(),
-    requestBody: request.requestBody,
+    requestBody: serializeBigInts(request.requestBody),
     responseBody: {
       blockNumber: dbTransaction.blockNumber.toString(),
       blockTimestamp: dbTransaction.timestamp.toString(),
@@ -262,7 +268,7 @@ export async function responseConfirmedBlockHeightExists(
     sourceId: request.sourceId,
     votingRound: "0",
     lowestUsedTimestamp: dbBlock.timestamp.toString(),
-    requestBody: request.requestBody,
+    requestBody: serializeBigInts(request.requestBody),
     responseBody: {
       blockNumber: dbBlock.blockNumber.toString(),
       blockTimestamp: dbBlock.timestamp.toString(),
@@ -289,7 +295,7 @@ export async function verifyConfirmedBlockHeightExists(
   iqm: IndexedQueryManager
 ): Promise<VerificationResponse<ConfirmedBlockHeightExists_Response>> {
   const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
-    blockNumber: toBN(request.requestBody.blockNumber).toNumber(),
+    blockNumber: parseInt(BigInt(request.requestBody.blockNumber).toString()),
   });
 
   const status = verifyWorkflowForBlock(confirmedBlockQueryResult);
@@ -298,7 +304,9 @@ export async function verifyConfirmedBlockHeightExists(
   }
 
   const dbBlock = confirmedBlockQueryResult.block;
-  const lowerQueryWindowBlock = await iqm.getLastConfirmedBlockStrictlyBeforeTime(dbBlock.timestamp - toBN(request.requestBody.queryWindow).toNumber());
+  const lowerQueryWindowBlock = await iqm.getLastConfirmedBlockStrictlyBeforeTime(
+    dbBlock.timestamp - parseInt(BigInt(request.requestBody.queryWindow).toString())
+  );
 
   if (!lowerQueryWindowBlock) {
     return {
@@ -361,8 +369,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
         if (!paymentSummary.response) {
           throw new Error("critical error: should always have response");
         }
-
-        if (paymentSummary.response.intendedReceivingAmount.gte(toBN(request.requestBody.amount))) {
+        if (paymentSummary.response.intendedReceivingAmount.gte(toBN(request.requestBody.amount.toString()))) {
           if (paymentSummary.response.transactionStatus !== TransactionSuccessStatus.SENDER_FAILURE) {
             // it must be SUCCESS or RECEIVER_FAULT, so the sender sent it correctly
             return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS };
@@ -378,7 +385,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
     sourceId: request.sourceId,
     votingRound: "0",
     lowestUsedTimestamp: lowerBoundaryBlock.timestamp.toString(),
-    requestBody: request.requestBody,
+    requestBody: serializeBigInts(request.requestBody),
     responseBody: {
       minimalBlockTimestamp: lowerBoundaryBlock.blockNumber.toString(),
       firstOverflowBlockNumber: firstOverflowBlock.blockNumber.toString(),
@@ -416,13 +423,13 @@ export async function verifyReferencedPaymentNonExistence<T extends TransactionB
     return { status: VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE };
   }
 
-  const minimalBlockNumber = numberLikeToNumber(request.requestBody.minimalBlockNumber);
-  const deadlineBlockNumber = numberLikeToNumber(request.requestBody.deadlineBlockNumber);
+  const minimalBlockNumber = parseInt(BigInt(request.requestBody.minimalBlockNumber).toString());
+  const deadlineBlockNumber = parseInt(BigInt(request.requestBody.deadlineBlockNumber).toString());
 
   const referencedTransactionsResponse = await iqm.getReferencedTransactions({
     minimalBlockNumber,
     deadlineBlockNumber,
-    deadlineBlockTimestamp: numberLikeToNumber(request.requestBody.deadlineTimestamp),
+    deadlineBlockTimestamp: parseInt(BigInt(request.requestBody.deadlineTimestamp).toString()),
     paymentReference: unPrefix0x(request.requestBody.standardPaymentReference),
   });
 

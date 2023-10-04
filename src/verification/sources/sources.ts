@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 // Configuration of source IDs
 export enum SourceId {
   // Chain Sources should match the enum ChainType in flare-mcc library
@@ -38,4 +40,11 @@ export function toSourceId(id: any): SourceId {
   if (sourceId === undefined) return SourceId.invalid;
 
   return sourceId as any as SourceId;
+}
+
+
+export function sourceIdToBytes32(sourceId: SourceId): string {
+  let value = sourceId.toString(16);
+  value = value.length % 2 === 0 ? "0x" + value : "0x0" + value;
+  return ethers.zeroPadValue(value, 32);
 }

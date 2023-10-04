@@ -65,7 +65,7 @@ export class BTCReferencedPaymentNonexistenceVerifierService {
         return response;
     }
 
-    public async mic(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<string> {
+    public async mic(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<string | undefined> {
         //-$$$<start-mic> Start of custom code section. Do not change this comment.
 
         const result = await this.verifyRequest(request);
@@ -73,10 +73,11 @@ export class BTCReferencedPaymentNonexistenceVerifierService {
 
         //-$$$<end-mic> End of custom code section. Do not change this comment.
 
+        if (!response) return undefined;
         return this.store.attestationResponseHash<ReferencedPaymentNonexistence_Response>(response, MIC_SALT)!;
     }
 
-    public async prepareRequest(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<string> {
+    public async prepareRequest(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<string | undefined> {
         //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
 
         const result = await this.verifyRequest(request);
@@ -84,6 +85,7 @@ export class BTCReferencedPaymentNonexistenceVerifierService {
 
         //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
 
+        if (!response) return undefined;
         const newRequest = {
             ...request,
             messageIntegrityCode: this.store.attestationResponseHash<ReferencedPaymentNonexistence_Response>(response, MIC_SALT)!,

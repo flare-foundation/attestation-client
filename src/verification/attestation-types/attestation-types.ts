@@ -1,6 +1,6 @@
 import BN from "bn.js";
 import { SourceId } from "../sources/sources";
-import { AttestationStatus } from "../../external-libs/AttestationResponse";
+import { AttestationResponseStatus } from "../../external-libs/AttestationResponse";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Verification status
@@ -81,15 +81,15 @@ export function getSummarizedVerificationStatus(status: VerificationStatus): Sum
   ((_: never): void => {})(status);
 }
 
-export function getAttestationStatus(status: VerificationStatus): AttestationStatus {
+export function getAttestationStatus(status: VerificationStatus): AttestationResponseStatus {
   switch (status) {
     case VerificationStatus.OK:
-      return AttestationStatus.VALID;
+      return AttestationResponseStatus.VALID;
     case VerificationStatus.DATA_AVAILABILITY_ISSUE:
     case VerificationStatus.NEEDS_MORE_CHECKS:
     case VerificationStatus.SYSTEM_FAILURE:
     case VerificationStatus.NON_EXISTENT_BLOCK:
-      return AttestationStatus.INDETERMINATE;
+      return AttestationResponseStatus.INDETERMINATE;
     case VerificationStatus.NOT_CONFIRMED:
     case VerificationStatus.NON_EXISTENT_TRANSACTION:
     case VerificationStatus.NOT_PAYMENT:
@@ -97,7 +97,7 @@ export function getAttestationStatus(status: VerificationStatus): AttestationSta
     case VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED:
     case VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE:
     case VerificationStatus.PAYMENT_SUMMARY_ERROR:
-      return AttestationStatus.INVALID;
+      return AttestationResponseStatus.INVALID;
   }
   // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
   ((_: never): void => {})(status);

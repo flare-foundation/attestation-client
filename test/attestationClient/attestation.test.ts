@@ -6,7 +6,7 @@ import { AttestationType } from "../../src/verification/generated/attestation-ty
 import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createBlankAtRequestEvent } from "./utils/createEvents";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
 
 describe(`Attestation Data (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -14,8 +14,7 @@ describe(`Attestation Data (${getTestFile(__filename)})`, function () {
   let defStore: AttestationDefinitionStore;
 
   before(async function () {
-    defStore = new AttestationDefinitionStore();
-    await defStore.initialize();
+    defStore = new AttestationDefinitionStore("configs/type-definitions");
     const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
     attData = new AttestationData(event);
   });

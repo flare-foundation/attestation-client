@@ -175,11 +175,11 @@ export class Payment_ResponseBody {
     sourceAddressHash!: string;
 
     /**
-     * Standard address hash of the receiving address.
+     * Standard address hash of the receiving address. Zero 32-byte string if there is no receivingAddress (if `status` is not success).
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `Standard address hash of the receiving address.`,
+        description: `Standard address hash of the receiving address. Zero 32-byte string if there is no receivingAddress (if 'status' is not success).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     receivingAddressHash!: string;

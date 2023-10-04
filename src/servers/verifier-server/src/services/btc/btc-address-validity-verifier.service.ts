@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
-import { AttestationResponse, AttestationStatus } from "../../../../../external-libs/AttestationResponse";
+import { AttestationResponse, AttestationResponseStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT } from "../../../../../external-libs/utils";
 import { AddressValidity_Request, AddressValidity_RequestNoMic, AddressValidity_Response } from "../../dtos/attestation-types/AddressValidity.dto";
@@ -32,7 +32,7 @@ export class BTCAddressValidityVerifierService {
 
         // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
         const response: AttestationResponse<AddressValidity_Response> = {
-            status: AttestationStatus.VALID,
+            status: AttestationResponseStatus.VALID,
             response: this.exampleData.response,
         };
 
@@ -50,7 +50,7 @@ export class BTCAddressValidityVerifierService {
 
         // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
         const response: AttestationResponse<AddressValidity_Response> = {
-            status: AttestationStatus.VALID,
+            status: AttestationResponseStatus.VALID,
             response: {
                 ...this.exampleData.response,
                 ...request,

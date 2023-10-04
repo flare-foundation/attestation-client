@@ -2,7 +2,7 @@ import { BtcTransaction } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
-import { AttestationResponse, AttestationStatus } from "../../../../../external-libs/AttestationResponse";
+import { AttestationResponse, AttestationResponseStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
 import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
@@ -41,7 +41,8 @@ export class BTCPaymentVerifierService {
         const requestJSON = this.store.parseRequest<Payment_Request>(abiEncodedRequest);
 
         //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
-        const response = await this.verifyRequest(requestJSON);        
+
+        const response = await this.verifyRequest(requestJSON);
 
         //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
 

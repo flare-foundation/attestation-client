@@ -2,7 +2,7 @@ import { XrpTransaction } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
-import { AttestationResponse, AttestationStatus } from "../../../../../external-libs/AttestationResponse";
+import { AttestationResponse, AttestationResponseStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
 import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
@@ -45,7 +45,6 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
 
     public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<ReferencedPaymentNonexistence_Response>> {
         const requestJSON = this.store.parseRequest<ReferencedPaymentNonexistence_Request>(abiEncodedRequest);
-        
 
         //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
 
@@ -66,7 +65,7 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
         return response;
     }
 
-    public async mic(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<string> {
+    public async mic(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<string | undefined> {
         //-$$$<start-mic> Start of custom code section. Do not change this comment.
 
         const result = await this.verifyRequest(request);
@@ -74,10 +73,11 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
 
         //-$$$<end-mic> End of custom code section. Do not change this comment.
 
+        if (!response) return undefined;
         return this.store.attestationResponseHash<ReferencedPaymentNonexistence_Response>(response, MIC_SALT)!;
     }
 
-    public async prepareRequest(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<string> {
+    public async prepareRequest(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<string | undefined> {
         //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
 
         const result = await this.verifyRequest(request);
@@ -85,6 +85,7 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
 
         //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
 
+        if (!response) return undefined;
         const newRequest = {
             ...request,
             messageIntegrityCode: this.store.attestationResponseHash<ReferencedPaymentNonexistence_Response>(response, MIC_SALT)!,

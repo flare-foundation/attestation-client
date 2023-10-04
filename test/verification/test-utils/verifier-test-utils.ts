@@ -12,13 +12,16 @@ import { Attestation } from "../../../src/attester/Attestation";
 import { AttestationData } from "../../../src/attester/AttestationData";
 import { DBBlockBTC, DBBlockDOGE, DBBlockXRP } from "../../../src/entity/indexer/dbBlock";
 import { DBTransactionBTC0, DBTransactionBase, DBTransactionDOGE0, DBTransactionXRP0 } from "../../../src/entity/indexer/dbTransaction";
+import { ARBase } from "../../../src/external-libs/interfaces";
 import { VerifierConfigurationService } from "../../../src/servers/verifier-server/src/services/verifier-configuration.service";
-import { VerifierServerModule } from "../../../src/servers/verifier-server/src/verifier-server.module";
+import { VerifierBtcServerModule } from "../../../src/servers/verifier-server/src/verifier-btc-server.module";
+import { VerifierDogeServerModule } from "../../../src/servers/verifier-server/src/verifier-doge-server.module";
+import { VerifierXrpServerModule } from "../../../src/servers/verifier-server/src/verifier-xrp-server.module";
 import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
 import { AttLogger, getGlobalLogger, initializeTestGlobalLogger } from "../../../src/utils/logging/logger";
-import { AttestationDefinitionStore } from "../../../src/verification/attestation-types/AttestationDefinitionStore";
-import { ARType } from "../../../src/verification/generated/attestation-request-types";
 import { generateTestIndexerDB, selectedReferencedTx } from "../../indexed-query-manager/utils/indexerTestDataGenerator";
+import { AttestationDefinitionStore } from "../../../src/external-libs/AttestationDefinitionStore";
+import { decodeAttestationName } from "../../../src/external-libs/utils";
 
 const TEST_DB_DIR = "./db";
 export interface VerifierBootstrapOptions {
@@ -130,8 +133,20 @@ export async function bootstrapVerifier(
   let configurationService: VerifierConfigurationService;
   let entityManager: EntityManager;
 
+  function selectVerifierModule(verifierType: "xrp" | "btc" | "doge") {
+    switch (verifierType) {
+      case "xrp":
+        return VerifierXrpServerModule;
+      case "btc":
+        return VerifierBtcServerModule;
+      case "doge":
+        return VerifierDogeServerModule;
+      default:
+        throw new Error(`Wrong verifier type: '${verifierType}'`);
+    }
+  }
   const module = await Test.createTestingModule({
-    imports: [VerifierServerModule],
+    imports: [selectVerifierModule(verifierType)],
   }).compile();
   app = module.createNestApplication();
   app.useWebSocketAdapter(new WsAdapter(app));
@@ -175,10 +190,10 @@ export async function bootstrapVerifier(
   return app;
 }
 
-export function prepareAttestation(defStore: AttestationDefinitionStore, request: ARType, startTime: number): Attestation {
+export function prepareAttestation(defStore: AttestationDefinitionStore, request: ARBase, startTime: number): Attestation {
   const data = new AttestationData();
-  data.type = request.attestationType;
-  data.sourceId = request.sourceId;
+  data.type = decodeAttestationName(request.attestationType);
+  data.sourceId = decodeAttestationName(request.sourceId);
   data.request = defStore.encodeRequest(request);
   const attestation = new Attestation(undefined, data);
   return attestation;

@@ -1,17 +1,15 @@
 import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
+import { ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
+import { ReferencedPaymentNonexistence_Request } from "../../servers/verifier-server/src/dtos/attestation-types/ReferencedPaymentNonexistence.dto";
+import { verifyReferencedPaymentNonExistence } from "../../servers/verifier-server/src/verification/generic-chain-verifications";
 import { AttLogger } from "../../utils/logging/logger";
-import { AttestationDefinitionStore } from "../../verification/attestation-types/AttestationDefinitionStore";
 import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { DHReferencedPaymentNonexistence } from "../../verification/generated/attestation-hash-types";
-import { ARReferencedPaymentNonexistence } from "../../verification/generated/attestation-request-types";
-import { AttestationType } from "../../verification/generated/attestation-types-enum";
-import { SourceId } from "../../verification/sources/sources";
-import { verifyAttestation } from "../../verification/verifiers/verifier_routing";
+import { SourceId, sourceIdToBytes32 } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
-import { createTestAttestationFromRequest } from "./random-ar";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -32,10 +30,11 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
   sourceId: SourceId,
+  TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType,
   client?: MccClient,
   queryWindow = 100
-): Promise<ARReferencedPaymentNonexistence | null> {
+): Promise<ReferencedPaymentNonexistence_Request | null> {
   const OVERFLOW_BLOCK_OFFSET = 10;
 
   const overflowBlockNum = randomTransaction.blockNumber + OVERFLOW_BLOCK_OFFSET;
@@ -86,25 +85,25 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   // TODO
   // let destinationAmounts = randomTransaction.
   const request = {
-    attestationType: AttestationType.ReferencedPaymentNonexistence,
-    sourceId,
-    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
-    minimalBlockNumber: deadlineBlockNumber.toNumber() - queryWindow,
-    deadlineBlockNumber,
-    deadlineTimestamp,
-    destinationAddressHash: Web3.utils.randomHex(32), // TODO: "CORRECT" does not work here
-    amount: toBN(Web3.utils.randomHex(16)), // TODO: "CORRECT" does not work here
-    paymentReference,
-  };
+    attestationType: encodeAttestationName("ReferencedPaymentNonexistence"),
+    sourceId: sourceIdToBytes32(sourceId as unknown as SourceId),
+    messageIntegrityCode: ZERO_BYTES_32,
+    requestBody: {
+      minimalBlockNumber: (deadlineBlockNumber.toNumber() - queryWindow).toString(),
+      deadlineBlockNumber: deadlineBlockNumber.toString(),
+      deadlineTimestamp: deadlineTimestamp.toString(),
+      destinationAddressHash: Web3.utils.randomHex(32), // TODO: "CORRECT" does not work here
+      amount: Web3.utils.randomHex(16), 
+      standardPaymentReference: paymentReference,  
+    }
+  } as ReferencedPaymentNonexistence_Request;
   if (choice === "WRONG_MIC") {
     return request;
   }
-  let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
-    let response = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
-    // augment with message integrity code
+    let response = await verifyReferencedPaymentNonExistence(TransactionClass, request, indexedQueryManager);    
     if (response.status === "OK") {
-      request.messageIntegrityCode = defStore.dataHash(request, response.response as DHReferencedPaymentNonexistence, MIC_SALT);
+      request.messageIntegrityCode = defStore.attestationResponseHash(response.response, MIC_SALT);
       logger.info(`Request augmented correctly (ReferencePaymentNonexistence)`);
       return request;
     }

@@ -1,12 +1,10 @@
-import { MccClient } from "@flarenetwork/mcc";
+import { BtcTransaction, DogeTransaction, MccClient, XrpTransaction } from "@flarenetwork/mcc";
 import { Attestation } from "../../attester/Attestation";
 import { AttestationData } from "../../attester/AttestationData";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { getUnixEpochTimestamp } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
-import { AttestationDefinitionStore } from "../../verification/attestation-types/AttestationDefinitionStore";
-import { ARBase } from "../../verification/generated/attestation-request-types";
 import { AttestationType } from "../../verification/generated/attestation-types-enum";
 import { SourceId } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
@@ -15,6 +13,8 @@ import { prepareRandomizedRequestBalanceDecreasingTransaction } from "./random-a
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "./random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "./random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator, fetchRandomConfirmedBlocks, fetchRandomTransactions } from "./random-query";
+import { ARBase } from "../../external-libs/interfaces";
+import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 
 /////////////////////////////////////////////////////////////////
 // Helper functions for generating random attestation requests
@@ -29,6 +29,22 @@ export async function getRandomAttestationRequest(
   sourceId: SourceId,
   client?: MccClient
 ) {
+  let TransactionClass: new (...args: any[]) => any;
+
+  switch(sourceId) {
+    case SourceId.BTC:
+      TransactionClass = BtcTransaction;
+      break;
+    case SourceId.DOGE:
+      TransactionClass = DogeTransaction;
+      break;
+    case SourceId.XRP:
+      TransactionClass = XrpTransaction;
+      break;
+    default:
+      throw new Error("Invalid sourceId");
+  }
+
   const { attestationType, generator } = randomGeneratorChoiceWithAttestationType(randomGenerators);
   if (generator.size <= 0) {
     console.log(`Empty generator ${generator.label}`);
@@ -38,32 +54,32 @@ export async function getRandomAttestationRequest(
 
   switch (attestationType) {
     case AttestationType.Payment:
-      return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, undefined, client);
+      return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
     case AttestationType.BalanceDecreasingTransaction:
-      return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, undefined, client);
+      return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
     case AttestationType.ConfirmedBlockHeightExists:
-      return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as DBBlockBase, sourceId, undefined, client);
+      return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as DBBlockBase, sourceId, TransactionClass, undefined, client);
     case AttestationType.ReferencedPaymentNonexistence:
-      return prepareRandomizedRequestReferencedPaymentNonexistence(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, undefined, client);
+      return prepareRandomizedRequestReferencedPaymentNonexistence(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
     default:
       throw new Error("Invalid attestation type");
   }
 }
 
-export function createTestAttestationFromRequest(defStore: AttestationDefinitionStore, request: ARBase, roundId: number, logger?: AttLogger): Attestation {
-  try {
-    const data = new AttestationData();
-    data.type = request.attestationType;
-    data.sourceId = request.sourceId;
-    data.request = defStore.encodeRequest(request);
-    const attestation = new Attestation(undefined, data);
-    attestation.setTestRoundId(roundId);
-    return attestation;
-  } catch (e) {
-    logger?.error(`Error creating attestation from request: ${request}\n ERROR ${e}`);
-    throw e;
-  }
-}
+// export function createTestAttestationFromRequest(defStore: AttestationDefinitionStore, request: ARBase, roundId: number, logger?: AttLogger): Attestation {
+//   try {
+//     const data = new AttestationData();
+//     data.type = request.attestationType;
+//     data.sourceId = request.sourceId;
+//     data.request = defStore.encodeRequest(request);
+//     const attestation = new Attestation(undefined, data);
+//     attestation.setTestRoundId(roundId);
+//     return attestation;
+//   } catch (e) {
+//     logger?.error(`Error creating attestation from request: ${request}\n ERROR ${e}`);
+//     throw e;
+//   }
+// }
 
 export enum TxOrBlockGeneratorType {
   TxNativePayment = 0,

@@ -1,7 +1,7 @@
 /**
  * Attestation status
  */
-export enum AttestationStatus {
+export enum AttestationResponseStatus {
     /**
      * Attestation request is valid.
      */
@@ -25,7 +25,7 @@ export class AttestationResponse<RES> {
     /**
      * Verification status.
      */
-    status!: AttestationStatus;
+    status!: AttestationResponseStatus;
     /**
      * Attestation response.
      */

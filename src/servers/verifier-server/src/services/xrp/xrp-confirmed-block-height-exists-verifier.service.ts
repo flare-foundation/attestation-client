@@ -1,14 +1,17 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse, AttestationStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
-import { MIC_SALT } from "../../../../../external-libs/utils";
+import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
+import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import {
     ConfirmedBlockHeightExists_Request,
     ConfirmedBlockHeightExists_RequestNoMic,
     ConfirmedBlockHeightExists_Response,
 } from "../../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { verifyConfirmedBlockHeightExists } from "../../verification/generic-chain-verifications";
+import { XRPProcessorService } from "../verifier-processors/xrp-processor.service";
 
 @Injectable()
 export class XRPConfirmedBlockHeightExistsVerifierService {
@@ -17,85 +20,68 @@ export class XRPConfirmedBlockHeightExistsVerifierService {
 
     //-$$$<start-constructor> Start of custom code section. Do not change this comment.
 
-    constructor() {
+    constructor(@Inject("VERIFIER_PROCESSOR") private processor: XRPProcessorService) {
         this.store = new AttestationDefinitionStore("configs/type-definitions");
-        this.exampleData = JSON.parse(readFileSync("src/example-data/ConfirmedBlockHeightExists.json", "utf8"));
+    }
+
+    private async verifyRequest(
+        request: ConfirmedBlockHeightExists_RequestNoMic | ConfirmedBlockHeightExists_Request,
+    ): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
+        let fixedRequest = {
+            ...request,
+        } as ConfirmedBlockHeightExists_Request;
+        if (!fixedRequest.messageIntegrityCode) {
+            fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
+        }
+        const result = await verifyConfirmedBlockHeightExists(fixedRequest, this.processor.indexedQueryManager);
+        return {
+            status: getAttestationStatus(result.status),
+            response: result.response,
+        } as AttestationResponse<ConfirmedBlockHeightExists_Response>;
     }
 
     //-$$$<end-constructor> End of custom code section. Do not change this comment.
 
     public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
         const requestJSON = this.store.parseRequest<ConfirmedBlockHeightExists_Request>(abiEncodedRequest);
-        console.dir(requestJSON, { depth: null });
 
         //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
 
-        // PUT YOUR CUSTOM CODE HERE
+        const response = await this.verifyRequest(requestJSON);
 
         //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
-
-        // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-        const response: AttestationResponse<ConfirmedBlockHeightExists_Response> = {
-            status: AttestationStatus.VALID,
-            response: this.exampleData.response,
-        };
 
         return response;
     }
 
     public async prepareResponse(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
-        console.dir(request, { depth: null });
-
         //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
 
-        // PUT YOUR CUSTOM CODE HERE
+        const response = await this.verifyRequest(request);
 
         //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
-
-        // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-        const response: AttestationResponse<ConfirmedBlockHeightExists_Response> = {
-            status: AttestationStatus.VALID,
-            response: {
-                ...this.exampleData.response,
-                ...request,
-            } as ConfirmedBlockHeightExists_Response,
-        };
 
         return response;
     }
 
     public async mic(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<string> {
-        console.dir(request, { depth: null });
-
         //-$$$<start-mic> Start of custom code section. Do not change this comment.
 
-        // PUT YOUR CUSTOM CODE HERE
+        const result = await this.verifyRequest(request);
+        const response = result.response;
 
         //-$$$<end-mic> End of custom code section. Do not change this comment.
-
-        // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-        const response: ConfirmedBlockHeightExists_Response = {
-            ...this.exampleData.response,
-            ...request,
-        };
 
         return this.store.attestationResponseHash<ConfirmedBlockHeightExists_Response>(response, MIC_SALT)!;
     }
 
     public async prepareRequest(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<string> {
-        console.dir(request, { depth: null });
-
         //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
 
-        // PUT YOUR CUSTOM CODE HERE
+        const result = await this.verifyRequest(request);
+        const response = result.response;
 
         //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
-
-        // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-        const response: ConfirmedBlockHeightExists_Response = {
-            ...this.exampleData.response,
-            ...request,
-        };
 
         const newRequest = {
             ...request,

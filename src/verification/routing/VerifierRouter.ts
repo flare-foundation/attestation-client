@@ -1,14 +1,14 @@
 import axios from "axios";
 import { Attestation } from "../../attester/Attestation";
-import { ApiResponseWrapper } from "../../servers/common/src";
+import { AttestationResponse } from "../../external-libs/AttestationResponse";
 import { retry } from "../../utils/helpers/promiseTimeout";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
-import { AttestationRequest, AttestationTypeScheme, Verification } from "../attestation-types/attestation-types";
-import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
-import { getSourceName, SourceId } from "../sources/sources";
+import { AttestationRequest, AttestationTypeScheme } from "../attestation-types/attestation-types";
+import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
+import { getAttestationTypeName } from "../generated/attestation-types-enum";
+import { getSourceName } from "../sources/sources";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
-import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
 const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;
@@ -71,10 +71,10 @@ export class VerifierRouter {
   }
 
   /**
-   * Checks if the VerifierRouter supports attestation @param type for chain with @param sourceId
+   * Checks if the VerifierRouter supports attestation @param attestationType for chain with @param sourceId
    */
-  public isSupported(sourceId: SourceId, type: AttestationType): boolean {
-    const routeEntry = this.getRouteEntry(getSourceName(sourceId), getAttestationTypeName(type));
+  public isSupported(sourceId: string, attestationType: string): boolean {
+    const routeEntry = this.getRouteEntry(sourceId, attestationType);
     if (!routeEntry || routeEntry === EMPTY_VERIFIER_ROUTE) return false;
     return true;
   }
@@ -215,6 +215,7 @@ export class VerifierRouter {
         request: attestation.data.request,
       } as AttestationRequest;
 
+      // Can throw exception
       const resp = await retry(
         `VerifierRouter::verifyAttestation`,
         async () =>
@@ -226,11 +227,7 @@ export class VerifierRouter {
         VERIFIER_TIMEOUT
       );
 
-      let apiResponse = resp.data as ApiResponseWrapper<Verification<any, any>>;
-      if (apiResponse.status === "OK") {
-        return apiResponse.data;
-      }
-      throw new ApiResponseError(apiResponse.errorMessage);
+      return resp.data as AttestationResponse<any>;
     }
     throw new InvalidRouteError(`Invalid route.`);
   }

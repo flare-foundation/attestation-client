@@ -5,25 +5,24 @@ import { chooseCandidate, countOnes, prefix0x, unPrefix0x } from "../choose-subs
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { criticalAsync } from "../indexer/indexer-utils";
-import { commitHash, MerkleTree } from "../utils/data-structures/MerkleTree";
+import { MerkleTree, commitHash } from "../utils/data-structures/MerkleTree";
 import { getCryptoSafeRandom } from "../utils/helpers/crypto-utils";
 import { getTimeMs } from "../utils/helpers/internetTime";
 import { retry } from "../utils/helpers/promiseTimeout";
 import { prepareString } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
-import { SourceId } from "../verification/sources/sources";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttesterState } from "./AttesterState";
 import { BitVoteData } from "./BitVoteData";
+import { FlareConnection } from "./FlareConnection";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 import { GlobalAttestationConfig } from "./configs/GlobalAttestationConfig";
-import { FlareConnection } from "./FlareConnection";
 import { SourceLimiter } from "./source/SourceLimiter";
 import { SourceRouter } from "./source/SourceRouter";
 import { AttestationRoundPhase, AttestationRoundStatus, NO_VOTE } from "./types/AttestationRoundEnums";
-import { AttestationStatus, getSummarizedAttestationStatus, SummarizedAttestationStatus } from "./types/AttestationStatus";
+import { AttestationStatus, SummarizedAttestationStatus, getSummarizedAttestationStatus } from "./types/AttestationStatus";
 
 const ZERO_HASH = toHex(0, 32);
 
@@ -47,7 +46,7 @@ export class AttestationRound {
   attestationClientConfig: AttestationClientConfig;
 
   // source limiter maps
-  sourceLimiters = new Map<SourceId, SourceLimiter>();
+  sourceLimiters = new Map<string, SourceLimiter>();
 
   // adjacent rounds
   nextRound: AttestationRound;
@@ -475,10 +474,10 @@ export class AttestationRound {
     db.logIndex = att.data.logIndex;
     db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
     db.attestationStatus = AttestationStatus[att.status];
-    db.request = prepareString(stringify(att.verificationData?.request ? att.verificationData.request : ""), 65535);
+    db.request = prepareString(stringify(att.verificationData?.response?.request ? att.verificationData.response.request : ""), 65535);
     db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 65535);
     db.exceptionError = prepareString(att.exception?.toString(), 128);
-    db.hashData = prepareString(att.verificationData?.hash, 256);
+    db.hashData = prepareString(att.hash, 256);
     db.requestBytes = prepareString(att.data.request, 65535);
 
     return db;
@@ -548,7 +547,7 @@ export class AttestationRound {
     const validatedHashes: string[] = new Array<string>();
     const dbVoteResults = [];
     for (const validAttestation of validated) {
-      const voteHash = validAttestation.verificationData.hash!;
+      const voteHash = validAttestation.hash!;
       validatedHashes.push(voteHash);
 
       // save to DB
@@ -558,7 +557,7 @@ export class AttestationRound {
       dbVoteResult.roundId = this.roundId;
       dbVoteResult.hash = voteHash;
       dbVoteResult.requestBytes = validAttestation.data.request;
-      dbVoteResult.request = stringify(validAttestation.verificationData?.request ? hexlifyBN(validAttestation.verificationData.request) : "");
+      dbVoteResult.request = stringify(validAttestation.verificationData?.response?.request ? hexlifyBN(validAttestation.verificationData.response.request) : "");
       dbVoteResult.response = stringify(validAttestation.verificationData?.response ? hexlifyBN(validAttestation.verificationData.response) : "");
     }
 

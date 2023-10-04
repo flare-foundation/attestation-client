@@ -3,7 +3,6 @@ import Web3 from "web3";
 import { toBN } from "web3-utils";
 import { Attestation } from "../../../src/attester/Attestation";
 import { AttestationData } from "../../../src/attester/AttestationData";
-import { AttestationDefinitionStore } from "../../../src/verification/attestation-types/AttestationDefinitionStore";
 import { MIC_SALT, Verification, VerificationStatus } from "../../../src/verification/attestation-types/attestation-types";
 import { DHPayment } from "../../../src/verification/generated/attestation-hash-types";
 import { ARPayment, ARReferencedPaymentNonexistence } from "../../../src/verification/generated/attestation-request-types";
@@ -11,6 +10,7 @@ import { AttestationType } from "../../../src/verification/generated/attestation
 import { SourceId } from "../../../src/verification/sources/sources";
 import { BitVote } from "../../../typechain-web3-v1/BitVoting";
 import { AttestationRequest } from "../../../typechain-web3-v1/StateConnector";
+import { AttestationDefinitionStore } from "../../../src/external-libs/AttestationDefinitionStore";
 
 export function createBlankAtRequestEvent(
   defStore: AttestationDefinitionStore,

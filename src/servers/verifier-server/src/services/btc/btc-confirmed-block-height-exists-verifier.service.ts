@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
-import { AttestationResponse, AttestationStatus } from "../../../../../external-libs/AttestationResponse";
+import { AttestationResponse, AttestationResponseStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
 import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";

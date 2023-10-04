@@ -2,17 +2,16 @@ import BN from "bn.js";
 import { toBN } from "web3-utils";
 import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 
-import { getAttestationTypeAndSource } from "../verification/attestation-types/attestation-types-utils";
-import { AttestationType } from "../verification/generated/attestation-types-enum";
-import { SourceId } from "../verification/sources/sources";
+import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";
+import { decodeAttestationName } from "../external-libs/utils";
 
 /**
  * Class in which augmented attestation request is read from an emitted attestation request.
  */
 export class AttestationData {
   // event parameters
-  type: AttestationType;
-  sourceId: SourceId;
+  type: string;
+  sourceId: string;
   timeStamp: BN;
   request: string;
 
@@ -27,11 +26,12 @@ export class AttestationData {
     this.request = event.returnValues.data;
 
     // if error at parsing, exception is thrown
-    const { attestationType, sourceId } = getAttestationTypeAndSource(this.request);
+    const { attestationType, sourceId } = AttestationDefinitionStore.extractPrefixFromRequest(this.request);
+
 
     // values are parsed. Note that these may not be valid attestation types
-    this.type = attestationType;
-    this.sourceId = sourceId;
+    this.type = decodeAttestationName(attestationType);
+    this.sourceId = decodeAttestationName(sourceId);
 
     // for sorting
     this.blockNumber = toBN(event.blockNumber);

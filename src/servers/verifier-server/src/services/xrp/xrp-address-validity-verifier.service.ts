@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
-import { AttestationResponse, AttestationStatus } from "../../../../../external-libs/AttestationResponse";
+import { AttestationResponse, AttestationResponseStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT } from "../../../../../external-libs/utils";
 import { AddressValidity_Request, AddressValidity_RequestNoMic, AddressValidity_Response } from "../../dtos/attestation-types/AddressValidity.dto";
@@ -32,7 +32,7 @@ export class XRPAddressValidityVerifierService {
 
         // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
         const response: AttestationResponse<AddressValidity_Response> = {
-            status: AttestationStatus.VALID,
+            status: AttestationResponseStatus.VALID,
             response: this.exampleData.response,
         };
 
@@ -50,7 +50,7 @@ export class XRPAddressValidityVerifierService {
 
         // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
         const response: AttestationResponse<AddressValidity_Response> = {
-            status: AttestationStatus.VALID,
+            status: AttestationResponseStatus.VALID,
             response: {
                 ...this.exampleData.response,
                 ...request,
@@ -60,7 +60,7 @@ export class XRPAddressValidityVerifierService {
         return response;
     }
 
-    public async mic(request: AddressValidity_RequestNoMic): Promise<string> {
+    public async mic(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
         console.dir(request, { depth: null });
 
         //-$$$<start-mic> Start of custom code section. Do not change this comment.
@@ -75,10 +75,11 @@ export class XRPAddressValidityVerifierService {
             ...request,
         };
 
+        if (!response) return undefined;
         return this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!;
     }
 
-    public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<string> {
+    public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
         console.dir(request, { depth: null });
 
         //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
@@ -93,6 +94,7 @@ export class XRPAddressValidityVerifierService {
             ...request,
         };
 
+        if (!response) return undefined;
         const newRequest = {
             ...request,
             messageIntegrityCode: this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!,

@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { ARBase, ARESBase } from "./interfaces";
 import {
     readAttestationTypeConfigs,
-    decodeAttestationType,
+    decodeAttestationName,
     ABIFragment,
     remapABIParsedToObjects,
     structsDeepEqual,
@@ -62,7 +62,7 @@ export class AttestationDefinitionStore {
      * @returns
      */
     attestationResponseHash<T extends ARESBase>(response: T, salt?: string): string | null | undefined {
-        const attestationType = decodeAttestationType(response.attestationType);
+        const attestationType = decodeAttestationName(response.attestationType);
         const definition = this.getDefinitionForDecodedAttestationType(attestationType);
         if (!definition) {
             throw new Error(`Unsupported attestation type id: '${attestationType}'`);
@@ -84,7 +84,7 @@ export class AttestationDefinitionStore {
      * @param decodeAttestationTypeName
      * @returns
      */
-    extractPrefixFromRequest(bytes: string, decodeAttestationTypeName = false): ARBase {
+    static extractPrefixFromRequest(bytes: string, decodeAttestationTypeName = false): ARBase {
         if (!bytes) {
             throw new Error("Empty attestation request");
         }
@@ -96,7 +96,7 @@ export class AttestationDefinitionStore {
         }
         let attestationType = bytes.slice(0, 2 + 64);
         if (decodeAttestationTypeName) {
-            attestationType = decodeAttestationType(attestationType);
+            attestationType = decodeAttestationName(attestationType);
         }
         return {
             attestationType,
@@ -113,7 +113,7 @@ export class AttestationDefinitionStore {
      * @returns
      */
     encodeRequest(request: ARBase): string {
-        const attestationType = decodeAttestationType(request.attestationType);
+        const attestationType = decodeAttestationName(request.attestationType);
         const definition = this.getDefinitionForDecodedAttestationType(attestationType);
         if (!definition) {
             throw new Error(`Unsupported attestation type id: '${request.attestationType}'`);
@@ -138,8 +138,8 @@ export class AttestationDefinitionStore {
      * @returns
      */
     parseRequest<AR extends ARBase>(bytes: string, decodeAttestationTypeName = false): AR {
-        const prefix = this.extractPrefixFromRequest(bytes);
-        const attestationType = decodeAttestationType(prefix.attestationType);
+        const prefix = AttestationDefinitionStore.extractPrefixFromRequest(bytes);
+        const attestationType = decodeAttestationName(prefix.attestationType);
         const definition = this.getDefinitionForDecodedAttestationType(attestationType);
         if (!definition) {
             throw new Error(`Unsupported attestation type id: '${attestationType}'`);
@@ -171,7 +171,7 @@ export class AttestationDefinitionStore {
         if (request1.sourceId != request2.sourceId) {
             return false;
         }
-        const attestationType = decodeAttestationType(request1.attestationType);
+        const attestationType = decodeAttestationName(request1.attestationType);
         const requestAbi = this.getDefinitionForDecodedAttestationType(attestationType)?.requestAbi as ABIFragment;
         if (!requestAbi) {
             throw new Error(`Unsupported attestation type id: '${attestationType}'`);

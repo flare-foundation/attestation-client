@@ -18,7 +18,7 @@ import {
 import { MccTransactionType } from "../../../src/servers/verifier-server/src/verification/verification-utils";
 import { compressBin } from "../../../src/utils/compression/compression";
 import { Payment_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
-import { MIC_SALT, encodeAttestationType } from "../../../src/external-libs/utils";
+import { MIC_SALT, encodeAttestationName } from "../../../src/external-libs/utils";
 import { AttestationDefinitionStore } from "../../../src/external-libs/AttestationDefinitionStore";
 import { BalanceDecreasingTransaction_Request, BalanceDecreasingTransaction_RequestBody } from "../../../src/servers/verifier-server/src/dtos/attestation-types/BalanceDecreasingTransaction.dto";
 import { ConfirmedBlockHeightExists_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
@@ -361,7 +361,7 @@ export async function testPaymentRequest(
   utxo: number = 0
 ) {
   const request = {
-    attestationType: encodeAttestationType("Payment"),
+    attestationType: encodeAttestationName("Payment"),
     sourceId: sourceIdToBytes32(chainType as unknown as SourceId),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     requestBody: {
@@ -387,7 +387,7 @@ export async function testBalanceDecreasingTransactionRequest(
   sourceAddressIndicator: string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 ) {
   const request = {
-    attestationType: encodeAttestationType("BalanceDecreasingTransaction"),
+    attestationType: encodeAttestationName("BalanceDecreasingTransaction"),
     sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     requestBody: {
@@ -413,7 +413,7 @@ export async function testConfirmedBlockHeightExistsRequest(
   queryWindow: number
 ) {
   const request = {
-    attestationType: encodeAttestationType("ConfirmedBlockHeightExists"),
+    attestationType: encodeAttestationName("ConfirmedBlockHeightExists"),
     sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     requestBody: {
@@ -445,7 +445,7 @@ export async function testReferencedPaymentNonexistenceRequest(
 ) {
 
   const request = {
-    attestationType: encodeAttestationType("ReferencedPaymentNonexistence"),
+    attestationType: encodeAttestationName("ReferencedPaymentNonexistence"),
     sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     requestBody: {

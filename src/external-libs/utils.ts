@@ -87,7 +87,7 @@ export function isSupportedBasicSolidityType(type: string): boolean {
  * @param attestationTypeName
  * @returns '0x'-prefixed hex string representing 32-bytes
  */
-export function encodeAttestationType(attestationTypeName: string) {
+export function encodeAttestationName(attestationTypeName: string) {
     if (typeof attestationTypeName !== "string") {
         throw new Error(`Attestation type name must be a string. Provided value ${attestationTypeName}`);
     }
@@ -106,7 +106,7 @@ export function encodeAttestationType(attestationTypeName: string) {
  * @param encoded Should be a '0x'-prefixed hex string representing exactly 32-bytes.
  * @returns
  */
-export function decodeAttestationType(encoded: string) {
+export function decodeAttestationName(encoded: string) {
     if (!/^0x[0-9a-fA-F]{64}$/i.test(encoded)) {
         throw new Error("Not a 0x-prefixed 32-byte hex string");
     }

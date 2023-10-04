@@ -6,17 +6,9 @@ import { DBBlockBase } from "../../../src/entity/indexer/dbBlock";
 import { DBState } from "../../../src/entity/indexer/dbState";
 import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
 import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
-import { AttestationDefinitionStore } from "../../../src/verification/attestation-types/AttestationDefinitionStore";
-import { MIC_SALT, NumberLike } from "../../../src/verification/attestation-types/attestation-types";
 import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
-import {
-  ARBalanceDecreasingTransaction,
-  ARConfirmedBlockHeightExists,
-  ARPayment,
-  ARReferencedPaymentNonexistence,
-} from "../../../src/verification/generated/attestation-request-types";
 import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
-import { SourceId, getSourceName } from "../../../src/verification/sources/sources";
+import { SourceId, getSourceName, sourceIdToBytes32 } from "../../../src/verification/sources/sources";
 import {
   responseBalanceDecreasingTransaction,
   responseConfirmedBlockHeightExists,
@@ -25,6 +17,13 @@ import {
 } from "../../../src/servers/verifier-server/src/verification/generic-chain-verifications";
 import { MccTransactionType } from "../../../src/servers/verifier-server/src/verification/verification-utils";
 import { compressBin } from "../../../src/utils/compression/compression";
+import { Payment_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
+import { MIC_SALT, encodeAttestationType } from "../../../src/external-libs/utils";
+import { AttestationDefinitionStore } from "../../../src/external-libs/AttestationDefinitionStore";
+import { BalanceDecreasingTransaction_Request, BalanceDecreasingTransaction_RequestBody } from "../../../src/servers/verifier-server/src/dtos/attestation-types/BalanceDecreasingTransaction.dto";
+import { ConfirmedBlockHeightExists_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { NumberLike } from "../../../src/verification/attestation-types/attestation-types";
+import { ReferencedPaymentNonexistence_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ReferencedPaymentNonexistence.dto";
 
 const TEST_DATA_PATH = "test/indexed-query-manager/test-data";
 
@@ -193,7 +192,7 @@ function generateTransactionsForBlock(chainType: ChainType, blockNumber: number,
     transaction.paymentReference = "";
     transaction.isNativePayment = true;
     transaction.transactionType = "";
-    transaction.response = compressBin( addTransactionResponse(transaction, i) );
+    transaction.response = compressBin(addTransactionResponse(transaction, i));
     transactions.push(transaction);
   }
   return transactions;
@@ -317,7 +316,7 @@ export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
 
 export function firstAddressVin(dbTransaction: DBTransactionBase) {
   let response = JSON.parse(dbTransaction.getResponse());
-  for(let i = 0; i < response.data.vin.length; i++) {
+  for (let i = 0; i < response.data.vin.length; i++) {
     if (response.data.vin[i].prevout.scriptPubKey?.address) {
       return i;
     }
@@ -361,19 +360,21 @@ export async function testPaymentRequest(
   inUtxo: number = 0,
   utxo: number = 0
 ) {
-  const responseData = await responsePayment(dbTransaction, TransactionClass, inUtxo, utxo, undefined);
-
   const request = {
-    attestationType: AttestationType.Payment,
-    sourceId: chainType as any as SourceId,
+    attestationType: encodeAttestationType("Payment"),
+    sourceId: sourceIdToBytes32(chainType as unknown as SourceId),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    id: prefix0x(dbTransaction.transactionId),
-    blockNumber: responseData.response?.blockNumber,
-    inUtxo,
-    utxo,
-  } as ARPayment;
+    requestBody: {
+      transactionId: prefix0x(dbTransaction.transactionId),
+      inUtxo: inUtxo.toString(),
+      utxo: utxo.toString(),
+    }
+  } as Payment_Request;
+
+  const responseData = await responsePayment(dbTransaction, TransactionClass, request, undefined);
+
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
   }
   return request;
 }
@@ -385,18 +386,20 @@ export async function testBalanceDecreasingTransactionRequest(
   chainType: ChainType,
   sourceAddressIndicator: string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 ) {
-  const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, sourceAddressIndicator, undefined);
-
   const request = {
-    attestationType: AttestationType.BalanceDecreasingTransaction,
-    sourceId: chainType as any as SourceId,
+    attestationType: encodeAttestationType("BalanceDecreasingTransaction"),
+    sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    id: prefix0x(dbTransaction.transactionId),
-    blockNumber: responseData.response?.blockNumber,
-    sourceAddressIndicator,
-  } as ARBalanceDecreasingTransaction;
+    requestBody: {
+      transactionId: prefix0x(dbTransaction.transactionId),
+      sourceAddressIndicator,
+    }
+  } as BalanceDecreasingTransaction_Request;
+
+  const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request, undefined);
+
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
   }
   return request;
 }
@@ -409,17 +412,20 @@ export async function testConfirmedBlockHeightExistsRequest(
   numberOfConfirmations: number,
   queryWindow: number
 ) {
-  const responseData = await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, numberOfConfirmations);
-
   const request = {
-    attestationType: AttestationType.ConfirmedBlockHeightExists,
-    sourceId: chainType as any as SourceId,
+    attestationType: encodeAttestationType("ConfirmedBlockHeightExists"),
+    sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    blockNumber: dbBlock.blockNumber,
-    queryWindow,
-  } as ARConfirmedBlockHeightExists;
+    requestBody: {
+      blockNumber: dbBlock.blockNumber.toString(),
+      queryWindow: queryWindow.toString(),
+    }
+  } as ConfirmedBlockHeightExists_Request;
+
+  const responseData = await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, numberOfConfirmations, request);
+
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
   }
   return request;
 }
@@ -437,32 +443,32 @@ export async function testReferencedPaymentNonexistenceRequest(
   paymentReference: string,
   amount: NumberLike
 ) {
+
+  const request = {
+    attestationType: encodeAttestationType("ReferencedPaymentNonexistence"),
+    sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
+    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    requestBody: {
+      minimalBlockNumber: lowerBoundaryBlock.blockNumber.toString(),
+      deadlineBlockNumber: deadlineBlockNumber.toString(),
+      deadlineTimestamp: deadlineTimestamp.toString(),
+      destinationAddressHash: Web3.utils.soliditySha3(destinationAddress),
+      amount: amount.toString(),
+      standardPaymentReference: paymentReference,
+    }
+  } as ReferencedPaymentNonexistence_Request;
+
   const responseData = await responseReferencedPaymentNonExistence(
     dbTransactions,
     TransactionClass,
     firstOverflowBlock,
     lowerBoundaryBlock,
-    deadlineBlockNumber,
-    deadlineTimestamp,
-    Web3.utils.soliditySha3(destinationAddress),
-    paymentReference,
-    amount
+    request
   );
 
-  const request = {
-    attestationType: AttestationType.ReferencedPaymentNonexistence,
-    sourceId: chainType as any as SourceId,
-    minimalBlockNumber: lowerBoundaryBlock.blockNumber,
-    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    deadlineBlockNumber,
-    deadlineTimestamp,
-    destinationAddressHash: Web3.utils.soliditySha3(destinationAddress),
-    amount,
-    paymentReference,
-  } as ARReferencedPaymentNonexistence;
 
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
   }
 
   return request;

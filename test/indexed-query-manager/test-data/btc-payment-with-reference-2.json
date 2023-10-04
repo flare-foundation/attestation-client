@@ -1,5 +1,36 @@
 {
-  "additionalData": {},
+  "additionalData": {
+    "vinouts": [
+      {
+        "index": 0,
+        "vinvout": {
+          "n": 1,
+          "scriptPubKey": {
+            "address": "tb1qclncftkey54rmce6ncvv2pt9e5tnfjtt7ujr5p",
+            "asm": "0 c7e784aed9252a3de33a9e18c50565cd1734c96b",
+            "desc": "addr(tb1qclncftkey54rmce6ncvv2pt9e5tnfjtt7ujr5p)#cylax9sq",
+            "hex": "0014c7e784aed9252a3de33a9e18c50565cd1734c96b",
+            "type": "witness_v0_keyhash"
+          },
+          "value": 0.00008235
+        }
+      },
+      {
+        "index": 1,
+        "vinvout": {
+          "n": 2,
+          "scriptPubKey": {
+            "address": "tb1qclncftkey54rmce6ncvv2pt9e5tnfjtt7ujr5p",
+            "asm": "0 c7e784aed9252a3de33a9e18c50565cd1734c96b",
+            "desc": "addr(tb1qclncftkey54rmce6ncvv2pt9e5tnfjtt7ujr5p)#cylax9sq",
+            "hex": "0014c7e784aed9252a3de33a9e18c50565cd1734c96b",
+            "type": "witness_v0_keyhash"
+          },
+          "value": 0.00006409
+        }
+      }
+    ]
+  },
   "data": {
     "txid": "7e97d5bf2ab5f369792dc84d3e746196ac161d97c383ebedfa603df73c69d7cc",
     "hash": "f6a6704f958ad4de9f82bcfb5d7df326fd7f7a9344c9d30a7929ad4d558405b9",

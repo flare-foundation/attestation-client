@@ -15,7 +15,7 @@ export class BTCAddressValidityVerifierService {
 
     constructor() {
         this.store = new AttestationDefinitionStore("configs/type-definitions");
-        this.exampleData = JSON.parse(readFileSync("src/example-data/AddressValidity.json", "utf8"));
+        this.exampleData = JSON.parse(readFileSync("src/servers/verifier-server/src/example-data/AddressValidity.json", "utf8"));
     }
 
     //-$$$<end-constructor> End of custom code section. Do not change this comment.
@@ -60,7 +60,7 @@ export class BTCAddressValidityVerifierService {
         return response;
     }
 
-    public async mic(request: AddressValidity_RequestNoMic): Promise<string> {
+    public async mic(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
         console.dir(request, { depth: null });
 
         //-$$$<start-mic> Start of custom code section. Do not change this comment.
@@ -75,10 +75,11 @@ export class BTCAddressValidityVerifierService {
             ...request,
         };
 
+        if (!response) return undefined;
         return this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!;
     }
 
-    public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<string> {
+    public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
         console.dir(request, { depth: null });
 
         //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
@@ -93,6 +94,7 @@ export class BTCAddressValidityVerifierService {
             ...request,
         };
 
+        if (!response) return undefined;
         const newRequest = {
             ...request,
             messageIntegrityCode: this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!,

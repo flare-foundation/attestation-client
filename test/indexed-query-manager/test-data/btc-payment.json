@@ -1,5 +1,64 @@
 {
-  "additionalData": {},
+  "additionalData": {
+    "vinouts": [
+      {
+        "index": 0,
+        "vinvout": {
+          "n": 2,
+          "scriptPubKey": {
+            "address": "tb1qth4kg95c3avwzwh0xzsh8r78ucnrn9c3a7awtn",
+            "asm": "0 5deb6416988f58e13aef30a1738fc7e626399711",
+            "desc": "addr(tb1qth4kg95c3avwzwh0xzsh8r78ucnrn9c3a7awtn)#vdh4uend",
+            "hex": "00145deb6416988f58e13aef30a1738fc7e626399711",
+            "type": "witness_v0_keyhash"
+          },
+          "value": 0.01116254
+        }
+      },
+      {
+        "index": 1,
+        "vinvout": {
+          "n": 0,
+          "scriptPubKey": {
+            "address": "tb1qth4kg95c3avwzwh0xzsh8r78ucnrn9c3a7awtn",
+            "asm": "0 5deb6416988f58e13aef30a1738fc7e626399711",
+            "desc": "addr(tb1qth4kg95c3avwzwh0xzsh8r78ucnrn9c3a7awtn)#vdh4uend",
+            "hex": "00145deb6416988f58e13aef30a1738fc7e626399711",
+            "type": "witness_v0_keyhash"
+          },
+          "value": 0.00006
+        }
+      },
+      {
+        "index": 2,
+        "vinvout": {
+          "n": 0,
+          "scriptPubKey": {
+            "address": "tb1qth4kg95c3avwzwh0xzsh8r78ucnrn9c3a7awtn",
+            "asm": "0 5deb6416988f58e13aef30a1738fc7e626399711",
+            "desc": "addr(tb1qth4kg95c3avwzwh0xzsh8r78ucnrn9c3a7awtn)#vdh4uend",
+            "hex": "00145deb6416988f58e13aef30a1738fc7e626399711",
+            "type": "witness_v0_keyhash"
+          },
+          "value": 0.0132738
+        }
+      },
+      {
+        "index": 3,
+        "vinvout": {
+          "n": 0,
+          "scriptPubKey": {
+            "address": "tb1qth4kg95c3avwzwh0xzsh8r78ucnrn9c3a7awtn",
+            "asm": "0 5deb6416988f58e13aef30a1738fc7e626399711",
+            "desc": "addr(tb1qth4kg95c3avwzwh0xzsh8r78ucnrn9c3a7awtn)#vdh4uend",
+            "hex": "00145deb6416988f58e13aef30a1738fc7e626399711",
+            "type": "witness_v0_keyhash"
+          },
+          "value": 0.01216672
+        }
+      }
+    ]
+  },
   "data": {
     "txid": "1ab7ed0642bf84b2d86b62e160da85642358604e7c2b3e5ae14f31cc1afc58f2",
     "hash": "bab57573eccfd6d868b131d068c3baddf143809b2ed3f2f8541ab52c0c181965",

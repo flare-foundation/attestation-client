@@ -11,17 +11,16 @@ import { AttesterState } from "../../src/attester/AttesterState";
 import { BitVoteData } from "../../src/attester/BitVoteData";
 import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
 import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
+import { AttestationResponseStatus } from "../../src/external-libs/AttestationResponse";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
-import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
-import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createAttestationVerificationPair, createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
 import { MockFlareConnection } from "./utils/mockClasses";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
+import { ethers } from "ethers";
 
 chai.use(chaiAsPromised);
 
@@ -71,8 +70,7 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
     flareConnection.addDefaultAddress(fakeAddresses);
 
     roundManager = new AttestationRoundManager(attestationClientConfig, logger, flareConnection);
-    defStore = new AttestationDefinitionStore();
-    await defStore.initialize();
+    defStore = new AttestationDefinitionStore("configs/type-definitions");
 
   });
 
@@ -128,7 +126,7 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
     const time = TEST_START_TIME * 1000 + 1;
     const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
-    const pair = createAttestationVerificationPair(defStore, "11", 161, 1, true, VerificationStatus.OK);
+    const pair = createAttestationVerificationPair(defStore, "11", 161, 1, true, AttestationResponseStatus.VALID);
     const data = pair.attestation.data;
 
     data.timeStamp = toBN(TEST_START_TIME);
@@ -150,7 +148,7 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
     const time = TEST_START_TIME * 1000 + 1;
     const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
-    const pair = createAttestationVerificationPair(defStore, "11", 161, 0, true, VerificationStatus.OK);
+    const pair = createAttestationVerificationPair(defStore, "11", 161, 0, true, AttestationResponseStatus.VALID);
     const data = pair.attestation.data;
     data.timeStamp = toBN(123);
 
@@ -171,7 +169,7 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
     const time = TEST_START_TIME * 1000 + 1;
     const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
-    const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, 15 as any, 1, "0xFakeMIC", "" + TEST_START_TIME);
+    const event = createBlankAtRequestEvent(defStore, "Payment", "NonExisting", 1, ethers.zeroPadBytes("0x0123aa", 32), "" + TEST_START_TIME);
     const attData = new AttestationData(event);
     await roundManager.onAttestationRequest(attData);
 

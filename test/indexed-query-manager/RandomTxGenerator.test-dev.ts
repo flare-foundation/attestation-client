@@ -1,20 +1,19 @@
 // Run tests with the following command lines:
 
-import { ChainType } from "@flarenetwork/mcc";
+import { ChainType, MCC } from "@flarenetwork/mcc";
 import { assert } from "chai";
 import { DataSource, DataSourceOptions } from "typeorm";
 import { DBBlockBase, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBase, DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
-import { prepareGenerator, prepareRandomGenerators, TxOrBlockGeneratorType } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { TxOrBlockGeneratorType, prepareGenerator, prepareRandomGenerators } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
 import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
-import { SourceId } from "../../src/verification/sources/sources";
 import { generateTestIndexerDB } from "./utils/indexerTestDataGenerator";
 
-const SOURCE_ID = SourceId[process.env.SOURCE_ID] ?? SourceId.XRP;
+const CHAIN_TYPE = MCC.getChainType(process.env.SOURCE_ID) ?? ChainType.XRP;
 const NUMBER_OF_CONFIRMATIONS = 1;
 const BATCH_SIZE = 100;
 const TOP_UP_THRESHOLD = 0.25;
@@ -50,7 +49,7 @@ describe("Indexed query manager", () => {
 
     const options: IndexedQueryManagerOptions = {
       entityManager: dataSource.manager,
-      chainType: SOURCE_ID as any as ChainType,
+      chainType: CHAIN_TYPE,
       numberOfConfirmations: () => { return NUMBER_OF_CONFIRMATIONS },
     } as IndexedQueryManagerOptions;
     indexedQueryManager = new IndexedQueryManager(options);

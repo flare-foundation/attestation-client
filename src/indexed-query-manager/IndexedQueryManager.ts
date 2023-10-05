@@ -1,9 +1,9 @@
+import { MCC } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
-import { getSourceName } from "../verification/sources/sources";
 import {
   BlockHeightSample,
   BlockQueryParams,
@@ -68,7 +68,7 @@ export class IndexedQueryManager {
    * @returns identifier name for value `N`
    */
   getChainN() {
-    return `${getSourceName(this.settings.chainType)}_N`;
+    return `${MCC.getChainTypeName(this.settings.chainType)}_N`;
   }
 
   /**
@@ -76,7 +76,7 @@ export class IndexedQueryManager {
    * @returns identifier name for value `T`
    */
   getChainT() {
-    return `${getSourceName(this.settings.chainType)}_T`;
+    return `${MCC.getChainTypeName(this.settings.chainType)}_T`;
   }
 
   /**

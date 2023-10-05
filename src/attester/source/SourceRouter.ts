@@ -1,6 +1,5 @@
 import { Managed } from "@flarenetwork/mcc";
 import { AttLogger } from "../../utils/logging/logger";
-import { SourceId, toSourceId } from "../../verification/sources/sources";
 import { GlobalConfigManager } from "../GlobalConfigManager";
 import { SourceManager } from "./SourceManager";
 
@@ -26,7 +25,7 @@ export class SourceRouter {
   initializeSourcesForRound(roundId: number) {
     let verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
     for (let sourceName of verifierRouter.routeMap.keys()) {
-      const sourceId = sourceName;
+      const sourceId = sourceName;      
       // if (sourceId === SourceId.invalid) {
       //   this.logger.error(`Invalid source id. This should never happen! Terminating!`);
       //   process.exit(1);

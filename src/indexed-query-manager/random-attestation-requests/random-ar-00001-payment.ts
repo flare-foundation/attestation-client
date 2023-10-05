@@ -2,13 +2,12 @@ import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
-import { ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
+import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
 import { Payment_Request } from "../../servers/verifier-server/src/dtos/attestation-types/Payment.dto";
 import { verifyPayment } from "../../servers/verifier-server/src/verification/generic-chain-verifications";
 import { AttLogger } from "../../utils/logging/logger";
-import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { SourceId, sourceIdToBytes32 } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
@@ -28,7 +27,7 @@ export async function prepareRandomizedRequestPayment(
   logger: AttLogger,
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
-  sourceId: SourceId,
+  sourceId: string,
   TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomPaymentChoiceType,
   client?: MccClient
@@ -46,7 +45,7 @@ export async function prepareRandomizedRequestPayment(
   const blockNumber = randomTransaction.blockNumber;
   const request = {
     attestationType: encodeAttestationName("Payment"),
-    sourceId: sourceIdToBytes32(sourceId as unknown as SourceId),
+    sourceId: encodeAttestationName(sourceId),
     messageIntegrityCode: ZERO_BYTES_32, // TODO change,
     requestBody: {
       transactionId: id,

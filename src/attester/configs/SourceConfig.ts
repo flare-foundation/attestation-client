@@ -1,7 +1,5 @@
 import { optional } from "@flarenetwork/mcc";
 import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflection";
-import { AttestationType } from "../../verification/generated/attestation-types-enum";
-import { SourceId, toSourceId } from "../../verification/sources/sources";
 import { AttestationTypeConfig } from "./AttestationTypeConfig";
 
 /**

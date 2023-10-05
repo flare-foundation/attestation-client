@@ -1,17 +1,15 @@
 import fs from "fs";
 import path from "path";
 import Web3 from "web3";
+import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";
 import { getSecureConfigRootPath, readSecureConfig } from "../utils/config/configSecure";
 import { readJSONfromFile } from "../utils/config/json";
-import { checkChainTypesMatchSourceIds } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { isEqualType } from "../utils/reflection/typeReflection";
-import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
 import { VerifierRouter } from "../verification/routing/VerifierRouter";
 import { VerifierRouteConfig } from "../verification/routing/configs/VerifierRouteConfig";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 import { GlobalAttestationConfig } from "./configs/GlobalAttestationConfig";
-import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";
 
 const VERIFIER_CONFIG_FILE_RE = /^verifier-routes-(\d+)-config.json$/;
 const GLOBAL_CONFIG_FILE_RE = /^global-(\d+)-config.json$/;
@@ -44,11 +42,11 @@ export class GlobalConfigManager {
     this.logger = logger;
     this.attestationClientConfig = attestationClientConfig;
     // Require matching of each ChainType to some SourceId.
-    if (!checkChainTypesMatchSourceIds(this.logger)) {
-      this.logger.error("Discrepancy between ChainType and SourceId enums. Critical error.");
-      process.exit(1);
-      return; // Don't delete needed for testing
-    }
+    // if (!checkChainTypesMatchSourceIds(this.logger)) {
+    //   this.logger.error("Discrepancy between ChainType and SourceId enums. Critical error.");
+    //   process.exit(1);
+    //   return; // Don't delete needed for testing
+    // }
     this.definitionStore = new AttestationDefinitionStore("configs/type-definitions");
   }
 
@@ -198,7 +196,7 @@ export class GlobalConfigManager {
    *
    */
   private async refreshVerifierConfigs() {
-    const definitions = await readAttestationTypeSchemes();
+    const defStore = new AttestationDefinitionStore("configs/type-definitions");
     let globalPath = getSecureConfigRootPath();
     let templateFolderPath = path.join(globalPath, `templates/verifier-client`);
     let files = fs.readdirSync(templateFolderPath);
@@ -217,7 +215,7 @@ export class GlobalConfigManager {
       // Create new router for new config
       if (!router) {
         router = new VerifierRouter();
-        router.initialize(config, definitions);
+        router.initialize(config, defStore);
         this.hashToVerifierRouter.set(hash, router);
         this.logger.info(`New config for round ${config.startRoundId} loaded.`);
       }

@@ -1,13 +1,12 @@
 import { MccClient, toBN } from "@flarenetwork/mcc";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
-import { ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
+import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
 import { ConfirmedBlockHeightExists_Request } from "../../servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
 import { verifyConfirmedBlockHeightExists } from "../../servers/verifier-server/src/verification/generic-chain-verifications";
 import { AttLogger } from "../../utils/logging/logger";
-import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { SourceId, sourceIdToBytes32 } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
@@ -27,7 +26,7 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   logger: AttLogger,
   indexedQueryManager: IndexedQueryManager,
   randomBlock: DBBlockBase,
-  sourceId: SourceId,
+  sourceId: string,
   TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomConfirmedBlockHeightExistsChoiceType,
   client?: MccClient,
@@ -48,7 +47,7 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   const blockNumber = toBN(randomBlock.blockNumber);
   const request = {
     attestationType: encodeAttestationName("ConfirmedBlockHeightExists"),
-    sourceId: sourceIdToBytes32(sourceId as unknown as SourceId),
+    sourceId,
     messageIntegrityCode: ZERO_BYTES_32,
     requestBody: {
       blockNumber: blockNumber.toString(),

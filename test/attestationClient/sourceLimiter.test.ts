@@ -5,14 +5,14 @@ import { AttestationTypeConfig } from "../../src/attester/configs/AttestationTyp
 import { SourceConfig } from "../../src/attester/configs/SourceConfig";
 import { SourceLimiter } from "../../src/attester/source/SourceLimiter";
 import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
+import { encodeAttestationName } from "../../src/external-libs/utils";
+import { ReferencedPaymentNonexistence_Request } from "../../src/servers/verifier-server/src/dtos/attestation-types/ReferencedPaymentNonexistence.dto";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { ARReferencedPaymentNonexistence } from "../../src/verification/generated/attestation-request-types";
-import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
-import { SourceId } from "../../src/verification/sources/sources";
+import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 import { getTestFile } from "../test-utils/test-utils";
 import { createBlankAtRequestEvent } from "./utils/createEvents";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
-import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
+import { ethers } from "ethers";
 
 describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -30,39 +30,40 @@ describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
 
   const sourceLimiter = new SourceLimiter(config, getGlobalLogger());
 
-  let event: AttestationRequest; 
+  let event: AttestationRequest;
   let attData: AttestationData;
   let attestation: Attestation;
 
-  let event2: AttestationRequest; 
+  let event2: AttestationRequest;
   let attData2: AttestationData;
   let attestation2: Attestation;
 
-  const arRef: ARReferencedPaymentNonexistence = {
-    attestationType: 15 as any,
-    sourceId: 2,
+  const arRef: ReferencedPaymentNonexistence_Request = {
+    attestationType: encodeAttestationName("Invalid"),
+    sourceId: encodeAttestationName("DOGE"),
     messageIntegrityCode: "0xfakeMIC",
-    minimalBlockNumber: 2,
-    deadlineBlockNumber: 5,
-    deadlineTimestamp: 5312,
-    destinationAddressHash: "0xFakeAdress",
-    amount: 100,
-    paymentReference: "0xfakeref",
+    requestBody: {
+      minimalBlockNumber: "2",
+      deadlineBlockNumber: "5",
+      deadlineTimestamp: "5312",
+      destinationAddressHash: "0xFakeAdress",
+      amount: "100",
+      standardPaymentReference: "0xfakeref",
+    }
   };
 
   let defStore: AttestationDefinitionStore;
 
   before(async function () {
-    defStore = new AttestationDefinitionStore();
-    await defStore.initialize();
+    defStore = new AttestationDefinitionStore("configs/type-definitions");
 
-    event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
+    event = createBlankAtRequestEvent(defStore, "Payment", "XRP", 1, ethers.zeroPadBytes("0x0123aa", 32), "123",ethers.zeroPadBytes( "0x1d1d1d", 32));
     attData = new AttestationData(event);
     attestation = new Attestation(14, attData);
 
-    event2 = createBlankAtRequestEvent(defStore, AttestationType.ReferencedPaymentNonexistence, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
+    event2 = createBlankAtRequestEvent(defStore, "ReferencedPaymentNonexistence", "XRP", 1, ethers.zeroPadBytes("0x0123aa", 32), "123", ethers.zeroPadBytes("0x1d1d1d", 32));
     attData2 = new AttestationData(event2);
-    attestation2 = new Attestation(15, attData2);  
+    attestation2 = new Attestation(15, attData2);
   });
 
   it("Should construct sourceLimiter", function () {

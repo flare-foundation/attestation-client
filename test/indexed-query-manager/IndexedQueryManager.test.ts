@@ -3,16 +3,13 @@ import { assert } from "chai";
 import { DataSource, DataSourceOptions } from "typeorm";
 import { DBBlockBase, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBase, DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
-import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
-import { generateTestIndexerDB, selectBlock, selectedReferencedTx, ZERO_PAYMENT_REFERENCE } from "./utils/indexerTestDataGenerator";
+import { ZERO_PAYMENT_REFERENCE, generateTestIndexerDB, selectBlock, selectedReferencedTx } from "./utils/indexerTestDataGenerator";
 
-// XRP
-const SOURCE_ID = SourceId.XRP;
 // To setup the correct entities in the database
 
 const NUMBER_OF_CONFIRMATIONS = 1;
@@ -59,7 +56,7 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
 
     const options: IndexedQueryManagerOptions = {
       entityManager: dataSource.manager,
-      chainType: SOURCE_ID as any as ChainType,
+      chainType: CHAIN_TYPE,
       numberOfConfirmations: () => {
         return NUMBER_OF_CONFIRMATIONS;
       },

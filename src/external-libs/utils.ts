@@ -112,7 +112,7 @@ export function decodeAttestationName(encoded: string) {
     }
     let stripped = encoded.replace(/0+$/, "");
     // if the string is odd-length, add a zero to the end for full bytes
-    stripped = stripped.length % 2 == 0 ? stripped : stripped + "";
+    stripped = stripped.length % 2 == 0 ? stripped : stripped + "0";
     const bytes = ethers.toBeArray(stripped);
     return ethers.toUtf8String(bytes);
 }

@@ -26,7 +26,7 @@ export class DOGEConfirmedBlockHeightExistsVerifierController {
     @HttpCode(200)
     @Post()
     async verify(@Body() body: EncodedRequestBody): Promise<AttestationResponseDTO<ConfirmedBlockHeightExists_Response>> {
-        return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest);
+        return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest!);
     }
 
     /**

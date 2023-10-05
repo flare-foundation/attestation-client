@@ -4,9 +4,6 @@ import { PriorityQueue } from "../../utils/data-structures/PriorityQueue";
 import { getTimeMs, getTimeSec } from "../../utils/helpers/internetTime";
 import { arrayRemoveElement } from "../../utils/helpers/utils";
 import { AttLogger, logException } from "../../utils/logging/logger";
-import {
-  MIC_SALT
-} from "../../verification/attestation-types/attestation-types";
 
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse, AttestationResponseStatus } from "../../external-libs/AttestationResponse";
@@ -14,6 +11,7 @@ import { VerifierSourceRouteConfig } from "../../verification/routing/configs/Ve
 import { Attestation } from "../Attestation";
 import { GlobalConfigManager } from "../GlobalConfigManager";
 import { AttestationStatus } from "../types/AttestationStatus";
+import { MIC_SALT } from "../../external-libs/utils";
 
 @Managed()
 export class SourceManager {

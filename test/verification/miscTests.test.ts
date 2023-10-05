@@ -1,32 +1,31 @@
+import { ChainType, MCC } from "@flarenetwork/mcc";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { getRandomRequestForAttestationTypeAndSourceId } from "../../src/verification/generated/attestation-random-utils";
-import { AttestationType, getAttestationTypeName } from "../../src/verification/generated/attestation-types-enum";
-import { SourceId, getSourceName, toSourceId } from "../../src/verification/sources/sources";
-import { getTestFile } from "../test-utils/test-utils";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
 import { arrayRemoveElement } from "../../src/utils/helpers/utils";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
 import { prefix0xSigned } from "../../src/verification/attestation-types/attestation-types-helpers";
-import { assertEqualsByScheme } from "../../src/verification/attestation-types/attestation-types-utils";
+import { randomBalanceDecreasingTransactionExample } from "../random-example-generators/BalanceDecreasingTransaction";
+import { randomConfirmedBlockHeightExistsExample } from "../random-example-generators/ConfirmedBlockHeightExists";
+import { randomPaymentExample } from "../random-example-generators/Payment";
+import { randomReferencedPaymentNonexistenceExample } from "../random-example-generators/ReferencedPaymentNonexistence";
+import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
 
-let defStore = new AttestationDefinitionStore()
+const  defStore = new AttestationDefinitionStore("configs/type-definitions")
+const SOURCES = ["XRP", "BTC", "DOGE"];
+const ATTESTATION_TYPES = ["Payment", "BalanceDecreasingTransaction", "ConfirmedBlockHeightExists", "ReferencedPaymentNonexistence"]
+const VOTING_ROUND = 100;
+const RANDOM_GENERATOR = {
+  "Payment": randomPaymentExample, 
+  "BalanceDecreasingTransaction": randomBalanceDecreasingTransactionExample, 
+  "ConfirmedBlockHeightExists": randomConfirmedBlockHeightExistsExample, 
+  "ReferencedPaymentNonexistence": randomReferencedPaymentNonexistenceExample
+}
 
 describe(`Misc verifier utils, (${getTestFile(__filename)})`,  function () {
   before(async function () {
-    await defStore.initialize();
   })
-
-  it("Should get attestation type name", function () {
-    const res1 = getAttestationTypeName(AttestationType.Payment);
-    expect(res1).to.eq("Payment");
-    const res2 = getAttestationTypeName(15);
-    const res3 = getAttestationTypeName(null);
-
-    expect(res2, "not in enum").to.eq(null);
-    expect(res3, "undefined").to.eq(null);
-  });
 
   it("Should remove element from the array", function () {
     let ar: number[][] = [];
@@ -51,51 +50,35 @@ describe(`Misc verifier utils, (${getTestFile(__filename)})`,  function () {
   });
 
   it("Should not get source name", function () {
-    const res = getSourceName(15);
-    expect(res).to.eq(null);
-  });
-
-  it("Should  convert to source id", function () {
-    const res1 = toSourceId(15);
-    expect(res1).to.eq(15);
-
-    const res2 = toSourceId(undefined);
-    expect(res2).to.eq(-1);
+    const res = MCC.getChainTypeName(ChainType.invalid);
+    expect(res).to.eq("invalid");
   });
 
   describe("Equality of requests", function () {
     it("Should check that request are not equal if they are of different types", function () {
-      const res1 = getRandomRequestForAttestationTypeAndSourceId(AttestationType.ConfirmedBlockHeightExists, SourceId.BTC);
-      const res2 = getRandomRequestForAttestationTypeAndSourceId(AttestationType.Payment, SourceId.BTC);
+      const res1 = randomConfirmedBlockHeightExistsExample(100, "BTC").request;
+      const res2 = randomPaymentExample(100, "BTC").request;
       const res = defStore.equalsRequest(res1, res2);
       assert(!res);
     });
 
-    for (let j = 1; j < 5; j++) {
-      it(`Should check that request of type ${getAttestationTypeName(j)} are different source`, function () {
-        const res1 = getRandomRequestForAttestationTypeAndSourceId(j, SourceId.BTC);
-        const res2 = getRandomRequestForAttestationTypeAndSourceId(j, SourceId.ALGO);
-
+    for (let attestationType of ATTESTATION_TYPES) {
+      it(`Should check that request of type ${attestationType} are different source`, function () {
+        const res1 = RANDOM_GENERATOR[attestationType](VOTING_ROUND, "BTC").request;
+        const res2 = RANDOM_GENERATOR[attestationType](VOTING_ROUND, "DOGE").request;
         const res = defStore.equalsRequest(res1, res2);
-
         assert(!res);
       });
     }
     it(`Should check that two randomly generated requests equal type and sourceId are different`, function () {
-      for (let j = 1; j < 5; j++) {
-        for (let i = 0; i < 5; i++) {
-          const res1 = getRandomRequestForAttestationTypeAndSourceId(j, i);
-          const res2 = getRandomRequestForAttestationTypeAndSourceId(j, i);
-
+      for (let attestationType of ATTESTATION_TYPES) {
+        for (let sourceId of SOURCES) {
+          const res1 = RANDOM_GENERATOR[attestationType](VOTING_ROUND, sourceId).request;
+          const res2 = RANDOM_GENERATOR[attestationType](VOTING_ROUND, sourceId).request;
           const res = defStore.equalsRequest(res1, res2);
-
-          assert(!res, `${getAttestationTypeName(j)}, ${SourceId[i]}`);
+          assert(!res, `${attestationType}, ${sourceId}`);
         }
       }
-    });
-
-    it("Should not check  equality for unknown type", function () {
-      expect(() => assertEqualsByScheme(undefined, undefined, "not valid")).to.throw("Wrong type");
     });
   });
 });

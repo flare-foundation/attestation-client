@@ -26,7 +26,7 @@ export class XRPAddressValidityVerifierController {
     @HttpCode(200)
     @Post()
     async verify(@Body() body: EncodedRequestBody): Promise<AttestationResponseDTO<AddressValidity_Response>> {
-        return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest);
+        return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest!);
     }
 
     /**

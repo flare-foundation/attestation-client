@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-import { BtcTransaction, ChainType, prefix0x, toBN, toHex, toHex32Bytes } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, MCC, prefix0x, toBN, toHex32Bytes } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -8,16 +8,17 @@ import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
-import { toNumber } from "web3-utils";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBTC0 } from "../../src/entity/indexer/dbTransaction";
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { AttestationRequest, MIC_SALT } from "../../src/verification/attestation-types/attestation-types";
 import { toHex as toHexPad } from "../../src/verification/attestation-types/attestation-types-helpers";
 
-import { getSourceName } from "../../src/verification/sources/sources";
+import { ethers } from "ethers";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
+import { EncodedRequestBody } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
+import { VerifierBtcServerModule } from "../../src/servers/verifier-server/src/verifier-btc-server.module";
 import {
   addressOnVout,
   firstAddressVin,
@@ -33,10 +34,7 @@ import {
 } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
 import { sendToVerifier } from "./utils/server-test-utils";
-import { VerifierBtcServerModule } from "../../src/servers/verifier-server/src/verifier-btc-server.module";
-import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
-import { ethers } from "ethers";
-import { EncodedRequestBody } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
+import { MIC_SALT } from "../../src/external-libs/utils";
 
 chai.use(chaiAsPromised);
 
@@ -53,7 +51,7 @@ const TXS_IN_BLOCK = 10;
 const BLOCK_QUERY_WINDOW = 40;
 const API_KEY = "123456";
 
-describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__filename)})`, () => {
+describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFile(__filename)})`, () => {
   let app: INestApplication;
   let configurationService: VerifierConfigurationService;
   let entityManager: EntityManager;
@@ -65,7 +63,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
   before(async () => {
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
     process.env.NODE_ENV = "development";
-    process.env.VERIFIER_TYPE = getSourceName(CHAIN_TYPE).toLowerCase();
+    process.env.VERIFIER_TYPE = MCC.getChainTypeName(CHAIN_TYPE).toLowerCase();
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     process.env.TEST_CREDENTIALS = "1";
 
@@ -436,7 +434,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
         selectedTransaction.timestamp - 2,
         receivingAddress,
         prefix0x(selectedTransaction.paymentReference),
-        receivedAmount.add(toBN(1))
+        receivedAmount.add(toBN(1)).toString()
       );
 
       let attestationRequest = {
@@ -470,7 +468,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
         selectedTransaction.timestamp + 2,
         receivingAddress,
         prefix0x(selectedTransaction.paymentReference),
-        receivedAmount
+        receivedAmount.toString()
       );
 
       expect(() => defStore.encodeRequest(request)).to.throw();
@@ -478,7 +476,7 @@ describe(`Test ${getSourceName(CHAIN_TYPE)} verifier server (${getTestFile(__fil
 
     // it(`Should return correct supported source and types`, async function () {
     //   let processor = app.get("VERIFIER_PROCESSOR") as VerifierProcessor;
-    //   assert(processor.supportedSource() === getSourceName(CHAIN_TYPE).toUpperCase(), `Supported source should be ${getSourceName(CHAIN_TYPE).toUpperCase()}`);
+    //   assert(processor.supportedSource() === MCC.getChainTypeName(CHAIN_TYPE).toUpperCase(), `Supported source should be ${MCC.getChainTypeName(CHAIN_TYPE).toUpperCase()}`);
     //   let supported = processor.supportedAttestationTypes();
     //   assert(supported.indexOf("Payment") >= 0, "Payment should be supported");
     //   assert(supported.indexOf("BalanceDecreasingTransaction") >= 0, "BalanceDecreasingTransaction should be supported");

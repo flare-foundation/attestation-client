@@ -1,14 +1,12 @@
 import axios from "axios";
 import { Attestation } from "../../attester/Attestation";
+import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse } from "../../external-libs/AttestationResponse";
 import { retry } from "../../utils/helpers/promiseTimeout";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
-import { AttestationRequest, AttestationTypeScheme } from "../attestation-types/attestation-types";
-import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
-import { getAttestationTypeName } from "../generated/attestation-types-enum";
-import { getSourceName } from "../sources/sources";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
+import { EncodedRequestBody } from "../../servers/verifier-server/src/dtos/generic/generic.dto";
 const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;
@@ -103,7 +101,7 @@ export class VerifierRouter {
    * configurations are read and set and there are no double setting of a specific configuration for
    * a pair of (sourceName, attestationTypeName)
    */
-  public async initialize(config: VerifierRouteConfig, definitions: AttestationTypeScheme[], logger?: AttLogger) {
+  public async initialize(config: VerifierRouteConfig, dataStore: AttestationDefinitionStore, logger?: AttLogger) {
     if (this._initialized) {
       throw new Error("Already initialized");
     }
@@ -116,10 +114,9 @@ export class VerifierRouter {
     this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>(); //different type as promised
 
     // set up all possible routes
-    for (let definition of definitions) {
+    for (let definition of dataStore.definitions.values()) {
       let attestationTypeName = definition.name;
-      for (let source of definition.supportedSources) {
-        let sourceName = getSourceName(source);
+      for (let sourceName of definition.supported.split(",").map(x => x.trim())) {
         let tmp = this.routeMap.get(sourceName);
         if (!tmp) {
           tmp = new Map<string, VerifierAttestationTypeRouteConfig>();
@@ -164,10 +161,9 @@ export class VerifierRouter {
 
     // Check if everything is configured
     if (process.env.REQUIRE_ALL_ROUTES_CONFIGURED) {
-      for (let definition of definitions) {
+      for (let definition of dataStore.definitions.values()) {
         let attestationTypeName = definition.name;
-        for (let source of definition.supportedSources) {
-          let sourceName = getSourceName(source);
+        for (let sourceName of definition.supported.split(",").map(x => x.trim())) {
           let sourceMap = this.routeMap.get(sourceName);
           if (sourceMap.get(definition.name) === EMPTY_VERIFIER_ROUTE) {
             throw new Error(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
@@ -185,10 +181,7 @@ export class VerifierRouter {
    * @returns
    */
   private getRoute(attestation: Attestation): VerifierRoute | null {
-    let { attestationType, sourceId } = getAttestationTypeAndSource(attestation.data.request);
-    let attestationTypeName = getAttestationTypeName(attestationType);
-    let sourceName = getSourceName(sourceId);
-    let route = this.getRouteEntry(sourceName, attestationTypeName);
+    let route = this.getRouteEntry(attestation.data.sourceId, attestation.data.type);
     if (route === EMPTY_VERIFIER_ROUTE) {
       return null;
     }
@@ -212,8 +205,8 @@ export class VerifierRouter {
     let route = this.getRoute(attestation);
     if (route) {
       const attestationRequest = {
-        request: attestation.data.request,
-      } as AttestationRequest;
+        abiEncodedRequest: attestation.data.request,
+      } as EncodedRequestBody;
 
       // Can throw exception
       const resp = await retry(

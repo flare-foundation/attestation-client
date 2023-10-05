@@ -1,12 +1,11 @@
-import { expect, assert } from "chai";
+import { assert, expect } from "chai";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationData } from "../../src/attester/AttestationData";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
-import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { createBlankAtRequestEvent } from "./utils/createEvents";
-import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
+import { ethers } from "ethers";
 
 describe(`Attestation Data (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -15,7 +14,7 @@ describe(`Attestation Data (${getTestFile(__filename)})`, function () {
 
   before(async function () {
     defStore = new AttestationDefinitionStore("configs/type-definitions");
-    const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.XRP, 1, "0xFakeMIC", "123", "0xfakeId");
+    const event = createBlankAtRequestEvent(defStore, "Payment", "XRP", 1, ethers.zeroPadBytes("0x0123aa", 32), "123", ethers.zeroPadBytes("0x1d1d1d", 32));
     attData = new AttestationData(event);
   });
 

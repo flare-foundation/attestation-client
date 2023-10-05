@@ -2,13 +2,12 @@ import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
-import { ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
+import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
 import { ReferencedPaymentNonexistence_Request } from "../../servers/verifier-server/src/dtos/attestation-types/ReferencedPaymentNonexistence.dto";
 import { verifyReferencedPaymentNonExistence } from "../../servers/verifier-server/src/verification/generic-chain-verifications";
 import { AttLogger } from "../../utils/logging/logger";
-import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { SourceId, sourceIdToBytes32 } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
@@ -29,7 +28,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   logger: AttLogger,
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
-  sourceId: SourceId,
+  sourceId: string,
   TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType,
   client?: MccClient,
@@ -86,7 +85,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   // let destinationAmounts = randomTransaction.
   const request = {
     attestationType: encodeAttestationName("ReferencedPaymentNonexistence"),
-    sourceId: sourceIdToBytes32(sourceId as unknown as SourceId),
+    sourceId,
     messageIntegrityCode: ZERO_BYTES_32,
     requestBody: {
       minimalBlockNumber: (deadlineBlockNumber.toNumber() - queryWindow).toString(),

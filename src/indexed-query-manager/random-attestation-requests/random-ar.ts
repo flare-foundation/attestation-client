@@ -1,20 +1,15 @@
 import { BtcTransaction, DogeTransaction, MccClient, XrpTransaction } from "@flarenetwork/mcc";
-import { Attestation } from "../../attester/Attestation";
-import { AttestationData } from "../../attester/AttestationData";
 import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { getUnixEpochTimestamp } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
-import { AttestationType } from "../../verification/generated/attestation-types-enum";
-import { SourceId } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 import { prepareRandomizedRequestPayment } from "./random-ar-00001-payment";
 import { prepareRandomizedRequestBalanceDecreasingTransaction } from "./random-ar-00002-balance-decreasing-transaction";
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "./random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "./random-ar-00004-referenced-payment-nonexistence";
 import { RandomDBIterator, fetchRandomConfirmedBlocks, fetchRandomTransactions } from "./random-query";
-import { ARBase } from "../../external-libs/interfaces";
-import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 
 /////////////////////////////////////////////////////////////////
 // Helper functions for generating random attestation requests
@@ -26,19 +21,19 @@ export async function getRandomAttestationRequest(
   logger: AttLogger,
   randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>,
   indexedQueryManager: IndexedQueryManager,
-  sourceId: SourceId,
+  sourceId: string,
   client?: MccClient
 ) {
   let TransactionClass: new (...args: any[]) => any;
 
   switch(sourceId) {
-    case SourceId.BTC:
+    case "BTC":
       TransactionClass = BtcTransaction;
       break;
-    case SourceId.DOGE:
+    case "DOGE":
       TransactionClass = DogeTransaction;
       break;
-    case SourceId.XRP:
+    case "XRP":
       TransactionClass = XrpTransaction;
       break;
     default:
@@ -53,13 +48,13 @@ export async function getRandomAttestationRequest(
   const txOrBlock = await generator.next();
 
   switch (attestationType) {
-    case AttestationType.Payment:
+    case "Payment":
       return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
-    case AttestationType.BalanceDecreasingTransaction:
+    case "BalanceDecreasingTransaction":
       return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
-    case AttestationType.ConfirmedBlockHeightExists:
+    case "ConfirmedBlockHeightExists":
       return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as DBBlockBase, sourceId, TransactionClass, undefined, client);
-    case AttestationType.ReferencedPaymentNonexistence:
+    case "ReferencedPaymentNonexistence":
       return prepareRandomizedRequestReferencedPaymentNonexistence(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
     default:
       throw new Error("Invalid attestation type");
@@ -163,25 +158,25 @@ export async function prepareRandomGenerators(iqm: IndexedQueryManager, batchSiz
 
 export const GENERATORS_FOR_ATTESTATION_TYPES = [
   {
-    type: AttestationType.Payment,
+    type: "Payment",
     generatorTypes: [TxOrBlockGeneratorType.TxNativePayment, TxOrBlockGeneratorType.TxNativeReferencedPayment],
   },
   {
-    type: AttestationType.BalanceDecreasingTransaction,
+    type: "BalanceDecreasingTransaction",
     generatorTypes: [TxOrBlockGeneratorType.TxGeneral],
   },
   {
-    type: AttestationType.ConfirmedBlockHeightExists,
+    type: "ConfirmedBlockHeightExists",
     generatorTypes: [TxOrBlockGeneratorType.BlockConfirmed],
   },
   {
-    type: AttestationType.ReferencedPaymentNonexistence,
+    type: "ReferencedPaymentNonexistence",
     generatorTypes: [TxOrBlockGeneratorType.TxReferenced],
   },
 ];
 
 export function randomGeneratorTypeForAttestationType(
-  attestationType: AttestationType,
+  attestationType: string,
   mp: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>
 ) {
   const genTypes = GENERATORS_FOR_ATTESTATION_TYPES.find((type) => type.type === attestationType).generatorTypes;

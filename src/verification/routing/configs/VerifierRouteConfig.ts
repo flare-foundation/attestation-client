@@ -1,5 +1,4 @@
 import { AdditionalTypeInfo, IReflection } from "../../../utils/reflection/reflection";
-import { getSourceName } from "../../sources/sources";
 import { VerifierSourceRouteConfig } from "./VerifierSourceRouteConfig";
 
 /**

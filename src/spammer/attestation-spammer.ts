@@ -5,6 +5,8 @@ import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";
+import { ARBase } from "../external-libs/interfaces";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
 import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
 import { TxOrBlockGeneratorType, getRandomAttestationRequest, prepareRandomGenerators } from "../indexed-query-manager/random-attestation-requests/random-ar";
@@ -16,13 +18,7 @@ import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { getTimeMs } from "../utils/helpers/internetTime";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
-import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
-import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
-import { ARType } from "../verification/generated/attestation-request-types";
-import { SourceId } from "../verification/sources/sources";
 import { SpammerCredentials } from "./SpammerConfiguration";
-import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";
-import { ARBase } from "../external-libs/interfaces";
 
 const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
@@ -46,7 +42,6 @@ class AttestationSpammer {
   logEvents: boolean;
 
   indexedQueryManager: IndexedQueryManager;
-  definitions: AttestationTypeScheme[];
   // attestationRoundManager: AttestationRoundManager;
   spammerCredentials: SpammerCredentials;
 
@@ -123,7 +118,6 @@ class AttestationSpammer {
 
     // eslint-disable-next-line
     this.startLogEvents();
-    this.definitions = await readAttestationTypeSchemes();
     this.logger.info(`Running spammer for ${args["chain"]}`);
 
     this.logger.info(`Sending from address ${this.web3Functions.account.address}`);
@@ -270,7 +264,7 @@ class AttestationSpammer {
           this.logger,
           this.randomGenerators,
           this.indexedQueryManager,
-          this.chainType as number as SourceId,
+          MCC.getChainTypeName(this.chainType),
           this.client
         );
 

@@ -26,7 +26,7 @@ export class BTCPaymentVerifierController {
     @HttpCode(200)
     @Post()
     async verify(@Body() body: EncodedRequestBody): Promise<AttestationResponseDTO<Payment_Response>> {
-        return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest);
+        return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest!);
     }
 
     /**

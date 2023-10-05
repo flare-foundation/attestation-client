@@ -10,13 +10,13 @@ import waitOn from "wait-on";
 import Web3 from "web3";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttesterClient } from "../../src/attester/AttesterClient";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
+import { Payment_Request } from "../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
 import { runBot } from "../../src/state-collector-finalizer/state-connector-validator-bot";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/web3-utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
-import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { firstAddressVin, firstAddressVout, testPaymentRequest } from "../indexed-query-manager/utils/indexerTestDataGenerator";
@@ -84,9 +84,9 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
 
   let setup: VerifierTestSetups;
   let web3: Web3;
-  let requestXRP: ARPayment;
-  let requestBTC: ARPayment;
-  let requestDoge: ARPayment;
+  let requestXRP: Payment_Request;
+  let requestBTC: Payment_Request;
+  let requestDoge: Payment_Request;
   let attestationXRP: Attestation;
   let attestationBTC: Attestation;
   let attestationDoge: Attestation;
@@ -105,8 +105,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
   const logger = getGlobalLogger();
 
   before(async function () {
-    defStore = new AttestationDefinitionStore();
-    await defStore.initialize();
+    defStore = new AttestationDefinitionStore("configs/type-definitions");
     
     // clear all test databases in './db/' folder
     await clearTestDatabases();

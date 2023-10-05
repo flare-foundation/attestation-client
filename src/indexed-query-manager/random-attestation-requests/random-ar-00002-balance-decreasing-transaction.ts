@@ -2,13 +2,12 @@ import { MccClient, ZERO_BYTES_32, prefix0x } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
-import { encodeAttestationName } from "../../external-libs/utils";
+import { MIC_SALT, encodeAttestationName } from "../../external-libs/utils";
 import { BalanceDecreasingTransaction_Request } from "../../servers/verifier-server/src/dtos/attestation-types/BalanceDecreasingTransaction.dto";
 import { verifyBalanceDecreasingTransaction } from "../../servers/verifier-server/src/verification/generic-chain-verifications";
 import { AttLogger } from "../../utils/logging/logger";
-import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { VerificationStatus, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { SourceId, sourceIdToBytes32 } from "../../verification/sources/sources";
 import { IndexedQueryManager } from "../IndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
@@ -29,7 +28,7 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   logger: AttLogger,
   indexedQueryManager: IndexedQueryManager,
   randomTransaction: DBTransactionBase,
-  sourceId: SourceId,
+  sourceId: string,
   TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomBalanceDecreasingTransactionChoiceType,
   client?: MccClient
@@ -50,7 +49,7 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   const blockNumber = randomTransaction.blockNumber;
   const request = {
     attestationType: encodeAttestationName("BalanceDecreasingTransaction"),
-    sourceId: sourceIdToBytes32(sourceId as unknown as SourceId),
+    sourceId,
     messageIntegrityCode: ZERO_BYTES_32,
     requestBody: {
       transactionId: id,
@@ -62,9 +61,9 @@ export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   }
   try {
     let response = await verifyBalanceDecreasingTransaction(TransactionClass, request, indexedQueryManager, client);
-    if (response.status === "OK") {
+    if (response.status === VerificationStatus.OK) {
       request.messageIntegrityCode = defStore.attestationResponseHash(response.response, MIC_SALT);
-      if (sourceId === SourceId.XRP) {
+      if (sourceId === "XRP") {
         request.requestBody.sourceAddressIndicator = response.response.responseBody.sourceAddressHash;
       }
       logger.info(`Request augmented correctly (BalanceDecreasingTransaction)`);

@@ -1,14 +1,16 @@
-import { ChainType, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
+import { ChainType, MCC, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
 import fs from "fs";
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
 import { DBBlockBase } from "../../../src/entity/indexer/dbBlock";
 import { DBState } from "../../../src/entity/indexer/dbState";
 import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
-import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
-import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
-import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
-import { SourceId, getSourceName, sourceIdToBytes32 } from "../../../src/verification/sources/sources";
+import { AttestationDefinitionStore } from "../../../src/external-libs/AttestationDefinitionStore";
+import { MIC_SALT, encodeAttestationName } from "../../../src/external-libs/utils";
+import { BalanceDecreasingTransaction_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/BalanceDecreasingTransaction.dto";
+import { ConfirmedBlockHeightExists_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { Payment_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
+import { ReferencedPaymentNonexistence_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ReferencedPaymentNonexistence.dto";
 import {
   responseBalanceDecreasingTransaction,
   responseConfirmedBlockHeightExists,
@@ -17,13 +19,8 @@ import {
 } from "../../../src/servers/verifier-server/src/verification/generic-chain-verifications";
 import { MccTransactionType } from "../../../src/servers/verifier-server/src/verification/verification-utils";
 import { compressBin } from "../../../src/utils/compression/compression";
-import { Payment_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
-import { MIC_SALT, encodeAttestationName } from "../../../src/external-libs/utils";
-import { AttestationDefinitionStore } from "../../../src/external-libs/AttestationDefinitionStore";
-import { BalanceDecreasingTransaction_Request, BalanceDecreasingTransaction_RequestBody } from "../../../src/servers/verifier-server/src/dtos/attestation-types/BalanceDecreasingTransaction.dto";
-import { ConfirmedBlockHeightExists_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
-import { NumberLike } from "../../../src/verification/attestation-types/attestation-types";
-import { ReferencedPaymentNonexistence_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ReferencedPaymentNonexistence.dto";
+import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
+import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
 
 const TEST_DATA_PATH = "test/indexed-query-manager/test-data";
 
@@ -228,7 +225,7 @@ export async function generateTestIndexerDB(
     await manager.save(dbBlock);
   }
   let stateEntries: DBState[] = [];
-  let prefixName = getSourceName(chainType).toUpperCase();
+  let prefixName = MCC.getChainTypeName(chainType);
   let dbState = new DBState();
   dbState.name = `${prefixName}_N`;
   dbState.valueNumber = lastConfirmedBlock;
@@ -258,7 +255,7 @@ export async function generateTestIndexerDB(
 }
 
 function getChainT(chainType: ChainType) {
-  return `${getSourceName(chainType)}_T`;
+  return `${MCC.getChainTypeName(chainType)}_T`;
 }
 
 export async function snapshotTimestampT(manager: EntityManager, chainType: ChainType) {
@@ -362,7 +359,7 @@ export async function testPaymentRequest(
 ) {
   const request = {
     attestationType: encodeAttestationName("Payment"),
-    sourceId: sourceIdToBytes32(chainType as unknown as SourceId),
+    sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     requestBody: {
       transactionId: prefix0x(dbTransaction.transactionId),
@@ -388,7 +385,7 @@ export async function testBalanceDecreasingTransactionRequest(
 ) {
   const request = {
     attestationType: encodeAttestationName("BalanceDecreasingTransaction"),
-    sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
+    sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     requestBody: {
       transactionId: prefix0x(dbTransaction.transactionId),
@@ -414,7 +411,7 @@ export async function testConfirmedBlockHeightExistsRequest(
 ) {
   const request = {
     attestationType: encodeAttestationName("ConfirmedBlockHeightExists"),
-    sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
+    sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     requestBody: {
       blockNumber: dbBlock.blockNumber.toString(),
@@ -441,12 +438,12 @@ export async function testReferencedPaymentNonexistenceRequest(
   deadlineTimestamp: number,
   destinationAddress: string,
   paymentReference: string,
-  amount: NumberLike
+  amount: string | number
 ) {
 
   const request = {
     attestationType: encodeAttestationName("ReferencedPaymentNonexistence"),
-    sourceId:  sourceIdToBytes32(chainType as unknown as SourceId),
+    sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
     requestBody: {
       minimalBlockNumber: lowerBoundaryBlock.blockNumber.toString(),
